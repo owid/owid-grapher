@@ -17,10 +17,18 @@ describe("chart state summary", () => {
         expect(describeChartState("?v=1")).toBeUndefined()
     })
 
-    it("names the selected entities", () => {
+    it("names the selected entities rather than listing their codes", () => {
         expect(describeChartState("?country=~NGA~IND")).toBe(
-            "Selected: NGA, IND."
+            "Selected: Nigeria, India."
         )
+    })
+
+    it("keeps entities that have no code as they are", () => {
+        expect(
+            describeChartState(
+                `?country=~NGA~${encodeURIComponent("Africa (UN)")}`
+            )
+        ).toBe("Selected: Nigeria, Africa (UN).")
     })
 
     it("reads a time range and tab", () => {
@@ -144,7 +152,7 @@ describe("prompt construction", () => {
         })
         expect(out).toContain(question) // intact, not truncated
         expect(out).toContain("csvType=full") // nothing shed
-        expect(out).toContain("Selected: NGA, IND.")
+        expect(out).toContain("Selected: Nigeria, India.")
         expect(encodeURIComponent(out).length).toBeLessThanOrEqual(3000)
     })
 

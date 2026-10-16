@@ -1,7 +1,13 @@
-// Ask-AI demand probe. Rendered under the chart on data pages when the
-// ?askai=v2|v3|v5 query param is present. See the brief in the analytics repo:
+// Ask-AI demand probe (experiment exp-ask-ai-v1), under the chart on data
+// pages. See the brief in the analytics repo:
 // experiments/briefs/ask_ai_button_20260828
+//
+// The baked HTML is the same for every visitor, so the arm is applied here
+// rather than in React: the edge function puts the visitor's arm on <body>
+// before any JS runs, and that class shows the block. ?askai=<arm> renders
+// the block client-side with .ask-ai--forced, which wins over the body class.
 .ask-ai {
+    display: none;
     margin: 24px 0 32px;
     padding: 24px;
     background-color: $blue-5;
@@ -11,6 +17,17 @@
         padding: 16px;
         margin: 16px 0 24px;
     }
+}
+
+.exp-ask-ai-v1--v3 .ask-ai,
+.exp-ask-ai-v1--v5 .ask-ai,
+.ask-ai.ask-ai--forced {
+    display: block;
+}
+
+// Presets are v5 only. A forced arm renders them (or not) itself.
+.exp-ask-ai-v1--v3 .ask-ai:not(.ask-ai--forced) .ask-ai__presets {
+    display: none;
 }
 
 .ask-ai__header {

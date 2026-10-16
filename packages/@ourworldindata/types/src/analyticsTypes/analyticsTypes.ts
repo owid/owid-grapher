@@ -248,10 +248,11 @@ export interface SiteStaticVizDownloadParams {
     eventContext?: string
 }
 
-// Ask-AI probe (data page). See experiments/briefs/ask_ai_button_20260828 in
-// the analytics repo. Arms match the design canvas: v2 = framed buttons only,
-// v3 = free-text box, v5 = presets that fill an editable box.
-export type AskAiArm = "v2" | "v3" | "v5"
+// Ask-AI probe (data page), run as the exp-ask-ai-v1 experiment. See
+// experiments/briefs/ask_ai_button_20260828 in the analytics repo. Arms match
+// the design canvas: control = no block, v3 = free-text box, v5 = presets
+// that fill an editable box.
+export type AskAiArm = "control" | "v3" | "v5"
 
 export type AskAiEngine = "claude" | "chatgpt"
 
@@ -260,7 +261,11 @@ export type AskAiPromptSource = "default" | "preset" | "freeform"
 
 export type SiteAskAiParams =
     | {
-          /** Always 'ask_ai_show' for this event */
+          /**
+           * Always 'ask_ai_show' for this event: the exposure. Logged for
+           * control too, where nothing is rendered, so each arm has a
+           * denominator.
+           */
           eventAction: "ask_ai_show"
           /** Which arm the visitor was shown */
           askAiArm: AskAiArm

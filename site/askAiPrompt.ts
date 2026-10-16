@@ -1,4 +1,5 @@
 import type { AskAiArm, AskAiEngine } from "@ourworldindata/types"
+import { getRegionByCode } from "@ourworldindata/utils"
 
 /**
  * The prompt always points at the public site, never at the current
@@ -9,15 +10,21 @@ import type { AskAiArm, AskAiEngine } from "@ourworldindata/types"
  */
 export const OWID_PUBLIC_GRAPHER_URL = "https://ourworldindata.org/grapher"
 
-/** Query param that turns the probe on: ?askai=v2 | v3 | v5 */
+/**
+ * Query param that forces an arm, overriding the experiment assignment:
+ * ?askai=control | v3 | v5. Lets anyone see an arm on staging or prod
+ * without being assigned to it.
+ */
 export const ASK_AI_PARAM = "askai"
 
-const ARMS: AskAiArm[] = ["v2", "v3", "v5"]
+const ARMS: AskAiArm[] = ["control", "v3", "v5"]
 
-export const parseArm = (queryStr: string): AskAiArm | undefined => {
-    const value = new URLSearchParams(queryStr).get(ASK_AI_PARAM)
-    return ARMS.find((arm) => arm === value)
-}
+export const parseArm = (
+    value: string | null | undefined
+): AskAiArm | undefined => ARMS.find((arm) => arm === value)
+
+export const parseArmOverride = (queryStr: string): AskAiArm | undefined =>
+    parseArm(new URLSearchParams(queryStr).get(ASK_AI_PARAM))
 
 export const ENGINES: { id: AskAiEngine; label: string }[] = [
     { id: "claude", label: "Ask Claude" },
@@ -237,10 +244,14 @@ export const describeChartState = (queryStr: string): string | undefined => {
 
     const country = params.get("country")
     if (country) {
+        // The URL carries codes (NGA), which an assistant may misread, so
+        // name them. Custom entities like "Africa (UN)" are already names
+        // and aren't in the regions table, so they pass through unchanged.
         const entities = country
             .split("~")
             .map((c) => decodeURIComponent(c).trim())
             .filter(Boolean)
+            .map((c) => getRegionByCode(c)?.name ?? c)
         if (entities.length) parts.push(`Selected: ${entities.join(", ")}.`)
     }
 
