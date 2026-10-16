@@ -131,6 +131,7 @@ export default function AboutThisData({
                             <TopicNewsletterCard
                                 pageType="chart"
                                 topicArea={topicArea}
+                                placement="about_this_data"
                                 className="topic-newsletter-card--key-info-left topic-newsletter-card--horizontal"
                             />
                         )}
@@ -144,6 +145,7 @@ export default function AboutThisData({
                             <TopicNewsletterCard
                                 pageType="chart"
                                 topicArea={topicArea}
+                                placement="about_this_data"
                                 variant="narrow"
                                 className="topic-newsletter-card--key-info"
                             />
@@ -176,6 +178,7 @@ export default function AboutThisData({
                     <TopicNewsletterCard
                         pageType="chart"
                         topicArea={topicArea}
+                        placement="about_this_data"
                         variant="narrow"
                         className="topic-newsletter-card--about-this-data col-start-10 span-cols-3 col-lg-start-10 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
                     />
