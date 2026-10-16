@@ -176,6 +176,18 @@
                         }
                     }
 
+                    &:has(> .definition:empty) {
+                        padding: 4px 0;
+                    }
+
+                    .detail {
+                        color: $grey;
+                        font-size: 12px;
+                        line-height: 15px;
+                        letter-spacing: 0.01em;
+                        font-weight: $medium;
+                    }
+
                     // Hide the variable name and use just the unit (if present) as a label
                     &.variable--no-name .definition {
                         .name {
