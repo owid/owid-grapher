@@ -28,6 +28,8 @@ import {
     Tippy,
     excludeUndefined,
     FuzzySearch,
+    getUserNavigatorLanguagesNonEnglish,
+    getRegionAlternativeNames,
 } from "@ourworldindata/utils"
 import {
     DEFAULT_GRAPHER_BOUNDS,
@@ -698,8 +700,13 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     @computed get fuzzy(): FuzzySearch<string> {
-        return FuzzySearch.withKey(
+        const langs = getUserNavigatorLanguagesNonEnglish()
+        return FuzzySearch.withKeyArray(
             this.availableEntityNames,
+            (entityName) => [
+                entityName,
+                ...(getRegionAlternativeNames(entityName, langs) ?? []),
+            ],
             (entityName) => entityName
         )
     }
