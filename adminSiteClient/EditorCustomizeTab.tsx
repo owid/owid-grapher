@@ -243,7 +243,9 @@ const SORT_BY_DISPLAY_ORDER: SortBy[] = [
 ]
 
 @observer
-class SortOrderSection extends React.Component<{ editor: ConfigEditor }> {
+export class SortOrderSection extends React.Component<{
+    editor: ConfigEditor
+}> {
     constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this)
