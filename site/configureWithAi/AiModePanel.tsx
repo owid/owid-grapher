@@ -121,8 +121,9 @@ export function AiModePanel({
         }
     }
 
-    const showIntro =
-        !current && history.length === 0 && request.status === "idle"
+    // Also shown after going back to the chart as it was opened; History
+    // stays below it
+    const showIntro = !current && request.status === "idle"
 
     return (
         <div className="configure-with-ai__ai">
