@@ -206,11 +206,6 @@ export function BespokeBundlePage({
                     titleFor={titleFor}
                 />
             )}
-            <p className="gdocs-ref-bespoke__block-props">
-                Block properties such as <code>size</code> and{" "}
-                <code>fallbackImageFilename</code> are documented on the{" "}
-                <Link to={COMPONENT_PAGE_PATH}>Bespoke Component</Link> page.
-            </p>
             {/* Keyed so the expanded tail and each carousel's slide don't
                 carry over to the next bundle */}
             <BundleVariants
@@ -223,16 +218,18 @@ export function BespokeBundlePage({
                 bundle={bundle}
                 usage={bundleUsage}
                 titleFor={titleFor}
+                notes={
+                    bundle.prose.notes ? (
+                        <GdocsReferenceMarkdown
+                            body={bundle.prose.notes}
+                            section="notes"
+                            examples={bundle.examples}
+                            previewPathForExample={previewPathForExample}
+                            titleFor={titleFor}
+                        />
+                    ) : undefined
+                }
             />
-            {bundle.prose.notes && (
-                <GdocsReferenceMarkdown
-                    body={bundle.prose.notes}
-                    section="notes"
-                    examples={bundle.examples}
-                    previewPathForExample={previewPathForExample}
-                    titleFor={titleFor}
-                />
-            )}
             <footer className="gdocs-ref__detail-footer">
                 <a
                     href={githubEditUrl(bundle.sidecarFile ?? bundle.entryFile)}
@@ -486,99 +483,133 @@ function ConfigTypeCell({
     )
 }
 
-/** Every config key of the bundle, in CONFIG_SPEC order, with adoption. */
+/**
+ * Every config key of the bundle, in CONFIG_SPEC order, with adoption. The
+ * docs.md notes render underneath, as on component pages.
+ */
 function BundleConfigTable({
     bundle,
     usage,
     titleFor,
+    notes,
 }: {
     bundle: BundleReference
     usage: BundleUsage | undefined | null
     titleFor?: TitleFor
+    notes?: React.ReactNode
 }): React.ReactElement {
     const uses = usage?.uses ?? 0
     const showAdoption = uses > 0
+    const hasConfig = bundle.config.length > 0
     return (
         <section className="gdocs-ref__section">
             <h2 className="gdocs-ref__section-title">Config</h2>
-            {bundle.config.length === 0 ? (
+            {!hasConfig && (
                 <p className="gdocs-ref__note">
                     This bundle has no config keys.
                 </p>
-            ) : (
+            )}
+            {(hasConfig || notes) && (
                 <div className="gdocs-ref-live__props">
-                    <div className="gdocs-ref-live__props-header">
-                        <span className="gdocs-ref-live__props-title">
-                            Config keys
-                        </span>
-                        <span className="gdocs-ref-live__props-source">
-                            derived from <code>CONFIG_SPEC</code> · set them in
-                            the block's <code>{"{.config}"}</code>
-                        </span>
-                    </div>
-                    <div
-                        className="gdocs-ref-live__props-scroll"
-                        role="region"
-                        aria-label="Config keys"
-                        tabIndex={0}
-                    >
-                        <table className="gdocs-ref-live__props-table">
-                            <thead>
-                                <tr>
-                                    <th>Key</th>
-                                    <th>Type</th>
-                                    <th>Description</th>
-                                    {showAdoption && <th>Adoption</th>}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {bundle.config.map((field) => {
-                                    const adoption =
-                                        usage?.configAdoption[field.name] ?? 0
-                                    return (
-                                        <tr key={field.name}>
-                                            <td>
-                                                <code>{field.name}</code>
-                                            </td>
-                                            <td>
-                                                <ConfigTypeCell field={field} />
-                                            </td>
-                                            <td className="gdocs-ref-live__props-effect">
-                                                <InlineMarkdownText
-                                                    text={field.description}
-                                                    titleFor={titleFor}
-                                                />
-                                                {field.type === "custom" &&
-                                                    field.format && (
-                                                        <span className="gdocs-ref-bespoke__config-format">
-                                                            Format:{" "}
-                                                            <InlineMarkdownText
-                                                                text={
-                                                                    field.format
-                                                                }
-                                                                titleFor={
-                                                                    titleFor
-                                                                }
-                                                            />
-                                                        </span>
-                                                    )}
-                                            </td>
-                                            {showAdoption && (
-                                                <td
-                                                    className="gdocs-ref-bespoke__config-adoption"
-                                                    title={`Set in ${adoption} of ${uses} published uses`}
-                                                >
-                                                    {adoption} of {uses}
-                                                </td>
-                                            )}
+                    {hasConfig && (
+                        <>
+                            <div className="gdocs-ref-live__props-header">
+                                <span className="gdocs-ref-live__props-title">
+                                    Config keys
+                                </span>
+                                <span className="gdocs-ref-live__props-source">
+                                    derived from <code>CONFIG_SPEC</code> · set
+                                    them in the block's{" "}
+                                    <code>{"{.config}"}</code>
+                                </span>
+                            </div>
+                            <div
+                                className="gdocs-ref-live__props-scroll"
+                                role="region"
+                                aria-label="Config keys"
+                                tabIndex={0}
+                            >
+                                <table className="gdocs-ref-live__props-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Key</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            {showAdoption && <th>Adoption</th>}
                                         </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+                                    </thead>
+                                    <tbody>
+                                        {bundle.config.map((field) => {
+                                            const adoption =
+                                                usage?.configAdoption[
+                                                    field.name
+                                                ] ?? 0
+                                            return (
+                                                <tr key={field.name}>
+                                                    <td>
+                                                        <code>
+                                                            {field.name}
+                                                        </code>
+                                                    </td>
+                                                    <td>
+                                                        <ConfigTypeCell
+                                                            field={field}
+                                                        />
+                                                    </td>
+                                                    <td className="gdocs-ref-live__props-effect">
+                                                        <InlineMarkdownText
+                                                            text={
+                                                                field.description
+                                                            }
+                                                            titleFor={titleFor}
+                                                        />
+                                                        {field.type ===
+                                                            "custom" &&
+                                                            field.format && (
+                                                                <span className="gdocs-ref-bespoke__config-format">
+                                                                    Format:{" "}
+                                                                    <InlineMarkdownText
+                                                                        text={
+                                                                            field.format
+                                                                        }
+                                                                        titleFor={
+                                                                            titleFor
+                                                                        }
+                                                                    />
+                                                                </span>
+                                                            )}
+                                                    </td>
+                                                    {showAdoption && (
+                                                        <td
+                                                            className="gdocs-ref-bespoke__config-adoption"
+                                                            title={`Set in ${adoption} of ${uses} published uses`}
+                                                        >
+                                                            {adoption} of {uses}
+                                                        </td>
+                                                    )}
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
+                    )}
+                    {notes && (
+                        <div className="gdocs-ref-live__props-notes">
+                            <div className="gdocs-ref-live__props-notes-title">
+                                Authored notes
+                            </div>
+                            {notes}
+                        </div>
+                    )}
                 </div>
             )}
+            <p className="gdocs-ref-bespoke__block-props">
+                Block properties such as <code>size</code> and{" "}
+                <code>fallbackImageFilename</code> are documented on the{" "}
+                <Link to={COMPONENT_PAGE_PATH}>Bespoke Component</Link> page.
+            </p>
         </section>
     )
 }
