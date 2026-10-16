@@ -18,7 +18,11 @@ describe(describeInvalidRequest, () => {
 
     it("passes on the message of a reader-facing refinement", () => {
         expect(
-            reject({ email: "user@example.com", subscribeToOwidBrief: false })
+            reject({
+                email: "user@example.com",
+                captchaToken: "token",
+                subscribeToOwidBrief: false,
+            })
         ).toBe("Select email notifications or the OWID Brief newsletter")
     })
 
