@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest"
 import {
     GrapherState,
     GrapherProgrammaticInterface,
+    SwimlaneChartState,
 } from "@ourworldindata/grapher"
 import {
     FacetStrategy,
@@ -9,11 +10,13 @@ import {
     EntitySelectionMode,
     GRAPHER_CHART_TYPES,
     ColorSchemeName,
+    ColumnTypeNames,
 } from "@ourworldindata/types"
 import {
     SynthesizeGDPTable,
     SampleColumnSlugs,
     SynthesizeFruitTable,
+    OwidTable,
 } from "@ourworldindata/core-table"
 import { constructSearchResultDataTableContent } from "./constructSearchResultDataTableContent.js"
 
@@ -697,6 +700,184 @@ describe("constructSearchResultDataTableContent for WorldMap", () => {
                 striped: "no-data",
                 time: "2009",
             },
+        ])
+    })
+})
+
+describe("constructSearchResultDataTableContent for Swimlane", () => {
+    function createSwimlaneGrapherState(
+        rows: { entityName: string; time: number; status: string }[],
+        overrides: GrapherProgrammaticInterface = {}
+    ): GrapherState {
+        const table = new OwidTable(rows, [
+            { slug: "time", type: ColumnTypeNames.Year },
+            { slug: "status", type: ColumnTypeNames.String },
+        ])
+
+        return new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.Swimlane],
+            selectedEntityNames: table.availableEntityNames,
+            dimensions: [
+                {
+                    slug: "status",
+                    property: DimensionProperty.y,
+                    variableId: "status" as any,
+                },
+            ],
+            ...overrides,
+        })
+    }
+
+    const rows = [
+        { entityName: "France", time: 2000, status: "A" },
+        { entityName: "France", time: 2001, status: "B" },
+        { entityName: "Germany", time: 2000, status: "B" },
+        { entityName: "Germany", time: 2001, status: "B" },
+        { entityName: "Italy", time: 2000, status: "A" },
+        { entityName: "Italy", time: 2001, status: "A" },
+    ]
+
+    it("shows each lane's last category and its color", () => {
+        const grapherState = createSwimlaneGrapherState(rows)
+        const { colorScale } = grapherState.chartState as SwimlaneChartState
+
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
+
+        expect(dataTable!.rows).toMatchObject([
+            { label: "France", value: "B", color: colorScale.getColor("B") },
+            { label: "Germany", value: "B", color: colorScale.getColor("B") },
+            { label: "Italy", value: "A", color: colorScale.getColor("A") },
+        ])
+    })
+
+    it("shows the last observed category when the last time has no observation", () => {
+        const grapherState = createSwimlaneGrapherState([
+            { entityName: "France", time: 2000, status: "A" },
+            { entityName: "France", time: 2001, status: "B" },
+            { entityName: "Germany", time: 2000, status: "B" },
+            { entityName: "Germany", time: 2001, status: "A" },
+            { entityName: "Italy", time: 2000, status: "A" },
+        ])
+
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
+
+        expect(dataTable!.rows).toMatchObject([
+            { label: "France", value: "B" },
+            { label: "Germany", value: "A" },
+            { label: "Italy", value: "A" },
+        ])
+    })
+
+    it("shows 'No data' for a lane without a category in view", () => {
+        const grapherState = createSwimlaneGrapherState(rows, {
+            selectedEntityNames: ["France", "Spain"],
+        })
+        const { colorScale } = grapherState.chartState as SwimlaneChartState
+
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
+
+        expect(dataTable!.rows).toMatchObject([
+            { label: "France", value: "B" },
+            {
+                label: "Spain",
+                value: "No data",
+                color: colorScale.noDataColor,
+                striped: "no-data",
+            },
+        ])
+    })
+
+    it("gives each row the time of its latest category", () => {
+        const grapherState = createSwimlaneGrapherState([
+            { entityName: "France", time: 2000, status: "A" },
+            { entityName: "France", time: 2001, status: "B" },
+            { entityName: "France", time: 2002, status: "B" },
+            { entityName: "Italy", time: 2000, status: "A" },
+            { entityName: "Italy", time: 2001, status: "B" },
+        ])
+
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
+
+        expect(dataTable!.rows).toMatchObject([
+            {
+                label: "France",
+                value: "B",
+                time: "2002",
+                timePreposition: "in",
+            },
+            { label: "Italy", value: "B", time: "2001", timePreposition: "in" },
+        ])
+    })
+
+    it("gives each row the last time in view when the timeline ends early", () => {
+        const grapherState = createSwimlaneGrapherState(
+            [
+                { entityName: "France", time: 2000, status: "A" },
+                { entityName: "France", time: 2001, status: "A" },
+                { entityName: "France", time: 2002, status: "A" },
+            ],
+            { maxTime: 2001 }
+        )
+
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
+
+        expect(dataTable!.rows).toMatchObject([
+            { label: "France", value: "A", time: "2001" },
+        ])
+    })
+
+    it("gives 'No data' rows no time", () => {
+        const grapherState = createSwimlaneGrapherState(rows, {
+            selectedEntityNames: ["France", "Spain"],
+        })
+
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
+
+        const spain = dataTable!.rows.find((row) => row.label === "Spain")
+        expect(spain).not.toHaveProperty("time")
+        expect(spain).not.toHaveProperty("timePreposition")
+    })
+
+    it("mutes the rows of entities that are not focused", () => {
+        const grapherState = createSwimlaneGrapherState(rows, {
+            focusedSeriesNames: ["Germany"],
+        })
+
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
+
+        expect(dataTable!.rows).toMatchObject([
+            { label: "France", muted: true },
+            { label: "Germany", muted: false },
+            { label: "Italy", muted: true },
+        ])
+    })
+
+    it("caps the rows at maxRows", () => {
+        const grapherState = createSwimlaneGrapherState(rows)
+
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+            maxRows: 2,
+        })
+
+        expect(dataTable!.rows.map((row) => row.label)).toEqual([
+            "France",
+            "Germany",
         ])
     })
 })
