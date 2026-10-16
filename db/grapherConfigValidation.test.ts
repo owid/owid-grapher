@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest"
+import {
+    formatGrapherSchemaUrl,
+    parseGrapherSchemaName,
+} from "@ourworldindata/utils"
 import { GrapherInterface } from "@ourworldindata/types"
 import {
     type UntypedGrapherConfig,
@@ -17,9 +21,8 @@ import {
 const latestSchemaUrl = defaultGrapherConfig.$schema
 const foreignSchemaUrl = `https://example.org/schemas/grapher-schema.${latestSchemaVersion}.json`
 
-function schemaUrlForVersion(version: string): string {
-    return `https://files.ourworldindata.org/schemas/grapher-schema.${version}.json`
-}
+const latestSchemaRevision =
+    parseGrapherSchemaName(defaultGrapherConfig.$schema ?? "")?.revision ?? 0
 
 const baseChartConfig: UntypedGrapherConfig = {
     $schema: defaultGrapherConfig.$schema,
@@ -76,12 +79,12 @@ describe(tryIngestGrapherConfig, () => {
             name: "an unknown schema version",
             config: {
                 ...baseChartConfig,
-                $schema: schemaUrlForVersion("099"),
+                $schema: formatGrapherSchemaUrl("099"),
             },
             issues: [
                 {
                     pointer: "/$schema",
-                    message: `unknown schema version ${schemaUrlForVersion("099")}; expected ${latestSchemaUrl}`,
+                    message: `unknown schema version ${formatGrapherSchemaUrl("099")}; expected ${latestSchemaUrl}`,
                 },
             ],
         },
@@ -96,10 +99,26 @@ describe(tryIngestGrapherConfig, () => {
             ],
         },
         {
+            name: "a revision newer than this build's",
+            config: {
+                ...baseChartConfig,
+                $schema: formatGrapherSchemaUrl(
+                    latestSchemaVersion,
+                    latestSchemaRevision + 1
+                ),
+            },
+            issues: [
+                {
+                    pointer: "/$schema",
+                    message: `${formatGrapherSchemaUrl(latestSchemaVersion, latestSchemaRevision + 1)} is newer than the latest ${latestSchemaUrl}`,
+                },
+            ],
+        },
+        {
             name: "a config that fails to migrate",
             config: {
                 ...baseChartConfig,
-                $schema: schemaUrlForVersion("010"),
+                $schema: formatGrapherSchemaUrl("010"),
                 dimensions: 123,
             },
             issues: [
@@ -135,21 +154,40 @@ describe(tryIngestGrapherConfig, () => {
         expect(expectRejected(config)).toEqual(issues)
     })
 
-    it("accepts a config at the latest version", () => {
-        const config = expectAccepted(baseChartConfig)
-        expect(config.$schema).toBe(latestSchemaUrl)
+    it.each([
+        {
+            name: "the latest version without a revision",
+            $schema: formatGrapherSchemaUrl(latestSchemaVersion),
+            storedSchema: formatGrapherSchemaUrl(latestSchemaVersion),
+        },
+        {
+            name: "the latest version at this build's revision",
+            $schema: formatGrapherSchemaUrl(
+                latestSchemaVersion,
+                latestSchemaRevision
+            ),
+            storedSchema: latestSchemaUrl,
+        },
+        {
+            name: "an outdated version at any revision",
+            $schema: formatGrapherSchemaUrl("010", 99),
+            storedSchema: formatGrapherSchemaUrl(latestSchemaVersion),
+        },
+    ])("accepts $name", ({ $schema, storedSchema }) => {
+        const config = expectAccepted({ ...baseChartConfig, $schema })
+        expect(config.$schema).toBe(storedSchema)
     })
 
     it("migrates an outdated config before validating it", () => {
         const config = expectAccepted({
             ...baseChartConfig,
-            $schema: schemaUrlForVersion("010"),
+            $schema: formatGrapherSchemaUrl("010"),
             dimensions: [
                 { property: "y", variableId: 1, display: { yearIsDay: true } },
             ],
         })
 
-        expect(config.$schema).toBe(latestSchemaUrl)
+        expect(config.$schema).toBe(formatGrapherSchemaUrl(latestSchemaVersion))
         expect(config.dimensions?.[0].display).toStrictEqual({
             timeInterval: "day",
         })

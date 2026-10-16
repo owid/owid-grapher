@@ -9,6 +9,7 @@ import {
     MultiDimXChartConfigsTableName,
     View,
 } from "@ourworldindata/types"
+import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import {
     catalogPath,
@@ -98,8 +99,7 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         const outdatedView = {
             ...totalView,
             config: {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                $schema: formatGrapherSchemaUrl("005"),
                 ...totalView.config,
                 // hideLegend was renamed to hideSeriesLabels in version 010
                 hideLegend: true,

@@ -1,3 +1,4 @@
+import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
 import { MigratableConfig } from "./helpers"
 
 /** Before/after pairs pinning what each migration step rewrites */
@@ -9,27 +10,23 @@ export const MIGRATION_FIXTURES: {
     {
         name: "drops selectedData",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.001.json",
+            $schema: formatGrapherSchemaUrl("001"),
             selectedData: [{ index: 0, entityId: 1 }],
             title: "Test",
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
+            $schema: formatGrapherSchemaUrl("002"),
             title: "Test",
         },
     },
     {
         name: "expands hideTitleAnnotation into hideAnnotationFieldsInTitle",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
+            $schema: formatGrapherSchemaUrl("002"),
             hideTitleAnnotation: true,
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
+            $schema: formatGrapherSchemaUrl("003"),
             hideAnnotationFieldsInTitle: {
                 entity: true,
                 time: true,
@@ -40,13 +37,11 @@ export const MIGRATION_FIXTURES: {
     {
         name: "expands a false hideTitleAnnotation",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
+            $schema: formatGrapherSchemaUrl("002"),
             hideTitleAnnotation: false,
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
+            $schema: formatGrapherSchemaUrl("003"),
             hideAnnotationFieldsInTitle: {
                 entity: false,
                 time: false,
@@ -57,85 +52,72 @@ export const MIGRATION_FIXTURES: {
     {
         name: "drops data",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
+            $schema: formatGrapherSchemaUrl("003"),
             data: { availableEntities: [] },
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+            $schema: formatGrapherSchemaUrl("004"),
         },
     },
     {
         name: "drops hideLinesOutsideTolerance",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+            $schema: formatGrapherSchemaUrl("004"),
             hideLinesOutsideTolerance: true,
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            $schema: formatGrapherSchemaUrl("005"),
         },
     },
     {
         name: "turns a non-line type into chartTypes",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            $schema: formatGrapherSchemaUrl("005"),
             type: "ScatterPlot",
             hasChartTab: true,
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+            $schema: formatGrapherSchemaUrl("006"),
             chartTypes: ["ScatterPlot"],
         },
     },
     {
         name: "turns a hidden chart tab into empty chartTypes",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            $schema: formatGrapherSchemaUrl("005"),
             type: "ScatterPlot",
             hasChartTab: false,
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+            $schema: formatGrapherSchemaUrl("006"),
             chartTypes: [],
         },
     },
     {
         name: "turns an explicit line type into chartTypes",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            $schema: formatGrapherSchemaUrl("005"),
             type: "LineChart",
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+            $schema: formatGrapherSchemaUrl("006"),
             chartTypes: ["LineChart"],
         },
     },
     {
         name: "leaves a config without a type alone",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            $schema: formatGrapherSchemaUrl("005"),
             hasChartTab: true,
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+            $schema: formatGrapherSchemaUrl("006"),
         },
     },
     {
         name: "renames map.projection to map.region",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+            $schema: formatGrapherSchemaUrl("006"),
             hasMapTab: true,
             map: {
                 projection: "Europe",
@@ -143,8 +125,7 @@ export const MIGRATION_FIXTURES: {
             },
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.007.json",
+            $schema: formatGrapherSchemaUrl("007"),
             hasMapTab: true,
             map: {
                 region: "Europe",
@@ -155,8 +136,7 @@ export const MIGRATION_FIXTURES: {
     {
         name: "folds map.colorScale.customNumericMinValue into customNumericValues",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.007.json",
+            $schema: formatGrapherSchemaUrl("007"),
             hasMapTab: true,
             map: {
                 colorScale: {
@@ -166,8 +146,7 @@ export const MIGRATION_FIXTURES: {
             },
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.008.json",
+            $schema: formatGrapherSchemaUrl("008"),
             hasMapTab: true,
             map: {
                 colorScale: {
@@ -179,16 +158,14 @@ export const MIGRATION_FIXTURES: {
     {
         name: "folds colorScale.customNumericMinValue into customNumericValues",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.007.json",
+            $schema: formatGrapherSchemaUrl("007"),
             colorScale: {
                 customNumericMinValue: 10,
                 customNumericValues: [20, 30],
             },
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.008.json",
+            $schema: formatGrapherSchemaUrl("008"),
             colorScale: {
                 customNumericValues: [10, 20, 30],
             },
@@ -197,8 +174,7 @@ export const MIGRATION_FIXTURES: {
     {
         name: "resets non-manual binningStrategy to auto and drops the bin count",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.008.json",
+            $schema: formatGrapherSchemaUrl("008"),
             map: {
                 colorScale: {
                     binningStrategy: "ckmeans",
@@ -211,8 +187,7 @@ export const MIGRATION_FIXTURES: {
             },
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            $schema: formatGrapherSchemaUrl("009"),
             map: {
                 colorScale: {
                     binningStrategy: "auto",
@@ -226,40 +201,34 @@ export const MIGRATION_FIXTURES: {
     {
         name: "renames hideLegend to hideSeriesLabels on a line chart",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            $schema: formatGrapherSchemaUrl("009"),
             hideLegend: true,
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            $schema: formatGrapherSchemaUrl("010"),
             hideSeriesLabels: true,
         },
     },
     {
         name: "carries a false hideLegend across on a line chart",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            $schema: formatGrapherSchemaUrl("009"),
             hideLegend: false,
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            $schema: formatGrapherSchemaUrl("010"),
             hideSeriesLabels: false,
         },
     },
     {
         name: "renames hideLegend even on a chart type without series labels",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            $schema: formatGrapherSchemaUrl("009"),
             chartTypes: ["ScatterPlot"],
             hideLegend: true,
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            $schema: formatGrapherSchemaUrl("010"),
             chartTypes: ["ScatterPlot"],
             hideSeriesLabels: true,
         },
@@ -267,21 +236,18 @@ export const MIGRATION_FIXTURES: {
     {
         name: "leaves a config without hideLegend alone",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            $schema: formatGrapherSchemaUrl("009"),
             title: "Test",
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            $schema: formatGrapherSchemaUrl("010"),
             title: "Test",
         },
     },
     {
         name: "replaces yearIsDay with timeInterval",
         before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            $schema: formatGrapherSchemaUrl("010"),
             dimensions: [
                 {
                     property: "y",
@@ -297,8 +263,7 @@ export const MIGRATION_FIXTURES: {
             ],
         },
         after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.011.json",
+            $schema: formatGrapherSchemaUrl("011"),
             dimensions: [
                 {
                     property: "y",
@@ -326,13 +291,11 @@ export const PATCH_STACK_FIXTURES: {
         name: "a child alongside a parent's selectedData",
         patches: [
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.001.json",
+                $schema: formatGrapherSchemaUrl("001"),
                 selectedData: [{ index: 0, entityId: 1 }],
             },
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.001.json",
+                $schema: formatGrapherSchemaUrl("001"),
                 title: "Child",
             },
         ],
@@ -341,13 +304,11 @@ export const PATCH_STACK_FIXTURES: {
         name: "a child turning an inherited hideTitleAnnotation back off",
         patches: [
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
+                $schema: formatGrapherSchemaUrl("002"),
                 hideTitleAnnotation: true,
             },
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
+                $schema: formatGrapherSchemaUrl("002"),
                 hideTitleAnnotation: false,
             },
         ],
@@ -356,13 +317,11 @@ export const PATCH_STACK_FIXTURES: {
         name: "a child alongside a parent's data",
         patches: [
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
+                $schema: formatGrapherSchemaUrl("003"),
                 data: { availableEntities: [] },
             },
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
+                $schema: formatGrapherSchemaUrl("003"),
                 title: "Child",
             },
         ],
@@ -371,13 +330,11 @@ export const PATCH_STACK_FIXTURES: {
         name: "a child alongside a parent's hideLinesOutsideTolerance",
         patches: [
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+                $schema: formatGrapherSchemaUrl("004"),
                 hideLinesOutsideTolerance: true,
             },
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+                $schema: formatGrapherSchemaUrl("004"),
                 title: "Child",
             },
         ],
@@ -388,13 +345,11 @@ export const PATCH_STACK_FIXTURES: {
             "the step reads type and hasChartTab together, and they sit in different layers",
         patches: [
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                $schema: formatGrapherSchemaUrl("005"),
                 hasChartTab: false,
             },
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                $schema: formatGrapherSchemaUrl("005"),
                 type: "ScatterPlot",
             },
         ],
@@ -403,13 +358,11 @@ export const PATCH_STACK_FIXTURES: {
         name: "a child overriding its parent's chart type",
         patches: [
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                $schema: formatGrapherSchemaUrl("005"),
                 type: "ScatterPlot",
             },
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                $schema: formatGrapherSchemaUrl("005"),
                 type: "LineChart",
             },
         ],
@@ -418,13 +371,11 @@ export const PATCH_STACK_FIXTURES: {
         name: "a child setting a map time under a parent's map projection",
         patches: [
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+                $schema: formatGrapherSchemaUrl("006"),
                 map: { projection: "Europe" },
             },
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+                $schema: formatGrapherSchemaUrl("006"),
                 map: { time: 2000 },
             },
         ],
@@ -435,13 +386,11 @@ export const PATCH_STACK_FIXTURES: {
             "the step folds customNumericMinValue into customNumericValues, and they sit in different layers",
         patches: [
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.007.json",
+                $schema: formatGrapherSchemaUrl("007"),
                 colorScale: { customNumericValues: [20, 30] },
             },
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.007.json",
+                $schema: formatGrapherSchemaUrl("007"),
                 colorScale: { customNumericMinValue: 10 },
             },
         ],
@@ -450,13 +399,11 @@ export const PATCH_STACK_FIXTURES: {
         name: "a child choosing a binning strategy for its parent's bin count",
         patches: [
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.008.json",
+                $schema: formatGrapherSchemaUrl("008"),
                 colorScale: { binningStrategyBinCount: 7 },
             },
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.008.json",
+                $schema: formatGrapherSchemaUrl("008"),
                 colorScale: { binningStrategy: "ckmeans" },
             },
         ],
@@ -465,13 +412,11 @@ export const PATCH_STACK_FIXTURES: {
         name: "a scatter plot child under a parent's hideLegend",
         patches: [
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                $schema: formatGrapherSchemaUrl("009"),
                 hideLegend: true,
             },
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                $schema: formatGrapherSchemaUrl("009"),
                 chartTypes: ["ScatterPlot"],
             },
         ],
@@ -480,13 +425,11 @@ export const PATCH_STACK_FIXTURES: {
         name: "a child turning an inherited hideLegend back off",
         patches: [
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                $schema: formatGrapherSchemaUrl("009"),
                 hideLegend: true,
             },
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                $schema: formatGrapherSchemaUrl("009"),
                 hideLegend: false,
             },
         ],
@@ -495,8 +438,7 @@ export const PATCH_STACK_FIXTURES: {
         name: "a child replacing dimensions that carry yearIsDay",
         patches: [
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+                $schema: formatGrapherSchemaUrl("010"),
                 dimensions: [
                     {
                         property: "y",
@@ -506,8 +448,7 @@ export const PATCH_STACK_FIXTURES: {
                 ],
             },
             {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+                $schema: formatGrapherSchemaUrl("010"),
                 dimensions: [
                     {
                         property: "y",
