@@ -2,7 +2,7 @@
  * @vitest-environment happy-dom
  */
 
-import { expect, it, describe, beforeAll, beforeEach } from "vitest"
+import { expect, it, describe, beforeAll, beforeEach, vi } from "vitest"
 import { render } from "@testing-library/react"
 import {
     GRAPHER_CHART_TYPES,
@@ -227,5 +227,19 @@ describe("when the table has no filter toggle", () => {
         const { container } = render(<DataTable manager={grapher} />)
         const rows = container.querySelectorAll("tbody tr:not(.title)")
         expect(rows).toHaveLength(grapher.availableEntityNames.length)
+    })
+})
+
+describe("when searching the table", () => {
+    it("matches an entity by its name in the reader's language", () => {
+        vi.spyOn(navigator, "languages", "get").mockReturnValue(["de-DE"])
+        const grapher = childMortalityGrapher()
+        grapher.dataTableConfig.search = "Island"
+        const { container } = render(<DataTable manager={grapher} />)
+        const entityNames = Array.from(
+            container.querySelectorAll("tbody td.entity"),
+            (cell) => cell.textContent
+        )
+        expect(entityNames).toEqual(["Iceland"])
     })
 })
