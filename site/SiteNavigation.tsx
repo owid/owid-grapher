@@ -190,7 +190,7 @@ export const SiteNavigation = ({
                                 dropdown={
                                     <NewsletterSignup
                                         context={
-                                            NewsletterSubscriptionContext.Floating
+                                            NewsletterSubscriptionContext.Header
                                         }
                                     />
                                 }

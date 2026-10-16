@@ -133,6 +133,7 @@ export function GdocPost({
                         postType === OwidGdocType.LinearTopicPage ? (
                             <TopicNewsletterCard
                                 topicArea={topicArea}
+                                placement="topic_page"
                                 className={cx(
                                     "topic-newsletter-card--linear-topic-page",
                                     layouts.default["subscribe-banner--center"]
