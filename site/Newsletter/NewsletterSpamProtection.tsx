@@ -1,18 +1,22 @@
-import { Turnstile } from "@marsidev/react-turnstile"
+import { Ref, useState } from "react"
+import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile"
 import { TURNSTILE_SITE_KEY } from "../../settings/clientSettings.mjs"
-import { useNewsletterSpamProtection } from "./useNewsletterSpamProtection.js"
+import { NEWSLETTER_HONEYPOT_FIELD } from "./useNewsletterSpamProtection.js"
 
 export function NewsletterSpamProtection({
     action = "subscribe",
     ref,
-    error,
-    setError,
-    setCaptchaToken,
-}: ReturnType<typeof useNewsletterSpamProtection>["fieldsProps"] & {
+    onToken,
+}: {
     action?: "subscribe" | "request-link"
+    ref: Ref<TurnstileInstance | undefined>
+    /** Called with the verification token, or "" when it is no longer valid. */
+    onToken: (token: string) => void
 }) {
+    const [error, setError] = useState<string | null>(null)
+
     function onError() {
-        setCaptchaToken("")
+        onToken("")
         setError(
             "Verification could not load. Please reload the page and try again."
         )
@@ -25,7 +29,7 @@ export function NewsletterSpamProtection({
                     Leave this field empty
                     <input
                         type="text"
-                        name="website"
+                        name={NEWSLETTER_HONEYPOT_FIELD}
                         tabIndex={-1}
                         autoComplete="off"
                     />
@@ -33,6 +37,7 @@ export function NewsletterSpamProtection({
             </div>
             <Turnstile
                 ref={ref}
+                className="newsletter-form__turnstile"
                 siteKey={TURNSTILE_SITE_KEY}
                 options={{
                     action,
@@ -40,11 +45,11 @@ export function NewsletterSpamProtection({
                     size: "flexible",
                 }}
                 onSuccess={(token) => {
-                    setCaptchaToken(token)
+                    onToken(token)
                     setError(null)
                 }}
-                onExpire={() => setCaptchaToken("")}
-                onTimeout={() => setCaptchaToken("")}
+                onExpire={() => onToken("")}
+                onTimeout={() => onToken("")}
                 onError={onError}
                 onUnsupported={onError}
                 scriptOptions={{ onError }}

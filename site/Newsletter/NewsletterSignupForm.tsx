@@ -58,9 +58,15 @@ const NewsletterSignupFormInner = ({
 }) => {
     const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
     const [followTopics, setFollowTopics] = useState(false)
-    const spamProtection = useNewsletterSpamProtection()
+    const {
+        ref: captchaRef,
+        captchaToken,
+        setCaptchaToken,
+        resetCaptcha,
+        spamProtectionFields,
+    } = useNewsletterSpamProtection()
     const [email, setEmail] = useState("")
-    const [hasEditedForm, setHasEditedForm] = useState(false)
+    const [hasEditedEmail, setHasEditedEmail] = useState(false)
 
     const subscribe = useMutation({
         mutationFn: async (request: EmailNotificationsSubscribeRequest) => {
@@ -73,14 +79,13 @@ const NewsletterSignupFormInner = ({
                 `Subscribe [${context}]`
             )
         },
-        onError: () => spamProtection.resetCaptcha(),
+        onError: resetCaptcha,
     })
 
     const isSubmittable = subscribeToOwidBrief || followTopics
     const showCaptcha =
-        hasEditedForm &&
-        ((subscribeToOwidBrief && !followTopics) ||
-            !!spamProtection.captchaToken)
+        hasEditedEmail &&
+        ((subscribeToOwidBrief && !followTopics) || !!captchaToken)
 
     const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
@@ -97,12 +102,9 @@ const NewsletterSignupFormInner = ({
             return
         }
 
-        if (!spamProtection.captchaToken) return
+        if (!captchaToken) return
         subscribe.mutate({
-            captchaToken: spamProtection.captchaToken,
-            website:
-                new FormData(event.currentTarget).get("website")?.toString() ??
-                "",
+            ...spamProtectionFields(event.currentTarget),
             email: trimmedEmail,
             subscribeToOwidBrief,
         })
@@ -132,7 +134,6 @@ const NewsletterSignupFormInner = ({
             className={cx("newsletter-signup-form", className)}
             action="/subscribe"
             onSubmit={handleSubmit}
-            onChange={() => setHasEditedForm(true)}
         >
             <NewsletterOption
                 id={`newsletter-signup-brief-${context}`}
@@ -141,11 +142,7 @@ const NewsletterSignupFormInner = ({
                 description={OWID_BRIEF_DESCRIPTION}
                 checked={subscribeToOwidBrief}
                 disabled={subscribe.isPending}
-                onChange={() => {
-                    if (!spamProtection.captchaToken)
-                        spamProtection.clearCaptcha()
-                    setSubscribeToOwidBrief(!subscribeToOwidBrief)
-                }}
+                onChange={() => setSubscribeToOwidBrief(!subscribeToOwidBrief)}
             />
             <NewsletterOption
                 id={`newsletter-signup-topics-${context}`}
@@ -158,11 +155,7 @@ const NewsletterSignupFormInner = ({
                 description={FOLLOW_TOPICS_DESCRIPTION}
                 checked={followTopics}
                 disabled={subscribe.isPending}
-                onChange={() => {
-                    if (!spamProtection.captchaToken)
-                        spamProtection.clearCaptcha()
-                    setFollowTopics(!followTopics)
-                }}
+                onChange={() => setFollowTopics(!followTopics)}
             />
             {!isSubmittable && (
                 <div className="newsletter-signup-form__alert">
@@ -182,10 +175,16 @@ const NewsletterSignupFormInner = ({
                 required={true}
                 value={email}
                 disabled={subscribe.isPending}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) => {
+                    setHasEditedEmail(true)
+                    setEmail(event.target.value)
+                }}
             />
             {showCaptcha && (
-                <NewsletterSpamProtection {...spamProtection.fieldsProps} />
+                <NewsletterSpamProtection
+                    ref={captchaRef}
+                    onToken={setCaptchaToken}
+                />
             )}
             <Button
                 className="newsletter-signup-form__submit"
@@ -195,7 +194,7 @@ const NewsletterSignupFormInner = ({
                 disabled={
                     !isSubmittable ||
                     subscribe.isPending ||
-                    (!followTopics && !spamProtection.captchaToken)
+                    (!followTopics && !captchaToken)
                 }
                 text={
                     followTopics

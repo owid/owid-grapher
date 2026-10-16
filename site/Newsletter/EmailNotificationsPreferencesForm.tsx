@@ -100,7 +100,13 @@ function useRequestLinkMutation() {
 }
 
 const EnterEmailScreen = () => {
-    const spamProtection = useNewsletterSpamProtection()
+    const {
+        ref: captchaRef,
+        captchaToken,
+        setCaptchaToken,
+        resetCaptcha,
+        spamProtectionFields,
+    } = useNewsletterSpamProtection()
     const [email, setEmail] = useState("")
     const requestLink = useRequestLinkMutation()
 
@@ -109,22 +115,13 @@ const EnterEmailScreen = () => {
     const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
         const trimmedEmail = email.trim()
-        if (
-            !trimmedEmail ||
-            requestLink.isPending ||
-            !spamProtection.captchaToken
-        )
-            return
+        if (!trimmedEmail || requestLink.isPending || !captchaToken) return
         requestLink.mutate(
             {
+                ...spamProtectionFields(event.currentTarget),
                 email: trimmedEmail,
-                captchaToken: spamProtection.captchaToken,
-                website:
-                    new FormData(event.currentTarget)
-                        .get("website")
-                        ?.toString() ?? "",
             },
-            { onError: () => spamProtection.resetCaptcha() }
+            { onError: resetCaptcha }
         )
     }
 
@@ -141,7 +138,8 @@ const EnterEmailScreen = () => {
                 <ErrorAlert error={requestLink.error} />
                 <NewsletterSpamProtection
                     action="request-link"
-                    {...spamProtection.fieldsProps}
+                    ref={captchaRef}
+                    onToken={setCaptchaToken}
                 />
                 <div className="newsletter-form__email-submit">
                     <TextInput
@@ -162,10 +160,7 @@ const EnterEmailScreen = () => {
                                 ? "Sending…"
                                 : "Email me a link"
                         }
-                        disabled={
-                            requestLink.isPending ||
-                            !spamProtection.captchaToken
-                        }
+                        disabled={requestLink.isPending || !captchaToken}
                     />
                 </div>
             </form>
