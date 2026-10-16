@@ -40,6 +40,7 @@
         .table-wrapper {
             overflow: auto;
             border: $cell-border;
+            overscroll-behavior-x: none;
 
             // A styled scrollbar stays visible where the OS would hide it.
             // Chrome ignores it once scrollbar-width or scrollbar-color is set:
