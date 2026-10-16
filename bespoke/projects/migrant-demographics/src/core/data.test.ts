@@ -55,6 +55,30 @@ describe(MigrantDemographicsMetadata, () => {
             () => new MigrantDemographicsMetadata({ ...METADATA, ageBands: [] })
         ).toThrow()
     })
+
+    it("takes the source line from the file's attribution", () => {
+        expect(metadata.source).toBe("s")
+    })
+
+    it("builds the source line from the origins when the file has no attribution", () => {
+        const { attribution: _, ...withoutAttribution } = METADATA
+        const fromOrigins = new MigrantDemographicsMetadata({
+            ...withoutAttribution,
+            origins: [
+                { producer: "UN DESA", datePublished: "2024-01-01" },
+                { producer: "UN DESA", datePublished: "2024-01-01" },
+                { producer: "Other producer" },
+            ],
+        })
+        expect(fromOrigins.source).toBe("UN DESA (2024); Other producer")
+    })
+
+    it("throws when the file has neither attribution nor origins", () => {
+        const { attribution: _, ...withoutAttribution } = METADATA
+        expect(
+            () => new MigrantDemographicsMetadata(withoutAttribution)
+        ).toThrow()
+    })
 })
 
 describe(parseEntityYears, () => {

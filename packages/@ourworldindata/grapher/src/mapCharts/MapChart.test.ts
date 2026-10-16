@@ -11,6 +11,10 @@ import { MapChartState } from "./MapChartState"
 import { MapConfig } from "./MapConfig"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { INAPPLICABLE_COLOR } from "../color/ColorScale"
+import { renderToStaticMarkup } from "react-dom/server"
+import { GrapherState } from "../core/GrapherState"
+import { legacyMapGrapher, legacyMapGrapherData } from "./MapChart.sample"
+import { legacyToOwidTableAndDimensions } from "../core/LegacyToOwidTable"
 
 const table = SynthesizeGDPTable({
     timeRange: [2000, 2001],
@@ -151,4 +155,46 @@ describe("not applicable entities", () => {
             "Selected country"
         )
     })
+
+    it.each([
+        { case: "default", customColor: undefined, expected: "#ccc" },
+        { case: "custom", customColor: "#f4c9c9", expected: "#f4c9c9" },
+    ])(
+        "draws the not-applicable stripes over the $case color",
+        async ({ customColor, expected }) => {
+            const grapherState = new GrapherState({
+                ...legacyMapGrapher,
+                inapplicableEntityNames: ["Argentina"],
+                map: {
+                    ...legacyMapGrapher.map,
+                    ...(customColor && {
+                        colorScale: {
+                            customCategoryColors: {
+                                "Not applicable": customColor,
+                            },
+                        },
+                    }),
+                },
+            })
+            grapherState.inputTable = legacyToOwidTableAndDimensions(
+                legacyMapGrapherData,
+                legacyMapGrapher.dimensions!,
+                legacyMapGrapher.selectedEntityColors
+            )
+            const svg =
+                await grapherState.generateStaticSvg(renderToStaticMarkup)
+
+            const patterns =
+                svg.match(
+                    /<pattern id="inapplicablePattern[^>]*>.*?<\/pattern>/g
+                ) ?? []
+            expect(
+                patterns
+                    .map((pattern) => pattern.match(/id="([^"]+)"/)![1])
+                    .sort()
+            ).toEqual(["inapplicablePattern", "inapplicablePatternForMap"])
+            for (const pattern of patterns)
+                expect(pattern).toContain(`fill="${expected}"`)
+        }
+    )
 })

@@ -9,6 +9,7 @@ import {
     ProductTradeData,
     TradeRow,
 } from "./types.js"
+import { getBespokeSourceLine } from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 const queryKeys = {
     metadata: () => ["food-trade", "metadata"] as const,
@@ -87,7 +88,7 @@ function buildMetadata(raw: MetadataJson): FoodTradeMetadata {
 
     return {
         year: raw.year,
-        source: raw.source,
+        source: getBespokeSourceLine(raw),
         license: raw.license,
         entities,
         products,

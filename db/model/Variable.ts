@@ -38,7 +38,6 @@ import {
     DatasetsTableName,
     DbRawChartConfig,
     DbPlainDatapage,
-    parseChartConfig,
     DbEnrichedChartConfig,
     DbEnrichedVariable,
     DbPlainChart,
@@ -51,7 +50,12 @@ import {
     parseVariableDisplayConfig,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
-import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
+import {
+    insertChartConfig,
+    parseAndMigrateChartConfig,
+    updateChartConfig,
+} from "./ChartConfigs.js"
+import { assertValidGrapherConfig } from "../grapherConfigValidation.js"
 import {
     buildMdimViewPatchConfig,
     getMultiDimDataPageById,
@@ -101,7 +105,7 @@ export async function getIndicatorChartConfig(
         [variableId]
     )
 
-    return row ? parseChartConfig(row.config) : undefined
+    return row ? parseAndMigrateChartConfig(row.config) : undefined
 }
 
 export async function getIndicatorChartConfigs(
@@ -122,7 +126,10 @@ export async function getIndicatorChartConfigs(
     )
 
     return new Map(
-        rows.map((row) => [row.variableId, parseChartConfig(row.config)])
+        rows.map((row) => [
+            row.variableId,
+            parseAndMigrateChartConfig(row.config),
+        ])
     )
 }
 
@@ -213,9 +220,9 @@ async function findAllChartsThatInheritFromIndicator(
     return charts.map((chart) => ({
         chartId: chart.chartId,
         chartConfigId: chart.chartConfigId,
-        patchConfig: parseChartConfig(chart.patchConfig),
+        patchConfig: parseAndMigrateChartConfig(chart.patchConfig),
         patchConfigETL: chart.patchConfigETL
-            ? parseChartConfig(chart.patchConfigETL)
+            ? parseAndMigrateChartConfig(chart.patchConfigETL)
             : null,
         isPublished: Boolean(chart.isPublished),
     }))
@@ -324,6 +331,9 @@ export async function updateAllMultiDimViewsThatInheritFromIndicator(
             patchConfigETL ?? {},
             view.patchConfig
         )
+
+        assertValidGrapherConfig(fullConfig)
+
         await updateChartConfig(trx, {
             configId: view.chartConfigId,
             config: fullConfig,
@@ -881,8 +891,8 @@ export async function getOwnersForVariables(
  * path-based explorers. Deduplicated on entity ids rather than slugs, since a
  * draft chart or multi-dim can have none.
  *
- * Scoped to the ids passed in — call it with one page of results, not with a
- * whole search.
+ * Scoped to the ids passed in — call it with one page of results or one
+ * dataset's indicators, not with a whole search.
  */
 export async function getVariableUsagesByIds(
     knex: db.KnexReadonlyTransaction,

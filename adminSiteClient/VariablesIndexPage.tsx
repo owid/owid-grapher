@@ -267,6 +267,7 @@ export function VariablesIndexPage(): React.ReactElement {
                             searchWords={searchWords}
                             loading={flat.isFetching}
                             sortable={false}
+                            autoColumnWidths
                             pagination={{
                                 current: page,
                                 pageSize,

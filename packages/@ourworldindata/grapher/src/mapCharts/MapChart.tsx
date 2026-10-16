@@ -59,6 +59,7 @@ import {
 } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
+    Color,
     ColumnSlug,
     EntityName,
     GrapherVariant,
@@ -72,7 +73,10 @@ import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { match } from "ts-pattern"
-import { makeProjectedDataPatternId } from "./MapComponents"
+import {
+    InapplicablePattern,
+    makeProjectedDataPatternId,
+} from "./MapComponents"
 import { MapChartState } from "./MapChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
@@ -130,6 +134,10 @@ export class MapChart
 
     @computed get inapplicableEntityNamesSet(): Set<EntityName> {
         return this.chartState.inapplicableEntityNamesSet
+    }
+
+    @computed get inapplicableColor(): Color {
+        return this.colorScale.inapplicableColor
     }
 
     @computed private get targetTime(): number | undefined {
@@ -473,6 +481,13 @@ export class MapChart
         return mergeCategoricalBinsByLabelAndColor(categoricalLegendData)
     }
 
+    @computed private get shouldDefineInapplicablePattern(): boolean {
+        return (
+            this.chartState.hasInapplicableBin ||
+            this.legendData.some((bin) => isInapplicableBin(bin))
+        )
+    }
+
     @computed private get hasCategoricalLegendData(): boolean {
         return this.categoricalLegendData.length > 1
     }
@@ -684,10 +699,23 @@ export class MapChart
             <ChoroplethMap manager={this} />
         )
 
-        // Clip the map to its bounds, since the viewport can crop the map
-        // (e.g. the World map cuts off some Pacific islands at its edges)
         return (
             <>
+                {this.shouldDefineInapplicablePattern && (
+                    <defs>
+                        <InapplicablePattern
+                            patternId={makePatternId(
+                                Patterns.inapplicablePattern,
+                                this.patternIdSuffix
+                            )}
+                            color={this.inapplicableColor}
+                            scale={this.patternScale}
+                        />
+                    </defs>
+                )}
+                {/* Clip the map to its bounds, since the viewport can crop the
+                map (e.g. the World map cuts off some Pacific islands at its
+                edges) */}
                 {this.clipPath.element}
                 <g clipPath={this.clipPath.id}>{mapOrGlobe}</g>
             </>

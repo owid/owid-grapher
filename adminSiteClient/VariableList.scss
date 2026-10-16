@@ -18,6 +18,10 @@
 
 .variable-list__path {
     display: flex;
+    // fills the cell without its length counting towards the column's width,
+    // so a table sizing its columns to their content still cuts it off
+    width: 0;
+    min-width: 100%;
     color: #666;
     white-space: nowrap;
 }
@@ -39,6 +43,27 @@
     overflow: hidden;
     text-overflow: ellipsis;
     color: #1a1a1a;
+}
+
+.variable-list__nowrap {
+    white-space: nowrap;
+}
+
+// Sticky, the header is a table of its own, given the widths measured off the
+// body. A page of unused indicators, all "—", would leave this narrower than
+// its header with the sort arrows, which the header then widens on its own,
+// pushing the columns out of line with the body.
+.variable-list__usage-column {
+    min-width: 84px;
+}
+
+// Capped, so a long table name can't crowd out the indicator names
+.variable-list__table-name {
+    display: block;
+    max-width: 40ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .variable-list__popularity {

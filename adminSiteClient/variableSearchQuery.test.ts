@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 
 import {
+    catalogTableOf,
+    countIndicatorsByTable,
     fieldedTerms,
     namesOneDataset,
     searchWordsToHighlight,
@@ -59,5 +61,45 @@ describe(searchWordsToHighlight, () => {
 
     it("highlights an unknown field as typed, since the server searches it as text", () => {
         expect(words("a:b")).toEqual(["a:b"])
+    })
+})
+
+describe(catalogTableOf, () => {
+    it("is the table segment of a grapher catalog path", () => {
+        expect(
+            catalogTableOf(
+                "grapher/oecd/2026-10-07/climate_related_official_development_assistance/climate_related_oda_by_donor#oda_bilateral_total"
+            )
+        ).toEqual("climate_related_oda_by_donor")
+    })
+
+    it("is undefined without a catalog path, or without a table in it", () => {
+        expect(catalogTableOf(null)).toBeUndefined()
+        expect(catalogTableOf("grapher/who/2026-05-22/gho")).toBeUndefined()
+    })
+})
+
+describe(countIndicatorsByTable, () => {
+    it("counts the indicators of each table, tables by name", () => {
+        expect(
+            countIndicatorsByTable([
+                { catalogPath: "grapher/oecd/2026-10-07/oda/by_recipient#a" },
+                { catalogPath: "grapher/oecd/2026-10-07/oda/by_donor#b" },
+                { catalogPath: "grapher/oecd/2026-10-07/oda/by_donor#c" },
+            ])
+        ).toEqual([
+            { table: "by_donor", count: 2 },
+            { table: "by_recipient", count: 1 },
+        ])
+    })
+
+    it("leaves out indicators without a catalog path", () => {
+        expect(
+            countIndicatorsByTable([
+                { catalogPath: null },
+                {},
+                { catalogPath: "grapher/oecd/2026-10-07/oda/by_donor#b" },
+            ])
+        ).toEqual([{ table: "by_donor", count: 1 }])
     })
 })

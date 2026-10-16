@@ -11,6 +11,7 @@ import {
     RawYearRecord,
     SexValues,
 } from "./types.js"
+import { getBespokeSourceLine } from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 export const queryClient = new QueryClient()
 
@@ -74,16 +75,17 @@ export class MigrantDemographicsMetadata {
     private readonly codesByEntityName: Map<string, number>
 
     constructor(raw: RawMigrantDemographicsMetadata) {
+        const source = getBespokeSourceLine(raw)
         // Without these the chart's geometry degenerates to NaN, so fail into
         // the error state rather than rendering a broken pyramid
-        if (!raw.ageBands?.length || !raw.years?.length || !raw.meta?.source)
+        if (!raw.ageBands?.length || !raw.years?.length || !source)
             throw new Error(
                 "[migrant-demographics] Data file is missing its age bands, years or source"
             )
 
         this.ageBands = raw.ageBands
         this.years = raw.years
-        this.source = raw.meta.source
+        this.source = source
 
         this.codesByEntityName = new Map(
             raw.entities.map((entity) => [entity.name, entity.code])

@@ -147,12 +147,15 @@ export const SLACK_DI_PITCHES_CHANNEL_ID: string =
 
 export const IS_RUNNING_INSIDE_VITEST: boolean = !!process.env.VITEST
 
+// Port of the bespoke dev server (bespoke/server/devServer.ts)
+export const BESPOKE_PORT: number =
+    parseIntOrUndefined(process.env.BESPOKE_PORT) ?? 8089
+
 // Base URL for bespoke component assets. When set, the scriptUrl from the
 // bespoke component registry is resolved relative to this URL instead of
-// the current origin. Useful for pointing to the bespoke dev server during
-// local development (e.g. "http://localhost:8089").
+// the current origin. Defaults to the local bespoke dev server.
 export const BESPOKE_BASE_URL: string =
-    process.env.BESPOKE_BASE_URL ?? "http://localhost:8089"
+    process.env.BESPOKE_BASE_URL ?? `http://localhost:${BESPOKE_PORT}`
 
 // Root of the data feeds ETL builds for bespoke components, passed to each component's mount().
 // ETL writes a feed to the API bucket of the environment it is building, so a staging server sets
