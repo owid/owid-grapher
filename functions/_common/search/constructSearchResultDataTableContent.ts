@@ -386,6 +386,9 @@ function buildDataTableContentForSwimlaneChart({
     chartState,
     maxRows,
 }: Args<SwimlaneChartState>): SearchChartHitDataTableProps {
+    const { timeColumn } = chartState.inputTable
+    const timePreposition = OwidTable.getPreposition(timeColumn)
+
     let rows = chartState.series.map((series) => {
         const segment = R.findLast(
             series.segments,
@@ -397,7 +400,12 @@ function buildDataTableContentForSwimlaneChart({
             label: series.shortEntityName ?? series.entityName,
             muted: chartState.focusArray.state(series.entityName).background,
             ...(segment
-                ? { color: segment.color, value: segment.categoryLabel }
+                ? {
+                      color: segment.color,
+                      value: segment.categoryLabel,
+                      time: timeColumn.formatTime(segment.visibleEndTime),
+                      timePreposition,
+                  }
                 : {
                       color: chartState.colorScale.noDataColor,
                       value: "No data",

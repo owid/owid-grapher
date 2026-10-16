@@ -710,6 +710,7 @@ describe("constructSearchResultDataTableContent for Swimlane", () => {
         overrides: GrapherProgrammaticInterface = {}
     ): GrapherState {
         const table = new OwidTable(rows, [
+            { slug: "time", type: ColumnTypeNames.Year },
             { slug: "status", type: ColumnTypeNames.String },
         ])
 
@@ -791,6 +792,63 @@ describe("constructSearchResultDataTableContent for Swimlane", () => {
                 striped: "no-data",
             },
         ])
+    })
+
+    it("gives each row the time of its latest category", () => {
+        const grapherState = createSwimlaneGrapherState([
+            { entityName: "France", time: 2000, status: "A" },
+            { entityName: "France", time: 2001, status: "B" },
+            { entityName: "France", time: 2002, status: "B" },
+            { entityName: "Italy", time: 2000, status: "A" },
+            { entityName: "Italy", time: 2001, status: "B" },
+        ])
+
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
+
+        expect(dataTable!.rows).toMatchObject([
+            {
+                label: "France",
+                value: "B",
+                time: "2002",
+                timePreposition: "in",
+            },
+            { label: "Italy", value: "B", time: "2001", timePreposition: "in" },
+        ])
+    })
+
+    it("gives each row the last time in view when the timeline ends early", () => {
+        const grapherState = createSwimlaneGrapherState(
+            [
+                { entityName: "France", time: 2000, status: "A" },
+                { entityName: "France", time: 2001, status: "A" },
+                { entityName: "France", time: 2002, status: "A" },
+            ],
+            { maxTime: 2001 }
+        )
+
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
+
+        expect(dataTable!.rows).toMatchObject([
+            { label: "France", value: "A", time: "2001" },
+        ])
+    })
+
+    it("gives 'No data' rows no time", () => {
+        const grapherState = createSwimlaneGrapherState(rows, {
+            selectedEntityNames: ["France", "Spain"],
+        })
+
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
+
+        const spain = dataTable!.rows.find((row) => row.label === "Spain")
+        expect(spain).not.toHaveProperty("time")
+        expect(spain).not.toHaveProperty("timePreposition")
     })
 
     it("mutes the rows of entities that are not focused", () => {
