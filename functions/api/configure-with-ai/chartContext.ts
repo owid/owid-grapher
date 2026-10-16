@@ -1,4 +1,5 @@
 import {
+    fetchInputTableForConfig,
     GrapherState,
     mapGrapherTabNameToQueryParam,
 } from "@ourworldindata/grapher"
@@ -12,7 +13,12 @@ import {
     searchParamsToMultiDimView,
 } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
-import { fetchUnparsedGrapherConfig } from "../../_common/grapherTools.js"
+import {
+    fetchUnparsedGrapherConfig,
+    getDataApiUrl,
+    initGrapher,
+} from "../../_common/grapherTools.js"
+import { TWITTER_OPTIONS } from "../../_common/imageOptions.js"
 import {
     ChartContext,
     EntityInfo,
@@ -144,4 +150,32 @@ export async function loadMdimContext(
         }),
         current,
     }
+}
+
+/** Loads the chart (and an MDim page's views) and builds the prompt's context */
+export async function loadChartContext(
+    slug: string,
+    queryStr: string,
+    env: Env
+): Promise<ChartContext> {
+    const searchParams = new URLSearchParams(queryStr)
+    const { grapher, identifierType } = await initGrapher(
+        { type: "slug", id: slug },
+        TWITTER_OPTIONS,
+        searchParams,
+        env
+    )
+    const grapherState = grapher.grapherState
+    const [inputTable, mdim] = await Promise.all([
+        fetchInputTableForConfig({
+            dimensions: grapherState.dimensionConfigs,
+            selectedEntityColors: grapherState.selectedEntityColors,
+            dataApiUrl: getDataApiUrl(env),
+        }),
+        identifierType === "multi-dim-slug"
+            ? loadMdimContext(slug, searchParams, env)
+            : undefined,
+    ])
+    if (inputTable) grapherState.inputTable = inputTable
+    return buildChartContext(grapherState, mdim)
 }

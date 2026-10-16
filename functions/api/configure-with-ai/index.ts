@@ -1,14 +1,11 @@
 import * as Sentry from "@sentry/cloudflare"
-import { fetchInputTableForConfig } from "@ourworldindata/grapher"
 import { StatusError } from "itty-router"
 import * as z from "zod"
 import { Env } from "../../_common/env.js"
-import { getDataApiUrl, initGrapher } from "../../_common/grapherTools.js"
-import { TWITTER_OPTIONS } from "../../_common/imageOptions.js"
-import { buildChartContext, loadMdimContext } from "./chartContext.js"
+import { loadChartContext } from "./chartContext.js"
+import { callClaude } from "./claude.js"
 import {
     buildPrompt,
-    Model,
     parseJsonReply,
     requestSchema,
     sanitizeViews,
@@ -20,82 +17,6 @@ import {
 
 const json = (body: unknown, status = 200): Response =>
     Response.json(body, { status })
-
-interface ClaudeResult {
-    text: string
-    stopReason: string
-    model: string
-    inputTokens: number
-    outputTokens: number
-    cacheReadTokens: number
-    cacheWriteTokens: number
-}
-
-async function callClaude(
-    apiKey: string,
-    model: Model,
-    prompt: { cached: string; request: string }
-): Promise<ClaudeResult> {
-    // Server-side fallback on a refusal isn't offered for Haiku
-    const useFallbacks = model !== "claude-haiku-5-5"
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-            "content-type": "application/json",
-            "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01",
-            ...(useFallbacks
-                ? { "anthropic-beta": "server-side-fallback-2026-07-01" }
-                : {}),
-        },
-        body: JSON.stringify({
-            model,
-            max_tokens: 16000,
-            output_config: { effort: "low" },
-            ...(useFallbacks ? { fallbacks: "default" } : {}),
-            messages: [
-                {
-                    role: "user",
-                    content: [
-                        {
-                            type: "text",
-                            text: prompt.cached,
-                            cache_control: { type: "ephemeral" },
-                        },
-                        { type: "text", text: prompt.request },
-                    ],
-                },
-            ],
-        }),
-    })
-    if (!response.ok)
-        throw new Error(
-            `Anthropic API ${response.status}: ${(await response.text()).slice(0, 500)}`
-        )
-    const body: {
-        content: { type: string; text?: string }[]
-        stop_reason: string
-        model: string
-        usage: {
-            input_tokens: number
-            output_tokens: number
-            cache_read_input_tokens?: number
-            cache_creation_input_tokens?: number
-        }
-    } = await response.json()
-    return {
-        text: body.content
-            .filter((block) => block.type === "text")
-            .map((block) => block.text ?? "")
-            .join(""),
-        stopReason: body.stop_reason,
-        model: body.model,
-        inputTokens: body.usage.input_tokens,
-        outputTokens: body.usage.output_tokens,
-        cacheReadTokens: body.usage.cache_read_input_tokens ?? 0,
-        cacheWriteTokens: body.usage.cache_creation_input_tokens ?? 0,
-    }
-}
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     if (env.ENV === "production" || !env.ANTHROPIC_API_KEY)
@@ -121,26 +42,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     const started = Date.now()
 
     try {
-        const searchParams = new URLSearchParams(queryStr)
-        const { grapher, identifierType } = await initGrapher(
-            { type: "slug", id: slug },
-            TWITTER_OPTIONS,
-            searchParams,
-            env
-        )
-        const grapherState = grapher.grapherState
-        const [inputTable, mdim] = await Promise.all([
-            fetchInputTableForConfig({
-                dimensions: grapherState.dimensionConfigs,
-                selectedEntityColors: grapherState.selectedEntityColors,
-                dataApiUrl: getDataApiUrl(env),
-            }),
-            identifierType === "multi-dim-slug"
-                ? loadMdimContext(slug, searchParams, env)
-                : undefined,
-        ])
-        if (inputTable) grapherState.inputTable = inputTable
-        const ctx = buildChartContext(grapherState, mdim)
+        const ctx = await loadChartContext(slug, queryStr, env)
         const prompt = buildPrompt(ctx, query)
         const contextMs = Date.now() - started
 

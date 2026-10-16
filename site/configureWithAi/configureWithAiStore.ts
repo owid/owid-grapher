@@ -54,7 +54,13 @@ export interface PanelState {
     currentId: number | null
     /** Set while an MDim page loads another view; history and views wait for it */
     isBusy: boolean
+    /** "Try…" suggestions written by the model, for staff on charts without any */
+    suggestions: Suggestions
 }
+
+export type Suggestions =
+    | { status: "idle" | "loading" | "error" }
+    | { status: "done"; items: string[] }
 
 const MAX_HISTORY = 10
 
@@ -72,6 +78,7 @@ export class PanelStore {
         history: [],
         currentId: null,
         isBusy: false,
+        suggestions: { status: "idle" },
     }
     private readonly listeners = new Set<() => void>()
     private abortController: AbortController | null = null
@@ -182,6 +189,33 @@ export class PanelStore {
             }
         } finally {
             if (this.abortController === controller) this.abortController = null
+        }
+    }
+
+    /** Asks once per chart; this also warms the prompt cache for the first question */
+    async loadSuggestions(): Promise<void> {
+        if (this.state.suggestions.status !== "idle") return
+        this.update({ suggestions: { status: "loading" } })
+        try {
+            const response = await fetch(
+                `${CONFIGURE_WITH_AI_API_URL}/suggestions`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        slug: this.adapter.slug,
+                        queryStr: this.adapter.getQueryStr(),
+                    }),
+                }
+            )
+            if (!response.ok) throw new Error(`Status ${response.status}`)
+            const body = await response.json()
+            this.update({
+                suggestions: { status: "done", items: body.suggestions },
+            })
+        } catch (error) {
+            console.warn("Suggestions not loaded", error)
+            this.update({ suggestions: { status: "error" } })
         }
     }
 

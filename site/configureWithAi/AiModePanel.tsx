@@ -19,6 +19,7 @@ import type {
     HistoryEntry,
     PanelState,
     PanelStore,
+    Suggestions,
 } from "./configureWithAiStore.js"
 
 const MODELS = [
@@ -154,7 +155,7 @@ export function AiModePanel({
                         maxLength={MAX_QUERY_LENGTH}
                         placeholder={
                             showIntro
-                                ? "e.g. Germany and its neighbours"
+                                ? "e.g. Germany's neighbours"
                                 : "Ask for another view"
                         }
                         aria-label="Describe the view you want"
@@ -188,7 +189,14 @@ export function AiModePanel({
             <div className="configure-with-ai__body">
                 <RequestStatus store={store} state={state} ask={ask} />
 
-                {showIntro && <Intro slug={store.slug} ask={ask} />}
+                {showIntro && (
+                    <Intro
+                        store={store}
+                        state={state}
+                        isStaff={isStaff}
+                        ask={ask}
+                    />
+                )}
 
                 {current && !isThinking && (
                     <Answer store={store} entry={current} isBusy={isBusy} />
@@ -311,8 +319,23 @@ function RequestStatus({
     )
 }
 
-function Intro({ slug, ask }: { slug: string; ask: (q: string) => void }) {
-    const suggestions = SUGGESTIONS[slug] ?? []
+function Intro({
+    store,
+    state,
+    isStaff,
+    ask,
+}: {
+    store: PanelStore
+    state: PanelState
+    isStaff: boolean
+    ask: (q: string) => void
+}) {
+    const suggestions = SUGGESTIONS[store.slug] ?? []
+    const shouldGenerate = isStaff && suggestions.length === 0
+
+    useEffect(() => {
+        if (shouldGenerate) void store.loadSuggestions()
+    }, [shouldGenerate, store])
     return (
         <div className="configure-with-ai__intro">
             <p className="configure-with-ai__section-title">It can change</p>
@@ -361,6 +384,48 @@ function Intro({ slug, ask }: { slug: string; ask: (q: string) => void }) {
                         ))}
                     </ul>
                 </>
+            )}
+            {shouldGenerate && (
+                <GeneratedSuggestions
+                    suggestions={state.suggestions}
+                    ask={ask}
+                />
+            )}
+        </div>
+    )
+}
+
+/** Staff only: suggestions the model wrote for a chart that has none */
+function GeneratedSuggestions({
+    suggestions,
+    ask,
+}: {
+    suggestions: Suggestions
+    ask: (q: string) => void
+}) {
+    return (
+        <div className="configure-with-ai__staff configure-with-ai__staff--box">
+            <p className="configure-with-ai__staff-label">
+                <FontAwesomeIcon icon={faEyeSlash} />
+                Suggestions written by AI · only visible to OWID staff
+            </p>
+            {suggestions.status === "done" && suggestions.items.length > 0 ? (
+                <ul className="configure-with-ai__suggestions">
+                    {suggestions.items.map((s) => (
+                        <li key={s}>
+                            <button type="button" onClick={() => ask(s)}>
+                                {s}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <p className="configure-with-ai__muted">
+                    {suggestions.status === "loading" ||
+                    suggestions.status === "idle"
+                        ? "Writing suggestions for this chart…"
+                        : "No suggestions this time."}
+                </p>
             )}
         </div>
     )

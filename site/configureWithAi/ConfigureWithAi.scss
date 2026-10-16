@@ -500,6 +500,22 @@
     background: $gray-5;
 }
 
+.configure-with-ai__staff--box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    border: 1px dashed $blue-30;
+
+    .configure-with-ai__staff-label {
+        margin: 0;
+    }
+
+    .configure-with-ai__suggestions button {
+        background: #fff;
+    }
+}
+
 .configure-with-ai__staff-row {
     display: flex;
     align-items: center;

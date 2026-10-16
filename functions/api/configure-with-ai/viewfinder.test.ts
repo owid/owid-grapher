@@ -5,6 +5,7 @@ import {
     requestSchema,
     MdimContext,
     parseJsonReply,
+    sanitizeSuggestions,
     sanitizeViews,
 } from "./viewfinder.js"
 
@@ -266,5 +267,29 @@ describe(parseJsonReply, () => {
             views: [],
         })
         expect(() => parseJsonReply("Sorry, I can't.")).toThrow()
+    })
+})
+
+describe(sanitizeSuggestions, () => {
+    it("keeps up to three distinct suggestions that fit the input", () => {
+        expect(
+            sanitizeSuggestions({
+                suggestions: [
+                    " Compare Kenya and Uganda ",
+                    "Compare Kenya and Uganda",
+                    "",
+                    42,
+                    "x".repeat(101),
+                    "Which countries are highest?",
+                    "Since 1990",
+                    "One too many",
+                ],
+            })
+        ).toEqual([
+            "Compare Kenya and Uganda",
+            "Which countries are highest?",
+            "Since 1990",
+        ])
+        expect(sanitizeSuggestions({ views: [] })).toEqual([])
     })
 })

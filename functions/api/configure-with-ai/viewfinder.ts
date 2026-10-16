@@ -399,3 +399,41 @@ export function parseJsonReply(text: string): unknown {
     if (start === -1 || end < start) throw new Error("No JSON object in reply")
     return JSON.parse(text.slice(start, end + 1))
 }
+
+export const suggestionsRequestSchema = z.object({
+    slug: z.string().regex(/^[a-z0-9-]{1,200}$/),
+    queryStr: z.string().max(4000).default(""),
+})
+
+const MAX_SUGGESTIONS = 3
+const MAX_SUGGESTION_LENGTH = 100
+
+/**
+ * The second part of a suggestions request. It follows the same cached part
+ * as a reader's request, so asking for suggestions also warms the cache.
+ */
+export function buildSuggestionsRequest(): string {
+    return `## Suggestions instead of views
+No reader request this time. Suggest ${MAX_SUGGESTIONS} short requests (at most 60 characters each) that a curious reader of this chart might type into the box, each one answerable with views of THIS chart's data as described above. Make them different from each other, e.g. a comparison, a ranking and a change over time, and phrase them the way a reader would ("Which countries…", "Compare…"). Pick countries, regions and years that the data has.
+
+Reply with ONLY a JSON object, no other text: {"suggestions": string[]}`
+}
+
+/** Keeps up to three distinct, non-empty suggestions short enough for the input */
+export function sanitizeSuggestions(raw: unknown): string[] {
+    const reply = (raw && typeof raw === "object" ? raw : {}) as Record<
+        string,
+        unknown
+    >
+    const items = Array.isArray(reply.suggestions) ? reply.suggestions : []
+    const suggestions: string[] = []
+    for (const item of items) {
+        if (typeof item !== "string") continue
+        const text = item.trim()
+        if (!text || text.length > MAX_SUGGESTION_LENGTH) continue
+        if (suggestions.includes(text)) continue
+        suggestions.push(text)
+        if (suggestions.length === MAX_SUGGESTIONS) break
+    }
+    return suggestions
+}
