@@ -1136,7 +1136,7 @@ export class GrapherState
             availableEntityNames:
                 this.tableForDisplayBeforeEntityFilter.availableEntityNames,
             entitiesByRegionGroup: this.entitiesByRegionGroup,
-            selectedEntityNames: this.selection.selectedEntityNames,
+            selectedEntityNames: this.dataTableSelection.selectedEntityNames,
         }
     }
 

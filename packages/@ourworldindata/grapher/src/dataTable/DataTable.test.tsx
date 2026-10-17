@@ -316,6 +316,14 @@ describe("when choosing the default filter", () => {
         ])
     })
 
+    it("filters by the map selection if there is one", () => {
+        const grapher = GrapherWithAggregates()
+        grapher.mapConfig.selection.setSelectedEntities(["Iceland"])
+        grapher.dataTableConfig.filter = "selection"
+        const { container } = render(<DataTable manager={grapher} />)
+        expect(getEntityNames(container)).toEqual(["Iceland"])
+    })
+
     it("shows all entities if the tableFilter param is 'all'", () => {
         const grapher = GrapherWithAggregates()
         grapher.populateFromQueryParams({ tableFilter: "all" })
