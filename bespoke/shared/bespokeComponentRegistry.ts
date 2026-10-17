@@ -19,6 +19,11 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
         dataUrl: "faostat/latest/food_trade",
         metadataFilename: "food-trade.metadata.json",
     },
+    "income-distribution": {
+        scriptUrl: "/income-distribution/index.js",
+        dataUrl: "poverty_inequality/latest/income_distribution",
+        metadataFilename: "income-distribution.metadata.json",
+    },
     migration: {
         scriptUrl: "/migration/index.js",
         dataUrl: "un_migration/latest/migration_stock_flows_json",
