@@ -2,32 +2,30 @@ import * as React from "react"
 import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Dropdown } from "./Dropdown"
-import { EntityName } from "@ourworldindata/utils"
 import {
     DataTableConfig,
     DataTableFilter,
+    DataTableFilterOption,
 } from "../dataTable/DataTableConstants"
-import { OwidTable } from "@ourworldindata/core-table"
-import { SelectionArray } from "../selection/SelectionArray"
-import { makeSelectionArray } from "../chart/ChartUtils"
-import { RegionGroup, regionGroupLabels } from "../core/RegionGroups"
+import { hasDataTableFilterChoice } from "../dataTable/DataTableHelpers"
+import { regionGroupLabels } from "../core/RegionGroups"
+
+const FILTER_LABELS: Record<DataTableFilter, string> = {
+    all: "All",
+    selection: "Selection",
+    ...regionGroupLabels,
+}
 
 export interface DataTableFilterDropdownManager {
     dataTableConfig: DataTableConfig
     dataTableFilter: DataTableFilter
-    tableForDisplayBeforeEntityFilter: OwidTable
+    dataTableFilterOptions: DataTableFilterOption[]
     isOnTableTab?: boolean
-    dataTableSelection?: SelectionArray | EntityName[]
-    canChangeAddOrHighlightEntities?: boolean
-    shouldShowSelectionOnlyInDataTable?: boolean
-    regionGroups?: RegionGroup[]
     isSemiNarrow?: boolean
 }
 
-interface DropdownOption {
+interface DropdownOption extends DataTableFilterOption {
     label: string
-    value: DataTableFilter
-    count: number
     trackNote: "data_table_filter_by"
 }
 
@@ -49,22 +47,12 @@ export class DataTableFilterDropdown extends React.Component<{
         return this.props.manager
     }
 
-    @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.dataTableSelection)
-    }
-
     @computed private get shouldShow(): boolean {
         return (
             !!this.manager.isOnTableTab &&
-            this.options.length > 1 &&
-            this.options[0].count !== this.options[1].count &&
+            hasDataTableFilterChoice(this.manager.dataTableFilterOptions) &&
             !this.manager.isSemiNarrow
         )
-    }
-
-    @computed private get availableEntityNameSet(): Set<EntityName> {
-        return this.manager.tableForDisplayBeforeEntityFilter
-            .availableEntityNameSet
     }
 
     @action.bound private onChange(selected: DropdownOption | null): void {
@@ -74,53 +62,12 @@ export class DataTableFilterDropdown extends React.Component<{
         }
     }
 
-    @computed
-    private get shouldShowSelectionOption(): boolean {
-        return (
-            !this.manager.shouldShowSelectionOnlyInDataTable &&
-            this.selectionArray.hasSelection &&
-            !!this.manager.canChangeAddOrHighlightEntities
-        )
-    }
-
     @computed private get options(): DropdownOption[] {
-        const options: DropdownOption[] = [
-            {
-                value: "all",
-                label: "All",
-                count: this.availableEntityNameSet.size,
-                trackNote: "data_table_filter_by",
-            },
-        ]
-
-        if (this.shouldShowSelectionOption) {
-            options.push({
-                value: "selection",
-                label: "Selection",
-                count: this.selectionArray.numSelectedEntities,
-                trackNote: "data_table_filter_by",
-            })
-        }
-
-        if (this.manager.regionGroups) {
-            options.push(
-                ...this.manager.regionGroups
-                    .map(
-                        ({ regionGroupKey, entityNames }) =>
-                            ({
-                                value: regionGroupKey,
-                                label: regionGroupLabels[regionGroupKey],
-                                count: entityNames.filter((entityName) =>
-                                    this.availableEntityNameSet.has(entityName)
-                                ).length,
-                                trackNote: "data_table_filter_by",
-                            }) satisfies DropdownOption
-                    )
-                    .filter(({ count }) => count > 0)
-            )
-        }
-
-        return options
+        return this.manager.dataTableFilterOptions.map((option) => ({
+            ...option,
+            label: FILTER_LABELS[option.value],
+            trackNote: "data_table_filter_by",
+        }))
     }
 
     @computed private get value(): DropdownOption | null {

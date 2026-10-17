@@ -304,6 +304,18 @@ describe("when choosing the default filter", () => {
         expect(getEntityNames(container)).toEqual(["World"])
     })
 
+    it("shows only countries even if the selection covers every entity", () => {
+        const grapher = GrapherWithAggregates({
+            selectedEntityNames: ["Afghanistan", "Iceland", "World"],
+        })
+        const { container } = render(<DataTable manager={grapher} />)
+        expect(grapher.dataTableFilter).toBe("countries")
+        expect(getEntityNames(container).sort()).toEqual([
+            "Afghanistan",
+            "Iceland",
+        ])
+    })
+
     it("shows all entities if the tableFilter param is 'all'", () => {
         const grapher = GrapherWithAggregates()
         grapher.populateFromQueryParams({ tableFilter: "all" })

@@ -163,6 +163,11 @@ export type CommonDataTableFilter = (typeof COMMON_DATA_TABLE_FILTERS)[number]
 
 export type DataTableFilter = CommonDataTableFilter | RegionGroupKey
 
+export interface DataTableFilterOption {
+    value: DataTableFilter
+    count: number
+}
+
 export interface DataTableConfig {
     filter?: DataTableFilter
     search: string

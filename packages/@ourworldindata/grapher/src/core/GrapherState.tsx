@@ -149,8 +149,15 @@ import {
     DataTableConfig,
     DataTableSortState,
     DataTableFilter,
+    DataTableFilterOption,
     DataTableManager,
 } from "../dataTable/DataTableConstants.js"
+import {
+    buildDataTableFilterOptions,
+    DataTableEntities,
+    getEntityNamesForDataTableFilter,
+    pickDefaultDataTableFilter,
+} from "../dataTable/DataTableHelpers.js"
 import {
     type EntitySelectorState,
     EntitySelector,
@@ -182,7 +189,6 @@ import {
     RegionGroup,
     groupEntitiesByRegionType,
     EntitiesByRegionGroup,
-    isEntityRegionGroupKey,
 } from "./RegionGroups.js"
 import {
     MinimalNarrativeChartInfo,
@@ -1125,47 +1131,41 @@ export class GrapherState
         return table
     }
 
+    @computed private get dataTableEntities(): DataTableEntities {
+        return {
+            availableEntityNames:
+                this.tableForDisplayBeforeEntityFilter.availableEntityNames,
+            entitiesByRegionGroup: this.entitiesByRegionGroup,
+            selectedEntityNames: this.selection.selectedEntityNames,
+        }
+    }
+
+    @computed get dataTableFilterOptions(): DataTableFilterOption[] {
+        return buildDataTableFilterOptions(this.dataTableEntities, {
+            canFilterBySelection:
+                !this.shouldShowSelectionOnlyInDataTable &&
+                this.dataTableSelection.hasSelection &&
+                this.canChangeAddOrHighlightEntities,
+        })
+    }
+
     @computed get dataTableFilter(): DataTableFilter {
-        if (this.dataTableConfig.filter) return this.dataTableConfig.filter
-
-        const { availableEntityNameSet } =
-            this.tableForDisplayBeforeEntityFilter
-        const countryNames = this.entitiesByRegionGroup.get("countries") ?? []
-        const countryCount = countryNames.filter((name) =>
-            availableEntityNameSet.has(name)
-        ).length
-
-        return countryCount > 0 && countryCount < availableEntityNameSet.size
-            ? "countries"
-            : "all"
+        return (
+            this.dataTableConfig.filter ??
+            pickDefaultDataTableFilter(this.dataTableFilterOptions)
+        )
     }
 
     /** Table for display in the data table tab */
     @computed get tableForDisplay(): OwidTable {
-        let table = this.tableForDisplayBeforeEntityFilter
-        const filter = this.dataTableFilter
-
-        const availableEntities = table.availableEntityNames
-
-        // Determine which entities should be visible based on the filter
-        const visibleEntities = match(filter)
-            .with("all", () => availableEntities)
-            .with("selection", () =>
-                this.selection.hasSelection
-                    ? this.selection.selectedEntityNames
-                    : availableEntities
-            )
-            .when(isEntityRegionGroupKey, (filter) => {
-                const regionNames = this.entitiesByRegionGroup.get(filter)
-                return regionNames ?? availableEntities
-            })
-            .exhaustive()
-
-        // Apply entity filter if necessary
-        if (visibleEntities.length < availableEntities.length)
-            table = table.filterByEntityNames(visibleEntities)
-
-        return table
+        const table = this.tableForDisplayBeforeEntityFilter
+        const visibleEntities = getEntityNamesForDataTableFilter(
+            this.dataTableFilter,
+            this.dataTableEntities
+        )
+        return visibleEntities.length < table.availableEntityNames.length
+            ? table.filterByEntityNames(visibleEntities)
+            : table
     }
 
     /**
