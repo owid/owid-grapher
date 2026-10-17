@@ -229,60 +229,6 @@ export class DataTable extends React.Component<DataTableProps> {
         return this.dataTableDimensionsWithValues.length > 1
     }
 
-    // If the table has a single data column, we move the data column
-    // closer to the entity column to make it easier to read the table
-    @computed private get singleDataColumnStyle():
-        | { minWidth: number; contentMaxWidth: number }
-        | undefined {
-        // no need to do this on mobile
-        if (this.manager.isNarrow) return
-
-        const hasSingleDataColumn =
-            this.displayDimensions.length === 1 &&
-            this.displayDimensions[0].columnDefinitions.length === 1
-
-        if (!hasSingleDataColumn) return
-
-        // header text
-        const dimension = this.displayDimensions[0]
-        const column = this.displayDimensions[0].columnDefinitions[0]
-        const headerText = this.subheaderText(column, dimension)
-
-        // display values
-        const values = excludeUndefined(
-            this.displayRows.map(
-                (row) => (row.values[0] as PointValuesForEntity).single
-            )
-        )
-
-        const accessor = (row: MinimalOwidRow): number | undefined =>
-            typeof row.value === "string" ? row.value.length : row.value
-        const maxValue = _.maxBy(values, accessor)
-        const minValue = _.minBy(values, accessor)
-
-        const measureWidth = (text: string): number =>
-            Bounds.forText(text, { fontSize: 14 }).width
-
-        // in theory, we should be measuring the length of all values
-        // but we might have a lot of values, so we just measure the length
-        // of the min and max values as a proxy
-        const contentMaxWidth = Math.ceil(
-            Math.max(
-                measureWidth(maxValue?.displayValue ?? "") + 20, // 20px accounts for a possible info icon
-                measureWidth(minValue?.displayValue ?? "") + 20, // 20px accounts for a possible info icon
-                measureWidth(headerText) + 26 // 26px accounts for the sort icon
-            )
-        )
-
-        // minimum width of the column
-        const minWidth = 0.66 * this.bounds.width
-
-        // only do this if there is an actual need
-        if (minWidth - contentMaxWidth < 320) return
-
-        return { minWidth, contentMaxWidth }
-    }
-
     private get dimensionHeaders(): React.ReactElement[] | null {
         const sort = this.sortState
         return this.displayDimensions.map((dim, dimIndex) => {
@@ -377,10 +323,6 @@ export class DataTable extends React.Component<DataTableProps> {
                         classNames={classnames({
                             "subdimension-first": colIndex === 0,
                         })}
-                        minWidth={this.singleDataColumnStyle?.minWidth}
-                        contentMaxWidth={
-                            this.singleDataColumnStyle?.contentMaxWidth
-                        }
                     />
                 )
             })
@@ -394,6 +336,7 @@ export class DataTable extends React.Component<DataTableProps> {
                 <tr>
                     <th className="above-entity" />
                     {this.dimensionHeaders}
+                    <th className="filler" rowSpan={2} aria-hidden />
                 </tr>
                 <tr>
                     {this.entityHeader}
@@ -406,6 +349,7 @@ export class DataTable extends React.Component<DataTableProps> {
                 {hasSubheaders
                     ? this.dimensionSubheaders
                     : this.dimensionHeaders}
+                <th className="filler" aria-hidden />
             </tr>
         )
     }
@@ -509,7 +453,7 @@ export class DataTable extends React.Component<DataTableProps> {
         return (
             <tr key={row.entityName}>
                 <td key="entity" className={classnames({ entity: true })}>
-                    {row.entityName}
+                    <div className="entity-name">{row.entityName}</div>
                 </td>
 
                 {row.values.map((valuesForEntity, dimIndex) => {
@@ -542,10 +486,6 @@ export class DataTable extends React.Component<DataTableProps> {
                                     key={key}
                                     columnKey={columnDefinition.key}
                                     isFirstColumn={colIndex === 0}
-                                    maxWidth={
-                                        this.singleDataColumnStyle
-                                            ?.contentMaxWidth
-                                    }
                                 >
                                     {this.renderValueCellContent({
                                         columnDefinition,
@@ -557,6 +497,7 @@ export class DataTable extends React.Component<DataTableProps> {
                         }
                     )
                 })}
+                <td className="filler" aria-hidden />
             </tr>
         )
     }
@@ -1022,8 +963,6 @@ function ColumnHeader(props: {
     colSpan?: number
     headerText: React.ReactNode
     colType: "entity" | "dimension" | "subdimension"
-    minWidth?: number
-    contentMaxWidth?: number
 }): React.ReactElement {
     const { sortable, sortedCol, colType } = props
     const isEntityColumn = colType === "entity"
@@ -1046,31 +985,19 @@ function ColumnHeader(props: {
             rowSpan={props.rowSpan ?? 1}
             colSpan={props.colSpan ?? 1}
             onClick={props.onClick}
-            style={{ minWidth: props.minWidth }}
         >
-            <CellContent maxWidth={props.contentMaxWidth}>
-                <div className="content">
-                    {!isEntityColumn && sortIcon}
-                    <span>{props.headerText}</span>
-                    {isEntityColumn && sortIcon}
-                </div>
-            </CellContent>
+            <div className="content">
+                {!isEntityColumn && sortIcon}
+                <span>{props.headerText}</span>
+                {isEntityColumn && sortIcon}
+            </div>
         </th>
     )
-}
-
-function CellContent(props: {
-    maxWidth?: number
-    children?: React.ReactNode
-}): React.ReactElement {
-    if (!props.maxWidth) return <>{props.children}</>
-    return <div style={{ maxWidth: props.maxWidth }}>{props.children}</div>
 }
 
 function ValueCell(props: {
     columnKey: DataTableColumnKey
     isFirstColumn?: boolean
-    maxWidth?: number
     children?: React.ReactNode
 }): React.ReactElement {
     const className = classnames([
@@ -1078,13 +1005,7 @@ function ValueCell(props: {
         `cell-${props.columnKey}`,
         { "cell-first": props.isFirstColumn },
     ])
-    return (
-        <td className={className}>
-            <CellContent maxWidth={props.maxWidth}>
-                {props.children}
-            </CellContent>
-        </td>
-    )
+    return <td className={className}>{props.children}</td>
 }
 
 function SortIcon(props: {
