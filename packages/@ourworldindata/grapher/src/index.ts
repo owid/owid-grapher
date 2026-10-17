@@ -89,7 +89,7 @@ export {
     type GrapherProgrammaticInterface,
     type GrapherManager,
 } from "./core/Grapher"
-export { GrapherState } from "./core/GrapherState"
+export { GrapherState, type SidePanelRenderer } from "./core/GrapherState"
 export { GrapherAnalytics, splitPathForGA4 } from "./core/GrapherAnalytics"
 export { legacyToCurrentGrapherUrl } from "./core/GrapherUrlMigrations"
 export { legacyToOwidTableAndDimensions } from "./core/LegacyToOwidTable"

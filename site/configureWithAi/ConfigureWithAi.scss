@@ -1,0 +1,530 @@
+// "Configure with AI" prototype: tabs in Grapher's side panel. Loaded with
+// the prototype's own chunk, so it imports the colours itself.
+@use "../../packages/@ourworldindata/components/src/styles/colors.scss" as *;
+
+.configure-with-ai {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    color: $blue-90;
+    font-size: 0.875rem;
+
+    button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+    }
+
+    button:disabled {
+        cursor: default;
+    }
+
+    a {
+        color: $vermillion;
+    }
+}
+
+.configure-with-ai__tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    flex-shrink: 0;
+    border-bottom: 1px solid $blue-20;
+}
+
+.configure-with-ai__tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 44px;
+    padding: 0 6px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: $gray-5;
+    color: $blue-60;
+    white-space: nowrap;
+
+    &[aria-selected="true"] {
+        background: #fff;
+        border-bottom-color: $vermillion;
+        color: $blue-100;
+        font-weight: 700;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: -2px;
+    }
+}
+
+.configure-with-ai__badge {
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: $amber;
+    color: $blue-100;
+    font-size: 0.625rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.configure-with-ai__tab-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.configure-with-ai__customize {
+    flex: 1;
+    min-height: 0;
+    padding-top: 16px;
+
+    > .configure-with-ai__muted {
+        padding: 0 16px;
+    }
+}
+
+.configure-with-ai__muted {
+    margin: 0;
+    color: $blue-60;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
+.configure-with-ai__try-ai {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    width: 100%;
+    padding: 10px 16px;
+    border: 0;
+    border-top: 1px solid $blue-20;
+    background: $blue-5;
+    text-align: left;
+
+    span {
+        flex: 1;
+    }
+
+    &:hover {
+        background: $blue-10;
+    }
+}
+
+// AI mode
+
+.configure-with-ai__ai {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.configure-with-ai__form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+    padding: 16px 16px 0;
+}
+
+.configure-with-ai__intro-title {
+    color: $blue-100;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.configure-with-ai__field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding-left: 10px;
+    border: 1px solid $blue-30;
+    background: #fff;
+
+    &:focus-within {
+        border-color: $blue-60;
+    }
+}
+
+.configure-with-ai__field-icon {
+    color: $blue-60;
+}
+
+.configure-with-ai__input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: $blue-90;
+    font: inherit;
+    font-size: 0.9375rem;
+}
+
+.configure-with-ai__submit {
+    align-self: stretch;
+    min-width: 40px;
+    padding: 0 10px;
+    border: 0;
+    background: $blue-90;
+    color: #fff !important;
+    font-size: 0.8125rem;
+
+    &:disabled {
+        background: $blue-20;
+    }
+}
+
+.configure-with-ai__body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 12px 16px 16px;
+}
+
+.configure-with-ai__status {
+    margin: 0;
+    color: $blue-60;
+    font-size: 0.8125rem;
+
+    &:empty {
+        display: none;
+    }
+}
+
+.configure-with-ai__placeholders {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    span {
+        height: 32px;
+        background: $blue-5;
+        animation: configure-with-ai-pulse 1.4s ease-in-out infinite;
+    }
+
+    span:first-child {
+        height: 52px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        span {
+            animation: none;
+        }
+    }
+}
+
+@keyframes configure-with-ai-pulse {
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.configure-with-ai__message {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px;
+    border-radius: 8px;
+    background: $blue-5;
+    line-height: 1.45;
+
+    p {
+        margin: 0;
+    }
+}
+
+.configure-with-ai__message--error {
+    background: #fdecea;
+}
+
+.configure-with-ai__link-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $vermillion !important;
+    text-decoration: underline;
+}
+
+.configure-with-ai__section-title {
+    margin: 0 0 6px;
+    color: $blue-60;
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.configure-with-ai__intro {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.configure-with-ai__can {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    svg {
+        width: 14px;
+        margin-top: 3px;
+        color: $blue-60;
+    }
+
+    li > span {
+        display: flex;
+        flex-direction: column;
+    }
+
+    li > span > span {
+        color: $blue-60;
+        font-size: 0.8125rem;
+    }
+}
+
+.configure-with-ai__suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    button {
+        padding: 5px 10px;
+        border: 1px solid $blue-20;
+        border-radius: 999px;
+        background: #fff;
+        font-size: 0.8125rem;
+        text-align: left;
+
+        &:hover {
+            background: $blue-5;
+        }
+    }
+}
+
+.configure-with-ai__views {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.configure-with-ai__view {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    background: transparent;
+    text-align: left;
+
+    &:hover:not(:disabled) {
+        background: $blue-5;
+    }
+}
+
+.configure-with-ai__view--active {
+    background: $blue-5;
+}
+
+.configure-with-ai__view-label {
+    .configure-with-ai__view--active & {
+        color: $blue-100;
+        font-weight: 700;
+    }
+}
+
+.configure-with-ai__now {
+    color: $vermillion;
+    font-size: 0.6875rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.configure-with-ai__closest {
+    align-self: flex-start;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: $amber-10;
+    color: $blue-90;
+    font-size: 0.6875rem;
+    font-weight: 700;
+}
+
+.configure-with-ai__note {
+    color: $blue-60;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
+.configure-with-ai__feedback {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 4px;
+    color: $blue-60;
+    font-size: 0.8125rem;
+
+    span {
+        flex: 1;
+    }
+}
+
+.configure-with-ai__thumb {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    background: transparent;
+    color: $blue-60 !important;
+
+    &[aria-pressed="true"] {
+        color: $blue-100 !important;
+    }
+
+    &:hover {
+        background: $blue-5;
+    }
+}
+
+.configure-with-ai__history {
+    padding-top: 12px;
+    border-top: 1px solid $blue-10;
+
+    ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+}
+
+.configure-with-ai__history-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 7px 4px;
+    border: 0;
+    border-bottom: 1px solid $blue-10;
+    background: transparent;
+    text-align: left;
+
+    &:hover:not(:disabled) {
+        background: $gray-5;
+    }
+}
+
+.configure-with-ai__history-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 24px;
+    background: $blue-5;
+    color: $blue-60;
+
+    .configure-with-ai__history-row--current & {
+        background: $blue-100;
+        color: #fff;
+    }
+}
+
+.configure-with-ai__history-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+
+    > span:last-child {
+        overflow: hidden;
+        color: $blue-60;
+        font-size: 0.75rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .configure-with-ai__history-row--current & > span:first-child {
+        color: $blue-100;
+        font-weight: 700;
+    }
+}
+
+.configure-with-ai__history-go {
+    flex-shrink: 0;
+    color: $blue-60;
+    font-size: 0.75rem;
+    text-decoration: underline;
+}
+
+.configure-with-ai__disclosure {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 8px 16px;
+    border-top: 1px solid $blue-10;
+    color: $blue-60;
+    font-size: 0.6875rem;
+    line-height: 1.35;
+}
+
+// Staff-only tools: a dashed edge and a grey ground set them apart from
+// what readers see
+.configure-with-ai__staff {
+    flex-shrink: 0;
+    padding: 6px 16px 8px;
+    border-top: 1px dashed $blue-30;
+    background: $gray-5;
+}
+
+.configure-with-ai__staff-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.configure-with-ai__staff-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    color: $gray-80;
+    font-size: 0.6875rem;
+}
+
+.configure-with-ai__model select {
+    padding: 2px;
+    border: 1px solid $blue-20;
+    background: #fff;
+    color: $blue-90;
+    font-size: 0.6875rem;
+}
+
+.configure-with-ai__usage {
+    margin: 4px 0 0;
+    color: $gray-80;
+    font-size: 0.6875rem;
+}
