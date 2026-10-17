@@ -472,6 +472,8 @@ export interface ColorScaleConfigInterface {
     colorSchemeInvert?: boolean
     binningStrategy: BinningStrategyIncludingManual
     createBinForMidpoint?: boolean
+    isOpenLeft?: boolean
+    isOpenRight?: boolean
     minValue?: number
     maxValue?: number
     midpoint?: number
