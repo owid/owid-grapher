@@ -5,12 +5,14 @@
 import { expect, it, describe, beforeAll, beforeEach, vi } from "vitest"
 import { render } from "@testing-library/react"
 import {
+    EntitySelectionMode,
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_CONFIG_OPTIONS,
     SortOrder,
 } from "@ourworldindata/types"
 import {
     childMortalityGrapher,
+    GrapherWithAggregates,
     GrapherWithIncompleteData,
     GrapherWithMultipleVariablesAndMultipleYears,
 } from "./DataTable.sample"
@@ -207,7 +209,7 @@ describe("when the table has multiple variables and multiple years", () => {
 })
 
 describe("when the table has no filter toggle", () => {
-    it("does not filter by default if we have a map tab", () => {
+    it("does not filter by selection by default if we have a map tab", () => {
         const grapher = LifeExpectancyGrapher({
             selectedEntityNames: ["World"],
             hideEntityControls: true, // no filter toggle
@@ -215,10 +217,10 @@ describe("when the table has no filter toggle", () => {
         })
         const { container } = render(<DataTable manager={grapher} />)
         const rows = container.querySelectorAll("tbody tr:not(.title)")
-        expect(rows).toHaveLength(grapher.availableEntityNames.length)
+        expect(rows).toHaveLength(3)
     })
 
-    it("does not filter by default if the selection is empty", () => {
+    it("does not filter by selection by default if the selection is empty", () => {
         const grapher = LifeExpectancyGrapher({
             selectedEntityNames: [],
             hideEntityControls: true, // no filter toggle
@@ -226,7 +228,7 @@ describe("when the table has no filter toggle", () => {
         })
         const { container } = render(<DataTable manager={grapher} />)
         const rows = container.querySelectorAll("tbody tr:not(.title)")
-        expect(rows).toHaveLength(grapher.availableEntityNames.length)
+        expect(rows).toHaveLength(3)
     })
 })
 
@@ -241,5 +243,64 @@ describe("when searching the table", () => {
             (cell) => cell.textContent
         )
         expect(entityNames).toEqual(["Iceland"])
+    })
+})
+
+const getEntityNames = (container: HTMLElement): (string | null)[] =>
+    Array.from(
+        container.querySelectorAll("tbody td.entity"),
+        (cell) => cell.textContent
+    )
+
+describe("when choosing the default filter", () => {
+    it("shows only countries if the table also has aggregates", () => {
+        const grapher = GrapherWithAggregates()
+        const { container } = render(<DataTable manager={grapher} />)
+        expect(grapher.dataTableFilter).toBe("countries")
+        expect(getEntityNames(container).sort()).toEqual([
+            "Afghanistan",
+            "Iceland",
+        ])
+    })
+
+    it("shows all entities if the table has no countries", () => {
+        const grapher = GrapherWithMultipleVariablesAndMultipleYears()
+        const { container } = render(<DataTable manager={grapher} />)
+        expect(grapher.dataTableFilter).toBe("all")
+        expect(getEntityNames(container)).toEqual(["World"])
+    })
+
+    it("shows all entities if the table is narrowed to a selection of aggregates", () => {
+        const grapher = LifeExpectancyGrapher({
+            selectedEntityNames: ["World"],
+            addCountryMode: EntitySelectionMode.Disabled,
+            hasMapTab: false,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        })
+        const { container } = render(<DataTable manager={grapher} />)
+        expect(grapher.dataTableFilter).toBe("all")
+        expect(getEntityNames(container)).toEqual(["World"])
+    })
+
+    it("shows all entities if the tableFilter param is 'all'", () => {
+        const grapher = GrapherWithAggregates()
+        grapher.populateFromQueryParams({ tableFilter: "all" })
+        const { container } = render(<DataTable manager={grapher} />)
+        expect(getEntityNames(container).sort()).toEqual([
+            "Afghanistan",
+            "Iceland",
+            "World",
+        ])
+    })
+
+    it("does not put the default filter in the URL", () => {
+        const grapher = GrapherWithAggregates()
+        expect(grapher.changedParams).not.toHaveProperty("tableFilter")
+    })
+
+    it("puts an explicit filter in the URL", () => {
+        const grapher = GrapherWithAggregates()
+        grapher.populateFromQueryParams({ tableFilter: "all" })
+        expect(grapher.changedParams.tableFilter).toBe("all")
     })
 })

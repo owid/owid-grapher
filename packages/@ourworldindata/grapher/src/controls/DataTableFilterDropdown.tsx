@@ -3,7 +3,10 @@ import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Dropdown } from "./Dropdown"
 import { EntityName } from "@ourworldindata/utils"
-import { DataTableConfig } from "../dataTable/DataTableConstants"
+import {
+    DataTableConfig,
+    DataTableFilter,
+} from "../dataTable/DataTableConstants"
 import { OwidTable } from "@ourworldindata/core-table"
 import { SelectionArray } from "../selection/SelectionArray"
 import { makeSelectionArray } from "../chart/ChartUtils"
@@ -11,6 +14,7 @@ import { RegionGroup, regionGroupLabels } from "../core/RegionGroups"
 
 export interface DataTableFilterDropdownManager {
     dataTableConfig: DataTableConfig
+    dataTableFilter: DataTableFilter
     tableForDisplayBeforeEntityFilter: OwidTable
     isOnTableTab?: boolean
     dataTableSelection?: SelectionArray | EntityName[]
@@ -22,7 +26,7 @@ export interface DataTableFilterDropdownManager {
 
 interface DropdownOption {
     label: string
-    value: DataTableConfig["filter"]
+    value: DataTableFilter
     count: number
     trackNote: "data_table_filter_by"
 }
@@ -120,7 +124,7 @@ export class DataTableFilterDropdown extends React.Component<{
     }
 
     @computed private get value(): DropdownOption | null {
-        const { filter } = this.props.manager.dataTableConfig
+        const filter = this.props.manager.dataTableFilter
         return (
             this.options.find((option) => filter === option.value) ??
             this.options[0]

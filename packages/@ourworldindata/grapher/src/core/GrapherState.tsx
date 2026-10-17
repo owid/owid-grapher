@@ -148,6 +148,7 @@ import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
 import {
     DataTableConfig,
     DataTableSortState,
+    DataTableFilter,
     DataTableManager,
     DEFAULT_DATA_TABLE_SORT,
 } from "../dataTable/DataTableConstants.js"
@@ -562,7 +563,7 @@ export class GrapherState
     selection: SelectionArray = new SelectionArray()
     focusArray = new FocusArray()
 
-    dataTableConfig: DataTableConfig = { filter: "all", search: "" }
+    dataTableConfig: DataTableConfig = { search: "" }
     dataTableSort: DataTableSortState = DEFAULT_DATA_TABLE_SORT
 
     entitySelectorState: Partial<EntitySelectorState> = {}
@@ -1125,10 +1126,25 @@ export class GrapherState
         return table
     }
 
+    @computed get dataTableFilter(): DataTableFilter {
+        if (this.dataTableConfig.filter) return this.dataTableConfig.filter
+
+        const { availableEntityNameSet } =
+            this.tableForDisplayBeforeEntityFilter
+        const countryNames = this.entitiesByRegionGroup.get("countries") ?? []
+        const countryCount = countryNames.filter((name) =>
+            availableEntityNameSet.has(name)
+        ).length
+
+        return countryCount > 0 && countryCount < availableEntityNameSet.size
+            ? "countries"
+            : "all"
+    }
+
     /** Table for display in the data table tab */
     @computed get tableForDisplay(): OwidTable {
         let table = this.tableForDisplayBeforeEntityFilter
-        const { filter } = this.dataTableConfig
+        const filter = this.dataTableFilter
 
         const availableEntities = table.availableEntityNames
 
@@ -1397,8 +1413,7 @@ export class GrapherState
         if (parsed.tableFilter.status === "valid") {
             this.dataTableConfig.filter = parsed.tableFilter.value
         } else if (parsed.tableFilter.status === "invalid") {
-            // Reset to default if invalid value provided
-            this.dataTableConfig.filter = "all"
+            this.dataTableConfig.filter = undefined
         }
 
         // Table search
