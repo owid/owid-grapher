@@ -29,8 +29,8 @@ export interface DataTableManager {
     dataTableSlugs?: ColumnSlug[]
     isNarrow?: boolean
     dataTableConfig: DataTableConfig
-    /** Kept on the manager so the sort survives remounts and can be set programmatically */
-    dataTableSort: DataTableSortState
+    /** Kept on the manager so the sort survives remounts and can be set programmatically; unset means the default sort by latest value */
+    dataTableSort?: DataTableSortState
     dataTableSelection?: SelectionArray | EntityName[]
     entitiesByRegionGroup?: EntitiesByRegionGroup
     timelineDragTarget?: TimelineDragTarget
@@ -176,7 +176,7 @@ export interface DataTableSortState {
 
 export const ENTITY_SORT_INDEX = -1
 
-export const DEFAULT_DATA_TABLE_SORT: DataTableSortState = {
+export const ENTITY_DATA_TABLE_SORT: DataTableSortState = {
     dimIndex: ENTITY_SORT_INDEX,
     columnKey: undefined,
     order: SortOrder.asc,

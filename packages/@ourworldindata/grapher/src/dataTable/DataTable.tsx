@@ -62,6 +62,7 @@ import {
     DataTableFilter,
     SparklineKey,
     ENTITY_SORT_INDEX,
+    ENTITY_DATA_TABLE_SORT,
 } from "./DataTableConstants"
 import { Sparkline } from "../sparkline/Sparkline"
 
@@ -112,9 +113,28 @@ export class DataTable extends React.Component<DataTableProps> {
         return table
     }
 
+    @computed private get defaultSortState(): DataTableSortState {
+        const firstDimension = this.dataTableDimensionsWithValues[0]
+        const columnKeys = firstDimension?.columnDefinitions.map(
+            (colDef) => colDef.key
+        )
+        const columnKey = columnKeys?.includes(RangeColumnKey.end)
+            ? RangeColumnKey.end
+            : columnKeys?.includes(PointColumnKey.single)
+              ? PointColumnKey.single
+              : undefined
+
+        if (firstDimension?.coreTableColumn.hasNumberFormatting && columnKey)
+            return { dimIndex: 0, columnKey, order: SortOrder.desc }
+
+        return ENTITY_DATA_TABLE_SORT
+    }
+
     @computed private get sortState(): DataTableSortState {
-        let { dimIndex, columnKey } = this.manager.dataTableSort
-        const { order } = this.manager.dataTableSort
+        const requestedSort =
+            this.manager.dataTableSort ?? this.defaultSortState
+        let { dimIndex, columnKey } = requestedSort
+        const { order } = requestedSort
 
         // The stored sort may point past the columns currently shown, e.g.
         // when it was set programmatically or the table is still loading

@@ -20,6 +20,20 @@ import { LifeExpectancyGrapher } from "../testData/OwidTestData.sample.js"
 import { DataTable } from "./DataTable.js"
 import { PointColumnKey } from "./DataTableConstants.js"
 
+const getCellTexts = (
+    container: HTMLElement,
+    entityName: string,
+    cellSelector: string
+): (string | null)[] => {
+    const row = Array.from(container.querySelectorAll("tbody tr")).find(
+        (tr) => tr.querySelector("td.entity")?.textContent === entityName
+    )
+    return Array.from(
+        row?.querySelectorAll(cellSelector) ?? [],
+        (cell) => cell.textContent
+    )
+}
+
 describe("when you render a table", () => {
     let container: HTMLElement
     beforeEach(() => {
@@ -58,13 +72,19 @@ describe("when you render a table", () => {
     })
 
     it("renders the name of each country", () => {
-        const cell = container.querySelector("tbody tr td.entity")
-        expect(cell?.textContent).toBe("Afghanistan")
+        const names = Array.from(
+            container.querySelectorAll("tbody tr td.entity"),
+            (cell) => cell.textContent
+        )
+        expect(names).toContain("Afghanistan")
     })
 
     it("renders the value for each country", () => {
-        const cell = container.querySelector("tbody tr td.cell-single")
-        expect(cell?.textContent).toBe("21.56%")
+        const values = Array.from(
+            container.querySelectorAll("tbody tr td.cell-single"),
+            (cell) => cell.textContent
+        )
+        expect(values).toContain("21.56%")
     })
 
     it("renders the unit in cell values when the unit is '%'", () => {
@@ -87,23 +107,27 @@ describe("when you select a range of years", () => {
     })
 
     it("renders start values", () => {
-        const cell = container.querySelector("tbody .cell-start")
-        expect(cell?.textContent).toBe("22.45%")
+        const [text] = getCellTexts(container, "Afghanistan", ".cell-start")
+        expect(text).toBe("22.45%")
     })
 
     it("renders end values", () => {
-        const cell = container.querySelector("tbody .cell-end")
-        expect(cell?.textContent).toBe("21.56%")
+        const [text] = getCellTexts(container, "Afghanistan", ".cell-end")
+        expect(text).toBe("21.56%")
     })
 
     it("renders absolute change values", () => {
-        const cell = container.querySelector("tbody .cell-delta")
-        expect(cell?.textContent).toBe("-0.89\u00a0pp") // uses no-break space separator
+        const [text] = getCellTexts(container, "Afghanistan", ".cell-delta")
+        expect(text).toBe("-0.89\u00a0pp")
     })
 
     it("renders relative change values", () => {
-        const cell = container.querySelector("tbody .cell-deltaRatio")
-        expect(cell?.textContent).toBe("-4%")
+        const [text] = getCellTexts(
+            container,
+            "Afghanistan",
+            ".cell-deltaRatio"
+        )
+        expect(text).toBe("-4%")
     })
 
     it("labels the sparkline column with the time range", () => {
@@ -169,9 +193,8 @@ describe("when the table doesn't have data for all rows", () => {
     })
 
     it("renders no value when data is not available for years within the tolerance", () => {
-        expect(
-            container.querySelectorAll("tbody .cell-single")[0]?.textContent
-        ).toBe("")
+        const [value] = getCellTexts(container, "Afghanistan", ".cell-single")
+        expect(value).toBe("")
     })
 
     it("renders an info icon when data is not from targetYear", () => {
@@ -182,9 +205,8 @@ describe("when the table doesn't have data for all rows", () => {
     })
 
     it("renders a data value for the column with targetTime 2010", () => {
-        expect(
-            container.querySelectorAll("tbody .cell-single")[1]?.textContent
-        ).toBe("20.00%")
+        const [, value] = getCellTexts(container, "Afghanistan", ".cell-single")
+        expect(value).toBe("20.00%")
     })
 
     it("displays correct targetTime for columns", () => {
@@ -302,5 +324,24 @@ describe("when choosing the default filter", () => {
         const grapher = GrapherWithAggregates()
         grapher.populateFromQueryParams({ tableFilter: "all" })
         expect(grapher.changedParams.tableFilter).toBe("all")
+    })
+})
+
+describe("when choosing the default sort", () => {
+    it("sorts a point table by value, largest first", () => {
+        const { container } = render(
+            <DataTable manager={childMortalityGrapher()} />
+        )
+        expect(getEntityNames(container)).toEqual(["Iceland", "Afghanistan"])
+    })
+
+    it("sorts a range table by end value, largest first", () => {
+        const grapher = childMortalityGrapher({
+            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        })
+        grapher.timelineHandleTimeBounds = [1950, 2005]
+        const { container } = render(<DataTable manager={grapher} />)
+        expect(getEntityNames(container)).toEqual(["Afghanistan", "Iceland"])
     })
 })
