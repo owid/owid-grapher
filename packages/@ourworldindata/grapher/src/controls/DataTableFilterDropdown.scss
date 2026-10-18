@@ -5,3 +5,16 @@
 .data-table-filter-dropdown-menu {
     min-width: 170px;
 }
+
+@container grapher (max-width:550px) {
+    .data-table-filter-dropdown {
+        width: auto;
+        max-width: 160px;
+        min-width: 0;
+    }
+
+    .data-table-filter-dropdown .control .label,
+    .data-table-filter-dropdown .control .detail {
+        display: none;
+    }
+}

@@ -15,6 +15,7 @@ export interface DataTableSearchFieldManager {
     dataTableConfig: DataTableConfig
     dataTableFilter: DataTableFilter
     isOnTableTab?: boolean
+    isSemiNarrow?: boolean
     entityType?: string
 }
 
@@ -58,6 +59,11 @@ export class DataTableSearchField extends React.Component<{
             .exhaustive()
     }
 
+    @computed private get placeholder(): string {
+        if (this.manager.isSemiNarrow) return "Search..."
+        return `Search for ${a(this.placeholderEntityType)}`
+    }
+
     override render(): React.ReactElement | null {
         if (!this.shouldShow) return null
 
@@ -75,7 +81,7 @@ export class DataTableSearchField extends React.Component<{
                 }}
                 onClear={() => (this.manager.dataTableConfig.search = "")}
                 trackNote="data_table_search"
-                placeholder={`Search for ${a(this.placeholderEntityType)}`}
+                placeholder={this.placeholder}
             />
         )
     }

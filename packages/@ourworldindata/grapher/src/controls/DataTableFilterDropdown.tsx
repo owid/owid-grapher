@@ -21,7 +21,6 @@ export interface DataTableFilterDropdownManager {
     dataTableFilter: DataTableFilter
     dataTableFilterOptions: DataTableFilterOption[]
     isOnTableTab?: boolean
-    isSemiNarrow?: boolean
 }
 
 interface DropdownOption extends DataTableFilterOption {
@@ -50,8 +49,7 @@ export class DataTableFilterDropdown extends React.Component<{
     @computed private get shouldShow(): boolean {
         return (
             !!this.manager.isOnTableTab &&
-            hasDataTableFilterChoice(this.manager.dataTableFilterOptions) &&
-            !this.manager.isSemiNarrow
+            hasDataTableFilterChoice(this.manager.dataTableFilterOptions)
         )
     }
 
