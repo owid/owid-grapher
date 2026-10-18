@@ -575,10 +575,11 @@ export interface Json {
     [x: string]: any
 }
 
-// Escape a function for storage in a csv cell
+// Escape a value for storage in a csv cell (RFC 4180): values containing a
+// comma, a double quote or a line break are wrapped in double quotes
 export const csvEscape = (value: unknown): string => {
     const valueStr = _.toString(value)
-    return valueStr.includes(",")
+    return /[",\r\n]/.test(valueStr)
         ? `"${valueStr.replace(/"/g, '""')}"`
         : valueStr
 }

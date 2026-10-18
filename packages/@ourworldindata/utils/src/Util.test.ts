@@ -46,6 +46,7 @@ import {
     toStartOfDayUtc,
     epochDate,
     sentenceCaseIfNotTopicPage,
+    csvEscape,
 } from "./Util.js"
 import {
     BlockSize,
@@ -1448,4 +1449,33 @@ describe(deriveAnnouncementLatestType, () => {
             expect(deriveAnnouncementLatestType(kicker)).toBe("announcement")
         }
     )
+})
+
+describe(csvEscape, () => {
+    it("leaves plain values unchanged", () => {
+        expect(csvEscape("United States")).toEqual("United States")
+        expect(csvEscape(123)).toEqual("123")
+        expect(csvEscape(undefined)).toEqual("")
+    })
+
+    it("quotes values that contain a comma", () => {
+        expect(csvEscape("Something, foo")).toEqual('"Something, foo"')
+        expect(csvEscape('a "b", c')).toEqual('"a ""b"", c"')
+    })
+
+    it("quotes values that contain a double quote", () => {
+        expect(csvEscape('Share who answered "yes"')).toEqual(
+            '"Share who answered ""yes"""'
+        )
+        expect(csvEscape('"Yes" answers')).toEqual('"""Yes"" answers"')
+    })
+
+    it("quotes values that contain a line break", () => {
+        expect(csvEscape("first line\nsecond line")).toEqual(
+            '"first line\nsecond line"'
+        )
+        expect(csvEscape("first line\r\nsecond line")).toEqual(
+            '"first line\r\nsecond line"'
+        )
+    })
 })

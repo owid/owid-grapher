@@ -686,6 +686,26 @@ Aruba,2020-01-22,"Something, foo"
 Canada,2020-01-23,`)
     })
 
+    it("quotes csv values that contain double quotes or line breaks", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "day", "annotation"],
+                ["Aruba", 1, '"Provisional" estimate'],
+                ["Canada", 2, "Line one\nLine two"],
+            ],
+            [
+                { slug: "entityName" },
+                { slug: "day", type: "Day" as any },
+                { slug: "annotation" },
+            ]
+        )
+
+        expect(table.toCsv()).toEqual(`entityName,day,annotation
+Aruba,2020-01-22,"""Provisional"" estimate"
+Canada,2020-01-23,"Line one
+Line two"`)
+    })
+
     it("can format a value", () => {
         const table = new OwidTable(
             [["growthRate"], [123]],
