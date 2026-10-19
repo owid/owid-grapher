@@ -5,11 +5,13 @@
 import { expect, it, describe, beforeAll, beforeEach, vi } from "vitest"
 import { render } from "@testing-library/react"
 import {
+    ColumnTypeNames,
     EntitySelectionMode,
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_CONFIG_OPTIONS,
     SortOrder,
 } from "@ourworldindata/types"
+import { OwidTable } from "@ourworldindata/core-table"
 import {
     childMortalityGrapher,
     GrapherStartingAtZero,
@@ -21,6 +23,7 @@ import {
 import { LifeExpectancyGrapher } from "../testData/OwidTestData.sample.js"
 import { DataTable } from "./DataTable.js"
 import { PointColumnKey } from "./DataTableConstants.js"
+import { GrapherState } from "../core/GrapherState"
 
 const findRow = (
     container: HTMLElement,
@@ -490,5 +493,37 @@ describe("when choosing the default sort", () => {
         grapher.timelineHandleTimeBounds = [1950, 2005]
         const { container } = render(<DataTable manager={grapher} />)
         expect(getEntityNames(container)).toEqual(["Afghanistan", "Iceland"])
+    })
+})
+
+describe("when a scatter's colour column has a single observation", () => {
+    it("shows the colour value in years without an observation", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "year", "x", "y", "color"],
+                ["France", 2021, 1, 1, null],
+                ["France", 2022, 2, 2, null],
+                ["France", 2023, null, 3, "Europe"],
+            ],
+            [
+                { slug: "x", type: ColumnTypeNames.Numeric },
+                { slug: "y", type: ColumnTypeNames.Numeric },
+                { slug: "color", type: ColumnTypeNames.String },
+            ]
+        )
+        const grapher = new GrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+            xSlug: "x",
+            ySlugs: "y",
+            colorSlug: "color",
+            table,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        })
+        grapher.timelineHandleTimeBounds = [2022, 2022]
+        const { container } = render(<DataTable manager={grapher} />)
+
+        expect(getCellTexts(container, "France", ".cell-single")).toContain(
+            "Europe"
+        )
     })
 })
