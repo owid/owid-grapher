@@ -18,7 +18,7 @@ export const requestSchema = z.object({
     query: z.string().trim().min(1).max(100),
     // The current view, i.e. grapherState.queryStr plus MDim choices
     queryStr: z.string().max(4000).default(""),
-    model: z.enum(MODELS).default("claude-haiku-5-5"),
+    model: z.enum(MODELS).default("claude-sonnet-5-5"),
     /** The table's current sort, which isn't part of the query string */
     tableSort: z
         .object({

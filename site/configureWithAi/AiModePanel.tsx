@@ -30,7 +30,7 @@ const MODELS = [
     { id: "claude-opus-5-5", label: "Opus 5.5" },
 ] as const
 type ModelId = (typeof MODELS)[number]["id"]
-const DEFAULT_MODEL: ModelId = "claude-haiku-5-5"
+const DEFAULT_MODEL: ModelId = "claude-sonnet-5-5"
 const MODEL_STORAGE_KEY = "configure-with-ai:model"
 const MAX_QUERY_LENGTH = 100
 const SLOW_AFTER_SECONDS = 10
@@ -99,15 +99,26 @@ const formatCost = (usd: number): string =>
           ? `$${usd.toFixed(3)}`
           : `$${usd.toFixed(4)}`
 
-/** This answer's cost, and the same tokens on the other of Haiku and Sonnet */
-function costLine(usage: Usage): string | null {
-    if (usage.costUsd === null || usage.costUsd === undefined) return null
+/**
+ * This answer's cost, and what it would cost as the first question on its
+ * chart (cache written, not read), which is how most readers would arrive.
+ * Budget with the first-question figure; Sonnet also tends to write more.
+ */
+function costLines(usage: Usage): string[] {
     const model =
         MODELS.find((m) => usage.model.startsWith(m.id))?.id ?? DEFAULT_MODEL
-    const other =
-        model === "claude-haiku-5-5" ? "claude-sonnet-5-5" : "claude-haiku-5-5"
-    const otherCost = usage.costUsdByModel?.[other]
-    return `${formatCost(usage.costUsd)} (${formatCost(usage.costUsd * 1000)} per 1,000 like it)${otherCost !== null && otherCost !== undefined ? ` · same tokens on ${modelLabel(other)}: ${formatCost(otherCost)}` : ""}`
+    const lines: string[] = []
+    for (const id of ["claude-sonnet-5-5", "claude-haiku-5-5"] as const) {
+        const costs = usage.costUsdByModel?.[id]
+        if (!costs || costs.asRun === null || costs.firstQuestion === null)
+            continue
+        const prefix =
+            id === model ? modelLabel(id) : `Same tokens on ${modelLabel(id)}`
+        lines.push(
+            `${prefix}: ${formatCost(costs.asRun)} · as a first question ${formatCost(costs.firstQuestion)} (${formatCost(costs.firstQuestion * 1000)} per 1,000)`
+        )
+    }
+    return lines
 }
 
 export function AiModePanel({
@@ -329,11 +340,12 @@ export function AiModePanel({
                             {current.usage.outputTokens.toLocaleString()} out
                         </p>
                     )}
-                    {current && costLine(current.usage) && (
-                        <p className="configure-with-ai__usage">
-                            {costLine(current.usage)}
-                        </p>
-                    )}
+                    {current &&
+                        costLines(current.usage).map((line) => (
+                            <p className="configure-with-ai__usage" key={line}>
+                                {line}
+                            </p>
+                        ))}
                 </div>
             )}
         </div>

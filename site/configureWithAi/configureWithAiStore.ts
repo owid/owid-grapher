@@ -15,8 +15,11 @@ export interface Usage {
     ms: number
     /** USD, from genai-prices on the server; null if it has no price */
     costUsd: number | null
-    /** The same tokens priced on Haiku and on Sonnet */
-    costUsdByModel: Record<string, number | null>
+    /** The same tokens priced on Haiku and on Sonnet, as run and as a first question */
+    costUsdByModel: Record<
+        string,
+        { asRun: number | null; firstQuestion: number | null }
+    >
 }
 
 /** What a page has to provide so the panel can read and change its chart */

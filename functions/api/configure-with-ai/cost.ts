@@ -29,12 +29,37 @@ export function costOf(usage: TokenUsage, model: Model): number | null {
     return price?.total_price ?? null
 }
 
+/**
+ * The run as the first question on its chart: the prompt cache is written
+ * rather than read. Readers spread across many charts mostly arrive like this,
+ * so it's the figure to budget with.
+ */
+export function asFirstQuestion(usage: TokenUsage): TokenUsage {
+    return {
+        ...usage,
+        cacheReadTokens: 0,
+        cacheWriteTokens: usage.cacheWriteTokens + usage.cacheReadTokens,
+    }
+}
+
+export interface Costs {
+    /** As this run happened */
+    asRun: number | null
+    /** As the first question on the chart */
+    firstQuestion: number | null
+}
+
+const costs = (usage: TokenUsage, model: Model): Costs => ({
+    asRun: costOf(usage, model),
+    firstQuestion: costOf(asFirstQuestion(usage), model),
+})
+
 /** The same tokens priced on each of Haiku and Sonnet, to compare them */
 export function costsByModel(
     usage: TokenUsage
-): Record<"claude-haiku-5-5" | "claude-sonnet-5-5", number | null> {
+): Record<"claude-haiku-5-5" | "claude-sonnet-5-5", Costs> {
     return {
-        "claude-haiku-5-5": costOf(usage, "claude-haiku-5-5"),
-        "claude-sonnet-5-5": costOf(usage, "claude-sonnet-5-5"),
+        "claude-haiku-5-5": costs(usage, "claude-haiku-5-5"),
+        "claude-sonnet-5-5": costs(usage, "claude-sonnet-5-5"),
     }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { costOf, costsByModel } from "./cost.js"
+import { asFirstQuestion, costOf, costsByModel } from "./cost.js"
 
 // A typical run: a cached prompt of ~9,400 tokens, a short request and reply
 const usage = {
@@ -20,8 +20,17 @@ describe(costOf, () => {
 
     it("compares the same tokens on Haiku and Sonnet", () => {
         const costs = costsByModel(usage)
-        expect(costs["claude-sonnet-5-5"]).toBeGreaterThan(
-            10 * costs["claude-haiku-5-5"]!
+        expect(costs["claude-sonnet-5-5"].asRun).toBeGreaterThan(
+            10 * costs["claude-haiku-5-5"].asRun!
         )
+    })
+
+    it("prices a first question with the prompt cache written, not read", () => {
+        expect(asFirstQuestion(usage)).toMatchObject({
+            cacheReadTokens: 0,
+            cacheWriteTokens: 9412,
+        })
+        const { asRun, firstQuestion } = costsByModel(usage)["claude-haiku-5-5"]
+        expect(firstQuestion!).toBeGreaterThan(4 * asRun!)
     })
 })
