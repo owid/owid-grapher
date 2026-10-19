@@ -1,9 +1,6 @@
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 
-import {
-    fetchJson,
-    getRegionByCode,
-} from "@ourworldindata/utils"
+import { fetchJson, getRegionByCode } from "@ourworldindata/utils"
 
 import { parseBespokeMetadata } from "../../../../components/MetadataModal/bespokeMetadata.js"
 
