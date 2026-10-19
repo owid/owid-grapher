@@ -60,6 +60,76 @@
       ]
     },
     {
+      "id": "deforestation-trade",
+      "entryFile": "bespoke/projects/deforestation-trade/src/index.tsx",
+      "prose": {
+        "intro": ""
+      },
+      "examples": [],
+      "variants": [
+        {
+          "name": "sankey",
+          "description": "Sankey of where one country's deforestation-linked commodities were consumed, or where the commodities it consumed were produced",
+          "defaultSize": "wide",
+          "archie": "{.bespoke-component}\nbundle: deforestation-trade\nvariant: sankey\nsize: wide\n{}\n"
+        }
+      ],
+      "config": [
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Chart title, replacing the generated one. Also hides the controls"
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "description": "Chart subtitle, replacing the generated one. Also hides the controls"
+        },
+        {
+          "name": "country",
+          "type": "string",
+          "description": "Country shown first. `userLocation` picks the reader's country",
+          "default": "Brazil"
+        },
+        {
+          "name": "year",
+          "type": "integer",
+          "description": "Year shown first when the period is a single year. Defaults to the latest year in the data"
+        },
+        {
+          "name": "period",
+          "type": "enum",
+          "values": [
+            "single-year",
+            "last-5-years",
+            "last-10-years"
+          ],
+          "description": "Time period shown first: one year, or the sum over the last 5 or 10 years of the data",
+          "default": "single-year"
+        },
+        {
+          "name": "flow",
+          "type": "enum",
+          "values": [
+            "production",
+            "consumption"
+          ],
+          "description": "View shown first: where the country's production was consumed, or where its consumption was produced",
+          "default": "production"
+        },
+        {
+          "name": "hideControls",
+          "type": "boolean",
+          "description": "Hide the country, year, period and production/consumption controls"
+        },
+        {
+          "name": "hideFlowSwitcher",
+          "type": "boolean",
+          "description": "Hide the switch between production and consumption"
+        }
+      ]
+    },
+    {
       "id": "demography",
       "entryFile": "bespoke/projects/demography/src/index.tsx",
       "prose": {

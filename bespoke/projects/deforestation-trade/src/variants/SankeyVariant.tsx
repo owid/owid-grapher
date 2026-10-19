@@ -23,11 +23,13 @@ import {
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
-
-import { DeforestationConfig } from "../core/config.js"
+import type { DeforestationConfig } from "../index.js"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import {
+    DEFAULT_COUNTRY,
     DeforestationMetadata,
     Period,
     PERIODS,
@@ -50,14 +52,6 @@ import {
 import { DeforestationChart } from "../components/DeforestationChart.js"
 import { DeforestationControls } from "../components/DeforestationControls.js"
 
-const DEFAULT_VIEW: View = "production"
-
-const DEFAULT_PERIOD: Period = "single-year"
-
-/** Shown when the embed names no country: the largest producer of embedded
- *  deforestation, and the one the chart is most often about. */
-const DEFAULT_COUNTRY = "Brazil"
-
 /** The last year the manifest ships. Only a seed for the URL state, which is
  *  initialised before the metadata has loaded; the rendered year is always
  *  resolved against `metadata.years` below. */
@@ -68,7 +62,7 @@ const queryClient = new QueryClient()
 export function SankeyVariant({
     config,
     urls,
-}: VariantProps<DeforestationConfig>): React.ReactElement {
+}: BespokeVariantProps<DeforestationConfig>): React.ReactElement {
     const { width, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
@@ -105,10 +99,9 @@ function FetchingSankeyVariant({
 }) {
     // "userLocation" is resolved asynchronously by useResolveUserLocation, so
     // it starts on the default country like an unset country does.
-    const initialCountry =
-        !config.country || isUserLocationCountry(config.country)
-            ? DEFAULT_COUNTRY
-            : config.country
+    const initialCountry = isUserLocationCountry(config.country)
+        ? DEFAULT_COUNTRY
+        : config.country
 
     const [country, setCountry] = useUrlState({
         key: "deforestationCountry",
@@ -123,12 +116,12 @@ function FetchingSankeyVariant({
     const [period, setPeriod] = useUrlState({
         key: "deforestationPeriod",
         parser: parseAsStringEnum<Period>([...PERIODS]),
-        defaultValue: config.period ?? DEFAULT_PERIOD,
+        defaultValue: config.period,
     })
     const [storedView, setView] = useUrlState({
         key: "deforestationFlow",
         parser: parseAsStringEnum<View>([...VIEWS]),
-        defaultValue: config.flow ?? DEFAULT_VIEW,
+        defaultValue: config.flow,
     })
 
     const { data: metadata, status: metadataStatus } = useDeforestationMetadata(

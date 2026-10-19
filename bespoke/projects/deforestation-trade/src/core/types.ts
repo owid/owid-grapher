@@ -2,6 +2,10 @@ import type { BespokeMetadata } from "@ourworldindata/types"
 
 export type VariantName = "sankey"
 
+/** Shown when the embed names no country: the largest producer of embedded
+ *  deforestation, and the one the chart is most often about. */
+export const DEFAULT_COUNTRY = "Brazil"
+
 export const VIEWS = ["production", "consumption"] as const
 /** Which side of a selected country is shown: where what it produced was
  *  consumed, or where what it consumed was produced */

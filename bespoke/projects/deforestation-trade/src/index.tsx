@@ -1,18 +1,18 @@
 import { createRoot } from "react-dom/client"
 import { enableShadowDOM } from "@react-stately/flags"
 
-import { VariantName } from "./core/types.js"
-import { parseConfig } from "./core/config.js"
+import { DEFAULT_COUNTRY, PERIODS, VIEWS, VariantName } from "./core/types.js"
 import { SankeyVariant } from "./variants/SankeyVariant"
 
 import type {
     BespokeComponentMountFn,
     BespokeComponentMountOpts,
     BespokeComponentVariantsList,
+    BespokeConfigSpec,
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
-import { parseEmbedConfig } from "../../../helpers/config.js"
+import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
 
 import "./index.scss"
 
@@ -23,10 +23,61 @@ enableShadowDOM()
 export const VARIANTS = [
     {
         name: "sankey",
+        description:
+            "Sankey of where one country's deforestation-linked commodities were consumed, or where the commodities it consumed were produced",
         component: SankeyVariant,
         demoConfig: { urlSync: "true" },
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
+
+export const CONFIG_SPEC = {
+    title: {
+        type: "string",
+        description:
+            "Chart title, replacing the generated one. Also hides the controls",
+    },
+    subtitle: {
+        type: "string",
+        description:
+            "Chart subtitle, replacing the generated one. Also hides the controls",
+    },
+    country: {
+        type: "string",
+        default: DEFAULT_COUNTRY,
+        description:
+            "Country shown first. `userLocation` picks the reader's country",
+    },
+    year: {
+        type: "integer",
+        description:
+            "Year shown first when the period is a single year. Defaults to the latest year in the data",
+    },
+    period: {
+        type: "enum",
+        values: PERIODS,
+        default: "single-year",
+        description:
+            "Time period shown first: one year, or the sum over the last 5 or 10 years of the data",
+    },
+    flow: {
+        type: "enum",
+        values: VIEWS,
+        default: "production",
+        description:
+            "View shown first: where the country's production was consumed, or where its consumption was produced",
+    },
+    hideControls: {
+        type: "boolean",
+        description:
+            "Hide the country, year, period and production/consumption controls",
+    },
+    hideFlowSwitcher: {
+        type: "boolean",
+        description: "Hide the switch between production and consumption",
+    },
+} as const satisfies BespokeConfigSpec
+
+export type DeforestationConfig = ConfigFromSpec<typeof CONFIG_SPEC>
 
 export const mount: BespokeComponentMountFn = (
     container: HTMLDivElement,
@@ -46,11 +97,8 @@ export const mount: BespokeComponentMountFn = (
 
     const urls = { dataUrl: opts.dataUrl, metadataUrl: opts.metadataUrl }
 
-    const rawConfig = opts.config ?? {}
-    const config = {
-        ...parseConfig(rawConfig),
-        ...parseEmbedConfig(rawConfig),
-    }
+    const authoredConfig = opts.config ?? {}
+    const config = parseConfigFromSpec(CONFIG_SPEC, authoredConfig)
 
     const root = createRoot(container)
     root.render(
