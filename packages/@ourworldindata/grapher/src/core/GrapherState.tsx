@@ -963,29 +963,25 @@ export class GrapherState
     @computed get tableAfterColorAndSizeToleranceApplication(): OwidTable {
         let table = this.inputTable
 
-        if (this.hasScatter && this.inputSizeColumnSlug) {
-            const tolerance =
-                table.get(this.inputSizeColumnSlug)?.display?.tolerance ??
-                Infinity
-            table = table.interpolateColumnWithTolerance(
-                this.inputSizeColumnSlug,
-                {
-                    toleranceOverride: tolerance,
-                }
-            )
-        }
+        const slugs = excludeUndefined([
+            this.hasScatter ? this.inputSizeColumnSlug : undefined,
+            this.hasScatter || this.hasMarimekko
+                ? this.inputCategoricalColorColumnSlug
+                : undefined,
+        ])
 
-        if (
-            (this.hasScatter || this.hasMarimekko) &&
-            this.inputCategoricalColorColumnSlug
-        ) {
-            const tolerance =
-                table.get(this.inputCategoricalColorColumnSlug)?.display
-                    ?.tolerance ?? Infinity
-            table = table.interpolateColumnWithTolerance(
-                this.inputCategoricalColorColumnSlug,
-                { toleranceOverride: tolerance }
-            )
+        for (const slug of slugs) {
+            const tolerance = table.get(slug)?.display?.tolerance ?? Infinity
+            table = table
+                .interpolateColumnWithTolerance(slug, {
+                    toleranceOverride: tolerance,
+                })
+                // The data table re-applies each column's own tolerance
+                .updateDefs((def) =>
+                    def.slug === slug
+                        ? { ...def, display: { ...def.display, tolerance } }
+                        : def
+                )
         }
 
         return table
