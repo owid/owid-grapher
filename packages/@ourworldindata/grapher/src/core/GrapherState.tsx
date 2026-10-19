@@ -525,6 +525,7 @@ export class GrapherState
     tableSlugs: ColumnSlugs | undefined = undefined
 
     bakedGrapherURL: string | undefined = undefined
+    canonicalUrlOverride: string | null | undefined = undefined
     adminBaseUrl: string | undefined = undefined
 
     isEmbeddedInAnOwidPage?: boolean = false
@@ -734,6 +735,7 @@ export class GrapherState
             windowInnerHeight: observable.ref,
             screenHeight: observable.ref,
             bakedGrapherURL: observable,
+            canonicalUrlOverride: observable,
             externalQueryParams: observable.ref,
             _inputTable: observable.ref,
             legacyConfigAsAuthored: observable.ref,
@@ -800,6 +802,7 @@ export class GrapherState
         this.recommendedIframeEmbedHeight = options.recommendedIframeEmbedHeight
         this.staticBounds = options.staticBounds ?? DEFAULT_GRAPHER_BOUNDS
 
+        this.canonicalUrlOverride = options.canonicalUrl
         this.narrativeChartInfo = options.narrativeChartInfo
         this.archiveContext = options.archiveContext
 
@@ -3995,6 +3998,8 @@ export class GrapherState
      * e.g. https://ourworldindata.org/grapher/life-expectancy?tab=map
      */
     @computed get canonicalUrl(): string | undefined {
+        if (this.canonicalUrlOverride !== undefined)
+            return this.canonicalUrlOverride ?? undefined
         return (
             this.canonicalUrlIfIsNarrativeChart ??
             (this.baseUrl ? this.baseUrl + this.queryStr : undefined)

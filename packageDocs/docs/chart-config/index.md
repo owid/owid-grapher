@@ -22,4 +22,19 @@ and also shipped with the package as `@ourworldindata/grapher/grapher-schema.jso
 
 A browsable, field-by-field rendering of that schema is available in the [schema reference](../schema-reference/index.md).
 
-One note on requiredness: the schema describes **persisted** configs, which must carry `$schema` and `dimensions`. Configs passed to `GrapherLoader` are looser — `$schema` is never needed, and `dimensions` is only required for [`fromApi`](../api/index.md#grapherloaderfromapi-config-dataapiurl), where it says which indicators to fetch.
+## Options beyond the schema
+
+The config also accepts a few options that control how the chart behaves on your page but aren't part of the persisted schema:
+
+- `canonicalUrl` — the URL of the chart's own page, which the title and the "Explore the data" button link to and the share menu shares. By default it's derived from `slug` (as `/grapher/<slug>`, for published configs), which only resolves on ourworldindata.org. Pass `null` if the chart has no such page: the title is then plain text, and the "Explore the data" button and share menu are not shown.
+
+```js
+GrapherLoader.fromCsv({
+    config: { ...config, canonicalUrl: null },
+    csvUrl: "./data.csv",
+}).mount(container)
+```
+
+## Requiredness
+
+The schema describes **persisted** configs, which must carry `$schema` and `dimensions`. Configs passed to `GrapherLoader` are looser — `$schema` is never needed, and `dimensions` is only required for [`fromApi`](../api/index.md#grapherloaderfromapi-config-dataapiurl), where it says which indicators to fetch.

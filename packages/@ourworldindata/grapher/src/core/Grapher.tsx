@@ -67,6 +67,10 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     table?: OwidTable
     baseUrl?: string
     bakedGrapherURL?: string
+    /** Overrides the URL of the chart's own page that grapher links to (e.g.
+     *  from the title and the "Explore the data" button). `null` means the
+     *  chart has no such page, which removes those links. */
+    canonicalUrl?: string | null
     adminBaseUrl?: string
     env?: string
     highlightedTimesInLineChart?: Time[]

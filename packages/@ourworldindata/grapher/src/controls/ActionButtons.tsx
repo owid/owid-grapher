@@ -266,6 +266,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
 
     @computed private get hasExploreTheDataButton(): boolean {
         const { manager } = this
+        if (!manager.canonicalUrl) return false
         return !manager.hideExploreTheDataButton || !!manager.isInIFrame
     }
 

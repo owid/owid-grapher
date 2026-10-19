@@ -67,3 +67,30 @@ describe("GrapherLoader with a slot naming a host column", () => {
         expect(yColumn.values).toEqual([12, 38])
     })
 })
+
+describe("GrapherLoader canonicalUrl", () => {
+    const publishedConfig: GrapherInterface = {
+        ...config,
+        slug: "vacancy-rates",
+        isPublished: true,
+    }
+
+    it("derives the chart page from the slug by default", () => {
+        const { grapherState } = GrapherLoader.fromCsv({
+            config: publishedConfig,
+            csv,
+            columnDefs,
+        })
+        expect(grapherState.canonicalUrl).toBe("/grapher/vacancy-rates")
+    })
+
+    it("has no chart page to link to when canonicalUrl is null", () => {
+        const { grapherState } = GrapherLoader.fromCsv({
+            config: { ...publishedConfig, canonicalUrl: null },
+            csv,
+            columnDefs,
+        })
+        expect(grapherState.canonicalUrl).toBeUndefined()
+        expect(grapherState.embedUrl).toBeUndefined()
+    })
+})
