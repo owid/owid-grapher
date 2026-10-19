@@ -25,6 +25,51 @@
     display: block;
 }
 
+// Staff-only arm switcher, rendered client-side above the block (and in
+// place of it for control). Styled like the staff strip in Configure with AI.
+.ask-ai-staff {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 24px 0;
+    padding: 6px 12px;
+    border: 1px dashed $blue-30;
+    background: $gray-5;
+}
+
+.ask-ai-staff + .ask-ai {
+    margin-top: 8px;
+}
+
+.ask-ai-staff__label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: $gray-80;
+    font-size: 0.6875rem;
+}
+
+.ask-ai-staff__arms {
+    display: flex;
+    gap: 4px;
+}
+
+.ask-ai-staff__arm {
+    padding: 1px 8px;
+    border: 1px solid $blue-20;
+    background: #fff;
+    color: $blue-90;
+    font-size: 0.75rem;
+    cursor: pointer;
+
+    &[aria-pressed="true"] {
+        background: $blue-90;
+        border-color: $blue-90;
+        color: #fff;
+    }
+}
+
 // Presets are v5 only. A forced arm renders them (or not) itself.
 .exp-ask-ai-v1--v3 .ask-ai:not(.ask-ai--forced) .ask-ai__presets {
     display: none;

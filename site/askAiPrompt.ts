@@ -17,11 +17,11 @@ export const OWID_PUBLIC_GRAPHER_URL = "https://ourworldindata.org/grapher"
  */
 export const ASK_AI_PARAM = "askai"
 
-const ARMS: AskAiArm[] = ["control", "v3", "v5"]
+export const ASK_AI_ARMS: AskAiArm[] = ["control", "v3", "v5"]
 
 export const parseArm = (
     value: string | null | undefined
-): AskAiArm | undefined => ARMS.find((arm) => arm === value)
+): AskAiArm | undefined => ASK_AI_ARMS.find((arm) => arm === value)
 
 export const parseArmOverride = (queryStr: string): AskAiArm | undefined =>
     parseArm(new URLSearchParams(queryStr).get(ASK_AI_PARAM))

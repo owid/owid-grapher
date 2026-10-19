@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faFlask } from "@fortawesome/free-solid-svg-icons"
+import { faEyeSlash, faFlask } from "@fortawesome/free-solid-svg-icons"
+import { CookieKey } from "@ourworldindata/grapher"
 import type {
     AskAiArm,
     AskAiEngine,
@@ -19,6 +20,8 @@ import {
     describeChartState,
     parseArm,
     parseArmOverride,
+    ASK_AI_ARMS,
+    ASK_AI_PARAM,
     DEFAULT_QUESTION,
     ENGINES,
     PRESETS,
@@ -56,11 +59,65 @@ const useAssignedArm = (): AskAiArm | undefined => {
     return arm
 }
 
+/**
+ * Whether the visitor has been to the admin. A hint for showing staff tools,
+ * not access control. Read after hydration, like the experiment cookie.
+ */
+const useIsStaff = (): boolean => {
+    const [isStaff, setIsStaff] = useState(false)
+    useEffect(() => {
+        try {
+            // oxlint-disable-next-line react/set-state-in-effect -- read client-only cookies after hydration
+            setIsStaff(document.cookie.includes(CookieKey.isAdmin))
+        } catch {
+            // Cookies may be unavailable in a sandboxed iframe.
+        }
+    }, [])
+    return isStaff
+}
+
+function StaffArmSwitcher({
+    assignedArm,
+    activeArm,
+    onChoose,
+}: {
+    assignedArm: AskAiArm | undefined
+    activeArm: AskAiArm | undefined
+    onChoose: (arm: AskAiArm) => void
+}) {
+    return (
+        <div className="ask-ai-staff">
+            <span className="ask-ai-staff__label">
+                <FontAwesomeIcon icon={faEyeSlash} aria-hidden="true" />
+                Only visible to OWID staff · Ask-AI arm
+                {assignedArm ? ` (you're assigned ${assignedArm})` : ""}:
+            </span>
+            <div className="ask-ai-staff__arms" role="group">
+                {ASK_AI_ARMS.map((arm) => (
+                    <button
+                        key={arm}
+                        type="button"
+                        className="ask-ai-staff__arm"
+                        aria-pressed={arm === activeArm}
+                        onClick={() => onChoose(arm)}
+                    >
+                        {arm}
+                    </button>
+                ))}
+            </div>
+        </div>
+    )
+}
+
 export function AskAI({ slug, title }: AskAIProps) {
     // Empty on the server and during hydration, so a forced arm only
     // renders after it.
     const queryStr = useWindowQueryParams()
-    const forcedArm = parseArmOverride(queryStr)
+    const isStaff = useIsStaff()
+    // The switcher's choice wins over ?askai=, because the grapher rewrites
+    // the URL from its own state and can restore a stale param.
+    const [staffArm, setStaffArm] = useState<AskAiArm | undefined>()
+    const forcedArm = staffArm ?? parseArmOverride(queryStr)
     const assignedArm = useAssignedArm()
     const arm = forcedArm ?? assignedArm
 
@@ -82,7 +139,23 @@ export function AskAI({ slug, title }: AskAIProps) {
     const slugUrl = `${OWID_PUBLIC_GRAPHER_URL}/${slug}`
     const stateSummary = useMemo(() => describeChartState(queryStr), [queryStr])
 
-    if (forcedArm === "control") return null
+    const chooseArm = (chosen: AskAiArm) => {
+        setStaffArm(chosen)
+        // Mirror it in the URL so the view can be shared.
+        const url = new URL(window.location.href)
+        url.searchParams.set(ASK_AI_PARAM, chosen)
+        window.history.replaceState(window.history.state, "", url)
+    }
+
+    const switcher = isStaff ? (
+        <StaffArmSwitcher
+            assignedArm={assignedArm}
+            activeArm={arm}
+            onChoose={chooseArm}
+        />
+    ) : null
+
+    if (forcedArm === "control") return switcher
 
     // Without a forced arm, render every arm's markup and let the body class
     // pick (AskAI.scss); with one, render just that arm.
@@ -143,76 +216,81 @@ export function AskAI({ slug, title }: AskAIProps) {
     }
 
     return (
-        <aside
-            className={cx("ask-ai", { "ask-ai--forced": forcedArm })}
-            data-arm={arm}
-        >
-            <div className="ask-ai__header">
-                <h3 className="ask-ai__heading">Ask an AI about this chart</h3>
-                <span
-                    className="ask-ai__badge"
-                    title="We're trying this out. It might change or go away."
-                >
-                    <FontAwesomeIcon icon={faFlask} aria-hidden="true" />
-                    Experimental
-                </span>
-            </div>
-            <p className="ask-ai__intro">
-                Open this chart's data in an AI assistant. We'll send it a link
-                to this page and its sources — the conversation happens on their
-                site, not ours.
-            </p>
+        <>
+            {switcher}
+            <aside
+                className={cx("ask-ai", { "ask-ai--forced": forcedArm })}
+                data-arm={arm}
+            >
+                <div className="ask-ai__header">
+                    <h3 className="ask-ai__heading">
+                        Ask an AI about this chart
+                    </h3>
+                    <span
+                        className="ask-ai__badge"
+                        title="We're trying this out. It might change or go away."
+                    >
+                        <FontAwesomeIcon icon={faFlask} aria-hidden="true" />
+                        Experimental
+                    </span>
+                </div>
+                <p className="ask-ai__intro">
+                    Open this chart's data in an AI assistant. We'll send it a
+                    link to this page and its sources — the conversation happens
+                    on their site, not ours.
+                </p>
 
-            {showPresets && (
-                <div className="ask-ai__presets">
-                    {PRESETS.map((preset) => (
+                {showPresets && (
+                    <div className="ask-ai__presets">
+                        {PRESETS.map((preset) => (
+                            <button
+                                key={preset.id}
+                                type="button"
+                                className="ask-ai__preset"
+                                aria-pressed={activePreset === preset.id}
+                                onClick={() => handlePreset(preset.id)}
+                            >
+                                {preset.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                <label className="ask-ai__field">
+                    <span className="ask-ai__label">Your question</span>
+                    <textarea
+                        ref={inputRef}
+                        // Readers may type something personal, so keep it out
+                        // of session replays (site/instrument.ts).
+                        className="ask-ai__input sentry-mask"
+                        rows={2}
+                        value={question}
+                        placeholder="What would you like to know about this data?"
+                        onChange={(e) => {
+                            setQuestion(e.target.value)
+                            setActivePreset(undefined)
+                        }}
+                    />
+                </label>
+
+                <div className="ask-ai__actions">
+                    {ENGINES.map((engine) => (
                         <button
-                            key={preset.id}
+                            key={engine.id}
                             type="button"
-                            className="ask-ai__preset"
-                            aria-pressed={activePreset === preset.id}
-                            onClick={() => handlePreset(preset.id)}
+                            className="ask-ai__button"
+                            onClick={() => handleAsk(engine.id)}
                         >
-                            {preset.label}
+                            {engine.label}
                         </button>
                     ))}
                 </div>
-            )}
 
-            <label className="ask-ai__field">
-                <span className="ask-ai__label">Your question</span>
-                <textarea
-                    ref={inputRef}
-                    // Readers may type something personal, so keep it out
-                    // of session replays (site/instrument.ts).
-                    className="ask-ai__input sentry-mask"
-                    rows={2}
-                    value={question}
-                    placeholder="What would you like to know about this data?"
-                    onChange={(e) => {
-                        setQuestion(e.target.value)
-                        setActivePreset(undefined)
-                    }}
-                />
-            </label>
-
-            <div className="ask-ai__actions">
-                {ENGINES.map((engine) => (
-                    <button
-                        key={engine.id}
-                        type="button"
-                        className="ask-ai__button"
-                        onClick={() => handleAsk(engine.id)}
-                    >
-                        {engine.label}
-                    </button>
-                ))}
-            </div>
-
-            <p className="ask-ai__privacy">
-                Your question is sent to the assistant you pick, and we record
-                it so we can see what people want to ask.
-            </p>
-        </aside>
+                <p className="ask-ai__privacy">
+                    Your question is sent to the assistant you pick, and we
+                    record it so we can see what people want to ask.
+                </p>
+            </aside>
+        </>
     )
 }
