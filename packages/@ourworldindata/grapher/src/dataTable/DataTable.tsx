@@ -1096,7 +1096,6 @@ function ClosestTimeNotice({
                     Showing closest available data point ({closestTime})
                 </div>
             }
-            arrow={false}
         >
             <span className="closest-time-notice-icon">
                 <span className="icon">
