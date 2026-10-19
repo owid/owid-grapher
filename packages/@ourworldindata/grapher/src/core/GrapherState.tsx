@@ -229,6 +229,7 @@ import { CaptionedChartManager } from "../captionedChart/CaptionedChart.js"
 import { SourcesModalManager } from "../modal/SourcesModal.js"
 import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants.js"
 import { ShareMenuManager } from "../controls/ShareMenu.js"
+import type { HostActionButton } from "../controls/ActionButtons.js"
 import { EmbedModalManager } from "../modal/EmbedModal.js"
 import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants.js"
 import { MarimekkoChartManager } from "../marimekko/MarimekkoChartConstants.js"
@@ -530,6 +531,8 @@ export class GrapherState
     isEmbeddedInAnOwidPage?: boolean = false
     isEmbeddedInADataPage?: boolean = false
     useNewDatapageMetadataLayout?: boolean = false
+    /** An extra button the host page adds to the chart's action row */
+    hostActionButton?: HostActionButton = undefined
 
     archiveContext?: ArchiveContext
     narrativeChartInfo?: MinimalNarrativeChartInfo = undefined
@@ -784,6 +787,7 @@ export class GrapherState
         this.additionalDataLoaderFn = options.additionalDataLoaderFn
         this.isEmbeddedInAnOwidPage = options.isEmbeddedInAnOwidPage ?? false
         this.isEmbeddedInADataPage = options.isEmbeddedInADataPage ?? false
+        this.hostActionButton = options.hostActionButton
         this.useNewDatapageMetadataLayout =
             options.useNewDatapageMetadataLayout ?? false
 

@@ -248,7 +248,8 @@ export interface SiteStaticVizDownloadParams {
     eventContext?: string
 }
 
-// Ask-AI bar under the chart on data pages (site/AskAI.tsx). See
+// Ask-AI modal on data pages, opened from the chart's action row
+// (site/AskAI.tsx). See
 // experiments/briefs/ask_ai_button_20260828 in the analytics repo.
 export type AskAiEngine = "claude" | "chatgpt"
 
@@ -257,9 +258,9 @@ export type AskAiPromptSource = "default" | "preset" | "freeform"
 
 export type SiteAskAiParams =
     | {
-          /** Always 'ask_ai_show' for this event: the exposure */
+          /** Always 'ask_ai_show' for this event: the reader opened the modal */
           eventAction: "ask_ai_show"
-          /** Grapher slug the bar was rendered under */
+          /** Grapher slug of the chart the modal was opened from */
           askAiSlug: string
       }
     | {

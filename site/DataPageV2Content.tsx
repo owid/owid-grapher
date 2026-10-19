@@ -29,7 +29,8 @@ import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { useWindowQueryParams } from "./hooks.js"
 import IndicatorMetadataBox from "./IndicatorMetadataBox.js"
 import AboutThisData from "./AboutThisData.js"
-import { AskAI } from "./AskAI.js"
+import { faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons"
+import { AskAIModal } from "./AskAI.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
@@ -87,6 +88,8 @@ export const DataPageV2Content = ({
     const queryStr =
         typeof window !== "undefined" ? window?.location?.search : undefined
 
+    const [isAskAiOpen, setIsAskAiOpen] = useState(false)
+
     // Initialize the grapher for client-side rendering
     const mergedGrapherConfig: GrapherProgrammaticInterface = useMemo(
         () => ({
@@ -97,6 +100,17 @@ export const DataPageV2Content = ({
             enableKeyboardShortcuts: typeof window !== "undefined",
             archiveContext,
             useNewDatapageMetadataLayout: useNewDatapageDesign,
+            // Not on archived versions: the prompt links the live chart's
+            // data, which may no longer match what the reader sees.
+            hostActionButton: archiveContext
+                ? undefined
+                : {
+                      label: "Ask AI",
+                      icon: faWandMagicSparkles,
+                      onClick: () => setIsAskAiOpen(true),
+                      dataTrackNote: "chart_click_ask_ai",
+                      className: "ActionButton--askAi",
+                  },
         }),
         [grapherConfig, archiveContext, useNewDatapageDesign]
     )
@@ -179,10 +193,12 @@ export const DataPageV2Content = ({
                                     isPreviewing={isPreviewing}
                                 />
                             )}
-                            {grapherConfig.slug && (
-                                <AskAI
+                            {grapherConfig.slug && !archiveContext && (
+                                <AskAIModal
                                     slug={grapherConfig.slug}
                                     title={datapageData.title.title}
+                                    isOpen={isAskAiOpen}
+                                    onOpenChange={setIsAskAiOpen}
                                 />
                             )}
                             {!useNewDatapageDesign && (

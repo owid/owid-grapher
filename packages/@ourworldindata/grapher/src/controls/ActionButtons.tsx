@@ -25,7 +25,22 @@ import {
 } from "../core/GrapherConstants.js"
 import { DownloadModalTabName } from "../modal/DownloadModal.js"
 
+/**
+ * A button the host page adds to the start of the action row, for actions
+ * Grapher knows nothing about (the data page's "Ask AI", say). It takes part
+ * in the row's layout like the built-in buttons, including going icon-only
+ * when the row runs out of room.
+ */
+export interface HostActionButton {
+    label: string
+    icon: IconDefinition
+    onClick: () => void
+    dataTrackNote?: string
+    className?: string
+}
+
 export interface ActionButtonsManager extends ShareMenuManager {
+    hostActionButton?: HostActionButton
     isAdmin?: boolean
     isShareMenuActive?: boolean
     hideShareButton?: boolean
@@ -75,11 +90,13 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
     @computed private get widthWithButtonLabels(): number {
         const {
             buttonCount,
+            hasHostButton,
             hasDownloadButton,
             hasDonateButton,
             hasShareButton,
             hasFullScreenButton,
             hasExploreTheDataButton,
+            hostButtonWithLabelWidth,
             downloadButtonWithLabelWidth,
             donateButtonWithLabelWidth,
             shareButtonWithLabelWidth,
@@ -88,6 +105,9 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         } = this
 
         let width = 0
+        if (hasHostButton) {
+            width += hostButtonWithLabelWidth
+        }
         if (hasDownloadButton) {
             width += downloadButtonWithLabelWidth
         }
@@ -147,6 +167,20 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
             PADDING_BETWEEN_ICON_AND_LABEL +
             labelWidth
         )
+    }
+
+    @computed private get hostButtonWithLabelWidth(): number {
+        const { hostActionButton } = this.manager
+        if (!hostActionButton) return 0
+        return ActionButtons.computeButtonWidth(hostActionButton.label)
+    }
+
+    @computed private get hostButtonWidth(): number {
+        const { hasHostButton, showButtonLabels, hostButtonWithLabelWidth } =
+            this
+        if (!hasHostButton) return 0
+        if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
+        return hostButtonWithLabelWidth
     }
 
     @computed private get downloadButtonWithLabelWidth(): number {
@@ -246,6 +280,10 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         }
     }
 
+    @computed private get hasHostButton(): boolean {
+        return !!this.manager.hostActionButton
+    }
+
     @computed private get hasDownloadButton(): boolean {
         return !this.manager.hideDownloadButton
     }
@@ -271,6 +309,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
 
     @computed private get buttonCount(): number {
         let count = 0
+        if (this.hasHostButton) count += 1
         if (this.hasDownloadButton) count += 1
         if (this.hasShareButton) count += 1
         if (this.hasFullScreenButton) count += 1
@@ -298,7 +337,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
 
     override render(): React.ReactElement {
         const { manager } = this
-        const { isShareMenuActive } = manager
+        const { isShareMenuActive, hostActionButton } = manager
 
         return (
             <div
@@ -306,6 +345,21 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
                 style={{ height: this.height, width: this.width }}
             >
                 <ul>
+                    {hostActionButton && (
+                        <li style={{ width: this.hostButtonWidth }}>
+                            <ActionButton
+                                className={hostActionButton.className}
+                                label={hostActionButton.label}
+                                dataTrackNote={hostActionButton.dataTrackNote}
+                                showLabel={this.showButtonLabels}
+                                icon={hostActionButton.icon}
+                                onClick={(e): void => {
+                                    hostActionButton.onClick()
+                                    e.stopPropagation()
+                                }}
+                            />
+                        </li>
+                    )}
                     {this.hasDownloadButton && (
                         <li style={{ width: this.downloadButtonWidth }}>
                             <ActionButton

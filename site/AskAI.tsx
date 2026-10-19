@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import cx from "clsx"
+import { Dialog, Modal, ModalOverlay } from "react-aria-components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faFlask, faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons"
+import { CloseButton } from "@ourworldindata/components"
 import type { AskAiEngine, AskAiPromptSource } from "@ourworldindata/types"
 import {
     buildEngineUrl,
@@ -21,27 +22,61 @@ const analytics = new SiteAnalytics()
 /** Pages Function that stores each submit in R2 (functions/api/ask-ai-question). */
 const ASK_AI_QUESTION_API_URL = "/api/ask-ai-question"
 
-export interface AskAIProps {
+export interface AskAIModalProps {
     slug: string
     title: string
+    isOpen: boolean
+    onOpenChange: (isOpen: boolean) => void
 }
 
 /**
- * A one-line "ask an AI" bar under the chart. It opens up with presets and a
- * note on what gets sent once the reader focuses it, and hands the question,
- * with links to this chart's data, to Claude or ChatGPT on their own sites.
+ * The modal behind the chart's "Ask AI" button. It hands the reader's
+ * question, with links to this chart's data, to Claude or ChatGPT on their
+ * own sites.
  */
-export function AskAI({ slug, title }: AskAIProps) {
-    // Empty on the server and during hydration, so the markup matches.
+export function AskAIModal({
+    slug,
+    title,
+    isOpen,
+    onOpenChange,
+}: AskAIModalProps) {
+    return (
+        <ModalOverlay
+            className="ask-ai-overlay"
+            isOpen={isOpen}
+            onOpenChange={onOpenChange}
+            isDismissable
+        >
+            <Modal className="ask-ai-modal">
+                <Dialog
+                    aria-label="Ask an AI about this chart"
+                    className="ask-ai"
+                >
+                    {({ close }) => (
+                        <AskAIForm slug={slug} title={title} close={close} />
+                    )}
+                </Dialog>
+            </Modal>
+        </ModalOverlay>
+    )
+}
+
+function AskAIForm({
+    slug,
+    title,
+    close,
+}: {
+    slug: string
+    title: string
+    close: () => void
+}) {
     const queryStr = useWindowQueryParams()
 
     const [question, setQuestion] = useState("")
     const [activePreset, setActivePreset] = useState<string | undefined>()
-    // Opens on first focus and stays open, so the layout doesn't jump back
-    // while the reader reaches for a preset or a button.
-    const [expanded, setExpanded] = useState(false)
     const inputRef = useRef<HTMLTextAreaElement>(null)
 
+    // Mounts each time the modal opens, so this counts openings.
     useEffect(() => {
         analytics.logAskAiShow({ slug })
     }, [slug])
@@ -100,77 +135,81 @@ export function AskAI({ slug, title }: AskAIProps) {
     }
 
     return (
-        <aside className={cx("ask-ai", { "ask-ai--expanded": expanded })}>
-            <div className="ask-ai__row">
-                <label className="ask-ai__field">
+        <>
+            <div className="ask-ai__header">
+                <h2 className="ask-ai__heading">Ask an AI about this chart</h2>
+                <span
+                    className="ask-ai__badge"
+                    title="We're trying this out. It might change or go away."
+                >
+                    <FontAwesomeIcon icon={faFlask} aria-hidden="true" />
+                    Experimental
+                </span>
+                <CloseButton
+                    className="ask-ai__close"
+                    onClick={() => close()}
+                />
+            </div>
+
+            {viewSummary && (
+                <p className="ask-ai__view">
                     <FontAwesomeIcon
                         icon={faWandMagicSparkles}
-                        className="ask-ai__icon"
                         aria-hidden="true"
                     />
-                    <span className="sr-only">Ask an AI about this chart</span>
-                    <textarea
-                        ref={inputRef}
-                        // Readers may type something personal, so keep it out
-                        // of session replays (site/instrument.ts).
-                        className="ask-ai__input sentry-mask"
-                        rows={expanded ? 2 : 1}
-                        value={question}
-                        placeholder="Ask an AI about this chart…"
-                        onFocus={() => setExpanded(true)}
-                        onChange={(e) => {
-                            setExpanded(true)
-                            setQuestion(e.target.value)
-                            setActivePreset(undefined)
-                        }}
-                    />
-                </label>
-                <div className="ask-ai__actions">
-                    {ENGINES.map((engine) => (
-                        <button
-                            key={engine.id}
-                            type="button"
-                            className="ask-ai__button"
-                            onClick={() => handleAsk(engine.id)}
-                        >
-                            {engine.label}
-                        </button>
-                    ))}
-                </div>
-            </div>
-            {expanded && (
-                <div className="ask-ai__details">
-                    <div className="ask-ai__presets">
-                        {PRESETS.map((preset) => (
-                            <button
-                                key={preset.id}
-                                type="button"
-                                className="ask-ai__preset"
-                                aria-pressed={activePreset === preset.id}
-                                onClick={() => handlePreset(preset.id)}
-                            >
-                                {preset.label}
-                            </button>
-                        ))}
-                    </div>
-                    <p className="ask-ai__note">
-                        <span
-                            className="ask-ai__badge"
-                            title="We're trying this out. It might change or go away."
-                        >
-                            <FontAwesomeIcon
-                                icon={faFlask}
-                                aria-hidden="true"
-                            />
-                            Experimental
-                        </span>
-                        Opens the assistant you pick, on its own site, with this
-                        chart's data
-                        {viewSummary ? ` for ${viewSummary}` : ""}. We record
-                        your question to learn what people want to ask.
-                    </p>
-                </div>
+                    Your view: {viewSummary}
+                </p>
             )}
-        </aside>
+
+            <div className="ask-ai__presets">
+                {PRESETS.map((preset) => (
+                    <button
+                        key={preset.id}
+                        type="button"
+                        className="ask-ai__preset"
+                        aria-pressed={activePreset === preset.id}
+                        onClick={() => handlePreset(preset.id)}
+                    >
+                        {preset.label}
+                    </button>
+                ))}
+            </div>
+
+            <label className="ask-ai__field">
+                <span className="sr-only">Your question</span>
+                <textarea
+                    ref={inputRef}
+                    // Readers may type something personal, so keep it out of
+                    // session replays (site/instrument.ts).
+                    className="ask-ai__input sentry-mask"
+                    rows={3}
+                    value={question}
+                    placeholder="What would you like to know about this data?"
+                    autoFocus
+                    onChange={(e) => {
+                        setQuestion(e.target.value)
+                        setActivePreset(undefined)
+                    }}
+                />
+            </label>
+
+            <div className="ask-ai__actions">
+                {ENGINES.map((engine) => (
+                    <button
+                        key={engine.id}
+                        type="button"
+                        className="ask-ai__button"
+                        onClick={() => handleAsk(engine.id)}
+                    >
+                        {engine.label}
+                    </button>
+                ))}
+            </div>
+
+            <p className="ask-ai__note">
+                Opens the assistant you pick, on its own site, with this chart's
+                data. We record your question to learn what people want to ask.
+            </p>
+        </>
     )
 }

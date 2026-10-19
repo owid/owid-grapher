@@ -1,88 +1,143 @@
-// "Ask an AI about this chart" bar under the chart on data pages. One line
-// that reads like a search box, opening up with presets and a note on what
-// gets sent once the reader focuses it. See the brief in the analytics repo:
-// experiments/briefs/ask_ai_button_20260828
+// "Ask AI" on data pages: a button in the chart's action row (passed to
+// Grapher as its host action) that opens this modal. See the brief in the
+// analytics repo: experiments/briefs/ask_ai_button_20260828
+
+// Stands out from the grey Download/Share buttons it sits next to.
+div.ActionButton.ActionButton--askAi {
+    --light-fill: #{$blue-90};
+    --hover-fill: #{$blue-100};
+    --active-fill: #{$blue-100};
+    --text-color: #{$white};
+}
+
+.ask-ai-overlay {
+    position: fixed;
+    inset: 0;
+    height: var(--viewport-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba($oxford-blue, 0.6);
+    z-index: $zindex-lightbox;
+}
+
+.ask-ai-modal {
+    width: min(560px, 100%);
+    max-height: 100%;
+    overflow-y: auto;
+}
+
 .ask-ai {
-    margin: 24px 0 32px;
-    padding: 12px;
-    background-color: white;
-    border: 1px solid $blue-20;
-}
-
-.ask-ai__row {
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 8px;
-}
+    flex-direction: column;
+    gap: 12px;
+    padding: 24px;
+    background-color: $white;
+    color: $blue-90;
+    box-shadow: 0 10px 30px rgba($oxford-blue, 0.25);
+    outline: none;
 
-.ask-ai__field {
-    flex: 1 1 320px;
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    min-width: 0;
-    padding: 0 12px;
-    border: 1px solid $blue-20;
-    border-radius: 2px;
-    background-color: white;
-
-    &:focus-within {
-        outline: 2px solid $accent-electric-blue;
-        outline-offset: -1px;
+    @include sm-only {
+        padding: 20px 16px;
     }
 }
 
-.ask-ai__icon {
-    flex-shrink: 0;
-    // Centre on the first line of the textarea (40px row, 14px icon).
-    margin-top: 13px;
-    font-size: 14px;
-    color: $blue-60;
+.ask-ai__header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ask-ai__heading {
+    @include h3-bold;
+    margin: 0;
+}
+
+.ask-ai__close {
+    margin-left: auto;
+}
+
+.ask-ai__view {
+    @include body-3-medium;
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 3px 8px;
+    background-color: $blue-10;
+
+    svg {
+        font-size: 12px;
+    }
+}
+
+.ask-ai__presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.ask-ai__preset {
+    @include body-3-medium;
+    padding: 6px 12px;
+    background-color: $white;
+    border: 1px solid $blue-20;
+    color: $blue-90;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $blue-10;
+    }
+
+    &[aria-pressed="true"] {
+        background-color: $blue-90;
+        border-color: $blue-90;
+        color: $white;
+    }
+}
+
+.ask-ai__field {
+    display: block;
 }
 
 .ask-ai__input {
     @include body-2-regular;
-    flex: 1;
-    min-width: 0;
-    // 40px tall at one row: 8px + 24px line + 8px.
-    padding: 8px 0;
-    border: none;
-    background: transparent;
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid $blue-20;
+    border-radius: 2px;
+    background-color: $white;
     color: $blue-90;
     font-family: inherit;
-    line-height: 24px;
-    resize: none;
+    resize: vertical;
 
     &::placeholder {
         color: $gray-60;
     }
 
-    &:focus {
-        outline: none;
+    &:focus-visible {
+        outline: 2px solid $accent-electric-blue;
+        outline-offset: -1px;
     }
 }
 
 .ask-ai__actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
-
-    @include sm-only {
-        flex: 1 1 100%;
-    }
 }
 
 .ask-ai__button {
     @include body-3-bold;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    // Matches the input's height.
-    height: 42px;
+    height: 40px;
     padding: 0 16px;
     background-color: $blue-90;
     border: none;
-    color: white;
+    color: $white;
     cursor: pointer;
 
     &:hover {
@@ -99,50 +154,14 @@
     }
 }
 
-.ask-ai__details {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.ask-ai__presets {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
-.ask-ai__preset {
-    @include body-3-medium;
-    padding: 6px 12px;
-    background-color: white;
-    border: 1px solid $blue-20;
-    color: $blue-90;
-    cursor: pointer;
-
-    &:hover {
-        background-color: $blue-10;
-    }
-
-    &[aria-pressed="true"] {
-        background-color: $blue-90;
-        border-color: $blue-90;
-        color: white;
-    }
-}
-
 .ask-ai__note {
     @include body-3-medium;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 8px;
     margin: 0;
     color: $gray-70;
 }
 
-// Signals that the bar is a trial. Amber rather than the bar's blue so it
-// reads as a caveat, not another control.
+// Signals that the feature is a trial. Amber rather than the modal's blue so
+// it reads as a caveat, not another control.
 .ask-ai__badge {
     @include body-3-bold;
     display: inline-flex;

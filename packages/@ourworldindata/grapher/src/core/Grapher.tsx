@@ -59,6 +59,7 @@ import { FocusArray } from "../focus/FocusArray"
 import { Chart } from "../chart/Chart.js"
 import { flushSync } from "react-dom"
 import { GrapherState } from "./GrapherState.js"
+import type { HostActionButton } from "../controls/ActionButtons.js"
 
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
@@ -96,6 +97,8 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
     useNewDatapageMetadataLayout?: boolean
+    /** An extra button the host page adds to the chart's action row */
+    hostActionButton?: HostActionButton
     isConfigReady?: boolean
     isDataReady?: boolean
     canHideExternalControlsInEmbed?: boolean

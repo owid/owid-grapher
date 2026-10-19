@@ -90,6 +90,7 @@ export {
     type GrapherManager,
 } from "./core/Grapher"
 export { GrapherState } from "./core/GrapherState"
+export { type HostActionButton } from "./controls/ActionButtons"
 export { GrapherAnalytics, splitPathForGA4 } from "./core/GrapherAnalytics"
 export { legacyToCurrentGrapherUrl } from "./core/GrapherUrlMigrations"
 export { legacyToOwidTableAndDimensions } from "./core/LegacyToOwidTable"
