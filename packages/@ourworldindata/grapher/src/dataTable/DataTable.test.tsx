@@ -147,11 +147,11 @@ describe("when you select a range of years", () => {
         expect(text).toBe("-4%")
     })
 
-    it("labels the sparkline column with the time range", () => {
+    it("labels the sparkline column 'Trend'", () => {
         const headers = [
             ...container.querySelectorAll("thead th.subdimension"),
         ].map((header) => header.textContent)
-        expect(headers).toContain("1950 to 2019")
+        expect(headers).toContain("Trend")
     })
 })
 

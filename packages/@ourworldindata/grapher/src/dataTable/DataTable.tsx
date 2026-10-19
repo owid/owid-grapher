@@ -72,7 +72,7 @@ const columnNameByType: Record<DataTableColumnKey, string> = {
     end: "End",
     delta: "Absolute Change",
     deltaRatio: "Relative Change",
-    sparkline: "Sparkline",
+    sparkline: "Trend",
 }
 
 const inverseSortOrder = (order: SortOrder): SortOrder =>
@@ -309,13 +309,8 @@ export class DataTable extends React.Component<DataTableProps> {
     ): string {
         const col = dimension.coreTableColumn
 
-        if (column.key === SparklineKey.sparkline)
-            return col.formatTimeRange(
-                this.timelineMinTime!,
-                this.timelineMaxTime!
-            )
-
-        return isDeltaColumn(column.key)
+        return isDeltaColumn(column.key) ||
+            column.key === SparklineKey.sparkline
             ? columnNameByType[column.key]
             : col.formatTime(column.targetTime!)
     }
