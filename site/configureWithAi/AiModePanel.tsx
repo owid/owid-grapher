@@ -131,18 +131,11 @@ function usageSummary(usage: Usage): { line: string; details: string } {
     const other =
         model === "claude-haiku-5-5" ? "claude-sonnet-5-5" : "claude-haiku-5-5"
     const costs = usage.costUsdByModel?.[model]
-    const otherCosts = usage.costUsdByModel?.[other]
     const seconds = `${(usage.ms / 1000).toFixed(1)} s`
-    const short = (id: string): string => modelLabel(id).split(" ")[0]
-    // The time is in the tooltip, so the line fits next to the model picker
-    const parts: string[] = []
+    // The other model's cost for the same tokens is in the tooltip
+    const parts = [seconds]
     if (typeof costs?.firstQuestion === "number")
-        parts.push(
-            `${short(model)} ${formatCost(costs.firstQuestion)}` +
-                (typeof otherCosts?.firstQuestion === "number"
-                    ? ` vs ${short(other)} ${formatCost(otherCosts.firstQuestion)}`
-                    : "")
-        )
+        parts.push(formatCost(costs.firstQuestion))
     const tokensIn =
         usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens
     const details = [
