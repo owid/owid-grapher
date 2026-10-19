@@ -171,13 +171,15 @@ export const NewsletterSubscriptionForm = ({
                         <LatestEditionLink path={LATEST_OWID_BRIEF_PATH} />
                     </div>
                 </label>
-                <a
-                    className="newsletter-subscription-form__example-link note-12-medium"
-                    href={`${LATEST_EDITION_BASE_URL}${LATEST_OWID_BRIEF_PATH}`}
-                    data-track-note="newsletter_latest_edition"
-                >
-                    Read the latest OWID Brief
-                </a>
+                <span className="newsletter-subscription-form__example-link note-12-medium">
+                    <a
+                        href={`${LATEST_EDITION_BASE_URL}${LATEST_OWID_BRIEF_PATH}`}
+                        data-track-note="newsletter_latest_edition"
+                    >
+                        Read the latest OWID Brief
+                    </a>{" "}
+                    →
+                </span>
             </div>
             <img
                 alt=""
@@ -210,13 +212,15 @@ export const NewsletterSubscriptionForm = ({
                         />
                     </div>
                 </label>
-                <a
-                    className="newsletter-subscription-form__example-link note-12-medium"
-                    href={`${LATEST_EDITION_BASE_URL}${LATEST_DATA_INSIGHTS_NEWSLETTER_PATH}`}
-                    data-track-note="newsletter_latest_edition"
-                >
-                    Read the latest Data Insight
-                </a>
+                <span className="newsletter-subscription-form__example-link note-12-medium">
+                    <a
+                        href={`${LATEST_EDITION_BASE_URL}${LATEST_DATA_INSIGHTS_NEWSLETTER_PATH}`}
+                        data-track-note="newsletter_latest_edition"
+                    >
+                        Read the latest Data Insight
+                    </a>{" "}
+                    →
+                </span>
             </div>
             {frequencies.length === 0 && (
                 <div className="newsletter-subscription-form__alert">
