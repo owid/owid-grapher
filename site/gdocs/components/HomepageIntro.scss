@@ -207,6 +207,8 @@
 .homepage-intro__announcement-read-more {
     color: $blue-90;
     svg {
+        // a margin rather than a space, so the hover underline stops at the text
+        margin-left: 4px;
         height: 10px;
         position: relative;
         top: -1px;

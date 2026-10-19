@@ -193,7 +193,8 @@ function HomepageAnnouncement(props: {
                     {announcement.excerpt}
                 </p>
                 <span className="homepage-intro__announcement-read-more body-3-medium">
-                    Read more <FontAwesomeIcon icon={faArrowRight} />
+                    Read more
+                    <FontAwesomeIcon icon={faArrowRight} />
                 </span>
             </a>
         </li>

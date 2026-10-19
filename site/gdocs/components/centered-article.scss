@@ -1240,6 +1240,8 @@ div.raw-html-table__container {
         }
         svg {
             font-size: 12px;
+            // a margin rather than a space, so the hover underline stops at the text
+            margin-left: 4px;
             margin-bottom: 1px;
         }
         @include sm-only {

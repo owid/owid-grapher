@@ -333,7 +333,7 @@ const StaticVizDownloadModal = ({
                                 href={grapherLink}
                                 className="static-viz-download-modal__grapher-link"
                             >
-                                Open interactive chart{" "}
+                                Open interactive chart
                                 <FontAwesomeIcon icon={faArrowRight} />
                             </a>
                         </section>

@@ -22,7 +22,8 @@
 
         svg {
             font-size: 0.8em;
-            margin-left: 2px;
+            // a margin rather than a space, so the underline stops at the text
+            margin-left: 6px;
         }
     }
 }

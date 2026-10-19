@@ -126,6 +126,8 @@
     @include owid-link-90;
     color: $gray-80;
     svg {
+        // a margin rather than a space, so the underline stops at the text
+        margin-left: 4px;
         height: 10px;
         position: relative;
         top: -1px;

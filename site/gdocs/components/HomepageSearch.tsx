@@ -89,7 +89,8 @@ export function HomepageSearch(props: { className?: string }) {
                 href={`${BAKED_BASE_URL}/about#our-mission`}
                 className="homepage-search__about-link span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
             >
-                Read about our mission <FontAwesomeIcon icon={faArrowRight} />
+                Read about our mission
+                <FontAwesomeIcon icon={faArrowRight} />
             </a>
             <Autocomplete
                 className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"

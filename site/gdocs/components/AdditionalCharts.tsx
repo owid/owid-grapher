@@ -11,7 +11,7 @@ function AdditionalChartsLink({ item }: { item: Span[] }) {
     if (item.length === 1 && item[0].spanType === "span-link") {
         return (
             <a href={item[0].url}>
-                <SpanElements spans={item[0].children} />{" "}
+                <SpanElements spans={item[0].children} />
                 <FontAwesomeIcon icon={faArrowRight} />
             </a>
         )
