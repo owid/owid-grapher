@@ -44,6 +44,7 @@ import {
     getGroupColor,
     getGroupDescription,
     getGroupLabel,
+    getGroupSentenceLabel,
     GroupIcon,
     renderGroupIcon,
 } from "../core/commodityGroups.js"
@@ -52,7 +53,6 @@ import {
     formatHectares,
     formatShare,
     formatYearRange,
-    possessiveEntity,
 } from "../core/helpers.js"
 import type { YearRange } from "../core/types.js"
 import type { DeforestationChartProps } from "./DeforestationChart.js"
@@ -418,11 +418,17 @@ function makeNodeTooltip({
         ).map(([id, value]) => ({ id, value }))
 
         const description = getGroupDescription(group)
-        const shareOfTotal = graph.total > 0 ? value / graph.total : 0
-        // "of Brazil's total"
-        const ofTotal = countryLabel
-            ? `of ${possessiveEntity(articulateEntity(countryLabel))} total`
-            : "of the total"
+        const commodity = getGroupSentenceLabel(group)
+        const country = countryLabel
+            ? articulateEntity(countryLabel)
+            : undefined
+        const productionPurpose =
+            group === "Pasture"
+                ? "create pasture for cattle raised for beef"
+                : `produce ${commodity}`
+        const headlineDescription = isPartnerSideIncoming
+            ? `of forest cleared worldwide to ${productionPurpose}${country ? `${group === "Pasture" ? " that's" : ""} consumed in ${country}` : ""}`
+            : `of forest cleared${country ? ` in ${country}` : ""} to ${productionPurpose}`
         return {
             title: getGroupLabel(group),
             subtitle,
@@ -438,17 +444,15 @@ function makeNodeTooltip({
                             <span className="deforestation-sankey__tooltip-headline-value">
                                 {formatHectares(value)}
                             </span>
-                            {formatShare(shareOfTotal) && (
-                                <span className="deforestation-sankey__tooltip-headline-share">
-                                    {formatShare(shareOfTotal)} {ofTotal}
-                                </span>
-                            )}
+                            <span className="deforestation-sankey__tooltip-headline-description">
+                                {headlineDescription}
+                            </span>
                         </div>
                     </GroupLine>
                     <PartnerShareTable
                         heading={
                             isPartnerSideIncoming
-                                ? "Produced in"
+                                ? "Forest cleared in"
                                 : "Consumed in"
                         }
                         total={value}

@@ -26,6 +26,7 @@ export const COMMODITY_GROUPS: Record<
     string,
     {
         shortLabel: string
+        sentenceLabel: string
         /** What the group covers, with its biggest drivers of deforestation
          *  first (worldwide, 2023); shown in the group's tooltip */
         description: string
@@ -35,6 +36,7 @@ export const COMMODITY_GROUPS: Record<
 > = {
     Cereals: {
         shortLabel: "Cereals (rice, corn, …)",
+        sentenceLabel: "cereals",
         description:
             "Forest cleared to grow grain crops, mainly rice and corn, but also barley, wheat, sorghum and millet.",
         color: OwidDistinctColors.Camel,
@@ -42,6 +44,7 @@ export const COMMODITY_GROUPS: Record<
     },
     "Edible roots and tubers with high starch or inulin content": {
         shortLabel: "Roots & tubers",
+        sentenceLabel: "roots and tubers",
         description:
             "Forest cleared to grow starchy root crops, mostly cassava, but also yams, potatoes, sweet potatoes and taro.",
         color: OwidDistinctColors.Copper,
@@ -49,6 +52,7 @@ export const COMMODITY_GROUPS: Record<
     },
     "Fibre crops": {
         shortLabel: "Fiber crops (rubber, cotton, …)",
+        sentenceLabel: "fiber crops",
         description:
             "Forest cleared to grow crops used as materials rather than food, mostly rubber trees and cotton, but also tobacco, sisal and jute.",
         color: OwidDistinctColors.Teal,
@@ -56,6 +60,7 @@ export const COMMODITY_GROUPS: Record<
     },
     "Fruit and nuts": {
         shortLabel: "Fruit & nuts",
+        sentenceLabel: "fruit and nuts",
         description:
             "Forest cleared to grow fruit and nut trees, such as plantains, cashews and bananas, but also guavas, mangoes and avocados.",
         color: OwidDistinctColors.OliveGreen,
@@ -63,6 +68,7 @@ export const COMMODITY_GROUPS: Record<
     },
     "Oilseeds and oleaginous fruits": {
         shortLabel: "Oilseeds (soy, palm, …)",
+        sentenceLabel: "oilseeds",
         description:
             "Forest cleared to grow crops for vegetable oil and animal feed, mainly soybeans and oil palms, but also sunflowers, peanuts, rapeseed and coconuts.",
         color: OwidDistinctColors.RustyOrange,
@@ -70,6 +76,7 @@ export const COMMODITY_GROUPS: Record<
     },
     Pasture: {
         shortLabel: "Beef (pasture)",
+        sentenceLabel: "beef",
         description:
             "Forest cleared to create pasture for grazing cattle, raised for beef.",
         color: OwidDistinctColors.Maroon,
@@ -77,6 +84,7 @@ export const COMMODITY_GROUPS: Record<
     },
     "Pulses (dried leguminous vegetables)": {
         shortLabel: "Dry beans & legumes",
+        sentenceLabel: "dry beans and legumes",
         description:
             "Forest cleared to grow beans and other legumes that are sold dried, mainly common beans and cowpeas, but also chickpeas, pigeon peas and lentils.",
         color: OwidDistinctColors.DarkOliveGreen,
@@ -84,6 +92,7 @@ export const COMMODITY_GROUPS: Record<
     },
     "Stimulant, spice and aromatic crops": {
         shortLabel: "Stimulants (cocoa, coffee, …)",
+        sentenceLabel: "stimulants, spice and aromatic crops",
         description:
             "Forest cleared to grow cocoa and coffee, but also tea, maté, and spices such as nutmeg, cardamom and cinnamon.",
         color: OwidDistinctColors.Purple,
@@ -91,6 +100,7 @@ export const COMMODITY_GROUPS: Record<
     },
     Vegetables: {
         shortLabel: "Vegetables",
+        sentenceLabel: "vegetables",
         description:
             "Forest cleared to grow vegetables, such as okra, onions and tomatoes, but also peppers, sweet corn and pumpkins.",
         color: OwidDistinctColors.Lime,
@@ -109,6 +119,10 @@ export function getGroupDescription(name: string): string | undefined {
 
 export function getGroupLabel(name: string): string {
     return COMMODITY_GROUPS[name]?.shortLabel ?? name
+}
+
+export function getGroupSentenceLabel(name: string): string {
+    return COMMODITY_GROUPS[name]?.sentenceLabel ?? name
 }
 
 export function getGroupColor(name: string): string {
