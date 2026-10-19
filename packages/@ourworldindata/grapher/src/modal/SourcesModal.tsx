@@ -12,6 +12,7 @@ import {
     IndicatorTitleWithFragments,
     joinTitleFragments,
     getIndicatorCitations,
+    openLinkInNewTabAttrs,
 } from "@ourworldindata/utils"
 import {
     IndicatorSources,
@@ -505,7 +506,10 @@ export class Source extends React.Component<SourceProps> {
                     </>
                 )}
                 {this.editUrl && (
-                    <a href={this.editUrl}>
+                    <a
+                        href={this.editUrl}
+                        {...openLinkInNewTabAttrs(this.props.openLinksInNewTab)}
+                    >
                         <FontAwesomeIcon icon={faPencilAlt} />
                     </a>
                 )}
@@ -519,7 +523,10 @@ export class Source extends React.Component<SourceProps> {
                 {this.renderTitle()}
                 {this.descriptionBelowTitle && (
                     <div className="description-below-title">
-                        <SimpleMarkdownText text={this.descriptionBelowTitle} />
+                        <SimpleMarkdownText
+                            text={this.descriptionBelowTitle}
+                            openLinksInNewTab={this.props.openLinksInNewTab}
+                        />
                     </div>
                 )}
                 <SourcesKeyDataTable
@@ -547,6 +554,7 @@ export class Source extends React.Component<SourceProps> {
                         }
                         additionalInfo={this.source.additionalInfo}
                         isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
+                        openLinksInNewTab={this.props.openLinksInNewTab}
                     />
                 )}
                 {!this.hideSourcesForDisplay &&
@@ -570,6 +578,7 @@ export class Source extends React.Component<SourceProps> {
                 </h3>
                 <IndicatorProcessing
                     descriptionProcessing={this.def.descriptionProcessing}
+                    openLinksInNewTab={this.props.openLinksInNewTab}
                 />
                 <h3 className="heading heading--tight">
                     How to cite this data:
