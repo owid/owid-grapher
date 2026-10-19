@@ -1,0 +1,118 @@
+.income-distribution-legend {
+    font-size: 12px;
+    color: $dark-text;
+    user-select: none;
+}
+
+.income-distribution-legend--swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.income-distribution-legend--swatches .income-distribution-legend__entry {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.income-distribution-legend__entry {
+    transition: opacity 150ms;
+}
+
+.income-distribution-legend__entry--dimmed {
+    opacity: 0.4;
+}
+
+.income-distribution-legend__entry--world .income-distribution-legend__label {
+    font-weight: 700;
+}
+
+.income-distribution-legend__swatch {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.income-distribution-legend__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: $gray-100;
+}
+
+.income-distribution-legend__clear {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 12px;
+    color: $light-text;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+        color: $dark-text;
+    }
+}
+
+.income-distribution-legend__bars {
+    display: grid;
+    grid-template-columns: max-content minmax(120px, 1fr);
+    column-gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+// Rows share the grid's columns; padding rather than row-gap so hovering
+// doesn't flicker in the gaps
+.income-distribution-legend--shares .income-distribution-legend__entry {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    padding: 2px 0;
+}
+
+.income-distribution-legend__bar-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.income-distribution-legend__bar-track {
+    flex: 1;
+    height: 10px;
+}
+
+.income-distribution-legend__bar {
+    display: block;
+    min-width: 1px;
+    height: 100%;
+    border-radius: 0 2px 2px 0;
+}
+
+.income-distribution-legend__value {
+    flex-shrink: 0;
+    min-width: 40px;
+    font-variant-numeric: tabular-nums;
+}
+
+.income-distribution-legend--narrow .income-distribution-legend__bars {
+    grid-template-columns: 1fr;
+}
+
+.income-distribution-legend--narrow.income-distribution-legend--shares
+    .income-distribution-legend__entry {
+    grid-template-columns: 1fr;
+    row-gap: 2px;
+    padding: 3px 0;
+}
