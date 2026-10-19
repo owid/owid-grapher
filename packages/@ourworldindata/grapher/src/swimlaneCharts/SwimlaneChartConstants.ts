@@ -43,6 +43,19 @@ export const SWIMLANE_LEGEND_STYLE: LegendStyleConfig = {
     text: { [Emphasis.Muted]: { opacity: GRAPHER_AREA_OPACITY_MUTED } },
 }
 
+export const SWIMLANE_ORDINAL_LEGEND_STYLE: LegendStyleConfig = {
+    marker: {
+        [Emphasis.Default]: {
+            opacity: GRAPHER_AREA_OPACITY_DEFAULT,
+            stroke: "#fff",
+            strokeWidth: 1,
+        },
+        [Emphasis.Highlighted]: { opacity: GRAPHER_AREA_OPACITY_HIGHLIGHTED },
+        [Emphasis.Muted]: { opacity: GRAPHER_AREA_OPACITY_MUTED },
+    },
+    text: SWIMLANE_LEGEND_STYLE.text,
+}
+
 export type SwimlaneChartManager = ChartManager
 
 export interface SwimlaneVisibleTimeRange {
