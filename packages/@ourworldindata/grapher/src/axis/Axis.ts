@@ -26,7 +26,7 @@ import {
 } from "./timeAxisTicks.js"
 import { match, P } from "ts-pattern"
 import { MarkdownTextWrap, TextWrapGroup } from "@ourworldindata/components"
-import { CoreColumn } from "@ourworldindata/core-table"
+import { CoreColumn, TimeColumn } from "@ourworldindata/core-table"
 import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants.js"
 import { makeAxisLabel } from "./AxisUtils.js"
 import * as R from "remeda"
@@ -768,12 +768,17 @@ export class HorizontalAxis extends AbstractAxis {
                   )
                 : undefined
 
+            const lastTime =
+                this.isDomainEndExclusive && formatColumn instanceof TimeColumn
+                    ? formatColumn.addPeriods(end, -1)
+                    : end
+
             const endLabel =
-                Number.isFinite(end) && end !== start
+                Number.isFinite(end) && lastTime !== start
                     ? this.placeTickLabel(
                           end,
                           // Include the full plotted range for sub-yearly data
-                          formatColumn.formatTimeShortEnd(end)
+                          formatColumn.formatTimeShortEnd(lastTime)
                       )
                     : undefined
 

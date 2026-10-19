@@ -800,6 +800,48 @@ describe("endpoint tick labels", () => {
         expect(endpointLabels(axis)).toEqual(["1953", "2019"])
     })
 
+    it.each([
+        {
+            columnType: ColumnTypeNames.Year,
+            min: 2000,
+            max: 2006,
+            expected: ["2000", "2005"],
+        },
+        {
+            columnType: ColumnTypeNames.Month,
+            min: day("2021-01-01"),
+            max: day("2021-04-01"),
+            expected: ["Jan 2021", "Mar 2021"],
+        },
+    ])(
+        "ends a $columnType axis with an exclusive end on its last time",
+        ({ columnType, min, max, expected }) => {
+            const axis = makeTimeAxis({
+                columnType,
+                min,
+                max,
+                range: [0, 220],
+                hideFractionalTicks: true,
+                isDomainEndExclusive: true,
+            })
+
+            expect(endpointLabels(axis)).toEqual(expected)
+        }
+    )
+
+    it("labels only the start when an exclusive end leaves a single time", () => {
+        const axis = makeTimeAxis({
+            columnType: ColumnTypeNames.Year,
+            min: 2004,
+            max: 2005,
+            range: [0, 220],
+            hideFractionalTicks: true,
+            isDomainEndExclusive: true,
+        })
+
+        expect(endpointLabels(axis)).toEqual(["2004"])
+    })
+
     it("keeps only the start label when the two don't fit", () => {
         const axis = makeTimeAxis({
             columnType: ColumnTypeNames.Day,
