@@ -58,6 +58,7 @@ export interface SourcesModalManager {
     frameBounds?: Bounds
     base: React.RefObject<HTMLDivElement | null>
     isEmbeddedInADataPage?: boolean
+    isInIFrame?: boolean
     isNarrow?: boolean
     fontSize?: number
 }
@@ -207,6 +208,7 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
                 isEmbeddedInADataPage={
                     this.manager.isEmbeddedInADataPage ?? false
                 }
+                openLinksInNewTab={this.manager.isInIFrame}
             />
         )
     }
@@ -374,6 +376,7 @@ interface SourceProps {
     title?: string
     editBaseUrl?: string
     isEmbeddedInADataPage?: boolean
+    openLinksInNewTab?: boolean
 }
 
 @observer
@@ -529,6 +532,7 @@ export class Source extends React.Component<SourceProps> {
                     link={this.source.link}
                     unitConversionFactor={this.column.unitConversionFactor}
                     isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
+                    openLinksInNewTab={this.props.openLinksInNewTab}
                 />
                 {this.showDescriptions && (
                     <SourcesDescriptions
@@ -557,6 +561,7 @@ export class Source extends React.Component<SourceProps> {
                                 isEmbeddedInADataPage={
                                     this.props.isEmbeddedInADataPage
                                 }
+                                openLinksInNewTab={this.props.openLinksInNewTab}
                             />
                         </>
                     )}
