@@ -138,9 +138,9 @@
 
 .configure-with-ai__field {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
-    height: 40px;
+    min-height: 40px;
     padding-left: 10px;
     border: 1px solid $blue-30;
     background: #fff;
@@ -151,22 +151,29 @@
 }
 
 .configure-with-ai__field-icon {
+    flex-shrink: 0;
+    margin-top: 12px;
     color: $blue-60;
 }
 
+// A text area so a long question wraps instead of scrolling sideways
 .configure-with-ai__input {
     flex: 1;
     min-width: 0;
-    height: 100%;
+    padding: 9px 0;
     border: 0;
     outline: none;
     background: transparent;
     color: $blue-90;
     font: inherit;
     font-size: 0.9375rem;
+    line-height: 1.4;
+    resize: none;
+    overflow: hidden;
 }
 
 .configure-with-ai__counter {
+    align-self: center;
     flex-shrink: 0;
     color: $blue-60;
     font-size: 0.6875rem;

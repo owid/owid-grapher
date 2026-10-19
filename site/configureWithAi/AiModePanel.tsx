@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
@@ -192,7 +192,7 @@ export function AiModePanel({
     const model = isStaff ? storedModel : DEFAULT_MODEL
     const isThinking = request.status === "thinking"
     const isIdle = request.status === "idle" || request.status === "stopped"
-    const inputRef = useRef<HTMLInputElement>(null)
+    const inputRef = useRef<HTMLTextAreaElement>(null)
     const bodyRef = useRef<HTMLDivElement>(null)
 
     const focusInput = (): void => inputRef.current?.focus()
@@ -204,10 +204,12 @@ export function AiModePanel({
         focusInput()
     }
 
-    // Show the start of a long question rather than its end
-    useEffect(() => {
+    // The question wraps: the text area grows to fit it (up to 100 characters)
+    useLayoutEffect(() => {
         const el = inputRef.current
-        if (input && el && document.activeElement !== el) el.scrollLeft = 0
+        if (!el) return
+        el.style.height = "auto"
+        if (input) el.style.height = `${el.scrollHeight}px`
     }, [input])
 
     const afterGoingBack = (): void => {
@@ -253,10 +255,10 @@ export function AiModePanel({
                         className="configure-with-ai__field-icon"
                         icon={faWandMagicSparkles}
                     />
-                    <input
+                    <textarea
                         id="configure-with-ai-input"
                         className="configure-with-ai__input"
-                        type="text"
+                        rows={1}
                         enterKeyHint="go"
                         maxLength={MAX_QUERY_LENGTH}
                         placeholder={
@@ -268,7 +270,15 @@ export function AiModePanel({
                         ref={inputRef}
                         value={input}
                         readOnly={isThinking || isBusy}
-                        onChange={(e) => setInput(e.target.value)}
+                        // One line of text: pasted line breaks become spaces
+                        onChange={(e) =>
+                            setInput(e.target.value.replace(/\s*\n\s*/g, " "))
+                        }
+                        onKeyDown={(e) => {
+                            if (e.key !== "Enter") return
+                            e.preventDefault()
+                            if (!isThinking && input.trim()) ask(input)
+                        }}
                         onFocus={(e) => e.target.select()}
                         autoFocus={autoFocus}
                     />
