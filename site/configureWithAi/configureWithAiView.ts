@@ -35,7 +35,8 @@ export function viewToGrapherQueryParams(
     const params: GrapherQueryParams = { tab: view.tab }
     if (view.time) params.time = view.time
     if (view.mapRegion) params.region = view.mapRegion
-    if (view.tableFilter) params.tableFilter = view.tableFilter
+    // Always set, so an MDim view switch doesn't keep the previous filter
+    params.tableFilter = view.tableFilter ?? "all"
     if (view.entities.length)
         params.country = generateSelectedEntityNamesParam(view.entities)
     return params

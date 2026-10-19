@@ -69,6 +69,7 @@ const singleChart: ChartContext = {
     currentTime: null,
     mapTolerance: 5,
     columnTolerance: 0,
+    canSelectEntities: true,
     data,
 }
 
@@ -270,11 +271,11 @@ describe(buildPrompt, () => {
         expect(cached).toContain("Subtitle: Living below the poverty line.")
     })
 
-    it("counts the countries with a value in each recent year", () => {
-        const line = coverageLine(singleChart.data, 3)
-        const { maxYear } = singleChart.data
-        expect(line.split(", ")).toHaveLength(3)
-        expect(line.startsWith(`${maxYear - 2}: `)).toBe(true)
+    it("counts the countries with a value in the last years that have data", () => {
+        // Sparse years (as in 5-yearly data) are listed by their own years
+        expect(coverageLine(singleChart.data, 3)).toBe(
+            "2000: 1, 2010: 1, 2022: 2"
+        )
         expect(buildPrompt(singleChart, "q").cached).toContain(
             "Countries with a value in each year: "
         )
@@ -417,5 +418,32 @@ describe("ranked views on another MDim combination", () => {
             tableSort: { column: "value", order: "desc" },
         })
         expect(dropped).toEqual(["rank on another combination (line)"])
+    })
+})
+
+describe("charts whose countries are fixed", () => {
+    it("drops a view that selects countries the chart can't change", () => {
+        const { views, dropped, interpretation } = sanitizeViews(
+            {
+                views: [
+                    {
+                        tab: "table",
+                        entities: ["India"],
+                        rank: {
+                            order: "highest",
+                            n: 5,
+                            year: 2022,
+                            continent: null,
+                        },
+                    },
+                ],
+            },
+            { ...singleChart, canSelectEntities: false }
+        )
+        expect(views).toEqual([])
+        expect(interpretation).toMatch(/always shows the same countries/)
+        expect(dropped).toEqual([
+            "view selecting countries on a fixed chart (table)",
+        ])
     })
 })

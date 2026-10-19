@@ -75,6 +75,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     } catch (error) {
         if (error instanceof StatusError && error.status === 404)
             return json({ error: "Chart not found" }, 404)
+        // A malformed percent-encoding in queryStr
+        if (error instanceof URIError)
+            return json({ error: "Invalid queryStr" }, 400)
         console.error(error)
         Sentry.captureException(error)
         return json({ error: "Something went wrong" }, 500)

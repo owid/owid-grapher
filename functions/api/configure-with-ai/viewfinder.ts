@@ -87,6 +87,8 @@ export interface ChartContext {
     mapTolerance: number
     /** The same for the table and the bar chart */
     columnTolerance: number
+    /** False when the chart doesn't let readers change countries */
+    canSelectEntities: boolean
     data: IndicatorSummary
     mdim?: MdimContext
 }
@@ -127,7 +129,7 @@ export interface RankRule {
     continent: string | null
 }
 
-const MAX_RANKED = 30
+export const MAX_RANKED = 30
 
 /** The value closest to `year`, within `tolerance` years */
 function valueNear(
@@ -303,18 +305,18 @@ export function summaryTable(data: IndicatorSummary, tol: number): string {
 
 /** Number of countries with a value in each of the last years with data */
 export function coverageLine(data: IndicatorSummary, years = 15): string {
-    const counts: string[] = []
-    for (let year = data.maxYear - years + 1; year <= data.maxYear; year++) {
-        let count = 0
-        for (const entity of data.entities)
-            if (
-                entity.type === "country" &&
-                data.series.get(entity.name)?.some((p) => p[0] === year)
-            )
-                count++
-        counts.push(`${year}: ${count}`)
+    // The last years that have data, so 5-yearly data lists 15 of its own years
+    const counts = new Map<number, number>()
+    for (const entity of data.entities) {
+        if (entity.type !== "country") continue
+        for (const [year] of data.series.get(entity.name) ?? [])
+            counts.set(year, (counts.get(year) ?? 0) + 1)
     }
-    return counts.join(", ")
+    return [...counts.keys()]
+        .sort((a, b) => a - b)
+        .slice(-years)
+        .map((year) => `${year}: ${counts.get(year)}`)
+        .join(", ")
 }
 
 /**
@@ -410,8 +412,8 @@ Rules:
 - "closestMatch": true when the view stands in for something this data doesn't have (e.g. high-income countries for an "OECD average", or a threshold income for an average income); the note then says what it stands in for and how it differs. Otherwise false.
 - "interpretation": one short sentence (max 20 words) on how you understood the request. Only shown when no views are returned: then say what's missing or why it can't be shown, not just what was asked.
 ${md ? `- "options": one combination from the list above, as an object with exactly its keys, e.g. ${optStr(md.views[0].dims)}. Read the options' descriptions and pick the measure that matches what was asked.\n- "tab" must be one of that combination's tabs.` : `- "tab" must be one of: ${tabs.join(", ")}.`}
-- "rank": for any view that ranks or picks the top or bottom countries ("highest", "10 lowest", "worst in Europe"). Code then picks the countries from the full data, so leave "entities" [] and don't name countries in the label. "year" must be one most of them have data for (see the coverage line); "continent" one of ${CONTINENTS.join(", ")}, or null for the world. The table and bar chart show that year; a table shows only the ranked countries, sorted. Code adds a line saying how the countries were picked, so the note only gives the reason for the choice.${md ? " Only with the combination currently shown (its data is the one above)." : ""} Otherwise null.
-- "entities": exact names from the data above. Use [] to keep the chart's default selection. Countries only, unless the reader asks about regions.
+- "rank": for any view that ranks or picks the top or bottom countries ("highest", "10 lowest", "worst in Europe"). Code then picks the countries from the full data, so leave "entities" [] and don't name countries in the label. "n" is at most ${MAX_RANKED}; for more, rank in a table without "rank" instead, and don't quote counts of countries in the note (code adds them). "year" must be one most of them have data for (see the coverage line); "continent" one of ${CONTINENTS.join(", ")}, or null for the world. The table and bar chart show that year; a table shows only the ranked countries, sorted. Code adds a line saying how the countries were picked, so the note only gives the reason for the choice.${md ? " Only with the combination currently shown (its data is the one above)." : ""} Otherwise null.
+- "entities": exact names from the data above.${ctx.canSelectEntities ? "" : " This chart's countries are fixed: always use [], and don't promise a selection in the label."} Use [] to keep the chart's default selection. Countries only, unless the reader asks about regions.
 - "time": "YYYY" for one year, "YYYY..YYYY" for a range, or null for the default. Use years that have data for the entities shown.
 - When the request refines what's currently shown (e.g. "add Canada", "only since 2000", "as a map"), keep the current tab, countries, time and table sort, and change only what the request asks for.
 - If the request has nothing to do with this data, or can't be shown with it, return "views": [] and explain briefly in "interpretation".
@@ -472,6 +474,16 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
             dropped.push(`tab "${String(v.tab)}"`)
             continue
         }
+        // A view built on countries a fixed chart can't select would be
+        // labelled with a selection the reader doesn't get
+        if (
+            !ctx.canSelectEntities &&
+            Array.isArray(v.entities) &&
+            v.entities.length
+        ) {
+            dropped.push(`view selecting countries on a fixed chart (${tab})`)
+            continue
+        }
         const entities: string[] = []
         for (const name of Array.isArray(v.entities) ? v.entities : []) {
             const resolved = resolveEntity(name, ctx.data)
@@ -503,7 +515,7 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
         let tableFilter =
             v.tableFilter === "selection" ? ("selection" as const) : null
         let facts: string | null = null
-        const rule = parseRankRule(v.rank)
+        const rule = ctx.canSelectEntities ? parseRankRule(v.rank) : undefined
         // The ranking can only use the data of the combination shown
         const ranksShownData =
             !ctx.mdim ||
@@ -514,6 +526,7 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
             // but a table or a map can still show the ranking by sorting
             if (tab === "table" || tab === "map") {
                 time = String(rule.year)
+                tableFilter = null
                 if (tab === "table")
                     tableSort = {
                         column: "value",
@@ -566,7 +579,11 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
         })
     }
     return {
-        interpretation: String(reply.interpretation || "").slice(0, 300),
+        interpretation:
+            !views.length &&
+            dropped.some((d) => d.startsWith("view selecting countries"))
+                ? "This chart always shows the same countries or regions, so it can't show only some of them."
+                : String(reply.interpretation || "").slice(0, 300),
         views,
         dropped,
     }

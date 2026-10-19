@@ -71,7 +71,12 @@ function readStoredModel(): ModelId {
     }
 }
 
-const BAR_TABS = ["discrete-bar", "stacked-discrete-bar", "marimekko"]
+const BAR_TABS = [
+    "discrete-bar",
+    "stacked-discrete-bar",
+    "stacked-bar",
+    "marimekko",
+]
 const COUNTER_FROM = 80
 
 const iconForTab = (tab: string): IconDefinition =>
@@ -212,14 +217,23 @@ export function AiModePanel({
                     )}
                     {isThinking ? (
                         <button
+                            // A key of its own, so React doesn't turn this
+                            // button into the submit one while it's pressed
+                            key="stop"
                             className="configure-with-ai__submit"
                             type="button"
-                            onClick={() => store.stop()}
+                            onClick={(e) => {
+                                e.preventDefault()
+                                store.stop()
+                                // The button goes away, which would drop focus
+                                focusInput()
+                            }}
                         >
                             Stop
                         </button>
                     ) : (
                         <button
+                            key="submit"
                             className="configure-with-ai__submit"
                             type="submit"
                             aria-label="Find views"
