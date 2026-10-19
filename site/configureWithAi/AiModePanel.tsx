@@ -89,6 +89,15 @@ const iconForTab = (tab: string): IconDefinition =>
             ? faChartColumn
             : faChartLine
 
+function isStaffBrowser(): boolean {
+    const host = window.location.host
+    return (
+        host.includes("staging") ||
+        host.includes("localhost") ||
+        document.cookie.includes(CookieKey.isAdmin)
+    )
+}
+
 const modelLabel = (model: string): string =>
     MODELS.find((m) => model.startsWith(m.id))?.label ?? model
 
@@ -148,11 +157,11 @@ export function AiModePanel({
     const setInput = (text: string): void =>
         setDraft({ forId: state.currentId, text })
     // Staff get the model picker and the usage line; everyone else gets
-    // the default model. The cookie is a hint set by visiting the admin,
-    // not access control.
-    const [isStaff] = useState(() =>
-        document.cookie.includes(CookieKey.isAdmin)
-    )
+    // the default model. Staging servers are only reachable by staff, and
+    // there the cookie can't be set (it's Secure and they're served over
+    // http); elsewhere the cookie is a hint set by visiting the admin, not
+    // access control.
+    const [isStaff] = useState(isStaffBrowser)
     const [storedModel, setModel] = useState<ModelId>(readStoredModel)
     const model = isStaff ? storedModel : DEFAULT_MODEL
     const isThinking = request.status === "thinking"
@@ -417,8 +426,9 @@ function RequestStatus({
                             "This chart has no view that matches."}{" "}
                         The chart hasn't changed.
                     </p>
-                    <a href={searchUrl(request.query)}>
-                        Search all charts for “{request.query}”
+                    <a href={searchUrl(request.searchQuery ?? request.query)}>
+                        Search all charts for “
+                        {request.searchQuery ?? request.query}”
                     </a>
                 </div>
             )}

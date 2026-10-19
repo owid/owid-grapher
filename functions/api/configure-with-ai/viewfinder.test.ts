@@ -207,9 +207,19 @@ describe(sanitizeViews, () => {
     it("survives a reply that isn't the expected shape", () => {
         expect(sanitizeViews("nonsense", singleChart)).toEqual({
             interpretation: "",
+            searchQuery: null,
             views: [],
             dropped: [],
         })
+    })
+
+    it("keeps a short search query for data this chart doesn't have", () => {
+        expect(
+            sanitizeViews(
+                { views: [], searchQuery: "  cumulative CO2 emissions " },
+                singleChart
+            ).searchQuery
+        ).toBe("cumulative CO2 emissions")
     })
 
     it("on an MDim, requires a listed option combination and checks the tab against it", () => {

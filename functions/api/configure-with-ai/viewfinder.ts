@@ -211,6 +211,8 @@ function coverageFacts(
 
 export interface SanitizedReply {
     interpretation: string
+    /** What to search other charts for when this one can't answer */
+    searchQuery: string | null
     views: ViewfinderView[]
     dropped: string[]
 }
@@ -403,7 +405,7 @@ Countries with a value in each year${md ? " (this combination)" : ""}: ${coverag
 
 ## Reply format
 Reply with ONLY a JSON object, no other text:
-{"interpretation": string, "views": [{"label": string, "note": string|null, "closestMatch": boolean, ${md ? '"options": object, ' : ""}"tab": string, "entities": string[], "time": string|null, "mapRegion": string|null, "tableSort": {"column": "value"|"change"|"relativeChange"|"entity", "order": "asc"|"desc"}|null, "tableFilter": "selection"|null, "rank": {"order": "highest"|"lowest", "n": number, "year": number, "continent": string|null}|null}]}
+{"interpretation": string, "searchQuery": string|null, "views": [{"label": string, "note": string|null, "closestMatch": boolean, ${md ? '"options": object, ' : ""}"tab": string, "entities": string[], "time": string|null, "mapRegion": string|null, "tableSort": {"column": "value"|"change"|"relativeChange"|"entity", "order": "asc"|"desc"}|null, "tableFilter": "selection"|null, "rank": {"order": "highest"|"lowest", "n": number, "year": number, "continent": string|null}|null}]}
 
 Rules:
 - 2 to 4 views, best first. Vary them across tabs${md ? " and options" : ""} where that helps (e.g. a line chart, a sorted table, a map).
@@ -411,6 +413,7 @@ Rules:
 - "note": explains how THIS view was worked out, but only where that helps the reader trust or read it: the assumption or rule behind the choice of ${md ? "measure, " : ""}countries, years or sort. E.g. "Ranked by the poverty rate in 2025, the latest year with data for most countries." or "Large = more than 50 million people in 2025." Max 30 words, plain and factual, no reference to the reader's request ("You asked…") or to yourself. Don't describe what the chart then shows (trends, dips, which countries lack data): the reader sees it, and you can't check it. Use null when the label already says everything.
 - "closestMatch": true when the view stands in for something this data doesn't have (e.g. high-income countries for an "OECD average", or a threshold income for an average income); the note then says what it stands in for and how it differs. Otherwise false.
 - "interpretation": one short sentence (max 20 words) on how you understood the request. Only shown when no views are returned: then say what's missing or why it can't be shown, not just what was asked.
+- "searchQuery": when this chart can't answer but another of our charts might, a short search for that data in plain words (e.g. "cumulative CO2 emissions" for "show cumulative emissions"), else null.
 ${md ? `- "options": one combination from the list above, as an object with exactly its keys, e.g. ${optStr(md.views[0].dims)}. Read the options' descriptions and pick the measure that matches what was asked.\n- "tab" must be one of that combination's tabs.` : `- "tab" must be one of: ${tabs.join(", ")}.`}
 - "rank": for any view that ranks or picks the top or bottom countries ("highest", "10 lowest", "worst in Europe"). Code then picks the countries from the full data, so leave "entities" [] and don't name countries in the label. "n" is at most ${MAX_RANKED}; for more, rank in a table without "rank" instead, and don't quote counts of countries in the note (code adds them). "year" must be one most of them have data for (see the coverage line); "continent" one of ${CONTINENTS.join(", ")}, or null for the world. The table and bar chart show that year; a table shows only the ranked countries, sorted. Code adds a line saying how the countries were picked, so the note only gives the reason for the choice.${md ? " Only with the combination currently shown (its data is the one above)." : ""} Otherwise null.
 - "entities": exact names from the data above.${ctx.canSelectEntities ? "" : " This chart's countries are fixed: always use [], and don't promise a selection in the label."} Use [] to keep the chart's default selection. Countries only, unless the reader asks about regions.
@@ -584,6 +587,10 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
             dropped.some((d) => d.startsWith("view selecting countries"))
                 ? "This chart always shows the same countries or regions, so it can't show only some of them."
                 : String(reply.interpretation || "").slice(0, 300),
+        searchQuery:
+            typeof reply.searchQuery === "string" && reply.searchQuery.trim()
+                ? reply.searchQuery.trim().slice(0, 80)
+                : null,
         views,
         dropped,
     }

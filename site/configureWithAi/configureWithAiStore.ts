@@ -54,7 +54,13 @@ export type Request =
     /** The reader stopped the request; the input keeps their question */
     | { status: "stopped"; query: string }
     /** The model answered but had no view of this chart to offer */
-    | { status: "empty"; query: string; interpretation: string }
+    | {
+          status: "empty"
+          query: string
+          interpretation: string
+          /** What to search other charts for, if the model suggested it */
+          searchQuery: string | null
+      }
 
 export interface PanelState {
     tab: PanelTab
@@ -177,6 +183,7 @@ export class PanelStore {
                         status: "empty",
                         query,
                         interpretation: body.interpretation,
+                        searchQuery: body.searchQuery ?? null,
                     },
                 })
                 return
