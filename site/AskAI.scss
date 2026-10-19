@@ -29,6 +29,7 @@ div.ActionButton.ActionButton--askAi {
 }
 
 .ask-ai {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -48,6 +49,8 @@ div.ActionButton.ActionButton--askAi {
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
+    // Room for the close button, pinned to the corner.
+    padding-right: 40px;
 }
 
 .ask-ai__heading {
@@ -56,7 +59,9 @@ div.ActionButton.ActionButton--askAi {
 }
 
 .ask-ai__close {
-    margin-left: auto;
+    position: absolute;
+    top: 16px;
+    right: 16px;
 }
 
 .ask-ai__view {

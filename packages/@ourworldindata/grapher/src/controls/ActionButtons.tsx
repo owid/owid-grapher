@@ -148,15 +148,59 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         return width
     }
 
+    @computed private get fitsAllLabels(): boolean {
+        return this.widthWithButtonLabels <= this.maxWidth
+    }
+
+    /**
+     * A host button makes the row longer than Grapher's own layouts were
+     * sized for. Rather than drop every label at once, first drop only the
+     * full-screen one: its label is the longest and its icon the most
+     * familiar. Charts without a host button keep the all-or-nothing rule.
+     */
+    @computed private get widthWithFullScreenIconOnly(): number | undefined {
+        const {
+            hasHostButton,
+            hasFullScreenButton,
+            widthWithButtonLabels,
+            fullScreenButtonWithLabelWidth,
+        } = this
+        if (!hasHostButton || !hasFullScreenButton) return undefined
+        return (
+            widthWithButtonLabels -
+            fullScreenButtonWithLabelWidth +
+            BUTTON_WIDTH_ICON_ONLY
+        )
+    }
+
+    @computed private get fitsWithFullScreenIconOnly(): boolean {
+        const { widthWithFullScreenIconOnly, maxWidth } = this
+        return (
+            widthWithFullScreenIconOnly !== undefined &&
+            widthWithFullScreenIconOnly <= maxWidth
+        )
+    }
+
     @computed get showButtonLabels(): boolean {
-        const { maxWidth, widthWithButtonLabels } = this
-        return widthWithButtonLabels <= maxWidth
+        return this.fitsAllLabels || this.fitsWithFullScreenIconOnly
+    }
+
+    @computed private get showFullScreenLabel(): boolean {
+        return this.fitsAllLabels
     }
 
     @computed get width(): number {
-        const { showButtonLabels, widthWithButtonLabels, widthWithIconsOnly } =
-            this
-        return showButtonLabels ? widthWithButtonLabels : widthWithIconsOnly
+        const {
+            fitsAllLabels,
+            fitsWithFullScreenIconOnly,
+            widthWithButtonLabels,
+            widthWithFullScreenIconOnly,
+            widthWithIconsOnly,
+        } = this
+        if (fitsAllLabels) return widthWithButtonLabels
+        if (fitsWithFullScreenIconOnly && widthWithFullScreenIconOnly)
+            return widthWithFullScreenIconOnly
+        return widthWithIconsOnly
     }
 
     private static computeButtonWidth(label: string): number {
@@ -230,11 +274,11 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
     @computed private get fullScreenButtonWidth(): number {
         const {
             hasFullScreenButton,
-            showButtonLabels,
+            showFullScreenLabel,
             fullScreenButtonWithLabelWidth,
         } = this
         if (!hasFullScreenButton) return 0
-        if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
+        if (!showFullScreenLabel) return BUTTON_WIDTH_ICON_ONLY
         return fullScreenButtonWithLabelWidth
     }
 
@@ -395,7 +439,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
                             <ActionButton
                                 label={this.fullScreenButtonLabel}
                                 dataTrackNote="chart_click_fullscreen"
-                                showLabel={this.showButtonLabels}
+                                showLabel={this.showFullScreenLabel}
                                 icon={
                                     manager.isInFullScreenMode
                                         ? faCompress
