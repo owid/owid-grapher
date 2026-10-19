@@ -257,6 +257,11 @@
                     margin-left: 6px;
                 }
             }
+
+            .missing-value {
+                color: $light-text;
+                cursor: default;
+            }
         }
     }
 }

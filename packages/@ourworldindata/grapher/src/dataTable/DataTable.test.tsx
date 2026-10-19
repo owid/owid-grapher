@@ -12,6 +12,7 @@ import {
 } from "@ourworldindata/types"
 import {
     childMortalityGrapher,
+    GrapherStartingAtZero,
     GrapherWithAggregates,
     GrapherWithIncompleteData,
     GrapherWithMultipleVariablesAndMultipleYears,
@@ -20,19 +21,34 @@ import { LifeExpectancyGrapher } from "../testData/OwidTestData.sample.js"
 import { DataTable } from "./DataTable.js"
 import { PointColumnKey } from "./DataTableConstants.js"
 
+const findRow = (
+    container: HTMLElement,
+    entityName: string
+): Element | undefined =>
+    Array.from(container.querySelectorAll("tbody tr")).find(
+        (tr) => tr.querySelector("td.entity")?.textContent === entityName
+    )
+
 const getCellTexts = (
     container: HTMLElement,
     entityName: string,
     cellSelector: string
-): (string | null)[] => {
-    const row = Array.from(container.querySelectorAll("tbody tr")).find(
-        (tr) => tr.querySelector("td.entity")?.textContent === entityName
-    )
-    return Array.from(
-        row?.querySelectorAll(cellSelector) ?? [],
+): (string | null)[] =>
+    Array.from(
+        findRow(container, entityName)?.querySelectorAll(cellSelector) ?? [],
         (cell) => cell.textContent
     )
-}
+
+const getMissingValueNotices = (
+    container: HTMLElement,
+    entityName: string,
+    cellSelector: string
+): Element[] =>
+    Array.from(
+        findRow(container, entityName)?.querySelectorAll(
+            `${cellSelector} .missing-value`
+        ) ?? []
+    )
 
 describe("when you render a table", () => {
     let container: HTMLElement
@@ -192,9 +208,29 @@ describe("when the table doesn't have data for all rows", () => {
         container = result.container
     })
 
-    it("renders no value when data is not available for years within the tolerance", () => {
+    it("renders a dash when data is not available for years within the tolerance", () => {
         const [value] = getCellTexts(container, "Afghanistan", ".cell-single")
-        expect(value).toBe("")
+        expect(value).toBe("—")
+    })
+
+    it("names the target time of a missing value", () => {
+        const [notice] = getMissingValueNotices(
+            container,
+            "Afghanistan",
+            ".cell-single"
+        )
+        expect(notice?.getAttribute("aria-label")).toBe("No data for 2000")
+    })
+
+    it("renders a dash for an entity with no data in the column's tolerance window", () => {
+        const [, value] = getCellTexts(container, "France", ".cell-single")
+        expect(value).toBe("—")
+        const [notice] = getMissingValueNotices(
+            container,
+            "France",
+            ".cell-single"
+        )
+        expect(notice?.getAttribute("aria-label")).toBe("No data for 2010")
     })
 
     it("renders an info icon when data is not from targetYear", () => {
@@ -214,6 +250,51 @@ describe("when the table doesn't have data for all rows", () => {
         expect(timeHeaders.length).toBe(2)
         expect(timeHeaders[0]?.textContent).toBe("2000")
         expect(timeHeaders[1]?.textContent).toBe("2010")
+    })
+})
+
+describe("when a range has no data at its start", () => {
+    let container: HTMLElement
+    beforeEach(() => {
+        const grapher = GrapherWithIncompleteData()
+        grapher.timelineHandleTimeBounds = [2000, 2010]
+        const result = render(<DataTable manager={grapher} />)
+        container = result.container
+    })
+
+    it("renders a dash with the start time in the start cell", () => {
+        const [text] = getCellTexts(container, "Afghanistan", ".cell-start")
+        expect(text).toBe("—")
+        const [notice] = getMissingValueNotices(
+            container,
+            "Afghanistan",
+            ".cell-start"
+        )
+        expect(notice?.getAttribute("aria-label")).toBe("No data for 2000")
+    })
+
+    it("renders plain dashes without a time in the delta cells", () => {
+        for (const selector of [".cell-delta", ".cell-deltaRatio"]) {
+            const [text] = getCellTexts(container, "Afghanistan", selector)
+            expect(text).toBe("—")
+            const [notice] = getMissingValueNotices(
+                container,
+                "Afghanistan",
+                selector
+            )
+            expect(notice?.getAttribute("aria-label")).toBe("No data")
+        }
+    })
+})
+
+describe("when a range starts at zero", () => {
+    it("renders a dash in the relative change cell", () => {
+        const grapher = GrapherStartingAtZero()
+        grapher.timelineHandleTimeBounds = [2000, 2010]
+        const { container } = render(<DataTable manager={grapher} />)
+
+        const [text] = getCellTexts(container, "Iceland", ".cell-deltaRatio")
+        expect(text).toBe("—")
     })
 })
 

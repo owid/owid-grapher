@@ -383,14 +383,23 @@ export class DataTable extends React.Component<DataTableProps> {
         valuesForEntity?: DataTableValuesForEntity
         formatTime: (time: Time) => string
     }): React.ReactElement | null {
-        if (!valuesForEntity) return null
-        if (!(columnDefinition.key in valuesForEntity)) return null
+        const missingValueNotice = (
+            <MissingValueNotice
+                columnDefinition={columnDefinition}
+                formatTime={formatTime}
+            />
+        )
+
+        if (!valuesForEntity) return missingValueNotice
+        if (!(columnDefinition.key in valuesForEntity))
+            return missingValueNotice
 
         const value = getValueForEntityByKey(
             valuesForEntity,
             columnDefinition.key
         )
-        if (!value) return null
+        if (!value || value.displayValue === undefined)
+            return missingValueNotice
 
         return (
             <>
@@ -1093,6 +1102,38 @@ function ClosestTimeNotice({
                 <span className="icon">
                     <FontAwesomeIcon icon={faInfoCircle} />
                 </span>
+            </span>
+        </Tippy>
+    )
+}
+
+function MissingValueNotice({
+    columnDefinition,
+    formatTime,
+}: {
+    columnDefinition: DataTableColumnDefinition
+    formatTime: (time: Time) => string
+}): React.ReactElement {
+    if (
+        isDeltaColumn(columnDefinition.key) ||
+        columnDefinition.targetTime === undefined
+    )
+        return (
+            <span className="missing-value" role="img" aria-label="No data">
+                —
+            </span>
+        )
+
+    const noDataLabel = `No data for ${formatTime(columnDefinition.targetTime)}`
+
+    return (
+        <Tippy
+            content={
+                <div className="closest-time-notice-tippy">{noDataLabel}</div>
+            }
+        >
+            <span className="missing-value" role="img" aria-label={noDataLabel}>
+                —
             </span>
         </Tippy>
     )

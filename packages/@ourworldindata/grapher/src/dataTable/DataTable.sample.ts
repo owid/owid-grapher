@@ -60,6 +60,28 @@ export const childMortalityGrapher = (
     return state
 }
 
+export const GrapherStartingAtZero = (): GrapherState => {
+    const indicatorId = 3513
+    const metadata = { id: indicatorId, shortUnit: "%" }
+    const data = [
+        { year: 2000, entity: fakeEntities.Iceland, value: 0 },
+        { year: 2010, entity: fakeEntities.Iceland, value: 5 },
+    ]
+    const dimensions = [
+        { variableId: indicatorId, property: DimensionProperty.y },
+    ]
+    return new GrapherState({
+        tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        selectedEntityNames: ["Iceland"],
+        dimensions,
+        table: legacyToOwidTableAndDimensions(
+            createOwidTestDataset([{ metadata, data }]),
+            dimensions,
+            {}
+        ),
+    })
+}
+
 export const GrapherWithIncompleteData = (
     props: Partial<GrapherInterface> = {}
 ): GrapherState => {
