@@ -133,12 +133,15 @@ function usageSummary(usage: Usage): { line: string; details: string } {
     const costs = usage.costUsdByModel?.[model]
     const otherCosts = usage.costUsdByModel?.[other]
     const seconds = `${(usage.ms / 1000).toFixed(1)} s`
-    const parts = [seconds]
+    const short = (id: string): string => modelLabel(id).split(" ")[0]
+    // The time is in the tooltip, so the line fits next to the model picker
+    const parts: string[] = []
     if (typeof costs?.firstQuestion === "number")
-        parts.push(formatCost(costs.firstQuestion))
-    if (typeof otherCosts?.firstQuestion === "number")
         parts.push(
-            `${modelLabel(other).split(" ")[0]} ${formatCost(otherCosts.firstQuestion)}`
+            `${short(model)} ${formatCost(costs.firstQuestion)}` +
+                (typeof otherCosts?.firstQuestion === "number"
+                    ? ` vs ${short(other)} ${formatCost(otherCosts.firstQuestion)}`
+                    : "")
         )
     const tokensIn =
         usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens
