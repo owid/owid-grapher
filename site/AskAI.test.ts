@@ -65,30 +65,30 @@ describe("prompt construction", () => {
         )
     })
 
-    it("nudges towards the OWID skills afterwards", () => {
-        expect(prompt).toContain("https://github.com/owid/skills")
-        expect(prompt).toContain("Then ask if")
+    it("doesn't advertise anything the reader didn't ask for", () => {
+        expect(prompt).not.toContain("github.com/owid/skills")
     })
 
-    it("keeps the skills nudge even when the prompt has to shrink", () => {
-        const slugUrl = `${OWID_PUBLIC_GRAPHER_URL}/share-of-population-living-in-cities-towns-and-villages`
-        const queryStr =
-            "?country=~NGA~IND~USA~CHN~BRA~ZAF~IDN&time=1960..latest&tab=chart"
-        const worst = buildPrompt({
-            title: "Share of population living in cities, towns and villages",
-            pageUrl: `${slugUrl}${queryStr}`,
-            slugUrl,
-            queryStr,
-            stateSummary: describeChartState(queryStr),
-            question:
-                "How has the urban share changed in each of these countries since 1960?",
-        })
-        expect(worst).toContain("https://github.com/owid/skills")
+    it("fits the answer to the question rather than one fixed format", () => {
+        expect(prompt).toContain("Fit the length and style to my question")
+        expect(prompt).toContain("compact table when comparing")
     })
 
-    it("asks for a short, data-led answer", () => {
-        expect(prompt).toContain("Be direct and brief")
-        expect(prompt).toContain("compact table")
+    it("lets a why-question be answered, keeping figures and knowledge apart", () => {
+        expect(prompt).toContain("If I ask why")
+        expect(prompt).toContain("say which is which")
+    })
+
+    it("asks for the caveats, the reader's language and a source line", () => {
+        expect(prompt).toContain("flag caveats from the notes")
+        expect(prompt).toContain("Reply in the language of my question")
+        expect(prompt).toContain("End with a source line")
+    })
+
+    it("puts each link's description before its URL", () => {
+        expect(prompt).toContain(
+            `Data for the view I'm on: ${SLUG_URL}.csv?csvType=filtered`
+        )
     })
 
     it("no longer asks the assistant to embed our chart image", () => {
@@ -105,8 +105,8 @@ describe("prompt construction", () => {
         expect(prompt).toContain("Selected: NGA.")
     })
 
-    it("tells the assistant not to fill gaps with estimates", () => {
-        expect(prompt).toContain("don't estimate")
+    it("tells the assistant not to make figures up", () => {
+        expect(prompt).toContain("Never estimate one or recall it from memory")
     })
 
     it("stays inside a safe URL length for a realistic worst case", () => {
@@ -130,7 +130,7 @@ describe("prompt construction", () => {
         expect(worst).toContain("csvType=filtered")
         expect(worst).toContain("csvType=full")
         expect(worst).toContain(".metadata.json")
-        expect(worst).toContain("Lead with the data")
+        expect(worst).toContain("End with a source line")
         expect(worst).toContain(
             "which of them urbanised fastest over that period?"
         )
@@ -225,19 +225,26 @@ describe("data and image URLs", () => {
 
     it("always requests the filtered CSV, even with no selection", () => {
         expect(buildCsvUrl(SLUG_URL, "")).toBe(
-            `${SLUG_URL}.csv?csvType=filtered`
+            `${SLUG_URL}.csv?csvType=filtered&tab=chart`
         )
     })
 
     it("carries the visitor's selection into the CSV", () => {
         expect(buildCsvUrl(SLUG_URL, "?country=~NGA~IND&time=2000..2020")).toBe(
-            `${SLUG_URL}.csv?csvType=filtered&country=%7ENGA%7EIND&time=2000..2020`
+            `${SLUG_URL}.csv?csvType=filtered&tab=chart&country=%7ENGA%7EIND&time=2000..2020`
+        )
+    })
+
+    it("asks for the chart tab's series even when the reader is on the map", () => {
+        // A map-tab export is one year per country and drops the selection.
+        expect(buildCsvUrl(SLUG_URL, "?tab=map&country=~NGA")).toBe(
+            `${SLUG_URL}.csv?csvType=filtered&tab=chart&country=%7ENGA`
         )
     })
 
     it("ignores params the grapher endpoints don't understand", () => {
         expect(buildCsvUrl(SLUG_URL, "?askai=v5&utm_source=x")).toBe(
-            `${SLUG_URL}.csv?csvType=filtered`
+            `${SLUG_URL}.csv?csvType=filtered&tab=chart`
         )
     })
 })

@@ -89,6 +89,13 @@ export const DataPageV2Content = ({
         typeof window !== "undefined" ? window?.location?.search : undefined
 
     const [isAskAiOpen, setIsAskAiOpen] = useState(false)
+    // Not on archived versions (the prompt links the live chart's data, which
+    // may no longer match what the reader sees), nor where the data can't be
+    // redistributed (its CSV links return 403, so the assistant gets nothing).
+    const canAskAi =
+        !!grapherConfig.slug &&
+        !archiveContext &&
+        distribution?.allowed !== false
 
     // Initialize the grapher for client-side rendering
     const mergedGrapherConfig: GrapherProgrammaticInterface = useMemo(
@@ -100,19 +107,17 @@ export const DataPageV2Content = ({
             enableKeyboardShortcuts: typeof window !== "undefined",
             archiveContext,
             useNewDatapageMetadataLayout: useNewDatapageDesign,
-            // Not on archived versions: the prompt links the live chart's
-            // data, which may no longer match what the reader sees.
-            hostActionButton: archiveContext
-                ? undefined
-                : {
+            hostActionButton: canAskAi
+                ? {
                       label: "Ask AI",
                       icon: faWandMagicSparkles,
                       onClick: () => setIsAskAiOpen(true),
                       dataTrackNote: "chart_click_ask_ai",
                       className: "ActionButton--askAi",
-                  },
+                  }
+                : undefined,
         }),
-        [grapherConfig, archiveContext, useNewDatapageDesign]
+        [grapherConfig, archiveContext, useNewDatapageDesign, canAskAi]
     )
 
     const relatedResearch = processRelatedResearch(
@@ -193,7 +198,7 @@ export const DataPageV2Content = ({
                                     isPreviewing={isPreviewing}
                                 />
                             )}
-                            {grapherConfig.slug && !archiveContext && (
+                            {canAskAi && grapherConfig.slug && (
                                 <AskAIModal
                                     slug={grapherConfig.slug}
                                     title={datapageData.title.title}

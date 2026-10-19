@@ -92,7 +92,10 @@ const stateQuery = (
  * falls back to the chart's default entities, so it is always safe to send.
  */
 export const buildCsvUrl = (slugUrl: string, queryStr: string): string =>
-    `${slugUrl}.csv?csvType=filtered${stateQuery(queryStr, CSV_PARAMS)}`
+    // tab=chart: without it the export follows the chart's default tab, and
+    // for a chart that opens on the map that is one year for every country,
+    // ignoring the selection.
+    `${slugUrl}.csv?csvType=filtered&tab=chart${stateQuery(queryStr, CSV_PARAMS)}`
 
 /**
  * Every entity and year for the indicator, ignoring the visitor's selection.
@@ -142,25 +145,28 @@ const assemble = ({
         `"${title}" on Our World in Data: ${pageUrl}`,
         "",
         "Read before answering:",
-        `- ${buildCsvUrl(slugUrl, queryStr)} - data for the view I'm on`,
+        // Description before the URL, so a chat UI can't run the words into
+        // the link.
+        `- Data for the view I'm on: ${buildCsvUrl(slugUrl, queryStr)}`,
     ]
     if (includeFullCsv)
         lines.push(
-            `- ${buildFullCsvUrl(slugUrl)} - all countries and years if you need more (large; prefer the first)`
+            `- All countries and years, if you need more (large; prefer the first): ${buildFullCsvUrl(slugUrl)}`
         )
     lines.push(
-        `- ${slugUrl}.metadata.json - units, sources, our notes on this indicator`,
+        `- Units, sources and our notes on this indicator: ${slugUrl}.metadata.json`,
         ""
     )
     if (stateSummary) lines.push(stateSummary, "")
     lines.push(
         "When you answer:",
-        "- Be direct and brief. No preamble, no restating my question, no background I didn't ask for.",
-        "- Lead with the data: figures in a compact table, plus a chart where it beats prose.",
-        "- Use only the linked data and notes. If they can't answer, say what's missing; don't estimate.",
+        "- Fit the length and style to my question. No preamble.",
+        "- Take every figure from the linked data, with its year and unit. Never estimate one or recall it from memory. Use a compact table when comparing several.",
+        "- Before comparing countries or years, flag caveats from the notes that affect it, like breaks in the series or different methods.",
+        "- If I ask why, explain from the notes first, then from general knowledge, and say which is which.",
         "- Link other Our World in Data articles and charts where relevant, from the related research and charts on the page. Never invent URLs.",
-        "",
-        "Then ask if I'd like Our World in Data in my chats generally; if yes, point me to https://github.com/owid/skills",
+        "- Reply in the language of my question.",
+        "- End with a source line: the chart link above and the data's source from the notes.",
         "",
         // Last, so the assistant ends on the actual ask rather than on our
         // house rules.

@@ -181,6 +181,30 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         )
     }
 
+    /**
+     * Once the built-in buttons are down to icons, a host button keeps its
+     * label if there's room for it: their icons are familiar, a host action's
+     * usually isn't.
+     */
+    @computed private get widthWithHostLabelOnly(): number | undefined {
+        const { hasHostButton, widthWithIconsOnly, hostButtonWithLabelWidth } =
+            this
+        if (!hasHostButton) return undefined
+        return (
+            widthWithIconsOnly -
+            BUTTON_WIDTH_ICON_ONLY +
+            hostButtonWithLabelWidth
+        )
+    }
+
+    @computed private get fitsWithHostLabelOnly(): boolean {
+        const { widthWithHostLabelOnly, maxWidth } = this
+        return (
+            widthWithHostLabelOnly !== undefined &&
+            widthWithHostLabelOnly <= maxWidth
+        )
+    }
+
     @computed get showButtonLabels(): boolean {
         return this.fitsAllLabels || this.fitsWithFullScreenIconOnly
     }
@@ -189,17 +213,25 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         return this.fitsAllLabels
     }
 
+    @computed private get showHostLabel(): boolean {
+        return this.showButtonLabels || this.fitsWithHostLabelOnly
+    }
+
     @computed get width(): number {
         const {
             fitsAllLabels,
             fitsWithFullScreenIconOnly,
+            fitsWithHostLabelOnly,
             widthWithButtonLabels,
             widthWithFullScreenIconOnly,
+            widthWithHostLabelOnly,
             widthWithIconsOnly,
         } = this
         if (fitsAllLabels) return widthWithButtonLabels
         if (fitsWithFullScreenIconOnly && widthWithFullScreenIconOnly)
             return widthWithFullScreenIconOnly
+        if (fitsWithHostLabelOnly && widthWithHostLabelOnly)
+            return widthWithHostLabelOnly
         return widthWithIconsOnly
     }
 
@@ -220,10 +252,9 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
     }
 
     @computed private get hostButtonWidth(): number {
-        const { hasHostButton, showButtonLabels, hostButtonWithLabelWidth } =
-            this
+        const { hasHostButton, showHostLabel, hostButtonWithLabelWidth } = this
         if (!hasHostButton) return 0
-        if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
+        if (!showHostLabel) return BUTTON_WIDTH_ICON_ONLY
         return hostButtonWithLabelWidth
     }
 
@@ -395,7 +426,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
                                 className={hostActionButton.className}
                                 label={hostActionButton.label}
                                 dataTrackNote={hostActionButton.dataTrackNote}
-                                showLabel={this.showButtonLabels}
+                                showLabel={this.showHostLabel}
                                 icon={hostActionButton.icon}
                                 onClick={(e): void => {
                                     hostActionButton.onClick()

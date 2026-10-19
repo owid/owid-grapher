@@ -36,6 +36,15 @@ describe("action row with a host button", () => {
         expect(row.width).toBeGreaterThan(iconsOnly)
     })
 
+    it("keeps the host button's label once the others are icons", () => {
+        // Room for the host label plus three icons, but not for "Download"
+        // and "Share" labels as well.
+        const row = layout(withHost, iconsOnly + 60)
+        expect(row.showButtonLabels).toBe(false)
+        expect(row.width).toBeGreaterThan(iconsOnly)
+        expect(row.width).toBeLessThanOrEqual(iconsOnly + 60)
+    })
+
     it("goes icon-only when even that doesn't fit", () => {
         const row = layout(withHost, iconsOnly + 1)
         expect(row.showButtonLabels).toBe(false)
