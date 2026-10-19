@@ -1,20 +1,30 @@
 import { CSSProperties, Fragment, ReactNode } from "react"
 import {
-    Body,
-    Button,
-    Container,
     Column,
-    Head,
     Heading,
-    Html,
     Img,
     Link,
-    Preview,
     Row,
     Section,
     Text,
-    render,
 } from "@react-email/components"
+import {
+    BODY_FONT,
+    BODY_TEXT,
+    COLORS,
+    CONTAINER_WIDTH,
+    CONTENT_PADDING,
+    EmailButton,
+    EmailContent,
+    EmailFooter,
+    EmailLayout,
+    FOOTER_LINK_STYLE,
+    FOOTER_TEXT_STYLE,
+    IMAGE_LINK_STYLE,
+    SERIF_FONT,
+    Spacer,
+} from "./EmailLayout.js"
+import { RenderedEmail, renderEmail } from "./renderEmail.js"
 import {
     EmailNotificationsFrequency,
     LATEST_TYPE_LABELS,
@@ -28,79 +38,12 @@ import {
     formatItemDate,
 } from "./emailNotificationsUtils.js"
 
-const COLORS = {
-    background: "#f7f7f7",
-    card: "#ffffff",
-    cardMuted: "#ebeef2",
-    navy: "#002147",
-    text: "#1d3d63",
-    muted: "#426591",
-    headerText: "#a4b6ca",
-    vermillion: "#ce261e",
-}
-
-const BODY_FONT = "Arial, Helvetica, sans-serif"
-const SERIF_FONT = '"Times New Roman", serif'
-
-const CONTAINER_WIDTH = 632
-const CONTENT_PADDING = 40
-const MOBILE_BREAKPOINT = 480
-const MOBILE_CONTENT_PADDING = 16
-const MOBILE_CARD_PADDING = 16
-
-/**
- * The header image is a 1200x250 PNG, shown at the container width so it's
- * crisp on high-density screens. The width/height attributes state the
- * display size rather than the asset's because Outlook on Windows sizes
- * images by their attributes (ignoring CSS)
- */
-const HEADER_IMAGE_WIDTH = CONTAINER_WIDTH
-const HEADER_IMAGE_HEIGHT = Math.round((CONTAINER_WIDTH * 250) / 1200)
-// Roughly the header's height on a ~400px-wide phone
-const MOBILE_HEADER_IMAGE_HEIGHT = 80
-
-// Outlook on Windows ignores max-width, so the fluid container would stretch
-// to the reading pane. These wrap it in a fixed-width "ghost" table that only
-// Outlook sees. React can't emit comments, hence the raw HTML.
-const MSO_GHOST_TABLE_OPEN = `<!--[if mso]><table role="presentation" align="center" width="${CONTAINER_WIDTH}" border="0" cellpadding="0" cellspacing="0"><tr><td><![endif]-->`
-const MSO_GHOST_TABLE_CLOSE = `<!--[if mso]></td></tr></table><![endif]-->`
-
-// The inline styles win by default, so the mobile overrides need !important.
-// Mobile clients (iOS Mail, Gmail app, Outlook mobile) honor <style> media
-// queries; the ones that don't just keep the desktop padding.
-const RESPONSIVE_STYLES = `
-@media only screen and (max-width: ${MOBILE_BREAKPOINT}px) {
-    .content {
-        padding-left: ${MOBILE_CONTENT_PADDING}px !important;
-        padding-right: ${MOBILE_CONTENT_PADDING}px !important;
-    }
-    .card {
-        padding-left: ${MOBILE_CARD_PADDING}px !important;
-        padding-right: ${MOBILE_CARD_PADDING}px !important;
-    }
-    .header-image {
-        line-height: ${MOBILE_HEADER_IMAGE_HEIGHT}px !important;
-    }
-}
-`
-
-// react-email's <Text> defaults to 14px; the design's body copy is 16px/24px,
-// so every body-copy element states it.
-const BODY_TEXT: CSSProperties = { fontSize: 16, lineHeight: "24px" }
-
-// react-email's <Link> defaults to a blue that a client shows on the alt text
-// when it blocks the image, so links wrapping an image override it.
-const IMAGE_LINK_STYLE: CSSProperties = {
-    color: COLORS.text,
-    textDecoration: "none",
-}
-
 const FREQUENCY_LABELS: Record<EmailNotificationsFrequency, string> = {
     daily: "daily",
     weekly: "weekly",
 }
 
-export function makeNotificationEmailSubject(
+function makeNotificationEmailSubject(
     frequency: EmailNotificationsFrequency
 ): string {
     return `Your ${FREQUENCY_LABELS[frequency]} update from Our World in Data`
@@ -115,15 +58,13 @@ export interface NotificationEmailProps {
     now: Date
 }
 
-export async function renderNotificationEmail(
+export function renderNotificationEmail(
     props: NotificationEmailProps
-): Promise<{ html: string; text: string }> {
-    const email = <NotificationEmail {...props} />
-    const [html, text] = await Promise.all([
-        render(email),
-        render(email, { plainText: true }),
-    ])
-    return { html, text }
+): Promise<RenderedEmail> {
+    return renderEmail(
+        makeNotificationEmailSubject(props.subscriber.frequency),
+        <NotificationEmail {...props} />
+    )
 }
 
 function NotificationEmail({
@@ -135,106 +76,26 @@ function NotificationEmail({
 }: NotificationEmailProps) {
     const updatePreferencesUrl = `${apiBaseUrl}/request-link?token=${subscriber.token}`
     return (
-        <Html lang="en">
-            <Head>
-                <title>
-                    {makeNotificationEmailSubject(subscriber.frequency)}
-                </title>
-                <style>{RESPONSIVE_STYLES}</style>
-            </Head>
-            {/* Inbox preview text: the titles readers see next to the subject. */}
-            <Preview>{items.map((item) => item.title).join(" · ")}</Preview>
-            <Body
-                style={{
-                    margin: 0,
-                    padding: 0,
-                    backgroundColor: COLORS.background,
-                    color: COLORS.text,
-                    fontFamily: BODY_FONT,
-                    fontSize: 16,
-                    lineHeight: "24px",
-                }}
-            >
-                <div
-                    dangerouslySetInnerHTML={{ __html: MSO_GHOST_TABLE_OPEN }}
-                />
-                <Container
-                    style={{
-                        width: "100%",
-                        maxWidth: CONTAINER_WIDTH,
-                        margin: "0 auto",
-                        backgroundColor: COLORS.background,
-                    }}
-                >
-                    <Header baseUrl={baseUrl} />
-                    <Section
-                        className="content"
-                        style={{ padding: `32px ${CONTENT_PADDING}px 40px` }}
-                    >
-                        {items.map((item, index) => (
-                            <Fragment key={item.url}>
-                                {index > 0 && <Spacer height={32} />}
-                                <Item item={item} now={now} />
-                            </Fragment>
-                        ))}
-                    </Section>
-                    <Footer
-                        email={subscriber.email}
-                        baseUrl={baseUrl}
-                        updatePreferencesUrl={updatePreferencesUrl}
-                    />
-                </Container>
-                <div
-                    dangerouslySetInnerHTML={{ __html: MSO_GHOST_TABLE_CLOSE }}
-                />
-            </Body>
-        </Html>
-    )
-}
-
-/**
- * Vertical space between items. A spacer row rather than a margin, because
- * Outlook ignores margins on tables; the 1px font size stops the &nbsp; from
- * making the row taller than asked for.
- */
-function Spacer({ height }: { height: number }) {
-    return (
-        <Section style={{ height, lineHeight: `${height}px`, fontSize: 1 }}>
-            &nbsp;
-        </Section>
-    )
-}
-
-function Header({ baseUrl }: { baseUrl: string }) {
-    return (
-        <Section style={{ backgroundColor: COLORS.navy }}>
-            {/* The header is an image so it gets the brand typeface in every
-                client. Most clients render the alt text, styled by the img's
-                own text styles, in its place when images are blocked; the
-                navy background keeps it legible there, and the line-height
-                matching the image height centers it vertically. */}
-            <Link href={baseUrl} style={IMAGE_LINK_STYLE}>
-                <Img
-                    className="header-image"
-                    src={`${baseUrl}/owid-email-header.png`}
-                    alt="Our World in Data Update"
-                    width={HEADER_IMAGE_WIDTH}
-                    height={HEADER_IMAGE_HEIGHT}
-                    style={{
-                        display: "block",
-                        width: "100%",
-                        height: "auto",
-                        backgroundColor: COLORS.navy,
-                        fontFamily: BODY_FONT,
-                        fontSize: 16,
-                        lineHeight: `${HEADER_IMAGE_HEIGHT}px`,
-                        fontWeight: 700,
-                        color: "#ffffff",
-                        textAlign: "center",
-                    }}
-                />
-            </Link>
-        </Section>
+        <EmailLayout
+            title={makeNotificationEmailSubject(subscriber.frequency)}
+            // The titles readers see next to the subject.
+            preview={items.map((item) => item.title).join(" · ")}
+            baseUrl={baseUrl}
+        >
+            <EmailContent>
+                {items.map((item, index) => (
+                    <Fragment key={item.url}>
+                        {index > 0 && <Spacer height={32} />}
+                        <Item item={item} now={now} />
+                    </Fragment>
+                ))}
+            </EmailContent>
+            <Footer
+                email={subscriber.email}
+                baseUrl={baseUrl}
+                updatePreferencesUrl={updatePreferencesUrl}
+            />
+        </EmailLayout>
     )
 }
 
@@ -644,25 +505,8 @@ function Footer({
     baseUrl: string
     updatePreferencesUrl: string
 }) {
-    const footerTextStyle: CSSProperties = {
-        margin: "0 0 8px",
-        fontSize: 13,
-        lineHeight: "20px",
-        color: COLORS.muted,
-        textAlign: "center",
-    }
-    const footerLinkStyle: CSSProperties = {
-        color: COLORS.muted,
-        textDecoration: "underline",
-    }
     return (
-        <Section
-            className="content"
-            style={{
-                padding: `0 ${CONTENT_PADDING}px 40px`,
-                textAlign: "center",
-            }}
-        >
+        <EmailFooter>
             <Text
                 style={{
                     ...BODY_TEXT,
@@ -670,17 +514,9 @@ function Footer({
                     textAlign: "center",
                 }}
             >
-                <Button
-                    href={`${baseUrl}/latest`}
-                    style={{
-                        padding: "12px 24px",
-                        backgroundColor: COLORS.navy,
-                        color: "#ffffff",
-                        fontWeight: 700,
-                    }}
-                >
+                <EmailButton href={`${baseUrl}/latest`}>
                     Keep browsing
-                </Button>
+                </EmailButton>
             </Text>
             <Section
                 style={{
@@ -692,7 +528,7 @@ function Footer({
                     The{" "}
                     <Link
                         href={`${baseUrl}/about#our-mission`}
-                        style={{ ...footerLinkStyle, color: COLORS.text }}
+                        style={{ ...FOOTER_LINK_STYLE, color: COLORS.text }}
                     >
                         mission of Our World in Data
                     </Link>{" "}
@@ -720,21 +556,17 @@ function Footer({
                 </Link>
             </Section>
             <Spacer height={24} />
-            <Text style={footerTextStyle}>
+            <Text style={FOOTER_TEXT_STYLE}>
                 This email was sent to {email} because you subscribed to email
                 updates from Our World in Data.
             </Text>
-            <Text style={footerTextStyle}>
+            <Text style={FOOTER_TEXT_STYLE}>
                 You can{" "}
-                <Link href={updatePreferencesUrl} style={footerLinkStyle}>
+                <Link href={updatePreferencesUrl} style={FOOTER_LINK_STYLE}>
                     update your preferences
                 </Link>{" "}
                 at any time.
             </Text>
-            <Text style={{ ...footerTextStyle, marginBottom: 0 }}>
-                Our World in Data · Global Change Data Lab · Oxford, United
-                Kingdom
-            </Text>
-        </Section>
+        </EmailFooter>
     )
 }

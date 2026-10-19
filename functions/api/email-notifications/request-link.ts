@@ -120,9 +120,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                 user.id,
                 EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS
             )
-            const siteBaseUrl =
-                env.BAKED_BASE_URL || new URL(request.url).origin
-            await sendMagicLinkEmail(env, siteBaseUrl, {
+            await sendMagicLinkEmail(env, new URL(request.url).origin, {
                 userId: user.id,
                 to: user.email,
                 token: magicToken,
