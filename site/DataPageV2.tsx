@@ -47,6 +47,7 @@ export const DataPageV2 = (props: {
     datapageData: DataPageDataV2
     additionalIndicators?: AdditionalIndicator[]
     collapsedIndicatorList?: CollapsedIndicatorListEntry[]
+    hideCollapsedIndicatorList?: boolean
     useNewDatapageDesign?: boolean
     baseUrl: string
     canonicalUrl: string
@@ -62,6 +63,7 @@ export const DataPageV2 = (props: {
         datapageData,
         additionalIndicators,
         collapsedIndicatorList,
+        hideCollapsedIndicatorList,
         useNewDatapageDesign,
         baseUrl,
         canonicalUrl,
@@ -180,6 +182,7 @@ export const DataPageV2 = (props: {
                                     datapageData,
                                     additionalIndicators,
                                     collapsedIndicatorList,
+                                    hideCollapsedIndicatorList,
                                     useNewDatapageDesign,
                                     faqEntries,
                                     canonicalUrl,
@@ -195,6 +198,9 @@ export const DataPageV2 = (props: {
                                 datapageData={datapageData}
                                 additionalIndicators={additionalIndicators}
                                 collapsedIndicatorList={collapsedIndicatorList}
+                                hideCollapsedIndicatorList={
+                                    hideCollapsedIndicatorList
+                                }
                                 useNewDatapageDesign={useNewDatapageDesign}
                                 grapherConfig={grapherConfig}
                                 imageMetadata={imageMetadata}

@@ -44,6 +44,7 @@ import {
     getVariableMetadata,
     getVariableOfDatapageIfApplicable,
     getOwnersForVariables,
+    getVariableSliceDimensions,
 } from "../db/model/Variable.js"
 import {
     fetchAndParseFaqs,
@@ -66,6 +67,7 @@ import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { computeIndicatorPaneCollapse } from "./collapseIndicatorPanes.js"
+import { shouldHideCollapsedIndicatorList } from "./indicatorSliceDimension.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
 
 const renderDatapageIfApplicable = async (
@@ -421,6 +423,7 @@ export async function renderDataPageV2(
                             metadata,
                             id
                         ),
+                        variableId: id,
                     }
                 } catch (error) {
                     // Don't let one broken additional indicator (e.g. a
@@ -477,17 +480,30 @@ export async function renderDataPageV2(
     // metadata, collapse the switcher into a single pane + a templated
     // indicator list — see computeIndicatorPaneCollapse for the rules.
     let collapsedIndicatorList: CollapsedIndicatorListEntry[] | undefined
+    let hideCollapsedIndicatorList: boolean | undefined
     if (
         additionalIndicators &&
         additionalIndicators.length > 0 &&
         !forceExpandIndicators
     ) {
-        const collapse = computeIndicatorPaneCollapse([
-            { datapageData, faqEntries },
+        const panes: AdditionalIndicator[] = [
+            { datapageData, faqEntries, variableId },
             ...additionalIndicators,
-        ])
+        ]
+        const collapse = computeIndicatorPaneCollapse(panes)
         if (collapse) {
             collapsedIndicatorList = collapse.list
+            // One measure sliced by age/sex/year: the list is noise, drop it.
+            const sliceDims = await getVariableSliceDimensions(
+                knex,
+                _.compact(panes.map((p) => p.variableId))
+            )
+            hideCollapsedIndicatorList = shouldHideCollapsedIndicatorList(
+                collapse,
+                panes.map((p) =>
+                    p.variableId ? sliceDims.get(p.variableId) : undefined
+                )
+            ).hide
             additionalIndicators = undefined
             datapageData.dateRange = collapse.dateRange
             datapageData.lastUpdated = collapse.lastUpdated
@@ -579,6 +595,7 @@ export async function renderDataPageV2(
             datapageData={datapageData}
             additionalIndicators={additionalIndicators}
             collapsedIndicatorList={collapsedIndicatorList}
+            hideCollapsedIndicatorList={hideCollapsedIndicatorList}
             useNewDatapageDesign={datapageMetadataExperimentActive}
             canonicalUrl={canonicalUrl}
             baseUrl={BAKED_BASE_URL}

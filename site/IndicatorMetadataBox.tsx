@@ -86,6 +86,7 @@ interface ExpandableSectionProps {
     // of several indicators; "…this data" otherwise.
     citationToggleLabel?: string
     collapsedIndicatorList?: CollapsedIndicatorListEntry[]
+    hideCollapsedIndicatorList?: boolean
 }
 
 const FAQS_SECTION_ID = "faqs"
@@ -138,6 +139,7 @@ function ExpandableSection({
     datapageCitationProducers,
     citationToggleLabel = "How to cite this data",
     collapsedIndicatorList,
+    hideCollapsedIndicatorList,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
     // Merged multi-indicator pages: a source the indicators share may still
@@ -221,13 +223,15 @@ function ExpandableSection({
 
     return (
         <div className={cx("meta-expander", className)}>
-            {collapsedIndicatorList && collapsedIndicatorList.length > 0 && (
-                <CollapsedIndicatorList
-                    entries={collapsedIndicatorList}
-                    datapageData={datapageData}
-                    expanderOpen={detailsOpen}
-                />
-            )}
+            {!hideCollapsedIndicatorList &&
+                collapsedIndicatorList &&
+                collapsedIndicatorList.length > 0 && (
+                    <CollapsedIndicatorList
+                        entries={collapsedIndicatorList}
+                        datapageData={datapageData}
+                        expanderOpen={detailsOpen}
+                    />
+                )}
             {descriptionKeyPreview && (
                 <div className="meta-expander__preview meta-expander__prose">
                     <SimpleMarkdownText text={descriptionKeyPreview} />
@@ -540,6 +544,7 @@ function IndicatorPaneContent({
     citationToggleLabel,
     paneTitleOverride,
     collapsedIndicatorList,
+    hideCollapsedIndicatorList,
 }: {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined
@@ -557,6 +562,7 @@ function IndicatorPaneContent({
     // renders inside the expander, above the shared WYSK.
     paneTitleOverride?: string
     collapsedIndicatorList?: CollapsedIndicatorListEntry[]
+    hideCollapsedIndicatorList?: boolean
     // Disambiguates the section anchor ids (#faqs, #sources-and-processing,
     // #indicator-processing) when several panes are in the DOM at once. The
     // active pane always gets the canonical (un-suffixed) ids so in-page
@@ -672,6 +678,7 @@ function IndicatorPaneContent({
                 processingContentId={processingContentId}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
                 datapageCitationTitle={datapageCitationTitle}
+                hideCollapsedIndicatorList={hideCollapsedIndicatorList}
                 datapageCitationProducers={datapageCitationProducers}
                 citationToggleLabel={citationToggleLabel}
                 omitLongDatasetTitle={omitLongDatasetTitle}
@@ -840,6 +847,7 @@ export default function IndicatorMetadataBox({
     datapageData,
     additionalIndicators,
     collapsedIndicatorList,
+    hideCollapsedIndicatorList,
     faqEntries,
     className,
     id,
@@ -851,6 +859,7 @@ export default function IndicatorMetadataBox({
     datapageData: DataPageDataV2
     additionalIndicators?: AdditionalIndicator[]
     collapsedIndicatorList?: CollapsedIndicatorListEntry[]
+    hideCollapsedIndicatorList?: boolean
     className?: string
     id?: string
     faqEntries: FaqEntryData | undefined
@@ -962,6 +971,7 @@ export default function IndicatorMetadataBox({
                 collapsedIndicatorList={
                     isCollapsedMulti ? collapsedIndicatorList : undefined
                 }
+                hideCollapsedIndicatorList={hideCollapsedIndicatorList}
                 datapageCitationTitle={
                     isMultiForCitations
                         ? (pageCitationTitle ?? datapageData.title.title)

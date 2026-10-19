@@ -711,6 +711,7 @@ export {
     parseVariableDisplayConfig,
     serializeVariableDisplayConfig,
     parseVariableDimensions,
+    type VariableDisplayDimension,
     serializeVariableDimensions,
     parseVariablesRow,
     serializeVariablesRow,

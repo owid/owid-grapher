@@ -72,6 +72,7 @@ export const DataPageV2Content = ({
     datapageData,
     additionalIndicators,
     collapsedIndicatorList,
+    hideCollapsedIndicatorList,
     useNewDatapageDesign: useNewDatapageDesignFromBaker,
     grapherConfig,
     isPreviewing = false,
@@ -200,6 +201,9 @@ export const DataPageV2Content = ({
                                 datapageData={datapageData}
                                 additionalIndicators={additionalIndicators}
                                 collapsedIndicatorList={collapsedIndicatorList}
+                                hideCollapsedIndicatorList={
+                                    hideCollapsedIndicatorList
+                                }
                                 faqEntries={faqEntries}
                                 canonicalUrl={canonicalUrl}
                                 archiveContext={archiveContext}

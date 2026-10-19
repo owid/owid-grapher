@@ -108,6 +108,8 @@ export interface CollapsedIndicatorListEntry {
 export interface AdditionalIndicator {
     datapageData: DataPageDataV2
     faqEntries?: FaqEntryData
+    /** Set by the baker; lets bake-time steps look the indicator up again. */
+    variableId?: number
 }
 
 export interface DataPageV2ContentFields {
@@ -127,6 +129,12 @@ export interface DataPageV2ContentFields {
      * templated indicator list, and no switcher.
      */
     collapsedIndicatorList?: CollapsedIndicatorListEntry[]
+    /**
+     * The merged indicators are one measure sliced along an enumerable
+     * dimension (age group, sex, year): the list is kept in the props but not
+     * rendered — see baker/indicatorSliceDimension.ts.
+     */
+    hideCollapsedIndicatorList?: boolean
     /**
      * Whether the page was baked with the redesigned data-page treatment
      * (metadata box etc.). Serialized so the client renders the same arm the

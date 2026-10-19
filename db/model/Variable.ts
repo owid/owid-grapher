@@ -39,6 +39,8 @@ import {
     DatasetOwners,
     DbPlainDataset,
     normalizeDescriptionKey,
+    VariableDisplayDimension,
+    parseVariableDimensions,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
@@ -1299,4 +1301,49 @@ export async function deleteIndicators(
     }
 
     return { deleted: deletableIndicatorIds, blocked }
+}
+
+/**
+ * The ETL slice metadata of each variable (`variables.dimensions`: base column
+ * + the filter values this indicator was cut at), plus the table part of its
+ * catalog path. Variables without slice metadata are absent from the map.
+ */
+export async function getVariableSliceDimensions(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<
+    Map<
+        number,
+        {
+            originalShortName: string
+            filters: VariableDisplayDimension["filters"]
+            tablePath?: string
+        }
+    >
+> {
+    const result = new Map()
+    if (!variableIds.length) return result
+    const rows = await knexRaw<{
+        id: number
+        dimensions: string | null
+        catalogPath: string | null
+    }>(
+        knex,
+        `-- sql
+            SELECT id, dimensions, catalogPath
+            FROM variables
+            WHERE id IN (?) AND dimensions IS NOT NULL
+        `,
+        [variableIds]
+    )
+    for (const row of rows) {
+        const dims = parseVariableDimensions(row.dimensions)
+        if (!dims?.originalShortName) continue
+        result.set(row.id, {
+            originalShortName: dims.originalShortName,
+            filters: dims.filters ?? [],
+            tablePath: row.catalogPath?.split("#")[0] ?? undefined,
+        })
+    }
+    return result
 }
