@@ -338,7 +338,14 @@ describe(rankEntities, () => {
         expect(
             rankEntities(
                 data,
-                { order: "highest", n: 5, year: 2022, continent: null },
+                {
+                    order: "highest",
+                    by: "value",
+                    from: null,
+                    n: 5,
+                    year: 2022,
+                    continent: null,
+                },
                 0
             )
         ).toEqual({
@@ -351,12 +358,69 @@ describe(rankEntities, () => {
         expect(
             rankEntities(
                 data,
-                { order: "lowest", n: 1, year: 1990, continent: "Asia" },
+                {
+                    order: "lowest",
+                    by: "value",
+                    from: null,
+                    n: 1,
+                    year: 1990,
+                    continent: "Asia",
+                },
                 1
             )
         ).toEqual({
             entities: ["India"],
             facts: "Lowest 1 of the 1 countries in Asia with data for 1990 (or the closest year within 1)",
+        })
+    })
+})
+
+describe("ranked changes", () => {
+    it("ranks by the change between two years and keeps only the direction asked for", () => {
+        expect(
+            rankEntities(
+                data,
+                {
+                    order: "lowest",
+                    by: "change",
+                    from: 1990,
+                    n: 10,
+                    year: 2022,
+                    continent: null,
+                },
+                1
+            )
+        ).toEqual({
+            // Canada rose (0.2 to 0.3), so it isn't among the falls
+            entities: ["India"],
+            facts: "Largest 1 falls from 1990 to 2022, of the 2 countries with data for both years (or the closest year within 1)",
+        })
+    })
+
+    it("sets a table to the range and sorts it by the change", () => {
+        const { views } = sanitizeViews(
+            {
+                views: [
+                    {
+                        tab: "table",
+                        entities: [],
+                        rank: {
+                            order: "lowest",
+                            by: "change",
+                            from: 1990,
+                            n: 5,
+                            year: 2022,
+                            continent: null,
+                        },
+                    },
+                ],
+            },
+            { ...singleChart, columnTolerance: 1 }
+        )
+        expect(views[0]).toMatchObject({
+            entities: ["India"],
+            time: "1990..2022",
+            tableSort: { column: "change", order: "asc" },
         })
     })
 })

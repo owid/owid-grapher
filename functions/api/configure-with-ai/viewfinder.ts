@@ -124,6 +124,9 @@ export const CONTINENTS = [
 
 export interface RankRule {
     order: "highest" | "lowest"
+    /** Rank by the value in `year`, or by its change since `from` */
+    by: "value" | "change" | "relativeChange"
+    from: number | null
     n: number
     year: number
     continent: string | null
@@ -159,7 +162,19 @@ export function parseRankRule(raw: unknown): RankRule | undefined {
         typeof r.continent === "string" && CONTINENTS.includes(r.continent)
             ? r.continent
             : null
-    return { order: r.order, n: Math.min(n, MAX_RANKED), year, continent }
+    const by = r.by === "change" || r.by === "relativeChange" ? r.by : "value"
+    const from = Number(r.from)
+    // A change needs a start year before the end year
+    if (by !== "value" && !(Number.isInteger(from) && from < year))
+        return undefined
+    return {
+        order: r.order,
+        by,
+        from: by === "value" ? null : from,
+        n: Math.min(n, MAX_RANKED),
+        year,
+        continent,
+    }
 }
 
 /** Picks the countries a ranking asks for from the full data */
@@ -173,23 +188,45 @@ export function rankEntities(
             e.type === "country" &&
             (!rule.continent || e.continent === rule.continent)
     )
+    const score = (name: string): number | undefined => {
+        const series = data.series.get(name)
+        const end = valueNear(series, rule.year, tolerance)
+        if (end === undefined || rule.by === "value") return end
+        const start = valueNear(series, rule.from!, tolerance)
+        if (start === undefined) return undefined
+        if (rule.by === "change") return end - start
+        return start === 0 ? undefined : (end - start) / Math.abs(start)
+    }
     const withData = candidates
-        .map((e) => ({
-            name: e.name,
-            value: valueNear(data.series.get(e.name), rule.year, tolerance),
-        }))
+        .map((e) => ({ name: e.name, value: score(e.name) }))
         .filter(
             (e): e is { name: string; value: number } => e.value !== undefined
         )
-    withData.sort((a, b) =>
+    // "Fallen most" lists only countries that fell, "risen most" only risers
+    const ranked =
+        rule.by === "value"
+            ? withData
+            : withData.filter((e) =>
+                  rule.order === "highest" ? e.value > 0 : e.value < 0
+              )
+    ranked.sort((a, b) =>
         rule.order === "highest" ? b.value - a.value : a.value - b.value
     )
-    const entities = withData.slice(0, rule.n).map((e) => e.name)
+    const entities = ranked.slice(0, rule.n).map((e) => e.name)
     const where = rule.continent ? ` in ${rule.continent}` : ""
     const near =
         tolerance > 0 ? ` (or the closest year within ${tolerance})` : ""
-    const facts = `${rule.order === "highest" ? "Highest" : "Lowest"} ${entities.length} of the ${withData.length} countries${where} with data for ${rule.year}${near}`
-    return { entities, facts }
+    if (rule.by === "value")
+        return {
+            entities,
+            facts: `${rule.order === "highest" ? "Highest" : "Lowest"} ${entities.length} of the ${withData.length} countries${where} with data for ${rule.year}${near}`,
+        }
+    const kind = rule.by === "relativeChange" ? "relative " : ""
+    const direction = rule.order === "highest" ? "rises" : "falls"
+    return {
+        entities,
+        facts: `Largest ${entities.length} ${kind}${direction} from ${rule.from} to ${rule.year}, of the ${withData.length} countries${where} with data for both years${near}`,
+    }
 }
 
 /** Says how many of the countries shown lack data for a single year, if any do */
@@ -405,7 +442,7 @@ Countries with a value in each year${md ? " (this combination)" : ""}: ${coverag
 
 ## Reply format
 Reply with ONLY a JSON object, no other text:
-{"interpretation": string, "searchQuery": string|null, "views": [{"label": string, "note": string|null, "closestMatch": boolean, ${md ? '"options": object, ' : ""}"tab": string, "entities": string[], "time": string|null, "mapRegion": string|null, "tableSort": {"column": "value"|"change"|"relativeChange"|"entity", "order": "asc"|"desc"}|null, "tableFilter": "selection"|null, "rank": {"order": "highest"|"lowest", "n": number, "year": number, "continent": string|null}|null}]}
+{"interpretation": string, "searchQuery": string|null, "views": [{"label": string, "note": string|null, "closestMatch": boolean, ${md ? '"options": object, ' : ""}"tab": string, "entities": string[], "time": string|null, "mapRegion": string|null, "tableSort": {"column": "value"|"change"|"relativeChange"|"entity", "order": "asc"|"desc"}|null, "tableFilter": "selection"|null, "rank": {"order": "highest"|"lowest", "by": "value"|"change"|"relativeChange", "from": number|null, "n": number, "year": number, "continent": string|null}|null}]}
 
 Rules:
 - 2 to 4 views, best first. Vary them across tabs${md ? " and options" : ""} where that helps (e.g. a line chart, a sorted table, a map).
@@ -415,7 +452,7 @@ Rules:
 - "interpretation": one short sentence (max 20 words) on how you understood the request. Only shown when no views are returned: then say what's missing or why it can't be shown, not just what was asked.
 - "searchQuery": when this chart can't answer but another of our charts might, a short search for that data in plain words (e.g. "cumulative CO2 emissions" for "show cumulative emissions"), else null.
 ${md ? `- "options": one combination from the list above, as an object with exactly its keys, e.g. ${optStr(md.views[0].dims)}. Read the options' descriptions and pick the measure that matches what was asked.\n- "tab" must be one of that combination's tabs.` : `- "tab" must be one of: ${tabs.join(", ")}.`}
-- "rank": for any view that ranks or picks the top or bottom countries ("highest", "10 lowest", "worst in Europe"). Code then picks the countries from the full data, so leave "entities" [] and don't name countries in the label. "n" is at most ${MAX_RANKED}; for more, rank in a table without "rank" instead, and don't quote counts of countries in the note (code adds them). "year" must be one most of them have data for (see the coverage line); "continent" one of ${CONTINENTS.join(", ")}, or null for the world. The table and bar chart show that year; a table shows only the ranked countries, sorted. Code adds a line saying how the countries were picked, so the note only gives the reason for the choice.${md ? " Only with the combination currently shown (its data is the one above)." : ""} Otherwise null.
+- "rank": for any view that ranks or picks the top or bottom countries ("highest", "10 lowest", "worst in Europe", "fallen most since 1990"). "by" is "value" (the value in "year"), "change" or "relativeChange" (from "from" to "year"; "lowest" = the largest falls, "highest" = the largest rises). A ranking of change shows best as a slope chart, a line chart or a table. Code then picks the countries from the full data, so leave "entities" [] and don't name countries in the label. "n" is at most ${MAX_RANKED}; for more, rank in a table without "rank" instead, and don't quote counts of countries in the note (code adds them). "year" must be one most of them have data for (see the coverage line); "continent" one of ${CONTINENTS.join(", ")}, or null for the world. The table and bar chart show that year; a table shows only the ranked countries, sorted. Code adds a line saying how the countries were picked, so the note only gives the reason for the choice.${md ? " Only with the combination currently shown (its data is the one above)." : ""} Otherwise null.
 - "entities": exact names from the data above.${ctx.canSelectEntities ? "" : " This chart's countries are fixed: always use [], and don't promise a selection in the label."} Use [] to keep the chart's default selection. Countries only, unless the reader asks about regions.
 - "time": "YYYY" for one year, "YYYY..YYYY" for a range, or null for the default. Use years that have data for the entities shown.
 - When the request refines what's currently shown (e.g. "add Canada", "only since 2000", "as a map"), keep the current tab, countries, time and table sort, and change only what the request asks for.
@@ -546,11 +583,14 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
             const ranked = rankEntities(ctx.data, rule, tolerance)
             entities.splice(0, entities.length, ...ranked.entities)
             facts = ranked.facts
-            if (tab !== "line" && tab !== "slope") time = String(rule.year)
+            const range =
+                rule.from !== null ? `${rule.from}..${rule.year}` : null
+            if (range && tab !== "map" && tab !== "discrete-bar") time = range
+            else if (tab !== "line" && tab !== "slope") time = String(rule.year)
             if (tab === "table") {
                 tableFilter = "selection"
                 tableSort = {
-                    column: "value",
+                    column: rule.by,
                     order: rule.order === "highest" ? "desc" : "asc",
                 }
             }
