@@ -1,6 +1,26 @@
 import { JsonError } from "@ourworldindata/utils"
 import { Env } from "./env.js"
 
+/**
+ * Siteverify error codes that mean our configuration or Cloudflare is broken,
+ * as opposed to a bot, a replayed token or an expired token. They have to be
+ * reported as server errors so that Sentry hears about them: every other
+ * failure is a 4xx that is deliberately kept out of Sentry.
+ * https://developers.cloudflare.com/turnstile/get-started/server-side-validation/#error-codes
+ */
+const SERVER_SIDE_ERROR_CODES = new Set([
+    "missing-input-secret",
+    "invalid-input-secret",
+    "bad-request",
+    "internal-error",
+])
+
+interface SiteverifyResult {
+    success?: boolean
+    action?: string
+    "error-codes"?: string[]
+}
+
 // TODO: generalise to validateTurnstileToken (action incl. "donate") and
 // replace the duplicate isCaptchaValid in functions/donation/donate.ts, which
 // has no timeout or action check.
@@ -10,13 +30,10 @@ export async function validateNewsletterCaptcha(
     action: "subscribe" | "request-link"
 ): Promise<void> {
     if (!env.TURNSTILE_SECRET_KEY) {
-        throw new JsonError(
-            "Verification is unavailable. Please try again later.",
-            503
-        )
+        throw new JsonError("TURNSTILE_SECRET_KEY is not configured", 503)
     }
 
-    let result: { success?: boolean; action?: string }
+    let result: SiteverifyResult
     try {
         const response = await fetch(
             "https://challenges.cloudflare.com/turnstile/v0/siteverify",
@@ -30,14 +47,28 @@ export async function validateNewsletterCaptcha(
                 signal: AbortSignal.timeout(10000),
             }
         )
-        if (!response.ok) throw new Error("Turnstile verification unavailable")
+        if (!response.ok) {
+            throw new Error(
+                `Turnstile siteverify responded with HTTP ${response.status}`
+            )
+        }
         result = await response.json()
-    } catch {
+    } catch (error) {
+        throw new JsonError("Turnstile siteverify request failed", 503, {
+            cause: error,
+        })
+    }
+
+    const serverSideErrorCodes = (result?.["error-codes"] ?? []).filter(
+        (code) => SERVER_SIDE_ERROR_CODES.has(code)
+    )
+    if (serverSideErrorCodes.length > 0) {
         throw new JsonError(
-            "Verification is unavailable. Please try again later.",
+            `Turnstile siteverify reported ${serverSideErrorCodes.join(", ")}`,
             503
         )
     }
+
     // Dummy tokens don't preserve the widget action: live responses can omit
     // it entirely, while Cloudflare's documentation shows action: "test".
     // Only the public always-pass test secret is exempt from action validation.
