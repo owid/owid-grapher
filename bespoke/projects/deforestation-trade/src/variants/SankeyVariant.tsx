@@ -52,10 +52,6 @@ import {
 import { DeforestationChart } from "../components/DeforestationChart.js"
 import { DeforestationControls } from "../components/DeforestationControls.js"
 
-/** Default for single-year views, even when newer data is available.
- *  Falls back to the latest year only if this year is absent from the metadata. */
-const DEFAULT_YEAR = 2023
-
 const queryClient = new QueryClient()
 
 export function SankeyVariant({
@@ -110,7 +106,7 @@ function FetchingSankeyVariant({
     const [year, setYear] = useUrlState({
         key: "deforestationYear",
         parser: parseAsInteger,
-        defaultValue: config.year ?? DEFAULT_YEAR,
+        defaultValue: config.year,
     })
     const [period, setPeriod] = useUrlState({
         key: "deforestationPeriod",

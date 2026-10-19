@@ -6,6 +6,9 @@ export type VariantName = "sankey"
  *  deforestation, and the one the chart is most often about. */
 export const DEFAULT_COUNTRY = "Brazil"
 
+/** Shown when the embed names no year, even when newer data is available. */
+export const DEFAULT_YEAR = "2023"
+
 export const VIEWS = ["production", "consumption"] as const
 /** Which side of a selected country is shown: where what it produced was
  *  consumed, or where what it consumed was produced */
