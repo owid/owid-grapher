@@ -94,4 +94,3 @@ packageDocs/.cache/
 /_bmad/
 # no trailing slash: worktrees symlink it to the main checkout's
 /_bmad-output
-

@@ -93,9 +93,6 @@ function buildMetadata(raw: RawMetadataJson): DeforestationMetadata {
 
     return {
         years: raw.years,
-        source: formatAttributionsShortened(
-            getAttributionFragmentsFromBespokeMetadata(raw)
-        ),
         entities,
         commodityGroups,
         entityById: new Map(entities.map((e) => [e.id, e])),
