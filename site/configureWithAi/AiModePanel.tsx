@@ -5,6 +5,7 @@ import {
     faCalendar,
     faChartColumn,
     faEyeSlash,
+    faMagnifyingGlass,
     faChartLine,
     faEarthAmericas,
     faRotateLeft,
@@ -16,6 +17,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import cx from "clsx"
 import { CookieKey } from "@ourworldindata/grapher"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.mjs"
+import {
+    viewThumbnailUrl,
+    type ConfigureWithAiView,
+} from "./configureWithAiView.js"
 import type {
     HistoryEntry,
     PanelState,
@@ -296,7 +302,13 @@ export function AiModePanel({
                     />
                 )}
 
-                {current && !isThinking && (
+                {/* A failed or empty answer replaces the previous one, which
+                    is summed up as what the chart still shows */}
+                {(request.status === "empty" || request.status === "error") && (
+                    <StillShows slug={store.slug} entry={current} />
+                )}
+
+                {current && isIdle && (
                     <Answer store={store} entry={current} isBusy={isBusy} />
                 )}
 
@@ -421,14 +433,14 @@ function RequestStatus({
             )}
             {request.status === "empty" && (
                 <div className="configure-with-ai__message">
-                    <p>
-                        {request.interpretation ||
-                            "This chart has no view that matches."}{" "}
-                        The chart hasn't changed.
-                    </p>
-                    <a href={searchUrl(request.searchQuery ?? request.query)}>
-                        Search all charts for “
-                        {request.searchQuery ?? request.query}”
+                    <strong>No view of this chart matches</strong>
+                    {request.interpretation && <p>{request.interpretation}</p>}
+                    <a
+                        className="configure-with-ai__search-link"
+                        href={searchUrl(request.searchQuery ?? request.query)}
+                    >
+                        <FontAwesomeIcon icon={faMagnifyingGlass} />
+                        Search for “{request.searchQuery ?? request.query}”
                     </a>
                 </div>
             )}
@@ -557,50 +569,52 @@ function Answer({
     entry: HistoryEntry
     isBusy: boolean
 }) {
+    const view = entry.views[entry.active]
+    const others = entry.views
+        .map((v, i) => ({ view: v, index: i }))
+        .filter(({ index }) => index !== entry.active)
     return (
         <div className="configure-with-ai__answer">
-            <ul className="configure-with-ai__views">
-                {entry.views.map((view, i) => {
-                    const isActive = i === entry.active
-                    return (
-                        <li key={i}>
-                            <button
-                                className={cx("configure-with-ai__view", {
-                                    "configure-with-ai__view--active": isActive,
-                                })}
-                                type="button"
-                                aria-current={isActive}
-                                disabled={isBusy && !isActive}
-                                onClick={() => store.selectView(i)}
-                            >
-                                <span className="configure-with-ai__view-label">
-                                    {view.label}
-                                </span>
-                                {view.closestMatch && (
-                                    <span className="configure-with-ai__closest">
-                                        Closest match
-                                    </span>
-                                )}
-                                {isActive && (
-                                    <span className="configure-with-ai__now">
-                                        {isBusy ? "Loading…" : "Now showing"}
-                                    </span>
-                                )}
-                                {isActive && view.facts && (
-                                    <span className="configure-with-ai__facts">
-                                        {view.facts}
-                                    </span>
-                                )}
-                                {isActive && view.note && (
-                                    <span className="configure-with-ai__note">
-                                        {view.note}
-                                    </span>
-                                )}
-                            </button>
-                        </li>
-                    )
-                })}
-            </ul>
+            <div className="configure-with-ai__applied">
+                <span className="configure-with-ai__now">
+                    {isBusy ? "Loading…" : "Now showing"}
+                </span>
+                <span className="configure-with-ai__view-label">
+                    {view.label}
+                </span>
+                {view.closestMatch && (
+                    <span className="configure-with-ai__closest">
+                        Closest match
+                    </span>
+                )}
+                {view.facts && (
+                    <span className="configure-with-ai__facts">
+                        {view.facts}
+                    </span>
+                )}
+                {view.note && (
+                    <span className="configure-with-ai__note">{view.note}</span>
+                )}
+            </div>
+            {others.length > 0 && (
+                <div className="configure-with-ai__others">
+                    <p className="configure-with-ai__section-title">
+                        Other views
+                    </p>
+                    <ul className="configure-with-ai__strip">
+                        {others.map(({ view: other, index }) => (
+                            <li key={index}>
+                                <OtherView
+                                    slug={store.slug}
+                                    view={other}
+                                    disabled={isBusy}
+                                    onClick={() => store.selectView(index)}
+                                />
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
             <div className="configure-with-ai__feedback">
                 <span>
                     {entry.feedback
@@ -627,6 +641,87 @@ function Answer({
                 </button>
             </div>
         </div>
+    )
+}
+
+/** What's on the chart after an answer that changed nothing */
+function StillShows({
+    slug,
+    entry,
+}: {
+    slug: string
+    entry: HistoryEntry | undefined
+}) {
+    const view = entry?.views[entry.active]
+    const src = view
+        ? viewThumbnailUrl(GRAPHER_DYNAMIC_THUMBNAIL_URL, slug, view)
+        : null
+    return (
+        <div className="configure-with-ai__still">
+            {src ? (
+                <img
+                    className="configure-with-ai__still-image"
+                    src={src}
+                    alt=""
+                    loading="lazy"
+                />
+            ) : (
+                <span className="configure-with-ai__other-icon" aria-hidden>
+                    <FontAwesomeIcon
+                        icon={view ? iconForTab(view.tab) : faRotateLeft}
+                    />
+                </span>
+            )}
+            <span className="configure-with-ai__still-text">
+                <span>The chart still shows</span>
+                <span>{view?.label ?? "The chart as you opened it"}</span>
+            </span>
+        </div>
+    )
+}
+
+function OtherView({
+    slug,
+    view,
+    disabled,
+    onClick,
+}: {
+    slug: string
+    view: ConfigureWithAiView
+    disabled: boolean
+    onClick: () => void
+}) {
+    const src = viewThumbnailUrl(GRAPHER_DYNAMIC_THUMBNAIL_URL, slug, view)
+    const [hasFailed, setHasFailed] = useState(false)
+    return (
+        <button
+            className="configure-with-ai__other"
+            type="button"
+            disabled={disabled}
+            onClick={onClick}
+        >
+            {src && !hasFailed ? (
+                <img
+                    className="configure-with-ai__other-image"
+                    src={src}
+                    alt=""
+                    loading="lazy"
+                    onError={() => setHasFailed(true)}
+                />
+            ) : (
+                <span className="configure-with-ai__other-icon" aria-hidden>
+                    <FontAwesomeIcon icon={iconForTab(view.tab)} />
+                </span>
+            )}
+            <span className="configure-with-ai__other-label">
+                {view.label}
+                {view.closestMatch && (
+                    <span className="configure-with-ai__closest">
+                        Closest match
+                    </span>
+                )}
+            </span>
+        </button>
     )
 }
 

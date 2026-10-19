@@ -330,6 +330,122 @@
     }
 }
 
+.configure-with-ai__applied {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    background: $blue-5;
+
+    .configure-with-ai__view-label {
+        color: $blue-100;
+        font-weight: 700;
+    }
+}
+
+.configure-with-ai__others {
+    margin-top: 12px;
+}
+
+.configure-with-ai__strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.configure-with-ai__other {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    height: 100%;
+    padding: 6px;
+    border: 1px solid $blue-20;
+    background: #fff;
+    text-align: left;
+
+    &:hover:not(:disabled) {
+        border-color: $blue-50;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+    }
+}
+
+// Thumbnails are 1200×640
+.configure-with-ai__other-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 15 / 8;
+    object-fit: contain;
+    background: $gray-5;
+}
+
+.configure-with-ai__other-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 15 / 8;
+    background: $blue-5;
+    color: $blue-60;
+    font-size: 1.25rem;
+}
+
+.configure-with-ai__other-label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.8125rem;
+    line-height: 1.3;
+}
+
+.configure-with-ai__still {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid $blue-10;
+
+    .configure-with-ai__other-icon {
+        width: 64px;
+        flex-shrink: 0;
+        font-size: 1rem;
+    }
+}
+
+.configure-with-ai__still-image {
+    width: 64px;
+    flex-shrink: 0;
+    aspect-ratio: 15 / 8;
+    object-fit: contain;
+    border: 1px solid $blue-10;
+}
+
+.configure-with-ai__still-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.875rem;
+
+    > span:first-child {
+        color: $blue-60;
+        font-size: 0.75rem;
+    }
+}
+
+.configure-with-ai__search-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: $blue-90 !important;
+    text-decoration: underline;
+}
+
 .configure-with-ai__views {
     display: flex;
     flex-direction: column;

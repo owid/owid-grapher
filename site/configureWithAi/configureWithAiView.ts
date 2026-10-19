@@ -132,3 +132,23 @@ export function dataTableSortToViewSort(
               : "value"
     return { column, order }
 }
+
+/**
+ * A thumbnail of the view from the chart thumbnail service, or null for a
+ * table, which the service draws as a single-year chart instead
+ */
+export function viewThumbnailUrl(
+    grapherBaseUrl: string,
+    slug: string,
+    view: ConfigureWithAiView
+): string | null {
+    if (view.tab === "table") return null
+    const params = new URLSearchParams()
+    for (const [key, value] of Object.entries(view.options ?? {}))
+        params.set(key, value)
+    for (const [key, value] of Object.entries(viewToGrapherQueryParams(view)))
+        if (value !== undefined && key !== "tableFilter")
+            params.set(key, String(value))
+    params.set("imType", "thumbnail")
+    return `${grapherBaseUrl}/${slug}.png?${params.toString()}`
+}
