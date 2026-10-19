@@ -1180,6 +1180,18 @@ export const isInIFrame = (): boolean => {
     }
 }
 
+/**
+ * Attributes that make a link open in a new tab, to spread onto an `<a>`.
+ * Only puts them when `openInNewTab` is truthy.
+ *
+ * Mainly for links rendered inside an iframe: the host page may forbid
+ * navigating the frame to another origin.
+ */
+export const openLinkInNewTabAttrs = (
+    openInNewTab: boolean | undefined
+): { target: "_blank"; rel: "noopener" } | undefined =>
+    openInNewTab ? { target: "_blank", rel: "noopener" } : undefined
+
 export const differenceObj = <A extends Record<string, unknown>>(
     obj: A,
     defaultObj: Record<string, unknown>

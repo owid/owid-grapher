@@ -6,6 +6,7 @@ import {
     makeFigmaId,
     Bounds,
     FontFamily,
+    openLinkInNewTabAttrs,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -338,10 +339,7 @@ abstract class AbstractHeader<
                 <a
                     href={manager.canonicalUrl}
                     data-track-note="chart_click_title"
-                    {...(manager.isInIFrame && {
-                        target: "_blank",
-                        rel: "noopener",
-                    })}
+                    {...openLinkInNewTabAttrs(manager.isInIFrame)}
                 >
                     <h1
                         style={this.titleStyle}
@@ -360,10 +358,7 @@ abstract class AbstractHeader<
                     href={manager.canonicalUrl}
                     data-track-note="chart_click_title"
                     aria-label={this.titleAriaLabel}
-                    {...(manager.isInIFrame && {
-                        target: "_blank",
-                        rel: "noopener",
-                    })}
+                    {...openLinkInNewTabAttrs(manager.isInIFrame)}
                 >
                     <MarkdownTextWrapHtml textWrap={this.title} />
                 </a>
@@ -460,10 +455,7 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
                             fontFamily:
                                 "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
                         }}
-                        {...(manager.isInIFrame && {
-                            target: "_blank",
-                            rel: "noopener",
-                        })}
+                        {...openLinkInNewTabAttrs(manager.isInIFrame)}
                     >
                         <MarkdownTextWrapSvg
                             textWrap={title}
