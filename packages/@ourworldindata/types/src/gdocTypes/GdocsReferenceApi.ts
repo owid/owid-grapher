@@ -180,3 +180,38 @@ export interface TemplateExemplarsResponse {
     /** Sidecar exemplar slugs that are not published — stale, for editors */
     staleExemplars: string[]
 }
+
+/**
+ * Published usage of the bespoke viz bundles — the live half of the bundle
+ * pages. Raw counts only: badges show them as is.
+ */
+export interface BespokeVizUsage {
+    /**
+     * Registry bundles with at least one published use, in registry order.
+     * A bundle with no published use is absent (the client treats it as 0).
+     */
+    bundles: BundleUsage[]
+}
+
+export interface BundleUsage {
+    bundle: string
+    /** Published blocks of the bundle, whatever their variant */
+    uses: number
+    /** Distinct published docs using the bundle */
+    docs: number
+    /** The registry's variants that have uses, in registry order */
+    variants: BundleVariantUsage[]
+    /**
+     * Per registry config key, the blocks that set it (to any value, its
+     * default included)
+     */
+    configAdoption: Record<string, number>
+}
+
+export interface BundleVariantUsage {
+    variant: string
+    uses: number
+    docs: number
+    /** Every published instance, newest first */
+    instances: ComponentInstance[]
+}

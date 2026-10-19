@@ -102,6 +102,9 @@ export class MapChart
         })
     }
 
+    private readonly tooltipId = guid()
+    private readonly renderUid = guid()
+
     hoverBracket: MapBracket | undefined = undefined
 
     tooltipState = new TooltipState<{
@@ -642,10 +645,6 @@ export class MapChart
         return this.manager.isStatic ?? false
     }
 
-    @computed private get renderUid(): number {
-        return guid()
-    }
-
     @computed private get clipPath(): ClipPath {
         return makeClipPath({
             renderUid: this.renderUid,
@@ -760,6 +759,7 @@ export class MapChart
                 {this.renderMapLegend()}
                 {tooltipCountry && (
                     <MapTooltip
+                        id={this.tooltipId}
                         mapColumnSlug={this.mapColumnSlug}
                         mapColumnInfo={this.mapColumnInfo}
                         entityName={tooltipCountry}

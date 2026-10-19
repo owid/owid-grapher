@@ -3,12 +3,13 @@ import cx from "clsx"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { queryClient, useDemographyData } from "../core/fetch.js"
+import type { DemographyConfig } from "../index.js"
+import type { PopulationPyramidUnit } from "../core/types.js"
+import { isUserLocationCountry } from "../../../../hooks/useResolveUserLocation.js"
 import type {
-    PopulationPyramidUnit,
-    SimulationVariantConfig,
-} from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import { CHART_FOOTER_SOURCES, DEFAULT_ENTITY_NAME } from "../core/constants.js"
 import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import {
@@ -38,7 +39,7 @@ import {
 export function SimulationVariant({
     config,
     urls,
-}: VariantProps<SimulationVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<DemographyConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
@@ -67,7 +68,7 @@ function FetchingSimulationVariant({
     config,
     urls,
 }: {
-    config: SimulationVariantConfig
+    config: DemographyConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
     const { urlSync } = useEmbedConfig()
@@ -104,10 +105,9 @@ function FetchingSimulationVariant({
 
     // Fall back to another entity if the selected one has no data
     if (metadata && !metadata.slugs[entityName]) {
-        const fallbackEntityName =
-            config.region && metadata.slugs[config.region]
-                ? config.region
-                : DEFAULT_ENTITY_NAME
+        const fallbackEntityName = metadata.slugs[config.region]
+            ? config.region
+            : DEFAULT_ENTITY_NAME
         if (entityName !== fallbackEntityName) {
             setEntityNameRaw(fallbackEntityName)
             setShouldSyncEntityName(false)
@@ -118,7 +118,7 @@ function FetchingSimulationVariant({
     const shouldSyncAutoDetectedEntityName =
         urlSync &&
         !urlState.entityName &&
-        (!config.region || config.region === "userLocation") &&
+        isUserLocationCountry(config.region) &&
         isInitialEntityNameResolved
     const [
         prevShouldSyncAutoDetectedEntityName,
@@ -191,9 +191,8 @@ function getUrlAssumptionState(
     }
 }
 
-function getBaselineEntityName(region: string | undefined): string | undefined {
-    if (!region || region === "userLocation") return undefined
-    return region
+function getBaselineEntityName(region: string): string | undefined {
+    return isUserLocationCountry(region) ? undefined : region
 }
 
 function CaptionedSimulationVariant({
@@ -227,7 +226,7 @@ function CaptionedSimulationVariant({
     title?: string
     subtitle?: string
     hideEntitySelector?: boolean
-    focusParameter?: ParameterKey
+    focusParameter: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: PopulationPyramidUnit
     fertilityRateAssumptions?: Record<number, number>

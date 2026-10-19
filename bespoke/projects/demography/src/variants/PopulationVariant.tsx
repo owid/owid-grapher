@@ -6,9 +6,11 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 
-import type { PopulationVariantConfig } from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+import type { DemographyConfig } from "../index.js"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import type { CountryData, DemographyMetadata } from "../core/types.js"
 
 import { queryClient, useDemographyData } from "../core/fetch.js"
@@ -16,6 +18,7 @@ import {
     START_YEAR,
     END_YEAR,
     CHART_FOOTER_SOURCES,
+    DEFAULT_ENTITY_NAME,
 } from "../core/constants.js"
 import {
     useSimulation,
@@ -38,7 +41,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 export function PopulationVariant({
     config,
     urls,
-}: VariantProps<PopulationVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<DemographyConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
@@ -62,16 +65,19 @@ function FetchingPopulationVariant({
     config,
     urls,
 }: {
-    config: PopulationVariantConfig
+    config: DemographyConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(
+    const [requestedEntityName, setEntityName] = useInitialEntityName(
         config.region,
         urls.metadataUrl
     )
 
-    const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName, urls)
+    const { entityName, metadata, entityData, isLoadingEntityData, status } =
+        useDemographyData(requestedEntityName, urls, [
+            config.region,
+            DEFAULT_ENTITY_NAME,
+        ])
 
     if (status === "pending")
         return <ChartSkeleton className="demography-chart-box" />
@@ -105,7 +111,7 @@ function CaptionedPopulationVariant({
     title: titleOverride,
     subtitle: subtitleOverride,
     hideEntitySelector,
-    showAssumptionCharts = false,
+    showAssumptionCharts,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,

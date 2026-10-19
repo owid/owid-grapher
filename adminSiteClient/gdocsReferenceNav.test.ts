@@ -5,6 +5,7 @@ import {
     TemplateReference,
 } from "@ourworldindata/types"
 import {
+    selectionFromParams,
     sortGuides,
     sortTemplatesByUsage,
     stepHighlight,
@@ -113,5 +114,41 @@ describe(stepHighlight, () => {
     it("stays undefined when there is nothing to highlight", () => {
         expect(stepHighlight(undefined, 1, 0)).toBeUndefined()
         expect(stepHighlight(2, -1, 0)).toBeUndefined()
+    })
+})
+
+describe(selectionFromParams, () => {
+    it("selects a bundle of the bespoke component", () => {
+        expect(
+            selectionFromParams({
+                kind: "components",
+                id: "bespoke-component",
+                bundle: "foo",
+            })
+        ).toEqual({
+            kind: "components",
+            id: "bespoke-component",
+            bundle: "foo",
+        })
+    })
+
+    it("ignores a third segment on any other component", () => {
+        expect(
+            selectionFromParams({
+                kind: "components",
+                id: "chart",
+                bundle: "foo",
+            })
+        ).toEqual({ kind: "components", id: "chart" })
+    })
+
+    it("selects nothing without an id (the landing page)", () => {
+        expect(selectionFromParams({ kind: "components" })).toBeUndefined()
+    })
+
+    it("selects nothing for an unknown kind", () => {
+        expect(
+            selectionFromParams({ kind: "widgets", id: "chart" })
+        ).toBeUndefined()
     })
 })

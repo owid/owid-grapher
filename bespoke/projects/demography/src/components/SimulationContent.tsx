@@ -58,7 +58,7 @@ export function SimulationContent({
     shouldSyncEntityName = false,
 }: {
     data: CountryData
-    focusParameter?: ParameterKey
+    focusParameter: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: "percent" | "absolute"
     fertilityRateAssumptions?: Record<number, number>
@@ -74,7 +74,7 @@ export function SimulationContent({
 }) {
     const { urlSync } = useEmbedConfig()
 
-    const baselineTab: ParameterKey = focusParameter ?? "fertilityRate"
+    const baselineTab = focusParameter
     const baselineYear = END_YEAR
 
     const [year, setYear] = useState(urlYear ?? baselineYear)

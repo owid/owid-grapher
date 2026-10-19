@@ -11,7 +11,7 @@ src/
     core/              everything non-visual
 ```
 
-**Everything non-visual lives in `core/`** — config, types, constants, fetching, helpers, hooks, metadata classes, layout algorithms, and their `*.test.ts` files. Nothing but `index.tsx`, the stylesheets and the boilerplate copied from `example` sits at the `src/` root. Split `core/` into subfolders only when one part grows into its own layer (demography's simulation is `core/model/`).
+**Everything non-visual lives in `core/`** — types, constants, fetching, helpers, hooks, metadata classes, layout algorithms, and their `*.test.ts` files. Nothing but `index.tsx`, the stylesheets and the boilerplate copied from `example` sits at the `src/` root. Split `core/` into subfolders only when one part grows into its own layer (demography's simulation is `core/model/`).
 
 ## The three variant layers
 

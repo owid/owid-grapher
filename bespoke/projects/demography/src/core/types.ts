@@ -57,6 +57,19 @@ export const PARAMETER_KEYS = [
 
 export type ParameterKey = (typeof PARAMETER_KEYS)[number]
 
+const VARIANT_NAMES = [
+    "simulation",
+    "population",
+    "populationPyramid",
+    "parameters",
+] as const
+
+export type VariantName = (typeof VARIANT_NAMES)[number]
+
+export const POPULATION_PYRAMID_UNITS = ["percent", "absolute"] as const
+
+export type PopulationPyramidUnit = (typeof POPULATION_PYRAMID_UNITS)[number]
+
 export type YearLabel = { year: number; position: "start" | "middle" | "end" }
 
 export function isValidParameterKey(value: unknown): value is ParameterKey {

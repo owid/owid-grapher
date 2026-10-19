@@ -11,10 +11,17 @@ import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
-import { SankeyVariantConfig, Flow } from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
-import { FoodTradeMetadata, ProductTradeData, Mode } from "../core/types.js"
+import type { FoodTradeConfig } from "../index.js"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
+import {
+    Flow,
+    FoodTradeMetadata,
+    ProductTradeData,
+    Mode,
+} from "../core/types.js"
 import { useFoodTradeMetadata, useProductTradeData } from "../core/data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
 import { FoodTradeChart } from "../components/FoodTradeChart.js"
@@ -28,6 +35,7 @@ import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
+import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 import {
     isUserLocationCountry,
     useResolveUserLocation,
@@ -36,16 +44,12 @@ import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 
-const DEFAULT_PRODUCT = "Maize"
-const DEFAULT_COUNTRY = ALL_COUNTRIES
-const DEFAULT_VIEW: Flow = "both"
-
 const queryClient = new QueryClient()
 
 export function SankeyVariant({
     config,
     urls,
-}: VariantProps<SankeyVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<FoodTradeConfig>): React.ReactElement {
     const { width, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
@@ -71,23 +75,19 @@ function FetchingSankeyVariant({
     config,
     urls,
 }: {
-    config: SankeyVariantConfig
+    config: FoodTradeConfig
     urls: BespokeComponentDataUrls
 }) {
-    const initialProduct = config.product ?? DEFAULT_PRODUCT
     const isUserLocation = isUserLocationCountry(config.country)
-    const initialCountry =
-        !config.country || isUserLocation ? DEFAULT_COUNTRY : config.country
+    const initialCountry = isUserLocation ? ALL_COUNTRIES : config.country
     const initialView =
-        !isUserLocation && isAllCountry(initialCountry)
-            ? "both"
-            : (config.flow ?? DEFAULT_VIEW)
+        !isUserLocation && isAllCountry(initialCountry) ? "both" : config.flow
     const [product, setProduct] = useUrlState({
         key: "foodTradeProduct",
         parser: parseAsString,
-        defaultValue: initialProduct,
+        defaultValue: config.product,
     })
-    const [country, _setCountry] = useUrlState({
+    const [requestedCountry, _setCountry] = useUrlState({
         key: "foodTradeCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
@@ -100,6 +100,19 @@ function FetchingSankeyVariant({
 
     const { data: metadata, status: metadataStatus } = useFoodTradeMetadata(
         urls.metadataUrl
+    )
+    const availableCountryNames = useMemo(
+        () =>
+            metadata
+                ? new Set(metadata.entities.map((e) => e.name))
+                : undefined,
+        [metadata]
+    )
+    const country = useAvailableEntityName(
+        requestedCountry,
+        [config.country, ALL_COUNTRIES],
+        availableCountryNames &&
+            ((name) => isAllCountry(name) || availableCountryNames.has(name))
     )
     const productId = metadata?.productByName.get(product)?.id
     const {
@@ -138,13 +151,6 @@ function FetchingSankeyVariant({
         [_setCountry, setView]
     )
 
-    const availableCountryNames = useMemo(
-        () =>
-            metadata
-                ? new Set(metadata.entities.map((e) => e.name))
-                : undefined,
-        [metadata]
-    )
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
@@ -191,7 +197,7 @@ function CaptionedSankeyVariant({
     setView,
     config,
 }: {
-    config: SankeyVariantConfig
+    config: FoodTradeConfig
     metadata: FoodTradeMetadata
     productData: ProductTradeData
     product: string
@@ -289,7 +295,7 @@ function FoodTradeChartHeader({
     mode,
     tradedTotal,
 }: {
-    config: SankeyVariantConfig
+    config: FoodTradeConfig
     country: string
     product: string
     year: number

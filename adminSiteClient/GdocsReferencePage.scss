@@ -1355,6 +1355,12 @@
     }
 }
 
+// The wrapper above clips to its rounded border, so a table widened by a
+// long unbreakable key scrolls sideways here instead of being cut off.
+.gdocs-ref-live__props-scroll {
+    overflow-x: auto;
+}
+
 .gdocs-ref-live__props-table {
     width: 100%;
     border-collapse: collapse;
@@ -1427,7 +1433,7 @@
     color: $gray-60;
 }
 
-// The authored "what it does" column: prose, so it gets the widest share of
+// The authored "Description" column: prose, so it gets the widest share of
 // the table and a readable measure.
 .gdocs-ref-live__props-effect {
     color: $gray-80;
@@ -1572,4 +1578,106 @@
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+// ---------------------------------------------------------------------------
+// Bespoke component page: the bundle index
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-bespoke__index {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 760px;
+}
+
+.gdocs-ref-bespoke__row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid $gray-10;
+    font-size: 13px;
+}
+
+.gdocs-ref-bespoke__row-name {
+    flex: 0 0 220px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.gdocs-ref-bespoke__row-title {
+    font-weight: 600;
+}
+
+.gdocs-ref-bespoke__row-variants {
+    flex: 1 1 auto;
+    color: $gray-70;
+}
+
+.gdocs-ref-bespoke__row-usage {
+    flex: 0 0 auto;
+    color: $gray-60;
+    white-space: nowrap;
+}
+
+// ---------------------------------------------------------------------------
+// Bespoke component: a bundle's page
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-bespoke__breadcrumb {
+    font-size: 12.5px;
+    color: $gray-60;
+    margin-bottom: 6px;
+
+    code {
+        font-size: 12px;
+    }
+}
+
+.gdocs-ref-bespoke__block-props {
+    font-size: 13px;
+    color: $gray-70;
+    max-width: 680px;
+    margin-top: 10px;
+}
+
+// A variant's published-use count, in the card header
+.gdocs-ref-bespoke__uses {
+    font-size: 12px;
+    color: $gray-70;
+    white-space: nowrap;
+}
+
+.gdocs-ref-bespoke__uses--none {
+    color: $gray-50;
+}
+
+.gdocs-ref-bespoke__variant-body {
+    padding: 12px 16px;
+
+    .gdocs-ref-example {
+        margin: 8px 0 0;
+    }
+}
+
+.gdocs-ref-bespoke__variant-description {
+    font-size: 13.5px;
+    margin: 0 0 12px;
+    max-width: 680px;
+}
+
+.gdocs-ref-bespoke__config-format {
+    display: block;
+    font-size: 12px;
+    color: $gray-60;
+    margin-top: 2px;
+}
+
+.gdocs-ref-bespoke__config-adoption {
+    font-size: 12.5px;
+    color: $gray-70;
+    white-space: nowrap;
 }

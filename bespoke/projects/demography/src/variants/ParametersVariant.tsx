@@ -5,16 +5,18 @@ import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { queryClient, useDemographyData } from "../core/fetch.js"
-import type { ParametersVariantConfig } from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+import type { DemographyConfig } from "../index.js"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 
 import { CountryData, DemographyMetadata } from "../core/types.js"
 import {
     useSimulation,
     computeScenarioOverrides,
 } from "../core/useSimulation.js"
-import { CHART_FOOTER_SOURCES } from "../core/constants.js"
+import { CHART_FOOTER_SOURCES, DEFAULT_ENTITY_NAME } from "../core/constants.js"
 import { InputChartPanel } from "../components/SimulationContent.js"
 
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
@@ -31,7 +33,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 export function ParametersVariant({
     config,
     urls,
-}: VariantProps<ParametersVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<DemographyConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
@@ -55,16 +57,19 @@ function FetchingParametersVariant({
     config,
     urls,
 }: {
-    config: ParametersVariantConfig
+    config: DemographyConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(
+    const [requestedEntityName, setEntityName] = useInitialEntityName(
         config.region,
         urls.metadataUrl
     )
 
-    const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName, urls)
+    const { entityName, metadata, entityData, isLoadingEntityData, status } =
+        useDemographyData(requestedEntityName, urls, [
+            config.region,
+            DEFAULT_ENTITY_NAME,
+        ])
 
     if (status === "pending")
         return <ChartSkeleton className="demography-chart-box" />
