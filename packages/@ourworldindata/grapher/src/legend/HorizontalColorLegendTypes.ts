@@ -18,6 +18,8 @@ export interface NumericLabel {
     bin: ColorScaleBin
 }
 
+export type LabelSide = "above" | "below"
+
 export interface CategoricalMark {
     x: number
     y: number
