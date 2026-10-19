@@ -1,6 +1,7 @@
 // Shared building blocks for the agent ArchieML endpoints
-// (GET/PUT /gdocs/:id/archieml): the checks a text must pass before it is
-// written to Google, the read-back comparison and the doc report.
+// (GET/PUT /gdocs/:id/archieml and POST /gdocs/archieml): the checks a text
+// must pass before it is written to Google, the read-back comparison and the
+// doc report.
 
 import { docs as googleDocs } from "@googleapis/docs"
 import { archieToEnriched, gdocToArchie } from "@ourworldindata/gdoc-pipeline"
@@ -76,11 +77,26 @@ export function findUnwritableCharacter(
     return undefined
 }
 
+// Loose on purpose: Google rejects whatever else is wrong with the address
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/
+
+/** Whether `value` looks like an email address to share a new doc with. */
+export function isShareableEmail(value: unknown): value is string {
+    return typeof value === "string" && EMAIL_PATTERN.test(value)
+}
+
+/** The Drive name for a new doc: its front-matter title, else "Untitled". */
+export function getNewGdocName(title: unknown): string {
+    if (typeof title === "string" && title.trim()) return title.trim()
+    return "Untitled"
+}
+
 /**
  * The doc `base` as its subclass, with `content` parsed from `text` the way
  * the admin parses a fetched doc, subclass enrichment included. Throws a 400
  * JsonError when the text can't be parsed, its front-matter type isn't a valid
- * gdoc type, or the subclass enrichment fails. PUT runs it before any write.
+ * gdoc type, or the subclass enrichment fails. PUT and POST (create) run it
+ * before anything is written.
  * Loads no state, so it doesn't query the DB.
  */
 export async function loadWritableGdoc(

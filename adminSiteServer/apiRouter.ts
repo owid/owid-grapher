@@ -51,7 +51,11 @@ import {
     getPublishedGdocTopicSlugs,
     getResearchAndWritingOrphans,
 } from "./apiRoutes/gdocs.js"
-import { getGdocArchieMl, putGdocArchieMl } from "./apiRoutes/gdocArchieMl.js"
+import {
+    createGdocArchieMl,
+    getGdocArchieMl,
+    putGdocArchieMl,
+} from "./apiRoutes/gdocArchieMl.js"
 import {
     getImagesHandler,
     postImageHandler,
@@ -410,13 +414,20 @@ getRouteWithROTransaction(
 // ArchieML read and write for agents. GET reads any registered doc; writes
 // need unpublished docs outside shared drives
 getRouteWithROTransaction(apiRouter, "/gdocs/:id/archieml", getGdocArchieMl)
-// The body is plain text, which FunctionalRouter's parsers don't cover. Opens
-// its own short transactions, rather than holding one across the Google API
-// calls
+// The writes' body is plain text, which FunctionalRouter's parsers don't
+// cover. They open their own short transactions, rather than holding one
+// across the Google API calls
+const archieMlTextBody = express.text({ type: "text/plain", limit: "50mb" })
 apiRouter.router.put(
     "/gdocs/:id/archieml",
-    express.text({ type: "text/plain", limit: "50mb" }),
+    archieMlTextBody,
     apiRouter.wrap(putGdocArchieMl)
+)
+// Creates a doc of any type, shared with the `email` query parameter
+apiRouter.router.post(
+    "/gdocs/archieml",
+    archieMlTextBody,
+    apiRouter.wrap(createGdocArchieMl)
 )
 getRouteWithROTransaction(
     apiRouter,

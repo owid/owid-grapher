@@ -419,21 +419,21 @@ export async function replaceGdocContentWithArchieMlText(
     }
 }
 
+const GOOGLE_DOCS_MIME_TYPE = "application/vnd.google-apps.document"
+
+// The doc lands in the root of the auth's My Drive
 export async function createGdoc(
     driveClient: drive_v3.Drive,
-    title: string | undefined,
-    targetFolder: string
+    title: string
 ): Promise<string> {
-    const docsMimeType = "application/vnd.google-apps.document"
     const createResp = await driveClient.files.create({
         supportsAllDrives: true,
         requestBody: {
-            parents: [targetFolder],
-            mimeType: docsMimeType,
+            mimeType: GOOGLE_DOCS_MIME_TYPE,
             name: title,
         },
         media: {
-            mimeType: docsMimeType,
+            mimeType: GOOGLE_DOCS_MIME_TYPE,
             body: "",
         },
     })
@@ -448,14 +448,13 @@ export async function createGdocFromTemplate(
     const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
     const driveClient = googleDrive({ version: "v3", auth })
 
-    const docsMimeType = "application/vnd.google-apps.document"
     const response = await driveClient.files.copy({
         supportsAllDrives: true,
         fileId: templateId,
         requestBody: {
             name: title,
             parents: [targetFolder],
-            mimeType: docsMimeType,
+            mimeType: GOOGLE_DOCS_MIME_TYPE,
         },
     })
 

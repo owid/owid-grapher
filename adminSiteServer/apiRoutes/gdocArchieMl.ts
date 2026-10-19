@@ -2,8 +2,13 @@ import { type drive_v3, drive as googleDrive } from "@googleapis/drive"
 import { JsonError, type OwidGdocBaseInterface } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
 import { OwidGoogleAuth } from "../../db/OwidGoogleAuth.js"
-import { getGdocBaseObjectById } from "../../db/model/Gdoc/GdocFactory.js"
+import { GdocBase } from "../../db/model/Gdoc/GdocBase.js"
 import {
+    createGdocAndInsertIntoDb,
+    getGdocBaseObjectById,
+} from "../../db/model/Gdoc/GdocFactory.js"
+import {
+    createGdoc,
     replaceGdocContentWithArchieMlText,
     StaleRevisionError,
 } from "../../db/model/Gdoc/archieToGdoc.js"
@@ -16,6 +21,8 @@ import {
     findUnwritableCharacter,
     getDocReport,
     getErrorMessage,
+    getNewGdocName,
+    isShareableEmail,
     loadWritableGdoc,
     type ReadBack,
 } from "../gdocArchieMl.js"
@@ -84,6 +91,27 @@ async function assertNotInSharedDrive(id: string): Promise<void> {
 }
 
 /**
+ * The request body as ArchieML text. Refuses (400) a body that isn't
+ * text/plain, or that contains a character Google strips on insert.
+ */
+function readArchieMlBody(req: Request): string {
+    if (!req.is("text/plain") || typeof req.body !== "string")
+        throw new JsonError(
+            `The request body must be the ArchieML text, sent with Content-Type: text/plain.`,
+            400
+        )
+    const text: string = req.body
+
+    const unwritable = findUnwritableCharacter(text)
+    if (unwritable)
+        throw new JsonError(
+            `Line ${unwritable.line} contains ${unwritable.codePoint}, which Google strips on insert. Remove it and send again.`,
+            400
+        )
+    return text
+}
+
+/**
  * GET /gdocs/:id/archieml
  *
  * The doc's ArchieML text, its revision id (to send back with the PUT), the
@@ -129,19 +157,7 @@ export async function putGdocArchieMl(
             400
         )
 
-    if (!req.is("text/plain") || typeof req.body !== "string")
-        throw new JsonError(
-            `The request body must be the ArchieML text, sent with Content-Type: text/plain.`,
-            400
-        )
-    const text: string = req.body
-
-    const unwritable = findUnwritableCharacter(text)
-    if (unwritable)
-        throw new JsonError(
-            `Line ${unwritable.line} contains ${unwritable.codePoint}, which Google strips on insert. Remove it and send again.`,
-            400
-        )
+    const text = readArchieMlBody(req)
 
     const base = await db.knexReadonlyTransaction((trx) =>
         getWritableGdocBase(trx, id)
@@ -177,5 +193,110 @@ export async function putGdocArchieMl(
         revisionId: writtenRevisionId ?? stored.revisionId,
         readBack,
         report,
+    }
+}
+
+/**
+ * POST /gdocs/archieml?email=<email>   (Content-Type: text/plain)
+ *
+ * Creates a new doc of any type from the request body, in the service
+ * account's My Drive. Shares it as writer with `email` (devs can't open that
+ * Drive, so an unshared doc is lost), writes the text as-is, reads it back and
+ * registers it in posts_gdocs. Every refusal happens before anything is
+ * created in Google. No DB transaction is held across the create, share and
+ * write; registering fetches the doc from Google again inside its own
+ * transaction, as the admin's regular create does.
+ */
+export async function createGdocArchieMl(
+    req: Request,
+    _res: HandlerResponse
+): Promise<{
+    id: string
+    url: string
+    revisionId: string
+    readBack: ReadBack
+    report: DocReport
+}> {
+    const email = req.query.email
+    if (!isShareableEmail(email))
+        throw new JsonError(
+            `The "email" query parameter must be the email address to share the new doc with.`,
+            400
+        )
+
+    const text = readArchieMlBody(req)
+
+    // Parse with the subclass enrichment, so text the admin can't load is
+    // refused before anything is created. The doc doesn't exist yet, so parse
+    // it as an empty base; loadWritableGdoc takes the type from the text.
+    const parsed = await db.knexReadonlyTransaction((trx) =>
+        loadWritableGdoc(trx, new GdocBase(), text)
+    )
+
+    const driveClient = getReadWriteDriveClient()
+    // Lands in the service account's My Drive
+    let id: string
+    try {
+        id = await createGdoc(driveClient, getNewGdocName(parsed.content.title))
+    } catch (error) {
+        // A 500 rather than Google's own status (e.g. a quota 403), which
+        // would read as a refusal of the input
+        throw new JsonError(
+            `Could not create the doc in Google Drive: ${getErrorMessage(error)}`,
+            500
+        )
+    }
+    const url = `https://docs.google.com/document/d/${id}/edit`
+
+    try {
+        await driveClient.permissions.create({
+            fileId: id,
+            sendNotificationEmail: false,
+            supportsAllDrives: true,
+            requestBody: { type: "user", role: "writer", emailAddress: email },
+        })
+    } catch (error) {
+        // Nobody but the service account could open the doc, so remove it
+        await driveClient.files
+            .delete({ fileId: id, supportsAllDrives: true })
+            .catch((deleteError) =>
+                console.error(
+                    `Could not delete unshared gdoc ${id}`,
+                    deleteError
+                )
+            )
+        throw new JsonError(
+            `Could not share the new doc with ${email}, so it was deleted: ${getErrorMessage(error)}`,
+            500
+        )
+    }
+
+    try {
+        await replaceGdocContentWithArchieMlText(id, text)
+    } catch (error) {
+        throw new JsonError(
+            `Created and shared ${url}, but writing its content failed, so it is empty and not registered in the admin: ${getErrorMessage(error)}`,
+            500
+        )
+    }
+
+    try {
+        const stored = await fetchGdocArchieMl(id)
+        const readBack = compareReadBack(text, stored.text)
+
+        // Registering fetches the doc from Google again; accepted for create
+        await db.knexReadWriteTransaction((trx) =>
+            createGdocAndInsertIntoDb(trx, id)
+        )
+        const report = await db.knexReadonlyTransaction(async (trx) =>
+            getDocReport(trx, await getRegisteredGdocBase(trx, id), stored.text)
+        )
+
+        return { id, url, revisionId: stored.revisionId, readBack, report }
+    } catch (error) {
+        throw new JsonError(
+            `Created, shared and wrote ${url}, but reading it back or registering it failed, so it may not be registered in the admin: ${getErrorMessage(error)}`,
+            500
+        )
     }
 }

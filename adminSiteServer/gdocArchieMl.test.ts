@@ -4,8 +4,40 @@ import type { KnexReadonlyTransaction } from "../db/db.js"
 import {
     compareReadBack,
     findUnwritableCharacter,
+    getNewGdocName,
+    isShareableEmail,
     loadWritableGdoc,
 } from "./gdocArchieMl.js"
+
+describe(isShareableEmail, () => {
+    it("accepts an address with a local part and a domain", () => {
+        expect(isShareableEmail("dev@ourworldindata.org")).toBe(true)
+    })
+
+    it.each([undefined, "", "dev", "@ourworldindata.org", "dev@", "a b@c.d"])(
+        "refuses %j",
+        (value) => {
+            expect(isShareableEmail(value)).toBe(false)
+        }
+    )
+
+    it("refuses a repeated query parameter, which Express parses as an array", () => {
+        expect(isShareableEmail(["a@b.c", "d@e.f"])).toBe(false)
+    })
+})
+
+describe(getNewGdocName, () => {
+    it("uses the front-matter title", () => {
+        expect(getNewGdocName("  Life expectancy ")).toBe("Life expectancy")
+    })
+
+    it.each([undefined, "", "   "])(
+        "falls back to Untitled for %j",
+        (title) => {
+            expect(getNewGdocName(title)).toBe("Untitled")
+        }
+    )
+})
 
 describe(findUnwritableCharacter, () => {
     it("allows tab, newline and the vertical tab (Google's soft line break)", () => {
