@@ -396,3 +396,26 @@ describe("ranked views", () => {
         expect(views[0].facts).toBe("1 of 2 have data for 2000")
     })
 })
+
+describe("ranked views on another MDim combination", () => {
+    it("sorts a table but drops a line chart that has no countries", () => {
+        const rank = { order: "highest", n: 10, year: 2022, continent: null }
+        const options = { indicator: "thr", decile: "_1" }
+        const { views, dropped } = sanitizeViews(
+            {
+                views: [
+                    { tab: "table", entities: [], options, rank },
+                    { tab: "line", entities: [], options, rank },
+                ],
+            },
+            mdimChart
+        )
+        expect(views).toHaveLength(1)
+        expect(views[0]).toMatchObject({
+            tab: "table",
+            time: "2022",
+            tableSort: { column: "value", order: "desc" },
+        })
+        expect(dropped).toEqual(["rank on another combination (line)"])
+    })
+})

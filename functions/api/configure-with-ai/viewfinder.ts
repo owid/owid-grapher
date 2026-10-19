@@ -509,7 +509,21 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
             !ctx.mdim ||
             JSON.stringify(optionsOf(options ?? {})) ===
                 JSON.stringify(optionsOf(ctx.mdim.current))
-        if (rule && !ranksShownData) dropped.push("rank on another combination")
+        if (rule && !ranksShownData) {
+            // Without that combination's data code can't pick the countries,
+            // but a table or a map can still show the ranking by sorting
+            if (tab === "table" || tab === "map") {
+                time = String(rule.year)
+                if (tab === "table")
+                    tableSort = {
+                        column: "value",
+                        order: rule.order === "highest" ? "desc" : "asc",
+                    }
+            } else if (!entities.length) {
+                dropped.push(`rank on another combination (${tab})`)
+                continue
+            }
+        }
         if (rule && ranksShownData) {
             const tolerance =
                 tab === "map" ? ctx.mapTolerance : ctx.columnTolerance
