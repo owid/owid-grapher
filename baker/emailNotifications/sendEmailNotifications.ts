@@ -35,10 +35,7 @@ import {
     parseSubscriberRow,
 } from "./emailNotificationsUtils.js"
 import { buildNotificationItems } from "./notificationItems.js"
-import {
-    makeNotificationEmailSubject,
-    renderNotificationEmail,
-} from "./NotificationEmail.js"
+import { renderNotificationEmail } from "./NotificationEmail.js"
 
 // Must match the database_name in wrangler.jsonc; only used with --local.
 const LOCAL_D1_DATABASE_NAME = "owid-email-notifications-staging"
@@ -203,7 +200,7 @@ async function sendEmailNotifications(options: {
             continue
         }
 
-        const { html, text } = await renderNotificationEmail({
+        const { subject, html, text } = await renderNotificationEmail({
             subscriber,
             items: subscriberItems,
             baseUrl: BAKED_BASE_URL,
@@ -239,7 +236,7 @@ async function sendEmailNotifications(options: {
         try {
             postmarkMessageId = await sendViaPostmark(postmarkClient, {
                 to: subscriber.email,
-                subject: makeNotificationEmailSubject(frequency),
+                subject,
                 htmlBody: html,
                 textBody: text,
                 metadata: {

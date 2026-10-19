@@ -9,6 +9,7 @@
         "batchTagWithGpt": "tsx --tsconfig tsconfig.tsx.json baker/batchTagWithGpt.ts",
         "buildArchive": "tsx --tsconfig tsconfig.tsx.json baker/archival/archiveChangedPages.ts",
         "buildLocalBake": "tsx --tsconfig tsconfig.tsx.json baker/buildLocalBake.ts",
+        "buildTransactionalEmailTemplates": "tsx --tsconfig tsconfig.tsx.json devTools/buildTransactionalEmailTemplates.ts",
         "buildGrapherSchema": "tsx --tsconfig tsconfig.tsx.json devTools/schema/buildGrapherSchema.ts",
         "buildViteAdmin": "NODE_OPTIONS=--max-old-space-size=8192 vite build --config vite.config-admin.mts",
         "buildViteArchive": "NODE_OPTIONS=--max-old-space-size=8192 vite build --config vite.config-archive.mts",
