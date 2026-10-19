@@ -21,6 +21,7 @@ import {
     DEFAULT_TICK_SIZE,
     CATEGORICAL_BIN_MIN_WIDTH,
     MINIMUM_LABEL_DISTANCE,
+    BIN_MIN_WIDTH_EM,
 } from "./HorizontalColorLegendConstants"
 
 /**
@@ -122,7 +123,7 @@ export class HorizontalNumericColorLegendState {
 
         // Try to keep the minimum close to the size of the "No data" bin,
         // so they look visually balanced somewhat.
-        const minBinWidth = this.baseFontSize * 3.25
+        const minBinWidth = this.baseFontSize * BIN_MIN_WIDTH_EM
         const maxBinWidth =
             _.max(
                 spaceRequirements.map(({ labelSpace }) =>

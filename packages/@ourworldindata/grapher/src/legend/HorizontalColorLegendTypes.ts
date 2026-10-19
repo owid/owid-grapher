@@ -1,11 +1,12 @@
 import { Bounds, HorizontalAlign } from "@ourworldindata/utils"
 import { ColorScaleBin, CategoricalBin } from "../color/ColorScaleBin"
+import { TextWrap } from "@ourworldindata/components"
 import { BinEmphasis, LegendStyleConfig } from "./LegendStyleConfig"
 
-export interface PositionedBin {
+export interface PositionedBin<Bin extends ColorScaleBin = ColorScaleBin> {
     x: number
     width: number
-    bin: ColorScaleBin
+    bin: Bin
 }
 
 export interface NumericLabel {
@@ -80,4 +81,19 @@ export interface ExternalColorLegendData {
     numericBinHeight?: number
     numericLegendStyleConfig?: LegendStyleConfig
     categoricalLegendStyleConfig?: LegendStyleConfig
+}
+
+export interface HorizontalOrdinalColorLegendOptions {
+    maxWidth: number
+    baseFontSize?: number
+    align?: HorizontalAlign
+    binHeight?: number
+}
+
+export interface OrdinalLabel {
+    bin: CategoricalBin
+    side: LabelSide
+    textWrap: TextWrap
+    left: number
+    top: number
 }
