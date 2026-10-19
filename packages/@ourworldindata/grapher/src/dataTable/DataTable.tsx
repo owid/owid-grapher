@@ -467,8 +467,6 @@ export class DataTable extends React.Component<DataTableProps> {
         return (
             <Sparkline
                 owidRows={valuesForEntity.sparkline}
-                minTime={this.timelineMinTime!}
-                maxTime={this.timelineMaxTime!}
                 highlights={highlights}
                 strokeStyle={isProjection ? "dotted" : "solid"}
             />

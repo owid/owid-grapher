@@ -16,6 +16,7 @@ import {
     GrapherWithAggregates,
     GrapherWithIncompleteData,
     GrapherWithMultipleVariablesAndMultipleYears,
+    GrapherWithStaggeredSeries,
 } from "./DataTable.sample"
 import { LifeExpectancyGrapher } from "../testData/OwidTestData.sample.js"
 import { DataTable } from "./DataTable.js"
@@ -199,6 +200,29 @@ describe("when the stored sort points to a column that isn't shown", () => {
     })
 })
 
+describe("when entities' series start and end at different times", () => {
+    it("spans each sparkline across the full cell width", () => {
+        const grapher = GrapherWithStaggeredSeries()
+        const { container } = render(<DataTable manager={grapher} />)
+
+        const xCoordinatesByEntity = ["Afghanistan", "Iceland"].map(
+            (entityName) => {
+                const path = findRow(container, entityName)?.querySelector(
+                    "svg path"
+                )
+                const xCoordinates = [
+                    ...(path?.getAttribute("d") ?? "").matchAll(
+                        /[ML]\s*(-?[\d.]+)/g
+                    ),
+                ].map((match) => Number(match[1]))
+                return [xCoordinates.at(0), xCoordinates.at(-1)]
+            }
+        )
+
+        expect(xCoordinatesByEntity[0][0]).toBeDefined()
+        expect(xCoordinatesByEntity[0]).toEqual(xCoordinatesByEntity[1])
+    })
+})
 describe("when the table doesn't have data for all rows", () => {
     let container: HTMLElement
     beforeEach(() => {

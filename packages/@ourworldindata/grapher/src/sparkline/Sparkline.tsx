@@ -10,8 +10,6 @@ export function Sparkline({
     width = 75,
     height = 18,
     owidRows,
-    minTime,
-    maxTime,
     highlights = [],
     dotSize = 3.5,
     color = GRAPHER_DENIM,
@@ -20,8 +18,6 @@ export function Sparkline({
     width?: number
     height?: number
     owidRows: OwidVariableRow<number>[]
-    minTime: number
-    maxTime: number
     highlights?: SparklineHighlight[]
     dotSize?: number
     color?: string
@@ -33,6 +29,9 @@ export function Sparkline({
     const bounds = new Bounds(0, 0, width, height).padWidth(dotSize)
 
     // calculate x-scale
+    const [minTime, maxTime] = extent(
+        owidRows.map((row) => row.originalTime)
+    ) as [number, number]
     const xDomain = [minTime, maxTime]
     const xScale = scaleLinear()
         .domain(xDomain)
@@ -62,7 +61,12 @@ export function Sparkline({
         >
             {/* marker lines of highlights */}
             {highlights
-                .filter((highlight) => highlight.showMarker)
+                .filter(
+                    (highlight) =>
+                        highlight.showMarker &&
+                        highlight.time >= minTime &&
+                        highlight.time <= maxTime
+                )
                 .map((highlight) => (
                     <line
                         key={highlight.time}

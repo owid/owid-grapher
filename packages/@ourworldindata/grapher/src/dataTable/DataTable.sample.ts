@@ -1,6 +1,7 @@
 import { DimensionProperty } from "@ourworldindata/utils"
 import { GrapherState } from "../core/GrapherState"
 import {
+    GRAPHER_CHART_TYPES,
     GRAPHER_TAB_CONFIG_OPTIONS,
     GrapherInterface,
 } from "@ourworldindata/types"
@@ -225,4 +226,33 @@ export const GrapherWithMultipleVariablesAndMultipleYears = (
         ...props,
         table: inputTable,
     })
+}
+
+export const GrapherWithStaggeredSeries = (
+    props: Partial<GrapherInterface> = {}
+): GrapherState => {
+    const indicatorId = 104403
+    const data = [
+        { year: 1950, entity: fakeEntities.Afghanistan, value: 224 },
+        { year: 1980, entity: fakeEntities.Afghanistan, value: 295 },
+        { year: 2019, entity: fakeEntities.Afghanistan, value: 215 },
+        { year: 1990, entity: fakeEntities.Iceland, value: 333 },
+        { year: 2000, entity: fakeEntities.Iceland, value: 246 },
+        { year: 2010, entity: fakeEntities.Iceland, value: 226 },
+    ]
+    const dimensions = [
+        { variableId: indicatorId, property: DimensionProperty.y },
+    ]
+    const state = new GrapherState({
+        tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+        dimensions,
+        ...props,
+    })
+    state.inputTable = legacyToOwidTableAndDimensions(
+        createOwidTestDataset([{ metadata: { id: indicatorId }, data }]),
+        dimensions,
+        {}
+    )
+    return state
 }
