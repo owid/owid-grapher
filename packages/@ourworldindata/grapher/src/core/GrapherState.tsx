@@ -1817,10 +1817,9 @@ export class GrapherState
         // so that we don't show times on the timeline for which data may not
         // exist, e.g. when the selected entity doesn't contain data for all
         // years in the table. The table tab is the exception: it uses the
-        // untransformed table so that the timeline includes all data available
-        // in the table.
+        // table it displays.
         const table = this.isOnTableTab
-            ? this.table
+            ? this.tableForDisplayBeforeEntityFilter
             : this.tableAfterAuthorTimelineAndActiveChartTransform
         return table.getTimesUniqSortedAscForColumns(columnSlugs)
     }
