@@ -20,6 +20,8 @@ export interface ChartAdapter {
     slug: string
     /** The current view as a query string: Grapher's params plus MDim choices */
     getQueryStr: () => string
+    /** The table's current sort, which the query string doesn't carry */
+    getTableSort: () => ConfigureWithAiView["tableSort"]
     applyView: (view: ConfigureWithAiView) => void
     /** Restores the chart as it was when the panel was installed */
     restoreStart: () => void
@@ -42,6 +44,8 @@ export type Request =
     | { status: "idle" }
     | { status: "thinking"; query: string; started: number }
     | { status: "error"; query: string; message: string }
+    /** The reader stopped the request; the input keeps their question */
+    | { status: "stopped"; query: string }
     /** The model answered but had no view of this chart to offer */
     | { status: "empty"; query: string; interpretation: string }
 
@@ -65,11 +69,13 @@ export type Suggestions =
 const MAX_HISTORY = 10
 
 const errorMessage = (error: unknown): string =>
-    error === "invalid_json"
-        ? "The answer couldn't be read as a set of views."
-        : error === "refused"
-          ? "The model declined this request."
-          : "Something went wrong."
+    error === "network"
+        ? "Couldn't reach the server. Check your connection."
+        : error === "invalid_json"
+          ? "The answer couldn't be read as a set of views."
+          : error === "refused"
+            ? "The model declined this request."
+            : "Something went wrong."
 
 export class PanelStore {
     private state: PanelState = {
@@ -120,7 +126,13 @@ export class PanelStore {
 
     async ask(rawQuery: string, model: string): Promise<void> {
         const query = rawQuery.trim()
-        if (!query || this.state.request.status === "thinking") return
+        // While an MDim page loads a view, the current view isn't settled yet
+        if (
+            !query ||
+            this.state.request.status === "thinking" ||
+            this.state.isBusy
+        )
+            return
         const controller = new AbortController()
         this.abortController = controller
         this.update({
@@ -134,11 +146,14 @@ export class PanelStore {
                     slug: this.adapter.slug,
                     query,
                     queryStr: this.adapter.getQueryStr(),
+                    tableSort: this.adapter.getTableSort(),
                     model,
                 }),
                 signal: controller.signal,
             })
             const body = await response.json()
+            // Going back in History or asking again made this answer stale
+            if (this.abortController !== controller) return
             if (!response.ok) {
                 this.update({
                     request: {
@@ -176,14 +191,18 @@ export class PanelStore {
             this.adapter.applyView(entry.views[0])
         } catch (error) {
             if (controller.signal.aborted) {
-                this.update({ request: { status: "idle" } })
-            } else {
+                // Stopped by the reader; going back has already moved on
+                if (this.isThinking())
+                    this.update({ request: { status: "stopped", query } })
+            } else if (this.abortController === controller) {
                 console.error(error)
                 this.update({
                     request: {
                         status: "error",
                         query,
-                        message: errorMessage(undefined),
+                        message: errorMessage(
+                            error instanceof TypeError ? "network" : undefined
+                        ),
                     },
                 })
             }
@@ -219,6 +238,10 @@ export class PanelStore {
         }
     }
 
+    private isThinking(): boolean {
+        return this.state.request.status === "thinking"
+    }
+
     stop(): void {
         this.abortController?.abort()
     }
@@ -233,7 +256,11 @@ export class PanelStore {
 
     goBackTo(id: number | null): void {
         if (this.state.isBusy) return
+        // An answer still on its way would otherwise land on top of this
+        const pending = this.abortController
+        this.abortController = null
         this.update({ currentId: id, request: { status: "idle" } })
+        pending?.abort()
         const entry = this.current
         if (entry) this.adapter.applyView(entry.views[entry.active])
         else this.adapter.restoreStart()

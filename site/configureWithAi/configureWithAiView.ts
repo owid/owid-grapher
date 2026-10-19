@@ -113,3 +113,19 @@ export function restoreGrapherState(
         grapherState.dataTableSort = snapshot.dataTableSort
     })
 }
+
+/** The table's sort in a view's terms, for the model to keep on follow-ups */
+export function dataTableSortToViewSort(
+    sort: GrapherState["dataTableSort"]
+): ConfigureWithAiView["tableSort"] {
+    if (!sort) return null
+    const order = sort.order === SortOrder.asc ? "asc" : "desc"
+    if (sort.dimIndex < 0 || !sort.columnKey) return { column: "entity", order }
+    const column =
+        sort.columnKey === "delta"
+            ? "change"
+            : sort.columnKey === "deltaRatio"
+              ? "relativeChange"
+              : "value"
+    return { column, order }
+}

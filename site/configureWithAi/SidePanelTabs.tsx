@@ -42,6 +42,8 @@ export function SidePanelTabs({
 }) {
     const state = useSyncExternalStore(store.subscribe, store.getState)
     const [hasSeenAi, setHasSeenAi] = useState(readSeen)
+    // Arrow keys move between the tabs, so only a click focuses the input
+    const [focusAiInput, setFocusAiInput] = useState(false)
     const tabRefs = useRef<Record<PanelTab, HTMLButtonElement | null>>({
         customize: null,
         ai: null,
@@ -50,6 +52,7 @@ export function SidePanelTabs({
 
     const selectTab = (tab: PanelTab, focus = false): void => {
         store.setTab(tab)
+        setFocusAiInput(!focus)
         if (tab === "ai" && !hasSeenAi) {
             setHasSeenAi(true)
             rememberSeen()
@@ -83,7 +86,9 @@ export function SidePanelTabs({
                             type="button"
                             role="tab"
                             aria-selected={isSelected}
-                            aria-controls={`${id}-panel-${tab.id}`}
+                            aria-controls={
+                                isSelected ? `${id}-panel` : undefined
+                            }
                             tabIndex={isSelected ? 0 : -1}
                             onClick={() => selectTab(tab.id)}
                             onKeyDown={onTabKeyDown}
@@ -110,7 +115,7 @@ export function SidePanelTabs({
             </div>
             <div
                 className="configure-with-ai__tab-panel"
-                id={`${id}-panel-${state.tab}`}
+                id={`${id}-panel`}
                 role="tabpanel"
                 aria-labelledby={`${id}-tab-${state.tab}`}
             >
@@ -139,7 +144,11 @@ export function SidePanelTabs({
                         )}
                     </>
                 ) : (
-                    <AiModePanel store={store} state={state} />
+                    <AiModePanel
+                        store={store}
+                        state={state}
+                        autoFocus={focusAiInput}
+                    />
                 )}
             </div>
         </div>

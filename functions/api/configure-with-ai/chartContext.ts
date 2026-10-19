@@ -88,6 +88,8 @@ export function buildChartContext(
         tabs: grapherState.availableTabs.map(mapGrapherTabNameToQueryParam),
         currentTab: mapGrapherTabNameToQueryParam(grapherState.activeTab),
         selected: [...grapherState.selection.selectedEntityNames],
+        currentTime: grapherState.changedParams.time ?? null,
+        mapTolerance: grapherState.map.timeTolerance ?? column.tolerance,
         data: summary,
         mdim,
     }

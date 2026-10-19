@@ -166,6 +166,12 @@
     font-size: 0.9375rem;
 }
 
+.configure-with-ai__counter {
+    flex-shrink: 0;
+    color: $blue-60;
+    font-size: 0.6875rem;
+}
+
 .configure-with-ai__submit {
     align-self: stretch;
     min-width: 40px;
@@ -176,7 +182,8 @@
     font-size: 0.8125rem;
 
     &:disabled {
-        background: $blue-20;
+        background: $blue-10;
+        color: $blue-50 !important;
     }
 }
 
@@ -345,6 +352,13 @@
     &:hover:not(:disabled) {
         background: $blue-5;
     }
+}
+
+.configure-with-ai__view:disabled:not(.configure-with-ai__view--active),
+.configure-with-ai__history-row:disabled:not(
+        .configure-with-ai__history-row--current
+    ) {
+    opacity: 0.5;
 }
 
 .configure-with-ai__view--active {

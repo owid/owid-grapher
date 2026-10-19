@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
     faCalendar,
+    faChartColumn,
     faEyeSlash,
     faChartLine,
     faEarthAmericas,
@@ -70,15 +71,30 @@ function readStoredModel(): ModelId {
     }
 }
 
+const BAR_TABS = ["discrete-bar", "stacked-discrete-bar", "marimekko"]
+const COUNTER_FROM = 80
+
 const iconForTab = (tab: string): IconDefinition =>
-    tab === "table" ? faTable : tab === "map" ? faEarthAmericas : faChartLine
+    tab === "table"
+        ? faTable
+        : tab === "map"
+          ? faEarthAmericas
+          : BAR_TABS.includes(tab)
+            ? faChartColumn
+            : faChartLine
+
+const modelLabel = (model: string): string =>
+    MODELS.find((m) => model.startsWith(m.id))?.label ?? model
 
 export function AiModePanel({
     store,
     state,
+    autoFocus,
 }: {
     store: PanelStore
     state: PanelState
+    /** Focus the input on open; not when the tab was chosen with arrow keys */
+    autoFocus: boolean
 }) {
     const { request, history, isBusy } = state
     const current = history.find((e) => e.id === state.currentId)
@@ -105,11 +121,30 @@ export function AiModePanel({
     const [storedModel, setModel] = useState<ModelId>(readStoredModel)
     const model = isStaff ? storedModel : DEFAULT_MODEL
     const isThinking = request.status === "thinking"
+    const isIdle = request.status === "idle" || request.status === "stopped"
+    const inputRef = useRef<HTMLInputElement>(null)
+    const bodyRef = useRef<HTMLDivElement>(null)
+
+    const focusInput = (): void => inputRef.current?.focus()
 
     const ask = (query: string): void => {
         // The answer's entry shows the question from here on
         setDraft({ forId: -1, text: "" })
         void store.ask(query, model)
+        focusInput()
+    }
+
+    // Show the start of a long question rather than its end
+    useEffect(() => {
+        const el = inputRef.current
+        if (input && el && document.activeElement !== el) el.scrollLeft = 0
+    }, [input])
+
+    const afterGoingBack = (): void => {
+        // Start reading from the top again; the row clicked becomes
+        // disabled, which would otherwise drop focus
+        if (bodyRef.current) bodyRef.current.scrollTop = 0
+        focusInput()
     }
 
     const changeModel = (id: ModelId): void => {
@@ -123,7 +158,7 @@ export function AiModePanel({
 
     // Also shown after going back to the chart as it was opened; History
     // stays below it
-    const showIntro = !current && request.status === "idle"
+    const showIntro = !current && isIdle
 
     return (
         <div className="configure-with-ai__ai">
@@ -160,12 +195,21 @@ export function AiModePanel({
                                 : "Ask for another view"
                         }
                         aria-label="Describe the view you want"
+                        ref={inputRef}
                         value={input}
-                        readOnly={isThinking}
+                        readOnly={isThinking || isBusy}
                         onChange={(e) => setInput(e.target.value)}
                         onFocus={(e) => e.target.select()}
-                        autoFocus
+                        autoFocus={autoFocus}
                     />
+                    {input.length >= COUNTER_FROM && !isThinking && (
+                        <span
+                            className="configure-with-ai__counter"
+                            aria-live="polite"
+                        >
+                            {input.length}/{MAX_QUERY_LENGTH}
+                        </span>
+                    )}
                     {isThinking ? (
                         <button
                             className="configure-with-ai__submit"
@@ -179,7 +223,7 @@ export function AiModePanel({
                             className="configure-with-ai__submit"
                             type="submit"
                             aria-label="Find views"
-                            disabled={!input.trim()}
+                            disabled={!input.trim() || isBusy}
                         >
                             <FontAwesomeIcon icon={faArrowRight} />
                         </button>
@@ -187,7 +231,7 @@ export function AiModePanel({
                 </div>
             </form>
 
-            <div className="configure-with-ai__body">
+            <div className="configure-with-ai__body" ref={bodyRef}>
                 <RequestStatus store={store} state={state} ask={ask} />
 
                 {showIntro && (
@@ -203,7 +247,13 @@ export function AiModePanel({
                     <Answer store={store} entry={current} isBusy={isBusy} />
                 )}
 
-                {history.length > 0 && <History store={store} state={state} />}
+                {history.length > 0 && (
+                    <History
+                        store={store}
+                        state={state}
+                        afterGoingBack={afterGoingBack}
+                    />
+                )}
             </div>
 
             <p className="configure-with-ai__disclosure">
@@ -234,6 +284,7 @@ export function AiModePanel({
                     </div>
                     {current && (
                         <p className="configure-with-ai__usage">
+                            {modelLabel(current.usage.model)} ·{" "}
                             {(current.usage.ms / 1000).toFixed(1)} s ·{" "}
                             {(
                                 current.usage.inputTokens +
@@ -274,10 +325,21 @@ function RequestStatus({
     return (
         <>
             <p className="configure-with-ai__status" role="status">
-                {request.status === "thinking" &&
-                    (elapsed >= SLOW_AFTER_SECONDS
+                {request.status === "thinking"
+                    ? elapsed >= SLOW_AFTER_SECONDS
                         ? "Taking longer than usual…"
-                        : `Finding views for “${request.query}”…`)}
+                        : `Finding views for “${request.query}”…`
+                    : state.isBusy
+                      ? "Loading this view…"
+                      : store.current && (
+                            <span className="sr-only">
+                                Showing{" "}
+                                {
+                                    store.current.views[store.current.active]
+                                        .label
+                                }
+                            </span>
+                        )}
             </p>
             {request.status === "thinking" && (
                 <div className="configure-with-ai__placeholders" aria-hidden>
@@ -309,12 +371,6 @@ function RequestStatus({
                         Search all charts for “{request.query}”
                     </a>
                 </div>
-            )}
-            {/* Kept for screen readers once the answer is applied */}
-            {request.status === "idle" && store.current && (
-                <span className="sr-only">
-                    Showing {store.current.views[store.current.active].label}
-                </span>
             )}
         </>
     )
@@ -467,7 +523,7 @@ function Answer({
                                 )}
                                 {isActive && (
                                     <span className="configure-with-ai__now">
-                                        Now showing
+                                        {isBusy ? "Loading…" : "Now showing"}
                                     </span>
                                 )}
                                 {isActive && view.note && (
@@ -509,7 +565,15 @@ function Answer({
     )
 }
 
-function History({ store, state }: { store: PanelStore; state: PanelState }) {
+function History({
+    store,
+    state,
+    afterGoingBack,
+}: {
+    store: PanelStore
+    state: PanelState
+    afterGoingBack: () => void
+}) {
     const rows: {
         id: number | null
         icon: IconDefinition
@@ -551,7 +615,10 @@ function History({ store, state }: { store: PanelStore; state: PanelState }) {
                                 type="button"
                                 aria-current={isCurrent}
                                 disabled={isCurrent || state.isBusy}
-                                onClick={() => store.goBackTo(row.id)}
+                                onClick={() => {
+                                    store.goBackTo(row.id)
+                                    afterGoingBack()
+                                }}
                             >
                                 <span
                                     className="configure-with-ai__history-icon"

@@ -37,12 +37,15 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             },
             400
         )
-    const { slug, query, queryStr, model } = parsed.data
+    const { slug, query, queryStr, model, tableSort } = parsed.data
     const runId = crypto.randomUUID()
     const started = Date.now()
 
     try {
-        const ctx = await loadChartContext(slug, queryStr, env)
+        const ctx = {
+            ...(await loadChartContext(slug, queryStr, env)),
+            currentTableSort: tableSort,
+        }
         const prompt = buildPrompt(ctx, query)
         const contextMs = Date.now() - started
 

@@ -8,6 +8,7 @@ import { PanelStore } from "./configureWithAiStore.js"
 import {
     applyTableSortToGrapherState,
     applyViewToGrapherState,
+    dataTableSortToViewSort,
     restoreGrapherState,
     snapshotGrapherState,
     viewToGrapherQueryParams,
@@ -37,6 +38,8 @@ export function createGrapherSidePanel(
         new PanelStore({
             slug,
             getQueryStr: () => grapherState.queryStr,
+            getTableSort: () =>
+                dataTableSortToViewSort(grapherState.dataTableSort),
             applyView: (view) => applyViewToGrapherState(grapherState, view),
             restoreStart: () => restoreGrapherState(grapherState, start),
         })
@@ -70,6 +73,8 @@ export function createMdimSidePanel(page: MdimPage): SidePanel {
                     if (value !== undefined) params.set(key, value)
                 return "?" + params.toString()
             },
+            getTableSort: () =>
+                dataTableSortToViewSort(grapherState.dataTableSort),
             applyView: (view) => {
                 if (!view.options) return
                 applyTableSortToGrapherState(grapherState, view)

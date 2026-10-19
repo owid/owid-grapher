@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest"
 import {
     buildPrompt,
+    coverageLine,
     ChartContext,
     requestSchema,
     MdimContext,
@@ -64,6 +65,8 @@ const singleChart: ChartContext = {
     tabs: ["table", "map", "line", "discrete-bar"],
     currentTab: "line",
     selected: ["India"],
+    currentTime: null,
+    mapTolerance: 5,
     data,
 }
 
@@ -117,6 +120,7 @@ describe("request validation", () => {
             query: "add Canada",
             queryStr: "",
             model: "claude-haiku-5-5",
+            tableSort: null,
         })
         expect(
             requestSchema.safeParse({
@@ -235,11 +239,22 @@ describe(buildPrompt, () => {
     it("keeps the per-request parts out of the cached prefix", () => {
         const a = buildPrompt(singleChart, "highest poverty")
         const b = buildPrompt(
-            { ...singleChart, selected: ["Canada"], currentTab: "map" },
+            {
+                ...singleChart,
+                selected: ["Canada"],
+                currentTab: "table",
+                currentTime: "2000..2022",
+                currentTableSort: { column: "change", order: "asc" },
+            },
             "add <Canada>"
         )
         expect(a.cached).toBe(b.cached)
-        expect(b.request).toContain('Tab: map, selected: ["Canada"]')
+        expect(b.request).toContain(
+            'Tab: table, selected: ["Canada"], time: 2000..2022, table sort: change asc'
+        )
+        expect(a.request).toContain(
+            "time: the chart's default, table sort: none"
+        )
         expect(b.request).toContain("<request>add Canada</request>")
     })
 
@@ -250,6 +265,16 @@ describe(buildPrompt, () => {
         )
         expect(cached).toContain("India,country,Asia,50.12,40,30,2022,12")
         expect(cached).toContain("Subtitle: Living below the poverty line.")
+    })
+
+    it("counts the countries with a value in each recent year", () => {
+        const line = coverageLine(singleChart.data, 3)
+        const { maxYear } = singleChart.data
+        expect(line.split(", ")).toHaveLength(3)
+        expect(line.startsWith(`${maxYear - 2}: `)).toBe(true)
+        expect(buildPrompt(singleChart, "q").cached).toContain(
+            "Countries with a value in each year: "
+        )
     })
 
     it("lists the MDim's combinations without dimensions that don't apply", () => {
