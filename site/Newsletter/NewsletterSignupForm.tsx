@@ -1,10 +1,12 @@
 import { useState } from "react"
 import * as React from "react"
 import cx from "clsx"
+import { useMutation } from "@tanstack/react-query"
 import { Button, TextInput } from "@ourworldindata/components"
 import { EmailNotificationsSubscribeRequest } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
+import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
 import {
     apiPost,
     getErrorMessage,
@@ -32,7 +34,17 @@ const analytics = new SiteAnalytics()
  * that only /subscribe has, so it hands the email and Brief choice over to
  * that page instead of subscribing here.
  */
-export const NewsletterSignupForm = ({
+export const NewsletterSignupForm = (props: {
+    context: NewsletterSubscriptionContext
+    className?: string
+}) => (
+    // The floating site-tools mount has no query client above it.
+    <SiteQueryClientProvider>
+        <NewsletterSignupFormInner {...props} />
+    </SiteQueryClientProvider>
+)
+
+const NewsletterSignupFormInner = ({
     context,
     className,
 }: {
@@ -42,13 +54,23 @@ export const NewsletterSignupForm = ({
     const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
     const [followTopics, setFollowTopics] = useState(false)
     const [email, setEmail] = useState("")
-    const [isSubscribing, setIsSubscribing] = useState(false)
-    const [isSubscribed, setIsSubscribed] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+
+    const subscribe = useMutation({
+        mutationFn: async (request: EmailNotificationsSubscribeRequest) => {
+            const response = await apiPost("/subscribe", request)
+            await throwIfApiError(response)
+        },
+        onSuccess: () => {
+            analytics.logSiteFormSubmit(
+                "newsletter-subscribe",
+                `Subscribe [${context}]`
+            )
+        },
+    })
 
     const isSubmittable = subscribeToOwidBrief || followTopics
 
-    const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
+    const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
         if (!isSubmittable) return
         const trimmedEmail = email.trim()
@@ -63,27 +85,10 @@ export const NewsletterSignupForm = ({
             return
         }
 
-        setError(null)
-        setIsSubscribing(true)
-        try {
-            const request: EmailNotificationsSubscribeRequest = {
-                email: trimmedEmail,
-                subscribeToOwidBrief,
-            }
-            await throwIfApiError(await apiPost("/subscribe", request))
-            analytics.logSiteFormSubmit(
-                "newsletter-subscribe",
-                `Subscribe [${context}]`
-            )
-            setIsSubscribed(true)
-        } catch (caught) {
-            setError(getErrorMessage(caught))
-        } finally {
-            setIsSubscribing(false)
-        }
+        subscribe.mutate({ email: trimmedEmail, subscribeToOwidBrief })
     }
 
-    if (isSubscribed)
+    if (subscribe.isSuccess)
         return (
             <p className={cx("newsletter-signup-form__success", className)}>
                 Your subscription to The OWID Brief is active.
@@ -105,7 +110,7 @@ export const NewsletterSignupForm = ({
                 cadence={OWID_BRIEF_CADENCE}
                 description={OWID_BRIEF_DESCRIPTION}
                 checked={subscribeToOwidBrief}
-                disabled={isSubscribing}
+                disabled={subscribe.isPending}
                 onChange={() => setSubscribeToOwidBrief(!subscribeToOwidBrief)}
             />
             <NewsletterOption
@@ -118,7 +123,7 @@ export const NewsletterSignupForm = ({
                 }
                 description={FOLLOW_TOPICS_DESCRIPTION}
                 checked={followTopics}
-                disabled={isSubscribing}
+                disabled={subscribe.isPending}
                 onChange={() => setFollowTopics(!followTopics)}
             />
             {!isSubmittable && (
@@ -126,8 +131,10 @@ export const NewsletterSignupForm = ({
                     Please select at least one option.
                 </div>
             )}
-            {error && (
-                <div className="newsletter-signup-form__alert">{error}</div>
+            {subscribe.error && (
+                <div className="newsletter-signup-form__alert">
+                    {getErrorMessage(subscribe.error)}
+                </div>
             )}
             <TextInput
                 className="newsletter-signup-form__email sentry-mask"
@@ -136,7 +143,7 @@ export const NewsletterSignupForm = ({
                 placeholder="Your email address"
                 required={true}
                 value={email}
-                disabled={isSubscribing}
+                disabled={subscribe.isPending}
                 onChange={(event) => setEmail(event.target.value)}
             />
             <Button
@@ -144,11 +151,11 @@ export const NewsletterSignupForm = ({
                 type="submit"
                 theme="solid-vermillion"
                 icon={null}
-                disabled={!isSubmittable || isSubscribing}
+                disabled={!isSubmittable || subscribe.isPending}
                 text={
                     followTopics
                         ? "See subscription options"
-                        : isSubscribing
+                        : subscribe.isPending
                           ? "Subscribing…"
                           : "Subscribe"
                 }
