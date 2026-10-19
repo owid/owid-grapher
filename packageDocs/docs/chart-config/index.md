@@ -39,4 +39,4 @@ GrapherLoader.fromCsv({
 
 ## Requiredness
 
-The schema describes **persisted** configs, which must carry `$schema` and `dimensions`. Configs passed to `GrapherLoader` are looser — `$schema` is never needed, and `dimensions` is only required for [`fromApi`](../api/index.md#grapherloaderfromapi-config-dataapiurl), where it says which indicators to fetch.
+The schema describes **persisted** configs, which must carry `$schema` and `dimensions`. Configs passed to `GrapherLoader` are looser — `$schema` is never needed (but recommended!), and `dimensions` is only required for [`fromApi`](../api/index.md#grapherloaderfromapi-config-dataapiurl), where it says which indicators to fetch.

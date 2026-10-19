@@ -113,6 +113,11 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideFullscreenButton?: boolean
     /** Hide the download button. */
     hideDownloadButton?: boolean
+    /** Hide the share button. */
+    hideShareButton?: boolean
+    /** Hide the "Donate" button, which is shown when the chart is rendered
+     *  inside an iframe. */
+    hideDonateButton?: boolean
 
     /** Hide the controls for selecting entities (countries, regions, …),
      *  including selecting them on the map. */
@@ -125,11 +130,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     /** Whether to offer the table tab. Defaults to `true`. */
     hasTableTab?: boolean
-    /** Hide the share button. */
-    hideShareButton?: boolean
-    /** Hide the "Donate" button, which is shown when the chart is rendered
-     *  inside an iframe. */
-    hideDonateButton?: boolean
     /** Whether to hide the "Explore the data" button, which links to the
      *  chart's own page. Defaults to `true`, except inside an iframe, where
      *  the button is always shown. Never shown without a `canonicalUrl`. */
