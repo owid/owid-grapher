@@ -1,5 +1,4 @@
 import {
-    ASK_AI_EXPERIMENT_ID,
     DATA_PAGE_METADATA_EXPERIMENT_ID,
     DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM,
     DATA_PAGE_METADATA_V2_EXPERIMENT_ID,
@@ -312,36 +311,6 @@ export const experiments: Experiment[] = [
             "/grapher/world-bank-income-groups",
             "/grapher/yearly-number-of-objects-launched-into-outer-space",
         ],
-    }),
-    /*
-     * Experiment: ask-ai-v1
-     *
-     * An "Ask Claude / Ask ChatGPT" block under the chart on data pages, which
-     * opens the reader's own assistant with a prompt grounded in the chart's
-     * data. No model runs on our side. What readers type is logged to R2
-     * (functions/api/ask-ai-question) as the experiment's main output.
-     *
-     * Conditions:
-     * - control: no block
-     * - v3: free-text box and the two engine buttons
-     * - v5: v3 plus preset questions that fill the box
-     * - bar: a one-line ask bar that expands with presets and context on focus
-     *
-     * The markup is gated by body class in site/AskAI.scss, so the block never
-     * flashes; ?askai=<arm> overrides the assignment (site/AskAI.tsx).
-     * `expires` is a placeholder until launch.
-     */
-    new Experiment({
-        id: ASK_AI_EXPERIMENT_ID,
-        expires: "2026-10-30T00:00:00.000Z",
-        arms: [
-            { id: "control", fraction: 1 / 4 },
-            { id: "v3", fraction: 1 / 4 },
-            { id: "v5", fraction: 1 / 4 },
-            { id: "bar", fraction: 1 / 4 },
-        ],
-        // All grapher pages; the block only mounts on data pages.
-        paths: ["/grapher/"],
     }),
     // Compare normal scrolling, reveal-on-scroll-up, and fully sticky filters.
     // Mobile pins only the topic pills.

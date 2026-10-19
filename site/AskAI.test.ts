@@ -7,7 +7,6 @@ import {
     buildEngineUrl,
     buildCsvUrl,
     buildFullCsvUrl,
-    buildPageUrl,
     OWID_PUBLIC_GRAPHER_URL,
 } from "./askAiPrompt.js"
 
@@ -203,15 +202,6 @@ describe("compact view label", () => {
 
     it("is absent while the chart is untouched", () => {
         expect(describeViewCompact("?tab=map")).toBeUndefined()
-    })
-})
-
-describe("page URL", () => {
-    it("keeps the visitor's view but not the arm override", () => {
-        expect(
-            buildPageUrl(SLUG_URL, "?country=~NGA&askai=v3&time=1990..2020")
-        ).toBe(`${SLUG_URL}?country=%7ENGA&time=1990..2020`)
-        expect(buildPageUrl(SLUG_URL, "?askai=v5")).toBe(SLUG_URL)
     })
 })
 

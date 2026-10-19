@@ -1,4 +1,4 @@
-import type { AskAiArm, AskAiEngine } from "@ourworldindata/types"
+import type { AskAiEngine } from "@ourworldindata/types"
 import { getRegionByCode } from "@ourworldindata/utils"
 
 /**
@@ -9,33 +9,6 @@ import { getRegionByCode } from "@ourworldindata/utils"
  * probe untestable everywhere except production.
  */
 export const OWID_PUBLIC_GRAPHER_URL = "https://ourworldindata.org/grapher"
-
-/**
- * Query param that forces an arm, overriding the experiment assignment:
- * ?askai=control | v3 | v5. Lets anyone see an arm on staging or prod
- * without being assigned to it.
- */
-export const ASK_AI_PARAM = "askai"
-
-export const ASK_AI_ARMS: AskAiArm[] = ["control", "v3", "v5", "bar"]
-
-export const parseArm = (
-    value: string | null | undefined
-): AskAiArm | undefined => ASK_AI_ARMS.find((arm) => arm === value)
-
-export const parseArmOverride = (queryStr: string): AskAiArm | undefined =>
-    parseArm(new URLSearchParams(queryStr).get(ASK_AI_PARAM))
-
-/**
- * The page as the visitor sees it, minus our own ?askai= override, which
- * means nothing to the assistant.
- */
-export const buildPageUrl = (slugUrl: string, queryStr: string): string => {
-    const params = new URLSearchParams(queryStr)
-    params.delete(ASK_AI_PARAM)
-    const s = params.toString()
-    return s ? `${slugUrl}?${s}` : slugUrl
-}
 
 export const ENGINES: { id: AskAiEngine; label: string }[] = [
     { id: "claude", label: "Ask Claude" },

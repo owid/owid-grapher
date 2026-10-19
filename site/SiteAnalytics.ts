@@ -15,7 +15,6 @@ import {
     type LatestPageChronologicalRecord,
     type UserSurveyExperimentArm,
     type UserSurveyRoleAnswer,
-    type AskAiArm,
     type AskAiEngine,
     type AskAiPromptSource,
 } from "@ourworldindata/types"
@@ -537,31 +536,24 @@ export class SiteAnalytics extends GrapherAnalytics {
         }
     }
 
-    logAskAiShow(params: { arm: AskAiArm; slug: string }): void {
+    logAskAiShow(params: { slug: string }): void {
         this.logToGA({
             event: EventCategory.SiteAskAi,
             eventAction: "ask_ai_show",
-            askAiArm: params.arm,
             askAiSlug: params.slug,
         })
     }
 
-    logAskAiPresetClick(params: {
-        arm: AskAiArm
-        slug: string
-        presetId: string
-    }): void {
+    logAskAiPresetClick(params: { slug: string; presetId: string }): void {
         this.logToGA({
             event: EventCategory.SiteAskAi,
             eventAction: "ask_ai_preset_click",
-            askAiArm: params.arm,
             askAiSlug: params.slug,
             askAiPresetId: params.presetId,
         })
     }
 
     logAskAiSubmit(params: {
-        arm: AskAiArm
         slug: string
         engine: AskAiEngine
         promptSource: AskAiPromptSource
@@ -572,7 +564,6 @@ export class SiteAnalytics extends GrapherAnalytics {
         this.logToGA({
             event: EventCategory.SiteAskAi,
             eventAction: "ask_ai_submit",
-            askAiArm: params.arm,
             askAiSlug: params.slug,
             askAiEngine: params.engine,
             askAiPromptSource: params.promptSource,

@@ -6,8 +6,6 @@ import {
 } from "./askAiQuestion.js"
 
 const payload = {
-    arm: "v3",
-    forced: false,
     slug: "child-mortality",
     engine: "claude",
     promptSource: "freeform",
@@ -24,8 +22,6 @@ const record = (input: unknown): Record<string, unknown> =>
 describe("ask-ai question record", () => {
     it("stores the trimmed question with its length and the context", () => {
         expect(record(payload)).toEqual({
-            arm: "v3",
-            forced: false,
             slug: "child-mortality",
             engine: "claude",
             promptSource: "freeform",
@@ -63,15 +59,17 @@ describe("ask-ai question record", () => {
         const stored = record({
             ...payload,
             queryStr:
-                "?country=~NGA&utm_source=newsletter&email=a%40b.com&time=1990..2020&askai=v3",
+                "?country=~NGA&utm_source=newsletter&email=a%40b.com&time=1990..2020",
         })
         expect(stored.queryStr).toBe("?country=%7ENGA&time=1990..2020")
     })
 
-    it("rejects the control arm, which has no block to submit from", () => {
+    it("rejects an unknown engine", () => {
         expect(
-            askAiQuestionPayloadSchema.safeParse({ ...payload, arm: "control" })
-                .success
+            askAiQuestionPayloadSchema.safeParse({
+                ...payload,
+                engine: "gemini",
+            }).success
         ).toBe(false)
     })
 })

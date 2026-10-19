@@ -1,241 +1,22 @@
-// Ask-AI demand probe (experiment exp-ask-ai-v1), under the chart on data
-// pages. See the brief in the analytics repo:
+// "Ask an AI about this chart" bar under the chart on data pages. One line
+// that reads like a search box, opening up with presets and a note on what
+// gets sent once the reader focuses it. See the brief in the analytics repo:
 // experiments/briefs/ask_ai_button_20260828
-//
-// The baked HTML is the same for every visitor, so the arm is applied here
-// rather than in React: the edge function puts the visitor's arm on <body>
-// before any JS runs, and that class shows the block. ?askai=<arm> renders
-// the block client-side with .ask-ai--forced, which wins over the body class.
 .ask-ai {
-    display: none;
-    margin: 24px 0 32px;
-    padding: 24px;
-    background-color: $blue-5;
-    border-top: 1px solid $blue-20;
-
-    @include sm-only {
-        padding: 16px;
-        margin: 16px 0 24px;
-    }
-}
-
-.exp-ask-ai-v1--v3 .ask-ai,
-.exp-ask-ai-v1--v5 .ask-ai,
-.ask-ai.ask-ai--forced {
-    display: block;
-}
-
-// Staff-only arm switcher, rendered client-side above the block (and in
-// place of it for control). Styled like the staff strip in Configure with AI.
-.ask-ai-staff {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    margin: 24px 0;
-    padding: 6px 12px;
-    border: 1px dashed $blue-30;
-    background: $gray-5;
-}
-
-.ask-ai-staff + .ask-ai {
-    margin-top: 8px;
-}
-
-.ask-ai-staff__label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: $gray-80;
-    font-size: 0.6875rem;
-}
-
-.ask-ai-staff__arms {
-    display: flex;
-    gap: 4px;
-}
-
-.ask-ai-staff__arm {
-    padding: 1px 8px;
-    border: 1px solid $blue-20;
-    background: #fff;
-    color: $blue-90;
-    font-size: 0.75rem;
-    cursor: pointer;
-
-    &[aria-pressed="true"] {
-        background: $blue-90;
-        border-color: $blue-90;
-        color: #fff;
-    }
-}
-
-// Presets are v5 only. A forced arm renders them (or not) itself.
-.exp-ask-ai-v1--v3 .ask-ai:not(.ask-ai--forced) .ask-ai__presets {
-    display: none;
-}
-
-.ask-ai__header {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 4px;
-}
-
-// Signals that the whole block is a trial, in every arm. Amber rather than
-// the block's blue so it reads as a caveat, not another control.
-.ask-ai__badge {
-    @include body-3-bold;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 2px 8px;
-    // NB the amber scale is light-only ($amber-110 is lighter than $amber),
-    // so the text colour has to come from elsewhere to stay legible.
-    background-color: $amber-10;
-    color: $blue-90;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    font-size: 11px;
-    line-height: 18px;
-    white-space: nowrap;
-
-    svg {
-        font-size: 10px;
-    }
-}
-
-.ask-ai__heading {
-    @include h3-bold;
-    margin: 0;
-    color: $blue-90;
-}
-
-.ask-ai__intro {
-    @include body-3-medium;
-    margin: 0 0 16px;
-    max-width: 60ch;
-    color: $gray-70;
-}
-
-.ask-ai__presets {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 16px;
-}
-
-.ask-ai__preset {
-    @include body-3-medium;
-    padding: 6px 12px;
-    background-color: white;
-    border: 1px solid $blue-20;
-    color: $blue-90;
-    cursor: pointer;
-
-    &:hover {
-        background-color: $blue-10;
-    }
-
-    &[aria-pressed="true"] {
-        background-color: $blue-90;
-        border-color: $blue-90;
-        color: white;
-    }
-}
-
-.ask-ai__field {
-    display: block;
-    margin-bottom: 16px;
-}
-
-.ask-ai__label {
-    @include body-3-bold;
-    display: block;
-    margin-bottom: 4px;
-    color: $blue-90;
-}
-
-.ask-ai__input {
-    @include body-3-medium;
-    width: 100%;
-    max-width: 640px;
-    padding: 8px 12px;
-    border: 1px solid $blue-20;
-    background-color: white;
-    color: $blue-90;
-    resize: vertical;
-    font-family: inherit;
-
-    &::placeholder {
-        color: $gray-60;
-    }
-
-    &:focus-visible {
-        outline: 2px solid $accent-electric-blue;
-        outline-offset: -1px;
-    }
-}
-
-.ask-ai__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.ask-ai__button {
-    @include body-3-bold;
-    display: inline-flex;
-    align-items: center;
-    height: 32px;
-    padding: 0 16px;
-    background-color: $blue-90;
-    border: none;
-    color: white;
-    cursor: pointer;
-
-    &:hover {
-        background-color: $blue-100;
-    }
-
-    &:focus-visible {
-        outline: 2px solid $accent-electric-blue;
-        outline-offset: 2px;
-    }
-}
-
-.ask-ai__privacy {
-    @include body-3-medium;
-    margin: 12px 0 0;
-    max-width: 60ch;
-    color: $gray-60;
-}
-
-// The "bar" arm: one line that reads like a search box, opening up with the
-// presets and the privacy note once the reader focuses it. Gated by body class
-// like the block above.
-.ask-ai-bar {
-    display: none;
     margin: 24px 0 32px;
     padding: 12px;
     background-color: white;
     border: 1px solid $blue-20;
 }
 
-.exp-ask-ai-v1--bar .ask-ai-bar,
-.ask-ai-bar.ask-ai-bar--forced {
-    display: block;
-}
-
-.ask-ai-bar__row {
+.ask-ai__row {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 8px;
 }
 
-.ask-ai-bar__field {
+.ask-ai__field {
     flex: 1 1 320px;
     display: flex;
     align-items: flex-start;
@@ -252,7 +33,7 @@
     }
 }
 
-.ask-ai-bar__icon {
+.ask-ai__icon {
     flex-shrink: 0;
     // Centre on the first line of the textarea (40px row, 14px icon).
     margin-top: 13px;
@@ -260,7 +41,7 @@
     color: $blue-60;
 }
 
-.ask-ai-bar__input {
+.ask-ai__input {
     @include body-2-regular;
     flex: 1;
     min-width: 0;
@@ -282,7 +63,7 @@
     }
 }
 
-.ask-ai-bar__actions {
+.ask-ai__actions {
     display: flex;
     gap: 8px;
 
@@ -291,30 +72,66 @@
     }
 }
 
-// Styled as .ask-ai__button, only taller to match the input.
-.ask-ai-bar__button {
+.ask-ai__button {
+    @include body-3-bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    // Matches the input's height.
     height: 42px;
+    padding: 0 16px;
+    background-color: $blue-90;
+    border: none;
+    color: white;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $blue-100;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $accent-electric-blue;
+        outline-offset: 2px;
+    }
 
     @include sm-only {
         flex: 1;
-        justify-content: center;
     }
 }
 
-.ask-ai-bar__details {
+.ask-ai__details {
     display: flex;
     flex-direction: column;
     gap: 10px;
     margin-top: 10px;
 }
 
-.ask-ai-bar__presets {
+.ask-ai__presets {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
 }
 
-.ask-ai-bar__note {
+.ask-ai__preset {
+    @include body-3-medium;
+    padding: 6px 12px;
+    background-color: white;
+    border: 1px solid $blue-20;
+    color: $blue-90;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $blue-10;
+    }
+
+    &[aria-pressed="true"] {
+        background-color: $blue-90;
+        border-color: $blue-90;
+        color: white;
+    }
+}
+
+.ask-ai__note {
     @include body-3-medium;
     display: flex;
     flex-wrap: wrap;
@@ -322,4 +139,27 @@
     gap: 4px 8px;
     margin: 0;
     color: $gray-70;
+}
+
+// Signals that the bar is a trial. Amber rather than the bar's blue so it
+// reads as a caveat, not another control.
+.ask-ai__badge {
+    @include body-3-bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    // NB the amber scale is light-only ($amber-110 is lighter than $amber),
+    // so the text colour has to come from elsewhere to stay legible.
+    background-color: $amber-10;
+    color: $blue-90;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 11px;
+    line-height: 18px;
+    white-space: nowrap;
+
+    svg {
+        font-size: 10px;
+    }
 }

@@ -13,9 +13,6 @@ export const ASK_AI_QUESTION_MAX_STORED_LENGTH = 500
  * traceable to a visitor.
  */
 export const askAiQuestionPayloadSchema = z.object({
-    arm: z.enum(["v3", "v5", "bar"]),
-    /** Whether the arm came from ?askai= rather than the experiment */
-    forced: z.boolean(),
     slug: z.string().min(1).max(200),
     engine: z.enum(["claude", "chatgpt"]),
     promptSource: z.enum(["default", "preset", "freeform"]),

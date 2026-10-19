@@ -14,11 +14,6 @@ export const DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM = "treatment"
 // Randomised follow-up to v1 (disjoint page sets; v1's pages stay in v1).
 export const DATA_PAGE_METADATA_V2_EXPERIMENT_ID = "data-page-metadata-v2"
 
-// Raw id (without the `exp-` prefix) of the Ask-AI probe on data pages. The
-// component reads it to find the visitor's arm, and site/AskAI.scss
-// gates the block's markup on the matching body classes.
-export const ASK_AI_EXPERIMENT_ID = "ask-ai-v1"
-
 // Raw id (without the `exp-` prefix) of the /latest sticky filters experiment.
 // Shared between the experiment config, the /latest React components (to
 // gate the reveal-on-scroll behaviour) and the analytics layer (to tag the

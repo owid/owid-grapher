@@ -248,13 +248,8 @@ export interface SiteStaticVizDownloadParams {
     eventContext?: string
 }
 
-// Ask-AI probe (data page), run as the exp-ask-ai-v1 experiment. See
-// experiments/briefs/ask_ai_button_20260828 in the analytics repo. Arms match
-// the design canvas: control = no block, v3 = free-text box, v5 = presets
-// that fill an editable box, bar = a one-line ask bar that expands with the
-// presets and context on focus.
-export type AskAiArm = "control" | "v3" | "v5" | "bar"
-
+// Ask-AI bar under the chart on data pages (site/AskAI.tsx). See
+// experiments/briefs/ask_ai_button_20260828 in the analytics repo.
 export type AskAiEngine = "claude" | "chatgpt"
 
 /** Where the text sent to the assistant came from. */
@@ -262,21 +257,14 @@ export type AskAiPromptSource = "default" | "preset" | "freeform"
 
 export type SiteAskAiParams =
     | {
-          /**
-           * Always 'ask_ai_show' for this event: the exposure. Logged for
-           * control too, where nothing is rendered, so each arm has a
-           * denominator.
-           */
+          /** Always 'ask_ai_show' for this event: the exposure */
           eventAction: "ask_ai_show"
-          /** Which arm the visitor was shown */
-          askAiArm: AskAiArm
-          /** Grapher slug the block was rendered under */
+          /** Grapher slug the bar was rendered under */
           askAiSlug: string
       }
     | {
           /** Always 'ask_ai_preset_click' for this event */
           eventAction: "ask_ai_preset_click"
-          askAiArm: AskAiArm
           askAiSlug: string
           /** Stable id of the preset chosen */
           askAiPresetId: string
@@ -284,7 +272,6 @@ export type SiteAskAiParams =
     | {
           /** Always 'ask_ai_submit' for this event — the outbound click */
           eventAction: "ask_ai_submit"
-          askAiArm: AskAiArm
           askAiSlug: string
           /** Assistant the visitor was sent to */
           askAiEngine: AskAiEngine
