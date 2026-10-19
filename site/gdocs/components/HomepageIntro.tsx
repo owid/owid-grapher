@@ -163,7 +163,7 @@ function HomepageAnnouncement(props: {
             : publishedAtDayJs.fromNow()
 
     const latestType = deriveAnnouncementLatestType(announcement.kicker)
-    const kickerLabel = `${LATEST_TYPE_LABELS[latestType]} - `
+    const kickerLabel = `${LATEST_TYPE_LABELS[latestType]} · `
 
     return (
         <li
