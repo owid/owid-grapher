@@ -31,7 +31,7 @@ describe("ask-ai question record", () => {
             promptSource: "freeform",
             question: "Why has this fallen so fast?",
             questionLength: 28,
-            queryStr: "?country=~NGA",
+            queryStr: "?country=%7ENGA",
             receivedAt: "2026-10-16T12:00:00.000Z",
         })
     })
@@ -57,6 +57,15 @@ describe("ask-ai question record", () => {
         const stored = record({ ...payload, userAgent: "x", ip: "1.2.3.4" })
         expect(stored).not.toHaveProperty("userAgent")
         expect(stored).not.toHaveProperty("ip")
+    })
+
+    it("keeps only the chart's own params from the query string", () => {
+        const stored = record({
+            ...payload,
+            queryStr:
+                "?country=~NGA&utm_source=newsletter&email=a%40b.com&time=1990..2020&askai=v3",
+        })
+        expect(stored.queryStr).toBe("?country=%7ENGA&time=1990..2020")
     })
 
     it("rejects the control arm, which has no block to submit from", () => {

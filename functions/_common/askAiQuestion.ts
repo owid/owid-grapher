@@ -1,4 +1,5 @@
 import * as z from "zod"
+import { GRAPHER_QUERY_PARAM_KEYS } from "@ourworldindata/types"
 
 /**
  * Longest question we store. Longer ones are cut, and `questionLength` keeps
@@ -29,6 +30,22 @@ export function buildAskAiQuestionStorageKey(id: string): string {
     return `responses/ask-ai/${id}.json`
 }
 
+/**
+ * Only the params that describe the chart view. A visitor's URL can carry
+ * anything else too (utm tags, click ids, an email from a campaign link),
+ * and none of that belongs in the record.
+ */
+const keepChartState = (queryStr: string): string => {
+    const from = new URLSearchParams(queryStr)
+    const out = new URLSearchParams()
+    for (const key of GRAPHER_QUERY_PARAM_KEYS) {
+        const value = from.get(key)
+        if (value !== null) out.set(key, value)
+    }
+    const s = out.toString()
+    return s ? `?${s}` : ""
+}
+
 export function buildAskAiQuestionRecord({
     payload,
     receivedAtIso,
@@ -36,9 +53,10 @@ export function buildAskAiQuestionRecord({
     payload: AskAiQuestionPayload
     receivedAtIso: string
 }): Record<string, unknown> {
-    const { question, ...rest } = payload
+    const { question, queryStr, ...rest } = payload
     return {
         ...rest,
+        queryStr: keepChartState(queryStr),
         question: question?.slice(0, ASK_AI_QUESTION_MAX_STORED_LENGTH),
         questionLength: question?.length ?? 0,
         receivedAt: receivedAtIso,
