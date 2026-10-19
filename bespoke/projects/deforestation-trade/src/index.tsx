@@ -1,7 +1,13 @@
 import { createRoot } from "react-dom/client"
 import { enableShadowDOM } from "@react-stately/flags"
 
-import { DEFAULT_COUNTRY, PERIODS, VIEWS, VariantName } from "./core/types.js"
+import {
+    DEFAULT_COUNTRY,
+    DEFAULT_YEAR,
+    PERIODS,
+    VIEWS,
+    VariantName,
+} from "./core/types.js"
 import { SankeyVariant } from "./variants/SankeyVariant"
 
 import type {
@@ -49,8 +55,9 @@ export const CONFIG_SPEC = {
     },
     year: {
         type: "integer",
+        default: DEFAULT_YEAR,
         description:
-            "Year shown first when the period is a single year. Defaults to 2023. If the selected year is unavailable, uses the latest year in the data",
+            "Year shown first when the period is a single year. If it is unavailable, uses the latest year in the data",
     },
     period: {
         type: "enum",
