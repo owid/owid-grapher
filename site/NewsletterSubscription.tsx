@@ -23,12 +23,6 @@ const isEmailNotificationsEnabled = FEATURE_FLAGS.includes(
     Features.EmailNotifications
 )
 
-/**
- * The signup block for the header nav, site tools, homepage and /latest:
- * the compact panel once email notifications are enabled, otherwise the
- * Mailchimp form. `children` (e.g. social links) render after the form
- * either way.
- */
 export const NewsletterSignup = ({
     context,
     className,
