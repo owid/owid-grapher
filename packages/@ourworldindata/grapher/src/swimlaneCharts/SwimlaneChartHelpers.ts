@@ -4,7 +4,7 @@ import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabe
 import { resolveEmphasis } from "../interaction/Emphasis"
 import { InteractionState } from "../interaction/InteractionState"
 import { FocusArray } from "../focus/FocusArray"
-import { CategoricalBin, NumericBin } from "../color/ColorScaleBin"
+import { CategoricalBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
 import { OWID_ERROR_COLOR } from "../color/ColorConstants"
 import { formatTimeSpan, textWidth } from "../chart/ChartUtils"
@@ -267,24 +267,6 @@ export function toRenderSwimlaneSeries({
                 focus,
             }),
         }
-    })
-}
-
-/** A category as one step of the ordinal legend's numeric strip */
-export function toLabelledNumericBin(
-    bin: CategoricalBin,
-    index: number
-): NumericBin {
-    return new NumericBin({
-        isFirst: index === 0,
-        isOpenLeft: false,
-        isOpenRight: false,
-        min: index,
-        max: index + 1,
-        displayMin: "",
-        displayMax: "",
-        label: bin.text,
-        color: bin.color,
     })
 }
 

@@ -75,10 +75,7 @@ function findRow(
 }
 
 function findLegendLabels(chart: SwimlaneChart): string[] {
-    const bins = chart["ordinalLegendState"]
-        ? chart["ordinalLegendBins"]
-        : chart["categoricalLegendBins"]
-    return bins.map((bin) => bin.text)
+    return chart["categoricalLegendBins"].map((bin) => bin.text)
 }
 
 function findSegmentEmphases(
@@ -97,7 +94,7 @@ function hasLabel(segment: PlacedSwimlaneSegment): boolean {
 }
 
 describe("legend", () => {
-    it("is a numeric legend for an ordinal indicator, in the indicator's order", () => {
+    it("is an ordinal legend for an ordinal indicator, in the indicator's order", () => {
         const { chart } = makeChart(ColumnTypeNames.Ordinal)
 
         expect(chart["ordinalLegendState"]).toBeDefined()
@@ -107,6 +104,43 @@ describe("legend", () => {
             "Republic",
             "Monarchy",
         ])
+    })
+
+    it("labels every category of an ordinal indicator with long labels at a narrow size", () => {
+        const categories = [
+            "Legal",
+            "Civil union or other partnership",
+            "Foreign same-sex marriages recognized only",
+            "Unregistered cohabitation",
+            "Varies by region",
+            "Ambiguous",
+            "Unrecognized",
+            "Banned",
+        ]
+        const table = new OwidTable(
+            categories.map((regime, index) => ({
+                entityName: "France",
+                year: 2000 + index,
+                regime,
+            })),
+            [
+                { slug: "year", type: ColumnTypeNames.Year },
+                {
+                    slug: "regime",
+                    type: ColumnTypeNames.Ordinal,
+                    sort: categories,
+                },
+            ]
+        )
+        const { chart } = makeChart(ColumnTypeNames.Ordinal, {
+            table,
+            selectedEntityNames: ["France"],
+            bounds: new Bounds(0, 0, 375, 600),
+        })
+
+        expect(
+            chart["ordinalLegendState"]!.labels.map((label) => label.bin.text)
+        ).toEqual(["No data", ...categories])
     })
 
     it("is a categorical legend for a categorical indicator", () => {

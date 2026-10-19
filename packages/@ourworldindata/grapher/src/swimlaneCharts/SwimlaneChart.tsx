@@ -48,8 +48,8 @@ import {
 } from "../color/ColorScaleBin"
 import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
 import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
-import { HorizontalNumericColorLegend } from "../legend/HorizontalNumericColorLegend"
-import { HorizontalNumericColorLegendState } from "../legend/HorizontalNumericColorLegendState"
+import { HorizontalOrdinalColorLegend } from "../legend/HorizontalOrdinalColorLegend"
+import { HorizontalOrdinalColorLegendState } from "../legend/HorizontalOrdinalColorLegendState"
 import { BinEmphasis, toBinEmphasis } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
@@ -59,6 +59,7 @@ import {
     RenderSwimlaneSeries,
     SizedSwimlaneSeries,
     SWIMLANE_LEGEND_STYLE,
+    SWIMLANE_ORDINAL_LEGEND_STYLE,
     SwimlaneChartManager,
     SwimlaneSegmentLabelStyle,
     SwimlaneSegment,
@@ -69,7 +70,6 @@ import { SwimlaneChartState } from "./SwimlaneChartState"
 import {
     computeHeightPerSeries,
     toPlacedSwimlaneSeries,
-    toLabelledNumericBin,
     toRenderSwimlaneSeries,
 } from "./SwimlaneChartHelpers"
 import { SwimlaneRow } from "./SwimlaneRow"
@@ -85,7 +85,7 @@ export class SwimlaneChart
     private readonly tooltipId = guid()
     private readonly tooltipState = new TooltipState<SwimlaneTooltipTarget>()
 
-    private hoveredLegendBin: ColorScaleBin | undefined = undefined
+    private hoveredLegendBin: CategoricalBin | undefined = undefined
 
     constructor(props: SwimlaneChartProps) {
         super(props)
@@ -144,36 +144,8 @@ export class SwimlaneChart
         ])
     }
 
-    /** The ordinal legend's numeric bins, each mapped to the category it stands for */
-    @computed private get categoryByOrdinalLegendBin(): Map<
-        ColorScaleBin,
-        CategoricalBin
-    > {
-        return new Map(
-            this.categoryLegendBins.map((bin, index) => [
-                toLabelledNumericBin(bin, index),
-                bin,
-            ])
-        )
-    }
-
-    @computed private get ordinalLegendBins(): ColorScaleBin[] {
-        return excludeUndefined([
-            this.noDataLegendBin,
-            ...this.categoryByOrdinalLegendBin.keys(),
-        ])
-    }
-
     @computed private get legendBinHeight(): number {
         return 0.625 * this.fontSize
-    }
-
-    @computed private get hoveredCategoricalBin(): CategoricalBin | undefined {
-        const { hoveredLegendBin } = this
-        if (!hoveredLegendBin) return undefined
-        return isCategoricalBin(hoveredLegendBin)
-            ? hoveredLegendBin
-            : this.categoryByOrdinalLegendBin.get(hoveredLegendBin)
     }
 
     private readonly resolveLegendBinEmphasis = (
@@ -185,24 +157,27 @@ export class SwimlaneChart
     }
 
     @computed private get legendEmphasis(): BinEmphasis {
-        const bins = this.ordinalLegendState
-            ? this.ordinalLegendBins
-            : this.categoricalLegendBins
-        return toBinEmphasis(bins, this.resolveLegendBinEmphasis)
+        return toBinEmphasis(
+            this.categoricalLegendBins,
+            this.resolveLegendBinEmphasis
+        )
     }
 
     @computed private get ordinalLegendState():
-        | HorizontalNumericColorLegendState
+        | HorizontalOrdinalColorLegendState
         | undefined {
         if (!this.showLegend || this.chartState.categoryKind !== "ordinal")
             return undefined
 
-        return new HorizontalNumericColorLegendState(this.ordinalLegendBins, {
-            baseFontSize: this.fontSize,
-            maxWidth: this.bounds.width,
-            align: HorizontalAlign.center,
-            binHeight: this.legendBinHeight,
-        })
+        return new HorizontalOrdinalColorLegendState(
+            this.categoricalLegendBins,
+            {
+                baseFontSize: this.fontSize,
+                maxWidth: this.bounds.width,
+                align: HorizontalAlign.center,
+                binHeight: this.legendBinHeight,
+            }
+        )
     }
 
     @computed private get categoricalLegendState():
@@ -350,7 +325,7 @@ export class SwimlaneChart
             series: this.placedSeries,
             hoveredSegment: this.tooltipState.target,
             focusArray: this.chartState.focusArray,
-            hoveredLegendBin: this.hoveredCategoricalBin,
+            hoveredLegendBin: this.hoveredLegendBin,
         })
     }
 
@@ -388,6 +363,7 @@ export class SwimlaneChart
     }
 
     @action.bound private onLegendMouseOver(bin: ColorScaleBin): void {
+        if (!isCategoricalBin(bin)) return
         this.chartState.focusArray.clear()
         this.hoveredLegendBin = bin
     }
@@ -399,12 +375,12 @@ export class SwimlaneChart
     private renderLegend(): React.ReactElement | undefined {
         if (this.ordinalLegendState)
             return (
-                <HorizontalNumericColorLegend
+                <HorizontalOrdinalColorLegend
                     state={this.ordinalLegendState}
                     x={this.bounds.x}
                     y={this.bounds.top}
                     interactive={!this.manager.isStatic}
-                    styleConfig={SWIMLANE_LEGEND_STYLE}
+                    styleConfig={SWIMLANE_ORDINAL_LEGEND_STYLE}
                     binEmphasis={this.legendEmphasis}
                     onMouseOver={this.onLegendMouseOver}
                     onMouseLeave={this.onLegendMouseLeave}
