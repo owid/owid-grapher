@@ -14,14 +14,14 @@ A complete, generated listing of every exported symbol lives under [Generated re
 
 Initializes a chart from an in-memory [`OwidTable`](reference/classes/OwidTable.md).
 
-- **`config`** ([`GrapherInterface`](reference/interfaces/GrapherInterface.md)): the standard Grapher configuration object. Its optional `dimensions` can name columns of `data` by `slug` and override how this chart shows them; see [Per-chart column settings](../loading-data.md#per-chart-column-settings-with-dimensions).
+- **`config`** ([`GrapherProgrammaticInterface`](reference/interfaces/GrapherProgrammaticInterface.md)): the standard Grapher configuration object ([`GrapherInterface`](reference/interfaces/GrapherInterface.md)), plus [options beyond the schema](../chart-config/index.md#options-beyond-the-schema). Its optional `dimensions` can name columns of `data` by `slug` and override how this chart shows them; see [Per-chart column settings](../loading-data.md#per-chart-column-settings-with-dimensions).
 - **`data`** (`OwidTable`): an `OwidTable` instance containing the rows.
 
 #### `GrapherLoader.fromCsv({ config, csv, csvUrl, columnDefs })`
 
 Parses CSV data — inline or fetched from a URL — automatically creating an `OwidTable` inside Grapher.
 
-- **`config`** (`GrapherInterface`): Grapher configuration. As with `fromTable`, `dimensions` can name CSV columns by `slug`; see [Per-chart column settings](../loading-data.md#per-chart-column-settings-with-dimensions).
+- **`config`** (`GrapherProgrammaticInterface`): Grapher configuration. As with `fromTable`, `dimensions` can name CSV columns by `slug`; see [Per-chart column settings](../loading-data.md#per-chart-column-settings-with-dimensions).
 - **`csv`** (`string`): CSV content as an inline string. Exactly one of `csv` and `csvUrl` must be given (the types enforce this). The CSV must include an `entityName` column and a `year` (or `day`) column, plus one or more value columns; `entityCode` and `entityId` are optional.
 - **`csvUrl`** (`string`): URL pointing to a CSV file of the same format.
 - **`columnDefs`** (`OwidColumnDef[]`, optional): definitions describing the types, names, colors, and formatting of each column — see [Providing metadata](../loading-data.md#providing-metadata).
@@ -30,7 +30,7 @@ Parses CSV data — inline or fetched from a URL — automatically creating an `
 
 Loads data directly from the Our World in Data catalog/indicators API.
 
-- **`config`** (`GrapherInterface`): Grapher configuration. Must include a `dimensions` array listing the required indicator IDs (e.g. `{ property: "y", variableId: 1118466 }`) — the types enforce this.
+- **`config`** (`GrapherProgrammaticInterface`): Grapher configuration. Must include a `dimensions` array listing the required indicator IDs (e.g. `{ property: "y", variableId: 1118466 }`) — the types enforce this.
 - **`dataApiUrl`** (`string`, optional): custom indicators base URL. Defaults to `"https://api.ourworldindata.org/v1/indicators/"`.
 
 ### Instance methods & properties
@@ -46,7 +46,7 @@ The chart fills its container: give the container an explicit size (the `aspect-
 
 ### TypeScript
 
-The package ships bundled type declarations. Besides `GrapherLoader` and its option types (`FromTableOptions`, `FromCsvOptions`, `FromApiOptions`), it exports the types you need to build configs and column definitions: [`GrapherInterface`](reference/interfaces/GrapherInterface.md), `OwidChartDimensionInterface`, `OwidColumnDef`, and the enums `DimensionProperty` and [`ColumnTypeNames`](reference/enums/ColumnTypeNames.md).
+The package ships bundled type declarations. Besides `GrapherLoader` and its option types (`FromTableOptions`, `FromCsvOptions`, `FromApiOptions`), it exports the types you need to build configs and column definitions: [`GrapherProgrammaticInterface`](reference/interfaces/GrapherProgrammaticInterface.md), [`GrapherInterface`](reference/interfaces/GrapherInterface.md), `OwidChartDimensionInterface`, `OwidColumnDef`, and the enums `DimensionProperty` and [`ColumnTypeNames`](reference/enums/ColumnTypeNames.md).
 
 One gotcha: fields like `columnDefs[].type` and `dimensions[].property` are enum-typed, so in TypeScript write `type: ColumnTypeNames.Numeric` and `property: DimensionProperty.y` where plain-JavaScript examples use `"Numeric"` and `"y"`.
 
