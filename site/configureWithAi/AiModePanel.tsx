@@ -21,6 +21,7 @@ import type {
     PanelState,
     PanelStore,
     Suggestions,
+    Usage,
 } from "./configureWithAiStore.js"
 
 const MODELS = [
@@ -90,6 +91,24 @@ const iconForTab = (tab: string): IconDefinition =>
 
 const modelLabel = (model: string): string =>
     MODELS.find((m) => model.startsWith(m.id))?.label ?? model
+
+const formatCost = (usd: number): string =>
+    usd >= 1
+        ? `$${usd.toFixed(2)}`
+        : usd >= 0.01
+          ? `$${usd.toFixed(3)}`
+          : `$${usd.toFixed(4)}`
+
+/** This answer's cost, and the same tokens on the other of Haiku and Sonnet */
+function costLine(usage: Usage): string | null {
+    if (usage.costUsd === null || usage.costUsd === undefined) return null
+    const model =
+        MODELS.find((m) => usage.model.startsWith(m.id))?.id ?? DEFAULT_MODEL
+    const other =
+        model === "claude-haiku-5-5" ? "claude-sonnet-5-5" : "claude-haiku-5-5"
+    const otherCost = usage.costUsdByModel?.[other]
+    return `${formatCost(usage.costUsd)} (${formatCost(usage.costUsd * 1000)} per 1,000 like it)${otherCost !== null && otherCost !== undefined ? ` · same tokens on ${modelLabel(other)}: ${formatCost(otherCost)}` : ""}`
+}
 
 export function AiModePanel({
     store,
@@ -308,6 +327,11 @@ export function AiModePanel({
                             in ({current.usage.cacheReadTokens.toLocaleString()}{" "}
                             cached) ·{" "}
                             {current.usage.outputTokens.toLocaleString()} out
+                        </p>
+                    )}
+                    {current && costLine(current.usage) && (
+                        <p className="configure-with-ai__usage">
+                            {costLine(current.usage)}
                         </p>
                     )}
                 </div>

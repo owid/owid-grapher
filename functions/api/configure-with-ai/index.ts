@@ -4,6 +4,7 @@ import * as z from "zod"
 import { Env } from "../../_common/env.js"
 import { loadChartContext } from "./chartContext.js"
 import { callClaude } from "./claude.js"
+import { costOf, costsByModel } from "./cost.js"
 import {
     buildPrompt,
     parseJsonReply,
@@ -59,6 +60,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             cacheWriteTokens: claude.cacheWriteTokens,
             contextMs,
             ms,
+            costUsd: costOf(claude, model),
+            costUsdByModel: costsByModel(claude),
         }
         if (claude.stopReason === "refusal") {
             console.log(
