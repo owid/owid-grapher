@@ -20,7 +20,10 @@ const DEFAULT_DATA_API_URL = "https://api.ourworldindata.org/v1/indicators/"
 /** A Grapher config, plus options that control how the embedded chart behaves
  *  but aren't part of the persisted config schema. */
 export type GrapherLoaderConfig = GrapherInterface &
-    Pick<GrapherProgrammaticInterface, "canonicalUrl">
+    Pick<
+        GrapherProgrammaticInterface,
+        "canonicalUrl" | "hideDownloadButton" | "hideShareButton"
+    >
 
 interface GrapherApiOptionsBase {
     config: GrapherLoaderConfig
