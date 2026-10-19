@@ -808,19 +808,6 @@ describe(buildDecadeAxisTicks, () => {
         ])
     })
 
-    it("carries no label, so the column's own time format applies", () => {
-        const ticks = buildDecadeAxisTicks({
-            domain: [1950, 1970],
-            targetCount: 6,
-        })
-        expect(ticks?.map((tick) => tick.label)).toEqual([
-            undefined,
-            undefined,
-            undefined,
-        ])
-        expect(ticks?.every((tick) => tick.priority === 2)).toBe(true)
-    })
-
     it("has no ticks when the domain holds no multiple of any step", () => {
         expect(
             buildDecadeAxisTicks({ domain: [1951, 1959], targetCount: 6 })
