@@ -52,9 +52,8 @@ import {
 import { DeforestationChart } from "../components/DeforestationChart.js"
 import { DeforestationControls } from "../components/DeforestationControls.js"
 
-/** The last year the manifest ships. Only a seed for the URL state, which is
- *  initialised before the metadata has loaded; the rendered year is always
- *  resolved against `metadata.years` below. */
+/** Default for single-year views, even when newer data is available.
+ *  Falls back to the latest year only if this year is absent from the metadata. */
 const DEFAULT_YEAR = 2023
 
 const queryClient = new QueryClient()

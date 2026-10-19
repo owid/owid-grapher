@@ -50,7 +50,7 @@ export const CONFIG_SPEC = {
     year: {
         type: "integer",
         description:
-            "Year shown first when the period is a single year. Defaults to the latest year in the data",
+            "Year shown first when the period is a single year. Defaults to 2023. If the selected year is unavailable, uses the latest year in the data",
     },
     period: {
         type: "enum",
