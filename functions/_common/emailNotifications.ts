@@ -6,6 +6,7 @@ import {
 } from "@ourworldindata/types"
 import { JsonError } from "@ourworldindata/utils"
 import * as _ from "lodash-es"
+import { EMAIL_TEMPLATES, renderEmailTemplate } from "./emailTemplates.js"
 import { Env } from "./env.js"
 import { logErrorAndCaptureInSentry } from "./errorLog.js"
 import { getPostmarkClient } from "./postmarkClient.js"
@@ -20,34 +21,19 @@ interface PostmarkEmail {
     to: string
     subject: string
     htmlBody: string
+    // Text alternative for clients that don't render HTML, and one of the
+    // signals spam filters weigh.
+    textBody: string
     // Postmark message tag, for filtering in the Postmark dashboard.
     tag?: string
 }
 
-function renderPreferencesListHtml(
-    preferences: EmailNotificationsPreferences
-): string {
-    // Topic tags are user-submitted strings, so escape them. An empty list
-    // means "all topics".
-    const topics =
-        preferences.topicTags.length > 0
-            ? preferences.topicTags.map(_.escape).join(", ")
-            : "All topics"
-    const contentTypes = preferences.contentTypes
-        .map(
-            (contentType) =>
-                EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS[contentType]
-        )
-        .join(", ")
-    const frequency =
-        EMAIL_NOTIFICATIONS_FREQUENCY_LABELS[
-            preferences.frequency
-        ].toLowerCase()
-    return `<ul>
-<li><b>Topics:</b> ${topics}</li>
-<li><b>Content types:</b> ${contentTypes}</li>
-<li><b>Frequency:</b> at most ${frequency}</li>
-</ul>`
+/**
+ * In prod, the API and site are on the same host
+ * For local dev, you can override the host with BAKED_BASE_URL
+ */
+function getSiteBaseUrl(env: Env, origin: string): string {
+    return env.BAKED_BASE_URL || origin
 }
 
 /**
@@ -68,16 +54,36 @@ export async function sendWelcomeEmail(
         userToken: string
     }
 ): Promise<void> {
-    const updatePreferencesUrl = `${origin}/api/email-notifications/request-link?token=${props.userToken}`
-    const unsubscribeUrl = `${origin}/api/email-notifications/unsubscribe?token=${props.userToken}`
+    const { preferences } = props
+    const { subject, html, text } = renderEmailTemplate(
+        EMAIL_TEMPLATES.welcome,
+        {
+            email: props.to,
+            // An empty topic list means "all topics".
+            topics:
+                preferences.topicTags.length > 0
+                    ? preferences.topicTags.join(", ")
+                    : "All topics",
+            contentTypes: preferences.contentTypes
+                .map(
+                    (contentType) =>
+                        EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS[contentType]
+                )
+                .join(", "),
+            frequency: `At most ${EMAIL_NOTIFICATIONS_FREQUENCY_LABELS[
+                preferences.frequency
+            ].toLowerCase()}`,
+            siteBaseUrl: getSiteBaseUrl(env, origin),
+            updatePreferencesUrl: `${origin}/api/email-notifications/request-link?token=${props.userToken}`,
+            unsubscribeUrl: `${origin}/api/email-notifications/unsubscribe?token=${props.userToken}`,
+        }
+    )
     await sendPostmarkEmail(env, {
         to: props.to,
-        subject: "You're subscribed to Our World in Data updates",
+        subject,
         tag: "email-notifications-welcome",
-        htmlBody: `<p>Thanks for subscribing to email updates from Our World in Data! You're all set — you'll receive an email when we publish new work matching your preferences.</p>
-<p>These are your notification preferences:</p>
-${renderPreferencesListHtml(props.preferences)}
-<p>You can <a href="${updatePreferencesUrl}">update your preferences</a> or <a href="${unsubscribeUrl}">unsubscribe from Follow Topics</a> at any time — these links are also in the footer of every Follow Topics email we send.</p>`,
+        htmlBody: html,
+        textBody: text,
     })
     console.log(`Welcome email sent userId=${props.userId}`)
 }
@@ -92,14 +98,21 @@ export async function sendMagicLinkEmail(
     origin: string,
     props: { userId: number; to: string; token: string }
 ): Promise<void> {
-    const magicLinkUrl = `${origin}/preferences#token=${props.token}`
+    const siteBaseUrl = getSiteBaseUrl(env, origin)
+    const { subject, html, text } = renderEmailTemplate(
+        EMAIL_TEMPLATES.magicLink,
+        {
+            email: props.to,
+            siteBaseUrl,
+            magicLinkUrl: `${siteBaseUrl}/preferences#token=${props.token}`,
+        }
+    )
     await sendPostmarkEmail(env, {
         to: props.to,
-        subject: "Update your Our World in Data notification preferences",
+        subject,
         tag: "email-notifications-magic-link",
-        htmlBody: `<p>Click the link below to view and update your Our World in Data email notification preferences. The link is valid for 30 minutes.</p>
-<p><a href="${magicLinkUrl}">Update my preferences</a></p>
-<p>If you didn't request this, you can safely ignore this email — nothing will change.</p>`,
+        htmlBody: html,
+        textBody: text,
     })
     console.log(`Magic-link email sent userId=${props.userId}`)
 }
@@ -118,6 +131,7 @@ export async function sendPostmarkEmail(
         To: email.to,
         Subject: email.subject,
         HtmlBody: email.htmlBody,
+        TextBody: email.textBody,
         MessageStream: "outbound",
         Tag: email.tag,
     })
