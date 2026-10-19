@@ -1195,7 +1195,7 @@ function getIconLabelOffset(node: { icon?: React.ReactNode }): number {
 }
 
 function textWidth(text: string, fontSettings: FontSettings): number {
-    return Bounds.forText(text, fontSettings).width
+    return new TextWrap({ ...fontSettings, text, maxWidth: Infinity }).width
 }
 
 /**

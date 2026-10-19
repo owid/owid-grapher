@@ -66,7 +66,7 @@ const MIN_LABELLED_GROUP_SHARE = 0.05
 const LABEL_NO_GROUPS = Infinity
 
 /** The note under the domestic production node's label */
-const DOMESTIC_ANNOTATION = "produced & consumed here"
+const DOMESTIC_ANNOTATION = "produced & consumed\ndomestically"
 
 /** Group icons in tooltips are bigger than the ones beside the chart's labels */
 const TOOLTIP_GROUP_ICON_SIZE = 28
