@@ -285,9 +285,10 @@ export class Grapher extends React.Component<GrapherProps> {
     }
 
     @action.bound private toggleTabCommand(): void {
-        this.grapherState.setTab(
-            next(this.grapherState.availableTabs, this.grapherState.activeTab)
-        )
+        const oldTab = this.grapherState.activeTab
+        const newTab = next(this.grapherState.availableTabs, oldTab)
+        this.grapherState.setTab(newTab)
+        this.grapherState.onTabChange(oldTab, newTab)
     }
 
     @action.bound private togglePlayingCommand(): void {

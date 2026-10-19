@@ -1994,18 +1994,26 @@ export class GrapherState
         )
     }
 
+    /** Whether the authored config selects a time range rather than a single time */
+    @computed private get isAuthoredTimeRange(): boolean {
+        const { minTime, maxTime } = this.authorsVersion
+        return (
+            minTimeBoundFromJSONOrNegativeInfinity(minTime) !==
+            maxTimeBoundFromJSONOrPositiveInfinity(maxTime)
+        )
+    }
+
     private readonly checkSingleTimeSelectionPreferred = (
         tabName: GrapherTabName
     ): boolean => {
-        // Scatter plots can show a time range, but a single time is preferred
-        // when the scatter is not the main chart, but a secondary tab.
-        // In relative mode, a scatter shows the average annual change, which
-        // requires a time range, so we don't collapse to a single time then.
-        return (
-            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
-            !this.isScatter &&
-            !this.isRelativeMode
-        )
+        if (tabName === GRAPHER_TAB_NAMES.Table) return true
+
+        if (tabName !== GRAPHER_TAB_NAMES.ScatterPlot) return false
+        if (this.isRelativeMode) return false
+
+        // A secondary scatter prefers a single time, a primary one follows its
+        // authored time mode
+        return !this.isScatter || !this.isAuthoredTimeRange
     }
 
     private readonly checkOnlyTimeRangeSelectionPossible = (
@@ -2023,13 +2031,12 @@ export class GrapherState
         tabName: GrapherTabName
     ): boolean => {
         // In relative mode, a scatter shows the average annual change, which
-        // requires a time range rather than a single time
-        if (
-            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
-            !this.isScatter &&
-            this.isRelativeMode
-        )
-            return true
+        // requires a time range
+        if (tabName === GRAPHER_TAB_NAMES.ScatterPlot)
+            return (
+                this.isRelativeMode ||
+                (this.isScatter && this.isAuthoredTimeRange)
+            )
 
         return [
             GRAPHER_TAB_NAMES.StackedArea,
