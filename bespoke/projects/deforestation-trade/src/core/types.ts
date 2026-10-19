@@ -65,7 +65,6 @@ export type RawMetadataJson = Partial<BespokeMetadata> & {
 
 export type DeforestationMetadata = {
     years: number[]
-    source: string
     entities: Entity[]
     commodityGroups: CommodityGroup[]
     entityById: Map<number, Entity>

@@ -2,8 +2,6 @@ import { QueryStatus, useQuery } from "@tanstack/react-query"
 
 import {
     fetchJson,
-    formatAttributionsShortened,
-    getAttributionFragmentsFromBespokeMetadata,
     getRegionByCode,
 } from "@ourworldindata/utils"
 

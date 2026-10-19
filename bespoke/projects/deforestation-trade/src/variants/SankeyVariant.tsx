@@ -367,7 +367,6 @@ function CaptionedSankeyVariant({
                         isNarrow={isNarrow}
                     />
                     <ChartFooter
-                        source={metadata.source}
                         note={buildNote(view)}
                     />
                 </Frame>
