@@ -633,7 +633,7 @@
 // what readers see
 .configure-with-ai__staff {
     flex-shrink: 0;
-    padding: 6px 16px 8px;
+    padding: 4px 16px;
     border-top: 1px dashed $blue-30;
     background: $gray-5;
 }
@@ -665,6 +665,11 @@
     align-items: center;
     gap: 5px;
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    cursor: help;
     color: $gray-80;
     font-size: 0.6875rem;
 }

@@ -119,21 +119,45 @@ const formatCost = (usd: number): string =>
  * chart (cache written, not read), which is how most readers would arrive.
  * Budget with the first-question figure; Sonnet also tends to write more.
  */
-function costLines(usage: Usage): string[] {
+/**
+ * One line for the staff strip: time, this answer's cost as the first
+ * question on its chart (how most readers would arrive, so the figure to
+ * budget with) and the same tokens on the other model. The full breakdown
+ * goes in the tooltip.
+ */
+function usageSummary(usage: Usage): { line: string; details: string } {
     const model =
         MODELS.find((m) => usage.model.startsWith(m.id))?.id ?? DEFAULT_MODEL
-    const lines: string[] = []
-    for (const id of ["claude-sonnet-5-5", "claude-haiku-5-5"] as const) {
-        const costs = usage.costUsdByModel?.[id]
-        if (!costs || costs.asRun === null || costs.firstQuestion === null)
-            continue
-        const prefix =
-            id === model ? modelLabel(id) : `Same tokens on ${modelLabel(id)}`
-        lines.push(
-            `${prefix}: ${formatCost(costs.asRun)} · as a first question ${formatCost(costs.firstQuestion)} (${formatCost(costs.firstQuestion * 1000)} per 1,000)`
+    const other =
+        model === "claude-haiku-5-5" ? "claude-sonnet-5-5" : "claude-haiku-5-5"
+    const costs = usage.costUsdByModel?.[model]
+    const otherCosts = usage.costUsdByModel?.[other]
+    const seconds = `${(usage.ms / 1000).toFixed(1)} s`
+    const parts = [seconds]
+    if (typeof costs?.firstQuestion === "number")
+        parts.push(formatCost(costs.firstQuestion))
+    if (typeof otherCosts?.firstQuestion === "number")
+        parts.push(
+            `${modelLabel(other).split(" ")[0]} ${formatCost(otherCosts.firstQuestion)}`
         )
-    }
-    return lines
+    const tokensIn =
+        usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens
+    const details = [
+        `${modelLabel(usage.model)}, ${seconds}`,
+        `${tokensIn.toLocaleString()} tokens in (${usage.cacheReadTokens.toLocaleString()} cached), ${usage.outputTokens.toLocaleString()} out`,
+        ...[model, other].map((id) => {
+            const c = usage.costUsdByModel?.[id]
+            if (
+                typeof c?.asRun !== "number" ||
+                typeof c.firstQuestion !== "number"
+            )
+                return ""
+            return `${modelLabel(id)}: ${formatCost(c.asRun)} as run, ${formatCost(c.firstQuestion)} as the first question on a chart (${formatCost(c.firstQuestion * 1000)} per 1,000)`
+        }),
+    ]
+        .filter(Boolean)
+        .join("\n")
+    return { line: parts.join(" · "), details }
 }
 
 export function AiModePanel({
@@ -327,9 +351,21 @@ export function AiModePanel({
             {isStaff && (
                 <div className="configure-with-ai__staff">
                     <div className="configure-with-ai__staff-row">
-                        <span className="configure-with-ai__staff-label">
-                            <FontAwesomeIcon icon={faEyeSlash} />
-                            Only visible to OWID staff
+                        <span
+                            className="configure-with-ai__staff-label"
+                            title={
+                                current
+                                    ? usageSummary(current.usage).details
+                                    : "Only visible to OWID staff"
+                            }
+                        >
+                            <FontAwesomeIcon
+                                icon={faEyeSlash}
+                                aria-label="Only visible to OWID staff"
+                            />
+                            {current
+                                ? usageSummary(current.usage).line
+                                : "Only visible to OWID staff"}
                         </span>
                         <label className="configure-with-ai__model">
                             <span className="sr-only">Model</span>
@@ -347,26 +383,6 @@ export function AiModePanel({
                             </select>
                         </label>
                     </div>
-                    {current && (
-                        <p className="configure-with-ai__usage">
-                            {modelLabel(current.usage.model)} ·{" "}
-                            {(current.usage.ms / 1000).toFixed(1)} s ·{" "}
-                            {(
-                                current.usage.inputTokens +
-                                current.usage.cacheReadTokens +
-                                current.usage.cacheWriteTokens
-                            ).toLocaleString()}{" "}
-                            in ({current.usage.cacheReadTokens.toLocaleString()}{" "}
-                            cached) ·{" "}
-                            {current.usage.outputTokens.toLocaleString()} out
-                        </p>
-                    )}
-                    {current &&
-                        costLines(current.usage).map((line) => (
-                            <p className="configure-with-ai__usage" key={line}>
-                                {line}
-                            </p>
-                        ))}
                 </div>
             )}
         </div>
