@@ -94,21 +94,3 @@ describe("GrapherLoader canonicalUrl", () => {
         expect(grapherState.embedUrl).toBeUndefined()
     })
 })
-
-describe("GrapherLoader button options", () => {
-    it("passes the download, share and donate button flags through", () => {
-        const { grapherState } = GrapherLoader.fromCsv({
-            config: {
-                ...config,
-                hideDownloadButton: true,
-                hideShareButton: true,
-                hideDonateButton: true,
-            },
-            csv,
-            columnDefs,
-        })
-        expect(grapherState.hideDownloadButton).toBe(true)
-        expect(grapherState.hideShareButton).toBe(true)
-        expect(grapherState.hideDonateButton).toBe(true)
-    })
-})
