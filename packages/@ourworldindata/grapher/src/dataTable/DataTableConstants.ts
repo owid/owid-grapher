@@ -9,7 +9,6 @@ import {
 } from "@ourworldindata/types"
 import { EntitiesByRegionGroup, RegionGroupKey } from "../core/RegionGroups"
 import { SelectionArray } from "../selection/SelectionArray"
-import { TimelineDragTarget } from "../timeline/TimelineController"
 
 // Grapher's rendered data table is organized into groups, where
 // each group corresponds to an indicator from the core table.
@@ -33,7 +32,6 @@ export interface DataTableManager {
     dataTableSort?: DataTableSortState
     dataTableSelection?: SelectionArray | EntityName[]
     entitiesByRegionGroup?: EntitiesByRegionGroup
-    timelineDragTarget?: TimelineDragTarget
     closestTimelineMinTime?: Time
     closestTimelineMaxTime?: Time
 }
@@ -188,9 +186,3 @@ export const ENTITY_DATA_TABLE_SORT: DataTableSortState = {
 }
 
 export type DimensionSortIndex = number
-
-export interface SparklineHighlight {
-    time: Time
-    value?: number
-    showMarker?: boolean
-}

@@ -3,38 +3,32 @@ import { scaleLinear } from "d3-scale"
 import { extent, line } from "d3"
 import { Bounds, roundForSvg } from "@ourworldindata/utils"
 import { OwidVariableRow } from "@ourworldindata/types"
-import { GRAPHER_DENIM, GRAY_30 } from "../color/ColorConstants"
-import { SparklineHighlight } from "../dataTable/DataTableConstants"
+import { GRAPHER_DENIM } from "../color/ColorConstants"
+
+const WIDTH = 75
+const HEIGHT = 18
+const DOT_RADIUS = 3
 
 export function Sparkline({
-    width = 75,
-    height = 18,
     owidRows,
-    highlights = [],
-    dotSize = 3.5,
-    color = GRAPHER_DENIM,
-    strokeStyle = "solid",
+    strokeStyle,
 }: {
-    width?: number
-    height?: number
     owidRows: OwidVariableRow<number>[]
-    highlights?: SparklineHighlight[]
-    dotSize?: number
-    color?: string
-    strokeStyle?: "solid" | "dotted"
+    strokeStyle: "solid" | "dotted"
 }): React.ReactElement | null {
     if (owidRows.length <= 1) return null
 
     // add a little padding so the dots don't overflow
-    const bounds = new Bounds(0, 0, width, height).padWidth(dotSize)
+    const bounds = new Bounds(0, 0, WIDTH, HEIGHT).padWidth(DOT_RADIUS)
+
+    const firstRow = owidRows[0]
+    const lastRow = owidRows[owidRows.length - 1]
+    const minTime = firstRow.originalTime
+    const maxTime = lastRow.originalTime
 
     // calculate x-scale
-    const [minTime, maxTime] = extent(
-        owidRows.map((row) => row.originalTime)
-    ) as [number, number]
-    const xDomain = [minTime, maxTime]
     const xScale = scaleLinear()
-        .domain(xDomain)
+        .domain([minTime, maxTime])
         .range([bounds.left, bounds.right])
 
     // calculate y-scale
@@ -54,52 +48,28 @@ export function Sparkline({
 
     return (
         <svg
-            width={width}
-            height={height}
-            viewBox={`0 0 ${width} ${height}`}
+            width={WIDTH}
+            height={HEIGHT}
+            viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
             style={{ overflow: "visible" }}
         >
-            {/* marker lines of highlights */}
-            {highlights
-                .filter(
-                    (highlight) =>
-                        highlight.showMarker &&
-                        highlight.time >= minTime &&
-                        highlight.time <= maxTime
-                )
-                .map((highlight) => (
-                    <line
-                        key={highlight.time}
-                        x1={roundForSvg(xScale(highlight.time))}
-                        x2={roundForSvg(xScale(highlight.time))}
-                        y1={0}
-                        y2={roundForSvg(height)}
-                        stroke={GRAY_30}
-                    />
-                ))}
-
-            {/* sparkline */}
             <path
                 d={path}
-                stroke={color}
+                stroke={GRAPHER_DENIM}
                 fill="none"
                 strokeWidth={1.5}
                 strokeDasharray={strokeDasharray}
             />
 
-            {/* highlighted data points */}
-            {highlights
-                .filter((highlight) => highlight.value !== undefined)
-                .map((highlight) => (
-                    <circle
-                        key={highlight.time}
-                        cx={roundForSvg(xScale(highlight.time))}
-                        cy={roundForSvg(yScale(highlight.value!))}
-                        r={dotSize}
-                        fill={color}
-                        stroke="#fff"
-                    />
-                ))}
+            {[firstRow, lastRow].map((row) => (
+                <circle
+                    key={row.originalTime}
+                    cx={roundForSvg(xScale(row.originalTime))}
+                    cy={roundForSvg(yScale(row.value))}
+                    r={DOT_RADIUS}
+                    fill={GRAPHER_DENIM}
+                />
+            ))}
         </svg>
     )
 }

@@ -50,7 +50,6 @@ import {
     RangeColumnKey,
     PointValuesForEntity,
     PointColumnKey,
-    SparklineHighlight,
     TargetTimeMode,
     MinimalOwidRow,
     DataTableConfig,
@@ -408,66 +407,6 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    private renderSparklineCellContent({
-        columnDefinition,
-        valuesForEntity,
-        isProjection,
-    }: {
-        columnDefinition: DataTableColumnDefinition
-        valuesForEntity?: DataTableValuesForEntity
-        isProjection?: boolean
-    }): React.ReactElement | null {
-        if (
-            columnDefinition.key !== SparklineKey.sparkline ||
-            !valuesForEntity?.sparkline
-        )
-            return null
-
-        const highlights: SparklineHighlight[] = []
-
-        const start = isRangeValue(valuesForEntity)
-            ? valuesForEntity.start
-            : valuesForEntity.single
-        const startTime = start?.time ?? this.targetTimes?.[0]
-
-        const end = isRangeValue(valuesForEntity)
-            ? valuesForEntity.end
-            : valuesForEntity.single
-        const endTime = end?.time ?? this.targetTimes?.[1]
-
-        // Add a highlight for the start time
-        if (startTime !== undefined) {
-            const value =
-                typeof start?.value === "string" ? undefined : start?.value
-
-            const showMarker =
-                this.manager.timelineDragTarget === "start" ||
-                this.manager.timelineDragTarget === "both"
-
-            highlights.push({ time: startTime, value, showMarker })
-        }
-
-        // Add a highlight for the end time
-        if (endTime !== undefined && endTime !== startTime) {
-            const value =
-                typeof end?.value === "string" ? undefined : end?.value
-
-            const showMarker =
-                this.manager.timelineDragTarget === "end" ||
-                this.manager.timelineDragTarget === "both"
-
-            highlights.push({ time: endTime, value, showMarker })
-        }
-
-        return (
-            <Sparkline
-                owidRows={valuesForEntity.sparkline}
-                highlights={highlights}
-                strokeStyle={isProjection ? "dotted" : "solid"}
-            />
-        )
-    }
-
     private renderEntityRow(
         row: DataTableRow,
         dimensions: DisplayDataTableDimension[]
@@ -495,11 +434,18 @@ export class DataTable extends React.Component<DataTableProps> {
                                         columnKey={columnDefinition.key}
                                         isFirstColumn={colIndex === 0}
                                     >
-                                        {this.renderSparklineCellContent({
-                                            columnDefinition,
-                                            valuesForEntity,
-                                            isProjection,
-                                        })}
+                                        {valuesForEntity?.sparkline && (
+                                            <Sparkline
+                                                owidRows={
+                                                    valuesForEntity.sparkline
+                                                }
+                                                strokeStyle={
+                                                    isProjection
+                                                        ? "dotted"
+                                                        : "solid"
+                                                }
+                                            />
+                                        )}
                                     </ValueCell>
                                 )
 
