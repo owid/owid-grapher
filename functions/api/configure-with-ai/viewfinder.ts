@@ -85,6 +85,8 @@ export interface ChartContext {
     currentTableSort?: ViewfinderView["tableSort"]
     /** How many years away the map looks for a value when a year has none */
     mapTolerance: number
+    /** The same for the table and the bar chart */
+    columnTolerance: number
     data: IndicatorSummary
     mdim?: MdimContext
 }
@@ -94,6 +96,8 @@ export interface ViewfinderView {
     note: string | null
     /** The view stands in for something the data doesn't have */
     closestMatch: boolean
+    /** Written by code: how a ranked view's countries were picked, or how many shown have data */
+    facts: string | null
     /** Full dimension choices of the MDim view, including "nan" ones */
     options?: MdimChoices
     tab: string
@@ -105,6 +109,102 @@ export interface ViewfinderView {
         order: "asc" | "desc"
     } | null
     tableFilter: "selection" | null
+}
+
+export const CONTINENTS = [
+    "Africa",
+    "Asia",
+    "Europe",
+    "North America",
+    "South America",
+    "Oceania",
+]
+
+export interface RankRule {
+    order: "highest" | "lowest"
+    n: number
+    year: number
+    continent: string | null
+}
+
+const MAX_RANKED = 30
+
+/** The value closest to `year`, within `tolerance` years */
+function valueNear(
+    series: SeriesPoint[] | undefined,
+    year: number,
+    tolerance: number
+): number | undefined {
+    let best: SeriesPoint | undefined
+    for (const point of series ?? [])
+        if (
+            Math.abs(point[0] - year) <= tolerance &&
+            (!best || Math.abs(point[0] - year) < Math.abs(best[0] - year))
+        )
+            best = point
+    return best?.[1]
+}
+
+export function parseRankRule(raw: unknown): RankRule | undefined {
+    if (!raw || typeof raw !== "object") return undefined
+    const r = raw as Record<string, unknown>
+    if (r.order !== "highest" && r.order !== "lowest") return undefined
+    const n = Number(r.n)
+    const year = Number(r.year)
+    if (!Number.isInteger(n) || n < 1 || !Number.isInteger(year))
+        return undefined
+    const continent =
+        typeof r.continent === "string" && CONTINENTS.includes(r.continent)
+            ? r.continent
+            : null
+    return { order: r.order, n: Math.min(n, MAX_RANKED), year, continent }
+}
+
+/** Picks the countries a ranking asks for from the full data */
+export function rankEntities(
+    data: IndicatorSummary,
+    rule: RankRule,
+    tolerance: number
+): { entities: string[]; facts: string } {
+    const candidates = data.entities.filter(
+        (e) =>
+            e.type === "country" &&
+            (!rule.continent || e.continent === rule.continent)
+    )
+    const withData = candidates
+        .map((e) => ({
+            name: e.name,
+            value: valueNear(data.series.get(e.name), rule.year, tolerance),
+        }))
+        .filter(
+            (e): e is { name: string; value: number } => e.value !== undefined
+        )
+    withData.sort((a, b) =>
+        rule.order === "highest" ? b.value - a.value : a.value - b.value
+    )
+    const entities = withData.slice(0, rule.n).map((e) => e.name)
+    const where = rule.continent ? ` in ${rule.continent}` : ""
+    const near =
+        tolerance > 0 ? ` (or the closest year within ${tolerance})` : ""
+    const facts = `${rule.order === "highest" ? "Highest" : "Lowest"} ${entities.length} of the ${withData.length} countries${where} with data for ${rule.year}${near}`
+    return { entities, facts }
+}
+
+/** Says how many of the countries shown lack data for a single year, if any do */
+function coverageFacts(
+    data: IndicatorSummary,
+    entities: string[],
+    time: string | null,
+    tolerance: number
+): string | null {
+    const year = time && /^-?\d{1,4}$/.test(time) ? Number(time) : undefined
+    if (year === undefined || !entities.length) return null
+    const missing = entities.filter(
+        (name) =>
+            valueNear(data.series.get(name), year, tolerance) === undefined
+    )
+    if (!missing.length) return null
+    return `${entities.length - missing.length} of ${entities.length} have data for ${year}${tolerance > 0 ? ` or a year within ${tolerance}` : ""}`
 }
 
 export interface SanitizedReply {
@@ -301,7 +401,7 @@ Countries with a value in each year${md ? " (this combination)" : ""}: ${coverag
 
 ## Reply format
 Reply with ONLY a JSON object, no other text:
-{"interpretation": string, "views": [{"label": string, "note": string|null, "closestMatch": boolean, ${md ? '"options": object, ' : ""}"tab": string, "entities": string[], "time": string|null, "mapRegion": string|null, "tableSort": {"column": "value"|"change"|"relativeChange"|"entity", "order": "asc"|"desc"}|null, "tableFilter": "selection"|null}]}
+{"interpretation": string, "views": [{"label": string, "note": string|null, "closestMatch": boolean, ${md ? '"options": object, ' : ""}"tab": string, "entities": string[], "time": string|null, "mapRegion": string|null, "tableSort": {"column": "value"|"change"|"relativeChange"|"entity", "order": "asc"|"desc"}|null, "tableFilter": "selection"|null, "rank": {"order": "highest"|"lowest", "n": number, "year": number, "continent": string|null}|null}]}
 
 Rules:
 - 2 to 4 views, best first. Vary them across tabs${md ? " and options" : ""} where that helps (e.g. a line chart, a sorted table, a map).
@@ -310,6 +410,7 @@ Rules:
 - "closestMatch": true when the view stands in for something this data doesn't have (e.g. high-income countries for an "OECD average", or a threshold income for an average income); the note then says what it stands in for and how it differs. Otherwise false.
 - "interpretation": one short sentence (max 20 words) on how you understood the request. Only shown when no views are returned: then say what's missing or why it can't be shown, not just what was asked.
 ${md ? `- "options": one combination from the list above, as an object with exactly its keys, e.g. ${optStr(md.views[0].dims)}. Read the options' descriptions and pick the measure that matches what was asked.\n- "tab" must be one of that combination's tabs.` : `- "tab" must be one of: ${tabs.join(", ")}.`}
+- "rank": for any view that ranks or picks the top or bottom countries ("highest", "10 lowest", "worst in Europe"). Code then picks the countries from the full data, so leave "entities" [] and don't name countries in the label. "year" must be one most of them have data for (see the coverage line); "continent" one of ${CONTINENTS.join(", ")}, or null for the world. The table and bar chart show that year; a table shows only the ranked countries, sorted. Code adds a line saying how the countries were picked, so the note only gives the reason for the choice.${md ? " Only with the combination currently shown (its data is the one above)." : ""} Otherwise null.
 - "entities": exact names from the data above. Use [] to keep the chart's default selection. Countries only, unless the reader asks about regions.
 - "time": "YYYY" for one year, "YYYY..YYYY" for a range, or null for the default. Use years that have data for the entities shown.
 - When the request refines what's currently shown (e.g. "add Canada", "only since 2000", "as a map"), keep the current tab, countries, time and table sort, and change only what the request asks for.
@@ -377,7 +478,7 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
             if (resolved) entities.push(resolved)
             else dropped.push(`entity "${String(name)}"`)
         }
-        const time =
+        let time =
             typeof v.time === "string" && TIME_PATTERN.test(v.time.trim())
                 ? v.time.trim()
                 : null
@@ -388,7 +489,9 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
         const sort = (
             v.tableSort && typeof v.tableSort === "object" ? v.tableSort : {}
         ) as Record<string, unknown>
-        const tableSort = TABLE_SORT_COLUMNS.some((c) => c === sort.column)
+        let tableSort: ViewfinderView["tableSort"] = TABLE_SORT_COLUMNS.some(
+            (c) => c === sort.column
+        )
             ? {
                   column: sort.column as (typeof TABLE_SORT_COLUMNS)[number],
                   order:
@@ -397,8 +500,38 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
                           : ("desc" as const),
               }
             : null
-        const tableFilter =
+        let tableFilter =
             v.tableFilter === "selection" ? ("selection" as const) : null
+        let facts: string | null = null
+        const rule = parseRankRule(v.rank)
+        // The ranking can only use the data of the combination shown
+        const ranksShownData =
+            !ctx.mdim ||
+            JSON.stringify(optionsOf(options ?? {})) ===
+                JSON.stringify(optionsOf(ctx.mdim.current))
+        if (rule && !ranksShownData) dropped.push("rank on another combination")
+        if (rule && ranksShownData) {
+            const tolerance =
+                tab === "map" ? ctx.mapTolerance : ctx.columnTolerance
+            const ranked = rankEntities(ctx.data, rule, tolerance)
+            entities.splice(0, entities.length, ...ranked.entities)
+            facts = ranked.facts
+            if (tab !== "line" && tab !== "slope") time = String(rule.year)
+            if (tab === "table") {
+                tableFilter = "selection"
+                tableSort = {
+                    column: "value",
+                    order: rule.order === "highest" ? "desc" : "asc",
+                }
+            }
+        } else {
+            facts = coverageFacts(
+                ctx.data,
+                entities,
+                time,
+                tab === "map" ? ctx.mapTolerance : ctx.columnTolerance
+            )
+        }
         const label = String(v.label || TAB_LABEL[tab] || tab).slice(0, 80)
         const note =
             typeof v.note === "string" && v.note.trim()
@@ -415,6 +548,7 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
             tableSort,
             tableFilter,
             closestMatch: v.closestMatch === true,
+            facts,
         })
     }
     return {

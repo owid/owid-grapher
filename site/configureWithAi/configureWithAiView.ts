@@ -15,6 +15,8 @@ export interface ConfigureWithAiView {
     note: string | null
     /** The view stands in for something the data doesn't have */
     closestMatch: boolean
+    /** Written by code: how a ranked view's countries were picked, or how many shown have data */
+    facts: string | null
     options?: MultiDimDimensionChoices
     tab: string
     entities: string[]

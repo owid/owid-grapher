@@ -526,6 +526,11 @@ function Answer({
                                         {isBusy ? "Loading…" : "Now showing"}
                                     </span>
                                 )}
+                                {isActive && view.facts && (
+                                    <span className="configure-with-ai__facts">
+                                        {view.facts}
+                                    </span>
+                                )}
                                 {isActive && view.note && (
                                     <span className="configure-with-ai__note">
                                         {view.note}

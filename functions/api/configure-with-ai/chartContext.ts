@@ -90,6 +90,7 @@ export function buildChartContext(
         selected: [...grapherState.selection.selectedEntityNames],
         currentTime: grapherState.changedParams.time ?? null,
         mapTolerance: grapherState.map.timeTolerance ?? column.tolerance,
+        columnTolerance: column.tolerance,
         data: summary,
         mdim,
     }

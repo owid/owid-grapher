@@ -390,6 +390,14 @@
     font-weight: 700;
 }
 
+// Written by code from the data, so set apart from the model's note
+.configure-with-ai__facts {
+    color: $blue-90;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
 .configure-with-ai__note {
     color: $blue-60;
     font-size: 0.8125rem;

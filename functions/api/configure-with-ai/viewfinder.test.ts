@@ -6,6 +6,7 @@ import {
     requestSchema,
     MdimContext,
     parseJsonReply,
+    rankEntities,
     sanitizeSuggestions,
     sanitizeViews,
 } from "./viewfinder.js"
@@ -67,6 +68,7 @@ const singleChart: ChartContext = {
     selected: ["India"],
     currentTime: null,
     mapTolerance: 5,
+    columnTolerance: 0,
     data,
 }
 
@@ -177,6 +179,7 @@ describe(sanitizeViews, () => {
                 tableSort: { column: "change", order: "asc" },
                 tableFilter: "selection",
                 closestMatch: true,
+                facts: null,
             },
         ])
         expect(result.dropped).toEqual(['entity "Atlantis"', 'tab "scatter"'])
@@ -316,5 +319,80 @@ describe(sanitizeSuggestions, () => {
             "Since 1990",
         ])
         expect(sanitizeSuggestions({ views: [] })).toEqual([])
+    })
+})
+
+describe(rankEntities, () => {
+    it("ranks countries by their value in the year, leaving out regions", () => {
+        expect(
+            rankEntities(
+                data,
+                { order: "highest", n: 5, year: 2022, continent: null },
+                0
+            )
+        ).toEqual({
+            entities: ["India", "Canada"],
+            facts: "Highest 2 of the 2 countries with data for 2022",
+        })
+    })
+
+    it("filters by continent and uses the closest year within the tolerance", () => {
+        expect(
+            rankEntities(
+                data,
+                { order: "lowest", n: 1, year: 1990, continent: "Asia" },
+                1
+            )
+        ).toEqual({
+            entities: ["India"],
+            facts: "Lowest 1 of the 1 countries in Asia with data for 1990 (or the closest year within 1)",
+        })
+    })
+})
+
+describe("ranked views", () => {
+    it("lets code pick the countries and set the table's year, filter and sort", () => {
+        const { views } = sanitizeViews(
+            {
+                views: [
+                    {
+                        label: "Table, lowest first",
+                        tab: "table",
+                        entities: ["World"],
+                        time: null,
+                        rank: {
+                            order: "lowest",
+                            n: 10,
+                            year: 2022,
+                            continent: "Mars",
+                        },
+                    },
+                ],
+            },
+            singleChart
+        )
+        expect(views[0]).toMatchObject({
+            entities: ["Canada", "India"],
+            time: "2022",
+            tableFilter: "selection",
+            tableSort: { column: "value", order: "asc" },
+            facts: "Lowest 2 of the 2 countries with data for 2022",
+        })
+    })
+
+    it("says how many countries shown lack data for a single year", () => {
+        const { views } = sanitizeViews(
+            {
+                views: [
+                    {
+                        tab: "discrete-bar",
+                        entities: ["Canada", "India"],
+                        time: "2000",
+                    },
+                ],
+            },
+            singleChart
+        )
+        expect(views[0].facts).toBe("1 of 2 have data for 2000")
     })
 })
