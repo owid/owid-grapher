@@ -4,11 +4,36 @@ import cx from "clsx"
 import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { TextInput } from "@ourworldindata/components"
-import { NewsletterSubscriptionContext } from "./newsletter.js"
+import { IS_ARCHIVE } from "../settings/clientSettings.mjs"
+import {
+    LATEST_DATA_INSIGHTS_NEWSLETTER_PATH,
+    LATEST_OWID_BRIEF_PATH,
+    NewsletterSubscriptionContext,
+} from "./newsletter.js"
 import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
 import { SiteToolsButton } from "./SiteToolsButton.js"
+import { PROD_URL } from "./SiteConstants.js"
 
 const analytics = new SiteAnalytics()
+
+// The latest-edition redirects are Cloudflare functions, which don't run on
+// the archive
+const LATEST_EDITION_BASE_URL = IS_ARCHIVE ? PROD_URL : ""
+
+const LatestEditionLink = ({ path }: { path: string }) => (
+    <>
+        {" "}
+        <span className="newsletter-subscription-form__latest">
+            <a
+                href={`${LATEST_EDITION_BASE_URL}${path}`}
+                data-track-note="newsletter_latest_edition"
+            >
+                Read the latest
+            </a>{" "}
+            →
+        </span>
+    </>
+)
 
 export const NewsletterSubscription = ({
     context,
@@ -143,13 +168,15 @@ export const NewsletterSubscriptionForm = ({
                     <div className="newsletter-subscription-form__label-text">
                         Stay up to date with our latest work plus curated
                         highlights from across Our World in Data, twice a month.
+                        <LatestEditionLink path={LATEST_OWID_BRIEF_PATH} />
                     </div>
                 </label>
                 <a
                     className="newsletter-subscription-form__example-link note-12-medium"
-                    href="https://mailchi.mp/ourworldindata/owid-brief-2025-11-14"
+                    href={`${LATEST_EDITION_BASE_URL}${LATEST_OWID_BRIEF_PATH}`}
+                    data-track-note="newsletter_latest_edition"
                 >
-                    See example OWID Brief newsletter
+                    Read the latest OWID Brief
                 </a>
             </div>
             <img
@@ -178,13 +205,17 @@ export const NewsletterSubscriptionForm = ({
                     <div className="newsletter-subscription-form__label-text">
                         Receive our bite-sized insights on how the world is
                         changing, every few days.
+                        <LatestEditionLink
+                            path={LATEST_DATA_INSIGHTS_NEWSLETTER_PATH}
+                        />
                     </div>
                 </label>
                 <a
                     className="newsletter-subscription-form__example-link note-12-medium"
-                    href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=fdf16136e1"
+                    href={`${LATEST_EDITION_BASE_URL}${LATEST_DATA_INSIGHTS_NEWSLETTER_PATH}`}
+                    data-track-note="newsletter_latest_edition"
                 >
-                    See example Data Insights newsletter
+                    Read the latest Data Insight
                 </a>
             </div>
             {frequencies.length === 0 && (
