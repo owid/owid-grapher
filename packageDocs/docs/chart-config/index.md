@@ -28,6 +28,7 @@ The config also accepts a few options that control how the chart behaves on your
 
 - `canonicalUrl` — the URL of the chart's own page, which the title and the "Explore the data" button link to and the share menu shares. By default it's derived from `slug` (as `/grapher/<slug>`, for published configs), which only resolves on ourworldindata.org. Pass `null` if the chart has no such page: the title is then plain text, and the "Explore the data" button and share menu are not shown.
 - `hideDownloadButton`, `hideShareButton` — set to `true` to remove the download and share buttons below the chart.
+- `hideDonateButton` — set to `true` to remove the "Donate" button, which is shown when the chart is rendered inside an iframe.
 
 ```js
 GrapherLoader.fromCsv({

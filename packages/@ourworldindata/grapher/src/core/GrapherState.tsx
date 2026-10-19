@@ -605,6 +605,7 @@ export class GrapherState
     hideDownloadButton = false
     hideEntityControls = false
     hideShareButton = false
+    hideDonateButton = false
     hideExploreTheDataButton = true
     hideControlsRow = false
     hideRelatedQuestion = false
@@ -777,6 +778,7 @@ export class GrapherState
             forceHideAnnotationFieldsInTitle: observable,
             hasTableTab: observable,
             hideShareButton: observable,
+            hideDonateButton: observable,
             hideExploreTheDataButton: observable,
             useMinimalLabeling: observable,
         })

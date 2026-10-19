@@ -96,17 +96,19 @@ describe("GrapherLoader canonicalUrl", () => {
 })
 
 describe("GrapherLoader button options", () => {
-    it("passes the download and share button flags through", () => {
+    it("passes the download, share and donate button flags through", () => {
         const { grapherState } = GrapherLoader.fromCsv({
             config: {
                 ...config,
                 hideDownloadButton: true,
                 hideShareButton: true,
+                hideDonateButton: true,
             },
             csv,
             columnDefs,
         })
         expect(grapherState.hideDownloadButton).toBe(true)
         expect(grapherState.hideShareButton).toBe(true)
+        expect(grapherState.hideDonateButton).toBe(true)
     })
 })

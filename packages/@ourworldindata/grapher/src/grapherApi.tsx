@@ -22,7 +22,10 @@ const DEFAULT_DATA_API_URL = "https://api.ourworldindata.org/v1/indicators/"
 export type GrapherLoaderConfig = GrapherInterface &
     Pick<
         GrapherProgrammaticInterface,
-        "canonicalUrl" | "hideDownloadButton" | "hideShareButton"
+        | "canonicalUrl"
+        | "hideDownloadButton"
+        | "hideShareButton"
+        | "hideDonateButton"
     >
 
 interface GrapherApiOptionsBase {

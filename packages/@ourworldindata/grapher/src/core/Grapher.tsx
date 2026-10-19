@@ -91,6 +91,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hasTableTab?: boolean
     hideShareButton?: boolean
+    hideDonateButton?: boolean
     hideExploreTheDataButton?: boolean
     hideRelatedQuestion?: boolean
     enableMapSelection?: boolean
