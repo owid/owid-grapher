@@ -211,3 +211,115 @@
     max-width: 60ch;
     color: $gray-60;
 }
+
+// The "bar" arm: one line that reads like a search box, opening up with the
+// presets and the privacy note once the reader focuses it. Gated by body class
+// like the block above.
+.ask-ai-bar {
+    display: none;
+    margin: 24px 0 32px;
+    padding: 12px;
+    background-color: white;
+    border: 1px solid $blue-20;
+}
+
+.exp-ask-ai-v1--bar .ask-ai-bar,
+.ask-ai-bar.ask-ai-bar--forced {
+    display: block;
+}
+
+.ask-ai-bar__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.ask-ai-bar__field {
+    flex: 1 1 320px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+    padding: 0 12px;
+    border: 1px solid $blue-20;
+    border-radius: 2px;
+    background-color: white;
+
+    &:focus-within {
+        outline: 2px solid $accent-electric-blue;
+        outline-offset: -1px;
+    }
+}
+
+.ask-ai-bar__icon {
+    flex-shrink: 0;
+    // Centre on the first line of the textarea (40px row, 14px icon).
+    margin-top: 13px;
+    font-size: 14px;
+    color: $blue-60;
+}
+
+.ask-ai-bar__input {
+    @include body-2-regular;
+    flex: 1;
+    min-width: 0;
+    // 40px tall at one row: 8px + 24px line + 8px.
+    padding: 8px 0;
+    border: none;
+    background: transparent;
+    color: $blue-90;
+    font-family: inherit;
+    line-height: 24px;
+    resize: none;
+
+    &::placeholder {
+        color: $gray-60;
+    }
+
+    &:focus {
+        outline: none;
+    }
+}
+
+.ask-ai-bar__actions {
+    display: flex;
+    gap: 8px;
+
+    @include sm-only {
+        flex: 1 1 100%;
+    }
+}
+
+// Styled as .ask-ai__button, only taller to match the input.
+.ask-ai-bar__button {
+    height: 42px;
+
+    @include sm-only {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
+.ask-ai-bar__details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.ask-ai-bar__presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.ask-ai-bar__note {
+    @include body-3-medium;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin: 0;
+    color: $gray-70;
+}

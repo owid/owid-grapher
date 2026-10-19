@@ -17,7 +17,7 @@ export const OWID_PUBLIC_GRAPHER_URL = "https://ourworldindata.org/grapher"
  */
 export const ASK_AI_PARAM = "askai"
 
-export const ASK_AI_ARMS: AskAiArm[] = ["control", "v3", "v5"]
+export const ASK_AI_ARMS: AskAiArm[] = ["control", "v3", "v5", "bar"]
 
 export const parseArm = (
     value: string | null | undefined
@@ -250,27 +250,42 @@ export const buildPrompt = (args: {
 
 /** Human-readable summary of what the visitor currently has on screen. */
 export const describeChartState = (queryStr: string): string | undefined => {
-    const params = new URLSearchParams(queryStr)
+    const { entities, time, tab } = parseChartState(queryStr)
     const parts: string[] = []
-
-    const country = params.get("country")
-    if (country) {
-        // The URL carries codes (NGA), which an assistant may misread, so
-        // name them. Custom entities like "Africa (UN)" are already names
-        // and aren't in the regions table, so they pass through unchanged.
-        const entities = country
-            .split("~")
-            .map((c) => decodeURIComponent(c).trim())
-            .filter(Boolean)
-            .map((c) => getRegionByCode(c)?.name ?? c)
-        if (entities.length) parts.push(`Selected: ${entities.join(", ")}.`)
-    }
-
-    const time = params.get("time")
+    if (entities.length) parts.push(`Selected: ${entities.join(", ")}.`)
     if (time) parts.push(`Period: ${time.replace("..", " to ")}.`)
-
-    const tab = params.get("tab")
     if (tab) parts.push(`View: ${tab}.`)
-
     return parts.length ? parts.join(" ") : undefined
+}
+
+/**
+ * The same state as a short label for the reader ("Nigeria, India ·
+ * 1990–2020"), so they can see what travels with their question. Undefined
+ * when the chart is untouched.
+ */
+export const describeViewCompact = (queryStr: string): string | undefined => {
+    const { entities, time } = parseChartState(queryStr)
+    const parts: string[] = []
+    if (entities.length) parts.push(entities.join(", "))
+    if (time) parts.push(time.replace("..", "–"))
+    return parts.length ? parts.join(" · ") : undefined
+}
+
+const parseChartState = (
+    queryStr: string
+): { entities: string[]; time?: string; tab?: string } => {
+    const params = new URLSearchParams(queryStr)
+    // The URL carries codes (NGA), which an assistant may misread, so name
+    // them. Custom entities like "Africa (UN)" are already names and aren't
+    // in the regions table, so they pass through unchanged.
+    const entities = (params.get("country") ?? "")
+        .split("~")
+        .map((c) => decodeURIComponent(c).trim())
+        .filter(Boolean)
+        .map((c) => getRegionByCode(c)?.name ?? c)
+    return {
+        entities,
+        time: params.get("time") ?? undefined,
+        tab: params.get("tab") ?? undefined,
+    }
 }

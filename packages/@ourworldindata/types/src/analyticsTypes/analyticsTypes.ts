@@ -251,8 +251,9 @@ export interface SiteStaticVizDownloadParams {
 // Ask-AI probe (data page), run as the exp-ask-ai-v1 experiment. See
 // experiments/briefs/ask_ai_button_20260828 in the analytics repo. Arms match
 // the design canvas: control = no block, v3 = free-text box, v5 = presets
-// that fill an editable box.
-export type AskAiArm = "control" | "v3" | "v5"
+// that fill an editable box, bar = a one-line ask bar that expands with the
+// presets and context on focus.
+export type AskAiArm = "control" | "v3" | "v5" | "bar"
 
 export type AskAiEngine = "claude" | "chatgpt"
 

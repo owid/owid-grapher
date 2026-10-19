@@ -3,6 +3,7 @@ import { expect, it, describe } from "vitest"
 import {
     buildPrompt,
     describeChartState,
+    describeViewCompact,
     buildEngineUrl,
     buildCsvUrl,
     buildFullCsvUrl,
@@ -190,6 +191,18 @@ describe("engine deep links", () => {
         expect(buildEngineUrl("claude", "a b&c")).toBe(
             "https://claude.ai/new?q=a%20b%26c"
         )
+    })
+})
+
+describe("compact view label", () => {
+    it("names the selection and the period", () => {
+        expect(describeViewCompact("?country=~NGA~IND&time=1990..2020")).toBe(
+            "Nigeria, India · 1990–2020"
+        )
+    })
+
+    it("is absent while the chart is untouched", () => {
+        expect(describeViewCompact("?tab=map")).toBeUndefined()
     })
 })
 
