@@ -291,16 +291,32 @@ describe("when choosing the default filter", () => {
         expect(getEntityNames(container)).toEqual(["World"])
     })
 
-    it("shows all entities if the table is narrowed to a selection of aggregates", () => {
+    it("shows all entities if the table is narrowed to a selection of mostly countries", () => {
         const grapher = LifeExpectancyGrapher({
-            selectedEntityNames: ["World"],
+            selectedEntityNames: ["France", "China", "Europe"],
             addCountryMode: EntitySelectionMode.Disabled,
             hasMapTab: false,
             tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
         })
         const { container } = render(<DataTable manager={grapher} />)
         expect(grapher.dataTableFilter).toBe("all")
-        expect(getEntityNames(container)).toEqual(["World"])
+        expect(getEntityNames(container).sort()).toEqual([
+            "China",
+            "Europe",
+            "France",
+        ])
+    })
+
+    it("shows only countries if the reader picks them for a narrowed table", () => {
+        const grapher = LifeExpectancyGrapher({
+            selectedEntityNames: ["France", "China", "Europe"],
+            addCountryMode: EntitySelectionMode.Disabled,
+            hasMapTab: false,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        })
+        grapher.populateFromQueryParams({ tableFilter: "countries" })
+        const { container } = render(<DataTable manager={grapher} />)
+        expect(getEntityNames(container).sort()).toEqual(["China", "France"])
     })
 
     it("shows only countries even if the selection covers every entity", () => {
@@ -332,6 +348,13 @@ describe("when choosing the default filter", () => {
             "Iceland",
             "World",
         ])
+    })
+
+    it("searches all entities if the URL has a search but no filter", () => {
+        const grapher = GrapherWithAggregates()
+        grapher.populateFromQueryParams({ tableSearch: "World" })
+        const { container } = render(<DataTable manager={grapher} />)
+        expect(getEntityNames(container)).toEqual(["World"])
     })
 
     it("does not put the default filter in the URL", () => {

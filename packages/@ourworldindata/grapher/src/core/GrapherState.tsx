@@ -1150,10 +1150,10 @@ export class GrapherState
     }
 
     @computed get dataTableFilter(): DataTableFilter {
-        return (
-            this.dataTableConfig.filter ??
-            pickDefaultDataTableFilter(this.dataTableFilterOptions)
-        )
+        if (this.dataTableConfig.filter) return this.dataTableConfig.filter
+        if (this.dataTableConfig.search) return "all"
+        if (this.shouldShowSelectionOnlyInDataTable) return "all"
+        return pickDefaultDataTableFilter(this.dataTableFilterOptions)
     }
 
     /** Table for display in the data table tab */
