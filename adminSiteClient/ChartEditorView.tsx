@@ -69,6 +69,8 @@ export interface ChartEditorViewManager {
     details?: DetailsProvider
     initialQueryParams?: GrapherQueryParams
     previewUrl?: string
+    /** Host content shown next to the preview link, e.g. a status badge */
+    renderPreviewHeader?: (editor: ConfigEditor) => React.ReactNode
 }
 
 interface ChartEditorViewProps {
@@ -370,6 +372,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     renderReady(editor: ConfigEditor): React.ReactElement {
         const { grapherState, availableTabs } = editor
         const { previewUrl } = this.manager
+        const previewHeader = this.manager.renderPreviewHeader?.(editor)
         const extraTabs = editor.manager.extraTabs ?? []
 
         const activeTab = availableTabs.includes(editor.tab)
@@ -458,15 +461,19 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
                     {activeTab !== "export" && this.renderSaveButtons(editor)}
                 </div>
                 <div className="chart-editor-view">
-                    {previewUrl && (
-                        <a
-                            className="preview"
-                            href={previewUrl}
-                            target="_blank"
-                            rel="noopener"
-                        >
-                            View Grapher or Data page
-                        </a>
+                    {(previewUrl || previewHeader) && (
+                        <div className="chart-editor-view__header">
+                            {previewHeader}
+                            {previewUrl && (
+                                <a
+                                    href={previewUrl}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    View Grapher or Data page
+                                </a>
+                            )}
+                        </div>
                     )}
                     <figure
                         style={{

@@ -39,6 +39,11 @@ $admin-background: #e1ecfb;
     );
 }
 
+.chart-source-badge--button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
 .chart-source-badge--admin {
     color: $admin-color;
     background: $admin-background;
@@ -103,4 +108,33 @@ $admin-background: #e1ecfb;
     border-top: 1px solid rgba(255, 255, 255, 0.2);
     color: rgba(255, 255, 255, 0.6);
     font-size: 0.7rem;
+}
+
+.etl-source-section__drift-note {
+    margin-bottom: 1rem;
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: #fff;
+}
+
+// Draws the eye to the section when the editor's ETL badge opens it
+.etl-source-section--highlighted > section {
+    animation: etl-source-section-highlight 2.5s ease-out;
+}
+
+@keyframes etl-source-section-highlight {
+    0%,
+    40% {
+        box-shadow: inset 0 0 0 3px $etl-color;
+    }
+    100% {
+        box-shadow: inset 0 0 0 3px rgba($etl-color, 0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .etl-source-section--highlighted > section {
+        animation-timing-function: steps(1, end);
+    }
 }

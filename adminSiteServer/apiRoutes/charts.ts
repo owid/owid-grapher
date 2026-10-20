@@ -728,9 +728,15 @@ export async function getChartParentJson(
     //   - `etlConfig`: the chart's own ETL-authored config — a separate
     //     chart_configs row reached via charts.patchConfigIdETL.
     //     Always applied, independent of indicator inheritance.
-    const etlConfigRow = await db.knexRawFirst<{ etlConfig: string | null }>(
+    //     `etlConfigCatalogPath` names the ETL step that authored it.
+    const etlConfigRow = await db.knexRawFirst<
+        { etlConfig: string | null } & Pick<
+            DbPlainChart,
+            "etlConfigCatalogPath"
+        >
+    >(
         trx,
-        `SELECT cc_etl.config AS etlConfig FROM charts c LEFT JOIN chart_configs cc_etl ON cc_etl.id = c.patchConfigIdETL WHERE c.id = ?`,
+        `SELECT cc_etl.config AS etlConfig, c.etlConfigCatalogPath FROM charts c LEFT JOIN chart_configs cc_etl ON cc_etl.id = c.patchConfigIdETL WHERE c.id = ?`,
         [chartId]
     )
     const etlConfig = etlConfigRow?.etlConfig
@@ -741,6 +747,7 @@ export async function getChartParentJson(
         variableId: parent?.variableId,
         variableConfig: parent?.config,
         etlConfig,
+        etlConfigCatalogPath: etlConfigRow?.etlConfigCatalogPath ?? undefined,
         isInheritanceEnabled,
     })
 }

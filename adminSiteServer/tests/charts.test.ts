@@ -1878,6 +1878,11 @@ describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
         expect(chartRow.etlConfigCatalogPath).toBe(
             "grapher/dummy/latest/dummy#chart"
         )
+        // the chart editor reads the catalog path alongside the ETL layer
+        const parent = await env.fetchJson(`/charts/${chartId}.parent.json`)
+        expect(parent.etlConfigCatalogPath).toBe(
+            "grapher/dummy/latest/dummy#chart"
+        )
 
         // the admin patch starts out almost empty — the ETL layer owns all
         // fields except the non-inheritable slug, which is copied into the

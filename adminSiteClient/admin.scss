@@ -363,10 +363,13 @@ $nav-height: 45px;
         justify-content: center;
         position: relative;
 
-        a.preview {
+        .chart-editor-view__header {
             position: absolute;
             top: 8px;
             right: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
     }
 
