@@ -8522,10 +8522,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"flag-icons@npm:^7.5.0":
-  version: 7.5.0
-  resolution: "flag-icons@npm:7.5.0"
-  checksum: 10/eb7caf5a77edc849c6edd2cefc59dc42b0f38f031949b167f363b8729e52281ecd1f3180d2df07c9642d06c39b0691432b8e0ed46ed9943f63bf06f3bee43821
+"flag-icons@npm:^7.6.0":
+  version: 7.6.0
+  resolution: "flag-icons@npm:7.6.0"
+  checksum: 10/0c343d61b9f7101748ed57d8e9cb3820f7b2754df241faf2bedd40a0c5c39da324938a0936a9ca7fb2985d132b03d0fd7e4634bede6e3efaff6109eecb463560
   languageName: node
   linkType: hard
 
@@ -8930,7 +8930,7 @@ __metadata:
     express: "npm:^5.2.1"
     figma-api: "npm:^2.2.1-beta"
     filenamify: "npm:^7.0.1"
-    flag-icons: "npm:^7.5.0"
+    flag-icons: "npm:^7.6.0"
     fs-extra: "npm:^11.3.4"
     google-auth-library: "npm:^11.0.2"
     handsontable: "npm:^18.1.2"
