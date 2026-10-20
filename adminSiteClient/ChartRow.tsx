@@ -23,6 +23,8 @@ import {
     excludeUndefined,
 } from "@ourworldindata/utils"
 import { Dropdown } from "antd"
+import { ChartSourceBadge } from "./ChartSourceBadge.js"
+import { getChartListItemEtlSource } from "./etlChartSync.js"
 import {
     getTagGraphRolesById,
     MinimalTagWithMetadata,
@@ -177,6 +179,9 @@ export class ChartRow extends React.Component<ChartRowProps> {
                 <td>{chart.grapherViewsPerDay?.toLocaleString() ?? "0"}</td>
                 <td>{chart.narrativeChartsCount?.toLocaleString() ?? "0"}</td>
                 <td>{chart.referencesCount?.toLocaleString() ?? "0"}</td>
+                <td>
+                    <ChartSourceBadge etl={getChartListItemEtlSource(chart)} />
+                </td>
                 <td>
                     <Link
                         to={`/charts/${chart.id}/edit`}
