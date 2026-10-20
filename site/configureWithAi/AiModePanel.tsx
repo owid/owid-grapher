@@ -16,7 +16,7 @@ import {
     type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
 import cx from "clsx"
-import { CookieKey } from "@ourworldindata/grapher"
+import { shouldShowStaffControls } from "@ourworldindata/grapher"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.mjs"
 import {
     viewThumbnailUrl,
@@ -94,15 +94,6 @@ const iconForTab = (tab: string): IconDefinition =>
           : BAR_TABS.includes(tab)
             ? faChartColumn
             : faChartLine
-
-function isStaffBrowser(): boolean {
-    const host = window.location.host
-    return (
-        host.includes("staging") ||
-        host.includes("localhost") ||
-        document.cookie.includes(CookieKey.isAdmin)
-    )
-}
 
 const modelLabel = (model: string): string =>
     MODELS.find((m) => model.startsWith(m.id))?.label ?? model
@@ -183,11 +174,8 @@ export function AiModePanel({
     const setInput = (text: string): void =>
         setDraft({ forId: state.currentId, text })
     // Staff get the model picker and the usage line; everyone else gets
-    // the default model. Staging servers are only reachable by staff, and
-    // there the cookie can't be set (it's Secure and they're served over
-    // http); elsewhere the cookie is a hint set by visiting the admin, not
-    // access control.
-    const [isStaff] = useState(isStaffBrowser)
+    // the default model.
+    const [isStaff] = useState(shouldShowStaffControls)
     const [storedModel, setModel] = useState<ModelId>(readStoredModel)
     const model = isStaff ? storedModel : DEFAULT_MODEL
     const isThinking = request.status === "thinking"
