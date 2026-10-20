@@ -338,6 +338,44 @@ describe("when the table has multiple variables and multiple years", () => {
     })
 })
 
+describe("when the table shows a single year with sparklines for multiple variables", () => {
+    let container: HTMLElement
+    beforeAll(() => {
+        const grapher = GrapherWithMultipleVariablesAndMultipleYears()
+        grapher.timelineHandleTimeBounds = [2019, 2019]
+        const result = render(<DataTable manager={grapher} />)
+        container = result.container
+    })
+
+    it("names the year in the subheader only", () => {
+        const subheaders = [
+            ...container.querySelectorAll("thead th.subdimension"),
+        ].map((header) => header.textContent)
+        expect(subheaders).toEqual(["2019", "Trend", "2019", "Trend"])
+
+        const headers = [...container.querySelectorAll("thead th.dimension")]
+        expect(headers).toHaveLength(2)
+        for (const header of headers)
+            expect(header.textContent).not.toContain("2019")
+    })
+})
+
+describe("when the table shows a single column for each of multiple variables", () => {
+    it("names the year in the variable header", () => {
+        const grapher = GrapherWithMultipleVariablesAndMultipleYears({
+            timelineMinTime: 2019,
+            timelineMaxTime: 2019,
+        })
+        const { container } = render(<DataTable manager={grapher} />)
+
+        expect(container.querySelectorAll("thead tr")).toHaveLength(1)
+        const timeHeaders = [
+            ...container.querySelectorAll("thead .dimension .time"),
+        ].map((header) => header.textContent)
+        expect(timeHeaders).toEqual(["2019", "2019"])
+    })
+})
+
 describe("when the table has no filter toggle", () => {
     it("does not filter by selection by default if we have a map tab", () => {
         const grapher = LifeExpectancyGrapher({
