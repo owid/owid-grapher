@@ -68,7 +68,6 @@
 
 .chart-list__source {
     margin-left: 6px;
-    vertical-align: 1px;
 
     .chart-source-badge {
         font-size: 0.7rem;
@@ -85,19 +84,6 @@
 .chart-list__meta-separator {
     color: #ccc;
     padding: 0 5px;
-}
-
-// Long slugs are cut off rather than broken across lines; hover for all of it.
-// Fills the cell without its length counting towards the column's width.
-.chart-list__slug {
-    width: 0;
-    min-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-family: monospace;
-    font-size: 0.85em;
-    color: #777;
 }
 
 .chart-list__notes {

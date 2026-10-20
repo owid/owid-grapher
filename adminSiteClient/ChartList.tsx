@@ -118,7 +118,8 @@ function compareTimes(a: string | undefined, b: string | undefined): number {
 }
 
 /**
- * Title with the draft and ETL flags, then id · type, slug, notes and tags.
+ * Title with the draft flag, then id, ETL badge and type, notes and tags. The
+ * slug isn't shown, to save room, but is there on hovering the title.
  * Drafts are greyed out, so the eye goes to the published charts first.
  */
 function ChartCell({
@@ -143,9 +144,14 @@ function ChartCell({
                     <span className="chart-list__draft-label">Draft</span>
                 )}
                 {chart.isPublished ? (
-                    <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>{title}</a>
+                    <a
+                        href={`${BAKED_GRAPHER_URL}/${chart.slug}`}
+                        title={chart.slug}
+                    >
+                        {title}
+                    </a>
                 ) : (
-                    <span>{title}</span>
+                    <span title={chart.slug}>{title}</span>
                 )}
                 {chart.variantName && (
                     <span className="chart-list__variant">
@@ -153,20 +159,17 @@ function ChartCell({
                         ({highlight(chart.variantName)})
                     </span>
                 )}
+            </div>
+            <div className="chart-list__meta">
+                <span>#{highlight(`${chart.id}`)}</span>
                 {/* Admin is the default, so only ETL charts are flagged */}
                 {etlSource && (
                     <span className="chart-list__source">
                         <ChartSourceBadge etl={etlSource} />
                     </span>
                 )}
-            </div>
-            <div className="chart-list__meta">
-                <span>#{highlight(`${chart.id}`)}</span>
                 <span className="chart-list__meta-separator">·</span>
                 <span>{showChartType(chart)}</span>
-            </div>
-            <div className="chart-list__slug" title={chart.slug}>
-                {highlight(chart.slug)}
             </div>
             {chart.internalNotes && (
                 <div className="chart-list__notes">
