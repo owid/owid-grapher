@@ -374,6 +374,7 @@ export { isAndroid, isIOS } from "./BrowserUtils.js"
 export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
+    KEYS_EXCLUDED_FROM_INHERITANCE,
 } from "./grapherConfigInheritance.js"
 
 export {

@@ -57,6 +57,13 @@ export interface ChartListItem {
     grapherViewsPerDay: number
     narrativeChartsCount: number
     referencesCount: number
+
+    etlConfigCatalogPath: string | null
+    isEtlManaged: boolean
+    // The remaining etl* fields are null unless the chart is ETL-managed.
+    // JSON array of the top-level fields the admin patch overrides
+    etlOverriddenFields: string | null
+    etlSlug: string | null
 }
 
 export type SortConfig = {
@@ -307,6 +314,7 @@ export class ChartList extends React.Component<ChartListProps> {
                             <th>Chart</th>
                             <th>Id</th>
                             <th>Type</th>
+                            <th>Source</th>
                             {showInheritanceColumn && <th>Inheritance</th>}
                             <th>Tags</th>
                             <th>Published</th>

@@ -1,0 +1,50 @@
+$etl-color: #1d5fbf;
+$etl-background: #e1ecfb;
+$admin-color: #7a3e8f;
+$admin-background: #f3e7f7;
+
+.chart-source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 8px;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: none;
+    }
+}
+
+.chart-source-badge--etl {
+    color: $etl-color;
+    background: $etl-background;
+
+    &:hover {
+        color: $etl-color;
+    }
+}
+
+// Same colour as an in-sync ETL badge, striped to flag the admin changes
+.chart-source-badge--drifted {
+    background: repeating-linear-gradient(
+        -45deg,
+        $etl-background 0 4px,
+        #fff 4px 8px
+    );
+}
+
+.chart-source-badge--admin {
+    color: $admin-color;
+    background: $admin-background;
+}
+
+.chart-source-badge__drift-list {
+    margin: 0;
+    padding-left: 16px;
+}

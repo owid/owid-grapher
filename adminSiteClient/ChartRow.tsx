@@ -23,6 +23,8 @@ import {
     excludeUndefined,
 } from "@ourworldindata/utils"
 import { Dropdown } from "antd"
+import { ChartSourceBadge, EtlSource } from "./ChartSourceBadge.js"
+import { makeEtlDrift } from "./etlChartSync.js"
 import {
     getTagGraphRolesById,
     MinimalTagWithMetadata,
@@ -150,6 +152,9 @@ export class ChartRow extends React.Component<ChartRowProps> {
                 </td>
                 <td style={{ minWidth: "100px" }}>{chart.id}</td>
                 <td style={{ minWidth: "100px" }}>{showChartType(chart)}</td>
+                <td>
+                    <ChartSourceBadge etl={getEtlSource(chart)} />
+                </td>
                 {showInheritanceColumn && <InheritanceStatus chart={chart} />}
                 <td style={{ minWidth: "340px" }}>
                     <EditableTags
@@ -212,6 +217,18 @@ export class ChartRow extends React.Component<ChartRowProps> {
                 </td>
             </tr>
         )
+    }
+}
+
+function getEtlSource(chart: ChartListItem): EtlSource | undefined {
+    if (!chart.isEtlManaged) return undefined
+    return {
+        catalogPath: chart.etlConfigCatalogPath,
+        drift: makeEtlDrift({
+            overriddenFields: JSON.parse(chart.etlOverriddenFields ?? "[]"),
+            slug: chart.slug,
+            etlSlug: chart.etlSlug,
+        }),
     }
 }
 

@@ -10,6 +10,7 @@ import {
     MultipleOwidVariableDataDimensionsMap,
     DbChartTagJoin,
     getParentIndicatorIdFromChartConfig,
+    KEYS_EXCLUDED_FROM_INHERITANCE,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -573,7 +574,18 @@ export interface OldChartFieldList {
     narrativeChartsCount: number
     referencesCount: number
     isExplorable: boolean
+    etlConfigCatalogPath: string | null
+    isEtlManaged: boolean
+    // The remaining etl* fields are NULL unless the chart is ETL-managed.
+    // JSON array of the top-level fields the admin patch overrides
+    etlOverriddenFields: string | null
+    etlSlug: string | null
 }
+
+// JSON paths of the keys every admin patch carries, overridden or not
+const nonOverrideJsonPaths = KEYS_EXCLUDED_FROM_INHERITANCE.map(
+    (key) => `'$."${key}"'`
+).join(", ")
 
 export const oldChartFieldList = `
         charts.id,
@@ -594,7 +606,19 @@ export const oldChartFieldList = `
         publishedByUser.fullName AS publishedBy,
         round(agv.views_365d / 365, 1) as grapherViewsPerDay,
         crv.narrativeChartsCount,
-        crv.referencesCount
+        crv.referencesCount,
+        charts.etlConfigCatalogPath,
+        charts.patchConfigIdETL IS NOT NULL AS isEtlManaged,
+        IF(charts.patchConfigIdETL IS NULL, NULL, (
+            SELECT JSON_KEYS(JSON_REMOVE(cc_patch.config, ${nonOverrideJsonPaths}))
+            FROM chart_configs cc_patch
+            WHERE cc_patch.id = charts.patchConfigId
+        )) AS etlOverriddenFields,
+        IF(charts.patchConfigIdETL IS NULL, NULL, (
+            SELECT cc_etl.slug
+            FROM chart_configs cc_etl
+            WHERE cc_etl.id = charts.patchConfigIdETL
+        )) AS etlSlug
     `
 // TODO: replace this with getBySlug and pick
 
