@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed, observable, action, makeObservable } from "mobx"
+import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -54,23 +54,15 @@ import {
     MinimalOwidRow,
     DataTableConfig,
     DataTableSortState,
-    DataTableState,
     DimensionSortIndex,
     DataTableManager,
     CommonDataTableFilter,
     COMMON_DATA_TABLE_FILTERS,
     DataTableFilter,
     SparklineKey,
+    ENTITY_SORT_INDEX,
 } from "./DataTableConstants"
 import { Sparkline } from "../sparkline/Sparkline"
-
-const ENTITY_SORT_INDEX = -1
-
-const DEFAULT_SORT_STATE: DataTableSortState = {
-    dimIndex: ENTITY_SORT_INDEX,
-    columnKey: undefined,
-    order: SortOrder.asc,
-}
 
 const columnNameByType: Record<DataTableColumnKey, string> = {
     single: "Value",
@@ -91,17 +83,6 @@ interface DataTableProps {
 
 @observer
 export class DataTable extends React.Component<DataTableProps> {
-    private readonly storedState: DataTableState = {
-        sort: DEFAULT_SORT_STATE,
-    }
-
-    constructor(props: DataTableProps) {
-        super(props)
-        makeObservable<DataTable, "storedState">(this, {
-            storedState: observable,
-        })
-    }
-
     @computed get manager(): DataTableManager {
         return this.props.manager
     }
@@ -130,27 +111,28 @@ export class DataTable extends React.Component<DataTableProps> {
         return table
     }
 
-    @computed private get tableState(): DataTableState {
-        return { sort: this.sortState }
-    }
-
     @computed private get sortState(): DataTableSortState {
-        let { dimIndex, columnKey, order } = {
-            ...DEFAULT_SORT_STATE,
-            ...this.storedState.sort,
-        }
+        let { dimIndex, columnKey } = this.manager.dataTableSort
+        const { order } = this.manager.dataTableSort
 
-        // If not sorted by entity, then make sure the index of the chosen column exists
-        dimIndex = Math.min(dimIndex, this.table.numColumns - 1)
-        if (dimIndex !== ENTITY_SORT_INDEX) {
-            const availableColumns = this.dataTableDimensionsWithValues[
-                dimIndex
-            ].columnDefinitions.map((colDef) => colDef.key)
-            if (
-                columnKey === undefined ||
-                !availableColumns.includes(columnKey)
-            )
-                columnKey = availableColumns[0]
+        // The stored sort may point past the columns currently shown, e.g.
+        // when it was set programmatically or the table is still loading
+        const dimensions = this.dataTableDimensionsWithValues
+        dimIndex = Math.min(dimIndex, dimensions.length - 1)
+        if (dimIndex < 0)
+            return { dimIndex: ENTITY_SORT_INDEX, columnKey: undefined, order }
+
+        const availableColumns = dimensions[dimIndex].columnDefinitions.map(
+            (colDef) => colDef.key
+        )
+        if (columnKey === undefined || !availableColumns.includes(columnKey)) {
+            // A sort by the value in a single year carries over to the end of
+            // a time range (and back, since the single-year column comes first)
+            columnKey =
+                columnKey === PointColumnKey.single &&
+                availableColumns.includes(RangeColumnKey.end)
+                    ? RangeColumnKey.end
+                    : availableColumns[0]
         }
 
         return {
@@ -167,7 +149,7 @@ export class DataTable extends React.Component<DataTableProps> {
     @computed private get sortValueMapper(): (
         row: DataTableRow
     ) => number | string {
-        const { dimIndex: sortIndex, columnKey, order } = this.tableState.sort
+        const { dimIndex: sortIndex, columnKey, order } = this.sortState
         if (sortIndex === ENTITY_SORT_INDEX)
             return (row): string => row.entityName
 
@@ -212,7 +194,7 @@ export class DataTable extends React.Component<DataTableProps> {
         dimIndex: DimensionSortIndex,
         columnKey?: DataTableColumnKey
     ): void {
-        const { sort } = this.tableState
+        const sort = this.sortState
         const order =
             sort.dimIndex === dimIndex && sort.columnKey === columnKey
                 ? inverseSortOrder(sort.order)
@@ -220,9 +202,7 @@ export class DataTable extends React.Component<DataTableProps> {
                   ? SortOrder.asc
                   : SortOrder.desc
 
-        this.storedState.sort.dimIndex = dimIndex
-        this.storedState.sort.columnKey = columnKey
-        this.storedState.sort.order = order
+        this.manager.dataTableSort = { dimIndex, columnKey, order }
     }
 
     private get entityHeaderText(): string {
@@ -230,7 +210,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     private get entityHeader(): React.ReactElement {
-        const { sort } = this.tableState
+        const sort = this.sortState
         return (
             <ColumnHeader
                 key="entity"
@@ -303,7 +283,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     private get dimensionHeaders(): React.ReactElement[] | null {
-        const { sort } = this.tableState
+        const sort = this.sortState
         return this.displayDimensions.map((dim, dimIndex) => {
             const { coreTableColumn, display } = dim
             const singleColumn = dim.columnDefinitions.find(
@@ -381,7 +361,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     private get dimensionSubheaders(): React.ReactElement[][] {
-        const { sort } = this.tableState
+        const sort = this.sortState
         return this.displayDimensions.map((dim, dimIndex) =>
             dim.columnDefinitions.map((column, colIndex) => {
                 const headerText = this.subheaderText(column, dim)
@@ -1035,7 +1015,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     @computed private get sortedDisplayRows(): DataTableRow[] {
-        const { order } = this.tableState.sort
+        const { order } = this.sortState
         return _.orderBy(this.displayRows, this.sortValueMapper, order)
     }
 }

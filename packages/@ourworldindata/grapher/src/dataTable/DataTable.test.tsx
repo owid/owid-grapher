@@ -7,6 +7,7 @@ import { render } from "@testing-library/react"
 import {
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_CONFIG_OPTIONS,
+    SortOrder,
 } from "@ourworldindata/types"
 import {
     childMortalityGrapher,
@@ -15,6 +16,7 @@ import {
 } from "./DataTable.sample"
 import { LifeExpectancyGrapher } from "../testData/OwidTestData.sample.js"
 import { DataTable } from "./DataTable.js"
+import { PointColumnKey } from "./DataTableConstants.js"
 
 describe("when you render a table", () => {
     let container: HTMLElement
@@ -107,6 +109,51 @@ describe("when you select a range of years", () => {
             ...container.querySelectorAll("thead th.subdimension"),
         ].map((header) => header.textContent)
         expect(headers).toContain("1950 to 2019")
+    })
+})
+
+describe("when the table is sorted by a single-year value but shows a range", () => {
+    it("sorts by the end of the range rather than its start", () => {
+        const grapher = childMortalityGrapher({
+            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        })
+        // Afghanistan is higher in 2005, Iceland in 2019
+        grapher.timelineHandleTimeBounds = [2005, 2019]
+        grapher.dataTableSort = {
+            dimIndex: 0,
+            columnKey: PointColumnKey.single,
+            order: SortOrder.desc,
+        }
+
+        const { container } = render(<DataTable manager={grapher} />)
+
+        const entities = [...container.querySelectorAll("tbody td.entity")].map(
+            (cell) => cell.textContent
+        )
+        expect(entities).toEqual(["Iceland", "Afghanistan"])
+    })
+})
+
+describe("when the stored sort points to a column that isn't shown", () => {
+    it("sorts by the last shown column instead", () => {
+        const grapher = childMortalityGrapher({
+            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        })
+        // e.g. left over from a view with more indicators
+        grapher.dataTableSort = {
+            dimIndex: 3,
+            columnKey: PointColumnKey.single,
+            order: SortOrder.desc,
+        }
+
+        const { container } = render(<DataTable manager={grapher} />)
+
+        const entities = [...container.querySelectorAll("tbody td.entity")].map(
+            (cell) => cell.textContent
+        )
+        expect(entities).toEqual(["Iceland", "Afghanistan"])
     })
 })
 

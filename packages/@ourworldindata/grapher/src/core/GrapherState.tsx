@@ -147,7 +147,9 @@ import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
 import {
     DataTableConfig,
+    DataTableSortState,
     DataTableManager,
+    DEFAULT_DATA_TABLE_SORT,
 } from "../dataTable/DataTableConstants.js"
 import {
     type EntitySelectorState,
@@ -560,6 +562,7 @@ export class GrapherState
     focusArray = new FocusArray()
 
     dataTableConfig: DataTableConfig = { filter: "all", search: "" }
+    dataTableSort: DataTableSortState = DEFAULT_DATA_TABLE_SORT
 
     entitySelectorState: Partial<EntitySelectorState> = {}
 
@@ -722,6 +725,7 @@ export class GrapherState
             comparisonLines: observable,
             relatedQuestions: observable,
             dataTableConfig: observable,
+            dataTableSort: observable,
             highlightedTimesInLineChart: observable.ref,
             hideFacetControl: observable.ref,
             selectedFacetStrategy: observable,
@@ -3836,6 +3840,7 @@ export class GrapherState
         this.showNoDataArea = authorsVersion.showNoDataArea
         this.dataTableConfig.filter = authorsVersion.dataTableConfig.filter
         this.dataTableConfig.search = authorsVersion.dataTableConfig.search
+        this.dataTableSort = DEFAULT_DATA_TABLE_SORT
         this.mapConfig.globe.isActive = authorsVersion.mapConfig.globe.isActive
         this.clearSelection()
         this.clearFocus()
@@ -3859,6 +3864,7 @@ export class GrapherState
         this.colorSlug = grapherState.colorSlug
         this.sizeSlug = grapherState.sizeSlug
 
+        this.dataTableSort = DEFAULT_DATA_TABLE_SORT
         this.selection.clearSelection()
         this.focusArray.clear()
     }
