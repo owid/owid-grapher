@@ -11,44 +11,31 @@ import { estimateLogDensity } from "./density.js"
 import { YEAR } from "./testFixtures.js"
 
 describe(buildChartModel, () => {
-    const globalModel = (breakdown: "regions" | "countries") =>
+    const globalModel = () =>
         buildChartModel({
             year: YEAR,
             view: "global",
-            breakdown,
             selectedCountries: [],
         })
 
-    it("stacks one area per country, coloured by region", () => {
-        const model = globalModel("countries")
-        expect(model.series.map((s) => [s.key, s.color, s.isCountry])).toEqual([
-            ["Poorland", REGION_COLORS["Sub-Saharan Africa"], true],
-            ["Richland", REGION_COLORS["Sub-Saharan Africa"], true],
-            ["Middleland", REGION_COLORS["South Asia"], true],
+    it("stacks one area per region, in its colour", () => {
+        const model = globalModel()
+        expect(model.series.map((s) => [s.key, s.color])).toEqual([
+            ["Sub-Saharan Africa", REGION_COLORS["Sub-Saharan Africa"]],
+            ["South Asia", REGION_COLORS["South Asia"]],
         ])
         expect(model.series[1].y0).toEqual(model.series[0].y1)
     })
 
-    it("stacks one area per region in the regions breakdown", () => {
-        const model = globalModel("regions")
-        expect(model.series.map((s) => [s.key, s.isCountry])).toEqual([
-            ["Sub-Saharan Africa", false],
-            ["South Asia", false],
-        ])
-    })
-
-    it("places region bands identically whichever the breakdown", () => {
-        const byCountry = globalModel("countries").regionBands
-        const byRegion = globalModel("regions").regionBands
-        expect(byCountry.map((b) => b.region)).toEqual([
-            "Sub-Saharan Africa",
-            "South Asia",
-        ])
-        expect(byRegion).toEqual(byCountry)
+    it("labels each region's band", () => {
+        const model = globalModel()
+        expect(model.regionBands.map((b) => [b.region, b.y0, b.y1])).toEqual(
+            model.series.map((s) => [s.region, s.y0, s.y1])
+        )
     })
 
     it("lists the regions present in the legend in REGIONS order", () => {
-        expect(globalModel("regions").legend).toEqual([
+        expect(globalModel().legend).toEqual([
             {
                 key: "South Asia",
                 color: REGION_COLORS["South Asia"],
@@ -61,15 +48,14 @@ describe(buildChartModel, () => {
     })
 
     it("scales yMax to the top of the stack", () => {
-        const model = globalModel("countries")
-        expect(model.yMax).toBe(Math.max(...model.series[2].y1))
+        const model = globalModel()
+        expect(model.yMax).toBe(Math.max(...model.series.at(-1)!.y1))
     })
 
     describe("the countries view", () => {
         const model = buildChartModel({
             year: YEAR,
             view: "countries",
-            breakdown: "regions",
             selectedCountries: ["Richland", "Atlantis", "Middleland"],
         })
 
@@ -98,7 +84,6 @@ describe(buildChartModel, () => {
                 buildChartModel({
                     year: YEAR,
                     view: "countries",
-                    breakdown: "regions",
                     selectedCountries: [],
                 }).yMax
             ).toBe(0)

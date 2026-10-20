@@ -49,8 +49,6 @@ import { buildChartModel } from "../core/chartModel.js"
 import { shareBelowLineForEntities } from "../core/density.js"
 import { resolveCurrency, timeIntervalNoun } from "../core/currency.js"
 import {
-    BREAKDOWNS,
-    Breakdown,
     Currency,
     IncomeDistributionYear,
     TIME_INTERVALS,
@@ -97,11 +95,6 @@ function FetchingDistributionVariant({
         key: "incomeDistributionView",
         parser: parseAsStringEnum<View>([...VIEWS]),
         defaultValue: config.view ?? "global",
-    })
-    const [breakdown, setBreakdown] = useUrlState({
-        key: "incomeDistributionBreakdown",
-        parser: parseAsStringEnum<Breakdown>([...BREAKDOWNS]),
-        defaultValue: config.breakdown ?? "countries",
     })
     // May hold the "userLocation" sentinel until the reader edits the
     // selection; it's resolved where the list is rendered
@@ -200,7 +193,6 @@ function FetchingDistributionVariant({
             metadata={metadata}
             yearData={yearData}
             view={view}
-            breakdown={breakdown}
             selectedCountries={selectedCountries}
             povertyLine={povertyLine}
             timeInterval={timeInterval}
@@ -209,7 +201,6 @@ function FetchingDistributionVariant({
             suggestedCurrency={suggestedCurrency}
             isLoading={isLoading}
             setView={setView}
-            setBreakdown={setBreakdown}
             setSelectedCountries={setCountries}
             setPovertyLine={setPovertyLine}
             setTimeInterval={setTimeInterval}
@@ -223,7 +214,6 @@ function CaptionedDistributionVariant({
     metadata,
     yearData,
     view,
-    breakdown,
     selectedCountries,
     povertyLine,
     timeInterval,
@@ -232,7 +222,6 @@ function CaptionedDistributionVariant({
     suggestedCurrency,
     isLoading,
     setView,
-    setBreakdown,
     setSelectedCountries,
     setPovertyLine,
     setTimeInterval,
@@ -242,7 +231,6 @@ function CaptionedDistributionVariant({
     metadata: IncomeDistributionMetadata
     yearData: IncomeDistributionYear
     view: View
-    breakdown: Breakdown
     /** Resolved and filtered to countries in the data */
     selectedCountries: string[]
     povertyLine: number | null
@@ -252,7 +240,6 @@ function CaptionedDistributionVariant({
     suggestedCurrency: Currency | undefined
     isLoading: boolean
     setView: (view: View) => void
-    setBreakdown: (breakdown: Breakdown) => void
     setSelectedCountries: (names: string[]) => void
     setPovertyLine: (line: number | null) => void
     setTimeInterval: (interval: TimeInterval) => void
@@ -274,10 +261,9 @@ function CaptionedDistributionVariant({
             buildChartModel({
                 year: yearData,
                 view,
-                breakdown,
                 selectedCountries,
             }),
-        [yearData, view, breakdown, selectedCountries]
+        [yearData, view, selectedCountries]
     )
 
     const legendEntries = useMemo<LegendEntry[]>(
@@ -330,8 +316,6 @@ function CaptionedDistributionVariant({
                 <IncomeDistributionControls
                     view={view}
                     setView={setView}
-                    breakdown={breakdown}
-                    setBreakdown={setBreakdown}
                     selectedCountries={selectedCountries}
                     setSelectedCountries={setSelectedCountries}
                     availableCountries={availableCountries}
@@ -432,7 +416,7 @@ function chartSubtitle(
     const measured = `Incomes are measured in ${currencyLabel} per ${timeIntervalNoun(timeInterval)}, adjusted for inflation and for differences in the cost of living between countries.`
     const explanation =
         view === "global"
-            ? "Each country's population is stacked along the income axis, so the height of the mountain is the number of people living at each income level."
+            ? "The population of every region is stacked along the income axis, so the height of the mountain is the number of people in the world living at each income level."
             : "Each curve shows how a country's population is spread across income levels; every curve covers the same area, whatever the country's population."
     return `${measured} ${explanation}`
 }

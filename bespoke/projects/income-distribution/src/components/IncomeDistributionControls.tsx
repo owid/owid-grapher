@@ -22,20 +22,12 @@ import {
     TIME_INTERVAL_LABELS,
 } from "../core/constants.js"
 import { currencyKey, formatCurrencyLabel } from "../core/currency.js"
-import {
-    Breakdown,
-    Currency,
-    TIME_INTERVALS,
-    TimeInterval,
-    View,
-} from "../core/types.js"
+import { Currency, TIME_INTERVALS, TimeInterval, View } from "../core/types.js"
 import { CountryMultiSelect } from "./CountryMultiSelect.js"
 
 export interface IncomeDistributionControlsProps {
     view: View
     setView: (v: View) => void
-    breakdown: Breakdown
-    setBreakdown: (b: Breakdown) => void
     selectedCountries: string[]
     setSelectedCountries: (names: string[]) => void
     /** Sorted names from the year's data */
@@ -73,11 +65,6 @@ const VIEW_ITEMS: SwitcherItem<View>[] = [
     },
 ]
 
-const BREAKDOWN_ITEMS: SwitcherItem<Breakdown>[] = [
-    { key: "regions", element: "Regions" },
-    { key: "countries", element: "Countries" },
-]
-
 const TIME_INTERVAL_OPTIONS: BasicDropdownOption[] = TIME_INTERVALS.map(
     (interval) => ({ value: interval, label: TIME_INTERVAL_LABELS[interval] })
 )
@@ -85,8 +72,6 @@ const TIME_INTERVAL_OPTIONS: BasicDropdownOption[] = TIME_INTERVALS.map(
 export function IncomeDistributionControls({
     view,
     setView,
-    breakdown,
-    setBreakdown,
     selectedCountries,
     setSelectedCountries,
     availableCountries,
@@ -112,19 +97,7 @@ export function IncomeDistributionControls({
                         ariaLabel="View"
                     />
                 </LabeledControl>
-                {view === "global" ? (
-                    <LabeledControl
-                        label="Show"
-                        className="income-distribution-controls__switcher"
-                    >
-                        <Switcher
-                            items={BREAKDOWN_ITEMS}
-                            selectedKey={breakdown}
-                            onChange={setBreakdown}
-                            ariaLabel="Show regions or countries"
-                        />
-                    </LabeledControl>
-                ) : (
+                {view === "countries" && (
                     <LabeledControl
                         label="Countries"
                         className="income-distribution-controls__countries"

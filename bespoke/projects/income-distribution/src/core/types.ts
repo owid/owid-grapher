@@ -6,10 +6,6 @@ export type VariantName = "distribution"
 export const VIEWS = ["global", "countries"] as const
 export type View = (typeof VIEWS)[number]
 
-/** How the global stack is split: one band per World Bank region, or one per country */
-export const BREAKDOWNS = ["regions", "countries"] as const
-export type Breakdown = (typeof BREAKDOWNS)[number]
-
 /** The unit of time incomes are expressed per */
 export const TIME_INTERVALS = ["daily", "monthly", "yearly"] as const
 export type TimeInterval = (typeof TIME_INTERVALS)[number]
