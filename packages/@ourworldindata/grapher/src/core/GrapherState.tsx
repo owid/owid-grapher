@@ -103,7 +103,6 @@ import {
     isMobile,
     guid,
 } from "@ourworldindata/utils"
-import { get as getCookie } from "es-cookie"
 import * as _ from "lodash-es"
 import {
     computed,
@@ -204,7 +203,6 @@ import {
     GRAPHER_FRAME_PADDING_VERTICAL,
     DEFAULT_GRAPHER_BOUNDS,
     GrapherModal,
-    CookieKey,
     GRAPHER_PROD_URL,
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_WIDTH,
@@ -220,6 +218,7 @@ import {
 } from "./GrapherQueryParamParser.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { getErrorMessageRelatedQuestionUrl } from "./relatedQuestion.js"
+import { shouldShowStaffControls } from "./staffControls.js"
 import {
     buildSourcesLineFromColumns,
     pickColumnsForSourcesLine,
@@ -1627,16 +1626,6 @@ export class GrapherState
         return this.isExportingToSvgOrPng
     }
 
-    private get isStaging(): boolean {
-        if (typeof location === "undefined") return false
-        return location.host.includes("staging")
-    }
-
-    private get isLocalhost(): boolean {
-        if (typeof location === "undefined") return false
-        return location.host.includes("localhost")
-    }
-
     @computed get editUrl(): string | undefined {
         if (this.showAdminControls && this.adminBaseUrl && this.id) {
             return `${this.adminBaseUrl}/admin/charts/${this.id}/edit`
@@ -1691,25 +1680,11 @@ export class GrapherState
         return false
     }
 
-    @computed private get isUserLoggedInAsAdmin(): boolean {
-        // This cookie is set by visiting ourworldindata.org/identifyadmin on the static site.
-        // There is an iframe on owid.cloud to trigger a visit to that page.
-        try {
-            // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error
-            // see https://github.com/owid/owid-grapher/pull/2452
-            return !!getCookie(CookieKey.isAdmin)
-        } catch {
-            return false
-        }
-    }
-
     @computed get showAdminControls(): boolean {
         return (
-            this.isUserLoggedInAsAdmin ||
+            shouldShowStaffControls() ||
             this.isAdmin || // Useful for gdoc previews.
-            this.isDev ||
-            this.isLocalhost ||
-            this.isStaging
+            this.isDev
         )
     }
 
