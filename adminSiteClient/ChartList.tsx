@@ -39,12 +39,7 @@ import {
     message,
 } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    faCaretDown,
-    faCopy,
-    faPen,
-    faTrashCan,
-} from "@fortawesome/free-solid-svg-icons"
+import { faCopy, faPen, faTrashCan } from "@fortawesome/free-solid-svg-icons"
 import { Link } from "./Link.js"
 import { EditableTags } from "./EditableTags.js"
 import { ChartSourceBadge } from "./ChartSourceBadge.js"
@@ -331,43 +326,41 @@ function ActionsCell({
                     Edit
                 </Button>
             </Link>
-            <Dropdown
-                trigger={["click"]}
-                menu={{
-                    items: [
-                        {
-                            type: "group",
-                            label: "Copy as Markdown link",
-                            children: copyOptions,
+            {/* The rarer actions, as icons, so they don't crowd every row */}
+            <div className="chart-list__secondary-actions">
+                <Dropdown
+                    trigger={["click"]}
+                    menu={{
+                        items: [
+                            {
+                                type: "group",
+                                label: "Copy as Markdown link",
+                                children: copyOptions,
+                            },
+                        ],
+                        onClick: (e) => {
+                            void copyMarkdownLink(chart, e.key as CopyOptionKey)
                         },
-                    ],
-                    onClick: (e) => {
-                        void copyMarkdownLink(chart, e.key as CopyOptionKey)
-                    },
-                }}
-            >
-                <Button
-                    size="small"
-                    block
-                    icon={<FontAwesomeIcon icon={faCopy} />}
+                    }}
                 >
-                    Copy
-                    <FontAwesomeIcon
-                        icon={faCaretDown}
-                        className="chart-list__caret"
+                    <Tooltip title="Copy link">
+                        <Button
+                            size="small"
+                            aria-label="Copy link"
+                            icon={<FontAwesomeIcon icon={faCopy} />}
+                        />
+                    </Tooltip>
+                </Dropdown>
+                <Tooltip title="Delete">
+                    <Button
+                        size="small"
+                        danger
+                        aria-label="Delete"
+                        icon={<FontAwesomeIcon icon={faTrashCan} />}
+                        onClick={() => onDelete(chart)}
                     />
-                </Button>
-            </Dropdown>
-            <Button
-                type="primary"
-                size="small"
-                danger
-                block
-                icon={<FontAwesomeIcon icon={faTrashCan} />}
-                onClick={() => onDelete(chart)}
-            >
-                Delete
-            </Button>
+                </Tooltip>
+            </div>
         </div>
     )
 }
