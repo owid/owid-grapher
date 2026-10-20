@@ -1,19 +1,23 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { runInAction, observable, computed, action, makeObservable } from "mobx"
+import * as lodash from "lodash-es"
 import {
     bind,
+    dayjs,
     DbChartTagJoin,
-    sortNumeric,
+    TaggableType,
+    copyToClipboard,
+    excludeUndefined,
     queryParamsToStr,
 } from "@ourworldindata/utils"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     GrapherChartType,
     GrapherInterface,
-    SortOrder,
 } from "@ourworldindata/types"
-import { ChartRow } from "./ChartRow.js"
 import {
     getTagGraphRolesById,
     MinimalTagWithMetadata,
@@ -24,12 +28,30 @@ import {
     filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
 } from "../adminShared/search.js"
-import { TextField } from "./Forms.js"
-import { Tooltip } from "antd"
+import {
+    Button,
+    Dropdown,
+    Input,
+    Space,
+    Table,
+    TableColumnsType,
+    Tag,
+    Tooltip,
+    message,
+} from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
+import { faCopy, faPen, faTrashCan } from "@fortawesome/free-solid-svg-icons"
+import { Link } from "./Link.js"
+import { EditableTags } from "./EditableTags.js"
+import { ChartSourceBadge } from "./ChartSourceBadge.js"
+import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
+} from "../settings/clientSettings.mjs"
 import { deleteChart, References } from "./adminChartApi.js"
-import { getChartListItemEtlSource, hasEtlDrift } from "./etlChartSync.js"
+import { getChartListItemEtlSource } from "./etlChartSync.js"
+import "./ChartList.scss"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {
@@ -67,26 +89,405 @@ export interface ChartListItem {
     etlSlug: string | null
 }
 
-export type SortConfig = {
-    field:
-        | "grapherViewsPerDay"
-        | "narrativeChartsCount"
-        | "referencesCount"
-        | "source"
-    direction: "asc" | "desc"
-} | null
+const DEFAULT_PAGE_SIZE = 50
 
-// Sorting by source descending lists drifted ETL charts first, then in-sync
-// ETL charts, then admin charts
-function getSourceRank(chart: ChartListItem): number {
+type Highlighter = (
+    text: string | null | undefined
+) => string | React.ReactElement
+
+function showChartType(chart: ChartListItem): string {
+    const chartType = chart.type
+
+    if (!chartType) return "Map"
+
+    const displayType = GRAPHER_CHART_TYPES[chartType]
+        ? lodash.startCase(GRAPHER_CHART_TYPES[chartType])
+        : "Unknown"
+
+    if (chart.tab === GRAPHER_TAB_CONFIG_OPTIONS.map) {
+        if (chart.hasChartTab) return `Map + ${displayType}`
+        else return "Map"
+    } else {
+        if (chart.hasMapTab) return `${displayType} + Map`
+        else return displayType
+    }
+}
+
+function compareTimes(a: string | undefined, b: string | undefined): number {
+    return new Date(a ?? 0).getTime() - new Date(b ?? 0).getTime()
+}
+
+/** Title with the draft and ETL flags, then id · type, slug and notes */
+function ChartCell({
+    chart,
+    highlight,
+}: {
+    chart: ChartListItem
+    highlight: Highlighter
+}): React.ReactElement {
     const etlSource = getChartListItemEtlSource(chart)
-    if (!etlSource) return 0
-    return hasEtlDrift(etlSource.drift) ? 2 : 1
+    const title = highlight(chart.title ?? "")
+    return (
+        <div className="chart-list__chart">
+            <div className="chart-list__title">
+                {!chart.isPublished && (
+                    <Tag color="red" variant="outlined">
+                        Draft
+                    </Tag>
+                )}
+                {chart.isPublished ? (
+                    <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>{title}</a>
+                ) : (
+                    <span>{title}</span>
+                )}
+                {chart.variantName && (
+                    <span className="chart-list__variant">
+                        {" "}
+                        ({highlight(chart.variantName)})
+                    </span>
+                )}
+                {/* Admin is the default, so only ETL charts are flagged */}
+                {etlSource && (
+                    <span className="chart-list__source">
+                        <ChartSourceBadge etl={etlSource} />
+                    </span>
+                )}
+            </div>
+            <div className="chart-list__meta">
+                <span>#{highlight(`${chart.id}`)}</span>
+                <span className="chart-list__meta-separator">·</span>
+                <span>{showChartType(chart)}</span>
+            </div>
+            <div className="chart-list__slug" title={chart.slug}>
+                {highlight(chart.slug)}
+            </div>
+            {chart.internalNotes && (
+                <div className="chart-list__notes">
+                    {highlight(chart.internalNotes)}
+                </div>
+            )}
+        </div>
+    )
+}
+
+/** "7 hours ago" over the author's name, with the exact time on hover */
+function TimestampCell({
+    time,
+    by,
+    highlight,
+}: {
+    time: string | undefined
+    by: string | undefined
+    highlight: Highlighter
+}): React.ReactElement {
+    if (!time) return <span className="text-muted">—</span>
+    return (
+        <div className="chart-list__timestamp">
+            <Tooltip title={dayjs(time).format("D MMM YYYY, HH:mm")}>
+                <span className="chart-list__time">
+                    {dayjs(time).fromNow()}
+                </span>
+            </Tooltip>
+            {by && <div className="chart-list__author">{highlight(by)}</div>}
+        </div>
+    )
+}
+
+function CountCell({ count }: { count: number | null }): React.ReactElement {
+    if (!count) return <span className="text-muted">0</span>
+    return <>{count.toLocaleString()}</>
+}
+
+/** Saving tags mutates `chart.tags`, so this cell observes it on its own */
+@observer
+class TagsCell extends React.Component<{
+    chart: ChartListItem
+    availableTags: MinimalTagWithMetadata[]
+    tagGraphRolesById: ReturnType<typeof getTagGraphRolesById>
+}> {
+    static override contextType = AdminAppContext
+    declare context: AdminAppContextType
+
+    @bind async onSaveTags(tags: DbChartTagJoin[]): Promise<void> {
+        const { chart } = this.props
+        const json = await this.context.admin.requestJSON(
+            `/api/charts/${chart.id}/setTags`,
+            { tags },
+            "POST"
+        )
+        if (json.success) runInAction(() => (chart.tags = tags))
+    }
+
+    override render() {
+        const { chart, availableTags, tagGraphRolesById } = this.props
+        return (
+            <div className="chart-list__tags">
+                <EditableTags
+                    tags={chart.tags}
+                    suggestions={availableTags}
+                    tagGraphRolesById={tagGraphRolesById}
+                    onSave={this.onSaveTags}
+                    hasKeyChartSupport
+                    hasSuggestionsSupport
+                    taggable={{ type: TaggableType.Charts, id: chart.id }}
+                />
+            </div>
+        )
+    }
+}
+
+type CopyOptionKey = "admin-url" | "grapher-url"
+
+function makeMarkdownLink(chart: ChartListItem, key: CopyOptionKey): string {
+    switch (key) {
+        case "admin-url":
+            return `[${chart.title}](${ADMIN_BASE_URL}/admin/charts/${chart.id}/edit)`
+        case "grapher-url":
+            return `[${chart.title}](${BAKED_GRAPHER_URL}/${chart.slug})`
+    }
+}
+
+async function copyMarkdownLink(
+    chart: ChartListItem,
+    key: CopyOptionKey
+): Promise<void> {
+    const ok = await copyToClipboard(makeMarkdownLink(chart, key))
+    if (ok) void message.success("Copied Markdown link")
+    else void message.error("Couldn't copy to the clipboard")
+}
+
+function ActionsCell({
+    chart,
+    onDelete,
+}: {
+    chart: ChartListItem
+    onDelete: (chart: ChartListItem) => void
+}): React.ReactElement {
+    const copyOptions: { key: CopyOptionKey; label: string }[] =
+        excludeUndefined([
+            { key: "admin-url", label: "Admin URL" },
+            chart.isPublished
+                ? { key: "grapher-url", label: "Grapher URL" }
+                : undefined,
+        ])
+
+    return (
+        <Space size={4}>
+            <Tooltip title="Edit">
+                <Link to={`/charts/${chart.id}/edit`}>
+                    <Button
+                        type="primary"
+                        size="small"
+                        aria-label="Edit"
+                        icon={<FontAwesomeIcon icon={faPen} />}
+                    />
+                </Link>
+            </Tooltip>
+            <Dropdown
+                trigger={["click"]}
+                menu={{
+                    items: [
+                        {
+                            type: "group",
+                            label: "Copy as Markdown link",
+                            children: copyOptions,
+                        },
+                    ],
+                    onClick: (e) => {
+                        void copyMarkdownLink(chart, e.key as CopyOptionKey)
+                    },
+                }}
+            >
+                <Tooltip title="Copy link">
+                    <Button
+                        size="small"
+                        aria-label="Copy link"
+                        icon={<FontAwesomeIcon icon={faCopy} />}
+                    />
+                </Tooltip>
+            </Dropdown>
+            <Tooltip title="Delete">
+                <Button
+                    size="small"
+                    danger
+                    aria-label="Delete"
+                    icon={<FontAwesomeIcon icon={faTrashCan} />}
+                    onClick={() => onDelete(chart)}
+                />
+            </Tooltip>
+        </Space>
+    )
+}
+
+function inheritanceStatus(chart: ChartListItem): string {
+    if (
+        chart.hasParentIndicator === undefined ||
+        chart.isInheritanceEnabled === undefined
+    )
+        return ""
+    // if the chart doesn't have a parent, inheritance doesn't apply
+    if (!chart.hasParentIndicator) return "n/a"
+    return chart.isInheritanceEnabled ? "enabled" : "disabled"
+}
+
+/** A header whose explanation shows on hovering its dotted-underlined text */
+function HeaderWithHelp({
+    title,
+    help,
+}: {
+    title: string
+    help: string
+}): React.ReactElement {
+    return (
+        <Tooltip title={help}>
+            <span className="chart-list__header-help">{title}</span>
+        </Tooltip>
+    )
+}
+
+function createColumns({
+    highlight,
+    availableTags,
+    tagGraphRolesById,
+    showInheritanceColumn,
+    onDelete,
+}: {
+    highlight: Highlighter
+    availableTags: MinimalTagWithMetadata[]
+    tagGraphRolesById: ReturnType<typeof getTagGraphRolesById>
+    showInheritanceColumn: boolean
+    onDelete: (chart: ChartListItem) => void
+}): TableColumnsType<ChartListItem> {
+    // Counts are most useful largest first
+    const descendFirst: ("descend" | "ascend")[] = ["descend", "ascend"]
+
+    return excludeUndefined([
+        {
+            key: "preview",
+            width: 112,
+            render: (_, chart) =>
+                chart.isPublished ? (
+                    <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
+                        <img
+                            src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${chart.slug}.png`}
+                            height={600}
+                            width={850}
+                            loading="lazy"
+                            className="chart-list__preview"
+                        />
+                    </a>
+                ) : null,
+        },
+        {
+            title: "Chart",
+            key: "chart",
+            render: (_, chart) => (
+                <ChartCell chart={chart} highlight={highlight} />
+            ),
+        },
+        showInheritanceColumn
+            ? {
+                  title: "Inheritance",
+                  key: "inheritance",
+                  width: 100,
+                  render: (_, chart) => inheritanceStatus(chart),
+              }
+            : undefined,
+        {
+            title: "Tags",
+            key: "tags",
+            width: "22%",
+            render: (_, chart) => (
+                <TagsCell
+                    chart={chart}
+                    availableTags={availableTags}
+                    tagGraphRolesById={tagGraphRolesById}
+                />
+            ),
+        },
+        {
+            title: "Last updated",
+            key: "lastEditedAt",
+            sorter: (a, b) => compareTimes(a.lastEditedAt, b.lastEditedAt),
+            sortDirections: descendFirst,
+            // the API lists charts most recently edited first
+            defaultSortOrder: "descend",
+            render: (_, chart) => (
+                <TimestampCell
+                    time={chart.lastEditedAt}
+                    by={chart.lastEditedBy}
+                    highlight={highlight}
+                />
+            ),
+        },
+        {
+            title: "Published",
+            key: "publishedAt",
+            sorter: (a, b) => compareTimes(a.publishedAt, b.publishedAt),
+            sortDirections: descendFirst,
+            render: (_, chart) => (
+                <TimestampCell
+                    time={chart.publishedAt}
+                    by={chart.publishedBy}
+                    highlight={highlight}
+                />
+            ),
+        },
+        {
+            title: (
+                <HeaderWithHelp
+                    title="Views/day"
+                    help="Average daily views of the chart's grapher page over the last 365 days"
+                />
+            ),
+            key: "grapherViewsPerDay",
+            align: "right",
+            sorter: (a, b) =>
+                (a.grapherViewsPerDay ?? 0) - (b.grapherViewsPerDay ?? 0),
+            sortDirections: descendFirst,
+            render: (_, chart) => (
+                <CountCell count={chart.grapherViewsPerDay} />
+            ),
+        },
+        {
+            title: "Narrative charts",
+            key: "narrativeChartsCount",
+            align: "right",
+            sorter: (a, b) =>
+                (a.narrativeChartsCount ?? 0) - (b.narrativeChartsCount ?? 0),
+            sortDirections: descendFirst,
+            render: (_, chart) => (
+                <CountCell count={chart.narrativeChartsCount} />
+            ),
+        },
+        {
+            title: (
+                <HeaderWithHelp
+                    title="References"
+                    help="Only considers published content. This number might differ from the chart editor count, which includes unpublished data insights."
+                />
+            ),
+            key: "referencesCount",
+            align: "right",
+            sorter: (a, b) =>
+                (a.referencesCount ?? 0) - (b.referencesCount ?? 0),
+            sortDirections: descendFirst,
+            render: (_, chart) => <CountCell count={chart.referencesCount} />,
+        },
+        {
+            key: "actions",
+            width: 100,
+            render: (_, chart) => (
+                <ActionsCell chart={chart} onDelete={onDelete} />
+            ),
+        },
+    ])
 }
 
 interface ChartListProps {
     charts: ChartListItem[]
     autofocusSearchInput?: boolean
+    loading?: boolean
     onDelete?: (chart: ChartListItem) => void
 }
 
@@ -95,9 +496,9 @@ export class ChartList extends React.Component<ChartListProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    searchInput: string | undefined = undefined
-    maxVisibleCharts = 50
-    sortConfig: SortConfig | undefined = undefined
+    searchInput: string = ""
+    currentPage = 1
+    pageSize = DEFAULT_PAGE_SIZE
     availableTags: MinimalTagWithMetadata[] | undefined = undefined
 
     constructor(props: ChartListProps) {
@@ -105,8 +506,8 @@ export class ChartList extends React.Component<ChartListProps> {
 
         makeObservable(this, {
             searchInput: observable,
-            maxVisibleCharts: observable,
-            sortConfig: observable,
+            currentPage: observable,
+            pageSize: observable,
             availableTags: observable,
         })
     }
@@ -163,12 +564,8 @@ export class ChartList extends React.Component<ChartListProps> {
     }
 
     override componentDidMount() {
-        this.searchInput = this.getSearchInputFromUrl()
+        runInAction(() => (this.searchInput = this.getSearchInputFromUrl()))
         void this.getTags()
-    }
-
-    @action.bound onSort(sortConfig: SortConfig) {
-        this.sortConfig = sortConfig
     }
 
     @computed get searchWords(): SearchWord[] {
@@ -176,235 +573,91 @@ export class ChartList extends React.Component<ChartListProps> {
         return buildSearchWordsFromSearchString(searchInput)
     }
 
-    @computed get numTotalCharts() {
-        return this.chartsFiltered.length
-    }
-
+    // Always a fresh array, so the table notices when a chart is deleted
     @computed get chartsFiltered(): ChartListItem[] {
         const { searchWords } = this
         const { charts } = this.props
-        if (searchWords.length > 0) {
-            const filterFn = filterFunctionForSearchWords(
-                searchWords,
-                (chart: ChartListItem) => [
-                    chart.title,
-                    chart.variantName,
-                    chart.internalNotes,
-                    chart.publishedBy,
-                    chart.lastEditedBy,
-                    `${chart.id}`,
-                    chart.slug,
-                    chart.hasChartTab !== false ? chart.type : undefined,
-                    chart.hasMapTab ? "Map" : undefined,
-                    ...chart.tags.map((tag) => tag.name),
-                ]
-            )
-            return charts.filter(filterFn)
-        } else return charts
-    }
-
-    @computed get chartsSorted(): ChartListItem[] {
-        const { chartsFiltered } = this
-        if (!this.sortConfig) return chartsFiltered
-
-        const { direction, field } = this.sortConfig
-        const getValue =
-            field === "grapherViewsPerDay"
-                ? (chart: ChartListItem) => chart.grapherViewsPerDay
-                : field === "narrativeChartsCount"
-                  ? (chart: ChartListItem) => chart.narrativeChartsCount
-                  : field === "source"
-                    ? getSourceRank
-                    : (chart: ChartListItem) => chart.referencesCount
-
-        return sortNumeric(
-            [...chartsFiltered],
-            getValue,
-            direction === "asc" ? SortOrder.asc : SortOrder.desc
+        if (searchWords.length === 0) return [...charts]
+        const filterFn = filterFunctionForSearchWords(
+            searchWords,
+            (chart: ChartListItem) => [
+                chart.title,
+                chart.variantName,
+                chart.internalNotes,
+                chart.publishedBy,
+                chart.lastEditedBy,
+                `${chart.id}`,
+                chart.slug,
+                chart.hasChartTab !== false ? chart.type : undefined,
+                chart.hasMapTab ? "Map" : undefined,
+                ...chart.tags.map((tag) => tag.name),
+            ]
         )
-    }
-
-    @computed get chartsToShow(): ChartListItem[] {
-        return this.chartsSorted.slice(0, this.maxVisibleCharts)
+        return charts.filter(filterFn)
     }
 
     @action.bound onSearchInput(input: string) {
         this.searchInput = input
+        this.currentPage = 1
         this.setSearchInputInUrl(input)
     }
 
-    @action.bound onShowMore() {
-        this.maxVisibleCharts += 100
+    @action.bound onPageChange(page: number, pageSize: number) {
+        this.currentPage = page
+        this.pageSize = pageSize
     }
 
     override render() {
-        const {
-            sortConfig,
-            onSort,
-            chartsToShow,
-            numTotalCharts,
-            searchInput,
-        } = this
-        const { availableTags } = this
-        const tagGraphRolesById = getTagGraphRolesById(availableTags ?? [])
-
-        const highlight = highlightFunctionForSearchWords(this.searchWords)
-        const hasMoreCharts = this.chartsFiltered.length > this.maxVisibleCharts
-
-        const getSortIndicator = () => {
-            if (!sortConfig || sortConfig.field !== "grapherViewsPerDay")
-                return ""
-            return sortConfig.direction === "desc" ? " ↓" : " ↑"
-        }
-
-        const handleSortClick = () => {
-            if (!sortConfig || sortConfig.field !== "grapherViewsPerDay") {
-                onSort({ field: "grapherViewsPerDay", direction: "desc" })
-            } else if (sortConfig.direction === "desc") {
-                onSort({ field: "grapherViewsPerDay", direction: "asc" })
-            } else {
-                onSort(null)
-            }
-        }
-
-        const getNarrativeChartsSortIndicator = () => {
-            if (!sortConfig || sortConfig.field !== "narrativeChartsCount")
-                return ""
-            return sortConfig.direction === "desc" ? " ↓" : " ↑"
-        }
-
-        const handleNarrativeChartsSortClick = () => {
-            if (!sortConfig || sortConfig.field !== "narrativeChartsCount") {
-                onSort({ field: "narrativeChartsCount", direction: "desc" })
-            } else if (sortConfig.direction === "desc") {
-                onSort({ field: "narrativeChartsCount", direction: "asc" })
-            } else {
-                onSort(null)
-            }
-        }
-
-        const getReferencesCountSortIndicator = () => {
-            if (!sortConfig || sortConfig.field !== "referencesCount") return ""
-            return sortConfig.direction === "desc" ? " ↓" : " ↑"
-        }
-
-        const handleReferencesCountSortClick = () => {
-            if (!sortConfig || sortConfig.field !== "referencesCount") {
-                onSort({ field: "referencesCount", direction: "desc" })
-            } else if (sortConfig.direction === "desc") {
-                onSort({ field: "referencesCount", direction: "asc" })
-            } else {
-                onSort(null)
-            }
-        }
-
-        const getSourceSortIndicator = () => {
-            if (!sortConfig || sortConfig.field !== "source") return ""
-            return sortConfig.direction === "desc" ? " ↓" : " ↑"
-        }
-
-        const handleSourceSortClick = () => {
-            if (!sortConfig || sortConfig.field !== "source") {
-                onSort({ field: "source", direction: "desc" })
-            } else if (sortConfig.direction === "desc") {
-                onSort({ field: "source", direction: "asc" })
-            } else {
-                onSort(null)
-            }
-        }
+        const { chartsFiltered, searchInput, availableTags } = this
 
         // if the first chart has inheritance information, we assume all charts have it
         const showInheritanceColumn =
-            chartsToShow[0]?.isInheritanceEnabled !== undefined
+            this.props.charts[0]?.isInheritanceEnabled !== undefined
+
+        const columns = createColumns({
+            highlight: highlightFunctionForSearchWords(this.searchWords),
+            availableTags: availableTags ?? [],
+            tagGraphRolesById: getTagGraphRolesById(availableTags ?? []),
+            showInheritanceColumn,
+            onDelete: this.onDeleteChart,
+        })
 
         return (
-            <div className="ChartList">
-                <div className="topRow">
-                    <span>
-                        Showing {chartsToShow.length} of {numTotalCharts} charts
-                        {searchInput && (
-                            <>
-                                {" "}
-                                for "{searchInput}" ({this.props.charts.length}{" "}
-                                total)
-                            </>
-                        )}
-                    </span>
-                    <TextField
-                        placeholder="Search all charts..."
-                        value={searchInput}
-                        onValue={this.onSearchInput}
-                        autofocus={this.props.autofocusSearchInput}
-                    />
-                </div>
-                <table className="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Chart</th>
-                            <th>Id</th>
-                            <th>Type</th>
-                            {showInheritanceColumn && <th>Inheritance</th>}
-                            <th>Tags</th>
-                            <th>Published</th>
-                            <th>Last Updated</th>
-                            <th
-                                style={{ cursor: "pointer" }}
-                                onClick={handleSortClick}
-                            >
-                                Grapher views/day{getSortIndicator()}
-                            </th>
-                            <th
-                                style={{ cursor: "pointer" }}
-                                onClick={handleNarrativeChartsSortClick}
-                            >
-                                narrative charts
-                                {getNarrativeChartsSortIndicator()}
-                            </th>
-                            <th
-                                style={{ cursor: "pointer" }}
-                                onClick={handleReferencesCountSortClick}
-                            >
-                                references{getReferencesCountSortIndicator()}
-                                <Tooltip title="Only considers published content. This number might differ from the chart editor count, which includes unpublished data insights.">
-                                    <FontAwesomeIcon icon={faInfoCircle} />
-                                </Tooltip>
-                            </th>
-                            <th
-                                style={{ cursor: "pointer" }}
-                                onClick={handleSourceSortClick}
-                            >
-                                Source{getSourceSortIndicator()}
-                            </th>
-                            <th></th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {availableTags &&
-                            chartsToShow.map((chart) => (
-                                <ChartRow
-                                    chart={chart}
-                                    key={chart.id}
-                                    availableTags={availableTags}
-                                    tagGraphRolesById={tagGraphRolesById}
-                                    searchHighlight={highlight}
-                                    onDelete={this.onDeleteChart}
-                                    showInheritanceColumn={
-                                        showInheritanceColumn
-                                    }
-                                />
-                            ))}
-                    </tbody>
-                </table>
-                {hasMoreCharts && (
-                    <button
-                        className="btn btn-secondary"
-                        onClick={this.onShowMore}
-                    >
-                        Show more charts...
-                    </button>
-                )}
+            <div className="chart-list">
+                <Input.Search
+                    className="chart-list__search"
+                    placeholder="Search by title, slug, id, type, tag, author or notes…"
+                    allowClear
+                    value={searchInput}
+                    onChange={(e) => this.onSearchInput(e.target.value)}
+                    autoFocus={this.props.autofocusSearchInput}
+                />
+                <Table<ChartListItem>
+                    size="small"
+                    // sized to the content, so the chart column gets the room
+                    // the narrow ones don't need, however wide the page is.
+                    // Not sticky: a sticky header is a table of its own, which
+                    // falls out of line with content-sized columns
+                    tableLayout="auto"
+                    scroll={{ x: true }}
+                    rowKey="id"
+                    columns={columns}
+                    // tag cells need the tag graph roles, which come with the tags
+                    dataSource={availableTags ? chartsFiltered : []}
+                    loading={this.props.loading || !availableTags}
+                    pagination={{
+                        current: this.currentPage,
+                        pageSize: this.pageSize,
+                        onChange: this.onPageChange,
+                        showSizeChanger: true,
+                        pageSizeOptions: [25, 50, 100, 200],
+                        showTotal: (total, [from, to]) =>
+                            `${from}–${to} of ${total.toLocaleString()} charts` +
+                            (searchInput
+                                ? ` (${this.props.charts.length.toLocaleString()} total)`
+                                : ""),
+                    }}
+                />
             </div>
         )
     }
