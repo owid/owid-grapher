@@ -370,7 +370,10 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     renderReady(editor: ConfigEditor): React.ReactElement {
         const { grapherState, availableTabs } = editor
         const { previewUrl } = this.manager
-        const previewHeaderNote = editor.manager.renderNote?.("preview.header")
+        const previewHeaderNote = editor.manager.renderNote?.(
+            "preview.header",
+            editor
+        )
         const extraTabs = editor.manager.extraTabs ?? []
 
         const activeTab = availableTabs.includes(editor.tab)

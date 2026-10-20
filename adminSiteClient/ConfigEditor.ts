@@ -88,7 +88,7 @@ export interface ConfigEditorManager {
         editingErrors: string[]
     ) => ReactNode
 
-    renderNote?: (slot: EditorNoteSlot) => ReactNode
+    renderNote?: (slot: EditorNoteSlot, editor: ConfigEditor) => ReactNode
     originUrlSuggestions?: OriginUrlSuggestion[]
 }
 

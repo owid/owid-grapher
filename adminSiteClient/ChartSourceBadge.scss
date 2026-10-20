@@ -39,6 +39,11 @@ $admin-background: #e1ecfb;
     );
 }
 
+.chart-source-badge--button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
 .chart-source-badge--admin {
     color: $admin-color;
     background: $admin-background;

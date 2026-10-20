@@ -16,11 +16,17 @@ import {
 } from "./etlChartSync.js"
 import "./ChartSourceBadge.scss"
 
-/** Where a chart is authored: in ETL (in sync or drifted) or in the admin */
+/**
+ * Where a chart is authored: in ETL (in sync or drifted) or in the admin.
+ * An ETL badge links to the step's config in owid/etl, unless `onClick` is
+ * given.
+ */
 export function ChartSourceBadge({
     etl,
+    onClick,
 }: {
     etl?: EtlSource
+    onClick?: () => void
 }): React.ReactElement {
     if (!etl)
         return (
@@ -35,6 +41,7 @@ export function ChartSourceBadge({
     const gitHubUrl = makeEtlConfigGitHubUrl(etl.catalogPath)
     const className = cx("chart-source-badge", "chart-source-badge--etl", {
         "chart-source-badge--drifted": isDrifted,
+        "chart-source-badge--button": onClick,
     })
     const content = (
         <>
@@ -50,14 +57,20 @@ export function ChartSourceBadge({
                     etl={etl}
                     isDrifted={isDrifted}
                     footer={
-                        gitHubUrl
-                            ? "Click to open the config in owid/etl"
-                            : undefined
+                        onClick
+                            ? "Click for details"
+                            : gitHubUrl
+                              ? "Click to open the config in owid/etl"
+                              : undefined
                     }
                 />
             }
         >
-            {gitHubUrl ? (
+            {onClick ? (
+                <button type="button" className={className} onClick={onClick}>
+                    {content}
+                </button>
+            ) : gitHubUrl ? (
                 <a
                     className={className}
                     href={gitHubUrl}

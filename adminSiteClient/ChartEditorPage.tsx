@@ -568,7 +568,10 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         />
     )
 
-    private readonly renderNote = (slot: EditorNoteSlot): React.ReactNode => {
+    private readonly renderNote = (
+        slot: EditorNoteSlot,
+        editor: ConfigEditor
+    ): React.ReactNode => {
         switch (slot) {
             case "map.colorScale": {
                 const edit = findLastMapColorScaleEdit(this.logs)
@@ -582,7 +585,20 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             }
             case "preview.header":
                 if (this.isNewChart) return undefined
-                return <ChartSourceBadge etl={this.etlSource} />
+                return (
+                    <ChartSourceBadge
+                        etl={this.etlSource}
+                        // the Debug tab explains the ETL badge in detail
+                        onClick={
+                            this.etlSource
+                                ? action(() => {
+                                      editor.tab = "debug"
+                                      editor.showStaticPreview = false
+                                  })
+                                : undefined
+                        }
+                    />
+                )
             case "debug.top":
                 if (!this.etlSource) return undefined
                 return <EtlSourceSection etl={this.etlSource} />
