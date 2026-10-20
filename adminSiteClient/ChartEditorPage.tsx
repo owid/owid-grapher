@@ -78,6 +78,10 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     patchConfig: GrapherInterface = {}
     // The patch as stored in the database, kept up to date on save
     savedPatchConfig: GrapherInterface = {}
+    // A click on the ETL badge highlights the ETL section in the Debug tab
+    // once; the count remounts the section to replay it on repeated clicks
+    etlSectionHighlightCount = 0
+    isEtlSectionHighlightPending = false
 
     logs: Log[] = []
     references: References | undefined = undefined
@@ -106,6 +110,8 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             etlConfigCatalogPath: observable.ref,
             patchConfig: observable.ref,
             savedPatchConfig: observable.ref,
+            etlSectionHighlightCount: observable.ref,
+            isEtlSectionHighlightPending: observable.ref,
             logs: observable,
             references: observable,
             redirects: observable,
@@ -594,6 +600,8 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                                 ? action(() => {
                                       editor.tab = "debug"
                                       editor.showStaticPreview = false
+                                      this.etlSectionHighlightCount += 1
+                                      this.isEtlSectionHighlightPending = true
                                   })
                                 : undefined
                         }
@@ -601,7 +609,16 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                 )
             case "debug.top":
                 if (!this.etlSource) return undefined
-                return <EtlSourceSection etl={this.etlSource} />
+                return (
+                    <EtlSourceSection
+                        key={this.etlSectionHighlightCount}
+                        etl={this.etlSource}
+                        highlightOnMount={this.isEtlSectionHighlightPending}
+                        onHighlighted={action(
+                            () => (this.isEtlSectionHighlightPending = false)
+                        )}
+                    />
+                )
         }
     }
 

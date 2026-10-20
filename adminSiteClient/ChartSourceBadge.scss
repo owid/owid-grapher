@@ -117,3 +117,24 @@ $admin-background: #e1ecfb;
     border-radius: 4px;
     background: #fff;
 }
+
+// Draws the eye to the section when the editor's ETL badge opens it
+.etl-source-section--highlighted > section {
+    animation: etl-source-section-highlight 2.5s ease-out;
+}
+
+@keyframes etl-source-section-highlight {
+    0%,
+    40% {
+        box-shadow: 0 0 0 3px $etl-color;
+    }
+    100% {
+        box-shadow: 0 0 0 3px rgba($etl-color, 0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .etl-source-section--highlighted > section {
+        animation-timing-function: steps(1, end);
+    }
+}

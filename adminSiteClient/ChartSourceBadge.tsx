@@ -143,58 +143,85 @@ function EtlSourceTooltip({
 /** Debug-tab section telling editors the chart is managed by ETL */
 export function EtlSourceSection({
     etl,
+    highlightOnMount = false,
+    onHighlighted,
 }: {
     etl: EtlSource
+    /** Briefly outline the section and scroll to it when it mounts */
+    highlightOnMount?: boolean
+    onHighlighted?: () => void
 }): React.ReactElement {
     const [isDriftExpanded, setIsDriftExpanded] = React.useState(false)
+    // Fixed at mount, so the highlight plays once even if the prop changes
+    const [isHighlighted] = React.useState(highlightOnMount)
+    const ref = React.useRef<HTMLDivElement>(null)
+
+    React.useEffect(() => {
+        if (!isHighlighted) return
+        ref.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+        onHighlighted?.()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
     const isDrifted = hasEtlDrift(etl.drift)
     const gitHubUrl = makeEtlConfigGitHubUrl(etl.catalogPath)
 
     return (
-        <Section name="ETL">
-            <p>
-                This chart was created in ETL.
-                {gitHubUrl && (
-                    <>
-                        {" "}
-                        <a
-                            href={gitHubUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            View config in owid/etl{" "}
-                            <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
-                        </a>
-                    </>
-                )}
-            </p>
-            <CatalogPathField catalogPath={etl.catalogPath ?? undefined} />
-            {isDrifted ? (
-                <div className="etl-source-section__drift-note">
-                    <FontAwesomeIcon icon={faUnlink} /> There are changes in the
-                    admin since the last ETL push.{" "}
-                    <button
-                        type="button"
-                        className="btn btn-link p-0 align-baseline"
-                        onClick={() => setIsDriftExpanded(!isDriftExpanded)}
-                    >
-                        {isDriftExpanded ? "View less" : "View more"}
-                    </button>
-                    {isDriftExpanded && (
-                        <ul className="mt-2 mb-0">
-                            {describeEtlDrift(etl.drift).map((description) => (
-                                <li key={description}>{description}</li>
-                            ))}
-                        </ul>
+        <div
+            ref={ref}
+            className={cx("etl-source-section", {
+                "etl-source-section--highlighted": isHighlighted,
+            })}
+        >
+            <Section name="ETL">
+                <p>
+                    This chart was created in ETL.
+                    {gitHubUrl && (
+                        <>
+                            {" "}
+                            <a
+                                href={gitHubUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                View config in owid/etl{" "}
+                                <FontAwesomeIcon
+                                    icon={faArrowUpRightFromSquare}
+                                />
+                            </a>
+                        </>
                     )}
-                </div>
-            ) : (
-                <p>In sync with the last ETL push.</p>
-            )}
-            <small className="form-text text-muted">
-                Edits saved here override the ETL config: later ETL pushes no
-                longer update the fields you changed.
-            </small>
-        </Section>
+                </p>
+                <CatalogPathField catalogPath={etl.catalogPath ?? undefined} />
+                {isDrifted ? (
+                    <div className="etl-source-section__drift-note">
+                        <FontAwesomeIcon icon={faUnlink} /> There are changes in
+                        the admin since the last ETL push.{" "}
+                        <button
+                            type="button"
+                            className="btn btn-link p-0 align-baseline"
+                            onClick={() => setIsDriftExpanded(!isDriftExpanded)}
+                        >
+                            {isDriftExpanded ? "View less" : "View more"}
+                        </button>
+                        {isDriftExpanded && (
+                            <ul className="mt-2 mb-0">
+                                {describeEtlDrift(etl.drift).map(
+                                    (description) => (
+                                        <li key={description}>{description}</li>
+                                    )
+                                )}
+                            </ul>
+                        )}
+                    </div>
+                ) : (
+                    <p>In sync with the last ETL push.</p>
+                )}
+                <small className="form-text text-muted">
+                    Edits saved here override the ETL config: later ETL pushes
+                    no longer update the fields you changed.
+                </small>
+            </Section>
+        </div>
     )
 }
