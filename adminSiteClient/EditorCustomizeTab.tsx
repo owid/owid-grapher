@@ -11,6 +11,7 @@ import {
     FacetAxisDomain,
     FacetStrategy,
     GRAPHER_CHART_TYPES,
+    SwimlaneSegmentLabelMode,
 } from "@ourworldindata/types"
 import {
     GrapherState,
@@ -746,6 +747,31 @@ class TrendColorField extends React.Component<{
 }
 
 @observer
+class SwimlaneSection extends React.Component<{ editor: ConfigEditor }> {
+    override render(): React.ReactElement {
+        const { swimlane } = this.props.editor.grapherState
+        return (
+            <Section name="Timeline chart">
+                <FieldsRow>
+                    <Toggle
+                        label="Hide segment labels"
+                        value={
+                            swimlane.segmentLabelMode ===
+                            SwimlaneSegmentLabelMode.None
+                        }
+                        onValue={action((value: boolean) => {
+                            swimlane.segmentLabelMode = value
+                                ? SwimlaneSegmentLabelMode.None
+                                : SwimlaneSegmentLabelMode.CategoryAndTimeRange
+                        })}
+                    />
+                </FieldsRow>
+            </Section>
+        )
+    }
+}
+
+@observer
 class DumbbellSection extends React.Component<{ editor: ConfigEditor }> {
     constructor(props: { editor: ConfigEditor }) {
         super(props)
@@ -1114,6 +1140,9 @@ export class EditorCustomizeTab extends React.Component<EditorCustomizeTabProps>
                 )}
                 {features.canConfigureDumbbell && (
                     <DumbbellSection editor={this.props.editor} />
+                )}
+                {features.canConfigureSwimlane && (
+                    <SwimlaneSection editor={this.props.editor} />
                 )}
             </div>
         )
