@@ -182,7 +182,6 @@ export function getFeaturedImageFilename(gdoc: OwidGdoc): string | undefined {
                         OwidGdocType.LinearTopicPage,
                         OwidGdocType.AboutPage,
                         OwidGdocType.Author,
-                        OwidGdocType.Announcement,
                         OwidGdocType.FeaturedViz
                     ),
                 },
@@ -192,18 +191,28 @@ export function getFeaturedImageFilename(gdoc: OwidGdoc): string | undefined {
                 return featuredImageFilename
             }
         )
-        .with({ content: { type: OwidGdocType.DataInsight } }, (gdoc) => {
-            // Use the first image in the document as the featured image
-            let filename: string | undefined = undefined
-            for (const block of gdoc.content.body) {
-                traverseEnrichedBlock(block, (block) => {
-                    if (!filename && block.type === "image") {
-                        filename = block.smallFilename || block.filename
-                    }
-                })
+        .with(
+            {
+                content: {
+                    type: P.union(
+                        OwidGdocType.DataInsight,
+                        OwidGdocType.Announcement
+                    ),
+                },
+            },
+            (gdoc) => {
+                // Use the first image in the document as the featured image
+                let filename: string | undefined = undefined
+                for (const block of gdoc.content.body) {
+                    traverseEnrichedBlock(block, (block) => {
+                        if (!filename && block.type === "image") {
+                            filename = block.smallFilename || block.filename
+                        }
+                    })
+                }
+                return filename
             }
-            return filename
-        })
+        )
         .with(
             {
                 content: { type: OwidGdocType.Profile },
