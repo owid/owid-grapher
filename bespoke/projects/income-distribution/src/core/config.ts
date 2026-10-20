@@ -4,14 +4,7 @@ import {
     parseInteger,
     parseNumber,
 } from "../../../../helpers/config.js"
-import {
-    BREAKDOWNS,
-    Breakdown,
-    TIME_INTERVALS,
-    TimeInterval,
-    VIEWS,
-    View,
-} from "./types.js"
+import { TIME_INTERVALS, TimeInterval, VIEWS, View } from "./types.js"
 
 export interface IncomeDistributionConfig {
     hideControls: boolean
@@ -19,8 +12,6 @@ export interface IncomeDistributionConfig {
     subtitle?: string
     /** Start on the global stack or on the selected countries */
     view?: View
-    /** Split the global stack by region or by country */
-    breakdown?: Breakdown
     /**
      * Country names for the selected-countries view, comma-separated in the
      * ArchieML block; "userLocation" stands for the reader's own country
@@ -46,7 +37,6 @@ export function parseConfig(
         title: raw.title,
         subtitle: raw.subtitle,
         view: parseEnum(raw.view, VIEWS),
-        breakdown: parseEnum(raw.breakdown, BREAKDOWNS),
         countries: parseList(raw.countries),
         // An empty `year:` parses as 0, which no feed file exists for
         year: parsePositiveInteger(raw.year),

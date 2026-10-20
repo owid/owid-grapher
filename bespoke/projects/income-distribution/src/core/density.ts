@@ -181,37 +181,6 @@ export function stackSeries(series: DensitySeries[]): StackedSeries[] {
 }
 
 /**
- * Merges the (contiguous) country bands of each region into one band per
- * region, with that region's lowest y0 and highest y1 at each grid point.
- * Used for the region labels drawn over the country-level stack.
- */
-export function groupStackByRegion(stacked: StackedSeries[]): StackedSeries[] {
-    const runs: StackedSeries[][] = []
-    for (const s of stacked) {
-        const run = runs.at(-1)
-        if (run && run[0].region === s.region) run.push(s)
-        else runs.push([s])
-    }
-
-    return runs.map((run) => {
-        const { region } = run[0]
-        const population = R.sumBy(run, (s) => s.population)
-        const numPoints = run[0].y0.length
-        const y0 = R.range(0, numPoints).map((i) =>
-            Math.min(...run.map((s) => s.y0[i]))
-        )
-        const y1 = R.range(0, numPoints).map((i) =>
-            Math.max(...run.map((s) => s.y1[i]))
-        )
-        // The band's own shape, as a per-capita density like any other series
-        const density = y1.map((top, i) =>
-            population > 0 ? (top - y0[i]) / population : 0
-        )
-        return { key: region, region, population, density, y0, y1 }
-    })
-}
-
-/**
  * Share (0–1) of a country's population living below `line` (int-$/day):
  * the number of bins whose mean is below the line, over 1000.
  */

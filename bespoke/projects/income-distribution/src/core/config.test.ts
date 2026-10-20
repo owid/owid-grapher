@@ -10,7 +10,6 @@ describe(parseConfig, () => {
                 title: "Custom title",
                 subtitle: "Custom subtitle",
                 view: "countries",
-                breakdown: "regions",
                 countries: "China, United States,userLocation",
                 year: "2020",
                 povertyLine: "6.85",
@@ -22,7 +21,6 @@ describe(parseConfig, () => {
             title: "Custom title",
             subtitle: "Custom subtitle",
             view: "countries",
-            breakdown: "regions",
             countries: ["China", "United States", "userLocation"],
             year: 2020,
             povertyLine: 6.85,
@@ -37,7 +35,6 @@ describe(parseConfig, () => {
             title: undefined,
             subtitle: undefined,
             view: undefined,
-            breakdown: undefined,
             countries: undefined,
             year: undefined,
             povertyLine: undefined,
@@ -49,11 +46,9 @@ describe(parseConfig, () => {
     it("ignores values outside the allowed options", () => {
         const config = parseConfig({
             view: "map",
-            breakdown: "continents",
             timeInterval: "weekly",
         })
         expect(config.view).toBeUndefined()
-        expect(config.breakdown).toBeUndefined()
         expect(config.timeInterval).toBeUndefined()
     })
 

@@ -11,13 +11,11 @@ import {
     computeCountrySeries,
     DENSITY_GRID,
     estimateLogDensity,
-    groupStackByRegion,
     stackSeries,
     type DensityGrid,
 } from "./density.js"
 import {
     REGIONS,
-    type Breakdown,
     type IncomeDistributionYear,
     type Region,
     type View,
@@ -28,14 +26,13 @@ export interface ChartSeries {
     /** Entity name: a country or a region */
     key: string
     region: Region
-    isCountry: boolean
     color: string
     /** Lower and upper edge at each grid point; y0 is all zeros for unstacked curves */
     y0: number[]
     y1: number[]
 }
 
-/** A region's extent in the country-level stack, for labels and region hover */
+/** A region's band of the global stack, for the labels drawn inside it */
 export interface RegionBand {
     region: Region
     color: string
@@ -47,10 +44,7 @@ export interface IncomeDistributionChartModel {
     grid: DensityGrid
     /** Bottom-most first; drawn in order */
     series: ChartSeries[]
-    /**
-     * Global view: one band per region regardless of breakdown (labels go
-     * here). Countries view: empty.
-     */
+    /** Global view: one band per region (labels go here). Countries view: empty. */
     regionBands: RegionBand[]
     /** Largest y1 across `series` */
     yMax: number
@@ -60,20 +54,19 @@ export interface IncomeDistributionChartModel {
 
 /**
  * Builds everything the chart draws from the year's data and the current
- * selection. Global view: stacked, all countries, coloured by region (series
- * are countries or regions depending on `breakdown`). Countries view:
- * unstacked per-capita densities of `selectedCountries` (unknown names
- * ignored), coloured with `assignCountryColors`.
+ * selection. Global view: every country's population, stacked into one band
+ * per World Bank region. Countries view: unstacked per-capita densities of
+ * `selectedCountries` (unknown names ignored), coloured with
+ * `assignCountryColors`.
  */
 export function buildChartModel(args: {
     year: IncomeDistributionYear
     view: View
-    breakdown: Breakdown
     selectedCountries: string[]
 }): IncomeDistributionChartModel {
     const { series, regionBands, legend } =
         args.view === "global"
-            ? buildGlobal(args.year, args.breakdown)
+            ? buildGlobal(args.year)
             : buildCountries(args.year, args.selectedCountries)
 
     return {
@@ -93,36 +86,24 @@ type ChartModelParts = Pick<
     "series" | "regionBands" | "legend"
 >
 
-function buildGlobal(
-    year: IncomeDistributionYear,
-    breakdown: Breakdown
-): ChartModelParts {
+function buildGlobal(year: IncomeDistributionYear): ChartModelParts {
     const countrySeries = computeCountrySeries(year)
-    const countryStack = stackSeries(countrySeries)
-    const isCountry = breakdown === "countries"
-    const stack = isCountry
-        ? countryStack
-        : stackSeries(aggregateByRegion(countrySeries))
+    const stack = stackSeries(aggregateByRegion(countrySeries))
 
     const series = stack.map((s): ChartSeries => ({
         key: s.key,
         region: s.region,
-        isCountry,
         color: REGION_COLORS[s.region],
         y0: s.y0,
         y1: s.y1,
     }))
 
-    // Bands always come from the country stack, so the region labels sit in
-    // the same place whichever breakdown is shown
-    const regionBands = groupStackByRegion(countryStack).map(
-        (band): RegionBand => ({
-            region: band.region,
-            color: REGION_COLORS[band.region],
-            y0: band.y0,
-            y1: band.y1,
-        })
-    )
+    const regionBands = series.map((s): RegionBand => ({
+        region: s.region,
+        color: s.color,
+        y0: s.y0,
+        y1: s.y1,
+    }))
 
     const presentRegions = new Set(countrySeries.map((s) => s.region))
     const legend = REGIONS.filter((region) => presentRegions.has(region)).map(
@@ -150,7 +131,6 @@ function buildCountries(
         return {
             key: name,
             region: country.region,
-            isCountry: true,
             color: colors.get(name)!,
             y0: zeros,
             // Per capita, so countries of any size are comparable

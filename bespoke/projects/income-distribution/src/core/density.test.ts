@@ -12,7 +12,6 @@ import {
     computeCountrySeries,
     DENSITY_GRID,
     estimateLogDensity,
-    groupStackByRegion,
     shareBelowLine,
     shareBelowLineForEntities,
     stackSeries,
@@ -102,20 +101,6 @@ describe(stackSeries, () => {
         const i = 100
         const { y0, y1, density, population } = stack[2]
         expect(y1[i] - y0[i]).toBeCloseTo(density[i] * population)
-    })
-})
-
-describe(groupStackByRegion, () => {
-    it("spans each region's run of countries with one band", () => {
-        const stack = stackSeries(computeCountrySeries(YEAR))
-        const bands = groupStackByRegion(stack)
-        expect(bands.map((b) => b.key)).toEqual([
-            "Sub-Saharan Africa",
-            "South Asia",
-        ])
-        expect(bands[0].y0).toEqual(stack[0].y0)
-        expect(bands[0].y1).toEqual(stack[1].y1)
-        expect(bands[1].y1).toEqual(stack[2].y1)
     })
 })
 

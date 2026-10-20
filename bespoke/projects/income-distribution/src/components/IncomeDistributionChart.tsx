@@ -302,9 +302,8 @@ function IncomeDistributionChartContent({
                   ?.color)
 
     const noun = timeIntervalNoun(timeInterval)
-    const stackedBy = model.series[0]?.isCountry ? "country" : "world region"
     const ariaLabel = isStacked
-        ? `Distribution of the world population by income per ${noun} in ${year}, stacked by ${stackedBy} and coloured by world region, on a logarithmic income axis.`
+        ? `Distribution of the world population by income per ${noun} in ${year}, stacked by world region, on a logarithmic income axis.`
         : `Distribution of income per ${noun} in ${year} in ${model.legend.map((entry) => entry.key).join(", ")}, on a logarithmic income axis.`
 
     return (
