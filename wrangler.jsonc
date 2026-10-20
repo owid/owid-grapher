@@ -30,6 +30,11 @@
             "binding": "USER_SURVEYS_R2"
         }
     ],
+    // Workers AI, for the experimental /api/search?rerank= (functions/api/search/rerank.ts).
+    // Top level only, i.e. `wrangler pages dev` (local dev and the staging containers),
+    // which authenticates with the dev/staging CLOUDFLARE_API_TOKEN. Deliberately not in
+    // "preview" (public *.owid.pages.dev URLs) or "production", where the param returns 400.
+    "ai": { "binding": "AI", "remote": true },
     "vars": {
         "ENV": "development",
         "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH": "v1",
