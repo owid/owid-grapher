@@ -170,14 +170,15 @@ export function EtlSourceSection({
             </p>
             <CatalogPathField catalogPath={etl.catalogPath ?? undefined} />
             {isDrifted ? (
-                <div className="alert alert-info">
-                    There are changes in the admin since the last ETL push.{" "}
+                <div className="etl-source-section__drift-note">
+                    <FontAwesomeIcon icon={faUnlink} /> There are changes in the
+                    admin since the last ETL push.{" "}
                     <button
                         type="button"
                         className="btn btn-link p-0 align-baseline"
                         onClick={() => setIsDriftExpanded(!isDriftExpanded)}
                     >
-                        {isDriftExpanded ? "Hide them" : "View them"}
+                        {isDriftExpanded ? "View less" : "View more"}
                     </button>
                     {isDriftExpanded && (
                         <ul className="mt-2 mb-0">
