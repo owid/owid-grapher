@@ -24,11 +24,9 @@
 }
 
 // A muted red: findable when scanning for drafts, without pulling the eye
-.chart-list__chart--draft .chart-list__title .ant-tag {
-    color: #b0605a;
-    background: #fbeeed;
-    border-color: #f0d2cf;
-    font-weight: normal;
+.chart-list__draft-label {
+    margin-right: 6px;
+    color: #b5524b;
 }
 
 .chart-list__tags {
@@ -60,11 +58,6 @@
 .chart-list__title {
     font-weight: 600;
     line-height: 1.35;
-
-    .ant-tag {
-        margin-right: 6px;
-        vertical-align: 1px;
-    }
 }
 
 .chart-list__variant {

@@ -35,7 +35,6 @@ import {
     Input,
     Table,
     TableColumnsType,
-    Tag,
     Tooltip,
     message,
 } from "antd"
@@ -145,7 +144,9 @@ function ChartCell({
             })}
         >
             <div className="chart-list__title">
-                {!chart.isPublished && <Tag>Draft</Tag>}
+                {!chart.isPublished && (
+                    <span className="chart-list__draft-label">Draft</span>
+                )}
                 {chart.isPublished ? (
                     <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>{title}</a>
                 ) : (
@@ -213,6 +214,13 @@ function PreviewCell({ chart }: { chart: ChartListItem }): React.ReactElement {
     )
 }
 
+/** "1 year ago" rather than dayjs's "a year ago", so the times line up as numbers */
+function timeAgo(time: string): string {
+    return dayjs(time)
+        .fromNow()
+        .replace(/^an? (minute|hour|day|month|year) ago$/, "1 $1 ago")
+}
+
 /** "7 hours ago" over the author's name, with the exact time on hover */
 function TimestampCell({
     time,
@@ -227,9 +235,7 @@ function TimestampCell({
     return (
         <div className="chart-list__timestamp">
             <Tooltip title={dayjs(time).format("D MMM YYYY, HH:mm")}>
-                <span className="chart-list__time">
-                    {dayjs(time).fromNow()}
-                </span>
+                <span className="chart-list__time">{timeAgo(time)}</span>
             </Tooltip>
             {by && <div className="chart-list__author">{highlight(by)}</div>}
         </div>
@@ -353,6 +359,7 @@ function ActionsCell({
                 </Button>
             </Dropdown>
             <Button
+                type="primary"
                 size="small"
                 danger
                 block
