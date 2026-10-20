@@ -29,7 +29,7 @@
             flex-shrink: 0;
             font-weight: 700;
             padding-top: 2px;
-            padding-bottom: 14px;
+            padding-bottom: 8px;
 
             .title-fragments {
                 color: $light-text;
@@ -269,13 +269,6 @@
 &.GrapherComponentMedium {
     .DataTable .caption {
         padding-top: 4px;
-        padding-bottom: 8px;
-    }
-}
-
-&.GrapherComponentNarrow {
-    .DataTable .caption {
-        padding-bottom: 4px;
     }
 }
 
