@@ -437,6 +437,15 @@ function createColumns({
                 />
             ),
         },
+        // Next to the chart rather than at the far right: Edit is what most
+        // visits to this list end in
+        {
+            key: "actions",
+            width: 100,
+            render: (_, chart) => (
+                <ActionsCell chart={chart} onDelete={onDelete} />
+            ),
+        },
         showInheritanceColumn
             ? {
                   title: "Inheritance",
@@ -513,13 +522,6 @@ function createColumns({
                 (a.referencesCount ?? 0) - (b.referencesCount ?? 0),
             sortDirections: descendFirst,
             render: (_, chart) => <CountCell count={chart.referencesCount} />,
-        },
-        {
-            key: "actions",
-            width: 100,
-            render: (_, chart) => (
-                <ActionsCell chart={chart} onDelete={onDelete} />
-            ),
         },
     ])
 }

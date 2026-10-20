@@ -18,9 +18,10 @@
     min-width: 280px;
 }
 
-// Drafts read as secondary: grey title, grey Draft tag
+// Drafts read as secondary: a grey, italic title
 .chart-list__chart--draft .chart-list__title {
     color: #888;
+    font-style: italic;
 }
 
 // A muted red: findable when scanning for drafts, without pulling the eye
