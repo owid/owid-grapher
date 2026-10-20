@@ -111,3 +111,21 @@ describe("GrapherLoader canonicalUrl", () => {
         expect(grapherState.canonicalUrl).toBe("https://example.org/vacancies")
     })
 })
+
+describe("GrapherLoader with a versioned config", () => {
+    it("migrates an outdated config to the latest schema version", () => {
+        const { grapherState } = GrapherLoader.fromCsv({
+            config: {
+                ...config,
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                // v6 replaced `type` with `chartTypes`
+                type: "SlopeChart",
+            } as GrapherInterface,
+            csv,
+            columnDefs,
+        })
+
+        expect(grapherState.chartTypes).toEqual(["SlopeChart"])
+    })
+})

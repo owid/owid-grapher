@@ -43,6 +43,8 @@ function LifeExpectancyChart() {
     useEffect(() => {
         const loader = GrapherLoader.fromApi({
             config: {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.011.json",
                 title: "Life expectancy",
                 selectedEntityNames: ["World", "Africa", "Europe"],
                 dimensions: [
@@ -57,6 +59,8 @@ function LifeExpectancyChart() {
     return <div style={{ aspectRatio: "850 / 600" }} ref={ref} />
 }
 ```
+
+The `$schema` field is optional, but recommended: it records which schema version the config was written against, and `GrapherLoader` migrates configs from older versions to the latest one, so they keep working when you update the package.
 
 For loading your own data (CSV or in-memory tables), providing source metadata, the standalone bundle for non-React pages, sizing, and the full `GrapherLoader` API, see the [documentation](https://docs.owid.io/projects/grapher/). A complete working example of all three data sources is in [`demo.html`](./demo.html) (`yarn startDemoServer`).
 

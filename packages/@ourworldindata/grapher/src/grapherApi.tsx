@@ -10,6 +10,7 @@ import { Grapher, GrapherProgrammaticInterface } from "./core/Grapher.js"
 import { GrapherState } from "./core/GrapherState.js"
 import { applyDimensionDisplayAndConversionFactor } from "./core/applyDisplayAndConversionFactor.js"
 import { fetchInputTableForConfig } from "./core/loadGrapherTableHelpers.js"
+import { migrateGrapherConfigToLatestVersion } from "./schema/migrations/migrate.js"
 import { useElementBounds } from "./hooks.js"
 
 const DEFAULT_DATA_API_URL = "https://api.ourworldindata.org/v1/indicators/"
@@ -64,6 +65,15 @@ function defaultGrapherConfigOverrides(): Partial<GrapherProgrammaticInterface> 
     return {
         manager: {}, // explicitly set this, so that `useIdealBounds` is false and we can specify custom bounds
     }
+}
+
+// If a $schema version is present in the config, ensure that we migrate it
+// up to the latest version.
+function migrateConfigIfVersioned<T extends GrapherProgrammaticInterface>(
+    config: T
+): T {
+    if (config.$schema === undefined) return config
+    return migrateGrapherConfigToLatestVersion(config) as T
 }
 
 // A config without `dimensions` or `ySlugs` auto-detects its y columns from
@@ -224,7 +234,8 @@ export class GrapherLoader {
 
     /** Prepare a chart whose data comes from a pre-built OwidTable. */
     static fromTable(options: FromTableOptions): GrapherLoader {
-        const { config, data } = options
+        const { data } = options
+        const config = migrateConfigIfVersioned(options.config)
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
             ...config,
@@ -242,15 +253,17 @@ export class GrapherLoader {
     /** Prepare a chart whose data comes from a CSV, either passed inline as a
      *  string or fetched from a URL. */
     static fromCsv(options: FromCsvOptions): GrapherLoader {
-        const { config, columnDefs } = options
+        const { columnDefs } = options
 
         // An inline CSV string can be parsed synchronously, making this
-        // equivalent to fromTable.
+        // equivalent to fromTable (which migrates the config itself).
         if (options.csv !== undefined)
             return GrapherLoader.fromTable({
-                config,
+                config: options.config,
                 data: new OwidTable(options.csv, columnDefs),
             })
+
+        const config = migrateConfigIfVersioned(options.config)
 
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
@@ -274,7 +287,8 @@ export class GrapherLoader {
 
     /** Prepare a chart whose data will be fetched from the OWID data API. */
     static fromApi(options: FromApiOptions): GrapherLoader {
-        const { config, dataApiUrl = DEFAULT_DATA_API_URL } = options
+        const { dataApiUrl = DEFAULT_DATA_API_URL } = options
+        const config = migrateConfigIfVersioned(options.config)
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
             ...config,
