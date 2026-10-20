@@ -346,8 +346,7 @@ export class EditorMapTab extends Component<EditorMapTabProps> {
                             errorMessages={this.props.errorMessages}
                             errorMessagesKey={"map.colorScale"}
                             lastEditedNote={this.props.editor.manager.renderNote?.(
-                                "map.colorScale",
-                                this.props.editor
+                                "map.colorScale"
                             )}
                         />
                         <TooltipSection mapConfig={mapConfig} />

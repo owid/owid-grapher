@@ -140,7 +140,7 @@ function EtlSourceTooltip({
     )
 }
 
-/** Debug-tab section telling editors the chart is managed by ETL */
+/** Publishing-tab section telling editors the chart is managed by ETL */
 export function EtlSourceSection({
     etl,
     highlightOnMount = false,

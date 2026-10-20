@@ -69,6 +69,8 @@ export interface ChartEditorViewManager {
     details?: DetailsProvider
     initialQueryParams?: GrapherQueryParams
     previewUrl?: string
+    /** Host content shown next to the preview link, e.g. a status badge */
+    renderPreviewHeader?: (editor: ConfigEditor) => React.ReactNode
 }
 
 interface ChartEditorViewProps {
@@ -370,10 +372,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     renderReady(editor: ConfigEditor): React.ReactElement {
         const { grapherState, availableTabs } = editor
         const { previewUrl } = this.manager
-        const previewHeaderNote = editor.manager.renderNote?.(
-            "preview.header",
-            editor
-        )
+        const previewHeader = this.manager.renderPreviewHeader?.(editor)
         const extraTabs = editor.manager.extraTabs ?? []
 
         const activeTab = availableTabs.includes(editor.tab)
@@ -462,9 +461,9 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
                     {activeTab !== "export" && this.renderSaveButtons(editor)}
                 </div>
                 <div className="chart-editor-view">
-                    {(previewUrl || previewHeaderNote) && (
+                    {(previewUrl || previewHeader) && (
                         <div className="chart-editor-view__header">
-                            {previewHeaderNote}
+                            {previewHeader}
                             {previewUrl && (
                                 <a
                                     href={previewUrl}

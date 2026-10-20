@@ -539,24 +539,27 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                 key: "publishing",
                 label: "Publishing",
                 render: (editor) => (
-                    <EditorPublishingTab
-                        editor={editor}
-                        indicatorId={this.indicatorId}
-                        indicatorConfig={this.indicatorConfig}
-                        isInheritanceEnabled={this.isInheritanceEnabled}
-                        onInheritanceChange={action(
-                            (isEnabled: boolean) =>
-                                (this.isInheritanceEnabled = isEnabled)
-                        )}
-                        tags={this.tags}
-                        availableTags={this.availableTags}
-                        onSaveTags={this.saveTags}
-                        forceDatapage={this.forceDatapage}
-                        onForceDatapageChange={action(
-                            (forceDatapage: boolean) =>
-                                (this.forceDatapage = forceDatapage)
-                        )}
-                    />
+                    <>
+                        {this.renderEtlSourceSection()}
+                        <EditorPublishingTab
+                            editor={editor}
+                            indicatorId={this.indicatorId}
+                            indicatorConfig={this.indicatorConfig}
+                            isInheritanceEnabled={this.isInheritanceEnabled}
+                            onInheritanceChange={action(
+                                (isEnabled: boolean) =>
+                                    (this.isInheritanceEnabled = isEnabled)
+                            )}
+                            tags={this.tags}
+                            availableTags={this.availableTags}
+                            onSaveTags={this.saveTags}
+                            forceDatapage={this.forceDatapage}
+                            onForceDatapageChange={action(
+                                (forceDatapage: boolean) =>
+                                    (this.forceDatapage = forceDatapage)
+                            )}
+                        />
+                    </>
                 ),
             },
         ]
@@ -574,10 +577,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         />
     )
 
-    private readonly renderNote = (
-        slot: EditorNoteSlot,
-        editor: ConfigEditor
-    ): React.ReactNode => {
+    private readonly renderNote = (slot: EditorNoteSlot): React.ReactNode => {
         switch (slot) {
             case "map.colorScale": {
                 const edit = findLastMapColorScaleEdit(this.logs)
@@ -589,37 +589,43 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                     </>
                 )
             }
-            case "preview.header":
-                if (this.isNewChart) return undefined
-                return (
-                    <ChartSourceBadge
-                        etl={this.etlSource}
-                        // the Debug tab explains the ETL badge in detail
-                        onClick={
-                            this.etlSource
-                                ? action(() => {
-                                      editor.tab = "debug"
-                                      editor.showStaticPreview = false
-                                      this.etlSectionHighlightCount += 1
-                                      this.isEtlSectionHighlightPending = true
-                                  })
-                                : undefined
-                        }
-                    />
-                )
-            case "debug.top":
-                if (!this.etlSource) return undefined
-                return (
-                    <EtlSourceSection
-                        key={this.etlSectionHighlightCount}
-                        etl={this.etlSource}
-                        highlightOnMount={this.isEtlSectionHighlightPending}
-                        onHighlighted={action(
-                            () => (this.isEtlSectionHighlightPending = false)
-                        )}
-                    />
-                )
         }
+    }
+
+    private readonly renderPreviewHeader = (
+        editor: ConfigEditor
+    ): React.ReactNode => {
+        if (this.isNewChart) return undefined
+        return (
+            <ChartSourceBadge
+                etl={this.etlSource}
+                // the Publishing tab explains the ETL badge in detail
+                onClick={
+                    this.etlSource
+                        ? action(() => {
+                              editor.tab = "publishing"
+                              editor.showStaticPreview = false
+                              this.etlSectionHighlightCount += 1
+                              this.isEtlSectionHighlightPending = true
+                          })
+                        : undefined
+                }
+            />
+        )
+    }
+
+    private renderEtlSourceSection(): React.ReactNode {
+        if (!this.etlSource) return undefined
+        return (
+            <EtlSourceSection
+                key={this.etlSectionHighlightCount}
+                etl={this.etlSource}
+                highlightOnMount={this.isEtlSectionHighlightPending}
+                onHighlighted={action(
+                    () => (this.isEtlSectionHighlightPending = false)
+                )}
+            />
+        )
     }
 
     private renderEditor(): React.ReactElement {
@@ -636,6 +642,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                 extraTabs={this.extraTabs}
                 renderSaveButtons={this.renderSaveButtons}
                 previewUrl={this.previewUrl}
+                renderPreviewHeader={this.renderPreviewHeader}
                 renderNote={this.renderNote}
                 originUrlSuggestions={this.originUrlSuggestions}
             />

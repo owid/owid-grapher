@@ -29,6 +29,7 @@ export interface GrapherEditorProps {
     /** Tabs provided by the the host */
     extraTabs?: EditorExtraTab[]
     previewUrl?: string
+    renderPreviewHeader?: ChartEditorViewManager["renderPreviewHeader"]
     renderSaveButtons?: ConfigEditorManager["renderSaveButtons"]
 
     renderNote?: ConfigEditorManager["renderNote"]
@@ -91,6 +92,10 @@ export class GrapherEditor
 
     get previewUrl(): string | undefined {
         return this.props.previewUrl
+    }
+
+    get renderPreviewHeader(): ChartEditorViewManager["renderPreviewHeader"] {
+        return this.props.renderPreviewHeader
     }
 
     get renderNote(): ConfigEditorManager["renderNote"] {

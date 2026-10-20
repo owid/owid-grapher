@@ -59,7 +59,7 @@ export type EditorTabKey = EditorTabName | EditorExtraTab["key"]
  * Places inside the editor where the host may add a note of its own, named
  * after the part of the config that section edits
  */
-export type EditorNoteSlot = "map.colorScale" | "debug.top" | "preview.header"
+export type EditorNoteSlot = "map.colorScale"
 
 /** One entry in the editor's "Origin url" dropdown */
 export interface OriginUrlSuggestion {
@@ -88,7 +88,7 @@ export interface ConfigEditorManager {
         editingErrors: string[]
     ) => ReactNode
 
-    renderNote?: (slot: EditorNoteSlot, editor: ConfigEditor) => ReactNode
+    renderNote?: (slot: EditorNoteSlot) => ReactNode
     originUrlSuggestions?: OriginUrlSuggestion[]
 }
 
