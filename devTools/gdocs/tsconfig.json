@@ -4,6 +4,7 @@
         "outDir": "../../itsJustJavascript/devTools/gdocs",
         "rootDir": "."
     },
+    "include": ["**/*.ts", "fixtures/**/*.json"],
     "references": [
         {
             "path": "../../baker"

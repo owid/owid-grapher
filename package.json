@@ -10,6 +10,7 @@
         "buildArchive": "tsx --tsconfig tsconfig.tsx.json baker/archival/archiveChangedPages.ts",
         "buildLocalBake": "tsx --tsconfig tsconfig.tsx.json baker/buildLocalBake.ts",
         "buildGrapherSchema": "tsx --tsconfig tsconfig.tsx.json devTools/schema/buildGrapherSchema.ts",
+        "buildGdocsReferenceDoc": "tsx --tsconfig tsconfig.tsx.json devTools/gdocs/buildGdocsReferenceDoc.ts",
         "buildViteAdmin": "NODE_OPTIONS=--max-old-space-size=8192 vite build --config vite.config-admin.mts",
         "buildViteArchive": "NODE_OPTIONS=--max-old-space-size=8192 vite build --config vite.config-archive.mts",
         "buildViteSite": "NODE_OPTIONS=--max-old-space-size=8192 vite build --config vite.config-site.mts",
