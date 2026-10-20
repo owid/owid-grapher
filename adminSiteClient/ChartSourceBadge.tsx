@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLink, faUnlink } from "@fortawesome/free-solid-svg-icons"
 import {
     EtlSource,
-    describeEtlDrift,
     hasEtlDrift,
     makeEtlConfigGitHubUrl,
 } from "./etlChartSync.js"
@@ -38,7 +37,20 @@ export function ChartSourceBadge({
     )
 
     return (
-        <Tooltip title={<EtlSourceTooltip etl={etl} isDrifted={isDrifted} />}>
+        <Tooltip
+            styles={{ root: { maxWidth: 360 } }}
+            title={
+                <EtlSourceTooltip
+                    etl={etl}
+                    isDrifted={isDrifted}
+                    footer={
+                        gitHubUrl
+                            ? "Click to open the config in owid/etl"
+                            : undefined
+                    }
+                />
+            }
+        >
             {gitHubUrl ? (
                 <a
                     className={className}
@@ -58,27 +70,52 @@ export function ChartSourceBadge({
 function EtlSourceTooltip({
     etl,
     isDrifted,
+    footer,
 }: {
     etl: EtlSource
     isDrifted: boolean
+    footer?: string
 }): React.ReactElement {
+    const { overriddenFields, slugOverride } = etl.drift
     return (
-        <div>
-            <div>
-                Created in ETL
-                {etl.catalogPath ? <> ({etl.catalogPath})</> : null}
+        <div className="chart-source-tooltip">
+            <div className="chart-source-tooltip__title">Created in ETL</div>
+            {etl.catalogPath && (
+                <div className="chart-source-tooltip__catalog-path">
+                    {etl.catalogPath}
+                </div>
+            )}
+            <div className="chart-source-tooltip__status">
+                <FontAwesomeIcon icon={isDrifted ? faUnlink : faLink} />{" "}
+                {isDrifted
+                    ? "Changed in the admin since the last ETL push"
+                    : "In sync with the last ETL push"}
             </div>
-            {isDrifted ? (
-                <>
-                    <div>Changed in the admin since the last ETL push:</div>
-                    <ul className="chart-source-badge__drift-list">
-                        {describeEtlDrift(etl.drift).map((description) => (
-                            <li key={description}>{description}</li>
-                        ))}
-                    </ul>
-                </>
-            ) : (
-                <div>In sync with the last ETL push</div>
+            {isDrifted && (
+                <dl className="chart-source-tooltip__drift">
+                    {overriddenFields.length > 0 && (
+                        <>
+                            <dt>Overridden fields</dt>
+                            <dd className="chart-source-tooltip__fields">
+                                {overriddenFields.map((field) => (
+                                    <code key={field}>{field}</code>
+                                ))}
+                            </dd>
+                        </>
+                    )}
+                    {slugOverride && (
+                        <>
+                            <dt>Slug</dt>
+                            <dd>
+                                <code>{slugOverride.slug}</code> in the admin,{" "}
+                                <code>{slugOverride.etlSlug}</code> in ETL
+                            </dd>
+                        </>
+                    )}
+                </dl>
+            )}
+            {footer && (
+                <div className="chart-source-tooltip__footer">{footer}</div>
             )}
         </div>
     )

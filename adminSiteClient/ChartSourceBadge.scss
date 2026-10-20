@@ -44,7 +44,63 @@ $admin-background: #e1ecfb;
     background: $admin-background;
 }
 
-.chart-source-badge__drift-list {
-    margin: 0;
-    padding-left: 16px;
+.chart-source-tooltip {
+    padding: 2px 0;
+    font-size: 0.8rem;
+    line-height: 1.4;
+
+    code {
+        padding: 0 4px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.15);
+        color: inherit;
+        font-size: 0.75rem;
+    }
+}
+
+.chart-source-tooltip__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.chart-source-tooltip__catalog-path {
+    color: rgba(255, 255, 255, 0.6);
+    font-family: SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.7rem;
+    word-break: break-all;
+}
+
+.chart-source-tooltip__status {
+    margin-top: 8px;
+}
+
+.chart-source-tooltip__drift {
+    margin: 6px 0 0;
+
+    dt {
+        margin-top: 6px;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    dd {
+        margin: 2px 0 0;
+    }
+}
+
+.chart-source-tooltip__fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.chart-source-tooltip__footer {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.7rem;
 }
