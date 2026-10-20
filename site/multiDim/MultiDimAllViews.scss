@@ -1,0 +1,261 @@
+// All charts on this page — multi-dim data pages.
+// Section chrome (.section-wrapper, grid columns) comes from DataPageContent.scss.
+
+.all-views__title {
+    @include datapage-section-title;
+    @include lg-up {
+        margin-bottom: 16px;
+    }
+}
+
+.all-views__description {
+    @include body-3-medium;
+    color: $blue-60;
+    margin: 0 0 24px;
+    @include lg-up {
+        margin-bottom: 0;
+        padding-right: var(--grid-gap);
+    }
+}
+
+// Outer <details>: one bordered row, like ExpandableToggle
+.all-views {
+    border-top: 1px solid $blue-20;
+    border-bottom: 1px solid $blue-20;
+}
+
+.all-views__summary,
+.all-views__group-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    color: $blue-90;
+    list-style: none;
+
+    &::marker,
+    &::-webkit-details-marker {
+        display: none;
+    }
+
+    &:hover {
+        color: $blue-60;
+    }
+}
+
+.all-views__summary {
+    @include body-2-semibold;
+    min-height: 56px;
+    padding: 16px 0;
+}
+
+.all-views__summary-label {
+    flex: 1 1 auto;
+}
+
+// Label and icon swap on open/close — no JS needed. The extra .all-views
+// prefix beats FontAwesome's own `.svg-inline--fa { display }` rule.
+.all-views .all-views__summary-label--collapse,
+.all-views .all-views__icon--collapse {
+    display: none;
+}
+.all-views[open] > .all-views__summary .all-views__summary-label--collapse,
+.all-views[open] > .all-views__summary .all-views__icon--collapse,
+.all-views__group[open] > .all-views__group-summary .all-views__icon--collapse {
+    display: inline-block;
+}
+.all-views[open] > .all-views__summary .all-views__summary-label--expand,
+.all-views[open] > .all-views__summary .all-views__icon--expand,
+.all-views__group[open] > .all-views__group-summary .all-views__icon--expand {
+    display: none;
+}
+
+.all-views__icon {
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    margin: 0 12px;
+}
+
+.all-views__content {
+    padding-bottom: 24px;
+}
+
+// Search
+.all-views__search {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.all-views__search-icon {
+    position: absolute;
+    top: 12px; // (40px input - 16px icon) / 2
+    left: 16px;
+    width: 16px;
+    height: 16px;
+    color: $blue-50;
+    pointer-events: none;
+}
+
+.all-views__search-input {
+    width: 100%;
+    padding-left: 44px;
+    padding-right: 40px;
+    -webkit-appearance: none;
+
+    &::-webkit-search-cancel-button,
+    &::-webkit-search-decoration {
+        -webkit-appearance: none;
+        display: none;
+    }
+
+    @include sm-only {
+        font-size: 16px; // prevents auto-zoom on iOS Safari
+    }
+}
+
+.all-views__clear {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: $blue-50;
+    cursor: pointer;
+    font-size: 14px;
+
+    &:hover {
+        color: $blue-90;
+    }
+}
+
+.all-views__status {
+    @include note-1-medium;
+    color: $blue-60;
+    margin: 8px 0 0;
+    min-height: 1rem; // reserve the line so results don't jump
+
+    &:empty {
+        min-height: 0;
+        margin: 0;
+    }
+}
+
+// Empty state
+.all-views__empty {
+    padding: 24px 0 8px;
+}
+
+.all-views__empty-text {
+    @include body-3-medium;
+    color: $blue-60;
+    margin: 0 0 16px;
+}
+
+.all-views__empty-clear {
+    @include expandable-paragraph__expand-button--full;
+}
+
+// Groups (nested <details>)
+.all-views__group {
+    border-top: 1px solid $gray-20;
+
+    &:first-of-type {
+        border-top: none;
+    }
+
+    // `hidden` must still win over display: block from <details>
+    &[hidden] {
+        display: none;
+    }
+}
+
+.all-views__group-summary {
+    min-height: 48px;
+    padding: 12px 0;
+}
+
+.all-views__group-title {
+    @include h4-semibold;
+    margin: 0;
+    flex: 1 1 auto;
+}
+
+.all-views__group-dimension {
+    color: $blue-50;
+    font-weight: 400;
+}
+
+.all-views__group-count {
+    @include label-2-medium;
+    color: $blue-50;
+    white-space: nowrap;
+}
+
+// Items
+.all-views__list {
+    list-style: none;
+    margin: 0 0 16px;
+    padding: 0;
+
+    @include md-up {
+        columns: 2;
+        column-gap: var(--grid-gap);
+    }
+}
+
+.all-views__item {
+    break-inside: avoid;
+    padding: 8px 0 8px 12px;
+    border-left: 2px solid transparent;
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+.all-views__item--current {
+    border-left-color: $blue-90;
+
+    .all-views__link {
+        font-weight: 700;
+    }
+}
+
+.all-views__link {
+    @include body-3-medium;
+    color: $blue-90;
+    text-decoration: none;
+
+    &:visited {
+        color: $purple-90;
+    }
+
+    &:hover {
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
+}
+
+.all-views__current-label {
+    @include note-1-medium;
+    color: $blue-60;
+    margin-left: 8px;
+    white-space: nowrap;
+}
+
+.all-views__meta {
+    @include note-1-regular;
+    display: block;
+    color: $blue-50;
+    margin-top: 2px;
+}
+
+.all-views__meta-sep {
+    margin: 0 6px;
+}

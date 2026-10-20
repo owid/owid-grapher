@@ -36,6 +36,7 @@ export function MultiDimDataPage({
     isPreviewing,
     archiveContext,
     canonicalUrl,
+    viewTitles,
 }: MultiDimDataPageProps) {
     if (!slug && !isPreviewing) {
         throw new Error("Missing slug for multidimensional data page")
@@ -54,6 +55,7 @@ export function MultiDimDataPage({
         imageMetadata,
         tagToSlugMap,
         isPreviewing,
+        viewTitles,
     }
     const imageUrl: string = urljoin(
         baseUrl || "/",
@@ -144,6 +146,7 @@ export function MultiDimDataPage({
                                     tagToSlugMap={tagToSlugMap}
                                     imageMetadata={imageMetadata}
                                     archiveContext={archiveContext}
+                                    viewTitles={viewTitles}
                                 />
                             </StaticRouter>
                         </DebugProvider>
