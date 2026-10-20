@@ -39,7 +39,7 @@ export function getDatapageDataV2(
         // The chart dimension's own display.name, when the chart author set
         // one. Carried through as DataPageDataV2.chartDimensionName: the
         // switcher prefers it for pill labels (matching the chart's series
-        // labels), while pane titles, citations and the collapsed list keep
+        // labels), while pane titles, citations and the stitched list keep
         // the self-contained titlePublic.
         chartDimensionName?: string
     }

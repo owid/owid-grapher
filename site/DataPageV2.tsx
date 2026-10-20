@@ -34,7 +34,7 @@ import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
 import {
     AdditionalIndicator,
-    CollapsedIndicatorListEntry,
+    StitchedIndicatorListEntry,
     ArchiveContext,
     Distribution,
 } from "@ourworldindata/types"
@@ -46,8 +46,8 @@ export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
     datapageData: DataPageDataV2
     additionalIndicators?: AdditionalIndicator[]
-    collapsedIndicatorList?: CollapsedIndicatorListEntry[]
-    hideCollapsedIndicatorList?: boolean
+    stitchedIndicatorList?: StitchedIndicatorListEntry[]
+    hideStitchedIndicatorList?: boolean
     useNewDatapageDesign?: boolean
     baseUrl: string
     canonicalUrl: string
@@ -62,8 +62,8 @@ export const DataPageV2 = (props: {
         grapher,
         datapageData,
         additionalIndicators,
-        collapsedIndicatorList,
-        hideCollapsedIndicatorList,
+        stitchedIndicatorList,
+        hideStitchedIndicatorList,
         useNewDatapageDesign,
         baseUrl,
         canonicalUrl,
@@ -181,8 +181,8 @@ export const DataPageV2 = (props: {
                                 {
                                     datapageData,
                                     additionalIndicators,
-                                    collapsedIndicatorList,
-                                    hideCollapsedIndicatorList,
+                                    stitchedIndicatorList,
+                                    hideStitchedIndicatorList,
                                     useNewDatapageDesign,
                                     faqEntries,
                                     canonicalUrl,
@@ -197,9 +197,9 @@ export const DataPageV2 = (props: {
                             <DataPageV2Content
                                 datapageData={datapageData}
                                 additionalIndicators={additionalIndicators}
-                                collapsedIndicatorList={collapsedIndicatorList}
-                                hideCollapsedIndicatorList={
-                                    hideCollapsedIndicatorList
+                                stitchedIndicatorList={stitchedIndicatorList}
+                                hideStitchedIndicatorList={
+                                    hideStitchedIndicatorList
                                 }
                                 useNewDatapageDesign={useNewDatapageDesign}
                                 grapherConfig={grapherConfig}

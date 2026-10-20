@@ -2,10 +2,10 @@ import { expect, it, describe } from "vitest"
 import {
     classifySliceFromDimensions,
     classifySliceFromTitles,
-    shouldHideCollapsedIndicatorList,
+    shouldHideStitchedIndicatorList,
     IndicatorSliceDims,
 } from "./indicatorSliceDimension.js"
-import { IndicatorPaneCollapse } from "./collapseIndicatorPanes.js"
+import { IndicatorPaneStitch } from "./stitchIndicatorPanes.js"
 
 const dim = (
     filters: Record<string, string>,
@@ -19,13 +19,13 @@ const dim = (
 
 const AGES = ["0-4", "5-9", "10-14", "15-19", "20-24"]
 
-const collapse = (
+const stitch = (
     titles: string[],
-    over: Partial<IndicatorPaneCollapse> & {
+    over: Partial<IndicatorPaneStitch> & {
         shorts?: string[]
         notes?: string[]
     } = {}
-): IndicatorPaneCollapse => ({
+): IndicatorPaneStitch => ({
     list: titles.map((title, i) => ({
         title,
         short: over.shorts?.[i],
@@ -45,7 +45,9 @@ describe(classifySliceFromDimensions, () => {
     it("detects one measure sliced by age", () => {
         expect(
             classifySliceFromDimensions(
-                AGES.map((age) => dim({ sex: "all", age, variant: "estimates" }))
+                AGES.map((age) =>
+                    dim({ sex: "all", age, variant: "estimates" })
+                )
             )
         ).toBe("age")
     })
@@ -105,10 +107,12 @@ describe(classifySliceFromTitles, () => {
         expect(classifySliceFromTitles(["2026", "2025", "2024", "2023"])).toBe(
             "year"
         )
-        expect(classifySliceFromTitles(["2020s", "2010s", "2000s", "1990s"])).toBe(
-            "year"
-        )
-        expect(classifySliceFromTitles(["2022", "2024", "2026"])).toBeUndefined()
+        expect(
+            classifySliceFromTitles(["2020s", "2010s", "2000s", "1990s"])
+        ).toBe("year")
+        expect(
+            classifySliceFromTitles(["2022", "2024", "2026"])
+        ).toBeUndefined()
         expect(
             classifySliceFromTitles([
                 "Deaths, under-5s",
@@ -121,10 +125,20 @@ describe(classifySliceFromTitles, () => {
     })
     it("never fires on bare numbers or digit ranges without an age word", () => {
         expect(
-            classifySliceFromTitles(["HPV type 16", "HPV type 18", "HPV type 33", "HPV type 51"])
+            classifySliceFromTitles([
+                "HPV type 16",
+                "HPV type 18",
+                "HPV type 33",
+                "HPV type 51",
+            ])
         ).toBeUndefined()
         expect(
-            classifySliceFromTitles(["Category 1", "Category 2", "Category 3", "Category 4"])
+            classifySliceFromTitles([
+                "Category 1",
+                "Category 2",
+                "Category 3",
+                "Category 4",
+            ])
         ).toBeUndefined()
         // hectare brackets
         expect(
@@ -153,60 +167,86 @@ describe(classifySliceFromTitles, () => {
     })
 })
 
-describe(shouldHideCollapsedIndicatorList, () => {
-    const ageTitles = ["Ages 0-4", "Ages 5-9", "Ages 10-14", "Ages 15-19", "Ages 20-24"]
+describe(shouldHideStitchedIndicatorList, () => {
+    const ageTitles = [
+        "Ages 0-4",
+        "Ages 5-9",
+        "Ages 10-14",
+        "Ages 15-19",
+        "Ages 20-24",
+    ]
     const ageDims = AGES.map((age) => dim({ age }))
 
     it("hides the list for an age slice, by metadata or by titles", () => {
-        expect(shouldHideCollapsedIndicatorList(collapse(ageTitles), ageDims)).toEqual({
+        expect(
+            shouldHideStitchedIndicatorList(stitch(ageTitles), ageDims)
+        ).toEqual({
             hide: true,
             sliceClass: "age",
         })
         expect(
-            shouldHideCollapsedIndicatorList(collapse(ageTitles), ageDims.map(() => undefined))
+            shouldHideStitchedIndicatorList(
+                stitch(ageTitles),
+                ageDims.map(() => undefined)
+            )
         ).toEqual({ hide: true, sliceClass: "age" })
     })
     it("needs at least four entries", () => {
         expect(
-            shouldHideCollapsedIndicatorList(collapse(ageTitles.slice(0, 3)), ageDims.slice(0, 3))
-                .hide
+            shouldHideStitchedIndicatorList(
+                stitch(ageTitles.slice(0, 3)),
+                ageDims.slice(0, 3)
+            ).hide
         ).toBe(false)
     })
     it("keeps the list when units, title variants or notes vary", () => {
         expect(
-            shouldHideCollapsedIndicatorList(collapse(ageTitles, { suppressUnit: true }), ageDims)
-                .hide
-        ).toBe(false)
-        expect(
-            shouldHideCollapsedIndicatorList(
-                collapse(ageTitles, { suppressTitleVariant: true }),
+            shouldHideStitchedIndicatorList(
+                stitch(ageTitles, { suppressUnit: true }),
                 ageDims
             ).hide
         ).toBe(false)
         expect(
-            shouldHideCollapsedIndicatorList(
-                collapse(ageTitles, { notes: [undefined, "Excludes stillbirths."] as string[] }),
+            shouldHideStitchedIndicatorList(
+                stitch(ageTitles, { suppressTitleVariant: true }),
+                ageDims
+            ).hide
+        ).toBe(false)
+        expect(
+            shouldHideStitchedIndicatorList(
+                stitch(ageTitles, {
+                    notes: [undefined, "Excludes stillbirths."] as string[],
+                }),
                 ageDims
             ).hide
         ).toBe(false)
     })
     it("lets short descriptions differ only in the same slot", () => {
-        const slotShorts = AGES.map((a) => `Deaths among people aged ${a} years.`)
+        const slotShorts = AGES.map(
+            (a) => `Deaths among people aged ${a} years.`
+        )
         expect(
-            shouldHideCollapsedIndicatorList(collapse(ageTitles, { shorts: slotShorts }), ageDims)
-                .hide
+            shouldHideStitchedIndicatorList(
+                stitch(ageTitles, { shorts: slotShorts }),
+                ageDims
+            ).hide
         ).toBe(true)
-        const realShorts = [...slotShorts.slice(0, 4), "Deaths among everyone, age-standardized."]
+        const realShorts = [
+            ...slotShorts.slice(0, 4),
+            "Deaths among everyone, age-standardized.",
+        ]
         expect(
-            shouldHideCollapsedIndicatorList(collapse(ageTitles, { shorts: realShorts }), ageDims)
-                .hide
+            shouldHideStitchedIndicatorList(
+                stitch(ageTitles, { shorts: realShorts }),
+                ageDims
+            ).hide
         ).toBe(false)
     })
     it("keeps the list for an informative dimension", () => {
         const causes = ["Malaria", "Measles", "Meningitis", "Tetanus"]
         expect(
-            shouldHideCollapsedIndicatorList(
-                collapse(causes.map((c) => `Deaths from ${c.toLowerCase()}`)),
+            shouldHideStitchedIndicatorList(
+                stitch(causes.map((c) => `Deaths from ${c.toLowerCase()}`)),
                 causes.map((cause) => dim({ cause }))
             ).hide
         ).toBe(false)

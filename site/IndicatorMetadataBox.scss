@@ -301,7 +301,7 @@
 // select on its own full-width row below it. Both are SSR'd; CSS picks one
 // per viewport (display: none), so there's no post-hydration flash.
 .indicator-metadata-box-wrap--h-pills:not(
-    .indicator-metadata-box-wrap--collapsed
+    .indicator-metadata-box-wrap--stitched
 ) {
     .indicator-switcher__h-pills {
         @include sm-only {
@@ -337,13 +337,13 @@
     }
 }
 
-// Collapsed multi-indicator mode: one pane (headed "About this data") whose
+// Stitched multi-indicator mode: one pane (headed "About this data") whose
 // expander opens with the indicator list, sitting above the shared WYSK.
 // The collapsed indicator list is a .meta-expander__prose block, so type and
 // paragraph spacing come from there; it only adds list-entry structure. The
 // WYSK preview that follows it drops its own top margin so the two read as
 // consecutive paragraphs.
-.indicator-metadata-box__collapsed-list {
+.indicator-metadata-box__stitched-list {
     // The prose rules zero the margin of a last-child <p>/<ol>, which would
     // butt the list straight onto the WYSK's first bullet; match the gap
     // between WYSK bullets instead.
@@ -363,18 +363,18 @@
 }
 
 // Fold toggle under a numbered list: a short line, no list marker.
-.indicator-metadata-box__collapsed-list-more {
+.indicator-metadata-box__stitched-list-more {
     margin-top: -4px;
 }
 
-.indicator-metadata-box__collapsed-list-title {
+.indicator-metadata-box__stitched-list-title {
     font-weight: 700;
     display: block;
 }
 
 // Inline "view all +" / "view less −" — a plain text link in the muted
 // key color, no underline, no button chrome.
-.indicator-metadata-box__collapsed-list-toggle {
+.indicator-metadata-box__stitched-list-toggle {
     appearance: none;
     background: none;
     border: 0;
@@ -389,26 +389,26 @@
     }
 }
 
-.indicator-metadata-box__collapsed-list-meta {
+.indicator-metadata-box__stitched-list-meta {
     display: block;
     margin-top: 1px;
 }
 
-.indicator-metadata-box__collapsed-list-sep {
+.indicator-metadata-box__stitched-list-sep {
     color: $blue-20;
     margin: 0 8px;
 }
 
-.indicator-metadata-box__collapsed-list-unit {
+.indicator-metadata-box__stitched-list-unit {
     white-space: nowrap;
 }
 
-.indicator-metadata-box__collapsed-list-unit-key {
+.indicator-metadata-box__stitched-list-unit-key {
     @include note-13-medium;
     color: $blue-50;
 }
 
-.indicator-metadata-box__collapsed-list-note {
+.indicator-metadata-box__stitched-list-note {
     @include note-13-medium;
     color: $blue-60;
     font-style: italic;

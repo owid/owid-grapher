@@ -24,7 +24,7 @@ import {
 } from "../db/model/Post.js"
 import {
     AdditionalIndicator,
-    CollapsedIndicatorListEntry,
+    StitchedIndicatorListEntry,
     GrapherInterface,
     DimensionProperty,
     OwidVariableWithSource,
@@ -66,8 +66,8 @@ import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
-import { computeIndicatorPaneCollapse } from "./collapseIndicatorPanes.js"
-import { shouldHideCollapsedIndicatorList } from "./indicatorSliceDimension.js"
+import { computeIndicatorPaneStitch } from "./stitchIndicatorPanes.js"
+import { shouldHideStitchedIndicatorList } from "./indicatorSliceDimension.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
 
 const renderDatapageIfApplicable = async (
@@ -214,7 +214,7 @@ export async function renderDataPageV2(
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
         forceDatapage?: boolean
         // QA escape hatch (?forceExpand=true on the preview routes): skip the
-        // pane collapse so the switcher version of a collapsed page can be
+        // pane stitching so the switcher version of a stitched page can be
         // inspected.
         forceExpandIndicators?: boolean
     },
@@ -477,10 +477,10 @@ export async function renderDataPageV2(
     }
 
     // When every pane of a multi-indicator chart shares the same substantive
-    // metadata, collapse the switcher into a single pane + a templated
-    // indicator list — see computeIndicatorPaneCollapse for the rules.
-    let collapsedIndicatorList: CollapsedIndicatorListEntry[] | undefined
-    let hideCollapsedIndicatorList: boolean | undefined
+    // metadata, stitch the panes into a single pane + a templated
+    // indicator list — see computeIndicatorPaneStitch for the rules.
+    let stitchedIndicatorList: StitchedIndicatorListEntry[] | undefined
+    let hideStitchedIndicatorList: boolean | undefined
     if (
         additionalIndicators &&
         additionalIndicators.length > 0 &&
@@ -490,37 +490,36 @@ export async function renderDataPageV2(
             { datapageData, faqEntries, variableId },
             ...additionalIndicators,
         ]
-        const collapse = computeIndicatorPaneCollapse(panes)
-        if (collapse) {
-            collapsedIndicatorList = collapse.list
+        const stitch = computeIndicatorPaneStitch(panes)
+        if (stitch) {
+            stitchedIndicatorList = stitch.list
             // One measure sliced by age/sex/year: the list is noise, drop it.
             const sliceDims = await getVariableSliceDimensions(
                 knex,
                 _.compact(panes.map((p) => p.variableId))
             )
-            hideCollapsedIndicatorList = shouldHideCollapsedIndicatorList(
-                collapse,
+            hideStitchedIndicatorList = shouldHideStitchedIndicatorList(
+                stitch,
                 panes.map((p) =>
                     p.variableId ? sliceDims.get(p.variableId) : undefined
                 )
             ).hide
             additionalIndicators = undefined
-            datapageData.dateRange = collapse.dateRange
-            datapageData.lastUpdated = collapse.lastUpdated
-            if (collapse.nextUpdate)
-                datapageData.nextUpdate = collapse.nextUpdate
-            if (collapse.owners) datapageData.owners = collapse.owners
+            datapageData.dateRange = stitch.dateRange
+            datapageData.lastUpdated = stitch.lastUpdated
+            if (stitch.nextUpdate) datapageData.nextUpdate = stitch.nextUpdate
+            if (stitch.owners) datapageData.owners = stitch.owners
             // A field that differs across the indicators moves into the list;
             // leaving the primary's value on the pane would misattribute it
             // to all of them.
-            if (collapse.suppressDescriptionShort)
+            if (stitch.suppressDescriptionShort)
                 datapageData.descriptionShort = undefined
-            if (collapse.suppressUnit) datapageData.unit = undefined
-            if (collapse.suppressDescriptionKey)
+            if (stitch.suppressUnit) datapageData.unit = undefined
+            if (stitch.suppressDescriptionKey)
                 datapageData.descriptionKey = undefined
-            if (collapse.suppressDescriptionFromProducer)
+            if (stitch.suppressDescriptionFromProducer)
                 datapageData.descriptionFromProducer = undefined
-            if (collapse.suppressTitleVariant) {
+            if (stitch.suppressTitleVariant) {
                 datapageData.titleVariant = undefined
                 datapageData.title = {
                     ...datapageData.title,
@@ -594,8 +593,8 @@ export async function renderDataPageV2(
             grapher={grapher}
             datapageData={datapageData}
             additionalIndicators={additionalIndicators}
-            collapsedIndicatorList={collapsedIndicatorList}
-            hideCollapsedIndicatorList={hideCollapsedIndicatorList}
+            stitchedIndicatorList={stitchedIndicatorList}
+            hideStitchedIndicatorList={hideStitchedIndicatorList}
             useNewDatapageDesign={datapageMetadataExperimentActive}
             canonicalUrl={canonicalUrl}
             baseUrl={BAKED_BASE_URL}

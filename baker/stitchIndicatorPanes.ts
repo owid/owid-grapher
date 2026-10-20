@@ -2,15 +2,15 @@ import * as _ from "lodash-es"
 import { getOriginIdentityKey } from "@ourworldindata/utils"
 import {
     AdditionalIndicator,
-    CollapsedIndicatorListEntry,
+    StitchedIndicatorListEntry,
     DataPageDataV2,
     DatasetOwners,
     OwidOrigin,
 } from "@ourworldindata/types"
 
 /**
- * Decides whether a multi-indicator chart's metadata panes can collapse into a
- * single pane + indicator list, and computes everything the collapsed pane
+ * Decides whether a multi-indicator chart's metadata panes can be stitched into a
+ * single pane + indicator list, and computes everything the stitched pane
  * needs. Returns undefined when the panes differ substantively (the switcher
  * stays).
  *
@@ -23,26 +23,26 @@ import {
  *   citationFull, description, dateAccessed, urlMain, license). Internal
  *   origin fields (id, titleSnapshot, urlDownload) are ignored: they are not
  *   rendered in the metadata box and don't reach citations.
- * - dateRange may differ: the collapsed pane shows the min–max union. If any
+ * - dateRange may differ: the stitched pane shows the min–max union. If any
  *   differing range doesn't parse as "<year>-<year>", the page stays
- *   uncollapsed rather than showing a wrong range.
- * - Dataset owners may differ (indicators spanning datasets): the collapsed
+ *   unstitched rather than showing a wrong range.
+ * - Dataset owners may differ (indicators spanning datasets): the stitched
  *   pane shows the union. lastUpdated shows the latest, nextUpdate the
  *   soonest.
  * - WYSK exception: when WYSK is the only differing field and every distinct
- *   WYSK is short (<= MAX_COLLAPSIBLE_WYSK_LENGTH chars), collapse anyway and
+ *   WYSK is short (<= MAX_STITCHABLE_WYSK_LENGTH chars), stitch anyway and
  *   carry each pane's WYSK as a note on its list entry. (Motivating case:
  *   annual-number-of-deaths-by-cause — 30 causes with no WYSK, one with a
  *   single sentence.)
- * - Identity fields (title, descriptionShort, unit) never block collapse;
+ * - Identity fields (title, descriptionShort, unit) never block stitching;
  *   when they differ across panes they move from the pane into the list
  *   entries so the pane can't misattribute one indicator's value to all.
  */
 
-const MAX_COLLAPSIBLE_WYSK_LENGTH = 250
+const MAX_STITCHABLE_WYSK_LENGTH = 250
 
-export interface IndicatorPaneCollapse {
-    list: CollapsedIndicatorListEntry[]
+export interface IndicatorPaneStitch {
+    list: StitchedIndicatorListEntry[]
     dateRange: string
     lastUpdated: string
     nextUpdate?: string
@@ -81,9 +81,9 @@ const labelFor = (dd: DataPageDataV2, withVariant: boolean): string => {
         : title
 }
 
-export function computeIndicatorPaneCollapse(
+export function computeIndicatorPaneStitch(
     panes: AdditionalIndicator[]
-): IndicatorPaneCollapse | undefined {
+): IndicatorPaneStitch | undefined {
     if (panes.length < 2) return undefined
     const dds = panes.map((p) => p.datapageData)
     const allSame = (get: (dd: DataPageDataV2) => unknown): boolean =>
@@ -103,10 +103,7 @@ export function computeIndicatorPaneCollapse(
     // WYSK: identical, or the short-note exception.
     const wysks = dds.map((dd) => dd.descriptionKey?.trim() ?? "")
     const wyskDiffers = new Set(wysks).size > 1
-    if (
-        wyskDiffers &&
-        wysks.some((w) => w.length > MAX_COLLAPSIBLE_WYSK_LENGTH)
-    )
+    if (wyskDiffers && wysks.some((w) => w.length > MAX_STITCHABLE_WYSK_LENGTH))
         return undefined
 
     // dateRange: identical, or a parseable min-max union.
@@ -161,7 +158,7 @@ export function computeIndicatorPaneCollapse(
     // groups) is said once in the intro, not appended to every entry.
     const variantsDiffer = !allSame((dd) => dd.titleVariant?.trim() ?? "")
 
-    const list: CollapsedIndicatorListEntry[] = panes.map(
+    const list: StitchedIndicatorListEntry[] = panes.map(
         ({ datapageData: dd }, i) => ({
             title: labelFor(dd, variantsDiffer),
             short: shortsDiffer ? dd.descriptionShort || undefined : undefined,

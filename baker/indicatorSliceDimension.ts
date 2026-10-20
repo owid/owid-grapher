@@ -1,9 +1,9 @@
 import * as _ from "lodash-es"
 import { VariableDisplayDimension } from "@ourworldindata/types"
-import { IndicatorPaneCollapse } from "./collapseIndicatorPanes.js"
+import { IndicatorPaneStitch } from "./stitchIndicatorPanes.js"
 
 /**
- * Decides whether a MERGED multi-indicator page should drop its indicator
+ * Decides whether a STITCHED multi-indicator page should drop its indicator
  * list altogether: when the indicators are one measure sliced along a single
  * enumerable dimension (age group, sex, year), a list of "0–4, 5–9, 10–14, …"
  * adds nothing the chart legend doesn't already show.
@@ -67,9 +67,7 @@ export function classifySliceFromDimensions(
             if (!valuesByName.has(f.name)) valuesByName.set(f.name, new Set())
             valuesByName.get(f.name)!.add(String(f.value))
         }
-    const varying = [...valuesByName.entries()].filter(
-        ([, vs]) => vs.size > 1
-    )
+    const varying = [...valuesByName.entries()].filter(([, vs]) => vs.size > 1)
     if (varying.length !== 1) return undefined
     const [name, values] = varying[0]
     const cls = DIMENSION_CLASS[name.toLowerCase()]
@@ -113,7 +111,8 @@ export function titleResidues(titles: string[]): {
 
 const YEAR = /^(?:19|20)\d\d$/
 const DECADE = /^(?:1[89]|20)\d0s$/
-const SEX = /^(?:male|female|males|females|men|women|boys|girls|both sexes|both)$/
+const SEX =
+    /^(?:male|female|males|females|men|women|boys|girls|both sexes|both)$/
 const AGE_VOCAB =
     /^(?:(?:ages?|aged|under|over|older|younger|years?|yrs?|olds?|plus|than|to|and|or|less|more|up|at|birth|infancy|infants?|newborns?|adults?|children|child|adolescents?|elderly|all|total|groups?|\d+s?|[-–+<>≥≤(),.]|months?|days?|weeks?)\s*)+$/
 // A residue needs digits in an age-like shape (range, "70+", "<5") or an age
@@ -146,14 +145,14 @@ export function classifySliceFromTitles(
     return undefined
 }
 
-export function shouldHideCollapsedIndicatorList(
-    collapse: IndicatorPaneCollapse,
+export function shouldHideStitchedIndicatorList(
+    stitch: IndicatorPaneStitch,
     dims: (IndicatorSliceDims | undefined)[]
 ): { hide: boolean; sliceClass?: SliceClass } {
-    const entries = collapse.list
+    const entries = stitch.list
     if (entries.length < MIN_ENTRIES_TO_HIDE_LIST) return { hide: false }
     // Anything beyond title/short varying is meaningful: keep the list.
-    if (collapse.suppressUnit || collapse.suppressTitleVariant)
+    if (stitch.suppressUnit || stitch.suppressTitleVariant)
         return { hide: false }
     if (entries.some((e) => e.note)) return { hide: false }
 

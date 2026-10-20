@@ -4,7 +4,7 @@ import {
     DataPageDataV2,
     OwidOrigin,
 } from "@ourworldindata/types"
-import { computeIndicatorPaneCollapse } from "./collapseIndicatorPanes.js"
+import { computeIndicatorPaneStitch } from "./stitchIndicatorPanes.js"
 
 const origin = (over: Partial<OwidOrigin> = {}): OwidOrigin => ({
     producer: "UN",
@@ -35,9 +35,9 @@ const pane = (over: Partial<DataPageDataV2> = {}): AdditionalIndicator => ({
     } as DataPageDataV2,
 })
 
-describe(computeIndicatorPaneCollapse, () => {
-    it("collapses identical panes, keeping shared short/unit on the pane", () => {
-        const r = computeIndicatorPaneCollapse([
+describe(computeIndicatorPaneStitch, () => {
+    it("stitches identical panes, keeping shared short/unit on the pane", () => {
+        const r = computeIndicatorPaneStitch([
             pane(),
             pane({ title: { title: "Deaths" } }),
         ])
@@ -49,7 +49,7 @@ describe(computeIndicatorPaneCollapse, () => {
     })
 
     it("appends titleVariant to list entry titles", () => {
-        const r = computeIndicatorPaneCollapse([
+        const r = computeIndicatorPaneStitch([
             pane(),
             pane({
                 title: { title: "Births" },
@@ -63,7 +63,7 @@ describe(computeIndicatorPaneCollapse, () => {
     })
 
     it("states a variant shared by all indicators once, not per entry", () => {
-        const r = computeIndicatorPaneCollapse([
+        const r = computeIndicatorPaneStitch([
             pane({ titleVariant: "period tables" }),
             pane({ title: { title: "Deaths" }, titleVariant: "period tables" }),
         ])
@@ -71,15 +71,15 @@ describe(computeIndicatorPaneCollapse, () => {
         expect(r!.suppressTitleVariant).toBe(false)
     })
 
-    it("does not collapse when a substantive field differs", () => {
+    it("does not stitch when a substantive field differs", () => {
         expect(
-            computeIndicatorPaneCollapse([
+            computeIndicatorPaneStitch([
                 pane(),
                 pane({ descriptionProcessing: "Different processing." }),
             ])
         ).toBeUndefined()
         expect(
-            computeIndicatorPaneCollapse([
+            computeIndicatorPaneStitch([
                 pane(),
                 pane({ origins: [origin({ producer: "WHO" })] }),
             ])
@@ -89,7 +89,7 @@ describe(computeIndicatorPaneCollapse, () => {
     it("ignores origin order and internal origin fields", () => {
         const a = origin()
         const b = origin({ producer: "Energy Institute", title: "Review" })
-        const r = computeIndicatorPaneCollapse([
+        const r = computeIndicatorPaneStitch([
             pane({ origins: [a, b] }),
             pane({
                 title: { title: "Deaths" },
@@ -103,13 +103,13 @@ describe(computeIndicatorPaneCollapse, () => {
     })
 
     it("unions differing date ranges, refusing unparseable ones", () => {
-        const r = computeIndicatorPaneCollapse([
+        const r = computeIndicatorPaneStitch([
             pane(),
             pane({ title: { title: "Deaths" }, dateRange: "2024-2100" }),
         ])
         expect(r!.dateRange).toBe("1950-2100")
         expect(
-            computeIndicatorPaneCollapse([
+            computeIndicatorPaneStitch([
                 pane(),
                 pane({ title: { title: "Deaths" }, dateRange: "since 1950" }),
             ])
@@ -117,7 +117,7 @@ describe(computeIndicatorPaneCollapse, () => {
     })
 
     it("moves differing shorts/units into the list and suppresses them on the pane", () => {
-        const r = computeIndicatorPaneCollapse([
+        const r = computeIndicatorPaneStitch([
             pane({ descriptionShort: "Births short.", unit: "births" }),
             pane({
                 title: { title: "Deaths" },
@@ -135,7 +135,7 @@ describe(computeIndicatorPaneCollapse, () => {
     })
 
     it("allows short differing WYSKs as per-entry notes, blocks long ones", () => {
-        const r = computeIndicatorPaneCollapse([
+        const r = computeIndicatorPaneStitch([
             pane({ descriptionKey: undefined }),
             pane({
                 title: { title: "Conflict" },
@@ -148,7 +148,7 @@ describe(computeIndicatorPaneCollapse, () => {
         expect(r!.suppressDescriptionKey).toBe(true)
 
         expect(
-            computeIndicatorPaneCollapse([
+            computeIndicatorPaneStitch([
                 pane({ descriptionKey: undefined }),
                 pane({
                     title: { title: "Conflict" },
@@ -159,7 +159,7 @@ describe(computeIndicatorPaneCollapse, () => {
     })
 
     it("merges differing producer docs as per-entry docs and suppresses the pane's", () => {
-        const r = computeIndicatorPaneCollapse([
+        const r = computeIndicatorPaneStitch([
             pane({ descriptionFromProducer: "Doc A" }),
             pane({
                 title: { title: "Deaths" },
@@ -172,7 +172,7 @@ describe(computeIndicatorPaneCollapse, () => {
             "Doc A",
             "Doc B",
         ])
-        const same = computeIndicatorPaneCollapse([
+        const same = computeIndicatorPaneStitch([
             pane({ descriptionFromProducer: "Doc" }),
             pane({
                 title: { title: "Deaths" },
@@ -184,7 +184,7 @@ describe(computeIndicatorPaneCollapse, () => {
     })
 
     it("merges a shared source whose link/citation differ, surfacing them per entry", () => {
-        const r = computeIndicatorPaneCollapse([
+        const r = computeIndicatorPaneStitch([
             pane({
                 origins: [origin({ urlMain: "https://a", citationFull: "A" })],
             }),
@@ -199,14 +199,14 @@ describe(computeIndicatorPaneCollapse, () => {
             "https://b",
         ])
         // identical content → nothing to surface
-        const same = computeIndicatorPaneCollapse([
+        const same = computeIndicatorPaneStitch([
             pane(),
             pane({ title: { title: "Deaths" } }),
         ])
         expect(same!.list[0].sources).toBeUndefined()
         // a different source SET still blocks
         expect(
-            computeIndicatorPaneCollapse([
+            computeIndicatorPaneStitch([
                 pane(),
                 pane({ origins: [origin(), origin({ producer: "WHO" })] }),
             ])
@@ -214,7 +214,7 @@ describe(computeIndicatorPaneCollapse, () => {
     })
 
     it("unions owners and takes the latest lastUpdated", () => {
-        const r = computeIndicatorPaneCollapse([
+        const r = computeIndicatorPaneStitch([
             pane({
                 owners: [{ datasetId: 1, datasetName: "A", owners: ["Alice"] }],
                 lastUpdated: "2024-07-12",

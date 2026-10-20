@@ -12,7 +12,7 @@ import {
 } from "@ourworldindata/components"
 import {
     AdditionalIndicator,
-    CollapsedIndicatorListEntry,
+    StitchedIndicatorListEntry,
     DisplaySource,
     ArchiveContext,
     DataPageDataV2,
@@ -85,8 +85,8 @@ interface ExpandableSectionProps {
     // "How to cite this indicator" on switcher pages, where the pane is one
     // of several indicators; "…this data" otherwise.
     citationToggleLabel?: string
-    collapsedIndicatorList?: CollapsedIndicatorListEntry[]
-    hideCollapsedIndicatorList?: boolean
+    stitchedIndicatorList?: StitchedIndicatorListEntry[]
+    hideStitchedIndicatorList?: boolean
 }
 
 const FAQS_SECTION_ID = "faqs"
@@ -138,18 +138,18 @@ function ExpandableSection({
     omitLongDatasetTitle,
     datapageCitationProducers,
     citationToggleLabel = "How to cite this data",
-    collapsedIndicatorList,
-    hideCollapsedIndicatorList,
+    stitchedIndicatorList,
+    hideStitchedIndicatorList,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
-    // Merged multi-indicator pages: a source the indicators share may still
+    // Stitched multi-indicator pages: a source the indicators share may still
     // link/cite differently per indicator — show those per indicator inside
     // the shared source's toggle.
     const sourceVariants = new Map<
         string,
         NonNullable<DisplaySource["variants"]>
     >()
-    for (const entry of collapsedIndicatorList ?? []) {
+    for (const entry of stitchedIndicatorList ?? []) {
         for (const s of entry.sources ?? []) {
             if (!sourceVariants.has(s.key)) sourceVariants.set(s.key, [])
             sourceVariants.get(s.key)!.push({
@@ -167,9 +167,9 @@ function ExpandableSection({
             ? { ...s, variants: sourceVariants.get(s.identityKey) }
             : s
     )
-    // Merged pages whose producer documentation differs per indicator: one
+    // Stitched pages whose producer documentation differs per indicator: one
     // outer toggle for the source, one nested toggle per indicator.
-    const producerDocEntries = (collapsedIndicatorList ?? []).filter(
+    const producerDocEntries = (stitchedIndicatorList ?? []).filter(
         (e) => e.producerDescription
     )
 
@@ -216,18 +216,18 @@ function ExpandableSection({
     const { preview: descriptionKeyPreview, remainder: descriptionKeyRest } =
         splitDescriptionKey(datapageData.descriptionKey ?? "")
 
-    // Whether the box's own expander is open — the collapsed indicator list
+    // Whether the box's own expander is open — the stitched indicator list
     // offers its "view all +" only then, so it never sits next to the box's
     // "Show more" looking like a duplicate.
     const [detailsOpen, setDetailsOpen] = useState(false)
 
     return (
         <div className={cx("meta-expander", className)}>
-            {!hideCollapsedIndicatorList &&
-                collapsedIndicatorList &&
-                collapsedIndicatorList.length > 0 && (
-                    <CollapsedIndicatorList
-                        entries={collapsedIndicatorList}
+            {!hideStitchedIndicatorList &&
+                stitchedIndicatorList &&
+                stitchedIndicatorList.length > 0 && (
+                    <StitchedIndicatorList
+                        entries={stitchedIndicatorList}
                         datapageData={datapageData}
                         expanderOpen={detailsOpen}
                     />
@@ -543,8 +543,8 @@ function IndicatorPaneContent({
     datapageCitationProducers,
     citationToggleLabel,
     paneTitleOverride,
-    collapsedIndicatorList,
-    hideCollapsedIndicatorList,
+    stitchedIndicatorList,
+    hideStitchedIndicatorList,
 }: {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined
@@ -557,12 +557,12 @@ function IndicatorPaneContent({
     omitLongDatasetTitle?: boolean
     datapageCitationProducers?: string[]
     citationToggleLabel?: string
-    // Collapsed multi-indicator mode: the pane heading reads "About this
+    // Stitched multi-indicator mode: the pane heading reads "About this
     // data" (no single indicator owns the pane) and the indicator list
     // renders inside the expander, above the shared WYSK.
     paneTitleOverride?: string
-    collapsedIndicatorList?: CollapsedIndicatorListEntry[]
-    hideCollapsedIndicatorList?: boolean
+    stitchedIndicatorList?: StitchedIndicatorListEntry[]
+    hideStitchedIndicatorList?: boolean
     // Disambiguates the section anchor ids (#faqs, #sources-and-processing,
     // #indicator-processing) when several panes are in the DOM at once. The
     // active pane always gets the canonical (un-suffixed) ids so in-page
@@ -673,12 +673,12 @@ function IndicatorPaneContent({
                 descriptionProcessing={datapageData.descriptionProcessing}
                 license={license}
                 faqsSectionId={`${FAQS_SECTION_ID}${idSuffix}`}
-                collapsedIndicatorList={collapsedIndicatorList}
+                stitchedIndicatorList={stitchedIndicatorList}
                 sourcesSectionId={`${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}${idSuffix}`}
                 processingContentId={processingContentId}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
                 datapageCitationTitle={datapageCitationTitle}
-                hideCollapsedIndicatorList={hideCollapsedIndicatorList}
+                hideStitchedIndicatorList={hideStitchedIndicatorList}
                 datapageCitationProducers={datapageCitationProducers}
                 citationToggleLabel={citationToggleLabel}
                 omitLongDatasetTitle={omitLongDatasetTitle}
@@ -687,7 +687,7 @@ function IndicatorPaneContent({
     )
 }
 
-// The collapsed replacement for the indicator switcher: one line saying what
+// The stitched replacement for the indicator switcher: one line saying what
 // the page covers, then one entry per indicator. `short`/`unit`/`note` are
 // only present when that field differs across the indicators (the shared
 // value renders once in the pane below).
@@ -704,12 +704,12 @@ const inlineCase = (title: string): string => {
     return m[1].toLowerCase() + title.slice(1)
 }
 
-function CollapsedIndicatorList({
+function StitchedIndicatorList({
     entries,
     datapageData,
     expanderOpen,
 }: {
-    entries: CollapsedIndicatorListEntry[]
+    entries: StitchedIndicatorListEntry[]
     datapageData: DataPageDataV2
     expanderOpen: boolean
 }) {
@@ -735,7 +735,7 @@ function CollapsedIndicatorList({
     const toggle = foldable && expanderOpen && (
         <button
             type="button"
-            className="indicator-metadata-box__collapsed-list-toggle"
+            className="indicator-metadata-box__stitched-list-toggle"
             aria-expanded={expanded}
             onClick={() => setExpanded((v) => !v)}
             data-track-note="metadata_box_indicator_list_toggle"
@@ -746,7 +746,7 @@ function CollapsedIndicatorList({
     // The list renders as a meta-expander__prose block so it inherits the
     // WYSK's exact type and spacing and reads as the paragraph before it.
     const blockClass =
-        "meta-expander__preview meta-expander__prose indicator-metadata-box__collapsed-list"
+        "meta-expander__preview meta-expander__prose indicator-metadata-box__stitched-list"
 
     // When the entries carry nothing beyond their titles (shared short/unit
     // shown once in the pane, no per-indicator notes), an enumerated list
@@ -793,11 +793,11 @@ function CollapsedIndicatorList({
             <ol>
                 {entries.map((entry, i) => (
                     <li key={i} hidden={!expanded && i >= FOLD_AFTER}>
-                        <span className="indicator-metadata-box__collapsed-list-title">
+                        <span className="indicator-metadata-box__stitched-list-title">
                             {entry.title}
                         </span>
                         {(entry.short || entry.unit) && (
-                            <span className="indicator-metadata-box__collapsed-list-meta">
+                            <span className="indicator-metadata-box__stitched-list-meta">
                                 {entry.short && (
                                     <SimpleMarkdownText
                                         text={entry.short}
@@ -805,13 +805,13 @@ function CollapsedIndicatorList({
                                     />
                                 )}
                                 {entry.short && entry.unit && (
-                                    <span className="indicator-metadata-box__collapsed-list-sep">
+                                    <span className="indicator-metadata-box__stitched-list-sep">
                                         |
                                     </span>
                                 )}
                                 {entry.unit && (
-                                    <span className="indicator-metadata-box__collapsed-list-unit">
-                                        <span className="indicator-metadata-box__collapsed-list-unit-key">
+                                    <span className="indicator-metadata-box__stitched-list-unit">
+                                        <span className="indicator-metadata-box__stitched-list-unit-key">
                                             Unit{" "}
                                         </span>
                                         {entry.unit}
@@ -820,7 +820,7 @@ function CollapsedIndicatorList({
                             </span>
                         )}
                         {entry.note && (
-                            <div className="indicator-metadata-box__collapsed-list-note">
+                            <div className="indicator-metadata-box__stitched-list-note">
                                 <SimpleMarkdownText
                                     text={entry.note}
                                     useParagraphs={false}
@@ -835,7 +835,7 @@ function CollapsedIndicatorList({
                     // While the box is closed the link is withheld (it would sit
                     // beside "Show more"); a bare ellipsis still signals that
                     // the list continues.
-                    <p className="indicator-metadata-box__collapsed-list-more">
+                    <p className="indicator-metadata-box__stitched-list-more">
                         {toggle || "\u2026"}
                     </p>
                 )}
@@ -846,8 +846,8 @@ function CollapsedIndicatorList({
 export default function IndicatorMetadataBox({
     datapageData,
     additionalIndicators,
-    collapsedIndicatorList,
-    hideCollapsedIndicatorList,
+    stitchedIndicatorList,
+    hideStitchedIndicatorList,
     faqEntries,
     className,
     id,
@@ -858,8 +858,8 @@ export default function IndicatorMetadataBox({
 }: {
     datapageData: DataPageDataV2
     additionalIndicators?: AdditionalIndicator[]
-    collapsedIndicatorList?: CollapsedIndicatorListEntry[]
-    hideCollapsedIndicatorList?: boolean
+    stitchedIndicatorList?: StitchedIndicatorListEntry[]
+    hideStitchedIndicatorList?: boolean
     className?: string
     id?: string
     faqEntries: FaqEntryData | undefined
@@ -875,13 +875,13 @@ export default function IndicatorMetadataBox({
         ...(additionalIndicators ?? []),
     ]
     const isMulti = indicators.length > 1
-    // The baker collapsed a multi-indicator chart's panes into one: render a
+    // The baker stitched a multi-indicator chart's panes into one: render a
     // single pane plus the templated indicator list, and no switcher. The
     // page is still conceptually multi-indicator (citations cite the chart).
-    const isCollapsedMulti = !isMulti && !!collapsedIndicatorList?.length
-    const isMultiForCitations = isMulti || isCollapsedMulti
+    const isStitchedMulti = !isMulti && !!stitchedIndicatorList?.length
+    const isMultiForCitations = isMulti || isStitchedMulti
     // Switcher pages cite the PAGE with every producer used across its
-    // indicators (a merged page's panes already share one source set).
+    // indicators (a stitched page's panes already share one source set).
     // Some origins carry a semicolon-joined composite producer ("A; B; C"),
     // so split before de-duplicating or the union repeats names.
     const pageCitationProducers = isMulti
@@ -966,12 +966,12 @@ export default function IndicatorMetadataBox({
                 idSuffix={i === safeIndex ? "" : `--${i}`}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
                 paneTitleOverride={
-                    isCollapsedMulti ? "About this data" : undefined
+                    isStitchedMulti ? "About this data" : undefined
                 }
-                collapsedIndicatorList={
-                    isCollapsedMulti ? collapsedIndicatorList : undefined
+                stitchedIndicatorList={
+                    isStitchedMulti ? stitchedIndicatorList : undefined
                 }
-                hideCollapsedIndicatorList={hideCollapsedIndicatorList}
+                hideStitchedIndicatorList={hideStitchedIndicatorList}
                 datapageCitationTitle={
                     isMultiForCitations
                         ? (pageCitationTitle ?? datapageData.title.title)
@@ -1003,7 +1003,7 @@ export default function IndicatorMetadataBox({
         </button>
     )
 
-    if (!isMulti && !isCollapsedMulti) {
+    if (!isMulti && !isStitchedMulti) {
         return (
             <div className={cx("indicator-metadata-box", className)} id={id}>
                 {showLessButton}
@@ -1015,7 +1015,7 @@ export default function IndicatorMetadataBox({
     // Header row above the box: "About this data (N indicators)" plus the
     // switcher control. The v-tabs variant renders its switcher as an aside
     // beside the box instead.
-    const headerSwitcher = isCollapsedMulti ? null : switcherVariant ===
+    const headerSwitcher = isStitchedMulti ? null : switcherVariant ===
       "dropdown" ? (
         <IndicatorDropdown
             indicators={indicators}
@@ -1055,7 +1055,7 @@ export default function IndicatorMetadataBox({
             className={cx(
                 "indicator-metadata-box-wrap",
                 `indicator-metadata-box-wrap--${switcherVariant}`,
-                { "indicator-metadata-box-wrap--collapsed": isCollapsedMulti },
+                { "indicator-metadata-box-wrap--stitched": isStitchedMulti },
                 className
             )}
             id={id}
