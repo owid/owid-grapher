@@ -33,7 +33,6 @@ import {
     Button,
     Dropdown,
     Input,
-    Space,
     Table,
     TableColumnsType,
     Tag,
@@ -41,7 +40,12 @@ import {
     message,
 } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCopy, faPen, faTrashCan } from "@fortawesome/free-solid-svg-icons"
+import {
+    faCaretDown,
+    faCopy,
+    faPen,
+    faTrashCan,
+} from "@fortawesome/free-solid-svg-icons"
 import { Link } from "./Link.js"
 import { EditableTags } from "./EditableTags.js"
 import { ChartSourceBadge } from "./ChartSourceBadge.js"
@@ -310,17 +314,17 @@ function ActionsCell({
         ])
 
     return (
-        <Space size={4}>
-            <Tooltip title="Edit">
-                <Link to={`/charts/${chart.id}/edit`}>
-                    <Button
-                        type="primary"
-                        size="small"
-                        aria-label="Edit"
-                        icon={<FontAwesomeIcon icon={faPen} />}
-                    />
-                </Link>
-            </Tooltip>
+        <div className="chart-list__actions">
+            <Link to={`/charts/${chart.id}/edit`}>
+                <Button
+                    type="primary"
+                    size="small"
+                    block
+                    icon={<FontAwesomeIcon icon={faPen} />}
+                >
+                    Edit
+                </Button>
+            </Link>
             <Dropdown
                 trigger={["click"]}
                 menu={{
@@ -336,24 +340,28 @@ function ActionsCell({
                     },
                 }}
             >
-                <Tooltip title="Copy link">
-                    <Button
-                        size="small"
-                        aria-label="Copy link"
-                        icon={<FontAwesomeIcon icon={faCopy} />}
-                    />
-                </Tooltip>
-            </Dropdown>
-            <Tooltip title="Delete">
                 <Button
                     size="small"
-                    danger
-                    aria-label="Delete"
-                    icon={<FontAwesomeIcon icon={faTrashCan} />}
-                    onClick={() => onDelete(chart)}
-                />
-            </Tooltip>
-        </Space>
+                    block
+                    icon={<FontAwesomeIcon icon={faCopy} />}
+                >
+                    Copy
+                    <FontAwesomeIcon
+                        icon={faCaretDown}
+                        className="chart-list__caret"
+                    />
+                </Button>
+            </Dropdown>
+            <Button
+                size="small"
+                danger
+                block
+                icon={<FontAwesomeIcon icon={faTrashCan} />}
+                onClick={() => onDelete(chart)}
+            >
+                Delete
+            </Button>
+        </div>
     )
 }
 

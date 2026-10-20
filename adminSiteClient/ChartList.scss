@@ -134,3 +134,26 @@
     text-decoration-style: dotted;
     text-underline-offset: 3px;
 }
+
+// antd's default row lines are too faint to follow across a wide row
+.chart-list .ant-table-tbody > tr > td {
+    border-bottom-color: #dedede;
+}
+
+.chart-list__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 84px;
+
+    // the buttons line up on their icons, as a column of labels
+    .ant-btn {
+        justify-content: flex-start;
+    }
+}
+
+.chart-list__caret {
+    margin-left: auto;
+    font-size: 0.8em;
+    opacity: 0.6;
+}
