@@ -29,8 +29,8 @@ export interface DataTableManager {
     dataTableSlugs?: ColumnSlug[]
     isNarrow?: boolean
     dataTableConfig: DataTableConfig
-    /** Sort state of the table, kept on the manager so it can be set programmatically */
-    dataTableSort?: DataTableSortState
+    /** Kept on the manager so the sort survives remounts and can be set programmatically */
+    dataTableSort: DataTableSortState
     dataTableSelection?: SelectionArray | EntityName[]
     entitiesByRegionGroup?: EntitiesByRegionGroup
     timelineDragTarget?: TimelineDragTarget
@@ -168,14 +168,18 @@ export interface DataTableConfig {
     search: string
 }
 
-export interface DataTableState {
-    sort: DataTableSortState
-}
-
 export interface DataTableSortState {
     dimIndex: DimensionSortIndex
     columnKey: DataTableColumnKey | undefined
     order: SortOrder
+}
+
+export const ENTITY_SORT_INDEX = -1
+
+export const DEFAULT_DATA_TABLE_SORT: DataTableSortState = {
+    dimIndex: ENTITY_SORT_INDEX,
+    columnKey: undefined,
+    order: SortOrder.asc,
 }
 
 export type DimensionSortIndex = number

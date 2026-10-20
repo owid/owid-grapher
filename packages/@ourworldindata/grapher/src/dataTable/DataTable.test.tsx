@@ -135,6 +135,28 @@ describe("when the table is sorted by a single-year value but shows a range", ()
     })
 })
 
+describe("when the stored sort points to a column that isn't shown", () => {
+    it("sorts by the last shown column instead", () => {
+        const grapher = childMortalityGrapher({
+            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        })
+        // e.g. left over from a view with more indicators
+        grapher.dataTableSort = {
+            dimIndex: 3,
+            columnKey: PointColumnKey.single,
+            order: SortOrder.desc,
+        }
+
+        const { container } = render(<DataTable manager={grapher} />)
+
+        const entities = [...container.querySelectorAll("tbody td.entity")].map(
+            (cell) => cell.textContent
+        )
+        expect(entities).toEqual(["Iceland", "Afghanistan"])
+    })
+})
+
 describe("when the table doesn't have data for all rows", () => {
     let container: HTMLElement
     beforeEach(() => {
