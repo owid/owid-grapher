@@ -23,8 +23,11 @@
     color: #888;
 }
 
+// A muted red: findable when scanning for drafts, without pulling the eye
 .chart-list__chart--draft .chart-list__title .ant-tag {
-    color: #888;
+    color: #b0605a;
+    background: #fbeeed;
+    border-color: #f0d2cf;
     font-weight: normal;
 }
 
