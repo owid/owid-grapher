@@ -133,38 +133,47 @@ export function EtlSourceSection({
 }: {
     etl: EtlSource
 }): React.ReactElement {
+    const [isDriftExpanded, setIsDriftExpanded] = React.useState(false)
     const isDrifted = hasEtlDrift(etl.drift)
     const gitHubUrl = makeEtlConfigGitHubUrl(etl.catalogPath)
 
     return (
         <Section name="ETL">
             <p>
-                <ChartSourceBadge etl={etl} /> This chart was created in ETL.
+                This chart was created in ETL.
+                {gitHubUrl && (
+                    <>
+                        {" "}
+                        <a
+                            href={gitHubUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            View config in owid/etl{" "}
+                            <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+                        </a>
+                    </>
+                )}
             </p>
             <CatalogPathField catalogPath={etl.catalogPath ?? undefined} />
-            {gitHubUrl && (
-                <p>
-                    <a
-                        href={gitHubUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Open its config in owid/etl{" "}
-                        <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
-                    </a>
-                </p>
-            )}
             {isDrifted ? (
-                <>
-                    <p className="mb-1">
-                        Changed in the admin since the last ETL push:
-                    </p>
-                    <ul>
-                        {describeEtlDrift(etl.drift).map((description) => (
-                            <li key={description}>{description}</li>
-                        ))}
-                    </ul>
-                </>
+                <div className="alert alert-info">
+                    There are changes in the admin since the last ETL push.{" "}
+                    <button
+                        type="button"
+                        className="btn btn-link p-0 align-baseline"
+                        onClick={() => setIsDriftExpanded(!isDriftExpanded)}
+                    >
+                        {isDriftExpanded ? "Hide them" : "View them"}
+                    </button>
+                    {isDriftExpanded && (
+                        <ul className="mt-2 mb-0">
+                            {describeEtlDrift(etl.drift).map((description) => (
+                                <li key={description}>{description}</li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
             ) : (
                 <p>In sync with the last ETL push.</p>
             )}
