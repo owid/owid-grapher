@@ -139,6 +139,10 @@ export class EditorFeatures {
         return this.grapherState.hasStackedDiscreteBar
     }
 
+    @computed get canConfigureSwimlane() {
+        return this.grapherState.hasSwimlane
+    }
+
     @computed get canConfigureDumbbell() {
         return this.grapherState.hasDumbbellChart
     }
