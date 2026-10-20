@@ -146,7 +146,7 @@ export function OwidGdoc({
                 }}
             >
                 <SiteQueryClientProvider>
-                    <AdminLinks id={props.id} />
+                    {!isPreviewing && <AdminLinks id={props.id} />}
                     {content}
                 </SiteQueryClientProvider>
             </DocumentContext.Provider>

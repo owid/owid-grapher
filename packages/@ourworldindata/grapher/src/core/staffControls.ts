@@ -23,9 +23,11 @@ function isStagingOrLocalhost(): boolean {
 /**
  * Whether to show staff-only controls (edit links, copy buttons, …).
  *
- * The isAdmin cookie is `Secure`, so browsers never send it to staging servers,
- * which are served over plain http. We therefore show the controls on staging
- * and localhost regardless of the cookie.
+ * The isAdmin cookie never exists on staging servers: the admin sets it by
+ * iframing ourworldindata.org/identifyadmin, cookies are per-host, and setting
+ * it via the staging server's own /identifyadmin fails because the cookie is
+ * `Secure` and staging is served over plain http. So we show the controls on
+ * staging and localhost regardless of the cookie.
  *
  * This is about visibility, not access control: anyone can set the cookie.
  */
