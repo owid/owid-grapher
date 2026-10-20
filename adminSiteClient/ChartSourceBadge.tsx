@@ -4,17 +4,12 @@ import { Tooltip } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLink, faUnlink } from "@fortawesome/free-solid-svg-icons"
 import {
-    EtlDrift,
+    EtlSource,
     describeEtlDrift,
     hasEtlDrift,
     makeEtlConfigGitHubUrl,
 } from "./etlChartSync.js"
 import "./ChartSourceBadge.scss"
-
-export interface EtlSource {
-    catalogPath: string | null
-    drift: EtlDrift
-}
 
 /** Where a chart is authored: in ETL (in sync or drifted) or in the admin */
 export function ChartSourceBadge({

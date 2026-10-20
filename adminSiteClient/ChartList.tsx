@@ -29,6 +29,7 @@ import { Tooltip } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { deleteChart, References } from "./adminChartApi.js"
+import { getChartListItemEtlSource, hasEtlDrift } from "./etlChartSync.js"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {
@@ -67,9 +68,21 @@ export interface ChartListItem {
 }
 
 export type SortConfig = {
-    field: "grapherViewsPerDay" | "narrativeChartsCount" | "referencesCount"
+    field:
+        | "grapherViewsPerDay"
+        | "narrativeChartsCount"
+        | "referencesCount"
+        | "source"
     direction: "asc" | "desc"
 } | null
+
+// Sorting by source descending lists drifted ETL charts first, then in-sync
+// ETL charts, then admin charts
+function getSourceRank(chart: ChartListItem): number {
+    const etlSource = getChartListItemEtlSource(chart)
+    if (!etlSource) return 0
+    return hasEtlDrift(etlSource.drift) ? 2 : 1
+}
 
 interface ChartListProps {
     charts: ChartListItem[]
@@ -200,7 +213,9 @@ export class ChartList extends React.Component<ChartListProps> {
                 ? (chart: ChartListItem) => chart.grapherViewsPerDay
                 : field === "narrativeChartsCount"
                   ? (chart: ChartListItem) => chart.narrativeChartsCount
-                  : (chart: ChartListItem) => chart.referencesCount
+                  : field === "source"
+                    ? getSourceRank
+                    : (chart: ChartListItem) => chart.referencesCount
 
         return sortNumeric(
             [...chartsFiltered],
@@ -283,6 +298,21 @@ export class ChartList extends React.Component<ChartListProps> {
             }
         }
 
+        const getSourceSortIndicator = () => {
+            if (!sortConfig || sortConfig.field !== "source") return ""
+            return sortConfig.direction === "desc" ? " ↓" : " ↑"
+        }
+
+        const handleSourceSortClick = () => {
+            if (!sortConfig || sortConfig.field !== "source") {
+                onSort({ field: "source", direction: "desc" })
+            } else if (sortConfig.direction === "desc") {
+                onSort({ field: "source", direction: "asc" })
+            } else {
+                onSort(null)
+            }
+        }
+
         // if the first chart has inheritance information, we assume all charts have it
         const showInheritanceColumn =
             chartsToShow[0]?.isInheritanceEnabled !== undefined
@@ -314,7 +344,12 @@ export class ChartList extends React.Component<ChartListProps> {
                             <th>Chart</th>
                             <th>Id</th>
                             <th>Type</th>
-                            <th>Source</th>
+                            <th
+                                style={{ cursor: "pointer" }}
+                                onClick={handleSourceSortClick}
+                            >
+                                Source{getSourceSortIndicator()}
+                            </th>
                             {showInheritanceColumn && <th>Inheritance</th>}
                             <th>Tags</th>
                             <th>Published</th>

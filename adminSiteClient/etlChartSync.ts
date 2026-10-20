@@ -1,3 +1,5 @@
+import type { ChartListItem } from "./ChartList.js"
+
 /**
  * How an ETL-managed chart has drifted from its ETL config: everything the
  * admin changed on top of what the ETL pushed. A chart with no drift renders
@@ -8,6 +10,11 @@ export interface EtlDrift {
     overriddenFields: string[]
     /** Set if the admin renamed the chart away from the slug ETL proposes */
     slugOverride?: { slug: string; etlSlug: string }
+}
+
+export interface EtlSource {
+    catalogPath: string | null
+    drift: EtlDrift
 }
 
 export function makeEtlDrift({
@@ -22,6 +29,20 @@ export function makeEtlDrift({
     const slugOverride =
         slug && etlSlug && slug !== etlSlug ? { slug, etlSlug } : undefined
     return { overriddenFields, slugOverride }
+}
+
+export function getChartListItemEtlSource(
+    chart: ChartListItem
+): EtlSource | undefined {
+    if (!chart.isEtlManaged) return undefined
+    return {
+        catalogPath: chart.etlConfigCatalogPath,
+        drift: makeEtlDrift({
+            overriddenFields: JSON.parse(chart.etlOverriddenFields ?? "[]"),
+            slug: chart.slug,
+            etlSlug: chart.etlSlug,
+        }),
+    }
 }
 
 export function hasEtlDrift(drift: EtlDrift): boolean {
