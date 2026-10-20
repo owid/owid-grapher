@@ -72,7 +72,9 @@ export function pickDefaultDataTableFilter(
     const countriesOption = otherOptions.find(
         ({ value }) => value === "countries"
     )
-    return countriesOption && countriesOption.count < allOption.count
+    const isCountriesMajority =
+        !!countriesOption && countriesOption.count * 2 > allOption.count
+    return isCountriesMajority && countriesOption.count < allOption.count
         ? "countries"
         : "all"
 }

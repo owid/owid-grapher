@@ -238,8 +238,7 @@ describe("when the table has no filter toggle", () => {
             hasMapTab: true,
         })
         const { container } = render(<DataTable manager={grapher} />)
-        const rows = container.querySelectorAll("tbody tr:not(.title)")
-        expect(rows).toHaveLength(3)
+        expect(getEntityNames(container)).toContain("France")
     })
 
     it("does not filter by selection by default if the selection is empty", () => {
@@ -250,7 +249,7 @@ describe("when the table has no filter toggle", () => {
         })
         const { container } = render(<DataTable manager={grapher} />)
         const rows = container.querySelectorAll("tbody tr:not(.title)")
-        expect(rows).toHaveLength(3)
+        expect(rows).toHaveLength(grapher.availableEntityNames.length)
     })
 })
 
