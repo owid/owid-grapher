@@ -16,7 +16,7 @@ import { AnnouncementPage } from "./pages/Announcement.js"
 import { Profile } from "./pages/Profile.js"
 import { FeaturedViz } from "./pages/FeaturedViz.js"
 import { ADMIN_BASE_URL } from "../../settings/clientSettings.mjs"
-import { CookieKey } from "@ourworldindata/grapher"
+import { shouldShowStaffControls } from "@ourworldindata/grapher"
 import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
 
 type OwidGdocProps = OwidGdocPageProps & {
@@ -24,17 +24,9 @@ type OwidGdocProps = OwidGdocPageProps & {
     archiveContext?: ArchiveContext
 }
 
-function hasAdminCookie(): boolean {
-    try {
-        return document.cookie.includes(CookieKey.isAdmin)
-    } catch {
-        return false
-    }
-}
-
 function AdminLinks({ id }: Pick<OwidGdocPageProps, "id">) {
     const isClient = useIsClient()
-    if (!isClient || !id || !hasAdminCookie()) return null
+    if (!isClient || !id || !shouldShowStaffControls()) return null
 
     return (
         <div className="gdoc-admin-bar">
