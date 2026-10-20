@@ -96,6 +96,8 @@ export const DataPageV2Content = ({
             enableKeyboardShortcuts: typeof window !== "undefined",
             archiveContext,
             useNewDatapageMetadataLayout: useNewDatapageDesign,
+            // Prototype: AI assistant panel below the country selector
+            enableAssistantPanel: true,
         }),
         [grapherConfig, archiveContext, useNewDatapageDesign]
     )
