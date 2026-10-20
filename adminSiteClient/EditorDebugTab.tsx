@@ -79,6 +79,7 @@ export class EditorDebugTab extends Component<{
 
         return (
             <div>
+                {this.props.editor.manager.renderNote?.("debug.top")}
                 <Section name="Config">
                     <textarea
                         rows={7}

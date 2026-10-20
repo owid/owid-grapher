@@ -127,7 +127,7 @@ function EtlSourceTooltip({
     )
 }
 
-/** Basic-tab section telling editors the chart is managed by ETL */
+/** Debug-tab section telling editors the chart is managed by ETL */
 export function EtlSourceSection({
     etl,
 }: {

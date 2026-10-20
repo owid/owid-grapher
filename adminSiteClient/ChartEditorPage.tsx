@@ -583,7 +583,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             case "preview.header":
                 if (this.isNewChart) return undefined
                 return <ChartSourceBadge etl={this.etlSource} />
-            case "basic.top":
+            case "debug.top":
                 if (!this.etlSource) return undefined
                 return <EtlSourceSection etl={this.etlSource} />
         }
