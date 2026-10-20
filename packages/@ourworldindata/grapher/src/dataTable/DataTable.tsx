@@ -255,7 +255,9 @@ export class DataTable extends React.Component<DataTableProps> {
             const singleColumn = dim.columnDefinitions.find(
                 (column) => column.key === PointColumnKey.single
             )
-            const targetTime = singleColumn?.targetTime
+            const targetTime = this.hasSubheaders
+                ? undefined
+                : singleColumn?.targetTime
 
             const title = _.upperFirst(display.columnName.title)
             const { titleVariant } = display.columnName

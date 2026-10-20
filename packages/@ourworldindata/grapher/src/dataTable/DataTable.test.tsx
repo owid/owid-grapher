@@ -273,10 +273,10 @@ describe("when the table doesn't have data for all rows", () => {
     })
 
     it("displays correct targetTime for columns", () => {
-        const timeHeaders = container.querySelectorAll("thead .dimension .time")
-        expect(timeHeaders.length).toBe(2)
-        expect(timeHeaders[0]?.textContent).toBe("2000")
-        expect(timeHeaders[1]?.textContent).toBe("2010")
+        const timeHeaders = [
+            ...container.querySelectorAll("thead th.subdimension-first"),
+        ].map((header) => header.textContent)
+        expect(timeHeaders).toEqual(["2000", "2010"])
     })
 })
 
