@@ -924,13 +924,13 @@
       "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ExplorerTiles.ts",
       "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ExplorerTiles.md",
       "prose": {
-        "intro": "A grid of tiles linking to data explorers. Typically shown on the\nhomepage. Each tile pulls its icon from the explorer's tag in admin.\n\n```archie\n{.explorer-tiles}\ntitle: Data explorers\nsubtitle: Interactive visualization tools to explore a wide range of related indicators.\n[.explorers]\nurl: https://ourworldindata.org/explorers/poverty-explorer\nurl: https://ourworldindata.org/explorers/population-and-demography\nurl: https://ourworldindata.org/explorers/global-health\nurl: https://ourworldindata.org/explorers/energy\n[]\n{}\n```",
+        "intro": "A grid of tiles linking to data explorers. Typically shown on the\nhomepage. Each tile pulls its icon from the explorer's tag in admin.\n\n```archie\n{.explorer-tiles}\ntitle: Data explorers\nsubtitle: Interactive visualization tools to explore a wide range of related indicators.\n[.explorers]\nurl: https://ourworldindata.org/explorers/poverty-explorer\nurl: https://ourworldindata.org/explorers/population-and-demography\nurl: https://ourworldindata.org/explorers/global-health\nurl: https://ourworldindata.org/grapher/energy-mix\n[]\n{}\n```",
         "whenToUse": "- On the homepage to feature OWID data explorers.",
         "whenNotToUse": "- For a single explorer embed — use `{.chart}` with the explorer URL."
       },
       "examples": [
         {
-          "archie": "{.explorer-tiles}\ntitle: Data explorers\nsubtitle: Interactive visualization tools to explore a wide range of related indicators.\n[.explorers]\nurl: https://ourworldindata.org/explorers/poverty-explorer\nurl: https://ourworldindata.org/explorers/population-and-demography\nurl: https://ourworldindata.org/explorers/global-health\nurl: https://ourworldindata.org/explorers/energy\n[]\n{}",
+          "archie": "{.explorer-tiles}\ntitle: Data explorers\nsubtitle: Interactive visualization tools to explore a wide range of related indicators.\n[.explorers]\nurl: https://ourworldindata.org/explorers/poverty-explorer\nurl: https://ourworldindata.org/explorers/population-and-demography\nurl: https://ourworldindata.org/explorers/global-health\nurl: https://ourworldindata.org/grapher/energy-mix\n[]\n{}",
           "flavour": "archie",
           "section": "intro",
           "position": 0
