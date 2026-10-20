@@ -93,4 +93,21 @@ describe("GrapherLoader canonicalUrl", () => {
         expect(grapherState.canonicalUrl).toBeUndefined()
         expect(grapherState.embedUrl).toBeUndefined()
     })
+
+    it("follows canonicalUrl through later config updates", () => {
+        const { grapherState } = GrapherLoader.fromCsv({
+            config: { ...publishedConfig, canonicalUrl: null },
+            csv,
+            columnDefs,
+        })
+
+        grapherState.updateFromObject(publishedConfig)
+        expect(grapherState.canonicalUrl).toBe("/grapher/vacancy-rates")
+
+        grapherState.updateFromObject({
+            ...publishedConfig,
+            canonicalUrl: "https://example.org/vacancies",
+        })
+        expect(grapherState.canonicalUrl).toBe("https://example.org/vacancies")
+    })
 })

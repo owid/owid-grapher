@@ -804,7 +804,6 @@ export class GrapherState
         this.recommendedIframeEmbedHeight = options.recommendedIframeEmbedHeight
         this.staticBounds = options.staticBounds ?? DEFAULT_GRAPHER_BOUNDS
 
-        this.canonicalUrlOverride = options.canonicalUrl
         this.narrativeChartInfo = options.narrativeChartInfo
         this.archiveContext = options.archiveContext
 
@@ -824,6 +823,7 @@ export class GrapherState
         updatePersistables(this, obj)
 
         this.bindUrlToWindow = obj.bindUrlToWindow ?? false
+        this.canonicalUrlOverride = obj.canonicalUrl
 
         // Update selection
         if (obj.selectedEntityNames)
