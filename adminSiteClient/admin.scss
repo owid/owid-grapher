@@ -1196,6 +1196,19 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     }
 }
 
+.EditableTags__action--icon-only {
+    padding: 2px 5px;
+    color: #999;
+
+    &:hover {
+        color: #0d6efd;
+    }
+
+    svg {
+        margin-right: 0;
+    }
+}
+
 .redirect-prefix {
     color: #aaa;
     font-size: 13px;

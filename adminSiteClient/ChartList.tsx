@@ -2,6 +2,7 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { runInAction, observable, computed, action, makeObservable } from "mobx"
 import * as lodash from "lodash-es"
+import cx from "clsx"
 import {
     bind,
     dayjs,
@@ -57,6 +58,7 @@ import "./ChartList.scss"
 export interface ChartListItem {
     // the first few entries mirror GrapherInterface, so take the types from there
     id: GrapherInterface["id"]
+    configId: string
     title: GrapherInterface["title"]
     slug: GrapherInterface["slug"]
     internalNotes: GrapherInterface["internalNotes"]
@@ -117,24 +119,29 @@ function compareTimes(a: string | undefined, b: string | undefined): number {
     return new Date(a ?? 0).getTime() - new Date(b ?? 0).getTime()
 }
 
-/** Title with the draft and ETL flags, then id · type, slug and notes */
+/**
+ * Title with the draft and ETL flags, then id · type, slug, notes and tags.
+ * Drafts are greyed out, so the eye goes to the published charts first.
+ */
 function ChartCell({
     chart,
     highlight,
+    tags,
 }: {
     chart: ChartListItem
     highlight: Highlighter
+    tags: React.ReactNode
 }): React.ReactElement {
     const etlSource = getChartListItemEtlSource(chart)
     const title = highlight(chart.title ?? "")
     return (
-        <div className="chart-list__chart">
+        <div
+            className={cx("chart-list__chart", {
+                "chart-list__chart--draft": !chart.isPublished,
+            })}
+        >
             <div className="chart-list__title">
-                {!chart.isPublished && (
-                    <Tag color="red" variant="outlined">
-                        Draft
-                    </Tag>
-                )}
+                {!chart.isPublished && <Tag>Draft</Tag>}
                 {chart.isPublished ? (
                     <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>{title}</a>
                 ) : (
@@ -166,7 +173,39 @@ function ChartCell({
                     {highlight(chart.internalNotes)}
                 </div>
             )}
+            <div className="chart-list__tags">{tags}</div>
         </div>
+    )
+}
+
+/**
+ * A published chart's thumbnail comes by slug, as on the public site. A draft
+ * has no public slug, but every saved config is in R2 by its uuid, so its
+ * thumbnail comes from there.
+ */
+function PreviewCell({ chart }: { chart: ChartListItem }): React.ReactElement {
+    if (chart.isPublished)
+        return (
+            <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
+                <img
+                    src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${chart.slug}.png`}
+                    height={600}
+                    width={850}
+                    loading="lazy"
+                    className="chart-list__preview"
+                />
+            </a>
+        )
+    return (
+        <Link to={`/charts/${chart.id}/edit`}>
+            <img
+                src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${chart.configId}.png`}
+                height={600}
+                width={850}
+                loading="lazy"
+                className="chart-list__preview chart-list__preview--draft"
+            />
+        </Link>
     )
 }
 
@@ -221,17 +260,16 @@ class TagsCell extends React.Component<{
     override render() {
         const { chart, availableTags, tagGraphRolesById } = this.props
         return (
-            <div className="chart-list__tags">
-                <EditableTags
-                    tags={chart.tags}
-                    suggestions={availableTags}
-                    tagGraphRolesById={tagGraphRolesById}
-                    onSave={this.onSaveTags}
-                    hasKeyChartSupport
-                    hasSuggestionsSupport
-                    taggable={{ type: TaggableType.Charts, id: chart.id }}
-                />
-            </div>
+            <EditableTags
+                tags={chart.tags}
+                suggestions={availableTags}
+                tagGraphRolesById={tagGraphRolesById}
+                onSave={this.onSaveTags}
+                hasKeyChartSupport
+                hasSuggestionsSupport
+                taggable={{ type: TaggableType.Charts, id: chart.id }}
+                iconOnlyActions
+            />
         )
     }
 }
@@ -365,24 +403,23 @@ function createColumns({
         {
             key: "preview",
             width: 112,
-            render: (_, chart) =>
-                chart.isPublished ? (
-                    <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
-                        <img
-                            src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${chart.slug}.png`}
-                            height={600}
-                            width={850}
-                            loading="lazy"
-                            className="chart-list__preview"
-                        />
-                    </a>
-                ) : null,
+            render: (_, chart) => <PreviewCell chart={chart} />,
         },
         {
             title: "Chart",
             key: "chart",
             render: (_, chart) => (
-                <ChartCell chart={chart} highlight={highlight} />
+                <ChartCell
+                    chart={chart}
+                    highlight={highlight}
+                    tags={
+                        <TagsCell
+                            chart={chart}
+                            availableTags={availableTags}
+                            tagGraphRolesById={tagGraphRolesById}
+                        />
+                    }
+                />
             ),
         },
         showInheritanceColumn
@@ -393,18 +430,6 @@ function createColumns({
                   render: (_, chart) => inheritanceStatus(chart),
               }
             : undefined,
-        {
-            title: "Tags",
-            key: "tags",
-            width: "22%",
-            render: (_, chart) => (
-                <TagsCell
-                    chart={chart}
-                    availableTags={availableTags}
-                    tagGraphRolesById={tagGraphRolesById}
-                />
-            ),
-        },
         {
             title: "Last updated",
             key: "lastEditedAt",

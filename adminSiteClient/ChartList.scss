@@ -10,12 +10,48 @@
     border: 1px solid #eee;
 }
 
+.chart-list__preview--draft {
+    opacity: 0.6;
+}
+
 .chart-list__chart {
-    min-width: 220px;
+    min-width: 280px;
+}
+
+// Drafts read as secondary: grey title, grey Draft tag
+.chart-list__chart--draft .chart-list__title {
+    color: #888;
+}
+
+.chart-list__chart--draft .chart-list__title .ant-tag {
+    color: #888;
+    font-weight: normal;
 }
 
 .chart-list__tags {
-    min-width: 200px;
+    margin-top: 6px;
+
+    // Tighter pills than elsewhere in the admin, as tags are one line of many
+    // in this cell
+    .TagBadge {
+        margin-right: 4px;
+        margin-bottom: 4px;
+        border-radius: 4px;
+    }
+
+    .TagBadge__name,
+    .TagBadge__sorting,
+    .TagBadge__approve {
+        padding: 1px 6px;
+        vertical-align: middle;
+    }
+
+    .TagBadge__sorting,
+    .TagBadge__approve {
+        padding: 1px 5px;
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+    }
 }
 
 .chart-list__title {
