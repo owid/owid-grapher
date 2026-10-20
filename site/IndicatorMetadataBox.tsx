@@ -13,6 +13,7 @@ import {
 import {
     AdditionalIndicator,
     StitchedIndicatorListEntry,
+    AuxiliaryIndicator,
     DisplaySource,
     ArchiveContext,
     DataPageDataV2,
@@ -545,6 +546,7 @@ function IndicatorPaneContent({
     paneTitleOverride,
     stitchedIndicatorList,
     hideStitchedIndicatorList,
+    auxiliaryIndicators,
 }: {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined
@@ -563,6 +565,10 @@ function IndicatorPaneContent({
     paneTitleOverride?: string
     stitchedIndicatorList?: StitchedIndicatorListEntry[]
     hideStitchedIndicatorList?: boolean
+    // Set only when the box has a single visible pane (stitched or
+    // single-indicator): the size/colour line then sits under the pane
+    // heading. Switcher pages render it once, above the panes, instead.
+    auxiliaryIndicators?: AuxiliaryIndicator[]
     // Disambiguates the section anchor ids (#faqs, #sources-and-processing,
     // #indicator-processing) when several panes are in the DOM at once. The
     // active pane always gets the canonical (un-suffixed) ids so in-page
@@ -592,6 +598,9 @@ function IndicatorPaneContent({
                     </span>
                 )}
             </h2>
+            {auxiliaryIndicators && (
+                <AuxiliaryIndicatorsLine indicators={auxiliaryIndicators} />
+            )}
             <dl className="meta-description-table">
                 {datapageData.descriptionShort && (
                     <div className="meta-description-table__pair meta-description-table__pair--full-width">
@@ -848,6 +857,7 @@ export default function IndicatorMetadataBox({
     additionalIndicators,
     stitchedIndicatorList,
     hideStitchedIndicatorList,
+    auxiliaryIndicators,
     faqEntries,
     className,
     id,
@@ -860,6 +870,7 @@ export default function IndicatorMetadataBox({
     additionalIndicators?: AdditionalIndicator[]
     stitchedIndicatorList?: StitchedIndicatorListEntry[]
     hideStitchedIndicatorList?: boolean
+    auxiliaryIndicators?: AuxiliaryIndicator[]
     className?: string
     id?: string
     faqEntries: FaqEntryData | undefined
@@ -972,6 +983,7 @@ export default function IndicatorMetadataBox({
                     isStitchedMulti ? stitchedIndicatorList : undefined
                 }
                 hideStitchedIndicatorList={hideStitchedIndicatorList}
+                auxiliaryIndicators={isMulti ? undefined : auxiliaryIndicators}
                 datapageCitationTitle={
                     isMultiForCitations
                         ? (pageCitationTitle ?? datapageData.title.title)
@@ -1075,9 +1087,51 @@ export default function IndicatorMetadataBox({
                 )}
                 <div className="indicator-metadata-box">
                     {showLessButton}
+                    {isMulti && auxiliaryIndicators && (
+                        <AuxiliaryIndicatorsLine
+                            indicators={auxiliaryIndicators}
+                            className="indicator-metadata-box__auxiliary--above-panes"
+                        />
+                    )}
                     {panes}
                 </div>
             </div>
         </div>
+    )
+}
+
+// Scatter plots: bubble size and colour, one line, each linking to its own
+// data page when it has one. They are context for the chart rather than its
+// subject (almost always Population and World region), so they get a line
+// at the top of the box instead of a pane each.
+function AuxiliaryIndicatorsLine({
+    indicators,
+    className,
+}: {
+    indicators: AuxiliaryIndicator[]
+    className?: string
+}) {
+    return (
+        <dl
+            className={cx(
+                "meta-description-table indicator-metadata-box__auxiliary",
+                className
+            )}
+        >
+            {indicators.map((ind) => (
+                <div className="meta-description-table__pair" key={ind.role}>
+                    <dt className="meta-description-table__key">
+                        {ind.role === "size" ? "Bubble size" : "Color"}
+                    </dt>
+                    <dd className="meta-description-table__value">
+                        {ind.slug ? (
+                            <a href={`/grapher/${ind.slug}`}>{ind.title}</a>
+                        ) : (
+                            ind.title
+                        )}
+                    </dd>
+                </div>
+            ))}
+        </dl>
     )
 }

@@ -1347,3 +1347,46 @@ export async function getVariableSliceDimensions(
     }
     return result
 }
+
+/**
+ * Display title and, where one exists, a data page slug for each variable —
+ * used for the scatter plot's bubble-size / colour line. When several charts
+ * are the data page of the same variable, the shortest slug wins (it is
+ * almost always the canonical one: `population` over
+ * `population-with-un-projections`).
+ */
+export async function getAuxiliaryIndicatorLinks(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Map<number, { title: string; slug?: string }>> {
+    const result = new Map<number, { title: string; slug?: string }>()
+    if (!variableIds.length) return result
+    const rows = await knexRaw<{
+        id: number
+        title: string
+        slug: string | null
+    }>(
+        knex,
+        `-- sql
+            SELECT
+                v.id,
+                COALESCE(NULLIF(v.titlePublic, ''), v.name) AS title,
+                (
+                    SELECT cc.slug
+                    FROM datapages dp
+                    JOIN charts c ON c.id = dp.chartId
+                    JOIN chart_configs cc ON cc.id = c.configId
+                    WHERE dp.variableId = v.id
+                      AND cc.config ->> "$.isPublished" = "true"
+                    ORDER BY CHAR_LENGTH(cc.slug), cc.slug
+                    LIMIT 1
+                ) AS slug
+            FROM variables v
+            WHERE v.id IN (?)
+        `,
+        [variableIds]
+    )
+    for (const row of rows)
+        result.set(row.id, { title: row.title, slug: row.slug ?? undefined })
+    return result
+}

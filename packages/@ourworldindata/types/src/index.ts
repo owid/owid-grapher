@@ -242,6 +242,7 @@ export {
 export {
     type AdditionalIndicator,
     type StitchedIndicatorListEntry,
+    type AuxiliaryIndicator,
     type Distribution,
     type DataPageV2ContentFields,
     type DataPageDataV2,

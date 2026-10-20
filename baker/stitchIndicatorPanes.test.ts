@@ -213,6 +213,29 @@ describe(computeIndicatorPaneStitch, () => {
         ).toBeUndefined()
     })
 
+    it("stitches a scatter's y and x when they come from one source, keeps them apart otherwise", () => {
+        // birth rate vs death rate: one UN table, different titles
+        const sameSource = computeIndicatorPaneStitch([
+            pane({ title: { title: "Birth rate" } }),
+            pane({ title: { title: "Death rate" } }),
+        ])
+        expect(sameSource?.list.map((e) => e.title)).toEqual([
+            "Birth rate",
+            "Death rate",
+        ])
+        // life expectancy vs GDP per capita: two producers
+        expect(
+            computeIndicatorPaneStitch([
+                pane({ title: { title: "Life expectancy" } }),
+                pane({
+                    title: { title: "GDP per capita" },
+                    attributions: ["World Bank (2025)"],
+                    origins: [origin({ producer: "World Bank", title: "WDI" })],
+                }),
+            ])
+        ).toBeUndefined()
+    })
+
     it("unions owners and takes the latest lastUpdated", () => {
         const r = computeIndicatorPaneStitch([
             pane({

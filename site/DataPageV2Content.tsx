@@ -73,6 +73,7 @@ export const DataPageV2Content = ({
     additionalIndicators,
     stitchedIndicatorList,
     hideStitchedIndicatorList,
+    auxiliaryIndicators,
     useNewDatapageDesign: useNewDatapageDesignFromBaker,
     grapherConfig,
     isPreviewing = false,
@@ -204,6 +205,7 @@ export const DataPageV2Content = ({
                                 hideStitchedIndicatorList={
                                     hideStitchedIndicatorList
                                 }
+                                auxiliaryIndicators={auxiliaryIndicators}
                                 faqEntries={faqEntries}
                                 canonicalUrl={canonicalUrl}
                                 archiveContext={archiveContext}

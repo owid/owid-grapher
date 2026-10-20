@@ -105,6 +105,17 @@ export interface StitchedIndicatorListEntry {
     sources?: { key: string; urlMain?: string; citationFull?: string }[]
 }
 
+/**
+ * A scatter plot's bubble-size or colour indicator. Documented as a one-line
+ * link at the top of the metadata box rather than as its own pane.
+ */
+export interface AuxiliaryIndicator {
+    role: "size" | "color"
+    title: string
+    /** Slug of the indicator's own data page, when it has one. */
+    slug?: string
+}
+
 export interface AdditionalIndicator {
     datapageData: DataPageDataV2
     faqEntries?: FaqEntryData
@@ -135,6 +146,8 @@ export interface DataPageV2ContentFields {
      * rendered — see baker/indicatorSliceDimension.ts.
      */
     hideStitchedIndicatorList?: boolean
+    /** Scatter plots: the bubble-size and colour indicators. */
+    auxiliaryIndicators?: AuxiliaryIndicator[]
     /**
      * Whether the page was baked with the redesigned data-page treatment
      * (metadata box etc.). Serialized so the client renders the same arm the

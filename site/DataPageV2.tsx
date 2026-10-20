@@ -35,6 +35,7 @@ import { Html } from "./Html.js"
 import {
     AdditionalIndicator,
     StitchedIndicatorListEntry,
+    AuxiliaryIndicator,
     ArchiveContext,
     Distribution,
 } from "@ourworldindata/types"
@@ -48,6 +49,7 @@ export const DataPageV2 = (props: {
     additionalIndicators?: AdditionalIndicator[]
     stitchedIndicatorList?: StitchedIndicatorListEntry[]
     hideStitchedIndicatorList?: boolean
+    auxiliaryIndicators?: AuxiliaryIndicator[]
     useNewDatapageDesign?: boolean
     baseUrl: string
     canonicalUrl: string
@@ -64,6 +66,7 @@ export const DataPageV2 = (props: {
         additionalIndicators,
         stitchedIndicatorList,
         hideStitchedIndicatorList,
+        auxiliaryIndicators,
         useNewDatapageDesign,
         baseUrl,
         canonicalUrl,
@@ -183,6 +186,7 @@ export const DataPageV2 = (props: {
                                     additionalIndicators,
                                     stitchedIndicatorList,
                                     hideStitchedIndicatorList,
+                                    auxiliaryIndicators,
                                     useNewDatapageDesign,
                                     faqEntries,
                                     canonicalUrl,
@@ -201,6 +205,7 @@ export const DataPageV2 = (props: {
                                 hideStitchedIndicatorList={
                                     hideStitchedIndicatorList
                                 }
+                                auxiliaryIndicators={auxiliaryIndicators}
                                 useNewDatapageDesign={useNewDatapageDesign}
                                 grapherConfig={grapherConfig}
                                 imageMetadata={imageMetadata}

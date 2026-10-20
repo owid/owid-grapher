@@ -24,9 +24,11 @@ import {
 } from "../db/model/Post.js"
 import {
     AdditionalIndicator,
+    AuxiliaryIndicator,
     StitchedIndicatorListEntry,
     GrapherInterface,
     DimensionProperty,
+    GRAPHER_CHART_TYPES,
     OwidVariableWithSource,
     OwidChartDimensionInterface,
     FaqEntryData,
@@ -45,6 +47,7 @@ import {
     getVariableOfDatapageIfApplicable,
     getOwnersForVariables,
     getVariableSliceDimensions,
+    getAuxiliaryIndicatorLinks,
 } from "../db/model/Variable.js"
 import {
     fetchAndParseFaqs,
@@ -320,37 +323,43 @@ export async function renderDataPageV2(
     // `grapherConfig.title`).
     // Treat an empty/whitespace display.name (the editor saves "" when the
     // field is cleared) as unset, so it can't blank out a pane title.
+    // The indicators that get a metadata pane: every Y-indicator, and on a
+    // scatter plot the X-indicator too — on "birth rate vs death rate" the x
+    // axis is as much the subject as the y. Y first, then X: 90% of scatter
+    // titles that name both put the y indicator first ("Access to electricity
+    // vs. GDP per capita"). Size and colour never get a pane: they are almost
+    // always Population and World region, so they get a one-line link
+    // instead (auxiliaryIndicators below).
+    const isScatter =
+        grapher.chartTypes?.[0] === GRAPHER_CHART_TYPES.ScatterPlot
+    const paneDimensions = (grapher.dimensions ?? []).filter(
+        (d) =>
+            d.property === DimensionProperty.y ||
+            (isScatter && d.property === DimensionProperty.x)
+    )
+    const paneDimensionFor = (varId: number) =>
+        paneDimensions.find((d) => d.variableId === varId)
+
     const chartDimensionNameFor = (varId: number): string | undefined =>
-        grapher.dimensions
-            ?.find(
-                (d) =>
-                    d.property === DimensionProperty.y && d.variableId === varId
-            )
-            ?.display?.name?.trim() || undefined
+        paneDimensionFor(varId)?.display?.name?.trim() || undefined
 
     const indicatorTitleOverrideFor = (
         varId: number,
         metadata: OwidVariableWithSource
     ): string | undefined =>
-        grapher.dimensions?.find(
-            (d) => d.property === DimensionProperty.y && d.variableId === varId
-        )?.display?.name ??
+        paneDimensionFor(varId)?.display?.name ??
         metadata.display?.name ??
         metadata.name
 
-    const additionalYVariableIds = _.uniq(
-        _.compact(
-            grapher.dimensions
-                .filter((d) => d.property === DimensionProperty.y)
-                .map((d) => d.variableId)
-        )
+    const additionalPaneVariableIds = _.uniq(
+        _.compact(paneDimensions.map((d) => d.variableId))
     ).filter((id) => id !== variableId)
     // Only the switcher on a MULTI-indicator chart needs per-indicator labels;
     // on an enrolled single-indicator chart the per-indicator override would
     // replace the curated chart title in the box heading, the citations, and
     // (when the config has no explicit title) <title>/og:title with the
     // variable's display/database name.
-    const isMultiIndicator = additionalYVariableIds.length > 0
+    const isMultiIndicator = additionalPaneVariableIds.length > 0
 
     const datapageData = getDatapageDataV2(
         variableMetadata,
@@ -373,7 +382,7 @@ export async function renderDataPageV2(
     let additionalIndicators: AdditionalIndicator[] | undefined
     if (datapageMetadataExperimentActive) {
         const maybeAdditionalIndicators = await pMap(
-            additionalYVariableIds,
+            additionalPaneVariableIds,
             async (id): Promise<AdditionalIndicator | undefined> => {
                 try {
                     // noCache to match how the primary indicator's metadata is
@@ -454,9 +463,9 @@ export async function renderDataPageV2(
         // "Managed by" is a dataset-level field (datasets.owners). Each pane
         // shows the owners of its own indicator's dataset: the primary
         // indicator's owners here, the additional indicators' owners set in
-        // the loop above. Deliberately y-indicators only — the x-dimension
-        // (usually GDP per capita or population on scatterplots/Marimekkos)
-        // never gets a pane.
+        // the loop above. Pane indicators only (Y, plus X on scatter plots):
+        // size and colour dimensions never get a pane, and neither does the
+        // x-dimension of a non-scatter chart (e.g. a Marimekko's width).
         datapageData.owners = await getOwnersForVariables(knex, [variableId])
 
         // Author links for the Byline are resolved once, across every pane's
@@ -474,6 +483,39 @@ export async function renderDataPageV2(
             knex,
             ownerNames
         )
+    }
+
+    // Scatter plots: bubble size and colour, as a one-line link each.
+    let auxiliaryIndicators: AuxiliaryIndicator[] | undefined
+    if (datapageMetadataExperimentActive && isScatter) {
+        const auxDims = (grapher.dimensions ?? []).filter(
+            (d) =>
+                d.property === DimensionProperty.size ||
+                d.property === DimensionProperty.color
+        )
+        const links = await getAuxiliaryIndicatorLinks(
+            knex,
+            _.compact(auxDims.map((d) => d.variableId))
+        )
+        auxiliaryIndicators = _.compact(
+            // size before colour, whatever the config order
+            _.sortBy(auxDims, (d) =>
+                d.property === DimensionProperty.size ? 0 : 1
+            ).map((d): AuxiliaryIndicator | undefined => {
+                const link = d.variableId ? links.get(d.variableId) : undefined
+                const title = d.display?.name?.trim() || link?.title
+                if (!title) return undefined
+                return {
+                    role:
+                        d.property === DimensionProperty.size
+                            ? "size"
+                            : "color",
+                    title,
+                    slug: link?.slug,
+                }
+            })
+        )
+        if (!auxiliaryIndicators.length) auxiliaryIndicators = undefined
     }
 
     // When every pane of a multi-indicator chart shares the same substantive
@@ -595,6 +637,7 @@ export async function renderDataPageV2(
             additionalIndicators={additionalIndicators}
             stitchedIndicatorList={stitchedIndicatorList}
             hideStitchedIndicatorList={hideStitchedIndicatorList}
+            auxiliaryIndicators={auxiliaryIndicators}
             useNewDatapageDesign={datapageMetadataExperimentActive}
             canonicalUrl={canonicalUrl}
             baseUrl={BAKED_BASE_URL}
