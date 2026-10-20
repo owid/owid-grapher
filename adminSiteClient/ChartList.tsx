@@ -344,12 +344,6 @@ export class ChartList extends React.Component<ChartListProps> {
                             <th>Chart</th>
                             <th>Id</th>
                             <th>Type</th>
-                            <th
-                                style={{ cursor: "pointer" }}
-                                onClick={handleSourceSortClick}
-                            >
-                                Source{getSourceSortIndicator()}
-                            </th>
                             {showInheritanceColumn && <th>Inheritance</th>}
                             <th>Tags</th>
                             <th>Published</th>
@@ -375,6 +369,12 @@ export class ChartList extends React.Component<ChartListProps> {
                                 <Tooltip title="Only considers published content. This number might differ from the chart editor count, which includes unpublished data insights.">
                                     <FontAwesomeIcon icon={faInfoCircle} />
                                 </Tooltip>
+                            </th>
+                            <th
+                                style={{ cursor: "pointer" }}
+                                onClick={handleSourceSortClick}
+                            >
+                                Source{getSourceSortIndicator()}
                             </th>
                             <th></th>
                             <th></th>

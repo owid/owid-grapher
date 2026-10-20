@@ -152,9 +152,6 @@ export class ChartRow extends React.Component<ChartRowProps> {
                 </td>
                 <td style={{ minWidth: "100px" }}>{chart.id}</td>
                 <td style={{ minWidth: "100px" }}>{showChartType(chart)}</td>
-                <td>
-                    <ChartSourceBadge etl={getChartListItemEtlSource(chart)} />
-                </td>
                 {showInheritanceColumn && <InheritanceStatus chart={chart} />}
                 <td style={{ minWidth: "340px" }}>
                     <EditableTags
@@ -182,6 +179,9 @@ export class ChartRow extends React.Component<ChartRowProps> {
                 <td>{chart.grapherViewsPerDay?.toLocaleString() ?? "0"}</td>
                 <td>{chart.narrativeChartsCount?.toLocaleString() ?? "0"}</td>
                 <td>{chart.referencesCount?.toLocaleString() ?? "0"}</td>
+                <td>
+                    <ChartSourceBadge etl={getChartListItemEtlSource(chart)} />
+                </td>
                 <td>
                     <Link
                         to={`/charts/${chart.id}/edit`}
