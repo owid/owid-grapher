@@ -23,6 +23,19 @@ it("serializes the selection", () => {
     })
 })
 
+it.each([true, false])(
+    "persists explicit %s outer bracket settings",
+    (isOpen) => {
+        const config = {
+            time: 2000,
+            colorScale: { isOpenLeft: isOpen, isOpenRight: isOpen },
+        }
+        const map = new MapConfig(config)
+        expect(map.toObject()).toEqual(config)
+        expect(new MapConfig(map.toObject()).toObject()).toEqual(config)
+    }
+)
+
 describe("globe settings", () => {
     it("doesn't serialize globe settings if the globe is inactive", () => {
         const map = new MapConfig()

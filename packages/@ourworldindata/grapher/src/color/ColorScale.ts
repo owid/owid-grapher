@@ -280,8 +280,12 @@ export class ColorScale {
             const isLast = index === bucketThresholds.length - 2
             return new NumericBin({
                 isFirst,
-                isOpenLeft: isFirst && min > minPossibleValue,
-                isOpenRight: isLast && max < maxPossibleValue,
+                isOpenLeft:
+                    isFirst &&
+                    (this.config.isOpenLeft ?? min > minPossibleValue),
+                isOpenRight:
+                    isLast &&
+                    (this.config.isOpenRight ?? max < maxPossibleValue),
                 min,
                 max,
                 color,

@@ -315,10 +315,13 @@ export class MapChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get colorScaleConfig(): ColorScaleConfig {
-        return (
-            ColorScaleConfig.fromDSL(this.mapColumn.def) ??
-            this.mapConfig.colorScale
-        )
+        const metadataConfig = ColorScaleConfig.fromDSL(this.mapColumn.def)
+        if (!metadataConfig) return this.mapConfig.colorScale
+
+        // Authored boundary overrides also apply to metadata-defined color scales.
+        metadataConfig.isOpenLeft = this.mapConfig.colorScale.isOpenLeft
+        metadataConfig.isOpenRight = this.mapConfig.colorScale.isOpenRight
+        return metadataConfig
     }
 
     @computed get colorScaleColumn(): CoreColumn {

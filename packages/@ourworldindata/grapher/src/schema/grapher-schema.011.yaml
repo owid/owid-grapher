@@ -881,6 +881,12 @@ $defs:
           type:
             - string
             - "null"
+      isOpenLeft:
+        type: boolean
+        description: Whether the first numeric bin extends below its minimum. If omitted, infer from the data coverage.
+      isOpenRight:
+        type: boolean
+        description: Whether the last numeric bin extends above its maximum. If omitted, infer from the data coverage.
       customNumericValues:
         type: array
         description: Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`
