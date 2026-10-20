@@ -59,7 +59,7 @@ export type EditorTabKey = EditorTabName | EditorExtraTab["key"]
  * Places inside the editor where the host may add a note of its own, named
  * after the part of the config that section edits
  */
-export type EditorNoteSlot = "map.colorScale"
+export type EditorNoteSlot = "map.colorScale" | "basic.top" | "preview.header"
 
 /** One entry in the editor's "Origin url" dropdown */
 export interface OriginUrlSuggestion {

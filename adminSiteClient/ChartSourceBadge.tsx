@@ -2,9 +2,15 @@ import * as React from "react"
 import cx from "clsx"
 import { Tooltip } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faLink, faUnlink } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowUpRightFromSquare,
+    faLink,
+    faUnlink,
+} from "@fortawesome/free-solid-svg-icons"
+import { CatalogPathField, Section } from "./Forms.js"
 import {
     EtlSource,
+    describeEtlDrift,
     hasEtlDrift,
     makeEtlConfigGitHubUrl,
 } from "./etlChartSync.js"
@@ -118,5 +124,54 @@ function EtlSourceTooltip({
                 <div className="chart-source-tooltip__footer">{footer}</div>
             )}
         </div>
+    )
+}
+
+/** Basic-tab section telling editors the chart is managed by ETL */
+export function EtlSourceSection({
+    etl,
+}: {
+    etl: EtlSource
+}): React.ReactElement {
+    const isDrifted = hasEtlDrift(etl.drift)
+    const gitHubUrl = makeEtlConfigGitHubUrl(etl.catalogPath)
+
+    return (
+        <Section name="ETL">
+            <p>
+                <ChartSourceBadge etl={etl} /> This chart was created in ETL.
+            </p>
+            <CatalogPathField catalogPath={etl.catalogPath ?? undefined} />
+            {gitHubUrl && (
+                <p>
+                    <a
+                        href={gitHubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Open its config in owid/etl{" "}
+                        <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+                    </a>
+                </p>
+            )}
+            {isDrifted ? (
+                <>
+                    <p className="mb-1">
+                        Changed in the admin since the last ETL push:
+                    </p>
+                    <ul>
+                        {describeEtlDrift(etl.drift).map((description) => (
+                            <li key={description}>{description}</li>
+                        ))}
+                    </ul>
+                </>
+            ) : (
+                <p>In sync with the last ETL push.</p>
+            )}
+            <small className="form-text text-muted">
+                Edits saved here override the ETL config: later ETL pushes no
+                longer update the fields you changed.
+            </small>
+        </Section>
     )
 }

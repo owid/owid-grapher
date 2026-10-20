@@ -370,6 +370,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     renderReady(editor: ConfigEditor): React.ReactElement {
         const { grapherState, availableTabs } = editor
         const { previewUrl } = this.manager
+        const previewHeaderNote = editor.manager.renderNote?.("preview.header")
         const extraTabs = editor.manager.extraTabs ?? []
 
         const activeTab = availableTabs.includes(editor.tab)
@@ -458,15 +459,19 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
                     {activeTab !== "export" && this.renderSaveButtons(editor)}
                 </div>
                 <div className="chart-editor-view">
-                    {previewUrl && (
-                        <a
-                            className="preview"
-                            href={previewUrl}
-                            target="_blank"
-                            rel="noopener"
-                        >
-                            View Grapher or Data page
-                        </a>
+                    {(previewUrl || previewHeaderNote) && (
+                        <div className="chart-editor-view__header">
+                            {previewHeaderNote}
+                            {previewUrl && (
+                                <a
+                                    href={previewUrl}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    View Grapher or Data page
+                                </a>
+                            )}
+                        </div>
                     )}
                     <figure
                         style={{

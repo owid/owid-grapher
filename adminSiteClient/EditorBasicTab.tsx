@@ -708,6 +708,7 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
 
         return (
             <div className="EditorBasicTab">
+                {editor.manager.renderNote?.("basic.top")}
                 <Section name="Tabs">
                     {this.chartTypeGroups.map((group, i) => (
                         <div key={i} className="chart-type-group">

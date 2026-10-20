@@ -1,3 +1,6 @@
+import * as _ from "lodash-es"
+import { GrapherInterface } from "@ourworldindata/types"
+import { KEYS_EXCLUDED_FROM_INHERITANCE } from "@ourworldindata/utils"
 import type { ChartListItem } from "./ChartList.js"
 
 /**
@@ -43,6 +46,11 @@ export function getChartListItemEtlSource(
             etlSlug: chart.etlSlug,
         }),
     }
+}
+
+/** Top-level fields an admin patch overrides, i.e. all but its identity keys */
+export function getOverriddenFields(patchConfig: GrapherInterface): string[] {
+    return Object.keys(_.omit(patchConfig, KEYS_EXCLUDED_FROM_INHERITANCE))
 }
 
 export function hasEtlDrift(drift: EtlDrift): boolean {

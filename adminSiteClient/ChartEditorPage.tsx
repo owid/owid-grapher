@@ -16,6 +16,8 @@ import {
     OwidChartDimensionInterface,
 } from "@ourworldindata/types"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.mjs"
+import { ChartSourceBadge, EtlSourceSection } from "./ChartSourceBadge.js"
+import { EtlSource, getOverriddenFields, makeEtlDrift } from "./etlChartSync.js"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
@@ -72,7 +74,10 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     indicatorConfig: GrapherInterface | undefined = undefined
     isInheritanceEnabled = true
     etlConfig: GrapherInterface | undefined = undefined
+    etlConfigCatalogPath: string | undefined = undefined
     patchConfig: GrapherInterface = {}
+    // The patch as stored in the database, kept up to date on save
+    savedPatchConfig: GrapherInterface = {}
 
     logs: Log[] = []
     references: References | undefined = undefined
@@ -98,7 +103,9 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             indicatorConfig: observable.ref,
             isInheritanceEnabled: observable.ref,
             etlConfig: observable.ref,
+            etlConfigCatalogPath: observable.ref,
             patchConfig: observable.ref,
+            savedPatchConfig: observable.ref,
             logs: observable,
             references: observable,
             redirects: observable,
@@ -146,6 +153,19 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         return `/admin/charts/${grapherId}/preview${query}`
     }
 
+    /** Undefined unless the chart has an ETL config layer */
+    @computed get etlSource(): EtlSource | undefined {
+        if (!this.etlConfig) return undefined
+        return {
+            catalogPath: this.etlConfigCatalogPath ?? null,
+            drift: makeEtlDrift({
+                overriddenFields: getOverriddenFields(this.savedPatchConfig),
+                slug: this.savedPatchConfig.slug,
+                etlSlug: this.etlConfig.slug,
+            }),
+        }
+    }
+
     @computed get baseConfig(): GrapherInterface {
         return this.makeBaseConfig(this.indicatorConfig)
     }
@@ -170,9 +190,11 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             ])
             runInAction(() => {
                 this.patchConfig = patch
+                this.savedPatchConfig = patch
                 this.indicatorConfig = parent?.variableConfig
                 this.indicatorId = parent?.variableId
                 this.etlConfig = parent?.etlConfig
+                this.etlConfigCatalogPath = parent?.etlConfigCatalogPath
                 this.isInheritanceEnabled = parent?.isInheritanceEnabled ?? true
                 this.forceDatapage = settings?.forceDatapage ?? false
             })
@@ -375,6 +397,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             } else {
                 grapherState.version += 1
                 this.logs.unshift(json.newLog)
+                this.savedPatchConfig = json.savedPatch
             }
         })
         return json.savedPatch
@@ -557,6 +580,12 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                     </>
                 )
             }
+            case "preview.header":
+                if (this.isNewChart) return undefined
+                return <ChartSourceBadge etl={this.etlSource} />
+            case "basic.top":
+                if (!this.etlSource) return undefined
+                return <EtlSourceSection etl={this.etlSource} />
         }
     }
 

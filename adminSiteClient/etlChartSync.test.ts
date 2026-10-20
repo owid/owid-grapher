@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
     describeEtlDrift,
+    getOverriddenFields,
     hasEtlDrift,
     makeEtlConfigGitHubUrl,
     makeEtlDrift,
@@ -36,6 +37,21 @@ describe(makeEtlDrift, () => {
         expect(hasEtlDrift(makeEtlDrift({ ...inSync, etlSlug: null }))).toBe(
             false
         )
+    })
+})
+
+describe(getOverriddenFields, () => {
+    it("ignores the identity keys every admin patch carries", () => {
+        expect(
+            getOverriddenFields({
+                $schema: "https://example.com/schema.json",
+                id: 1,
+                slug: "life-expectancy",
+                version: 3,
+                isPublished: true,
+                subtitle: "Changed in the admin",
+            })
+        ).toEqual(["subtitle"])
     })
 })
 
