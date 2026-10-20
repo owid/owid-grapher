@@ -2,7 +2,6 @@ import { createRoot, Root } from "react-dom/client"
 import { useRef } from "react"
 import { useIsomorphicLayoutEffect } from "usehooks-ts"
 import {
-    GrapherInterface,
     OwidChartDimensionInterface,
     OwidColumnDef,
 } from "@ourworldindata/types"
@@ -18,7 +17,7 @@ const DEFAULT_DATA_API_URL = "https://api.ourworldindata.org/v1/indicators/"
 // --- Options types -----------------------------------------------------------
 
 interface GrapherApiOptionsBase {
-    config: GrapherInterface
+    config: GrapherProgrammaticInterface
 }
 
 /** Options for {@link GrapherLoader.fromTable}. */
@@ -51,7 +50,9 @@ export type FromCsvOptions = GrapherApiOptionsBase & {
 export interface FromApiOptions extends GrapherApiOptionsBase {
     /** The config must say which indicators to fetch: a `dimensions` array
      *  with at least a `y` entry (e.g. `{ property: "y", variableId: 1118466 }`). */
-    config: GrapherInterface & { dimensions: OwidChartDimensionInterface[] }
+    config: GrapherProgrammaticInterface & {
+        dimensions: OwidChartDimensionInterface[]
+    }
     /** Base URL for the OWID data API.
      *  Defaults to "https://api.ourworldindata.org/v1/indicators/" */
     dataApiUrl?: string
@@ -71,7 +72,7 @@ function defaultGrapherConfigOverrides(): Partial<GrapherProgrammaticInterface> 
 // auto-detection, so mirror it in the config to make them see the same
 // columns — otherwise metadata passed via columnDefs would never show up.
 function deriveYSlugs(
-    config: GrapherInterface,
+    config: GrapherProgrammaticInterface,
     table: OwidTable
 ): string | undefined {
     if (config.ySlugs || config.dimensions?.length) return config.ySlugs

@@ -324,8 +324,12 @@ abstract class AbstractHeader<
     private renderTitle(): React.ReactElement {
         const { manager } = this
 
-        // Avoid linking to a grapher/data page when we're already on it
-        if (manager.isOnCanonicalUrl && !this.manager.isInIFrame) {
+        // Avoid linking to a grapher/data page when there is none, or when
+        // we're already on it
+        if (
+            !manager.canonicalUrl ||
+            (manager.isOnCanonicalUrl && !manager.isInIFrame)
+        ) {
             return (
                 <h1 style={this.titleStyle} aria-label={this.titleAriaLabel}>
                     <MarkdownTextWrapHtml textWrap={this.title} />
