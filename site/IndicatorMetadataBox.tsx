@@ -1077,6 +1077,16 @@ export default function IndicatorMetadataBox({
                     {headerSwitcher}
                 </div>
             )}
+            {isMulti &&
+                auxiliaryIndicators && (
+                    // Switcher pages: the size/colour line belongs to the chart,
+                    // not to any one pane, so it sits under "About this data"
+                    // and the pills, on top of the box.
+                    <AuxiliaryIndicatorsLine
+                        indicators={auxiliaryIndicators}
+                        className="indicator-metadata-box__auxiliary--above-box"
+                    />
+                )}
             <div className="indicator-metadata-box-wrap__main">
                 {switcherVariant === "v-tabs" && (
                     <IndicatorTabsVertical
@@ -1087,12 +1097,6 @@ export default function IndicatorMetadataBox({
                 )}
                 <div className="indicator-metadata-box">
                     {showLessButton}
-                    {isMulti && auxiliaryIndicators && (
-                        <AuxiliaryIndicatorsLine
-                            indicators={auxiliaryIndicators}
-                            className="indicator-metadata-box__auxiliary--above-panes"
-                        />
-                    )}
                     {panes}
                 </div>
             </div>

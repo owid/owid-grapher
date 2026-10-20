@@ -479,15 +479,13 @@
 }
 
 // Scatter plots: the bubble-size / colour line. Under the pane heading it
-// reads as part of the key data; above the panes (switcher pages) it needs
-// to clear the active pane's heading.
+// reads as part of the key data; on switcher pages it sits between the
+// "About this data" header and the box.
 .indicator-metadata-box__auxiliary {
     margin-top: 4px;
     margin-bottom: 8px;
 }
-.indicator-metadata-box__auxiliary--above-panes {
+.indicator-metadata-box__auxiliary--above-box {
     margin-top: 0;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid $blue-10;
+    margin-bottom: 8px;
 }
