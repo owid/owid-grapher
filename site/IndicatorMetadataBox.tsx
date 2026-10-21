@@ -246,9 +246,6 @@ function ExpandableSection({
                     entries={stitched.list}
                     datapageData={datapageData}
                     expanderOpen={detailsOpen}
-                    onShowAll={() => {
-                        if (detailsRef.current) detailsRef.current.open = true
-                    }}
                 />
             )}
             {(descriptionKeyPreview ||
@@ -728,13 +725,10 @@ function StitchedIndicatorList({
     entries,
     datapageData,
     expanderOpen,
-    onShowAll,
 }: {
     entries: StitchedIndicatorListEntry[]
     datapageData: DataPageDataV2
     expanderOpen: boolean
-    /** Opens the box's expander, which reveals the folded entries. */
-    onShowAll: () => void
 }) {
     // Distinct sources: one dataset split across ETL snapshots is one source.
     const nSources =
@@ -749,25 +743,15 @@ function StitchedIndicatorList({
     const sharedVariant = datapageData.titleVariant?.trim()
     const variantPhrase = sharedVariant ? ` (${sharedVariant})` : ""
     // Up to five entries always show in full. A longer list shows its first
-    // three while the box is closed, then "+N more indicators", which opens
-    // the box; the folded entries belong to the expander's content, like the
-    // WYSK remainder, so "Show more" reveals them too and the list needs no
-    // control of its own. Folded entries stay in the DOM, hidden, for
-    // raw-HTML consumers.
+    // three while the box is closed, followed by a muted "+N more
+    // indicators" note (plain text: the box's own "Show more" is the one
+    // control). The folded entries belong to the expander's content, like
+    // the WYSK remainder, so opening the box shows every entry. Folded
+    // entries stay in the DOM, hidden, for raw-HTML consumers.
     const SHOW_ALL_UP_TO = 5
     const FOLD_AFTER = 3
     const expanded = entries.length <= SHOW_ALL_UP_TO || expanderOpen
     const nFolded = entries.length - FOLD_AFTER
-    const showAll = !expanded && (
-        <button
-            type="button"
-            className="indicator-metadata-box__stitched-list-toggle"
-            onClick={onShowAll}
-            data-track-note="metadata_box_indicator_list_toggle"
-        >
-            +{nFolded} more indicators
-        </button>
-    )
     // The list renders as a meta-expander__prose block so it inherits the
     // WYSK's exact type and spacing and reads as the paragraph before it.
     const blockClass =
@@ -840,9 +824,9 @@ function StitchedIndicatorList({
                     </li>
                 ))}
             </ol>
-            {showAll && (
+            {!expanded && (
                 <p className="indicator-metadata-box__stitched-list-more">
-                    {showAll}
+                    +{nFolded} more indicators
                 </p>
             )}
         </div>

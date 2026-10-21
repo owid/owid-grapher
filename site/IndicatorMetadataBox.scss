@@ -362,31 +362,17 @@
     }
 }
 
-// "+N more indicators" under a numbered list: a short line, no marker.
+// "+N more indicators" under a folded numbered list: muted plain text,
+// aligned with the entries' text (the list's own left padding).
 .indicator-metadata-box__stitched-list-more {
     margin-top: -4px;
+    padding-left: 1.5em;
+    color: $blue-50;
 }
 
 .indicator-metadata-box__stitched-list-title {
     font-weight: 700;
     display: block;
-}
-
-// "+N more indicators" (opens the box) — a plain text link in the muted
-// key color, no underline, no button chrome.
-.indicator-metadata-box__stitched-list-toggle {
-    appearance: none;
-    background: none;
-    border: 0;
-    padding: 0;
-    font: inherit;
-    color: $blue-50;
-    cursor: pointer;
-    white-space: nowrap;
-
-    &:hover {
-        color: $blue-90;
-    }
 }
 
 .indicator-metadata-box__stitched-list-row {
