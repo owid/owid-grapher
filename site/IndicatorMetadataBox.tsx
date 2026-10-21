@@ -399,7 +399,6 @@ export default function IndicatorMetadataBox({
                 {sourceString && (
                     <MetadataBoxKeyDataRow
                         label="Data source"
-                        isFullWidth
                         labelClassName="metadata-box-key-data__key--source"
                     >
                         {sourceString}

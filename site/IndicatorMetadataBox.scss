@@ -69,6 +69,12 @@
     color: $blue-50;
 }
 
+// The key data flows as one line of label-value pairs, wrapping when it
+// doesn't fit
+.indicator-metadata-box .metadata-box-key-data {
+    gap: 8px 24px;
+}
+
 .indicator-metadata-box .indicator-metadata-box__reuse-notice {
     margin-top: 32px;
     // The summary below brings its own spacing
