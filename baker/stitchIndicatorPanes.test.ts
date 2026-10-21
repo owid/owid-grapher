@@ -235,6 +235,24 @@ describe(computeIndicatorPaneStitch, () => {
         ).toBeDefined()
     })
 
+    it("stitches across processing levels and shows the highest", () => {
+        const r = computeIndicatorPaneStitch([
+            pane({ owidProcessingLevel: "minor" }),
+            pane({ title: { title: "Deaths" }, owidProcessingLevel: "major" }),
+        ])
+        expect(r?.owidProcessingLevel).toBe("major")
+        // differing processing TEXT still blocks
+        expect(
+            computeIndicatorPaneStitch([
+                pane({ descriptionProcessing: "A" }),
+                pane({
+                    title: { title: "Deaths" },
+                    descriptionProcessing: "B",
+                }),
+            ])
+        ).toBeUndefined()
+    })
+
     it("needs at least two panes", () => {
         expect(computeIndicatorPaneStitch([pane()])).toBeUndefined()
     })

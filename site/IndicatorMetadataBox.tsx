@@ -234,9 +234,9 @@ function ExpandableSection({
     const { preview: descriptionKeyPreview, remainder: descriptionKeyRest } =
         splitDescriptionKey(datapageData.descriptionKey ?? "")
 
-    // Whether the box's own expander is open — the stitched indicator list
-    // offers its "view all +" only then, so it never sits next to the box's
-    // "Show more" looking like a duplicate.
+    // Whether the box's own expander is open. A long stitched indicator list
+    // shows in full only then: its folded entries count as part of the
+    // expander's content, like the WYSK remainder.
     const [detailsOpen, setDetailsOpen] = useState(false)
 
     return (
@@ -246,6 +246,9 @@ function ExpandableSection({
                     entries={stitched.list}
                     datapageData={datapageData}
                     expanderOpen={detailsOpen}
+                    onShowAll={() => {
+                        if (detailsRef.current) detailsRef.current.open = true
+                    }}
                 />
             )}
             {(descriptionKeyPreview ||
@@ -737,10 +740,13 @@ function StitchedIndicatorList({
     entries,
     datapageData,
     expanderOpen,
+    onShowAll,
 }: {
     entries: StitchedIndicatorListEntry[]
     datapageData: DataPageDataV2
     expanderOpen: boolean
+    /** Opens the box's expander, which reveals the folded entries. */
+    onShowAll: () => void
 }) {
     // Distinct sources: one dataset split across ETL snapshots is one source.
     const nSources =
@@ -754,25 +760,24 @@ function StitchedIndicatorList({
     // (otherwise it clears it and the entries carry their own).
     const sharedVariant = datapageData.titleVariant?.trim()
     const variantPhrase = sharedVariant ? ` (${sharedVariant})` : ""
-    // Up to five entries always show in full. A longer list pushes the shared
-    // WYSK below the fold, so only the first three show and the rest fold
-    // behind "view all +" (the Instagram-caption pattern), which flips to
-    // "view less −". The link appears only while the box's own expander is
-    // open, so it never sits beside "Show more" as a look-alike. Folded
-    // content stays in the DOM, hidden, for raw-HTML consumers.
+    // Up to five entries always show in full. A longer list shows its first
+    // three while the box is closed, then "+N more indicators", which opens
+    // the box; the folded entries belong to the expander's content, like the
+    // WYSK remainder, so "Show more" reveals them too and the list needs no
+    // control of its own. Folded entries stay in the DOM, hidden, for
+    // raw-HTML consumers.
     const SHOW_ALL_UP_TO = 5
     const FOLD_AFTER = 3
-    const foldable = entries.length > SHOW_ALL_UP_TO
-    const [expanded, setExpanded] = useState(!foldable)
-    const toggle = foldable && expanderOpen && (
+    const expanded = entries.length <= SHOW_ALL_UP_TO || expanderOpen
+    const nFolded = entries.length - FOLD_AFTER
+    const showAll = !expanded && (
         <button
             type="button"
             className="indicator-metadata-box__stitched-list-toggle"
-            aria-expanded={expanded}
-            onClick={() => setExpanded((v) => !v)}
+            onClick={onShowAll}
             data-track-note="metadata_box_indicator_list_toggle"
         >
-            {expanded ? "view less \u2212" : "view all +"}
+            +{nFolded} more indicators
         </button>
     )
     // The list renders as a meta-expander__prose block so it inherits the
@@ -806,8 +811,7 @@ function StitchedIndicatorList({
                             {inlineCase(entry.title)}
                         </React.Fragment>
                     ))}
-                    {expanded ? "." : "\u2026"}
-                    {toggle && <> {toggle}</>}
+                    {expanded ? "." : <>, {showAll}</>}
                     {!expanded && (
                         <span hidden>
                             {entries
@@ -880,15 +884,11 @@ function StitchedIndicatorList({
                     </li>
                 ))}
             </ol>
-            {foldable &&
-                (toggle || !expanded) && (
-                    // While the box is closed the link is withheld (it would sit
-                    // beside "Show more"); a bare ellipsis still signals that
-                    // the list continues.
-                    <p className="indicator-metadata-box__stitched-list-more">
-                        {toggle || "\u2026"}
-                    </p>
-                )}
+            {showAll && (
+                <p className="indicator-metadata-box__stitched-list-more">
+                    {showAll}
+                </p>
+            )}
         </div>
     )
 }

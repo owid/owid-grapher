@@ -201,13 +201,19 @@ describe(shouldHideStitchedIndicatorList, () => {
             )
         ).toEqual({ hide: true, sliceClass: "age" })
     })
-    it("needs at least four entries", () => {
+    it("hides short sex and age lists too", () => {
         expect(
             shouldHideStitchedIndicatorList(
-                stitch(ageTitles.slice(0, 3)),
-                ageDims.slice(0, 3)
+                stitch(ageTitles.slice(0, 2)),
+                ageDims.slice(0, 2)
             ).hide
-        ).toBe(false)
+        ).toBe(true)
+        expect(
+            shouldHideStitchedIndicatorList(stitch(["Men", "Women"]), [
+                undefined,
+                undefined,
+            ]).hide
+        ).toBe(true)
     })
     it("keeps the list when units, title variants or notes vary", () => {
         expect(

@@ -19,7 +19,9 @@ import { IndicatorPaneStitch } from "./stitchIndicatorPanes.js"
  *    categories or percentages look exactly like that. (Validated 2026-10-18
  *    against the 408 charts whose slice metadata gives ground truth.)
  *
- * Either way the list only drops when nothing else in the LIST varies:
+ * Applies from two indicators up: "men, women" or "under 5, 5–14" tells the
+ * reader nothing the legend doesn't. Either way the list only drops when
+ * nothing else in the LIST varies:
  * units identical, no WYSK notes, no differing title variant, and any
  * differing short descriptions must vary in the same slot as the titles.
  * Per-indicator producer docs and source links don't depend on the list
@@ -47,7 +49,9 @@ const DIMENSION_CLASS: Record<string, SliceClass> = {
 // beside it, so a list that contains one stays.
 const AGE_STANDARDIZED = /standardi[sz]ed/i
 
-const MIN_ENTRIES_TO_HIDE_LIST = 4
+// Two or three years ("2022, 2024, 2026") are as often report editions or
+// price bases as a time series, so the title test needs four or more.
+const MIN_YEARS_FROM_TITLES = 4
 
 export function classifySliceFromDimensions(
     dims: (IndicatorSliceDims | undefined)[]
@@ -140,9 +144,7 @@ export function classifySliceFromTitles(
     const { residues: res, shared } = titleResidues(distinct)
     if (res.some((r) => !r)) return undefined
     if (res.every((r) => YEAR.test(r) || DECADE.test(r)))
-        return _.uniq(res).length >= MIN_ENTRIES_TO_HIDE_LIST
-            ? "year"
-            : undefined
+        return _.uniq(res).length >= MIN_YEARS_FROM_TITLES ? "year" : undefined
     if (res.every((r) => SEX.test(r))) return "sex"
     if (
         res.every(
@@ -159,7 +161,6 @@ export function shouldHideStitchedIndicatorList(
     dims: (IndicatorSliceDims | undefined)[]
 ): { hide: boolean; sliceClass?: SliceClass } {
     const entries = stitch.list
-    if (entries.length < MIN_ENTRIES_TO_HIDE_LIST) return { hide: false }
     // Anything beyond title/short varying is meaningful: keep the list.
     if (stitch.suppressUnit || stitch.suppressTitleVariant)
         return { hide: false }

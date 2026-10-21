@@ -362,7 +362,7 @@
     }
 }
 
-// Fold toggle under a numbered list: a short line, no list marker.
+// "+N more indicators" under a numbered list: a short line, no marker.
 .indicator-metadata-box__stitched-list-more {
     margin-top: -4px;
 }
@@ -372,7 +372,7 @@
     display: block;
 }
 
-// Inline "view all +" / "view less −" — a plain text link in the muted
+// "+N more indicators" (opens the box) — a plain text link in the muted
 // key color, no underline, no button chrome.
 .indicator-metadata-box__stitched-list-toggle {
     appearance: none;

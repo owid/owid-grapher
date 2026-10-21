@@ -829,8 +829,6 @@ export const parseDatapageQaParams = (
     query: Record<string, unknown>
 ): DatapageRenderOptions => ({
     forceDatapage: query.forceDatapage === "true",
-    // `forceExpand` is the old name, from when stitching was "collapsing".
-    forceSwitcher:
-        query.forceSwitcher === "true" || query.forceExpand === "true",
+    forceSwitcher: query.forceSwitcher === "true",
     auxiliaryMode: AUXILIARY_INDICATOR_MODES.find((m) => m === query.auxiliary),
 })

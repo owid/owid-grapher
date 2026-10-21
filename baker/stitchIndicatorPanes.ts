@@ -7,6 +7,7 @@ import {
     DataPageDataV2,
     DatasetOwners,
     OwidOrigin,
+    OwidProcessingLevel,
 } from "@ourworldindata/types"
 
 /**
@@ -18,7 +19,7 @@ import {
  * The rules:
  * - Panes must match on every field a reader could act on: WYSK
  *   (descriptionKey, with the short-note exception below), processing
- *   description, attributions, processing level, FAQs, legacy source, and
+ *   description, attributions, FAQs, legacy source, and
  *   the SET of data sources. Sources are compared order-insensitively by
  *   identity (`getOriginIdentityKey`: producer, title, version, attribution,
  *   description, access date), as a set — duplicates don't count.
@@ -28,6 +29,9 @@ import {
  * - Producer documentation may differ: the pane drops its own and list
  *   entries carry each indicator's `producerDescription`, rendered as nested
  *   toggles under "Documentation from data sources".
+ * - Processing LEVEL may differ when the processing text matches (e.g.
+ *   seawater-ph: an annual average OWID computes is "major", the monthly
+ *   series "minor"): the stitched pane shows the highest level.
  * - dateRange may differ: the stitched pane shows the min–max union. If any
  *   differing range doesn't parse as "<year>-<year>", the page stays
  *   unstitched rather than showing a wrong range.
@@ -52,6 +56,10 @@ export interface IndicatorPaneStitch {
     lastUpdated: string
     nextUpdate?: string
     owners?: DatasetOwners[]
+    // The highest processing level among the indicators ("major" beats
+    // "minor"): the stitched pane's source line can't name one per indicator,
+    // and understating processing would mislead.
+    owidProcessingLevel?: OwidProcessingLevel
     suppressDescriptionShort: boolean
     suppressUnit: boolean
     suppressDescriptionKey: boolean
@@ -102,7 +110,6 @@ export function computeIndicatorPaneStitch(
     // Hard blockers: substantive fields that must match exactly.
     if (!allSame((dd) => dd.descriptionProcessing)) return undefined
     if (!allSame((dd) => dd.attributionShort)) return undefined
-    if (!allSame((dd) => dd.owidProcessingLevel)) return undefined
     if (!allSame((dd) => dd.source ?? null)) return undefined
     if (!allSame((dd) => [...(dd.attributions ?? [])].sort())) return undefined
     if (new Set(dds.map((dd) => originsKey(dd.origins))).size > 1)
@@ -193,12 +200,21 @@ export function computeIndicatorPaneStitch(
         })
     )
 
+    const levels = dds.map((dd) => dd.owidProcessingLevel)
+    const owidProcessingLevel: OwidProcessingLevel | undefined =
+        levels.includes("major")
+            ? "major"
+            : levels.includes("minor")
+              ? "minor"
+              : undefined
+
     return {
         list,
         dateRange,
         lastUpdated,
         nextUpdate,
         owners,
+        owidProcessingLevel,
         suppressDescriptionShort: shortsDiffer,
         suppressUnit: unitsDiffer,
         suppressDescriptionKey: wyskDiffers,
@@ -222,6 +238,7 @@ export function applyStitchToDatapageData(
     datapageData.lastUpdated = stitch.lastUpdated
     if (stitch.nextUpdate) datapageData.nextUpdate = stitch.nextUpdate
     if (stitch.owners) datapageData.owners = stitch.owners
+    datapageData.owidProcessingLevel = stitch.owidProcessingLevel
     if (stitch.suppressDescriptionShort)
         datapageData.descriptionShort = undefined
     if (stitch.suppressUnit) datapageData.unit = undefined
