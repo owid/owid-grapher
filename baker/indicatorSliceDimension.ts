@@ -4,7 +4,9 @@ import { IndicatorPaneStitch } from "./stitchIndicatorPanes.js"
 
 /**
  * Decides whether a STITCHED multi-indicator page should drop its indicator
- * list altogether: when the indicators are one measure sliced along a single
+ * list altogether: always when the entries carry nothing but their titles
+ * (the chart's legend already shows those), and when the indicators are one
+ * measure sliced along a single
  * enumerable dimension (age group, sex, year), a list of "0–4, 5–9, 10–14, …"
  * adds nothing the chart legend doesn't already show.
  *
@@ -161,6 +163,11 @@ export function shouldHideStitchedIndicatorList(
     dims: (IndicatorSliceDims | undefined)[]
 ): { hide: boolean; sliceClass?: SliceClass } {
     const entries = stitch.list
+    // A list of titles alone restates the chart's legend: never show it.
+    // (Producer docs and per-indicator source links render in their own
+    // sections, so they don't count as list content.)
+    if (entries.every((e) => !e.short && !e.unit && !e.note))
+        return { hide: true }
     // Anything beyond title/short varying is meaningful: keep the list.
     if (stitch.suppressUnit || stitch.suppressTitleVariant)
         return { hide: false }

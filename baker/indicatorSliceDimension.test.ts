@@ -24,12 +24,14 @@ const stitch = (
     over: Partial<IndicatorPaneStitch> & {
         shorts?: string[]
         notes?: string[]
+        units?: string[]
     } = {}
 ): IndicatorPaneStitch => ({
     list: titles.map((title, i) => ({
         title,
         short: over.shorts?.[i],
         note: over.notes?.[i],
+        unit: over.units?.[i],
     })),
     dateRange: "1950-2023",
     lastUpdated: "2024-07-12",
@@ -186,17 +188,31 @@ describe(shouldHideStitchedIndicatorList, () => {
         "Ages 20-24",
     ]
     const ageDims = AGES.map((age) => dim({ age }))
+    const ageShorts = AGES.map((a) => `Deaths among people aged ${a} years.`)
+
+    it("always hides a list of titles alone", () => {
+        expect(
+            shouldHideStitchedIndicatorList(stitch(["Coal", "Gas", "Oil"]), [
+                undefined,
+                undefined,
+                undefined,
+            ])
+        ).toEqual({ hide: true })
+    })
 
     it("hides the list for an age slice, by metadata or by titles", () => {
         expect(
-            shouldHideStitchedIndicatorList(stitch(ageTitles), ageDims)
+            shouldHideStitchedIndicatorList(
+                stitch(ageTitles, { shorts: ageShorts }),
+                ageDims
+            )
         ).toEqual({
             hide: true,
             sliceClass: "age",
         })
         expect(
             shouldHideStitchedIndicatorList(
-                stitch(ageTitles),
+                stitch(ageTitles, { shorts: ageShorts }),
                 ageDims.map(() => undefined)
             )
         ).toEqual({ hide: true, sliceClass: "age" })
@@ -218,13 +234,19 @@ describe(shouldHideStitchedIndicatorList, () => {
     it("keeps the list when units, title variants or notes vary", () => {
         expect(
             shouldHideStitchedIndicatorList(
-                stitch(ageTitles, { suppressUnit: true }),
+                stitch(ageTitles, {
+                    suppressUnit: true,
+                    units: ["deaths", "deaths", "deaths", "births", "births"],
+                }),
                 ageDims
             ).hide
         ).toBe(false)
         expect(
             shouldHideStitchedIndicatorList(
-                stitch(ageTitles, { suppressTitleVariant: true }),
+                stitch(ageTitles, {
+                    suppressTitleVariant: true,
+                    shorts: ageShorts,
+                }),
                 ageDims
             ).hide
         ).toBe(false)
@@ -262,7 +284,10 @@ describe(shouldHideStitchedIndicatorList, () => {
         const causes = ["Malaria", "Measles", "Meningitis", "Tetanus"]
         expect(
             shouldHideStitchedIndicatorList(
-                stitch(causes.map((c) => `Deaths from ${c.toLowerCase()}`)),
+                stitch(
+                    causes.map((c) => `Deaths from ${c.toLowerCase()}`),
+                    { shorts: causes.map((c) => `Estimated deaths from ${c}.`) }
+                ),
                 causes.map((cause) => dim({ cause }))
             ).hide
         ).toBe(false)
