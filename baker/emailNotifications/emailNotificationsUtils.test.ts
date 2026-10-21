@@ -1,10 +1,13 @@
 import { expect, it, describe } from "vitest"
 import {
     EmailNotificationsSubscriber,
+    areWebhooksMissing,
     NotificationEmailItem,
+    fillPostmarkTemplate,
     filterItemsForSubscriber,
     formatItemDate,
     getWindowStart,
+    groupSubscribersByItems,
     parseSubscriberRow,
 } from "./emailNotificationsUtils.js"
 
@@ -209,5 +212,129 @@ describe(formatItemDate, () => {
                 new Date("2026-01-04T06:00:00Z")
             )
         ).toBe("December 28, 2025")
+    })
+})
+
+describe(groupSubscribersByItems, () => {
+    const article = makeItem({ slug: "article" })
+    const dataInsight = makeItem({ slug: "data-insight", type: "data-insight" })
+
+    it("puts subscribers who get the same items into one group", () => {
+        const allTypes = makeSubscriber({ userId: 1 })
+        const sameAsFirst = makeSubscriber({ userId: 2 })
+        const insightsOnly = makeSubscriber({
+            userId: 3,
+            contentTypes: ["data-insight"],
+        })
+
+        const groups = groupSubscribersByItems(
+            [article, dataInsight],
+            [allTypes, insightsOnly, sameAsFirst],
+            NOW
+        )
+
+        expect(groups).toEqual([
+            {
+                items: [article, dataInsight],
+                subscribers: [allTypes, sameAsFirst],
+            },
+            { items: [dataInsight], subscribers: [insightsOnly] },
+        ])
+    })
+
+    it("separates subscribers whose send windows differ", () => {
+        // A subscriber who was last sent an email after the article was
+        // published only gets the newer data insight.
+        const olderArticle = makeItem({
+            slug: "older-article",
+            publishedAt: new Date("2026-06-26T12:00:00Z"),
+        })
+        const neverSent = makeSubscriber({ userId: 1 })
+        const recentlySent = makeSubscriber({
+            userId: 2,
+            lastSentAt: new Date("2026-06-28T06:00:00Z"),
+        })
+
+        const groups = groupSubscribersByItems(
+            [olderArticle, dataInsight],
+            [neverSent, recentlySent],
+            NOW
+        )
+
+        expect(groups).toEqual([
+            { items: [olderArticle, dataInsight], subscribers: [neverSent] },
+            { items: [dataInsight], subscribers: [recentlySent] },
+        ])
+    })
+
+    it("leaves out subscribers without new items", () => {
+        const groups = groupSubscribersByItems(
+            [article],
+            [makeSubscriber({ contentTypes: ["data-insight"] })],
+            NOW
+        )
+        expect(groups).toEqual([])
+    })
+})
+
+describe(fillPostmarkTemplate, () => {
+    it("HTML-escapes double-brace values and inserts triple-brace values raw", () => {
+        expect(
+            fillPostmarkTemplate("<p>{{email}}</p> {{{email}}} {{ missing }}", {
+                email: "o'brien&co@example.com",
+            })
+        ).toBe("<p>o&#39;brien&amp;co@example.com</p> o'brien&co@example.com ")
+    })
+})
+
+describe(areWebhooksMissing, () => {
+    const lastSentAt = new Date("2026-07-01T06:00:00Z")
+    const twoHoursLater = new Date("2026-07-01T08:00:00Z")
+
+    it("reports when no webhook arrived since a send that's over an hour old", () => {
+        expect(
+            areWebhooksMissing({
+                lastSentAt,
+                lastWebhookAt: new Date("2026-06-30T06:05:00Z"),
+                now: twoHoursLater,
+            })
+        ).toBe(true)
+        expect(
+            areWebhooksMissing({
+                lastSentAt,
+                lastWebhookAt: null,
+                now: twoHoursLater,
+            })
+        ).toBe(true)
+    })
+
+    it("doesn't report when a webhook arrived after the last send", () => {
+        expect(
+            areWebhooksMissing({
+                lastSentAt,
+                lastWebhookAt: new Date("2026-07-01T06:05:00Z"),
+                now: twoHoursLater,
+            })
+        ).toBe(false)
+    })
+
+    it("gives webhooks for a recent send time to arrive", () => {
+        expect(
+            areWebhooksMissing({
+                lastSentAt,
+                lastWebhookAt: null,
+                now: new Date("2026-07-01T06:30:00Z"),
+            })
+        ).toBe(false)
+    })
+
+    it("doesn't report before anything was sent", () => {
+        expect(
+            areWebhooksMissing({
+                lastSentAt: null,
+                lastWebhookAt: null,
+                now: twoHoursLater,
+            })
+        ).toBe(false)
     })
 })

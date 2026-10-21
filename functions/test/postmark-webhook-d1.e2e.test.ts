@@ -73,6 +73,13 @@ async function postWebhook(
     })
 }
 
+// The send job doesn't know Postmark's message ID when it records a message,
+// so deliveries are matched by the correlationId it sends as metadata. Tests
+// derive both from the message ID they will deliver.
+function correlationIdFor(messageId: string): string {
+    return `correlation-${messageId}`
+}
+
 async function seedMessage(messageId: string): Promise<void> {
     await runSql(
         `INSERT INTO users (email, token)
@@ -80,24 +87,26 @@ async function seedMessage(messageId: string): Promise<void> {
         ["reader@example.com", "reader-token"]
     )
     await runSql(
-        `INSERT INTO messages (userId, frequency, itemSlugs, messageId)
-         VALUES (1, 'daily', '["example-article"]', ?1)`,
-        [messageId]
+        `INSERT INTO messages
+             (userId, frequency, itemSlugs, correlationId, bulkRequestId)
+         VALUES (1, 'daily', '["example-article"]', ?1, 'bulk-1')`,
+        [correlationIdFor(messageId)]
     )
 }
 
 function makeDelivery(
     overrides: Partial<Models.DeliveryWebhook> = {}
 ): Models.DeliveryWebhook {
+    const MessageID = overrides.MessageID ?? "message-1"
     return {
         RecordType: "Delivery",
         ServerID: 23,
         MessageStream: "broadcast",
-        MessageID: "message-1",
+        MessageID,
         Recipient: "reader@example.com",
         DeliveredAt: "2026-07-29T10:00:00Z",
         Details: "Test delivery",
-        Metadata: {},
+        Metadata: { correlationId: correlationIdFor(MessageID) },
         ...overrides,
     }
 }
@@ -172,6 +181,29 @@ describe("Postmark webhook with local D1", () => {
                 messageId: "delivery-message",
             },
         ])
+    })
+
+    it("rejects a broadcast delivery without correlationId metadata", async () => {
+        await seedMessage("uncorrelated-message")
+
+        const response = await postWebhook(
+            makeDelivery({ MessageID: "uncorrelated-message", Metadata: {} })
+        )
+
+        expect(response.status).toBe(500)
+        await expect(
+            querySql<DeliveryRow>(
+                `SELECT status, deliveredAt
+                 FROM messages
+                 WHERE correlationId = ?1`,
+                [correlationIdFor("uncorrelated-message")]
+            )
+        ).resolves.toEqual([{ status: "sent", deliveredAt: null }])
+        await expect(
+            querySql<CountRow>(
+                "SELECT COUNT(*) AS count FROM postmark_webhook_receipts"
+            )
+        ).resolves.toEqual([{ count: 0 }])
     })
 
     it("retries a delivery that arrives before its message is recorded", async () => {
