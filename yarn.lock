@@ -1864,12 +1864,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@internationalized/number@npm:^3.6.8":
-  version: 3.6.8
-  resolution: "@internationalized/number@npm:3.6.8"
+"@internationalized/number@npm:^3.6.9":
+  version: 3.6.9
+  resolution: "@internationalized/number@npm:3.6.9"
   dependencies:
     "@swc/helpers": "npm:^0.5.0"
-  checksum: 10/af1ccd2080524bc086fa484b2971d4768ee6177864122e181ef2be7fce121f3837fbd6b72f194219110762191e4c5a5a7dc5e61e6a65b141751abcdc39a4cee4
+  checksum: 10/8179a770c4fedc951d660bf5c7673aa88e28fed920a24c586bba71e1a5465015ac8a3beb562a35af51d5aa482ddcc22630b13018d0e149c4d3c401a774891772
   languageName: node
   linkType: hard
 
@@ -2091,7 +2091,7 @@ __metadata:
     mdast-util-find-and-replace: "npm:^3.0.2"
     mdast-util-from-markdown: "npm:^2.0.2"
     react: "npm:^19.2.4"
-    react-aria-components: "npm:^1.21.0"
+    react-aria-components: "npm:^1.22.1"
     react-dom: "npm:^19.2.4"
     react-markdown: "npm:^10.1.0"
     remeda: "npm:^2.42.0"
@@ -2191,7 +2191,7 @@ __metadata:
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
-    "@react-aria/optimize-locales-plugin": "npm:^2.0.2"
+    "@react-aria/optimize-locales-plugin": "npm:^2.1.0"
     "@react-spring/web": "npm:^10.0.3"
     "@sentry/browser": "npm:^11.8.0"
     "@sentry/react": "npm:^11.8.0"
@@ -2221,8 +2221,8 @@ __metadata:
     mobx-react: "npm:^7.6.0"
     mousetrap: "npm:^1.6.5"
     react: "npm:^19.2.4"
-    react-aria: "npm:^3.52.0"
-    react-aria-components: "npm:^1.21.0"
+    react-aria: "npm:^3.53.1"
+    react-aria-components: "npm:^1.22.1"
     react-dom: "npm:^19.2.4"
     react-flip-toolkit: "npm:^7.2.4"
     remeda: "npm:^2.42.0"
@@ -3589,12 +3589,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-aria/optimize-locales-plugin@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@react-aria/optimize-locales-plugin@npm:2.0.2"
+"@react-aria/optimize-locales-plugin@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@react-aria/optimize-locales-plugin@npm:2.1.0"
   dependencies:
     unplugin: "npm:^2.3.11"
-  checksum: 10/ee8a4e978597fe4af0827772be81d0025850ba2116e484697f2f5bdaf72540cad622e67ca0651863bbcf677bf07ef4299a7a9335455973a954adb83501d91a37
+  checksum: 10/ac74bfa681064216fd8264280de3b3b31eaef996b92a35c883750833c83d8f6675e957193366e14da3320d093bdf579a6a9de50f673b5eb1881b66388f649f06
   languageName: node
   linkType: hard
 
@@ -3716,12 +3716,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-types/shared@npm:^3.36.1":
-  version: 3.36.1
-  resolution: "@react-types/shared@npm:3.36.1"
+"@react-types/shared@npm:^3.37.0":
+  version: 3.37.0
+  resolution: "@react-types/shared@npm:3.37.0"
   peerDependencies:
     react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
-  checksum: 10/c7b720a8f3fea7cf2a3f4f6f2194f7942fd6b4afac0e280e2edcb06d11fb40f560ba7cb50105b2167793b5e998e8f093470a971765f700032b94c3973e069ec4
+  checksum: 10/8068dcf7e5990bf8ab70966ce5807e93769edd220f321cb8c49252c52a05906a3633dd09a9a69851e39a80b0e2c5cb1a0f401330ceadc660b501c90551ecace1
   languageName: node
   linkType: hard
 
@@ -8827,7 +8827,7 @@ __metadata:
     "@ourworldindata/utils": "workspace:^"
     "@playwright/test": "npm:^1.63.0"
     "@pydantic/genai-prices": "npm:^0.1.11"
-    "@react-aria/optimize-locales-plugin": "npm:^2.0.2"
+    "@react-aria/optimize-locales-plugin": "npm:^2.1.0"
     "@react-querybuilder/antd": "npm:^8.23.1"
     "@rmp135/sql-ts": "npm:^2.1.0"
     "@rollup/plugin-swc": "npm:^0.4.1"
@@ -8925,7 +8925,7 @@ __metadata:
     progress: "npm:^2.0.3"
     publint: "npm:^0.3.23"
     react: "npm:^19.2.4"
-    react-aria-components: "npm:^1.21.0"
+    react-aria-components: "npm:^1.22.1"
     react-diff-viewer-continued: "npm:^4.4.0"
     react-dom: "npm:^19.2.4"
     react-horizontal-scrolling-menu: "npm:^8.2.0"
@@ -11920,41 +11920,42 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-aria-components@npm:^1.21.0":
-  version: 1.21.0
-  resolution: "react-aria-components@npm:1.21.0"
+"react-aria-components@npm:^1.22.1":
+  version: 1.22.1
+  resolution: "react-aria-components@npm:1.22.1"
   dependencies:
     "@internationalized/date": "npm:^3.12.4"
     "@internationalized/string": "npm:^3.2.10"
-    "@react-types/shared": "npm:^3.36.1"
+    "@react-types/shared": "npm:^3.37.0"
     "@swc/helpers": "npm:^0.5.0"
     client-only: "npm:^0.0.1"
-    react-aria: "npm:3.52.0"
-    react-stately: "npm:3.50.0"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
-    react-dom: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
-  checksum: 10/3e77ee28255500a8c96086a1cc285cb53b8782bb6205195f59fb86822efce8265b4f31d9c33fc4d922536eafe21ff7d402baca9a3f03fcf75914b697e0d289e0
-  languageName: node
-  linkType: hard
-
-"react-aria@npm:3.52.0, react-aria@npm:^3.52.0":
-  version: 3.52.0
-  resolution: "react-aria@npm:3.52.0"
-  dependencies:
-    "@internationalized/date": "npm:^3.12.4"
-    "@internationalized/number": "npm:^3.6.8"
-    "@internationalized/string": "npm:^3.2.10"
-    "@react-types/shared": "npm:^3.36.1"
-    "@swc/helpers": "npm:^0.5.0"
-    aria-hidden: "npm:^1.2.3"
-    clsx: "npm:^2.0.0"
-    react-stately: "npm:3.50.0"
+    react-aria: "npm:3.53.1"
+    react-stately: "npm:3.51.0"
     use-sync-external-store: "npm:^1.6.0"
   peerDependencies:
     react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
     react-dom: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
-  checksum: 10/53edc0fd6733772529ae0c17b9665ea97ab9e29185282117f7d7474d0557d1cdc52a7f0be5e9acdcc2bb691e162a337ca43965412dc6366e67d4ab6e79eef288
+  checksum: 10/8ce60fbbf22ffe829ba52c52cbf0f934502144b02a01748852db66131257f4d571bd8e3e45e889cca8b2d1b974317cffdf9dc0a86c8131757dd4e53fa3419c25
+  languageName: node
+  linkType: hard
+
+"react-aria@npm:3.53.1, react-aria@npm:^3.53.1":
+  version: 3.53.1
+  resolution: "react-aria@npm:3.53.1"
+  dependencies:
+    "@internationalized/date": "npm:^3.12.4"
+    "@internationalized/number": "npm:^3.6.9"
+    "@internationalized/string": "npm:^3.2.10"
+    "@react-types/shared": "npm:^3.37.0"
+    "@swc/helpers": "npm:^0.5.0"
+    aria-hidden: "npm:^1.2.3"
+    clsx: "npm:^2.0.0"
+    react-stately: "npm:3.51.0"
+    use-sync-external-store: "npm:^1.6.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
+    react-dom: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
+  checksum: 10/90720299dc55e60b5b39a5473fd3bb7409a168325362eb9f2639028aae8a5a5316942cc72a10dac177fd44e17a9f968d789ed9dde780685f35dafb5ff7fa6998
   languageName: node
   linkType: hard
 
@@ -12180,19 +12181,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-stately@npm:3.50.0":
-  version: 3.50.0
-  resolution: "react-stately@npm:3.50.0"
+"react-stately@npm:3.51.0":
+  version: 3.51.0
+  resolution: "react-stately@npm:3.51.0"
   dependencies:
     "@internationalized/date": "npm:^3.12.4"
-    "@internationalized/number": "npm:^3.6.8"
+    "@internationalized/number": "npm:^3.6.9"
     "@internationalized/string": "npm:^3.2.10"
-    "@react-types/shared": "npm:^3.36.1"
+    "@react-types/shared": "npm:^3.37.0"
     "@swc/helpers": "npm:^0.5.0"
     use-sync-external-store: "npm:^1.6.0"
   peerDependencies:
     react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
-  checksum: 10/1959a715b925c966c59c277ff199725c7e27c24a1c2a3c4b8da145365e46c2c92a3b84b30c7d0b40842c8b5a5d19e894dc25e5fe85ea7f89471b6bae944c6b99
+  checksum: 10/b5f602df10fa1814b944d8c2d37f83be8a26bd841d349346bad9bc04d89995e8f4dbf4a096e30b2f72f50edaf232d907ff36a08f274f7ea367ce3912d5c93567
   languageName: node
   linkType: hard
 
