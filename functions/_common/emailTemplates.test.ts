@@ -2,18 +2,18 @@ import { describe, expect, it } from "vitest"
 import { renderEmailTemplate } from "./emailTemplates.js"
 
 const TEMPLATE = {
-    subject: "Hello",
+    subject: "Hello {{name}}",
     html: '<p>Hi {{name}}, see <a href="{{url}}">{{url}}</a></p>',
     text: "Hi {{name}}, see {{url}}",
 }
 
 describe(renderEmailTemplate, () => {
-    it("escapes values in the HTML body but not in the text body", () => {
+    it("escapes values in the HTML body but not in the subject or text body", () => {
         const { subject, html, text } = renderEmailTemplate(TEMPLATE, {
             name: "<b>Energy & Health</b>",
             url: "https://example.com/?a=1&b=2",
         })
-        expect(subject).toBe("Hello")
+        expect(subject).toBe("Hello <b>Energy & Health</b>")
         expect(html).toBe(
             '<p>Hi &lt;b&gt;Energy &amp; Health&lt;/b&gt;, see <a href="https://example.com/?a=1&amp;b=2">https://example.com/?a=1&amp;b=2</a></p>'
         )
