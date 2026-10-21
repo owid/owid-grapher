@@ -231,9 +231,9 @@ export function ChartSearchToolbar({
                             words together and <code>-word</code> to exclude;
                             both work for filters too (<code>-is:draft</code>).
                             Repeat a filter to match any of its values:{" "}
-                            <code>tag:Energy tag:Health</code>. The filters
-                            next to the box write these terms for you, and the
-                            whole search is kept in the page URL.
+                            <code>tag:Energy tag:Health</code>. The filters next
+                            to the box write these terms for you, and the whole
+                            search is kept in the page URL.
                         </>
                     }
                     fields={CHART_SEARCH_FIELDS}

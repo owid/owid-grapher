@@ -131,7 +131,13 @@ describe(chartSearchFilter, () => {
     })
 
     it("narrows nothing on a term that isn't finished or isn't valid", () => {
-        for (const query of ["tag:", "is:", "is:dra", "edited-after:20", "author:"])
+        for (const query of [
+            "tag:",
+            "is:",
+            "is:dra",
+            "edited-after:20",
+            "author:",
+        ])
             expect(ids(query)).toEqual([1, 2, 3, 4])
     })
 

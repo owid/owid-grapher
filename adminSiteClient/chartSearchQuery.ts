@@ -72,7 +72,10 @@ const FIELD_NAMES: ReadonlySet<string> = new Set(
  * of different facets all have to hold (AND). `is:` covers two facets, so that
  * `is:draft is:etl` means ETL drafts rather than drafts or ETL charts.
  */
-export type ChartSearchFacet = "status" | "source" | Exclude<ChartSearchField, "is">
+export type ChartSearchFacet =
+    | "status"
+    | "source"
+    | Exclude<ChartSearchField, "is">
 
 type IsFacet = Extract<ChartSearchFacet, "status" | "source">
 
@@ -346,7 +349,11 @@ export function formatTerm(
 
 function reformatTerm(term: SearchTerm): string {
     if (!isTextTerm(term))
-        return formatTerm(term.field as ChartSearchField, term.value, term.negate)
+        return formatTerm(
+            term.field as ChartSearchField,
+            term.value,
+            term.negate
+        )
     // a phrase has to go back in quotes to stay one term
     return /\s/.test(term.raw) ? `"${term.raw}"` : term.raw
 }
@@ -363,7 +370,9 @@ export function getFacetValues(
     return parseSearchQuery(query)
         .filter((term) => !term.negate && term.value)
         .filter((term) => facetOfTerm(term) === facet)
-        .map((term) => (term.field === "is" ? term.value.toLowerCase() : term.value))
+        .map((term) =>
+            term.field === "is" ? term.value.toLowerCase() : term.value
+        )
 }
 
 /**
@@ -399,7 +408,12 @@ export interface NameCount {
     count: number
 }
 
-export type SuggestionGroup = "Tags" | "Authors" | "Status and source" | "Dates" | "Filters"
+export type SuggestionGroup =
+    | "Tags"
+    | "Authors"
+    | "Status and source"
+    | "Dates"
+    | "Filters"
 
 export interface ChartSearchSuggestion {
     /** The whole query once the suggestion is taken. */
@@ -452,7 +466,10 @@ function matchingNames(
                 name.toLowerCase().includes(wanted) &&
                 !exclude.has(name.toLowerCase())
         ),
-        [({ name }) => !name.toLowerCase().startsWith(wanted), ({ count }) => -count]
+        [
+            ({ name }) => !name.toLowerCase().startsWith(wanted),
+            ({ count }) => -count,
+        ]
     )
 }
 
@@ -507,8 +524,7 @@ function trailingPhrases(query: string): Phrase[] {
 
     const words: Token[] = []
     for (let i = tokens.length - 1; i >= 0; i--) {
-        if (!isPlainWord(tokens[i]) || words.length === MAX_PHRASE_WORDS)
-            break
+        if (!isPlainWord(tokens[i]) || words.length === MAX_PHRASE_WORDS) break
         words.unshift(tokens[i])
     }
     const trailingSpace = /\s$/.test(query) ? " " : ""
@@ -539,7 +555,9 @@ function trailingPhrases(query: string): Phrase[] {
             value: join(phraseWords.map((word) => word.text)),
         })
     }
-    return phrases.filter((phrase) => phrase.value.trim().length >= MIN_WORD_LENGTH)
+    return phrases.filter(
+        (phrase) => phrase.value.trim().length >= MIN_WORD_LENGTH
+    )
 }
 
 /**
@@ -550,10 +568,15 @@ function trailingPhrases(query: string): Phrase[] {
  */
 export function suggestChartSearchTerms(
     query: string,
-    { tags, authors }: { tags: readonly NameCount[]; authors: readonly NameCount[] }
+    {
+        tags,
+        authors,
+    }: { tags: readonly NameCount[]; authors: readonly NameCount[] }
 ): ChartSearchSuggestion[] {
     const taken = (facet: ChartSearchFacet): ReadonlySet<string> =>
-        new Set(getFacetValues(query, facet).map((value) => value.toLowerCase()))
+        new Set(
+            getFacetValues(query, facet).map((value) => value.toLowerCase())
+        )
     const nameSuggestions = (
         facet: "tag" | "author",
         value: string,
@@ -574,7 +597,9 @@ export function suggestChartSearchTerms(
     let phraseSuggestions: ChartSearchSuggestion[] = []
     for (const phrase of trailingPhrases(query)) {
         const before = query.slice(0, phrase.start)
-        const facets = phrase.field ? [phrase.field] : (["tag", "author"] as const)
+        const facets = phrase.field
+            ? [phrase.field]
+            : (["tag", "author"] as const)
         phraseSuggestions = facets.flatMap((facet) =>
             nameSuggestions(
                 facet,
@@ -592,9 +617,15 @@ export function suggestChartSearchTerms(
     const withTerm = (field: ChartSearchField, value: string): string =>
         `${before}${formatTerm(field, value, term.negate)} `
 
-    const tagSuggestions = (value: string, max: number): ChartSearchSuggestion[] =>
+    const tagSuggestions = (
+        value: string,
+        max: number
+    ): ChartSearchSuggestion[] =>
         nameSuggestions("tag", value, max, before, term.negate)
-    const authorSuggestions = (value: string, max: number): ChartSearchSuggestion[] =>
+    const authorSuggestions = (
+        value: string,
+        max: number
+    ): ChartSearchSuggestion[] =>
         nameSuggestions("author", value, max, before, term.negate)
     const isSuggestions = (value: string): ChartSearchSuggestion[] =>
         Object.entries(IS_VALUES)
@@ -633,14 +664,15 @@ export function suggestChartSearchTerms(
     if (term.field !== undefined || term.value.length < MIN_WORD_LENGTH)
         return phraseSuggestions
 
-    const fieldSuggestions: ChartSearchSuggestion[] = CHART_SEARCH_FIELDS.filter(
-        (field) => field.name.startsWith(term.value.toLowerCase())
-    ).map((field) => ({
-        // no space after it: the value comes next
-        query: `${before}${term.negate ? "-" : ""}${field.name}:`,
-        group: "Filters",
-        label: `${field.name}: — ${field.description}`,
-    }))
+    const fieldSuggestions: ChartSearchSuggestion[] =
+        CHART_SEARCH_FIELDS.filter((field) =>
+            field.name.startsWith(term.value.toLowerCase())
+        ).map((field) => ({
+            // no space after it: the value comes next
+            query: `${before}${term.negate ? "-" : ""}${field.name}:`,
+            group: "Filters",
+            label: `${field.name}: — ${field.description}`,
+        }))
 
     // When the words typed so far name something, the last word on its own
     // ("exp" of "life exp") is no longer what is meant
