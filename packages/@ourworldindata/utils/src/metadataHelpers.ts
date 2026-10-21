@@ -160,10 +160,13 @@ export const getProcessingPhraseForAttribution = (
 
 /**
  * The part of an origin that identifies the data SOURCE to a reader —
- * producer, title, version, attribution, description, access date, license.
- * Excludes per-indicator content (urlMain, citationFull) and internal fields
- * (id, titleSnapshot, urlDownload). Two origins with the same key are the
- * same source, possibly with different links per indicator.
+ * producer, title, version, attribution, description, access date.
+ * Excludes per-indicator content (urlMain, citationFull) and fields the
+ * metadata box doesn't show (id, titleSnapshot, urlDownload, license — the
+ * last two only reach the data-download readme). One source split across
+ * ETL snapshots with different license URLs is still one source. Two
+ * origins with the same key are the same source, possibly with different
+ * links per indicator.
  */
 export const getOriginIdentityKey = (o: OwidOrigin): string =>
     JSON.stringify({
@@ -173,7 +176,6 @@ export const getOriginIdentityKey = (o: OwidOrigin): string =>
         attribution: o.attribution ?? null,
         description: o.description ?? null,
         dateAccessed: o.dateAccessed ?? null,
-        license: o.license ?? null,
     })
 
 export const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {

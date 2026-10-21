@@ -728,6 +728,11 @@ const inlineCase = (title: string): string => {
     return m[1].toLowerCase() + title.slice(1)
 }
 
+// "Title." for a title that runs into its description; leaves titles that
+// already end in punctuation alone.
+const withFinalStop = (title: string): string =>
+    /[.!?:]$/.test(title.trim()) ? title : `${title}.`
+
 function StitchedIndicatorList({
     entries,
     datapageData,
@@ -737,8 +742,10 @@ function StitchedIndicatorList({
     datapageData: DataPageDataV2
     expanderOpen: boolean
 }) {
+    // Distinct sources: one dataset split across ETL snapshots is one source.
     const nSources =
-        (datapageData.origins?.length ?? 0) + (datapageData.source ? 1 : 0)
+        _.uniq((datapageData.origins ?? []).map(getOriginIdentityKey)).length +
+        (datapageData.source ? 1 : 0)
     const sourcePhrase =
         nSources > 0
             ? `, all from the same data source${nSources > 1 ? "s" : ""}`
@@ -747,14 +754,15 @@ function StitchedIndicatorList({
     // (otherwise it clears it and the entries carry their own).
     const sharedVariant = datapageData.titleVariant?.trim()
     const variantPhrase = sharedVariant ? ` (${sharedVariant})` : ""
-    // Past three entries either rendering is long enough to push the shared
-    // WYSK below the fold, so the first three always show and the rest fold
+    // Up to five entries always show in full. A longer list pushes the shared
+    // WYSK below the fold, so only the first three show and the rest fold
     // behind "view all +" (the Instagram-caption pattern), which flips to
     // "view less −". The link appears only while the box's own expander is
     // open, so it never sits beside "Show more" as a look-alike. Folded
     // content stays in the DOM, hidden, for raw-HTML consumers.
+    const SHOW_ALL_UP_TO = 5
     const FOLD_AFTER = 3
-    const foldable = entries.length > FOLD_AFTER
+    const foldable = entries.length > SHOW_ALL_UP_TO
     const [expanded, setExpanded] = useState(!foldable)
     const toggle = foldable && expanderOpen && (
         <button
@@ -812,35 +820,52 @@ function StitchedIndicatorList({
             </div>
         )
     }
+    // Entries whose only extra is a description read as prose on one line
+    // ("Title. Description."); once units vary too, the description and the
+    // unit each get their own line with a muted key, like the pane's key data.
+    const hasUnits = entries.some((entry) => entry.unit)
     return (
         <div className={blockClass}>
             <p>{intro}:</p>
             <ol>
                 {entries.map((entry, i) => (
                     <li key={i} hidden={!expanded && i >= FOLD_AFTER}>
-                        <span className="indicator-metadata-box__stitched-list-title">
-                            {entry.title}
-                        </span>
-                        {(entry.short || entry.unit) && (
-                            <span className="indicator-metadata-box__stitched-list-meta">
+                        {hasUnits ? (
+                            <>
+                                <span className="indicator-metadata-box__stitched-list-title">
+                                    {entry.title}
+                                </span>
                                 {entry.short && (
-                                    <SimpleMarkdownText
-                                        text={entry.short}
-                                        useParagraphs={false}
-                                    />
-                                )}
-                                {entry.short && entry.unit && (
-                                    <span className="indicator-metadata-box__stitched-list-sep">
-                                        |
+                                    <span className="indicator-metadata-box__stitched-list-row">
+                                        <span className="indicator-metadata-box__stitched-list-key">
+                                            Description
+                                        </span>{" "}
+                                        <SimpleMarkdownText
+                                            text={entry.short}
+                                            useParagraphs={false}
+                                        />
                                     </span>
                                 )}
                                 {entry.unit && (
-                                    <span className="indicator-metadata-box__stitched-list-unit">
-                                        <span className="indicator-metadata-box__stitched-list-unit-key">
-                                            Unit{" "}
-                                        </span>
+                                    <span className="indicator-metadata-box__stitched-list-row">
+                                        <span className="indicator-metadata-box__stitched-list-key">
+                                            Unit
+                                        </span>{" "}
                                         {entry.unit}
                                     </span>
+                                )}
+                            </>
+                        ) : (
+                            <span className="indicator-metadata-box__stitched-list-row">
+                                <strong>{withFinalStop(entry.title)}</strong>
+                                {entry.short && (
+                                    <>
+                                        {" "}
+                                        <SimpleMarkdownText
+                                            text={entry.short}
+                                            useParagraphs={false}
+                                        />
+                                    </>
                                 )}
                             </span>
                         )}

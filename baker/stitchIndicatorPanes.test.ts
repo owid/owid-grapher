@@ -216,6 +216,25 @@ describe(computeIndicatorPaneStitch, () => {
         ).toBeUndefined()
     })
 
+    it("compares sources as a set, ignoring duplicates and license URLs", () => {
+        // Global Carbon Budget split across two ETL snapshots whose origins
+        // differ only in license URL: still one source.
+        const gcb = origin({ producer: "Global Carbon Project" })
+        const gcbOtherLicense = {
+            ...gcb,
+            license: { name: "CC BY 4.0", url: "https://example.org/other" },
+        }
+        expect(
+            computeIndicatorPaneStitch([
+                pane({ origins: [gcb, gcbOtherLicense] }),
+                pane({
+                    title: { title: "Land-use change" },
+                    origins: [gcbOtherLicense, gcbOtherLicense],
+                }),
+            ])
+        ).toBeDefined()
+    })
+
     it("needs at least two panes", () => {
         expect(computeIndicatorPaneStitch([pane()])).toBeUndefined()
     })

@@ -21,7 +21,7 @@ import {
  *   description, attributions, processing level, FAQs, legacy source, and
  *   the SET of data sources. Sources are compared order-insensitively by
  *   identity (`getOriginIdentityKey`: producer, title, version, attribution,
- *   description, access date, license).
+ *   description, access date), as a set — duplicates don't count.
  * - A shared source whose link or full citation (urlMain, citationFull)
  *   differs per indicator still stitches: list entries carry each
  *   indicator's `sources` and the Sources section shows them per indicator.
@@ -69,8 +69,10 @@ const canon = (x: unknown): string => JSON.stringify(x ?? null)
 
 // Same SET of sources (by identity) is the requirement; a shared source whose
 // link/citation differs per indicator is allowed and surfaces per indicator.
+// A SET: one indicator listing the same source twice (two snapshots of one
+// dataset) has the same sources as one listing it once.
 const originsKey = (origins: OwidOrigin[] | undefined): string =>
-    canon((origins ?? []).map(getOriginIdentityKey).sort())
+    canon(_.uniq((origins ?? []).map(getOriginIdentityKey)).sort())
 const originContent = (o: OwidOrigin): string =>
     canon({ urlMain: o.urlMain ?? null, citationFull: o.citationFull ?? null })
 

@@ -389,21 +389,12 @@
     }
 }
 
-.indicator-metadata-box__stitched-list-meta {
+.indicator-metadata-box__stitched-list-row {
     display: block;
     margin-top: 1px;
 }
 
-.indicator-metadata-box__stitched-list-sep {
-    color: $blue-20;
-    margin: 0 8px;
-}
-
-.indicator-metadata-box__stitched-list-unit {
-    white-space: nowrap;
-}
-
-.indicator-metadata-box__stitched-list-unit-key {
+.indicator-metadata-box__stitched-list-key {
     @include note-13-medium;
     color: $blue-50;
 }

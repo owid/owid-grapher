@@ -91,7 +91,7 @@ const renderDatapageIfApplicable = async (
         imageMetadataDictionary,
         archiveContextDictionary,
         forceDatapage,
-        forceExpandIndicators,
+        forceSwitcher,
         auxiliaryMode,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
@@ -147,7 +147,7 @@ const renderDatapageIfApplicable = async (
             imageMetadataDictionary,
             archiveContextDictionary,
             forceDatapage,
-            forceExpandIndicators,
+            forceSwitcher,
             auxiliaryMode,
         },
         knex
@@ -337,7 +337,7 @@ export async function renderDataPageV2(
         imageMetadataDictionary = {},
         archiveContextDictionary,
         forceDatapage,
-        forceExpandIndicators,
+        forceSwitcher,
         auxiliaryMode = DEFAULT_AUXILIARY_INDICATOR_MODE,
     }: {
         variableId: number
@@ -474,7 +474,7 @@ export async function renderDataPageV2(
     // indicator list — see computeIndicatorPaneStitch for the rules.
     let stitchedIndicatorList: StitchedIndicatorListEntry[] | undefined
     let hideStitchedIndicatorList: boolean | undefined
-    if (additionalIndicators?.length && !forceExpandIndicators) {
+    if (additionalIndicators?.length && !forceSwitcher) {
         const panes: AdditionalIndicator[] = [
             { datapageData, faqEntries, variableId },
             ...additionalIndicators,
@@ -599,7 +599,7 @@ export const renderPreviewDataPageOrGrapherPage = async (
     const datapage = await renderDatapageIfApplicable(grapher, true, knex, {
         archiveContextDictionary,
         forceDatapage,
-        forceExpandIndicators: options?.forceExpandIndicators,
+        forceSwitcher: options?.forceSwitcher,
         auxiliaryMode: options?.auxiliaryMode,
     })
     if (datapage) return datapage
@@ -809,7 +809,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
 
 /**
  * Options for rendering a chart's data page. The last three are QA knobs on
- * the preview routes (`?forceDatapage=true`, `?forceExpand=true`,
+ * the preview routes (`?forceDatapage=true`, `?forceSwitcher=true`,
  * `?auxiliary=mixed|line|panes`) — see parseDatapageQaParams.
  */
 export interface DatapageRenderOptions {
@@ -819,7 +819,7 @@ export interface DatapageRenderOptions {
      */
     forceDatapage?: boolean
     /** Skip pane stitching, so a stitched page's switcher can be inspected. */
-    forceExpandIndicators?: boolean
+    forceSwitcher?: boolean
     /** How a scatter's size and colour indicators are documented. */
     auxiliaryMode?: AuxiliaryIndicatorMode
 }
@@ -829,6 +829,8 @@ export const parseDatapageQaParams = (
     query: Record<string, unknown>
 ): DatapageRenderOptions => ({
     forceDatapage: query.forceDatapage === "true",
-    forceExpandIndicators: query.forceExpand === "true",
+    // `forceExpand` is the old name, from when stitching was "collapsing".
+    forceSwitcher:
+        query.forceSwitcher === "true" || query.forceExpand === "true",
     auxiliaryMode: AUXILIARY_INDICATOR_MODES.find((m) => m === query.auxiliary),
 })
