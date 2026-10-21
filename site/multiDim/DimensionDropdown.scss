@@ -76,15 +76,9 @@ $selected-hover-fill: #bed2e7;
     }
 }
 
-.md-menu {
-    width: 400px;
-    background: white;
-    // No horizontal padding: menu items are full-bleed, so the hover and
-    // selection fills span the menu's full width.
-    padding: 16px 0 8px;
-    border-radius: 4px;
-    box-shadow: 0px 4px 23px 4px #0000000f;
-    z-index: $zindex-controls-popup;
+// The element of the menu that scrolls: the whole menu, or just the list of
+// options in a searchable menu.
+@mixin md-menu-scroll-area {
     overflow-y: auto;
     scrollbar-gutter: stable;
     overscroll-behavior: contain;
@@ -105,6 +99,18 @@ $selected-hover-fill: #bed2e7;
         border-radius: 11px;
         border: 3px solid transparent;
     }
+}
+
+.md-menu {
+    width: 400px;
+    background: white;
+    // No horizontal padding: menu items are full-bleed, so the hover and
+    // selection fills span the menu's full width.
+    padding: 16px 0 8px;
+    border-radius: 4px;
+    box-shadow: 0px 4px 23px 4px #0000000f;
+    z-index: $zindex-controls-popup;
+    @include md-menu-scroll-area;
 
     .md-menu__overlay-header {
         padding: 0 16px;
@@ -126,9 +132,25 @@ $selected-hover-fill: #bed2e7;
     }
 
     // The searchable menu shows the search field instead of the header with
-    // the dimension name and description.
+    // the dimension name and description. Only the options scroll, below the
+    // search field, so it stays in view.
     &.md-menu--searchable {
+        display: flex;
+        flex-direction: column;
         padding-top: 4px;
+        overflow: hidden;
+        // The list reserves its own scrollbar gutter.
+        scrollbar-gutter: auto;
+
+        .md-menu__search {
+            flex-shrink: 0;
+        }
+
+        .md-menu__list {
+            flex: 1;
+            min-height: 0;
+            @include md-menu-scroll-area;
+        }
     }
 
     .md-menu__search {
