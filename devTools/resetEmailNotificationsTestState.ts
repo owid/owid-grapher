@@ -5,7 +5,8 @@
  *
  *   yarn resetEmailNotificationsTestState [slug]
  *
- * Clears lastSentAt for all subscribers in the LOCAL D1 database, and, when
+ * Deletes all sent messages in the LOCAL D1 database, which resets every
+ * subscriber's window to their frequency, and, when
  * a slug is given, bumps that post's publishedAt to now in the local MySQL
  * database so it falls inside every subscriber's frequency window.
  */
@@ -17,14 +18,12 @@ import { createLocalD1Client } from "../baker/emailNotifications/emailNotificati
 // database (see baker/emailNotifications/sendEmailNotifications.ts).
 const LOCAL_D1_DATABASE_NAME = "owid-email-notifications-staging"
 
-async function resetLastSentAt(): Promise<void> {
+async function resetSentMessages(): Promise<void> {
     const d1 = createLocalD1Client(LOCAL_D1_DATABASE_NAME)
-    const rows = await d1.query<{ userId: number }>(
-        "UPDATE notification_preferences SET lastSentAt = NULL RETURNING userId"
+    const rows = await d1.query<{ id: number }>(
+        "DELETE FROM messages RETURNING id"
     )
-    console.log(
-        `Cleared lastSentAt for ${rows.length} subscriber(s) in local D1`
-    )
+    console.log(`Deleted ${rows.length} sent message(s) in local D1`)
 }
 
 async function bumpPublishedAt(slug: string): Promise<void> {
@@ -55,7 +54,7 @@ async function bumpPublishedAt(slug: string): Promise<void> {
 
 async function main(): Promise<void> {
     const slug = process.argv[2]
-    await resetLastSentAt()
+    await resetSentMessages()
     if (slug) {
         await bumpPublishedAt(slug)
     } else {

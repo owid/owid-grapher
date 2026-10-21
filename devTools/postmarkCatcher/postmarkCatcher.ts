@@ -8,14 +8,17 @@
  * then point the senders at it:
  *   POSTMARK_API_BASE_URL=http://localhost:8025 (in .env and .dev.vars)
  *
- * Accepts POST /email (and /email/batch) plus suppression deletions, stores
- * email payloads in memory, and serves an index at http://localhost:8025 with
- * each email's HTML body viewable, so subscription flows can be clicked.
+ * Accepts POST /email, /email/batch and /email/bulk, bulk request status
+ * lookups, template validations (always valid) and suppression deletions,
+ * stores email payloads in memory, and serves an
+ * index at http://localhost:8025 with each email's HTML body viewable, so
+ * subscription flows can be clicked.
  */
 import http from "node:http"
 import crypto from "node:crypto"
 import * as _ from "lodash-es"
 import { Message, Models } from "postmark"
+import { fillPostmarkTemplate } from "../../baker/emailNotifications/emailNotificationsUtils.js"
 
 const PORT = parseInt(process.env.POSTMARK_CATCHER_PORT || "8025", 10)
 const UNDELETABLE_SUPPRESSION_EMAIL = "spam-complaint@postmark-catcher.test"
@@ -26,6 +29,9 @@ interface CaughtEmail {
 }
 
 const emails: CaughtEmail[] = []
+
+// Every bulk request is sent in full right away.
+const bulkRequests = new Map<string, Models.BulkEmailStatusResponse>()
 
 function readBody(req: http.IncomingMessage): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -65,6 +71,44 @@ function acceptEmail(payload: Message): Models.MessageSendingResponse {
     emails.unshift({ receivedAt: new Date(), payload })
     console.log(`Caught email to ${payload.To}: "${payload.Subject}"`)
     return makeSendResponse(payload)
+}
+
+/** Expands a bulk request into one caught email per recipient. */
+function acceptBulkEmail(
+    request: Models.BulkEmailRequest
+): Models.BulkEmailSendingResponse {
+    for (const message of request.Messages) {
+        const model = (message.TemplateModel ?? {}) as Record<string, unknown>
+        acceptEmail({
+            From: request.From,
+            To: message.To,
+            Cc: message.Cc,
+            Bcc: message.Bcc,
+            Subject: fillPostmarkTemplate(request.Subject ?? "", model),
+            HtmlBody:
+                request.HtmlBody &&
+                fillPostmarkTemplate(request.HtmlBody, model),
+            TextBody:
+                request.TextBody &&
+                fillPostmarkTemplate(request.TextBody, model),
+            MessageStream: request.MessageStream,
+            Tag: request.Tag,
+            Metadata: { ...request.Metadata, ...message.Metadata },
+        })
+    }
+    const response = {
+        Id: crypto.randomUUID(),
+        Status: Models.BulkEmailStatus.Accepted,
+        SubmittedAt: new Date().toISOString(),
+    }
+    bulkRequests.set(response.Id, {
+        ...response,
+        Status: Models.BulkEmailStatus.Completed,
+        TotalMessages: request.Messages.length,
+        PercentageCompleted: 100,
+        Subject: request.Subject ?? "",
+    })
+    return response
 }
 
 function renderIndexPage(): string {
@@ -154,7 +198,10 @@ const server = http.createServer(async (req, res) => {
         } satisfies Models.SuppressionStatuses)
     }
 
-    if (req.method === "POST" && /^\/email(\/batch)?$/.test(url.pathname)) {
+    if (
+        req.method === "POST" &&
+        /^\/email(\/batch|\/bulk)?$/.test(url.pathname)
+    ) {
         if (!req.headers["x-postmark-server-token"]) {
             // Mimics Postmark, so a missing-token bug shows up locally too.
             return sendJson(res, 401, {
@@ -172,6 +219,15 @@ const server = http.createServer(async (req, res) => {
                 Message: "Invalid JSON",
             })
         }
+        if (url.pathname === "/email/bulk") {
+            const request = parsed as Models.BulkEmailRequest
+            if (!Array.isArray(request?.Messages))
+                return sendJson(res, 422, {
+                    ErrorCode: 300,
+                    Message: "Expected a Messages array",
+                })
+            return sendJson(res, 200, acceptBulkEmail(request))
+        }
         if (url.pathname === "/email/batch") {
             if (!Array.isArray(parsed))
                 return sendJson(res, 422, {
@@ -183,8 +239,29 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, acceptEmail(parsed as Message))
     }
 
+    if (req.method === "POST" && url.pathname === "/templates/validate") {
+        const section = { ContentIsValid: true, ValidationErrors: [] }
+        return sendJson(res, 200, {
+            AllContentIsValid: true,
+            Subject: section,
+            HtmlBody: section,
+            TextBody: section,
+        })
+    }
+
     if (req.method === "GET") {
         if (url.pathname === "/") return sendHtml(res, renderIndexPage())
+        const bulkMatch = url.pathname.match(/^\/email\/bulk\/([^/]+)$/)
+        if (bulkMatch) {
+            const status = bulkRequests.get(bulkMatch[1])
+            if (!status)
+                return sendJson(res, 404, { Message: "No such bulk request" })
+            return sendJson(res, 200, {
+                ...status,
+                ReleasedCount: status.TotalMessages,
+                FailedCount: 0,
+            })
+        }
         const match = url.pathname.match(/^\/emails\/(\d+)\/(html|json)$/)
         if (match) {
             const email = emails[parseInt(match[1], 10)]
