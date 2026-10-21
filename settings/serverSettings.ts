@@ -144,8 +144,6 @@ export const GDOCS_PRIVATE_KEY: string = (
     .replaceAll('"', "")
     .replaceAll("'", "")
 export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
-export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
-    serverSettings.GDOCS_BACKPORTING_TARGET_FOLDER ?? ""
 
 export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
     serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ?? ""
