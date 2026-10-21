@@ -2,6 +2,7 @@ import { JsonString } from "../domainTypes/Various.js"
 
 export const DatasetsTableName = "datasets"
 export interface DbInsertDataset {
+    catalogPath?: string | null
     createdAt?: Date
     createdByUserId: number
     dataEditedAt: Date
@@ -20,6 +21,7 @@ export interface DbInsertDataset {
     // DatasetMeta.owners. Stored as a JSON string; parse before use.
     owners?: JsonString | null
     shortName?: string | null
+    tables?: JsonString | null
     sourceChecksum?: string | null
     updatedAt?: Date
     updatePeriodDays?: number | null

@@ -601,10 +601,6 @@ export {
     type DbEnrichedImageWithUserId,
     type DbEnrichedImageWithPageviews,
     type DbInsertImage,
-    parseImageRow,
-    parseImageUpdatedAt,
-    serializeImageRow,
-    serializeImageUpdatedAt,
     ImagesTableName,
 } from "./dbTypes/Images.js"
 export {

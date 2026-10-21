@@ -22,7 +22,7 @@ const LightboxImage = ({
     height,
 }: {
     src: string
-    alt: string
+    alt?: string
     isLoaded: boolean
     setIsLoaded: any
     width: number
@@ -57,7 +57,7 @@ export const Lightbox = ({
     imgFilename?: string
     width: number
     height: number
-    alt: string
+    alt?: string
     // With CF Images, the filename is not the last part of the URL
     // so we need to pass it separately
     hideDownload?: boolean
