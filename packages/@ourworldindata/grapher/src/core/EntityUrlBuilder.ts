@@ -34,10 +34,8 @@ export const ENTITY_V2_DELIMITER = "~"
 
 const isV1Param = (encodedQueryParam: string): boolean => {
     // No legacy entities have a v2Delimiter in their name,
-    // so if a v2Delimiter is present we know it's a v2 link.
-    return !safeDecodeURIComponent(encodedQueryParam).includes(
-        ENTITY_V2_DELIMITER
-    )
+    // so if a v2Delimiter is present (raw or encoded) we know it's a v2 link.
+    return !/~|%7E/i.test(encodedQueryParam)
 }
 
 const entityNamesFromV1EncodedParam = (
