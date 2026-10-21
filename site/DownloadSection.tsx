@@ -1,3 +1,4 @@
+import cx from "clsx"
 import {
     DownloadApiOptions,
     DownloadButtonLink,
@@ -162,7 +163,16 @@ export type DownloadSectionProps = {
     archivedChartInfo?: ArchiveContext
     distribution?: Distribution
     hideRowCounts?: boolean
+    /** Put the heading above the options, in one centred column */
+    isStacked?: boolean
 }
+
+const SIDE_BY_SIDE_HEADING_CLASSES =
+    "span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+const SIDE_BY_SIDE_CONTENT_CLASSES =
+    "col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+const STACKED_COLUMN_CLASSES =
+    "col-start-4 span-cols-6 col-lg-start-3 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
 
 export default function DownloadSection({
     slug,
@@ -175,6 +185,7 @@ export default function DownloadSection({
     archivedChartInfo,
     distribution,
     hideRowCounts,
+    isStacked = false,
 }: DownloadSectionProps) {
     const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
 
@@ -252,14 +263,29 @@ export default function DownloadSection({
     })
 
     return (
-        <div className="downloads grid span-cols-12">
+        <div
+            className={cx("downloads grid span-cols-12", {
+                "downloads--stacked": isStacked,
+            })}
+        >
             <h3
-                className="metadata-section__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                className={cx(
+                    "metadata-section__heading",
+                    isStacked
+                        ? STACKED_COLUMN_CLASSES
+                        : SIDE_BY_SIDE_HEADING_CLASSES
+                )}
                 id="download"
             >
                 Download
             </h3>
-            <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+            <div
+                className={
+                    isStacked
+                        ? STACKED_COLUMN_CLASSES
+                        : SIDE_BY_SIDE_CONTENT_CLASSES
+                }
+            >
                 {isOnArchivalPage ? (
                     <div className="downloads-section">
                         <h4 className="citation__how-to-header">
