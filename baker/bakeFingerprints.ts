@@ -14,7 +14,10 @@ import { PageFingerprints } from "./bakeState.js"
 // "related research" (ordered by pageviews) and primary topic, what the data
 // page redesign experiment adds (related charts by coview, dataset owners),
 // the authors of an article, the tag hierarchy, replaced images behind
-// featured images and static visualizations, donors, and the archive.
+// featured images and static visualizations, donors, and the archive. Two
+// inputs no page in these steps reads today, and that would need covering
+// once one does: data-callout values (data, not metadata; only profiles use
+// them) and the legacy WordPress blocks some explorers embed (frozen).
 
 const fingerprint = (parts: unknown[]): string => hashMd5(JSON.stringify(parts))
 
