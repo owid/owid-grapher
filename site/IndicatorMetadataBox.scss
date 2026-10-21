@@ -184,7 +184,11 @@
     }
 }
 
-.indicator-metadata-box .ExpandableToggle__title {
+.indicator-metadata-box
+    details.ExpandableToggle
+    .ExpandableToggle__button
+    .ExpandableToggle__title {
+    line-height: calc(22 / 16);
     text-wrap: balance;
 }
 
