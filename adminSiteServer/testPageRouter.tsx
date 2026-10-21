@@ -864,28 +864,25 @@ getPlainRouteWithROTransaction(
         const min = exact ?? parseCount(req.query.minDimensions)
         const max = exact ?? parseCount(req.query.maxDimensions)
 
-        const multiDims = (await getAllPublishedMultiDimDataPages(trx))
-            .map((multiDim) => ({
-                slug: multiDim.slug,
-                dimensionCount: multiDim.config.dimensions.length,
-            }))
-            .filter(
-                ({ dimensionCount }) =>
-                    (min === undefined || dimensionCount >= min) &&
-                    (max === undefined || dimensionCount <= max)
-            )
-            .sort((a, b) => a.slug.localeCompare(b.slug))
+        const slugs = (await getAllPublishedMultiDimDataPages(trx))
+            .filter(({ config }) => {
+                const count = config.dimensions.length
+                return (
+                    (min === undefined || count >= min) &&
+                    (max === undefined || count <= max)
+                )
+            })
+            .map((multiDim) => multiDim.slug)
+            .sort((a, b) => a.localeCompare(b))
 
         res.send(
-            renderToHtmlPage(
-                <MultiDimTestPage multiDims={multiDims} {...viewProps} />
-            )
+            renderToHtmlPage(<MultiDimTestPage slugs={slugs} {...viewProps} />)
         )
     }
 )
 
 interface MultiDimTestPageProps {
-    multiDims: { slug: string; dimensionCount: number }[]
+    slugs: string[]
     comparisonUrl: string
     hasComparisonView: boolean
 }
@@ -969,12 +966,10 @@ function MultiDimTestPage(props: MultiDimTestPageProps) {
                         <h3>{BAKED_BASE_URL}</h3>
                     </div>
                 </div>
-                {props.multiDims.map(({ slug, dimensionCount }, index) => (
+                {props.slugs.map((slug, index) => (
                     <div key={slug} className="row">
                         <h3>
-                            {slug} ({index + 1}/{props.multiDims.length},{" "}
-                            {dimensionCount}{" "}
-                            {dimensionCount === 1 ? "dimension" : "dimensions"})
+                            {slug} ({index + 1}/{props.slugs.length})
                         </h3>
                         <div className="side-by-side">
                             {props.hasComparisonView && (
