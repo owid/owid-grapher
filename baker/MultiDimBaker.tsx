@@ -395,10 +395,15 @@ export const bakeMultiDimDataPage = async (
     await fs.writeFile(companionPath, stringify(companion))
 }
 
+/**
+ * Bakes all published multi-dim pages, or only those in `slugsToBake`, and
+ * deletes the pages of multi-dims that are no longer published.
+ */
 export const bakeAllMultiDimDataPages = async (
     knex: db.KnexReadonlyTransaction,
     bakedSiteDir: string,
-    imageMetadata: Record<string, ImageMetadata>
+    imageMetadata: Record<string, ImageMetadata>,
+    slugsToBake?: Set<string>
 ) => {
     const { multiDimsBySlug, archivedVersions } = await traceJob(
         "prepare-multidim-pages",
@@ -420,26 +425,41 @@ export const bakeAllMultiDimDataPages = async (
         }
     )
 
+    const multiDimsToBake = multiDimsBySlug
+        .entries()
+        .filter(([slug]) => !slugsToBake || slugsToBake.has(slug))
+        .toArray()
+
     const progressBar = new ProgressBar(
         "bake multi-dim page [:bar] :current/:total :elapseds :rate/s :name\n",
         {
             width: 20,
-            total: multiDimsBySlug.size + 1,
+            total: multiDimsToBake.length + 1,
             renderThrottle: 0,
         }
     )
-    // Delete all companion files up front so stale ones — including those of
-    // slugs that were taken over by a regular chart, whose .html
-    // deleteOldGraphers won't remove — don't linger; the bake below recreates
-    // them for all published multi-dim pages.
+    // Delete the companion files of slugs that aren't published multi-dims
+    // (anymore), including those that were taken over by a regular chart,
+    // whose .html deleteOldGraphers won't remove; the bake below overwrites
+    // the others.
     const companionPaths = fs.globSync(
         `${bakedSiteDir}/grapher/*${MULTI_DIM_COMPANION_FILE_SUFFIX}`
     )
     await Promise.all(
-        companionPaths.map((companionPath) => fs.remove(companionPath))
+        companionPaths
+            .filter(
+                (companionPath) =>
+                    !multiDimsBySlug.has(
+                        path.basename(
+                            companionPath,
+                            MULTI_DIM_COMPANION_FILE_SUFFIX
+                        )
+                    )
+            )
+            .map((companionPath) => fs.remove(companionPath))
     )
 
-    for (const [slug, row] of multiDimsBySlug.entries()) {
+    for (const [slug, row] of multiDimsToBake) {
         await traceJob(
             "bake-multidim-page",
             async () => {

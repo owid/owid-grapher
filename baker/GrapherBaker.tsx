@@ -460,9 +460,15 @@ export const bakeSingleGrapherChart = async (
     return args
 }
 
+/**
+ * Bakes the pages of all published charts, or only of those in
+ * `chartIdsToBake`, and deletes the pages of charts that are no longer
+ * published.
+ */
 export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     bakedSiteDir: string,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    chartIdsToBake?: Set<number>
 ) => {
     const { chartsToBake, jobs } = await traceJob(
         "prepare-grapher-pages",
@@ -496,16 +502,16 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
             const archiveContextDictionary =
                 await getLatestArchivedChartPageVersionsIfEnabled(knex)
 
-            const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map(
-                (row) => ({
+            const jobs: BakeSingleGrapherChartArguments[] = chartsToBake
+                .filter((row) => !chartIdsToBake || chartIdsToBake.has(row.id))
+                .map((row) => ({
                     id: row.id,
                     config: row.config,
                     bakedSiteDir: bakedSiteDir,
                     slug: row.slug,
                     imageMetadataDictionary,
                     archiveContextDictionary,
-                })
-            )
+                }))
             return { chartsToBake, jobs }
         }
     )
