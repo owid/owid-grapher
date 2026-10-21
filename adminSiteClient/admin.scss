@@ -45,6 +45,8 @@ $admin-section: "section:not(:where(.GrapherComponent *))";
 @import "../site/slideshows/SlideContent.scss";
 @import "./SvgTesterSuitePage.scss";
 @import "./VariableList.scss";
+@import "./ChartList.scss";
+@import "./ChartSourceBadge.scss";
 
 html {
     font-size: 14px;

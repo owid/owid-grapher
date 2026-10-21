@@ -50,7 +50,6 @@ import {
 } from "../settings/clientSettings.mjs"
 import { deleteChart, References } from "./adminChartApi.js"
 import { getChartListItemEtlSource } from "./etlChartSync.js"
-import "./ChartList.scss"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {
