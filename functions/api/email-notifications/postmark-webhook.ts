@@ -2,6 +2,7 @@ import { Env } from "../../_common/env.js"
 import { validateEmailNotificationsDatabase } from "../../_common/emailNotifications.js"
 import { logErrorAndCaptureInSentry } from "../../_common/errorLog.js"
 import {
+    PostmarkDeliveryNotRecordedYetError,
     PostmarkWebhookEvent,
     applyPostmarkWebhookEvent,
     checkPostmarkWebhookAuthorization,
@@ -40,7 +41,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         await applyPostmarkWebhookEvent(env.EMAIL_NOTIFICATIONS_DB, event)
         return new Response(null, { status: 200 })
     } catch (error) {
-        logErrorAndCaptureInSentry("Failed to process Postmark webhook", error)
+        // Postmark retries it once the send job has recorded the message.
+        // Reporting it would bury real failures in Sentry.
+        if (error instanceof PostmarkDeliveryNotRecordedYetError) {
+            console.warn(error.message)
+        } else {
+            logErrorAndCaptureInSentry(
+                "Failed to process Postmark webhook",
+                error
+            )
+        }
         return new Response(null, { status: 500 })
     }
 }
