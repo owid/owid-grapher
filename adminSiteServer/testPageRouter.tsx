@@ -856,7 +856,22 @@ getPlainRouteWithROTransaction(
     "/multiDims",
     async (req, res, trx) => {
         const viewProps = getViewPropsFromQueryParams(req.query)
+        const parseCount = (param: unknown): number | undefined =>
+            typeof param === "string" ? parseIntOrUndefined(param) : undefined
+        // `dimensions` filters to an exact number of dimensions,
+        // `minDimensions` and `maxDimensions` to a range.
+        const exact = parseCount(req.query.dimensions)
+        const min = exact ?? parseCount(req.query.minDimensions)
+        const max = exact ?? parseCount(req.query.maxDimensions)
+
         const slugs = (await getAllPublishedMultiDimDataPages(trx))
+            .filter(({ config }) => {
+                const count = config.dimensions.length
+                return (
+                    (min === undefined || count >= min) &&
+                    (max === undefined || count <= max)
+                )
+            })
             .map((multiDim) => multiDim.slug)
             .sort((a, b) => a.localeCompare(b))
 
@@ -909,6 +924,20 @@ function MultiDimTestPage(props: MultiDimTestPageProps) {
             font-size: 18px;
             text-align: center;
         }
+
+        .help {
+            margin: 0;
+            padding: 10px;
+            font-size: 13px;
+            color: #5b5b5b;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .help code {
+            background: #f2f2f2;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
     `
 
     return (
@@ -921,6 +950,14 @@ function MultiDimTestPage(props: MultiDimTestPageProps) {
                 <style dangerouslySetInnerHTML={{ __html: style }} />
             </Head>
             <body>
+                <p className="help">
+                    Every published multi-dim, live on the left and this server
+                    on the right. Filter by number of dimensions with{" "}
+                    <code>?dimensions=2</code> (exact),{" "}
+                    <code>?minDimensions=3</code> and/or{" "}
+                    <code>?maxDimensions=3</code>, and compare against another
+                    server with <code>?comparisonUrl=https://…</code>.
+                </p>
                 <div className="row">
                     <div className="side-by-side">
                         {props.hasComparisonView && (
