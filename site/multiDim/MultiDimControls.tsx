@@ -52,6 +52,7 @@ const MultiDimControls = forwardRef<
                 }
                 const presentationType = resolveDimensionPresentationType({
                     dimension: fullDimension,
+                    numberOfDimensions: Object.keys(dimensions).length,
                     // `dim` holds just the choices available right now
                     availableChoiceCount: dim.choices.length,
                 })
