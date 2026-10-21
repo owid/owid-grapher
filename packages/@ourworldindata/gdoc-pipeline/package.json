@@ -67,7 +67,7 @@
         "remeda": "^2.42.0",
         "ts-pattern": "^5.8.0",
         "tsdown": "^0.23.0",
-        "vitest": "^5.0.0",
+        "vitest": "^5.0.5",
         "zod": "^4.5.4"
     },
     "license": "SEE LICENSE IN LICENSE.md"
