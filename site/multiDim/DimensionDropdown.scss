@@ -18,6 +18,9 @@ $selected-hover-fill: #bed2e7;
     padding: 4px 10px 4px 12px;
     height: $toggle-height;
     cursor: pointer;
+    // Fill the control when its label is wider than the current choice, so
+    // the button doesn't end short of the label above it.
+    align-self: stretch;
 
     svg {
         font-size: 12px;
@@ -65,7 +68,7 @@ $selected-hover-fill: #bed2e7;
 
 .md-settings__dropdown-caret {
     // Pushes the caret to the right edge when the button is wider than its
-    // content (mobile full-width layout).
+    // content (a wide label, or the mobile full-width layout).
     margin-left: auto;
 }
 
