@@ -75,6 +75,28 @@
     gap: 8px 24px;
 }
 
+// Above phone width, a long value wraps under its label rather than in a
+// column beside it
+@include sm-up {
+    .indicator-metadata-box .metadata-box-key-data__row {
+        display: block;
+    }
+
+    .indicator-metadata-box .metadata-box-key-data__key {
+        display: inline;
+        margin-right: 4px;
+    }
+
+    .indicator-metadata-box .metadata-box-key-data__value {
+        display: inline;
+
+        // The markdown p tag
+        p {
+            display: inline;
+        }
+    }
+}
+
 .indicator-metadata-box .indicator-metadata-box__reuse-notice {
     margin-top: 32px;
     // The summary below brings its own spacing
