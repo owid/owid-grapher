@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto"
 import fs from "fs-extra"
 import path from "path"
 
@@ -32,6 +33,8 @@ export type PageFingerprints = Record<string, string>
  */
 export interface BakeState {
     version: typeof BAKE_STATE_VERSION
+    /** The id in the baked directory's id file when the state was written */
+    bakedSiteId?: string
     steps: Partial<Record<IncrementalBakeStep, PageFingerprints>>
 }
 
@@ -46,6 +49,27 @@ const BAKE_STATE_VERSION = 1
 const getBakeStatePath = (bakedSiteDir: string): string =>
     `${path.resolve(bakedSiteDir)}.bake-state.json`
 
+/**
+ * A random id inside the baked directory, which the state must match. A
+ * directory that was deleted, emptied or replaced loses it, so its state —
+ * which describes pages that are gone — is ignored.
+ */
+const getBakedSiteIdPath = (bakedSiteDir: string): string =>
+    path.join(bakedSiteDir, "bake-state-id.txt")
+
+const getOrCreateBakedSiteId = async (
+    bakedSiteDir: string
+): Promise<string> => {
+    const idPath = getBakedSiteIdPath(bakedSiteDir)
+    try {
+        // `wx` fails if a concurrent bake created the file in the meantime
+        await fs.writeFile(idPath, randomUUID(), { flag: "wx" })
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error
+    }
+    return fs.readFile(idPath, "utf8")
+}
+
 const emptyBakeState = (): BakeState => ({
     version: BAKE_STATE_VERSION,
     steps: {},
@@ -55,11 +79,8 @@ export const readBakeState = async (
     bakedSiteDir: string
 ): Promise<BakeState> => {
     const statePath = getBakeStatePath(bakedSiteDir)
-    // A state whose directory was deleted describes pages that are gone
-    if (
-        !(await fs.pathExists(statePath)) ||
-        !(await fs.pathExists(bakedSiteDir))
-    )
+    const idPath = getBakedSiteIdPath(bakedSiteDir)
+    if (!(await fs.pathExists(statePath)) || !(await fs.pathExists(idPath)))
         return emptyBakeState()
     let state: Partial<BakeState>
     try {
@@ -77,6 +98,12 @@ export const readBakeState = async (
         )
         return emptyBakeState()
     }
+    if (state.bakedSiteId !== (await fs.readFile(idPath, "utf8"))) {
+        console.log(
+            `Ignoring bake state in ${statePath}: it doesn't belong to the pages in ${bakedSiteDir}`
+        )
+        return emptyBakeState()
+    }
     return state as BakeState
 }
 
@@ -89,6 +116,7 @@ export const writeBakeState = async (
     // truncated state file behind
     const statePath = getBakeStatePath(bakedSiteDir)
     const tmpPath = `${statePath}.${process.pid}.tmp`
+    state.bakedSiteId = await getOrCreateBakedSiteId(bakedSiteDir)
     await fs.writeJson(tmpPath, state)
     await fs.rename(tmpPath, statePath)
 }
