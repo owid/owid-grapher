@@ -32,10 +32,10 @@ import { codeToEntityName, entityNameToCode } from "./EntityCodes"
 const V1_DELIMITER = "+"
 export const ENTITY_V2_DELIMITER = "~"
 
-const isV1Param = (encodedQueryParam: string): boolean => {
+const isV1Param = (queryParam: string): boolean => {
     // No legacy entities have a v2Delimiter in their name,
-    // so if a v2Delimiter is present (raw or encoded) we know it's a v2 link.
-    return !/~|%7E/i.test(encodedQueryParam)
+    // so if a v2Delimiter is present we know it's a v2 link.
+    return !queryParam.includes(ENTITY_V2_DELIMITER)
 }
 
 const entityNamesFromV1EncodedParam = (
@@ -58,16 +58,15 @@ const entityNamesFromV2Param = (queryParam: string): EntityName[] => {
 }
 
 const migrateV1Delimited: UrlMigration = (url) => {
-    const { country } = url.encodedQueryParams
+    const { country } = url.queryParams
+    if (country === undefined || !isV1Param(country)) return url
 
-    if (country !== undefined && isV1Param(country)) {
-        return url.updateQueryParams({
-            country: entityNamesToV2Param(
-                entityNamesFromV1EncodedParam(country)
-            ),
-        })
-    }
-    return url
+    const encodedCountry = url.encodedQueryParams.country ?? ""
+    return url.updateQueryParams({
+        country: entityNamesToV2Param(
+            entityNamesFromV1EncodedParam(encodedCountry)
+        ),
+    })
 }
 
 /*
