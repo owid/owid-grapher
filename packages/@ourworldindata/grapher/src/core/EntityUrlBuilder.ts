@@ -1,5 +1,10 @@
 import { EntityName, SeriesName } from "@ourworldindata/types"
-import { Url, performUrlMigrations, UrlMigration } from "@ourworldindata/utils"
+import {
+    Url,
+    performUrlMigrations,
+    safeDecodeURIComponent,
+    UrlMigration,
+} from "@ourworldindata/utils"
 import { codeToEntityName, entityNameToCode } from "./EntityCodes"
 
 /*
@@ -30,7 +35,9 @@ export const ENTITY_V2_DELIMITER = "~"
 const isV1Param = (encodedQueryParam: string): boolean => {
     // No legacy entities have a v2Delimiter in their name,
     // so if a v2Delimiter is present we know it's a v2 link.
-    return !decodeURIComponent(encodedQueryParam).includes(ENTITY_V2_DELIMITER)
+    return !safeDecodeURIComponent(encodedQueryParam).includes(
+        ENTITY_V2_DELIMITER
+    )
 }
 
 const entityNamesFromV1EncodedParam = (
@@ -38,7 +45,7 @@ const entityNamesFromV1EncodedParam = (
 ): EntityName[] => {
     // need to use still-encoded URL params because we need to
     // distinguish between `+` and `%20` in legacy URLs
-    return encodedQueryParam.split(V1_DELIMITER).map(decodeURIComponent)
+    return encodedQueryParam.split(V1_DELIMITER).map(safeDecodeURIComponent)
 }
 
 const entityNamesToV2Param = (entityNames: EntityName[]): string => {
