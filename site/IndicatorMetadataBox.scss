@@ -188,6 +188,15 @@
     text-wrap: balance;
 }
 
+// Single sources have no toggle, so match the toggles' inset and titles
+.indicator-metadata-box .indicator-sources div.NonExpandable {
+    padding: 16px;
+
+    .NonExpandable__title {
+        text-wrap: balance;
+    }
+}
+
 // The processing notes read as part of the answer rather than as a callout
 .indicator-metadata-box
     .metadata-box-section--faqs
