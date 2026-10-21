@@ -9689,7 +9689,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"knex@npm:^3.1.0, knex@npm:^3.3.0":
+"knex@npm:^3.3.0":
   version: 3.3.0
   resolution: "knex@npm:3.3.0"
   dependencies:
