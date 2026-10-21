@@ -5,7 +5,6 @@ import { AutoComplete, Button, Input, Select } from "antd"
 import {
     CHART_SEARCH_FIELDS,
     ChartSearchFacet,
-    DATE_SPANS,
     getFacetValues,
     hasChartFilters,
     IS_VALUES,
@@ -190,19 +189,6 @@ export function ChartSearchToolbar({
         value: string | undefined
     ): void => setFacet(facet, value ? [value] : [])
 
-    const editedAfter = facetValues("edited-after")[0]
-    const editedAfterOptions: { value: string; label: string }[] = [
-        ...DATE_SPANS,
-    ]
-    if (
-        editedAfter &&
-        !editedAfterOptions.some((option) => option.value === editedAfter)
-    )
-        editedAfterOptions.push({
-            value: editedAfter,
-            label: `Since ${editedAfter}`,
-        })
-
     return (
         <div className="chart-search">
             <div className="chart-search__box">
@@ -288,17 +274,6 @@ export function ChartSearchToolbar({
                     optionRender={renderNameOption}
                     onChange={(values: string[]) => setFacet("author", values)}
                     popupMatchSelectWidth={280}
-                />
-                <Select
-                    className="chart-search__filter chart-search__filter--wide"
-                    placeholder="Last updated"
-                    allowClear
-                    value={editedAfter}
-                    options={editedAfterOptions}
-                    onChange={(value?: string) =>
-                        setSingleFacet("edited-after", value)
-                    }
-                    popupMatchSelectWidth={false}
                 />
                 {hasChartFilters(query) && (
                     <Button type="link" onClick={() => onQueryChange("")}>

@@ -1,5 +1,4 @@
 import * as _ from "lodash-es"
-import { dayjs } from "@ourworldindata/utils"
 import {
     parseSearchQuery,
     parseSearchTerm,
@@ -36,32 +35,9 @@ export const CHART_SEARCH_FIELDS = [
         type: "string",
         description: "Last edited or published by this person",
     },
-    {
-        name: "edited-after",
-        type: "date",
-        description:
-            "Last edited on or after a date (2026-01-31), or within a span (7d, 4w, 6m, 1y)",
-    },
-    {
-        name: "edited-before",
-        type: "date",
-        description: "Last edited before a date, or longer ago than a span",
-    },
-    {
-        name: "published-after",
-        type: "date",
-        description: "Published on or after a date, or within a span",
-    },
-    {
-        name: "published-before",
-        type: "date",
-        description: "Published before a date, or longer ago than a span",
-    },
 ] as const satisfies readonly SearchFieldHelp[]
 
 export type ChartSearchField = (typeof CHART_SEARCH_FIELDS)[number]["name"]
-
-type DateField = Extract<ChartSearchField, `${string}-${"after" | "before"}`>
 
 const FIELD_NAMES: ReadonlySet<string> = new Set(
     CHART_SEARCH_FIELDS.map((field) => field.name)
@@ -126,49 +102,6 @@ function facetOfTerm(term: SearchTerm): ChartSearchFacet | undefined {
     if (isTextTerm(term)) return undefined
     if (term.field === "is") return isValueOf(term.value)?.facet
     return term.field as ChartSearchFacet
-}
-
-/** Presets offered for the date fields; any other span or date can be typed. */
-export const DATE_SPANS = [
-    { value: "7d", label: "Past week" },
-    { value: "30d", label: "Past month" },
-    { value: "90d", label: "Past 3 months" },
-    { value: "1y", label: "Past year" },
-] as const
-
-const SPAN = /^(\d+)([dwmy])$/i
-const SPAN_UNITS = { d: "day", w: "week", m: "month", y: "year" } as const
-const DATE = /^\d{4}(-\d{2}(-\d{2})?)?$/
-
-/** A `2026-01-31` date, or the start of a `30d` span counted back from `now`. */
-export function parseDateValue(value: string, now: Date): Date | undefined {
-    const span = SPAN.exec(value)
-    if (span) {
-        const unit = span[2].toLowerCase() as keyof typeof SPAN_UNITS
-        return dayjs(now).subtract(Number(span[1]), SPAN_UNITS[unit]).toDate()
-    }
-    if (!DATE.test(value)) return undefined
-    const date = dayjs(value)
-    return date.isValid() ? date.toDate() : undefined
-}
-
-function dateFilter(
-    field: DateField,
-    value: string,
-    now: Date
-): ((chart: ChartListItem) => boolean) | undefined {
-    const bound = parseDateValue(value, now)
-    if (!bound) return undefined
-    const timeOf = (chart: ChartListItem): string | undefined =>
-        field.startsWith("edited") ? chart.lastEditedAt : chart.publishedAt
-    const isAfter = field.endsWith("after")
-    return (chart) => {
-        const time = timeOf(chart)
-        // a draft that was never published is neither before nor after a date
-        if (!time) return false
-        const date = new Date(time)
-        return isAfter ? date >= bound : date < bound
-    }
 }
 
 /**
@@ -236,14 +169,12 @@ function chartTextFields(chart: ChartListItem): (string | undefined)[] {
  * The filter a query describes, over the charts it will run on (which also
  * tell a finished tag or author name from one still being typed).
  *
- * A known field with no value yet, an `is:` value that isn't one and a date
- * that doesn't parse narrow nothing, so the list doesn't empty while a term
- * is being typed.
+ * A known field with no value yet and an `is:` value that isn't one narrow
+ * nothing, so the list doesn't empty while a term is being typed.
  */
 export function chartSearchFilter(
     query: string,
-    charts: readonly ChartListItem[],
-    now: Date = new Date()
+    charts: readonly ChartListItem[]
 ): (chart: ChartListItem) => boolean {
     const terms = parseSearchQuery(query)
 
@@ -290,10 +221,6 @@ export function chartSearchFilter(
                         matches(chart.publishedBy)
                 )
                 break
-            }
-            default: {
-                const test = dateFilter(facet, term.value, now)
-                if (test) add(test)
             }
         }
     }
@@ -412,7 +339,6 @@ export type SuggestionGroup =
     | "Tags"
     | "Authors"
     | "Status and source"
-    | "Dates"
     | "Filters"
 
 export interface ChartSearchSuggestion {
@@ -561,8 +487,8 @@ function trailingPhrases(query: string): Phrase[] {
 }
 
 /**
- * Filter terms for what is being typed. After `tag:`, `author:`, `is:` or a
- * date field, its values; after a plain word, the tags, people, statuses and
+ * Filter terms for what is being typed. After `tag:`, `author:` or `is:`, its
+ * values; after a plain word, the tags, people, statuses and
  * fields it could mean, so that typing "energy" offers `tag:Energy` without
  * getting in the way of searching titles for it.
  */
@@ -649,14 +575,6 @@ export function suggestChartSearchTerms(
                 return authorSuggestions(term.value, MAX_NAMES.field)
             case "is":
                 return isSuggestions(term.value)
-            default:
-                return DATE_SPANS.filter((span) =>
-                    span.value.startsWith(term.value.toLowerCase())
-                ).map((span) => ({
-                    query: withTerm(field, span.value),
-                    group: "Dates",
-                    label: `${formatTerm(field, span.value)} — ${span.label.toLowerCase()}`,
-                }))
         }
     }
 

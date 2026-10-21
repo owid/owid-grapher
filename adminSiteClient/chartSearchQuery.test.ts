@@ -74,10 +74,8 @@ const CHARTS = [
     }),
 ]
 
-const NOW = new Date("2026-10-21T00:00:00Z")
-
 function ids(query: string, charts = CHARTS): number[] {
-    const filter = chartSearchFilter(query, charts, NOW)
+    const filter = chartSearchFilter(query, charts)
     return charts.filter(filter).map((c) => c.id!)
 }
 
@@ -120,24 +118,8 @@ describe(chartSearchFilter, () => {
         expect(ids("author:grace")).toEqual([4])
     })
 
-    it("filters on dates and spans counted back from now", () => {
-        expect(ids("edited-after:2026-01-01")).toEqual([1, 2, 3])
-        expect(ids("edited-before:2026-01-01")).toEqual([4])
-        expect(ids("edited-after:30d")).toEqual([1, 2, 3])
-        expect(ids("edited-after:1y")).toEqual([1, 2, 3])
-        expect(ids("edited-after:2y")).toEqual([1, 2, 3, 4])
-        // a chart that was never published is neither before nor after
-        expect(ids("published-before:2030-01-01")).toEqual([1, 2, 3])
-    })
-
     it("narrows nothing on a term that isn't finished or isn't valid", () => {
-        for (const query of [
-            "tag:",
-            "is:",
-            "is:dra",
-            "edited-after:20",
-            "author:",
-        ])
+        for (const query of ["tag:", "is:", "is:dra", "author:"])
             expect(ids(query)).toEqual([1, 2, 3, 4])
     })
 
