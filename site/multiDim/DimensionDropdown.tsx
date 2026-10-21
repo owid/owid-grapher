@@ -127,7 +127,13 @@ export default function DimensionDropdown({
                 ([groupLabel, groupChoices]) => (
                     // Choices without a group end up in a single
                     // section keyed "undefined", which has no label.
-                    <ListBoxSection key={groupLabel} className="md-menu__group">
+                    <ListBoxSection
+                        key={groupLabel}
+                        className={cx("md-menu__group", {
+                            "md-menu__group--labeled":
+                                groupLabel !== "undefined",
+                        })}
+                    >
                         {groupLabel !== "undefined" && (
                             <Header className="md-menu__group-label label-2-bold">
                                 {groupLabel}
