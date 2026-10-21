@@ -61,12 +61,24 @@ export function classifySliceFromDimensions(
         return undefined
     if (_.uniq(defined.map((d) => d.tablePath ?? "")).length !== 1)
         return undefined
-    const valuesByName = new Map<string, Set<string>>()
-    for (const d of defined)
-        for (const f of d.filters ?? []) {
-            if (!valuesByName.has(f.name)) valuesByName.set(f.name, new Set())
-            valuesByName.get(f.name)!.add(String(f.value))
-        }
+    // A filter missing from some indicators varies too: count "absent" as
+    // one more value, or {age, sex} on three indicators and {age} on a fourth
+    // would read as varying on age alone.
+    const ABSENT = "\u0000absent"
+    const names = _.uniq(
+        defined.flatMap((d) => (d.filters ?? []).map((f) => f.name))
+    )
+    const valuesByName = new Map<string, Set<string>>(
+        names.map((name) => [
+            name,
+            new Set(
+                defined.map((d) => {
+                    const f = (d.filters ?? []).find((x) => x.name === name)
+                    return f ? String(f.value) : ABSENT
+                })
+            ),
+        ])
+    )
     const varying = [...valuesByName.entries()].filter(([, vs]) => vs.size > 1)
     if (varying.length !== 1) return undefined
     const [name, values] = varying[0]

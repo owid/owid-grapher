@@ -1350,7 +1350,8 @@ export async function getVariableSliceDimensions(
 
 /**
  * Display title and, where one exists, a data page slug for each variable —
- * used for the scatter plot's bubble-size / colour line. When several charts
+ * used for the scatter plot's bubble-size / colour line. Only a published
+ * single-indicator chart counts as a variable's data page. When several charts
  * are the data page of the same variable, the shortest slug wins (it is
  * almost always the canonical one: `population` over
  * `population-with-un-projections`).
@@ -1378,6 +1379,14 @@ export async function getAuxiliaryIndicatorLinks(
                     JOIN chart_configs cc ON cc.id = c.configId
                     WHERE dp.variableId = v.id
                       AND cc.config ->> "$.isPublished" = "true"
+                      -- a forced data page can be a multi-indicator chart
+                      -- whose first Y happens to be this variable; that
+                      -- page is not this variable's own data page
+                      AND (
+                          SELECT COUNT(*)
+                          FROM chart_dimensions cd
+                          WHERE cd.chartId = c.id AND cd.property = 'y'
+                      ) = 1
                     ORDER BY CHAR_LENGTH(cc.slug), cc.slug
                     LIMIT 1
                 ) AS slug

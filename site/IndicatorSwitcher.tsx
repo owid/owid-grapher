@@ -198,7 +198,10 @@ export const IndicatorDropdownSelect = ({
     onIndicatorChange: (i: number) => void
 }) => {
     const activeDatapageData = indicators[activeIndex].datapageData
-    const indicatorTitle = activeDatapageData.title.title
+    // Same label as the pills (chart dimension name first), minus the
+    // variant, which renders separately below the trigger.
+    const indicatorTitle =
+        activeDatapageData.chartDimensionName ?? activeDatapageData.title.title
     if (!indicatorTitle) return null
     const titleVariant = activeDatapageData.titleVariant?.trim()
 

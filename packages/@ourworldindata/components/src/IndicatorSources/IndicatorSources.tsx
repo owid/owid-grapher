@@ -146,9 +146,9 @@ const SourceContent = (props: {
                         </div>
                     )}
                     {variants &&
-                        variants.map((v) => (
+                        variants.map((v, i) => (
                             <div
-                                key={v.label}
+                                key={`${i}-${v.label}`}
                                 className="source-key-data source-key-data--span-2 source-key-data--variant"
                             >
                                 <div className="source-key-data__title">

@@ -48,6 +48,7 @@ import {
     getIndicatorChartConfig,
     getVariableMetadata,
     getVariableOfDatapageIfApplicable,
+    getDatapageIndicatorId,
     getOwnersForVariables,
     getVariableSliceDimensions,
     getAuxiliaryIndicatorLinks,
@@ -107,8 +108,13 @@ const renderDatapageIfApplicable = async (
         // this cycle rather than failing the whole charts bake / archival run
         // — the fetch is awaited uncaught by SiteBaker's pMap and by the
         // archival loop. Charts with a real `datapages` row keep failing
-        // loudly, exactly as on master.
+        // loudly, exactly as on master. (Checked only on this failure path,
+        // so a normal bake doesn't pay for a second `datapages` lookup; a DB
+        // error here propagates, which is the loud failure we want.)
         if (!forceDatapage) throw error
+        const hasDatapagesRow =
+            (await getDatapageIndicatorId(knex, grapher)) !== undefined
+        if (hasDatapagesRow) throw error
         await logErrorAndMaybeCaptureInSentry(
             new Error(
                 `Data page error loading primary indicator for forced datapage ${grapher.slug}, baking as grapher page: ${error}`
@@ -393,9 +399,8 @@ export async function renderDataPageV2(
         varId: number,
         metadata: OwidVariableWithSource
     ): string | undefined =>
-        paneDimensionFor(varId)?.display?.name ??
-        metadata.display?.name ??
-        metadata.name
+        chartDimensionNameFor(varId) ??
+        (metadata.display?.name?.trim() || metadata.name)
 
     const additionalPaneVariableIds = _.uniq(
         _.compact(paneDimensions.map((d) => d.variableId))

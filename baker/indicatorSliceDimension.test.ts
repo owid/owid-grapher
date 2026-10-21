@@ -93,6 +93,16 @@ describe(classifySliceFromDimensions, () => {
             classifySliceFromDimensions([dim({ age: "0-4" }), undefined])
         ).toBeUndefined()
     })
+    it("counts a filter missing from some indicators as varying", () => {
+        expect(
+            classifySliceFromDimensions([
+                dim({ age: "0-4", sex: "both" }),
+                dim({ age: "5-9", sex: "both" }),
+                dim({ age: "10-14", sex: "both" }),
+                dim({ age: "15-19" }),
+            ])
+        ).toBeUndefined()
+    })
     it("keeps the list when an age-standardized series sits among the brackets", () => {
         expect(
             classifySliceFromDimensions(
