@@ -743,15 +743,21 @@ function StitchedIndicatorList({
     const sharedVariant = datapageData.titleVariant?.trim()
     const variantPhrase = sharedVariant ? ` (${sharedVariant})` : ""
     // Up to five entries always show in full. A longer list shows its first
-    // three while the box is closed, followed by a muted "+N more
-    // indicators" note (plain text: the box's own "Show more" is the one
-    // control). The folded entries belong to the expander's content, like
-    // the WYSK remainder, so opening the box shows every entry. Folded
-    // entries stay in the DOM, hidden, for raw-HTML consumers.
+    // three and a "+N more indicators" line: plain muted text while the box
+    // is closed (the box's "Show more" is the one control there), a button
+    // once the box is open, which reveals the rest. Closing the box folds
+    // the list again. Folded entries stay in the DOM, hidden, for raw-HTML
+    // consumers.
     const SHOW_ALL_UP_TO = 5
     const FOLD_AFTER = 3
-    const expanded = entries.length <= SHOW_ALL_UP_TO || expanderOpen
+    const [showFolded, setShowFolded] = useState(false)
+    useEffect(() => {
+        if (!expanderOpen) setShowFolded(false)
+    }, [expanderOpen])
+    const expanded =
+        entries.length <= SHOW_ALL_UP_TO || (expanderOpen && showFolded)
     const nFolded = entries.length - FOLD_AFTER
+    const moreLabel = `+${nFolded} more indicators`
     // The list renders as a meta-expander__prose block so it inherits the
     // WYSK's exact type and spacing and reads as the paragraph before it.
     const blockClass =
@@ -826,7 +832,18 @@ function StitchedIndicatorList({
             </ol>
             {!expanded && (
                 <p className="indicator-metadata-box__stitched-list-more">
-                    +{nFolded} more indicators
+                    {expanderOpen ? (
+                        <button
+                            type="button"
+                            className="indicator-metadata-box__stitched-list-more-button"
+                            onClick={() => setShowFolded(true)}
+                            data-track-note="metadata_box_indicator_list_toggle"
+                        >
+                            {moreLabel}
+                        </button>
+                    ) : (
+                        moreLabel
+                    )}
                 </p>
             )}
         </div>
