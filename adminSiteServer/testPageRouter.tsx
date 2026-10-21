@@ -856,18 +856,36 @@ getPlainRouteWithROTransaction(
     "/multiDims",
     async (req, res, trx) => {
         const viewProps = getViewPropsFromQueryParams(req.query)
-        const slugs = (await getAllPublishedMultiDimDataPages(trx))
-            .map((multiDim) => multiDim.slug)
-            .sort((a, b) => a.localeCompare(b))
+        const parseCount = (param: unknown): number | undefined =>
+            typeof param === "string" ? parseIntOrUndefined(param) : undefined
+        // `dimensions` filters to an exact number of dimensions,
+        // `minDimensions` and `maxDimensions` to a range.
+        const exact = parseCount(req.query.dimensions)
+        const min = exact ?? parseCount(req.query.minDimensions)
+        const max = exact ?? parseCount(req.query.maxDimensions)
+
+        const multiDims = (await getAllPublishedMultiDimDataPages(trx))
+            .map((multiDim) => ({
+                slug: multiDim.slug,
+                dimensionCount: multiDim.config.dimensions.length,
+            }))
+            .filter(
+                ({ dimensionCount }) =>
+                    (min === undefined || dimensionCount >= min) &&
+                    (max === undefined || dimensionCount <= max)
+            )
+            .sort((a, b) => a.slug.localeCompare(b.slug))
 
         res.send(
-            renderToHtmlPage(<MultiDimTestPage slugs={slugs} {...viewProps} />)
+            renderToHtmlPage(
+                <MultiDimTestPage multiDims={multiDims} {...viewProps} />
+            )
         )
     }
 )
 
 interface MultiDimTestPageProps {
-    slugs: string[]
+    multiDims: { slug: string; dimensionCount: number }[]
     comparisonUrl: string
     hasComparisonView: boolean
 }
@@ -909,6 +927,20 @@ function MultiDimTestPage(props: MultiDimTestPageProps) {
             font-size: 18px;
             text-align: center;
         }
+
+        .help {
+            margin: 0;
+            padding: 10px;
+            font-size: 13px;
+            color: #5b5b5b;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .help code {
+            background: #f2f2f2;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
     `
 
     return (
@@ -921,6 +953,14 @@ function MultiDimTestPage(props: MultiDimTestPageProps) {
                 <style dangerouslySetInnerHTML={{ __html: style }} />
             </Head>
             <body>
+                <p className="help">
+                    Every published multi-dim, live on the left and this server
+                    on the right. Filter by number of dimensions with{" "}
+                    <code>?dimensions=2</code> (exact),{" "}
+                    <code>?minDimensions=3</code> and/or{" "}
+                    <code>?maxDimensions=3</code>, and compare against another
+                    server with <code>?comparisonUrl=https://…</code>.
+                </p>
                 <div className="row">
                     <div className="side-by-side">
                         {props.hasComparisonView && (
@@ -929,10 +969,12 @@ function MultiDimTestPage(props: MultiDimTestPageProps) {
                         <h3>{BAKED_BASE_URL}</h3>
                     </div>
                 </div>
-                {props.slugs.map((slug, index) => (
+                {props.multiDims.map(({ slug, dimensionCount }, index) => (
                     <div key={slug} className="row">
                         <h3>
-                            {slug} ({index + 1}/{props.slugs.length})
+                            {slug} ({index + 1}/{props.multiDims.length},{" "}
+                            {dimensionCount}{" "}
+                            {dimensionCount === 1 ? "dimension" : "dimensions"})
                         </h3>
                         <div className="side-by-side">
                             {props.hasComparisonView && (
