@@ -189,7 +189,10 @@
 }
 
 // The processing notes read as part of the answer rather than as a callout
-.indicator-metadata-box .indicator-processing .indicator-processing-callout {
+.indicator-metadata-box
+    .metadata-box-section--faqs
+    .indicator-processing
+    .indicator-processing-callout {
     margin: 24px 0 0;
     padding: 0;
 
