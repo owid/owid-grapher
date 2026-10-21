@@ -384,7 +384,7 @@ export default function IndicatorMetadataBox({
             id={id}
         >
             <div className="indicator-metadata-box__header">
-                <h2 className="indicator-metadata-box__title body-2-bold-tight">
+                <h2 className="indicator-metadata-box__title">
                     {datapageData.title.title}
                     <span className="indicator-metadata-box__title-variant">
                         {datapageData.titleVariant}

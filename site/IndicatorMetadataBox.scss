@@ -38,6 +38,14 @@
     margin-top: 12px;
 }
 
+.indicator-metadata-box .metadata-box-expander__prose {
+    p,
+    ul,
+    ol {
+        @include body-3-regular;
+    }
+}
+
 .indicator-metadata-box .indicator-metadata-box__description-key-title {
     @include body-2-bold-tight;
     color: $blue-90;
@@ -73,12 +81,13 @@
 }
 
 .indicator-metadata-box__title {
+    @include h3-bold;
     margin: 0;
     color: $blue-90;
 }
 
 .indicator-metadata-box__title-variant {
-    @include note-13-medium;
+    @include body-3-regular;
     margin-left: 8px;
     color: $blue-50;
 }
@@ -86,7 +95,13 @@
 // The key data flows as one line of label-value pairs, wrapping when it
 // doesn't fit
 .indicator-metadata-box .metadata-box-key-data {
+    margin-top: 4px;
     gap: 8px 24px;
+}
+
+.indicator-metadata-box .metadata-box-key-data__key,
+.indicator-metadata-box .metadata-box-key-data__value {
+    @include body-3-regular;
 }
 
 // Above phone width, a long value wraps under its label rather than in a
