@@ -9,13 +9,13 @@ export interface DbInsertDataset {
     dataEditedByUserId: number
     description: string
     id?: number
-    isArchived?: number
-    isPrivate?: number
+    isArchived?: boolean
+    isPrivate?: boolean
     metadataEditedAt: Date
     metadataEditedByUserId: number
     name: string
     namespace: string
-    nonRedistributable?: number
+    nonRedistributable?: boolean
     // JSON array of OWID team-member display names who maintain this dataset;
     // the first entry is the accountable owner. Populated from ETL via
     // DatasetMeta.owners. Stored as a JSON string; parse before use.

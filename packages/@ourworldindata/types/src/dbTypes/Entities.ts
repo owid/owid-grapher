@@ -5,6 +5,6 @@ export interface DbInsertEntity {
     id?: number
     name: string
     updatedAt?: Date
-    validated: number
+    validated: boolean
 }
 export type DbPlainEntity = Required<DbInsertEntity>
