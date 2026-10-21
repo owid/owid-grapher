@@ -4,6 +4,7 @@ import {
     EmailNotificationsContentType,
     EmailNotificationsFrequency,
     EmailNotificationsPreferences,
+    TopicAreaName,
 } from "@ourworldindata/types"
 import { EmailNotificationsPreferenceFieldsProps } from "./EmailNotificationsPreferenceFields.js"
 import {
@@ -84,7 +85,12 @@ export function useNotificationPreferences(
         },
         setTopicTags,
         forStorage: () => ({
-            topicTags: topicTagsForStorage(topicTags, topicAreaNames),
+            // The form only ever toggles names from topicAreaNames, which is
+            // TOPIC_AREA_NAMES at both call sites.
+            topicTags: topicTagsForStorage(
+                topicTags,
+                topicAreaNames
+            ) as TopicAreaName[],
             contentTypes,
             frequency,
         }),

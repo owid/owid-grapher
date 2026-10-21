@@ -1,13 +1,15 @@
 import * as z from "zod/mini"
+import { TOPIC_AREA_NAMES } from "./domainTypes/ContentGraph.js"
 import {
     EMAIL_NOTIFICATIONS_CONTENT_TYPES,
     EMAIL_NOTIFICATIONS_FREQUENCIES,
 } from "./EmailNotificationsTypes.js"
 
 export const EmailNotificationsPreferencesTypeObject = z.object({
+    // An empty array means "all topics".
     topicTags: z
-        .array(z.string().check(z.minLength(1), z.maxLength(100)))
-        .check(z.maxLength(64)),
+        .array(z.enum(TOPIC_AREA_NAMES))
+        .check(z.maxLength(TOPIC_AREA_NAMES.length)),
     contentTypes: z
         .array(z.enum(EMAIL_NOTIFICATIONS_CONTENT_TYPES))
         .check(
