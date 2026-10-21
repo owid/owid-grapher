@@ -29,27 +29,31 @@ Keep local files in your session scratchpad directory, and use their absolute pa
 
 The routes are under `$HOST/admin/api`. Errors come back as `{ "error": { "message", "status" } }`; the first line of `message` says what went wrong.
 
-## Edit a doc
+## Read a doc
 
-Change a local copy of the text with `Edit`, then send that file. **Never retype the doc into a request** — that is where content gets lost.
+Works on any registered doc, published or not.
 
-1. Get the doc, check the response for `.error` (see Refusals), then save its text, exactly, to a local file:
+1. Get the doc and check the response for `.error` (see Refusals):
 
     ```sh
     curl -s "$HOST/admin/api/gdocs/$ID/archieml" > doc.json
     jq '.error' doc.json
     ```
 
-    Only when that prints `null`:
+2. Only when that prints `null`, save its text, exactly, to a local file:
 
     ```sh
     jq -j .text doc.json > doc.archieml
     jq -r .revisionId doc.json
     ```
 
-    `jq -j` keeps the text byte-exact (no added trailing newline). Keep the `revisionId`.
+    `jq -j` keeps the text byte-exact (no added trailing newline).
 
-    If `jq .published doc.json` prints `true`, stop: tell the user the doc is published and can only be read.
+## Edit a doc
+
+Change a local copy of the text with `Edit`, then send that file. **Never retype the doc into a request** — that is where content gets lost.
+
+1. Read the doc (see "Read a doc") and keep its `revisionId`. If `jq .published doc.json` prints `true`, stop: tell the user the doc is published and can only be read.
 
 2. `Read` `doc.archieml`, then make the change with `Edit`. Touch only the lines that need to change.
 
@@ -83,7 +87,7 @@ Mirror a real doc of the same type. Field lists alone miss the structure (e.g. a
 
     If that prints `null` too, there is no doc of the type: build from the fields in `$HOST/admin/api/gdocs-reference/templates.json`, and tell the user the structure is unverified.
 
-2. GET the exemplar into a local file, as in "Edit a doc" step 1 (`exemplar.json` → `exemplar.archieml`), then `Read` it. It is read-only: a PUT on it returns 403, as does a PUT on any doc in a shared drive. Never send it.
+2. Read the exemplar as in "Read a doc" (`exemplar.json` → `exemplar.archieml`), then `Read` the local file. It is usually published and always read-only: a PUT on it returns 403, as does a PUT on any doc in a shared drive. Never send it.
 3. `Write` the new doc to a local file, e.g. `new.archieml`. Mirror the exemplar's front matter and block layout; replace its content with yours. For block syntax, see `$HOST/admin/api/gdocs-reference/components.json`.
 4. Share with the **Claude session's account email** (the user's email from your session context). If you don't know it, ask. Never guess.
 5. Encode the email (a `+` in it would otherwise read as a space):
