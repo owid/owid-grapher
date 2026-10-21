@@ -149,7 +149,7 @@
         "polylabel": "^2.1.0",
         "progress": "^2.0.3",
         "react": "^19.2.4",
-        "react-aria-components": "^1.21.0",
+        "react-aria-components": "^1.22.1",
         "react-diff-viewer-continued": "^4.4.0",
         "react-dom": "^19.2.4",
         "react-horizontal-scrolling-menu": "^8.2.0",
@@ -183,7 +183,7 @@
     "devDependencies": {
         "@playwright/test": "^1.63.0",
         "@pydantic/genai-prices": "^0.1.11",
-        "@react-aria/optimize-locales-plugin": "^2.0.2",
+        "@react-aria/optimize-locales-plugin": "^2.1.0",
         "@rmp135/sql-ts": "^2.1.0",
         "@rollup/plugin-swc": "^0.4.1",
         "@sentry/bundler-plugins": "^11.8.0",
