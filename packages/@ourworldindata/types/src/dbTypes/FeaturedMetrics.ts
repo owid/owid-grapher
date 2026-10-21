@@ -13,7 +13,7 @@ export interface DbInsertFeaturedMetric {
     url: string
     parentTagId: number
     ranking: number
-    incomeGroup: FeaturedMetricIncomeGroup
+    incomeGroup?: FeaturedMetricIncomeGroup
     boostInSearch?: boolean
 }
 
