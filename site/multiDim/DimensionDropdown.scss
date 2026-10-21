@@ -292,4 +292,10 @@ $selected-hover-fill: #bed2e7;
     @include sm-only {
         width: 264px;
     }
+
+    // Where the button spans the full width, the menu matches it.
+    // --trigger-width comes from react-aria on the popover.
+    @media (width <= $toggle-full-width-breakpoint) {
+        width: var(--trigger-width);
+    }
 }
