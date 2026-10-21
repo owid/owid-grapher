@@ -1,6 +1,7 @@
 .indicator-metadata-box {
     --indicator-processing-background: transparent;
     --indicator-processing-title: #{$blue-90};
+    --indicator-sources-key-data-title: #{$blue-50};
     --indicator-metadata-box-padding: 24px;
     padding: var(--indicator-metadata-box-padding);
     background-color: $blue-5;
@@ -204,6 +205,11 @@
     .ExpandableToggle__title {
     line-height: calc(22 / 16);
     text-wrap: balance;
+}
+
+// Retrieved on, Retrieved from and Citation: light labels, dark values
+.indicator-metadata-box .indicator-sources .source-key-data__content {
+    color: $blue-90;
 }
 
 // Single sources have no toggle, so match the toggles' inset and titles
