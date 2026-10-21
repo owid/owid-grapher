@@ -1,4 +1,6 @@
 .indicator-metadata-box {
+    --indicator-processing-background: transparent;
+    --indicator-processing-title: #{$blue-90};
     padding: 24px;
     background-color: $blue-5;
     grid-template-columns: repeat(12, 1fr);
@@ -104,6 +106,19 @@
 
 .indicator-metadata-box .ExpandableToggle__title {
     text-wrap: balance;
+}
+
+// The processing notes read as part of the answer rather than as a callout
+.indicator-metadata-box .indicator-processing .indicator-processing-callout {
+    margin: 24px 0 0;
+    padding: 0;
+
+    .indicator-processing-callout__title {
+        @include body-3-bold;
+        letter-spacing: normal;
+        text-transform: none;
+        margin: 0;
+    }
 }
 
 // Restore list indentation lost to the global `ul, ol { padding: 0 }` reset
