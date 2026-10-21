@@ -863,6 +863,7 @@ getPlainRouteWithROTransaction(
         const exact = parseCount(req.query.dimensions)
         const min = exact ?? parseCount(req.query.minDimensions)
         const max = exact ?? parseCount(req.query.maxDimensions)
+        const isMobile = req.query.mobile === "true"
 
         const slugs = (await getAllPublishedMultiDimDataPages(trx))
             .filter(({ config }) => {
@@ -876,13 +877,20 @@ getPlainRouteWithROTransaction(
             .sort((a, b) => a.localeCompare(b))
 
         res.send(
-            renderToHtmlPage(<MultiDimTestPage slugs={slugs} {...viewProps} />)
+            renderToHtmlPage(
+                <MultiDimTestPage
+                    slugs={slugs}
+                    isMobile={isMobile}
+                    {...viewProps}
+                />
+            )
         )
     }
 )
 
 interface MultiDimTestPageProps {
     slugs: string[]
+    isMobile: boolean
     comparisonUrl: string
     hasComparisonView: boolean
 }
@@ -925,6 +933,20 @@ function MultiDimTestPage(props: MultiDimTestPageProps) {
             text-align: center;
         }
 
+        /* Mobile mode: phone-sized frames (iPhone 14 viewport) */
+        .mobile .side-by-side {
+            justify-content: center;
+        }
+
+        .mobile iframe,
+        .mobile .side-by-side > h3 {
+            flex: 0 0 390px;
+        }
+
+        .mobile iframe {
+            height: 844px;
+        }
+
         .help {
             margin: 0;
             padding: 10px;
@@ -949,13 +971,14 @@ function MultiDimTestPage(props: MultiDimTestPageProps) {
             >
                 <style dangerouslySetInnerHTML={{ __html: style }} />
             </Head>
-            <body>
+            <body className={props.isMobile ? "mobile" : undefined}>
                 <p className="help">
                     Every published multi-dim, live on the left and this server
                     on the right. Filter by number of dimensions with{" "}
                     <code>?dimensions=2</code> (exact),{" "}
                     <code>?minDimensions=3</code> and/or{" "}
-                    <code>?maxDimensions=3</code>, and compare against another
+                    <code>?maxDimensions=3</code>, view them at phone size with{" "}
+                    <code>?mobile=true</code>, and compare against another
                     server with <code>?comparisonUrl=https://…</code>.
                 </p>
                 <div className="row">
