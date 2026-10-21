@@ -5,7 +5,7 @@ describe("EmailNotificationsSubscribeRequestTypeObject validation", () => {
     const validRequest = {
         email: "user@example.com",
         notifications: {
-            topicTags: ["Energy", "Climate Change"],
+            topicTags: ["Energy and Environment", "Health"],
             contentTypes: ["article", "data-insight"],
             frequency: "weekly",
         },
@@ -97,12 +97,12 @@ describe("EmailNotificationsSubscribeRequestTypeObject validation", () => {
         expect(result.success).toBe(false)
     })
 
-    it("rejects too many topic tags", () => {
+    it("rejects topic tags that aren't top-level topic areas", () => {
         const result = EmailNotificationsSubscribeRequestTypeObject.safeParse({
             ...validRequest,
             notifications: {
                 ...validRequest.notifications,
-                topicTags: Array.from({ length: 65 }, (_, i) => `Topic ${i}`),
+                topicTags: ["Health", "Climate Change"],
             },
         })
         expect(result.success).toBe(false)
