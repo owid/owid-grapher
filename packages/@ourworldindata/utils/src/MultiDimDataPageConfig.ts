@@ -250,12 +250,13 @@ export function getMultiDimPageTitle(
 /**
  * Which control a dimension should be rendered as. An explicit
  * `presentation.type` in the config always wins; otherwise dimensions with at
- * most two ungrouped choices render as a radio group,
+ * most two ungrouped choices render as a radio group (at most four when the
+ * page has only this one dimension, so there's room for a wider control),
  * dropdowns offering at least ten choices get a search field, and
  * everything else is a plain dropdown.
  *
- * Radio group or dropdown is decided on the dimension's full choice list,
- * so a control doesn't switch type
+ * Radio group or dropdown is decided on the dimension's full choice list and
+ * the config's total number of dimensions, so a control doesn't switch type
  * as other selections change. The search field is decided on the number of
  * choices currently available (`availableChoiceCount`): what matters is how
  * many options the menu actually lists, and at worst the field comes and goes
@@ -264,14 +265,18 @@ export function getMultiDimPageTitle(
  */
 export function resolveDimensionPresentationType({
     dimension,
+    numberOfDimensions,
     availableChoiceCount,
 }: {
     dimension: Dimension
+    numberOfDimensions: number
     availableChoiceCount: number
 }): DimensionPresentationType {
     if (dimension.presentation?.type) return dimension.presentation.type
     const hasGroups = dimension.choices.some((choice) => choice.group)
-    if (dimension.choices.length <= 2 && !hasGroups) return "radio"
+    const maxRadioChoices = numberOfDimensions === 1 ? 4 : 2
+    if (dimension.choices.length <= maxRadioChoices && !hasGroups)
+        return "radio"
     return availableChoiceCount >= 10 ? "dropdown-with-search" : "dropdown"
 }
 

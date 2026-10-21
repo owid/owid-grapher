@@ -118,18 +118,20 @@ describe(resolveDimensionPresentationType, () => {
     // available.
     const resolveWith = (
         dimension: Dimension,
+        numberOfDimensions: number,
         availableChoiceCount = dimension.choices.length
     ): string =>
         resolveDimensionPresentationType({
             dimension,
+            numberOfDimensions,
             availableChoiceCount,
         })
 
-    describe("automatic control selection", () => {
+    describe("on a page with several dimensions", () => {
         const resolve = (
             dimension: Dimension,
             availableChoiceCount?: number
-        ): string => resolveWith(dimension, availableChoiceCount)
+        ): string => resolveWith(dimension, 3, availableChoiceCount)
 
         it("defaults to radio for at most two choices", () => {
             expect(resolve(makeDimension(1))).toBe("radio")
@@ -166,30 +168,59 @@ describe(resolveDimensionPresentationType, () => {
         })
     })
 
+    // A lone dimension has the whole controls row to itself, so a radio
+    // group stays readable with a few more choices.
+    describe("on a page with a single dimension", () => {
+        const resolve = (dimension: Dimension): string =>
+            resolveWith(dimension, 1)
+
+        it("defaults to radio for at most four choices", () => {
+            expect(resolve(makeDimension(3))).toBe("radio")
+            expect(resolve(makeDimension(4))).toBe("radio")
+        })
+
+        it("defaults to dropdown for more than four choices", () => {
+            expect(resolve(makeDimension(5))).toBe("dropdown")
+        })
+
+        it("defaults to dropdown when choices are grouped", () => {
+            const dimension = makeDimension(3)
+            dimension.choices[0].group = "Group"
+            expect(resolve(dimension)).toBe("dropdown")
+        })
+    })
+
     it("respects an explicit presentation type", () => {
         expect(
             resolveWith(
-                makeDimension(2, { presentation: { type: "dropdown" } })
+                makeDimension(2, { presentation: { type: "dropdown" } }),
+                3
             )
         ).toBe("dropdown")
         expect(
             resolveWith(
-                makeDimension(4, { presentation: { type: "dropdown" } })
+                makeDimension(4, { presentation: { type: "dropdown" } }),
+                1
             )
         ).toBe("dropdown")
         expect(
-            resolveWith(makeDimension(5, { presentation: { type: "radio" } }))
+            resolveWith(
+                makeDimension(5, { presentation: { type: "radio" } }),
+                3
+            )
         ).toBe("radio")
         expect(
             resolveWith(
                 makeDimension(3, {
                     presentation: { type: "dropdown-with-search" },
-                })
+                }),
+                3
             )
         ).toBe("dropdown-with-search")
         expect(
             resolveWith(
-                makeDimension(30, { presentation: { type: "dropdown" } })
+                makeDimension(30, { presentation: { type: "dropdown" } }),
+                3
             )
         ).toBe("dropdown")
     })
