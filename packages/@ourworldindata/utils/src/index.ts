@@ -37,7 +37,6 @@ export {
     isMobile,
     isTouchDevice,
     type Json,
-    csvEscape,
     trimObject,
     fetchText,
     fetchJson,
