@@ -471,3 +471,13 @@
         @include owid-link-90;
     }
 }
+
+// Producer documentation is raw markdown with nothing indenting its lists,
+// so their bullets hung in the toggle's padding. Indent them like the lists
+// in the Data sources descriptions (IndicatorSources.scss).
+.indicator-metadata-box__producer-doc {
+    ul,
+    ol {
+        margin-left: 1em;
+    }
+}

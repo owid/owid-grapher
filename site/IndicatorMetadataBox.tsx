@@ -381,11 +381,13 @@ function ExpandableSection({
                                     "Principal data source"
                                 }
                                 content={
-                                    <SimpleMarkdownText
-                                        text={
-                                            datapageData.descriptionFromProducer
-                                        }
-                                    />
+                                    <div className="indicator-metadata-box__producer-doc">
+                                        <SimpleMarkdownText
+                                            text={
+                                                datapageData.descriptionFromProducer
+                                            }
+                                        />
+                                    </div>
                                 }
                                 onToggle={(isOpen) =>
                                     logExpandableToggle(
@@ -406,9 +408,11 @@ function ExpandableSection({
                                         i < producerDocEntries.length - 1
                                     }
                                     content={
-                                        <SimpleMarkdownText
-                                            text={e.producerDescription}
-                                        />
+                                        <div className="indicator-metadata-box__producer-doc">
+                                            <SimpleMarkdownText
+                                                text={e.producerDescription}
+                                            />
+                                        </div>
                                     }
                                     onToggle={(isOpen) =>
                                         logExpandableToggle(
