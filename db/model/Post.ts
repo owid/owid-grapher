@@ -267,6 +267,7 @@ export const getRelatedArticles = async (
 
 export interface RelatedResearchQueryResult {
     title: string
+    excerpt: string | null
     postSlug: string
     authors: string
     thumbnail: string
@@ -323,6 +324,7 @@ export const getRelatedResearchAndWritingForVariables = async (
         )
         SELECT
             p.content ->> '$.title' AS title,
+            p.content ->> '$.excerpt' AS excerpt,
             p.slug AS postSlug,
             p.authors,
             p.content ->> '$."featured-image"' AS thumbnail,
@@ -361,6 +363,7 @@ export const getRelatedResearchAndWritingForVariables = async (
 
         return {
             title: post.title,
+            excerpt: post.excerpt ?? undefined,
             url: `/${post.postSlug}`,
             variantName: "",
             authors: parsedAuthors,

@@ -164,6 +164,7 @@ export const DataPageV2Content = ({
                             <div className="datapage-research-and-writing-v2 col-start-2 span-cols-12">
                                 <DataPageResearchAndWriting
                                     relatedResearch={relatedResearch}
+                                    showExcerpt
                                 />
                             </div>
                         )}

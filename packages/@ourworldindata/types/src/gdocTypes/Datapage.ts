@@ -59,6 +59,7 @@ export interface DataPageDataV2 {
 
 export interface DataPageRelatedResearch {
     title: string
+    excerpt?: string
     url: string
     authors: string[]
     imageUrl: string
