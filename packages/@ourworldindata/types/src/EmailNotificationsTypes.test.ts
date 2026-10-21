@@ -6,19 +6,19 @@ import {
 
 describe(mergeEmailNotificationsPreferences, () => {
     const existing: EmailNotificationsPreferences = {
-        topicTags: ["Energy"],
+        topicTags: ["Energy and Environment"],
         contentTypes: ["article"],
         frequency: "weekly",
     }
 
     it("unions topic tags and content types without duplicates", () => {
         const merged = mergeEmailNotificationsPreferences(existing, {
-            topicTags: ["Energy", "Climate Change"],
+            topicTags: ["Energy and Environment", "Health"],
             contentTypes: ["article", "data-insight"],
             frequency: "weekly",
         })
         expect(merged).toEqual({
-            topicTags: ["Energy", "Climate Change"],
+            topicTags: ["Energy and Environment", "Health"],
             contentTypes: ["article", "data-insight"],
             frequency: "weekly",
         })
@@ -26,11 +26,11 @@ describe(mergeEmailNotificationsPreferences, () => {
 
     it("keeps existing topic tags when the incoming set is smaller", () => {
         const merged = mergeEmailNotificationsPreferences(existing, {
-            topicTags: ["Climate Change"],
+            topicTags: ["Health"],
             contentTypes: ["announcement"],
             frequency: "weekly",
         })
-        expect(merged.topicTags).toEqual(["Energy", "Climate Change"])
+        expect(merged.topicTags).toEqual(["Energy and Environment", "Health"])
         expect(merged.contentTypes).toEqual(["article", "announcement"])
     })
 
@@ -45,7 +45,7 @@ describe(mergeEmailNotificationsPreferences, () => {
         const existingEmpty = mergeEmailNotificationsPreferences(
             { ...existing, topicTags: [] },
             {
-                topicTags: ["Climate Change"],
+                topicTags: ["Health"],
                 contentTypes: ["article"],
                 frequency: "weekly",
             }
