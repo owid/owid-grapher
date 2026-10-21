@@ -84,7 +84,8 @@
     }
 }
 
-// Accordions: the title and icon darken once open
+// Accordions: the title and icon darken once open, and the content starts
+// close under the title
 .indicator-metadata-box details.ExpandableToggle {
     > .ExpandableToggle__container .ExpandableToggle__button {
         --button: #{$blue-60};
@@ -93,12 +94,22 @@
     &[open] > .ExpandableToggle__container .ExpandableToggle__button {
         --title: #{$blue-90};
         --button: #{$blue-90};
+        padding-bottom: 0;
+    }
+
+    &[open] > .ExpandableToggle__content {
+        padding: 12px 16px 24px;
     }
 }
 
 // Restore list indentation lost to the global `ul, ol { padding: 0 }` reset
 // (e.g. /grapher/co2-emissions-transport, "Documentation from data sources").
 .indicator-metadata-box__producer-docs {
+    // The content's first-child reset can't reach through this wrapper
+    > :first-child {
+        margin-top: 0;
+    }
+
     ul,
     ol {
         padding-left: 1.5em;
