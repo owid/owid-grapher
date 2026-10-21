@@ -26,6 +26,9 @@ export type PageFingerprints = Record<string, string>
  * fingerprints of the pages it last rendered there. A step that has no entry
  * has never been baked into this directory with fingerprints, and an
  * incremental bake falls back to rendering all of its pages.
+ *
+ * Fingerprints describe content, not the code that renders it: after a code
+ * change, only a full bake re-renders the pages whose content didn't change.
  */
 export interface BakeState {
     version: typeof BAKE_STATE_VERSION
@@ -58,7 +61,16 @@ export const readBakeState = async (
         !(await fs.pathExists(bakedSiteDir))
     )
         return emptyBakeState()
-    const state = (await fs.readJson(statePath)) as Partial<BakeState>
+    let state: Partial<BakeState>
+    try {
+        state = await fs.readJson(statePath)
+    } catch (error) {
+        // A corrupt state must not fail every later bake; baking everything
+        // again replaces it
+        if (!(error instanceof SyntaxError)) throw error
+        console.log(`Ignoring unreadable bake state in ${statePath}: ${error}`)
+        return emptyBakeState()
+    }
     if (state.version !== BAKE_STATE_VERSION || !state.steps) {
         console.log(
             `Ignoring bake state in ${statePath}: version ${state.version} instead of ${BAKE_STATE_VERSION}`
@@ -73,9 +85,10 @@ export const writeBakeState = async (
     state: BakeState
 ): Promise<void> => {
     // Write to a temporary file and rename it, so that a bake that is killed
-    // mid-write doesn't leave a truncated state file behind
+    // mid-write, or another bake writing at the same time, doesn't leave a
+    // truncated state file behind
     const statePath = getBakeStatePath(bakedSiteDir)
-    const tmpPath = `${statePath}.tmp`
+    const tmpPath = `${statePath}.${process.pid}.tmp`
     await fs.writeJson(tmpPath, state)
     await fs.rename(tmpPath, statePath)
 }

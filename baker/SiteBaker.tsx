@@ -246,13 +246,15 @@ export class SiteBaker {
      * runs is picked up by the next bake rather than lost.
      */
     private async bakeChangedPages(
+        knex: db.KnexReadonlyTransaction,
         step: IncrementalBakeStep,
-        getFingerprints: () => Promise<PageFingerprints>,
+        getFingerprints: (
+            inputs: FingerprintInputs
+        ) => Promise<PageFingerprints>,
         bakePages: (keysToBake: Set<string> | undefined) => Promise<void>
     ) {
-        const fingerprints = await traceJob(
-            `fingerprint-${step}`,
-            getFingerprints
+        const fingerprints = await traceJob(`fingerprint-${step}`, async () =>
+            getFingerprints(await this.getFingerprintInputs(knex))
         )
         const state = await this.getBakeState()
         const previous = this.incremental ? state.steps[step] : undefined
@@ -1064,12 +1066,9 @@ export class SiteBaker {
         )
 
         await this.bakeChangedPages(
+            knex,
             "explorers",
-            async () =>
-                getExplorerPageFingerprints(
-                    knex,
-                    await this.getFingerprintInputs(knex)
-                ),
+            (inputs) => getExplorerPageFingerprints(knex, inputs),
             (slugsToBake) =>
                 bakeAllPublishedExplorers(
                     `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}`,
@@ -1139,12 +1138,9 @@ export class SiteBaker {
         if (!this.bakeSteps.has("multiDimPages")) return
         this.progressBar.tick({ name: "Baking multi-dim pages" })
         await this.bakeChangedPages(
+            knex,
             "multiDimPages",
-            async () =>
-                getMultiDimPageFingerprints(
-                    knex,
-                    await this.getFingerprintInputs(knex)
-                ),
+            (inputs) => getMultiDimPageFingerprints(knex, inputs),
             async (slugsToBake) => {
                 // Prefetching the attachments is slow, and only rendering
                 // pages needs them
@@ -1470,12 +1466,9 @@ export class SiteBaker {
                 name: "Baking all changed grapher pages and deleting removed graphers",
             })
             await this.bakeChangedPages(
+                knex,
                 "charts",
-                async () =>
-                    getChartPageFingerprints(
-                        knex,
-                        await this.getFingerprintInputs(knex)
-                    ),
+                (inputs) => getChartPageFingerprints(knex, inputs),
                 (chartIdsToBake) =>
                     bakeAllChangedGrapherPagesAndDeleteRemovedGraphers(
                         this.bakedSiteDir,
@@ -1490,12 +1483,9 @@ export class SiteBaker {
         await this.validateGrapherDodReferences(knex)
         if (this.bakeSteps.has("gdocPosts"))
             await this.bakeChangedPages(
+                knex,
                 "gdocPosts",
-                async () =>
-                    getGdocPostFingerprints(
-                        knex,
-                        await this.getFingerprintInputs(knex)
-                    ),
+                (inputs) => getGdocPostFingerprints(knex, inputs),
                 (slugsToBake) =>
                     this.bakeGDocPosts(knex, slugsToBake && [...slugsToBake])
             )

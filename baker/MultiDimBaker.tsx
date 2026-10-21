@@ -229,9 +229,10 @@ export async function renderMultiDimDataPageFromConfig({
     const initialViewIndicatorId = initialView?.indicators?.y?.[0]?.id
     if (initialView && initialViewIndicatorId) {
         const [variableMetadata, fullGrapherConfig] = await Promise.all([
-            getVariableMetadata(initialViewIndicatorId, {
-                noCache: isPreviewing,
-            }),
+            // Uncached, like data pages: a bake right after ETL updated the
+            // metadata must not render the CDN's old copy, since an
+            // incremental bake won't render the page again
+            getVariableMetadata(initialViewIndicatorId, { noCache: true }),
             getChartConfigByUuid(knex, initialView.fullConfigId),
         ])
         if (!fullGrapherConfig) {

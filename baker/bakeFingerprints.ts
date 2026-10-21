@@ -1,19 +1,22 @@
-import { createHash } from "crypto"
 import * as _ from "lodash-es"
-import { Url } from "@ourworldindata/utils"
+import { OwidGdocType, Url } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
+import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
+import { hashMd5 } from "../serverUtils/hash.js"
 import { PageFingerprints } from "./bakeState.js"
 
 // Fingerprints of what each kind of page reads from the database when it is
 // rendered. They cover the inputs that change between two full bakes: a
 // page's own config or content, the metadata of the indicators it shows, the
 // charts it lists ("related charts", the all-charts block) and what it links
-// to or embeds. Inputs that aren't covered — e.g. a data page's "related
-// research" (ordered by pageviews), the authors of an article, the tag
-// hierarchy, the archive — are refreshed by the next full bake.
+// to or embeds. Inputs that aren't covered are refreshed by the next full
+// bake. They change rarely: a data page's
+// "related research" (ordered by pageviews) and primary topic, what the data
+// page redesign experiment adds (related charts by coview, dataset owners),
+// the authors of an article, the tag hierarchy, replaced images behind
+// featured images and static visualizations, donors, and the archive.
 
-const fingerprint = (parts: unknown[]): string =>
-    createHash("md5").update(JSON.stringify(parts)).digest("hex")
+const fingerprint = (parts: unknown[]): string => hashMd5(JSON.stringify(parts))
 
 type Version = string
 
@@ -218,18 +221,19 @@ export const getChartPageFingerprints = async (
             ORDER BY chartId, variableId`
     )
     const dimensionsByChartId = _.groupBy(dimensions, (d) => d.chartId)
+    // In chart id order, since the dimensions are
     const chartIdsByVariableId = _.mapValues(
         _.groupBy(dimensions, (d) => d.variableId),
-        (dims) => new Set(dims.map((d) => d.chartId))
+        (dims) => _.uniq(dims.map((d) => d.chartId))
     )
     const listingsByChartId = _.groupBy(chartListings, (l) => l.chartId)
 
     // Only the y indicators of a chart are what its data page is about
     const relatedChartsVersion = _.memoize((variableId: number): Version =>
         fingerprint(
-            [...(chartIdsByVariableId[variableId] ?? [])]
-                .sort((a, b) => a - b)
-                .flatMap((chartId) => listingsByChartId[chartId] ?? [])
+            (chartIdsByVariableId[variableId] ?? []).flatMap(
+                (chartId) => listingsByChartId[chartId] ?? []
+            )
         )
     )
 
@@ -273,18 +277,7 @@ export const getMultiDimPageFingerprints = async (
     knex: db.KnexReadonlyTransaction,
     { variableVersions }: FingerprintInputs
 ): Promise<PageFingerprints> => {
-    // Same selection as getAllPublishedMultiDimDataPages
-    const multiDims = await db.knexRaw<{
-        id: number
-        slug: string
-        updatedAt: Date
-    }>(
-        knex,
-        `-- sql
-            SELECT id, slug, updatedAt
-            FROM multi_dim_data_pages
-            WHERE published = 1 AND slug IS NOT NULL`
-    )
+    const multiDims = await getAllPublishedMultiDimDataPages(knex)
     const views = await db.knexRaw<{
         multiDimId: number
         viewId: string
@@ -307,6 +300,7 @@ export const getMultiDimPageFingerprints = async (
                 multiDim.slug,
                 fingerprint([
                     multiDim.updatedAt,
+                    multiDim.config,
                     views.map((view) => [view.viewId, view.configMd5]),
                     versionsOf(
                         views.map((view) => view.variableId),
@@ -330,7 +324,13 @@ export const getExplorerPageFingerprints = async (
         slug: string
         isPublished: number
         updatedAt: Date
-    }>(knex, `SELECT slug, isPublished, updatedAt FROM explorers`)
+        configMd5: string
+    }>(
+        knex,
+        `-- sql
+            SELECT slug, isPublished, updatedAt, MD5(config) AS configMd5
+            FROM explorers`
+    )
     const charts = await db.knexRaw<{
         explorerSlug: string
         chartId: number
@@ -357,6 +357,7 @@ export const getExplorerPageFingerprints = async (
             fingerprint([
                 explorer.isPublished,
                 explorer.updatedAt,
+                explorer.configMd5,
                 (chartsBySlug[explorer.slug] ?? []).map((chart) => [
                     chart.chartId,
                     chart.configMd5,
@@ -376,27 +377,40 @@ export const getExplorerPageFingerprints = async (
  * Keyed by slug. Covers the gdoc itself, its tags (breadcrumbs), its images,
  * the version of everything it links to or embeds: other gdocs (their title,
  * excerpt and thumbnail appear in link previews), charts, multi-dims,
- * explorers, narrative charts and static visualizations; and, for gdocs with
- * an all-charts block, the charts tagged with the gdoc's tags.
+ * explorers, narrative charts and static visualizations; for gdocs with an
+ * all-charts block, the charts tagged with the gdoc's tags; and for
+ * announcements, the other announcements (their carousel).
  */
 export const getGdocPostFingerprints = async (
     knex: db.KnexReadonlyTransaction,
     { chartListings }: FingerprintInputs
 ): Promise<PageFingerprints> => {
-    // Same selection as getPublishedGdocsWithTags
+    // Same selection as getPublishedGdocsWithTags. contentMd5 catches a
+    // second edit within the same second, which updatedAt can't tell apart.
     const gdocs = await db.knexRaw<{
         id: string
         slug: string
+        type: string
         updatedAt: Date
+        contentMd5: string
+        publishedAt: Date
     }>(
         knex,
         `-- sql
-            SELECT id, slug, updatedAt
+            SELECT id, slug, type, updatedAt, contentMd5, publishedAt
             FROM posts_gdocs
             WHERE published = 1
                 AND type IN (?)
-                AND publishedAt <= NOW()`,
+                AND publishedAt <= NOW()
+            ORDER BY publishedAt DESC, id`,
         [db.GDOC_POST_BAKE_TYPES]
+    )
+    // Announcement pages show the latest announcements of their kind; any
+    // change to an announcement re-renders all of them, which is few pages
+    const announcementsVersion = fingerprint(
+        gdocs
+            .filter((gdoc) => gdoc.type === OwidGdocType.Announcement)
+            .map((gdoc) => [gdoc.id, gdoc.updatedAt, gdoc.contentMd5])
     )
     const tags = await db.knexRaw<{ gdocId: string; tagId: number }>(
         knex,
@@ -454,6 +468,11 @@ export const getGdocPostFingerprints = async (
                 fingerprint([
                     gdoc.id,
                     gdoc.updatedAt,
+                    gdoc.contentMd5,
+                    gdoc.publishedAt,
+                    gdoc.type === OwidGdocType.Announcement
+                        ? announcementsVersion
+                        : null,
                     tagIds,
                     (imagesByGdocId[gdoc.id] ?? []).map((image) => [
                         image.imageId,
@@ -477,55 +496,66 @@ export const getGdocPostFingerprints = async (
 const getGdocLinkTargetVersions = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<Record<string, Map<string, Version>>> => {
-    const toMap = (
-        rows: { target: string; version: unknown }[]
-    ): Map<string, Version> =>
-        new Map(rows.map((row) => [row.target, fingerprint([row.version])]))
-
-    const gdocs = await db.knexRaw<{ target: string; version: unknown }>(
-        knex,
-        `-- sql
-            SELECT id AS target, JSON_ARRAY(published, slug, updatedAt) AS version
-            FROM posts_gdocs`
-    )
-    // A grapher link can point at a standalone chart or at a multi-dim
-    const charts = await db.knexRaw<{ target: string; version: unknown }>(
-        knex,
-        `-- sql
-            SELECT cc.slug AS target, cc.configMd5 AS version
-            FROM charts c
-            JOIN chart_configs cc ON cc.id = c.configId
-            UNION ALL
-            SELECT slug AS target, JSON_ARRAY(published, updatedAt) AS version
-            FROM multi_dim_data_pages
-            WHERE slug IS NOT NULL`
-    )
-    const explorers = await db.knexRaw<{ target: string; version: unknown }>(
-        knex,
-        `-- sql
-            SELECT slug AS target, JSON_ARRAY(isPublished, updatedAt) AS version
-            FROM explorers`
-    )
-    const narrativeCharts = await db.knexRaw<{
-        target: string
-        version: unknown
-    }>(
-        knex,
-        `-- sql
-            SELECT nc.name AS target, JSON_ARRAY(nc.updatedAt, cc.configMd5) AS version
-            FROM narrative_charts nc
-            JOIN chart_configs cc ON cc.id = nc.chartConfigId`
-    )
-    const staticViz = await db.knexRaw<{ target: string; version: unknown }>(
-        knex,
-        `SELECT name AS target, updatedAt AS version FROM static_viz`
-    )
+    // Each query selects a `target` (as links name it) and its `version`; when
+    // a target appears in several rows, the last one wins
+    const queryVersions = async (sql: string): Promise<Map<string, Version>> =>
+        new Map(
+            (
+                await db.knexRaw<{ target: string; version: unknown }>(
+                    knex,
+                    sql
+                )
+            ).map((row) => [row.target, JSON.stringify(row.version)])
+        )
 
     return {
-        gdoc: toMap(gdocs),
-        grapher: toMap(charts),
-        explorer: toMap(explorers),
-        "narrative-chart": toMap(narrativeCharts),
-        "static-viz": toMap(staticViz),
+        // A linked gdoc whose scheduled publication time passes changes too
+        gdoc: await queryVersions(`-- sql
+            SELECT
+                id AS target,
+                JSON_ARRAY(published, publishedAt <= NOW(), slug, updatedAt, contentMd5) AS version
+            FROM posts_gdocs`),
+        // A grapher link can point at a standalone chart or a multi-dim, by
+        // its current slug or by one that redirects to it. Current slugs come
+        // last, so they win over a redirect from a reused slug.
+        grapher: await queryVersions(`-- sql
+            SELECT target, version FROM (
+                SELECT 0 AS priority, csr.slug AS target, cc.configMd5 AS version
+                FROM chart_slug_redirects csr
+                JOIN charts c ON c.id = csr.chart_id
+                JOIN chart_configs cc ON cc.id = c.configId
+                UNION ALL
+                SELECT
+                    0 AS priority,
+                    REPLACE(mdr.source, '/grapher/', '') AS target,
+                    JSON_ARRAY(mddp.published, mddp.updatedAt, MD5(mddp.config)) AS version
+                FROM multi_dim_redirects mdr
+                JOIN multi_dim_data_pages mddp ON mddp.id = mdr.multiDimId
+                WHERE mdr.source LIKE '/grapher/%'
+                UNION ALL
+                SELECT 1 AS priority, cc.slug AS target, cc.configMd5 AS version
+                FROM charts c
+                JOIN chart_configs cc ON cc.id = c.configId
+                UNION ALL
+                SELECT
+                    2 AS priority,
+                    slug AS target,
+                    JSON_ARRAY(published, updatedAt, MD5(config)) AS version
+                FROM multi_dim_data_pages
+                WHERE slug IS NOT NULL
+            ) targets
+            ORDER BY priority`),
+        explorer: await queryVersions(`-- sql
+            SELECT
+                slug AS target,
+                JSON_ARRAY(isPublished, updatedAt, MD5(config)) AS version
+            FROM explorers`),
+        "narrative-chart": await queryVersions(`-- sql
+            SELECT nc.name AS target, JSON_ARRAY(nc.updatedAt, cc.configMd5) AS version
+            FROM narrative_charts nc
+            JOIN chart_configs cc ON cc.id = nc.chartConfigId`),
+        "static-viz": await queryVersions(`-- sql
+            SELECT name AS target, updatedAt AS version
+            FROM static_viz`),
     }
 }
