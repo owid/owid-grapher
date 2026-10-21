@@ -216,6 +216,14 @@ $selected-hover-fill: #bed2e7;
         color: $gray-70;
     }
 
+    // The gap separates the groups: on top of a heading's top margin, it
+    // leaves a bit more room before each group after the first.
+    .md-menu__list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
     .md-menu__group {
         display: flex;
         flex-direction: column;
@@ -225,6 +233,12 @@ $selected-hover-fill: #bed2e7;
     .md-menu__group-label {
         color: $light-text;
         margin: 8px 16px;
+    }
+
+    // Options under a group label are indented past it, so the grouping is
+    // visible. The selection fill still spans the full menu width.
+    .md-menu__group--labeled .md-menu__item {
+        padding-left: 32px;
     }
 
     .md-menu__item {
