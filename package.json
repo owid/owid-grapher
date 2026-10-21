@@ -149,6 +149,7 @@
         "nodejs-polars": "^0.7.2",
         "normalize.css": "^8.0.1",
         "p-map": "^7.0.3",
+        "p-retry": "^8.0.1",
         "polylabel": "^2.1.0",
         "postmark": "^5.1.0",
         "progress": "^2.0.3",
