@@ -1,7 +1,8 @@
 .indicator-metadata-box {
     --indicator-processing-background: transparent;
     --indicator-processing-title: #{$blue-90};
-    padding: 24px;
+    --indicator-metadata-box-padding: 24px;
+    padding: var(--indicator-metadata-box-padding);
     background-color: $blue-5;
     grid-template-columns: repeat(12, 1fr);
     grid-column-start: 2;
@@ -15,6 +16,7 @@
         margin-right: -8px;
         margin-left: -8px;
         margin-bottom: 32px;
+        --indicator-metadata-box-padding: 16px;
     }
 }
 
@@ -58,7 +60,7 @@
     padding: 12px 0;
     margin-top: 12px;
     // Sits in the box's bottom padding
-    margin-bottom: -24px;
+    margin-bottom: calc(-1 * var(--indicator-metadata-box-padding));
 
     &:hover {
         color: $blue-90;
