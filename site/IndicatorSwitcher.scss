@@ -391,3 +391,15 @@ $hover-fill: #e3ebf5;
         padding: 16px;
     }
 }
+
+// A scatter plot's bubble-size / colour pill: the role as a small muted
+// prefix, like the metadata box's key-data labels ("Date range").
+.indicator-switcher__aux-role {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: $blue-50;
+}
+// The active pill is the only dark-filled control: lighten the prefix there.
+.indicator-switcher__h-pill--active .indicator-switcher__aux-role {
+    color: $blue-20;
+}

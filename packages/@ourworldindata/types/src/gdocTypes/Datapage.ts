@@ -125,10 +125,11 @@ export interface AuxiliaryIndicator {
 /**
  * How a scatter plot's size and colour indicators are documented (QA param
  * `?auxiliary=` on the preview routes):
- * - "mixed" (default): those with a data page go in a one-line link; those
- *   without one get a pane of their own, so their sources stay inspectable.
+ * - "panes" (default): all of them as panes in the switcher, after the axis
+ *   panes, labelled with a muted "Size" / "Color" prefix.
+ * - "mixed": those with a data page go in a one-line link; those without
+ *   one get a pane of their own, so their sources stay inspectable.
  * - "line": all of them in the one-line link (plain text when no page).
- * - "panes": all of them as panes in the switcher.
  */
 export type AuxiliaryIndicatorMode = "mixed" | "line" | "panes"
 export const AUXILIARY_INDICATOR_MODES: AuxiliaryIndicatorMode[] = [
@@ -136,7 +137,7 @@ export const AUXILIARY_INDICATOR_MODES: AuxiliaryIndicatorMode[] = [
     "line",
     "panes",
 ]
-export const DEFAULT_AUXILIARY_INDICATOR_MODE: AuxiliaryIndicatorMode = "mixed"
+export const DEFAULT_AUXILIARY_INDICATOR_MODE: AuxiliaryIndicatorMode = "panes"
 
 export interface AdditionalIndicator {
     datapageData: DataPageDataV2

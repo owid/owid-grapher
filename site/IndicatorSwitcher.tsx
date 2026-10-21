@@ -15,17 +15,44 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
 
-const labelForIndicator = (datapageData: DataPageDataV2): string => {
+const baseLabelForIndicator = (datapageData: DataPageDataV2): string => {
     // Prefer the chart author's per-dimension display.name so pill labels
     // match the chart's own series labels; fall back to the pane title.
     const title = datapageData.chartDimensionName ?? datapageData.title.title
     const variant = datapageData.titleVariant
-    const label =
-        variant && !title.includes(variant) ? `${title} – ${variant}` : title
-    // A scatter plot's bubble-size / colour pane says which role it plays.
-    if (datapageData.auxiliaryRole === "size") return `Size: ${label}`
-    if (datapageData.auxiliaryRole === "color") return `Color: ${label}`
-    return label
+    return variant && !title.includes(variant) ? `${title} – ${variant}` : title
+}
+
+// A scatter plot's bubble-size / colour pane says which role it plays.
+const AUXILIARY_ROLE_LABEL = { size: "Size", color: "Color" } as const
+
+// Plain-text label: tooltips, aria/typeahead text and analytics. Keeps a
+// colon after the role so it still reads as a label once styling is gone.
+const labelForIndicator = (datapageData: DataPageDataV2): string => {
+    const label = baseLabelForIndicator(datapageData)
+    const role = datapageData.auxiliaryRole
+    return role ? `${AUXILIARY_ROLE_LABEL[role]}: ${label}` : label
+}
+
+// Visible label: the role as a small muted prefix (like the key data's "Date
+// range"), no colon.
+const IndicatorLabel = ({
+    datapageData,
+    label = baseLabelForIndicator(datapageData),
+}: {
+    datapageData: DataPageDataV2
+    label?: string
+}) => {
+    const role = datapageData.auxiliaryRole
+    if (!role) return <>{label}</>
+    return (
+        <>
+            <span className="indicator-switcher__aux-role">
+                {AUXILIARY_ROLE_LABEL[role]}
+            </span>{" "}
+            {label}
+        </>
+    )
 }
 
 // Label that sits next to (or above) the indicator switcher. Renders as
@@ -146,7 +173,7 @@ const IndicatorSelect = ({
                             className="indicator-switcher__option"
                             textValue={labelForIndicator(ind.datapageData)}
                         >
-                            {labelForIndicator(ind.datapageData)}
+                            <IndicatorLabel datapageData={ind.datapageData} />
                         </ListBoxItem>
                     ))}
                 </ListBox>
@@ -187,7 +214,10 @@ export const IndicatorDropdownSelect = ({
                 buttonContent={
                     <>
                         <span className="indicator-switcher__dropdown-title">
-                            {indicatorTitle}
+                            <IndicatorLabel
+                                datapageData={activeDatapageData}
+                                label={indicatorTitle}
+                            />
                         </span>
                         <FontAwesomeIcon
                             icon={faCaretDown}
@@ -244,11 +274,15 @@ const IndicatorMoreDropdown = ({
     activeClassName: string
 }) => {
     const isActiveInOverflow = activeIndex >= overflowStartIndex
-    const label = isActiveInOverflow
-        ? labelForIndicator(
-              overflow[activeIndex - overflowStartIndex].datapageData
-          )
-        : "More"
+    const label = isActiveInOverflow ? (
+        <IndicatorLabel
+            datapageData={
+                overflow[activeIndex - overflowStartIndex].datapageData
+            }
+        />
+    ) : (
+        "More"
+    )
     return (
         <IndicatorSelect
             indicators={overflow}
@@ -334,7 +368,7 @@ export const IndicatorTabsHorizontal = ({
                     title={labelForIndicator(ind.datapageData)}
                 >
                     <span className="indicator-switcher__item-label">
-                        {labelForIndicator(ind.datapageData)}
+                        <IndicatorLabel datapageData={ind.datapageData} />
                     </span>
                 </button>
             ))}
@@ -389,7 +423,7 @@ export const IndicatorTabsVertical = ({
                     onClick={() => onIndicatorChange(i)}
                     data-track-note="metadata_box_indicator_switch"
                 >
-                    {labelForIndicator(ind.datapageData)}
+                    <IndicatorLabel datapageData={ind.datapageData} />
                 </button>
             ))}
             {overflow.length > 0 && (

@@ -340,9 +340,9 @@ export async function renderDataPageV2(
     // vs. GDP per capita").
     //
     // A scatter's size and colour indicators (almost always Population and
-    // World region) follow `auxiliaryMode`: by default those with a data page
-    // get a one-line link and those without one get a pane of their own,
-    // after the X pane, so a reader can still see where they come from.
+    // World region) follow `auxiliaryMode`: by default each gets a pane of
+    // its own after the X pane; the "mixed" and "line" variants document
+    // some or all of them in a one-line link instead.
     const isScatter =
         grapher.chartTypes?.[0] === GRAPHER_CHART_TYPES.ScatterPlot
     const axisDimensions = (grapher.dimensions ?? []).filter(
