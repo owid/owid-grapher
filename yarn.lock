@@ -2094,7 +2094,7 @@ __metadata:
     react-aria-components: "npm:^1.22.1"
     react-dom: "npm:^19.2.4"
     react-markdown: "npm:^10.1.0"
-    remeda: "npm:^2.42.0"
+    remeda: "npm:^2.52.0"
     tippy.js: "npm:^6.3.7"
     ts-pattern: "npm:^5.8.0"
     unist-util-visit: "npm:^5.0.0"
@@ -2114,7 +2114,7 @@ __metadata:
     "@types/papaparse": "npm:^5.5.2"
     lodash-es: "npm:^4.18.1"
     papaparse: "npm:^5.5.3"
-    remeda: "npm:^2.42.0"
+    remeda: "npm:^2.52.0"
     vitest: "npm:^5.0.5"
   languageName: unknown
   linkType: soft
@@ -2141,7 +2141,7 @@ __metadata:
     mobx-react: "npm:^7.6.0"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
-    remeda: "npm:^2.42.0"
+    remeda: "npm:^2.52.0"
     ts-pattern: "npm:^5.8.0"
     vitest: "npm:^5.0.5"
   languageName: unknown
@@ -2162,7 +2162,7 @@ __metadata:
     cheerio: "npm:^1.2.0"
     domhandler: "npm:^5.0.3"
     lodash-es: "npm:^4.18.1"
-    remeda: "npm:^2.42.0"
+    remeda: "npm:^2.52.0"
     ts-pattern: "npm:^5.8.0"
     tsdown: "npm:^0.23.0"
     vitest: "npm:^5.0.5"
@@ -2225,7 +2225,7 @@ __metadata:
     react-aria-components: "npm:^1.22.1"
     react-dom: "npm:^19.2.4"
     react-flip-toolkit: "npm:^7.2.4"
-    remeda: "npm:^2.42.0"
+    remeda: "npm:^2.52.0"
     sass: "npm:^1.89.2"
     tippy.js: "npm:^6.3.7"
     topojson-client: "npm:^3.1.0"
@@ -2284,7 +2284,7 @@ __metadata:
     lodash-es: "npm:^4.18.1"
     mobx: "npm:^6.15.4"
     react: "npm:^19.2.4"
-    remeda: "npm:^2.42.0"
+    remeda: "npm:^2.52.0"
     striptags: "npm:^3.2.0"
     timezone-mock: "npm:^1.0.18"
     ts-pattern: "npm:^5.8.0"
@@ -8937,7 +8937,7 @@ __metadata:
     react-router-dom-v5-compat: "npm:^6.30.0"
     react-tag-autocomplete: "npm:^7.5.0"
     react-zoom-pan-pinch: "npm:^3.7.0"
-    remeda: "npm:^2.42.0"
+    remeda: "npm:^2.52.0"
     rolldown: "npm:^1.2.1"
     rxjs: "npm:^7.8.2"
     s-expression: "npm:^3.1.1"
@@ -11147,7 +11147,7 @@ __metadata:
     mobx: "npm:^6.15.4"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
-    remeda: "npm:^2.42.0"
+    remeda: "npm:^2.52.0"
     resvg-wasm: "patch:resvg-wasm@npm%3A0.5.0#~/.yarn/patches/resvg-wasm-npm-0.5.0-50778c75bc.patch"
     stripe: "npm:^14.20.0"
     ts-pattern: "npm:^5.8.0"
@@ -12316,10 +12316,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remeda@npm:^2.42.0":
-  version: 2.42.0
-  resolution: "remeda@npm:2.42.0"
-  checksum: 10/39a4f67111f984467f1106bff959e6c420c22ca559d6392a81ccd7906fdfeb8ca968fe7d8b5d00936196f95f4b3d73187d759f30e42a972445168ecee719804b
+"remeda@npm:^2.52.0":
+  version: 2.52.0
+  resolution: "remeda@npm:2.52.0"
+  checksum: 10/7d3a69b29c96df27f842ff9ea4732fa80ef91a8dd3589e297e64e1a87d8a019cc29fec0596e6f0b6616933af4e5ede5583c2bde0f86f18c04bec1cbc9b677c64
   languageName: node
   linkType: hard
 
