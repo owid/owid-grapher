@@ -265,7 +265,10 @@ export class SwimlaneChart
     }
 
     @computed private get entityLabelMaxWidth(): number {
-        const labelWidths = this.sizedSeries.map((series) => series.label.width)
+        const labelWidths = this.sizedSeries.flatMap((series) => [
+            series.label.width,
+            series.annotationTextWrap?.width ?? 0,
+        ])
         if (labelWidths.length === 0) return 0
         return Math.max(...labelWidths)
     }

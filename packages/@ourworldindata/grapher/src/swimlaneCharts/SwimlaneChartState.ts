@@ -46,6 +46,11 @@ import {
     SwimlaneVisibleTimeRange,
 } from "./SwimlaneChartConstants"
 import {
+    AnnotationsMap,
+    getAnnotationsMap,
+    getAnnotationsForSeries,
+} from "../lineCharts/LineChartHelpers"
+import {
     toRawSwimlaneSegments,
     toSwimlaneSegments,
 } from "./SwimlaneChartHelpers"
@@ -180,6 +185,10 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         return [...SWIMLANE_SORT_KEYS]
     }
 
+    @computed private get annotationsMap(): AnnotationsMap | undefined {
+        return getAnnotationsMap(this.inputTable, this.inputYColumn.slug)
+    }
+
     @computed private get rawSegmentsByEntityName(): Map<
         EntityName,
         RawSwimlaneSegment[]
@@ -215,6 +224,7 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
             rawSegmentsByEntityName,
             visibleTimeRange,
             colorScale,
+            annotationsMap,
             timeColumn,
         } = this
         if (!visibleTimeRange || !timeColumn) return []
@@ -232,6 +242,10 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
                     seriesName: entityName,
                     entityName,
                     shortEntityName: getShortNameForEntity(entityName),
+                    annotation: getAnnotationsForSeries(
+                        annotationsMap,
+                        entityName
+                    ),
                     segments,
                 }
             }

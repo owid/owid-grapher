@@ -1,4 +1,5 @@
 import React from "react"
+import { TextWrapSvg } from "@ourworldindata/components"
 import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel"
@@ -37,6 +38,16 @@ export function SwimlaneRow({
                 color={{ name: GRAPHER_LIGHT_TEXT }}
                 opacity={SWIMLANE_LABEL_STYLE[series.emphasis].opacity}
             />
+            {series.annotationTextWrap && series.annotationPosition && (
+                <TextWrapSvg
+                    textWrap={series.annotationTextWrap}
+                    x={series.annotationPosition.x}
+                    y={series.annotationPosition.yOffset}
+                    fill={GRAPHER_LIGHT_TEXT}
+                    textAnchor="end"
+                    opacity={SWIMLANE_LABEL_STYLE[series.emphasis].opacity}
+                />
+            )}
             <SwimlaneSegments
                 segments={series.placedSegments}
                 noDataPatternId={noDataPatternId}

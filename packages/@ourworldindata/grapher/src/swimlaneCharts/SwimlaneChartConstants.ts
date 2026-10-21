@@ -1,6 +1,7 @@
 import { ChartManager } from "../chart/ChartManager"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color, EntityName, SortBy, Time } from "@ourworldindata/types"
+import { TextWrap } from "@ourworldindata/components"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import { Emphasis } from "../interaction/Emphasis"
 import {
@@ -154,11 +155,13 @@ export interface SwimlaneSeries extends ChartSeries {
     seriesName: EntityName
     entityName: EntityName
     shortEntityName?: string
+    annotation?: string
     segments: SwimlaneSegment[]
 }
 
 export interface SizedSwimlaneSeries extends SwimlaneSeries {
     label: SeriesLabelState
+    annotationTextWrap?: TextWrap
 }
 
 export interface PlacedSwimlaneSeries extends Omit<
@@ -168,6 +171,7 @@ export interface PlacedSwimlaneSeries extends Omit<
     y: number
     height: number
     labelPosition: { x: number; yOffset: number }
+    annotationPosition?: { x: number; yOffset: number }
     placedSegments: PlacedSwimlaneSegment[]
 }
 
