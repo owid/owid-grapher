@@ -238,7 +238,7 @@
         "topojson-server": "^3.0.1",
         "tsx": "^4.23.0",
         "typescript": "^7.0.2",
-        "vite": "^8.2.2",
+        "vite": "^8.3.3",
         "vitest": "^5.0.0",
         "wrangler": "^4.149.0"
     },
