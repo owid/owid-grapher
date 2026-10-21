@@ -16,6 +16,7 @@ import { defaultGrapherConfig } from "../src/schema/defaultGrapherConfig.js"
 import {
     assertFilesExist,
     readImportSpecifiers,
+    stubImmediateIntersectionObserver,
     // oxlint-disable-next-line import-x-js/no-relative-packages
 } from "../../packageTest-common.mts"
 
@@ -55,37 +56,6 @@ beforeAll(() => {
         "`yarn build`"
     )
 })
-
-// Grapher renders lazily once scrolled into view. happy-dom does no layout,
-// so its IntersectionObserver never fires — replace it with one that reports
-// the chart visible immediately.
-function stubImmediateIntersectionObserver(): void {
-    vi.stubGlobal(
-        "IntersectionObserver",
-        class {
-            constructor(
-                private readonly callback: IntersectionObserverCallback
-            ) {}
-            observe(target: Element): void {
-                this.callback(
-                    [
-                        {
-                            isIntersecting: true,
-                            target,
-                        } as IntersectionObserverEntry,
-                    ],
-                    this as unknown as IntersectionObserver
-                )
-            }
-            unobserve(): void {
-                // noop
-            }
-            disconnect(): void {
-                // noop
-            }
-        }
-    )
-}
 
 // happy-dom does no layout, so give the container a real size for
 // useElementBounds to measure.
