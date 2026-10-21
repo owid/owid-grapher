@@ -555,6 +555,7 @@ export async function getTopicSuggestions(
 
 export interface OldChartFieldList {
     id: number
+    configId: string
     title: string
     slug: string
     type?: string
@@ -589,6 +590,7 @@ const nonOverrideJsonPaths = KEYS_EXCLUDED_FROM_INHERITANCE.map(
 
 export const oldChartFieldList = `
         charts.id,
+        charts.configId,
         chart_configs.config->>"$.title" AS title,
         chart_configs.config->>"$.slug" AS slug,
         chart_configs.chartType AS type,

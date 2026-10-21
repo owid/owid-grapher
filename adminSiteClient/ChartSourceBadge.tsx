@@ -14,7 +14,6 @@ import {
     hasEtlDrift,
     makeEtlConfigGitHubUrl,
 } from "./etlChartSync.js"
-import "./ChartSourceBadge.scss"
 
 /**
  * Where a chart is authored: in ETL (in sync or drifted) or in the admin.
