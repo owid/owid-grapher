@@ -38,6 +38,7 @@ import { REDUCED_TRACKING } from "../settings/clientSettings.mjs"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
 import {
     OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
+    TOPIC_AREA_NAMES,
     PREFERENCES_PAGE_ROOT_ID,
     SUBSCRIBE_PAGE_ROOT_ID,
 } from "@ourworldindata/types"
@@ -67,9 +68,11 @@ function hydrateSubscribePage() {
     // The whole <main> is hydrated, not just the form: submitting it replaces
     // the hero and aside with the confirmation screen.
     const root = document.getElementById(SUBSCRIBE_PAGE_ROOT_ID)
-    const topicAreaNames = window._OWID_TOPIC_AREA_NAMES
-    if (root && topicAreaNames) {
-        hydrateRoot(root, <SubscribeFlow topicAreaNames={topicAreaNames} />)
+    if (root) {
+        hydrateRoot(
+            root,
+            <SubscribeFlow topicAreaNames={[...TOPIC_AREA_NAMES]} />
+        )
     }
 }
 
@@ -78,11 +81,10 @@ function renderEmailNotificationsPreferencesPage() {
     // depends on the token in the URL fragment), so it is rendered rather than
     // hydrated.
     const root = document.getElementById(PREFERENCES_PAGE_ROOT_ID)
-    const topicAreaNames = window._OWID_TOPIC_AREA_NAMES
-    if (root && topicAreaNames) {
+    if (root) {
         createRoot(root).render(
             <EmailNotificationsPreferencesForm
-                topicAreaNames={topicAreaNames}
+                topicAreaNames={[...TOPIC_AREA_NAMES]}
             />
         )
     }

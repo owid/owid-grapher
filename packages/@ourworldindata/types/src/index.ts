@@ -193,6 +193,8 @@ export {
     type DbInsertTagGraphNode,
     type DbPlainTagGraphNode,
     ContentGraphLinkType,
+    TOPIC_AREA_NAMES,
+    type TopicAreaName,
 } from "./domainTypes/ContentGraph.js"
 export {
     WP_PostType,
