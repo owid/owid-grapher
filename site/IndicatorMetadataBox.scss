@@ -489,3 +489,13 @@
     margin-top: 0;
     margin-bottom: 8px;
 }
+
+// Stitched / single-pane scatter pages: the size/colour line as the last
+// paragraph of the WYSK. The surrounding prose block sets the typography.
+.indicator-metadata-box__auxiliary-prose {
+    margin-top: 8px;
+    margin-bottom: 0;
+    a {
+        @include owid-link-90;
+    }
+}

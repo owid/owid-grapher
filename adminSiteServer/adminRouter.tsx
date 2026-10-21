@@ -22,6 +22,7 @@ import {
 import {
     renderDataPageV2,
     renderPreviewDataPageOrGrapherPage,
+    parseAuxiliaryIndicatorMode,
 } from "../baker/GrapherBaker.js"
 import { getChartConfigById, getChartConfigBySlug } from "../db/model/Chart.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
@@ -212,6 +213,9 @@ getPlainRouteWithROTransaction(
                     {
                         forceDatapage: req.query.forceDatapage === "true",
                         forceExpandIndicators: req.query.forceExpand === "true",
+                        auxiliaryMode: parseAuxiliaryIndicatorMode(
+                            req.query.auxiliary
+                        ),
                     }
                 )
             res.send(previewDataPageOrGrapherPage)

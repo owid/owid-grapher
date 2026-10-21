@@ -88,6 +88,9 @@ interface ExpandableSectionProps {
     citationToggleLabel?: string
     stitchedIndicatorList?: StitchedIndicatorListEntry[]
     hideStitchedIndicatorList?: boolean
+    // Stitched / single-pane scatter pages: the size/colour line closes the
+    // WYSK, in the same typography.
+    auxiliaryIndicators?: AuxiliaryIndicator[]
 }
 
 const FAQS_SECTION_ID = "faqs"
@@ -141,6 +144,7 @@ function ExpandableSection({
     citationToggleLabel = "How to cite this data",
     stitchedIndicatorList,
     hideStitchedIndicatorList,
+    auxiliaryIndicators,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
     // Stitched multi-indicator pages: a source the indicators share may still
@@ -233,9 +237,17 @@ function ExpandableSection({
                         expanderOpen={detailsOpen}
                     />
                 )}
-            {descriptionKeyPreview && (
+            {(descriptionKeyPreview ||
+                (auxiliaryIndicators && !descriptionKeyRest)) && (
                 <div className="meta-expander__preview meta-expander__prose">
-                    <SimpleMarkdownText text={descriptionKeyPreview} />
+                    {descriptionKeyPreview && (
+                        <SimpleMarkdownText text={descriptionKeyPreview} />
+                    )}
+                    {auxiliaryIndicators && !descriptionKeyRest && (
+                        <AuxiliaryIndicatorsProse
+                            indicators={auxiliaryIndicators}
+                        />
+                    )}
                 </div>
             )}
             <details
@@ -288,6 +300,11 @@ function ExpandableSection({
                 {descriptionKeyRest && (
                     <div className="meta-expander__remainder meta-expander__prose">
                         <SimpleMarkdownText text={descriptionKeyRest} />
+                        {auxiliaryIndicators && (
+                            <AuxiliaryIndicatorsProse
+                                indicators={auxiliaryIndicators}
+                            />
+                        )}
                     </div>
                 )}
                 {
@@ -566,8 +583,8 @@ function IndicatorPaneContent({
     stitchedIndicatorList?: StitchedIndicatorListEntry[]
     hideStitchedIndicatorList?: boolean
     // Set only when the box has a single visible pane (stitched or
-    // single-indicator): the size/colour line then sits under the pane
-    // heading. Switcher pages render it once, above the panes, instead.
+    // single-indicator): the size/colour line then closes the WYSK.
+    // Switcher pages render it once, under the "About this data" header.
     auxiliaryIndicators?: AuxiliaryIndicator[]
     // Disambiguates the section anchor ids (#faqs, #sources-and-processing,
     // #indicator-processing) when several panes are in the DOM at once. The
@@ -598,9 +615,6 @@ function IndicatorPaneContent({
                     </span>
                 )}
             </h2>
-            {auxiliaryIndicators && (
-                <AuxiliaryIndicatorsLine indicators={auxiliaryIndicators} />
-            )}
             <dl className="meta-description-table">
                 {datapageData.descriptionShort && (
                     <div className="meta-description-table__pair meta-description-table__pair--full-width">
@@ -688,6 +702,7 @@ function IndicatorPaneContent({
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
                 datapageCitationTitle={datapageCitationTitle}
                 hideStitchedIndicatorList={hideStitchedIndicatorList}
+                auxiliaryIndicators={auxiliaryIndicators}
                 datapageCitationProducers={datapageCitationProducers}
                 citationToggleLabel={citationToggleLabel}
                 omitLongDatasetTitle={omitLongDatasetTitle}
@@ -1101,6 +1116,32 @@ export default function IndicatorMetadataBox({
                 </div>
             </div>
         </div>
+    )
+}
+
+// Stitched / single-pane scatter pages: the same size/colour line, closing
+// the WYSK as one more paragraph in its typography.
+function AuxiliaryIndicatorsProse({
+    indicators,
+}: {
+    indicators: AuxiliaryIndicator[]
+}) {
+    return (
+        <p className="indicator-metadata-box__auxiliary-prose">
+            {indicators.map((ind, i) => (
+                <React.Fragment key={ind.role}>
+                    {i > 0 && " · "}
+                    <strong>
+                        {ind.role === "size" ? "Bubble size" : "Color"}:
+                    </strong>{" "}
+                    {ind.slug ? (
+                        <a href={`/grapher/${ind.slug}`}>{ind.title}</a>
+                    ) : (
+                        ind.title
+                    )}
+                </React.Fragment>
+            ))}
+        </p>
     )
 }
 

@@ -38,6 +38,12 @@ export interface DataPageDataV2 {
      * the self-contained titlePublic.
      */
     chartDimensionName?: string
+    /**
+     * Set on a scatter plot's bubble-size or colour pane (when that indicator
+     * is shown as a pane rather than in the size/colour line): the switcher
+     * prefixes the pill label with "Size: " / "Color: ".
+     */
+    auxiliaryRole?: AuxiliaryIndicator["role"]
     titleVariant?: string
     attributionShort?: string
     topicTagsLinks?: string[]
@@ -115,6 +121,22 @@ export interface AuxiliaryIndicator {
     /** Slug of the indicator's own data page, when it has one. */
     slug?: string
 }
+
+/**
+ * How a scatter plot's size and colour indicators are documented (QA param
+ * `?auxiliary=` on the preview routes):
+ * - "mixed" (default): those with a data page go in a one-line link; those
+ *   without one get a pane of their own, so their sources stay inspectable.
+ * - "line": all of them in the one-line link (plain text when no page).
+ * - "panes": all of them as panes in the switcher.
+ */
+export type AuxiliaryIndicatorMode = "mixed" | "line" | "panes"
+export const AUXILIARY_INDICATOR_MODES: AuxiliaryIndicatorMode[] = [
+    "mixed",
+    "line",
+    "panes",
+]
+export const DEFAULT_AUXILIARY_INDICATOR_MODE: AuxiliaryIndicatorMode = "mixed"
 
 export interface AdditionalIndicator {
     datapageData: DataPageDataV2

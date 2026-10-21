@@ -57,6 +57,7 @@ import { generateEmbedSnippet } from "../site/viteUtils.js"
 import {
     renderPreviewDataPageOrGrapherPage,
     renderDataPageV2,
+    parseAuxiliaryIndicatorMode,
 } from "../baker/GrapherBaker.js"
 import { getTombstoneBySlug } from "../db/model/GdocTombstone.js"
 import * as db from "../db/db.js"
@@ -331,6 +332,9 @@ getPlainRouteWithROTransaction(
                     {
                         forceDatapage: req.query.forceDatapage === "true",
                         forceExpandIndicators: req.query.forceExpand === "true",
+                        auxiliaryMode: parseAuxiliaryIndicatorMode(
+                            req.query.auxiliary
+                        ),
                     }
                 )
             res.send(previewDataPageOrGrapherPage)

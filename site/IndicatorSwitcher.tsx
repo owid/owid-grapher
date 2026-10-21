@@ -20,7 +20,12 @@ const labelForIndicator = (datapageData: DataPageDataV2): string => {
     // match the chart's own series labels; fall back to the pane title.
     const title = datapageData.chartDimensionName ?? datapageData.title.title
     const variant = datapageData.titleVariant
-    return variant && !title.includes(variant) ? `${title} – ${variant}` : title
+    const label =
+        variant && !title.includes(variant) ? `${title} – ${variant}` : title
+    // A scatter plot's bubble-size / colour pane says which role it plays.
+    if (datapageData.auxiliaryRole === "size") return `Size: ${label}`
+    if (datapageData.auxiliaryRole === "color") return `Color: ${label}`
+    return label
 }
 
 // Label that sits next to (or above) the indicator switcher. Renders as

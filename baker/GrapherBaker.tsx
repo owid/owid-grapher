@@ -25,6 +25,9 @@ import {
 import {
     AdditionalIndicator,
     AuxiliaryIndicator,
+    AuxiliaryIndicatorMode,
+    AUXILIARY_INDICATOR_MODES,
+    DEFAULT_AUXILIARY_INDICATOR_MODE,
     StitchedIndicatorListEntry,
     GrapherInterface,
     DimensionProperty,
@@ -82,11 +85,13 @@ const renderDatapageIfApplicable = async (
         archiveContextDictionary,
         forceDatapage,
         forceExpandIndicators,
+        auxiliaryMode,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
         forceDatapage?: boolean
         forceExpandIndicators?: boolean
+        auxiliaryMode?: AuxiliaryIndicatorMode
     } = {}
 ) => {
     let variable
@@ -134,6 +139,7 @@ const renderDatapageIfApplicable = async (
             archiveContextDictionary,
             forceDatapage,
             forceExpandIndicators,
+            auxiliaryMode,
         },
         knex
     )
@@ -207,6 +213,7 @@ export async function renderDataPageV2(
         archiveContextDictionary,
         forceDatapage,
         forceExpandIndicators,
+        auxiliaryMode = DEFAULT_AUXILIARY_INDICATOR_MODE,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -220,6 +227,9 @@ export async function renderDataPageV2(
         // pane stitching so the switcher version of a stitched page can be
         // inspected.
         forceExpandIndicators?: boolean
+        // QA param (?auxiliary=mixed|line|panes): how a scatter's size and
+        // colour indicators are documented — see AuxiliaryIndicatorMode.
+        auxiliaryMode?: AuxiliaryIndicatorMode
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -327,16 +337,52 @@ export async function renderDataPageV2(
     // scatter plot the X-indicator too — on "birth rate vs death rate" the x
     // axis is as much the subject as the y. Y first, then X: 90% of scatter
     // titles that name both put the y indicator first ("Access to electricity
-    // vs. GDP per capita"). Size and colour never get a pane: they are almost
-    // always Population and World region, so they get a one-line link
-    // instead (auxiliaryIndicators below).
+    // vs. GDP per capita").
+    //
+    // A scatter's size and colour indicators (almost always Population and
+    // World region) follow `auxiliaryMode`: by default those with a data page
+    // get a one-line link and those without one get a pane of their own,
+    // after the X pane, so a reader can still see where they come from.
     const isScatter =
         grapher.chartTypes?.[0] === GRAPHER_CHART_TYPES.ScatterPlot
-    const paneDimensions = (grapher.dimensions ?? []).filter(
+    const axisDimensions = (grapher.dimensions ?? []).filter(
         (d) =>
             d.property === DimensionProperty.y ||
             (isScatter && d.property === DimensionProperty.x)
     )
+    const auxDims =
+        datapageMetadataExperimentActive && isScatter
+            ? // size before colour, whatever the config order; an indicator
+              // already plotted on an axis is documented by its axis pane
+              _.sortBy(
+                  (grapher.dimensions ?? []).filter(
+                      (d) =>
+                          !!d.variableId &&
+                          (d.property === DimensionProperty.size ||
+                              d.property === DimensionProperty.color) &&
+                          !axisDimensions.some(
+                              (a) => a.variableId === d.variableId
+                          )
+                  ),
+                  (d) => (d.property === DimensionProperty.size ? 0 : 1)
+              )
+            : []
+    const auxLinks = await getAuxiliaryIndicatorLinks(
+        knex,
+        auxDims.map((d) => d.variableId)
+    )
+    const auxIsPane = (d: OwidChartDimensionInterface): boolean =>
+        auxiliaryMode === "panes" ||
+        (auxiliaryMode === "mixed" && !auxLinks.get(d.variableId)?.slug)
+    const auxPaneDimensions = auxDims.filter(auxIsPane)
+    const paneDimensions = [...axisDimensions, ...auxPaneDimensions]
+    const auxiliaryRoleFor = (
+        varId: number
+    ): AuxiliaryIndicator["role"] | undefined => {
+        const d = auxPaneDimensions.find((a) => a.variableId === varId)
+        if (!d) return undefined
+        return d.property === DimensionProperty.size ? "size" : "color"
+    }
     const paneDimensionFor = (varId: number) =>
         paneDimensions.find((d) => d.variableId === varId)
 
@@ -426,6 +472,7 @@ export async function renderDataPageV2(
                     // charts (~150KB of 204KB on the 31-indicator deaths
                     // page). Strip it before serialization.
                     indicatorDatapageData.chartConfig = {}
+                    indicatorDatapageData.auxiliaryRole = auxiliaryRoleFor(id)
                     return {
                         datapageData: indicatorDatapageData,
                         faqEntries: await resolveFaqsForOneVariable(
@@ -485,24 +532,13 @@ export async function renderDataPageV2(
         )
     }
 
-    // Scatter plots: bubble size and colour, as a one-line link each.
-    let auxiliaryIndicators: AuxiliaryIndicator[] | undefined
-    if (datapageMetadataExperimentActive && isScatter) {
-        const auxDims = (grapher.dimensions ?? []).filter(
-            (d) =>
-                d.property === DimensionProperty.size ||
-                d.property === DimensionProperty.color
-        )
-        const links = await getAuxiliaryIndicatorLinks(
-            knex,
-            _.compact(auxDims.map((d) => d.variableId))
-        )
-        auxiliaryIndicators = _.compact(
-            // size before colour, whatever the config order
-            _.sortBy(auxDims, (d) =>
-                d.property === DimensionProperty.size ? 0 : 1
-            ).map((d): AuxiliaryIndicator | undefined => {
-                const link = d.variableId ? links.get(d.variableId) : undefined
+    // Scatter plots: the size/colour indicators not shown as panes, as a
+    // one-line link each (plain text when the indicator has no data page).
+    let auxiliaryIndicators: AuxiliaryIndicator[] | undefined = _.compact(
+        auxDims
+            .filter((d) => !auxPaneDimensions.includes(d))
+            .map((d): AuxiliaryIndicator | undefined => {
+                const link = auxLinks.get(d.variableId)
                 const title = d.display?.name?.trim() || link?.title
                 if (!title) return undefined
                 return {
@@ -514,9 +550,8 @@ export async function renderDataPageV2(
                     slug: link?.slug,
                 }
             })
-        )
-        if (!auxiliaryIndicators.length) auxiliaryIndicators = undefined
-    }
+    )
+    if (!auxiliaryIndicators.length) auxiliaryIndicators = undefined
 
     // When every pane of a multi-indicator chart shares the same substantive
     // metadata, stitch the panes into a single pane + a templated
@@ -658,7 +693,11 @@ export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     chartId: number,
     knex: db.KnexReadonlyTransaction,
-    options?: { forceDatapage?: boolean; forceExpandIndicators?: boolean }
+    options?: {
+        forceDatapage?: boolean
+        forceExpandIndicators?: boolean
+        auxiliaryMode?: AuxiliaryIndicatorMode
+    }
 ) => {
     // Match renderDataPageOrGrapherPage: charts for which
     // shouldBakeAsDatapage is true preview as data pages too.
@@ -671,6 +710,7 @@ export const renderPreviewDataPageOrGrapherPage = async (
         archiveContextDictionary,
         forceDatapage,
         forceExpandIndicators: options?.forceExpandIndicators,
+        auxiliaryMode: options?.auxiliaryMode,
     })
     if (datapage) return datapage
 
@@ -876,3 +916,9 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     await deleteOldGraphers(bakedSiteDir, newSlugs)
     progressBar.tick({ name: `✅ Deleted old graphers` })
 }
+
+/** Parses the `?auxiliary=` QA param; anything unrecognised means the default. */
+export const parseAuxiliaryIndicatorMode = (
+    value: unknown
+): AuxiliaryIndicatorMode | undefined =>
+    AUXILIARY_INDICATOR_MODES.find((m) => m === value)
