@@ -84,6 +84,18 @@
     }
 }
 
+// Accordions: the title and icon darken once open
+.indicator-metadata-box details.ExpandableToggle {
+    > .ExpandableToggle__container .ExpandableToggle__button {
+        --button: #{$blue-60};
+    }
+
+    &[open] > .ExpandableToggle__container .ExpandableToggle__button {
+        --title: #{$blue-90};
+        --button: #{$blue-90};
+    }
+}
+
 // Restore list indentation lost to the global `ul, ol { padding: 0 }` reset
 // (e.g. /grapher/co2-emissions-transport, "Documentation from data sources").
 .indicator-metadata-box__producer-docs {
