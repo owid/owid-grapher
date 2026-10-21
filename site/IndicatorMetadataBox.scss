@@ -121,25 +121,53 @@
     }
 }
 
-// Restore list indentation lost to the global `ul, ol { padding: 0 }` reset
-// (e.g. /grapher/co2-emissions-transport, "Documentation from data sources").
-.indicator-metadata-box__producer-docs {
+// Free-form text from data producers, in "Documentation from data sources"
+// and the source descriptions: paragraphs a blank line apart, headings in bold
+// body text right above their paragraph, and bullets 8px apart
+.indicator-metadata-box .indicator-metadata-box__producer-docs,
+.indicator-metadata-box .indicator-sources .source .description {
     // The content's first-child reset can't reach through this wrapper
     > :first-child {
         margin-top: 0;
     }
 
+    > :last-child {
+        margin-bottom: 0;
+    }
+
+    p {
+        margin: 0 0 21px;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @include body-3-bold;
+        color: $blue-90;
+        margin: 21px 0 0;
+    }
+
+    // Restore list indentation lost to the global `ul, ol { padding: 0 }`
+    // reset (e.g. /grapher/co2-emissions-transport)
     ul,
     ol {
         padding-left: 1.5em;
-        margin: 1em 0;
+        margin: 0 0 21px;
+    }
 
-        li {
-            margin-bottom: 1em;
+    li {
+        margin: 0 0 8px;
 
-            &:last-child {
-                margin-bottom: 0;
-            }
+        &:last-child {
+            margin-bottom: 0;
         }
+    }
+
+    // Loose markdown lists wrap each item in a paragraph
+    li > p {
+        margin: 0;
     }
 }
