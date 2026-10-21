@@ -24,7 +24,10 @@
     }
 }
 
-.indicator-metadata-box .metadata-box-expander {
+// The divider separates the key data from the "What you should know" preview,
+// so pages without one go straight to the summary
+.indicator-metadata-box
+    .metadata-box-expander:has(> .metadata-box-expander__preview) {
     border-top: 1px solid $blue-20;
     margin-top: 12px;
 }
