@@ -133,11 +133,16 @@ function IndicatorMetadataSections({
             detailsRef={detailsRef}
             preview={
                 descriptionKeyPreview ? (
-                    <SimpleMarkdownText
-                        text={descriptionKeyPreview}
-                        dataTrackNote="wysk_link"
-                        dodTrackNote="wysk/preview"
-                    />
+                    <>
+                        <h2 className="indicator-metadata-box__description-key-title">
+                            What you should know about this data
+                        </h2>
+                        <SimpleMarkdownText
+                            text={descriptionKeyPreview}
+                            dataTrackNote="wysk_link"
+                            dodTrackNote="wysk/preview"
+                        />
+                    </>
                 ) : undefined
             }
             onToggle={(isOpen) =>

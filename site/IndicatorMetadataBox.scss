@@ -26,11 +26,17 @@
 
 .indicator-metadata-box .metadata-box-expander {
     border-top: 1px solid $blue-20;
-    margin-top: 16px;
+    margin-top: 12px;
 }
 
 .indicator-metadata-box .metadata-box-expander__preview {
-    margin-top: 16px;
+    margin-top: 12px;
+}
+
+.indicator-metadata-box .indicator-metadata-box__description-key-title {
+    @include body-2-bold-tight;
+    color: $blue-90;
+    margin: 0 0 12px;
 }
 
 .indicator-metadata-box .metadata-box-expander__summary {
