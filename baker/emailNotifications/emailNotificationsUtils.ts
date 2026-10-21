@@ -6,6 +6,7 @@ import {
     LatestType,
 } from "@ourworldindata/types"
 import { dayjs } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
 
 export interface EmailNotificationsSubscriber {
     userId: number
@@ -127,4 +128,79 @@ export function filterItemsForSubscriber(
             subscriber.topicTags.includes(name)
         )
     })
+}
+
+export interface NotificationEmailGroup {
+    items: NotificationEmailItem[]
+    subscribers: EmailNotificationsSubscriber[]
+}
+
+/**
+ * Group subscribers who get exactly the same items, so each group's email is
+ * rendered once and sent in Postmark bulk requests. Subscribers with no new
+ * items are left out.
+ */
+export function groupSubscribersByItems(
+    items: NotificationEmailItem[],
+    subscribers: EmailNotificationsSubscriber[],
+    now: Date
+): NotificationEmailGroup[] {
+    const groups = new Map<string, NotificationEmailGroup>()
+    for (const subscriber of subscribers) {
+        const subscriberItems = filterItemsForSubscriber(items, subscriber, now)
+        if (subscriberItems.length === 0) continue
+        // Items keep the order of the items list, so equal sets have equal
+        // keys.
+        const key = JSON.stringify(subscriberItems.map((item) => item.slug))
+        const group = groups.get(key)
+        if (group) group.subscribers.push(subscriber)
+        else
+            groups.set(key, {
+                items: subscriberItems,
+                subscribers: [subscriber],
+            })
+    }
+    return [...groups.values()]
+}
+
+/**
+ * Fill in top-level {{var}} (HTML-escaped) and {{{var}}} (raw) placeholders
+ * the way Postmark's Mustachio templating does, for previewing bulk emails
+ * locally. Only covers the subset of Mustachio our templates use.
+ */
+export function fillPostmarkTemplate(
+    template: string,
+    model: Record<string, unknown>
+): string {
+    return template.replace(
+        /\{\{\{\s*(\w+)\s*\}\}\}|\{\{\s*(\w+)\s*\}\}/g,
+        (_match, rawName?: string, escapedName?: string) => {
+            const value = String(model[rawName ?? escapedName ?? ""] ?? "")
+            return rawName !== undefined ? value : _.escape(value)
+        }
+    )
+}
+
+// Delivery webhooks for a send normally arrive within minutes.
+const WEBHOOK_SILENCE_THRESHOLD_MS = 60 * 60 * 1000
+
+/**
+ * Whether Postmark webhooks seem to have stopped reaching us: the last send
+ * was long enough ago for its Delivery webhooks to have arrived, but none
+ * have been received since. Catches every cause, e.g. a webhook secret that
+ * no longer matches, or the webhook being removed in Postmark.
+ */
+export function areWebhooksMissing({
+    lastSentAt,
+    lastWebhookAt,
+    now,
+}: {
+    lastSentAt: Date | null
+    lastWebhookAt: Date | null
+    now: Date
+}): boolean {
+    if (!lastSentAt) return false
+    if (now.getTime() - lastSentAt.getTime() < WEBHOOK_SILENCE_THRESHOLD_MS)
+        return false
+    return !lastWebhookAt || lastWebhookAt < lastSentAt
 }
