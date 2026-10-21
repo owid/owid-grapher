@@ -19,10 +19,14 @@ export interface GrapherEditorProps {
 
     store: IndicatorStore
     details?: DetailsProvider
+    catalogUrl?: ConfigEditorManager["catalogUrl"]
     scatterDefaults?: ConfigEditorManager["scatterDefaults"]
+    indicatorUrl?: ConfigEditorManager["indicatorUrl"]
 
     onSave: ConfigEditorManager["onSave"]
     onChange?: ConfigEditorManager["onChange"]
+    onModifiedChange?: ConfigEditorManager["onModifiedChange"]
+    chartAnimationUrl?: ConfigEditorManager["chartAnimationUrl"]
 
     /** Default editor tabs to show */
     tabs?: EditorTabName[]
@@ -34,6 +38,7 @@ export interface GrapherEditorProps {
 
     renderNote?: ConfigEditorManager["renderNote"]
     originUrlSuggestions?: ConfigEditorManager["originUrlSuggestions"]
+    syncTabWithUrl?: ConfigEditorManager["syncTabWithUrl"]
 }
 
 @observer
@@ -66,8 +71,16 @@ export class GrapherEditor
         return this.props.details
     }
 
+    get catalogUrl(): string | undefined {
+        return this.props.catalogUrl
+    }
+
     get scatterDefaults(): ConfigEditorManager["scatterDefaults"] {
         return this.props.scatterDefaults
+    }
+
+    get indicatorUrl(): ConfigEditorManager["indicatorUrl"] {
+        return this.props.indicatorUrl
     }
 
     get onSave(): ConfigEditorManager["onSave"] {
@@ -76,6 +89,14 @@ export class GrapherEditor
 
     get onChange(): ConfigEditorManager["onChange"] {
         return this.props.onChange
+    }
+
+    get onModifiedChange(): ConfigEditorManager["onModifiedChange"] {
+        return this.props.onModifiedChange
+    }
+
+    get chartAnimationUrl(): ConfigEditorManager["chartAnimationUrl"] {
+        return this.props.chartAnimationUrl
     }
 
     get tabs(): EditorTabName[] | undefined {
@@ -106,10 +127,22 @@ export class GrapherEditor
         return this.props.originUrlSuggestions
     }
 
+    get syncTabWithUrl(): ConfigEditorManager["syncTabWithUrl"] {
+        return this.props.syncTabWithUrl
+    }
+
     private _editor: ConfigEditor | undefined = undefined
     get editor(): ConfigEditor {
         this._editor ??= new ConfigEditor({ manager: this })
         return this._editor
+    }
+
+    override componentDidMount(): void {
+        this.editor.start()
+    }
+
+    override componentWillUnmount(): void {
+        this.editor.dispose()
     }
 
     override render(): React.ReactElement {

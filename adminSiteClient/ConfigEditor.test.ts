@@ -1,7 +1,7 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import { runInAction } from "mobx"
 import { DimensionProperty, GrapherInterface } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -15,6 +15,7 @@ function makeEditor(
         patchConfig: { title: "Original title", hasMapTab: true },
         onSave: () => undefined,
         ...overrides,
+        store: overrides.store ?? { loadTable: async () => undefined },
     }
     const editor = new ConfigEditor({ manager })
     editor.updateLiveGrapher(manager.patchConfig)
@@ -109,6 +110,130 @@ describe(ConfigEditor, () => {
         expect(editor.isModified).toBe(false)
     })
 
+    it("keeps an edit made while a save is in flight, on top of what the host saved", async () => {
+        let finishSave: (saved: GrapherInterface) => void = () => undefined
+        const editor = makeEditor({
+            onSave: (config) =>
+                new Promise((resolve) => {
+                    finishSave = () =>
+                        resolve({ ...config, subtitle: "Normalized" })
+                }),
+        })
+        runInAction(() => {
+            editor.grapherState.title = "Saved title"
+        })
+
+        const saving = editor.saveGrapher()
+        runInAction(() => {
+            editor.grapherState.title = "Typed while saving"
+        })
+        finishSave({})
+        await saving
+
+        expect(editor.grapherState.title).toBe("Typed while saving")
+        expect(editor.grapherState.subtitle).toBe("Normalized")
+        expect(editor.isModified).toBe(true)
+    })
+
+    it("keeps a field cleared while a save is in flight cleared", async () => {
+        let finishSave: () => void = () => undefined
+        const editor = makeEditor({
+            patchConfig: { title: "Title", subtitle: "Subtitle" },
+            onSave: (config) =>
+                new Promise((resolve) => {
+                    finishSave = () => resolve(config)
+                }),
+        })
+        runInAction(() => {
+            editor.grapherState.title = "Edited title"
+        })
+
+        const saving = editor.saveGrapher()
+        runInAction(() => {
+            editor.grapherState.subtitle = undefined
+        })
+        finishSave()
+        await saving
+
+        expect(editor.grapherState.subtitle).toBeFalsy()
+        expect(editor.isModified).toBe(true)
+    })
+
+    it("reloads the data when the host saves other entity colors", async () => {
+        const loadTable = vi.fn<IndicatorStore["loadTable"]>(
+            async () => undefined
+        )
+        const editor = makeEditor({
+            store: { loadTable },
+            onSave: (config) => ({
+                ...config,
+                selectedEntityColors: { France: "#ff0000" },
+            }),
+        })
+        runInAction(() => {
+            editor.grapherState.title = "Edited title"
+        })
+
+        await editor.saveGrapher()
+
+        expect(loadTable.mock.lastCall?.[1]).toEqual({ France: "#ff0000" })
+    })
+
+    it("reloads the data when the host saves a config with other indicators", async () => {
+        const loadTable = vi.fn<IndicatorStore["loadTable"]>(
+            async () => undefined
+        )
+        const editor = makeEditor({
+            store: { loadTable },
+            onSave: (config) => ({
+                ...config,
+                dimensions: [{ property: DimensionProperty.y, variableId: 2 }],
+            }),
+        })
+        runInAction(() => {
+            editor.grapherState.title = "Edited title"
+        })
+
+        await editor.saveGrapher()
+
+        expect(loadTable.mock.lastCall?.[0]).toMatchObject([{ variableId: 2 }])
+    })
+
+    it("keeps what the host saved when it also stamps the editor during the save", async () => {
+        const editor = makeEditor({
+            onSave: (config, ed) => {
+                runInAction(() => {
+                    ed.grapherState.version = 7
+                })
+                return { ...config, isPublished: true, slug: "published" }
+            },
+        })
+        runInAction(() => {
+            editor.grapherState.title = "Edited title"
+        })
+
+        await editor.saveGrapher()
+
+        expect(editor.grapherState.isPublished).toBe(true)
+        expect(editor.grapherState.slug).toBe("published")
+        expect(editor.grapherState.version).toBe(7)
+        expect(editor.isModified).toBe(false)
+    })
+
+    it("adopts a slug the host normalized on save", async () => {
+        const editor = makeEditor({
+            onSave: (config) => ({ ...config, slug: "normalized-slug" }),
+        })
+        runInAction(() => {
+            editor.grapherState.slug = "Typed Slug"
+        })
+
+        await editor.saveGrapher()
+
+        expect(editor.grapherState.slug).toBe("normalized-slug")
+        expect(editor.isModified).toBe(false)
+    })
+
     it("fires onChange with the new patch as the config is edited", () => {
         const onChange = vi.fn<(config: GrapherInterface) => void>()
         const editor = makeEditor({ onChange })
@@ -121,6 +246,80 @@ describe(ConfigEditor, () => {
         expect(onChange.mock.lastCall?.[0]).toMatchObject({
             title: "Edited title",
         })
+    })
+
+    it("tells the host when unsaved changes appear and when a save clears them", async () => {
+        const onModifiedChange = vi.fn<(isModified: boolean) => void>()
+        const editor = makeEditor({ onModifiedChange })
+        // makeEditor marks its starting config as saved
+        onModifiedChange.mockClear()
+
+        runInAction(() => {
+            editor.grapherState.title = "Edited title"
+        })
+        runInAction(() => {
+            editor.grapherState.title = "Edited title, again"
+        })
+        await editor.saveGrapher()
+
+        expect(onModifiedChange.mock.calls).toEqual([[true], [false]])
+    })
+})
+
+describe("ConfigEditor tab in the URL", () => {
+    const urlWithTab = "/charts/1/edit?tab=text"
+    const editors: ConfigEditor[] = []
+    const makeTrackedEditor = (
+        manager?: Partial<ConfigEditorManager>
+    ): ConfigEditor => {
+        const editor = makeEditor(manager)
+        editors.push(editor)
+        return editor
+    }
+    afterEach(() => {
+        editors.splice(0).forEach((editor) => editor.dispose())
+        window.history.replaceState({}, "", "/")
+    })
+
+    it("leaves the host page's URL alone by default", () => {
+        window.history.replaceState({}, "", urlWithTab)
+        const editor = makeTrackedEditor()
+        expect(editor.tab).toBe("basic")
+
+        runInAction(() => {
+            editor.tab = "customize"
+        })
+        expect(window.location.search).toBe("?tab=text")
+    })
+
+    it("ignores a tab in the URL that the host doesn't show", () => {
+        window.history.replaceState({}, "", "/charts/1/edit?tab=map")
+        const editor = makeTrackedEditor({
+            syncTabWithUrl: true,
+            tabs: ["basic", "text"],
+        })
+        expect(editor.tab).toBe("basic")
+    })
+
+    it("keeps the page's history state when it writes the tab", () => {
+        window.history.replaceState({ routerKey: "abc" }, "", urlWithTab)
+        const editor = makeTrackedEditor({ syncTabWithUrl: true })
+
+        runInAction(() => {
+            editor.tab = "customize"
+        })
+        expect(window.history.state).toEqual({ routerKey: "abc" })
+    })
+
+    it("opens on the URL's tab and keeps it updated when the host syncs it", () => {
+        window.history.replaceState({}, "", urlWithTab)
+        const editor = makeTrackedEditor({ syncTabWithUrl: true })
+        expect(editor.tab).toBe("text")
+
+        runInAction(() => {
+            editor.tab = "customize"
+        })
+        expect(window.location.search).toBe("?tab=customize")
     })
 })
 
