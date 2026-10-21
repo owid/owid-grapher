@@ -57,9 +57,9 @@ describe("Multi-dim configs stored by slug", { timeout: 20000 }, () => {
     }
 
     function savedSlugs(): string[] {
-        return vi.mocked(saveMultiDimConfigToR2).mock.calls.map(
-            ([, slug]) => slug
-        )
+        return vi
+            .mocked(saveMultiDimConfigToR2)
+            .mock.calls.map(([, slug]) => slug)
     }
 
     beforeEach(async () => {
