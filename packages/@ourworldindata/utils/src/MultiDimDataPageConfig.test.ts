@@ -114,53 +114,84 @@ describe(resolveDimensionPresentationType, () => {
         ...overrides,
     })
 
-    it("defaults to radio for dimensions with at most two choices", () => {
-        expect(resolveDimensionPresentationType(makeDimension(1))).toBe("radio")
-        expect(resolveDimensionPresentationType(makeDimension(2))).toBe("radio")
+    describe("on a page with several dimensions", () => {
+        const resolve = (dimension: Dimension): string =>
+            resolveDimensionPresentationType(dimension, { dimensionCount: 3 })
+
+        it("defaults to radio for at most two choices", () => {
+            expect(resolve(makeDimension(1))).toBe("radio")
+            expect(resolve(makeDimension(2))).toBe("radio")
+        })
+
+        it("defaults to dropdown for more than two choices", () => {
+            expect(resolve(makeDimension(3))).toBe("dropdown")
+        })
+
+        it("defaults to dropdown when choices are grouped", () => {
+            const dimension = makeDimension(2)
+            dimension.choices[0].group = "Group"
+            expect(resolve(dimension)).toBe("dropdown")
+        })
+
+        it("defaults to dropdown-with-search for more than twenty choices", () => {
+            expect(resolve(makeDimension(20))).toBe("dropdown")
+            expect(resolve(makeDimension(21))).toBe("dropdown-with-search")
+        })
     })
 
-    it("defaults to dropdown for dimensions with more than two choices", () => {
-        expect(resolveDimensionPresentationType(makeDimension(3))).toBe(
-            "dropdown"
-        )
-    })
+    // A lone dimension has the whole controls row to itself, so a radio
+    // group stays readable with a few more choices.
+    describe("on a page with a single dimension", () => {
+        const resolve = (dimension: Dimension): string =>
+            resolveDimensionPresentationType(dimension, { dimensionCount: 1 })
 
-    it("defaults to dropdown when choices are grouped", () => {
-        const dimension = makeDimension(2)
-        dimension.choices[0].group = "Group"
-        expect(resolveDimensionPresentationType(dimension)).toBe("dropdown")
-    })
+        it("defaults to radio for at most four choices", () => {
+            expect(resolve(makeDimension(3))).toBe("radio")
+            expect(resolve(makeDimension(4))).toBe("radio")
+        })
 
-    it("defaults to dropdown-with-search for dimensions with more than twenty choices", () => {
-        expect(resolveDimensionPresentationType(makeDimension(20))).toBe(
-            "dropdown"
-        )
-        expect(resolveDimensionPresentationType(makeDimension(21))).toBe(
-            "dropdown-with-search"
-        )
+        it("defaults to dropdown for more than four choices", () => {
+            expect(resolve(makeDimension(5))).toBe("dropdown")
+        })
+
+        it("defaults to dropdown when choices are grouped", () => {
+            const dimension = makeDimension(3)
+            dimension.choices[0].group = "Group"
+            expect(resolve(dimension)).toBe("dropdown")
+        })
     })
 
     it("respects an explicit presentation type", () => {
         expect(
             resolveDimensionPresentationType(
-                makeDimension(2, { presentation: { type: "dropdown" } })
+                makeDimension(2, { presentation: { type: "dropdown" } }),
+                { dimensionCount: 3 }
             )
         ).toBe("dropdown")
         expect(
             resolveDimensionPresentationType(
-                makeDimension(5, { presentation: { type: "radio" } })
+                makeDimension(4, { presentation: { type: "dropdown" } }),
+                { dimensionCount: 1 }
+            )
+        ).toBe("dropdown")
+        expect(
+            resolveDimensionPresentationType(
+                makeDimension(5, { presentation: { type: "radio" } }),
+                { dimensionCount: 3 }
             )
         ).toBe("radio")
         expect(
             resolveDimensionPresentationType(
                 makeDimension(3, {
                     presentation: { type: "dropdown-with-search" },
-                })
+                }),
+                { dimensionCount: 3 }
             )
         ).toBe("dropdown-with-search")
         expect(
             resolveDimensionPresentationType(
-                makeDimension(20, { presentation: { type: "dropdown" } })
+                makeDimension(20, { presentation: { type: "dropdown" } }),
+                { dimensionCount: 3 }
             )
         ).toBe("dropdown")
     })
