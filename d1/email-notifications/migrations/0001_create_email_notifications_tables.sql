@@ -53,6 +53,7 @@ CREATE INDEX tokens_userId ON tokens (userId);
 -- status, deliveredAt and messageId fields. A user's latest sentAt is where
 -- the send job starts the window of new content for their next email; it isn't
 -- stored separately, so recording a sent email is a single write.
+-- The send job deletes messages after 90 days.
 CREATE TABLE messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     userId INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
@@ -79,6 +80,7 @@ CREATE INDEX messages_userId_sentAt ON messages (userId, sentAt);
 -- The application-generated key includes the record type because delivery and
 -- subscription-change events can refer to the same Postmark MessageID.
 -- Subscription changes may have no MessageID at all.
+-- The send job deletes receipts after 30 days.
 CREATE TABLE postmark_webhook_receipts (
     idempotencyKey TEXT PRIMARY KEY,
     recordType TEXT NOT NULL,
