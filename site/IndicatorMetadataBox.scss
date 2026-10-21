@@ -339,7 +339,7 @@
 
 // Stitched multi-indicator mode: one pane (headed "About this data") whose
 // expander opens with the indicator list, sitting above the shared WYSK.
-// The collapsed indicator list is a .meta-expander__prose block, so type and
+// The stitched indicator list is a .meta-expander__prose block, so type and
 // paragraph spacing come from there; it only adds list-entry structure. The
 // WYSK preview that follows it drops its own top margin so the two read as
 // consecutive paragraphs.
@@ -454,7 +454,7 @@
     display: none;
 }
 
-// Merged multi-indicator pages: per-indicator producer documentation sits as
+// Stitched multi-indicator pages: per-indicator producer documentation sits as
 // nested toggles inside the single source toggle.
 .indicator-metadata-box__nested-docs {
     .ExpandableToggle {
@@ -478,14 +478,9 @@
     }
 }
 
-// Scatter plots: the bubble-size / colour line. Under the pane heading it
-// reads as part of the key data; on switcher pages it sits between the
-// "About this data" header and the box.
+// Scatter plots (?auxiliary=mixed|line): the bubble-size / colour line on
+// switcher pages, between the "About this data" header and the box.
 .indicator-metadata-box__auxiliary {
-    margin-top: 4px;
-    margin-bottom: 8px;
-}
-.indicator-metadata-box__auxiliary--above-box {
     margin-top: 0;
     margin-bottom: 8px;
 }

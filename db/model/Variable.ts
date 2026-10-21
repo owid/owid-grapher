@@ -39,7 +39,7 @@ import {
     DatasetOwners,
     DbPlainDataset,
     normalizeDescriptionKey,
-    VariableDisplayDimension,
+    VariableSliceDimensions,
     parseVariableDimensions,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
@@ -1311,17 +1311,8 @@ export async function deleteIndicators(
 export async function getVariableSliceDimensions(
     knex: db.KnexReadonlyTransaction,
     variableIds: number[]
-): Promise<
-    Map<
-        number,
-        {
-            originalShortName: string
-            filters: VariableDisplayDimension["filters"]
-            tablePath?: string
-        }
-    >
-> {
-    const result = new Map()
+): Promise<Map<number, VariableSliceDimensions>> {
+    const result = new Map<number, VariableSliceDimensions>()
     if (!variableIds.length) return result
     const rows = await knexRaw<{
         id: number

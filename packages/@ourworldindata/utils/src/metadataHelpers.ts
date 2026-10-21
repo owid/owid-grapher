@@ -176,7 +176,7 @@ export const getOriginIdentityKey = (o: OwidOrigin): string =>
         license: o.license ?? null,
     })
 
-const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
+export const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
     const title = origin.title !== origin.producer ? origin.title : undefined
     const label = excludeUndefined([origin.producer, title]).join(" – ")
 
@@ -186,7 +186,6 @@ const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
         retrievedOn: origin.dateAccessed,
         retrievedFrom: origin.urlMain,
         citation: origin.citationFull,
-        identityKey: getOriginIdentityKey(origin),
         // Read only by the data-download readme, which lists each source once and
         // has room to say more about it than the Sources UIs do.
         producer: origin.producer,

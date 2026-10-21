@@ -12,15 +12,17 @@ import { useMediaQuery } from "usehooks-ts"
 import { AdditionalIndicator, DataPageDataV2 } from "@ourworldindata/types"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "./SiteConstants.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
+import { appendTitleVariant } from "./datapageUtils.js"
 
 const analytics = new SiteAnalytics()
 
 const baseLabelForIndicator = (datapageData: DataPageDataV2): string => {
     // Prefer the chart author's per-dimension display.name so pill labels
     // match the chart's own series labels; fall back to the pane title.
-    const title = datapageData.chartDimensionName ?? datapageData.title.title
-    const variant = datapageData.titleVariant
-    return variant && !title.includes(variant) ? `${title} – ${variant}` : title
+    return appendTitleVariant(
+        datapageData.chartDimensionName ?? datapageData.title.title,
+        datapageData.titleVariant
+    )
 }
 
 // A scatter plot's bubble-size / colour pane says which role it plays.

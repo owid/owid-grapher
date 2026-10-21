@@ -139,3 +139,15 @@ export function splitDescriptionKey(markdown: string): {
         remainder: joinMarkdownBlocks(blocks.slice(previewEnd)),
     }
 }
+
+/**
+ * "Title – variant", unless the variant is empty or already part of the
+ * title. Shared by the switcher's pill labels and the stitched list.
+ */
+export function appendTitleVariant(
+    title: string,
+    variant: string | undefined
+): string {
+    const v = variant?.trim()
+    return v && !title.includes(v) ? `${title} – ${v}` : title
+}

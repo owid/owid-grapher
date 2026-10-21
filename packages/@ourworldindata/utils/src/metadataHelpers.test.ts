@@ -390,7 +390,7 @@ describe(getProcessingPhraseForAttribution, () => {
 
 describe(prepareSourcesForDisplay, () => {
     it("returns an empty array if there is nothing to display", () => {
-        expect(prepareSourcesForDisplay({})).toMatchObject([])
+        expect(prepareSourcesForDisplay({})).toEqual([])
     })
 
     it("includes the source if it has a name and any provenance field", () => {
@@ -403,7 +403,7 @@ describe(prepareSourcesForDisplay, () => {
                     link: "https://example.com",
                 },
             })
-        ).toMatchObject([
+        ).toEqual([
             {
                 label: "Source",
                 dataPublishedBy: "Publisher",
@@ -416,7 +416,7 @@ describe(prepareSourcesForDisplay, () => {
     it("omits a source that only has a name", () => {
         expect(
             prepareSourcesForDisplay({ source: { name: "Source" } })
-        ).toMatchObject([])
+        ).toEqual([])
     })
 
     it("omits a source without a name", () => {
@@ -424,7 +424,7 @@ describe(prepareSourcesForDisplay, () => {
             prepareSourcesForDisplay({
                 source: { link: "https://example.com" },
             })
-        ).toMatchObject([])
+        ).toEqual([])
     })
 
     it("maps origins to display sources after the source", () => {
@@ -442,7 +442,7 @@ describe(prepareSourcesForDisplay, () => {
                     },
                 ],
             })
-        ).toMatchObject([
+        ).toEqual([
             {
                 label: "Source",
                 retrievedFrom: "https://example.com",
@@ -461,7 +461,7 @@ describe(prepareSourcesForDisplay, () => {
     it("labels an origin with its producer only", () => {
         expect(
             prepareSourcesForDisplay({ origins: [{ producer: "Producer" }] })
-        ).toMatchObject([{ label: "Producer", producer: "Producer" }])
+        ).toEqual([{ label: "Producer", producer: "Producer" }])
     })
 
     it("does not repeat the producer if the title matches it", () => {
@@ -469,13 +469,13 @@ describe(prepareSourcesForDisplay, () => {
             prepareSourcesForDisplay({
                 origins: [{ producer: "Producer", title: "Producer" }],
             })
-        ).toMatchObject([{ label: "Producer", producer: "Producer" }])
+        ).toEqual([{ label: "Producer", producer: "Producer" }])
     })
 
     it("omits the separator when an origin has no producer", () => {
         expect(
             prepareSourcesForDisplay({ origins: [{ title: "Title" }] })
-        ).toMatchObject([{ label: "Title" }])
+        ).toEqual([{ label: "Title" }])
     })
 
     it("keeps the order of the origins", () => {
@@ -483,7 +483,7 @@ describe(prepareSourcesForDisplay, () => {
             prepareSourcesForDisplay({
                 origins: [{ producer: "B" }, { producer: "A" }],
             })
-        ).toMatchObject([
+        ).toEqual([
             { label: "B", producer: "B" },
             { label: "A", producer: "A" },
         ])
@@ -506,7 +506,7 @@ describe(prepareSourcesForDisplay, () => {
                     },
                 ],
             })
-        ).toMatchObject([
+        ).toEqual([
             {
                 label: "Producer",
                 producer: "Producer",

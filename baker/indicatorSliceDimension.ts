@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { VariableDisplayDimension } from "@ourworldindata/types"
+import { VariableSliceDimensions } from "@ourworldindata/types"
 import { IndicatorPaneStitch } from "./stitchIndicatorPanes.js"
 
 /**
@@ -19,19 +19,16 @@ import { IndicatorPaneStitch } from "./stitchIndicatorPanes.js"
  *    categories or percentages look exactly like that. (Validated 2026-10-18
  *    against the 408 charts whose slice metadata gives ground truth.)
  *
- * Either way the list only drops when nothing else varies: units identical,
- * no WYSK notes, no differing title variant, and any differing short
- * descriptions must vary in the same slot as the titles.
+ * Either way the list only drops when nothing else in the LIST varies:
+ * units identical, no WYSK notes, no differing title variant, and any
+ * differing short descriptions must vary in the same slot as the titles.
+ * Per-indicator producer docs and source links don't depend on the list
+ * being shown (they render in their own sections), so they don't block it.
  */
 
 export type SliceClass = "age" | "sex" | "year"
 
-export interface IndicatorSliceDims {
-    originalShortName: string
-    filters: VariableDisplayDimension["filters"]
-    /** catalogPath before the `#`; two "value" columns from different tables are not the same measure */
-    tablePath?: string
-}
+export type IndicatorSliceDims = VariableSliceDimensions
 
 const DIMENSION_CLASS: Record<string, SliceClass> = {
     age: "age",
@@ -50,7 +47,7 @@ const DIMENSION_CLASS: Record<string, SliceClass> = {
 // beside it, so a list that contains one stays.
 const AGE_STANDARDIZED = /standardi[sz]ed/i
 
-export const MIN_ENTRIES_TO_HIDE_LIST = 4
+const MIN_ENTRIES_TO_HIDE_LIST = 4
 
 export function classifySliceFromDimensions(
     dims: (IndicatorSliceDims | undefined)[]
@@ -96,7 +93,7 @@ const tokenize = (s: string): string[] =>
  * Per-title leftover after removing the tokens all titles share at both ends,
  * plus that shared context (so "Ages 0-4 | Ages 5-9" still counts as ages).
  */
-export function titleResidues(titles: string[]): {
+function titleResidues(titles: string[]): {
     residues: string[]
     shared: string
 } {

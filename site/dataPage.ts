@@ -36,11 +36,7 @@ export function getDatapageDataV2(
         // indicators of a multi-indicator chart, where the chart title
         // describes the whole chart rather than any single indicator.
         indicatorTitleOverride?: string
-        // The chart dimension's own display.name, when the chart author set
-        // one. Carried through as DataPageDataV2.chartDimensionName: the
-        // switcher prefers it for pill labels (matching the chart's series
-        // labels), while pane titles, citations and the stitched list keep
-        // the self-contained titlePublic.
+        // See DataPageDataV2.chartDimensionName.
         chartDimensionName?: string
     }
 ): DataPageDataV2 {

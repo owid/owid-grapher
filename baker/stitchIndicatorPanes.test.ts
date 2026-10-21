@@ -94,7 +94,7 @@ describe(computeIndicatorPaneStitch, () => {
             pane({
                 title: { title: "Deaths" },
                 origins: [
-                    { ...b, id: 999 } as OwidOrigin,
+                    { ...b, id: 999 },
                     { ...a, titleSnapshot: "Old snapshot", urlDownload: "x" },
                 ],
             }),
@@ -158,7 +158,7 @@ describe(computeIndicatorPaneStitch, () => {
         ).toBeUndefined()
     })
 
-    it("merges differing producer docs as per-entry docs and suppresses the pane's", () => {
+    it("stitches differing producer docs as per-entry docs and suppresses the pane's", () => {
         const r = computeIndicatorPaneStitch([
             pane({ descriptionFromProducer: "Doc A" }),
             pane({
@@ -183,7 +183,7 @@ describe(computeIndicatorPaneStitch, () => {
         expect(same!.list[0].producerDescription).toBeUndefined()
     })
 
-    it("merges a shared source whose link/citation differ, surfacing them per entry", () => {
+    it("stitches a shared source whose link/citation differ, surfacing them per entry", () => {
         const r = computeIndicatorPaneStitch([
             pane({
                 origins: [origin({ urlMain: "https://a", citationFull: "A" })],
@@ -213,27 +213,34 @@ describe(computeIndicatorPaneStitch, () => {
         ).toBeUndefined()
     })
 
-    it("stitches a scatter's y and x when they come from one source, keeps them apart otherwise", () => {
-        // birth rate vs death rate: one UN table, different titles
-        const sameSource = computeIndicatorPaneStitch([
-            pane({ title: { title: "Birth rate" } }),
-            pane({ title: { title: "Death rate" } }),
+    it("needs at least two panes", () => {
+        expect(computeIndicatorPaneStitch([pane()])).toBeUndefined()
+    })
+
+    it("takes the soonest nextUpdate", () => {
+        const r = computeIndicatorPaneStitch([
+            pane({ nextUpdate: "2027-07-12" }),
+            pane({ title: { title: "Deaths" }, nextUpdate: "2026-01-01" }),
+            pane({ title: { title: "Births" } }),
         ])
-        expect(sameSource?.list.map((e) => e.title)).toEqual([
-            "Birth rate",
-            "Death rate",
+        expect(r?.nextUpdate).toBe("2026-01-01")
+    })
+
+    it("does not repeat a differing title variant already in the title", () => {
+        const r = computeIndicatorPaneStitch([
+            pane({
+                title: { title: "Population – historical" },
+                titleVariant: "historical",
+            }),
+            pane({
+                title: { title: "Population" },
+                titleVariant: "projections",
+            }),
         ])
-        // life expectancy vs GDP per capita: two producers
-        expect(
-            computeIndicatorPaneStitch([
-                pane({ title: { title: "Life expectancy" } }),
-                pane({
-                    title: { title: "GDP per capita" },
-                    attributions: ["World Bank (2025)"],
-                    origins: [origin({ producer: "World Bank", title: "WDI" })],
-                }),
-            ])
-        ).toBeUndefined()
+        expect(r?.list.map((e) => e.title)).toEqual([
+            "Population – historical",
+            "Population – projections",
+        ])
     })
 
     it("unions owners and takes the latest lastUpdated", () => {

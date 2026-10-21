@@ -112,8 +112,8 @@ export interface StitchedIndicatorListEntry {
 }
 
 /**
- * A scatter plot's bubble-size or colour indicator. Documented as a one-line
- * link at the top of the metadata box rather than as its own pane.
+ * A scatter plot's bubble-size or colour indicator, when it is documented in
+ * the one-line link rather than as a pane — see AuxiliaryIndicatorMode.
  */
 export interface AuxiliaryIndicator {
     role: "size" | "color"
@@ -202,8 +202,6 @@ export interface DisplaySource {
      * retrievedFrom/citation.
      */
     variants?: { label: string; retrievedFrom?: string; citation?: string }[]
-    /** getOriginIdentityKey of the origin this source was built from. */
-    identityKey?: string
     // Only the data-download readme reads these; the Sources UIs render the
     // fields above. They are here so both start from one shape.
     producer?: string

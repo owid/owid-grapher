@@ -27,6 +27,8 @@ import React, { createRef, useEffect, useMemo, useRef, useState } from "react"
 import {
     formatAttributions,
     prepareSourcesForDisplay,
+    prepareOriginForDisplay,
+    getOriginIdentityKey,
     getIndicatorCitations,
     spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
@@ -164,14 +166,16 @@ function ExpandableSection({
             })
         }
     }
-    const sourcesForDisplay = prepareSourcesForDisplay({
-        origins,
-        source,
-    }).map((s) =>
-        s.identityKey && sourceVariants.has(s.identityKey)
-            ? { ...s, variants: sourceVariants.get(s.identityKey) }
-            : s
-    )
+    // Same list as prepareSourcesForDisplay (legacy source first, then the
+    // origins in order), with each origin's per-indicator variants attached.
+    const sourcesForDisplay: DisplaySource[] = [
+        ...prepareSourcesForDisplay({ source }),
+        ...(origins ?? []).map((origin) => {
+            const variants = sourceVariants.get(getOriginIdentityKey(origin))
+            const display = prepareOriginForDisplay(origin)
+            return variants ? { ...display, variants } : display
+        }),
+    ]
     // Stitched pages whose producer documentation differs per indicator: one
     // outer toggle for the source, one nested toggle per indicator.
     const producerDocEntries = (stitchedIndicatorList ?? []).filter(
@@ -1097,10 +1101,7 @@ export default function IndicatorMetadataBox({
                     // Switcher pages: the size/colour line belongs to the chart,
                     // not to any one pane, so it sits under "About this data"
                     // and the pills, on top of the box.
-                    <AuxiliaryIndicatorsLine
-                        indicators={auxiliaryIndicators}
-                        className="indicator-metadata-box__auxiliary--above-box"
-                    />
+                    <AuxiliaryIndicatorsLine indicators={auxiliaryIndicators} />
                 )}
             <div className="indicator-metadata-box-wrap__main">
                 {switcherVariant === "v-tabs" && (
@@ -1119,8 +1120,26 @@ export default function IndicatorMetadataBox({
     )
 }
 
-// Stitched / single-pane scatter pages: the same size/colour line, closing
-// the WYSK as one more paragraph in its typography.
+const AUXILIARY_LINE_LABEL: Record<AuxiliaryIndicator["role"], string> = {
+    size: "Bubble size",
+    color: "Color",
+}
+
+// The indicator's title, linking to its own data page when it has one.
+function AuxiliaryIndicatorLink({
+    indicator,
+}: {
+    indicator: AuxiliaryIndicator
+}) {
+    return indicator.slug ? (
+        <a href={`/grapher/${indicator.slug}`}>{indicator.title}</a>
+    ) : (
+        <>{indicator.title}</>
+    )
+}
+
+// Stitched / single-pane scatter pages (?auxiliary=mixed|line): the
+// size/colour line closes the WYSK as one more paragraph in its typography.
 function AuxiliaryIndicatorsProse({
     indicators,
 }: {
@@ -1131,49 +1150,31 @@ function AuxiliaryIndicatorsProse({
             {indicators.map((ind, i) => (
                 <React.Fragment key={ind.role}>
                     {i > 0 && " · "}
-                    <strong>
-                        {ind.role === "size" ? "Bubble size" : "Color"}:
-                    </strong>{" "}
-                    {ind.slug ? (
-                        <a href={`/grapher/${ind.slug}`}>{ind.title}</a>
-                    ) : (
-                        ind.title
-                    )}
+                    <strong>{AUXILIARY_LINE_LABEL[ind.role]}:</strong>{" "}
+                    <AuxiliaryIndicatorLink indicator={ind} />
                 </React.Fragment>
             ))}
         </p>
     )
 }
 
-// Scatter plots: bubble size and colour, one line, each linking to its own
-// data page when it has one. They are context for the chart rather than its
-// subject (almost always Population and World region), so they get a line
-// at the top of the box instead of a pane each.
+// Switcher pages (?auxiliary=mixed|line): the size/colour line under the
+// "About this data" header, styled like the key data rows. In the default
+// "panes" mode these indicators get panes instead and this isn't rendered.
 function AuxiliaryIndicatorsLine({
     indicators,
-    className,
 }: {
     indicators: AuxiliaryIndicator[]
-    className?: string
 }) {
     return (
-        <dl
-            className={cx(
-                "meta-description-table indicator-metadata-box__auxiliary",
-                className
-            )}
-        >
+        <dl className="meta-description-table indicator-metadata-box__auxiliary">
             {indicators.map((ind) => (
                 <div className="meta-description-table__pair" key={ind.role}>
                     <dt className="meta-description-table__key">
-                        {ind.role === "size" ? "Bubble size" : "Color"}
+                        {AUXILIARY_LINE_LABEL[ind.role]}
                     </dt>
                     <dd className="meta-description-table__value">
-                        {ind.slug ? (
-                            <a href={`/grapher/${ind.slug}`}>{ind.title}</a>
-                        ) : (
-                            ind.title
-                        )}
+                        <AuxiliaryIndicatorLink indicator={ind} />
                     </dd>
                 </div>
             ))}

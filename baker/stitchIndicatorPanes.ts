@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
 import { getOriginIdentityKey } from "@ourworldindata/utils"
+import { appendTitleVariant } from "../site/datapageUtils.js"
 import {
     AdditionalIndicator,
     StitchedIndicatorListEntry,
@@ -14,15 +15,19 @@ import {
  * needs. Returns undefined when the panes differ substantively (the switcher
  * stays).
  *
- * The rules (settled 2026-09-10):
+ * The rules:
  * - Panes must match on every field a reader could act on: WYSK
  *   (descriptionKey, with the short-note exception below), processing
- *   description, producer description, attributions, processing level, FAQs,
- *   legacy source — and origins compared ORDER-INSENSITIVELY on their
- *   reader-visible identity (producer, title, versionProducer, attribution,
- *   citationFull, description, dateAccessed, urlMain, license). Internal
- *   origin fields (id, titleSnapshot, urlDownload) are ignored: they are not
- *   rendered in the metadata box and don't reach citations.
+ *   description, attributions, processing level, FAQs, legacy source, and
+ *   the SET of data sources. Sources are compared order-insensitively by
+ *   identity (`getOriginIdentityKey`: producer, title, version, attribution,
+ *   description, access date, license).
+ * - A shared source whose link or full citation (urlMain, citationFull)
+ *   differs per indicator still stitches: list entries carry each
+ *   indicator's `sources` and the Sources section shows them per indicator.
+ * - Producer documentation may differ: the pane drops its own and list
+ *   entries carry each indicator's `producerDescription`, rendered as nested
+ *   toggles under "Documentation from data sources".
  * - dateRange may differ: the stitched pane shows the min–max union. If any
  *   differing range doesn't parse as "<year>-<year>", the page stays
  *   unstitched rather than showing a wrong range.
@@ -65,21 +70,24 @@ const canon = (x: unknown): string => JSON.stringify(x ?? null)
 // Same SET of sources (by identity) is the requirement; a shared source whose
 // link/citation differs per indicator is allowed and surfaces per indicator.
 const originsKey = (origins: OwidOrigin[] | undefined): string =>
-    canon([...(origins ?? []).map(getOriginIdentityKey)].sort())
+    canon((origins ?? []).map(getOriginIdentityKey).sort())
 const originContent = (o: OwidOrigin): string =>
     canon({ urlMain: o.urlMain ?? null, citationFull: o.citationFull ?? null })
 
 const TIMESPAN_REGEX = /^\s*(-?\d+)-(-?\d+)\s*$/
 
-// Label matching the switcher's labelForIndicator: title, with the
-// titleVariant appended when it isn't already part of the title.
-const labelFor = (dd: DataPageDataV2, withVariant: boolean): string => {
-    const title = dd.title.title
-    const variant = dd.titleVariant?.trim()
-    return withVariant && variant && !title.includes(variant)
-        ? `${title} – ${variant}`
-        : title
-}
+// List entries use the self-contained pane title (titlePublic first), not
+// the chart dimension name the pills use.
+const labelFor = (dd: DataPageDataV2, withVariant: boolean): string =>
+    withVariant
+        ? appendTitleVariant(dd.title.title, dd.titleVariant)
+        : dd.title.title
+
+const findOrigin = (
+    dd: DataPageDataV2,
+    identityKey: string
+): OwidOrigin | undefined =>
+    (dd.origins ?? []).find((o) => getOriginIdentityKey(o) === identityKey)
 
 export function computeIndicatorPaneStitch(
     panes: AdditionalIndicator[]
@@ -144,9 +152,7 @@ export function computeIndicatorPaneStitch(
         (dds[0].origins ?? []).map(getOriginIdentityKey)
     ).filter((key) => {
         const contents = dds.map((dd) => {
-            const o = (dd.origins ?? []).find(
-                (x) => getOriginIdentityKey(x) === key
-            )
+            const o = findOrigin(dd, key)
             return o ? originContent(o) : ""
         })
         return new Set(contents).size > 1
@@ -170,9 +176,7 @@ export function computeIndicatorPaneStitch(
             sources:
                 varyingSourceKeys.length > 0
                     ? varyingSourceKeys.flatMap((key) => {
-                          const o = (dd.origins ?? []).find(
-                              (x) => getOriginIdentityKey(x) === key
-                          )
+                          const o = findOrigin(dd, key)
                           return o
                               ? [
                                     {
