@@ -57,7 +57,6 @@ import {
     getHomepageId,
     getPublishedExplorersBySlug,
     generateTopicTagGraph,
-    getTopicAreaNames,
 } from "../db/db.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import { formatUrls } from "../site/formatting.js"
@@ -542,30 +541,17 @@ export const renderExplorerIndexPage = async (
     )
 }
 
-export const renderSubscribePage = async (
-    knex: KnexReadonlyTransaction
-): Promise<string> => {
+export const renderSubscribePage = (): string => {
     if (!FEATURE_FLAGS.includes(Features.EmailNotifications)) {
         return renderToHtmlPage(<OldSubscribePage baseUrl={BAKED_BASE_URL} />)
     }
-    return renderToHtmlPage(
-        <SubscribePage
-            baseUrl={BAKED_BASE_URL}
-            topicAreaNames={await getTopicAreaNames(knex)}
-        />
-    )
+    return renderToHtmlPage(<SubscribePage baseUrl={BAKED_BASE_URL} />)
 }
 
-export const renderEmailNotificationsPreferencesPage = async (
-    knex: KnexReadonlyTransaction
-): Promise<string> => {
-    return renderToHtmlPage(
-        <EmailNotificationsPreferencesPage
-            baseUrl={BAKED_BASE_URL}
-            topicAreaNames={await getTopicAreaNames(knex)}
-        />
+export const renderEmailNotificationsPreferencesPage = (): string =>
+    renderToHtmlPage(
+        <EmailNotificationsPreferencesPage baseUrl={BAKED_BASE_URL} />
     )
-}
 
 interface ExplorerRenderOpts {
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
