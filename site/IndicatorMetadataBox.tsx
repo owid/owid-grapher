@@ -77,22 +77,31 @@ interface ExpandableSectionProps {
     // See IndicatorMetadataBox: toggles caused by programmatically switching
     // indicators shouldn't be logged as user expands/collapses.
     suppressToggleLogUntilRef?: React.RefObject<number>
-    // Multi-indicator pages: cite the page by the chart title and drop the
-    // long citation's single-indicator "[dataset]" line (the page shows many
-    // indicators, so naming one of them misleads).
-    datapageCitationTitle?: string
-    omitLongDatasetTitle?: boolean
-    // Switcher pages: the page citation credits every producer across the
-    // page's indicators, not only this pane's.
-    datapageCitationProducers?: string[]
-    // "How to cite this indicator" on switcher pages, where the pane is one
-    // of several indicators; "…this data" otherwise.
-    citationToggleLabel?: string
-    stitchedIndicatorList?: StitchedIndicatorListEntry[]
-    hideStitchedIndicatorList?: boolean
+    pageCitation?: PageCitationOptions
+    stitched?: StitchedPaneOptions
     // Stitched / single-pane scatter pages: the size/colour line closes the
     // WYSK, in the same typography.
     auxiliaryIndicators?: AuxiliaryIndicator[]
+}
+
+/**
+ * Multi-indicator pages (switcher or stitched) cite the PAGE by the chart
+ * title, and drop the long citation's single-indicator "[dataset]" line:
+ * the page shows many indicators, so naming one of them misleads.
+ */
+interface PageCitationOptions {
+    pageTitle: string
+    /** Switcher pages: every producer across the page's indicators. */
+    producers?: string[]
+    /** "How to cite this indicator" on switcher pages. */
+    toggleLabel?: string
+}
+
+/** The baker stitched the panes into this one — see stitchIndicatorPanes. */
+interface StitchedPaneOptions {
+    list: StitchedIndicatorListEntry[]
+    /** One measure sliced by age/sex/year: don't render the list. */
+    hideList?: boolean
 }
 
 const FAQS_SECTION_ID = "faqs"
@@ -140,14 +149,11 @@ function ExpandableSection({
     sourcesSectionId,
     processingContentId,
     suppressToggleLogUntilRef,
-    datapageCitationTitle,
-    omitLongDatasetTitle,
-    datapageCitationProducers,
-    citationToggleLabel = "How to cite this data",
-    stitchedIndicatorList,
-    hideStitchedIndicatorList,
+    pageCitation,
+    stitched,
     auxiliaryIndicators,
 }: ExpandableSectionProps) {
+    const stitchedIndicatorList = stitched?.list
     const { origins, source } = datapageData
     // Stitched multi-indicator pages: a source the indicators share may still
     // link/cite differently per indicator — show those per indicator inside
@@ -179,7 +185,10 @@ function ExpandableSection({
     // Stitched pages whose producer documentation differs per indicator: one
     // outer toggle for the source, one nested toggle per indicator.
     const producerDocEntries = (stitchedIndicatorList ?? []).filter(
-        (e) => e.producerDescription
+        (
+            e
+        ): e is StitchedIndicatorListEntry & { producerDescription: string } =>
+            !!e.producerDescription
     )
 
     const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
@@ -198,9 +207,9 @@ function ExpandableSection({
         citationUrl,
         archivalDate: archiveContext?.archivalDate,
         primaryTopic,
-        datapageCitationTitle,
-        omitLongDatasetTitle,
-        datapageCitationProducers,
+        datapageCitationTitle: pageCitation?.pageTitle,
+        omitLongDatasetTitle: !!pageCitation,
+        datapageCitationProducers: pageCitation?.producers,
     })
 
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
@@ -232,15 +241,13 @@ function ExpandableSection({
 
     return (
         <div className={cx("meta-expander", className)}>
-            {!hideStitchedIndicatorList &&
-                stitchedIndicatorList &&
-                stitchedIndicatorList.length > 0 && (
-                    <StitchedIndicatorList
-                        entries={stitchedIndicatorList}
-                        datapageData={datapageData}
-                        expanderOpen={detailsOpen}
-                    />
-                )}
+            {stitched && !stitched.hideList && stitched.list.length > 0 && (
+                <StitchedIndicatorList
+                    entries={stitched.list}
+                    datapageData={datapageData}
+                    expanderOpen={detailsOpen}
+                />
+            )}
             {(descriptionKeyPreview ||
                 (auxiliaryIndicators && !descriptionKeyRest)) && (
                 <div className="meta-expander__preview meta-expander__prose">
@@ -390,7 +397,7 @@ function ExpandableSection({
                                                 content={
                                                     <SimpleMarkdownText
                                                         text={
-                                                            e.producerDescription!
+                                                            e.producerDescription
                                                         }
                                                     />
                                                 }
@@ -475,7 +482,10 @@ function ExpandableSection({
                         <section className="indicator-sources">
                             {citationShort && (
                                 <ExpandableToggle
-                                    label={citationToggleLabel}
+                                    label={
+                                        pageCitation?.toggleLabel ??
+                                        "How to cite this data"
+                                    }
                                     isStacked={!!citationLong}
                                     content={
                                         <>
@@ -560,13 +570,8 @@ function IndicatorPaneContent({
     license,
     idSuffix,
     suppressToggleLogUntilRef,
-    datapageCitationTitle,
-    omitLongDatasetTitle,
-    datapageCitationProducers,
-    citationToggleLabel,
-    paneTitleOverride,
-    stitchedIndicatorList,
-    hideStitchedIndicatorList,
+    pageCitation,
+    stitched,
     auxiliaryIndicators,
 }: {
     datapageData: DataPageDataV2
@@ -576,16 +581,11 @@ function IndicatorPaneContent({
     archiveContext: ArchiveContext | undefined
     license?: LicenseOption
     suppressToggleLogUntilRef?: React.RefObject<number>
-    datapageCitationTitle?: string
-    omitLongDatasetTitle?: boolean
-    datapageCitationProducers?: string[]
-    citationToggleLabel?: string
-    // Stitched multi-indicator mode: the pane heading reads "About this
-    // data" (no single indicator owns the pane) and the indicator list
-    // renders inside the expander, above the shared WYSK.
-    paneTitleOverride?: string
-    stitchedIndicatorList?: StitchedIndicatorListEntry[]
-    hideStitchedIndicatorList?: boolean
+    pageCitation?: PageCitationOptions
+    // Stitched: the pane heading reads "About this data" (no single
+    // indicator owns the pane) and the indicator list renders inside the
+    // expander, above the shared WYSK.
+    stitched?: StitchedPaneOptions
     // Set only when the box has a single visible pane (stitched or
     // single-indicator): the size/colour line then closes the WYSK.
     // Switcher pages render it once, under the "About this data" header.
@@ -612,8 +612,8 @@ function IndicatorPaneContent({
     return (
         <>
             <h2 className="indicator-metadata-box__indicator-title body-2-bold-tight">
-                {paneTitleOverride ?? datapageData.title.title}
-                {!paneTitleOverride && (
+                {stitched ? "About this data" : datapageData.title.title}
+                {!stitched && (
                     <span className="indicator-metadata-box__title-variant">
                         {datapageData.titleVariant}
                     </span>
@@ -700,16 +700,12 @@ function IndicatorPaneContent({
                 descriptionProcessing={datapageData.descriptionProcessing}
                 license={license}
                 faqsSectionId={`${FAQS_SECTION_ID}${idSuffix}`}
-                stitchedIndicatorList={stitchedIndicatorList}
                 sourcesSectionId={`${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}${idSuffix}`}
                 processingContentId={processingContentId}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
-                datapageCitationTitle={datapageCitationTitle}
-                hideStitchedIndicatorList={hideStitchedIndicatorList}
                 auxiliaryIndicators={auxiliaryIndicators}
-                datapageCitationProducers={datapageCitationProducers}
-                citationToggleLabel={citationToggleLabel}
-                omitLongDatasetTitle={omitLongDatasetTitle}
+                pageCitation={pageCitation}
+                stitched={stitched}
             />
         </>
     )
@@ -780,6 +776,13 @@ function StitchedIndicatorList({
     // shown once in the pane, no per-indicator notes), an enumerated list
     // adds vertical space without information — render the titles inline,
     // in running text, the first few followed by an ellipsis when folded.
+    const intro = (
+        <>
+            This chart shows data for {entries.length} indicators
+            {variantPhrase}
+            {sourcePhrase}
+        </>
+    )
     const titlesOnly = entries.every(
         (entry) => !entry.short && !entry.unit && !entry.note
     )
@@ -788,9 +791,7 @@ function StitchedIndicatorList({
         return (
             <div className={blockClass}>
                 <p>
-                    This chart shows data for {entries.length} indicators
-                    {variantPhrase}
-                    {sourcePhrase}:{" "}
+                    {intro}:{" "}
                     {shown.map((entry, i) => (
                         <React.Fragment key={i}>
                             {i > 0 && ", "}
@@ -813,11 +814,7 @@ function StitchedIndicatorList({
     }
     return (
         <div className={blockClass}>
-            <p>
-                This chart shows data for {entries.length} indicators
-                {variantPhrase}
-                {sourcePhrase}:
-            </p>
+            <p>{intro}:</p>
             <ol>
                 {entries.map((entry, i) => (
                     <li key={i} hidden={!expanded && i >= FOLD_AFTER}>
@@ -904,17 +901,23 @@ export default function IndicatorMetadataBox({
         { datapageData, faqEntries },
         ...(additionalIndicators ?? []),
     ]
-    const isMulti = indicators.length > 1
+    const hasSwitcher = indicators.length > 1
     // The baker stitched a multi-indicator chart's panes into one: render a
     // single pane plus the templated indicator list, and no switcher. The
     // page is still conceptually multi-indicator (citations cite the chart).
-    const isStitchedMulti = !isMulti && !!stitchedIndicatorList?.length
-    const isMultiForCitations = isMulti || isStitchedMulti
+    const stitched: StitchedPaneOptions | undefined =
+        !hasSwitcher && stitchedIndicatorList?.length
+            ? {
+                  list: stitchedIndicatorList,
+                  hideList: hideStitchedIndicatorList,
+              }
+            : undefined
+    const isMultiIndicator = hasSwitcher || !!stitched
     // Switcher pages cite the PAGE with every producer used across its
     // indicators (a stitched page's panes already share one source set).
     // Some origins carry a semicolon-joined composite producer ("A; B; C"),
     // so split before de-duplicating or the union repeats names.
-    const pageCitationProducers = isMulti
+    const pageCitationProducers = hasSwitcher
         ? _.uniq(
               indicators.flatMap((ind) =>
                   (ind.datapageData.origins ?? []).flatMap((o) =>
@@ -925,6 +928,15 @@ export default function IndicatorMetadataBox({
                   )
               )
           )
+        : undefined
+    const pageCitation: PageCitationOptions | undefined = isMultiIndicator
+        ? {
+              pageTitle: pageCitationTitle ?? datapageData.title.title,
+              producers: pageCitationProducers,
+              toggleLabel: hasSwitcher
+                  ? "How to cite this indicator"
+                  : undefined,
+          }
         : undefined
 
     const [activeIndex, setActiveIndex] = useState(0)
@@ -995,24 +1007,11 @@ export default function IndicatorMetadataBox({
                 license={license}
                 idSuffix={i === safeIndex ? "" : `--${i}`}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
-                paneTitleOverride={
-                    isStitchedMulti ? "About this data" : undefined
+                stitched={stitched}
+                auxiliaryIndicators={
+                    hasSwitcher ? undefined : auxiliaryIndicators
                 }
-                stitchedIndicatorList={
-                    isStitchedMulti ? stitchedIndicatorList : undefined
-                }
-                hideStitchedIndicatorList={hideStitchedIndicatorList}
-                auxiliaryIndicators={isMulti ? undefined : auxiliaryIndicators}
-                datapageCitationTitle={
-                    isMultiForCitations
-                        ? (pageCitationTitle ?? datapageData.title.title)
-                        : undefined
-                }
-                omitLongDatasetTitle={isMultiForCitations}
-                datapageCitationProducers={pageCitationProducers}
-                citationToggleLabel={
-                    isMulti ? "How to cite this indicator" : undefined
-                }
+                pageCitation={pageCitation}
             />
         </div>
     ))
@@ -1034,7 +1033,7 @@ export default function IndicatorMetadataBox({
         </button>
     )
 
-    if (!isMulti && !isStitchedMulti) {
+    if (!isMultiIndicator) {
         return (
             <div className={cx("indicator-metadata-box", className)} id={id}>
                 {showLessButton}
@@ -1046,8 +1045,7 @@ export default function IndicatorMetadataBox({
     // Header row above the box: "About this data (N indicators)" plus the
     // switcher control. The v-tabs variant renders its switcher as an aside
     // beside the box instead.
-    const headerSwitcher = isStitchedMulti ? null : switcherVariant ===
-      "dropdown" ? (
+    const headerSwitcher = stitched ? null : switcherVariant === "dropdown" ? (
         <IndicatorDropdown
             indicators={indicators}
             activeIndex={safeIndex}
@@ -1086,7 +1084,7 @@ export default function IndicatorMetadataBox({
             className={cx(
                 "indicator-metadata-box-wrap",
                 `indicator-metadata-box-wrap--${switcherVariant}`,
-                { "indicator-metadata-box-wrap--stitched": isStitchedMulti },
+                { "indicator-metadata-box-wrap--stitched": !!stitched },
                 className
             )}
             id={id}
@@ -1096,7 +1094,7 @@ export default function IndicatorMetadataBox({
                     {headerSwitcher}
                 </div>
             )}
-            {isMulti &&
+            {hasSwitcher &&
                 auxiliaryIndicators && (
                     // Switcher pages: the size/colour line belongs to the chart,
                     // not to any one pane, so it sits under "About this data"
