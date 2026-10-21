@@ -46,6 +46,20 @@
     ol {
         @include body-3-regular;
     }
+
+    // The remainder's own margin spaces it from the preview, so bullets stay
+    // 8px apart across the split
+    li:last-child {
+        margin-bottom: 0;
+    }
+}
+
+// Sections sit 32px apart, including the first one after "What you should know"
+.indicator-metadata-box
+    .metadata-box-expander:has(> .metadata-box-expander__preview)
+    .metadata-box-section:first-of-type
+    .metadata-box-section__title {
+    margin-top: 32px;
 }
 
 .indicator-metadata-box .indicator-metadata-box__description-key-title {
