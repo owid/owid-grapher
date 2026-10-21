@@ -158,11 +158,11 @@
     a {
         @include owid-link-60;
     }
+    > p {
+        margin: 16px 0 0;
+    }
     > p:first-child {
         margin-top: 0;
-    }
-    > p:last-child {
-        margin-bottom: 0;
     }
 }
 
