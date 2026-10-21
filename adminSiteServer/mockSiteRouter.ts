@@ -358,23 +358,15 @@ mockSiteRouter.get("/thank-you", async (req, res) =>
     res.send(await renderThankYouPage())
 )
 
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/subscribe",
-    async (_, res, trx) => res.send(await renderSubscribePage(trx))
-)
+mockSiteRouter.get("/subscribe", (_, res) => res.send(renderSubscribePage()))
 
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/preferences",
-    async (_, res, trx) => {
-        if (!FEATURE_FLAGS.includes(Features.EmailNotifications)) {
-            res.status(404).send("Not found")
-            return
-        }
-        res.send(await renderEmailNotificationsPreferencesPage(trx))
+mockSiteRouter.get("/preferences", (_, res) => {
+    if (!FEATURE_FLAGS.includes(Features.EmailNotifications)) {
+        res.status(404).send("Not found")
+        return
     }
-)
+    res.send(renderEmailNotificationsPreferencesPage())
+})
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
