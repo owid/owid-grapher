@@ -117,7 +117,7 @@ graphers
             .where({ slug: testExplorerSlug })
             .first()
         expect(explorer).toBeTruthy()
-        expect(explorer.isPublished).toBe(0) // New explorers are unpublished by default (0 = false)
+        expect(explorer.isPublished).toBe(false) // New explorers are unpublished by default
 
         // Since the explorer is not published, no views should be created initially
         const viewsCount = await getExplorerViewsCount(testExplorerSlug)
@@ -143,7 +143,7 @@ graphers
             .testKnex(ExplorersTableName)
             .where({ slug: testExplorerSlug })
             .first()
-        expect(publishedExplorer.isPublished).toBe(1) // 1 = true for published
+        expect(publishedExplorer.isPublished).toBe(true)
 
         // Views are not created immediately - they need async processing
         const viewsCountBefore = await getExplorerViewsCount(testExplorerSlug)
@@ -468,7 +468,7 @@ graphers
             .where({ slug: "test-unpublished" })
             .first()
         expect(explorer).toBeTruthy()
-        expect(explorer.isPublished).toBe(0) // 0 = false for unpublished
+        expect(explorer.isPublished).toBe(false)
 
         // No explorer views should be created for unpublished explorers
         const viewsCount = await getExplorerViewsCount("test-unpublished")

@@ -37,7 +37,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.worktree setup.worktree initiative wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s playwright playwright.ui playwright.standalone check-not-prod
+.PHONY: help dbtest dbtest.update-schema-types up up.headless up.worktree setup.worktree initiative wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s playwright playwright.ui playwright.standalone check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -57,6 +57,7 @@ help:
 	@echo '  make migrate                (while up) run any outstanding db migrations'
 	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
+	@echo '  make dbtest.update-schema-types  regenerate the db schema snapshot after a migration'
 	@echo '  make playwright-browsers    install Playwright browsers'
 	@echo '  make playwright             (while up) start Playwright test environment'
 	@echo '  make playwright.ui          (while up) start Playwright test environment with UI'
@@ -349,6 +350,10 @@ test: node_modules
 dbtest: node_modules
 	@echo '==> Running db test script'
 	./db/tests/run-db-tests.sh
+
+dbtest.update-schema-types: node_modules
+	@echo '==> Regenerating db/tests/schemaTypes/dbSchema.generated.ts from the migrated test db'
+	./db/tests/run-db-tests.sh yarn run vitest run -c vitest.db.config.ts db/tests/schemaTypes/schemaTypes.test.ts --update
 
 playwright.standalone: node_modules playwright-browsers
 	@echo '==> Running standalone Playwright tests'

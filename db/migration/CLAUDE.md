@@ -4,6 +4,7 @@ When a new migration is added, make sure that:
 
 - If columns have been added/deleted, all necessary views were recreated that reference one of the modified columns
 - The DB type definitions in the /packages/@ourworldindata/types/src/dbTypes folder have been updated
+- The schema snapshot has been regenerated with `make dbtest.update-schema-types`, and `yarn typecheck` passes. That checks the DB type definitions against the migrated schema (see `db/tests/schemaTypes/dbTypesMatchSchema.ts`); `make dbtest` fails until the snapshot is regenerated
 - The docs in ../docs/ have been updated
 - **The impact on the public data export has been reviewed** (see [below](#public-data-export-datasette--publicduckdb)) — adding, dropping, or renaming a table or column can leak private data into, or break, the public `public.duckdb` published on Datasette
 

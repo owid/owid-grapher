@@ -25,4 +25,4 @@ Read [db/readme.md](../../../db/readme.md) before populating the file. In partic
 
 ## After Writing the Migration
 
-Follow the checklist in [db/migration/CLAUDE.md](../../../db/migration/CLAUDE.md): recreate any views referencing modified columns, update the DB type definitions in `packages/@ourworldindata/types/src/dbTypes/`, update the table docs in `db/docs/`, and tell the user the owid/etl and owid/analytics repositories may need adjusting.
+Follow the checklist in [db/migration/CLAUDE.md](../../../db/migration/CLAUDE.md): recreate any views referencing modified columns, update the DB type definitions in `packages/@ourworldindata/types/src/dbTypes/`, regenerate the schema snapshot (`make dbtest.update-schema-types`), update the table docs in `db/docs/`, and tell the user the owid/etl and owid/analytics repositories may need adjusting.

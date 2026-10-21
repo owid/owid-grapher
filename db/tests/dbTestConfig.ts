@@ -7,6 +7,7 @@ import {
     GRAPHER_TEST_DB_HOST,
     GRAPHER_TEST_DB_PORT,
 } from "../../settings/serverSettings.js"
+import { mysqlTypeOptions } from "../mysqlConnectionOptions.js"
 
 export const dbTestConfig = {
     client: "mysql2",
@@ -18,7 +19,7 @@ export const dbTestConfig = {
         host: GRAPHER_TEST_DB_HOST,
         port: GRAPHER_TEST_DB_PORT,
         charset: "utf8mb4",
-        jsonStrings: true,
+        ...mysqlTypeOptions,
     },
     pool: {
         min: 2,
