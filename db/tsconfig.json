@@ -2,7 +2,9 @@
     "extends": "../devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
         "outDir": "../itsJustJavascript/db",
-        "rootDir": "."
+        "rootDir": ".",
+        // Lets db/tests/schemaTypes/dbTypesMatchSchema.ts list all problems
+        "noErrorTruncation": true
     },
     "references": [
         { "path": "../packages/@ourworldindata/components" },

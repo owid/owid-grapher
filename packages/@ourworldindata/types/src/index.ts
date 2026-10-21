@@ -806,6 +806,7 @@ export {
 
 export {
     RedirectsTableName,
+    type DbInsertRedirect,
     type DbPlainRedirect,
 } from "./dbTypes/Redirects.js"
 

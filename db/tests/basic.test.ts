@@ -110,7 +110,7 @@ test("knex interface", async () => {
                 .stream()
 
             for await (const user of usersStream) {
-                expect(user.isSuperuser).toBe(0)
+                expect(user.isSuperuser).toBe(false)
                 expect(user.email).toBe("admin@example.com")
             }
 
@@ -132,7 +132,7 @@ test("knex interface", async () => {
                 .select("isSuperuser", "email")
                 .orderBy("id")
             expect(afterUpdate.length).toBe(2)
-            expect(afterUpdate[1].isSuperuser).toBe(1)
+            expect(afterUpdate[1].isSuperuser).toBe(true)
 
             // The pick type is used to type the result row
             const usersFromRawQuery: Pick<DbPlainUser, "email">[] =
