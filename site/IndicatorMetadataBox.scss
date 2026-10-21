@@ -249,6 +249,12 @@
         }
     }
 
+    // Nested lists sit with their item, like the items around them
+    li > ul,
+    li > ol {
+        margin: 8px 0 0;
+    }
+
     // Loose markdown lists wrap each item in a paragraph
     li > p {
         margin: 0;
