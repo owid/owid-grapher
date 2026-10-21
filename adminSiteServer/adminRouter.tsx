@@ -22,7 +22,7 @@ import {
 import {
     renderDataPageV2,
     renderPreviewDataPageOrGrapherPage,
-    parseAuxiliaryIndicatorMode,
+    parseDatapageQaParams,
 } from "../baker/GrapherBaker.js"
 import { getChartConfigById, getChartConfigBySlug } from "../db/model/Chart.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
@@ -206,17 +206,7 @@ getPlainRouteWithROTransaction(
                     chart.config,
                     chart.id,
                     trx,
-                    // QA opt-ins: ?forceDatapage=true renders any chart as a
-                    // data page without enrolling it; ?forceExpand=true skips
-                    // the multi-indicator pane collapse so the switcher
-                    // version of a collapsed page can be inspected.
-                    {
-                        forceDatapage: req.query.forceDatapage === "true",
-                        forceExpandIndicators: req.query.forceExpand === "true",
-                        auxiliaryMode: parseAuxiliaryIndicatorMode(
-                            req.query.auxiliary
-                        ),
-                    }
+                    parseDatapageQaParams(req.query)
                 )
             res.send(previewDataPageOrGrapherPage)
             return

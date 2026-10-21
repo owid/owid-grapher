@@ -57,7 +57,7 @@ import { generateEmbedSnippet } from "../site/viteUtils.js"
 import {
     renderPreviewDataPageOrGrapherPage,
     renderDataPageV2,
-    parseAuxiliaryIndicatorMode,
+    parseDatapageQaParams,
 } from "../baker/GrapherBaker.js"
 import { getTombstoneBySlug } from "../db/model/GdocTombstone.js"
 import * as db from "../db/db.js"
@@ -326,16 +326,7 @@ getPlainRouteWithROTransaction(
                     chartRow.config,
                     chartRow.id,
                     trx,
-                    // Mirror the admin preview routes: ?forceDatapage=true
-                    // renders any chart as a data page for QA, and
-                    // ?forceExpand=true skips the pane collapse.
-                    {
-                        forceDatapage: req.query.forceDatapage === "true",
-                        forceExpandIndicators: req.query.forceExpand === "true",
-                        auxiliaryMode: parseAuxiliaryIndicatorMode(
-                            req.query.auxiliary
-                        ),
-                    }
+                    parseDatapageQaParams(req.query)
                 )
             res.send(previewDataPageOrGrapherPage)
             return

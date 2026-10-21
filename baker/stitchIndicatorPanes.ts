@@ -204,3 +204,30 @@ export function computeIndicatorPaneStitch(
         suppressDescriptionFromProducer: producerDocsDiffer,
     }
 }
+
+/**
+ * Applies a stitch to the primary pane's data in place: the union fields
+ * (date range, update dates, owners) replace the primary's, and every field
+ * that differs across the indicators is dropped from the pane — it moves into
+ * the list entries, and leaving the primary's value would misattribute it to
+ * all of them.
+ */
+export function applyStitchToDatapageData(
+    datapageData: DataPageDataV2,
+    stitch: IndicatorPaneStitch
+): void {
+    datapageData.dateRange = stitch.dateRange
+    datapageData.lastUpdated = stitch.lastUpdated
+    if (stitch.nextUpdate) datapageData.nextUpdate = stitch.nextUpdate
+    if (stitch.owners) datapageData.owners = stitch.owners
+    if (stitch.suppressDescriptionShort)
+        datapageData.descriptionShort = undefined
+    if (stitch.suppressUnit) datapageData.unit = undefined
+    if (stitch.suppressDescriptionKey) datapageData.descriptionKey = undefined
+    if (stitch.suppressDescriptionFromProducer)
+        datapageData.descriptionFromProducer = undefined
+    if (stitch.suppressTitleVariant) {
+        datapageData.titleVariant = undefined
+        datapageData.title = { ...datapageData.title, titleVariant: undefined }
+    }
+}

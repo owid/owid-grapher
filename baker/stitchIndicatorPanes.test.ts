@@ -4,7 +4,10 @@ import {
     DataPageDataV2,
     OwidOrigin,
 } from "@ourworldindata/types"
-import { computeIndicatorPaneStitch } from "./stitchIndicatorPanes.js"
+import {
+    applyStitchToDatapageData,
+    computeIndicatorPaneStitch,
+} from "./stitchIndicatorPanes.js"
 
 const origin = (over: Partial<OwidOrigin> = {}): OwidOrigin => ({
     producer: "UN",
@@ -257,5 +260,33 @@ describe(computeIndicatorPaneStitch, () => {
         ])
         expect(r!.owners![0].owners).toEqual(["Alice", "Bob"])
         expect(r!.lastUpdated).toBe("2025-01-01")
+    })
+})
+
+describe(applyStitchToDatapageData, () => {
+    it("writes the unions onto the pane and drops what moved into the list", () => {
+        const primary = pane({
+            descriptionShort: "Births short",
+            unit: "births",
+            titleVariant: "estimates",
+            title: { title: "Births", titleVariant: "estimates" },
+        })
+        const stitch = computeIndicatorPaneStitch([
+            primary,
+            pane({
+                title: { title: "Deaths", titleVariant: "projections" },
+                titleVariant: "projections",
+                descriptionShort: "Deaths short",
+                unit: "deaths",
+                dateRange: "1950-2100",
+            }),
+        ])!
+        const dd = primary.datapageData
+        applyStitchToDatapageData(dd, stitch)
+        expect(dd.dateRange).toBe("1950-2100")
+        expect(dd.descriptionShort).toBeUndefined()
+        expect(dd.unit).toBeUndefined()
+        expect(dd.titleVariant).toBeUndefined()
+        expect(dd.title.titleVariant).toBeUndefined()
     })
 })
