@@ -36,7 +36,7 @@ import {
     getIndicatorCitations,
     spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
-import { Byline } from "./gdocs/components/Byline.js"
+import AvatarByline from "./gdocs/components/AvatarByline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
@@ -441,8 +441,11 @@ export default function IndicatorMetadataBox({
                     </MetadataBoxKeyDataRow>
                 )}
                 {owners.length > 0 && (
-                    <MetadataBoxKeyDataRow label="Managed by">
-                        <Byline authors={owners} prefix="" />
+                    <MetadataBoxKeyDataRow
+                        label="Managed by"
+                        className="indicator-metadata-box__managed-by"
+                    >
+                        <AvatarByline authors={owners} />
                     </MetadataBoxKeyDataRow>
                 )}
             </MetadataBoxKeyData>

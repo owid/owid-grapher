@@ -256,11 +256,17 @@ export async function renderDataPageV2(
             .map((r) => r.imageUrl)
             .filter((f): f is string => !!f)
 
+        // Photos of the data managers. Left out of archived pages, which have
+        // no image assets, so they show names only.
+        const linkedAuthorFilenames = (datapageData.linkedAuthors ?? [])
+            .map((author) => author.featuredImage)
+            .filter((f): f is string => !!f)
+
         imageMetadata = {
             ...imageMetadata,
             ..._.pick(
                 imageMetadataDictionary,
-                _.uniq(relatedResearchFilenames)
+                _.uniq([...relatedResearchFilenames, ...linkedAuthorFilenames])
             ),
         }
     }

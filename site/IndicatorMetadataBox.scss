@@ -106,6 +106,16 @@
     @include body-3-regular;
 }
 
+// Data managers: photo, then name, in the key data's body text
+.indicator-metadata-box .avatar-byline {
+    @include body-3-regular;
+    gap: 4px 8px;
+}
+
+.indicator-metadata-box .avatar-byline__author {
+    gap: 6px;
+}
+
 // Above phone width, a long value wraps under its label rather than in a
 // column beside it
 @include sm-up {
@@ -124,6 +134,19 @@
         // The markdown p tag
         p {
             display: inline;
+        }
+    }
+
+    // The photos are taller than the text, so this row lines up on the
+    // names' baseline instead
+    .indicator-metadata-box
+        .metadata-box-key-data__row.indicator-metadata-box__managed-by {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+
+        > .metadata-box-key-data__key {
+            margin-right: 0;
         }
     }
 }

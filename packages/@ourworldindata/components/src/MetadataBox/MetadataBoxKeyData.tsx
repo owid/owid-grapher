@@ -14,6 +14,7 @@ interface MetadataBoxKeyDataRowProps {
     /** Hides the label visually */
     isLabelScreenReaderOnly?: boolean
     labelClassName?: string
+    className?: string
     children: React.ReactNode
 }
 
@@ -22,11 +23,12 @@ export function MetadataBoxKeyDataRow({
     isFullWidth,
     isLabelScreenReaderOnly,
     labelClassName,
+    className,
     children,
 }: MetadataBoxKeyDataRowProps): React.ReactElement {
     return (
         <div
-            className={cx("metadata-box-key-data__row", {
+            className={cx("metadata-box-key-data__row", className, {
                 "metadata-box-key-data__row--full-width": isFullWidth,
             })}
         >
