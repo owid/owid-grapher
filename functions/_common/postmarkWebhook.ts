@@ -23,6 +23,19 @@ export type PostmarkWebhookEvent =
     | PostmarkSubscriptionChangeWebhook
 
 /**
+ * A delivery that arrived before the send job recorded its message. Expected
+ * now and then, so it's retried without being reported as an error.
+ */
+export class PostmarkDeliveryNotRecordedYetError extends Error {
+    constructor(messageId: string) {
+        super(
+            `Postmark delivery arrived before its message was recorded: ${messageId}`
+        )
+        this.name = "PostmarkDeliveryNotRecordedYetError"
+    }
+}
+
+/**
  * Check the basic-auth credentials Postmark sends when the webhook URL is
  * configured as https://<username>:<secret>@host/path (Postmark has no HMAC
  * signatures). Only the password part is checked; the username is arbitrary.
@@ -64,18 +77,23 @@ export async function applyPostmarkWebhookEvent(
         event.RecordType === "Delivery" &&
         event.MessageStream === POSTMARK_BROADCAST_MESSAGE_STREAM
     ) {
-        // Sandbox delivery can beat the send API response, which means the
-        // sender has not inserted its messages row yet. Do not acknowledge or
+        // Set per message by the send job.
+        const correlationId = event.Metadata?.correlationId
+        if (!correlationId) {
+            throw new Error(
+                `Postmark delivery has no correlationId metadata: ${event.MessageID}`
+            )
+        }
+        // Delivery can beat the sender recording the bulk request, which
+        // means its messages row doesn't exist yet. Do not acknowledge or
         // record the webhook in that case: Postmark will retry after the send
         // has been recorded.
         const message = await db
-            .prepare("SELECT 1 FROM messages WHERE messageId = ?1")
-            .bind(event.MessageID)
+            .prepare("SELECT 1 FROM messages WHERE correlationId = ?1")
+            .bind(correlationId)
             .first()
         if (!message) {
-            throw new Error(
-                `Postmark delivery arrived before its message was recorded: ${event.MessageID}`
-            )
+            throw new PostmarkDeliveryNotRecordedYetError(event.MessageID)
         }
     }
 
@@ -118,15 +136,20 @@ function buildDeliveryStatements(
         db
             .prepare(
                 `UPDATE messages
-                 SET status = 'delivered', deliveredAt = ?2
-                 WHERE messageId = ?1
+                 SET status = 'delivered', deliveredAt = ?2, messageId = ?3
+                 WHERE correlationId = ?1
                      AND NOT EXISTS (
                          SELECT 1
                          FROM postmark_webhook_receipts
-                         WHERE idempotencyKey = ?3
+                         WHERE idempotencyKey = ?4
                      )`
             )
-            .bind(event.MessageID, event.DeliveredAt, idempotencyKey),
+            .bind(
+                event.Metadata?.correlationId,
+                event.DeliveredAt,
+                event.MessageID,
+                idempotencyKey
+            ),
     ]
 }
 
