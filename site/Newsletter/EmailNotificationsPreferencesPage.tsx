@@ -9,18 +9,15 @@ import {
 
 export interface EmailNotificationsPreferencesPageProps {
     baseUrl: string
-    topicAreaNames: string[]
 }
 
 /**
  * The magic-link update-preferences page. Everything inside <main> is rendered
  * client-side (EmailNotificationsPreferencesForm), driven by the token in the
  * URL fragment - including the page heading, which the terminal screens replace.
- * This shell just bakes the topic area names the form needs.
  */
 export const EmailNotificationsPreferencesPage = ({
     baseUrl,
-    topicAreaNames,
 }: EmailNotificationsPreferencesPageProps) => {
     return (
         <Html>
@@ -31,11 +28,6 @@ export const EmailNotificationsPreferencesPage = ({
                 baseUrl={baseUrl}
             >
                 <meta name="robots" content="noindex" />
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `window._OWID_TOPIC_AREA_NAMES = ${JSON.stringify(topicAreaNames)}`,
-                    }}
-                ></script>
             </Head>
             <body className="sticky-footer-body">
                 <SiteHeader />
