@@ -61,11 +61,12 @@
     color: $blue-50;
 }
 
-.indicator-metadata-box__reuse-notice {
+.indicator-metadata-box .indicator-metadata-box__reuse-notice {
     margin-top: 32px;
     @include note-13-medium;
+    color: $blue-60;
     a {
-        @include owid-link-90;
+        @include owid-link-60;
     }
     > p:first-child {
         margin-top: 0;
