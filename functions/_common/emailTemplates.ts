@@ -22,8 +22,8 @@ const PLACEHOLDER = /{{(\w+)}}/g
 
 /**
  * Fill a template's placeholders. Values are HTML-escaped in the HTML body
- * (they include user-submitted topic names) and inserted verbatim in the text
- * body. Throws when the template needs a value that wasn't given, so a
+ * (they include user-submitted topic names) and inserted verbatim in the
+ * subject and text body. Throws when the template needs a value that wasn't given, so a
  * placeholder renamed on one side can't reach a reader.
  */
 export function renderEmailTemplate(
@@ -39,7 +39,7 @@ export function renderEmailTemplate(
             return escape(value)
         })
     return {
-        subject: template.subject,
+        subject: fill(template.subject, (value) => value),
         html: fill(template.html, _.escape),
         text: fill(template.text, (value) => value),
     }
