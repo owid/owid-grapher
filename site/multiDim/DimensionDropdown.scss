@@ -262,7 +262,7 @@ $selected-hover-fill: #bed2e7;
             background: $blue-20;
 
             &[data-hovered],
-            &[data-focused] {
+            &[data-focus-visible] {
                 background: $selected-hover-fill;
             }
         }
