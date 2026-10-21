@@ -26,9 +26,6 @@ export type DbPlainTagGraphNode = Required<DbInsertTagGraphNode>
 
 export const TagGraphRootName = "tag-graph-root" as const
 
-// The top-level areas of the tag graph, in nav order. We haven't changed the
-// top level areas in 8+ years so this should be fine; the baker checks the
-// list against the database on every bake.
 export const TOPIC_AREA_NAMES = [
     "Population and Demographic Change",
     "Health",
