@@ -1,4 +1,5 @@
 import cx from "clsx"
+import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons"
 import {
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     SimpleMarkdownText,
@@ -9,7 +10,7 @@ import {
     IndicatorProcessing,
     INDICATOR_PROCESSING_SECTION_ID,
     MetadataBoxExpander,
-    MetadataBoxCollapseButton,
+    MetadataBoxToggleButton,
     MetadataBoxSection,
     MetadataBoxKeyData,
     MetadataBoxKeyDataRow,
@@ -28,7 +29,7 @@ import {
     OwidEnrichedGdocBlock,
     PrimaryTopic,
 } from "@ourworldindata/types"
-import { useRef } from "react"
+import { useId, useRef } from "react"
 import {
     formatAttributions,
     prepareSourcesForDisplay,
@@ -47,6 +48,7 @@ interface IndicatorMetadataSectionsProps {
     className?: string
     faqEntries: FaqEntryData | undefined
     detailsRef: React.RefObject<HTMLDetailsElement | null>
+    detailsId: string
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
     primaryTopic?: PrimaryTopic
@@ -88,6 +90,7 @@ function IndicatorMetadataSections({
     className,
     faqEntries,
     detailsRef,
+    detailsId,
     canonicalUrl,
     archiveContext,
     primaryTopic,
@@ -131,6 +134,9 @@ function IndicatorMetadataSections({
         <MetadataBoxExpander
             className={className}
             detailsRef={detailsRef}
+            detailsId={detailsId}
+            showMoreIcon={faCaretDown}
+            showLessIcon={faCaretUp}
             preview={
                 descriptionKeyPreview ? (
                     <>
@@ -370,19 +376,25 @@ export default function IndicatorMetadataBox({
     })
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
+    const detailsId = useId()
 
     return (
         <div
             className={cx("metadata-box indicator-metadata-box", className)}
             id={id}
         >
-            <MetadataBoxCollapseButton detailsRef={detailsRef} />
-            <h2 className="indicator-metadata-box__title body-2-bold-tight">
-                {datapageData.title.title}
-                <span className="indicator-metadata-box__title-variant">
-                    {datapageData.titleVariant}
-                </span>
-            </h2>
+            <div className="indicator-metadata-box__header">
+                <h2 className="indicator-metadata-box__title body-2-bold-tight">
+                    {datapageData.title.title}
+                    <span className="indicator-metadata-box__title-variant">
+                        {datapageData.titleVariant}
+                    </span>
+                </h2>
+                <MetadataBoxToggleButton
+                    detailsRef={detailsRef}
+                    detailsId={detailsId}
+                />
+            </div>
             <MetadataBoxKeyData>
                 {datapageData.descriptionShort && (
                     <MetadataBoxKeyDataRow
@@ -438,6 +450,7 @@ export default function IndicatorMetadataBox({
                 datapageData={datapageData}
                 faqEntries={faqEntries}
                 detailsRef={detailsRef}
+                detailsId={detailsId}
                 canonicalUrl={canonicalUrl}
                 archiveContext={archiveContext}
                 primaryTopic={datapageData.primaryTopic}

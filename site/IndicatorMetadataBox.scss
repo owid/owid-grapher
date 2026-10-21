@@ -57,10 +57,24 @@
     }
 }
 
+// 8px from the label, counting the space before the icon
+.indicator-metadata-box .metadata-box-expander__chevron {
+    font-size: 0.75rem;
+    margin-left: 4px;
+    top: 0;
+}
+
+// The title and the toggle share a row, on a common baseline
+.indicator-metadata-box__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+}
+
 .indicator-metadata-box__title {
     margin: 0;
     color: $blue-90;
-    max-width: calc(100% - 104px);
 }
 
 .indicator-metadata-box__title-variant {

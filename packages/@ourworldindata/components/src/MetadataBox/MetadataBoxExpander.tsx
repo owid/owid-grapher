@@ -1,4 +1,8 @@
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
+import {
+    IconDefinition,
+    faChevronDown,
+    faChevronUp,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import cx from "clsx"
 import { useRef } from "react"
@@ -13,7 +17,11 @@ interface MetadataBoxExpanderProps {
      */
     children: React.ReactNode
     showMoreLabel?: string
+    showMoreIcon?: IconDefinition
+    showLessIcon?: IconDefinition
     detailsRef?: React.RefObject<HTMLDetailsElement | null>
+    /** Lets other controls point at the <details> with aria-controls */
+    detailsId?: string
     onToggle?: (isOpen: boolean) => void
     className?: string
 }
@@ -29,7 +37,10 @@ export function MetadataBoxExpander({
     preview,
     children,
     showMoreLabel = "Show more",
+    showMoreIcon = faChevronDown,
+    showLessIcon = faChevronUp,
     detailsRef,
+    detailsId,
     onToggle,
     className,
 }: MetadataBoxExpanderProps): React.ReactElement {
@@ -57,6 +68,7 @@ export function MetadataBoxExpander({
             )}
             <details
                 className="metadata-box-expander__details"
+                id={detailsId}
                 ref={resolvedDetailsRef}
                 // React 19 simulates bubbling for `toggle`, so toggles from
                 // nested <details> in the content would otherwise fire this
@@ -75,14 +87,14 @@ export function MetadataBoxExpander({
                         {showMoreLabel}{" "}
                         <FontAwesomeIcon
                             className="metadata-box-expander__chevron"
-                            icon={faChevronDown}
+                            icon={showMoreIcon}
                         />
                     </span>
                     <span className="metadata-box-expander__show-less">
                         Show less{" "}
                         <FontAwesomeIcon
                             className="metadata-box-expander__chevron"
-                            icon={faChevronUp}
+                            icon={showLessIcon}
                         />
                     </span>
                 </summary>
