@@ -183,8 +183,7 @@ function ExpandableSection({
         }),
     ]
     // Stitched pages whose producer documentation differs per indicator: one
-    // toggle for the source, each indicator's documentation inside it under
-    // its own title.
+    // toggle per indicator under "Documentation from data sources".
     const producerDocEntries = (stitchedIndicatorList ?? []).filter(
         (
             e
@@ -375,40 +374,51 @@ function ExpandableSection({
                         <h2 className="meta-expander__section-title">
                             Documentation from data sources
                         </h2>
-                        <ExpandableToggle
-                            label={
-                                datapageData.attributionShort ||
-                                "Principal data source"
-                            }
-                            content={
-                                datapageData.descriptionFromProducer ? (
+                        {datapageData.descriptionFromProducer ? (
+                            <ExpandableToggle
+                                label={
+                                    datapageData.attributionShort ||
+                                    "Principal data source"
+                                }
+                                content={
                                     <SimpleMarkdownText
                                         text={
                                             datapageData.descriptionFromProducer
                                         }
                                     />
-                                ) : (
-                                    <div className="indicator-metadata-box__producer-docs">
-                                        {producerDocEntries.map((e, i) => (
-                                            <section key={i}>
-                                                <h3 className="indicator-metadata-box__producer-docs-title">
-                                                    {e.title}
-                                                </h3>
-                                                <SimpleMarkdownText
-                                                    text={e.producerDescription}
-                                                />
-                                            </section>
-                                        ))}
-                                    </div>
-                                )
-                            }
-                            onToggle={(isOpen) =>
-                                logExpandableToggle(
-                                    "producer_documentation",
-                                    isOpen
-                                )
-                            }
-                        />
+                                }
+                                onToggle={(isOpen) =>
+                                    logExpandableToggle(
+                                        "producer_documentation",
+                                        isOpen
+                                    )
+                                }
+                            />
+                        ) : (
+                            // Stitched page whose producer docs differ per
+                            // indicator: one toggle per indicator, stacked like
+                            // the Data sources and FAQ toggles.
+                            producerDocEntries.map((e, i) => (
+                                <ExpandableToggle
+                                    key={i}
+                                    label={e.title}
+                                    isStacked={
+                                        i < producerDocEntries.length - 1
+                                    }
+                                    content={
+                                        <SimpleMarkdownText
+                                            text={e.producerDescription}
+                                        />
+                                    }
+                                    onToggle={(isOpen) =>
+                                        logExpandableToggle(
+                                            "producer_documentation",
+                                            isOpen
+                                        )
+                                    }
+                                />
+                            ))
+                        )}
                     </section>
                 )}
                 <section className="meta-expander__section">

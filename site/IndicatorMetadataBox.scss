@@ -445,23 +445,6 @@
     display: none;
 }
 
-// Stitched multi-indicator pages: per-indicator producer documentation, one
-// titled block per indicator inside the single source toggle.
-.indicator-metadata-box__producer-docs {
-    section + section {
-        margin-top: 24px;
-        padding-top: 16px;
-        border-top: 1px solid $blue-20;
-    }
-}
-
-.indicator-metadata-box__producer-docs-title {
-    @include body-3-medium;
-    font-weight: 700;
-    color: $blue-90;
-    margin: 0 0 4px;
-}
-
 // Per-indicator link/citation rows of a shared data source.
 .source-key-data--variant {
     .source-key-data__variant-row {
