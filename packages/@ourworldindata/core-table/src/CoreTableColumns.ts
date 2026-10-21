@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import {
     anyToString,
-    csvEscape,
     formatYear,
     formatDay,
     convertDaysSinceEpochToDate,
@@ -140,7 +139,7 @@ export abstract class AbstractCoreColumn<
 
     // A method for formatting for CSV
     formatForCsv(value: JS_TYPE): string {
-        return csvEscape(anyToString(value))
+        return anyToString(value)
     }
 
     formatTime(time: number): string {

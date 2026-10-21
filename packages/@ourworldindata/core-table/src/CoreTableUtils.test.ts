@@ -364,6 +364,24 @@ describe(parseDelimited, () => {
             parseDelimited(str.replace(/,/g, "\t"))
         )
     })
+
+    it("trims cells, skips blank lines and lists the columns", () => {
+        const rows = parseDelimited("  foo , bar\r\n\r\n 1 , 2 \r\n\r\n")
+        expect(rows.columns).toEqual(["foo", "bar"])
+        expect([...rows]).toEqual([{ foo: "1", bar: "2" }])
+    })
+
+    it("unquotes cells containing delimiters, quotes and newlines", () => {
+        const rows = parseDelimited(`name,note
+"Bonaire, Sint Eustatius and Saba","says ""hi""
+twice"`)
+        expect([...rows]).toEqual([
+            {
+                name: "Bonaire, Sint Eustatius and Saba",
+                note: 'says "hi"\ntwice',
+            },
+        ])
+    })
 })
 
 describe(guessColumnDefFromSlugAndRow, () => {

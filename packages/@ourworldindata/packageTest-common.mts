@@ -14,7 +14,7 @@ import * as os from "node:os"
 import * as path from "node:path"
 import { Readable } from "node:stream"
 import { init as initEsModuleLexer, parse } from "es-module-lexer/minimal"
-import { publint, type Message } from "publint"
+import { publint } from "publint"
 import { formatMessage } from "publint/utils"
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 
@@ -75,13 +75,7 @@ export async function readImportSpecifiers(
 // The tarball (packed by `yarn testPackage:pack`, which applies
 // publishConfig) is linted rather than the package dir, which would check the
 // dev manifest with its src/ entry points instead.
-export function testPublint(
-    tarballPath: string,
-    knownFalsePositive?: {
-        matches: (message: Message) => boolean
-        description: string
-    }
-): void {
+export function testPublint(tarballPath: string): void {
     it("passes publint", async () => {
         const tarball = Readable.toWeb(fs.createReadStream(tarballPath))
         const { messages, pkg } = await publint({ pack: { tarball } })
@@ -89,9 +83,7 @@ export function testPublint(
         // USE_ENGINES_NODE asks for an `engines.node` floor, which doesn't
         // apply to packages meant for the browser.
         const unexpected = messages.filter(
-            (message) =>
-                message.code !== "USE_ENGINES_NODE" &&
-                !knownFalsePositive?.matches(message)
+            (message) => message.code !== "USE_ENGINES_NODE"
         )
         expect(
             unexpected.map(
@@ -99,14 +91,6 @@ export function testPublint(
                     `[${message.type}] ${formatMessage(message, pkg, { color: false })}`
             )
         ).toEqual([])
-
-        // If the false positive disappears (fixed upstream, or the bundle
-        // changed), the exception should be removed.
-        if (knownFalsePositive)
-            expect(
-                messages.some(knownFalsePositive.matches),
-                `publint no longer reports the known false positive (${knownFalsePositive.description}) — remove the exception.`
-            ).toBe(true)
     })
 }
 
