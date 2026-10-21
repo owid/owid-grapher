@@ -2213,7 +2213,7 @@ __metadata:
     colorbrewer: "npm:^1.3.0"
     d3: "npm:^7.9.0"
     es-cookie: "npm:^1.5.0"
-    fparser: "npm:^3.1.0"
+    fparser: "npm:^4.2.0"
     http-server: "npm:^14.1.1"
     indefinite: "npm:^2.5.2"
     lodash-es: "npm:^4.18.1"
@@ -8558,10 +8558,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fparser@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "fparser@npm:3.1.0"
-  checksum: 10/5c75ca1b705ffa24676b7f83b46ec467fff3602242d4c8fe4e97d7afa43e327fc70415e70598a1ad908cce3ba61688497be36fb34259335e4c64a73a8ffe9dd2
+"fparser@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "fparser@npm:4.2.0"
+  checksum: 10/e3596a97e0591fdde1077751b70e08e6db70be5a13a68f41ac6ff941059c72abba3de0e8c079ec0e4abd33bbdcf51c0159a03d00a9cc95ac477cd53f047304f2
   languageName: node
   linkType: hard
 
