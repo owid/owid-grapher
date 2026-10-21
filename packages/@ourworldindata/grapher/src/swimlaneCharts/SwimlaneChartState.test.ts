@@ -492,6 +492,46 @@ describe("errorInfo", () => {
     })
 })
 
+describe("annotations", () => {
+    const table = new OwidTable(
+        [
+            {
+                entityName: "France",
+                time: 2000,
+                status: "X",
+                "status-annotations": "Fifth",
+            },
+            {
+                entityName: "France",
+                time: 2001,
+                status: "X",
+                "status-annotations": "Fifth",
+            },
+            {
+                entityName: "Germany",
+                time: 2000,
+                status: "X",
+                "status-annotations": "",
+            },
+        ],
+        [
+            { slug: "time", type: ColumnTypeNames.Year },
+            { slug: "status", type: ColumnTypeNames.String },
+            { slug: "status-annotations", type: ColumnTypeNames.String },
+        ]
+    )
+
+    it("attaches an entity's annotation to its row", () => {
+        const { series } = makeChartState(table)
+        expect(series.find((s) => s.entityName === "France")?.annotation).toBe(
+            "Fifth"
+        )
+        expect(
+            series.find((s) => s.entityName === "Germany")?.annotation
+        ).toBeFalsy()
+    })
+})
+
 describe("rows", () => {
     const table = makeCategoricalTable([
         { entityName: "France", time: 2000, status: "X" },

@@ -36,10 +36,21 @@ const REGIME_ROWS = [
 
 function makeChart(
     regimeColumnType: ColumnTypeNames,
-    config: Partial<GrapherProgrammaticInterface> = {}
+    config: Partial<GrapherProgrammaticInterface> = {},
+    annotations: Record<string, string> = {}
 ): { grapherState: GrapherState; chart: SwimlaneChart } {
-    const table = new OwidTable(REGIME_ROWS, [
+    const hasAnnotations = Object.keys(annotations).length > 0
+    const rows = hasAnnotations
+        ? REGIME_ROWS.map((row) => ({
+              ...row,
+              "regime-annotations": annotations[row.entityName] ?? "",
+          }))
+        : REGIME_ROWS
+    const table = new OwidTable(rows, [
         { slug: "year", type: ColumnTypeNames.Year },
+        ...(hasAnnotations
+            ? [{ slug: "regime-annotations", type: ColumnTypeNames.String }]
+            : []),
         {
             slug: "regime",
             type: regimeColumnType,
@@ -309,5 +320,18 @@ describe("thumbnail", () => {
         expect(
             chart.xAxis.tickLabels.map((tick) => tick.formattedValue)
         ).toEqual(["2000", "2001", "2002", "2003", "2004", "2005"])
+    })
+})
+
+describe("annotations", () => {
+    it("places an entity's annotation in its row only", () => {
+        const { chart } = makeChart(
+            ColumnTypeNames.String,
+            {},
+            { France: "Fifth Republic" }
+        )
+
+        expect(findRow(chart, "France").annotationPosition).toBeDefined()
+        expect(findRow(chart, "Germany").annotationPosition).toBeUndefined()
     })
 })
