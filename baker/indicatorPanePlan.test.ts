@@ -4,7 +4,10 @@ import {
     GrapherInterface,
     OwidVariableWithSource,
 } from "@ourworldindata/types"
-import { getAuxiliaryDimensions, planIndicatorPanes } from "./indicatorPanePlan.js"
+import {
+    getAuxiliaryDimensions,
+    planIndicatorPanes,
+} from "./indicatorPanePlan.js"
 
 const LIFE_EXPECTANCY = 1
 const GDP = 2
@@ -39,9 +42,9 @@ const plan = (
 
 describe(getAuxiliaryDimensions, () => {
     it("lists a scatter's size then colour, and nothing for other charts", () => {
-        expect(getAuxiliaryDimensions(scatter()).map((d) => d.variableId)).toEqual(
-            [POPULATION, REGION]
-        )
+        expect(
+            getAuxiliaryDimensions(scatter()).map((d) => d.variableId)
+        ).toEqual([POPULATION, REGION])
         expect(
             getAuxiliaryDimensions(scatter({ chartTypes: ["LineChart"] }))
         ).toEqual([])
@@ -91,7 +94,10 @@ describe(planIndicatorPanes, () => {
             {
                 chartTypes: ["Marimekko"],
                 dimensions: [
-                    { property: DimensionProperty.y, variableId: LIFE_EXPECTANCY },
+                    {
+                        property: DimensionProperty.y,
+                        variableId: LIFE_EXPECTANCY,
+                    },
                     { property: DimensionProperty.x, variableId: POPULATION },
                 ],
             },
