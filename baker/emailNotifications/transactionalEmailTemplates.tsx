@@ -4,14 +4,8 @@ import { RenderedEmail, renderEmail } from "./renderEmail.js"
 import { WELCOME_EMAIL_SUBJECT, WelcomeEmail } from "./WelcomeEmail.js"
 import { MAGIC_LINK_EMAIL_SUBJECT, MagicLinkEmail } from "./MagicLinkEmail.js"
 
-/**
- * The transactional emails are sent by the Cloudflare functions, which can't
- * afford React Email in their bundle. They are rendered here once, with
- * `{{placeholder}}` values the function substitutes per recipient, and the
- * result is committed as JSON next to the sender. `yarn
- * buildTransactionalEmailTemplates` regenerates the files; a test fails when
- * they are stale.
- */
+// Pre-rendered because the Cloudflare functions can't afford React Email in
+// their bundle; see functions/_common/emailTemplates/README.md.
 export const TRANSACTIONAL_EMAIL_TEMPLATES_DIR = fileURLToPath(
     new URL("../../functions/_common/emailTemplates/", import.meta.url)
 )
