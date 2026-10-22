@@ -780,6 +780,16 @@ export async function getTopicAreaAssignments(
     trx: KnexReadonlyTransaction,
     chartIds?: number[]
 ): Promise<TopicAreaAssignments> {
+    // Topic areas only feed optional page elements (the topic newsletter
+    // card), so a database without a tag graph (e.g. test fixtures) renders
+    // pages without them instead of failing.
+    const tagGraphRoot = await knexRawFirst<{ id: number }>(
+        trx,
+        `SELECT id FROM tags WHERE name = :name`,
+        { name: TagGraphRootName }
+    )
+    if (!tagGraphRoot) return { tagHierarchiesByChildName: {}, byChartId: {} }
+
     const tagHierarchiesByChildName = await getTagHierarchiesByChildName(trx)
     const byChartId = await getTopicAreaNamesByChartId(
         trx,
