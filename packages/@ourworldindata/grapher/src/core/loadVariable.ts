@@ -7,6 +7,8 @@ import {
     OwidVariableDataMetadataDimensions,
     OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
+// DEBUG ONLY: delete with debugAnnotationOverrides.ts before opening a PR
+import { applyDebugAnnotationOverride } from "./debugAnnotationOverrides.js"
 import {
     fetchWithRetry,
     getOwidDataFetchUserAgent,
@@ -78,6 +80,7 @@ export async function loadVariableDataAndMetadata(
         if (!metadataResponse.ok) throw new Error(metadataResponse.statusText)
         const metadata: OwidVariableWithSourceAndDimension =
             await metadataResponse.json()
+        applyDebugAnnotationOverride(metadata)
         // Metadata files written before the descriptionKey string migration
         // hold arrays — normalize at the fetch boundary.
         metadata.descriptionKey = normalizeDescriptionKey(
@@ -100,6 +103,7 @@ export async function loadVariableDataAndMetadata(
     const data = await dataResponse.json()
     const metadata: OwidVariableWithSourceAndDimension =
         await metadataResponse.json()
+    applyDebugAnnotationOverride(metadata)
     metadata.descriptionKey = normalizeDescriptionKey(metadata.descriptionKey)
     return { data, metadata }
 }
