@@ -645,7 +645,7 @@ export class LineChartThumbnail
                 ? this.chartState.colorScale.legendDescription
                 : undefined,
             legendTickSize: 1,
-            numericBinSize: 6,
+            numericBinHeight: 6,
             categoricalLegendStyleConfig: CATEGORICAL_LEGEND_STYLE,
             numericLegendStyleConfig: NUMERIC_LEGEND_STYLE,
         }

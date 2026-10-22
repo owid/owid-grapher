@@ -655,7 +655,7 @@ export class DiscreteBarChart
         return undefined
     }
 
-    @computed private get numericBinSize(): number {
+    @computed private get numericBinHeight(): number {
         return 0.625 * this.fontSize
     }
 
@@ -669,7 +669,7 @@ export class DiscreteBarChart
             align: HorizontalAlign.center,
             title: this.legendTitle,
             tickSize: 1,
-            binSize: this.numericBinSize,
+            binHeight: this.numericBinHeight,
         })
     }
 

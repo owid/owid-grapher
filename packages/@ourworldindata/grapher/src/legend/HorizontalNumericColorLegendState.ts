@@ -17,7 +17,7 @@ import {
     HorizontalNumericColorLegendOptions,
 } from "./HorizontalColorLegendTypes"
 import {
-    DEFAULT_NUMERIC_BIN_SIZE,
+    DEFAULT_BIN_HEIGHT,
     DEFAULT_TICK_SIZE,
     CATEGORICAL_BIN_MIN_WIDTH,
     MINIMUM_LABEL_DISTANCE,
@@ -60,8 +60,8 @@ export class HorizontalNumericColorLegendState {
         return this.visibleBins.filter(isNumericBin)
     }
 
-    @computed get binSize(): number {
-        return this.options.binSize ?? DEFAULT_NUMERIC_BIN_SIZE
+    @computed get binHeight(): number {
+        return this.options.binHeight ?? DEFAULT_BIN_HEIGHT
     }
 
     @computed private get tickFontSize(): number {
@@ -219,7 +219,7 @@ export class HorizontalNumericColorLegendState {
     }
 
     @computed get numericLabels(): NumericLabel[] {
-        const { binSize, positionedBins, tickFontSize } = this
+        const { binHeight, positionedBins, tickFontSize } = this
 
         const makeBoundaryLabel = (
             bin: PositionedBin,
@@ -231,7 +231,7 @@ export class HorizontalNumericColorLegendState {
                 bin.x +
                 (minOrMax === "min" ? 0 : bin.width) -
                 labelBounds.width / 2
-            const y = -binSize - labelBounds.height - this.tickSize
+            const y = -binHeight - labelBounds.height - this.tickSize
 
             return {
                 text: text,
@@ -248,7 +248,7 @@ export class HorizontalNumericColorLegendState {
                 fontSize: tickFontSize,
             })
             const x = bin.x + bin.width / 2 - labelBounds.width / 2
-            const y = -binSize - labelBounds.height - this.tickSize
+            const y = -binHeight - labelBounds.height - this.tickSize
 
             return {
                 text: bin.bin.text,

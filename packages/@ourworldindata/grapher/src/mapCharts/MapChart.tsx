@@ -610,7 +610,7 @@ export class MapChart
             baseFontSize: this.fontSize,
             maxWidth: this.legendMaxWidth,
             align: HorizontalAlign.center,
-            binSize: this.numericBinSize,
+            binHeight: this.numericBinHeight,
         })
     }
 
@@ -648,7 +648,7 @@ export class MapChart
         })
     }
 
-    @computed private get numericBinSize(): number {
+    @computed private get numericBinHeight(): number {
         return 0.625 * this.fontSize
     }
 

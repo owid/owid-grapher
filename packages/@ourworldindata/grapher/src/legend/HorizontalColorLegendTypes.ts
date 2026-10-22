@@ -43,7 +43,7 @@ export interface HorizontalNumericColorLegendOptions {
     title?: string
     align?: HorizontalAlign
     tickSize?: number
-    binSize?: number
+    binHeight?: number
 }
 
 export interface HorizontalCategoricalColorLegendOptions {
@@ -75,7 +75,7 @@ export interface ExternalColorLegendData {
     categoricalLegendData?: CategoricalBin[]
     legendTitle?: string
     legendTickSize?: number
-    numericBinSize?: number
+    numericBinHeight?: number
     numericLegendStyleConfig?: LegendStyleConfig
     categoricalLegendStyleConfig?: LegendStyleConfig
 }
