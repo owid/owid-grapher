@@ -9,7 +9,11 @@ import {
     formatDate,
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBook, faClockRotateLeft } from "@fortawesome/free-solid-svg-icons"
+import {
+    faBook,
+    faClockRotateLeft,
+    faPrint,
+} from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import Image from "./Image.js"
 import { Breadcrumbs } from "../../Breadcrumb/Breadcrumb.js"
@@ -106,6 +110,10 @@ function OwidArticleHeader({
                                 {dateText}
                             </span>
                         )}
+                        <a href="#" onClick={() => window.print()}>
+                            <FontAwesomeIcon icon={faPrint} />
+                            Print
+                        </a>
                         {!isDeprecated && !content["hide-citation"] && (
                             <a href={`#${CITATION_ID}`}>
                                 <FontAwesomeIcon icon={faBook} />
