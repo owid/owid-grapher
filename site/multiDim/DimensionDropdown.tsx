@@ -211,13 +211,6 @@ export default function DimensionDropdown({
                 placement="bottom start"
                 offset={4}
             >
-                {!showSearch && dimension.description && (
-                    <div className="md-menu__overlay-header">
-                        <p className="md-menu__dimension-description">
-                            {dimension.description}
-                        </p>
-                    </div>
-                )}
                 {showSearch ? (
                     <Autocomplete
                         filter={filter}

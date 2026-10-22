@@ -132,23 +132,8 @@ $selected-hover-fill: #bed2e7;
     z-index: $zindex-controls-popup;
     @include md-menu-scroll-area;
 
-    // Only shown when the dimension has a description.
-    .md-menu__overlay-header {
-        padding: 8px 16px 0;
-        margin-bottom: 8px;
-    }
-
-    .md-menu__dimension-description {
-        color: $gray-70;
-        font-size: 13px;
-        line-height: normal;
-        margin-top: 0;
-        margin-bottom: 4px;
-    }
-
-    // The searchable menu shows the search field instead of the header with
-    // the dimension description. Only the options scroll, below the
-    // search field, so it stays in view.
+    // The searchable menu starts with a search field. Only the options
+    // scroll, below the search field, so it stays in view.
     &.md-menu--searchable {
         display: flex;
         flex-direction: column;
