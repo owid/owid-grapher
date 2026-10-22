@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faFlask, faLink, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { copyToClipboard } from "@ourworldindata/utils"
 
 // Labs is a staff-only copy of the site, built from the `labs` branch: master
 // plus every open PR labelled `labs`. This badge only exists on that branch.
@@ -20,12 +21,10 @@ export function LabsBadge() {
 
     const copyPublicLink = async (): Promise<void> => {
         const url = publicUrlForCurrentPage()
-        try {
-            await navigator.clipboard.writeText(url)
+        if (await copyToClipboard(url)) {
             setIsCopied(true)
             setTimeout(() => setIsCopied(false), 2000)
-        } catch {
-            // The clipboard API needs a secure context; offer the link to copy by hand
+        } else {
             window.prompt("Public link to this page", url)
         }
     }
