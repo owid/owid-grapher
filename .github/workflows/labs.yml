@@ -1,0 +1,43 @@
+# Rebuilds the `labs` branch (master plus every open PR labelled `labs`) whenever
+# one of its inputs changes. Pushing `labs` is what deploys Labs, the staff-only
+# copy of the site: its draft PR gets a staging server like any other.
+# See devTools/labs/rebuild-labs-branch.sh.
+name: Rebuild Labs
+
+on:
+  push:
+    branches: [master]
+  # pull_request_target runs this file from master, never a PR's version of it.
+  # The job only merges PR commits with git; it never runs their code.
+  pull_request_target:
+    types: [labeled, unlabeled, synchronize, reopened, closed]
+  workflow_dispatch:
+
+# Every run rebuilds from scratch, so only the newest one matters
+concurrency:
+  group: labs-rebuild
+  cancel-in-progress: true
+
+jobs:
+  rebuild:
+    if: >-
+      github.event_name != 'pull_request_target' ||
+      github.event.label.name == 'labs' ||
+      contains(github.event.pull_request.labels.*.name, 'labs')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Rebuild and push labs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          devTools/labs/rebuild-labs-branch.sh
