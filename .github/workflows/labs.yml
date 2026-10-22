@@ -4,12 +4,11 @@
 # See devTools/labs/rebuild-labs-branch.sh.
 name: Rebuild Labs
 
-on:
+# pull_request_target is deliberate: the job runs only master's workflow and script, and takes
+# only PRs by authors who can push to this repo (see devTools/labs/rebuild-labs-branch.sh).
+on: # zizmor: ignore[dangerous-triggers]
   push:
     branches: [master]
-  # pull_request_target runs this file from master, never a PR's version of it,
-  # with write access and secrets. The script only takes PRs from branches of
-  # this repo (never forks), whose authors can already push here.
   pull_request_target:
     types: [labeled, unlabeled, synchronize, reopened, closed]
   workflow_dispatch:
@@ -37,6 +36,8 @@ jobs:
         with:
           ref: master
           fetch-depth: 0
+          # The script pushes with the job's token itself
+          persist-credentials: false
 
       # Node and yarn to typecheck conflict resolutions; dependencies are
       # installed by the script only when a merge needs it
@@ -45,10 +46,9 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: ".nvmrc"
-          cache: "yarn"
 
       - name: Install Claude Code
-        run: npm install --global @anthropic-ai/claude-code@2.1.308
+        run: npm install --global @anthropic-ai/claude-code@2.1.308 # zizmor: ignore[adhoc-packages] pinned version
 
       # Conflict resolutions recorded by git rerere, replayed on later rebuilds
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
