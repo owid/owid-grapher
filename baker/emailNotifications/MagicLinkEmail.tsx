@@ -32,6 +32,7 @@ export function MagicLinkEmail({
             title={MAGIC_LINK_EMAIL_SUBJECT}
             preview="Your link to update your preferences is valid for 30 minutes."
             baseUrl={siteBaseUrl}
+            header="generic"
         >
             <EmailContent>
                 <EmailTitle>Update your preferences</EmailTitle>
