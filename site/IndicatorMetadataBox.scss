@@ -53,6 +53,12 @@
     li:last-child {
         margin-bottom: 0;
     }
+
+    // Nested lists sit with their item, like the items around them
+    li > ul,
+    li > ol {
+        margin: 8px 0 0;
+    }
 }
 
 // Sections sit 32px apart, including the first one, whether it follows "What
