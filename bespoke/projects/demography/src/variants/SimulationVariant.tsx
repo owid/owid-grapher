@@ -26,6 +26,7 @@ import {
 import { CountryData, DemographyMetadata, ParameterKey } from "../core/types.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { SimulationContent } from "../components/SimulationContent.js"
 import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
@@ -264,50 +265,58 @@ function CaptionedSimulationVariant({
         "Demographers publish projections of how populations will change in the future. But what if fertility rates fall faster, or rebound? Or migration rates change? Adjust these assumptions and compare."
 
     return (
-        <Frame className="demography-captioned-chart">
-            <ChartHeader
-                className="demography-header"
-                title={title}
-                subtitle={subtitle}
-            />
-            <div className="demography-captioned-chart__chart-area">
-                {isLoading && <Spinner />}
-                <SimulationContent
-                    data={data}
-                    focusParameter={focusParameter}
-                    hidePopulationPyramid={hidePopulationPyramid}
-                    populationPyramidUnit={populationPyramidUnit}
-                    fertilityRateAssumptions={fertilityRateAssumptions}
-                    lifeExpectancyAssumptions={lifeExpectancyAssumptions}
-                    netMigrationRateAssumptions={netMigrationRateAssumptions}
-                    urlFertilityRateAssumptions={urlFertilityRateAssumptions}
-                    urlLifeExpectancyAssumptions={urlLifeExpectancyAssumptions}
-                    urlNetMigrationRateAssumptions={
-                        urlNetMigrationRateAssumptions
-                    }
-                    baselineEntityName={baselineEntityName}
-                    shouldSyncEntityName={shouldSyncEntityName}
-                    urlTab={urlTab}
-                    urlYear={urlYear}
+        <BespokeMetadataProvider metadata={metadata.provenance}>
+            <Frame className="demography-captioned-chart">
+                <ChartHeader
+                    className="demography-header"
+                    title={title}
+                    subtitle={subtitle}
                 />
-            </div>
-            <ChartFooter
-                className="demography-footer"
-                source={CHART_FOOTER_SOURCES}
-                note={
-                    <>
-                        Technical details and assumptions used in this
-                        population model are available at{" "}
-                        <a
-                            href="https://docs.owid.io/projects/etl/analyses/population_tool"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            https://docs.owid.io/projects/etl/analyses/population_tool
-                        </a>
-                    </>
-                }
-            />
-        </Frame>
+                <div className="demography-captioned-chart__chart-area">
+                    {isLoading && <Spinner />}
+                    <SimulationContent
+                        data={data}
+                        focusParameter={focusParameter}
+                        hidePopulationPyramid={hidePopulationPyramid}
+                        populationPyramidUnit={populationPyramidUnit}
+                        fertilityRateAssumptions={fertilityRateAssumptions}
+                        lifeExpectancyAssumptions={lifeExpectancyAssumptions}
+                        netMigrationRateAssumptions={
+                            netMigrationRateAssumptions
+                        }
+                        urlFertilityRateAssumptions={
+                            urlFertilityRateAssumptions
+                        }
+                        urlLifeExpectancyAssumptions={
+                            urlLifeExpectancyAssumptions
+                        }
+                        urlNetMigrationRateAssumptions={
+                            urlNetMigrationRateAssumptions
+                        }
+                        baselineEntityName={baselineEntityName}
+                        shouldSyncEntityName={shouldSyncEntityName}
+                        urlTab={urlTab}
+                        urlYear={urlYear}
+                    />
+                </div>
+                <ChartFooter
+                    className="demography-footer"
+                    source={CHART_FOOTER_SOURCES}
+                    note={
+                        <>
+                            Technical details and assumptions used in this
+                            population model are available at{" "}
+                            <a
+                                href="https://docs.owid.io/projects/etl/analyses/population_tool"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                https://docs.owid.io/projects/etl/analyses/population_tool
+                            </a>
+                        </>
+                    }
+                />
+            </Frame>
+        </BespokeMetadataProvider>
     )
 }
