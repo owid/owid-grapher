@@ -5,8 +5,10 @@ import {
     LICENSE_ID,
     PAST_VERSIONS_ID,
     OwidGdocPostContent,
+    OwidEnrichedGdocBlock,
     OwidGdocType,
     formatDate,
+    traverseEnrichedBlock,
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -24,19 +26,21 @@ import { useVersionsFileUrl } from "../DocumentContext.js"
 // Average adult silent reading speed for non-fiction (Brysbaert, 2019)
 const WORDS_PER_MINUTE = 238
 
-// Counts the words in every text span of a gdoc's enriched blocks
-function countWords(node: unknown): number {
-    if (Array.isArray(node))
-        return node.reduce((sum: number, child) => sum + countWords(child), 0)
-    if (node && typeof node === "object")
-        return Object.entries(node).reduce(
-            (sum: number, [key, value]) =>
-                key === "text" && typeof value === "string"
-                    ? sum + value.split(/\s+/).filter(Boolean).length
-                    : sum + countWords(value),
-            0
+// Counts the words in the body text of a gdoc: paragraphs, headings, lists,
+// asides and the like, but not component labels or chart captions
+function countWords(blocks: OwidEnrichedGdocBlock[]): number {
+    let words = 0
+    for (const block of blocks) {
+        traverseEnrichedBlock(
+            block,
+            () => undefined,
+            (span) => {
+                if (span.spanType === "span-simple-text")
+                    words += span.text.split(/\s+/).filter(Boolean).length
+            }
         )
-    return 0
+    }
+    return words
 }
 
 function OwidArticleHeader({
@@ -60,7 +64,7 @@ function OwidArticleHeader({
         content.dateline || (publishedAt && formatDate(publishedAt))
     const readingMinutes = Math.max(
         1,
-        Math.round(countWords(content.body) / WORDS_PER_MINUTE)
+        Math.round(countWords(content.body ?? []) / WORDS_PER_MINUTE)
     )
     return (
         <>
