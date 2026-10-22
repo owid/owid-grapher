@@ -102,6 +102,7 @@ export function EmailLayout({
     title,
     preview,
     baseUrl,
+    header,
     children,
 }: {
     title: string
@@ -109,6 +110,7 @@ export function EmailLayout({
     preview: string
     /** Public site origin, for the header image and link. */
     baseUrl: string
+    header: EmailHeaderVariant
     children: ReactNode
 }): ReactNode {
     return (
@@ -140,7 +142,7 @@ export function EmailLayout({
                         backgroundColor: COLORS.background,
                     }}
                 >
-                    <Header baseUrl={baseUrl} />
+                    <Header baseUrl={baseUrl} variant={header} />
                     {children}
                 </Container>
                 <div
@@ -164,7 +166,33 @@ export function Spacer({ height }: { height: number }): ReactNode {
     )
 }
 
-function Header({ baseUrl }: { baseUrl: string }): ReactNode {
+/**
+ * Both header images are 1200x250 PNGs. "broadcast" carries the "Update"
+ * wordmark for the notification emails; "generic" is the plain wordmark for
+ * transactional emails.
+ */
+export type EmailHeaderVariant = "broadcast" | "generic"
+
+const HEADER_IMAGES: Record<EmailHeaderVariant, { file: string; alt: string }> =
+    {
+        broadcast: {
+            file: "owid-email-broadcast-header.png",
+            alt: "Our World in Data Update",
+        },
+        generic: {
+            file: "owid-email-generic-header.png",
+            alt: "Our World in Data",
+        },
+    }
+
+function Header({
+    baseUrl,
+    variant,
+}: {
+    baseUrl: string
+    variant: EmailHeaderVariant
+}): ReactNode {
+    const image = HEADER_IMAGES[variant]
     return (
         <Section style={{ backgroundColor: COLORS.navy }}>
             {/* The header is an image so it gets the brand typeface in every
@@ -175,8 +203,8 @@ function Header({ baseUrl }: { baseUrl: string }): ReactNode {
             <Link href={baseUrl} style={IMAGE_LINK_STYLE}>
                 <Img
                     className="header-image"
-                    src={`${baseUrl}/owid-email-header.png`}
-                    alt="Our World in Data Update"
+                    src={`${baseUrl}/${image.file}`}
+                    alt={image.alt}
                     width={HEADER_IMAGE_WIDTH}
                     height={HEADER_IMAGE_HEIGHT}
                     style={{
