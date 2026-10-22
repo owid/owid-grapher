@@ -169,7 +169,7 @@ export class SwimlaneChart
         ])
     }
 
-    @computed private get legendBinSize(): number {
+    @computed private get legendBinHeight(): number {
         return 0.625 * this.fontSize
     }
 
@@ -206,7 +206,7 @@ export class SwimlaneChart
             baseFontSize: this.fontSize,
             maxWidth: this.bounds.width,
             align: HorizontalAlign.center,
-            binSize: this.legendBinSize,
+            binHeight: this.legendBinHeight,
         })
     }
 

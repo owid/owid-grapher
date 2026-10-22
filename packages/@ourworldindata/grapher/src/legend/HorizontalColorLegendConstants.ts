@@ -1,4 +1,4 @@
-export const DEFAULT_NUMERIC_BIN_SIZE = 10
+export const DEFAULT_BIN_HEIGHT = 10
 export const DEFAULT_NUMERIC_BIN_STROKE = "#333"
 export const DEFAULT_NUMERIC_BIN_STROKE_WIDTH = 0.3
 export const DEFAULT_TEXT_COLOR = "#111"
