@@ -53,11 +53,17 @@
     li:last-child {
         margin-bottom: 0;
     }
+
+    // Nested lists sit with their item, like the items around them
+    li > ul,
+    li > ol {
+        margin: 8px 0 0;
+    }
 }
 
-// Sections sit 32px apart, including the first one after "What you should know"
+// Sections sit 32px apart, including the first one, whether it follows "What
+// you should know" or the key data
 .indicator-metadata-box
-    .metadata-box-expander:has(> .metadata-box-expander__preview)
     .metadata-box-section:first-of-type
     .metadata-box-section__title {
     margin-top: 32px;
@@ -129,6 +135,11 @@
 
 .indicator-metadata-box .avatar-byline__author {
     gap: 6px;
+}
+
+// A description in several paragraphs keeps them apart
+.indicator-metadata-box .metadata-box-key-data__row--full-width p + p {
+    margin-top: 8px;
 }
 
 // Above phone width, a long value wraps under its label rather than in a
@@ -238,11 +249,16 @@
     }
 }
 
-// Free-form text from data producers, in "Documentation from data sources"
-// and the source descriptions: paragraphs a blank line apart, headings in bold
-// body text right above their paragraph, and bullets 8px apart
+// Free-form text in "Documentation from data sources", the source
+// descriptions and the processing notes: paragraphs a blank line apart,
+// headings in bold body text right above their paragraph, and bullets 8px
+// apart
 .indicator-metadata-box .indicator-metadata-box__producer-docs,
-.indicator-metadata-box .indicator-sources .source .description {
+.indicator-metadata-box .indicator-sources .source .description,
+.indicator-metadata-box
+    .indicator-processing
+    .indicator-processing-callout
+    .indicator-processing-callout__content {
     // The content's first-child reset can't reach through this wrapper
     > :first-child {
         margin-top: 0;
