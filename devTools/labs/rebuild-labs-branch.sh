@@ -57,6 +57,14 @@ has_agent() {
     command -v claude >/dev/null
 }
 
+# Undo a failed merge completely, including anything the agent edited outside
+# the conflicted files, so the next merge starts from a clean tree
+abort_merge() {
+    git merge --abort
+    git reset --quiet --hard
+    git clean --quiet -fd
+}
+
 # Files among the given ones that still contain conflict markers
 files_with_markers() {
     local file
@@ -150,7 +158,7 @@ while IFS=$'\t' read -r number head sha title; do
     fi
 
     if [[ ${#unresolved[@]} -gt 0 ]]; then
-        git merge --abort
+        abort_merge
         echo "    Left out: unresolved conflicts in ${unresolved[*]}"
         LEFT_OUT+="- #$number $title: conflicts in $(printf '%s\n' "${unresolved[@]}" | as_code_list)$agent_note"$'\n'
         continue
@@ -160,14 +168,15 @@ while IFS=$'\t' read -r number head sha title; do
     if ! typechecks >"$LOG_DIR/typecheck-$number.log" 2>&1; then
         # Forget the resolution, so the next rebuild resolves this conflict afresh
         "${GIT_RERERE[@]}" rerere forget -- "${conflicted[@]}" >/dev/null 2>&1 || true
-        git merge --abort
+        abort_merge
         echo "    Left out: the resolution doesn't typecheck; log: $LOG_DIR/typecheck-$number.log"
         tail -n 20 "$LOG_DIR/typecheck-$number.log"
         LEFT_OUT+="- #$number $title: conflicts in $conflict_list, and the attempted resolution doesn't typecheck"$'\n'
         continue
     fi
 
-    git add -- "${conflicted[@]}"
+    # Everything the merge changed, including files the agent fixed outside the conflict
+    git add --all
     # Committing with rerere enabled records the resolution for later rebuilds
     "${GIT_RERERE[@]}" commit --quiet --no-edit
     INCLUDED+="$entry: $note"$'\n'
