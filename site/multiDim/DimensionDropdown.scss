@@ -114,21 +114,16 @@ $selected-hover-fill: #bed2e7;
     background: white;
     // No horizontal padding: menu items are full-bleed, so the hover and
     // selection fills span the menu's full width.
-    padding: 16px 0 8px;
+    padding: 4px 0 8px;
     border-radius: 4px;
     box-shadow: 0px 4px 23px 4px #0000000f;
     z-index: $zindex-controls-popup;
     @include md-menu-scroll-area;
 
+    // Only shown when the dimension has a description.
     .md-menu__overlay-header {
-        padding: 0 16px;
-        margin-bottom: 12px;
-    }
-
-    .md-menu__overlay-header-title {
-        color: $light-text;
-        margin-top: 0;
-        margin-bottom: 4px;
+        padding: 8px 16px 0;
+        margin-bottom: 8px;
     }
 
     .md-menu__dimension-description {
@@ -140,7 +135,7 @@ $selected-hover-fill: #bed2e7;
     }
 
     // The searchable menu shows the search field instead of the header with
-    // the dimension name and description. Only the options scroll, below the
+    // the dimension description. Only the options scroll, below the
     // search field, so it stays in view.
     &.md-menu--searchable {
         display: flex;
