@@ -88,11 +88,10 @@ git push --quiet --force origin "HEAD:refs/heads/$LABS_BRANCH"
 LABS_PR=$(gh pr list --repo "$REPO" --head "$LABS_BRANCH" --state open --json number --jq '.[0].number // empty')
 if [[ -z "$LABS_PR" ]]; then
     echo "--- Opening the Labs draft PR"
-    # staging-https: the badge's "Copy public link" needs a secure context.
     # staging-algolia: a search index of its own, or /search 404s on staging servers.
     # pinned: keeps the stale bot from closing the PR, and with it the Labs server.
     gh pr create --repo "$REPO" --draft --base master --head "$LABS_BRANCH" \
-        --title "$LABS_PR_TITLE" --label staging-https --label staging-algolia --label pinned --body "$BODY"
+        --title "$LABS_PR_TITLE" --label staging-algolia --label pinned --body "$BODY"
 else
     echo "--- Updating the description of #$LABS_PR"
     gh pr edit "$LABS_PR" --repo "$REPO" --body "$BODY"
