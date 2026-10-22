@@ -29,7 +29,7 @@
             flex-shrink: 0;
             font-weight: 700;
             padding-top: 2px;
-            padding-bottom: 14px;
+            padding-bottom: 8px;
 
             .title-fragments {
                 color: $light-text;
@@ -38,8 +38,30 @@
         }
 
         .table-wrapper {
+            container-type: inline-size;
             overflow: auto;
             border: $cell-border;
+            overscroll-behavior-x: none;
+
+            // A styled scrollbar stays visible where the OS would hide it.
+            // Chrome ignores it once scrollbar-width or scrollbar-color is set:
+            // https://developer.chrome.com/docs/css-ui/scrollbar-styling
+            &::-webkit-scrollbar {
+                width: 11px;
+                height: 11px;
+            }
+
+            &::-webkit-scrollbar-track,
+            &::-webkit-scrollbar-corner {
+                background: transparent;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background-clip: content-box;
+                background-color: $gray-70;
+                border-radius: 11px;
+                border: 3px solid transparent;
+            }
         }
 
         .title-fragments {
@@ -90,11 +112,17 @@
         td {
             padding: 8px 16px;
             white-space: nowrap;
+            vertical-align: bottom;
 
             &:not(.entity) {
-                vertical-align: bottom;
                 text-align: right;
             }
+        }
+
+        th.filler,
+        td.filler {
+            width: 100%;
+            padding: 0;
         }
 
         // adds border on the right of the entity column
@@ -116,7 +144,6 @@
                 line-height: 19px;
                 border-bottom: $cell-border;
                 font-weight: 700;
-                vertical-align: bottom;
 
                 &.dimension,
                 &.entity,
@@ -200,6 +227,11 @@
 
             td.entity {
                 white-space: normal;
+
+                .entity-name {
+                    width: max-content;
+                    max-width: min(27ch, 38cqw);
+                }
             }
 
             tr:not(.title):hover td {
@@ -225,6 +257,11 @@
                     margin-left: 6px;
                 }
             }
+
+            .missing-value {
+                color: $light-text;
+                cursor: default;
+            }
         }
     }
 }
@@ -232,13 +269,6 @@
 &.GrapherComponentMedium {
     .DataTable .caption {
         padding-top: 4px;
-        padding-bottom: 8px;
-    }
-}
-
-&.GrapherComponentNarrow {
-    .DataTable .caption {
-        padding-bottom: 4px;
     }
 }
 

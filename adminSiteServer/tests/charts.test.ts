@@ -13,6 +13,7 @@ import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { mergeGrapherConfigs, omitUndefinedValues } from "@ourworldindata/utils"
 import { v7 as uuidv7 } from "uuid"
 import { GrapherConfigPatch } from "../../adminShared/AdminSessionTypes.js"
+import { OldChartFieldList } from "../../db/model/Chart.js"
 import {
     datasetId,
     otherVariableId,
@@ -1800,6 +1801,60 @@ describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
         })
     }
 
+    it("reports in the chart list how far an ETL chart drifted", async () => {
+        const { chartId } = await env.request({
+            method: "PUT",
+            path: `/charts/by-config/${uuidv7()}/etlConfig?catalogPath=grapher/dummy/latest/dummy%23chart`,
+            body: JSON.stringify(testEtlConfig),
+        })
+        const { chartId: adminChartId } = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({ ...testEtlConfig, slug: "admin-chart" }),
+        })
+        const listedChart = async (
+            id: number
+        ): Promise<OldChartFieldList | undefined> => {
+            const { charts } = await env.fetchJson("/charts.json")
+            return charts.find((chart: OldChartFieldList) => chart.id === id)
+        }
+
+        // Straight from ETL, nothing is changed on top
+        const pushed = await listedChart(chartId)
+        expect(pushed?.isEtlManaged).toBeTruthy()
+        expect(pushed).toMatchObject({
+            etlConfigCatalogPath: "grapher/dummy/latest/dummy#chart",
+            etlOverriddenFields: "[]",
+            etlSlug: "etl-authored-chart",
+        })
+
+        const full = await env.fetchJson(`/charts/${chartId}.config.json`)
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}`,
+            body: JSON.stringify({
+                ...full,
+                subtitle: "Subtitle from the admin",
+                slug: "renamed-in-admin",
+            }),
+        })
+        // Identity keys like the slug never count as overridden fields; the
+        // client compares the slug against the ETL one instead
+        expect(await listedChart(chartId)).toMatchObject({
+            slug: "renamed-in-admin",
+            etlSlug: "etl-authored-chart",
+            etlOverriddenFields: '["subtitle"]',
+        })
+
+        const adminChart = await listedChart(adminChartId)
+        expect(adminChart?.isEtlManaged).toBeFalsy()
+        expect(adminChart).toMatchObject({
+            etlConfigCatalogPath: null,
+            etlOverriddenFields: null,
+            etlSlug: null,
+        })
+    })
+
     it("creates a chart when the config UUID doesn't exist yet", async () => {
         const chartConfigId = uuidv7()
 
@@ -1821,6 +1876,11 @@ describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
         expect(chartRow.configId).toBe(chartConfigId)
         expect(chartRow.patchConfigIdETL).not.toBeNull()
         expect(chartRow.etlConfigCatalogPath).toBe(
+            "grapher/dummy/latest/dummy#chart"
+        )
+        // the chart editor reads the catalog path alongside the ETL layer
+        const parent = await env.fetchJson(`/charts/${chartId}.parent.json`)
+        expect(parent.etlConfigCatalogPath).toBe(
             "grapher/dummy/latest/dummy#chart"
         )
 

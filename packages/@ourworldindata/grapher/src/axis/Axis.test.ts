@@ -710,6 +710,25 @@ describe("calendar-aware time ticks", () => {
     })
 })
 
+describe("decade time ticks", () => {
+    it("labels each decade once", () => {
+        const axis = makeTimeAxis({
+            columnType: ColumnTypeNames.Decade,
+            min: 1950,
+            max: 1980,
+            range: [0, 600],
+            hideFractionalTicks: true,
+        })
+
+        expect(axis.tickLabels.map((tick) => tick.formattedValue)).toEqual([
+            "1950s",
+            "1960s",
+            "1970s",
+            "1980s",
+        ])
+    })
+})
+
 describe("endpoint tick labels", () => {
     const endpointLabels = (axis: HorizontalAxis): string[] =>
         axis.endpointTickLabels.map((label) => label.formattedValue)

@@ -304,6 +304,7 @@ export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 
 export {
     strToQueryParams,
+    safeDecodeURIComponent,
     queryParamsToStr,
     multiDimDimensionsToViewQueryStr,
     getWindowQueryStr,
@@ -374,6 +375,7 @@ export { isAndroid, isIOS } from "./BrowserUtils.js"
 export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
+    KEYS_EXCLUDED_FROM_INHERITANCE,
 } from "./grapherConfigInheritance.js"
 
 export {

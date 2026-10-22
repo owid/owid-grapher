@@ -1,5 +1,6 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
+import express from "express"
 import { TaggableType } from "@ourworldindata/types"
 import {
     getSlideshows,
@@ -50,6 +51,11 @@ import {
     getPublishedGdocTopicSlugs,
     getResearchAndWritingOrphans,
 } from "./apiRoutes/gdocs.js"
+import {
+    createGdocArchieMl,
+    getGdocArchieMl,
+    putGdocArchieMl,
+} from "./apiRoutes/gdocArchieMl.js"
 import {
     getImagesHandler,
     postImageHandler,
@@ -404,6 +410,24 @@ getRouteWithROTransaction(
     apiRouter,
     "/gdocs/:id/coverage",
     getGdocCalloutCoverage
+)
+// ArchieML read and write for agents. GET reads any registered doc; writes
+// need unpublished docs outside shared drives
+getRouteWithROTransaction(apiRouter, "/gdocs/:id/archieml", getGdocArchieMl)
+// The writes' body is plain text, which FunctionalRouter's parsers don't
+// cover. They open their own short transactions, rather than holding one
+// across the Google API calls
+const archieMlTextBody = express.text({ type: "text/plain", limit: "50mb" })
+apiRouter.router.put(
+    "/gdocs/:id/archieml",
+    archieMlTextBody,
+    apiRouter.wrap(putGdocArchieMl)
+)
+// Creates a doc of any type, shared with the `email` query parameter
+apiRouter.router.post(
+    "/gdocs/archieml",
+    archieMlTextBody,
+    apiRouter.wrap(createGdocArchieMl)
 )
 getRouteWithROTransaction(
     apiRouter,
