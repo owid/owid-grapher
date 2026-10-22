@@ -93,11 +93,6 @@ export const FOOTER_LINK_STYLE: CSSProperties = {
     textDecoration: "underline",
 }
 
-/**
- * The frame every email shares: document, inbox preview text, the branded
- * header and the Outlook width fixes. Children render inside the container
- * below the header; wrap them in EmailContent and EmailFooter.
- */
 export function EmailLayout({
     title,
     preview,
@@ -106,9 +101,7 @@ export function EmailLayout({
     children,
 }: {
     title: string
-    /** Inbox preview text: shown next to the subject in most clients. */
     preview: string
-    /** Public site origin, for the header image and link. */
     baseUrl: string
     header: EmailHeaderVariant
     children: ReactNode
@@ -166,11 +159,6 @@ export function Spacer({ height }: { height: number }): ReactNode {
     )
 }
 
-/**
- * Both header images are 1200x250 PNGs. "broadcast" carries the "Update"
- * wordmark for the notification emails; "generic" is the plain wordmark for
- * transactional emails.
- */
 export type EmailHeaderVariant = "broadcast" | "generic"
 
 const HEADER_IMAGES: Record<EmailHeaderVariant, { file: string; alt: string }> =
@@ -225,7 +213,6 @@ function Header({
     )
 }
 
-/** The padded main column between the header and the footer. */
 export function EmailContent({ children }: { children: ReactNode }): ReactNode {
     return (
         <Section
@@ -237,11 +224,6 @@ export function EmailContent({ children }: { children: ReactNode }): ReactNode {
     )
 }
 
-/**
- * Centered footer column ending in the sender's postal address. Children are
- * the email-specific parts: the "sent to … because …" line and, for digests,
- * the calls to action above it.
- */
 export function EmailFooter({ children }: { children: ReactNode }): ReactNode {
     return (
         <Section
@@ -265,7 +247,6 @@ export const BODY_LINK_STYLE: CSSProperties = {
     textDecoration: "underline",
 }
 
-/** The one heading of a transactional email. */
 export function EmailTitle({ children }: { children: ReactNode }): ReactNode {
     return (
         <Heading
