@@ -130,12 +130,10 @@ describe("FeaturedViz bespoke embeds", () => {
         await vi.waitFor(() => expect(getMountCalls()).toHaveLength(2))
 
         const [hero, later] = getMountCalls()
-        expect(hero.config).toStrictEqual({
-            product: "Beef",
-            urlSync: "true",
-            hideMetadataModal: "true",
-        })
+        expect(hero.config).toStrictEqual({ product: "Beef", urlSync: "true" })
+        expect(hero.embedOptions).toStrictEqual({ hideMetadataModal: true })
         expect(later.config).toStrictEqual({ product: "Soy" })
+        expect(later.embedOptions).toBeUndefined()
     })
 
     it("keeps the hero's modal when the page has no metadata box", async () => {
@@ -143,10 +141,7 @@ describe("FeaturedViz bespoke embeds", () => {
         await vi.waitFor(() => expect(getMountCalls()).toHaveLength(2))
 
         const [hero] = getMountCalls()
-        expect(hero.config).toStrictEqual({
-            product: "Beef",
-            urlSync: "true",
-            hideMetadataModal: "false",
-        })
+        expect(hero.config).toStrictEqual({ product: "Beef", urlSync: "true" })
+        expect(hero.embedOptions).toStrictEqual({ hideMetadataModal: false })
     })
 })

@@ -3,10 +3,9 @@ import type {
     BespokeConfigSpec,
 } from "./bespokeComponentTypes.ts"
 
-/** How the surrounding page embeds a bespoke component */
+/** Authored flags every bespoke component accepts, next to its own config */
 export interface EmbedConfig {
     urlSync: boolean
-    hideMetadataModal: boolean
 }
 
 export const EMBED_CONFIG_SPEC = {
@@ -15,12 +14,12 @@ export const EMBED_CONFIG_SPEC = {
         default: "false",
         description: "Sync the viz state with the page URL",
     },
-    hideMetadataModal: {
-        type: "boolean",
-        default: "false",
-        description: "Hide the metadata modal",
-    },
 } as const satisfies BespokeConfigSpec
+
+/** Set in code by the page embedding a bespoke component, never authored */
+export interface EmbedOptions {
+    hideMetadataModal?: boolean
+}
 
 /** Turn embed flags into the string config ArchieML would have carried */
 export function serializeEmbedConfig(

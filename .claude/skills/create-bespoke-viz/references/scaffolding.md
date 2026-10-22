@@ -10,7 +10,7 @@ ArchieML config values are always **strings**. Declare them in `CONFIG_SPEC` in 
 
 Support the conventional keys where they make sense: `title`, `subtitle` (override the generated ones), `hideControls`, and an entity default (`country` or `region`) that accepts the sentinel `"userLocation"`, resolved with `useResolveUserLocation` — a react-query hook, so the variant needs a `QueryClientProvider` even when the project fetches nothing else.
 
-`urlSync` and `hideMetadataModal` describe the embedding page rather than the viz, so they stay out of `CONFIG_SPEC`: `parseConfigFromSpec` parses them too, and `EmbedConfigProvider` in the variant's provider stack hands them to the code that needs them.
+`urlSync` describes the embedding page rather than the viz, so it stays out of `CONFIG_SPEC`: `parseConfigFromSpec` parses it too, and `EmbedConfigProvider` in the variant's provider stack hands it to the code that needs it. Flags the page sets in code and an author never writes, like `hideMetadataModal`, arrive typed as `opts.embedOptions`; `mount` wraps the variant in `EmbedOptionsProvider` with them, as `food-trade/src/index.tsx` does.
 
 ## Documenting the bundle
 

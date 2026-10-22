@@ -2,11 +2,7 @@ import { createContext, useContext } from "react"
 
 import type { EmbedConfig } from "../shared/embedConfig.js"
 
-/** Defaults to an in-article embed: no URL syncing, with the modal enabled */
-const EmbedConfigContext = createContext<EmbedConfig>({
-    urlSync: false,
-    hideMetadataModal: false,
-})
+const EmbedConfigContext = createContext<EmbedConfig>({ urlSync: false })
 
 export function EmbedConfigProvider({
     config,

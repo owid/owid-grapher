@@ -10,6 +10,7 @@ import type {
 import StylesTarget from "vite-plugin-css-position/react"
 
 import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
+import { EmbedOptionsProvider } from "../../../hooks/useEmbedOptions.js"
 
 import { SimulationVariant } from "./variants/SimulationVariant.js"
 import { PopulationVariant } from "./variants/PopulationVariant.js"
@@ -157,7 +158,9 @@ export const mount: BespokeComponentMountFn = (
     root.render(
         <>
             <StylesTarget />
-            <variant.component config={config} urls={urls} />
+            <EmbedOptionsProvider options={opts.embedOptions}>
+                <variant.component config={config} urls={urls} />
+            </EmbedOptionsProvider>
         </>
     )
     return () => root.unmount()

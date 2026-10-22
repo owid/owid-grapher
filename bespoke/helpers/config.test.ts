@@ -48,6 +48,7 @@ describe(parseConfigFromSpec, () => {
                 scale: "2.5",
                 points: "1,2",
                 tradeFlow: "import",
+                hideMetadataModal: "true",
             })
         ).toStrictEqual({
             flow: "export",
@@ -59,17 +60,13 @@ describe(parseConfigFromSpec, () => {
             scale: 2.5,
             points: [1, 2],
             urlSync: false,
-            hideMetadataModal: false,
         })
     })
 
     it("parses the embed flags like any other boolean", () => {
-        expect(
-            parseConfigFromSpec(SPEC, {
-                urlSync: "true",
-                hideMetadataModal: "false",
-            })
-        ).toMatchObject({ urlSync: true, hideMetadataModal: false })
+        expect(parseConfigFromSpec(SPEC, { urlSync: "true" })).toMatchObject({
+            urlSync: true,
+        })
     })
 
     it("treats an empty value as unset", () => {

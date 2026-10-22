@@ -1,4 +1,4 @@
-import type { EmbedConfig } from "./embedConfig.ts"
+import type { EmbedConfig, EmbedOptions } from "./embedConfig.ts"
 
 type BespokeComponentReturnType = void | undefined | (() => void)
 
@@ -17,6 +17,7 @@ export interface BespokeVariantProps<Config> {
 export interface BespokeComponentMountOpts extends Partial<BespokeComponentDataUrls> {
     variant?: string
     config?: BespokeAuthoredConfig
+    embedOptions?: EmbedOptions
 }
 
 export type BespokeComponentMountFn = (

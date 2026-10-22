@@ -39,11 +39,12 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
     const { bespokeMetadata } = useContext(AttachmentsContext)
 
     const { before, hero, after } = useMemo(
-        () =>
-            splitFeaturedVizBody(content.body, {
-                hasMetadataBox: !!bespokeMetadata,
-            }),
-        [content.body, bespokeMetadata]
+        () => splitFeaturedVizBody(content.body),
+        [content.body]
+    )
+    const heroEmbedOptions = useMemo(
+        () => ({ hideMetadataModal: !!bespokeMetadata }),
+        [bespokeMetadata]
     )
 
     const canonicalUrl = getCanonicalUrl(BAKED_BASE_URL, {
@@ -79,6 +80,7 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
                             getLayout(`bespoke-component--${hero.size}`)
                         )}
                         block={hero}
+                        embedOptions={heroEmbedOptions}
                     />
                     {bespokeMetadata && (
                         <BespokeMetadataBox
@@ -175,8 +177,7 @@ interface FeaturedVizBodySplit {
  * block on its own full-bleed band
  */
 function splitFeaturedVizBody(
-    body: OwidEnrichedGdocBlock[] = [],
-    { hasMetadataBox }: { hasMetadataBox: boolean }
+    body: OwidEnrichedGdocBlock[] = []
 ): FeaturedVizBodySplit {
     // Find the first bespoke-component block at the top level
     const heroIndex = body.findIndex(
@@ -192,10 +193,7 @@ function splitFeaturedVizBody(
             ...hero,
             config: {
                 ...hero.config,
-                ...serializeEmbedConfig({
-                    urlSync: true,
-                    hideMetadataModal: hasMetadataBox,
-                }),
+                ...serializeEmbedConfig({ urlSync: true }),
             },
         },
         after: body.slice(heroIndex + 1),

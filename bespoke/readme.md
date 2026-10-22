@@ -228,10 +228,11 @@ figure inside an article. Those are gdocs of type `featured-viz`, published at
   not worth publishing.
 - **The featured viz's metadata is already on the page.** The page renders the
   methods-and-sources box under the band, built from the same metadata file the
-  viz would show in its modal. So it forces `hideMetadataModal` on for the
-  featured viz, and `BespokeMetadataProvider` drops the footer's "Learn more
-  about this data" link along with the modal behind it. Later bespoke blocks
-  keep theirs.
+  viz would show in its modal. So it passes `hideMetadataModal` to the
+  featured viz's `mount` in `embedOptions`, which hold what a page sets in code
+  rather than what an author writes. `BespokeMetadataProvider` then drops the
+  footer's "Learn more about this data" link along with the modal behind it.
+  Later bespoke blocks keep theirs.
 
 Everything else on the page is authored as in a normal article, and any block an
 article supports works there.

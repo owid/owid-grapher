@@ -12,6 +12,7 @@ import { useImage } from "../utils.js"
 import { BESPOKE_COMPONENT_REGISTRY } from "../../../bespoke/shared/bespokeComponentRegistry.js"
 import { isBespokeConfigError } from "../../../bespoke/shared/bespokeComponentTypes.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
+import type { EmbedOptions } from "../../../bespoke/shared/embedConfig.js"
 import { resolveBespokeComponentUrls } from "../../../bespoke/shared/bespokeComponentUrls.js"
 import {
     BESPOKE_BASE_URL,
@@ -39,9 +40,11 @@ import {
 export function BespokeComponent({
     className,
     block,
+    embedOptions,
 }: {
     className?: string
     block: EnrichedBlockBespokeComponent
+    embedOptions?: EmbedOptions
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
     const disposeRef = useRef<(() => void) | null>(null)
@@ -98,6 +101,7 @@ export function BespokeComponent({
             scriptUrl: urls.scriptUrl,
             variant: block.variant,
             config: block.config,
+            embedOptions,
             dataUrl: urls.dataUrl,
             metadataUrl: urls.metadataUrl,
             signal: abortController.signal,
@@ -134,6 +138,7 @@ export function BespokeComponent({
         block.bundle,
         block.variant,
         block.config,
+        embedOptions,
         definition,
         urls,
         hasBeenVisible,
