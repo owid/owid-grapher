@@ -90,7 +90,7 @@ $plain-field: ":not([data-selected], :has([data-hovered]))";
     }
 
     &[data-disabled] {
-        cursor: default;
+        cursor: not-allowed;
     }
 
     @media (max-width: $radio-group-full-width-breakpoint) {
