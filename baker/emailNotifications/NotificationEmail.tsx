@@ -78,7 +78,6 @@ function NotificationEmail({
     return (
         <EmailLayout
             title={makeNotificationEmailSubject(subscriber.frequency)}
-            // The titles readers see next to the subject.
             preview={items.map((item) => item.title).join(" · ")}
             baseUrl={baseUrl}
             header="broadcast"
