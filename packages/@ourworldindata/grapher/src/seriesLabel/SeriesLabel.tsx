@@ -1,9 +1,6 @@
 import React, { useState } from "react"
-import * as R from "remeda"
 import Tippy from "@tippyjs/react"
 import { hideAll } from "tippy.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import {
     GRAPHER_DARK_TEXT,
     GRAPHER_LIGHT_TEXT,
@@ -11,7 +8,7 @@ import {
 import {
     SeriesLabelState,
     PositionedTextFragment,
-    PositionedIconFragment,
+    RegionTooltipFragment,
     TextRole,
     SpanLine,
 } from "./SeriesLabelState.js"
@@ -24,8 +21,9 @@ const defaultColors: Record<TextRole, string> = {
     name: GRAPHER_DARK_TEXT,
     value: GRAPHER_DARK_TEXT,
     regionPublisherSuffix: GRAPHER_LIGHT_TEXT,
-    regionIcon: GRAPHER_LIGHT_TEXT,
 }
+
+const UNDERLINE_OFFSET = 2
 
 export interface SeriesLabelProps {
     state: SeriesLabelState
@@ -45,10 +43,6 @@ export interface SeriesLabelProps {
  * - The main label text (e.g. "United States")
  * - An optional suffix naming the region's publisher (e.g. "(WHO)")
  * - An optional value label (e.g. "70 years")
- *
- * If the label includes a region publisher suffix, an info icon may be
- * rendered next to the suffix, which shows a tooltip with more information
- * about the region set on hover.
  */
 export function SeriesLabel({
     state,
@@ -84,8 +78,7 @@ export function SeriesLabel({
         )
     }
 
-    // Rely on browser rendering if there are no icons
-    if (!state.hasIcon) {
+    if (!state.hasRegionTooltip) {
         return withHalo(
             <NativeAlignedLabelText
                 x={renderX}
@@ -100,31 +93,25 @@ export function SeriesLabel({
         )
     }
 
-    // Otherwise, text and icon fragments are both manually positioned
-    const [textFragments, iconFragments] = R.partition(
-        state.positionedFragments,
-        (f) => f.type === "text"
-    )
-
     return (
         <g {...props}>
             {withHalo(
                 <LabelText
                     x={renderX}
                     y={renderY}
-                    fragments={textFragments}
+                    fragments={state.positionedFragments}
                     fontSize={fontSize}
                     colors={colors}
                 />
             )}
-            {iconFragments.map((fragment) => (
-                <IconFragment
-                    key={fragment.tooltipKey}
+            {state.regionTooltipFragments.map((fragment, index) => (
+                <RegionTooltipTrigger
+                    key={index}
                     x={renderX}
                     y={renderY}
                     fragment={fragment}
-                    fill={colors.regionPublisherSuffix}
-                    regionName={fragment.regionName}
+                    fontSize={fontSize}
+                    stroke={colors[fragment.role]}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
                     onInfoTooltipShow={onInfoTooltipShow}
@@ -329,21 +316,21 @@ function TextSpanFragment({
     )
 }
 
-function IconFragment({
+function RegionTooltipTrigger({
     x,
     y,
     fragment,
-    fill,
-    regionName,
+    fontSize,
+    stroke,
     onMouseEnter,
     onMouseLeave,
     onInfoTooltipShow,
 }: {
     x: number
     y: number
-    fragment: PositionedIconFragment
-    fill: string
-    regionName: string
+    fragment: RegionTooltipFragment
+    fontSize: number
+    stroke: string
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
     onInfoTooltipShow?: () => void
@@ -351,30 +338,32 @@ function IconFragment({
     // Used as react key to remount RegionTooltip with fresh state
     const [tooltipRemountKey, setTooltipRemountKey] = useState(false)
 
-    const iconX = x + fragment.x
-    const iconY = y + fragment.y
+    const left = x + fragment.x
+    const baseline = y + fragment.y
+    const underlineY = roundForSvg(baseline + UNDERLINE_OFFSET)
 
-    const hitAreaSize = isTouchDevice() ? 40 : 20
-    const padding = Math.ceil((hitAreaSize - fragment.iconSize) / 2)
+    const minHitAreaHeight = isTouchDevice() ? 40 : 20
+    const verticalPadding = Math.ceil(
+        Math.max(0, minHitAreaHeight - fontSize) / 2
+    )
     const hitAreaBounds = new Bounds(
-        iconX,
-        iconY,
-        fragment.iconSize,
-        fragment.iconSize
-    ).expand(padding)
+        left,
+        baseline - fontSize,
+        fragment.width,
+        fontSize
+    ).expand({ top: verticalPadding, bottom: verticalPadding })
 
     return (
         <g>
-            <g
-                transform={`translate(${roundForSvg(iconX)}, ${roundForSvg(iconY)})`}
-            >
-                <FontAwesomeIcon
-                    icon={faCircleInfo}
-                    width={fragment.iconSize}
-                    height={fragment.iconSize}
-                    color={fill}
-                />
-            </g>
+            <line
+                x1={roundForSvg(left)}
+                x2={roundForSvg(left + fragment.width)}
+                y1={underlineY}
+                y2={underlineY}
+                stroke={stroke}
+                strokeWidth={1}
+                strokeDasharray={1}
+            />
 
             {/* Hit area for tooltip interaction */}
             <Tippy
@@ -395,16 +384,22 @@ function IconFragment({
                 content={
                     <RegionTooltip
                         key={tooltipRemountKey.toString()}
-                        description={getDescriptionForKey(fragment.tooltipKey)}
-                        regions={getRegionsForKey(fragment.tooltipKey)}
-                        initiallyHighlightedRegion={regionName}
+                        description={getDescriptionForKey(
+                            fragment.regionTooltip.tooltipKey
+                        )}
+                        regions={getRegionsForKey(
+                            fragment.regionTooltip.tooltipKey
+                        )}
+                        initiallyHighlightedRegion={
+                            fragment.regionTooltip.regionName
+                        }
                     />
                 }
             >
                 <rect
                     {...hitAreaBounds.toProps()}
                     fill="transparent"
-                    style={{ pointerEvents: "auto" }}
+                    style={{ pointerEvents: "auto", cursor: "help" }}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
                 />
