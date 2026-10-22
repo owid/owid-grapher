@@ -81,6 +81,7 @@ function NotificationEmail({
             // The titles readers see next to the subject.
             preview={items.map((item) => item.title).join(" · ")}
             baseUrl={baseUrl}
+            header="broadcast"
         >
             <EmailContent>
                 {items.map((item, index) => (
