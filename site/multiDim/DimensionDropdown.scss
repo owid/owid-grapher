@@ -85,6 +85,13 @@ $selected-hover-fill: #bed2e7;
     margin-left: auto;
 }
 
+// The caret points up while the menu is open.
+.md-settings__dropdown-toggle[aria-expanded="true"]
+    .md-settings__dropdown-caret
+    svg {
+    transform: scaleY(-1);
+}
+
 .md-settings__dropdown {
     @media (width <= $toggle-full-width-breakpoint) {
         width: 100%;
