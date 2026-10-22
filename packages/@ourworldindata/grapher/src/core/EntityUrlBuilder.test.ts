@@ -151,3 +151,15 @@ it("can handle legacy urls with dimension in selection key", () => {
         "NotFound",
     ])
 })
+
+it("keeps malformed percent-escapes as raw text instead of throwing", () => {
+    // A lone `%` (e.g. a URL truncated mid-escape) used to throw a URIError
+    // that cut off chart pages, see #7505
+    const url = Url.fromQueryStr("?country=France%")
+
+    const migratedUrl = migrateSelectedEntityNamesParam(url)
+
+    expect(
+        getSelectedEntityNamesParam(migratedUrl.queryParams.country)
+    ).toEqual(["France%"])
+})

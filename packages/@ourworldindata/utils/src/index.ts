@@ -304,6 +304,7 @@ export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 
 export {
     strToQueryParams,
+    safeDecodeURIComponent,
     queryParamsToStr,
     multiDimDimensionsToViewQueryStr,
     getWindowQueryStr,
