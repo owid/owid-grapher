@@ -46,6 +46,23 @@ html.IsInIframe:has(body.MultiDimDataPage) {
         margin-bottom: 24px;
     }
 
+    // A more compact header than on regular data pages, so the controls
+    // sit higher up.
+    .header__wrapper {
+        @include sm-up {
+            padding-top: 24px;
+        }
+    }
+
+    .header__supertitle {
+        font-size: 10px;
+    }
+
+    .header__title {
+        font-size: 32px;
+        line-height: 1.125;
+    }
+
     .header__left {
         margin-bottom: 16px;
 
@@ -56,7 +73,5 @@ html.IsInIframe:has(body.MultiDimDataPage) {
 
     .settings-row__wrapper {
         margin-bottom: 16px;
-        padding-top: 16px;
-        border-top: 1px solid $blue-20;
     }
 }
