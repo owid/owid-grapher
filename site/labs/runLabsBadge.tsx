@@ -1,9 +1,18 @@
 import { createRoot } from "react-dom/client"
-import { LabsBadge } from "./LabsBadge.js"
+import { isInIFrame } from "@ourworldindata/utils"
+import { LabsBadge, LABS_BADGE_HIDDEN_KEY } from "./LabsBadge.js"
+
+function wasHiddenThisSession(): boolean {
+    try {
+        return sessionStorage.getItem(LABS_BADGE_HIDDEN_KEY) !== null
+    } catch {
+        return false
+    }
+}
 
 export function runLabsBadge(): void {
     // Embedded charts load the same bundle; only show the badge on full pages
-    if (window.self !== window.top) return
+    if (isInIFrame() || wasHiddenThisSession()) return
 
     const container = document.createElement("div")
     document.body.appendChild(container)

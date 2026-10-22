@@ -122,9 +122,12 @@ function allowRecording(): boolean {
 export function getSessionSampleRate(): number {
     let p = 0
     if (allowRecording()) {
-        p =
-            parseExperimentsSampleRate() ||
+        // Labs records every session, including on pages running an experiment
+        // with its own (lower) sample rate
+        p = Math.max(
+            parseExperimentsSampleRate() ?? 0,
             SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE
+        )
     }
     return p
 }

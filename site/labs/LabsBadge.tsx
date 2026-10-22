@@ -2,17 +2,20 @@ import { useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faFlask, faLink, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { copyToClipboard } from "@ourworldindata/utils"
+import { PROD_URL } from "../SiteConstants.js"
 
 // Labs is a staff-only copy of the site, built from the `labs` branch: master
 // plus every open PR labelled `labs`. This badge only exists on that branch.
 
-const PUBLIC_BASE_URL = "https://ourworldindata.org"
+// Hiding the badge lasts for the rest of the browser session
+export const LABS_BADGE_HIDDEN_KEY = "labsBadgeHidden"
+
 const LABS_PRS_URL =
     "https://github.com/owid/owid-grapher/pulls?q=is%3Apr+is%3Aopen+label%3Alabs"
 
 function publicUrlForCurrentPage(): string {
     const { pathname, search, hash } = window.location
-    return `${PUBLIC_BASE_URL}${pathname}${search}${hash}`
+    return `${PROD_URL}${pathname}${search}${hash}`
 }
 
 export function LabsBadge() {
@@ -54,7 +57,14 @@ export function LabsBadge() {
             <button
                 type="button"
                 className="labs-badge__button labs-badge__button--icon"
-                onClick={() => setIsHidden(true)}
+                onClick={() => {
+                    setIsHidden(true)
+                    try {
+                        sessionStorage.setItem(LABS_BADGE_HIDDEN_KEY, "1")
+                    } catch {
+                        // Storage can be unavailable (private mode); then it only hides here
+                    }
+                }}
                 aria-label="Hide the Labs badge"
             >
                 <FontAwesomeIcon icon={faXmark} />
