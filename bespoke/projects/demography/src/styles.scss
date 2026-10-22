@@ -28,8 +28,8 @@ $panel-gap: 12px;
 }
 
 .breakpoint-narrow .demography-captioned-chart {
-    margin-left: calc(-1 * var(--grid-gap));
-    margin-right: calc(-1 * var(--grid-gap));
+    border: none;
+    padding: 8px 12px;
 }
 
 .demography-population-variant {
