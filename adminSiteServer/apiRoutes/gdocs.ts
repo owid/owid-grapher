@@ -412,11 +412,12 @@ async function validateSlugCollisionsIfPublishing(
 }
 
 /**
- * Creates a redirect from the old slug to the new slug when a published gdoc's slug changes.
- * Also updates any existing redirects that point to the old slug to point to the new slug instead
- * (to avoid redirect chains).
+ * Creates a redirect from the old path to the new path when a published gdoc's
+ * path changes, whether through its slug or its type. Also updates any existing
+ * redirects that point to the old path to point to the new path instead (to
+ * avoid redirect chains).
  */
-async function createRedirectForSlugChangeIfNeeded(
+async function createRedirectForPathChangeIfNeeded(
     trx: db.KnexReadWriteTransaction,
     prevGdoc: {
         slug: string
@@ -429,9 +430,9 @@ async function createRedirectForSlugChangeIfNeeded(
         content: { type?: OwidGdocType }
     }
 ): Promise<void> {
-    // Only create redirects when both prev and next are published and slug has changed
+    // Only create redirects when both prev and next are published and the path has changed
     if (!prevGdoc.published || !nextGdoc.published) return
-    if (!prevGdoc.slug || prevGdoc.slug === nextGdoc.slug) return
+    if (!prevGdoc.slug) return
 
     const oldPath = getCanonicalUrl("", prevGdoc)
     const newPath = getCanonicalUrl("", nextGdoc)
@@ -496,8 +497,8 @@ export async function createOrUpdateGdoc(
 
     await validateSlugCollisionsIfPublishing(trx, nextGdoc)
 
-    // Create redirect if slug changed on a published gdoc
-    await createRedirectForSlugChangeIfNeeded(trx, prevGdoc, nextGdoc)
+    // Create redirect if the path of a published gdoc changed
+    await createRedirectForPathChangeIfNeeded(trx, prevGdoc, nextGdoc)
 
     await setImagesInContentGraph(trx, nextGdoc)
 
