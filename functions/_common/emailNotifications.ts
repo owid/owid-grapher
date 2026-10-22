@@ -59,7 +59,6 @@ export async function sendWelcomeEmail(
         EMAIL_TEMPLATES.welcome,
         {
             email: props.to,
-            // An empty topic list means "all topics".
             topics:
                 preferences.topicTags.length > 0
                     ? preferences.topicTags.join(", ")
