@@ -8,10 +8,6 @@ import { AdminSidebar } from "./AdminSidebar.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    DefaultNewExplorerSlug,
-    EXPLORERS_ROUTE_FOLDER,
-} from "@ourworldindata/explorer"
 import classNames from "clsx"
 
 interface AdminLayoutProps {
@@ -104,14 +100,6 @@ export class AdminLayout extends React.Component<AdminLayoutProps> {
                             <Link className="nav-link" to="/charts/create">
                                 <FontAwesomeIcon icon={faPlus} /> New chart
                             </Link>
-                        </li>
-                        <li className="nav-item">
-                            <a
-                                className="nav-link"
-                                href={`/admin/${EXPLORERS_ROUTE_FOLDER}/${DefaultNewExplorerSlug}`}
-                            >
-                                <FontAwesomeIcon icon={faPlus} /> New Explorer
-                            </a>
                         </li>
                         <li className="nav-item">
                             <a className="nav-link" onClick={this.onToggleFAQ}>
