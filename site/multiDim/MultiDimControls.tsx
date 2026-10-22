@@ -50,10 +50,12 @@ const MultiDimControls = forwardRef<
                         [dim.slug]: value,
                     })
                 }
-                const presentationType = resolveDimensionPresentationType(
-                    fullDimension,
-                    { dimensionCount: Object.keys(dimensions).length }
-                )
+                const presentationType = resolveDimensionPresentationType({
+                    dimension: fullDimension,
+                    numberOfDimensions: Object.keys(dimensions).length,
+                    // `dim` holds just the choices available right now
+                    availableChoiceCount: dim.choices.length,
+                })
                 return presentationType === "radio" ? (
                     <DimensionRadioGroup
                         key={dim.slug}

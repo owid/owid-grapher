@@ -114,9 +114,24 @@ describe(resolveDimensionPresentationType, () => {
         ...overrides,
     })
 
+    // Unless a test says otherwise, all of a dimension's choices are
+    // available.
+    const resolveWith = (
+        dimension: Dimension,
+        numberOfDimensions: number,
+        availableChoiceCount = dimension.choices.length
+    ): string =>
+        resolveDimensionPresentationType({
+            dimension,
+            numberOfDimensions,
+            availableChoiceCount,
+        })
+
     describe("on a page with several dimensions", () => {
-        const resolve = (dimension: Dimension): string =>
-            resolveDimensionPresentationType(dimension, { dimensionCount: 3 })
+        const resolve = (
+            dimension: Dimension,
+            availableChoiceCount?: number
+        ): string => resolveWith(dimension, 3, availableChoiceCount)
 
         it("defaults to radio for at most two choices", () => {
             expect(resolve(makeDimension(1))).toBe("radio")
@@ -133,9 +148,23 @@ describe(resolveDimensionPresentationType, () => {
             expect(resolve(dimension)).toBe("dropdown")
         })
 
-        it("defaults to dropdown-with-search for more than twenty choices", () => {
-            expect(resolve(makeDimension(20))).toBe("dropdown")
-            expect(resolve(makeDimension(21))).toBe("dropdown-with-search")
+        it("adds a search field when at least ten choices are available", () => {
+            expect(resolve(makeDimension(9))).toBe("dropdown")
+            expect(resolve(makeDimension(10))).toBe("dropdown-with-search")
+        })
+
+        // The search field depends on how many options the menu lists right
+        // now, not on how many the dimension has in total.
+        it("skips the search field when few choices are available", () => {
+            expect(resolve(makeDimension(30), 5)).toBe("dropdown")
+            expect(resolve(makeDimension(30), 10)).toBe("dropdown-with-search")
+        })
+
+        // Radio group or dropdown is decided on all choices, so the control
+        // doesn't switch type as other selections change.
+        it("ignores availability when choosing between radio and dropdown", () => {
+            expect(resolve(makeDimension(2), 1)).toBe("radio")
+            expect(resolve(makeDimension(3), 2)).toBe("dropdown")
         })
     })
 
@@ -143,7 +172,7 @@ describe(resolveDimensionPresentationType, () => {
     // group stays readable with a few more choices.
     describe("on a page with a single dimension", () => {
         const resolve = (dimension: Dimension): string =>
-            resolveDimensionPresentationType(dimension, { dimensionCount: 1 })
+            resolveWith(dimension, 1)
 
         it("defaults to radio for at most four choices", () => {
             expect(resolve(makeDimension(3))).toBe("radio")
@@ -163,35 +192,35 @@ describe(resolveDimensionPresentationType, () => {
 
     it("respects an explicit presentation type", () => {
         expect(
-            resolveDimensionPresentationType(
+            resolveWith(
                 makeDimension(2, { presentation: { type: "dropdown" } }),
-                { dimensionCount: 3 }
+                3
             )
         ).toBe("dropdown")
         expect(
-            resolveDimensionPresentationType(
+            resolveWith(
                 makeDimension(4, { presentation: { type: "dropdown" } }),
-                { dimensionCount: 1 }
+                1
             )
         ).toBe("dropdown")
         expect(
-            resolveDimensionPresentationType(
+            resolveWith(
                 makeDimension(5, { presentation: { type: "radio" } }),
-                { dimensionCount: 3 }
+                3
             )
         ).toBe("radio")
         expect(
-            resolveDimensionPresentationType(
+            resolveWith(
                 makeDimension(3, {
                     presentation: { type: "dropdown-with-search" },
                 }),
-                { dimensionCount: 3 }
+                3
             )
         ).toBe("dropdown-with-search")
         expect(
-            resolveDimensionPresentationType(
-                makeDimension(20, { presentation: { type: "dropdown" } }),
-                { dimensionCount: 3 }
+            resolveWith(
+                makeDimension(30, { presentation: { type: "dropdown" } }),
+                3
             )
         ).toBe("dropdown")
     })
