@@ -91,7 +91,7 @@ $plain-field: ":not([data-selected], :has([data-hovered]))";
     }
 
     &[data-disabled] {
-        cursor: default;
+        cursor: not-allowed;
     }
 
     @media (width <= $toggle-full-width-breakpoint) {

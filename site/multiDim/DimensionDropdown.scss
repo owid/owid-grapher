@@ -18,9 +18,8 @@ $selected-hover-fill: #bed2e7;
     padding: 4px 10px 4px 12px;
     height: $toggle-height;
     cursor: pointer;
-    // Fill the control when its label is wider than the current choice, so
-    // the button doesn't end short of the label above it.
-    align-self: stretch;
+    // Fill the wrapper (see .md-settings__dropdown-toggle-wrapper).
+    flex: 1;
 
     svg {
         font-size: 12px;
@@ -45,13 +44,27 @@ $selected-hover-fill: #bed2e7;
 
     // The disabled look is just the control's half opacity (see
     // .md-settings__dropdown); the button keeps its normal white styling.
+    // Without pointer events, the hover reaches the wrapper and its
+    // disabled reason tooltip.
     &[data-disabled] {
-        cursor: default;
+        pointer-events: none;
     }
 
     @media (width <= $toggle-full-width-breakpoint) {
         width: 100%;
     }
+}
+
+// Carries the disabled reason tooltip. Fills the control when its label is
+// wider than the current choice, so the button doesn't end short of the label
+// above it.
+.md-settings__dropdown-toggle-wrapper {
+    display: flex;
+    align-self: stretch;
+}
+
+.md-settings__dropdown[data-disabled] .md-settings__dropdown-toggle-wrapper {
+    cursor: not-allowed;
 }
 
 .md-settings__dropdown-current-choice {

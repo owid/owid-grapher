@@ -3,6 +3,10 @@ import { RadioButton, RadioField, RadioGroup } from "react-aria-components"
 
 import { DimensionEnriched } from "@ourworldindata/types"
 import DimensionLabel from "./DimensionLabel.js"
+import DisabledReasonTooltip, {
+    DISABLED_CONTROL_REASON,
+    UNAVAILABLE_OPTION_REASON,
+} from "./DisabledReasonTooltip.js"
 
 export default function DimensionRadioGroup({
     className,
@@ -22,6 +26,9 @@ export default function DimensionRadioGroup({
     const availableCount = dimension.choices.filter((choice) =>
         availableChoiceSlugs.has(choice.slug)
     ).length
+    // With at most one selectable option there's nothing to switch between,
+    // so disable the whole control.
+    const isGroupDisabled = availableCount <= 1
     return (
         <RadioGroup
             className={cx(
@@ -32,37 +39,64 @@ export default function DimensionRadioGroup({
             orientation="horizontal"
             value={value}
             onChange={onChange}
-            // With at most one selectable option there's nothing to switch
-            // between, so disable the whole control.
-            isDisabled={availableCount <= 1}
+            isDisabled={isGroupDisabled}
             // While a view is loading, block changes with readOnly rather than
             // disabled: disabling would make the focused radio unfocusable and
             // drop keyboard focus.
             isReadOnly={readOnly}
         >
-            <DimensionLabel dimension={dimension} showChoiceDescriptions />
-            <div className="md-settings__radio-group-options">
-                {dimension.choices.map((choice) => (
-                    <RadioField
-                        key={choice.slug}
-                        className="md-settings__radio-field"
-                        value={choice.slug}
-                        isDisabled={!availableChoiceSlugs.has(choice.slug)}
-                    >
-                        <RadioButton
-                            className="md-settings__radio"
-                            data-track-note="multi-dim-choice-radio"
-                        >
-                            <span
-                                className="md-settings__radio-label"
-                                title={choice.name}
+            <DimensionLabel
+                dimension={dimension}
+                showChoiceDescriptions
+                isDisabled={isGroupDisabled}
+            />
+            <DisabledReasonTooltip
+                reason={isGroupDisabled ? DISABLED_CONTROL_REASON : undefined}
+            >
+                <div className="md-settings__radio-group-options">
+                    {dimension.choices.map((choice) => {
+                        const isChoiceUnavailable = !availableChoiceSlugs.has(
+                            choice.slug
+                        )
+                        return (
+                            <RadioField
+                                key={choice.slug}
+                                className="md-settings__radio-field"
+                                value={choice.slug}
+                                isDisabled={isChoiceUnavailable}
                             >
-                                {choice.name}
-                            </span>
-                        </RadioButton>
-                    </RadioField>
-                ))}
-            </div>
+                                {/* In case the whole group is disabled, the group's own
+                                    tooltip explains it instead. */}
+                                <DisabledReasonTooltip
+                                    reason={
+                                        isChoiceUnavailable && !isGroupDisabled
+                                            ? UNAVAILABLE_OPTION_REASON
+                                            : undefined
+                                    }
+                                >
+                                    <RadioButton
+                                        className="md-settings__radio"
+                                        data-track-note="multi-dim-choice-radio"
+                                    >
+                                        <span
+                                            className="md-settings__radio-label"
+                                            // The native tooltip would
+                                            // compete with the reason one.
+                                            title={
+                                                isChoiceUnavailable
+                                                    ? undefined
+                                                    : choice.name
+                                            }
+                                        >
+                                            {choice.name}
+                                        </span>
+                                    </RadioButton>
+                                </DisabledReasonTooltip>
+                            </RadioField>
+                        )
+                    })}
+                </div>
+            </DisabledReasonTooltip>
         </RadioGroup>
     )
 }

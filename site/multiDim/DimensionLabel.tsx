@@ -16,9 +16,13 @@ import { Tippy } from "@ourworldindata/utils"
 export default function DimensionLabel({
     dimension,
     showChoiceDescriptions,
+    isDisabled,
 }: {
     dimension: DimensionEnriched
     showChoiceDescriptions?: boolean
+    // A disabled control's info tooltip is switched off; the control's
+    // disabled reason tooltip explains it instead.
+    isDisabled?: boolean
 }) {
     const choicesWithDescription = showChoiceDescriptions
         ? dimension.choices.filter((choice) => choice.description)
@@ -48,10 +52,11 @@ export default function DimensionLabel({
                     placement="top"
                     maxWidth={296}
                     appendTo={() => document.body}
+                    disabled={isDisabled}
                 >
                     <span
                         className="md-settings__control-label-icon"
-                        tabIndex={0}
+                        tabIndex={isDisabled ? -1 : 0}
                     >
                         <FontAwesomeIcon icon={faCircleInfo} />
                     </span>
