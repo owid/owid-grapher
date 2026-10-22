@@ -150,16 +150,17 @@
         }
     }
 
-    // The photos are taller than the text, so this row lines up on the
-    // names' baseline instead
+    // The photos make the names' line 24px tall, so the label gets a line of
+    // the same height to stay centred on the first line of managers
     .indicator-metadata-box
         .metadata-box-key-data__row.indicator-metadata-box__managed-by {
         display: flex;
-        align-items: baseline;
+        align-items: flex-start;
         gap: 8px;
 
         > .metadata-box-key-data__key {
             margin-right: 0;
+            line-height: 24px;
         }
     }
 }
