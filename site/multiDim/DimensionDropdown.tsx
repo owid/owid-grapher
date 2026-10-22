@@ -200,16 +200,11 @@ export default function DimensionDropdown({
                 placement="bottom start"
                 offset={4}
             >
-                {!showSearch && (
+                {!showSearch && dimension.description && (
                     <div className="md-menu__overlay-header">
-                        <h2 className="md-menu__overlay-header-title h5-black-caps">
-                            {dimension.name}
-                        </h2>
-                        {dimension.description && (
-                            <p className="md-menu__dimension-description">
-                                {dimension.description}
-                            </p>
-                        )}
+                        <p className="md-menu__dimension-description">
+                            {dimension.description}
+                        </p>
                     </div>
                 )}
                 {showSearch ? (
