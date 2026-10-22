@@ -4,7 +4,6 @@ import { render } from "@react-email/components"
 export interface RenderedEmail {
     subject: string
     html: string
-    /** Text alternative for clients that don't render HTML. */
     text: string
 }
 
