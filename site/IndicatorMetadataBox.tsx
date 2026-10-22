@@ -29,7 +29,7 @@ import {
     OwidEnrichedGdocBlock,
     PrimaryTopic,
 } from "@ourworldindata/types"
-import { useId, useRef } from "react"
+import { useRef } from "react"
 import {
     formatAttributions,
     prepareSourcesForDisplay,
@@ -48,7 +48,7 @@ interface IndicatorMetadataSectionsProps {
     className?: string
     faqEntries: FaqEntryData | undefined
     detailsRef: React.RefObject<HTMLDetailsElement | null>
-    detailsId: string
+    detailsId?: string
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
     primaryTopic?: PrimaryTopic
@@ -376,7 +376,10 @@ export default function IndicatorMetadataBox({
     })
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
-    const detailsId = useId()
+    // Derived from the box's id rather than useId(): the server renders the
+    // whole page but the client hydrates only the data page content, so
+    // generated ids wouldn't match
+    const detailsId = id ? `${id}-details` : undefined
 
     return (
         <div
