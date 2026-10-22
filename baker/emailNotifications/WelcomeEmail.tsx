@@ -18,22 +18,14 @@ const PREFERENCE_TEXT = { ...BODY_TEXT, margin: "4px 0" }
 
 export interface WelcomeEmailProps {
     email: string
-    /** Display strings; the sender formats the preferences. */
     topics: string
     contentTypes: string
     frequency: string
-    /** Public site origin, for the header image and link. */
     siteBaseUrl: string
     updatePreferencesUrl: string
     unsubscribeUrl: string
 }
 
-/**
- * Welcome email sent on every subscribe-form submission. Carries the
- * permanent per-user token's links for updating or unsubscribing from these
- * notifications — for an address submitted by someone else, this email is also
- * what lets the owner notice and undo the change.
- */
 export function WelcomeEmail({
     email,
     topics,

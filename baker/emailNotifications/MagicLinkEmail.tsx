@@ -17,7 +17,6 @@ export const MAGIC_LINK_EMAIL_SUBJECT =
 
 export interface MagicLinkEmailProps {
     email: string
-    /** Public site origin, for the header image and link. */
     siteBaseUrl: string
     magicLinkUrl: string
 }
