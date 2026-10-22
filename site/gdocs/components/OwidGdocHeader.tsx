@@ -9,13 +9,35 @@ import {
     formatDate,
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBook, faClockRotateLeft } from "@fortawesome/free-solid-svg-icons"
+import {
+    faBook,
+    faClock,
+    faClockRotateLeft,
+} from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import Image from "./Image.js"
 import { Breadcrumbs } from "../../Breadcrumb/Breadcrumb.js"
 import { breadcrumbColorForCoverColor } from "../utils.js"
 import { Byline } from "./Byline.js"
 import { useVersionsFileUrl } from "../DocumentContext.js"
+
+// Average adult silent reading speed for non-fiction (Brysbaert, 2019)
+const WORDS_PER_MINUTE = 238
+
+// Counts the words in every text span of a gdoc's enriched blocks
+function countWords(node: unknown): number {
+    if (Array.isArray(node))
+        return node.reduce((sum: number, child) => sum + countWords(child), 0)
+    if (node && typeof node === "object")
+        return Object.entries(node).reduce(
+            (sum: number, [key, value]) =>
+                key === "text" && typeof value === "string"
+                    ? sum + value.split(/\s+/).filter(Boolean).length
+                    : sum + countWords(value),
+            0
+        )
+    return 0
+}
 
 function OwidArticleHeader({
     content,
@@ -36,6 +58,10 @@ function OwidArticleHeader({
     const versionsFileUrl = useVersionsFileUrl()
     const dateText =
         content.dateline || (publishedAt && formatDate(publishedAt))
+    const readingMinutes = Math.max(
+        1,
+        Math.round(countWords(content.body) / WORDS_PER_MINUTE)
+    )
     return (
         <>
             <div
@@ -106,6 +132,10 @@ function OwidArticleHeader({
                                 {dateText}
                             </span>
                         )}
+                        <span>
+                            <FontAwesomeIcon icon={faClock} />
+                            {readingMinutes} min read
+                        </span>
                         {!isDeprecated && !content["hide-citation"] && (
                             <a href={`#${CITATION_ID}`}>
                                 <FontAwesomeIcon icon={faBook} />
