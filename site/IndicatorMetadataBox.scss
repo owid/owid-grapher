@@ -55,9 +55,9 @@
     }
 }
 
-// Sections sit 32px apart, including the first one after "What you should know"
+// Sections sit 32px apart, including the first one, whether it follows "What
+// you should know" or the key data
 .indicator-metadata-box
-    .metadata-box-expander:has(> .metadata-box-expander__preview)
     .metadata-box-section:first-of-type
     .metadata-box-section__title {
     margin-top: 32px;
