@@ -48,6 +48,7 @@ export function WelcomeEmail({
             title={WELCOME_EMAIL_SUBJECT}
             preview="You'll receive an email when we publish new work matching your preferences."
             baseUrl={siteBaseUrl}
+            header="generic"
         >
             <EmailContent>
                 <EmailTitle>You're subscribed</EmailTitle>
