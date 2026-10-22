@@ -8,9 +8,10 @@ const createColorScaleFromTable = (
     colorValuePairs: { value: number; color?: string }[],
     colorScaleConfig: ColorScaleConfigInterface
 ): ColorScale => {
-    const table = new CoreTable({
-        colorValues: colorValuePairs.map((pair) => pair.value),
-    })
+    const table = new CoreTable([
+        ["colorValues"],
+        ...colorValuePairs.map((pair) => [pair.value]),
+    ])
     const column = table.get("colorValues")
 
     return new ColorScale({ colorScaleConfig, colorScaleColumn: column })
@@ -84,9 +85,12 @@ describe(ColorScale, () => {
             customHiddenCategories: {},
         }
         const table = new CoreTable(
-            {
-                color: [1, "test", ErrorValueTypes.MissingValuePlaceholder],
-            },
+            [
+                ["color"],
+                [1],
+                ["test"],
+                [ErrorValueTypes.MissingValuePlaceholder],
+            ],
             [{ slug: "color", skipParsing: true }]
         )
         const scale = new ColorScale({

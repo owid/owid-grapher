@@ -8,7 +8,6 @@ export const ExpandableToggle = ({
     content,
     alwaysVisibleDescription,
     isExpandedDefault = false,
-    isStacked = false,
     hasTeaser = false,
     contentId,
     onToggle,
@@ -17,7 +16,6 @@ export const ExpandableToggle = ({
     content?: ReactNode
     alwaysVisibleDescription?: ReactNode
     isExpandedDefault?: boolean
-    isStacked?: boolean
     hasTeaser?: boolean
     contentId?: string
     /** Called with the new open state whenever the toggle expands or collapses. */
@@ -25,7 +23,6 @@ export const ExpandableToggle = ({
 }) => (
     <details
         className={cx("ExpandableToggle", {
-            "ExpandableToggle--stacked": isStacked,
             "ExpandableToggle--teaser": hasTeaser,
         })}
         open={isExpandedDefault}

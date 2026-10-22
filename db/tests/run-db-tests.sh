@@ -8,15 +8,25 @@ set -o nounset
 # test database, initialize it and then run the tests
 
 if [ -e .env ]; then
+    # variables that are already exported take precedence over .env
+    preset_env=$(export -p)
     source .env
+    eval "$preset_env"
 fi
 
 # Some developers enable Algolia indexing in their local .env, but it interferes
 # with the db test suite. Since indexing is never needed here, force-disable it.
 export ALGOLIA_INDEXING=false
 
-# Set ENV to production for db tests to match production behavior.
-export ENV=production
+# Keep DB tests isolated from external object storage, even when local
+# credentials and bucket settings are present.
+export GRAPHER_CONFIG_R2_BUCKET=""
+export GRAPHER_CONFIG_R2_BUCKET_PATH=""
+export OWID_ASSETS_R2_BUCKET=""
+
+# Set ENV to production for db tests to match production behavior. Browser
+# tests can opt into development assets while keeping the same DB lifecycle.
+export ENV="${DBTEST_APP_ENV:-production}"
 
 : "${GRAPHER_TEST_DB_USER:?Need to set GRAPHER_TEST_DB_USER non-empty}"
 : "${GRAPHER_TEST_DB_PASS:?Need to set GRAPHER_TEST_DB_PASS non-empty}"
@@ -31,6 +41,16 @@ DBTESTS_COMPOSE=(
 
 # Create log directory
 mkdir -p tmp-logs
+
+# Set DBTEST_USE_EXISTING_DB=1 to run against an already running MySQL (e.g.
+# a native one in a sandbox without Docker). The GRAPHER_TEST_DB_* database
+# must already exist and contain the pre-migrations schema; pending migrations
+# are still applied below.
+MARK_TEST_DB_DIRTY=(./devTools/docker/mark-test-mysql-dirty.sh)
+if [ "${DBTEST_USE_EXISTING_DB:-}" = "1" ]; then
+    DBTESTS_COMPOSE=(true)
+    MARK_TEST_DB_DIRTY=(true)
+fi
 
 # Always try to stop the compose stack when exiting (success or failure)
 cleanup() {
@@ -75,16 +95,21 @@ if ! yarn tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration
     exit 1
 fi
 
+TEST_COMMAND=(yarn run vitest run -c vitest.db.config.ts)
+if [ "$#" -gt 0 ]; then
+    TEST_COMMAND=("$@")
+fi
+
 echo 'running tests'
-if ! yarn run vitest run -c vitest.db.config.ts >tmp-logs/tests.log 2>&1
+if ! "${TEST_COMMAND[@]}" >tmp-logs/tests.log 2>&1
 then
     show_log_on_error "tmp-logs/tests.log" "Tests"
-    ./devTools/docker/mark-test-mysql-dirty.sh >/dev/null 2>&1
+    "${MARK_TEST_DB_DIRTY[@]}" >/dev/null 2>&1
     "${DBTESTS_COMPOSE[@]}" stop >/dev/null 2>&1
     exit 23
 else
     echo '✅ DB tests succeeded'
-    ./devTools/docker/mark-test-mysql-dirty.sh >/dev/null 2>&1
+    "${MARK_TEST_DB_DIRTY[@]}" >/dev/null 2>&1
     "${DBTESTS_COMPOSE[@]}" stop >/dev/null 2>&1
     exit 0
 fi

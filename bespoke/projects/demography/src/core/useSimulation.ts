@@ -3,7 +3,7 @@
  * Returns all derived state needed by the UI.
  */
 
-import { useEffect, useMemo, useState, useCallback } from "react"
+import { useMemo, useState, useCallback } from "react"
 import type {
     CountryData,
     ParameterKey,
@@ -381,11 +381,14 @@ export function useSimulation(
     }, [])
 
     // Reset scenario when the country or authored assumptions change.
-    useEffect(() => {
-        if (initialScenarioParams) {
-            setScenarioParamsRaw(null)
-        }
-    }, [initialScenarioParams])
+    // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+    const [prevInitialScenarioParams, setPrevInitialScenarioParams] = useState(
+        initialScenarioParams
+    )
+    if (prevInitialScenarioParams !== initialScenarioParams) {
+        setPrevInitialScenarioParams(initialScenarioParams)
+        if (initialScenarioParams) setScenarioParamsRaw(null)
+    }
 
     const getPopForYear = useCallback(
         (year: number): PopulationBySex | null => {

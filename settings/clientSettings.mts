@@ -34,11 +34,20 @@ export const ARCHIVE_BASE_URL: string | null =
 export const BAKED_GRAPHER_URL: string =
     process.env.BAKED_GRAPHER_URL ?? `${BAKED_BASE_URL}/grapher`
 
+// Thumbnails are rendered by Cloudflare functions, which the admin server doesn't
+// serve, so in development they come from production unless set (e.g. to the
+// local functions server, http://localhost:<WRANGLER_PORT>/grapher).
 export const GRAPHER_DYNAMIC_THUMBNAIL_URL: string =
-    process.env.GRAPHER_DYNAMIC_THUMBNAIL_URL ?? `${BAKED_GRAPHER_URL}`
+    process.env.GRAPHER_DYNAMIC_THUMBNAIL_URL ??
+    (ENV === "development"
+        ? "https://ourworldindata.org/grapher"
+        : BAKED_GRAPHER_URL)
 
 export const EXPLORER_DYNAMIC_THUMBNAIL_URL: string =
-    process.env.EXPLORER_DYNAMIC_THUMBNAIL_URL ?? `${BAKED_BASE_URL}/explorers`
+    process.env.EXPLORER_DYNAMIC_THUMBNAIL_URL ??
+    (ENV === "development"
+        ? "https://ourworldindata.org/explorers"
+        : `${BAKED_BASE_URL}/explorers`)
 
 export const GRAPHER_DYNAMIC_CONFIG_URL: string =
     process.env.GRAPHER_DYNAMIC_CONFIG_URL ?? `${BAKED_GRAPHER_URL}`
@@ -73,7 +82,14 @@ export const ALGOLIA_CACHED_QUERIES_URL: string =
     process.env.ALGOLIA_CACHED_QUERIES_URL ??
     (ENV === "development" ? "" : `${BAKED_BASE_URL}/api/search/cached-queries`)
 
-export const CLOUDFLARE_IMAGES_URL = process.env.CLOUDFLARE_IMAGES_URL ?? ""
+// Cloudflare Images has one store shared by all environments, so in development
+// images come from the production delivery URL unless set. `||` rather than `??`
+// because .env.example-full sets it to an empty value.
+export const CLOUDFLARE_IMAGES_URL: string =
+    process.env.CLOUDFLARE_IMAGES_URL ||
+    (ENV === "development"
+        ? "https://ourworldindata.org/cdn-cgi/imagedelivery/qLq-8BTgXU8yG0N6HnOy8g"
+        : "")
 
 export const DONATE_API_URL: string =
     process.env.DONATE_API_URL ?? "http://localhost:8788/donation/donate"
@@ -137,6 +153,13 @@ export const IS_RUNNING_INSIDE_VITEST: boolean = !!process.env.VITEST
 // local development (e.g. "http://localhost:8089").
 export const BESPOKE_BASE_URL: string =
     process.env.BESPOKE_BASE_URL ?? "http://localhost:8089"
+
+// Root of the data feeds ETL builds for bespoke components, passed to each component's mount().
+// ETL writes a feed to the API bucket of the environment it is building, so a staging server sets
+// this to its own (owid/ops), and anything that server's ETL build didn't produce falls back to
+// production's in the api-staging worker.
+export const BESPOKE_DATA_URL: string =
+    process.env.BESPOKE_DATA_URL ?? "https://api.ourworldindata.org/v1/bespoke"
 
 /// Generated properties only, these cannot be overridden directly
 // Whether to only enable cookie-less tracking & never show the cookie notice

@@ -13,6 +13,7 @@ import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
 import { SankeyVariantConfig, Flow } from "../core/config.js"
 import type { VariantProps } from "../../../../helpers/config.js"
+import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 import { FoodTradeMetadata, ProductTradeData, Mode } from "../core/types.js"
 import { useFoodTradeMetadata, useProductTradeData } from "../core/data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
@@ -32,6 +33,8 @@ import {
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
 
 const DEFAULT_PRODUCT = "Maize"
 const DEFAULT_COUNTRY = ALL_COUNTRIES
@@ -41,6 +44,7 @@ const queryClient = new QueryClient()
 
 export function SankeyVariant({
     config,
+    urls,
 }: VariantProps<SankeyVariantConfig>): React.ReactElement {
     const { width, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
@@ -55,7 +59,7 @@ export function SankeyVariant({
                             "food-trade-chart--narrow": isNarrow,
                         })}
                     >
-                        <FetchingSankeyVariant config={config} />
+                        <FetchingSankeyVariant config={config} urls={urls} />
                     </div>
                 </QueryClientProvider>
             </NuqsAdapter>
@@ -63,7 +67,13 @@ export function SankeyVariant({
     )
 }
 
-function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
+function FetchingSankeyVariant({
+    config,
+    urls,
+}: {
+    config: SankeyVariantConfig
+    urls: BespokeComponentDataUrls
+}) {
     const initialProduct = config.product ?? DEFAULT_PRODUCT
     const isUserLocation = isUserLocationCountry(config.country)
     const initialCountry =
@@ -88,13 +98,15 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         defaultValue: initialView,
     })
 
-    const { data: metadata, status: metadataStatus } = useFoodTradeMetadata()
+    const { data: metadata, status: metadataStatus } = useFoodTradeMetadata(
+        urls.metadataUrl
+    )
     const productId = metadata?.productByName.get(product)?.id
     const {
         data: productData,
         status: productStatus,
         isPlaceholderData,
-    } = useProductTradeData(productId, metadata)
+    } = useProductTradeData(productId, metadata, urls.dataUrl)
 
     // Dim the chart and show a spinner while a new product file loads,
     // keeping the previous product on screen until the new one arrives.
@@ -140,15 +152,16 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         setCountry,
     })
 
-    if (metadataStatus === "pending") return <FoodTradeSkeleton />
+    if (metadataStatus === "pending")
+        return <ChartSkeleton className="food-trade-chart-box" />
     if (metadataStatus === "error" || !metadata)
-        return <FoodTradeChartError message="Failed to load trade metadata" />
+        return <ChartError className="food-trade-chart-box" />
     if (productId === undefined)
-        return <FoodTradeChartError message={`Unknown product: ${product}`} />
+        return <ChartError className="food-trade-chart-box" />
     if (productStatus === "pending" || !isCountryResolved)
-        return <FoodTradeSkeleton />
+        return <ChartSkeleton className="food-trade-chart-box" />
     if (productStatus === "error" || !productData)
-        return <FoodTradeChartError message="Failed to load trade data" />
+        return <ChartError className="food-trade-chart-box" />
 
     return (
         <CaptionedSankeyVariant
@@ -345,12 +358,4 @@ function FoodTradeChartFooter({
     const note = [topPartners, smallFlowsNote].filter(Boolean).join(" ")
 
     return <ChartFooter source={source} note={note} />
-}
-
-function FoodTradeSkeleton() {
-    return <div className="food-trade-skeleton" />
-}
-
-function FoodTradeChartError({ message }: { message: string }) {
-    return <div className="food-trade-chart__error">{message}</div>
 }

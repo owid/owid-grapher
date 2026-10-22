@@ -22,6 +22,20 @@
         margin-top: 4px;
     }
 
+    .chart-footer__learn-more {
+        padding: 0;
+        background: none;
+        border: none;
+        font: inherit;
+        color: inherit;
+        text-decoration: underline;
+        cursor: pointer;
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
+
     .chart-footer__cc {
         flex-shrink: 0;
         background: none;

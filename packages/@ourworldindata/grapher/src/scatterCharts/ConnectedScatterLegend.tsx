@@ -3,7 +3,8 @@ import { computed, makeObservable } from "mobx"
 import { Triangle } from "./Triangle"
 import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { makeFigmaId } from "@ourworldindata/utils"
+import { scaleFontSize } from "../chart/ChartUtils"
+import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import * as _ from "lodash-es"
 import { GRAPHER_DARK_TEXT, GRAY_70 } from "../color/ColorConstants.js"
 
@@ -35,8 +36,10 @@ export class ConnectedScatterLegend {
 
     @computed get fontSize(): number {
         const baseFontSize = this.manager.fontSize ?? BASE_FONT_SIZE
-        const fontScale = this.manager.isStaticAndSmall ? 0.5 : 0.7
-        return fontScale * baseFontSize
+        return scaleFontSize(
+            this.manager.isStaticAndSmall ? 8 : 11.2,
+            baseFontSize
+        )
     }
 
     @computed get width(): number {
@@ -99,10 +102,10 @@ export class ConnectedScatterLegend {
                 {...renderOptions}
             >
                 <rect
-                    x={targetX}
-                    y={targetY}
-                    width={this.width}
-                    height={this.height}
+                    x={roundForSvg(targetX)}
+                    y={roundForSvg(targetY)}
+                    width={roundForSvg(this.width)}
+                    height={roundForSvg(this.height)}
                     fill="#fff"
                     opacity={0}
                 />
@@ -119,17 +122,17 @@ export class ConnectedScatterLegend {
                     fill={this.textColor}
                 />
                 <line
-                    x1={lineLeft}
-                    y1={lineY}
-                    x2={lineRight}
-                    y2={lineY}
+                    x1={roundForSvg(lineLeft)}
+                    y1={roundForSvg(lineY)}
+                    x2={roundForSvg(lineRight)}
+                    y2={roundForSvg(lineY)}
                     stroke={this.arrowColor}
                     strokeWidth={1}
                 />
                 <circle
-                    cx={lineLeft}
-                    cy={lineY}
-                    r={this.dotRadius}
+                    cx={roundForSvg(lineLeft)}
+                    cy={roundForSvg(lineY)}
+                    r={roundForSvg(this.dotRadius)}
                     fill={this.arrowColor}
                     stroke={this.outlineColor}
                     strokeWidth={this.outlineWidth}
@@ -137,17 +140,21 @@ export class ConnectedScatterLegend {
                 {!this.manager.compareEndPointsOnly && (
                     <React.Fragment>
                         <circle
-                            cx={lineLeft + (lineRight - lineLeft) / 3}
-                            cy={lineY}
-                            r={this.dotRadius}
+                            cx={roundForSvg(
+                                lineLeft + (lineRight - lineLeft) / 3
+                            )}
+                            cy={roundForSvg(lineY)}
+                            r={roundForSvg(this.dotRadius)}
                             fill={this.arrowColor}
                             stroke={this.outlineColor}
                             strokeWidth={this.outlineWidth}
                         />
                         <circle
-                            cx={lineLeft + (2 * (lineRight - lineLeft)) / 3}
-                            cy={lineY}
-                            r={this.dotRadius}
+                            cx={roundForSvg(
+                                lineLeft + (2 * (lineRight - lineLeft)) / 3
+                            )}
+                            cy={roundForSvg(lineY)}
+                            r={roundForSvg(this.dotRadius)}
                             fill={this.arrowColor}
                             stroke={this.outlineColor}
                             strokeWidth={this.outlineWidth}

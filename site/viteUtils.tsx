@@ -5,6 +5,7 @@ import fs from "fs-extra"
 import {
     ENV,
     BAKED_BASE_URL,
+    VITE_DIST_DIR,
     VITE_PREVIEW,
 } from "../settings/serverSettings.js"
 import type { Manifest } from "vite"
@@ -143,7 +144,7 @@ const prodAssets = (
 ): Assets => {
     const baseDir = findBaseDir(__dirname)
     const entrypointInfo = VITE_ENTRYPOINT_INFO[entrypoint]
-    const manifestPath = `${baseDir}/dist/${entrypointInfo.outDir}/.vite/manifest.json`
+    const manifestPath = `${baseDir}/${VITE_DIST_DIR}/${entrypointInfo.outDir}/.vite/manifest.json`
     let manifest
     try {
         manifest = fs.readJsonSync(manifestPath) as Manifest

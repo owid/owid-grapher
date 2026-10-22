@@ -7,12 +7,14 @@ import {
     OwidGdocMinimalPostInterface,
     ImageMetadata,
     RelatedChart,
+    LatestAnnouncement,
     LatestDataInsight,
     OwidGdocHomepageMetadata,
     DbEnrichedLatestWork,
     NarrativeChartInfo,
     MinimalTag,
     LinkedStaticViz,
+    BespokeMetadata,
 } from "@ourworldindata/types"
 
 export type Attachments = {
@@ -24,12 +26,14 @@ export type Attachments = {
     imageMetadata: Record<string, ImageMetadata>
     relatedCharts: RelatedChart[]
     latestDataInsights?: LatestDataInsight[]
+    latestAnnouncements?: LatestAnnouncement[]
     homepageMetadata?: OwidGdocHomepageMetadata
     latestWorkLinks?: DbEnrichedLatestWork[]
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo>
     linkedStaticViz?: Record<string, LinkedStaticViz>
     tags: MinimalTag[]
     linkedCallouts?: LinkedCallouts
+    bespokeMetadata?: BespokeMetadata
 }
 
 export const AttachmentsContext = createContext<Attachments>({
@@ -40,6 +44,7 @@ export const AttachmentsContext = createContext<Attachments>({
     linkedIndicators: {},
     relatedCharts: [],
     latestDataInsights: [],
+    latestAnnouncements: [],
     homepageMetadata: {},
     latestWorkLinks: [],
     linkedNarrativeCharts: {},

@@ -10,9 +10,11 @@ import { DataCalloutContext, DataCalloutContextType } from "../utils.js"
 export function DataCallout({
     block,
     containerType = "default",
+    shouldRenderLinks = true,
 }: {
     block: EnrichedBlockDataCallout
     containerType?: Container
+    shouldRenderLinks?: boolean
 }) {
     const contextValue: DataCalloutContextType = {
         url: block.url,
@@ -22,7 +24,11 @@ export function DataCallout({
         <DataCalloutContext.Provider value={contextValue}>
             <div className={getLayout("data-callout", containerType)}>
                 {block.content.map((textBlock, index) => (
-                    <ArticleBlock key={index} b={textBlock} />
+                    <ArticleBlock
+                        key={index}
+                        b={textBlock}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
                 ))}
             </div>
         </DataCalloutContext.Provider>

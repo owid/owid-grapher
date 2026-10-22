@@ -154,11 +154,16 @@ export class GrapherAnalytics {
         })
     }
 
-    logSiteClick(action: string = "unknown-action", label?: string): void {
+    logSiteClick(
+        action: string = "unknown-action",
+        label?: string,
+        context?: string
+    ): void {
         this.logToGA({
             event: EventCategory.SiteClick,
             eventAction: action,
             eventTarget: label,
+            ...(context !== undefined && { eventContext: context }),
         })
     }
 

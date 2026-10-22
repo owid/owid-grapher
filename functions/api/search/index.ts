@@ -4,6 +4,7 @@ import { getAlgoliaConfig } from "./algoliaClient.js"
 import {
     searchCharts,
     searchPages,
+    searchTopicPages,
     SearchState,
     SearchValidationError,
 } from "./searchApi.js"
@@ -12,7 +13,9 @@ import {
     Filter,
     SearchUrlParam,
     ALL_GDOC_TYPES,
+    TagGraphRoot,
 } from "@ourworldindata/types"
+import { isTopicPageType, TOPIC_PAGE_TYPES } from "@ourworldindata/utils"
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
@@ -23,6 +26,43 @@ type SearchType = "charts" | "pages"
 // gdoc content types the `pageTypes` param (type=pages only) may request, as
 // a Set for O(1) membership checks.
 const VALID_PAGE_TYPES = new Set<string>(ALL_GDOC_TYPES)
+
+// Every query parameter this endpoint reads. Anything else is ignored, since
+// callers routinely append their own (utm_* tags, cache-busters), but it's
+// named in a `warnings` field so a misspelled or misplaced parameter is still
+// visible (e.g. the search page's `resultType=writing` returns charts, since
+// `type` defaults to "charts").
+const KNOWN_PARAMS = new Set<string>([
+    "type",
+    SearchUrlParam.QUERY,
+    SearchUrlParam.COUNTRY,
+    SearchUrlParam.TOPIC,
+    SearchUrlParam.REQUIRE_ALL_COUNTRIES,
+    "pageTypes",
+    "page",
+    "hitsPerPage",
+])
+
+// Hints for parameters people carry over from the search page's URL.
+const PARAM_HINTS: Record<string, string> = {
+    [SearchUrlParam.RESULT_TYPE]:
+        'Use "type=pages" to search writing, or "type=charts" for charts.',
+}
+
+/**
+ * The topic tag graph the site bakes to /topicTagGraph.json; it maps tag
+ * names to topic page slugs for topic page recommendations.
+ */
+async function fetchTagGraph(env: Env, baseUrl: string): Promise<TagGraphRoot> {
+    const response = await env.ASSETS.fetch(
+        new URL("/topicTagGraph.json", baseUrl)
+    )
+    if (!response.ok)
+        throw new Error(
+            `Failed to fetch /topicTagGraph.json: ${response.status}`
+        )
+    return response.json()
+}
 
 const hasSearchEnvVars = (env: Env): boolean => {
     return !!env.ALGOLIA_ID && !!env.ALGOLIA_SEARCH_KEY
@@ -38,6 +78,22 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 "Missing environment variables. Please check that both ALGOLIA_ID and ALGOLIA_SEARCH_KEY are set."
             )
         }
+
+        // utm_* tags are expected noise, not mistakes worth a warning
+        const unknownParams = [...new Set(url.searchParams.keys())].filter(
+            (param) => !KNOWN_PARAMS.has(param) && !param.startsWith("utm_")
+        )
+        const warnings =
+            unknownParams.length > 0
+                ? [
+                      [
+                          `Ignored unknown parameter(s): "${unknownParams.join('", "')}". Valid parameters: ${Array.from(KNOWN_PARAMS).join(", ")}.`,
+                          ...unknownParams
+                              .map((param) => PARAM_HINTS[param])
+                              .filter(Boolean),
+                      ].join(" "),
+                  ]
+                : undefined
 
         // Determine search type
         const searchType: SearchType =
@@ -90,6 +146,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     `Invalid pageTypes value(s): "${invalidTypes.join('", "')}". Valid types: ${Array.from(VALID_PAGE_TYPES).join(", ")}`
                 )
             }
+            // Topic pages come in two layouts (topic-page and
+            // linear-topic-page), which is a presentation detail: asking for
+            // either returns both.
+            if (pageTypes.some(isTopicPageType))
+                pageTypes = [
+                    ...new Set([
+                        ...pageTypes.filter((t) => !isTopicPageType(t)),
+                        ...TOPIC_PAGE_TYPES,
+                    ]),
+                ]
         }
 
         // Parse pagination parameters
@@ -174,17 +240,35 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
 
+        // A search for topic pages alone is a recommendation ("which topics
+        // is this query about?") and is answered from the matching charts,
+        // like the site's search page does. Mixed page types and empty
+        // queries stay a plain text search.
+        const wantsTopicPagesOnly =
+            pageTypes !== undefined &&
+            pageTypes.every(isTopicPageType) &&
+            query.trim() !== ""
+
         // Perform search based on type
         const results =
             searchType === "pages"
-                ? await searchPages(
-                      algoliaConfig,
-                      query,
-                      page * hitsPerPage, // Convert page to offset
-                      hitsPerPage,
-                      pageTypes, // undefined -> searchPages()'s own default
-                      baseUrl
-                  )
+                ? wantsTopicPagesOnly
+                    ? await searchTopicPages(
+                          algoliaConfig,
+                          searchState,
+                          await fetchTagGraph(env, baseUrl),
+                          page * hitsPerPage, // Convert page to offset
+                          hitsPerPage,
+                          baseUrl
+                      )
+                    : await searchPages(
+                          algoliaConfig,
+                          query,
+                          page * hitsPerPage, // Convert page to offset
+                          hitsPerPage,
+                          pageTypes, // undefined -> searchPages()'s own default
+                          baseUrl
+                      )
                 : await searchCharts(
                       algoliaConfig,
                       searchState,
@@ -193,7 +277,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                       baseUrl
                   )
 
-        return new Response(JSON.stringify(results, null, 2), {
+        return new Response(JSON.stringify({ ...results, warnings }, null, 2), {
             status: 200,
             headers: {
                 "Content-Type": "application/json",

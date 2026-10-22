@@ -17,6 +17,7 @@ import {
     Span,
     getEntitiesForProfile,
     articulateEntity,
+    getPrefixedGdocPath,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import {
@@ -39,8 +40,7 @@ import {
     getFirstBlockOfType,
     takeConsecutiveBlocksOfType,
 } from "../../../site/gdocs/utils.js"
-import { getPrefixedGdocPath } from "@ourworldindata/components"
-import { enrichedBlocksToIndexableText } from "../../../db/model/Gdoc/enrichedToIndexableText.js"
+import { enrichedBlocksToIndexableText } from "@ourworldindata/gdoc-pipeline"
 import {
     GdocProfile,
     instantiateProfileForEntity,

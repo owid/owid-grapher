@@ -1,6 +1,9 @@
 import { expect, it, describe } from "vitest"
 
-import { splitDescriptionKey } from "./datapageUtils.js"
+import {
+    splitDescriptionKey,
+    splitDescriptionKeyAfterFirstBlock,
+} from "./datapageUtils.js"
 
 describe(splitDescriptionKey, () => {
     it("returns empty strings for empty input", () => {
@@ -156,6 +159,67 @@ describe(splitDescriptionKey, () => {
         const long = "word ".repeat(500).trim()
         expect(splitDescriptionKey(long)).toEqual({
             preview: long,
+            remainder: "",
+        })
+    })
+})
+
+describe(splitDescriptionKeyAfterFirstBlock, () => {
+    it("shows only the first bullet of a list", () => {
+        const text = ["- one", "- two", "- three", "- four", "- five"].join(
+            "\n"
+        )
+        expect(splitDescriptionKeyAfterFirstBlock(text)).toEqual({
+            preview: "- one",
+            remainder: "- two\n- three\n- four\n- five",
+        })
+    })
+
+    it("shows only the intro paragraph of a list with one", () => {
+        const text = ["Some intro.", "", "- one", "- two", "- three"].join("\n")
+        expect(splitDescriptionKeyAfterFirstBlock(text)).toEqual({
+            preview: "Some intro.",
+            remainder: "- one\n- two\n- three",
+        })
+    })
+
+    it("shows only the first paragraph of plain paragraphs", () => {
+        const text = ["First paragraph.", "", "Second one.", "", "Third."].join(
+            "\n"
+        )
+        expect(splitDescriptionKeyAfterFirstBlock(text)).toEqual({
+            preview: "First paragraph.",
+            remainder: "Second one.\n\nThird.",
+        })
+    })
+
+    it("shows the heading plus the block under it", () => {
+        const text = [
+            "# What it measures",
+            "Some explanation.",
+            "",
+            "More of it.",
+            "",
+            "# Caveats",
+            "A caveat.",
+        ].join("\n")
+        expect(splitDescriptionKeyAfterFirstBlock(text)).toEqual({
+            preview: "# What it measures\n\nSome explanation.",
+            remainder: "More of it.\n\n# Caveats\n\nA caveat.",
+        })
+    })
+
+    it("keeps a text that is nothing but headings whole", () => {
+        const text = "# One\n\n# Two"
+        expect(splitDescriptionKeyAfterFirstBlock(text)).toEqual({
+            preview: text,
+            remainder: "",
+        })
+    })
+
+    it("returns empty strings for empty input", () => {
+        expect(splitDescriptionKeyAfterFirstBlock("")).toEqual({
+            preview: "",
             remainder: "",
         })
     })

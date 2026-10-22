@@ -31,6 +31,7 @@ import {
     SVG_STYLE_PROPS,
     BASE_FONT_SIZE,
     Patterns,
+    makePatternId,
     GRAPHER_IMAGE_WIDTH_1X,
     GRAPHER_IMAGE_WIDTH_2X,
     FontSettings,
@@ -330,11 +331,26 @@ export function InapplicablePattern({
     )
 }
 
-export function ChartPatternDefs(): React.ReactElement {
+export function ChartPatternDefs({
+    scale = 1,
+    idSuffix,
+}: {
+    scale?: number
+    idSuffix?: string
+}): React.ReactElement {
     return (
         <defs>
-            <NoDataPattern />
-            <InapplicablePattern />
+            <NoDataPattern
+                patternId={makePatternId(Patterns.noDataPattern, idSuffix)}
+                scale={scale}
+            />
+            <InapplicablePattern
+                patternId={makePatternId(
+                    Patterns.inapplicablePattern,
+                    idSuffix
+                )}
+                scale={scale}
+            />
         </defs>
     )
 }
@@ -399,6 +415,13 @@ export function textWidth(text: string, fontSettings: FontSettings): number {
 
 export function roundFontSize(fontSize: number): number {
     return Math.round(fontSize * 2) / 2
+}
+
+export function scaleFontSize(
+    sizeAtBase16: number,
+    baseFontSize: number
+): number {
+    return roundFontSize((sizeAtBase16 / BASE_FONT_SIZE) * baseFontSize)
 }
 
 /**

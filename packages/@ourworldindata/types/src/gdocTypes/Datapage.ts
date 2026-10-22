@@ -59,20 +59,20 @@ export interface DataPageDataV2 {
     lastUpdated: string
     nextUpdate?: string
     relatedResearch: DataPageRelatedResearch[]
-    allCharts: RelatedChart[] // Chart slugs
     source: OwidSource | undefined
     origins: OwidOrigin[]
     chartConfig: Record<string, unknown>
     license?: LicenseOption
     unit?: string
     unitConversionFactor?: number
-    relatedChartsByCoview: RelatedChart[] // only needed for the new datapage design
-    owners?: DatasetOwners[] // only needed for the new datapage design
-    linkedAuthors?: LinkedAuthor[] // only needed for the new datapage design
+    relatedCharts: RelatedChart[] // related-chart cards: coviews, then topic fallbacks
+    owners?: DatasetOwners[]
+    linkedAuthors?: LinkedAuthor[]
 }
 
 export interface DataPageRelatedResearch {
     title: string
+    excerpt?: string
     url: string
     authors: string[]
     imageUrl: string
@@ -164,22 +164,13 @@ export interface DataPageV2ContentFields {
      */
     stitchedIndicatorList?: StitchedIndicatorListEntry[]
     /**
-     * The stitched indicators are one measure sliced along an enumerable
-     * dimension (age group, sex, year): the list is kept in the props but not
+     * The stitched list adds nothing beyond the chart legend (titles only, or
+     * one measure sliced by age/sex/year): it is kept in the props but not
      * rendered — see baker/indicatorSliceDimension.ts.
      */
     hideStitchedIndicatorList?: boolean
     /** Scatter plots: the bubble-size and colour indicators. */
     auxiliaryIndicators?: AuxiliaryIndicator[]
-    /**
-     * Whether the page was baked with the redesigned data-page treatment
-     * (metadata box etc.). Serialized so the client renders the same arm the
-     * baker chose — recomputing the experiment gate client-side can disagree
-     * with the baked HTML (e.g. after the experiment expires but before a
-     * rebake) and cause a hydration mismatch. Optional only for pages baked
-     * before this field existed; those fall back to recomputing.
-     */
-    useNewDatapageDesign?: boolean
     faqEntries: FaqEntryData | undefined
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean

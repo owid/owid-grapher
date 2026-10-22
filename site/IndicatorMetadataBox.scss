@@ -1,6 +1,9 @@
 .indicator-metadata-box {
-    position: relative;
-    padding: 24px;
+    --indicator-processing-background: transparent;
+    --indicator-processing-title: #{$blue-90};
+    --indicator-sources-key-data-title: #{$blue-50};
+    --indicator-metadata-box-padding: 24px;
+    padding: var(--indicator-metadata-box-padding);
     background-color: $blue-5;
     grid-template-columns: repeat(12, 1fr);
     grid-column-start: 2;
@@ -14,6 +17,7 @@
         margin-right: -8px;
         margin-left: -8px;
         margin-bottom: 32px;
+        --indicator-metadata-box-padding: 16px;
     }
 }
 
@@ -25,232 +29,269 @@
     }
 }
 
-.indicator-metadata-box__indicator-title {
+// The divider separates the key data from the "What you should know" preview,
+// so pages without one go straight to the summary
+.indicator-metadata-box
+    .metadata-box-expander:has(> .metadata-box-expander__preview) {
+    border-top: 1px solid $blue-20;
+    margin-top: 12px;
+}
+
+.indicator-metadata-box .metadata-box-expander__preview {
+    margin-top: 12px;
+}
+
+.indicator-metadata-box .metadata-box-expander__prose {
+    p,
+    ul,
+    ol {
+        @include body-3-regular;
+    }
+
+    // The remainder's own margin spaces it from the preview, so bullets stay
+    // 8px apart across the split
+    li:last-child {
+        margin-bottom: 0;
+    }
+}
+
+// Sections sit 32px apart, including the first one after "What you should know"
+.indicator-metadata-box
+    .metadata-box-expander:has(> .metadata-box-expander__preview)
+    .metadata-box-section:first-of-type
+    .metadata-box-section__title {
+    margin-top: 32px;
+}
+
+.indicator-metadata-box .indicator-metadata-box__description-key-title {
+    @include body-2-bold-tight;
+    color: $blue-90;
+    margin: 0 0 12px;
+}
+
+.indicator-metadata-box .metadata-box-expander__summary {
+    @include body-3-medium;
+    color: $blue-50;
+    padding: 12px 0;
+    margin-top: 12px;
+    // Sits in the box's bottom padding
+    margin-bottom: calc(-1 * var(--indicator-metadata-box-padding));
+
+    &:hover {
+        color: $blue-90;
+    }
+}
+
+// 8px from the label, counting the space before the icon
+.indicator-metadata-box .metadata-box-expander__chevron {
+    font-size: 0.75rem;
+    margin-left: 4px;
+    top: 0;
+}
+
+// The title and the toggle share a row, on a common baseline
+.indicator-metadata-box__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+}
+
+.indicator-metadata-box__title {
+    @include h3-bold;
     margin: 0;
     color: $blue-90;
-    max-width: calc(100% - 104px);
 }
 
 .indicator-metadata-box__title-variant {
-    @include note-13-medium;
+    @include body-3-regular;
     margin-left: 8px;
     color: $blue-50;
 }
 
-.indicator-metadata-box__show-less {
-    display: none;
-    position: absolute;
-    top: 0px;
-    right: 0px;
-    padding: 24px;
-    padding-bottom: 16px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    @include note-13-medium;
-    color: $blue-50;
-    svg {
-        margin-left: 6px;
+// The key data flows as one line of label-value pairs, wrapping when it
+// doesn't fit
+.indicator-metadata-box .metadata-box-key-data {
+    margin-top: 4px;
+    gap: 8px 24px;
+}
+
+.indicator-metadata-box .metadata-box-key-data__key,
+.indicator-metadata-box .metadata-box-key-data__value {
+    @include body-3-regular;
+}
+
+// Data managers: photo, then name, in the key data's body text
+.indicator-metadata-box .avatar-byline {
+    @include body-3-regular;
+    gap: 4px 8px;
+}
+
+.indicator-metadata-box .avatar-byline__author {
+    gap: 6px;
+}
+
+// Above phone width, a long value wraps under its label rather than in a
+// column beside it. The description keeps its paragraphs.
+@include sm-up {
+    .indicator-metadata-box
+        .metadata-box-key-data__row:not(
+            .metadata-box-key-data__row--full-width
+        ) {
+        display: block;
+
+        > .metadata-box-key-data__key {
+            display: inline;
+            margin-right: 4px;
+        }
+
+        > .metadata-box-key-data__value {
+            display: inline;
+        }
     }
-    &:hover {
-        text-decoration: none;
+
+    // The photos make the names' line 24px tall, so the label gets a line of
+    // the same height to stay centred on the first line of managers
+    .indicator-metadata-box
+        .metadata-box-key-data__row.indicator-metadata-box__managed-by {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+
+        > .metadata-box-key-data__key {
+            margin-right: 0;
+            line-height: 24px;
+        }
     }
 }
 
-.indicator-metadata-box:has(.meta-expander__details[open]) {
-    .indicator-metadata-box__show-less {
-        display: inline-block;
-    }
-}
-
-.meta-description-table {
-    margin-top: 8px;
+.indicator-metadata-box .indicator-metadata-box__reuse-notice {
+    margin-top: 32px;
+    // The summary below brings its own spacing
     margin-bottom: 0;
-    line-height: 1.2;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 16px;
-}
-
-.meta-description-table__pair {
-    display: flex;
-    gap: 4px;
-}
-
-.meta-description-table__pair--full-width {
-    flex-basis: 100%;
-}
-
-.meta-description-table__key {
     @include note-13-medium;
-    color: $blue-50;
+    color: $blue-60;
+    a {
+        @include owid-link-60;
+    }
+    > p {
+        margin: 16px 0 0;
+    }
+    > p:first-child {
+        margin-top: 0;
+    }
 }
-.meta-description-table__value {
-    @include note-13-medium;
-    margin: 0;
+
+// Accordions: the title and icon darken once open, and the content starts
+// close under the title
+.indicator-metadata-box details.ExpandableToggle {
+    > .ExpandableToggle__container .ExpandableToggle__button {
+        --button: #{$blue-60};
+    }
+
+    &[open] > .ExpandableToggle__container .ExpandableToggle__button {
+        --title: #{$blue-90};
+        --button: #{$blue-90};
+        padding-bottom: 0;
+    }
+
+    &[open] > .ExpandableToggle__content {
+        padding: 12px 16px 24px;
+    }
+}
+
+.indicator-metadata-box
+    details.ExpandableToggle
+    .ExpandableToggle__button
+    .ExpandableToggle__title {
+    line-height: calc(22 / 16);
+    text-wrap: balance;
+}
+
+// Retrieved on, Retrieved from and Citation: light labels, dark values
+.indicator-metadata-box .indicator-sources .source-key-data__content {
     color: $blue-90;
-    // The markdown p tag
-    p {
+}
+
+// Single sources have no toggle, so match the toggles' inset and titles
+.indicator-metadata-box .indicator-sources div.NonExpandable {
+    padding: 16px;
+
+    .NonExpandable__title {
+        text-wrap: balance;
+    }
+}
+
+// The processing notes read as part of the answer rather than as a callout
+.indicator-metadata-box
+    .metadata-box-section--faqs
+    .indicator-processing
+    .indicator-processing-callout {
+    margin: 24px 0 0;
+    padding: 0;
+
+    .indicator-processing-callout__title {
+        @include body-3-bold;
+        letter-spacing: normal;
+        text-transform: none;
         margin: 0;
     }
-    a {
-        @include owid-link-90;
+}
+
+// Free-form text from data producers, in "Documentation from data sources"
+// and the source descriptions: paragraphs a blank line apart, headings in bold
+// body text right above their paragraph, and bullets 8px apart
+.indicator-metadata-box .indicator-metadata-box__producer-docs,
+.indicator-metadata-box .indicator-sources .source .description {
+    // The content's first-child reset can't reach through this wrapper
+    > :first-child {
+        margin-top: 0;
     }
-}
 
-.meta-description-table__key--source {
-    text-wrap: nowrap;
-}
-
-.meta-expander {
-    margin-top: 16px;
-    border-top: 1px solid $blue-20;
-    details {
-        display: flex;
-        flex-direction: column;
-        .meta-expander__summary {
-            order: 1;
-            display: inline-block;
-            cursor: pointer;
-            align-self: start;
-            @include body-2-semibold;
-            margin-left: -24px;
-            margin-bottom: -24px;
-            width: calc(100% + 48px);
-            padding: 16px;
-            @include note-13-medium;
-            color: $blue-50;
-            text-align: center;
-            &:hover {
-                background-color: $blue-20;
-            }
-            transition: background-color 0.15s;
-            &::marker,
-            &::-webkit-details-marker {
-                content: "";
-            }
-        }
-        .meta-expander__show-less {
-            display: none;
-        }
-        &[open] {
-            .meta-expander__show-less {
-                display: inline-block;
-            }
-            .meta-expander__show-more {
-                display: none;
-            }
-        }
-        a {
-            @include owid-link-90;
-        }
+    > :last-child {
+        margin-bottom: 0;
     }
-    .ExpandableToggle {
-        .ExpandableToggle__button {
-            --title: #{$blue-60};
-            --button-hover: #{$blue-50};
-            padding: 16px;
-        }
-        .ExpandableToggle__content {
-            padding: 16px;
-        }
-        &[open] {
-            background-color: $blue-20;
-        }
+
+    p {
+        margin: 0 0 21px;
     }
-}
 
-.meta-expander__preview {
-    margin-top: 16px;
-}
-
-.indicator-metadata-box__chevron {
-    font-size: 0.75em;
-    margin-left: 4px;
-    position: relative;
-    top: -1px;
-}
-
-// free-form markdown rendering of descriptionKey
-.meta-expander__prose {
-    p,
-    ul,
-    ol {
-        @include body-2-regular;
-        margin: 0 0 8px;
-    }
     h1,
     h2,
     h3,
     h4,
     h5,
     h6 {
-        @include body-2-bold-tight;
+        @include body-3-bold;
         color: $blue-90;
-        margin: 0 0 8px;
-        &:not(:first-child) {
-            margin-top: 16px;
-        }
+        margin: 21px 0 0;
     }
-    p:last-child,
-    ul:last-child,
-    ol:last-child {
-        margin-bottom: 0;
-    }
+
+    // Restore list indentation lost to the global `ul, ol { padding: 0 }`
+    // reset (e.g. /grapher/co2-emissions-transport)
     ul,
     ol {
         padding-left: 1.5em;
+        margin: 0 0 21px;
     }
+
     li {
-        margin-bottom: 8px;
-    }
-    a {
-        @include owid-link-90;
-    }
-}
+        margin: 0 0 8px;
 
-// the part of the descriptionKey revealed by expanding the box; continues
-// right below the preview
-.meta-expander__remainder {
-    margin-top: 8px;
-}
-
-.meta-expander__section {
-    margin-bottom: 32px;
-}
-
-.meta-expander__section:first-of-type .meta-expander__section-title {
-    margin-top: 16px;
-}
-
-.meta-expander__section-title {
-    @include body-2-bold-tight;
-    color: $blue-90;
-    margin-top: 0;
-    margin-bottom: 16px;
-}
-
-.meta-expander__section--faqs {
-    .indicator-processing .indicator-processing-callout {
-        margin: 16px 8px;
+        &:last-child {
+            margin-bottom: 0;
+        }
     }
-    // Prevent borders stacking when FAQ and "How we process this data" is present
-    > .ExpandableToggle:nth-last-child(2) {
-        border-bottom: none;
-    }
-}
 
-.meta-expander__reuse-notice {
-    margin-top: 32px;
-    @include note-13-medium;
-    a {
-        @include owid-link-90;
+    // Nested lists sit with their item, like the items around them
+    li > ul,
+    li > ol {
+        margin: 8px 0 0;
     }
-    > p:first-child {
-        margin-top: 0;
-    }
-    > p:last-child {
-        margin-bottom: 16px;
+
+    // Loose markdown lists wrap each item in a paragraph
+    li > p {
+        margin: 0;
     }
 }
 
@@ -331,18 +372,16 @@
     // indicator's title — hide the in-box title line like the dropdown
     // variant does (it stays in the DOM for raw-HTML consumers).
     @include sm-only {
-        .indicator-metadata-box__indicator-title {
+        .indicator-metadata-box__title {
             display: none;
         }
     }
 }
 
 // Stitched multi-indicator mode: one pane (headed "About this data") whose
-// expander opens with the indicator list, sitting above the shared WYSK.
-// The stitched indicator list is a .meta-expander__prose block, so type and
-// paragraph spacing come from there; it only adds list-entry structure. The
-// WYSK preview that follows it drops its own top margin so the two read as
-// consecutive paragraphs.
+// expander preview opens with the indicator list, above the shared WYSK.
+// The preview is a prose block, so type and paragraph spacing come from
+// there; the list only adds entry structure.
 .indicator-metadata-box__stitched-list {
     // The prose rules zero the margin of a last-child <p>/<ol>, which would
     // butt the list straight onto the WYSK's first bullet; match the gap
@@ -355,10 +394,6 @@
         &::marker {
             color: $blue-50;
         }
-    }
-
-    + .meta-expander__preview {
-        margin-top: 0;
     }
 }
 
@@ -446,8 +481,7 @@
 // Dropdown variant: the active indicator's title already renders inside the
 // dropdown trigger, so hide the in-box title line (it stays in the DOM for
 // raw-HTML consumers).
-.indicator-metadata-box-wrap--dropdown
-    .indicator-metadata-box__indicator-title {
+.indicator-metadata-box-wrap--dropdown .indicator-metadata-box__title {
     display: none;
 }
 
@@ -475,15 +509,5 @@
     margin-bottom: 0;
     a {
         @include owid-link-90;
-    }
-}
-
-// Producer documentation is raw markdown with nothing indenting its lists,
-// so their bullets hung in the toggle's padding. Indent them like the lists
-// in the Data sources descriptions (IndicatorSources.scss).
-.indicator-metadata-box__producer-doc {
-    ul,
-    ol {
-        margin-left: 1em;
     }
 }

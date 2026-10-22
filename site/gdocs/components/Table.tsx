@@ -14,10 +14,18 @@ function TableCell(props: {
 
 export type TableProps = {
     className?: string
+    shouldRenderLinks?: boolean
+    interactiveImages?: boolean
 } & EnrichedBlockTable
 
 export function Table(props: TableProps) {
-    const { className, rows, template } = props
+    const {
+        className,
+        rows,
+        template,
+        shouldRenderLinks = true,
+        interactiveImages = true,
+    } = props
     const isFirstColumnHeader =
         template === "header-column-row" || template === "header-column"
     const isFirstRowHeader =
@@ -40,7 +48,15 @@ export function Table(props: TableProps) {
                                         scope={scope}
                                         tag="th"
                                     >
-                                        <ArticleBlocks blocks={cell.content} />
+                                        <ArticleBlocks
+                                            blocks={cell.content}
+                                            shouldRenderLinks={
+                                                shouldRenderLinks
+                                            }
+                                            interactiveImages={
+                                                interactiveImages
+                                            }
+                                        />
                                     </TableCell>
                                 )
                             })}
@@ -72,6 +88,12 @@ export function Table(props: TableProps) {
                                             >
                                                 <ArticleBlocks
                                                     blocks={cell.content}
+                                                    shouldRenderLinks={
+                                                        shouldRenderLinks
+                                                    }
+                                                    interactiveImages={
+                                                        interactiveImages
+                                                    }
                                                 />
                                             </TableCell>
                                         )
@@ -82,7 +104,10 @@ export function Table(props: TableProps) {
                 </tbody>
                 {props.caption && (
                     <caption>
-                        <SpanElements spans={props.caption} />
+                        <SpanElements
+                            spans={props.caption}
+                            shouldRenderLinks={shouldRenderLinks}
+                        />
                     </caption>
                 )}
             </table>

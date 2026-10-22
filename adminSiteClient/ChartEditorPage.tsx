@@ -17,7 +17,11 @@ import {
     fetchChartConfigByIndicatorId,
 } from "./ChartEditor.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
+import {
+    ChartEditorLoading,
+    ChartEditorView,
+    ChartEditorViewManager,
+} from "./ChartEditorView.js"
 import { References } from "./AbstractChartEditor.js"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
@@ -49,8 +53,12 @@ export class ChartEditorPage
             availableTags: observable,
             forceDatapage: observable.ref,
             variableIdsByCatalogPath: observable.ref,
+            isConfigLoaded: observable.ref,
         })
     }
+
+    // See ChartEditorLoading
+    isConfigLoaded = false
 
     logs: Log[] = []
     references: References | undefined = undefined
@@ -196,9 +204,13 @@ export class ChartEditorPage
         return new ChartEditor({ manager: this })
     }
 
+    async fetchConfigLayers(): Promise<void> {
+        await Promise.all([this.fetchGrapherConfig(), this.fetchParentConfig()])
+        runInAction(() => (this.isConfigLoaded = true))
+    }
+
     @action.bound refresh(): void {
-        void this.fetchGrapherConfig()
-        void this.fetchParentConfig()
+        void this.fetchConfigLayers()
         void this.fetchLogs()
         void this.fetchRefs()
         void this.fetchRedirects()
@@ -224,6 +236,7 @@ export class ChartEditorPage
     }
 
     override render(): React.ReactElement {
+        if (!this.isConfigLoaded) return <ChartEditorLoading />
         return <ChartEditorView manager={this} />
     }
 }

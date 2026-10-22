@@ -1032,9 +1032,16 @@ function EditableYearTooltip({
 }): React.ReactElement {
     const [inputValue, setInputValue] = React.useState(currentTime.toString())
 
-    React.useEffect(() => {
+    // Reset the input whenever editing starts or the time changes while editing
+    // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+    const [prevState, setPrevState] = React.useState({ isEditing, currentTime })
+    if (
+        prevState.isEditing !== isEditing ||
+        prevState.currentTime !== currentTime
+    ) {
+        setPrevState({ isEditing, currentTime })
         if (isEditing) setInputValue(currentTime.toString())
-    }, [isEditing, currentTime])
+    }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
         if (e.key === ".") {

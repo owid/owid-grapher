@@ -46,21 +46,22 @@ Before merging:
 
 After merging:
 
-- `sync-grapher-schema-to-r2.yml` uploads the full JSON and the patch JSON to the `schemas`
-  prefix of the `owid-public` bucket on Cloudflare R2, each with a `.latest` alias.
-  The patch document is the same schema with `required` reduced to `$schema`, for configs that
-  are merged into a chart rather than rendered on their own. `files.ourworldindata.org/schemas/`
-  serves that bucket. The sync never deletes, so every version ever published keeps resolving.
+- `sync-grapher-schema-to-r2.yml` uploads the JSON to the `schemas` prefix of the
+  `owid-public` bucket on Cloudflare R2, with a `.latest` alias.
+  `files.ourworldindata.org/schemas/` serves that bucket. The sync never deletes, so every
+  version ever published keeps resolving.
 - Once this repo has deployed, merge the sibling ETL PR. Never before, since the ETL pushes
   configs stamped with that version.
 
 ## Regenerating the generated files
 
 `yarn buildGrapherSchema` reads the newest `grapher-schema.NNN.yaml` and writes
-`grapher-schema.NNN.json`, `grapher-schema.NNN.patch.json` and `defaultGrapherConfig.ts` next to
-it. Run it whenever the schema changes. CI runs it on every push that touches this folder.
-With `--out-dir <dir>` the two JSON files go to `<dir>` instead, and `--latest` adds a
-`.latest` alias of each; the R2 upload uses both.
+`defaultGrapherConfig.ts` next to it. That file is committed. Run it whenever the schema
+changes. CI runs it on every push that touches this folder and commits the result.
+
+The JSON form of the schema is not committed anywhere. `--publish-dir <dir>` writes it to
+`<dir>`, and `--latest` adds a `.latest` alias there. The R2 upload builds into a scratch
+directory this way, with the alias on master only.
 
 ```bash
 yarn buildGrapherSchema

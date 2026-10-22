@@ -10,6 +10,7 @@ vi.mock(import("./searchApi.js"), async (importOriginal) => {
         ...actual,
         searchCharts: vi.fn(),
         searchPages: vi.fn(),
+        searchTopicPages: vi.fn(),
     }
 })
 
@@ -220,6 +221,166 @@ describe("Search API endpoint", () => {
             assert(typeof body === "object" && body !== null && "error" in body)
             expect(body.error).toContain("bogus-type")
             expect(mockSearchPages).not.toHaveBeenCalled()
+        })
+    })
+
+    describe("unknown parameters", () => {
+        const chartsResponse = {
+            query: "deaths",
+            results: [],
+            nbHits: 0,
+            page: 0,
+            nbPages: 0,
+            hitsPerPage: 20,
+        }
+
+        it("ignores the search page's resultType, with a warning and a hint", async () => {
+            const mockSearchCharts = vi
+                .spyOn(searchApi, "searchCharts")
+                .mockResolvedValue(chartsResponse)
+
+            const request = new Request(
+                "http://localhost/api/search?q=deaths&resultType=writing"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(200)
+            expect(mockSearchCharts).toHaveBeenCalled()
+            const body = await response.json()
+            assert(
+                typeof body === "object" && body !== null && "warnings" in body
+            )
+            expect(body.warnings).toEqual([
+                expect.stringMatching(/"resultType".*type=pages/),
+            ])
+        })
+
+        it("names a misspelled parameter in a warning", async () => {
+            vi.spyOn(searchApi, "searchCharts").mockResolvedValue(
+                chartsResponse
+            )
+
+            const request = new Request(
+                "http://localhost/api/search?q=deaths&topic=Health"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(200)
+            const body = await response.json()
+            assert(
+                typeof body === "object" && body !== null && "warnings" in body
+            )
+            expect(body.warnings).toEqual([expect.stringContaining('"topic"')])
+        })
+
+        it("accepts utm_* tags without a warning", async () => {
+            vi.spyOn(searchApi, "searchCharts").mockResolvedValue(
+                chartsResponse
+            )
+
+            const request = new Request(
+                "http://localhost/api/search?q=deaths&utm_source=owid-skills"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(200)
+            const body = await response.json()
+            assert(typeof body === "object" && body !== null)
+            expect(body).not.toHaveProperty("warnings")
+        })
+    })
+
+    describe("topic page recommendations", () => {
+        const tagGraph = { name: "tag-graph-root", children: [] }
+        const envWithAssets = {
+            ...mockEnv,
+            ASSETS: {
+                fetch: vi
+                    .fn()
+                    .mockResolvedValue(new Response(JSON.stringify(tagGraph))),
+            },
+        } as unknown as Env
+        const emptyPagesResponse = {
+            query: "gdp",
+            results: [],
+            nbHits: 0,
+            offset: 0,
+            length: 20,
+        }
+
+        it("answers a topic-pages-only search from the matching charts", async () => {
+            const mockSearchTopicPages = vi
+                .spyOn(searchApi, "searchTopicPages")
+                .mockResolvedValue(emptyPagesResponse)
+            const mockSearchPages = vi.spyOn(searchApi, "searchPages")
+
+            const request = new Request(
+                "http://localhost/api/search?q=gdp&type=pages&pageTypes=topic-page&countries=France"
+            )
+            await onRequestGet({ request, env: envWithAssets } as any)
+
+            expect(mockSearchTopicPages).toHaveBeenCalledWith(
+                expect.anything(),
+                {
+                    query: "gdp",
+                    filters: [{ type: "country", name: "France" }],
+                    requireAllCountries: false,
+                },
+                tagGraph,
+                0,
+                20,
+                "http://localhost"
+            )
+            expect(mockSearchPages).not.toHaveBeenCalled()
+            expect(
+                (envWithAssets.ASSETS.fetch as any).mock.calls[0][0].toString()
+            ).toBe("http://localhost/topicTagGraph.json")
+        })
+
+        it("keeps a plain text search when other page types are mixed in", async () => {
+            const mockSearchTopicPages = vi.spyOn(searchApi, "searchTopicPages")
+            const mockSearchPages = vi
+                .spyOn(searchApi, "searchPages")
+                .mockResolvedValue(emptyPagesResponse)
+
+            const request = new Request(
+                "http://localhost/api/search?q=gdp&type=pages&pageTypes=topic-page,article"
+            )
+            await onRequestGet({ request, env: envWithAssets } as any)
+
+            expect(mockSearchPages).toHaveBeenCalledWith(
+                expect.anything(),
+                "gdp",
+                0,
+                20,
+                ["article", "topic-page", "linear-topic-page"],
+                "http://localhost"
+            )
+            expect(mockSearchTopicPages).not.toHaveBeenCalled()
+        })
+
+        it("keeps a plain text search for an empty query", async () => {
+            const mockSearchTopicPages = vi.spyOn(searchApi, "searchTopicPages")
+            const mockSearchPages = vi
+                .spyOn(searchApi, "searchPages")
+                .mockResolvedValue(emptyPagesResponse)
+
+            const request = new Request(
+                "http://localhost/api/search?type=pages&pageTypes=topic-page"
+            )
+            await onRequestGet({ request, env: envWithAssets } as any)
+
+            expect(mockSearchPages).toHaveBeenCalled()
+            expect(mockSearchTopicPages).not.toHaveBeenCalled()
         })
     })
 

@@ -14,6 +14,8 @@ import {
 } from "@ourworldindata/types"
 import { OwidTable } from "./OwidTable.js"
 
+const DEFAULT_SYNTHESIZER_SEED = 1
+
 interface SynthOptions {
     entityCount: number
     entityNames: string[]
@@ -23,7 +25,7 @@ interface SynthOptions {
 
 const SynthesizeOwidTable = (
     options?: Partial<SynthOptions>,
-    seed = Date.now()
+    seed = DEFAULT_SYNTHESIZER_SEED
 ): OwidTable => {
     const finalOptions: SynthOptions = {
         entityNames: [],
@@ -75,7 +77,7 @@ const SynthesizeOwidTable = (
 
 export const SynthesizeNonCountryTable = (
     options?: Partial<SynthOptions>,
-    seed = Date.now()
+    seed = DEFAULT_SYNTHESIZER_SEED
 ): OwidTable =>
     SynthesizeOwidTable(
         {
@@ -109,7 +111,7 @@ export enum SampleColumnSlugs {
 
 export const SynthesizeGDPTable = (
     options?: Partial<SynthOptions>,
-    seed = Date.now(),
+    seed = DEFAULT_SYNTHESIZER_SEED,
     display?: OwidVariableDisplayConfigInterface
 ): OwidTable =>
     SynthesizeOwidTable(
@@ -172,7 +174,7 @@ const SynthSource = (
 
 export const SynthesizeFruitTable = (
     options?: Partial<SynthOptions>,
-    seed = Date.now()
+    seed = DEFAULT_SYNTHESIZER_SEED
 ): OwidTable =>
     SynthesizeOwidTable(
         {
@@ -208,13 +210,13 @@ export const SynthesizeFruitTable = (
 export const SynthesizeFruitTableWithNonPositives = (
     options?: Partial<SynthOptions>,
     howManyNonPositives = 20,
-    seed = Date.now()
+    seed = DEFAULT_SYNTHESIZER_SEED
 ): OwidTable => {
-    const rand = getRandomNumberGenerator(-1000, 0)
+    const rand = getRandomNumberGenerator(-1000, 0, seed)
     return SynthesizeFruitTable(options, seed).replaceRandomCells(
         howManyNonPositives,
         [SampleColumnSlugs.Fruit, SampleColumnSlugs.Vegetables],
-        undefined,
+        seed,
         () => rand()
     )
 }
@@ -224,19 +226,24 @@ const stringValues = ["NA", "inf", "..", "/", "-", "#VALUE!"]
 export const SynthesizeFruitTableWithStringValues = (
     options?: Partial<SynthOptions>,
     howMany = 20,
-    seed = Date.now()
+    seed = DEFAULT_SYNTHESIZER_SEED
 ): OwidTable => {
+    const randomStringValueIndex = getRandomNumberGenerator(
+        0,
+        stringValues.length,
+        seed
+    )
     return SynthesizeFruitTable(options, seed).replaceRandomCells(
         howMany,
         [SampleColumnSlugs.Fruit, SampleColumnSlugs.Vegetables],
-        undefined,
-        () => sampleFrom(stringValues, 1, Date.now())[0]
+        seed,
+        () => stringValues[randomStringValueIndex()]
     )
 }
 
 export const SynthesizeProjectedPopulationTable = (
     options?: Partial<SynthOptions>,
-    seed = Date.now(),
+    seed = DEFAULT_SYNTHESIZER_SEED,
     display?: OwidVariableDisplayConfigInterface
 ): OwidTable =>
     SynthesizeOwidTable(

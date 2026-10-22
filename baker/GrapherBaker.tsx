@@ -1,3 +1,4 @@
+import { traceJob } from "../serverUtils/sentryTracing.js"
 import * as _ from "lodash-es"
 import { GrapherPage } from "../site/GrapherPage.js"
 import { DataPageV2 } from "../site/DataPageV2.js"
@@ -6,8 +7,6 @@ import {
     excludeUndefined,
     mergeGrapherConfigs,
     Url,
-    isUrlInActiveExperiment,
-    DATA_PAGE_METADATA_EXPERIMENT_ID,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import {
@@ -63,10 +62,7 @@ import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
 import { deleteOldGraphers } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
-import {
-    getRelatedChartsForVariable,
-    getRelatedChartsForChart,
-} from "../db/model/Chart.js"
+import { getRelatedChartCards } from "../db/model/RelatedChartCards.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
@@ -78,6 +74,7 @@ import {
 import {
     IndicatorPanePlan,
     getAuxiliaryDimensions,
+    hasMultipleIndicators,
     planIndicatorPanes,
 } from "./indicatorPanePlan.js"
 import { shouldHideStitchedIndicatorList } from "./indicatorSliceDimension.js"
@@ -104,8 +101,8 @@ const renderDatapageIfApplicable = async (
             forceDatapage,
         })
     } catch (error) {
-        // Charts that are only datapages because the experiment forces them
-        // had no data-API dependency at bake time before this experiment. If
+        // Charts that are only datapages because shouldBakeAsDatapage forces
+        // them had no data-API dependency at bake time before. If
         // the primary indicator's metadata fetch fails (Data API/S3 outage,
         // deleted variable), fall back to baking the plain grapher page for
         // this cycle rather than failing the whole charts bake / archival run
@@ -155,26 +152,18 @@ const renderDatapageIfApplicable = async (
 }
 
 /**
- * Whether this grapher should bake with the redesigned data-page treatment:
- * forced data-page rendering (even for charts that don't qualify for a
- * datapage by the usual rules, e.g. multi-indicator charts) plus the
- * metadata box with an indicator switcher.
+ * Whether this chart should be forced to bake as a data page even though the
+ * `datapages` rules don't make it one: charts with two or more indicators
+ * (multi-indicator charts, and scatter plots with an X / size / colour
+ * indicator), which get one metadata pane per indicator. Charts the rules
+ * already cover bake as data pages regardless.
  *
- * Currently this is gated on enrolment in the data-page metadata experiment.
- * The plan is to soon move ALL grapher pages over to the data page design —
- * when that happens, this function should simply return true (and the
- * matching client-side gate, `useNewDatapageDesign` in
- * site/DataPageV2Content.tsx, goes away with the experiment). Everything
- * downstream — forceDatapage, per-indicator metadata loading, the indicator
- * switcher — is keyed off this one predicate, so flipping it is the whole
- * migration on the baker side.
+ * Single-indicator charts whose indicator has no descriptive metadata stay
+ * grapher pages for now; returning true for every chart with a slug here is
+ * the step that retires grapher pages entirely.
  */
 export const shouldBakeAsDatapage = (grapher: GrapherInterface): boolean =>
-    !!grapher.slug &&
-    isUrlInActiveExperiment(
-        DATA_PAGE_METADATA_EXPERIMENT_ID,
-        `/grapher/${grapher.slug}`
-    )
+    !!grapher.slug && hasMultipleIndicators(grapher)
 
 /**
  * Render a datapage if available, otherwise render a grapher page.
@@ -336,7 +325,6 @@ export async function renderDataPageV2(
         pageGrapher,
         imageMetadataDictionary = {},
         archiveContextDictionary,
-        forceDatapage,
         forceSwitcher,
         auxiliaryMode = DEFAULT_AUXILIARY_INDICATOR_MODE,
     }: {
@@ -378,35 +366,26 @@ export async function renderDataPageV2(
     )
     const distribution = await getVariableDistribution(knex, variableIds)
 
-    // A caller that explicitly forces a datapage (the ?forceDatapage=true QA
-    // param on the preview routes) gets the full redesigned treatment —
-    // metadata box, per-indicator panes, coviews — not just the datapage
-    // shell. For baked pages this is equivalent to shouldBakeAsDatapage,
-    // since the baker only ever forces enrolled charts.
-    const useNewDatapageDesign = forceDatapage || shouldBakeAsDatapage(grapher)
-
     const panePlan = planIndicatorPanes(grapher, {
         primaryVariableId: variableId,
         auxiliaryMode,
-        auxiliaryLinks: useNewDatapageDesign
-            ? await getAuxiliaryIndicatorLinks(
-                  knex,
-                  getAuxiliaryDimensions(grapher).map((d) => d.variableId)
-              )
-            : new Map(),
+        auxiliaryLinks: await getAuxiliaryIndicatorLinks(
+            knex,
+            getAuxiliaryDimensions(grapher).map((d) => d.variableId)
+        ),
     })
-    // Only a MULTI-indicator chart's panes need per-indicator titles; on an
-    // enrolled single-indicator chart the per-indicator override would
-    // replace the curated chart title in the box heading, the citations, and
-    // (when the config has no explicit title) <title>/og:title with the
-    // variable's display/database name. Non-enrolled data pages keep their
-    // existing title resolution (which falls back to `grapherConfig.title`).
+    // Only a MULTI-indicator chart's panes need per-indicator titles; on a
+    // single-indicator chart the per-indicator override would replace the
+    // curated chart title in the box heading, the citations, and (when the
+    // config has no explicit title) <title>/og:title with the variable's
+    // display/database name, so those keep the usual title resolution (which
+    // falls back to `grapherConfig.title`).
     const isMultiIndicator = panePlan.additionalPaneVariableIds.length > 0
 
     const datapageData = getDatapageDataV2(
         variableMetadata,
         grapher,
-        useNewDatapageDesign && isMultiIndicator
+        isMultiIndicator
             ? {
                   indicatorTitleOverride: panePlan.indicatorTitleOverrideFor(
                       variableId,
@@ -418,25 +397,21 @@ export async function renderDataPageV2(
             : undefined
     )
 
-    // Only charts with the redesign pay the cost of loading the extra
-    // per-indicator metadata; everything else bakes exactly as before with
-    // `additionalIndicators` left undefined.
-    let additionalIndicators: AdditionalIndicator[] | undefined
-    if (useNewDatapageDesign) {
-        additionalIndicators = _.compact(
-            await pMap(
-                panePlan.additionalPaneVariableIds,
-                (id) =>
-                    loadAdditionalIndicator(knex, {
-                        variableId: id,
-                        grapher,
-                        panePlan,
-                        resolveFaqs,
-                    }),
-                { concurrency: 5 }
-            )
+    // The other panes' metadata (empty for a single-indicator chart).
+    let additionalIndicators: AdditionalIndicator[] | undefined = _.compact(
+        await pMap(
+            panePlan.additionalPaneVariableIds,
+            (id) =>
+                loadAdditionalIndicator(knex, {
+                    variableId: id,
+                    grapher,
+                    panePlan,
+                    resolveFaqs,
+                }),
+            { concurrency: 5 }
         )
-    }
+    )
+    if (!additionalIndicators.length) additionalIndicators = undefined
 
     datapageData.primaryTopic = await getPrimaryTopic(
         knex,
@@ -445,29 +420,29 @@ export async function renderDataPageV2(
 
     let imageMetadata: Record<string, ImageMetadata> = {}
 
-    if (useNewDatapageDesign) {
-        // "Managed by" is a dataset-level field (datasets.owners). Each pane
-        // shows the owners of its own indicator's dataset: the primary
-        // indicator's owners here, the additional indicators' owners in
-        // loadAdditionalIndicator.
-        datapageData.owners = await getOwnersForVariables(knex, [variableId])
+    // "Managed by" is a dataset-level field (datasets.owners). Each pane
+    // shows the owners of its own indicator's dataset: the primary
+    // indicator's owners here, the additional indicators' owners in
+    // loadAdditionalIndicator. (One pane per indicator replaces the old
+    // "all Y-indicators, first dataset's owners" lookup, which could show the
+    // owners of the wrong dataset.)
+    datapageData.owners = await getOwnersForVariables(knex, [variableId])
 
-        // Author links for the Byline are resolved once, across every pane's
-        // owners, and attached to the primary datapageData (that's what the
-        // page's AttachmentsContext reads).
-        const ownerNames = _.uniq(
-            [
-                ...(datapageData.owners ?? []),
-                ...(additionalIndicators ?? []).flatMap(
-                    (ind) => ind.datapageData.owners ?? []
-                ),
-            ].flatMap((dataset) => dataset.owners)
-        )
-        datapageData.linkedAuthors = await getMinimalAuthorsByNames(
-            knex,
-            ownerNames
-        )
-    }
+    // Author links for the Byline are resolved once, across every pane's
+    // owners, and attached to the primary datapageData (that's what the
+    // page's AttachmentsContext reads).
+    const ownerNames = _.uniq(
+        [
+            ...(datapageData.owners ?? []),
+            ...(additionalIndicators ?? []).flatMap(
+                (ind) => ind.datapageData.owners ?? []
+            ),
+        ].flatMap((dataset) => dataset.owners)
+    )
+    datapageData.linkedAuthors = await getMinimalAuthorsByNames(
+        knex,
+        ownerNames
+    )
 
     // When every pane of a multi-indicator chart shares the same substantive
     // metadata, stitch the panes into a single pane + a templated
@@ -506,30 +481,16 @@ export async function renderDataPageV2(
     // If we're baking to an archival page, then we want to skip a bunch of sections
     // where the links would break
     if (archiveContext?.type !== "archive-page") {
-        // Get the charts this variable is being used in (aka "related charts")
-        // and exclude the current chart to avoid duplicates
-        const allCharts = await getRelatedChartsForVariable(
-            knex,
-            variableId,
-            grapher && "id" in grapher ? [grapher.id as number] : [],
-            true
-        )
-        datapageData.allCharts = allCharts.map((chart) => ({
-            ...chart,
-            archiveContext: archiveContextDictionary?.[chart.chartId],
-        }))
-
-        if (useNewDatapageDesign && grapher.id !== undefined) {
-            const relatedChartsByCoview = await getRelatedChartsForChart(
+        if (grapher.id !== undefined) {
+            const relatedCharts = await getRelatedChartCards(
                 knex,
-                grapher.id
+                grapher.id,
+                datapageData.topicTagsLinks ?? []
             )
-            datapageData.relatedChartsByCoview = relatedChartsByCoview.map(
-                (chart) => ({
-                    ...chart,
-                    archiveContext: archiveContextDictionary?.[chart.chartId],
-                })
-            )
+            datapageData.relatedCharts = relatedCharts.map((chart) => ({
+                ...chart,
+                archiveContext: archiveContextDictionary?.[chart.chartId],
+            }))
         }
 
         datapageData.relatedResearch =
@@ -539,11 +500,17 @@ export async function renderDataPageV2(
             .map((r) => r.imageUrl)
             .filter((f): f is string => !!f)
 
+        // Photos of the data managers. Left out of archived pages, which have
+        // no image assets, so they show names only.
+        const linkedAuthorFilenames = (datapageData.linkedAuthors ?? [])
+            .map((author) => author.featuredImage)
+            .filter((f): f is string => !!f)
+
         imageMetadata = {
             ...imageMetadata,
             ..._.pick(
                 imageMetadataDictionary,
-                _.uniq(relatedResearchFilenames)
+                _.uniq([...relatedResearchFilenames, ...linkedAuthorFilenames])
             ),
         }
     }
@@ -564,10 +531,7 @@ export async function renderDataPageV2(
             additionalIndicators={additionalIndicators}
             stitchedIndicatorList={stitchedIndicatorList}
             hideStitchedIndicatorList={hideStitchedIndicatorList}
-            auxiliaryIndicators={
-                useNewDatapageDesign ? panePlan.auxiliaryIndicators : undefined
-            }
-            useNewDatapageDesign={useNewDatapageDesign}
+            auxiliaryIndicators={panePlan.auxiliaryIndicators}
             canonicalUrl={canonicalUrl}
             baseUrl={BAKED_BASE_URL}
             isPreviewing={isPreviewing}
@@ -733,14 +697,17 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     bakedSiteDir: string,
     knex: db.KnexReadonlyTransaction
 ) => {
-    const chartsToBake = await knexRaw<
-        Pick<DbPlainChart, "id"> & {
-            config: DbRawChartConfig["config"]
-            slug: string
-        }
-    >(
-        knex,
-        `-- sql
+    const { chartsToBake, jobs } = await traceJob(
+        "prepare-grapher-pages",
+        async () => {
+            const chartsToBake = await knexRaw<
+                Pick<DbPlainChart, "id"> & {
+                    config: DbRawChartConfig["config"]
+                    slug: string
+                }
+            >(
+                knex,
+                `-- sql
         SELECT
             c.id,
             cc.config as config,
@@ -749,27 +716,32 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         JOIN chart_configs cc ON c.configId = cc.id
         WHERE JSON_EXTRACT(cc.config, "$.isPublished")=true
         ORDER BY cc.slug ASC`
+            )
+
+            await fs.mkdirp(bakedSiteDir + "/grapher")
+
+            // Prefetch imageMetadata and archiveContextDictionary instead of each grapher page fetching them
+            // individually. imageMetadata is used by the google docs powering rich
+            // text (including images) in data pages.
+            const imageMetadataDictionary = await getAllImages(knex).then(
+                (images) => _.keyBy(images, "filename")
+            )
+            const archiveContextDictionary =
+                await getLatestArchivedChartPageVersionsIfEnabled(knex)
+
+            const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map(
+                (row) => ({
+                    id: row.id,
+                    config: row.config,
+                    bakedSiteDir: bakedSiteDir,
+                    slug: row.slug,
+                    imageMetadataDictionary,
+                    archiveContextDictionary,
+                })
+            )
+            return { chartsToBake, jobs }
+        }
     )
-
-    await fs.mkdirp(bakedSiteDir + "/grapher")
-
-    // Prefetch imageMetadata and archiveContextDictionary instead of each grapher page fetching them
-    // individually. imageMetadata is used by the google docs powering rich
-    // text (including images) in data pages.
-    const imageMetadataDictionary = await getAllImages(knex).then((images) =>
-        _.keyBy(images, "filename")
-    )
-    const archiveContextDictionary =
-        await getLatestArchivedChartPageVersionsIfEnabled(knex)
-
-    const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map((row) => ({
-        id: row.id,
-        config: row.config,
-        bakedSiteDir: bakedSiteDir,
-        slug: row.slug,
-        imageMetadataDictionary,
-        archiveContextDictionary,
-    }))
 
     const progressBar = new ProgressBar(
         "bake grapher page [:bar] :current/:total :elapseds :rate/s :name\n",
@@ -787,24 +759,32 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
             // be able to use multiple transactions so that we can use
             // multiple connections to the database.
             // Read-write consistency is not a concern here, thankfully.
-            await db.knexReadWriteTransaction(
-                async (knex) => await bakeSingleGrapherChart(job, knex),
-                db.TransactionCloseMode.KeepOpen
+            await traceJob(
+                "bake-grapher-page",
+                async () => {
+                    await db.knexReadWriteTransaction(
+                        async (knex) => await bakeSingleGrapherChart(job, knex),
+                        db.TransactionCloseMode.KeepOpen
+                    )
+                },
+                { "page.slug": job.slug }
             )
             progressBar.tick({ name: job.slug })
         },
         { concurrency: 10 }
     )
 
-    // Multi-dim data pages are baked into the same directory as graphers
-    // and they are handled separately.
-    const multiDimSlugs = await getAllMultiDimDataPageSlugs(knex)
-    const newSlugs = excludeUndefined([
-        ...chartsToBake.map((row) => row.slug),
-        ...multiDimSlugs,
-    ])
-    await deleteOldGraphers(bakedSiteDir, newSlugs)
-    progressBar.tick({ name: `✅ Deleted old graphers` })
+    await traceJob("cleanup-grapher-pages", async () => {
+        // Multi-dim data pages are baked into the same directory as graphers
+        // and they are handled separately.
+        const multiDimSlugs = await getAllMultiDimDataPageSlugs(knex)
+        const newSlugs = excludeUndefined([
+            ...chartsToBake.map((row) => row.slug),
+            ...multiDimSlugs,
+        ])
+        await deleteOldGraphers(bakedSiteDir, newSlugs)
+        progressBar.tick({ name: `✅ Deleted old graphers` })
+    })
 }
 
 /**
@@ -815,7 +795,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
 export interface DatapageRenderOptions {
     /**
      * Render as a data page with the redesigned metadata box even if the
-     * chart doesn't qualify or isn't enrolled in the experiment.
+     * chart doesn't qualify by the usual rules.
      */
     forceDatapage?: boolean
     /** Skip pane stitching, so a stitched page's switcher can be inspected. */

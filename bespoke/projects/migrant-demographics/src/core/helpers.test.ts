@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { computePyramidData, MigrantDemographics } from "./data.js"
+import { computePyramidData } from "./data.js"
 import {
     computeAxisMax,
     computePyramidView,
@@ -10,7 +10,12 @@ import {
     formatTooltipCount,
     formatTooltipShare,
 } from "./helpers.js"
-import { RAW, RECORD } from "./testFixtures.js"
+import {
+    KENYA_YEARS,
+    METADATA,
+    RECORD,
+    UNITED_STATES_YEARS,
+} from "./testFixtures.js"
 
 describe(computePyramidView, () => {
     const data = computePyramidData(RECORD)
@@ -46,16 +51,31 @@ describe(computePyramidView, () => {
 })
 
 describe(computeAxisMax, () => {
-    const data = new MigrantDemographics(RAW)
-
     it("takes the maximum across all years", () => {
         // 2010 record has max band count 40; 2020 has 25
-        expect(computeAxisMax(data, "United States", "number", false)).toBe(40)
+        expect(
+            computeAxisMax(
+                UNITED_STATES_YEARS,
+                METADATA.ageBands,
+                "number",
+                false
+            )
+        ).toBe(40)
     })
 
     it("includes the native-born values when comparing", () => {
-        const withoutNatives = computeAxisMax(data, "Kenya", "share", false)
-        const withNatives = computeAxisMax(data, "Kenya", "share", true)
+        const withoutNatives = computeAxisMax(
+            KENYA_YEARS,
+            METADATA.ageBands,
+            "share",
+            false
+        )
+        const withNatives = computeAxisMax(
+            KENYA_YEARS,
+            METADATA.ageBands,
+            "share",
+            true
+        )
         expect(withoutNatives).toBe(25) // each migrant band is 10 of 40
         expect(withNatives).toBeCloseTo(100) // all natives are men aged 0-4
     })

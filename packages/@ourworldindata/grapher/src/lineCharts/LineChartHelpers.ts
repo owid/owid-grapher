@@ -144,8 +144,8 @@ export function toPlacedLineChartSeries(
 
             return {
                 time: point.x,
-                x: _.round(horizontalAxis.place(point.x), 1),
-                y: _.round(verticalAxis.place(point.y), 1),
+                x: horizontalAxis.place(point.x),
+                y: verticalAxis.place(point.y),
                 color,
             }
         })

@@ -9,10 +9,13 @@ import {
     GrapherState,
     loadCatalogData,
 } from "@ourworldindata/grapher"
+import { decodeHTML } from "entities"
 import {
     type DownloadRewriteTarget,
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
+    MultiDimPageCompanion,
+    MultiDimPageCompanionView,
     R2GrapherConfigDirectory,
     AdditionalGrapherDataFetchFn,
     GRAPHER_QUERY_PARAM_KEYS,
@@ -21,6 +24,7 @@ import {
     excludeUndefined,
     Bounds,
     makeDownloadCodeExamples,
+    multiDimDimensionsToViewQueryStr,
     searchParamsToMultiDimView,
     escapeJSONStringForInlineScript,
 } from "@ourworldindata/utils"
@@ -357,19 +361,91 @@ export async function initGrapher(
 }
 
 /**
+ * Resolve the canonical dimensions query string for a multi-dim page request:
+ * every dimension is taken from the request's search params, falling back to
+ * the default view's choice for missing (or empty) params. Must produce the
+ * same string as multiDimDimensionsToViewQueryStr does at bake time so that
+ * sitemap URLs, canonical URLs and view-title lookups all agree.
+ */
+export function resolveMultiDimViewQueryStr(
+    searchParams: URLSearchParams,
+    defaultDimensions: Record<string, string>
+): string {
+    const dimensions: Record<string, string> = {}
+    for (const [dim, defaultChoice] of Object.entries(defaultDimensions)) {
+        dimensions[dim] = searchParams.get(dim) || defaultChoice
+    }
+    return multiDimDimensionsToViewQueryStr(dimensions)
+}
+
+/**
+ * Resolve the view a multi-dim page request selects, given the views that
+ * actually exist (the companion file's keys). Dimensions specified in the URL
+ * must match exactly; omitted dimensions are filled from the default view
+ * where that combination exists, otherwise from the first existing view (in
+ * the companion's sorted key order) matching the specified dimensions — an
+ * approximation of the client's availability-aware choice adaptation in
+ * filterToAvailableChoices. Returns undefined when no existing view matches
+ * the specified dimensions.
+ */
+export function resolveMultiDimViewFromCompanion(
+    companion: MultiDimPageCompanion,
+    searchParams: URLSearchParams,
+    defaultDimensions: Record<string, string>
+): { viewQueryStr: string; view: MultiDimPageCompanionView } | undefined {
+    // Prefer the exact combination of specified params and default choices
+    const naiveQueryStr = resolveMultiDimViewQueryStr(
+        searchParams,
+        defaultDimensions
+    )
+    const naiveView = companion.views?.[naiveQueryStr]
+    if (naiveView) return { viewQueryStr: naiveQueryStr, view: naiveView }
+
+    const specified = Object.keys(defaultDimensions)
+        .map((dim) => [dim, searchParams.get(dim)] as const)
+        .filter(([, value]) => !!value)
+    const entry = Object.entries(companion.views ?? {}).find(
+        ([viewQueryStr]) => {
+            const viewDimensions = new URLSearchParams(viewQueryStr)
+            return specified.every(
+                ([dim, value]) => viewDimensions.get(dim) === value
+            )
+        }
+    )
+    if (!entry) return undefined
+    return { viewQueryStr: entry[0], view: entry[1] }
+}
+
+/**
+ * Loads the companion file baked alongside a multi-dim data page (see
+ * getMultiDimPageCompanion in the baker). Throws if it can't be loaded.
+ */
+export type MultiDimCompanionLoader = () => Promise<MultiDimPageCompanion>
+
+/**
  * Update og:url, og:image, twitter:image meta tags, and JSON-LD image URL
- * to include the search parameters.
+ * to include the search parameters. On multi-dim pages, additionally rewrite
+ * the canonical URL to the requested view and — when the request selects a
+ * specific view via dimension params — serve that view's grapher title in
+ * <title>, og:title and twitter:title, so search engines
+ * see view-specific titles instead of the generic multi-dim page title. The
+ * view titles come from the page's companion file, loaded via
+ * `loadMultiDimCompanion` only when a view is selected.
  */
 export function rewriteMetaTags(
     url: URL,
     openGraphThumbnailUrl: string,
     twitterThumbnailUrl: string,
-    page: Response
+    page: Response,
+    loadMultiDimCompanion?: MultiDimCompanionLoader
 ) {
     // Take the origin (e.g. https://ourworldindata.org) from the canonical URL, which should appear before the image elements.
     // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
     let origin = ""
-    let mdimDimensionsObj: Record<string, string> | undefined = undefined
+    let multiDimViewQueryStr: string | undefined = undefined
+    // The requested view's title including the page title, e.g.
+    // "Share of children vaccinated | Childhood vaccination coverage - by vaccine"
+    let multiDimViewTitle: string | undefined = undefined
 
     const thumbnailUrl = `${url.pathname}.png${url.search}`
     const downloadCtxBase = getDownloadContextBase(url)
@@ -394,21 +470,85 @@ export function rewriteMetaTags(
             },
         })
         .on("head", {
-            element: (element) => {
-                // HTMLRewriter doesn't un-encode &quot; in attribute values, so we need to replace them before parsing the JSON.
-                const dimensionsAttr = element
-                    .getAttribute("data-owid-mdim-initial-view-dimensions")
-                    ?.replaceAll("&quot;", '"')
-
+            // This handler is async: it (potentially) loads the page's
+            // companion file, and the rewriter waits for it before streaming
+            // any of the head's children — so the view title is known by the
+            // time the <title> handler below runs.
+            element: async (element) => {
+                let mdimDimensionsObj: Record<string, string> | undefined
+                const dimensionsAttr = element.getAttribute(
+                    "data-owid-mdim-initial-view-dimensions"
+                )
                 if (dimensionsAttr) {
                     try {
+                        // HTMLRewriter doesn't un-encode HTML entities in
+                        // attribute values
                         mdimDimensionsObj = JSON.parse(
-                            dimensionsAttr
+                            decodeHTML(dimensionsAttr)
                         ) as Record<string, string>
                     } catch (e) {
                         console.error("Error parsing dimensions JSON", e)
+                        Sentry.captureException(e)
                     }
                 }
+                if (!mdimDimensionsObj) return
+
+                multiDimViewQueryStr = resolveMultiDimViewQueryStr(
+                    url.searchParams,
+                    mdimDimensionsObj
+                )
+
+                // Only serve a view-specific title when the URL explicitly
+                // selects a view; the bare multi-dim URL keeps the generic title.
+                const hasDimensionParams = Object.keys(mdimDimensionsObj).some(
+                    (dim) => url.searchParams.has(dim)
+                )
+                if (!hasDimensionParams || !loadMultiDimCompanion) return
+                let companion: MultiDimPageCompanion | undefined
+                try {
+                    companion = await loadMultiDimCompanion()
+                } catch (e) {
+                    // Every multi-dim page is baked with a companion file, so
+                    // this is unexpected — report it, but degrade to the
+                    // generic title rather than failing the whole page.
+                    console.error("Error loading multi-dim companion file", e)
+                    Sentry.captureException(e)
+                }
+                if (!companion) return
+
+                const resolved = resolveMultiDimViewFromCompanion(
+                    companion,
+                    url.searchParams,
+                    mdimDimensionsObj
+                )
+                if (!resolved) {
+                    // No existing view matches the specified dimensions;
+                    // canonicalize to the default view instead of advertising
+                    // a nonexistent dimension combination.
+                    multiDimViewQueryStr =
+                        multiDimDimensionsToViewQueryStr(mdimDimensionsObj)
+                    return
+                }
+                multiDimViewQueryStr = resolved.viewQueryStr
+                if (companion.title) {
+                    multiDimViewTitle = `${resolved.view.title} | ${companion.title}`
+                }
+            },
+        })
+        // head > title so that <title> elements of inline SVGs in the body
+        // (e.g. icon accessibility labels) are left alone
+        .on("head > title", {
+            element: (element) => {
+                if (!multiDimViewTitle) return
+                element.setInnerContent(
+                    `${multiDimViewTitle} | Our World in Data`
+                )
+            },
+        })
+        .on('meta[property="og:title"], meta[name="twitter:title"]', {
+            element: (element) => {
+                if (!multiDimViewTitle) return
+                element.setAttribute("content", multiDimViewTitle)
             },
         })
         .on('link[rel="canonical"]', {
@@ -416,26 +556,11 @@ export function rewriteMetaTags(
             // This ensures search engines index specific dimension configurations separately while ignoring other query parameters.
             element: (element) => {
                 const href = element.getAttribute("href")
-                if (href && mdimDimensionsObj) {
-                    try {
-                        const searchParams = url.searchParams
-                        const newSearchParams = new URLSearchParams()
-                        for (const [dim, defaultChoice] of Object.entries(
-                            mdimDimensionsObj
-                        )) {
-                            const value = searchParams.get(dim) ?? defaultChoice
-                            newSearchParams.set(dim, value)
-                        }
-                        newSearchParams.sort() // Sort parameters for consistent ordering in the URL
-                        if (newSearchParams.toString()) {
-                            element.setAttribute(
-                                "href",
-                                href + "?" + newSearchParams.toString()
-                            )
-                        }
-                    } catch (e) {
-                        console.error("Error rewriting canonical URL", e)
-                    }
+                if (href && multiDimViewQueryStr) {
+                    element.setAttribute(
+                        "href",
+                        href + "?" + multiDimViewQueryStr
+                    )
                 }
             },
         })

@@ -1,5 +1,10 @@
 import * as React from "react"
-import { dyFromAlign, makeFigmaId, VerticalAlign } from "@ourworldindata/utils"
+import {
+    VerticalAlign,
+    dyFromAlign,
+    makeFigmaId,
+    roundForSvg,
+} from "@ourworldindata/utils"
 import {
     resolveLegendMarkerStyle,
     resolveLegendTextStyle,
@@ -58,10 +63,10 @@ export function HorizontalCategoricalColorLegend(
                         <rect
                             id={makeFigmaId(mark.label.text)}
                             key={`${mark.label}-${index}`}
-                            x={x + mark.x}
-                            y={y + mark.y}
-                            width={mark.rectSize}
-                            height={mark.rectSize}
+                            x={roundForSvg(x + mark.x)}
+                            y={roundForSvg(y + mark.y)}
+                            width={roundForSvg(mark.rectSize)}
+                            height={roundForSvg(mark.rectSize)}
                             style={{ ...style, fill }}
                         />
                     )
@@ -77,8 +82,8 @@ export function HorizontalCategoricalColorLegend(
                     return (
                         <text
                             key={`${mark.label}-${index}`}
-                            x={x + mark.label.bounds.x}
-                            y={y + mark.label.bounds.y}
+                            x={roundForSvg(x + mark.label.bounds.x)}
+                            y={roundForSvg(y + mark.label.bounds.y)}
                             // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                             // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
                             // do with some rough positioning.
@@ -128,13 +133,17 @@ export function HorizontalCategoricalColorLegend(
                                 onPointerUp={pointerUp}
                             >
                                 <rect
-                                    x={x + mark.x}
-                                    y={y + mark.y - rectPadding / 2}
-                                    height={mark.rectSize + rectPadding}
-                                    width={
+                                    x={roundForSvg(x + mark.x)}
+                                    y={roundForSvg(
+                                        y + mark.y - rectPadding / 2
+                                    )}
+                                    height={roundForSvg(
+                                        mark.rectSize + rectPadding
+                                    )}
+                                    width={roundForSvg(
                                         mark.width +
-                                        SPACE_BETWEEN_CATEGORICAL_BINS
-                                    }
+                                            SPACE_BETWEEN_CATEGORICAL_BINS
+                                    )}
                                     fill="#fff"
                                     opacity={0}
                                 />

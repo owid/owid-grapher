@@ -6,7 +6,11 @@ import {
     LATEST_TYPE_LABELS,
     OwidGdocMinimalAnnouncementInterface,
 } from "@ourworldindata/types"
-import { dayjs, formatAuthors } from "@ourworldindata/utils"
+import {
+    dayjs,
+    deriveAnnouncementLatestType,
+    formatAuthors,
+} from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import { useDocumentContext } from "../DocumentContext.js"
 import Image, { ImageParentContainer } from "./Image.js"
@@ -24,10 +28,7 @@ import { faArrowRight, faHeart } from "@fortawesome/free-solid-svg-icons"
 import { useResizeObserver } from "usehooks-ts"
 import { OwidSocials } from "../../OwidSocials.js"
 import { NewsletterSubscriptionContext } from "../../newsletter.js"
-import {
-    deriveAnnouncementLatestType,
-    buildLatestPagePath,
-} from "../../latest/latestUtils.js"
+import { buildLatestPagePath } from "../../latest/latestUtils.js"
 
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
     className?: string

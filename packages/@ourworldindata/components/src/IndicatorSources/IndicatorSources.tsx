@@ -20,6 +20,9 @@ export interface IndicatorSourcesProps {
         index: number,
         isOpen: boolean
     ) => void
+    retrievedFromTrackNote?: string
+    descriptionTrackNote?: string
+    dodTrackNote?: string
 }
 
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
@@ -33,12 +36,14 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
             })}
         >
             {uniqueSources.map((source: DisplaySource, idx: number) => {
-                const isStacked = idx !== uniqueSources.length - 1
                 const content = (
                     <SourceContent
                         source={source}
                         isEmbeddedInADataPage={isEmbeddedInADataPage}
                         hideReuseThisWorkText={props.hideReuseThisWorkText}
+                        retrievedFromTrackNote={props.retrievedFromTrackNote}
+                        descriptionTrackNote={props.descriptionTrackNote}
+                        dodTrackNote={props.dodTrackNote}
                     />
                 )
                 const useExpandableToggle =
@@ -50,7 +55,6 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                         key={source.label}
                         label={source.label}
                         content={content}
-                        isStacked={isStacked}
                         hasTeaser={!props.hideTeasers}
                         onToggle={
                             props.onSourceToggle
@@ -67,7 +71,6 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                     <NonExpandable
                         key={source.label}
                         label={source.label}
-                        isStacked={isStacked}
                         content={content}
                     />
                 )
@@ -76,17 +79,9 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
     )
 }
 
-const NonExpandable = (props: {
-    label: string
-    content: React.ReactNode
-    isStacked?: boolean
-}) => {
+const NonExpandable = (props: { label: string; content: React.ReactNode }) => {
     return (
-        <div
-            className={cx("NonExpandable", {
-                "NonExpandable--stacked": props.isStacked,
-            })}
-        >
+        <div className="NonExpandable">
             <h4 className="NonExpandable__title">{props.label}</h4>
             <div className="NonExpandable__content">{props.content}</div>
         </div>
@@ -97,6 +92,9 @@ const SourceContent = (props: {
     source: DisplaySource
     isEmbeddedInADataPage: boolean
     hideReuseThisWorkText?: boolean
+    retrievedFromTrackNote?: string
+    descriptionTrackNote?: string
+    dodTrackNote?: string
 }) => {
     const { source } = props
     const retrievedOn = formatSourceDate(source.retrievedOn, "MMMM D, YYYY")
@@ -111,7 +109,11 @@ const SourceContent = (props: {
         <div className="source">
             {source.description && (
                 <div className="description">
-                    <SimpleMarkdownText text={source.description.trim()} />
+                    <SimpleMarkdownText
+                        text={source.description.trim()}
+                        dataTrackNote={props.descriptionTrackNote}
+                        dodTrackNote={props.dodTrackNote}
+                    />
                 </div>
             )}
             {showKeyInfo && (
@@ -124,6 +126,8 @@ const SourceContent = (props: {
                             <div className="source-key-data__content">
                                 <SimpleMarkdownText
                                     text={source.dataPublishedBy.trim()}
+                                    dataTrackNote={props.descriptionTrackNote}
+                                    dodTrackNote={props.dodTrackNote}
                                 />
                             </div>
                         </div>
@@ -185,7 +189,10 @@ const SourceContent = (props: {
                                     Retrieved from
                                 </div>
                                 <div className="source-key-data__content">
-                                    {makeLinks({ link: source.retrievedFrom })}
+                                    {makeLinks({
+                                        link: source.retrievedFrom,
+                                        trackNote: props.retrievedFromTrackNote,
+                                    })}
                                 </div>
                             </div>
                         )}

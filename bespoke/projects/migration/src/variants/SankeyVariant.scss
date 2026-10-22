@@ -46,15 +46,6 @@
     padding: 8px 0 0;
 }
 
-.migration-chart--narrow .migration-captioned-chart__chart-area {
-    height: 380px;
-}
-
-.migration-chart__error {
-    padding: 24px;
-    color: $error-text-color;
-}
-
 .migration-chart .tooltip-container.fixed-bottom .content-and-endmatter {
     max-height: min(230px, 35vh);
 }

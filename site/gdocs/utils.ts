@@ -10,6 +10,7 @@ import {
     ContentGraphLinkType,
     OwidGdocDataInsightInterface,
     OwidGdocPostInterface,
+    OwidEnrichedGdocBlock,
     OwidEnrichedGdocBlockTypeMap,
     LinkedStaticViz,
     OwidGdocType,
@@ -89,7 +90,6 @@ export const useLinkedAuthor = (
     name: string
     slug: string | null
     featuredImage: string | null
-    role?: string
 } => {
     const { linkedAuthors } = useContext(AttachmentsContext)
     const author = linkedAuthors?.find((author) => author.name === name)
@@ -356,6 +356,18 @@ export function buildGdocCitation({
 }`
 
     return { citationText, bibtex }
+}
+
+/**
+ * Block types come from the user and may not be all lowercase. Returns the
+ * block with a lowercased type, without copying it if it already is.
+ */
+export function normalizeBlockType(
+    block: OwidEnrichedGdocBlock
+): OwidEnrichedGdocBlock {
+    const type = block.type.toLowerCase()
+    if (type === block.type) return block
+    return { ...block, type } as OwidEnrichedGdocBlock
 }
 
 /**

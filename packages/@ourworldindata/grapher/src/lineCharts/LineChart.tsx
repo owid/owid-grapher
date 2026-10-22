@@ -333,7 +333,7 @@ export class LineChart
             yAxis: () => this.yAxis,
             yRange: () => this.verticalLabelsYRange,
             maxWidth: this.maxVerticalLabelsWidth,
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             fontWeight: this.fontWeight,
             verticalAlign: VerticalAlign.top,
             showRegionTooltip: !this.isStatic,
@@ -511,7 +511,7 @@ export class LineChart
         | undefined {
         return this.hasColorScale && this.manager.showLegend
             ? new HorizontalNumericColorLegendState(this.numericLegendData, {
-                  fontSize: this.fontSize,
+                  baseFontSize: this.fontSize,
                   maxWidth: this.bounds.width,
                   align: HorizontalAlign.center,
                   title: this.legendTitle,

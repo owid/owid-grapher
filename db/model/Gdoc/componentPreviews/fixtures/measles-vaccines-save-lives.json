@@ -1,0 +1,2543 @@
+{
+    "documentId": "1P8pu_FGx6fnJWw-xQBREe49uqN62rZAuARRrR2cdOjc",
+    "title": "Measles vaccines save millions of lives each year",
+    "tabs": [
+        {
+            "tabProperties": {
+                "tabId": "t.6r7u05gtyy3o",
+                "title": "Measles vaccines save lives",
+                "index": 0
+            },
+            "documentTab": {
+                "body": {
+                    "content": [
+                        { "endIndex": 1 },
+                        {
+                            "startIndex": 1,
+                            "endIndex": 2,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1,
+                                        "endIndex": 2,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2,
+                            "endIndex": 8,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2,
+                                        "endIndex": 8,
+                                        "textRun": { "content": ":skip\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8,
+                            "endIndex": 96,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8,
+                                        "endIndex": 94,
+                                        "textRun": {
+                                            "content": "https://admin.owid.io/admin/gdocs/1P8pu_FGx6fnJWw-xQBREe49uqN62rZAuARRrR2cdOjc/preview",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://admin.owid.io/admin/gdocs/1P8pu_FGx6fnJWw-xQBREe49uqN62rZAuARRrR2cdOjc/preview"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 94,
+                                        "endIndex": 96,
+                                        "textRun": { "content": " \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 96,
+                            "endIndex": 105,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 96,
+                                        "endIndex": 105,
+                                        "textRun": { "content": ":endskip\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 105,
+                            "endIndex": 106,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 105,
+                                        "endIndex": 106,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 106,
+                            "endIndex": 164,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 106,
+                                        "endIndex": 112,
+                                        "textRun": { "content": "title:" }
+                                    },
+                                    {
+                                        "startIndex": 112,
+                                        "endIndex": 164,
+                                        "textRun": {
+                                            "content": " Measles vaccines save millions of lives each year \n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 164,
+                            "endIndex": 305,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 164,
+                                        "endIndex": 173,
+                                        "textRun": { "content": "subtitle:" }
+                                    },
+                                    {
+                                        "startIndex": 173,
+                                        "endIndex": 305,
+                                        "textRun": {
+                                            "content": " Measles once killed millions every year. Vaccines changed this, preventing disease, long-term immune damage, and deadly outbreaks.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 305,
+                            "endIndex": 445,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 305,
+                                        "endIndex": 313,
+                                        "textRun": { "content": "excerpt:" }
+                                    },
+                                    {
+                                        "startIndex": 313,
+                                        "endIndex": 445,
+                                        "textRun": {
+                                            "content": " Measles once killed millions every year. Vaccines changed this, preventing disease, long-term immune damage, and deadly outbreaks.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 445,
+                            "endIndex": 484,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 445,
+                                        "endIndex": 453,
+                                        "textRun": { "content": "authors:" }
+                                    },
+                                    {
+                                        "startIndex": 453,
+                                        "endIndex": 484,
+                                        "textRun": {
+                                            "content": " Saloni Dattani, Fiona Spooner\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 484,
+                            "endIndex": 529,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 484,
+                                        "endIndex": 499,
+                                        "textRun": {
+                                            "content": "featured-image:"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 499,
+                                        "endIndex": 529,
+                                        "textRun": {
+                                            "content": " measles-heatmap-featured.png\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 529,
+                            "endIndex": 543,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 529,
+                                        "endIndex": 534,
+                                        "textRun": { "content": "type:" }
+                                    },
+                                    {
+                                        "startIndex": 534,
+                                        "endIndex": 543,
+                                        "textRun": { "content": " article\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 543,
+                            "endIndex": 544,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 543,
+                                        "endIndex": 544,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 544,
+                            "endIndex": 552,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 544,
+                                        "endIndex": 551,
+                                        "textRun": { "content": "[+body]" }
+                                    },
+                                    {
+                                        "startIndex": 551,
+                                        "endIndex": 552,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 552,
+                            "endIndex": 1188,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 552,
+                                        "endIndex": 674,
+                                        "textRun": {
+                                            "content": "Measles used to be an extremely common disease. Just sixty years ago, over 90% of children would have been infected by it."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 674,
+                                        "endIndex": 760,
+                                        "textRun": {
+                                            "content": "{ref}Centers for Disease Control and Prevention. (2021). Measles (14th ed.) Available "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 760,
+                                        "endIndex": 766,
+                                        "textRun": {
+                                            "content": "online",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://www.cdc.gov/pinkbook/hcp/table-of-contents/chapter-13-measles.html"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 766,
+                                        "endIndex": 773,
+                                        "textRun": { "content": ".{/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 773,
+                                        "endIndex": 774,
+                                        "textRun": { "content": " " }
+                                    },
+                                    {
+                                        "startIndex": 774,
+                                        "endIndex": 929,
+                                        "textRun": {
+                                            "content": "The United States alone had around three to four million cases annually, leading to tens of thousands of hospitalizations and hundreds of deaths each year."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 929,
+                                        "endIndex": 1188,
+                                        "textRun": {
+                                            "content": "{ref}The CDC reports that in the years before vaccines, measles caused an estimated 3 to 4 million cases, with around 500,000 cases reported annually, along with 48,000 hospitalizations, 1,000 cases with encephalitis (brain swelling), and 400 to 500 deaths. \n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1188,
+                            "endIndex": 1293,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1188,
+                                        "endIndex": 1278,
+                                        "textRun": {
+                                            "content": "Centers for Disease Control and Prevention (2019). Measles Data and Statistics. Available "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 1278,
+                                        "endIndex": 1284,
+                                        "textRun": {
+                                            "content": "online",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://www.cdc.gov/measles/downloads/measlesdataandstatsslideset.pdf"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 1284,
+                                        "endIndex": 1291,
+                                        "textRun": { "content": ".{/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 1291,
+                                        "endIndex": 1293,
+                                        "textRun": { "content": " \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1293,
+                            "endIndex": 1488,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1293,
+                                        "endIndex": 1488,
+                                        "textRun": {
+                                            "content": "However, in 1963, John Enders developed the first effective measles vaccine. Vaccination efforts ramped up rapidly in richer countries, and in the 1970s and 1980s, they were scaled up worldwide.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1488,
+                            "endIndex": 2016,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1488,
+                                        "endIndex": 1687,
+                                        "textRun": {
+                                            "content": "In just the last fifty years, it’s estimated that measles vaccinations have prevented over ninety million deaths worldwide. Two to three million people would die from measles every year without them."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 1687,
+                                        "endIndex": 1762,
+                                        "textRun": {
+                                            "content": "{ref}Progress Toward Measles Elimination — Worldwide, 2000–2023. Available "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 1762,
+                                        "endIndex": 1768,
+                                        "textRun": {
+                                            "content": "online",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11576049/"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 1768,
+                                        "endIndex": 1775,
+                                        "textRun": { "content": ".{/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 1775,
+                                        "endIndex": 1885,
+                                        "textRun": {
+                                            "content": " This means these vaccines are likely the most life-saving ones currently in use, as you can see in the chart."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 1885,
+                                        "endIndex": 2015,
+                                        "textRun": {
+                                            "content": "{ref}This doesn’t include smallpox vaccines, which are no longer in use, since the disease was eradicated worldwide in 1980.{/ref}"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2015,
+                                        "endIndex": 2016,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2016,
+                            "endIndex": 2113,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2016,
+                                        "endIndex": 2113,
+                                        "textRun": {
+                                            "content": "In this article, I explain how measles vaccines were developed and their impact on saving lives.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2113,
+                            "endIndex": 2132,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2113,
+                                        "endIndex": 2132,
+                                        "textRun": {
+                                            "content": "{.narrative-chart}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2132,
+                            "endIndex": 2216,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2132,
+                                        "endIndex": 2216,
+                                        "textRun": {
+                                            "content": "name: number-of-lives-saved-by-measles-and-childhood-vaccinations-from-1974-to-2024\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2216,
+                            "endIndex": 2220,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2216,
+                                        "endIndex": 2220,
+                                        "textRun": { "content": "{ }\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2220,
+                            "endIndex": 2222,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2220,
+                                        "endIndex": 2221,
+                                        "inlineObjectElement": {
+                                            "inlineObjectId": "kix.58aeuihpvvmu"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2221,
+                                        "endIndex": 2222,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2222,
+                            "endIndex": 2300,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2222,
+                                        "endIndex": 2300,
+                                        "textRun": {
+                                            "content": "The introduction of the measles vaccine led to a substantial decline in cases\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2300,
+                            "endIndex": 2852,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2300,
+                                        "endIndex": 2366,
+                                        "textRun": {
+                                            "content": "John Enders and his colleagues developed the first measles vaccine"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2366,
+                                        "endIndex": 2457,
+                                        "textRun": {
+                                            "content": ". Enders had previously played a key role in research for the development of polio vaccines"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2457,
+                                        "endIndex": 2852,
+                                        "textRun": {
+                                            "content": "{ref}In 1949, Enders, along with Thomas Weller and Frederick Robbins, successfully grew poliovirus in human tissue cultures, which earned them the 1954 Nobel Prize in Physiology or Medicine. This breakthrough enabled the production of large amounts of poliovirus without relying on live animals. It paved the way for Jonas Salk’s inactivated polio vaccine and Albert Sabin’s oral polio vaccine.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2852,
+                            "endIndex": 2984,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2852,
+                                        "endIndex": 2914,
+                                        "textRun": {
+                                            "content": "Nobel Prize Outreach (2025) John F. Enders – Facts. Available "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2914,
+                                        "endIndex": 2920,
+                                        "textRun": {
+                                            "content": "online",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://www.nobelprize.org/prizes/medicine/1954/enders/facts/"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2920,
+                                        "endIndex": 2927,
+                                        "textRun": { "content": ".{/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 2927,
+                                        "endIndex": 2945,
+                                        "textRun": {
+                                            "content": " and in 1954, his "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2945,
+                                        "endIndex": 2949,
+                                        "textRun": { "content": "team" }
+                                    },
+                                    {
+                                        "startIndex": 2949,
+                                        "endIndex": 2984,
+                                        "textRun": {
+                                            "content": " turned its attention to measles. \n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2984,
+                            "endIndex": 3316,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2984,
+                                        "endIndex": 3224,
+                                        "textRun": {
+                                            "content": "They collected samples from throat swabs and blood from infected school children during an outbreak. The researchers successfully isolated the measles virus from one sample, naming it the “Edmonston strain” after the young boy it came from."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3224,
+                                        "endIndex": 3316,
+                                        "textRun": {
+                                            "content": "{ref}The 13-year-old boy from whom the measles virus was derived was named David Edmonston.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3316,
+                            "endIndex": 3569,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3316,
+                                        "endIndex": 3517,
+                                        "textRun": {
+                                            "content": "Katz, S. L. (2011). The History of Measles Virus and the Development and Utilization of Measles Virus Vaccines. In S. A. Plotkin (Ed.), History of Vaccine Development (pp. 199–206). Springer New York. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3517,
+                                        "endIndex": 3561,
+                                        "textRun": {
+                                            "content": "https://doi.org/10.1007/978-1-4419-1339-5_22",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://doi.org/10.1007/978-1-4419-1339-5_22"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3561,
+                                        "endIndex": 3568,
+                                        "textRun": { "content": " {/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 3568,
+                                        "endIndex": 3569,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3569,
+                            "endIndex": 4208,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3569,
+                                        "endIndex": 3950,
+                                        "textRun": {
+                                            "content": "The next challenge was weakening or “attenuating” the virus so it could trigger immunity without causing disease. Enders and his colleagues experimented with growing the virus in human kidney cells and then in fertilized chicken eggs, forcing it to adapt to different environments. By repeating this process many times, the virus lost its ability to cause severe disease in humans."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3950,
+                                        "endIndex": 4156,
+                                        "textRun": {
+                                            "content": "{ref}Katz, S. L. (2011). The History of Measles Virus and the Development and Utilization of Measles Virus Vaccines. In S. A. Plotkin (Ed.), History of Vaccine Development (pp. 199–206). Springer New York. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4156,
+                                        "endIndex": 4200,
+                                        "textRun": {
+                                            "content": "https://doi.org/10.1007/978-1-4419-1339-5_22",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://doi.org/10.1007/978-1-4419-1339-5_22"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4200,
+                                        "endIndex": 4207,
+                                        "textRun": { "content": " {/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 4207,
+                                        "endIndex": 4208,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4208,
+                            "endIndex": 4799,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4208,
+                                        "endIndex": 4541,
+                                        "textRun": {
+                                            "content": "The first human trials in 1960 were successful: school children given the vaccine developed strong immunity and were protected against the virus. However, the vaccine still caused fever and rash in many children. To reduce these side effects, doctors gave children “measles immune globulin” alongside the vaccine to blunt its impact."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4541,
+                                        "endIndex": 4747,
+                                        "textRun": {
+                                            "content": "{ref}Katz, S. L. (2011). The History of Measles Virus and the Development and Utilization of Measles Virus Vaccines. In S. A. Plotkin (Ed.), History of Vaccine Development (pp. 199–206). Springer New York. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4747,
+                                        "endIndex": 4791,
+                                        "textRun": {
+                                            "content": "https://doi.org/10.1007/978-1-4419-1339-5_22",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://doi.org/10.1007/978-1-4419-1339-5_22"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4791,
+                                        "endIndex": 4799,
+                                        "textRun": { "content": " {/ref}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4799,
+                            "endIndex": 4808,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4799,
+                                        "endIndex": 4808,
+                                        "textRun": { "content": "{.aside}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4808,
+                            "endIndex": 5017,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4808,
+                                        "endIndex": 4817,
+                                        "textRun": { "content": "caption: " }
+                                    },
+                                    {
+                                        "startIndex": 4817,
+                                        "endIndex": 5017,
+                                        "textRun": {
+                                            "content": "Measles immune globulin is a concentrated preparation of antibodies against measles taken from donated blood, used to provide short-term passive immunity or soften the body’s reaction to the vaccine.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5017,
+                            "endIndex": 5033,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5017,
+                                        "endIndex": 5027,
+                                        "textRun": { "content": "position: " }
+                                    },
+                                    {
+                                        "startIndex": 5027,
+                                        "endIndex": 5033,
+                                        "textRun": { "content": "right\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5033,
+                            "endIndex": 5036,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5033,
+                                        "endIndex": 5035,
+                                        "textRun": { "content": "{}" }
+                                    },
+                                    {
+                                        "startIndex": 5035,
+                                        "endIndex": 5036,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5036,
+                            "endIndex": 5756,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5036,
+                                        "endIndex": 5442,
+                                        "textRun": {
+                                            "content": "Maurice Hilleman, a microbiologist who developed over 40 vaccines in his lifetime, improved the measles vaccine. In the 1960s, he further weakened the measles virus by growing it in chick embryo cells at lower temperatures, creating an even safer version. It was licensed in 1968 and became the standard measles vaccine. A few years later, in 1971, he developed the measles-mumps-rubella (MMR) combination."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 5442,
+                                        "endIndex": 5704,
+                                        "textRun": {
+                                            "content": "{ref}Hilleman, M. R. (2011). The Development of Live Attenuated Mumps Virus Vaccine in Historic Perspective and Its Role in the Evolution of Combined Measles–Mumps–Rubella. In S. A. Plotkin (Ed.), History of Vaccine Development (pp. 207–218). Springer New York. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 5704,
+                                        "endIndex": 5748,
+                                        "textRun": {
+                                            "content": "https://doi.org/10.1007/978-1-4419-1339-5_23",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://doi.org/10.1007/978-1-4419-1339-5_23"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 5748,
+                                        "endIndex": 5756,
+                                        "textRun": { "content": " {/ref}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5756,
+                            "endIndex": 6193,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5756,
+                                        "endIndex": 5929,
+                                        "textRun": {
+                                            "content": "The impact of measles vaccination was rapid and substantial. Analysis of over a hundred studies shows that the vaccines reduce the chances of developing measles twenty-fold."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 5929,
+                                        "endIndex": 6139,
+                                        "textRun": {
+                                            "content": "{ref}Di Pietrantonj, C., Rivetti, A., Marchione, P., Debalini, M. G., & Demicheli, V. (2021). Vaccines for measles, mumps, rubella, and varicella in children. Cochrane Database of Systematic Reviews, 2021(11). "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6139,
+                                        "endIndex": 6185,
+                                        "textRun": {
+                                            "content": "https://doi.org/10.1002/14651858.CD004407.pub5",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://doi.org/10.1002/14651858.CD004407.pub5"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6185,
+                                        "endIndex": 6192,
+                                        "textRun": { "content": " {/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 6192,
+                                        "endIndex": 6193,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6193,
+                            "endIndex": 6524,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6193,
+                                        "endIndex": 6524,
+                                        "textRun": {
+                                            "content": "You can see the impact of vaccination in the United States in the heatmap below. Each row is one state, and the colors represent the number of reported cases over time. In the first half of the 20th century, measles rates were high, and the years are shown in dark blue, but the number of cases rapidly dropped due to vaccination.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6524,
+                            "endIndex": 6538,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6524,
+                                        "endIndex": 6537,
+                                        "textRun": {
+                                            "content": "{.static-viz}"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6537,
+                                        "endIndex": 6538,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6538,
+                            "endIndex": 6563,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6538,
+                                        "endIndex": 6544,
+                                        "textRun": { "content": "name: " }
+                                    },
+                                    {
+                                        "startIndex": 6544,
+                                        "endIndex": 6562,
+                                        "textRun": {
+                                            "content": "us-measles-heatmap"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6562,
+                                        "endIndex": 6563,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6563,
+                            "endIndex": 6580,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6563,
+                                        "endIndex": 6580,
+                                        "textRun": {
+                                            "content": "hasOutline: true\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6580,
+                            "endIndex": 6793,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6580,
+                                        "endIndex": 6648,
+                                        "textRun": {
+                                            "content": "caption: This chart was inspired by Tynan DeBold and Dov Friedman’s "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6648,
+                                        "endIndex": 6667,
+                                        "textRun": {
+                                            "content": "data visualizations",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://graphics.wsj.com/infectious-diseases-and-vaccines/"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6667,
+                                        "endIndex": 6716,
+                                        "textRun": {
+                                            "content": " in the Wall Street Journal. Explore the data in "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6716,
+                                        "endIndex": 6736,
+                                        "textRun": {
+                                            "content": "an interactive chart",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/grapher/reported-measles-case-rate-by-state-in-the-united-states"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6736,
+                                        "endIndex": 6782,
+                                        "textRun": {
+                                            "content": ". Scripts to recreate this chart can be found "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6782,
+                                        "endIndex": 6791,
+                                        "textRun": {
+                                            "content": "on GitHub",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://github.com/owid/notebooks/tree/main/FionaSpooner/measles_heatmap"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6791,
+                                        "endIndex": 6793,
+                                        "textRun": { "content": ".\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6793,
+                            "endIndex": 6796,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6793,
+                                        "endIndex": 6796,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6796,
+                            "endIndex": 6798,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6796,
+                                        "endIndex": 6797,
+                                        "inlineObjectElement": {
+                                            "inlineObjectId": "kix.6tojmhu8w1do"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6797,
+                                        "endIndex": 6798,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6798,
+                            "endIndex": 6880,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6798,
+                                        "endIndex": 6879,
+                                        "textRun": {
+                                            "content": "Deaths remained common in poorer countries until vaccines became widely available"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6879,
+                                        "endIndex": 6880,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6880,
+                            "endIndex": 7548,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6880,
+                                        "endIndex": 6885,
+                                        "textRun": { "content": "Other" }
+                                    },
+                                    {
+                                        "startIndex": 6885,
+                                        "endIndex": 7289,
+                                        "textRun": {
+                                            "content": " factors have also played a role in the reduction in measles deaths. In the US, deaths had already been falling in the decades before — probably due to better treatment for the secondary infectious diseases that people with measles become vulnerable to, improved sanitation and hygiene that limited the spread of those infections, and better childhood nutrition, which lowered the risk of severe illness."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7289,
+                                        "endIndex": 7495,
+                                        "textRun": {
+                                            "content": "{ref}Schneider, E. B. (2023). The effect of nutritional status on historical infectious disease morbidity: Evidence from the London Foundling Hospital, 1892-1919. The History of the Family, 28(2), 198–228. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7495,
+                                        "endIndex": 7540,
+                                        "textRun": {
+                                            "content": "https://doi.org/10.1080/1081602X.2021.2007499",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://doi.org/10.1080/1081602X.2021.2007499"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7540,
+                                        "endIndex": 7547,
+                                        "textRun": { "content": " {/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 7547,
+                                        "endIndex": 7548,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7548,
+                            "endIndex": 7946,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7548,
+                                        "endIndex": 7615,
+                                        "textRun": {
+                                            "content": "However, these improvements were not effective in reducing measles "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7615,
+                                        "endIndex": 7620,
+                                        "textRun": { "content": "cases" }
+                                    },
+                                    {
+                                        "startIndex": 7620,
+                                        "endIndex": 7622,
+                                        "textRun": { "content": ". " }
+                                    },
+                                    {
+                                        "startIndex": 7622,
+                                        "endIndex": 7852,
+                                        "textRun": {
+                                            "content": "The measles virus is airborne, so improvements in hygiene, such as clean water or better sewage systems, do not reduce its spread. Since measles is so contagious, nearly every child still got measles before vaccines were available"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7852,
+                                        "endIndex": 7938,
+                                        "textRun": {
+                                            "content": "{ref}Centers for Disease Control and Prevention (2024). History of measles. Available "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7938,
+                                        "endIndex": 7944,
+                                        "textRun": {
+                                            "content": "online",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://www.cdc.gov/measles/downloads/measlesdataandstatsslideset.pdf"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7944,
+                                        "endIndex": 7946,
+                                        "textRun": { "content": ".\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7946,
+                            "endIndex": 8296,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7946,
+                                        "endIndex": 8168,
+                                        "textRun": {
+                                            "content": "Guerra, F. M., Bolotin, S., Lim, G., Heffernan, J., Deeks, S. L., Li, Y., & Crowcroft, N. S. (2017). The basic reproduction number (R 0 ) of measles: A systematic review. The Lancet Infectious Diseases, 17(12), e420–e428. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8168,
+                                        "endIndex": 8213,
+                                        "textRun": {
+                                            "content": "https://doi.org/10.1016/S1473-3099(17)30307-9",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://doi.org/10.1016/S1473-3099(17)30307-9"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8213,
+                                        "endIndex": 8220,
+                                        "textRun": { "content": " {/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 8220,
+                                        "endIndex": 8296,
+                                        "textRun": {
+                                            "content": ", and the number of cases only began to decline after the vaccines arrived.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8296,
+                            "endIndex": 8739,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8296,
+                                        "endIndex": 8480,
+                                        "textRun": {
+                                            "content": "Yet this doesn’t mean these cases were mild: before vaccines were available, there were still around 50,000 hospitalizations and hundreds of deaths in just the United States each year."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8480,
+                                        "endIndex": 8739,
+                                        "textRun": {
+                                            "content": "{ref}The CDC reports that in the years before vaccines, measles caused an estimated 3 to 4 million cases, with around 500,000 cases reported annually, along with 48,000 hospitalizations, 1,000 cases with encephalitis (brain swelling), and 400 to 500 deaths. \n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8739,
+                            "endIndex": 8843,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8739,
+                                        "endIndex": 8829,
+                                        "textRun": {
+                                            "content": "Centers for Disease Control and Prevention (2019). Measles Data and Statistics. Available "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8829,
+                                        "endIndex": 8835,
+                                        "textRun": {
+                                            "content": "online",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://www.cdc.gov/measles/downloads/measlesdataandstatsslideset.pdf"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8835,
+                                        "endIndex": 8842,
+                                        "textRun": { "content": ".{/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 8842,
+                                        "endIndex": 8843,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8843,
+                            "endIndex": 9109,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8843,
+                                        "endIndex": 8864,
+                                        "textRun": {
+                                            "content": "In contrast, measles "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8864,
+                                        "endIndex": 8870,
+                                        "textRun": { "content": "deaths" }
+                                    },
+                                    {
+                                        "startIndex": 8870,
+                                        "endIndex": 9109,
+                                        "textRun": {
+                                            "content": " continued to be common in poorer countries until vaccines became widely available. In the chart below, you can see that hundreds of thousands of people died from measles annually in Africa and South-East Asia between the 1980s and 2000s.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9109,
+                            "endIndex": 9118,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9109,
+                                        "endIndex": 9118,
+                                        "textRun": { "content": "{.chart}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9118,
+                            "endIndex": 9190,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9118,
+                                        "endIndex": 9123,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 9123,
+                                        "endIndex": 9189,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/grapher/deaths-due-to-measles-by-region",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/grapher/deaths-due-to-measles-by-region"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9189,
+                                        "endIndex": 9190,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9190,
+                            "endIndex": 9193,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9190,
+                                        "endIndex": 9193,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9193,
+                            "endIndex": 9195,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9193,
+                                        "endIndex": 9194,
+                                        "inlineObjectElement": {
+                                            "inlineObjectId": "kix.tpfqhgrmuqyl"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9194,
+                                        "endIndex": 9195,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9195,
+                            "endIndex": 9853,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9195,
+                                        "endIndex": 9252,
+                                        "textRun": {
+                                            "content": "That’s because, in low- and middle-income countries, the "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9252,
+                                        "endIndex": 9270,
+                                        "textRun": {
+                                            "content": "case fatality rate",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://docs.google.com/document/d/1ZANNVgNO39skTvIpWFZijHaBDthfqyRYE3g766fr_gY/edit#dod:case-fatality-rate"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9270,
+                                        "endIndex": 9538,
+                                        "textRun": {
+                                            "content": " from measles has been much higher than in richer countries. It’s estimated that in the 1980s, 5 to 10% of children with the disease then died from it. This would have been particularly severe when widespread measles outbreaks infected most children in the population."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9538,
+                                        "endIndex": 9800,
+                                        "textRun": {
+                                            "content": "{ref}Portnoy, A., Jit, M., Ferrari, M., Hanson, M., Brenzel, L., & Verguet, S. (2019). Estimates of case-fatality ratios of measles in low-income and middle-income countries: A systematic review and modelling analysis. The Lancet Global Health, 7(4), e472–e481. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9800,
+                                        "endIndex": 9845,
+                                        "textRun": {
+                                            "content": "https://doi.org/10.1016/S2214-109X(18)30537-0",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://doi.org/10.1016/S2214-109X(18)30537-0"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9845,
+                                        "endIndex": 9852,
+                                        "textRun": { "content": " {/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 9852,
+                                        "endIndex": 9853,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9853,
+                            "endIndex": 10014,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9853,
+                                        "endIndex": 10014,
+                                        "textRun": {
+                                            "content": "The number of measles deaths dropped dramatically in the 2000s, particularly in Africa, as vaccination efforts scaled up, as we’ll see in the following section.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 10014,
+                            "endIndex": 10068,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 10014,
+                                        "endIndex": 10068,
+                                        "textRun": {
+                                            "content": "Measles vaccination saves millions of lives each year\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 10068,
+                            "endIndex": 10213,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 10068,
+                                        "endIndex": 10213,
+                                        "textRun": {
+                                            "content": "The global rollout of measles vaccines has been one of history’s most successful public health efforts. Each year, they save millions of lives. \n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 10213,
+                            "endIndex": 10645,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 10213,
+                                        "endIndex": 10386,
+                                        "textRun": {
+                                            "content": "This is especially true in low-income countries where children face the highest risk of dying from measles because of poorer overall health, nutrition, and living standards."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 10386,
+                                        "endIndex": 10592,
+                                        "textRun": {
+                                            "content": "{ref}Schneider, E. B. (2023). The effect of nutritional status on historical infectious disease morbidity: Evidence from the London Foundling Hospital, 1892-1919. The History of the Family, 28(2), 198–228. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 10592,
+                                        "endIndex": 10637,
+                                        "textRun": {
+                                            "content": "https://doi.org/10.1080/1081602X.2021.2007499",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://doi.org/10.1080/1081602X.2021.2007499"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 10637,
+                                        "endIndex": 10644,
+                                        "textRun": { "content": " {/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 10644,
+                                        "endIndex": 10645,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 10645,
+                            "endIndex": 10785,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 10645,
+                                        "endIndex": 10785,
+                                        "textRun": {
+                                            "content": "This chart shows how far the world has come. It shows the share of one-year-olds who have received their first dose of the measles vaccine.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 10785,
+                            "endIndex": 10804,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 10785,
+                                        "endIndex": 10804,
+                                        "textRun": {
+                                            "content": "{.narrative-chart}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 10804,
+                            "endIndex": 10849,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 10804,
+                                        "endIndex": 10849,
+                                        "textRun": {
+                                            "content": "name: vaccination-coverage-measles-vs-others\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 10849,
+                            "endIndex": 10852,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 10849,
+                                        "endIndex": 10852,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 10852,
+                            "endIndex": 10854,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 10852,
+                                        "endIndex": 10853,
+                                        "inlineObjectElement": {
+                                            "inlineObjectId": "kix.hm61nnum6rtk"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 10853,
+                                        "endIndex": 10854,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 10854,
+                            "endIndex": 10855,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 10854,
+                                        "endIndex": 10855,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 10855,
+                            "endIndex": 11077,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 10855,
+                                        "endIndex": 11077,
+                                        "textRun": {
+                                            "content": "In the 1980s, coverage was very low in many parts of the world, especially in Africa, Southeast Asia, and the Eastern Mediterranean. In some countries, like Yemen, only 2% of children received vaccines; in Spain, only 8%.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 11077,
+                            "endIndex": 11135,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 11077,
+                                        "endIndex": 11135,
+                                        "textRun": {
+                                            "content": "But since then, vaccination rates have increased rapidly.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 11135,
+                            "endIndex": 11450,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 11135,
+                                        "endIndex": 11169,
+                                        "textRun": {
+                                            "content": "One reason is the scale-up of the "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 11169,
+                                        "endIndex": 11203,
+                                        "textRun": {
+                                            "content": "Expanded Programme on Immunization",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://www.who.int/teams/immunization-vaccines-and-biologicals/essential-programme-on-immunization"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 11203,
+                                        "endIndex": 11450,
+                                        "textRun": {
+                                            "content": " by the World Health Assembly from the 1970s, which aimed to vaccinate children against the deadliest infectious diseases, including measles. Vaccination efforts reached more than 90 million children — or 60% of all infants — by the early 2000s. \n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 11450,
+                            "endIndex": 11692,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 11450,
+                                        "endIndex": 11692,
+                                        "textRun": {
+                                            "content": "But millions of children were still left behind, particularly in poorer countries. In response, the Gavi Vaccine Alliance was established in 2000 to close these gaps and ensure that life-saving vaccines reached the most vulnerable children. \n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 11692,
+                            "endIndex": 11789,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 11692,
+                                        "endIndex": 11771,
+                                        "textRun": {
+                                            "content": "Now, over a hundred million infants receive vaccinations for measles, which is "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 11771,
+                                        "endIndex": 11787,
+                                        "textRun": {
+                                            "content": "over 80% of them",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/grapher/share-of-children-vaccinated-against-measles?tab=chart"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 11787,
+                                        "endIndex": 11789,
+                                        "textRun": { "content": ".\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 11789,
+                            "endIndex": 11874,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 11789,
+                                        "endIndex": 11874,
+                                        "textRun": {
+                                            "content": "These efforts have transformed global health, dramatically reducing child mortality.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 11874,
+                            "endIndex": 12504,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 11874,
+                                        "endIndex": 11980,
+                                        "textRun": {
+                                            "content": "This next chart shows estimates of the cumulative number of lives saved by measles vaccinations over time."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 11980,
+                                        "endIndex": 12450,
+                                        "textRun": {
+                                            "content": "{ref}Shattock, A. J., Johnson, H. C., Sim, S. Y., Carter, A., Lambach, P., Hutubessy, R. C. W., Thompson, K. M., Badizadegan, K., Lambert, B., Ferrari, M. J., Jit, M., Fu, H., Silal, S. P., Hounsell, R. A., White, R. G., Mosser, J. F., Gaythorpe, K. A. M., Trotter, C. L., Lindstrand, A., … Bar-Zeev, N. (2024). Contribution of vaccination to improved survival and health: Modelling 50 years of the Expanded Programme on Immunization. The Lancet, 403(10441), 2307–2316. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 12450,
+                                        "endIndex": 12495,
+                                        "textRun": {
+                                            "content": "https://doi.org/10.1016/S0140-6736(24)00850-X",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://doi.org/10.1016/S0140-6736(24)00850-X"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 12495,
+                                        "endIndex": 12502,
+                                        "textRun": { "content": " {/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 12502,
+                                        "endIndex": 12504,
+                                        "textRun": { "content": " \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 12504,
+                            "endIndex": 12513,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 12504,
+                                        "endIndex": 12513,
+                                        "textRun": { "content": "{.chart}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 12513,
+                            "endIndex": 12610,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 12513,
+                                        "endIndex": 12518,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 12518,
+                                        "endIndex": 12609,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/grapher/cumulative-lives-saved-by-measles-vaccination-since-1974",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/grapher/cumulative-lives-saved-by-measles-vaccination-since-1974"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 12609,
+                                        "endIndex": 12610,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 12610,
+                            "endIndex": 12613,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 12610,
+                                        "endIndex": 12613,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 12613,
+                            "endIndex": 12615,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 12613,
+                                        "endIndex": 12614,
+                                        "inlineObjectElement": {
+                                            "inlineObjectId": "kix.c4po0mknne97"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 12614,
+                                        "endIndex": 12615,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 12615,
+                            "endIndex": 12616,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 12615,
+                                        "endIndex": 12616,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 12616,
+                            "endIndex": 13412,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 12616,
+                                        "endIndex": 12889,
+                                        "textRun": {
+                                            "content": "Fifty years since the start of measles vaccination programs, we can see that their impact has been substantial: researchers estimate that 94 million lives have been saved from measles vaccines. That means, on average, nearly two million measles deaths prevented every year."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 12889,
+                                        "endIndex": 13359,
+                                        "textRun": {
+                                            "content": "{ref}Shattock, A. J., Johnson, H. C., Sim, S. Y., Carter, A., Lambach, P., Hutubessy, R. C. W., Thompson, K. M., Badizadegan, K., Lambert, B., Ferrari, M. J., Jit, M., Fu, H., Silal, S. P., Hounsell, R. A., White, R. G., Mosser, J. F., Gaythorpe, K. A. M., Trotter, C. L., Lindstrand, A., … Bar-Zeev, N. (2024). Contribution of vaccination to improved survival and health: Modelling 50 years of the Expanded Programme on Immunization. The Lancet, 403(10441), 2307–2316. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 13359,
+                                        "endIndex": 13404,
+                                        "textRun": {
+                                            "content": "https://doi.org/10.1016/S0140-6736(24)00850-X",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://doi.org/10.1016/S0140-6736(24)00850-X"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 13404,
+                                        "endIndex": 13411,
+                                        "textRun": { "content": " {/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 13411,
+                                        "endIndex": 13412,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 13412,
+                            "endIndex": 13619,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 13412,
+                                        "endIndex": 13568,
+                                        "textRun": {
+                                            "content": "The impact has been greatest in Africa, with 29 million lives saved, and Southeast Asia, with 20 million lives saved. These are regions where measles was a "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 13568,
+                                        "endIndex": 13602,
+                                        "textRun": {
+                                            "content": "leading cause of death in children",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/grapher/causes-of-death-in-children-under-5?time=earliest&country=~OWID_AFR"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 13602,
+                                        "endIndex": 13619,
+                                        "textRun": {
+                                            "content": " until recently.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 13619,
+                            "endIndex": 13843,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 13619,
+                                        "endIndex": 13712,
+                                        "textRun": {
+                                            "content": "This means measles vaccines rank as the most life-saving childhood vaccines currently in use."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 13712,
+                                        "endIndex": 13842,
+                                        "textRun": {
+                                            "content": "{ref}This doesn’t include smallpox vaccines, which are no longer in use, since the disease was eradicated worldwide in 1980.{/ref}"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 13842,
+                                        "endIndex": 13843,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 13843,
+                            "endIndex": 13845,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 13843,
+                                        "endIndex": 13844,
+                                        "horizontalRule": {}
+                                    },
+                                    {
+                                        "startIndex": 13844,
+                                        "endIndex": 13845,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 13845,
+                            "endIndex": 14503,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 13845,
+                                        "endIndex": 14141,
+                                        "textRun": {
+                                            "content": "Measles was once an unavoidable disease, infecting nearly every child and causing millions of deaths each year. This was not because of poor hygiene or healthcare, but because of how contagious measles is. Without immunity, each infected person would typically pass it to more than a dozen others"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 14141,
+                                        "endIndex": 14368,
+                                        "textRun": {
+                                            "content": "{ref}Guerra, F. M., Bolotin, S., Lim, G., Heffernan, J., Deeks, S. L., Li, Y., & Crowcroft, N. S. (2017). The basic reproduction number (R 0 ) of measles: A systematic review. The Lancet Infectious Diseases, 17(12), e420–e428. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 14368,
+                                        "endIndex": 14413,
+                                        "textRun": {
+                                            "content": "https://doi.org/10.1016/S1473-3099(17)30307-9",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://doi.org/10.1016/S1473-3099(17)30307-9"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 14413,
+                                        "endIndex": 14420,
+                                        "textRun": { "content": " {/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 14420,
+                                        "endIndex": 14503,
+                                        "textRun": {
+                                            "content": ", making sanitation and hygiene measures alone insufficient to control its spread.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 14503,
+                            "endIndex": 14850,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 14503,
+                                        "endIndex": 14850,
+                                        "textRun": {
+                                            "content": "The breakthrough came when researchers isolated and weakened the virus, creating a safe and effective vaccine. Over the following decades, measles vaccination was scaled up globally, reaching hundreds of millions of children and preventing an estimated 90 million deaths in the last fifty years — more than any other childhood vaccine used today.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 14850,
+                            "endIndex": 15111,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 14850,
+                                        "endIndex": 15111,
+                                        "textRun": {
+                                            "content": "Measles vaccination does more than prevent the disease. It preserves a child’s broader immunity and protects those most at risk, including infants, pregnant women, and people with weakened immune systems from health conditions or undergoing cancer treatments. \n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15111,
+                            "endIndex": 15490,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15111,
+                                        "endIndex": 15490,
+                                        "textRun": {
+                                            "content": "It also prevents the virus from spreading. When most people are immune, the virus runs into dead ends. Chains of transmission are broken before they can grow. As a result, outbreaks have become smaller, easier to contain, and increasingly rare. But keeping it this way requires high vaccination rates: the best way to stop a measles outbreak is to prevent it from ever starting.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15490,
+                            "endIndex": 15491,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15490,
+                                        "endIndex": 15491,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15491,
+                            "endIndex": 15502,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15491,
+                                        "endIndex": 15502,
+                                        "textRun": { "content": "{.callout}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15502,
+                            "endIndex": 15523,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15502,
+                                        "endIndex": 15509,
+                                        "textRun": { "content": "title: " }
+                                    },
+                                    {
+                                        "startIndex": 15509,
+                                        "endIndex": 15523,
+                                        "textRun": {
+                                            "content": "Update notice\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15523,
+                            "endIndex": 15534,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15523,
+                                        "endIndex": 15529,
+                                        "textRun": { "content": "icon: " }
+                                    },
+                                    {
+                                        "startIndex": 15529,
+                                        "endIndex": 15534,
+                                        "textRun": { "content": "info\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15534,
+                            "endIndex": 15543,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15534,
+                                        "endIndex": 15543,
+                                        "textRun": { "content": "[.+text]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15543,
+                            "endIndex": 15834,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15543,
+                                        "endIndex": 15833,
+                                        "textRun": {
+                                            "content": "A previous version of this article noted that sixty years ago, around one-quarter of children infected with measles, and with symptoms, would be hospitalized. This was likely too high; with true hospitalization rates closer to 5% to 10%. They were close to 50,000 hospitalizations per year."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 15833,
+                                        "endIndex": 15834,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15834,
+                            "endIndex": 15835,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15834,
+                                        "endIndex": 15835,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15835,
+                            "endIndex": 15838,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15835,
+                                        "endIndex": 15838,
+                                        "textRun": { "content": "[]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15838,
+                            "endIndex": 15841,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15838,
+                                        "endIndex": 15840,
+                                        "textRun": { "content": "{}" }
+                                    },
+                                    {
+                                        "startIndex": 15840,
+                                        "endIndex": 15841,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15841,
+                            "endIndex": 15879,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15841,
+                                        "endIndex": 15879,
+                                        "textRun": {
+                                            "content": "Continue reading on Our World in Data\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15879,
+                            "endIndex": 15897,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15879,
+                                        "endIndex": 15897,
+                                        "textRun": {
+                                            "content": "{.prominent-link}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15897,
+                            "endIndex": 15948,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15897,
+                                        "endIndex": 15902,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 15902,
+                                        "endIndex": 15946,
+                                        "textRun": {
+                                            "content": "How safe and effective are measles vaccines?",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://docs.google.com/document/d/1_E-fxU-UK8RZYaXrFpjRVs61zJYjCgJZu9QvzElfe5g/edit"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 15946,
+                                        "endIndex": 15948,
+                                        "textRun": { "content": " \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15948,
+                            "endIndex": 15951,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15948,
+                                        "endIndex": 15951,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15951,
+                            "endIndex": 15969,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15951,
+                                        "endIndex": 15969,
+                                        "textRun": {
+                                            "content": "{.prominent-link}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 15969,
+                            "endIndex": 16039,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 15969,
+                                        "endIndex": 15974,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 15974,
+                                        "endIndex": 16037,
+                                        "textRun": {
+                                            "content": "Vaccines have saved 150 million children over the last 50 years",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://docs.google.com/document/d/14VyENlA3wIGTzYmhNvIpVjjXCSKVgXIi2wcJLXffEDM/edit"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 16037,
+                                        "endIndex": 16039,
+                                        "textRun": { "content": " \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 16039,
+                            "endIndex": 16042,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 16039,
+                                        "endIndex": 16042,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 16042,
+                            "endIndex": 16060,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 16042,
+                                        "endIndex": 16060,
+                                        "textRun": {
+                                            "content": "{.prominent-link}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 16060,
+                            "endIndex": 16205,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 16060,
+                                        "endIndex": 16065,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 16065,
+                                        "endIndex": 16203,
+                                        "textRun": {
+                                            "content": "Our history is a battle against the microbes: we lost terribly before science, public health, and vaccines allowed us to protect ourselves",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://docs.google.com/document/d/1e0HDWjfdRTrbLlAdUMPGtkqmLJJFw9ookSmgBU6JMPI/edit"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 16203,
+                                        "endIndex": 16205,
+                                        "textRun": { "content": " \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 16205,
+                            "endIndex": 16208,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 16205,
+                                        "endIndex": 16207,
+                                        "textRun": { "content": "{}" }
+                                    },
+                                    {
+                                        "startIndex": 16207,
+                                        "endIndex": 16208,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 16208,
+                            "endIndex": 16211,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 16208,
+                                        "endIndex": 16210,
+                                        "textRun": { "content": "[]" }
+                                    },
+                                    {
+                                        "startIndex": 16210,
+                                        "endIndex": 16211,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "inlineObjects": {
+                    "kix.58aeuihpvvmu": {
+                        "objectId": "kix.58aeuihpvvmu",
+                        "inlineObjectProperties": {
+                            "embeddedObject": {
+                                "size": {
+                                    "height": {
+                                        "magnitude": 354.5262968299712,
+                                        "unit": "PT"
+                                    },
+                                    "width": {
+                                        "magnitude": 502.125,
+                                        "unit": "PT"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "kix.6tojmhu8w1do": {
+                        "objectId": "kix.6tojmhu8w1do",
+                        "inlineObjectProperties": {
+                            "embeddedObject": {
+                                "size": {
+                                    "height": {
+                                        "magnitude": 411.2285294117648,
+                                        "unit": "PT"
+                                    },
+                                    "width": {
+                                        "magnitude": 547.875,
+                                        "unit": "PT"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "kix.c4po0mknne97": {
+                        "objectId": "kix.c4po0mknne97",
+                        "inlineObjectProperties": {
+                            "embeddedObject": {
+                                "size": {
+                                    "height": {
+                                        "magnitude": 343.8529411764706,
+                                        "unit": "PT"
+                                    },
+                                    "width": {
+                                        "magnitude": 487.125,
+                                        "unit": "PT"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "kix.hm61nnum6rtk": {
+                        "objectId": "kix.hm61nnum6rtk",
+                        "inlineObjectProperties": {
+                            "embeddedObject": {
+                                "size": {
+                                    "height": {
+                                        "magnitude": 332.8711474609361,
+                                        "unit": "PT"
+                                    },
+                                    "width": {
+                                        "magnitude": 471.08080517863465,
+                                        "unit": "PT"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "kix.tpfqhgrmuqyl": {
+                        "objectId": "kix.tpfqhgrmuqyl",
+                        "inlineObjectProperties": {
+                            "embeddedObject": {
+                                "size": {
+                                    "height": {
+                                        "magnitude": 358.17590820312375,
+                                        "unit": "PT"
+                                    },
+                                    "width": {
+                                        "magnitude": 450.02715337423155,
+                                        "unit": "PT"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

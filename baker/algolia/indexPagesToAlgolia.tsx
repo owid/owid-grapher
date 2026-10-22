@@ -2,7 +2,7 @@
 // set up before any errors are thrown.
 import "../../serverUtils/instrument.js"
 
-import * as Sentry from "@sentry/node"
+import { runSentryScript } from "../../serverUtils/sentryTracing.js"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
@@ -17,7 +17,7 @@ import { SearchIndexName } from "@ourworldindata/types"
 const indexPagesToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) {
         console.log("Algolia indexing is disabled. Exiting.")
-        process.exit(0)
+        return
     }
 
     const client = getAlgoliaClient()
@@ -46,13 +46,6 @@ ObjectIDs: ${unfittedRecords.map((r) => r.objectID).join(", ")}`
         indexName,
         objects: fittedRecords,
     })
-
-    process.exit(0)
 }
 
-indexPagesToAlgolia().catch(async (e) => {
-    console.error("Error in indexPagesToAlgolia:", e)
-    Sentry.captureException(e)
-    await Sentry.close()
-    process.exit(1)
-})
+void runSentryScript("indexPagesToAlgolia", indexPagesToAlgolia)

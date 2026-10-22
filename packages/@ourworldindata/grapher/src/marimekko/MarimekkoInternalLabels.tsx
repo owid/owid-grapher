@@ -5,7 +5,7 @@ import * as R from "remeda"
 import { computed, makeObservable } from "mobx"
 import { PlacedMarimekkoSeries } from "./MarimekkoChartConstants"
 import { DualAxis } from "../axis/Axis"
-import { Bounds } from "@ourworldindata/utils"
+import { Bounds, roundForSvg } from "@ourworldindata/utils"
 import { Halo } from "@ourworldindata/components"
 
 interface MarimekkoInternalLabelsProps {
@@ -91,8 +91,8 @@ export class MarimekkoInternalLabels extends React.Component<MarimekkoInternalLa
                 {this.visibleLabels.map(({ label, bounds, color }) => (
                     <Halo key={label} id={label} outlineWidth={2}>
                         <text
-                            x={bounds.x}
-                            y={bounds.y}
+                            x={roundForSvg(bounds.x)}
+                            y={roundForSvg(bounds.y)}
                             fontSize={this.props.fontSize}
                             fill={color}
                         >

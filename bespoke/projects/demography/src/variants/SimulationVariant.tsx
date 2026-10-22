@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import cx from "clsx"
 import { QueryClientProvider } from "@tanstack/react-query"
 
@@ -8,16 +8,15 @@ import type {
     SimulationVariantConfig,
 } from "../core/config.js"
 import type { VariantProps } from "../../../../helpers/config.js"
+import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 import { CHART_FOOTER_SOURCES, DEFAULT_ENTITY_NAME } from "../core/constants.js"
 import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import {
     parseSimulationUrlState,
     type SimulationUrlState,
 } from "../core/urlState.js"
-import {
-    DemographyChartError,
-    DemographySkeleton,
-} from "../components/DemographyLoadAndError.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import {
     EmbedConfigProvider,
@@ -38,6 +37,7 @@ import {
 
 export function SimulationVariant({
     config,
+    urls,
 }: VariantProps<SimulationVariantConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
@@ -52,7 +52,10 @@ export function SimulationVariant({
                             breakpointClass(breakpoint)
                         )}
                     >
-                        <FetchingSimulationVariant config={config} />
+                        <FetchingSimulationVariant
+                            config={config}
+                            urls={urls}
+                        />
                     </div>
                 </BreakpointProvider>
             </QueryClientProvider>
@@ -62,8 +65,10 @@ export function SimulationVariant({
 
 function FetchingSimulationVariant({
     config,
+    urls,
 }: {
     config: SimulationVariantConfig
+    urls: BespokeComponentDataUrls
 }): React.ReactElement {
     const { urlSync } = useEmbedConfig()
 
@@ -79,7 +84,10 @@ function FetchingSimulationVariant({
         Boolean(urlState.entityName)
     )
     const [entityName, setEntityNameRaw, isInitialEntityNameResolved] =
-        useInitialEntityName(urlState.entityName ?? config.region)
+        useInitialEntityName(
+            urlState.entityName ?? config.region,
+            urls.metadataUrl
+        )
     const setEntityName = useCallback(
         (name: string) => {
             if (urlSync) {
@@ -92,38 +100,46 @@ function FetchingSimulationVariant({
     )
 
     const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName)
+        useDemographyData(entityName, urls)
 
-    useEffect(() => {
-        if (!metadata) return
-        if (metadata.slugs[entityName]) return
-
+    // Fall back to another entity if the selected one has no data
+    if (metadata && !metadata.slugs[entityName]) {
         const fallbackEntityName =
             config.region && metadata.slugs[config.region]
                 ? config.region
                 : DEFAULT_ENTITY_NAME
-        setEntityNameRaw(fallbackEntityName)
-        setShouldSyncEntityName(false)
-    }, [config.region, entityName, metadata, setEntityNameRaw])
+        if (entityName !== fallbackEntityName) {
+            setEntityNameRaw(fallbackEntityName)
+            setShouldSyncEntityName(false)
+        }
+    }
 
-    useEffect(() => {
-        const shouldSyncAutoDetectedEntityName =
-            urlSync &&
-            !urlState.entityName &&
-            (!config.region || config.region === "userLocation") &&
-            isInitialEntityNameResolved
-
+    // Start syncing the entity name to the URL once it's been auto-detected
+    const shouldSyncAutoDetectedEntityName =
+        urlSync &&
+        !urlState.entityName &&
+        (!config.region || config.region === "userLocation") &&
+        isInitialEntityNameResolved
+    const [
+        prevShouldSyncAutoDetectedEntityName,
+        setPrevShouldSyncAutoDetectedEntityName,
+    ] = useState(false)
+    if (
+        shouldSyncAutoDetectedEntityName !==
+        prevShouldSyncAutoDetectedEntityName
+    ) {
+        setPrevShouldSyncAutoDetectedEntityName(
+            shouldSyncAutoDetectedEntityName
+        )
         if (shouldSyncAutoDetectedEntityName) setShouldSyncEntityName(true)
-    }, [
-        config.region,
-        urlSync,
-        isInitialEntityNameResolved,
-        urlState.entityName,
-    ])
+    }
 
-    if (status === "pending") return <DemographySkeleton />
-    if (metadata && !metadata.slugs[entityName]) return <DemographySkeleton />
-    if (!metadata || !entityData) return <DemographyChartError />
+    if (status === "pending")
+        return <ChartSkeleton className="demography-chart-box" />
+    if (metadata && !metadata.slugs[entityName])
+        return <ChartSkeleton className="demography-chart-box" />
+    if (!metadata || !entityData)
+        return <ChartError className="demography-chart-box" />
 
     return (
         <CaptionedSimulationVariant

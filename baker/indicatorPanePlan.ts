@@ -32,7 +32,9 @@ export interface IndicatorPanePlan {
     additionalPaneVariableIds: number[]
     /** Size/colour indicators documented in the one-line link instead. */
     auxiliaryIndicators: AuxiliaryIndicator[] | undefined
-    auxiliaryRoleFor: (variableId: number) => AuxiliaryIndicator["role"] | undefined
+    auxiliaryRoleFor: (
+        variableId: number
+    ) => AuxiliaryIndicator["role"] | undefined
     /**
      * The chart author's display.name for the indicator's dimension; blank
      * (the editor saves "" when the field is cleared) counts as unset.
@@ -90,6 +92,22 @@ export function getAuxiliaryDimensions(
     )
 }
 
+/**
+ * Whether a chart has two or more distinct indicators to document: several
+ * Y-indicators, or a scatter plot's X / size / colour beside its Y. These are
+ * the charts that are grapher pages today only because the `datapages` rules
+ * want exactly one Y-indicator (and no scatter X); they bake as data pages
+ * with one metadata pane per indicator.
+ */
+export function hasMultipleIndicators(grapher: GrapherInterface): boolean {
+    const ids = new Set(
+        [...axisDimensionsOf(grapher), ...getAuxiliaryDimensions(grapher)]
+            .map((d) => d.variableId)
+            .filter((id) => !!id)
+    )
+    return ids.size >= 2
+}
+
 export function planIndicatorPanes(
     grapher: GrapherInterface,
     {
@@ -106,8 +124,7 @@ export function planIndicatorPanes(
     const auxDims = getAuxiliaryDimensions(grapher)
     const isPane = (d: OwidChartDimensionInterface): boolean =>
         auxiliaryMode === "panes" ||
-        (auxiliaryMode === "mixed" &&
-            !auxiliaryLinks.get(d.variableId)?.slug)
+        (auxiliaryMode === "mixed" && !auxiliaryLinks.get(d.variableId)?.slug)
     const auxPaneDims = auxDims.filter(isPane)
     const auxLineDims = auxDims.filter((d) => !isPane(d))
     const paneDims = [...axisDimensionsOf(grapher), ...auxPaneDims]

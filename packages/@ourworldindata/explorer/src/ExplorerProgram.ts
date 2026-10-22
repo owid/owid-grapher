@@ -665,7 +665,9 @@ const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
                 row[field] !== ""
             ) {
                 row.display = row.display || {}
-                row.display[field] = row[field]
+                row.display[field] = cellDef.parse
+                    ? cellDef.parse(row[field])
+                    : row[field]
                 delete row[field]
             }
         }

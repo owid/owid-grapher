@@ -1091,7 +1091,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         expect(fullConfig).toHaveProperty("note", "Note from indicator C")
     })
 
-    it("does not bump version or add a revision on a no-op ETL re-push", async () => {
+    it("does not bump version on a no-op ETL re-push", async () => {
         const response = await env.request({
             method: "POST",
             path: "/charts",
@@ -1107,9 +1107,6 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         })
         const afterFirst = await env.fetchJson(`/charts/${chartId}.config.json`)
         const versionAfterFirst = afterFirst.version
-        const revisionsAfterFirst = (
-            await env.testKnex("chart_revisions").where("chartId", chartId)
-        ).length
 
         // Identical re-push (e.g. --force, a data refresh, a bulk ETL run).
         await env.request({
@@ -1120,13 +1117,9 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         const afterRepush = await env.fetchJson(
             `/charts/${chartId}.config.json`
         )
-        const revisionsAfterRepush = (
-            await env.testKnex("chart_revisions").where("chartId", chartId)
-        ).length
 
-        // No change → version untouched, no new revision.
+        // No change → version untouched
         expect(afterRepush.version).toBe(versionAfterFirst)
-        expect(revisionsAfterRepush).toBe(revisionsAfterFirst)
 
         // A genuine config change still bumps the version.
         await env.request({

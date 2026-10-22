@@ -1,6 +1,7 @@
 import {
-    DATA_PAGE_METADATA_EXPERIMENT_ID,
     EXPERIMENT_PREFIX,
+    LATEST_STICKY_FILTERS_ARMS,
+    LATEST_STICKY_FILTERS_EXPERIMENT_ID,
 } from "./constants.js"
 import { Experiment } from "./Experiment.js"
 
@@ -85,94 +86,21 @@ export const experiments: Experiment[] = [
         ],
         paths: ["/"],
     }),
-    /*
-     * Experiment: data-page-metadata-v1
-     *
-     * Trials a redesigned "metadata box" beneath the chart on data pages. The
-     * box consolidates "What you should know about this indicator", FAQs, data
-     * sources, and citation guidance into a single collapsible block, with an
-     * indicator switcher for charts that plot multiple Y-indicators.
-     *
-     * Conditions:
-     * - (a) control: the current data page (AboutThisData + Sources/Reuse sections)
-     * - (b) treatment: the new metadata box in place of those sections
-     */
+    // Compare normal scrolling, reveal-on-scroll-up, and fully sticky filters.
+    // Mobile pins only the topic pills.
+    // Layout and testing instructions: site/latest/README.md.
     new Experiment({
-        id: DATA_PAGE_METADATA_EXPERIMENT_ID,
-        expires: "2026-12-31T00:00:00.000Z",
+        id: LATEST_STICKY_FILTERS_EXPERIMENT_ID,
+        expires: "2026-11-30T00:00:00.000Z",
         arms: [
-            { id: "control", fraction: 0.0 },
-            { id: "treatment", fraction: 1.0, replaysSessionSampleRate: 0.33 },
+            { id: LATEST_STICKY_FILTERS_ARMS.notSticky, fraction: 1 / 3 },
+            {
+                id: LATEST_STICKY_FILTERS_ARMS.revealOnScrollUp,
+                fraction: 1 / 3,
+            },
+            { id: LATEST_STICKY_FILTERS_ARMS.fullySticky, fraction: 1 / 3 },
         ],
-        paths: [
-            // single indicator data pages
-            "/grapher/gdp-per-capita-maddison-project-database",
-            "/grapher/co-emissions-per-capita",
-            "/grapher/democracy-index-eiu",
-            "/grapher/life-expectancy",
-            "/grapher/cross-country-literacy-rates",
-            "/grapher/human-development-index",
-            "/grapher/share-of-population-in-extreme-poverty",
-            "/grapher/human-rights-index-vdem",
-            "/grapher/daily-per-capita-caloric-supply",
-            "/grapher/child-mortality",
-            // multi-indicator data pages (rendered as data pages via
-            // forceDatapage; the metadata box shows an indicator switcher)
-            "/grapher/annual-death-rate-by-age-group",
-            "/grapher/annual-deaths-by-age",
-            "/grapher/average-height-by-year-of-birth",
-            "/grapher/births-and-deaths-projected-to-2100",
-            "/grapher/co-emissions-by-sector",
-            "/grapher/food-emissions-supply-chain",
-            "/grapher/global-vaccination-coverage",
-            "/grapher/kaya-identity-co2",
-            "/grapher/measles-cases-and-death",
-            "/grapher/natural-population-growth",
-            "/grapher/number-of-armed-conflicts",
-            "/grapher/number-of-deaths-per-year",
-            "/grapher/per-capita-meat-consumption-by-type-kilograms-per-year",
-            "/grapher/population-density-by-city",
-            "/grapher/population-growth-rates",
-            "/grapher/population-of-cities-towns-and-villages",
-            "/grapher/population-of-the-worlds-largest-cities",
-            "/grapher/population-with-un-projections",
-            "/grapher/real-gdp-growth",
-            "/grapher/reported-paralytic-polio-cases-and-deaths-in-the-united-states-since-1910",
-            "/grapher/share-employment-agriculture-industry-services",
-            "/grapher/temperature-anomaly",
-            "/grapher/united-states-rates-of-covid-19-deaths-by-vaccination-status",
-            "/grapher/urban-and-rural-population",
-            // TEMP — staging QA only: the remaining top-50 multi-indicator
-            // pages, enrolled so every one of them bakes as a data page on
-            // staging. REVERT THIS BLOCK'S COMMIT BEFORE LAUNCHING THE
-            // EXPERIMENT.
-            "/grapher/annual-number-of-deaths-by-cause",
-            "/grapher/births-by-age-of-mother",
-            "/grapher/capture-and-aquaculture-production",
-            "/grapher/car-sales",
-            "/grapher/cumulative-area-burnt-by-wildfires-by-week",
-            "/grapher/cumulative-area-burnt-by-wildfires-last-year",
-            "/grapher/date-of-the-peak-cherry-tree-blossom-in-kyoto",
-            "/grapher/deaths-in-armed-conflicts-by-type",
-            "/grapher/electricity-production-by-source",
-            "/grapher/fertility-rate-with-projections",
-            "/grapher/ghg-emissions-by-sector",
-            "/grapher/globalization-over-5-centuries",
-            "/grapher/historical-cost-of-computer-memory-and-storage",
-            "/grapher/levelized-cost-of-energy",
-            "/grapher/measles-cases-and-death-rate",
-            "/grapher/median-age",
-            "/grapher/monthly-average-surface-temperatures-by-year",
-            "/grapher/number-of-births-per-year",
-            "/grapher/number-of-deaths-by-risk-factor",
-            "/grapher/per-capita-meat-type",
-            "/grapher/population-by-age-group",
-            "/grapher/population-long-run-with-projections",
-            "/grapher/probability-of-dying-by-age",
-            "/grapher/share-elec-by-source",
-            "/grapher/time-spent-with-relationships-by-age-us",
-            "/grapher/years-of-fossil-fuel-reserves-left",
-        ],
+        paths: ["/latest"],
     }),
 ]
 

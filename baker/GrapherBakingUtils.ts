@@ -32,16 +32,20 @@ export async function getTagToSlugMap(
 }
 
 /**
- * Given a topic tag's name or ID, return its slug.
+ * Given a topic tag's name, return its slug.
  */
 export async function getSlugForTopicTag(
     knex: db.KnexReadonlyTransaction,
-    identifier: string | number
+    tagName: string
 ): Promise<string | undefined> {
-    const tagsByIdAndName = await getTagToSlugMap(knex)
-    const slug = tagsByIdAndName[identifier]
+    const tag = await db.knexRawFirst<Pick<DbPlainTag, "slug">>(
+        knex,
+        `-- sql
+        SELECT slug FROM tags WHERE name = ? AND slug IS NOT NULL`,
+        [tagName]
+    )
 
-    return slug
+    return tag?.slug ?? undefined
 }
 
 export async function deleteOldGraphers(

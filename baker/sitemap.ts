@@ -3,7 +3,11 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import { dayjs, getEntitiesForProfile } from "@ourworldindata/utils"
+import {
+    dayjs,
+    getEntitiesForProfile,
+    multiDimDimensionsToViewQueryStr,
+} from "@ourworldindata/utils"
 import {
     DbPlainChart,
     DbPlainSlideshow,
@@ -105,6 +109,10 @@ export const makeSitemap = async (
 
     const publishedDataInsights = await db.getPublishedDataInsights(knex)
 
+    const featuredVizPages = await db.getPublishedGdocsWithTags(knex, [
+        OwidGdocType.FeaturedViz,
+    ])
+
     const charts = await db.knexRaw<
         Pick<DbPlainChart, "updatedAt"> & { slug: string }
     >(
@@ -164,6 +172,12 @@ export const makeSitemap = async (
             }))
         )
         .concat(
+            featuredVizPages.map((p) => ({
+                loc: urljoin(BAKED_BASE_URL, "featured-viz", p.slug),
+                lastmod: dayjs(p.updatedAt).format("YYYY-MM-DD"),
+            }))
+        )
+        .concat(
             charts.map((c) => ({
                 loc: urljoin(BAKED_GRAPHER_URL, c.slug),
                 lastmod: dayjs(c.updatedAt).format("YYYY-MM-DD"),
@@ -198,11 +212,9 @@ export const makeSitemap = async (
                             return []
                         }
 
-                        const searchParams = new URLSearchParams(
+                        const queryStr = multiDimDimensionsToViewQueryStr(
                             view.dimensions
                         )
-                        searchParams.sort()
-                        const queryStr = searchParams.toString()
                         return [
                             {
                                 loc: urljoin(

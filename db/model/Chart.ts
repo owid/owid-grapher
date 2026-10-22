@@ -22,6 +22,7 @@ import {
     DbEnrichedChartConfig,
     GrapherChartType,
     RelatedChartsTableName,
+    TagGraphRootName,
 } from "@ourworldindata/types"
 import { OpenAI } from "openai"
 import { zodResponseFormat } from "openai/helpers/zod"
@@ -625,48 +626,15 @@ export const getMostViewedGrapherIdsByChartType = async (
     return ids.map((row) => row.id)
 }
 
-export const getRelatedChartsForVariable = async (
-    knex: db.KnexReadonlyTransaction,
-    variableId: number,
-    chartIdsToExclude: number[] = [],
-    filterUnlisted: boolean = false
-): Promise<RelatedChart[]> => {
-    const excludeChartIds =
-        chartIdsToExclude.length > 0
-            ? `AND charts.id NOT IN (${chartIdsToExclude.join(", ")})`
-            : ""
-
-    const filterUnlistedClause = filterUnlisted
-        ? `-- sql
-            AND NOT EXISTS (
-                SELECT 1 FROM chart_tags ct
-                JOIN tags t ON ct.tagId = t.id
-                WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
-            )`
-        : ""
-
-    return db.knexRaw<RelatedChart>(
-        knex,
-        `-- sql
-            SELECT
-                charts.id AS chartId,
-                chart_configs.slug,
-                chart_configs.config->>"$.title" AS title,
-                chart_configs.config->>"$.variantName" AS variantName,
-                MAX(chart_tags.keyChartLevel) as keyChartLevel
-            FROM charts
-            JOIN chart_configs ON charts.configId=chart_configs.id
-            INNER JOIN chart_tags ON charts.id=chart_tags.chartId
-            INNER JOIN chart_dimensions ON charts.id=chart_dimensions.chartId
-            WHERE chart_dimensions.variableId = ${variableId}
-            AND chart_configs.config->>"$.isPublished" = "true"
-            ${filterUnlistedClause}
-            ${excludeChartIds}
-            GROUP BY charts.id
-            ORDER BY title ASC
-        `
-    )
-}
+// A published chart that isn't tagged Unlisted: the only charts eligible to appear
+// as a related-chart card.
+const LISTED_CHART_CLAUSE = `-- sql
+    chart_configs.config->>"$.isPublished" = "true"
+    AND NOT EXISTS (
+        SELECT 1 FROM chart_tags ct
+        JOIN tags t ON ct.tagId = t.id
+        WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
+    )`
 
 // Currently only returns charts from ETL (i.e. with "production" as reviewer)
 // Can be changed if we we want manually-added related charts
@@ -690,17 +658,159 @@ export const getRelatedChartsForChart = async (
                 AND rc.relatedChartId != rc.chartId
                 AND rc.reviewer = 'production'
                 AND rc.label = 'good'
-                AND chart_configs.config->>"$.isPublished" = "true"
-                AND NOT EXISTS (
-                    SELECT 1 FROM chart_tags ct
-                    JOIN tags t ON ct.tagId = t.id
-                    WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
-                )
+                AND ${LISTED_CHART_CLAUSE}
             ORDER BY rc.score DESC
             LIMIT ?
         `,
         [chartId, limit]
     )
+}
+
+/**
+ * Listed charts ranked by their aggregate coview score: the total score they
+ * receive as a recommendation across all charts, i.e. how often readers of
+ * other charts go on to view them. Used to fill related-chart cards on pages
+ * with too few coview recommendations of their own.
+ *
+ * `tagIds` restricts candidates to charts tagged with any of those tags; leave
+ * it undefined for a site-wide ranking.
+ */
+export const getChartsByAggregateCoviewScore = async (
+    knex: db.KnexReadonlyTransaction,
+    {
+        tagIds,
+        excludeChartIds,
+        limit,
+    }: { tagIds?: number[]; excludeChartIds: number[]; limit: number }
+): Promise<RelatedChart[]> => {
+    if (limit <= 0) return []
+    if (tagIds !== undefined && tagIds.length === 0) return []
+    const tagClause =
+        tagIds !== undefined
+            ? `AND EXISTS (
+                SELECT 1 FROM chart_tags ct
+                WHERE ct.chartId = charts.id AND ct.tagId IN (:tagIds)
+            )`
+            : ""
+    const excludeClause =
+        excludeChartIds.length > 0
+            ? "AND charts.id NOT IN (:excludeChartIds)"
+            : ""
+    return db.knexRaw<RelatedChart>(
+        knex,
+        `-- sql
+            SELECT
+                charts.id AS chartId,
+                chart_configs.slug,
+                chart_configs.config->>"$.title" AS title,
+                chart_configs.config->>"$.variantName" AS variantName
+            FROM charts
+            JOIN chart_configs ON charts.configId = chart_configs.id
+            LEFT JOIN (
+                SELECT relatedChartId, SUM(score) AS aggregateScore
+                FROM ${RelatedChartsTableName}
+                WHERE reviewer = 'production'
+                    AND label = 'good'
+                    AND relatedChartId != chartId
+                GROUP BY relatedChartId
+            ) agg ON agg.relatedChartId = charts.id
+            WHERE ${LISTED_CHART_CLAUSE}
+                ${tagClause}
+                ${excludeClause}
+            ORDER BY COALESCE(agg.aggregateScore, 0) DESC, charts.id ASC
+            LIMIT :limit
+        `,
+        { tagIds: tagIds ?? [], excludeChartIds, limit }
+    )
+}
+
+/**
+ * Topic tags for a data page's related-chart fallback, in priority order: the
+ * indicator's own topic tags (as curated in its metadata, first one being the
+ * primary topic), then any other topic tags on the chart itself. Only tags in
+ * the topic graph below an area count, which leaves out Unlisted and other
+ * bookkeeping tags.
+ */
+export const getTopicTagIdsForChart = async (
+    knex: db.KnexReadonlyTransaction,
+    chartId: number,
+    topicTagNames: string[]
+): Promise<number[]> => {
+    const rows = await db.knexRaw<{
+        id: number
+        name: string
+        onChart: number
+    }>(
+        knex,
+        `-- sql
+            SELECT DISTINCT t.id, t.name, (ct.chartId IS NOT NULL) AS onChart
+            FROM tags t
+            JOIN tag_graph tg ON tg.childId = t.id
+            JOIN tags parent ON parent.id = tg.parentId
+            LEFT JOIN chart_tags ct ON ct.tagId = t.id AND ct.chartId = :chartId
+            WHERE parent.name != :rootName
+                AND (t.name IN (:topicTagNames) OR ct.chartId IS NOT NULL)
+        `,
+        {
+            chartId,
+            rootName: TagGraphRootName,
+            // MySQL rejects an empty IN (); a name that can't exist keeps the query valid
+            topicTagNames: topicTagNames.length > 0 ? topicTagNames : [""],
+        }
+    )
+    const idByName = new Map(rows.map((r) => [r.name, r.id]))
+    const curated = lodash.compact(
+        topicTagNames.map((name) => idByName.get(name))
+    )
+    const onChartOnly = rows.filter((r) => r.onChart).map((r) => r.id)
+    return lodash.uniq([...curated, ...onChartOnly])
+}
+
+/**
+ * All topic tags under the areas that the given topic tags belong to: the
+ * pool for the topic-area fallback step.
+ */
+export const getTopicTagIdsInSameAreas = async (
+    knex: db.KnexReadonlyTransaction,
+    topicTagIds: number[]
+): Promise<number[]> => {
+    if (topicTagIds.length === 0) return []
+    const rows = await db.knexRaw<{ tagId: number }>(
+        knex,
+        `-- sql
+            WITH RECURSIVE ancestors AS (
+                SELECT tg.childId AS tagId, tg.parentId
+                FROM tag_graph tg
+                WHERE tg.childId IN (:topicTagIds)
+
+                UNION DISTINCT
+
+                SELECT tg.childId, tg.parentId
+                FROM tag_graph tg
+                JOIN ancestors a ON tg.childId = a.parentId
+            ),
+            areas AS (
+                SELECT DISTINCT a.tagId AS areaId
+                FROM ancestors a
+                JOIN tags root ON root.id = a.parentId
+                WHERE root.name = :rootName
+            ),
+            descendants AS (
+                SELECT tg.childId AS tagId
+                FROM tag_graph tg
+                WHERE tg.parentId IN (SELECT areaId FROM areas)
+
+                UNION DISTINCT
+
+                SELECT tg.childId
+                FROM tag_graph tg
+                JOIN descendants d ON tg.parentId = d.tagId
+            )
+            SELECT DISTINCT tagId FROM descendants
+        `,
+        { topicTagIds, rootName: TagGraphRootName }
+    )
+    return rows.map((r) => r.tagId)
 }
 
 export const getRedirectsByChartId = async (

@@ -18,8 +18,8 @@ export function LicenseSection({ isDeprecated }: { isDeprecated?: boolean }) {
                             src="/owid-logo.svg"
                             alt="Our World in Data logo"
                             loading="lazy"
-                            width={104}
-                            height={57}
+                            width={85}
+                            height={47}
                         />
                         <h3>Reuse this work freely</h3>
                     </>

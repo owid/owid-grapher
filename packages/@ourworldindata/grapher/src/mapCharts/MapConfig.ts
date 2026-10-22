@@ -87,7 +87,8 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         if (obj.globe?.rotation) {
             this.globe = {
                 ...this.globe,
-                rotation: R.reverse(obj.globe.rotation),
+                rotation:
+                    obj.globe.rotation.toReversed() as GlobeConfig["rotation"],
             }
         }
 

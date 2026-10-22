@@ -50,7 +50,6 @@ export const DataPageV2 = (props: {
     stitchedIndicatorList?: StitchedIndicatorListEntry[]
     hideStitchedIndicatorList?: boolean
     auxiliaryIndicators?: AuxiliaryIndicator[]
-    useNewDatapageDesign?: boolean
     baseUrl: string
     canonicalUrl: string
     isPreviewing: boolean
@@ -67,7 +66,6 @@ export const DataPageV2 = (props: {
         stitchedIndicatorList,
         hideStitchedIndicatorList,
         auxiliaryIndicators,
-        useNewDatapageDesign,
         baseUrl,
         canonicalUrl,
         isPreviewing,
@@ -187,7 +185,6 @@ export const DataPageV2 = (props: {
                                     stitchedIndicatorList,
                                     hideStitchedIndicatorList,
                                     auxiliaryIndicators,
-                                    useNewDatapageDesign,
                                     faqEntries,
                                     canonicalUrl,
                                     imageMetadata,
@@ -206,7 +203,6 @@ export const DataPageV2 = (props: {
                                     hideStitchedIndicatorList
                                 }
                                 auxiliaryIndicators={auxiliaryIndicators}
-                                useNewDatapageDesign={useNewDatapageDesign}
                                 grapherConfig={grapherConfig}
                                 imageMetadata={imageMetadata}
                                 isPreviewing={isPreviewing}

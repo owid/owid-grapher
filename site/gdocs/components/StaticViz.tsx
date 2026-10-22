@@ -33,6 +33,7 @@ interface StaticVizProps {
     containerType?: ImageParentContainer
     hasOutline?: boolean
     caption?: Span[]
+    shouldRenderLinks?: boolean
 }
 
 export default function StaticViz(props: StaticVizProps) {
@@ -42,6 +43,7 @@ export default function StaticViz(props: StaticVizProps) {
         containerType = "default",
         hasOutline = true,
         caption,
+        shouldRenderLinks = true,
     } = props
     const staticViz = useLinkedStaticViz(name)
     const { isPreviewing } = useDocumentContext()
@@ -83,7 +85,10 @@ export default function StaticViz(props: StaticVizProps) {
             </button>
             {caption ? (
                 <figcaption className="static-viz__caption">
-                    <SpanElements spans={caption} />
+                    <SpanElements
+                        spans={caption}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
                 </figcaption>
             ) : null}
             {isDownloadModalOpen && (

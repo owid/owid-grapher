@@ -1,5 +1,6 @@
 import cx from "clsx"
 import * as _ from "lodash-es"
+import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons"
 import {
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     SimpleMarkdownText,
@@ -9,6 +10,16 @@ import {
     makeSource,
     IndicatorProcessing,
     INDICATOR_PROCESSING_SECTION_ID,
+    MetadataBoxExpander,
+    MetadataBoxToggleButton,
+    MetadataBoxSection,
+    MetadataBoxKeyData,
+    MetadataBoxKeyDataRow,
+    MetadataBoxReuseNotice,
+    ChartLicenseNotice,
+    makeDateRange,
+    makeLastUpdated,
+    makeNextUpdate,
 } from "@ourworldindata/components"
 import {
     AdditionalIndicator,
@@ -23,7 +34,7 @@ import {
     OwidEnrichedGdocBlock,
     PrimaryTopic,
 } from "@ourworldindata/types"
-import React, { createRef, useEffect, useMemo, useRef, useState } from "react"
+import React, { createRef, useEffect, useRef, useState } from "react"
 import {
     formatAttributions,
     prepareSourcesForDisplay,
@@ -32,13 +43,10 @@ import {
     getIndicatorCitations,
     spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
-import { Byline } from "./gdocs/components/Byline.js"
+import AvatarByline from "./gdocs/components/AvatarByline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
 import { splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 import {
     IndicatorDropdown,
     IndicatorDropdownSelect,
@@ -50,32 +58,25 @@ import { useSwitcherVariant } from "./useSwitcherVariant.js"
 
 const analytics = new SiteAnalytics()
 
-// Log expand/collapse of an ExpandableToggle in the metadata box. `target` is a
-// codified, English-language identifier (not the rendered label) so the event
-// isn't affected by browser/page translation.
-function logExpandableToggle(target: string, isOpen: boolean): void {
-    analytics.logSiteClick(
-        isOpen ? "expand_expandable_toggle" : "collapse_expandable_toggle",
-        target
-    )
-}
-
-interface ExpandableSectionProps {
+interface IndicatorMetadataSectionsProps {
     datapageData: DataPageDataV2
     className?: string
     faqEntries: FaqEntryData | undefined
     detailsRef: React.RefObject<HTMLDetailsElement | null>
+    detailsId?: string
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
     primaryTopic?: PrimaryTopic
     title: IndicatorTitleWithFragments
     descriptionProcessing: string | undefined
     license?: LicenseOption
-    faqsSectionId: string
-    sourcesSectionId: string
-    processingContentId: string
-    // See IndicatorMetadataBox: toggles caused by programmatically switching
-    // indicators shouldn't be logged as user expands/collapses.
+    // Disambiguates the section anchor ids (#faqs, #sources-and-processing,
+    // #indicator-processing) when several panes are in the DOM at once. The
+    // active pane gets "" so in-page anchors and the grapher footer's
+    // jump-to-sources resolve to the visible pane.
+    idSuffix?: string
+    // Toggles caused by programmatically switching indicators shouldn't be
+    // logged as user expands/collapses — see IndicatorMetadataBox.
     suppressToggleLogUntilRef?: React.RefObject<number>
     pageCitation?: PageCitationOptions
     stitched?: StitchedPaneOptions
@@ -103,8 +104,6 @@ interface StitchedPaneOptions {
     /** One measure sliced by age/sex/year: don't render the list. */
     hideList?: boolean
 }
-
-const FAQS_SECTION_ID = "faqs"
 
 // FAQs arrive as a flat block list — each question is a heading followed by its
 // answer blocks. Split on headings so each question can render as its own toggle.
@@ -134,27 +133,26 @@ function groupFaqsByQuestion(
     return questions
 }
 
-function ExpandableSection({
+function IndicatorMetadataSections({
     datapageData,
     className,
     faqEntries,
     detailsRef,
+    detailsId,
     canonicalUrl,
     archiveContext,
     primaryTopic,
     title,
     descriptionProcessing,
     license,
-    faqsSectionId,
-    sourcesSectionId,
-    processingContentId,
+    idSuffix = "",
     suppressToggleLogUntilRef,
     pageCitation,
     stitched,
     auxiliaryIndicators,
-}: ExpandableSectionProps) {
-    const stitchedIndicatorList = stitched?.list
+}: IndicatorMetadataSectionsProps) {
     const { origins, source } = datapageData
+    const stitchedIndicatorList = stitched?.list
     // Stitched multi-indicator pages: a source the indicators share may still
     // link/cite differently per indicator — show those per indicator inside
     // the shared source's toggle.
@@ -214,639 +212,439 @@ function ExpandableSection({
 
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
 
-    // overflow-anchor: none; is set on this page so that scroll position doesn't jump when collapsing FAQ/sources
-    // but when collapsing the metadata box itself, we want to jump back to the top
-    const summaryRef = useRef<HTMLElement>(null)
-    const handleSummaryClick = (event: React.MouseEvent<HTMLElement>) => {
-        const details = detailsRef.current
-        const summary = summaryRef.current
-        if (!details?.open || !summary) return // expanding — let the native toggle run
-        event.preventDefault()
-        const before = summary.getBoundingClientRect().top
-        details.open = false
-        const after = summary.getBoundingClientRect().top
-        window.scrollBy(0, after - before)
-    }
-
     // Only the start of a long descriptionKey is shown above the fold; the
     // rest goes inside the <details> so that it works without JavaScript and
     // browsers auto-expand it when in-page search matches hidden text.
     const { preview: descriptionKeyPreview, remainder: descriptionKeyRest } =
         splitDescriptionKey(datapageData.descriptionKey ?? "")
 
-    // Whether the box's own expander is open. A long stitched indicator list
-    // shows in full only then: its folded entries count as part of the
-    // expander's content, like the WYSK remainder.
-    const [detailsOpen, setDetailsOpen] = useState(false)
+    // Whether the expander is open: a long stitched indicator list shows in
+    // full only then (its folded entries count as part of the expander's
+    // content, like the WYSK remainder).
+    const [expanderOpen, setExpanderOpen] = useState(false)
+    const [listShowFolded, setListShowFolded] = useState(false)
+
+    const showStitchedList =
+        !!stitched && !stitched.hideList && stitched.list.length > 0
+    // The size/colour line closes the WYSK: in the remainder when there is
+    // one, otherwise in the preview.
+    const auxInPreview = !!auxiliaryIndicators && !descriptionKeyRest
+    const hasPreview =
+        showStitchedList || !!descriptionKeyPreview || auxInPreview
 
     return (
-        <div className={cx("meta-expander", className)}>
-            {stitched && !stitched.hideList && stitched.list.length > 0 && (
-                <StitchedIndicatorList
-                    entries={stitched.list}
-                    datapageData={datapageData}
-                    expanderOpen={detailsOpen}
-                />
-            )}
-            {(descriptionKeyPreview ||
-                (auxiliaryIndicators && !descriptionKeyRest)) && (
-                <div className="meta-expander__preview meta-expander__prose">
-                    {descriptionKeyPreview && (
-                        <SimpleMarkdownText text={descriptionKeyPreview} />
-                    )}
-                    {auxiliaryIndicators && !descriptionKeyRest && (
+        <MetadataBoxExpander
+            className={className}
+            detailsRef={detailsRef}
+            detailsId={detailsId}
+            showMoreIcon={faCaretDown}
+            showLessIcon={faCaretUp}
+            preview={
+                hasPreview ? (
+                    <>
+                        {showStitchedList && (
+                            <StitchedIndicatorList
+                                entries={stitched.list}
+                                datapageData={datapageData}
+                                expanderOpen={expanderOpen}
+                                showFolded={listShowFolded}
+                                onShowFolded={() => setListShowFolded(true)}
+                            />
+                        )}
+                        {descriptionKeyPreview && (
+                            <>
+                                <h2 className="indicator-metadata-box__description-key-title">
+                                    What you should know about this data
+                                </h2>
+                                <SimpleMarkdownText
+                                    text={descriptionKeyPreview}
+                                    dataTrackNote="wysk_link"
+                                    dodTrackNote="wysk/preview"
+                                />
+                            </>
+                        )}
+                        {auxInPreview && (
+                            <AuxiliaryIndicatorsProse
+                                indicators={auxiliaryIndicators}
+                            />
+                        )}
+                    </>
+                ) : undefined
+            }
+            onToggle={(isOpen) => {
+                setExpanderOpen(isOpen)
+                // Closing the box folds a long stitched list again.
+                if (!isOpen) setListShowFolded(false)
+                // Skip toggles caused by switching indicators: those close
+                // the previous pane's expander and open the new one, and
+                // neither is a user expand/collapse (the switch itself is
+                // logged via data-track-note="metadata_box_indicator_switch").
+                if (
+                    suppressToggleLogUntilRef &&
+                    Date.now() < suppressToggleLogUntilRef.current
+                )
+                    return
+                analytics.logSiteClick(
+                    isOpen ? "expand_metadata_box" : "collapse_metadata_box"
+                )
+            }}
+        >
+            {descriptionKeyRest && (
+                <div className="metadata-box-expander__remainder metadata-box-expander__prose">
+                    <SimpleMarkdownText
+                        text={descriptionKeyRest}
+                        dataTrackNote="wysk_link"
+                        dodTrackNote="wysk/expanded"
+                    />
+                    {auxiliaryIndicators && (
                         <AuxiliaryIndicatorsProse
                             indicators={auxiliaryIndicators}
                         />
                     )}
                 </div>
             )}
-            <details
-                className="meta-expander__details"
-                ref={detailsRef}
-                // React 19 simulates bubbling for `toggle`, so toggles from the
-                // nested ExpandableToggles would otherwise fire this handler too.
-                // Guard to only react to this element's own toggle.
-                onToggle={(e) => {
-                    if (e.target !== e.currentTarget) return
-                    setDetailsOpen(e.currentTarget.open)
-                    // Skip toggles caused by switching indicators: those
-                    // programmatically close the previous pane's details and
-                    // open the new one, and neither is a user
-                    // expand/collapse (the switch itself is logged via
-                    // data-track-note="metadata_box_indicator_switch").
-                    if (Date.now() < (suppressToggleLogUntilRef?.current ?? 0))
-                        return
-                    // Also skip hidden panes (display: none → offsetParent
-                    // is null) in case they're toggled programmatically
-                    // outside a switch.
-                    if (!e.currentTarget.offsetParent) return
-                    analytics.logSiteClick(
-                        e.currentTarget.open
-                            ? "expand_metadata_box"
-                            : "collapse_metadata_box"
-                    )
-                }}
+            <MetadataBoxSection
+                title="Frequently asked questions"
+                id={`faqs${idSuffix}`}
+                className="metadata-box-section--faqs"
             >
-                <summary
-                    className="meta-expander__summary"
-                    ref={summaryRef}
-                    onClick={handleSummaryClick}
-                >
-                    <span className="meta-expander__show-more">
-                        Show more{" "}
-                        <FontAwesomeIcon
-                            className="indicator-metadata-box__chevron"
-                            icon={faChevronDown}
-                        />
-                    </span>
-                    <span className="meta-expander__show-less">
-                        Show less{" "}
-                        <FontAwesomeIcon
-                            className="indicator-metadata-box__chevron"
-                            icon={faChevronUp}
-                        />
-                    </span>
-                </summary>
-                {descriptionKeyRest && (
-                    <div className="meta-expander__remainder meta-expander__prose">
-                        <SimpleMarkdownText text={descriptionKeyRest} />
-                        {auxiliaryIndicators && (
-                            <AuxiliaryIndicatorsProse
-                                indicators={auxiliaryIndicators}
+                {faqQuestions.map((faq) => (
+                    <ExpandableToggle
+                        key={faq.question}
+                        label={faq.question}
+                        content={
+                            <ArticleBlocks
+                                blocks={faq.answer}
+                                containerType="datapage"
                             />
-                        )}
-                    </div>
-                )}
-                {
-                    <section className="meta-expander__section meta-expander__section--faqs">
-                        <h2
-                            className="meta-expander__section-title"
-                            id={faqsSectionId}
-                        >
-                            Frequently asked questions
-                        </h2>
-                        {faqQuestions.map((faq, i) => (
-                            <ExpandableToggle
-                                key={faq.question}
-                                label={faq.question}
-                                isStacked={i < faqQuestions.length - 1}
-                                content={
-                                    <ArticleBlocks
-                                        blocks={faq.answer}
-                                        containerType="datapage"
-                                    />
-                                }
-                                onToggle={(isOpen) =>
-                                    logExpandableToggle(
-                                        // untranslated source text
-                                        faq.question.slice(0, 100),
-                                        isOpen
-                                    )
-                                }
-                            />
-                        ))}
-                        <ExpandableToggle
-                            label="How did Our World in Data process this data?"
-                            contentId={processingContentId}
-                            content={
-                                <IndicatorProcessing
-                                    descriptionProcessing={
-                                        descriptionProcessing
-                                    }
-                                />
-                            }
-                            onToggle={(isOpen) =>
-                                logExpandableToggle(
-                                    "how_owid_processed_data",
-                                    isOpen
-                                )
-                            }
+                        }
+                        onToggle={(isOpen) =>
+                            analytics.logExpandableToggle(
+                                // untranslated source text
+                                faq.question.slice(0, 100),
+                                isOpen
+                            )
+                        }
+                    />
+                ))}
+                <ExpandableToggle
+                    label="How did Our World in Data process this data?"
+                    contentId={`${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`}
+                    content={
+                        <IndicatorProcessing
+                            descriptionProcessing={descriptionProcessing}
+                            trackNote="processing_link"
+                            dodTrackNote="processing"
                         />
-                    </section>
-                }
-                {(datapageData.descriptionFromProducer ||
-                    producerDocEntries.length > 0) && (
-                    <section className="meta-expander__section">
-                        <h2 className="meta-expander__section-title">
-                            Documentation from data sources
-                        </h2>
-                        {datapageData.descriptionFromProducer ? (
+                    }
+                    onToggle={(isOpen) =>
+                        analytics.logExpandableToggle(
+                            "how_owid_processed_data",
+                            isOpen
+                        )
+                    }
+                />
+            </MetadataBoxSection>
+            {producerDocEntries.length > 0 &&
+                !datapageData.descriptionFromProducer && (
+                    // Stitched page whose producer docs differ per indicator:
+                    // one toggle per indicator, stacked like the Data sources
+                    // and FAQ toggles.
+                    <MetadataBoxSection title="Documentation from data sources">
+                        {producerDocEntries.map((e, i) => (
                             <ExpandableToggle
-                                label={
-                                    datapageData.attributionShort ||
-                                    "Principal data source"
-                                }
+                                key={i}
+                                label={e.title}
                                 content={
-                                    <div className="indicator-metadata-box__producer-doc">
+                                    <div className="indicator-metadata-box__producer-docs">
                                         <SimpleMarkdownText
-                                            text={
-                                                datapageData.descriptionFromProducer
-                                            }
+                                            text={e.producerDescription}
+                                            dataTrackNote="producer_link"
+                                            dodTrackNote="producer_documentation"
                                         />
                                     </div>
                                 }
                                 onToggle={(isOpen) =>
-                                    logExpandableToggle(
+                                    analytics.logExpandableToggle(
                                         "producer_documentation",
                                         isOpen
                                     )
                                 }
                             />
-                        ) : (
-                            // Stitched page whose producer docs differ per
-                            // indicator: one toggle per indicator, stacked like
-                            // the Data sources and FAQ toggles.
-                            producerDocEntries.map((e, i) => (
-                                <ExpandableToggle
-                                    key={i}
-                                    label={e.title}
-                                    isStacked={
-                                        i < producerDocEntries.length - 1
-                                    }
-                                    content={
-                                        <div className="indicator-metadata-box__producer-doc">
-                                            <SimpleMarkdownText
-                                                text={e.producerDescription}
-                                            />
-                                        </div>
-                                    }
-                                    onToggle={(isOpen) =>
-                                        logExpandableToggle(
-                                            "producer_documentation",
-                                            isOpen
-                                        )
-                                    }
-                                />
-                            ))
-                        )}
-                    </section>
+                        ))}
+                    </MetadataBoxSection>
                 )}
-                <section className="meta-expander__section">
-                    <h2
-                        id={sourcesSectionId}
-                        className="meta-expander__section-title"
-                    >
-                        Data sources
-                    </h2>
-                    <IndicatorSources
-                        sources={sourcesForDisplay}
-                        hideReuseThisWorkText
-                        hideTeasers
-                        onSourceToggle={(_source, index, isOpen) =>
-                            logExpandableToggle(
-                                `data_source_${index + 1}`,
+            {datapageData.descriptionFromProducer && (
+                <MetadataBoxSection title="Documentation from data sources">
+                    <ExpandableToggle
+                        label={
+                            datapageData.attributionShort ||
+                            "Principal data source"
+                        }
+                        content={
+                            <div className="indicator-metadata-box__producer-docs">
+                                <SimpleMarkdownText
+                                    text={datapageData.descriptionFromProducer}
+                                    dataTrackNote="producer_link"
+                                    dodTrackNote="producer_documentation"
+                                />
+                            </div>
+                        }
+                        onToggle={(isOpen) =>
+                            analytics.logExpandableToggle(
+                                "producer_documentation",
                                 isOpen
                             )
                         }
                     />
-                </section>
-                {(citationShort || citationLong) && (
-                    <section className="meta-expander__section">
-                        <h2 className="meta-expander__section-title">
-                            How to cite
-                        </h2>
-                        {citationDatapage && (
-                            <ExpandableToggle
-                                label="How to cite this page"
-                                isStacked
-                                content={
-                                    <>
-                                        <p>
-                                            To cite this page overall, including
-                                            any descriptions, FAQs or
-                                            explanations of the data authored by
-                                            Our World in Data, please use the
-                                            following citation:
-                                        </p>
-                                        <CodeSnippet
-                                            code={citationDatapage}
-                                            theme="light"
-                                            useMarkdown={true}
-                                            onCopy={() =>
-                                                analytics.logSiteClick(
-                                                    "copy_citation",
-                                                    "citation_page"
-                                                )
-                                            }
-                                        />
-                                    </>
-                                }
-                                onToggle={(isOpen) =>
-                                    logExpandableToggle(
-                                        "how_to_cite_page",
-                                        isOpen
-                                    )
-                                }
-                            />
-                        )}
-                        <section className="indicator-sources">
-                            {citationShort && (
-                                <ExpandableToggle
-                                    label={
-                                        pageCitation?.toggleLabel ??
-                                        "How to cite this data"
-                                    }
-                                    isStacked={!!citationLong}
-                                    content={
+                </MetadataBoxSection>
+            )}
+            <MetadataBoxSection
+                title="Data sources"
+                id={`${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}${idSuffix}`}
+            >
+                <IndicatorSources
+                    sources={sourcesForDisplay}
+                    retrievedFromTrackNote="retrieved_from"
+                    descriptionTrackNote="source_link"
+                    dodTrackNote="data_sources"
+                    hideReuseThisWorkText
+                    hideTeasers
+                    onSourceToggle={(_source, index, isOpen) =>
+                        analytics.logExpandableToggle(
+                            `data_source_${index + 1}`,
+                            isOpen
+                        )
+                    }
+                />
+            </MetadataBoxSection>
+            {(citationShort || citationLong) && (
+                <MetadataBoxSection title="How to cite">
+                    {citationDatapage && (
+                        <ExpandableToggle
+                            label="How to cite this page"
+                            content={
+                                <>
+                                    <p>
+                                        To cite this page overall, including any
+                                        descriptions, FAQs or explanations of
+                                        the data authored by Our World in Data,
+                                        please use the following citation:
+                                    </p>
+                                    <CodeSnippet
+                                        code={citationDatapage}
+                                        theme="light"
+                                        useMarkdown={true}
+                                        onCopy={() =>
+                                            analytics.logSiteClick(
+                                                "copy_citation",
+                                                "citation_page"
+                                            )
+                                        }
+                                    />
+                                </>
+                            }
+                            onToggle={(isOpen) =>
+                                analytics.logExpandableToggle(
+                                    "how_to_cite_page",
+                                    isOpen
+                                )
+                            }
+                        />
+                    )}
+                    {citationShort && (
+                        <ExpandableToggle
+                            label={
+                                pageCitation?.toggleLabel ??
+                                "How to cite this data"
+                            }
+                            content={
+                                <>
+                                    <p className="citation__paragraph">
+                                        If you have limited space (e.g. in data
+                                        visualizations), you can use this
+                                        abbreviated in-line citation:
+                                    </p>
+                                    <CodeSnippet
+                                        code={citationShort}
+                                        theme="light"
+                                        useMarkdown={true}
+                                        onCopy={() =>
+                                            analytics.logSiteClick(
+                                                "copy_citation",
+                                                "citation_data_short"
+                                            )
+                                        }
+                                    />
+                                    {citationLong && (
                                         <>
                                             <p className="citation__paragraph">
-                                                If you have limited space (e.g.
-                                                in data visualizations), you can
-                                                use this abbreviated in-line
-                                                citation:
+                                                Full citation
                                             </p>
                                             <CodeSnippet
-                                                code={citationShort}
+                                                code={citationLong}
                                                 theme="light"
                                                 useMarkdown={true}
                                                 onCopy={() =>
                                                     analytics.logSiteClick(
                                                         "copy_citation",
-                                                        "citation_data_short"
+                                                        "citation_data_full"
                                                     )
                                                 }
                                             />
-                                            {citationLong && (
-                                                <>
-                                                    <p className="citation__paragraph">
-                                                        Full citation
-                                                    </p>
-                                                    <CodeSnippet
-                                                        code={citationLong}
-                                                        theme="light"
-                                                        useMarkdown={true}
-                                                        onCopy={() =>
-                                                            analytics.logSiteClick(
-                                                                "copy_citation",
-                                                                "citation_data_full"
-                                                            )
-                                                        }
-                                                    />
-                                                </>
-                                            )}
                                         </>
-                                    }
-                                    onToggle={(isOpen) =>
-                                        logExpandableToggle(
-                                            "how_to_cite_data",
-                                            isOpen
-                                        )
-                                    }
-                                />
-                            )}
-                        </section>
-                    </section>
-                )}
-                <section className="meta-expander__section meta-expander__reuse-notice">
-                    <p>
-                        All data produced by third-party providers and made
-                        available by Our World in Data are subject to the
-                        license terms from the original providers. Our work
-                        would not be possible without the data providers we rely
-                        on, so we ask you to always cite them appropriately.
-                        This is crucial to allow data providers to continue
-                        doing their work, enhancing, maintaining and updating
-                        valuable data.
-                    </p>
-                    <p>
-                        <ChartLicenseNotice license={license} />
-                    </p>
-                </section>
-            </details>
-        </div>
+                                    )}
+                                </>
+                            }
+                            onToggle={(isOpen) =>
+                                analytics.logExpandableToggle(
+                                    "how_to_cite_data",
+                                    isOpen
+                                )
+                            }
+                        />
+                    )}
+                </MetadataBoxSection>
+            )}
+            <MetadataBoxSection className="indicator-metadata-box__reuse-notice">
+                <MetadataBoxReuseNotice>
+                    <ChartLicenseNotice license={license} />
+                </MetadataBoxReuseNotice>
+            </MetadataBoxSection>
+        </MetadataBoxExpander>
     )
 }
 
-// The full per-indicator body of the metadata box: title, description
-// table, and the collapsible details section. On multi-indicator charts one
-// pane renders per Y-indicator (all present in the HTML; only the active
-// one visible) so the switcher can flip between them without re-fetching.
-function IndicatorPaneContent({
+// One indicator's pane: heading with the box's top toggle, key data, and the
+// expandable sections. Several sit inside one box on a switcher page.
+function IndicatorPane({
     datapageData,
     faqEntries,
     detailsRef,
+    detailsId,
     canonicalUrl,
     archiveContext,
     license,
-    idSuffix,
+    idSuffix = "",
     suppressToggleLogUntilRef,
-    pageCitation,
     stitched,
+    pageCitation,
     auxiliaryIndicators,
 }: {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined
     detailsRef: React.RefObject<HTMLDetailsElement | null>
+    detailsId?: string
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
     license?: LicenseOption
+    idSuffix?: string
     suppressToggleLogUntilRef?: React.RefObject<number>
-    pageCitation?: PageCitationOptions
-    // Stitched: the pane heading reads "About this data" (no single
-    // indicator owns the pane) and the indicator list renders inside the
-    // expander, above the shared WYSK.
+    // Stitched: the heading reads "About this data" (no single indicator
+    // owns the pane) and the indicator list opens the expander.
     stitched?: StitchedPaneOptions
-    // Set only when the box has a single visible pane (stitched or
-    // single-indicator): the size/colour line then closes the WYSK.
-    // Switcher pages render it once, under the "About this data" header.
+    pageCitation?: PageCitationOptions
     auxiliaryIndicators?: AuxiliaryIndicator[]
-    // Disambiguates the section anchor ids (#faqs, #sources-and-processing,
-    // #indicator-processing) when several panes are in the DOM at once. The
-    // active pane always gets the canonical (un-suffixed) ids so in-page
-    // anchors and the grapher footer's jump-to-sources always resolve to
-    // the visible pane.
-    idSuffix: string
 }) {
     // Owners of the dataset backing this indicator — the baker loads each
     // pane's datapageData.owners from its own indicator's dataset.
     const owners = datapageData.owners?.[0]?.owners ?? []
 
     const attribution = formatAttributions(datapageData.attributions ?? [])
-    const processingContentId = `${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`
     const sourceString = makeSource({
         attribution,
         owidProcessingLevel: datapageData.owidProcessingLevel,
-        processingId: processingContentId,
+        processingId: `${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`,
     })
 
     return (
         <>
-            <h2 className="indicator-metadata-box__indicator-title body-2-bold-tight">
-                {stitched ? "About this data" : datapageData.title.title}
-                {!stitched && (
-                    <span className="indicator-metadata-box__title-variant">
-                        {datapageData.titleVariant}
-                    </span>
-                )}
-            </h2>
-            <dl className="meta-description-table">
+            <div className="indicator-metadata-box__header">
+                <h2 className="indicator-metadata-box__title">
+                    {stitched ? "About this data" : datapageData.title.title}
+                    {!stitched && (
+                        <span className="indicator-metadata-box__title-variant">
+                            {datapageData.titleVariant}
+                        </span>
+                    )}
+                </h2>
+                <MetadataBoxToggleButton
+                    detailsRef={detailsRef}
+                    detailsId={detailsId}
+                />
+            </div>
+            <MetadataBoxKeyData>
                 {datapageData.descriptionShort && (
-                    <div className="meta-description-table__pair meta-description-table__pair--full-width">
-                        <dt className="sr-only">Description</dt>
-                        <dd className="meta-description-table__value">
-                            <SimpleMarkdownText
-                                text={datapageData.descriptionShort}
-                            />
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow
+                        label="Description"
+                        isFullWidth
+                        isLabelScreenReaderOnly
+                    >
+                        <SimpleMarkdownText
+                            text={datapageData.descriptionShort}
+                            dodTrackNote="key_data"
+                        />
+                    </MetadataBoxKeyDataRow>
                 )}
                 {sourceString && (
-                    <div className="meta-description-table__pair meta-description-table__pair--full-width">
-                        <dt className="meta-description-table__key meta-description-table__key--source">
-                            Data source
-                        </dt>
-                        <dd className="meta-description-table__value">
-                            {sourceString}
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow
+                        label="Data source"
+                        labelClassName="metadata-box-key-data__key--source"
+                    >
+                        {sourceString}
+                    </MetadataBoxKeyDataRow>
                 )}
                 {datapageData.unit && (
-                    <div className="meta-description-table__pair">
-                        <dt className="meta-description-table__key">Unit</dt>
-                        <dd className="meta-description-table__value">
-                            {datapageData.unit}
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow label="Unit">
+                        {datapageData.unit}
+                    </MetadataBoxKeyDataRow>
                 )}
                 {datapageData.dateRange && (
-                    <div className="meta-description-table__pair">
-                        <dt className="meta-description-table__key">
-                            Date range
-                        </dt>
-                        <dd className="meta-description-table__value">
-                            {datapageData.dateRange}
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow label="Date range">
+                        {makeDateRange({ dateRange: datapageData.dateRange })}
+                    </MetadataBoxKeyDataRow>
                 )}
                 {datapageData.lastUpdated && (
-                    <div className="meta-description-table__pair">
-                        <dt className="meta-description-table__key">
-                            Last updated
-                        </dt>
-                        <dd className="meta-description-table__value">
-                            {datapageData.lastUpdated}
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow label="Last updated">
+                        {makeLastUpdated({
+                            lastUpdated: datapageData.lastUpdated,
+                        })}
+                    </MetadataBoxKeyDataRow>
                 )}
                 {datapageData.nextUpdate && (
-                    <div className="meta-description-table__pair">
-                        <dt className="meta-description-table__key">
-                            Next expected update
-                        </dt>
-                        <dd className="meta-description-table__value">
-                            {datapageData.nextUpdate}
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow label="Next expected update">
+                        {makeNextUpdate({
+                            nextUpdate: datapageData.nextUpdate,
+                        })}
+                    </MetadataBoxKeyDataRow>
                 )}
                 {owners.length > 0 && (
-                    <div className="meta-description-table__pair">
-                        <dt className="meta-description-table__key">
-                            Managed by
-                        </dt>
-                        <dd className="meta-description-table__value">
-                            <Byline names={owners} prefix="" />
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow
+                        label="Managed by"
+                        className="indicator-metadata-box__managed-by"
+                    >
+                        <AvatarByline authors={owners} />
+                    </MetadataBoxKeyDataRow>
                 )}
-            </dl>
-            <ExpandableSection
+            </MetadataBoxKeyData>
+            <IndicatorMetadataSections
                 datapageData={datapageData}
                 faqEntries={faqEntries}
                 detailsRef={detailsRef}
+                detailsId={detailsId}
                 canonicalUrl={canonicalUrl}
                 archiveContext={archiveContext}
                 primaryTopic={datapageData.primaryTopic}
                 title={datapageData.title}
                 descriptionProcessing={datapageData.descriptionProcessing}
                 license={license}
-                faqsSectionId={`${FAQS_SECTION_ID}${idSuffix}`}
-                sourcesSectionId={`${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}${idSuffix}`}
-                processingContentId={processingContentId}
+                idSuffix={idSuffix}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
-                auxiliaryIndicators={auxiliaryIndicators}
-                pageCitation={pageCitation}
                 stitched={stitched}
+                pageCitation={pageCitation}
+                auxiliaryIndicators={auxiliaryIndicators}
             />
         </>
-    )
-}
-
-// The stitched replacement for the indicator switcher: one line saying what
-// the page covers, then one entry per indicator. `short`/`unit`/`note` are
-// only present when that field differs across the indicators (the shared
-// value renders once in the pane below).
-// "Title." for a title that runs into its description; leaves titles that
-// already end in punctuation alone.
-const withFinalStop = (title: string): string =>
-    /[.!?:]$/.test(title.trim()) ? title : `${title}.`
-
-function StitchedIndicatorList({
-    entries,
-    datapageData,
-    expanderOpen,
-}: {
-    entries: StitchedIndicatorListEntry[]
-    datapageData: DataPageDataV2
-    expanderOpen: boolean
-}) {
-    // Distinct sources: one dataset split across ETL snapshots is one source.
-    const nSources =
-        _.uniq((datapageData.origins ?? []).map(getOriginIdentityKey)).length +
-        (datapageData.source ? 1 : 0)
-    const sourcePhrase =
-        nSources > 0
-            ? `, all from the same data source${nSources > 1 ? "s" : ""}`
-            : ""
-    // A titleVariant the baker left on the pane is shared by every indicator
-    // (otherwise it clears it and the entries carry their own).
-    const sharedVariant = datapageData.titleVariant?.trim()
-    const variantPhrase = sharedVariant ? ` (${sharedVariant})` : ""
-    // Up to five entries always show in full. A longer list shows its first
-    // three and a "+N more indicators" line: plain muted text while the box
-    // is closed (the box's "Show more" is the one control there), a button
-    // once the box is open, which reveals the rest. Closing the box folds
-    // the list again. Folded entries stay in the DOM, hidden, for raw-HTML
-    // consumers.
-    const SHOW_ALL_UP_TO = 5
-    const FOLD_AFTER = 3
-    const [showFolded, setShowFolded] = useState(false)
-    useEffect(() => {
-        if (!expanderOpen) setShowFolded(false)
-    }, [expanderOpen])
-    const expanded =
-        entries.length <= SHOW_ALL_UP_TO || (expanderOpen && showFolded)
-    const nFolded = entries.length - FOLD_AFTER
-    const moreLabel = `+${nFolded} more indicators`
-    // The list renders as a meta-expander__prose block so it inherits the
-    // WYSK's exact type and spacing and reads as the paragraph before it.
-    const blockClass =
-        "meta-expander__preview meta-expander__prose indicator-metadata-box__stitched-list"
-
-    const intro = (
-        <>
-            This chart shows data for {entries.length} indicators
-            {variantPhrase}
-            {sourcePhrase}
-        </>
-    )
-    // Entries whose only extra is a description read as prose on one line
-    // ("Title. Description."); once units vary too, the description and the
-    // unit each get their own line with a muted key, like the pane's key data.
-    const hasUnits = entries.some((entry) => entry.unit)
-    return (
-        <div className={blockClass}>
-            <p>{intro}:</p>
-            <ol>
-                {entries.map((entry, i) => (
-                    <li key={i} hidden={!expanded && i >= FOLD_AFTER}>
-                        {hasUnits ? (
-                            <>
-                                <span className="indicator-metadata-box__stitched-list-title">
-                                    {entry.title}
-                                </span>
-                                {entry.short && (
-                                    <span className="indicator-metadata-box__stitched-list-row">
-                                        <span className="indicator-metadata-box__stitched-list-key">
-                                            Description
-                                        </span>{" "}
-                                        <SimpleMarkdownText
-                                            text={entry.short}
-                                            useParagraphs={false}
-                                        />
-                                    </span>
-                                )}
-                                {entry.unit && (
-                                    <span className="indicator-metadata-box__stitched-list-row">
-                                        <span className="indicator-metadata-box__stitched-list-key">
-                                            Unit
-                                        </span>{" "}
-                                        {entry.unit}
-                                    </span>
-                                )}
-                            </>
-                        ) : (
-                            <span className="indicator-metadata-box__stitched-list-row">
-                                <strong>{withFinalStop(entry.title)}</strong>
-                                {entry.short && (
-                                    <>
-                                        {" "}
-                                        <SimpleMarkdownText
-                                            text={entry.short}
-                                            useParagraphs={false}
-                                        />
-                                    </>
-                                )}
-                            </span>
-                        )}
-                        {entry.note && (
-                            <div className="indicator-metadata-box__stitched-list-note">
-                                <SimpleMarkdownText
-                                    text={entry.note}
-                                    useParagraphs={false}
-                                />
-                            </div>
-                        )}
-                    </li>
-                ))}
-            </ol>
-            {!expanded && (
-                <p className="indicator-metadata-box__stitched-list-more">
-                    {expanderOpen ? (
-                        <button
-                            type="button"
-                            className="indicator-metadata-box__stitched-list-more-button"
-                            onClick={() => setShowFolded(true)}
-                            data-track-note="metadata_box_indicator_list_toggle"
-                        >
-                            {moreLabel}
-                        </button>
-                    ) : (
-                        moreLabel
-                    )}
-                </p>
-            )}
-        </div>
     )
 }
 
@@ -928,27 +726,28 @@ export default function IndicatorMetadataBox({
 
     const switcherVariant = useSwitcherVariant()
 
-    // One <details> ref per indicator pane so the "Show less" button and the
-    // open-on-switch behavior can target the active pane's collapsible.
-    const detailsRefs = useMemo(
-        () =>
-            Array.from({ length: indicators.length }, () =>
-                createRef<HTMLDetailsElement>()
-            ),
-        [indicators.length]
+    // Each pane's top toggle needs its expander's <details>; the refs are
+    // stable across renders (one per pane, created once).
+    const [detailsRefs] = useState(() =>
+        Array.from({ length: indicators.length }, () =>
+            createRef<HTMLDetailsElement>()
+        )
     )
-    const activeDetailsRef = detailsRefs[safeIndex]
+    // The box element: the switch effect below finds each pane's expander
+    // through it rather than mutating the refs.
+    const boxRef = useRef<HTMLDivElement>(null)
+    // Derived from the box's id rather than useId(): the server renders the
+    // whole page but the client hydrates only the data page content, so
+    // generated ids wouldn't match
+    const detailsIdFor = (i: number): string | undefined =>
+        id ? `${id}-details${i === 0 ? "" : `--${i}`}` : undefined
 
-    // Open the collapsible whenever the user switches indicator — the click
-    // was a request to *see* that indicator's metadata, so keeping the box
-    // collapsed afterwards would hide the very thing they asked for. Skip
-    // the initial render so the section doesn't auto-open on page load.
-    // Toggles caused by the programmatic open/close below shouldn't be
-    // logged as user expands/collapses. <details> fires its toggle event
-    // asynchronously, so suppress logging for a short window rather than
-    // trying to flag the individual events.
+    // Open the expander whenever the user switches indicator — the click was
+    // a request to *see* that indicator's metadata. Skip the initial render
+    // so the box doesn't auto-open on page load. <details> fires its toggle
+    // event asynchronously, so logging is suppressed for a short window
+    // rather than per event.
     const suppressToggleLogUntilRef = useRef(0)
-
     const isFirstActiveIndexRef = useRef(true)
     useEffect(() => {
         if (isFirstActiveIndexRef.current) {
@@ -956,21 +755,22 @@ export default function IndicatorMetadataBox({
             return
         }
         suppressToggleLogUntilRef.current = Date.now() + 500
-        // Close the now-hidden panes' collapsibles — a hidden-but-open
-        // <details> would keep the box's "Show less" affordance visible
-        // (via the `:has([open])` rule) even when the active pane is
-        // collapsed.
-        detailsRefs.forEach((ref, i) => {
-            if (i !== safeIndex && ref.current) ref.current.open = false
+        // Close the now-hidden panes' expanders, so a hidden-but-open one
+        // can't keep "Show less" styling on the box, and open the new one.
+        const paneEls = boxRef.current?.querySelectorAll(
+            ":scope > .indicator-metadata-box__pane"
+        )
+        paneEls?.forEach((pane, i) => {
+            const details = pane.querySelector<HTMLDetailsElement>(
+                "details.metadata-box-expander__details"
+            )
+            if (details) details.open = i === safeIndex
         })
-        const details = detailsRefs[safeIndex]?.current
-        if (details) details.open = true
-    }, [safeIndex, detailsRefs])
+    }, [safeIndex])
 
-    // ALL indicators' panes sit in the rendered HTML at the same time — only
-    // the active one is visible (display: contents vs display: none), while
-    // the others stay available to AI agents / unmodified-HTML consumers on
-    // a plain GET.
+    // ALL panes sit in the rendered HTML at once — only the active one is
+    // visible — so the others stay available to AI agents and other
+    // unmodified-HTML consumers on a plain GET.
     const panes = indicators.map((ind, i) => (
         <div
             key={i}
@@ -980,46 +780,42 @@ export default function IndicatorMetadataBox({
             data-indicator-index={i}
             aria-hidden={i !== safeIndex}
         >
-            <IndicatorPaneContent
+            <IndicatorPane
                 datapageData={ind.datapageData}
                 faqEntries={ind.faqEntries}
                 detailsRef={detailsRefs[i]}
+                detailsId={detailsIdFor(i)}
                 canonicalUrl={canonicalUrl}
                 archiveContext={archiveContext}
                 license={license}
                 idSuffix={i === safeIndex ? "" : `--${i}`}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
                 stitched={stitched}
+                pageCitation={pageCitation}
                 auxiliaryIndicators={
                     hasSwitcher ? undefined : auxiliaryIndicators
                 }
-                pageCitation={pageCitation}
             />
         </div>
     ))
 
-    const showLessButton = (
-        <button
-            type="button"
-            className="indicator-metadata-box__show-less"
-            onClick={() => {
-                if (activeDetailsRef.current)
-                    activeDetailsRef.current.open = false
-            }}
-        >
-            Show less
-            <FontAwesomeIcon
-                icon={faChevronUp}
-                className="indicator-metadata-box__chevron"
-            />
-        </button>
-    )
-
+    // A single-indicator page renders exactly as before: one box, one pane.
     if (!isMultiIndicator) {
         return (
-            <div className={cx("indicator-metadata-box", className)} id={id}>
-                {showLessButton}
-                {panes}
+            <div
+                className={cx("metadata-box indicator-metadata-box", className)}
+                id={id}
+            >
+                <IndicatorPane
+                    datapageData={datapageData}
+                    faqEntries={faqEntries}
+                    detailsRef={detailsRefs[0]}
+                    detailsId={detailsIdFor(0)}
+                    canonicalUrl={canonicalUrl}
+                    archiveContext={archiveContext}
+                    license={license}
+                    auxiliaryIndicators={auxiliaryIndicators}
+                />
             </div>
         )
     }
@@ -1043,13 +839,10 @@ export default function IndicatorMetadataBox({
                 variant={switcherVariant === "h-pills" ? "pills" : "tabs"}
             />
             {switcherVariant === "h-pills" && (
-                // Mobile control: pills wrap into a ragged stack of rows
-                // on narrow screens, so below the small breakpoint the
-                // pill row is hidden and this select takes its own row
-                // under the label. Both live in the DOM and CSS picks one
-                // (the site pattern for responsive component swaps, e.g.
-                // SiteNavigation's mobile menu) — SSR can't know the
-                // viewport, so a JS swap would flash on mobile.
+                // Mobile control: pills wrap into a ragged stack of rows on
+                // narrow screens, so below the small breakpoint the pill row
+                // is hidden and this select takes its own row. Both live in
+                // the DOM and CSS picks one — SSR can't know the viewport.
                 <div className="indicator-metadata-box-wrap__mobile-dropdown">
                     <IndicatorDropdownSelect
                         indicators={indicators}
@@ -1076,13 +869,12 @@ export default function IndicatorMetadataBox({
                     {headerSwitcher}
                 </div>
             )}
-            {hasSwitcher &&
-                auxiliaryIndicators && (
-                    // Switcher pages: the size/colour line belongs to the chart,
-                    // not to any one pane, so it sits under "About this data"
-                    // and the pills, on top of the box.
-                    <AuxiliaryIndicatorsLine indicators={auxiliaryIndicators} />
-                )}
+            {hasSwitcher && auxiliaryIndicators && (
+                // Switcher pages: the size/colour line belongs to the chart,
+                // not to any one pane, so it sits under "About this data" and
+                // the pills, on top of the box.
+                <AuxiliaryIndicatorsLine indicators={auxiliaryIndicators} />
+            )}
             <div className="indicator-metadata-box-wrap__main">
                 {switcherVariant === "v-tabs" && (
                     <IndicatorTabsVertical
@@ -1091,11 +883,148 @@ export default function IndicatorMetadataBox({
                         onIndicatorChange={setActiveIndex}
                     />
                 )}
-                <div className="indicator-metadata-box">
-                    {showLessButton}
+                <div
+                    className="metadata-box indicator-metadata-box"
+                    ref={boxRef}
+                >
                     {panes}
                 </div>
             </div>
+        </div>
+    )
+}
+
+// "Title." for a title that runs into its description; leaves titles that
+// already end in punctuation alone.
+const withFinalStop = (title: string): string =>
+    /[.!?:]$/.test(title.trim()) ? title : `${title}.`
+
+function StitchedIndicatorList({
+    entries,
+    datapageData,
+    expanderOpen,
+    showFolded,
+    onShowFolded,
+}: {
+    entries: StitchedIndicatorListEntry[]
+    datapageData: DataPageDataV2
+    expanderOpen: boolean
+    /** The reader asked for the folded entries (reset when the box closes). */
+    showFolded: boolean
+    onShowFolded: () => void
+}) {
+    // Distinct sources: one dataset split across ETL snapshots is one source.
+    const nSources =
+        _.uniq((datapageData.origins ?? []).map(getOriginIdentityKey)).length +
+        (datapageData.source ? 1 : 0)
+    const sourcePhrase =
+        nSources > 0
+            ? `, all from the same data source${nSources > 1 ? "s" : ""}`
+            : ""
+    // A titleVariant the baker left on the pane is shared by every indicator
+    // (otherwise it clears it and the entries carry their own).
+    const sharedVariant = datapageData.titleVariant?.trim()
+    const variantPhrase = sharedVariant ? ` (${sharedVariant})` : ""
+    // Up to five entries always show in full. A longer list shows its first
+    // three and a "+N more indicators" line: plain muted text while the box
+    // is closed (the box's "Show more" is the one control there), a button
+    // once the box is open, which reveals the rest. Closing the box folds
+    // the list again. Folded entries stay in the DOM, hidden, for raw-HTML
+    // consumers.
+    const SHOW_ALL_UP_TO = 5
+    const FOLD_AFTER = 3
+    const expanded =
+        entries.length <= SHOW_ALL_UP_TO || (expanderOpen && showFolded)
+    const nFolded = entries.length - FOLD_AFTER
+    const moreLabel = `+${nFolded} more indicators`
+    // The list renders inside the expander's preview, a prose block, so it
+    // inherits the WYSK's type and spacing and reads as the paragraph before
+    // it.
+    const blockClass = "indicator-metadata-box__stitched-list"
+
+    const intro = (
+        <>
+            This chart shows data for {entries.length} indicators
+            {variantPhrase}
+            {sourcePhrase}
+        </>
+    )
+    // Entries whose only extra is a description read as prose on one line
+    // ("Title. Description."); once units vary too, the description and the
+    // unit each get their own line with a muted key, like the pane's key data.
+    const hasUnits = entries.some((entry) => entry.unit)
+    return (
+        <div className={blockClass}>
+            <p>{intro}:</p>
+            <ol>
+                {entries.map((entry, i) => (
+                    <li key={i} hidden={!expanded && i >= FOLD_AFTER}>
+                        {hasUnits ? (
+                            <>
+                                <span className="indicator-metadata-box__stitched-list-title">
+                                    {entry.title}
+                                </span>
+                                {entry.short && (
+                                    <span className="indicator-metadata-box__stitched-list-row">
+                                        <span className="indicator-metadata-box__stitched-list-key">
+                                            Description
+                                        </span>{" "}
+                                        <SimpleMarkdownText
+                                            text={entry.short}
+                                            useParagraphs={false}
+                                        />
+                                    </span>
+                                )}
+                                {entry.unit && (
+                                    <span className="indicator-metadata-box__stitched-list-row">
+                                        <span className="indicator-metadata-box__stitched-list-key">
+                                            Unit
+                                        </span>{" "}
+                                        {entry.unit}
+                                    </span>
+                                )}
+                            </>
+                        ) : (
+                            <span className="indicator-metadata-box__stitched-list-row">
+                                <strong>{withFinalStop(entry.title)}</strong>
+                                {entry.short && (
+                                    <>
+                                        {" "}
+                                        <SimpleMarkdownText
+                                            text={entry.short}
+                                            useParagraphs={false}
+                                        />
+                                    </>
+                                )}
+                            </span>
+                        )}
+                        {entry.note && (
+                            <div className="indicator-metadata-box__stitched-list-note">
+                                <SimpleMarkdownText
+                                    text={entry.note}
+                                    useParagraphs={false}
+                                />
+                            </div>
+                        )}
+                    </li>
+                ))}
+            </ol>
+            {!expanded && (
+                <p className="indicator-metadata-box__stitched-list-more">
+                    {expanderOpen ? (
+                        <button
+                            type="button"
+                            className="indicator-metadata-box__stitched-list-more-button"
+                            onClick={onShowFolded}
+                            data-track-note="metadata_box_indicator_list_toggle"
+                        >
+                            {moreLabel}
+                        </button>
+                    ) : (
+                        moreLabel
+                    )}
+                </p>
+            )}
         </div>
     )
 }
@@ -1147,17 +1076,17 @@ function AuxiliaryIndicatorsLine({
     indicators: AuxiliaryIndicator[]
 }) {
     return (
-        <dl className="meta-description-table indicator-metadata-box__auxiliary">
-            {indicators.map((ind) => (
-                <div className="meta-description-table__pair" key={ind.role}>
-                    <dt className="meta-description-table__key">
-                        {AUXILIARY_LINE_LABEL[ind.role]}
-                    </dt>
-                    <dd className="meta-description-table__value">
+        <div className="indicator-metadata-box__auxiliary">
+            <MetadataBoxKeyData>
+                {indicators.map((ind) => (
+                    <MetadataBoxKeyDataRow
+                        key={ind.role}
+                        label={AUXILIARY_LINE_LABEL[ind.role]}
+                    >
                         <AuxiliaryIndicatorLink indicator={ind} />
-                    </dd>
-                </div>
-            ))}
-        </dl>
+                    </MetadataBoxKeyDataRow>
+                ))}
+            </MetadataBoxKeyData>
+        </div>
     )
 }

@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as R from "remeda"
 import { match } from "ts-pattern"
-import { makeFigmaId } from "@ourworldindata/utils"
+import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { DumbbellConnectorStyle } from "@ourworldindata/types"
 import {
     RenderDumbbellSeries,
@@ -64,7 +64,12 @@ function TwoColumnLineDumbbell({
 
     return (
         <g id={makeFigmaId("dumbbell")} opacity={style.opacity}>
-            <line x1={start.x} x2={end.x} stroke={GRAY_50} strokeWidth={2} />
+            <line
+                x1={roundForSvg(start.x)}
+                x2={roundForSvg(end.x)}
+                stroke={GRAY_50}
+                strokeWidth={2}
+            />
             <DumbbellHead
                 id={makeFigmaId("start")}
                 head={start}
@@ -115,7 +120,11 @@ function TwoColumnArrowDumbbell({
                     headLength={Math.min(4.5, 0.6 * start.radius)}
                 />
             ) : (
-                <line x1={arrowStartX} x2={arrowEndX} stroke={GRAY_90} />
+                <line
+                    x1={roundForSvg(arrowStartX)}
+                    x2={roundForSvg(arrowEndX)}
+                    stroke={GRAY_90}
+                />
             )}
             <DumbbellHead
                 id={makeFigmaId("start")}
@@ -188,9 +197,9 @@ function DumbbellHead({
     return (
         <circle
             id={id}
-            cx={head.x}
-            cy={y}
-            r={head.radius}
+            cx={roundForSvg(head.x)}
+            cy={roundForSvg(y)}
+            r={roundForSvg(head.radius)}
             fill={head.color}
             stroke={outline ? "white" : undefined}
         />

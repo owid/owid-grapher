@@ -1,9 +1,10 @@
-import type { ReactElement } from "react"
+import { useState, type ReactElement } from "react"
 import { OwidGdocIndexItem } from "@ourworldindata/types"
 import { getTagGraphRolesById } from "./TagGraphMetadata.js"
 import { useUpdateGdocTags } from "./gdocsQueries.js"
 import { useTags } from "./tagQueries.js"
 import { GdocsIndexRow } from "./GdocsIndexRow.js"
+import { GdocsComponentPreviewsModal } from "./GdocsComponentPreviewsModal.js"
 
 export function GdocsList({
     gdocs,
@@ -19,6 +20,9 @@ export function GdocsList({
         tags.filter((tag) => tag.tagGraphRole === "orphan").map((tag) => tag.id)
     )
     const tagGraphRolesById = getTagGraphRolesById(tags)
+    // One modal for the whole list rather than one per row
+    const [componentPreviewsGdoc, setComponentPreviewsGdoc] =
+        useState<OwidGdocIndexItem>()
 
     return (
         <>
@@ -33,9 +37,18 @@ export function GdocsList({
                     onUpdateTags={async (gdocId, tags) => {
                         await updateTagsMutation.mutateAsync({ gdocId, tags })
                     }}
+                    onOpenComponentPreviews={setComponentPreviewsGdoc}
                     canEditTags={availableTags !== undefined}
                 />
             ))}
+            {componentPreviewsGdoc && (
+                <GdocsComponentPreviewsModal
+                    gdocId={componentPreviewsGdoc.id}
+                    gdocTitle={componentPreviewsGdoc.title || "Untitled"}
+                    isOpen
+                    onClose={() => setComponentPreviewsGdoc(undefined)}
+                />
+            )}
         </>
     )
 }

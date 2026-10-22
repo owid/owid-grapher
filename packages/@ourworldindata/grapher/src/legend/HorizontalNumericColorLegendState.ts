@@ -9,11 +9,8 @@ import {
     isCategoricalBin,
     isNumericBin,
 } from "../color/ColorScaleBin"
-import {
-    BASE_FONT_SIZE,
-    GRAPHER_FONT_SCALE_12,
-    GRAPHER_FONT_SCALE_14,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 import {
     PositionedBin,
     NumericLabel,
@@ -43,8 +40,8 @@ export class HorizontalNumericColorLegendState {
         this.options = options
     }
 
-    @computed private get fontSize(): number {
-        return this.options.fontSize ?? BASE_FONT_SIZE
+    @computed private get baseFontSize(): number {
+        return this.options.baseFontSize ?? BASE_FONT_SIZE
     }
 
     @computed private get align(): HorizontalAlign {
@@ -68,11 +65,11 @@ export class HorizontalNumericColorLegendState {
     }
 
     @computed private get tickFontSize(): number {
-        return GRAPHER_FONT_SCALE_12 * this.fontSize
+        return scaleFontSize(12, this.baseFontSize)
     }
 
     @computed private get itemMargin(): number {
-        return Math.round(this.fontSize * 1.125)
+        return Math.round(this.baseFontSize * 1.125)
     }
 
     private getTickLabelWidth(label: string): number {
@@ -125,7 +122,7 @@ export class HorizontalNumericColorLegendState {
 
         // Try to keep the minimum close to the size of the "No data" bin,
         // so they look visually balanced somewhat.
-        const minBinWidth = this.fontSize * 3.25
+        const minBinWidth = this.baseFontSize * 3.25
         const maxBinWidth =
             _.max(
                 spaceRequirements.map(({ labelSpace }) =>
@@ -201,7 +198,7 @@ export class HorizontalNumericColorLegendState {
     }
 
     @computed private get titleFontSize(): number {
-        return this.fontSize * GRAPHER_FONT_SCALE_14
+        return scaleFontSize(14, this.baseFontSize)
     }
 
     @computed get title(): TextWrap | undefined {

@@ -185,6 +185,7 @@ function useScrollBounds<ElementType extends HTMLElement>(
             }
         }
         return
+        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- contentsId signals that the height has changed
     }, [contentsId, ref])
 
     return [scrollTop, scrollBottom]

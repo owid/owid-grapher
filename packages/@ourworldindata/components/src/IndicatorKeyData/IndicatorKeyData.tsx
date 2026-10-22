@@ -91,7 +91,13 @@ const splitSourceTextIntoFragments = (text: string | undefined): string[] => {
     return text ? text.split(";").map((fragment) => fragment.trim()) : []
 }
 
-export const makeLinks = ({ link }: { link?: string }): React.ReactNode => {
+export const makeLinks = ({
+    link,
+    trackNote,
+}: {
+    link?: string
+    trackNote?: string
+}): React.ReactNode => {
     if (!link) return null
     const linkFragments = splitSourceTextIntoFragments(link)
     return linkFragments.map((urlOrText, index) => {
@@ -100,7 +106,9 @@ export const makeLinks = ({ link }: { link?: string }): React.ReactNode => {
             <React.Fragment key={urlOrText}>
                 <span>
                     {isUrl ? (
-                        <a href={urlOrText}>{urlOrText}</a>
+                        <a href={urlOrText} data-track-note={trackNote}>
+                            {urlOrText}
+                        </a>
                     ) : (
                         <SimpleMarkdownText
                             text={urlOrText}

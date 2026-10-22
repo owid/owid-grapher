@@ -15,6 +15,7 @@ import {
     PagesIndexRecordsResponse,
     RedirectsTableName,
     OwidGdocType,
+    GdocComponentPreviewRefreshResult,
 } from "@ourworldindata/types"
 import {
     checkIsChronologicalGdoc,
@@ -46,10 +47,7 @@ import {
     indexIndividualGdocInChronological,
     removeIndividualGdocFromChronological,
 } from "../../baker/algolia/utils/pagesChronological.js"
-import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
-import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
 import { getMinimalGdocPostsByIds } from "../../db/model/Gdoc/GdocBase.js"
-import { GdocDataInsight } from "../../db/model/Gdoc/GdocDataInsight.js"
 import { prepareCalloutTableForUrl } from "../../db/model/Gdoc/dataCallouts.js"
 import {
     prepareCalloutTable,
@@ -69,15 +67,14 @@ import {
     setTagsForGdoc,
     loadGdocFromGdocBase,
     getGdocBaseObjectById,
+    type AnyGdoc,
 } from "../../db/model/Gdoc/GdocFactory.js"
-import { GdocHomepage } from "../../db/model/Gdoc/GdocHomepage.js"
-import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
+import { refreshGdocComponentPreviews } from "../../db/model/Gdoc/componentPreviews/refreshGdocComponentPreviews.js"
 import { enqueueLightningChange } from "./routeUtils.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
-import { GdocAnnouncement } from "../../db/model/Gdoc/GdocAnnouncement.js"
 import { GdocProfile } from "../../db/model/Gdoc/GdocProfile.js"
 
 export async function getAllGdocIndexItems(
@@ -327,22 +324,8 @@ function checkIsProfile(gdoc: { content: { type?: OwidGdocType } }): boolean {
 async function indexAndBakeGdocIfNeccesary(
     trx: db.KnexReadWriteTransaction,
     user: Required<DbInsertUser>,
-    prevGdoc:
-        | GdocPost
-        | GdocDataInsight
-        | GdocHomepage
-        | GdocAbout
-        | GdocAuthor
-        | GdocAnnouncement
-        | GdocProfile,
-    nextGdoc:
-        | GdocPost
-        | GdocDataInsight
-        | GdocHomepage
-        | GdocAbout
-        | GdocAuthor
-        | GdocAnnouncement
-        | GdocProfile
+    prevGdoc: AnyGdoc,
+    nextGdoc: AnyGdoc
 ) {
     const prevJson = prevGdoc.toJSON()
     const nextJson = nextGdoc.toJSON()
@@ -416,14 +399,7 @@ async function indexAndBakeGdocIfNeccesary(
 
 async function validateSlugCollisionsIfPublishing(
     trx: db.KnexReadonlyTransaction,
-    gdoc:
-        | GdocPost
-        | GdocDataInsight
-        | GdocHomepage
-        | GdocAbout
-        | GdocAuthor
-        | GdocAnnouncement
-        | GdocProfile
+    gdoc: AnyGdoc
 ) {
     if (!gdoc.published) return
 
@@ -648,6 +624,20 @@ export async function setGdocTags(
     await setTagsForGdoc(trx, gdocId, tagIdsAsObjects)
 
     return { success: true }
+}
+
+/**
+ * Updates the preview images above chart and image components in the Google
+ * Doc itself, so authors see the current version of each while writing.
+ */
+export async function refreshGdocComponentPreviewsInDoc(
+    req: Request
+): Promise<GdocComponentPreviewRefreshResult> {
+    const { gdocId } = req.params
+    return refreshGdocComponentPreviews(gdocId, {
+        insertMissing: req.body?.insertMissing === true,
+        acceptImageBelow: req.body?.acceptImageBelow === true,
+    })
 }
 
 /**

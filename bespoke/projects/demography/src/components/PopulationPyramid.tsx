@@ -75,7 +75,6 @@ function PopulationPyramidContent({
     const bp = toBreakpoint(width)
     const windowBreakpoint = useBreakpoint()
     const fonts = getPopulationPyramidFonts(bp, windowBreakpoint)
-    const margin = { ...PYRAMID_MARGIN }
     const centerGap =
         Bounds.forText("125-129", { fontSize: fonts.ageGroupLabel }).width +
         2 * CENTER_GAP_PADDING
@@ -98,8 +97,9 @@ function PopulationPyramidContent({
         return maxLabelWidth + AGE_ZONE_LABEL_PADDING
     }, [fonts.ageZoneLabel, ageZones])
 
-    if (ageZoneLabelMarginRight) {
-        margin.right = ageZoneLabelMarginRight
+    const margin = {
+        ...PYRAMID_MARGIN,
+        right: ageZoneLabelMarginRight || PYRAMID_MARGIN.right,
     }
 
     const innerWidth = width - margin.left - margin.right

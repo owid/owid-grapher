@@ -22,9 +22,12 @@
     }
 }
 .static-viz-admin__preview-active-image {
+    // override antd Image's default width: 100%
+    width: auto;
     max-width: 150px;
     height: 150px;
     object-fit: contain;
+    cursor: zoom-in;
 }
 
 .StaticVizEditPage {

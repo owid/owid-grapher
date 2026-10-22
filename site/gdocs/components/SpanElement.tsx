@@ -8,7 +8,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye } from "@fortawesome/free-solid-svg-icons"
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
 import cx from "clsx"
+import { Footnote } from "../../Footnote.js"
 import { useCalloutValue } from "../utils.js"
+import { useHasHydrated } from "../../hooks.js"
 
 function SpanCalloutElement({
     span,
@@ -27,10 +29,7 @@ export default function SpanElement({
     shouldRenderLinks?: boolean
 }): React.ReactElement {
     const handleGuidedChartLinkClick = useGuidedChartLinkHandler()
-    const [hasHydrated, setHasHydrated] = React.useState(false)
-    React.useEffect(() => {
-        setHasHydrated(true)
-    }, [])
+    const hasHydrated = useHasHydrated()
 
     return match(span)
         .with({ spanType: "span-simple-text" }, (span) => (
@@ -57,12 +56,7 @@ export default function SpanElement({
         )
         .with({ spanType: "span-ref" }, (span) =>
             shouldRenderLinks ? (
-                <a href={span.url} className="ref">
-                    <SpanElements
-                        spans={span.children}
-                        shouldRenderLinks={shouldRenderLinks}
-                    />
-                </a>
+                <Footnote span={span} />
             ) : (
                 <span className="ref">
                     <SpanElements

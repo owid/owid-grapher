@@ -117,6 +117,10 @@ sequenceDiagram
 - **Facet Filtering**: Dynamic filters for countries and topics
 - **Search Analytics**: Algolia Insights for click tracking (pending porting from legacy system)
 
+#### Topic page recommendations
+
+The "Topic page" cards in the Research & Writing section are not a text search over topic pages. Topic pages consist mostly of charts and key indicators, whose text isn't indexed, so their records rarely contain the words a user searches for ("gdp" appears nowhere in the Economic Growth page's records) while long-form pages match on passing mentions. Instead, `queryTopicPages` looks at the best-ranked charts matching the query and shows the topic pages of their tags, weighted by chart rank (reciprocal rank, so a topic with hundreds of poorly-ranked matching explorer views can't outvote the charts at the top). Query words are matched as whole words first, falling back to Algolia's usual prefix matching only when that finds nothing, so "ai" means AI rather than the start of "air" or "aid". The implementation (`searchTopicPagesOfMatchingCharts` in `@ourworldindata/utils`) is shared with the public `/api/search` endpoint, which applies it to `type=pages` searches restricted to topic pages. Text search over topic pages remains the fallback for empty queries and queries no chart matches.
+
 #### Empty-query caching proxy
 
 Requests with empty queries are routed through a caching Cloudflare function (`functions/api/search/cached-queries.ts`) which caches them for 24h.

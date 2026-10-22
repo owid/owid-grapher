@@ -53,7 +53,10 @@ export default function MultiDim({
         archiveContext?.type === "archive-page"
             ? archiveContext.assets.runtime
             : undefined
+    // A mutable object shared with the GrapherState: passed to it on mount and
+    // updated in the effect below
     const manager = useRef(localGrapherConfig?.manager ?? {})
+    /* oxlint-disable react/refs */
     const grapherStateRef = useMaybeGlobalGrapherStateRef({
         manager: manager.current,
         queryStr,
@@ -65,6 +68,7 @@ export default function MultiDim({
         archiveContext,
         isConfigReady: false,
     })
+    /* oxlint-enable react/refs */
 
     const grapherDataLoader = useRef(
         getCachingInputTableFetcher(DATA_API_URL, archiveContext, isPreviewing)
@@ -285,6 +289,7 @@ export default function MultiDim({
                 ref={grapherContainerRef}
             >
                 <Grapher
+                    // oxlint-disable-next-line react/refs -- the MobX GrapherState is created once and never replaced
                     grapherState={grapherStateRef.current}
                     {...baseGrapherConfig}
                 />

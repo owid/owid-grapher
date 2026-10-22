@@ -159,6 +159,34 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(countryResults[0].name).toBe("United States")
         })
 
+        it("should not fuzzy-match synonyms against country names", () => {
+            const synonymMapWithTopicSynonyms: SynonymMap = new Map([
+                ["population", ["people"]],
+                ["price", ["cost"]],
+                ["united nations", ["un"]],
+            ])
+
+            const countryNamesFor = (words: string[]) =>
+                findTopicAndRegionFilters(
+                    words,
+                    regions,
+                    mockTopics,
+                    new Set(),
+                    new Set(),
+                    synonymMapWithTopicSynonyms,
+                    sortOptionsMultiple
+                )
+                    .filter((f) => f.type === FilterType.COUNTRY)
+                    .map((f) => f.name)
+
+            // "people" fuzzy-matches "Yemen People's Republic", "cost" matches
+            // "Costa Rica" and "un" matches "United States" -- none of them
+            // should surface via the synonym.
+            expect(countryNamesFor(["population"])).toEqual([])
+            expect(countryNamesFor(["price"])).toEqual([])
+            expect(countryNamesFor(["united", "nations"])).toEqual([])
+        })
+
         it("should filter out already selected countries and topics", () => {
             const selectedCountries = new Set(["United States"])
             const selectedTopics = new Set(["Artificial Intelligence"])
@@ -737,6 +765,35 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(result.suggestions[0].type).toBe(FilterType.QUERY)
             expect(result.unmatchedQuery).toBe("nonexistenttopic")
         })
+    })
+})
+
+describe("autocomplete ignores parenthesised disambiguators", () => {
+    const regions = listedRegionsNames()
+    const suggestedCountries = (query: string): string[] =>
+        suggestFiltersFromQuerySuffix(
+            query,
+            regions,
+            [],
+            [],
+            new Map() as SynonymMap
+        )
+            .suggestions.filter((filter) => filter.type === FilterType.COUNTRY)
+            .map((filter) => filter.name)
+
+    it.each([
+        "country",
+        "co2 emissions by country",
+        "income by country",
+        "life expectancy by country",
+    ])("does not suggest a country for %s", (query) => {
+        expect(suggestedCountries(query)).toEqual([])
+    })
+
+    it("still matches the name outside the parentheses", () => {
+        expect(suggestedCountries("micronesia")).toContain(
+            "Micronesia (country)"
+        )
     })
 })
 

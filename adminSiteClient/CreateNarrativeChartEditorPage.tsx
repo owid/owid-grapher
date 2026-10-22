@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useHistory, useLocation } from "react-router-dom"
-import { action, computed, makeObservable, observable } from "mobx"
+import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import type { History } from "history"
 
@@ -15,7 +15,11 @@ import {
 } from "../adminShared/validation.js"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
+import {
+    ChartEditorLoading,
+    ChartEditorView,
+    ChartEditorViewManager,
+} from "./ChartEditorView.js"
 import {
     NarrativeChartEditor,
     NarrativeChartEditorManager,
@@ -68,8 +72,12 @@ class CreateNarrativeChartEditorPageInternal
         makeObservable(this, {
             name: observable,
             nameError: observable,
+            isConfigLoaded: observable.ref,
         })
     }
+
+    // See ChartEditorLoading
+    isConfigLoaded = false
 
     id?: number
     name: string | undefined = undefined
@@ -89,6 +97,7 @@ class CreateNarrativeChartEditorPageInternal
             `/api/chart-configs/${this.props.chartConfigId}.config.json`
         )
         this.parentConfig = chartConfig
+        runInAction(() => (this.isConfigLoaded = true))
     }
 
     @computed get admin(): Admin {
@@ -129,6 +138,7 @@ class CreateNarrativeChartEditorPageInternal
     }
 
     override render(): React.ReactElement {
+        if (!this.isConfigLoaded) return <ChartEditorLoading />
         return <ChartEditorView manager={this} />
     }
 }

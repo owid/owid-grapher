@@ -1,9 +1,10 @@
 import * as React from "react"
 import {
-    dyFromAlign,
-    removeAllWhitespace,
-    makeFigmaId,
     VerticalAlign,
+    dyFromAlign,
+    makeFigmaId,
+    removeAllWhitespace,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { TextWrapSvg } from "@ourworldindata/components"
 import { ColorScaleBin, isNumericBin } from "../color/ColorScaleBin"
@@ -59,7 +60,6 @@ export function HorizontalNumericColorLegend(
         styleConfig?.text?.default?.color ?? DEFAULT_TEXT_COLOR
 
     const bottomY = y + height
-    const labelStripHeight = Math.max(0, height - binSize)
 
     const markerStyleFor = (bin: ColorScaleBin): LegendMarkerStyle =>
         resolveLegendMarkerStyle(styleConfig, binEmphasis?.get(bin), {
@@ -99,7 +99,6 @@ export function HorizontalNumericColorLegend(
         const bin = positionedBin.bin
         const style = markerStyleFor(bin)
         const fill = bin.patternRef ? `url(#${bin.patternRef})` : style.fill
-        const inert = isHighlightOverlay || !isHoverable
 
         return (
             <NumericBinRect
@@ -119,9 +118,6 @@ export function HorizontalNumericColorLegend(
                 isOpenLeft={isNumericBin(bin) ? bin.props.isOpenLeft : false}
                 isOpenRight={isNumericBin(bin) ? bin.props.isOpenRight : false}
                 pointerEvents={isHighlightOverlay ? "none" : undefined}
-                onPointerEnter={inert ? undefined : onPointerEnter(bin)}
-                onPointerLeave={inert ? undefined : onPointerLeave}
-                onPointerUp={inert ? undefined : onPointerUp(bin)}
             />
         )
     }
@@ -139,10 +135,16 @@ export function HorizontalNumericColorLegend(
                         <line
                             key={index}
                             id={makeFigmaId(label.text)}
-                            x1={x + label.bounds.x + label.bounds.width / 2}
-                            y1={bottomY - binSize}
-                            x2={x + label.bounds.x + label.bounds.width / 2}
-                            y2={bottomY + label.bounds.y + label.bounds.height}
+                            x1={roundForSvg(
+                                x + label.bounds.x + label.bounds.width / 2
+                            )}
+                            y1={roundForSvg(bottomY - binSize)}
+                            x2={roundForSvg(
+                                x + label.bounds.x + label.bounds.width / 2
+                            )}
+                            y2={roundForSvg(
+                                bottomY + label.bounds.y + label.bounds.height
+                            )}
                             // if we use a light color for stroke (e.g. white), we want it to stay
                             // "invisible", except for raised labels, where we want *some* contrast.
                             stroke={
@@ -182,8 +184,8 @@ export function HorizontalNumericColorLegend(
                     return (
                         <text
                             key={index}
-                            x={x + label.bounds.x}
-                            y={bottomY + label.bounds.y}
+                            x={roundForSvg(x + label.bounds.x)}
+                            y={roundForSvg(bottomY + label.bounds.y)}
                             // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                             // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
                             // do with some rough positioning.
@@ -197,16 +199,18 @@ export function HorizontalNumericColorLegend(
                 })}
             </g>
             {isHoverable && (
-                <g id={makeFigmaId("swatch-hit-areas")} aria-hidden="true">
+                <g aria-hidden="true">
                     {positionedBins.map((positionedBin, index) => (
                         <rect
                             key={index}
-                            x={x + positionedBin.x}
-                            y={y}
-                            width={positionedBin.width}
-                            height={labelStripHeight}
+                            x={roundForSvg(x + positionedBin.x)}
+                            y={roundForSvg(y)}
+                            width={roundForSvg(positionedBin.width)}
+                            height={roundForSvg(height)}
                             fill="transparent"
                             pointerEvents="all"
+                            onPointerEnter={onPointerEnter(positionedBin.bin)}
+                            onPointerLeave={onPointerLeave}
                             onPointerUp={onPointerUp(positionedBin.bin)}
                         />
                     ))}
@@ -239,11 +243,11 @@ const NumericBinRect = (props: NumericBinRectProps): React.ReactElement => {
         const a = ARROW_SIZE
         const w = width - a
         const d = removeAllWhitespace(`
-            M ${x}, ${y}
-            l ${w}, 0
-            l ${a}, ${height / 2}
-            l ${-a}, ${height / 2}
-            l ${-w}, 0
+            M ${roundForSvg(x)}, ${roundForSvg(y)}
+            l ${roundForSvg(w)}, 0
+            l ${roundForSvg(a)}, ${roundForSvg(height / 2)}
+            l ${roundForSvg(-a)}, ${roundForSvg(height / 2)}
+            l ${roundForSvg(-w)}, 0
             z
         `)
         return <path d={d} {...restProps} />
@@ -251,15 +255,23 @@ const NumericBinRect = (props: NumericBinRectProps): React.ReactElement => {
         const a = ARROW_SIZE
         const w = width - a
         const d = removeAllWhitespace(`
-            M ${x + a}, ${y}
-            l ${w}, 0
-            l 0, ${height}
-            l ${-w}, 0
-            l ${-a}, ${-height / 2}
+            M ${roundForSvg(x + a)}, ${roundForSvg(y)}
+            l ${roundForSvg(w)}, 0
+            l 0, ${roundForSvg(height)}
+            l ${roundForSvg(-w)}, 0
+            l ${roundForSvg(-a)}, ${roundForSvg(-height / 2)}
             z
         `)
         return <path d={d} {...restProps} />
     } else {
-        return <rect x={x} y={y} width={width} height={height} {...restProps} />
+        return (
+            <rect
+                x={roundForSvg(x)}
+                y={roundForSvg(y)}
+                width={roundForSvg(width)}
+                height={roundForSvg(height)}
+                {...restProps}
+            />
+        )
     }
 }
