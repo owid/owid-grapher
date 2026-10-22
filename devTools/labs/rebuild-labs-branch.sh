@@ -4,34 +4,105 @@
 # labelled `labs`, merged in PR-number order, then force-push it. Pushing the
 # branch is what deploys Labs: its draft PR gets a staging server like any other.
 #
-# A PR that doesn't merge cleanly is left out of this round and listed in the
-# Labs PR description; merging master into it (or resolving the clash with the
-# PR it conflicts with) brings it back on the next rebuild.
+# When a PR conflicts with master or with the PRs merged before it, Claude Code
+# resolves the conflicts (if the `claude` CLI is available), guided by
+# resolve-conflict.prompt.md. A resolution is kept only if no conflict markers
+# are left and the result typechecks; git rerere records it, so the same
+# conflict is replayed on later rebuilds instead of being resolved again.
+# Anything else leaves the PR out of this build, listed in the Labs PR
+# description.
 #
 # Usage: devTools/labs/rebuild-labs-branch.sh [--dry-run]
 #   --dry-run  build the branch locally and print the result, but don't push
+#
+# Environment:
+#   LABS_AGENT_MODEL  model for resolving conflicts (default: claude-opus-5-5)
 
 set -o errexit
 set -o pipefail
 set -o nounset
 
+# mapfile needs bash 4 or newer (macOS ships 3.2 as /bin/bash)
+if (( BASH_VERSINFO[0] < 4 )); then
+    echo "This script needs bash 4 or newer" >&2
+    exit 1
+fi
+
 REPO="owid/owid-grapher"
 LABEL="labs"
 LABS_BRANCH="labs"
 LABS_PR_TITLE="Labs (DO NOT MERGE)"
+AGENT_MODEL="${LABS_AGENT_MODEL:-claude-opus-5-5}"
 
 DRY_RUN=""
 if [[ "${1:-}" == "--dry-run" ]]; then
     DRY_RUN=1
 fi
 
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 REPO_ROOT=$(git rev-parse --show-toplevel)
 WORKTREE=$(mktemp -d "${TMPDIR:-/tmp}/labs-rebuild.XXXXXX")
+LOG_DIR=$(mktemp -d "${TMPDIR:-/tmp}/labs-rebuild-logs.XXXXXX")
 
 cleanup() {
     git -C "$REPO_ROOT" worktree remove --force "$WORKTREE" 2>/dev/null || true
 }
 trap cleanup EXIT
+
+# rerere via -c, so the rebuild never changes the repo's own git config. No
+# autoUpdate: replayed files stay unstaged until the result has typechecked.
+GIT_RERERE=(git -c rerere.enabled=true -c rerere.autoUpdate=false)
+
+has_agent() {
+    command -v claude >/dev/null
+}
+
+# Files among the given ones that still contain conflict markers
+files_with_markers() {
+    local file
+    for file in "$@"; do
+        if [[ -f "$file" ]] && grep -qE '^(<<<<<<<|>>>>>>>) ' "$file"; then
+            echo "$file"
+        fi
+    done
+}
+
+as_code_list() {
+    sed 's/^/`/; s/$/`/' | paste -sd ',' - | sed 's/,/, /g'
+}
+
+resolve_with_agent() {
+    local number=$1 title=$2 body=$3 included=$4
+    shift 4
+    local prompt
+    prompt="$(cat "$SCRIPT_DIR/resolve-conflict.prompt.md")
+
+## The incoming PR: #$number $title
+
+${body:0:4000}
+
+## Already on Labs in this build
+
+${included:-Only master.}
+
+## Conflicted files
+
+$(printf -- '- %s\n' "$@")"
+
+    # Reading and editing files, and read-only git; anything else is denied
+    claude -p "$prompt" \
+        --model "$AGENT_MODEL" \
+        --permission-mode dontAsk \
+        --allowedTools "Read" "Edit" "Grep" "Glob" \
+        "Bash(git diff:*)" "Bash(git log:*)" "Bash(git show:*)" "Bash(git status:*)" \
+        --no-session-persistence
+}
+
+typechecks() {
+    # skip-build: typechecking needs no install scripts. immutable: never leave a
+    # changed yarn.lock behind in the worktree, where it would block the next merge.
+    yarn install --immutable --mode=skip-build && echo "--- yarn typecheck" && yarn typecheck
+}
 
 echo "--- Fetching origin/master"
 git -C "$REPO_ROOT" fetch --quiet origin master
@@ -52,14 +123,54 @@ while IFS=$'\t' read -r number head sha title; do
     [[ -z "$number" ]] && continue
     echo "--- Merging #$number ($head)"
     git fetch --quiet origin "$sha"
-    if git merge --no-ff --no-edit --quiet -m "Labs: merge #$number $title" "$sha"; then
-        INCLUDED+="- #$number $title (\`${sha:0:7}\`)"$'\n'
-    else
-        CONFLICTS=$(git diff --name-only --diff-filter=U | sed 's/^/`/; s/$/`/' | paste -sd ',' - | sed 's/,/, /g')
-        git merge --abort
-        echo "    Left out: conflicts in $CONFLICTS"
-        LEFT_OUT+="- #$number $title: conflicts in $CONFLICTS"$'\n'
+    entry="- #$number $title (\`${sha:0:7}\`)"
+    if "${GIT_RERERE[@]}" merge --no-ff --no-edit --quiet -m "Labs: merge #$number $title" "$sha"; then
+        INCLUDED+="$entry"$'\n'
+        continue
     fi
+
+    mapfile -t conflicted < <(git diff --name-only --diff-filter=U)
+    conflict_list=$(printf '%s\n' "${conflicted[@]}" | as_code_list)
+    mapfile -t unresolved < <(files_with_markers "${conflicted[@]}")
+    note="conflicts in $conflict_list resolved as on an earlier rebuild"
+    agent_note=""
+
+    if [[ ${#unresolved[@]} -gt 0 ]] && has_agent; then
+        echo "    Asking $AGENT_MODEL to resolve conflicts in ${unresolved[*]}"
+        pr_body=$(gh pr view "$number" --repo "$REPO" --json body --jq .body)
+        if summary=$(resolve_with_agent "$number" "$title" "$pr_body" "$INCLUDED" "${unresolved[@]}" \
+            2>"$LOG_DIR/agent-$number.log"); then
+            summary=$(echo "$summary" | tr '\n' ' ' | sed 's/  */ /g; s/ *$//')
+            note="conflicts in $conflict_list resolved by an agent: $summary"
+            agent_note=" (agent: $summary)"
+        else
+            echo "    The agent failed; its log: $LOG_DIR/agent-$number.log"
+        fi
+        mapfile -t unresolved < <(files_with_markers "${conflicted[@]}")
+    fi
+
+    if [[ ${#unresolved[@]} -gt 0 ]]; then
+        git merge --abort
+        echo "    Left out: unresolved conflicts in ${unresolved[*]}"
+        LEFT_OUT+="- #$number $title: conflicts in $(printf '%s\n' "${unresolved[@]}" | as_code_list)$agent_note"$'\n'
+        continue
+    fi
+
+    echo "    Typechecking the resolution"
+    if ! typechecks >"$LOG_DIR/typecheck-$number.log" 2>&1; then
+        # Forget the resolution, so the next rebuild resolves this conflict afresh
+        "${GIT_RERERE[@]}" rerere forget -- "${conflicted[@]}" >/dev/null 2>&1 || true
+        git merge --abort
+        echo "    Left out: the resolution doesn't typecheck; log: $LOG_DIR/typecheck-$number.log"
+        tail -n 20 "$LOG_DIR/typecheck-$number.log"
+        LEFT_OUT+="- #$number $title: conflicts in $conflict_list, and the attempted resolution doesn't typecheck"$'\n'
+        continue
+    fi
+
+    git add -- "${conflicted[@]}"
+    # Committing with rerere enabled records the resolution for later rebuilds
+    "${GIT_RERERE[@]}" commit --quiet --no-edit
+    INCLUDED+="$entry: $note"$'\n'
 done <<< "$PRS"
 
 BODY=$(cat <<EOF
