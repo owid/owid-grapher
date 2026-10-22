@@ -131,6 +131,11 @@
     gap: 6px;
 }
 
+// A description in several paragraphs keeps them apart
+.indicator-metadata-box .metadata-box-key-data__row--full-width p + p {
+    margin-top: 8px;
+}
+
 // Above phone width, a long value wraps under its label rather than in a
 // column beside it. The description keeps its paragraphs.
 @include sm-up {
