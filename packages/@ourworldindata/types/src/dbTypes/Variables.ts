@@ -53,6 +53,18 @@ export interface VariableDisplayDimension {
     }[]
 }
 
+/**
+ * What the data-page baker needs from a variable's ETL slice metadata: the
+ * base column it was cut from, the filter values it was cut at, and the
+ * table part of its catalog path (two "value" columns from different tables
+ * are not the same measure).
+ */
+export interface VariableSliceDimensions {
+    originalShortName: string
+    filters: VariableDisplayDimension["filters"]
+    tablePath?: string
+}
+
 export interface License {
     name: string
     url: string

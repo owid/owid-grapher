@@ -41,6 +41,8 @@ import {
     DbPlainDataset,
     normalizeDescriptionKey,
     parseVariableDisplayConfig,
+    VariableSliceDimensions,
+    parseVariableDimensions,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
@@ -382,6 +384,12 @@ export async function updateIndicatorChartConfig(
 /**
  * Returns the indicator ID to use for datapage metadata if the grapher is
  * eligible for a datapage, otherwise undefined.
+ *
+ * An explicit `datapages` row always wins when present — `forceDatapage` only
+ * comes into play when no row exists, in which case it falls back to the first
+ * y-dimension variable. Prevents `forceDatapage=true` from silently swapping
+ * the bake's primary variable on a chart that has an explicitly configured
+ * datapage indicator.
  */
 export async function getDatapageIndicatorId(
     knex: db.KnexReadonlyTransaction,
@@ -390,32 +398,35 @@ export async function getDatapageIndicatorId(
         forceDatapage?: boolean
     }
 ): Promise<number | undefined> {
-    // If a data page is forced, simply return the first y-dimension
-    if (options?.forceDatapage) {
-        const yVariableIds = grapher
-            .dimensions!.filter((d) => d.property === DimensionProperty.y)
-            .map((d) => d.variableId)
-        return yVariableIds[0]
-    }
-
-    if (!grapher.id) {
+    if (grapher.id) {
+        const row = await knexRawFirst<DbPlainDatapage>(
+            knex,
+            `-- sql
+                SELECT variableId
+                FROM datapages
+                WHERE chartId = ?
+            `,
+            [grapher.id]
+        )
+        if (row) return row.variableId
+    } else if (!options?.forceDatapage) {
         console.warn(
             "Grapher must have an ID to check for datapage eligibility"
         )
         return undefined
     }
 
-    const row = await knexRawFirst<DbPlainDatapage>(
-        knex,
-        `-- sql
-            SELECT variableId
-            FROM datapages
-            WHERE chartId = ?
-        `,
-        [grapher.id]
-    )
+    if (options?.forceDatapage) {
+        // Charts without any Y-dimension (e.g. incomplete configs) return
+        // undefined here and fall back to a plain grapher page, so forcing
+        // is safe to apply to arbitrary charts.
+        const yVariableIds = (grapher.dimensions ?? [])
+            .filter((d) => d.property === DimensionProperty.y)
+            .map((d) => d.variableId)
+        return yVariableIds[0]
+    }
 
-    return row?.variableId
+    return undefined
 }
 
 /**
@@ -1355,4 +1366,92 @@ export async function deleteIndicators(
     }
 
     return { deleted: deletableIndicatorIds, blocked }
+}
+
+/**
+ * The ETL slice metadata of each variable (`variables.dimensions`: base column
+ * + the filter values this indicator was cut at), plus the table part of its
+ * catalog path. Variables without slice metadata are absent from the map.
+ */
+export async function getVariableSliceDimensions(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Map<number, VariableSliceDimensions>> {
+    const result = new Map<number, VariableSliceDimensions>()
+    if (!variableIds.length) return result
+    const rows = await knexRaw<{
+        id: number
+        dimensions: string | null
+        catalogPath: string | null
+    }>(
+        knex,
+        `-- sql
+            SELECT id, dimensions, catalogPath
+            FROM variables
+            WHERE id IN (?) AND dimensions IS NOT NULL
+        `,
+        [variableIds]
+    )
+    for (const row of rows) {
+        const dims = parseVariableDimensions(row.dimensions)
+        if (!dims?.originalShortName) continue
+        result.set(row.id, {
+            originalShortName: dims.originalShortName,
+            filters: dims.filters ?? [],
+            tablePath: row.catalogPath?.split("#")[0] ?? undefined,
+        })
+    }
+    return result
+}
+
+/**
+ * Display title and, where one exists, a data page slug for each variable —
+ * used for the scatter plot's bubble-size / colour line. Only a published
+ * single-indicator chart counts as a variable's data page. When several charts
+ * are the data page of the same variable, the shortest slug wins (it is
+ * almost always the canonical one: `population` over
+ * `population-with-un-projections`).
+ */
+export async function getAuxiliaryIndicatorLinks(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Map<number, { title: string; slug?: string }>> {
+    const result = new Map<number, { title: string; slug?: string }>()
+    if (!variableIds.length) return result
+    const rows = await knexRaw<{
+        id: number
+        title: string
+        slug: string | null
+    }>(
+        knex,
+        `-- sql
+            SELECT
+                v.id,
+                COALESCE(NULLIF(v.titlePublic, ''), v.name) AS title,
+                (
+                    SELECT cc.slug
+                    FROM datapages dp
+                    JOIN charts c ON c.id = dp.chartId
+                    JOIN chart_configs cc ON cc.id = c.configId
+                    WHERE dp.variableId = v.id
+                      AND cc.config ->> "$.isPublished" = "true"
+                      -- a forced data page can be a multi-indicator chart
+                      -- whose first Y happens to be this variable; that
+                      -- page is not this variable's own data page
+                      AND (
+                          SELECT COUNT(*)
+                          FROM chart_dimensions cd
+                          WHERE cd.chartId = c.id AND cd.property = 'y'
+                      ) = 1
+                    ORDER BY CHAR_LENGTH(cc.slug), cc.slug
+                    LIMIT 1
+                ) AS slug
+            FROM variables v
+            WHERE v.id IN (?)
+        `,
+        [variableIds]
+    )
+    for (const row of rows)
+        result.set(row.id, { title: row.title, slug: row.slug ?? undefined })
+    return result
 }

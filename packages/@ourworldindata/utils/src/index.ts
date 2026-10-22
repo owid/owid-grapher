@@ -176,6 +176,8 @@ export {
     getAttributionWithProcessing,
     getProcessingPhraseForAttribution,
     prepareSourcesForDisplay,
+    prepareOriginForDisplay,
+    getOriginIdentityKey,
     formatSourceDate,
     getDateRange,
     getIndicatorCitations,
