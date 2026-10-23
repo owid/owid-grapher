@@ -247,6 +247,17 @@ export type ProfileHit = {
     objectID: string
 }
 
+/** The single featured-viz page shown at the top of the Data results. */
+export type FeaturedVizHit = {
+    objectID: string
+    type: OwidGdocType.FeaturedViz
+    title: string
+    slug: string
+    thumbnailUrl: string
+    authors?: string[]
+    excerpt?: string
+}
+
 export enum FilterType {
     COUNTRY = "country",
     TOPIC = "topic",
