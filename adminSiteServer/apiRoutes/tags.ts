@@ -170,6 +170,22 @@ export async function getTagById(
     return { tag }
 }
 
+export const TOPIC_AREA_CHANGE_MESSAGE =
+    "The top-level topic areas are hardcoded in TOPIC_AREA_NAMES (@ourworldindata/types) because the subscribe form and the email notifications API depend on them. Changing them needs a code change."
+
+async function assertNotTopicArea(
+    trx: db.KnexReadonlyTransaction,
+    tagId: number,
+    action: string
+): Promise<void> {
+    const { areaTagIds } = await db.getTopicAreaTagIds(trx)
+    if (areaTagIds.has(tagId))
+        throw new JsonError(
+            `This tag is a top-level topic area and can't be ${action} here. ${TOPIC_AREA_CHANGE_MESSAGE}`,
+            400
+        )
+}
+
 export async function updateTag(
     req: Request,
     _res: HandlerResponse,
@@ -177,6 +193,13 @@ export async function updateTag(
 ) {
     const tagId = expectInt(req.params.tagId)
     const tag = (req.body as { tag: any }).tag
+    const current = await db.knexRawFirst<Pick<DbPlainTag, "name">>(
+        trx,
+        `SELECT name FROM tags WHERE id = ?`,
+        [tagId]
+    )
+    if (current && current.name !== tag.name)
+        await assertNotTopicArea(trx, tagId, "renamed")
     await db.knexRaw(
         trx,
         `UPDATE tags SET name=?, updatedAt=?, slug=?, searchableInAlgolia=? WHERE id=?`,
@@ -273,6 +296,7 @@ export async function deleteTag(
     trx: db.KnexReadWriteTransaction
 ) {
     const tagId = expectInt(req.params.tagId)
+    await assertNotTopicArea(trx, tagId, "deleted")
 
     await db.knexRaw(trx, `DELETE FROM tags WHERE id=?`, [tagId])
 

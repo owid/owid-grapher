@@ -1,5 +1,9 @@
+import { Fragment, type ReactNode } from "react"
 import ArticleBlock from "./ArticleBlock.js"
-import { injectAutomaticSubscribeBanner } from "./gdocComponentUtils.js"
+import {
+    getIntroEndIndex,
+    injectAutomaticSubscribeBanner,
+} from "./gdocComponentUtils.js"
 import { Container } from "./layout.js"
 import {
     OwidEnrichedGdocBlock,
@@ -14,6 +18,9 @@ import {
  * @param toc
  * @param shouldRenderLinks - Won't render <a> elements when false. Useful to avoid
  * invalid nested links.
+ * @param afterIntro - Optional element rendered as a sibling grid item after
+ * the intro, i.e. before the first heading or table of contents that follows
+ * the opening text. It is responsible for its own grid placement classes.
  * @constructor
  */
 export const ArticleBlocks = ({
@@ -23,6 +30,7 @@ export const ArticleBlocks = ({
     shouldRenderLinks = true,
     interactiveImages = true,
     automaticSubscribeBanner = false,
+    afterIntro,
 }: {
     blocks: OwidEnrichedGdocBlock[]
     containerType?: Container
@@ -30,23 +38,31 @@ export const ArticleBlocks = ({
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
     automaticSubscribeBanner?: boolean
+    afterIntro?: ReactNode
 }) => {
     const blocksToRender = automaticSubscribeBanner
         ? injectAutomaticSubscribeBanner(blocks)
         : blocks
 
+    const afterIntroIndex = afterIntro ? getIntroEndIndex(blocksToRender) : -1
+
     return (
         <>
             {blocksToRender.map((block: OwidEnrichedGdocBlock, i: number) => {
-                return (
+                const articleBlock = (
                     <ArticleBlock
-                        key={i}
                         b={block}
                         containerType={containerType}
                         toc={toc}
                         shouldRenderLinks={shouldRenderLinks}
                         interactiveImages={interactiveImages}
                     />
+                )
+                return (
+                    <Fragment key={i}>
+                        {articleBlock}
+                        {i === afterIntroIndex ? afterIntro : null}
+                    </Fragment>
                 )
             })}
         </>

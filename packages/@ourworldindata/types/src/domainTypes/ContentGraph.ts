@@ -26,6 +26,21 @@ export type DbPlainTagGraphNode = Required<DbInsertTagGraphNode>
 
 export const TagGraphRootName = "tag-graph-root" as const
 
+export const TOPIC_AREA_NAMES = [
+    "Population and Demographic Change",
+    "Health",
+    "Energy and Environment",
+    "Food and Agriculture",
+    "Poverty and Economic Development",
+    "Education and Knowledge",
+    "Innovation and Technological Change",
+    "Living Conditions, Community and Wellbeing",
+    "Human Rights and Democracy",
+    "Violence and War",
+] as const
+
+export type TopicAreaName = (typeof TOPIC_AREA_NAMES)[number]
+
 export type FlatTagGraphNode = Pick<DbPlainTag, "name" | "slug"> & {
     weight: number
     isTopic: boolean
