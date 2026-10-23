@@ -55,6 +55,7 @@ import {
     faFileLines,
     faFlag,
     faLightbulb,
+    faStar,
     faTag,
     IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
@@ -1086,8 +1087,11 @@ export function getPageTypeNameAndIcon(pageType: OwidGdocType): {
             name: "Country Profile",
             icon: faFlag,
         }))
+        .with(OwidGdocType.FeaturedViz, () => ({
+            name: "Featured visualization",
+            icon: faStar,
+        }))
         .with(
-            OwidGdocType.FeaturedViz, // Indexed, but only shown in the Data results slot
             OwidGdocType.Author, // Should never be indexed
             OwidGdocType.Fragment, // Should never be indexed
             OwidGdocType.Homepage, // Should never be indexed
