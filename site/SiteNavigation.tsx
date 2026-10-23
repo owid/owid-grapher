@@ -25,6 +25,9 @@ import {
 } from "./search/Autocomplete.js"
 import { Menu } from "./SiteConstants.js"
 import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
+import { SiteAnalytics } from "./SiteAnalytics.js"
+
+const analytics = new SiteAnalytics()
 
 // Note: tranforming the flag from an env string to a boolean in
 // clientSettings.mts is convoluted due to the two-pass SSR/Vite build process.
@@ -186,7 +189,15 @@ export const SiteNavigation = ({
                             <SiteNavigationToggle
                                 ariaLabel="Toggle subscribe menu"
                                 isActive={menu === Menu.Subscribe}
-                                onToggle={() => toggleMenu(Menu.Subscribe)}
+                                onToggle={() => {
+                                    // Counts opens only, like the floating
+                                    // button's dialog_open_newsletter.
+                                    if (menu !== Menu.Subscribe)
+                                        analytics.logSiteClick(
+                                            "header_open_newsletter"
+                                        )
+                                    toggleMenu(Menu.Subscribe)
+                                }}
                                 dropdown={
                                     <NewsletterSignup
                                         context={
