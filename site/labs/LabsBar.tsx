@@ -44,6 +44,7 @@ async function loadFeedback(): Promise<ReturnType<typeof Sentry.getFeedback>> {
             showBranding: false,
             showEmail: false,
             formTitle: "Feedback on Labs",
+            submitButtonLabel: "Send feedback",
             messagePlaceholder:
                 "What worked, what didn't, what you expected instead",
             successMessageText: "Thanks, we'll read it.",
