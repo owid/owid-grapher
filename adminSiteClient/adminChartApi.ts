@@ -150,17 +150,24 @@ export async function deleteChart(params: {
 
     if (chartId === undefined || chartId === 0) return
 
-    if (references && getFullReferencesCount(references) > 0) {
+    const { narrativeCharts = [], ...otherReferences } = references ?? {}
+    const otherReferencesCount = getFullReferencesCount(otherReferences)
+    if (otherReferencesCount > 0) {
         window.alert(
-            `Cannot delete chart ${chartSlug} because it is used in ${getFullReferencesCount(
-                references
-            )} places. See the references tab in the chart editor for details.`
+            `Cannot delete chart ${chartSlug} because it is used in ${otherReferencesCount} places. See the references tab in the chart editor for details.`
         )
         return
     }
 
     const chartName = chartSlug || `#${chartId}`
     let confirmMessage = `Delete the chart ${chartName}? This action cannot be undone!`
+    if (narrativeCharts.length > 0) {
+        confirmMessage += `\n\nThe following narrative charts based on this chart will be deleted too:\n${narrativeCharts
+            .map((nc) => `• ${nc.name}`)
+            .join(
+                "\n"
+            )}\n\nIf any of them is used in published content, nothing will be deleted.`
+    }
     if (ENV === "staging") {
         confirmMessage +=
             "\n\n⚠️ WARNING: You are on a staging server. Deleted charts are NOT synced to production servers. If this chart exists on production, it will remain there even after deletion here."
