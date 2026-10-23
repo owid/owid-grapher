@@ -159,12 +159,12 @@ export function Spacer({ height }: { height: number }): ReactNode {
     )
 }
 
-export type EmailHeaderVariant = "broadcast" | "generic"
+export type EmailHeaderVariant = "update" | "generic"
 
 const HEADER_IMAGES: Record<EmailHeaderVariant, { file: string; alt: string }> =
     {
-        broadcast: {
-            file: "owid-email-broadcast-header.png",
+        update: {
+            file: "owid-email-update-header.png",
             alt: "Our World in Data Update",
         },
         generic: {
