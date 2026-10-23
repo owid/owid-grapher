@@ -92,3 +92,5 @@ fields:
     description: Checksum of the variable's data values, used for change detection
   metadataChecksum:
     description: Checksum of the variable's metadata, used for change detection
+  annotations:
+    description: JSON list of annotation records written by the ETL, with keys text, entities, time and timeEnd

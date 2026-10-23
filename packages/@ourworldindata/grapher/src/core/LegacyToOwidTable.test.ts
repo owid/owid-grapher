@@ -1,7 +1,8 @@
-import { expect, it, describe } from "vitest"
+import { expect, it, describe, vi } from "vitest"
 
 import {
     GRAPHER_CHART_TYPES,
+    IndicatorAnnotation,
     OwidTableSlugs,
     StandardOwidColumnDefs,
     LegacyGrapherInterface,
@@ -18,6 +19,8 @@ import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     DimensionProperty,
+    convertDateToDaysSinceEpoch,
+    dayjs,
 } from "@ourworldindata/utils"
 
 describe(legacyToOwidTableAndDimensions, () => {
@@ -130,6 +133,220 @@ describe(legacyToOwidTableAndDimensions, () => {
                 name: "Indicator name",
                 unit: "kg",
             })
+        })
+    })
+
+    describe("annotations", () => {
+        const getAnnotations = (
+            metadata: Partial<OwidVariableDataMetadataDimensions["metadata"]>
+        ): IndicatorAnnotation[] | undefined =>
+            legacyToOwidTableAndDimensions(
+                new Map([
+                    [
+                        2,
+                        {
+                            ...legacyVariableEntry,
+                            metadata: {
+                                ...legacyVariableEntry.metadata,
+                                ...metadata,
+                            },
+                        },
+                    ],
+                ]),
+                [{ variableId: 2, property: DimensionProperty.y }],
+                undefined
+            ).get("2").def.annotations
+
+        it("maps the annotations field to time scopes", () => {
+            const annotations = getAnnotations({
+                annotations: [
+                    {
+                        text: "Range",
+                        entities: ["World"],
+                        time: 2000,
+                        timeEnd: 2010,
+                    },
+                    {
+                        text: "Point",
+                        entities: ["France", "Spain"],
+                        time: 2005,
+                    },
+                    { text: "Always" },
+                ],
+            })
+
+            expect(annotations).toEqual([
+                {
+                    text: "Range",
+                    entityNames: ["World"],
+                    timeScope: "range",
+                    startTime: 2000,
+                    endTime: 2010,
+                },
+                {
+                    text: "Point",
+                    entityNames: ["France", "Spain"],
+                    timeScope: "point",
+                    time: 2005,
+                },
+                { text: "Always", timeScope: "all" },
+            ])
+        })
+
+        it("treats an empty entity list as no entity scope", () => {
+            const annotations = getAnnotations({
+                annotations: [{ text: "Note", entities: [] }],
+            })
+
+            expect(annotations).toEqual([{ text: "Note", timeScope: "all" }])
+        })
+
+        it.each([
+            ["missing", undefined],
+            ["null", null],
+            ["empty", []],
+        ])(
+            "falls back to the legacy string when annotations is %s",
+            (_, annotations) => {
+                expect(
+                    getAnnotations({
+                        annotations,
+                        display: {
+                            entityAnnotationsMap:
+                                "World: Note A\nFrance: Note B\n",
+                        },
+                    })
+                ).toEqual([
+                    {
+                        text: "Note A",
+                        entityNames: ["World"],
+                        timeScope: "all",
+                    },
+                    {
+                        text: "Note B",
+                        entityNames: ["France"],
+                        timeScope: "all",
+                    },
+                ])
+            }
+        )
+
+        it("prefers the annotations field over the legacy string", () => {
+            expect(
+                getAnnotations({
+                    annotations: [{ text: "New" }],
+                    display: { entityAnnotationsMap: "World: Old" },
+                })
+            ).toEqual([{ text: "New", timeScope: "all" }])
+        })
+
+        it("ignores a lone timeEnd, turns equal-end ranges into points and drops backwards ranges", () => {
+            const warn = vi.spyOn(console, "warn").mockReturnValue()
+
+            expect(
+                getAnnotations({
+                    annotations: [
+                        { text: "End only", timeEnd: 2010 },
+                        { text: "Same", time: 2005, timeEnd: 2005 },
+                        { text: "Backwards", time: 2010, timeEnd: 2000 },
+                    ],
+                })
+            ).toEqual([
+                { text: "End only", timeScope: "all" },
+                { text: "Same", timeScope: "point", time: 2005 },
+            ])
+            expect(warn).toHaveBeenCalled()
+
+            warn.mockRestore()
+        })
+
+        describe("on sub-yearly data", () => {
+            const toDay = (date: string): number =>
+                convertDateToDaysSinceEpoch(dayjs.utc(date))
+
+            it("converts dates to days since the epoch, whatever the zeroDay", () => {
+                expect(
+                    getAnnotations({
+                        display: {
+                            timeInterval: TimeInterval.Day,
+                            zeroDay: "2000-01-01",
+                        },
+                        annotations: [{ text: "Point", time: "2020-03-15" }],
+                    })
+                ).toEqual([
+                    {
+                        text: "Point",
+                        timeScope: "point",
+                        time: toDay("2020-03-15"),
+                    },
+                ])
+            })
+
+            it("snaps dates to the start of their period", () => {
+                expect(
+                    getAnnotations({
+                        display: { timeInterval: TimeInterval.Month },
+                        annotations: [
+                            {
+                                text: "Range",
+                                time: "2020-03-15",
+                                timeEnd: "2020-06-30",
+                            },
+                            {
+                                text: "Same month",
+                                time: "2020-03-01",
+                                timeEnd: "2020-03-31",
+                            },
+                        ],
+                    })
+                ).toEqual([
+                    {
+                        text: "Range",
+                        timeScope: "range",
+                        startTime: toDay("2020-03-01"),
+                        endTime: toDay("2020-06-01"),
+                    },
+                    {
+                        text: "Same month",
+                        timeScope: "point",
+                        time: toDay("2020-03-01"),
+                    },
+                ])
+            })
+
+            it("drops years and invalid dates", () => {
+                const warn = vi.spyOn(console, "warn").mockReturnValue()
+
+                expect(
+                    getAnnotations({
+                        display: { timeInterval: TimeInterval.Day },
+                        annotations: [
+                            { text: "Year", time: 2020 },
+                            { text: "Invalid", time: "2020-02-30" },
+                            {
+                                text: "Invalid end",
+                                time: "2020-02-01",
+                                timeEnd: "2020-3-1",
+                            },
+                        ],
+                    })
+                ).toEqual([])
+                expect(warn).toHaveBeenCalledTimes(3)
+
+                warn.mockRestore()
+            })
+        })
+
+        it("drops dates on yearly data", () => {
+            const warn = vi.spyOn(console, "warn").mockReturnValue()
+
+            expect(
+                getAnnotations({
+                    annotations: [{ text: "Date", time: "2020-03-15" }],
+                })
+            ).toEqual([])
+
+            warn.mockRestore()
         })
     })
 
