@@ -92,6 +92,10 @@ export function SidePanelTabs({
                             tabIndex={isSelected ? 0 : -1}
                             onClick={() => selectTab(tab.id)}
                             onKeyDown={onTabKeyDown}
+                            // The Labs mark; does nothing outside Labs
+                            data-labs-feature={
+                                tab.id === "ai" ? "7480" : undefined
+                            }
                         >
                             <FontAwesomeIcon
                                 icon={
