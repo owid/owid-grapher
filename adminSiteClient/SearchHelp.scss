@@ -1,0 +1,21 @@
+.search-help {
+    max-width: 520px;
+
+    p {
+        margin-bottom: 8px;
+    }
+
+    table {
+        border-collapse: collapse;
+    }
+
+    td {
+        padding: 2px 12px 2px 0;
+        vertical-align: top;
+    }
+
+    // `published-after:` reads as one name
+    td:first-child {
+        white-space: nowrap;
+    }
+}

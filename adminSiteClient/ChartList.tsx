@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useDeferredValue } from "react"
 import { observer } from "mobx-react"
 import { runInAction, observable, computed, action, makeObservable } from "mobx"
 import * as lodash from "lodash-es"
@@ -10,7 +11,6 @@ import {
     TaggableType,
     copyToClipboard,
     excludeUndefined,
-    queryParamsToStr,
 } from "@ourworldindata/utils"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
@@ -23,16 +23,18 @@ import {
     getTagGraphRolesById,
     MinimalTagWithMetadata,
 } from "./TagGraphMetadata.js"
+import { highlightFunctionForSearchWords } from "../adminShared/search.js"
 import {
-    SearchWord,
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-} from "../adminShared/search.js"
+    chartSearchFilter,
+    chartSearchWordsToHighlight,
+    countNames,
+    getFacetValues,
+    setFacetValues,
+} from "./chartSearchQuery.js"
+import { ChartSearchToolbar } from "./ChartSearchToolbar.js"
 import {
     Button,
     Dropdown,
-    Input,
     Table,
     TableColumnsType,
     Tooltip,
@@ -218,15 +220,20 @@ function timeAgo(time: string): string {
         .replace(/^an? (minute|hour|day|month|year) ago$/, "1 $1 ago")
 }
 
-/** "7 hours ago" over the author's name, with the exact time on hover */
+/**
+ * "7 hours ago" over the author's name, with the exact time on hover. Clicking
+ * the name lists only that person's charts, as on GitHub.
+ */
 function TimestampCell({
     time,
     by,
     highlight,
+    onAuthorClick,
 }: {
     time: string | undefined
     by: string | undefined
     highlight: Highlighter
+    onAuthorClick: (author: string) => void
 }): React.ReactElement {
     if (!time) return <span className="text-muted">—</span>
     return (
@@ -234,7 +241,18 @@ function TimestampCell({
             <Tooltip title={dayjs(time).format("D MMM YYYY, HH:mm")}>
                 <span className="chart-list__time">{timeAgo(time)}</span>
             </Tooltip>
-            {by && <div className="chart-list__author">{highlight(by)}</div>}
+            {by && (
+                <div>
+                    <button
+                        type="button"
+                        className="chart-list__author"
+                        title={`Only charts by ${by}`}
+                        onClick={() => onAuthorClick(by)}
+                    >
+                        {highlight(by)}
+                    </button>
+                </div>
+            )}
         </div>
     )
 }
@@ -399,12 +417,14 @@ function createColumns({
     tagGraphRolesById,
     showInheritanceColumn,
     onDelete,
+    onAuthorClick,
 }: {
     highlight: Highlighter
     availableTags: MinimalTagWithMetadata[]
     tagGraphRolesById: ReturnType<typeof getTagGraphRolesById>
     showInheritanceColumn: boolean
     onDelete: (chart: ChartListItem) => void
+    onAuthorClick: (author: string) => void
 }): TableColumnsType<ChartListItem> {
     // Counts are most useful largest first
     const descendFirst: ("descend" | "ascend")[] = ["descend", "ascend"]
@@ -461,6 +481,7 @@ function createColumns({
                     time={chart.lastEditedAt}
                     by={chart.lastEditedBy}
                     highlight={highlight}
+                    onAuthorClick={onAuthorClick}
                 />
             ),
         },
@@ -474,6 +495,7 @@ function createColumns({
                     time={chart.publishedAt}
                     by={chart.publishedBy}
                     highlight={highlight}
+                    onAuthorClick={onAuthorClick}
                 />
             ),
         },
@@ -591,13 +613,18 @@ export class ChartList extends React.Component<ChartListProps> {
         return params.get("chartSearch") || ""
     }
 
+    // The search holds every filter too, so a filtered list can be shared.
+    // Other query params, like a page's tab, are kept.
     setSearchInputInUrl(searchInput: string) {
-        const params = queryParamsToStr({
-            chartSearch: searchInput || undefined,
-        })
-        const pathname = window.location.pathname
-        const newUrl = `${pathname}${params}`
-        window.history.replaceState({}, "", newUrl)
+        const params = new URLSearchParams(window.location.search)
+        if (searchInput) params.set("chartSearch", searchInput)
+        else params.delete("chartSearch")
+        const query = params.toString()
+        window.history.replaceState(
+            {},
+            "",
+            `${window.location.pathname}${query ? `?${query}` : ""}`
+        )
     }
 
     override componentDidMount() {
@@ -605,32 +632,17 @@ export class ChartList extends React.Component<ChartListProps> {
         void this.getTags()
     }
 
-    @computed get searchWords(): SearchWord[] {
-        const { searchInput } = this
-        return buildSearchWordsFromSearchString(searchInput)
+    @computed get tagCounts() {
+        return countNames(this.props.charts, (chart) =>
+            chart.tags.map((tag) => tag.name)
+        )
     }
 
-    // Always a fresh array, so the table notices when a chart is deleted
-    @computed get chartsFiltered(): ChartListItem[] {
-        const { searchWords } = this
-        const { charts } = this.props
-        if (searchWords.length === 0) return [...charts]
-        const filterFn = filterFunctionForSearchWords(
-            searchWords,
-            (chart: ChartListItem) => [
-                chart.title,
-                chart.variantName,
-                chart.internalNotes,
-                chart.publishedBy,
-                chart.lastEditedBy,
-                `${chart.id}`,
-                chart.slug,
-                chart.hasChartTab !== false ? chart.type : undefined,
-                chart.hasMapTab ? "Map" : undefined,
-                ...chart.tags.map((tag) => tag.name),
-            ]
-        )
-        return charts.filter(filterFn)
+    @computed get authorCounts() {
+        return countNames(this.props.charts, (chart) => [
+            chart.lastEditedBy,
+            chart.publishedBy,
+        ])
     }
 
     @action.bound onSearchInput(input: string) {
@@ -639,63 +651,133 @@ export class ChartList extends React.Component<ChartListProps> {
         this.setSearchInputInUrl(input)
     }
 
+    /** Lists only this person's charts; clicking them again lifts the filter. */
+    @action.bound onAuthorClick(author: string) {
+        const current = getFacetValues(this.searchInput, "author")
+        const isOnlyAuthor =
+            current.length === 1 &&
+            current[0].toLowerCase() === author.toLowerCase()
+        this.onSearchInput(
+            setFacetValues(
+                this.searchInput,
+                "author",
+                isOnlyAuthor ? [] : [author]
+            )
+        )
+    }
+
     @action.bound onPageChange(page: number, pageSize: number) {
         this.currentPage = page
         this.pageSize = pageSize
     }
 
     override render() {
-        const { chartsFiltered, searchInput, availableTags } = this
-
-        // if the first chart has inheritance information, we assume all charts have it
-        const showInheritanceColumn =
-            this.props.charts[0]?.isInheritanceEnabled !== undefined
-
-        const columns = createColumns({
-            highlight: highlightFunctionForSearchWords(this.searchWords),
-            availableTags: availableTags ?? [],
-            tagGraphRolesById: getTagGraphRolesById(availableTags ?? []),
-            showInheritanceColumn,
-            onDelete: this.onDeleteChart,
-        })
+        const { searchInput, availableTags } = this
 
         return (
             <div className="chart-list">
-                <Input.Search
-                    className="chart-list__search"
-                    placeholder="Search by title, slug, id, type, tag, author or notes…"
-                    allowClear
-                    value={searchInput}
-                    onChange={(e) => this.onSearchInput(e.target.value)}
+                <ChartSearchToolbar
+                    query={searchInput}
+                    onQueryChange={this.onSearchInput}
+                    tags={this.tagCounts}
+                    authors={this.authorCounts}
                     autoFocus={this.props.autofocusSearchInput}
                 />
-                <Table<ChartListItem>
-                    size="small"
-                    // sized to the content, so the chart column gets the room
-                    // the narrow ones don't need, however wide the page is.
-                    // Not sticky: a sticky header is a table of its own, which
-                    // falls out of line with content-sized columns
-                    tableLayout="auto"
-                    scroll={{ x: true }}
-                    rowKey="id"
-                    columns={columns}
-                    // tag cells need the tag graph roles, which come with the tags
-                    dataSource={availableTags ? chartsFiltered : []}
-                    loading={this.props.loading || !availableTags}
-                    pagination={{
-                        current: this.currentPage,
-                        pageSize: this.pageSize,
-                        onChange: this.onPageChange,
-                        showSizeChanger: true,
-                        pageSizeOptions: [25, 50, 100, 200],
-                        showTotal: (total, [from, to]) =>
-                            `${from}–${to} of ${total.toLocaleString()} charts` +
-                            (searchInput
-                                ? ` (${this.props.charts.length.toLocaleString()} total)`
-                                : ""),
-                    }}
+                <DeferredChartTable
+                    query={searchInput}
+                    charts={this.props.charts}
+                    availableTags={availableTags}
+                    loading={this.props.loading}
+                    currentPage={this.currentPage}
+                    pageSize={this.pageSize}
+                    onPageChange={this.onPageChange}
+                    onDelete={this.onDeleteChart}
+                    onAuthorClick={this.onAuthorClick}
                 />
             </div>
+        )
+    }
+}
+
+interface ChartTableProps {
+    query: string
+    charts: ChartListItem[]
+    availableTags: MinimalTagWithMetadata[] | undefined
+    loading?: boolean
+    currentPage: number
+    pageSize: number
+    onPageChange: (page: number, pageSize: number) => void
+    onDelete: (chart: ChartListItem) => void
+    onAuthorClick: (author: string) => void
+}
+
+/**
+ * The table, a step behind the search box. Rendering a page of rows takes far
+ * longer than a keystroke, so the box shows each character at once, and the
+ * table follows with the latest query, skipping the ones typed meanwhile.
+ * `ChartTable` is an observer, so it is only rendered again once the deferred
+ * query has changed.
+ */
+function DeferredChartTable(props: ChartTableProps): React.ReactElement {
+    const query = useDeferredValue(props.query)
+    return <ChartTable {...props} query={query} />
+}
+
+@observer
+class ChartTable extends React.Component<ChartTableProps> {
+    override render() {
+        const { query, charts, availableTags } = this.props
+
+        // Always a fresh array, so the table notices when a chart is deleted
+        const chartsFiltered = query.trim()
+            ? charts.filter(chartSearchFilter(query, charts))
+            : [...charts]
+
+        // if the first chart has inheritance information, we assume all charts have it
+        const showInheritanceColumn =
+            charts[0]?.isInheritanceEnabled !== undefined
+
+        const columns = createColumns({
+            highlight: highlightFunctionForSearchWords(
+                chartSearchWordsToHighlight(query)
+            ),
+            availableTags: availableTags ?? [],
+            tagGraphRolesById: getTagGraphRolesById(availableTags ?? []),
+            showInheritanceColumn,
+            onDelete: this.props.onDelete,
+            onAuthorClick: this.props.onAuthorClick,
+        })
+
+        return (
+            <Table<ChartListItem>
+                size="small"
+                // sized to the content, so the chart column gets the room
+                // the narrow ones don't need, however wide the page is.
+                // Not sticky: a sticky header is a table of its own, which
+                // falls out of line with content-sized columns
+                tableLayout="auto"
+                scroll={{ x: true }}
+                rowKey="id"
+                columns={columns}
+                // tag cells need the tag graph roles, which come with the tags
+                dataSource={availableTags ? chartsFiltered : []}
+                loading={this.props.loading || !availableTags}
+                pagination={{
+                    current: this.props.currentPage,
+                    pageSize: this.props.pageSize,
+                    onChange: this.props.onPageChange,
+                    showSizeChanger: true,
+                    pageSizeOptions: [25, 50, 100, 200],
+                    // above the table too, so how many charts the search
+                    // finds is in view while typing
+                    placement: ["topStart", "bottomEnd"],
+                    showTotal: (total, [from, to]) =>
+                        `${from}–${to} of ${total.toLocaleString()} ${total === 1 ? "chart" : "charts"}` +
+                        (query.trim()
+                            ? ` (${charts.length.toLocaleString()} total)`
+                            : ""),
+                }}
+            />
         )
     }
 }
