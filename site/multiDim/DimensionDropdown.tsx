@@ -26,6 +26,9 @@ import { Choice, DimensionEnriched } from "@ourworldindata/types"
 import { FuzzySearch } from "@ourworldindata/utils"
 import { TOUCH_DEVICE_MEDIA_QUERY } from "../SiteConstants.js"
 import DimensionLabel from "./DimensionLabel.js"
+import DisabledReasonTooltip, {
+    DISABLED_CONTROL_REASON,
+} from "./DisabledReasonTooltip.js"
 
 function DimensionItem({ choice }: { choice: Choice }) {
     return (
@@ -127,7 +130,13 @@ export default function DimensionDropdown({
                 ([groupLabel, groupChoices]) => (
                     // Choices without a group end up in a single
                     // section keyed "undefined", which has no label.
-                    <ListBoxSection key={groupLabel} className="md-menu__group">
+                    <ListBoxSection
+                        key={groupLabel}
+                        className={cx("md-menu__group", {
+                            "md-menu__group--labeled":
+                                groupLabel !== "undefined",
+                        })}
+                    >
                         {groupLabel !== "undefined" && (
                             <Header className="md-menu__group-label label-2-bold">
                                 {groupLabel}
@@ -147,6 +156,8 @@ export default function DimensionDropdown({
         </ListBox>
     )
 
+    const isDisabled = dimension.choices.length === 1
+
     return (
         <Select
             className={cx(
@@ -154,7 +165,7 @@ export default function DimensionDropdown({
                 "md-settings__dropdown",
                 className
             )}
-            isDisabled={dimension.choices.length === 1}
+            isDisabled={isDisabled}
             isOpen={isOpen}
             // While a view is loading (readOnly), don't open the menu, but
             // always allow closing it. Disabling the whole select instead
@@ -170,20 +181,26 @@ export default function DimensionDropdown({
                 if (typeof key === "string" && !readOnly) onChange(key)
             }}
         >
-            <DimensionLabel dimension={dimension} />
-            <Button
-                className="md-settings__dropdown-toggle"
-                data-track-note="multi-dim-choice-dropdown"
+            <DimensionLabel dimension={dimension} isDisabled={isDisabled} />
+            <DisabledReasonTooltip
+                reason={isDisabled ? DISABLED_CONTROL_REASON : undefined}
             >
-                <span className="md-settings__dropdown-current-choice">
-                    {dimension.choicesBySlug[value].name}
-                </span>
-                <div className="md-settings__dropdown-caret">
-                    {/* The div is neccesary to keep the icon `display: inline`,
+                <span className="md-settings__dropdown-toggle-wrapper">
+                    <Button
+                        className="md-settings__dropdown-toggle"
+                        data-track-note="multi-dim-choice-dropdown"
+                    >
+                        <span className="md-settings__dropdown-current-choice">
+                            {dimension.choicesBySlug[value].name}
+                        </span>
+                        <div className="md-settings__dropdown-caret">
+                            {/* The div is neccesary to keep the icon `display: inline`,
             so it aligns with the text correctly. */}
-                    <FontAwesomeIcon icon={faCaretDown} />
-                </div>
-            </Button>
+                            <FontAwesomeIcon icon={faCaretDown} />
+                        </div>
+                    </Button>
+                </span>
+            </DisabledReasonTooltip>
             <Popover
                 className={cx("md-menu", {
                     "md-menu--searchable": showSearch,
@@ -194,18 +211,6 @@ export default function DimensionDropdown({
                 placement="bottom start"
                 offset={4}
             >
-                {!showSearch && (
-                    <div className="md-menu__overlay-header">
-                        <h2 className="md-menu__overlay-header-title h5-black-caps">
-                            {dimension.name}
-                        </h2>
-                        {dimension.description && (
-                            <p className="md-menu__dimension-description">
-                                {dimension.description}
-                            </p>
-                        )}
-                    </div>
-                )}
                 {showSearch ? (
                     <Autocomplete
                         filter={filter}

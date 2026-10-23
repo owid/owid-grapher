@@ -250,27 +250,34 @@ export function getMultiDimPageTitle(
 /**
  * Which control a dimension should be rendered as. An explicit
  * `presentation.type` in the config always wins; otherwise dimensions with at
- * most two ungrouped choices render as a radio group, dimensions with more
- * than twenty choices as a dropdown with a search field, and everything else
- * as a plain dropdown.
+ * most two ungrouped choices render as a radio group (at most four when the
+ * page has only this one dimension, so there's room for a wider control),
+ * dropdowns offering at least ten choices get a search field, and
+ * everything else is a plain dropdown.
  *
- * Always resolve against the dimension's full choice list (not one filtered
- * to the currently available choices), so the control type doesn't flip as
- * other selections change.
- *
- * The heuristic can get it wrong. The Covid explorer's "Interval" dimension,
- * for example, has eleven distinct choices in total but only ever offers a few
- * of them at a time, so a threshold of ten gave it a search field it didn't
- * need. Twenty should make that rare, and a dimension the heuristic
- * still gets wrong can always set `presentation.type` explicitly.
+ * Radio group or dropdown is decided on the dimension's full choice list and
+ * the config's total number of dimensions, so a control doesn't switch type
+ * as other selections change. The search field is decided on the number of
+ * choices currently available (`availableChoiceCount`): what matters is how
+ * many options the menu actually lists, and at worst the field comes and goes
+ * within the same dropdown. A dimension the heuristic gets wrong can always
+ * set `presentation.type` explicitly.
  */
-export function resolveDimensionPresentationType(
+export function resolveDimensionPresentationType({
+    dimension,
+    numberOfDimensions,
+    availableChoiceCount,
+}: {
     dimension: Dimension
-): DimensionPresentationType {
+    numberOfDimensions: number
+    availableChoiceCount: number
+}): DimensionPresentationType {
     if (dimension.presentation?.type) return dimension.presentation.type
     const hasGroups = dimension.choices.some((choice) => choice.group)
-    if (dimension.choices.length <= 2 && !hasGroups) return "radio"
-    return dimension.choices.length > 20 ? "dropdown-with-search" : "dropdown"
+    const maxRadioChoices = numberOfDimensions === 1 ? 4 : 2
+    if (dimension.choices.length <= maxRadioChoices && !hasGroups)
+        return "radio"
+    return availableChoiceCount >= 10 ? "dropdown-with-search" : "dropdown"
 }
 
 export const extractMultiDimChoicesFromSearchParams = (
