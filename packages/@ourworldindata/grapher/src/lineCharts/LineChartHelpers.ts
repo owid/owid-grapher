@@ -1,5 +1,10 @@
 import * as _ from "lodash-es"
-import { Bounds, isMobile, PointVector } from "@ourworldindata/utils"
+import {
+    Bounds,
+    excludeUndefined,
+    isMobile,
+    PointVector,
+} from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
     AxisAlign,
@@ -149,7 +154,16 @@ export function toPlacedLineChartSeries(
                 color,
             }
         })
-        return { ...series, placedPoints }
+        const placedPointsByTime = new Map(
+            placedPoints.map((point) => [point.time, point])
+        )
+        const placedAnnotations = excludeUndefined(
+            series.pointAnnotations.map((annotation) => {
+                const point = placedPointsByTime.get(annotation.time)
+                return point ? { annotation, point } : undefined
+            })
+        )
+        return { ...series, placedPoints, placedAnnotations }
     })
 }
 

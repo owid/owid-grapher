@@ -13,6 +13,7 @@ import { ChartManager } from "../chart/ChartManager"
 import {
     ColumnTypeNames,
     FacetStrategy,
+    IndicatorAnnotation,
     ScaleType,
     SeriesStrategy,
 } from "@ourworldindata/types"
@@ -444,4 +445,116 @@ it("ignores x-axis config when a scatter plot is present", () => {
 
     // x-axis label is ignored because a scatter tab is present
     expect(chart.xAxis.label).toBe("")
+})
+
+describe("point annotations", () => {
+    const pointAnnotation = (
+        text: string,
+        time: number
+    ): IndicatorAnnotation => ({
+        text,
+        entityNames: ["usa"],
+        timeScope: "point",
+        time,
+    })
+
+    const makeAnnotatedChart = ({
+        annotations,
+        ...managerOptions
+    }: { annotations: IndicatorAnnotation[] } & Partial<LineChartManager>): {
+        chart: LineChart
+    } => {
+        const table = new OwidTable(
+            {
+                entityName: ["usa", "usa", "usa"],
+                year: [2000, 2001, 2002],
+                gdp: [100, 200, 300],
+            },
+            [{ slug: "gdp", type: ColumnTypeNames.Numeric, annotations }]
+        )
+        return makeLineChart({
+            table,
+            yColumnSlugs: ["gdp"],
+            selection: ["usa"],
+            ...managerOptions,
+        })
+    }
+
+    it("places annotations on the data point at their time and leaves the others unplaced", () => {
+        const { chart } = makeAnnotatedChart({
+            annotations: [
+                pointAnnotation("no data", 1999),
+                pointAnnotation("data", 2001),
+            ],
+        })
+
+        const [series] = chart.placedSeries
+        const pointIn2001 = series.placedPoints.find(
+            (point) => point.time === 2001
+        )
+        expect(series.pointAnnotations.map((a) => a.text)).toEqual([
+            "no data",
+            "data",
+        ])
+        expect(
+            series.placedAnnotations.map((placed) => [
+                placed.annotation.text,
+                placed.point,
+            ])
+        ).toEqual([["data", pointIn2001]])
+    })
+
+    it("drops annotations outside the start and end time", () => {
+        const { chart } = makeAnnotatedChart({
+            annotations: [
+                pointAnnotation("inside", 2001),
+                pointAnnotation("after", 2002),
+            ],
+            startTime: 2000,
+            endTime: 2001,
+        })
+
+        expect(chart.series[0].pointAnnotations.map((a) => a.text)).toEqual([
+            "inside",
+        ])
+    })
+
+    it("gives each y column only its own annotations", () => {
+        const table = new OwidTable(
+            {
+                entityName: ["usa", "usa"],
+                year: [2000, 2001],
+                gdp: [100, 200],
+                pop: [1, 2],
+            },
+            [
+                {
+                    slug: "gdp",
+                    type: ColumnTypeNames.Numeric,
+                    annotations: [pointAnnotation("gdp note", 2000)],
+                },
+                {
+                    slug: "pop",
+                    type: ColumnTypeNames.Numeric,
+                    annotations: [pointAnnotation("pop note", 2001)],
+                },
+            ]
+        )
+        const { chart } = makeLineChart({
+            table,
+            yColumnSlugs: ["gdp", "pop"],
+            selection: ["usa"],
+        })
+
+        const textsByColumn = Object.fromEntries(
+            chart.series.map((series) => [
+                series.columnName,
+                series.pointAnnotations.map((a) => a.text),
+            ])
+        )
+        expect(textsByColumn).toEqual({
+            gdp: ["gdp note"],
+            pop: ["pop note"],
+        })
+    })
 })
