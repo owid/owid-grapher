@@ -194,15 +194,11 @@ export interface SiteFormSubmitParams {
 }
 
 export interface SiteFindInPageParams {
-    /** 'open' = the browser's find shortcut was pressed (logged at most once
-     * per page view). 'reveal' = the browser's find-in-page expanded a
-     * collapsed <details> section to show a match (at most once per section
-     * per page view). The browser never exposes the searched text. */
-    eventAction: "open" | "reveal"
-    /** For 'open': the shortcut pressed ('mod+f' or 'f3') */
-    eventContext?: string
-    /** For 'reveal': the revealed section's summary text */
-    eventTarget?: string
+    /** Always 'open': the browser's find shortcut was pressed (logged at most
+     * once per page view). The browser never exposes the searched text. */
+    eventAction: "open"
+    /** The shortcut pressed ('mod+f' or 'f3') */
+    eventContext: "mod+f" | "f3"
 }
 
 export interface SiteInstantSearchClickParams {

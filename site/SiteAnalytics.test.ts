@@ -22,21 +22,8 @@ describe("find-in-page tracking", () => {
     const press = (init: KeyboardEventInit) =>
         document.dispatchEvent(new KeyboardEvent("keydown", init))
 
-    const makeDetails = (summaryText: string) => {
-        const details = document.createElement("details")
-        details.innerHTML = `<summary>  ${summaryText}\n </summary><p>Body</p>`
-        document.body.appendChild(details)
-        return details
-    }
-
-    const open = (details: HTMLDetailsElement) => {
-        details.open = true
-        details.dispatchEvent(new Event("toggle"))
-    }
-
     beforeEach(() => {
         gtmWindow.dataLayer = []
-        document.body.innerHTML = ""
         stop = new SiteAnalytics().startFindInPageTracking()
     })
 
@@ -85,61 +72,5 @@ describe("find-in-page tracking", () => {
         press({ key: "f", metaKey: true, shiftKey: true })
         press({ key: "g", metaKey: true })
         expect(findEvents()).toEqual([])
-    })
-
-    it("logs a <details> opened without page interaction as a reveal", () => {
-        const details = makeDetails("How is this   measured?")
-        open(details)
-        details.open = false
-        open(details)
-
-        expect(findEvents()).toEqual([
-            expect.objectContaining({
-                eventAction: "reveal",
-                eventTarget: "How is this measured?",
-            }),
-        ])
-    })
-
-    it("does not count a <details> opened by a click or keypress", () => {
-        const clicked = makeDetails("Clicked")
-        clicked.dispatchEvent(new PointerEvent("pointerdown"))
-        open(clicked)
-
-        const keyed = makeDetails("Keyed")
-        keyed.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }))
-        open(keyed)
-
-        expect(findEvents()).toEqual([])
-    })
-
-    it("does not count a <details> opened by a bare click", () => {
-        // Screen readers and voice control synthesize a bare click
-        const assisted = makeDetails("Assisted")
-        assisted
-            .querySelector("summary")!
-            .dispatchEvent(new MouseEvent("click"))
-        open(assisted)
-
-        expect(findEvents()).toEqual([])
-    })
-
-    it("does not treat the find shortcut as an interaction", () => {
-        press({ key: "f", metaKey: true })
-        open(makeDetails("Found"))
-
-        expect(findEvents().map((e) => e.eventAction)).toEqual([
-            "open",
-            "reveal",
-        ])
-    })
-
-    it("sets both context fields so GTM can't carry one over", () => {
-        press({ key: "f", metaKey: true })
-        open(makeDetails("Found"))
-
-        const [openEvent, revealEvent] = findEvents()
-        expect(openEvent).toHaveProperty("eventTarget", undefined)
-        expect(revealEvent).toHaveProperty("eventContext", undefined)
     })
 })

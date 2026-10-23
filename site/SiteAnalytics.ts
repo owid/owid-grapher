@@ -418,38 +418,22 @@ export class SiteAnalytics extends GrapherAnalytics {
     }
 
     /**
-     * Track use of the browser's own find-in-page (Cmd/Ctrl+F). The find bar
-     * itself is invisible to page scripts, so we log two proxies:
+     * Track use of the browser's own find-in-page (Cmd/Ctrl+F or F3). The
+     * find bar itself is invisible to page scripts, so we log the shortcut
+     * reaching the page, at most once per page view. Misses find opened from
+     * the browser menu, which is how mobile users open it, so treat this as a
+     * desktop signal.
      *
-     * - "open": the find shortcut reaching the page. Misses find opened from
-     *   the browser menu, which is how mobile users open it, so treat this
-     *   as a desktop signal.
-     * - "reveal": a collapsed <details> section opening with no page
-     *   interaction just before it. Chromium browsers auto-expand <details>
-     *   when a find match is inside one (see ExpandableToggle), so this
-     *   tells us which hidden section a user was searching for.
-     *
-     * Returns a function that removes the listeners.
+     * Returns a function that removes the listener.
      */
     startFindInPageTracking(): () => void {
         const controller = new AbortController()
-        const listenerOptions = {
-            capture: true,
-            passive: true,
-            signal: controller.signal,
-        }
-        let hasLoggedOpen = false
-        // Time of the last pointer press, click or keypress in the page. A
-        // <details> opening right after one was opened by the user (or by UI
-        // code reacting to them), not by find-in-page. `click` also covers
-        // screen readers and voice control, which synthesize a click with no
-        // pointerdown or keydown.
-        let lastInteractionAt = -Infinity
-        const revealed = new WeakSet<HTMLDetailsElement>()
+        let hasLogged = false
 
         document.addEventListener(
             "keydown",
             (ev) => {
+                if (hasLogged || ev.repeat) return
                 // Latin layouts: the shortcut follows the produced key (on
                 // Dvorak, the physical F key types "u", and Cmd+U isn't
                 // find). Non-Latin layouts (e.g. Cyrillic) produce no Latin
@@ -464,66 +448,18 @@ export class SiteAnalytics extends GrapherAnalytics {
                     !ev.shiftKey &&
                     isF
                 const isF3 = ev.key === "F3"
-                if (!isModF && !isF3) {
-                    lastInteractionAt = ev.timeStamp
-                    return
-                }
-                if (hasLoggedOpen || ev.repeat) return
-                hasLoggedOpen = true
-                this.logFindInPageOpen(isModF ? "mod+f" : "f3")
+                if (!isModF && !isF3) return
+                hasLogged = true
+                this.logToGA({
+                    event: EventCategory.SiteFindInPage,
+                    eventAction: "open",
+                    eventContext: isModF ? "mod+f" : "f3",
+                })
             },
-            listenerOptions
-        )
-
-        for (const type of ["pointerdown", "click"] as const)
-            document.addEventListener(
-                type,
-                (ev) => (lastInteractionAt = ev.timeStamp),
-                listenerOptions
-            )
-
-        // `toggle` doesn't bubble, but capture listeners still see it
-        document.addEventListener(
-            "toggle",
-            (ev) => {
-                const details = ev.target
-                if (!(details instanceof HTMLDetailsElement)) return
-                if (!details.open || revealed.has(details)) return
-                if (ev.timeStamp - lastInteractionAt < 1000) return
-                revealed.add(details)
-                const summary = details.querySelector(":scope > summary")
-                this.logFindInPageReveal(
-                    (summary?.textContent ?? "")
-                        .replace(/\s+/g, " ")
-                        .trim()
-                        .slice(0, 100)
-                )
-            },
-            listenerOptions
+            { capture: true, passive: true, signal: controller.signal }
         )
 
         return () => controller.abort()
-    }
-
-    // Both variants set eventContext and eventTarget explicitly: GTM keeps a
-    // key from the previous push when a push omits it (see logToGA), so a
-    // reveal would otherwise inherit the open's "mod+f" and vice versa.
-    private logFindInPageOpen(shortcut: "mod+f" | "f3") {
-        this.logToGA({
-            event: EventCategory.SiteFindInPage,
-            eventAction: "open",
-            eventContext: shortcut,
-            eventTarget: undefined,
-        })
-    }
-
-    private logFindInPageReveal(summaryText: string) {
-        this.logToGA({
-            event: EventCategory.SiteFindInPage,
-            eventAction: "reveal",
-            eventContext: undefined,
-            eventTarget: summaryText,
-        })
     }
 
     startPrintTracking(): void {
