@@ -756,6 +756,24 @@ export function getTopicAreaNameForTagNames(
     return getBestTagHierarchy(tagNames, hierarchies)[0]?.name
 }
 
+/**
+ * The top-level areas of the tag graph are hardcoded as TOPIC_AREA_NAMES (the
+ * subscribe form offers them and the email notifications API validates against
+ * them), so changing the set needs a code change. Returns the ids currently
+ * under the root so the admin can refuse edits that would alter it.
+ */
+export async function getTopicAreaTagIds(
+    trx: KnexReadonlyTransaction
+): Promise<{ rootId: number; areaTagIds: Set<number> }> {
+    const { __rootId, ...flatTagGraph } = await getFlatTagGraph(trx)
+    return {
+        rootId: __rootId,
+        areaTagIds: new Set(
+            (flatTagGraph[__rootId] ?? []).map(({ childId }) => childId)
+        ),
+    }
+}
+
 /** The top-level areas of the tag graph, in `weight DESC, name ASC` order. */
 export async function getTopicAreaNames(
     trx: KnexReadonlyTransaction,
