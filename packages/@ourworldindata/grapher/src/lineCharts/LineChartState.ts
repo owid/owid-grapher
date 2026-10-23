@@ -13,6 +13,7 @@ import {
     ColorScaleConfigInterface,
     ColorSchemeName,
     ChartErrorInfo,
+    TimeRange,
 } from "@ourworldindata/types"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ChartState } from "../chart/ChartInterface"
@@ -25,6 +26,7 @@ import {
 import {
     OwidTable,
     CoreColumn,
+    OwidColumn,
     isNotErrorValue,
 } from "@ourworldindata/core-table"
 import {
@@ -48,6 +50,7 @@ import {
     getSeriesName,
 } from "./LineChartHelpers"
 import { FocusArray } from "../focus/FocusArray"
+import { selectEntityPointAnnotations } from "../annotations/EntityAnnotations"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
@@ -153,7 +156,7 @@ export class LineChartState implements ChartState, ColorScaleManager {
         return this.manager.colorColumnSlug
     }
 
-    @computed get yColumns(): CoreColumn[] {
+    @computed get yColumns(): OwidColumn[] {
         return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
     }
 
@@ -273,10 +276,10 @@ export class LineChartState implements ChartState, ColorScaleManager {
 
     private constructSingleSeries(
         entityName: EntityName,
-        column: CoreColumn
+        column: OwidColumn
     ): LineChartSeries {
         const {
-            manager: { canSelectMultipleEntities },
+            manager: { canSelectMultipleEntities, startTime, endTime },
             transformedTable: { availableEntityNames },
             seriesStrategy,
             hasColorScale,
@@ -342,6 +345,16 @@ export class LineChartState implements ChartState, ColorScaleManager {
             )
         }
 
+        const timeRange: TimeRange = [
+            startTime ?? -Infinity,
+            endTime ?? Infinity,
+        ]
+        const pointAnnotations = selectEntityPointAnnotations(
+            column.def.annotations ?? [],
+            entityName,
+            timeRange
+        )
+
         return {
             points,
             seriesName,
@@ -352,6 +365,7 @@ export class LineChartState implements ChartState, ColorScaleManager {
             plotMarkersOnly: column.display?.plotMarkersOnlyInLineChart,
             color: seriesColor,
             focus: this.focusArray.state(seriesName),
+            pointAnnotations,
         }
     }
 
