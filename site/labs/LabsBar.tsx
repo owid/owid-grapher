@@ -16,12 +16,12 @@ import {
     showFeature,
     useFeaturesOnPage,
 } from "./labsFeatures.js"
+import "./LabsBar.scss"
 
 // Labs is a staff-only copy of the site, built from the `labs` branch: master
-// plus every open PR labelled `labs`. This bar only exists on that branch.
-
-// Hiding the bar lasts for the rest of the browser session
-export const LABS_BAR_HIDDEN_KEY = "labsBarHidden"
+// plus every open PR labelled `labs`. This bar only exists on that branch, and
+// loads in a chunk of its own (runLabsBar.tsx), so it adds nothing to the
+// bundle the rest of the site shares.
 
 const REPO_URL = "https://github.com/owid/owid-grapher"
 // Where feedback goes when Sentry isn't loaded (e.g. blocked)
@@ -33,19 +33,45 @@ function publicUrlForCurrentPage(): string {
     return `${PROD_URL}${pathname}${search}${hash}`
 }
 
+/** Sentry's feedback form, loaded from Sentry's CDN on first use */
+async function loadFeedback(): Promise<ReturnType<typeof Sentry.getFeedback>> {
+    if (Sentry.getFeedback() || !Sentry.getClient()) return Sentry.getFeedback()
+    const feedbackIntegration = await Sentry.lazyLoadIntegration(
+        "feedbackIntegration"
+    )
+    Sentry.addIntegration(
+        feedbackIntegration({
+            autoInject: false,
+            colorScheme: "light",
+            showBranding: false,
+            showEmail: false,
+            formTitle: "Feedback on Labs",
+            messagePlaceholder:
+                "What worked, what didn't, what you expected instead",
+            successMessageText: "Thanks, we'll read it.",
+        })
+    )
+    return Sentry.getFeedback()
+}
+
+/** The feedback arrives in Sentry with the session's replay and the features on the page */
 async function openFeedbackForm(featuresOnPage: number[]): Promise<void> {
-    const feedback = Sentry.getFeedback()
-    if (!feedback) {
+    try {
+        const feedback = await loadFeedback()
+        if (!feedback) throw new Error("Sentry isn't loaded")
+        const form = await feedback.createForm({
+            tags: {
+                labs_features_on_page: featuresOnPage.join(",") || "none",
+            },
+            onFormClose: () => form.removeFromDom(),
+            onFormSubmitted: () => form.removeFromDom(),
+        })
+        form.appendToDom()
+        form.open()
+    } catch (error) {
+        console.warn("The feedback form didn't load", error)
         window.open(LABS_SLACK_URL, "_blank", "noopener")
-        return
     }
-    const form = await feedback.createForm({
-        tags: { labs_features_on_page: featuresOnPage.join(",") || "none" },
-        onFormClose: () => form.removeFromDom(),
-        onFormSubmitted: () => form.removeFromDom(),
-    })
-    form.appendToDom()
-    form.open()
 }
 
 function LabsPanel({ featuresOnPage }: { featuresOnPage: number[] }) {
@@ -126,7 +152,7 @@ function LabsPanel({ featuresOnPage }: { featuresOnPage: number[] }) {
     )
 }
 
-export function LabsBar() {
+export function LabsBar({ onHide }: { onHide: () => void }) {
     const [isHidden, setIsHidden] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
     const [isCopied, setIsCopied] = useState(false)
@@ -153,11 +179,7 @@ export function LabsBar() {
 
     const hide = (): void => {
         setIsHidden(true)
-        try {
-            sessionStorage.setItem(LABS_BAR_HIDDEN_KEY, "1")
-        } catch {
-            // Storage can be unavailable (private mode); then it only hides here
-        }
+        onHide()
     }
 
     // Charts keep their state in the URL, so take the address when it's used
@@ -210,7 +232,7 @@ export function LabsBar() {
                 <button
                     type="button"
                     className="labs-bar__button"
-                    onClick={() => void openFeedbackForm(featuresOnPage)}
+                    onClick={() => openFeedbackForm(featuresOnPage)}
                 >
                     <FontAwesomeIcon icon={faComment} />
                     Feedback

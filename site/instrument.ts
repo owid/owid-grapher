@@ -45,18 +45,6 @@ if (LOAD_SENTRY) {
                 blockAllMedia: false,
                 mask: [".sentry-mask"],
             }),
-            // Opened by the Labs bar's Feedback button; the feedback arrives
-            // with the session's replay
-            Sentry.feedbackIntegration({
-                autoInject: false,
-                colorScheme: "light",
-                showBranding: false,
-                showEmail: false,
-                formTitle: "Feedback on Labs",
-                messagePlaceholder:
-                    "What worked, what didn't, what you expected instead",
-                successMessageText: "Thanks, we'll read it.",
-            }),
         ],
         tracesSampleRate: 0.1,
         replaysSessionSampleRate: sampleRate,
