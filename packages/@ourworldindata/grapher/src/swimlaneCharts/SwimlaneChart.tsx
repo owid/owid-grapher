@@ -2,7 +2,7 @@ import React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { scalePoint, ScalePoint } from "d3-scale"
-import { SeriesName } from "@ourworldindata/types"
+import { SeriesName, SwimlaneSegmentLabelMode } from "@ourworldindata/types"
 import {
     Bounds,
     excludeUndefined,
@@ -48,6 +48,7 @@ import {
     PlacedSwimlaneSeries,
     SizedSwimlaneSeries,
     SwimlaneChartManager,
+    SwimlaneSegmentLabelStyle,
     SwimlaneSeries,
 } from "./SwimlaneChartConstants"
 import { SwimlaneChartState } from "./SwimlaneChartState"
@@ -195,6 +196,20 @@ export class SwimlaneChart
         return { fontSize, fontWeight: 700, lineHeight: 1 }
     }
 
+    @computed private get shouldShowSegmentLabels(): boolean {
+        return (
+            this.chartState.segmentLabelMode !== SwimlaneSegmentLabelMode.None
+        )
+    }
+
+    @computed private get segmentLabelStyle(): SwimlaneSegmentLabelStyle {
+        const fontSize = scaleFontSize(12, this.fontSize)
+        return {
+            category: { fontSize, fontWeight: 700, lineHeight: 1.2 },
+            timeRange: { fontSize, fontWeight: 500, lineHeight: 1.2 },
+        }
+    }
+
     @computed private get sizedSeries(): SizedSwimlaneSeries[] {
         return enrichSeriesWithLabels({
             series: this.series,
@@ -261,6 +276,8 @@ export class SwimlaneChart
             heightPerSeries: this.heightPerSeries,
             placeSeries: (seriesName) => this.yScale(seriesName)!,
             placeTime: (time) => this.xAxis.place(time),
+            shouldShowSegmentLabels: this.shouldShowSegmentLabels,
+            segmentLabelStyle: this.segmentLabelStyle,
         })
     }
 
