@@ -9,7 +9,6 @@ import * as Sentry from "@sentry/react"
 import { TimeoutError, SENTRY_DATA_COLLECTION } from "@ourworldindata/utils"
 import {
     COMMIT_SHA,
-    ENV,
     SENTRY_DSN,
     LOAD_SENTRY,
 } from "../settings/clientSettings.mjs"
@@ -35,7 +34,8 @@ if (LOAD_SENTRY) {
     Sentry.init({
         dataCollection: SENTRY_DATA_COLLECTION,
         dsn: SENTRY_DSN,
-        environment: ENV,
+        // Labs sessions are kept apart from staging and production in Sentry
+        environment: "labs",
         release: COMMIT_SHA,
         integrations: [
             Sentry.browserTracingIntegration(),
