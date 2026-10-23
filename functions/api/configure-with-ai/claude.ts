@@ -99,10 +99,13 @@ export async function callClaude(
         result.outputTokens += body.usage.output_tokens
         result.cacheReadTokens += body.usage.cache_read_input_tokens ?? 0
         result.cacheWriteTokens += body.usage.cache_creation_input_tokens ?? 0
-        result.text = body.content
+        const text = body.content
             .filter((block) => block.type === "text")
             .map((block) => block.text ?? "")
             .join("")
+        // A reply written before one more search can be followed by a
+        // closing remark only; keep the round that has the reply
+        if (text.includes("{") || !result.text.includes("{")) result.text = text
 
         const calls = body.content.filter((block) => block.type === "tool_use")
         if (body.stop_reason !== "tool_use" || !calls.length) return result

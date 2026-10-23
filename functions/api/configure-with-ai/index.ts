@@ -113,7 +113,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                     usage,
                 })
             )
-            return json({ error: "invalid_json", runId, usage }, 502)
+            // The raw text too: staging's function logs don't keep console output
+            return json(
+                {
+                    error: "invalid_json",
+                    runId,
+                    usage,
+                    raw: claude.text.slice(0, 2000),
+                },
+                502
+            )
         }
         const views = sanitizeViews(reply, ctx)
         const clean = search
