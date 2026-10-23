@@ -2,6 +2,13 @@ import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "./algoliaClient.js"
 import {
+    isRerankModel,
+    RERANK_MODELS,
+    RERANK_POOL_SIZE,
+    rerankCharts,
+    RerankModel,
+} from "./rerank.js"
+import {
     searchCharts,
     searchPages,
     searchTopicPages,
@@ -45,6 +52,7 @@ const KNOWN_PARAMS = new Set<string>([
     "pageTypes",
     "page",
     "hitsPerPage",
+    "rerank",
 ])
 
 // The parameters only some search types read. A request that sends one to a
@@ -56,6 +64,7 @@ const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
     [SearchUrlParam.TOPIC, ["charts", "topics"]],
     [SearchUrlParam.REQUIRE_ALL_COUNTRIES, ["charts", "topics"]],
     ["pageTypes", ["pages"]],
+    ["rerank", ["charts"]],
 ])
 
 // type=topics filters by country only when charts match a query, so never
@@ -89,6 +98,31 @@ async function fetchTagGraph(env: Env, baseUrl: string): Promise<TagGraphRoot> {
             `Failed to fetch /topicTagGraph.json: ${response.status}`
         )
     return response.json()
+}
+
+/**
+ * The experimental `rerank` param of a charts search (see rerank.ts). It
+ * reorders the top RERANK_POOL_SIZE hits, so it serves page 0 only.
+ */
+function parseRerank(
+    value: string | null,
+    env: Env,
+    page: number
+): { model: RerankModel; ai: Ai } | undefined {
+    if (!value) return undefined
+    if (!isRerankModel(value))
+        throw new SearchValidationError(
+            `Invalid rerank value "${value}". Valid values: ${Object.keys(RERANK_MODELS).join(", ")}`
+        )
+    if (!env.AI)
+        throw new SearchValidationError(
+            "rerank is not available on this deployment"
+        )
+    if (page !== 0)
+        throw new SearchValidationError(
+            "rerank only supports page=0: it reorders the top results"
+        )
+    return { model: value, ai: env.AI }
 }
 
 const hasSearchEnvVars = (env: Env): boolean => {
@@ -247,6 +281,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
 
+        const rerank =
+            searchType === "charts"
+                ? parseRerank(url.searchParams.get("rerank"), env, page)
+                : undefined
+
         // Build filters array
         const filters: Filter[] = []
 
@@ -293,6 +332,21 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         > => {
             switch (searchType) {
                 case "charts":
+                    if (rerank)
+                        return searchCharts(
+                            algoliaConfig,
+                            searchState,
+                            0,
+                            Math.max(RERANK_POOL_SIZE, hitsPerPage),
+                            baseUrl
+                        ).then((pool) =>
+                            rerankCharts(
+                                rerank.ai,
+                                rerank.model,
+                                pool,
+                                hitsPerPage
+                            )
+                        )
                     return searchCharts(
                         algoliaConfig,
                         searchState,
