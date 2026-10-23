@@ -30,7 +30,12 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
         },
         {
             text: "Life expectancy fell in many countries during the **COVID-19 pandemic**.",
-            entities: ["Europe"],
+            entities: ["Europe", "Americas"],
+            time: 2020,
+        },
+        {
+            text: "Asia's 2020 estimate rests on incomplete death registration in several large countries.",
+            entities: ["Asia"],
             time: 2020,
         },
         {
