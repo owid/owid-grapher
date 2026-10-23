@@ -147,6 +147,72 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
         })
     })
 
+    describe("top-level topic areas are hardcoded, so the admin refuses to change them", () => {
+        it("rejects renaming or deleting an area tag, but allows editing its slug", async () => {
+            await env.request({
+                method: "PUT",
+                path: "/tags/2",
+                body: JSON.stringify({
+                    tag: { name: "Energy & Environment", slug: null },
+                }),
+                expectStatus: 400,
+            })
+            await env.request({
+                method: "DELETE",
+                path: "/tags/2/delete",
+                expectStatus: 400,
+            })
+            const { tag } = await env.request({
+                method: "PUT",
+                path: "/tags/2",
+                body: JSON.stringify({
+                    tag: {
+                        name: "Energy and Environment",
+                        slug: "energy-and-environment",
+                    },
+                }),
+            })
+            expect(tag.slug).toBe("energy-and-environment")
+        })
+
+        it("rejects a tag graph that adds or removes an area, but allows other edits", async () => {
+            const { __rootId, ...flatTagGraph } =
+                await env.fetchJson("/flatTagGraph.json")
+
+            await env.request({
+                method: "POST",
+                path: "/tagGraph",
+                body: JSON.stringify({
+                    tagGraph: {
+                        ...flatTagGraph,
+                        [__rootId]: [
+                            ...flatTagGraph[__rootId],
+                            { parentId: __rootId, childId: 6, weight: 100 },
+                        ],
+                    },
+                }),
+                expectStatus: 400,
+            })
+
+            await env.request({
+                method: "POST",
+                path: "/tagGraph",
+                body: JSON.stringify({
+                    tagGraph: {
+                        ...flatTagGraph,
+                        "2": flatTagGraph["2"].filter(
+                            ({ childId }: { childId: number }) => childId !== 6
+                        ),
+                    },
+                }),
+            })
+            const updated = await env.fetchJson("/flatTagGraph.json")
+            expect(
+                updated["2"].map(({ childId }: { childId: number }) => childId)
+            ).toEqual([3])
+        })
+    })
+
     it("should list the Google Docs posts using a tag", async () => {
         const { tag } = await env.fetchJson("/tags/3.json")
 
