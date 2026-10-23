@@ -426,10 +426,10 @@ export function deserializeSet(str: string | null): Set<string> {
  * Area names from the shared `?topics=` param (`~`-separated; /search, /latest
  * and /subscribe all read it), dropping names not in `topicAreaNames`.
  */
-export function topicAreasFromSearchParams(
+export function topicAreasFromSearchParams<T extends string>(
     searchParams: URLSearchParams,
-    topicAreaNames: string[]
-): string[] {
+    topicAreaNames: readonly T[]
+): T[] {
     return [
         ...deserializeSet(searchParams.get(LatestUrlParam.TOPICS)).intersection(
             new Set(topicAreaNames)

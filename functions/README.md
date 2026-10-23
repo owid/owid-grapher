@@ -255,11 +255,6 @@ The relevant routes and their trust boundaries are:
 | `/api/email-notifications/unsubscribe`      | Removes subscription intent without requiring a login                     |
 | `/api/email-notifications/postmark-webhook` | Authenticated provider-to-provider synchronization                        |
 
-Topic tags are validated against `TOPIC_AREA_NAMES` in
-`@ourworldindata/types`, the same hardcoded list the subscribe form offers. The
-baker checks that list against the tag graph on every bake, so a renamed
-top-level area fails the bake instead of silently breaking subscriptions.
-
 ### Postmark synchronization
 
 Postmark webhooks project provider state into D1: delivery updates message
