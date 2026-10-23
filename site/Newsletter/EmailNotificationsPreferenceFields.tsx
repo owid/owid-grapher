@@ -1,6 +1,6 @@
+import { RefObject } from "react"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useScrollAlertIntoView } from "./useScrollAlertIntoView.js"
 import {
     faBook,
     faBullhorn,
@@ -18,6 +18,8 @@ import {
     EMAIL_NOTIFICATIONS_FREQUENCY_LABELS,
     EmailNotificationsContentType,
     EmailNotificationsFrequency,
+    TOPIC_AREA_NAMES,
+    TopicAreaName,
 } from "@ourworldindata/types"
 import {
     areAllTopicsSelected,
@@ -114,14 +116,15 @@ const ContentTypeCard = ({
 )
 
 export interface EmailNotificationsPreferenceFieldsProps {
-    topicAreaNames: string[]
-    topicTags: string[]
+    topicTags: TopicAreaName[]
     contentTypes: EmailNotificationsContentType[]
     frequency: EmailNotificationsFrequency
-    onToggleTopicTag: (tagName: string) => void
+    onToggleTopicTag: (tagName: TopicAreaName) => void
     onToggleContentType: (contentType: EmailNotificationsContentType) => void
     onSetFrequency: (frequency: EmailNotificationsFrequency) => void
     validationErrors?: PreferencesValidationErrors | null
+    /** Attached to the first rendered validation alert. */
+    firstAlertRef?: RefObject<HTMLDivElement | null>
 }
 
 /**
@@ -129,7 +132,6 @@ export interface EmailNotificationsPreferenceFieldsProps {
  * subscribe form and the magic-link preferences form.
  */
 export const EmailNotificationsPreferenceFields = ({
-    topicAreaNames,
     topicTags,
     contentTypes,
     frequency,
@@ -137,17 +139,14 @@ export const EmailNotificationsPreferenceFields = ({
     onToggleContentType,
     onSetFrequency,
     validationErrors,
+    firstAlertRef,
 }: EmailNotificationsPreferenceFieldsProps) => {
-    const allTopicsSelected = areAllTopicsSelected(topicTags, topicAreaNames)
-
-    // The submit button sits below these fieldsets, so a failed submit may
-    // leave the error off-screen.
-    const firstAlertRef = useScrollAlertIntoView(validationErrors)
+    const allTopicsSelected = areAllTopicsSelected(topicTags)
 
     // The toggle callbacks use functional state updates, so toggling every
     // affected pill in sequence composes correctly.
     const toggleAllTopics = () => {
-        for (const name of topicAreaNames) {
+        for (const name of TOPIC_AREA_NAMES) {
             if (topicTags.includes(name) === allTopicsSelected)
                 onToggleTopicTag(name)
         }
@@ -155,28 +154,27 @@ export const EmailNotificationsPreferenceFields = ({
 
     return (
         <>
-            <fieldset className="newsletter-form__fieldset">
-                <div className="newsletter-preference-fields__header">
-                    <legend className="h6-black-caps">
-                        I want updates about
-                    </legend>
-                    <button
-                        type="button"
-                        className="newsletter-preference-fields__select-all"
-                        onClick={toggleAllTopics}
-                    >
-                        <FontAwesomeIcon
-                            icon={allTopicsSelected ? faMinus : faPlus}
-                        />
-                        <span>
-                            {allTopicsSelected
-                                ? "Deselect all topics"
-                                : "Select all topics"}
-                        </span>
-                    </button>
-                </div>
+            {/* The legend stays a direct child of the fieldset so it names the
+            group for assistive tech; the stylesheet lays it out next to the
+            select-all button. */}
+            <fieldset className="newsletter-form__fieldset newsletter-preference-fields__topics">
+                <legend className="h6-black-caps">I want updates about</legend>
+                <button
+                    type="button"
+                    className="newsletter-preference-fields__select-all"
+                    onClick={toggleAllTopics}
+                >
+                    <FontAwesomeIcon
+                        icon={allTopicsSelected ? faMinus : faPlus}
+                    />
+                    <span>
+                        {allTopicsSelected
+                            ? "Deselect all topics"
+                            : "Select all topics"}
+                    </span>
+                </button>
                 <div className="newsletter-preference-fields__pills">
-                    {topicAreaNames.map((name) => (
+                    {TOPIC_AREA_NAMES.map((name) => (
                         <TogglePill
                             key={name}
                             label={name}

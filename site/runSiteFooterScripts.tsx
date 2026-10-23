@@ -38,7 +38,6 @@ import { REDUCED_TRACKING } from "../settings/clientSettings.mjs"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
 import {
     OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
-    TOPIC_AREA_NAMES,
     PREFERENCES_PAGE_ROOT_ID,
     SUBSCRIBE_PAGE_ROOT_ID,
 } from "@ourworldindata/types"
@@ -69,10 +68,7 @@ function hydrateSubscribePage() {
     // the hero and aside with the confirmation screen.
     const root = document.getElementById(SUBSCRIBE_PAGE_ROOT_ID)
     if (root) {
-        hydrateRoot(
-            root,
-            <SubscribeFlow topicAreaNames={[...TOPIC_AREA_NAMES]} />
-        )
+        hydrateRoot(root, <SubscribeFlow />)
     }
 }
 
@@ -82,11 +78,7 @@ function renderEmailNotificationsPreferencesPage() {
     // hydrated.
     const root = document.getElementById(PREFERENCES_PAGE_ROOT_ID)
     if (root) {
-        createRoot(root).render(
-            <EmailNotificationsPreferencesForm
-                topicAreaNames={[...TOPIC_AREA_NAMES]}
-            />
-        )
+        createRoot(root).render(<EmailNotificationsPreferencesForm />)
     }
 }
 

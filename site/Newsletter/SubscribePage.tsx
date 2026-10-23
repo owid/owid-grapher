@@ -5,7 +5,6 @@ import { SiteFooter } from "../SiteFooter.js"
 import {
     SiteFooterContext,
     SUBSCRIBE_PAGE_ROOT_ID,
-    TOPIC_AREA_NAMES,
 } from "@ourworldindata/types"
 import { SubscribeFlow } from "./SubscribeFlow.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.mjs"
@@ -32,7 +31,7 @@ export const SubscribePage = ({ baseUrl }: SubscribePageProps) => {
                     id={SUBSCRIBE_PAGE_ROOT_ID}
                     className="subscribe-page grid grid-cols-12-full-width"
                 >
-                    <SubscribeFlow topicAreaNames={[...TOPIC_AREA_NAMES]} />
+                    <SubscribeFlow />
                 </main>
                 <SiteFooter context={SiteFooterContext.subscribePage} />
             </body>
