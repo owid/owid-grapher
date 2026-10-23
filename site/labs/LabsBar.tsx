@@ -113,8 +113,10 @@ function LabsPanel({ featuresOnPage }: { featuresOnPage: number[] }) {
                 </ul>
             ) : (
                 <p className="labs-panel__empty">
-                    No features on Labs right now: it's the same as the live
-                    site.
+                    {LABS_MASTER_SHA
+                        ? "No features on Labs right now: it's the same as the live site."
+                        : // features.json as committed here, before the rebuild writes it
+                          "The list of features isn't built yet."}
                 </p>
             )}
             <p className="labs-panel__recording">
