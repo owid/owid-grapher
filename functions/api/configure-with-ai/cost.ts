@@ -8,6 +8,11 @@ export interface TokenUsage {
     outputTokens: number
     cacheReadTokens: number
     cacheWriteTokens: number
+    /**
+     * The cache reads of the first API call, when a run makes several (tool
+     * calls). Later calls read the cache the first one wrote either way.
+     */
+    firstCallCacheReadTokens?: number
 }
 
 /** The run's tokens priced on `model`, or null if the price data doesn't have it */
@@ -35,10 +40,11 @@ export function costOf(usage: TokenUsage, model: Model): number | null {
  * so it's the figure to budget with.
  */
 export function asFirstQuestion(usage: TokenUsage): TokenUsage {
+    const written = usage.firstCallCacheReadTokens ?? usage.cacheReadTokens
     return {
         ...usage,
-        cacheReadTokens: 0,
-        cacheWriteTokens: usage.cacheWriteTokens + usage.cacheReadTokens,
+        cacheReadTokens: usage.cacheReadTokens - written,
+        cacheWriteTokens: usage.cacheWriteTokens + written,
     }
 }
 

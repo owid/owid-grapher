@@ -694,3 +694,208 @@
     color: $gray-80;
     font-size: 0.6875rem;
 }
+
+// "Explore with AI": an answer on other pages, over the whole Grapher
+.configure-with-ai-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 24px 16px;
+    overflow: hidden;
+    background: #fff;
+    color: $blue-90;
+    animation: configure-with-ai-overlay-in 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+
+@keyframes configure-with-ai-overlay-in {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+}
+
+.configure-with-ai-overlay__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.configure-with-ai-overlay__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    em {
+        font-weight: 400;
+        text-transform: none;
+    }
+}
+
+.configure-with-ai-overlay__close {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid $blue-20;
+    background: #fff;
+    color: $blue-90;
+    font-size: 0.875rem;
+
+    &:hover {
+        border-color: $blue-50;
+    }
+}
+
+.configure-with-ai-overlay__form {
+    position: relative;
+    max-width: 560px;
+}
+
+.configure-with-ai-overlay__search-icon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: $blue-60;
+}
+
+.configure-with-ai-overlay__input {
+    width: 100%;
+    padding: 10px 12px 10px 36px;
+    border: 1px solid $blue-30;
+    color: $blue-90;
+    font-size: 1rem;
+
+    &:focus {
+        border-color: $blue-60;
+        outline: none;
+    }
+}
+
+.configure-with-ai-overlay__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.configure-with-ai-overlay__message {
+    max-width: 720px;
+    margin: 0 0 14px;
+    font-size: 1rem;
+    line-height: 1.45;
+}
+
+.configure-with-ai-overlay__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.configure-with-ai-overlay__grid--loading li {
+    height: 260px;
+    background: $gray-5;
+    animation: configure-with-ai-pulse 1.4s ease-in-out infinite;
+}
+
+.configure-with-ai-overlay__card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border: 1px solid $blue-20;
+    background: #fff;
+    color: $blue-90 !important;
+    text-decoration: none !important;
+
+    &:hover {
+        border-color: $blue-50;
+    }
+}
+
+// Chart thumbnails are 1200×640
+.configure-with-ai-overlay__thumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 15 / 8;
+    border-bottom: 1px solid $blue-10;
+    background: $blue-5;
+    color: $blue-60;
+    font-size: 2rem;
+
+    img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        background: #fff;
+    }
+}
+
+.configure-with-ai-overlay__card-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px 12px;
+    font-size: 0.875rem;
+    line-height: 1.35;
+}
+
+.configure-with-ai-overlay__kind {
+    color: $blue-60;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.configure-with-ai-overlay__card-title {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.configure-with-ai-overlay__variant {
+    color: $blue-60;
+}
+
+.configure-with-ai-overlay__label {
+    align-self: flex-start;
+    padding: 2px 8px;
+    background: $blue-10;
+}
+
+.configure-with-ai-overlay__why {
+    color: $gray-80;
+}
+
+.configure-with-ai-overlay__go {
+    margin-top: auto;
+    padding-top: 8px;
+    color: $vermillion;
+}
+
+.configure-with-ai-overlay__footer .configure-with-ai__feedback {
+    margin: 0;
+    font-style: italic;
+
+    span {
+        flex: none;
+        margin-right: 8px;
+    }
+}
