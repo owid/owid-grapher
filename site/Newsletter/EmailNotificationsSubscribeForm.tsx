@@ -98,12 +98,18 @@ export const EmailNotificationsSubscribeForm = ({
             const response = await apiPost("/subscribe", request)
             await throwIfApiError(response)
         },
-        onError: resetCaptcha,
+        onError: (error) => {
+            analytics.logNewsletterSubscribeError(
+                "subscribe-page",
+                getErrorMessage(error)
+            )
+            resetCaptcha()
+        },
         retry: false,
         onSuccess: (_, request) => {
             analytics.logSiteFormSubmit(
                 "newsletter-subscribe",
-                "Subscribe [email-notifications]"
+                "Subscribe [subscribe-page]"
             )
             onSubscribed({
                 email: request.email,
