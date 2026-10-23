@@ -1,5 +1,11 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react"
-import * as React from "react"
+import {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import {
     GdocPostSettings,
@@ -18,7 +24,6 @@ import {
     GdocsContentSource,
     getOwidGdocFromJSON,
     OwidGdocJSON,
-    OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     slugify,
     MinimalTag,
@@ -48,6 +53,7 @@ import { deleteGdoc, updateGdoc } from "./gdocsApi.js"
 import { useUpdateGdocTags } from "./gdocsQueries.js"
 import { IconBadge } from "./IconBadge.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
+import { GdocsComponentPreviewsModal } from "./GdocsComponentPreviewsModal.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
@@ -93,13 +99,14 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     >()
     const [isDiffOpen, setDiffOpen] = useState(false)
     const [isRecordsOpen, setRecordsOpen] = useState(false)
+    const [isComponentPreviewsOpen, setComponentPreviewsOpen] = useState(false)
     const [recordsPreviewMode, setRecordsPreviewMode] =
         useState<RecordsPreviewMode>("records")
-    const [errors, setErrors] = React.useState<OwidGdocErrorMessage[]>()
     const { admin } = useContext(AdminAppContext)
 
     const [isMobilePreviewActive, setIsMobilePreviewActive] = useState(false)
     const [acceptSuggestions, setAcceptSuggestions] = useState(false)
+    const [now] = useState(() => new Date())
 
     // Only used when currentGdoc is a profile
     const { entitiesInScope, selectedEntity, setSelectedEntity } =
@@ -155,7 +162,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         }
     }, [])
 
-    useEffect(() => {
+    // Reset the state when navigating to another gdoc
+    const [prevId, setPrevId] = useState(id)
+    if (id !== prevId) {
+        setPrevId(id)
         setAcceptSuggestions(false)
         setGdoc((prev) =>
             prev.original === undefined && prev.current === undefined
@@ -163,9 +173,11 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 : { original: undefined, current: undefined }
         )
         setRecordsOpen(false)
-    }, [id])
+    }
 
     // initialize
+    // `admin` is a MobX store, so mutating it is how we update it
+    /* oxlint-disable react/immutability */
     useEffect(() => {
         let isMounted = true
         async function fetchLatestGdoc() {
@@ -209,11 +221,18 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             admin.loadingIndicatorSetting = "default"
         }
     }, [admin, acceptSuggestions, fetchGdoc, handleError])
+    /* oxlint-enable react/immutability */
 
     const isLightningUpdate = useLightningUpdate(
         originalGdoc,
         currentGdoc,
         hasChanges
+    )
+
+    // Errors and validation status
+    const errors = useMemo(
+        () => (currentGdoc ? getErrors(currentGdoc) : undefined),
+        [currentGdoc]
     )
 
     const hasWarnings =
@@ -299,13 +318,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         setDiffOpen(false)
     }
 
-    // Handle errors and validation status
-    useEffect(() => {
-        if (!currentGdoc) return
-        const errors = getErrors(currentGdoc)
-        setErrors(errors)
-    }, [currentGdoc])
-
     if (criticalErrorMessage) {
         return (
             <AdminLayout title="Preview error" noSidebar fixedNav={false}>
@@ -355,8 +367,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 currentGdoc.publishedAt && (
                                     <>
                                         [
-                                        {currentGdoc.publishedAt <=
-                                        new Date() ? (
+                                        {currentGdoc.publishedAt <= now ? (
                                             <>
                                                 <a
                                                     href={getCanonicalUrl(
@@ -450,6 +461,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 isMobilePreviewActive={isMobilePreviewActive}
                                 toggleMobilePreview={toggleMobilePreview}
                                 onOpenRecords={() => setRecordsOpen(true)}
+                                onOpenComponentPreviews={() =>
+                                    setComponentPreviewsOpen(true)
+                                }
                             />
                         </Space>
                     </Col>
@@ -643,6 +657,11 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                         mode={recordsPreviewMode}
                     />
                 </Drawer>
+                <GdocsComponentPreviewsModal
+                    gdocId={currentGdoc.id}
+                    isOpen={isComponentPreviewsOpen}
+                    onClose={() => setComponentPreviewsOpen(false)}
+                />
 
                 <div className="iframe-container">
                     {/*

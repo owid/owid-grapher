@@ -1,5 +1,6 @@
 import * as React from "react"
 import {
+    BespokeVizRegistry,
     ComponentRegistry,
     DbPlainTag,
     JsonError,
@@ -26,7 +27,7 @@ import { viteAssetsForSite } from "../site/viteUtils.js"
 import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
-import { archieToEnriched } from "../db/model/Gdoc/archieToEnriched.js"
+import { archieToEnriched } from "@ourworldindata/gdoc-pipeline"
 import {
     gdocFromJSON,
     getGdocBaseObjectById,
@@ -41,10 +42,15 @@ import {
 import { checkShouldProfileRender } from "../db/model/Gdoc/dataCallouts.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
 import type { GdocBase } from "../db/model/Gdoc/GdocBase.js"
+import {
+    PreviewQueryParam,
+    selectBespokePreviewBlock,
+} from "./bespokeVizPreviewBlock.js"
 
 // The committed generated registry — same source the
 // /api/gdocs-reference/components.json endpoint serves.
 import componentsRegistry from "@ourworldindata/types/src/gdocTypes/components.registry.generated.json"
+import bespokeVizRegistry from "@ourworldindata/types/src/gdocTypes/bespoke-viz.registry.generated.json"
 
 /**
  * Live previews for the admin writing reference page (GdocsReferencePage):
@@ -324,12 +330,39 @@ export async function renderGdocsReferenceComponentPreview(
     if (!component)
         throw new JsonError(`No such component: "${componentId}"`, 404)
     const archie = getExampleArchie(component, exampleParam)
+    return renderArchiePreview(component.title, archie, knex)
+}
 
+/**
+ * Preview of one block of a bespoke viz bundle: a variant's default block or
+ * a docs.md example, picked from the registry (see selectBespokePreviewBlock).
+ */
+export async function renderBespokeVizPreview(
+    bundleId: string,
+    variantParam: PreviewQueryParam,
+    exampleParam: PreviewQueryParam,
+    knex: db.KnexReadonlyTransaction
+): Promise<string> {
+    const { title, archie } = selectBespokePreviewBlock(
+        (bespokeVizRegistry as BespokeVizRegistry).bundles,
+        bundleId,
+        variantParam,
+        exampleParam
+    )
+    return renderArchiePreview(title, archie, knex)
+}
+
+// Render a component's ArchieML as a standalone preview page.
+async function renderArchiePreview(
+    title: string,
+    archie: string,
+    knex: db.KnexReadonlyTransaction
+): Promise<string> {
     // Same wrapping the registry generator validates the example with, but
     // typed as an article so the site renders the blocks (fragments render as
     // raw JSON). The chrome an article adds around the body is hidden by the
     // preview stylesheet.
-    const wrapped = `title: ${component.title} example\ntype: ${OwidGdocType.Article}\n[+body]\n${archie}\n[]\n`
+    const wrapped = `title: ${title} example\ntype: ${OwidGdocType.Article}\n[+body]\n${archie}\n[]\n`
     const content = archieToEnriched(wrapped)
     content["hide-citation"] = true
     content["hide-subscribe-banner"] = true
@@ -340,7 +373,7 @@ export async function renderGdocsReferenceComponentPreview(
     return renderToHtmlPage(
         <GdocsReferencePreviewPage
             gdoc={gdoc}
-            pageTitle={`${component.title} — component preview`}
+            pageTitle={`${title} — component preview`}
             styles={COMPONENT_PREVIEW_STYLES}
         />
     )

@@ -9,6 +9,10 @@ import {
     ProductTradeData,
     TradeRow,
 } from "./types.js"
+import {
+    getBespokeSourceLine,
+    parseBespokeMetadata,
+} from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 const queryKeys = {
     metadata: () => ["food-trade", "metadata"] as const,
@@ -24,12 +28,12 @@ export const useFoodTradeMetadata = (
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<MetadataJson>(metadataUrl),
+        queryFn: async () =>
+            buildMetadata(await fetchJson<MetadataJson>(metadataUrl)),
         staleTime: Infinity, // Never refetch
     })
 
-    const data = result.data ? buildMetadata(result.data) : undefined
-    return { data, status: result.status }
+    return { data: result.data, status: result.status }
 }
 
 export const useProductTradeData = (
@@ -87,7 +91,7 @@ function buildMetadata(raw: MetadataJson): FoodTradeMetadata {
 
     return {
         year: raw.year,
-        source: raw.source,
+        source: getBespokeSourceLine(raw),
         license: raw.license,
         entities,
         products,
@@ -95,6 +99,7 @@ function buildMetadata(raw: MetadataJson): FoodTradeMetadata {
         productById: new Map(products.map((p) => [p.id, p])),
         productByName,
         hasTradeData,
+        provenance: parseBespokeMetadata(raw),
     }
 }
 

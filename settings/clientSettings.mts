@@ -34,11 +34,20 @@ export const ARCHIVE_BASE_URL: string | null =
 export const BAKED_GRAPHER_URL: string =
     process.env.BAKED_GRAPHER_URL ?? `${BAKED_BASE_URL}/grapher`
 
+// Thumbnails are rendered by Cloudflare functions, which the admin server doesn't
+// serve, so in development they come from production unless set (e.g. to the
+// local functions server, http://localhost:<WRANGLER_PORT>/grapher).
 export const GRAPHER_DYNAMIC_THUMBNAIL_URL: string =
-    process.env.GRAPHER_DYNAMIC_THUMBNAIL_URL ?? `${BAKED_GRAPHER_URL}`
+    process.env.GRAPHER_DYNAMIC_THUMBNAIL_URL ??
+    (ENV === "development"
+        ? "https://ourworldindata.org/grapher"
+        : BAKED_GRAPHER_URL)
 
 export const EXPLORER_DYNAMIC_THUMBNAIL_URL: string =
-    process.env.EXPLORER_DYNAMIC_THUMBNAIL_URL ?? `${BAKED_BASE_URL}/explorers`
+    process.env.EXPLORER_DYNAMIC_THUMBNAIL_URL ??
+    (ENV === "development"
+        ? "https://ourworldindata.org/explorers"
+        : `${BAKED_BASE_URL}/explorers`)
 
 export const GRAPHER_DYNAMIC_CONFIG_URL: string =
     process.env.GRAPHER_DYNAMIC_CONFIG_URL ?? `${BAKED_GRAPHER_URL}`
@@ -73,7 +82,14 @@ export const ALGOLIA_CACHED_QUERIES_URL: string =
     process.env.ALGOLIA_CACHED_QUERIES_URL ??
     (ENV === "development" ? "" : `${BAKED_BASE_URL}/api/search/cached-queries`)
 
-export const CLOUDFLARE_IMAGES_URL = process.env.CLOUDFLARE_IMAGES_URL ?? ""
+// Cloudflare Images has one store shared by all environments, so in development
+// images come from the production delivery URL unless set. `||` rather than `??`
+// because .env.example-full sets it to an empty value.
+export const CLOUDFLARE_IMAGES_URL: string =
+    process.env.CLOUDFLARE_IMAGES_URL ||
+    (ENV === "development"
+        ? "https://ourworldindata.org/cdn-cgi/imagedelivery/qLq-8BTgXU8yG0N6HnOy8g"
+        : "")
 
 export const DONATE_API_URL: string =
     process.env.DONATE_API_URL ?? "http://localhost:8788/donation/donate"
@@ -131,12 +147,15 @@ export const SLACK_DI_PITCHES_CHANNEL_ID: string =
 
 export const IS_RUNNING_INSIDE_VITEST: boolean = !!process.env.VITEST
 
+// Port of the bespoke dev server (bespoke/server/devServer.ts)
+export const BESPOKE_PORT: number =
+    parseIntOrUndefined(process.env.BESPOKE_PORT) ?? 8089
+
 // Base URL for bespoke component assets. When set, the scriptUrl from the
 // bespoke component registry is resolved relative to this URL instead of
-// the current origin. Useful for pointing to the bespoke dev server during
-// local development (e.g. "http://localhost:8089").
+// the current origin. Defaults to the local bespoke dev server.
 export const BESPOKE_BASE_URL: string =
-    process.env.BESPOKE_BASE_URL ?? "http://localhost:8089"
+    process.env.BESPOKE_BASE_URL ?? `http://localhost:${BESPOKE_PORT}`
 
 // Root of the data feeds ETL builds for bespoke components, passed to each component's mount().
 // ETL writes a feed to the API bucket of the environment it is building, so a staging server sets

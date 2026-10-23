@@ -19,7 +19,7 @@ import {
     type SidecarExample,
 } from "@ourworldindata/types"
 import { getParseFindings } from "@ourworldindata/utils"
-import { archieToEnriched } from "../../db/model/Gdoc/archieToEnriched.js"
+import { archieToEnriched } from "@ourworldindata/gdoc-pipeline"
 
 interface ParsedDocument {
     type?: unknown
@@ -35,9 +35,11 @@ interface ParsedDocument {
 // type's content-interface key kinds and must be exempt from the
 // unknown-key check below:
 //   - `refs`: archieToEnriched always sets `parsed.refs = parsedRefs`
-//     (db/model/Gdoc/archieToEnriched.ts, around line 275)
+//     (packages/@ourworldindata/gdoc-pipeline/src/archieToEnriched.ts,
+//     around line 275)
 //   - `byline`: read as a legacy fallback for `authors`
-//     (db/model/Gdoc/archieToEnriched.ts, around line 281)
+//     (packages/@ourworldindata/gdoc-pipeline/src/archieToEnriched.ts,
+//     around line 281)
 const IGNORED_PARSER_KEYS = new Set(["refs", "byline"])
 
 function parse(archie: string): { content?: ParsedDocument; error?: string } {

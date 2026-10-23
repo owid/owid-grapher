@@ -1,3 +1,4 @@
+import { SENTRY_DATA_COLLECTION } from "@ourworldindata/utils"
 import * as Sentry from "@sentry/cloudflare"
 import { Env } from "./_common/env.js"
 import { analyticsMiddleware } from "./_common/analytics.js"
@@ -7,6 +8,7 @@ import { experimentsMiddleware } from "./_common/experiments.js"
 export const onRequest = [
     // Make sure Sentry is the first middleware.
     Sentry.sentryPagesPlugin<Env>((context) => ({
+        dataCollection: SENTRY_DATA_COLLECTION,
         dsn: context.env.SENTRY_DSN,
         environment: context.env.ENV,
         tracesSampleRate: 0.01,

@@ -70,6 +70,7 @@ export {
     getClosestTimePairs,
     omitUndefinedValues,
     isInIFrame,
+    openLinkInNewTabAttrs,
     differenceObj,
     findDOMParent,
     textAnchorFromAlign,
@@ -115,6 +116,8 @@ export {
     copyToClipboard,
     checkIsGdocPost,
     checkIsGdocPostExcludingFragments,
+    checkIsAnnouncement,
+    deriveAnnouncementLatestType,
     checkIsDataInsight,
     checkIsAuthor,
     checkIsFeaturedViz,
@@ -289,6 +292,7 @@ export { FontFamily, cssFontFamily } from "./fonts.js"
 
 export {
     type Persistable,
+    type PersistedObject,
     objectWithPersistablesToObject,
     updatePersistables,
     deleteRuntimeAndUnchangedProps,
@@ -300,6 +304,7 @@ export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 
 export {
     strToQueryParams,
+    safeDecodeURIComponent,
     queryParamsToStr,
     multiDimDimensionsToViewQueryStr,
     getWindowQueryStr,
@@ -307,6 +312,8 @@ export {
 } from "./urls/UrlUtils.js"
 
 export { Url, setWindowUrl, getWindowUrl } from "./urls/Url.js"
+
+export { getPrefixedGdocPath } from "./urls/gdocPaths.js"
 
 export { type UrlMigration, performUrlMigrations } from "./urls/UrlMigration.js"
 
@@ -368,7 +375,8 @@ export { isAndroid, isIOS } from "./BrowserUtils.js"
 export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
-} from "./grapherConfigUtils.js"
+    KEYS_EXCLUDED_FROM_INHERITANCE,
+} from "./grapherConfigInheritance.js"
 
 export {
     MultiDimDataPageConfig,
@@ -409,6 +417,8 @@ export {
     EXPERIMENT_PREFIX,
     DATA_PAGE_METADATA_EXPERIMENT_ID,
     DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM,
+    LATEST_STICKY_FILTERS_EXPERIMENT_ID,
+    LATEST_STICKY_FILTERS_ARMS,
 } from "./experiments/constants.js"
 
 export {
@@ -434,6 +444,11 @@ export {
     searchSingleForHitsWithClosestMatches,
 } from "./search/searchClosestMatches.js"
 
+export {
+    TOPIC_PAGE_TYPE_FILTER,
+    recommendTopicPages,
+} from "./search/searchTopicPages.js"
+
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
@@ -447,3 +462,5 @@ export {
     serializeDecisionTree,
     deserializeDecisionTree,
 } from "./QueryParamDecisionTree.js"
+
+export { SENTRY_DATA_COLLECTION } from "./sentry.js"

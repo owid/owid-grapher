@@ -10,7 +10,6 @@ import {
     DbPlainNarrativeChart,
     JsonString,
     JsonError,
-    parseChartConfig,
     DbInsertNarrativeChart,
     NarrativeChartsTableName,
     ChartConfigsTableName,
@@ -46,8 +45,15 @@ import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
-import { getChartConfigByUuid } from "../../db/model/ChartConfigs.js"
+import {
+    getChartConfigByUuid,
+    parseAndMigrateChartConfig,
+} from "../../db/model/ChartConfigs.js"
 import { narrativeChartExists } from "../../db/model/NarrativeChart.js"
+import {
+    assertValidGrapherConfig,
+    ingestGrapherConfig,
+} from "../../db/grapherConfigValidation.js"
 import { getMultiDimDataPageById } from "../../db/model/MultiDimDataPage.js"
 
 const createPatchConfigAndQueryParamsForNarrativeChart = async (
@@ -78,6 +84,10 @@ const createPatchConfigAndQueryParamsForNarrativeChart = async (
     const queryParams = grapherConfigToQueryParams(patchConfigToSave)
 
     const fullConfig = mergeGrapherConfigs(parentChartConfig, patchConfigToSave)
+
+    // Ensure the resulting config is valid since parts of it are assembled in code
+    assertValidGrapherConfig(fullConfig)
+
     return { patchConfig: patchConfigToSave, fullConfig, queryParams }
 }
 
@@ -128,7 +138,7 @@ async function getChartConfigByMultiDimXChartConfigId(
             404
         )
     }
-    return parseChartConfig(row.config)
+    return parseAndMigrateChartConfig(row.config)
 }
 
 async function getViewDimensions(
@@ -322,10 +332,10 @@ export async function getNarrativeChartById(
         updatedAt: row.updatedAt,
         lastEditedByUser: row.lastEditedByUser,
         chartConfigId: row.chartConfigId,
-        configFull: parseChartConfig(row.configFull),
-        configPatch: parseChartConfig(row.configPatch),
+        configFull: parseAndMigrateChartConfig(row.configFull),
+        configPatch: parseAndMigrateChartConfig(row.configPatch),
         parentType: row.parentChartId ? "chart" : "multiDim",
-        parentConfigFull: parseChartConfig(row.parentConfigFull),
+        parentConfigFull: parseAndMigrateChartConfig(row.parentConfigFull),
         parentUrl: makeParentUrl(
             row.parentChartId,
             row.parentCatalogPath,
@@ -458,8 +468,9 @@ export async function createNarrativeChart(
             errorMsg: `Narrative chart with name "${data.name}" already exists`,
         }
     }
+    const config = ingestGrapherConfig(data.config)
     if (data.type === "chart") {
-        const { name, parentChartId, config } = data
+        const { name, parentChartId } = data
         return createNarrativeChartFromChart(
             trx,
             name,
@@ -468,7 +479,7 @@ export async function createNarrativeChart(
             res.locals.user.id
         )
     } else {
-        const { name, parentChartConfigId, config } = data
+        const { name, parentChartConfigId } = data
         return createNarrativeChartFromMultiDimView(
             trx,
             name,
@@ -486,10 +497,11 @@ export async function updateNarrativeChart(
 ) {
     const id = expectInt(req.params.id)
     const user: DbPlainUser = res.locals.user
-    const rawConfig = req.body.config as GrapherInterface
+    const rawConfig = req.body.config
     if (!rawConfig) {
         throw new JsonError("Invalid request", 400)
     }
+    const config = ingestGrapherConfig(rawConfig)
 
     const existingRow = await trx<DbPlainNarrativeChart>(
         NarrativeChartsTableName
@@ -529,7 +541,7 @@ export async function updateNarrativeChart(
     const { patchConfig, fullConfig, queryParams } =
         await createPatchConfigAndQueryParamsForNarrativeChart(
             parentChartConfig,
-            rawConfig
+            config
         )
 
     let viewDimensions

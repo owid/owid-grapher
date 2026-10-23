@@ -277,6 +277,7 @@ export function SvgTesterSuitePage() {
     useEffect(() => {
         if (!location.hash) return
         document.getElementById(location.hash.slice(1))?.scrollIntoView()
+        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- re-run once the differences have rendered
     }, [location.hash, differences])
 
     return (
@@ -1025,6 +1026,7 @@ function useVisualDiffs(
     const { grapherCommit, svgsCommit } = commits
 
     useEffect(() => {
+        // oxlint-disable-next-line react/set-state-in-effect -- resets for a new run, then seeds from what localStorage has for it
         setComparisonBySvg(undefined)
         setIsComplete(false)
         setCheckedCount(0)

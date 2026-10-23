@@ -50,7 +50,7 @@ import { Command, CommandPalette } from "../controls/CommandPalette"
 import { EmbedModal } from "../modal/EmbedModal"
 import Mousetrap from "mousetrap"
 import { SelectionArray } from "../selection/SelectionArray"
-import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import classnames from "clsx"
 import { SidePanel } from "../sidePanel/SidePanel"
 import { EntitySelector } from "../entitySelector/EntitySelector"
@@ -60,51 +60,114 @@ import { Chart } from "../chart/Chart.js"
 import { flushSync } from "react-dom"
 import { GrapherState } from "./GrapherState.js"
 
-// Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
+/**
+ * A Grapher config plus options that aren't part of the persisted config
+ * schema: they control how a chart is embedded and which parts of its
+ * interface are shown, rather than what the chart shows. Authors never set
+ * these in the chart editor; developers pass them in code, e.g. as the
+ * `config` of a {@link GrapherLoader}.
+ */
 export interface GrapherProgrammaticInterface extends GrapherInterface {
+    /** Query string to initialise the chart's state from, in the same format
+     *  as a grapher page URL, e.g. `"?tab=map&time=2020"`. */
     queryStr?: string
+    /** @internal */
     bounds?: Bounds
+    /** @internal */
     table?: OwidTable
+    /** @internal */
     baseUrl?: string
+    /** Base URL that chart page links are derived from: published charts link
+     *  to `<bakedGrapherURL>/<slug>`. Defaults to `"/grapher"`. */
     bakedGrapherURL?: string
+    /** The URL of the chart's own page, which the title and the "Explore the
+     *  data" button link to and the share menu shares. Overrides the URL
+     *  derived from `bakedGrapherURL` and `slug`. `null` means the chart has
+     *  no such page: the title is plain text, and the "Explore the data"
+     *  button and share menu are not shown. */
+    canonicalUrl?: string | null
+    /** @internal */
     adminBaseUrl?: string
+    /** @internal */
     env?: string
+    /** Times to mark in line charts, as if the cursor were hovering them. */
     highlightedTimesInLineChart?: Time[]
+    /** @internal */
     baseFontSize?: number
+    /** @internal */
     staticBounds?: Bounds
+    /** @internal */
     variant?: GrapherVariant
+    /** @internal */
     useMinimalLabeling?: boolean
 
+    /** Hide the title. */
     hideTitle?: boolean
+    /** Hide the subtitle. */
     hideSubtitle?: boolean
+    /** Hide the note in the footer. */
     hideNote?: boolean
+    /** Hide the origin URL next to the license in the footer. */
     hideOriginUrl?: boolean
+    /** Hide the full-screen button. */
     hideFullscreenButton?: boolean
+    /** Hide the download button. */
     hideDownloadButton?: boolean
-
-    hideEntityControls?: boolean
-    hideControlsRow?: boolean
-    forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
-    hasTableTab?: boolean
+    /** Hide the share button. */
     hideShareButton?: boolean
+    /** Hide the "Donate" button, which is shown when the chart is rendered
+     *  inside an iframe. */
+    hideDonateButton?: boolean
+
+    /** Hide the controls for selecting entities (countries, regions, …),
+     *  including selecting them on the map. */
+    hideEntityControls?: boolean
+    /** Hide the row of controls between the header and the chart (tabs,
+     *  entity selection, settings). */
+    hideControlsRow?: boolean
+    /** Leave out the entity, time or "change in" annotations that are
+     *  otherwise added to the title. */
+    forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
+    /** Whether to offer the table tab. Defaults to `true`. */
+    hasTableTab?: boolean
+    /** Whether to hide the "Explore the data" button, which links to the
+     *  chart's own page. Defaults to `true`, except inside an iframe, where
+     *  the button is always shown. Never shown without a `canonicalUrl`. */
     hideExploreTheDataButton?: boolean
+    /** Hide the related question link below the chart. */
     hideRelatedQuestion?: boolean
+    /** Allow selecting entities by clicking them on the map, even where the
+     *  entity controls would otherwise disable that. */
     enableMapSelection?: boolean
 
+    /** Enable keyboard shortcuts and the command palette. */
     enableKeyboardShortcuts?: boolean
+    /** Keep the page URL's query string in sync with the chart's state. Only
+     *  makes sense for a single chart that owns the page. */
     bindUrlToWindow?: boolean
+    /** @internal */
     isEmbeddedInAnOwidPage?: boolean
+    /** @internal */
     isEmbeddedInADataPage?: boolean
+    /** @internal */
     useNewDatapageMetadataLayout?: boolean
+    /** @internal */
     isConfigReady?: boolean
+    /** @internal */
     isDataReady?: boolean
+    /** @internal */
     canHideExternalControlsInEmbed?: boolean
+    /** @internal */
     recommendedIframeEmbedHeight?: number
 
+    /** @internal */
     narrativeChartInfo?: MinimalNarrativeChartInfo
+    /** @internal */
     archiveContext?: ArchiveContext
 
+    /** @internal */
     manager?: GrapherManager
+    /** @internal */
     additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
 }
 
@@ -173,7 +236,7 @@ export class Grapher extends React.Component<GrapherProps> {
         // TODO grapher model: switch this to downloading multiple data and metadata files
 
         const startMark = performance.now()
-        const tableWithColors = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        const tableWithColors = legacyToOwidTableAndDimensions(
             json,
             legacyConfig.dimensions ?? [],
             legacyConfig.selectedEntityColors
@@ -222,9 +285,10 @@ export class Grapher extends React.Component<GrapherProps> {
     }
 
     @action.bound private toggleTabCommand(): void {
-        this.grapherState.setTab(
-            next(this.grapherState.availableTabs, this.grapherState.activeTab)
-        )
+        const oldTab = this.grapherState.activeTab
+        const newTab = next(this.grapherState.availableTabs, oldTab)
+        this.grapherState.setTab(newTab)
+        this.grapherState.onTabChange(oldTab, newTab)
     }
 
     @action.bound private togglePlayingCommand(): void {

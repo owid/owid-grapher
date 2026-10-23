@@ -113,6 +113,7 @@ export const DataPageV2Content = ({
     useEffect(() => {
         if (typeof window !== "undefined") {
             const s = getExperimentState()
+            // oxlint-disable-next-line react/set-state-in-effect -- read client-only experiment cookies after hydration
             setExperimentState(s)
         }
     }, [])
@@ -223,20 +224,19 @@ export const DataPageV2Content = ({
                                 </>
                             )}
                     </div>
-                    {useNewDatapageDesign &&
-                        downloadSection && (
-                            // The new design moves sources/processing/citations into
-                            // the IndicatorMetadataBox above, so only the data
-                            // download remains here. Rendered with the same wrapper
-                            // markup MetadataSection used so the layout is unchanged.
-                            <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
-                                <div className="col-start-2 span-cols-12">
-                                    <div className="section-wrapper grid">
-                                        {downloadSection}
-                                    </div>
+                    {useNewDatapageDesign && downloadSection && (
+                        // The new design moves sources/processing/citations into
+                        // the IndicatorMetadataBox above, so only the data
+                        // download remains here. Rendered with the same wrapper
+                        // markup MetadataSection used so the layout is unchanged.
+                        <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
+                            <div className="col-start-2 span-cols-12">
+                                <div className="section-wrapper grid">
+                                    {downloadSection}
                                 </div>
                             </div>
-                        )}
+                        </div>
+                    )}
                     {!useNewDatapageDesign && (
                         <>
                             <div className="col-start-2 span-cols-12">

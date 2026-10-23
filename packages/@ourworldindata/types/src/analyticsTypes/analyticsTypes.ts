@@ -42,6 +42,7 @@ export enum EventCategory {
     SiteLatest = "owid.site_latest",
     SiteLatestAnnouncementExpand = "owid.site_latest_announcement_expand",
     SiteLatestResultClick = "owid.site_latest_result_click",
+    SitePrint = "owid.site_print",
     SiteSearch = "owid.site_search",
     SiteSearchAutocompleteClick = "owid.site_search_autocomplete_click",
     SiteSearchResultClick = "owid.site_search_result_click",
@@ -85,6 +86,7 @@ export type EventParamsMap = {
     [EventCategory.SiteFindInPage]: SiteFindInPageParams
     [EventCategory.SiteInstantSearchClick]: SiteInstantSearchClickParams
     [EventCategory.SiteError]: SiteErrorParams
+    [EventCategory.SitePrint]: SitePrintParams
     [EventCategory.Filter]: FilterParams
     [EventCategory.TranslatePage]: TranslatePageParams
 }
@@ -123,8 +125,15 @@ export interface SiteLatestParams {
     /** Selected content type. Omitted when the user hasn't picked a type
      * (the "all" filter). */
     latestType?: string
+    /** Arm of the /latest sticky filters experiment the visitor is in, if
+     * assigned (`exp-latest-sticky-filters-v1` cookie). */
+    experimentArm?: string
 }
 
+/**
+ * Records opening the content represented by a feed preview. Excludes body,
+ * author, and CTA links within content already displayed in the feed.
+ */
 export interface SiteLatestResultClickParams {
     /** Always 'click' for this event */
     eventAction: "click"
@@ -137,6 +146,9 @@ export interface SiteLatestResultClickParams {
      * topic/linear-topic pages lack `latestType`, and those never render
      * on /latest. */
     latestType?: string
+    /** Arm of the /latest sticky filters experiment the visitor is in, if
+     * assigned (`exp-latest-sticky-filters-v1` cookie). */
+    experimentArm?: string
 }
 
 export interface SiteSearchAutocompleteClickParams {
@@ -207,6 +219,12 @@ export interface SiteErrorParams {
     eventAction: string
     /** Error details or URL */
     eventContext: string
+}
+
+export interface SitePrintParams {
+    /** Always 'beforeprint' for this event; fired when the browser is about to
+     * print the page or open its print preview */
+    eventAction: "beforeprint"
 }
 
 export interface SiteGuidedChartLinkClickParams {
@@ -476,6 +494,9 @@ export interface SiteLatestAnnouncementExpandParams {
      * `LatestType` subtypes (announcement / data-update / website-upgrade)
      * since only announcement hits render the Read more toggle. */
     latestType?: string
+    /** Arm of the /latest sticky filters experiment the visitor is in, if
+     * assigned (`exp-latest-sticky-filters-v1` cookie). */
+    experimentArm?: string
 }
 
 export interface KeyboardShortcutParams {

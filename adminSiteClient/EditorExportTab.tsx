@@ -11,12 +11,9 @@ import { Component } from "react"
 import { Section, Toggle } from "./Forms.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
-import { faHatWizard, faDownload } from "@fortawesome/free-solid-svg-icons"
-import { Button } from "antd"
+import { ConfigEditor } from "./ConfigEditor.js"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import urljoin from "url-join"
 
 type ExportSettings = Required<
     Pick<
@@ -60,23 +57,21 @@ const DEFAULT_SETTINGS: ExportSettings = {
     shouldIncludeDetailsInStaticExport: false,
 }
 
-interface EditorExportTabProps<Editor> {
-    editor: Editor
+interface EditorExportTabProps {
+    editor: ConfigEditor
 }
 
 @observer
-export class EditorExportTab<
-    Editor extends AbstractChartEditor,
-> extends Component<EditorExportTabProps<Editor>> {
+export class EditorExportTab extends Component<EditorExportTabProps> {
     private settings = DEFAULT_SETTINGS
     private originalSettings: Partial<ExportSettings> = DEFAULT_SETTINGS
     private readonly originalGrapher: OriginalGrapher
     private readonly disposers: IReactionDisposer[] = []
 
-    constructor(props: EditorExportTabProps<Editor>) {
+    constructor(props: EditorExportTabProps) {
         super(props)
 
-        makeObservable<EditorExportTab<Editor>, "settings">(this, {
+        makeObservable<EditorExportTab, "settings">(this, {
             settings: observable,
         })
         this.originalGrapher = this.grabRelevantPropertiesFromGrapher()
@@ -91,17 +86,9 @@ export class EditorExportTab<
         // Use autorun with the computed property to track settings changes
         const dispose = reaction(
             () => this.currentSettings,
-            () => {
-                // store min and max time because these are not part of currentSettings
-                // but undefined will reset to -infinity and +infinity
-                action(() => {
-                    const minTime = this.grapherState.minTime
-                    const maxTime = this.grapherState.maxTime
-                    this.grapherState.updateFromObject(this.currentSettings)
-                    this.grapherState.minTime = minTime
-                    this.grapherState.maxTime = maxTime
-                })()
-            }
+            action((settings: ExportSettings) =>
+                Object.assign(this.grapherState, settings)
+            )
         )
 
         if (sessionStorage) {
@@ -169,18 +156,15 @@ export class EditorExportTab<
     }
 
     @action private resetGrapher() {
-        const minTime = this.grapherState.minTime
-        const maxTime = this.grapherState.maxTime
-        this.grapherState.updateFromObject(this.originalSettings)
-        this.grapherState.minTime = minTime
-        this.grapherState.maxTime = maxTime
+        Object.assign(this.grapherState, this.originalSettings)
     }
 
     @computed private get currentSettings(): ExportSettings {
         return {
             hideTitle: this.settings.hideTitle,
-            forceHideAnnotationFieldsInTitle:
-                this.settings.forceHideAnnotationFieldsInTitle,
+            forceHideAnnotationFieldsInTitle: {
+                ...this.settings.forceHideAnnotationFieldsInTitle,
+            },
             hideSubtitle: this.settings.hideSubtitle,
             hideNote: this.settings.hideNote,
             hideOriginUrl: this.settings.hideOriginUrl,
@@ -232,20 +216,6 @@ export class EditorExportTab<
     }
 
     override render() {
-        const chartAnimationUrl = new URL(
-            urljoin(ETL_WIZARD_URL, "chart-animation")
-        )
-        if (this.grapherState.canonicalUrl)
-            chartAnimationUrl.searchParams.set(
-                "animation_chart_url",
-                this.grapherState.canonicalUrl
-            )
-        chartAnimationUrl.searchParams.set("animation_skip_button", "True")
-        // chartAnimationUrl.searchParams.set(
-        //     "animation_chart_tab",
-        //     this.grapher.tab ?? ""
-        // )
-
         return (
             <div className="EditorExportTab">
                 <Section name="Displayed elements">
@@ -350,25 +320,6 @@ export class EditorExportTab<
                         </button>
                     </div>
                 </Section>
-
-                {/* Link to Wizard dataset preview */}
-                {this.grapherState.isPublished && (
-                    <Section name="Animate chart">
-                        <a
-                            href={chartAnimationUrl.toString()}
-                            target="_blank"
-                            className="btn btn-tertiary"
-                            rel="noopener"
-                        >
-                            <Button
-                                type="default"
-                                icon={<FontAwesomeIcon icon={faHatWizard} />}
-                            >
-                                Animate with Wizard
-                            </Button>
-                        </a>
-                    </Section>
-                )}
             </div>
         )
     }

@@ -19,11 +19,13 @@ import {
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
     TESTING_ONLY_disable_guid,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import fs, { stat } from "fs-extra"
 import path from "path"
 import { execFileSync } from "child_process"
 import { getVariableData } from "../../db/model/Variable.js"
+import { assertValidGrapherConfig } from "../../db/grapherConfigValidation.js"
 
 import * as _ from "lodash-es"
 import { getHeapStatistics } from "v8"
@@ -473,7 +475,9 @@ export async function saveGrapherSchemaAndData(
     )
 
     const grapher = initGrapherForSvgExport(config)
-    const variableIds = grapher.grapherState.dimensions.map((d) => d.variableId)
+    const variableIds = excludeUndefined(
+        grapher.grapherState.dimensions.map((d) => d.variableId)
+    )
 
     await Promise.allSettled([
         promise1,
@@ -572,7 +576,7 @@ export async function renderSvg({
 
     grapher.grapherState.inputTable = legacyToOwidTableAndDimensions(
         configAndData.variableData,
-        grapher.grapherState.dimensions,
+        grapher.grapherState.dimensionConfigs,
         grapher.grapherState.selectedEntityColors
     )
 
@@ -627,19 +631,25 @@ export async function renderSvg({
     return Promise.resolve([svg, svgRecord, preparedSvg])
 }
 
-const replaceRegexes = [/id="react-select-\d+-.+"/g]
-/** Some fragments of the svgs are non-deterministic. This function is used to
-    delete all such fragments */
+/** Guids are disabled in the SVG tester, so faceted charts render several clip
+    paths named boundsClip-1, and every url(#boundsClip-1) would resolve to the
+    first one. Give each clip path its own number and point every reference at
+    the closest clip path defined before it. */
+export function numberBoundsClipPaths(svg: string): string {
+    let count = 0
+    return svg.replace(/id="boundsClip-1"|url\(#boundsClip-1\)/g, (match) =>
+        match.startsWith("id=")
+            ? `id="boundsClip-${++count}"`
+            : `url(#boundsClip-${count})`
+    )
+}
+
 function prepareSvgForComparison(svg: string): string {
-    let current = svg
-    for (const replaceRegex of replaceRegexes) {
-        current = current.replace(replaceRegex, "")
-    }
     // React renders the whole svg onto a single line, and the line diff in the
     // admin needs lines to work with, so break it up one tag per line. `><`
     // only ever occurs at a tag boundary because React escapes `>` in text and
     // in attributes.
-    return current.replaceAll("><", ">\n<")
+    return numberBoundsClipPaths(svg).replaceAll("><", ">\n<")
 }
 
 export interface RenderSvgAndSaveJobDescription {
@@ -686,7 +696,9 @@ async function loadGrapherConfigAndData(
     if (!fs.existsSync(configPath)) throw `Config does not exist ${configPath}`
 
     const rawConfig = (await fs.readJson(configPath)) as GrapherInterface
-    const config = migrateGrapherConfigToLatestVersion(rawConfig) // ensure the config is migrated to the latest schema version
+    const config = migrateGrapherConfigToLatestVersion(rawConfig)
+
+    assertValidGrapherConfig(config)
 
     const variableIds = config.dimensions?.map((d) => d.variableId) ?? []
     const loadDataPromises = variableIds.map(async (variableId) => {

@@ -1,4 +1,10 @@
+import type { BespokeMetadata } from "@ourworldindata/types"
+
 export type VariantName = "sankey"
+
+export const FLOWS = ["both", "import", "export"] as const
+
+export type Flow = (typeof FLOWS)[number]
 
 export type TradeRow = {
     exporter: string
@@ -17,9 +23,8 @@ export type ProductTradeData = {
 export type Entity = { id: number; name: string }
 export type Product = { id: number; name: string }
 
-export type MetadataJson = {
+export type MetadataJson = Pick<BespokeMetadata, "attribution" | "origins"> & {
     year: number
-    source: string
     license: string
     dimensions: {
         entities: Entity[]
@@ -43,6 +48,7 @@ export type FoodTradeMetadata = {
     productById: Map<number, Product>
     productByName: Map<string, Product>
     hasTradeData: (entityName: string, productName: string) => boolean
+    provenance: BespokeMetadata | undefined
 }
 
 export type Mode = "bilateral" | "split"

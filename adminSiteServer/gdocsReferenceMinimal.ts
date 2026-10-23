@@ -4,7 +4,7 @@ import {
     Span,
 } from "@ourworldindata/types"
 import { traverseEnrichedBlock } from "@ourworldindata/utils"
-import { parseRawBlocksToEnrichedBlocks } from "../db/model/Gdoc/rawToEnriched.js"
+import { parseRawBlocksToEnrichedBlocks } from "@ourworldindata/gdoc-pipeline"
 
 /**
  * The minimal-source machinery behind the writing reference: reduce a block

@@ -335,7 +335,7 @@ export class DiscreteBarChart
         y = 0
     ): React.ReactElement {
         const barColor = series.isProjection
-            ? `url(#${makeProjectedDataPatternId(series.color)})`
+            ? `url(#${makeProjectedDataPatternId(series.color, this.manager.patternIdSuffix)})`
             : series.color
 
         return (
@@ -479,7 +479,8 @@ export class DiscreteBarChart
                 {/* passed to the legend as pattern for the projected data legend item */}
                 <StripedProjectedDataPattern
                     patternId={makeProjectedDataPatternId(
-                        this.projectedDataColorInLegend
+                        this.projectedDataColorInLegend,
+                        this.manager.patternIdSuffix
                     )}
                     color={this.projectedDataColorInLegend}
                 />
@@ -487,7 +488,10 @@ export class DiscreteBarChart
                 {uniqProjections.map((series) => (
                     <StripedProjectedDataPattern
                         key={series.color}
-                        patternId={makeProjectedDataPatternId(series.color)}
+                        patternId={makeProjectedDataPatternId(
+                            series.color,
+                            this.manager.patternIdSuffix
+                        )}
                         color={series.color}
                     />
                 ))}
@@ -613,7 +617,8 @@ export class DiscreteBarChart
                     index: 0,
                     value: "projected",
                     patternRef: makeProjectedDataPatternId(
-                        this.projectedDataColorInLegend
+                        this.projectedDataColorInLegend,
+                        this.manager.patternIdSuffix
                     ),
                 })
             )

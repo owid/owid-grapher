@@ -12,6 +12,7 @@
         "/favicon*.png",
         "/apple-touch-icon.png",
         "/robots.txt",
+        "/opensearch.xml",
         "/assets/*",
         "/fonts/*",
         "/*.css",

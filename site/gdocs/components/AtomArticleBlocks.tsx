@@ -1,8 +1,9 @@
 import { match } from "ts-pattern"
 
-import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
-import { useImage } from "../utils.js"
+import { OwidEnrichedGdocBlock, SpanLink } from "@ourworldindata/types"
+import { normalizeBlockType, useImage } from "../utils.js"
 import ArticleBlock from "./ArticleBlock.js"
+import LinkedA from "./LinkedA.js"
 import { Container, getLayout } from "./layout.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { LARGEST_IMAGE_WIDTH } from "@ourworldindata/utils"
@@ -31,13 +32,13 @@ export default function AtomArticleBlocks({
 }
 
 function AtomArticleBlock({
-    b: block,
+    b: rawBlock,
     containerType = "default",
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
 }) {
-    block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
+    const block = normalizeBlockType(rawBlock)
     if (block.parseErrors.some(({ isWarning }) => !isWarning)) {
         return (
             <BlockErrorFallback
@@ -61,9 +62,28 @@ function AtomArticleBlock({
                 />
             )
         })
+        .with({ type: "cta" }, (block) => (
+            <Cta url={block.url} text={block.text} />
+        ))
         .otherwise(() => (
             <ArticleBlock b={block} containerType={containerType} />
         ))
+}
+
+// Email clients like Gmail strip the inline SVG arrow of the site's CTA, so our
+// RSS-based newsletters would lose it; use a text arrow instead
+function Cta({ url, text }: { url: string; text: string }) {
+    const span: SpanLink = {
+        url,
+        children: [{ spanType: "span-simple-text", text }],
+        spanType: "span-link",
+    }
+    return (
+        <p className="cta">
+            <LinkedA span={span} />
+            &nbsp;→
+        </p>
+    )
 }
 
 function Image({

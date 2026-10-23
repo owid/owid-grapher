@@ -419,7 +419,7 @@ export default function IndicatorMetadataBox({
                 )}
                 {owners.length > 0 && (
                     <MetadataBoxKeyDataRow label="Managed by">
-                        <Byline names={owners} prefix="" />
+                        <Byline authors={owners} prefix="" />
                     </MetadataBoxKeyDataRow>
                 )}
             </MetadataBoxKeyData>

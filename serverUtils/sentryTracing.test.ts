@@ -57,9 +57,9 @@ describe("server tracing", () => {
                         const span = Sentry.getActiveSpan()!
                         await Promise.resolve()
                         expect(Sentry.getActiveSpan()).toBe(span)
-                        expect(Sentry.spanToJSON(span).data["page.slug"]).toBe(
-                            slug
-                        )
+                        expect(
+                            Sentry.spanToJSON(span).attributes["page.slug"]
+                        ).toBe(slug)
                         return span
                     },
                     { "page.slug": slug }
@@ -83,7 +83,7 @@ describe("server tracing", () => {
             })
         ).rejects.toBe(error)
         expect(job!.isRecording()).toBe(false)
-        expect(Sentry.spanToJSON(job!).status).toBe("internal_error")
+        expect(Sentry.spanToJSON(job!).status).toBe("error")
     })
 })
 

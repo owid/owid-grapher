@@ -57,7 +57,7 @@ import {
     InternalValueAnnotation,
     ProjectedDataPattern,
 } from "./MapComponents"
-import { Patterns } from "../core/GrapherConstants"
+import { Patterns, makePatternId } from "../core/GrapherConstants"
 import {
     calculateDistance,
     detectNearbyFeature,
@@ -736,6 +736,16 @@ export class ChoroplethGlobe extends React.Component<{
 
         if (featuresWithNoData.length === 0) return
 
+        const { patternIdSuffix } = this.manager
+        const noDataPatternId = makePatternId(
+            Patterns.noDataPattern,
+            patternIdSuffix
+        )
+        const inapplicablePatternId = makePatternId(
+            Patterns.inapplicablePattern,
+            patternIdSuffix
+        )
+
         return (
             <g
                 id={makeFigmaId("countries-without-data")}
@@ -748,8 +758,8 @@ export class ChoroplethGlobe extends React.Component<{
                         path={this.getPath(feature)}
                         patternId={
                             inapplicableEntityNamesSet?.has(feature.id)
-                                ? Patterns.inapplicablePattern
-                                : Patterns.noDataPattern
+                                ? inapplicablePatternId
+                                : noDataPatternId
                         }
                         isSelected={this.manager.isSelected?.(feature.id)}
                         hover={this.manager.getHoverState?.(feature.id)}
@@ -771,8 +781,10 @@ export class ChoroplethGlobe extends React.Component<{
                     <defs>
                         {/* Pattern used by the map legend for the projected data bin */}
                         <ProjectedDataPattern
+                            idSuffix={this.manager.patternIdSuffix}
                             key={PROJECTED_DATA_LEGEND_COLOR}
                             color={PROJECTED_DATA_LEGEND_COLOR}
+                            scale={this.manager.patternScale}
                             forLegend
                         />
 
@@ -780,8 +792,10 @@ export class ChoroplethGlobe extends React.Component<{
                             but use a legend-specific id */}
                         {this.binColors.map((color, index) => (
                             <ProjectedDataPattern
+                                idSuffix={this.manager.patternIdSuffix}
                                 key={`${color}-${index}`}
                                 color={color}
+                                scale={this.manager.patternScale}
                                 forLegend
                             />
                         ))}
@@ -789,8 +803,10 @@ export class ChoroplethGlobe extends React.Component<{
                         {/* Pattern used by features */}
                         {this.binColors.map((color, index) => (
                             <ProjectedDataPattern
+                                idSuffix={this.manager.patternIdSuffix}
                                 key={`${color}-${index}`}
                                 color={color}
+                                scale={this.manager.patternScale}
                             />
                         ))}
                     </defs>
@@ -801,6 +817,7 @@ export class ChoroplethGlobe extends React.Component<{
                     if (!series) return null
                     return (
                         <CountryWithData
+                            patternIdSuffix={this.manager.patternIdSuffix}
                             key={feature.id}
                             feature={feature}
                             series={series}

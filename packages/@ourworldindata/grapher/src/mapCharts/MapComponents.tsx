@@ -1,4 +1,5 @@
 import React from "react"
+import { Color } from "@ourworldindata/types"
 import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import {
     BLUR_FILL_OPACITY,
@@ -8,7 +9,6 @@ import {
     DEFAULT_STROKE_WIDTH,
     HOVER_STROKE_COLOR,
     HOVER_STROKE_WIDTH,
-    PATTERN_STROKE_WIDTH,
     SELECTED_STROKE_WIDTH,
     SVGMouseEvent,
     RenderFeature,
@@ -17,8 +17,9 @@ import {
 } from "./MapChartConstants"
 import { isMapRenderFeature } from "./MapHelpers"
 import { getExternalMarkerEndPosition } from "./MapAnnotations"
-import { Patterns } from "../core/GrapherConstants"
+import { Patterns, makePatternId } from "../core/GrapherConstants"
 import { calculateLightnessScore, isDarkColor } from "../color/ColorUtils"
+import { INAPPLICABLE_COLOR } from "../color/ColorScale"
 import { Halo } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState"
 
@@ -47,6 +48,7 @@ export function BackgroundCountry<Feature extends RenderFeature>({
 export function CountryWithData<Feature extends RenderFeature>({
     feature,
     series,
+    patternIdSuffix,
     path,
     isSelected = false,
     hover,
@@ -57,6 +59,7 @@ export function CountryWithData<Feature extends RenderFeature>({
 }: {
     feature: Feature
     series: ChoroplethSeries
+    patternIdSuffix?: string
     path?: string
     isSelected?: boolean
     hover?: InteractionState
@@ -77,7 +80,7 @@ export function CountryWithData<Feature extends RenderFeature>({
     const strokeOpacity = hover?.background ? BLUR_STROKE_OPACITY : 1
 
     const fill = isProjection
-        ? `url(#${makeProjectedDataPatternId(series.color)})`
+        ? `url(#${makeProjectedDataPatternId(series.color, { idSuffix: patternIdSuffix })})`
         : series.color
     const fillOpacity = hover?.background ? BLUR_FILL_OPACITY : 1
 
@@ -149,11 +152,13 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     )
 }
 
-export function NoDataPattern({
-    patternId,
+export function InapplicablePattern({
+    patternId = Patterns.inapplicablePattern,
+    color = INAPPLICABLE_COLOR,
     scale = 1,
 }: {
-    patternId: string
+    patternId?: string
+    color?: Color
     scale?: number
 }): React.ReactElement {
     const roundedScale = R.round(scale, 3)
@@ -165,11 +170,8 @@ export function NoDataPattern({
             height="4"
             patternTransform={`rotate(-45 2 2) scale(${roundedScale})`}
         >
-            <path
-                d="M -1,2 l 6,0"
-                stroke="#ccc"
-                strokeWidth={PATTERN_STROKE_WIDTH}
-            />
+            <rect width="4" height="4" fill={color} />
+            <path d="M -1,2 l 6,0" stroke="#fff" strokeWidth={0.7} />
         </pattern>
     )
 }
@@ -177,15 +179,20 @@ export function NoDataPattern({
 export function ProjectedDataPattern({
     color,
     scale = 1,
+    idSuffix,
     forLegend = false,
 }: {
     color: string
     scale?: number
     forLegend?: boolean
+    idSuffix?: string
 }): React.ReactElement {
     return (
         <DottedProjectedDataPattern
-            patternId={makeProjectedDataPatternId(color, { forLegend })}
+            patternId={makeProjectedDataPatternId(color, {
+                forLegend,
+                idSuffix,
+            })}
             color={color}
             scale={scale}
             dotOpacity={forLegend ? 0.2 : undefined}
@@ -339,10 +346,10 @@ function getStrokeWidth({
 
 export function makeProjectedDataPatternId(
     color: string,
-    options?: { forLegend: boolean }
+    options?: { forLegend?: boolean; idSuffix?: string }
 ): string {
     const prefix = options?.forLegend
         ? Patterns.projectedDataPatternForLegend
         : Patterns.projectedDataPattern
-    return `${prefix}_${color}`
+    return makePatternId(`${prefix}_${color}`, options?.idSuffix)
 }

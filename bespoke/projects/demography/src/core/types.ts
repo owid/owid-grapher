@@ -1,4 +1,5 @@
 import { Bounds } from "@ourworldindata/utils"
+import { BespokeMetadata } from "@ourworldindata/types"
 
 type CountryName = string
 type CountrySlug = string
@@ -6,9 +7,13 @@ type CountrySlug = string
 type Year = string
 type AgeGroup = string
 
-export interface DemographyMetadata {
+export interface DemographyMetadataJson {
     countries: CountryName[]
     slugs: Record<CountryName, CountrySlug>
+}
+
+export interface DemographyMetadata extends DemographyMetadataJson {
+    provenance: BespokeMetadata | undefined
 }
 
 type ByYearAndAgeGroup = Record<Year, Record<AgeGroup, number>>
@@ -56,6 +61,19 @@ export const PARAMETER_KEYS = [
 ] as const
 
 export type ParameterKey = (typeof PARAMETER_KEYS)[number]
+
+const VARIANT_NAMES = [
+    "simulation",
+    "population",
+    "populationPyramid",
+    "parameters",
+] as const
+
+export type VariantName = (typeof VARIANT_NAMES)[number]
+
+export const POPULATION_PYRAMID_UNITS = ["percent", "absolute"] as const
+
+export type PopulationPyramidUnit = (typeof POPULATION_PYRAMID_UNITS)[number]
 
 export type YearLabel = { year: number; position: "start" | "middle" | "end" }
 

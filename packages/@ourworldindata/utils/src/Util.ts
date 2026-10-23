@@ -5,6 +5,8 @@ import dayjs from "./dayjs.js"
 import { formatLocale, FormatLocaleObject } from "d3-format"
 import striptags from "striptags"
 import {
+    ANNOUNCEMENT_LATEST_TYPES,
+    type AnnouncementLatestType,
     type Integer,
     IDEAL_PLOT_ASPECT_RATIO,
     EPOCH_DATE,
@@ -42,6 +44,7 @@ import {
     GRAPHER_CHART_TYPES,
     DbPlainTag,
     AssetMap,
+    OwidGdocAnnouncementInterface,
     OwidGdocAboutInterface,
     OwidGdocFeaturedVizInterface,
     OwidGdocHomepageInterface,
@@ -921,9 +924,6 @@ export const anyToString = (value: unknown): string => {
     return String(value)
 }
 
-// Scroll Helpers
-// Borrowed from: https://github.com/JedWatson/react-select/blob/32ad5c040b/packages/react-select/src/utils.js
-
 function isDocumentElement(el: HTMLElement): boolean {
     return [document.documentElement, document.body].includes(el)
 }
@@ -1180,6 +1180,18 @@ export const isInIFrame = (): boolean => {
     }
 }
 
+/**
+ * Attributes that make a link open in a new tab, to spread onto an `<a>`.
+ * Only puts them when `openInNewTab` is truthy.
+ *
+ * Mainly for links rendered inside an iframe: the host page may forbid
+ * navigating the frame to another origin.
+ */
+export const openLinkInNewTabAttrs = (
+    openInNewTab: boolean | undefined
+): { target: "_blank"; rel: "noopener" } | undefined =>
+    openInNewTab ? { target: "_blank", rel: "noopener" } : undefined
+
 export const differenceObj = <A extends Record<string, unknown>>(
     obj: A,
     defaultObj: Record<string, unknown>
@@ -1270,7 +1282,7 @@ export function toRectangularMatrix<T, F>(arr: T[][], fill: F): (T | F)[][] {
 export function checkIsStringIndexable(
     x: unknown
 ): x is Record<string, unknown> {
-    return R.isPlainObject(x) || R.isArray(x)
+    return R.isPlainObject(x) || Array.isArray(x)
 }
 
 export function checkIsTouchEvent(
@@ -1386,6 +1398,12 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
             return {
                 ...commonProps,
                 ...R.pick(dataInsightGdoc, ["latestDataInsights"]),
+            }
+        })
+        .when(checkIsAnnouncement, (announcementGdoc) => {
+            return {
+                ...commonProps,
+                ...R.pick(announcementGdoc, ["latestAnnouncements"]),
             }
         })
         .when(checkIsAuthor, (authorGdoc) => {
@@ -2219,7 +2237,9 @@ export function greatestCommonDivisor(a: number, b: number): number {
 export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
     if (arr.length === 0) return null
     if (arr.includes(1)) return 1
-    return _.uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
+    return new Set(arr)
+        .values()
+        .reduce((acc, num) => greatestCommonDivisor(acc, num))
 }
 
 // Makes sure that values are evenly spaced by inserting values at the greatest
@@ -2310,6 +2330,29 @@ export function checkIsDataInsight(
     gdoc: OwidGdoc
 ): gdoc is OwidGdocDataInsightInterface {
     return gdoc.content.type === OwidGdocType.DataInsight
+}
+
+export function checkIsAnnouncement(
+    gdoc: OwidGdoc
+): gdoc is OwidGdocAnnouncementInterface {
+    return gdoc.content.type === OwidGdocType.Announcement
+}
+
+/**
+ * Resolve an Announcement's LatestType from its kicker. Slugifies so
+ * case/spacing variants ("Data Update", "Data update") still map to the
+ * canonical slug. Anything else — missing, blank, or unrecognized — falls
+ * back to "announcement". The save-side validator
+ * (GdocAnnouncement._validateSubclass) only accepts the canonical slugs,
+ * so any edit forces legacy values into shape.
+ */
+export function deriveAnnouncementLatestType(
+    kicker?: string
+): AnnouncementLatestType {
+    const slug = slugify(kicker ?? "")
+    return (ANNOUNCEMENT_LATEST_TYPES as readonly string[]).includes(slug)
+        ? (slug as AnnouncementLatestType)
+        : "announcement"
 }
 
 export function checkIsAboutPage(

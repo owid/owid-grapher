@@ -760,7 +760,7 @@ function limitSelectionToAvailableTableRows(
     // thumbnails and table show the same data
     if (seriesStrategy === SeriesStrategy.entity) {
         grapherState.selection.setSelectedEntities(
-            selectedEntities.slice(0, numAvailableDataTableRows)
+            R.take(selectedEntities, numAvailableDataTableRows)
         )
     }
 }
@@ -782,7 +782,7 @@ function configureGrapherStateForStackedDiscreteBarChart(
     // Limit the number of selected entities to the maximum allowed
     if (grapherState.addCountryMode !== EntitySelectionMode.Disabled) {
         const defaultEntities = grapherState.selection.selectedEntityNames
-        const selectedEntities = defaultEntities.slice(0, maxNumEntities)
+        const selectedEntities = R.take(defaultEntities, maxNumEntities)
         if (tableEntity && !selectedEntities.includes(tableEntity)) {
             selectedEntities.pop()
             selectedEntities.push(tableEntity)

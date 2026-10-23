@@ -19,9 +19,7 @@ export function CitationSection({
             className="grid grid-cols-12-full-width col-start-1 col-end-limit no-dividers"
         >
             <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                <h3 className={isDeprecated ? "align-left" : "align-center"}>
-                    Cite this work
-                </h3>
+                <h3>Cite this work</h3>
                 {isDeprecated && (
                     <p className="citation-deprecated-notice">
                         <span className="citation-deprecated-notice__highlight">

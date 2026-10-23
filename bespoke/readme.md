@@ -56,7 +56,33 @@ export function mount(
 - **`opts.metadataUrl`** — URL of the metadata file inside that folder, from the entry's `metadataFilename`.
 - **Return value** — Optionally return a cleanup/disposal function that will be called on unmount.
 
-A module may also export `VARIANTS`, a list of `{ name, demoConfig?, demoSize? }` entries. The site ignores it; the dev server's demo page reads it to mount every variant, and shows an error instead of the component when it is missing.
+A module may also export `VARIANTS`, a list of `{ name, description, demoConfig?, defaultSize? }` entries.
+
+### Declaring the config
+
+Every project declares the config keys it reads in a `CONFIG_SPEC` export next to `VARIANTS`. [food-trade/src/index.tsx](projects/food-trade/src/index.tsx) is a full example.
+
+### Documenting a bundle for authors
+
+`VARIANTS` and `CONFIG_SPEC` power the bespoke docs pages in the admin. `yarn generateGdocsReferences` reads both exports from `src/index.tsx` without running any bundle code, and writes them to the committed `bespoke-viz.registry.generated.json`; CI fails when that file is stale. Their `description` fields are short phrases written for the authors browsing those pages. Values must be literals, or constants holding literals (a local `const`, or one imported by name from a relative module), so the generator can read them.
+
+A variant's `demoConfig` is used only by the dev demo page; the admin's copyable block never includes it. Variations worth explaining to authors go in `docs.md` as examples.
+
+A bundle can add an optional `docs.md` next to its `package.json`:
+
+```md
+What the bundle shows, and when to reach for it.
+
+(fenced archie examples, one `{.bespoke-component}` block each)
+
+## Notes
+
+Anything else authors should know, such as data-dependent defaults.
+```
+
+- `docs.md` takes no front matter: the bundle's id is its title.
+- The intro (the prose before the first `## ` heading) is required. `## Notes` is the only structural section. Other headings are kept as free prose, unless they match or nearly match a known sidecar section (such as `## When to use`, `## Properties` or `## Note`), which fails the build.
+- Each ` ```archie ` example must be exactly one `{.bespoke-component}` block of this bundle, with a variant from `VARIANTS` and config keys and enum values that `CONFIG_SPEC` allows. The generator fails on any example that doesn't.
 
 ### Registering a component
 
@@ -96,11 +122,12 @@ A bundle fetches its data at runtime rather than bundling it. Each one reads a s
 
 Bundles get their files from an ETL export step under `etl/steps/export/s3/` in owid/etl, so their registry entry gives the step as a relative `dataUrl`.
 
-| bundle            | ETL step                                         | manifest                              | per-selection file                      |
-| ----------------- | ------------------------------------------------ | ------------------------------------- | --------------------------------------- |
-| `causes-of-death` | `ihme_gbd/latest/gbd_treemap_json`               | `causes-of-death.metadata.json`       | `causes-of-death.<entityId>.json`       |
-| `food-trade`      | `faostat/latest/food_trade`                      | `food-trade.metadata.json`            | `food-trade.<productId>.json`           |
-| `migration`       | `un_migration/latest/migration_stock_flows_json` | `migration-stock-flows.metadata.json` | `migration-stock-flows.<entityId>.json` |
+| bundle                | ETL step                                         | manifest                              | per-selection file                      |
+| --------------------- | ------------------------------------------------ | ------------------------------------- | --------------------------------------- |
+| `causes-of-death`     | `ihme_gbd/latest/gbd_treemap_json`               | `causes-of-death.metadata.json`       | `causes-of-death.<entityId>.json`       |
+| `deforestation-trade` | `forests/latest/deforestation_trade`             | `deforestation-trade.metadata.json`   | `deforestation-trade.<entityId>.json`   |
+| `food-trade`          | `faostat/latest/food_trade`                      | `food-trade.metadata.json`            | `food-trade.<productId>.json`           |
+| `migration`           | `un_migration/latest/migration_stock_flows_json` | `migration-stock-flows.metadata.json` | `migration-stock-flows.<entityId>.json` |
 
 The manifest is the contract. An entity it lists must have a file, and that file must be well formed, because a bundle has no way of knowing otherwise until it has fetched it. An entry whose file is missing or malformed shows the reader an error rather than quietly disappearing from the selector.
 
@@ -176,7 +203,7 @@ A key insight slide normally takes an image (`filename`), a grapher/explorer cha
 
 `asset` is mutually exclusive with `filename`, `url` and `narrativeChartName` — specify exactly one.
 
-The asset column holds one visual filling one slot, so it accepts `bespoke-component`, `chart`, `narrative-chart`, `image`, `static-viz`, `video` and `html`. Layout containers (`side-by-side`, `sticky-left`, `sticky-right`, …) are rejected with a parse error: their grid classes are written for the full 12-column page grid, and the asset column is 7 of those columns, so they would lay out wrong rather than fail. The list is `KEY_INSIGHT_ASSET_BLOCK_TYPES` in `db/model/Gdoc/rawToEnriched.ts`.
+The asset column holds one visual filling one slot, so it accepts `bespoke-component`, `chart`, `narrative-chart`, `image`, `static-viz`, `video` and `html`. Layout containers (`side-by-side`, `sticky-left`, `sticky-right`, …) are rejected with a parse error: their grid classes are written for the full 12-column page grid, and the asset column is 7 of those columns, so they would lay out wrong rather than fail. The list is `KEY_INSIGHT_ASSET_BLOCK_TYPES` in `packages/@ourworldindata/gdoc-pipeline/src/rawToEnriched.ts`.
 
 Two things to know when authoring one of these:
 
@@ -279,7 +306,7 @@ Any module-scoped state works — a plain variable, an event emitter, MobX — s
 
 ## Shared types
 
-The types for the module interface (`BespokeComponentModule`, `BespokeComponentMountFn`, `BespokeComponentVariantsList`) live in [bespoke/shared/bespokeComponentTypes.ts](shared/bespokeComponentTypes.ts). Projects import them via a TS path alias:
+The types for the module interface (`BespokeComponentModule`, `BespokeComponentMountFn`, `BespokeComponentVariantsList`, `BespokeConfigSpec`) live in [bespoke/shared/bespokeComponentTypes.ts](shared/bespokeComponentTypes.ts). Projects import them via a TS path alias:
 
 ```ts
 import type { BespokeComponentMountFn } from "owid-bespoke-types"
@@ -323,5 +350,6 @@ The dev server will inject this stylesheet into the demo page's `<head>` (outsid
 ## Creating a new bespoke component
 
 1. Copy `bespoke/projects/example/`, rename it, and run `yarn install` from `bespoke/`
-2. Register the bundle in [bespoke/shared/bespokeComponentRegistry.ts](./shared/bespokeComponentRegistry.ts)
-3. Add the `{.bespoke-component}` block in your Google Doc
+2. Define `VARIANTS` and `CONFIG_SPEC` in `src/index.tsx`
+3. Register the bundle in [bespoke/shared/bespokeComponentRegistry.ts](./shared/bespokeComponentRegistry.ts)
+4. Add the `{.bespoke-component}` block in your Google Doc

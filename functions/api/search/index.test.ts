@@ -10,6 +10,7 @@ vi.mock(import("./searchApi.js"), async (importOriginal) => {
         ...actual,
         searchCharts: vi.fn(),
         searchPages: vi.fn(),
+        searchTopicPages: vi.fn(),
     }
 })
 
@@ -220,6 +221,287 @@ describe("Search API endpoint", () => {
             assert(typeof body === "object" && body !== null && "error" in body)
             expect(body.error).toContain("bogus-type")
             expect(mockSearchPages).not.toHaveBeenCalled()
+        })
+    })
+
+    describe("unknown parameters", () => {
+        const chartsResponse = {
+            query: "deaths",
+            results: [],
+            nbHits: 0,
+            page: 0,
+            nbPages: 0,
+            hitsPerPage: 20,
+        }
+
+        it("ignores the search page's resultType, with a warning and a hint", async () => {
+            const mockSearchCharts = vi
+                .spyOn(searchApi, "searchCharts")
+                .mockResolvedValue(chartsResponse)
+
+            const request = new Request(
+                "http://localhost/api/search?q=deaths&resultType=writing"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(200)
+            expect(mockSearchCharts).toHaveBeenCalled()
+            const body = await response.json()
+            assert(
+                typeof body === "object" && body !== null && "warnings" in body
+            )
+            expect(body.warnings).toEqual([
+                expect.stringMatching(/"resultType".*type=pages/),
+            ])
+        })
+
+        it("names a misspelled parameter in a warning", async () => {
+            vi.spyOn(searchApi, "searchCharts").mockResolvedValue(
+                chartsResponse
+            )
+
+            const request = new Request(
+                "http://localhost/api/search?q=deaths&topic=Health"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(200)
+            const body = await response.json()
+            assert(
+                typeof body === "object" && body !== null && "warnings" in body
+            )
+            expect(body.warnings).toEqual([expect.stringContaining('"topic"')])
+        })
+
+        it("warns about a parameter the chosen type doesn't use, without validating it", async () => {
+            vi.spyOn(searchApi, "searchTopicPages").mockResolvedValue({
+                query: "gdp",
+                results: [],
+                nbHits: 0,
+                offset: 0,
+                length: 20,
+            })
+
+            const request = new Request(
+                "http://localhost/api/search?q=gdp&type=topics&pageTypes=bogus"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(200)
+            const body = await response.json()
+            assert(
+                typeof body === "object" && body !== null && "warnings" in body
+            )
+            expect(body.warnings).toEqual([
+                'Ignored parameter "pageTypes": it applies only to type=pages.',
+            ])
+        })
+
+        it("warns when type=pages is sent a filter only charts and topics read", async () => {
+            vi.spyOn(searchApi, "searchPages").mockResolvedValue({
+                query: "vaccines",
+                results: [],
+                nbHits: 0,
+                offset: 0,
+                length: 20,
+            })
+
+            const request = new Request(
+                "http://localhost/api/search?q=vaccines&type=pages&pageTypes=topic-page&topics=Health"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            const body = await response.json()
+            assert(
+                typeof body === "object" && body !== null && "warnings" in body
+            )
+            expect(body.warnings).toEqual([
+                'Ignored parameter "topics": it applies only to type=charts and type=topics.',
+            ])
+        })
+
+        it("treats a parameter named after an Object property as unknown", async () => {
+            vi.spyOn(searchApi, "searchCharts").mockResolvedValue(
+                chartsResponse
+            )
+
+            const request = new Request(
+                "http://localhost/api/search?q=deaths&toString=1&constructor=x"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(200)
+            const body = await response.json()
+            assert(
+                typeof body === "object" && body !== null && "warnings" in body
+            )
+            expect(body.warnings).toEqual([
+                expect.stringMatching(
+                    /^Ignored unknown parameter\(s\): "toString", "constructor"\. Valid parameters: [^.]+\.$/
+                ),
+            ])
+        })
+
+        it("warns that type=topics filters by country only with a query", async () => {
+            const topicsResponse = {
+                query: "",
+                results: [],
+                nbHits: 0,
+                offset: 0,
+                length: 20,
+            }
+            vi.spyOn(searchApi, "searchTopicPages").mockResolvedValue(
+                topicsResponse
+            )
+            const warningsFor = async (qs: string): Promise<unknown> => {
+                const response = await onRequestGet({
+                    request: new Request(`http://localhost/api/search?${qs}`),
+                    env: mockEnv,
+                } as any)
+                const body = await response.json()
+                assert(typeof body === "object" && body !== null)
+                return "warnings" in body ? body.warnings : undefined
+            }
+
+            expect(
+                await warningsFor(
+                    "type=topics&countries=France&requireAllCountries=true&topics=Health"
+                )
+            ).toEqual([
+                'Ignored parameter "countries": type=topics filters by country only when charts match a query.',
+                'Ignored parameter "requireAllCountries": type=topics filters by country only when charts match a query.',
+            ])
+            expect(
+                await warningsFor("type=topics&q=gdp&countries=France")
+            ).toBeUndefined()
+        })
+
+        it("doesn't warn about a parameter sent without a value", async () => {
+            vi.spyOn(searchApi, "searchPages").mockResolvedValue({
+                query: "gdp",
+                results: [],
+                nbHits: 0,
+                offset: 0,
+                length: 20,
+            })
+
+            const response = await onRequestGet({
+                request: new Request(
+                    "http://localhost/api/search?q=gdp&type=pages&topics=&countries="
+                ),
+                env: mockEnv,
+            } as any)
+
+            const body = await response.json()
+            assert(typeof body === "object" && body !== null)
+            expect(body).not.toHaveProperty("warnings")
+        })
+
+        it("accepts utm_* tags without a warning", async () => {
+            vi.spyOn(searchApi, "searchCharts").mockResolvedValue(
+                chartsResponse
+            )
+
+            const request = new Request(
+                "http://localhost/api/search?q=deaths&utm_source=owid-skills"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(200)
+            const body = await response.json()
+            assert(typeof body === "object" && body !== null)
+            expect(body).not.toHaveProperty("warnings")
+        })
+    })
+
+    describe("topic page recommendations", () => {
+        const tagGraph = { name: "tag-graph-root", children: [] }
+        const envWithAssets = {
+            ...mockEnv,
+            ASSETS: {
+                fetch: vi
+                    .fn()
+                    .mockResolvedValue(new Response(JSON.stringify(tagGraph))),
+            },
+        } as unknown as Env
+        const emptyPagesResponse = {
+            query: "gdp",
+            results: [],
+            nbHits: 0,
+            offset: 0,
+            length: 20,
+        }
+
+        it("answers type=topics from the matching charts, with the filters", async () => {
+            const mockSearchTopicPages = vi
+                .spyOn(searchApi, "searchTopicPages")
+                .mockResolvedValue(emptyPagesResponse)
+            const mockSearchPages = vi.spyOn(searchApi, "searchPages")
+
+            const request = new Request(
+                "http://localhost/api/search?q=gdp&type=topics&countries=France"
+            )
+            await onRequestGet({ request, env: envWithAssets } as any)
+
+            expect(mockSearchTopicPages).toHaveBeenCalledWith(
+                expect.anything(),
+                {
+                    query: "gdp",
+                    filters: [{ type: "country", name: "France" }],
+                    requireAllCountries: false,
+                },
+                expect.any(Function),
+                0,
+                20,
+                "http://localhost"
+            )
+            expect(mockSearchPages).not.toHaveBeenCalled()
+
+            const loadTagGraph = mockSearchTopicPages.mock.calls[0][2]
+            expect(await loadTagGraph()).toEqual(tagGraph)
+            expect(
+                (envWithAssets.ASSETS.fetch as any).mock.calls[0][0].toString()
+            ).toBe("http://localhost/topicTagGraph.json")
+        })
+
+        it("leaves type=pages a text search over exactly the requested page types", async () => {
+            const mockSearchTopicPages = vi.spyOn(searchApi, "searchTopicPages")
+            const mockSearchPages = vi
+                .spyOn(searchApi, "searchPages")
+                .mockResolvedValue(emptyPagesResponse)
+
+            const request = new Request(
+                "http://localhost/api/search?q=gdp&type=pages&pageTypes=topic-page"
+            )
+            await onRequestGet({ request, env: envWithAssets } as any)
+
+            expect(mockSearchPages).toHaveBeenCalledWith(
+                expect.anything(),
+                "gdp",
+                0,
+                20,
+                ["topic-page"],
+                "http://localhost"
+            )
+            expect(mockSearchTopicPages).not.toHaveBeenCalled()
         })
     })
 

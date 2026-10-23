@@ -36,11 +36,11 @@ import {
     CountryWithNoData,
     ExternalValueAnnotation,
     InternalValueAnnotation,
-    NoDataPattern,
     ProjectedDataPattern,
+    InapplicablePattern,
 } from "./MapComponents"
-import { InapplicablePattern } from "../chart/ChartUtils"
-import { Patterns } from "../core/GrapherConstants"
+import { NoDataPattern } from "../chart/ChartUtils"
+import { Patterns, makePatternId } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,
     getCountriesByRegion,
@@ -121,6 +121,10 @@ export class ChoroplethMap extends React.Component<{
             bounds.width / viewportWidth,
             bounds.height / viewportHeight
         )
+    }
+
+    @computed private get featurePatternScale(): number {
+        return (this.manager.patternScale ?? 1) / this.viewportScale
     }
 
     @computed private get viewportScaleSqrt(): number {
@@ -488,6 +492,16 @@ export class ChoroplethMap extends React.Component<{
 
         if (featuresWithNoData.length === 0) return
 
+        const { patternIdSuffix } = this.manager
+        const noDataPatternId = makePatternId(
+            Patterns.noDataPatternForMap,
+            patternIdSuffix
+        )
+        const inapplicablePatternId = makePatternId(
+            Patterns.inapplicablePatternForMap,
+            patternIdSuffix
+        )
+
         return (
             <g
                 id={makeFigmaId("countries-without-data")}
@@ -495,13 +509,16 @@ export class ChoroplethMap extends React.Component<{
             >
                 <defs>
                     <NoDataPattern
-                        patternId={Patterns.noDataPatternForMap}
-                        scale={1 / this.viewportScale} // The scale is crucial and projection specific
+                        patternId={noDataPatternId}
+                        scale={this.featurePatternScale}
                     />
-                    <InapplicablePattern
-                        patternId={Patterns.inapplicablePatternForMap}
-                        scale={1 / this.viewportScale}
-                    />
+                    {!!inapplicableEntityNamesSet?.size && (
+                        <InapplicablePattern
+                            patternId={inapplicablePatternId}
+                            color={this.manager.inapplicableColor}
+                            scale={this.featurePatternScale}
+                        />
+                    )}
                 </defs>
 
                 {featuresWithNoData.map((feature) => (
@@ -510,8 +527,8 @@ export class ChoroplethMap extends React.Component<{
                         feature={feature}
                         patternId={
                             inapplicableEntityNamesSet?.has(feature.id)
-                                ? Patterns.inapplicablePatternForMap
-                                : Patterns.noDataPatternForMap
+                                ? inapplicablePatternId
+                                : noDataPatternId
                         }
                         isSelected={this.manager.isSelected?.(feature.id)}
                         hover={this.manager.getHoverState?.(feature.id)}
@@ -534,17 +551,21 @@ export class ChoroplethMap extends React.Component<{
                     <defs>
                         {/* Pattern used by the map legend for the projected data bin */}
                         <ProjectedDataPattern
+                            idSuffix={this.manager.patternIdSuffix}
                             key={PROJECTED_DATA_LEGEND_COLOR}
                             color={PROJECTED_DATA_LEGEND_COLOR}
+                            scale={this.manager.patternScale}
                             forLegend
                         />
                         {/* Patterns used by the map legend. The map legend can't re-use
-                            the features' patterns defined below because those are scaled
-                            by the viewport. */}
+                            the features' patterns defined below because those also undo
+                            the map's viewport scale. */}
                         {this.binColors.map((color, index) => (
                             <ProjectedDataPattern
+                                idSuffix={this.manager.patternIdSuffix}
                                 key={`${color}-${index}`}
                                 color={color}
+                                scale={this.manager.patternScale}
                                 forLegend
                             />
                         ))}
@@ -552,9 +573,10 @@ export class ChoroplethMap extends React.Component<{
                         {/* Pattern used by features */}
                         {this.binColors.map((color, index) => (
                             <ProjectedDataPattern
+                                idSuffix={this.manager.patternIdSuffix}
                                 key={`${color}-${index}`}
                                 color={color}
-                                scale={1 / this.viewportScale}
+                                scale={this.featurePatternScale}
                             />
                         ))}
                     </defs>
@@ -565,6 +587,7 @@ export class ChoroplethMap extends React.Component<{
                     if (!series) return null
                     return (
                         <CountryWithData
+                            patternIdSuffix={this.manager.patternIdSuffix}
                             key={feature.id}
                             feature={feature}
                             series={series}

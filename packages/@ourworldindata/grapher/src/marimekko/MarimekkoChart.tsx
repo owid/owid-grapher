@@ -10,6 +10,7 @@ import {
     excludeUndefined,
     exposeInstanceOnWindow,
     getRelativeMouse,
+    guid,
     makeFigmaId,
     roundForSvg,
 } from "@ourworldindata/utils"
@@ -84,6 +85,8 @@ export class MarimekkoChart
     implements ChartInterface, AxisManager
 {
     base = React.createRef<SVGGElement>()
+
+    private readonly tooltipId = guid()
 
     constructor(props: MarimekkoChartProps) {
         super(props)
@@ -496,7 +499,7 @@ export class MarimekkoChart
                 {this.renderLabels()}
                 {target && (
                     <Tooltip
-                        id="marimekkoTooltip"
+                        id={this.tooltipId}
                         tooltipManager={this.manager}
                         x={position.x}
                         y={position.y}
@@ -565,6 +568,7 @@ export class MarimekkoChart
                 series={this.renderSeries}
                 noDataArea={this.noDataArea}
                 fontSize={this.fontSize}
+                patternIdSuffix={this.manager.patternIdSuffix}
                 onEntityClick={this.onEntityClick}
                 onEntityMouseLeave={this.dismissTooltip}
                 onEntityMouseOver={this.onEntityMouseOver}

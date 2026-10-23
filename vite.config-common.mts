@@ -1,7 +1,7 @@
 import { defineConfig, type PluginOption } from "vite"
 import pluginReact from "@vitejs/plugin-react"
 import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
-import { sentryVitePlugin } from "@sentry/vite-plugin"
+import { sentryVitePlugin } from "@sentry/bundler-plugins/vite"
 import {
     BUILD_TARGET,
     pluginSwcDecorators,
@@ -84,6 +84,11 @@ export const defineViteConfigForEntrypoint = (
                     authToken: process.env.SENTRY_AUTH_TOKEN,
                     org: process.env.SENTRY_ORG,
                     project: entrypoint === "admin" ? "admin" : "website",
+                    bundleSizeOptimizations: {
+                        // Remove the SDK's internal debug logging to reduce bundle size.
+                        // To troubleshoot Sentry with `debug: true`, disable this and rebuild.
+                        excludeDebugStatements: true,
+                    },
 
                     // When running inside Bundlemon, we want the output file size to be totally deterministic, and
                     // therefore don't want sentry to inject any release or _sentryDebugIdIdentifier information.

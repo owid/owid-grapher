@@ -64,6 +64,7 @@ export class StackedAreaChart
     extends React.Component<StackedAreaChartProps>
     implements ChartInterface, AxisManager
 {
+    private readonly tooltipId = guid()
     private readonly tooltipState = new TooltipState<{
         index: number // time-index into points array
         series?: SeriesName
@@ -98,10 +99,6 @@ export class StackedAreaChart
 
     @computed private get isStatic(): boolean {
         return this.manager.isStatic ?? false
-    }
-
-    @computed private get renderUid(): number {
-        return guid()
     }
 
     @computed get fontSize(): number {
@@ -442,10 +439,6 @@ export class StackedAreaChart
                 />
             </g>
         )
-    }
-
-    @computed private get tooltipId(): number {
-        return this.renderUid
     }
 
     @computed private get isTooltipActive(): boolean {

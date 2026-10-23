@@ -58,7 +58,7 @@ export function SimulationContent({
     shouldSyncEntityName = false,
 }: {
     data: CountryData
-    focusParameter?: ParameterKey
+    focusParameter: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: "percent" | "absolute"
     fertilityRateAssumptions?: Record<number, number>
@@ -74,7 +74,7 @@ export function SimulationContent({
 }) {
     const { urlSync } = useEmbedConfig()
 
-    const baselineTab: ParameterKey = focusParameter ?? "fertilityRate"
+    const baselineTab = focusParameter
     const baselineYear = END_YEAR
 
     const [year, setYear] = useState(urlYear ?? baselineYear)
@@ -129,10 +129,8 @@ export function SimulationContent({
 
     // Snap tab to a visible key when the country change hides the current one
     // (only netMigrationRate is conditionally hidden — for World).
-    useEffect(() => {
-        if (data.country === "World" && tab === "netMigrationRate")
-            setTab("fertilityRate")
-    }, [data.country, tab])
+    if (data.country === "World" && tab === "netMigrationRate")
+        setTab("fertilityRate")
 
     useEffect(() => {
         if (!urlSync || !scenarioParamsForUrl || !baselineScenarioParamsForUrl)
@@ -148,7 +146,7 @@ export function SimulationContent({
                 tab,
                 baselineTab,
                 year,
-                baselineYear,
+                baselineYear: END_YEAR,
             })
         }, 150)
 
@@ -163,7 +161,6 @@ export function SimulationContent({
         tab,
         baselineTab,
         year,
-        baselineYear,
     ])
 
     if (!simulation) return null

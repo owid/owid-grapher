@@ -78,6 +78,8 @@ export const WIKIPEDIA_ARCHIVE_BASE_URL: string | null =
 export const CLOUDFLARE_IMAGES_URL = clientSettings.CLOUDFLARE_IMAGES_URL
 
 export const VITE_PREVIEW: boolean = serverSettings.VITE_PREVIEW === "true"
+// Where the admin server looks for built Vite assets, relative to the repo root
+export const VITE_DIST_DIR: string = serverSettings.VITE_DIST_DIR || "dist"
 
 export const ADMIN_BASE_URL: string = clientSettings.ADMIN_BASE_URL
 
@@ -142,11 +144,20 @@ export const GDOCS_PRIVATE_KEY: string = (
     .replaceAll('"', "")
     .replaceAll("'", "")
 export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
-export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
-    serverSettings.GDOCS_BACKPORTING_TARGET_FOLDER ?? ""
 
 export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
     serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ?? ""
+
+// Chart preview images in gdocs are fetched by Google's servers, so these must
+// be publicly reachable. That's why they default to production in every
+// environment: local dev and staging thumbnail URLs aren't reachable by Google
+// (or, on staging, even by the server itself).
+export const GDOCS_CHART_PREVIEW_GRAPHER_URL: string =
+    serverSettings.GDOCS_CHART_PREVIEW_GRAPHER_URL ??
+    "https://ourworldindata.org/grapher"
+export const GDOCS_CHART_PREVIEW_EXPLORER_URL: string =
+    serverSettings.GDOCS_CHART_PREVIEW_EXPLORER_URL ??
+    "https://ourworldindata.org/explorers"
 
 // Load R2 credentials from rclone config
 let rcloneConfig: any = {}
@@ -204,13 +215,16 @@ export const BUILDKITE_BRANCH: string =
 export const BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL: string =
     serverSettings.BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL || "C06EWA0DK4H" // #content-updates
 
-export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
+export const ANTHROPIC_API_KEY: string = serverSettings.ANTHROPIC_API_KEY ?? ""
 
 export const SLACK_BOT_OAUTH_TOKEN: string =
     serverSettings.SLACK_BOT_OAUTH_TOKEN ?? ""
 
 export const SLACK_ALGOLIA_INDEXING_CHANNEL_ID: string =
     serverSettings.SLACK_ALGOLIA_INDEXING_CHANNEL_ID ?? ""
+
+export const SLACK_CONFIG_VALIDATION_CHANNEL_ID: string =
+    serverSettings.SLACK_CONFIG_VALIDATION_CHANNEL_ID ?? "C5JJW19PS" // #developers-errors-server
 
 export const LEGACY_WORDPRESS_IMAGE_URL: string =
     serverSettings.LEGACY_WORDPRESS_IMAGE_URL ??

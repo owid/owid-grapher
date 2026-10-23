@@ -87,7 +87,8 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         if (obj.globe?.rotation) {
             this.globe = {
                 ...this.globe,
-                rotation: R.reverse(obj.globe.rotation),
+                rotation:
+                    obj.globe.rotation.toReversed() as GlobeConfig["rotation"],
             }
         }
 
@@ -97,7 +98,7 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
     }
 
     toObject(): NoUndefinedValues<MapConfigInterface> {
-        const obj = objectWithPersistablesToObject(this) as MapConfigInterface
+        const obj: MapConfigInterface = objectWithPersistablesToObject(this)
         deleteRuntimeAndUnchangedProps(obj, new MapConfigDefaults())
 
         if (obj.time) obj.time = maxTimeToJSON(this.time)

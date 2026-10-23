@@ -52,7 +52,6 @@ import {
 } from "../mapCharts/MapChart"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
 import {
-    MAP_VIEWPORT_FACETED_WORLD,
     MAP_VIEWPORTS,
     MapChartManager,
     MapViewport,
@@ -160,10 +159,6 @@ export class FacetMap
 
     @computed private get mapViewport(): MapViewport {
         const { region } = this.mapConfig
-
-        // Use a custom viewport for the World map that zooms in a little bit to make best use of the space
-        if (region === MapRegionName.World) return MAP_VIEWPORT_FACETED_WORLD
-
         return MAP_VIEWPORTS[region]
     }
 
@@ -281,6 +276,8 @@ export class FacetMap
             projectionColumnInfoBySlug,
             isFaceted,
             yColumnSlug,
+            patternScale,
+            patternIdSuffix,
         } = manager
 
         return series.map((series, index) => {
@@ -308,6 +305,8 @@ export class FacetMap
                 mapViewport,
                 isFaceted,
                 yColumnSlug,
+                patternScale,
+                patternIdSuffix,
                 ...series.manager,
             }
 
@@ -528,7 +527,7 @@ export class FacetMap
         // It looks nicer to position the facet label closer to the actual map content
         // rather than at the very top
 
-        const mapAspectRatio = MAP_VIEWPORT_FACETED_WORLD.ratio
+        const mapAspectRatio = MAP_VIEWPORTS.World.ratio
 
         // Find the map's width and height
         const mapWidth = bounds.width

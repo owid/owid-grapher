@@ -341,8 +341,11 @@ function renderProperty(
     const childPath = isArray ? `${propertyPath}[]` : propertyPath
 
     const variants = isArray ? (shape.anyOf ?? shape.oneOf) : undefined
-    if (variants) {
-        lines.push(...renderVariants(variants, defs))
+    const objectVariants = variants?.filter(
+        (variant) => resolveRef(variant, defs).properties
+    )
+    if (objectVariants?.length) {
+        lines.push(...renderVariants(objectVariants, defs))
     } else {
         for (const [key, child] of Object.entries(shape.properties ?? {})) {
             lines.push(

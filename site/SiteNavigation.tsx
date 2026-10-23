@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback } from "react"
 import {
     faListUl,
     faBars,
@@ -43,7 +43,6 @@ export const SiteNavigation = ({
     isPreviewing?: boolean
 }) => {
     const [menu, setActiveMenu] = useState<Menu | null>(null)
-    const [query, setQuery] = useState<string>("")
     const { data: tagGraph } = useTopicTagGraph({
         isPreviewing: Boolean(isPreviewing),
     })
@@ -56,7 +55,6 @@ export const SiteNavigation = ({
     // Autocomplete and breaks it
     const closeOverlay = useCallback(() => {
         setActiveMenu(null)
-        setQuery("")
     }, [])
 
     // Same SiteSearchNavigation re-rendering case as above
@@ -94,13 +92,6 @@ export const SiteNavigation = ({
             setActiveMenu(root)
         }
     }
-
-    // Open overlay back when query entered after pressing "esc"
-    useEffect(() => {
-        if (query) {
-            setActiveMenu(Menu.Search)
-        }
-    }, [query])
 
     useTriggerOnEscape(closeOverlay, { active: menu !== null })
 

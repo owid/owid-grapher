@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { formatEntityNameForSentence } from "./entityNames.js"
+import {
+    formatEntityNameForSentence,
+    pickAvailableEntityName,
+} from "./entityNames.js"
 
 describe(formatEntityNameForSentence, () => {
     it.each([
@@ -23,5 +26,21 @@ describe(formatEntityNameForSentence, () => {
         ],
     ])("%s reads as %s when stripping (UN)", (name, expected) => {
         expect(formatEntityNameForSentence(name, ["UN"])).toEqual(expected)
+    })
+})
+
+describe(pickAvailableEntityName, () => {
+    const hasEntity = (name: string): boolean =>
+        ["France", "World"].includes(name)
+
+    it.each([
+        ["France", ["World"], "France"],
+        ["Fance", ["World"], "World"],
+        ["Fance", ["userLocation", "World"], "World"],
+        ["Fance", ["Germany", "United States"], "United States"],
+    ])("%s with fallbacks %j picks %s", (name, fallbacks, expected) => {
+        expect(pickAvailableEntityName(name, fallbacks, hasEntity)).toEqual(
+            expected
+        )
     })
 })

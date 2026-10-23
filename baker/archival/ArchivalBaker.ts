@@ -24,6 +24,7 @@ import path from "path"
 import * as db from "../../db/db.js"
 import { getAllImages } from "../../db/model/Image.js"
 import { getVariableData } from "../../db/model/Variable.js"
+import { parseAndMigrateChartConfig } from "../../db/model/ChartConfigs.js"
 import findProjectBaseDir from "../../settings/findBaseDir.mjs"
 import { bakeSingleGrapherPageForArchival } from "../GrapherBaker.js"
 import { bakeSingleMultiDimDataPageForArchival } from "../MultiDimBaker.js"
@@ -482,10 +483,10 @@ export const archiveVideos = async (
     videosByPostId: Record<string, string[]>,
     archiveDir: string
 ): Promise<Record<string, AssetMap>> => {
-    const uniqueVideos = _.uniq(Object.values(videosByPostId).flat())
-    if (uniqueVideos.length === 0) return {}
+    const uniqueVideos = new Set(Object.values(videosByPostId).flat())
+    if (uniqueVideos.size === 0) return {}
 
-    console.log("Videos to archive:", uniqueVideos.length)
+    console.log("Videos to archive:", uniqueVideos.size)
 
     const bakedFilesByVideoUrl: Record<string, string> = {}
     await pMap(
@@ -559,7 +560,7 @@ export const archiveNarrativeCharts = async (
             rows.map((row) => ({
                 id: row.id,
                 name: row.name,
-                config: JSON.parse(row.config) as GrapherInterface,
+                config: parseAndMigrateChartConfig(row.config),
             }))
         )
 

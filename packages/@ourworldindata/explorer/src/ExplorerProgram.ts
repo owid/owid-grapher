@@ -11,8 +11,8 @@ import {
     AxisMinMaxValueStr,
     GrapherChartType,
     DimensionProperty,
-    OwidChartDimensionInterface,
-    OwidChartDimensionInterfaceWithMandatorySlug,
+    SlugDimensionInterface,
+    IndicatorDimensionInterface,
 } from "@ourworldindata/types"
 import {
     CoreTable,
@@ -80,15 +80,13 @@ const ExplorerRootDef: CellDef = {
     grammar: ExplorerGrammar,
 }
 
-type ChartDimensionInterfaceBySlug = Omit<
-    OwidChartDimensionInterfaceWithMandatorySlug,
-    "variableId"
-> & { type: "slug" }
+type ChartDimensionInterfaceBySlug = SlugDimensionInterface & {
+    type: "slug"
+}
 
-type ChartDimensionInterfaceByVariableId = Omit<
-    OwidChartDimensionInterface,
-    "slug"
-> & { type: "variableId" }
+type ChartDimensionInterfaceByVariableId = IndicatorDimensionInterface & {
+    type: "variableId"
+}
 
 type ExplorerChartDimensionInterface =
     | ChartDimensionInterfaceBySlug
@@ -665,7 +663,9 @@ const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
                 row[field] !== ""
             ) {
                 row.display = row.display || {}
-                row.display[field] = row[field]
+                row.display[field] = cellDef.parse
+                    ? cellDef.parse(row[field])
+                    : row[field]
                 delete row[field]
             }
         }

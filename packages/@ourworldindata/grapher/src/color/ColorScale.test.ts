@@ -2,6 +2,7 @@ import { expect, it, describe } from "vitest"
 
 import { CoreTable, ErrorValueTypes } from "@ourworldindata/core-table"
 import { ColorScale } from "./ColorScale"
+import { ColorScaleConfig } from "./ColorScaleConfig"
 import { ColorScaleConfigInterface } from "@ourworldindata/types"
 
 const createColorScaleFromTable = (
@@ -109,5 +110,20 @@ describe(ColorScale, () => {
             "No data": "#fff",
         })
         expect(scale["defaultNoDataColor"]).toEqual("#fff")
+    })
+    describe("inapplicableColor", () => {
+        it("defaults to light gray", () => {
+            const scale = new ColorScale({ hasInapplicableBin: true })
+            expect(scale.inapplicableColor).toEqual("#ccc")
+        })
+        it("uses the custom category color", () => {
+            const scale = new ColorScale({
+                colorScaleConfig: new ColorScaleConfig({
+                    customCategoryColors: { "Not applicable": "#f4c9c9" },
+                }),
+                hasInapplicableBin: true,
+            })
+            expect(scale.inapplicableColor).toEqual("#f4c9c9")
+        })
     })
 })

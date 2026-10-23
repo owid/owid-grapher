@@ -19,7 +19,6 @@ export default function LinkedAuthor({
     role?: string
 }) {
     const author = useLinkedAuthor(name)
-    const displayRole = role ?? author.role
     const image =
         includeImage && author.featuredImage ? (
             <Image
@@ -43,7 +42,7 @@ export default function LinkedAuthor({
                 {image}
                 {author.name}
             </a>
-            {displayRole && ` (${displayRole})`}
+            {role && ` (${role})`}
         </span>
     )
 }

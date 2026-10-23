@@ -1,4 +1,8 @@
 import {
+    BespokeVizRegistry,
+    BespokeVizUsage,
+    BundleUsage,
+    BundleVariantUsage,
     ComponentInstance,
     ComponentInstancesResponse,
     ComponentRegistry,
@@ -21,22 +25,25 @@ import { getEntitiesForProfile } from "@ourworldindata/utils"
 import { profileEntitySlug } from "../../db/model/Gdoc/GdocProfile.js"
 import { convertHeadingTextToId } from "@ourworldindata/components"
 import * as db from "../../db/db.js"
-import { archieToEnriched } from "../../db/model/Gdoc/archieToEnriched.js"
-import { enrichedBlockToRawBlock } from "../../db/model/Gdoc/enrichedToRaw.js"
-import { enumerateGdocComponentsWithoutChildren } from "../../db/model/Gdoc/extractGdocComponentInfo.js"
+import {
+    archieToEnriched,
+    enrichedBlockToRawBlock,
+    enumerateGdocComponentsWithoutChildren,
+    OwidRawGdocBlockToArchieMLString,
+} from "@ourworldindata/gdoc-pipeline"
 import { resolveBlockAtPath } from "../gdocsReferencePreview.js"
 import {
     MinimalBlock,
     minimizeRaw,
     sanitizeLegacySpans,
 } from "../gdocsReferenceMinimal.js"
-import { OwidRawGdocBlockToArchieMLString } from "../../db/model/Gdoc/rawToArchie.js"
 import { intParam, stringParam } from "../queryParams.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 
 import componentsRegistry from "@ourworldindata/types/src/gdocTypes/components.registry.generated.json"
 import templatesRegistry from "@ourworldindata/types/src/gdocTypes/templates.registry.generated.json"
+import bespokeVizRegistry from "@ourworldindata/types/src/gdocTypes/bespoke-viz.registry.generated.json"
 
 /**
  * The live half of the admin writing reference: everything here is computed
@@ -369,8 +376,9 @@ function nearestHeadingAnchor(
     return undefined
 }
 
-// Load the enriched bodies of the given docs — only ever called for the
-// handful of docs whose instances a response actually shows.
+// Load the enriched bodies of the given docs — only ever called for the docs
+// whose instances a response actually shows (a page of instances, or every
+// doc using a bespoke viz bundle).
 async function loadBodies(
     trx: db.KnexReadonlyTransaction,
     gdocIds: string[]
@@ -727,4 +735,141 @@ export async function getTemplateExemplars(
     }
 
     return { templateId, exemplars, staleExemplars }
+}
+
+// -----------------------------------------------------------------------------
+// Bespoke viz usage
+// -----------------------------------------------------------------------------
+
+// The variant name a stored bespoke block carries; null when it has none
+// (or an empty one, which errors at mount).
+function storedVariant(config: StoredConfig): string | null {
+    const variant = config.variant
+    return typeof variant === "string" && variant !== "" ? variant : null
+}
+
+// The config keys a stored bespoke block sets, to any non-null value.
+function storedConfigKeys(config: StoredConfig): string[] {
+    const blockConfig = config.config
+    if (!blockConfig || typeof blockConfig !== "object") return []
+    return Object.entries(blockConfig)
+        .filter(([, value]) => value !== undefined && value !== null)
+        .map(([key]) => key)
+}
+
+// A published bespoke block with its parsed config
+type BespokeBlockRow = { row: InstanceRow; config: StoredConfig }
+
+/**
+ * Published usage of each registry bundle: uses, distinct docs, per-variant
+ * counts with every instance, and per-key config adoption. One scan over all
+ * published bespoke blocks (a few dozen), aggregated here.
+ *
+ * Variants and config keys the registry doesn't have are left out: the
+ * reference documents the bundle, it doesn't check published docs.
+ */
+export async function getBespokeVizUsage(
+    _req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+): Promise<BespokeVizUsage> {
+    const rows = await db.knexRaw<InstanceRow>(
+        trx,
+        `-- sql
+        SELECT
+            c.gdocId,
+            c.path,
+            c.config,
+            pg.slug,
+            pg.type AS docType,
+            pg.publishedAt,
+            pg.content->>'$.title' AS title
+        FROM posts_gdocs_components c
+        JOIN posts_gdocs pg ON pg.id = c.gdocId
+        WHERE pg.published = 1
+            AND pg.publishedAt <= NOW()
+            AND c.type = 'bespoke-component'
+        ORDER BY pg.publishedAt DESC, c.gdocId, c.path`
+    )
+
+    const bodies = await loadBodies(trx, [
+        ...new Set(rows.map((row) => row.gdocId)),
+    ])
+
+    // Rows grouped by bundle, then by variant (null = no variant). Rows come
+    // newest first, so each group's instances are too.
+    const byBundle = new Map<string, Map<string | null, BespokeBlockRow[]>>()
+    for (const row of rows) {
+        const config = parseConfig(row.config)
+        if (!config || typeof config.bundle !== "string") continue
+        const byVariant = byBundle.get(config.bundle) ?? new Map()
+        byBundle.set(config.bundle, byVariant)
+        const variant = storedVariant(config)
+        const group = byVariant.get(variant) ?? []
+        byVariant.set(variant, group)
+        group.push({ row, config })
+    }
+
+    const toBundleInstance = (
+        row: InstanceRow,
+        variant: string
+    ): ComponentInstance => {
+        const instance: ComponentInstance = {
+            gdocId: row.gdocId,
+            slug: row.slug,
+            title: row.title ?? row.slug,
+            docType: row.docType as OwidGdocType,
+            path: row.path,
+            publishedAt: toIsoOrNull(row.publishedAt),
+            variation: variant,
+        }
+        const body = bodies.get(row.gdocId)
+        if (body) {
+            instance.anchor = nearestHeadingAnchor(body, row.path)
+            // The copyable source of the use, from the real block in the
+            // doc. Left unset when the block can't be resolved.
+            const archie = minimalArchieFromEnriched(
+                resolveBlockAtPath({ body }, row.path)
+            )
+            if (archie !== undefined) instance.archie = archie
+        }
+        return instance
+    }
+
+    const bundles: BundleUsage[] = []
+    for (const bundle of (bespokeVizRegistry as BespokeVizRegistry).bundles) {
+        const byVariant = byBundle.get(bundle.id)
+        if (!byVariant) continue
+        // Registry variants with uses, in registry order
+        const variants: BundleVariantUsage[] = []
+        for (const { name } of bundle.variants) {
+            const group = byVariant.get(name)
+            if (!group) continue
+            variants.push({
+                variant: name,
+                uses: group.length,
+                docs: new Set(group.map(({ row }) => row.gdocId)).size,
+                instances: group.map(({ row }) => toBundleInstance(row, name)),
+            })
+        }
+
+        const all = [...byVariant.values()].flat()
+        const configNames = new Set(bundle.config.map((field) => field.name))
+        const configAdoption: Record<string, number> = {}
+        for (const { config } of all) {
+            for (const key of storedConfigKeys(config))
+                if (configNames.has(key))
+                    configAdoption[key] = (configAdoption[key] ?? 0) + 1
+        }
+
+        bundles.push({
+            bundle: bundle.id,
+            uses: all.length,
+            docs: new Set(all.map(({ row }) => row.gdocId)).size,
+            variants,
+            configAdoption,
+        })
+    }
+
+    return { bundles }
 }

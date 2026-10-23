@@ -1,0 +1,32 @@
+.related-topics {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+
+    p {
+        margin: 0;
+        white-space: nowrap;
+        color: $blue-60;
+    }
+
+    ul {
+        display: flex;
+        flex: auto;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    li {
+        display: contents;
+        list-style: none;
+
+        @include topic-chip;
+    }
+
+    @include sm-only {
+        padding-bottom: 16px;
+        border-bottom: solid $blue-20 1px;
+    }
+}

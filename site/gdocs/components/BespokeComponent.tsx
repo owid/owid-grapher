@@ -10,6 +10,7 @@ import { useIntersectionObserver } from "usehooks-ts"
 import Image from "./Image.js"
 import { useImage } from "../utils.js"
 import { BESPOKE_COMPONENT_REGISTRY } from "../../../bespoke/shared/bespokeComponentRegistry.js"
+import { isBespokeConfigError } from "../../../bespoke/shared/bespokeComponentTypes.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
 import { resolveBespokeComponentUrls } from "../../../bespoke/shared/bespokeComponentUrls.js"
 import {
@@ -45,7 +46,7 @@ export function BespokeComponent({
     const containerRef = useRef<HTMLDivElement>(null)
     const disposeRef = useRef<(() => void) | null>(null)
     const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+    const [loadError, setLoadError] = useState<string | null>(null)
 
     // Defer loading the component's JS until it approaches the viewport
     const { ref: intersectionRef, isIntersecting: hasBeenVisible } =
@@ -69,24 +70,27 @@ export function BespokeComponent({
         })
     }, [definition])
 
+    // Only surface config errors once the component approaches the viewport,
+    // like load errors, so the server-rendered markup stays the same
+    const configError = !hasBeenVisible
+        ? null
+        : !definition
+          ? `Unknown bespoke bundle: "${block.bundle}"`
+          : !urls
+            ? "This custom component cannot be displayed on this page."
+            : null
+    const error = configError ?? loadError
+
     useEffect(() => {
-        if (!hasBeenVisible) return
+        if (!hasBeenVisible || !definition || !urls) return
 
         const container = containerRef.current
         if (!container) return
 
-        if (!definition) {
-            setError(`Unknown bespoke bundle: "${block.bundle}"`)
-            return
-        }
-        if (!urls) {
-            setError("This custom component cannot be displayed on this page.")
-            return
-        }
-
         const abortController = new AbortController()
 
-        setError(null)
+        // Reset in case we're remounting after the bundle or config changed
+        setLoadError(null)
         setIsLoading(true)
 
         mountBespokeComponentInShadow({
@@ -107,8 +111,10 @@ export function BespokeComponent({
                 if (abortController.signal.aborted) return
                 const message =
                     err instanceof Error ? err.message : "Unknown error"
-                setError(
-                    `Failed to load bespoke bundle "${block.bundle}": ${message}`
+                setLoadError(
+                    isBespokeConfigError(err)
+                        ? `Invalid config for bespoke bundle "${block.bundle}": ${message}`
+                        : `Failed to load bespoke bundle "${block.bundle}": ${message}`
                 )
                 console.error(
                     `Failed to hydrate bespoke bundle "${block.bundle}":`,

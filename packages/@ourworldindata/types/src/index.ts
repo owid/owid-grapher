@@ -101,6 +101,7 @@ export {
     PeerCountryStrategy,
     type PeerCountryStrategyQueryParam,
     VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS,
+    isValidPeerCountryStrategyQueryParam,
     type RelatedQuestionsConfig,
     FacetStrategy,
     type SeriesColorMap,
@@ -109,6 +110,7 @@ export {
     MissingDataStrategy,
     SeriesStrategy,
     type GrapherInterface,
+    type SelectedEntityColors,
     grapherKeysToSerialize,
     type GrapherQueryParams,
     type LegacyGrapherInterface,
@@ -207,6 +209,15 @@ export {
     type GuideReference,
 } from "./gdocTypes/GuideReference.js"
 
+export type {
+    BespokeVizRegistry,
+    BundleReference,
+    BundleVariantReference,
+    BundleVariantSize,
+    BundleConfigField,
+    BundleConfigFieldType,
+} from "./gdocTypes/BespokeVizReference.js"
+
 export {
     COMPONENT_USAGE_LABELS,
     componentUsageLabel,
@@ -220,6 +231,9 @@ export {
     type SyntheticExampleInfo,
     type ExemplarOutline,
     type TemplateExemplarsResponse,
+    type BespokeVizUsage,
+    type BundleUsage,
+    type BundleVariantUsage,
 } from "./gdocTypes/GdocsReferenceApi.js"
 
 export {
@@ -267,6 +281,7 @@ export {
     type EnrichedFaq,
     type DetailDictionary,
     GdocsContentSource,
+    type LatestAnnouncement,
     type LatestDataInsight,
     type LinkedAuthor,
     type LinkedChart,
@@ -294,6 +309,13 @@ export {
     GDOC_TEMPLATE_CONTENT_INTERFACES,
     OWID_GDOC_ADMIN_MANAGED_KEYS,
 } from "./gdocTypes/Gdoc.js"
+
+export type {
+    GdocComponentPreviewStatus,
+    GdocComponentPreviewItem,
+    GdocComponentPreviewRefreshResult,
+    GdocComponentPreviewUpdateReason,
+} from "./gdocTypes/ComponentPreviews.js"
 
 export {
     type Distribution,
@@ -333,6 +355,8 @@ export {
     ALL_CHARTS_ID,
     LICENSE_ID,
     CITATION_ID,
+    PAST_VERSIONS_ID,
+    CREDITS_ID,
     ENDNOTES_ID,
     KEY_INSIGHTS_ID,
     RESEARCH_AND_WRITING_ID,
@@ -389,7 +413,9 @@ export {
     TIME_INTERVALS,
     type SubYearlyTimeInterval,
     type OwidChartDimensionInterface,
-    type OwidChartDimensionInterfaceWithMandatorySlug,
+    type IndicatorDimensionInterface,
+    type SlugDimensionInterface,
+    isIndicatorDimension,
 } from "./OwidVariableDisplayConfigInterface.js"
 
 export {
@@ -442,6 +468,10 @@ export {
     AnalyticsGrapherViewsTableName,
 } from "./dbTypes/AnalyticsGrapherViews.js"
 export {
+    type DbPlainAnalyticsPopularity,
+    AnalyticsPopularityTableName,
+} from "./dbTypes/AnalyticsPopularity.js"
+export {
     type DbInsertArchivedChartVersion,
     type DbPlainArchivedChartVersion,
     type DbEnrichedArchivedChartVersion,
@@ -469,8 +499,6 @@ export {
     type DbInsertChartConfig,
     type DbRawChartConfig,
     type DbEnrichedChartConfig,
-    parseChartConfig,
-    serializeChartConfig,
     ChartConfigsTableName,
 } from "./dbTypes/ChartConfigs.js"
 export {
@@ -483,8 +511,6 @@ export {
     type DbRawChartRevision,
     type DbEnrichedChartRevision,
     ChartRevisionsTableName,
-    parseChartRevisionsRow,
-    serializeChartRevisionsRow,
 } from "./dbTypes/ChartRevisions.js"
 export {
     type DbInsertChart,
@@ -596,6 +622,7 @@ export {
 } from "./dbTypes/FeaturedMetrics.js"
 export {
     type DbEnrichedMultiDimDataPage,
+    type DbEnrichedPublishedMultiDimDataPage,
     type DbInsertMultiDimDataPage,
     type DbPlainMultiDimDataPage,
     MultiDimDataPagesTableName,
@@ -816,6 +843,7 @@ export {
 } from "./dbTypes/MultiDimViewDimensions.js"
 
 export { type Nominal, wrap, unwrap } from "./NominalType.js"
+export type { LiteralsOnly } from "./LiteralsOnly.js"
 
 export {
     type DbRawLatestWork,

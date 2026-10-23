@@ -10,6 +10,7 @@ export const ProminentLink = (props: {
     title?: string
     description?: string
     thumbnail?: string
+    shouldRenderLinks?: boolean
 }) => {
     const { errorMessage: documentErrorMessage } = useLinkedDocument(props.url)
     const { errorMessage: linkedChartErrorMessage } = useLinkedChart(props.url)
@@ -45,6 +46,7 @@ export const ProminentLink = (props: {
                         type: "hybrid-link",
                     },
                 ]}
+                shouldRenderLinks={props.shouldRenderLinks}
             />
         </div>
     )

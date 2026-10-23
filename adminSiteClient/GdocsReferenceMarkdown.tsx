@@ -123,6 +123,7 @@ export function GdocsReferenceMarkdown({
     // children synchronously in document order, so a counter reset before
     // each render pass yields each fence's ordinal within this section.
     const fenceOrdinal = useRef(0)
+    // oxlint-disable-next-line react/refs -- see above
     fenceOrdinal.current = 0
 
     // The renderers below are created once and read the latest props from
@@ -136,6 +137,7 @@ export function GdocsReferenceMarkdown({
         previewPathForExample,
         titleFor,
     })
+    // oxlint-disable-next-line react/refs -- see above
     latest.current = { examples, section, previewPathForExample, titleFor }
 
     const markdownComponents: MarkdownComponents = useMemo(

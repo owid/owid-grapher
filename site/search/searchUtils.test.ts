@@ -768,6 +768,35 @@ describe("Fuzzy search in search autocomplete", () => {
     })
 })
 
+describe("autocomplete ignores parenthesised disambiguators", () => {
+    const regions = listedRegionsNames()
+    const suggestedCountries = (query: string): string[] =>
+        suggestFiltersFromQuerySuffix(
+            query,
+            regions,
+            [],
+            [],
+            new Map() as SynonymMap
+        )
+            .suggestions.filter((filter) => filter.type === FilterType.COUNTRY)
+            .map((filter) => filter.name)
+
+    it.each([
+        "country",
+        "co2 emissions by country",
+        "income by country",
+        "life expectancy by country",
+    ])("does not suggest a country for %s", (query) => {
+        expect(suggestedCountries(query)).toEqual([])
+    })
+
+    it("still matches the name outside the parentheses", () => {
+        expect(suggestedCountries("micronesia")).toContain(
+            "Micronesia (country)"
+        )
+    })
+})
+
 describe("offset pagination for useInfiniteSearchOffset hook", () => {
     it("computes offsets and lengths for first and later pages", () => {
         expect(getPaginationOffsetAndLength(0, 3, 6)).toEqual({

@@ -71,10 +71,7 @@ async function saveConfigToR2(
     filename: string,
     configMd5FromDb: Base64String
 ) {
-    if (
-        GRAPHER_CONFIG_R2_BUCKET === undefined ||
-        GRAPHER_CONFIG_R2_BUCKET_PATH === undefined
-    ) {
+    if (!GRAPHER_CONFIG_R2_BUCKET) {
         console.info("R2 bucket not configured, not storing config to R2")
         return
     }
@@ -96,10 +93,7 @@ export async function deleteGrapherConfigFromR2(
     directory: R2GrapherConfigDirectory,
     filename: string
 ) {
-    if (
-        GRAPHER_CONFIG_R2_BUCKET === undefined ||
-        GRAPHER_CONFIG_R2_BUCKET_PATH === undefined
-    ) {
+    if (!GRAPHER_CONFIG_R2_BUCKET) {
         console.info(
             "R2 bucket not configured, not deleting grapher config from R2"
         )

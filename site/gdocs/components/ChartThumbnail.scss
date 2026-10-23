@@ -6,7 +6,7 @@
     padding: 0;
     position: relative;
 
-    &:hover {
+    &:not(.chart-thumbnail--static):hover {
         .chart-thumbnail__overlay {
             opacity: 1;
         }
@@ -48,4 +48,9 @@
 
 a.chart-thumbnail {
     text-decoration: none;
+}
+
+// Not clickable on its own, e.g. inside a card that is itself a link
+.chart-thumbnail--static {
+    cursor: inherit;
 }
