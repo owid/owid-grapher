@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it, vi } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen, within } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import type { LiteClient } from "algoliasearch/lite"
 import {
@@ -33,7 +33,32 @@ vi.mock(import("./SearchChartHitComponent.js"), () => ({
     ),
 }))
 
-type FeaturedVizResponse = "migration-page" | "no-match" | "error"
+type FeaturedVizResponse =
+    | "migration-page"
+    | "bare-migration-page"
+    | "no-match"
+    | "error"
+
+/** A featured-viz hit with every field the card shows */
+const migrationPage = {
+    objectID: "migration-c0",
+    type: "featured-viz",
+    title: "Where do migrants live?",
+    slug: "migration",
+    thumbnailUrl: "https://ourworldindata.org/images/migration-thumbnail.png",
+    authors: ["Hannah Ritchie", "Sophia Mersmann", "Tuna Acisu"],
+    excerpt: "Where migrants were born, and where they live now.",
+}
+
+/** The same page as the indexer sends it when the Cloudflare image is
+ *  missing, with no authors or excerpt */
+const bareMigrationPage = {
+    objectID: "migration-c0",
+    type: "featured-viz",
+    title: "Where do migrants live?",
+    slug: "migration",
+    thumbnailUrl: "",
+}
 
 const chartHit = (slug: string): Record<string, unknown> => ({
     objectID: slug,
@@ -57,16 +82,10 @@ function makeClient(options: {
                 throw new Error("Algolia is down")
             const hits =
                 options.featuredViz === "migration-page"
-                    ? [
-                          {
-                              objectID: "migration-c0",
-                              type: "featured-viz",
-                              title: "Where do migrants live?",
-                              slug: "migration",
-                              thumbnailUrl: "",
-                          },
-                      ]
-                    : []
+                    ? [migrationPage]
+                    : options.featuredViz === "bare-migration-page"
+                      ? [bareMigrationPage]
+                      : []
             return { results: [{ hits, nbHits: hits.length }] }
         }
         const hits = options.chartHits
@@ -85,7 +104,10 @@ function renderDataResults(options: {
     filters?: Filter[]
     chartHits: Record<string, unknown>[]
     featuredViz: FeaturedVizResponse
-}): { requests: Record<string, unknown>[] } {
+}): {
+    requests: Record<string, unknown>[]
+    logSearchResultClick: ReturnType<typeof vi.fn>
+} {
     const { client, requests } = makeClient(options)
     const state: SearchState = {
         query: options.query,
@@ -98,10 +120,11 @@ function renderDataResults(options: {
     const queryClient = new QueryClient({
         defaultOptions: { queries: { retryDelay: 0 } },
     })
+    const logSearchResultClick = vi.fn()
     const context = {
         state,
         liteSearchClient: client,
-        analytics: { logSearchResultClick: vi.fn() },
+        analytics: { logSearchResultClick },
     } as unknown as React.ContextType<typeof SearchContext>
 
     render(
@@ -111,7 +134,7 @@ function renderDataResults(options: {
             </SearchContext.Provider>
         </QueryClientProvider>
     )
-    return { requests }
+    return { requests, logSearchResultClick }
 }
 
 const linkHrefs = (): (string | null)[] =>
@@ -136,12 +159,76 @@ describe(SearchDataResults, () => {
             "/grapher/migrant-stock",
             "/grapher/refugees",
         ])
-        expect(
-            screen.getByRole("link", { name: "Where do migrants live?" })
-        ).toBeTruthy()
     })
 
-    it("renders the section with the featured-viz link alone when no chart matched", async () => {
+    it("shows the featured viz as a card with its label, title, byline and excerpt", async () => {
+        renderDataResults({
+            query: "migration",
+            chartHits: [chartHit("migrant-stock")],
+            featuredViz: "migration-page",
+        })
+
+        await screen.findByText("(2 results)")
+        const card = screen.getAllByRole("link")[0]
+        expect(card.getAttribute("href")).toBe("/featured-viz/migration")
+        const inCard = within(card)
+        expect(inCard.getByText("Featured visualization")).toBeTruthy()
+        expect(
+            inCard.getByRole("heading", { name: "Where do migrants live?" })
+        ).toBeTruthy()
+        expect(
+            inCard.getByText(
+                "By Hannah Ritchie, Sophia Mersmann, and Tuna Acisu"
+            )
+        ).toBeTruthy()
+        expect(
+            inCard.getByText(
+                "Where migrants were born, and where they live now."
+            )
+        ).toBeTruthy()
+        expect(card.querySelector("img")?.getAttribute("src")).toBe(
+            "https://ourworldindata.org/images/migration-thumbnail.png"
+        )
+    })
+
+    it("falls back to the default image and hides the byline and excerpt when the hit lacks them", async () => {
+        renderDataResults({
+            query: "migration",
+            chartHits: [],
+            featuredViz: "bare-migration-page",
+        })
+
+        await screen.findByText("(1 result)")
+        const card = screen.getByRole("link")
+        expect(card.querySelector("img")?.getAttribute("src")).toMatch(
+            /\/default-featured-image\.png$/
+        )
+        expect(card.textContent).toBe(
+            "Featured visualizationWhere do migrants live?"
+        )
+    })
+
+    it("logs a click on the featured-viz card at position 1", async () => {
+        const { logSearchResultClick } = renderDataResults({
+            query: "migration",
+            chartHits: [chartHit("migrant-stock")],
+            featuredViz: "migration-page",
+        })
+
+        await screen.findByText("(2 results)")
+        fireEvent.click(screen.getAllByRole("link")[0])
+
+        expect(logSearchResultClick).toHaveBeenCalledOnce()
+        expect(logSearchResultClick).toHaveBeenCalledWith(
+            expect.objectContaining({
+                type: "featured-viz",
+                slug: "migration",
+            }),
+            { position: 1, source: "search" }
+        )
+    })
+
+    it("renders the section with the featured-viz card alone when no chart matched", async () => {
         renderDataResults({
             query: "migration",
             chartHits: [],
