@@ -216,7 +216,7 @@ Note that every slide of a key insights block is in the DOM from page load, not 
 
 A bespoke component can also be the subject of its own page, rather than one
 figure inside an article. Those are gdocs of type `featured-viz`, published at
-`/featured-viz/<slug>`, and they behave differently in three ways:
+`/<slug>`, and they behave differently in three ways:
 
 - **The first top-level `{.bespoke-component}` block is the featured viz.** It
   renders on a full-bleed blue band, at the width its `size` asks for. Later
