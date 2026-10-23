@@ -183,11 +183,13 @@ async function retrieveMultiDimConfigFromDbAndSaveToR2(
     const result = await knex<DbPlainMultiDimDataPage>(
         MultiDimDataPagesTableName
     )
-        .select("slug", "config", "configMd5")
+        .select("slug", "config", "configMd5", "published")
         .where({ id })
         .first()
-    const { slug, config: normalizedConfig, configMd5 } = result!
-    if (slug) {
+    const { slug, config: normalizedConfig, configMd5, published } = result!
+    // Like charts, only published multi-dims are stored by slug, since the
+    // site serves their config, data and images from there.
+    if (slug && published) {
         await saveMultiDimConfigToR2(normalizedConfig, slug, configMd5)
     }
 }
@@ -382,6 +384,14 @@ export async function setMultiDimPublished(
     await knex(MultiDimDataPagesTableName)
         .where({ id: multiDim.id })
         .update({ published })
+    if (published) {
+        await retrieveMultiDimConfigFromDbAndSaveToR2(knex, multiDim.id)
+    } else if (multiDim.slug) {
+        await deleteGrapherConfigFromR2(
+            R2GrapherConfigDirectory.multiDim,
+            `${multiDim.slug}.json`
+        )
+    }
     return { ...multiDim, published }
 }
 
