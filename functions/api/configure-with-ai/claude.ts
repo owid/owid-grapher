@@ -75,6 +75,7 @@ export async function callClaude(
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
     }
+    const toolDefinitions = tools.map(({ run: _run, ...tool }) => tool)
     for (let round = 0; ; round++) {
         const body = await postMessages(apiKey, useFallbacks, {
             model,
@@ -83,7 +84,7 @@ export async function callClaude(
             ...(useFallbacks ? { fallbacks: "default" } : {}),
             ...(tools.length
                 ? {
-                      tools: tools.map(({ run: _run, ...tool }) => tool),
+                      tools: toolDefinitions,
                       // The last round has to answer rather than search again
                       ...(round >= MAX_TOOL_ROUNDS
                           ? { tool_choice: { type: "none" } }
@@ -108,19 +109,16 @@ export async function callClaude(
         const results = await Promise.all(
             calls.map(async (call) => {
                 const tool = tools.find((t) => t.name === call.name)
-                let content: string
-                let isError = false
-                try {
-                    content = JSON.stringify(
-                        tool
-                            ? await tool.run(call.input)
-                            : { error: `No tool ${call.name}` }
-                    )
-                } catch (error) {
-                    console.error(error)
-                    content = "The search failed."
-                    isError = true
-                }
+                let content = `There is no tool named ${call.name}.`
+                let isError = !tool
+                if (tool)
+                    try {
+                        content = JSON.stringify(await tool.run(call.input))
+                    } catch (error) {
+                        console.error(error)
+                        content = "The tool failed."
+                        isError = true
+                    }
                 return {
                     type: "tool_result",
                     tool_use_id: call.id,

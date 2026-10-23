@@ -503,7 +503,7 @@ export function resolveEntity(
     )?.name
 }
 
-const TIME_PATTERN =
+export const TIME_PATTERN =
     /^(-?\d{1,4}|earliest|latest)(\.\.(-?\d{1,4}|earliest|latest))?$/
 
 /** Checks the model's reply against what this chart allows; anything else is dropped */

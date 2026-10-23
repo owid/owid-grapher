@@ -15,7 +15,7 @@ import {
     searchCharts,
     searchPages,
 } from "../search/searchApi.js"
-import { MAX_PAGES, SanitizedReply } from "./viewfinder.js"
+import { MAX_PAGES, SanitizedReply, TIME_PATTERN } from "./viewfinder.js"
 
 export type SitePageKind = "chart" | "explorer" | "article" | "topic"
 
@@ -212,9 +212,6 @@ function matchEntity(name: string, entities: string[]): string | undefined {
     return entities.find((e) => e.toLowerCase() === low)
 }
 
-const TIME_PATTERN =
-    /^(-?\d{1,4}|earliest|latest)(\.\.(-?\d{1,4}|earliest|latest))?$/
-
 /** A chart's URL with the tab, countries and time a suggestion asks for */
 export function configuredUrl(
     url: string,
@@ -240,6 +237,7 @@ export function sanitizePages(
     const items = Array.isArray(raw) ? raw.slice(0, MAX_PAGES) : []
     const pages: SitePageSuggestion[] = []
     const dropped: string[] = []
+    const used = new Set<string>()
     for (const item of items) {
         const s = (item && typeof item === "object" ? item : {}) as Record<
             string,
@@ -250,8 +248,10 @@ export function sanitizePages(
             dropped.push(`page id ${JSON.stringify(s.id)}`)
             continue
         }
-        if (pages.some((p) => p.url.split("?")[0] === hit.url.split("?")[0]))
-            continue
+        // Each result once; different views of one explorer or MDim page
+        // are different results
+        if (used.has(String(s.id))) continue
+        used.add(String(s.id))
         const isData = hit.kind === "chart" || hit.kind === "explorer"
         const tab =
             isData && typeof s.tab === "string" && hit.tabs.includes(s.tab)
