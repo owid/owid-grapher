@@ -2110,10 +2110,10 @@ __metadata:
   dependencies:
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
+    "@types/d3-dsv": "npm:^3.0.7"
     "@types/lodash-es": "npm:^4.17.12"
-    "@types/papaparse": "npm:^5.5.2"
+    d3-dsv: "npm:^3.0.1"
     lodash-es: "npm:^4.18.1"
-    papaparse: "npm:^5.5.3"
     remeda: "npm:^2.52.0"
     vitest: "npm:^5.0.5"
   languageName: unknown
@@ -4848,7 +4848,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/d3-dsv@npm:*":
+"@types/d3-dsv@npm:*, @types/d3-dsv@npm:^3.0.7":
   version: 3.0.7
   resolution: "@types/d3-dsv@npm:3.0.7"
   checksum: 10/8507f542135cae472781dff1c3b391eceedad0f2032d24ac4a0814e72e2f6877e4ddcb66f44627069977ee61029dc0a729edf659ed73cbf1040f55a7451f05ef
@@ -5276,15 +5276,6 @@ __metadata:
   dependencies:
     undici-types: "npm:~7.16.0"
   checksum: 10/4e5ce6faaf0e6f291114d6ac14fe546d491812b306107620802d5bef00ca36fb290637e79ec4fc24f33214f78f58c9b63254bd0ce94788bebfec03f26d45f2ea
-  languageName: node
-  linkType: hard
-
-"@types/papaparse@npm:^5.5.2":
-  version: 5.5.2
-  resolution: "@types/papaparse@npm:5.5.2"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10/35c38d8c789a0512465665fa6472e8eda7a20413227aafc25b55955a0ced8a061dfbeb0c75658393ebe61670cb95064cc3753ce1a0bac93a12c53ff569d15170
   languageName: node
   linkType: hard
 
@@ -7256,7 +7247,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-dsv@npm:1 - 3, d3-dsv@npm:3":
+"d3-dsv@npm:1 - 3, d3-dsv@npm:3, d3-dsv@npm:^3.0.1":
   version: 3.0.1
   resolution: "d3-dsv@npm:3.0.1"
   dependencies:
@@ -8803,6 +8794,7 @@ __metadata:
     "@tsconfig/node24": "npm:^24.0.0"
     "@types/cookie-parser": "npm:^1.4.10"
     "@types/d3": "npm:^7.4.3"
+    "@types/d3-dsv": "npm:^3.0.7"
     "@types/express": "npm:^5.0.6"
     "@types/fs-extra": "npm:^11.0.4"
     "@types/geojson": "npm:^7946.0.16"
@@ -8815,7 +8807,6 @@ __metadata:
     "@types/mousetrap": "npm:^1.6.15"
     "@types/multer": "npm:^2.1.0"
     "@types/node": "npm:^24.12.4"
-    "@types/papaparse": "npm:^5.5.2"
     "@types/polylabel": "npm:^2.0.0"
     "@types/progress": "npm:^2.0.7"
     "@types/react": "npm:^19.3.0"
@@ -8841,6 +8832,7 @@ __metadata:
     cookie-parser: "npm:^1.4.7"
     core-js: "npm:^3.49.0"
     d3: "npm:^7.9.0"
+    d3-dsv: "npm:^3.0.1"
     dayjs: "npm:^1.11.23"
     dotenv: "npm:^18.0.8"
     entities: "npm:^8.0.0"
@@ -8878,7 +8870,6 @@ __metadata:
     oxlint: "npm:^1.86.0"
     oxlint-tsgolint: "npm:^7.0.2003"
     p-map: "npm:^7.0.3"
-    papaparse: "npm:^5.5.3"
     polylabel: "npm:^2.1.0"
     progress: "npm:^2.0.3"
     publint: "npm:^0.3.23"
@@ -11411,13 +11402,6 @@ __metadata:
   version: 1.8.0
   resolution: "package-manager-detector@npm:1.8.0"
   checksum: 10/5d79b8bf3d0d3da312ec08749c74a3b7e4d4139c259fe3561538772c65ece8ff733e002c67a4324b5c505d2ac625c121b94cf3d5135e1b4e43fed5bced148763
-  languageName: node
-  linkType: hard
-
-"papaparse@npm:^5.5.3":
-  version: 5.5.3
-  resolution: "papaparse@npm:5.5.3"
-  checksum: 10/383e38f8ff910be48b684e7f47b84dbe5e67708669c13bb21f316a0591ef183ff670dfc7eb9f6d0a8b67e21a5b0e8934712cda96ff8fb678d6591e597d108bd1
   languageName: node
   linkType: hard
 
