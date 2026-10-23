@@ -63,6 +63,7 @@ import {
     toRenderLineChartSeries,
 } from "./LineChartHelpers"
 import { LineChartActiveTimeMarkers } from "./LineChartActiveTimeMarkers"
+import { LineChartAnnotationMarkers } from "./LineChartAnnotationMarkers"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
 import { Lines } from "./Lines"
 import { LineChartState } from "./LineChartState.js"
@@ -208,6 +209,10 @@ export class LineChart
 
     @computed private get activeTimeCircleRadius(): number {
         return this.lineStrokeWidth / 2 + 3.5
+    }
+
+    @computed private get annotationMarkerRadius(): number {
+        return 2 * this.activeTimeCircleRadius
     }
 
     @computed private get isTooltipActive(): boolean {
@@ -465,6 +470,13 @@ export class LineChart
                         dualAxis={this.dualAxis}
                         chartState={this.chartState}
                         dotRadius={this.activeTimeCircleRadius}
+                    />
+                )}
+                {this.isTooltipActive && (
+                    <LineChartAnnotationMarkers
+                        renderSeries={this.renderSeries}
+                        times={this.activeTimes}
+                        radius={this.annotationMarkerRadius}
                     />
                 )}
                 <LineChartTooltip
