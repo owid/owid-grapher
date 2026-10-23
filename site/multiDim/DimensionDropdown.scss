@@ -76,15 +76,9 @@ $selected-hover-fill: #bed2e7;
     }
 }
 
-.md-menu {
-    width: 400px;
-    background: white;
-    // No horizontal padding: menu items are full-bleed, so the hover and
-    // selection fills span the menu's full width.
-    padding: 16px 0 8px;
-    border-radius: 4px;
-    box-shadow: 0px 4px 23px 4px #0000000f;
-    z-index: $zindex-controls-popup;
+// The element of the menu that scrolls: the whole menu, or just the list of
+// options in a searchable menu.
+@mixin md-menu-scroll-area {
     overflow-y: auto;
     scrollbar-gutter: stable;
     overscroll-behavior: contain;
@@ -105,6 +99,18 @@ $selected-hover-fill: #bed2e7;
         border-radius: 11px;
         border: 3px solid transparent;
     }
+}
+
+.md-menu {
+    width: 400px;
+    background: white;
+    // No horizontal padding: menu items are full-bleed, so the hover and
+    // selection fills span the menu's full width.
+    padding: 16px 0 8px;
+    border-radius: 4px;
+    box-shadow: 0px 4px 23px 4px #0000000f;
+    z-index: $zindex-controls-popup;
+    @include md-menu-scroll-area;
 
     .md-menu__overlay-header {
         padding: 0 16px;
@@ -123,6 +129,83 @@ $selected-hover-fill: #bed2e7;
         line-height: normal;
         margin-top: 0;
         margin-bottom: 4px;
+    }
+
+    // The searchable menu shows the search field instead of the header with
+    // the dimension name and description. Only the options scroll, below the
+    // search field, so it stays in view.
+    &.md-menu--searchable {
+        display: flex;
+        flex-direction: column;
+        padding-top: 4px;
+        overflow: hidden;
+        // The list reserves its own scrollbar gutter.
+        scrollbar-gutter: auto;
+
+        .md-menu__search {
+            flex-shrink: 0;
+        }
+
+        .md-menu__list {
+            flex: 1;
+            min-height: 0;
+            @include md-menu-scroll-area;
+        }
+    }
+
+    .md-menu__search {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 32px;
+        margin: 0 4px 4px;
+        padding: 0 8px;
+        border: 1px solid $gray-20;
+        border-radius: 4px;
+
+        &:focus-within {
+            border-color: $gray-30;
+        }
+    }
+
+    .md-menu__search-icon {
+        flex-shrink: 0;
+        font-size: 16px;
+        color: $gray-70;
+    }
+
+    .md-menu__search-input {
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+        padding: 0;
+        color: $gray-80;
+        background: none;
+        border: none;
+        font: 400 14px/1 $lato;
+
+        @include sm-only {
+            font-size: 16px; // Prevents auto-zoom in iOS Safari.
+        }
+
+        &:focus-visible {
+            // Override global focus-visible style.
+            outline: none !important;
+        }
+
+        &::placeholder {
+            color: $gray-70;
+        }
+
+        // Hide webkit's built-in clear button on search inputs.
+        &::-webkit-search-cancel-button {
+            display: none;
+        }
+    }
+
+    .md-menu__empty {
+        padding: 8px 16px;
+        color: $gray-70;
     }
 
     .md-menu__group {
