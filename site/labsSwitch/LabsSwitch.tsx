@@ -1,11 +1,6 @@
 import { type SyntheticEvent } from "react"
-import { createRoot } from "react-dom/client"
-import { get as getCookie } from "es-cookie"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faFlask } from "@fortawesome/free-solid-svg-icons"
-import { CookieKey } from "@ourworldindata/grapher"
-import { isInIFrame } from "@ourworldindata/utils"
-import { ENV } from "../../settings/clientSettings.mjs"
 
 // Labs is a staff-only copy of the site with experimental features switched
 // on, reachable over Tailscale only (`labs` branch, see infra/labs/ in
@@ -13,21 +8,12 @@ import { ENV } from "../../settings/clientSettings.mjs"
 // the Labs bar there takes them back.
 const LABS_URL = "http://labs.owid.io"
 
-function hasAdminCookie(): boolean {
-    try {
-        return !!getCookie(CookieKey.isAdmin)
-    } catch {
-        // Cookie access can be restricted by iframe sandboxing
-        return false
-    }
-}
-
 function labsUrlForCurrentPage(): string {
     const { pathname, search, hash } = window.location
     return `${LABS_URL}${pathname}${search}${hash}`
 }
 
-function LabsSwitch() {
+export function LabsSwitch() {
     // Charts keep their state in the URL, so take the address when it's used
     const pointAtCurrentPage = (
         event: SyntheticEvent<HTMLAnchorElement>
@@ -53,15 +39,4 @@ function LabsSwitch() {
             </span>
         </a>
     )
-}
-
-export function runLabsSwitch(): void {
-    // Production only, and only for staff: the isAdmin cookie is set when
-    // someone uses the admin. Labs has its own bar, and embedded charts load
-    // this bundle too.
-    if (ENV !== "production" || isInIFrame() || !hasAdminCookie()) return
-
-    const container = document.createElement("div")
-    document.body.appendChild(container)
-    createRoot(container).render(<LabsSwitch />)
 }
