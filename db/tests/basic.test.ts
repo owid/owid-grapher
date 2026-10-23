@@ -124,7 +124,7 @@ test("knex interface", async () => {
             expect(userId).toBeGreaterThan(0)
 
             // Use the update helper method
-            await updateUser(trx, userId, { isSuperuser: 1 })
+            await updateUser(trx, userId, { isSuperuser: true })
 
             // Check results after update and insert
             const afterUpdate = await trx

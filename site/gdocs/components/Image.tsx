@@ -178,7 +178,7 @@ export default function Image(props: {
         return null
     }
 
-    const alt = props.alt ?? activeImage.defaultAlt
+    const alt = props.alt ?? activeImage.defaultAlt ?? undefined
 
     const imageSrc = makeSrc(activeImage, assetMap)
     const sourceProps = generateSourceProps(
