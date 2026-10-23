@@ -51,7 +51,7 @@ export default function MultiDimEmbedSettingsPanel({
         const containerPadding = 32 // 16px on each side
         const buffer = 5 // For some reason the numbers don't add up precisely
         const availableWidth = containerWidth - containerPadding - buffer
-        const gap = 8 // Gap between dropdowns (and also toggle button) as defined in CSS
+        const gap = 16 // Gap between dropdowns (and also toggle button) as defined in CSS
         const toggleButtonWidth = 90
 
         const dropdowns = Array.from(
@@ -106,9 +106,6 @@ export default function MultiDimEmbedSettingsPanel({
 
     return (
         <div className={cx("md-embed-settings", className)} ref={containerRef}>
-            <div className="h6-black-caps md-embed-settings__header">
-                Configure the data
-            </div>
             <MultiDimControls
                 ref={dropdownsRef}
                 dimensions={dimensions}
