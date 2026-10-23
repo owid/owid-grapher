@@ -2,9 +2,13 @@ import { describe, it, expect } from "vitest"
 import { getAdminTestEnv } from "./testEnv.js"
 import {
     ChartConfigsTableName,
+    ChartsTableName,
+    ContentGraphLinkType,
     GrapherInterface,
     MultiDimXChartConfigsTableName,
     NarrativeChartsTableName,
+    PostsGdocsLinksTableName,
+    PostsGdocsTableName,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import {
@@ -311,5 +315,65 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
         expect(await env.getCount(NarrativeChartsTableName)).toBe(0)
         // Only the parent chart's two config rows are left
         expect(await env.getCount(ChartConfigsTableName)).toBe(2)
+    })
+
+    describe("deleting the parent chart", () => {
+        // A gdoc that embeds the narrative chart, as recorded at gdoc save time
+        async function seedGdocEmbeddingNarrativeChart(
+            published: boolean
+        ): Promise<void> {
+            const id = "gdoc-embedding-narrative-chart"
+            await env.testKnex(PostsGdocsTableName).insert({
+                id,
+                slug: "article-with-narrative-chart",
+                content: JSON.stringify({ title: "Article", type: "article" }),
+                published: published ? 1 : 0,
+                publishedAt: published ? new Date("2026-01-01") : null,
+                createdAt: new Date("2026-01-01"),
+            })
+            await env.testKnex(PostsGdocsLinksTableName).insert({
+                sourceId: id,
+                target: "test-narrative-chart",
+                linkType: ContentGraphLinkType.NarrativeChart,
+                componentType: "narrative-chart",
+                text: "",
+                queryString: "",
+                hash: "",
+            })
+        }
+
+        it("deletes narrative charts only used in unpublished content along with it", async () => {
+            const { chartId } = await createParentChart()
+            await createNarrativeChart(chartId)
+            await seedGdocEmbeddingNarrativeChart(false)
+
+            await env.request({
+                method: "DELETE",
+                path: `/charts/${chartId}`,
+            })
+
+            expect(await env.getCount(ChartsTableName)).toBe(0)
+            expect(await env.getCount(NarrativeChartsTableName)).toBe(0)
+            expect(await env.getCount(ChartConfigsTableName)).toBe(0)
+        })
+
+        it("deletes nothing when a narrative chart is used in published content", async () => {
+            const { chartId } = await createParentChart()
+            await createNarrativeChart(chartId)
+            await seedGdocEmbeddingNarrativeChart(true)
+
+            const response = await env.request({
+                method: "DELETE",
+                path: `/charts/${chartId}`,
+                expectStatus: 400,
+            })
+
+            expect(response.error.message).toContain(
+                "article-with-narrative-chart"
+            )
+            expect(await env.getCount(ChartsTableName)).toBe(1)
+            expect(await env.getCount(NarrativeChartsTableName)).toBe(1)
+            expect(await env.getCount(ChartConfigsTableName)).toBe(4)
+        })
     })
 })

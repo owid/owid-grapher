@@ -14,6 +14,8 @@ import {
     StaticVizTableName,
     DbPlainAnalyticsGrapherView,
     AnalyticsGrapherViewWithRank,
+    DbPlainNarrativeChart,
+    NarrativeChartsTableName,
 } from "@ourworldindata/types"
 import {
     diffGrapherConfigs,
@@ -65,6 +67,7 @@ import { deleteGrapherConfigFromR2 } from "../../serverUtils/r2/chartConfigR2Hel
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
+import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { getChartsRecords } from "../../baker/algolia/utils/charts.js"
 
 import { Request } from "../authentication.js"
@@ -1557,6 +1560,47 @@ export async function deleteChartsChartIdEtlConfig(
     return { success: true, patch: newPatch }
 }
 
+/**
+ * Deletes all narrative charts derived from the given chart, together with
+ * their configs. Refuses (deleting nothing) if any of them is used in
+ * published content, since deleting it would break that content.
+ */
+async function deleteUnpublishedNarrativeChartsOfChart(
+    trx: db.KnexReadWriteTransaction,
+    chartId: number
+): Promise<void> {
+    const narrativeCharts = await trx<DbPlainNarrativeChart>(
+        NarrativeChartsTableName
+    )
+        .select("id", "name", "chartConfigId", "patchConfigId")
+        .where({ parentChartId: chartId })
+
+    const publishedReferences = await getPublishedLinksTo(
+        trx,
+        narrativeCharts.map((nc) => nc.name),
+        ContentGraphLinkType.NarrativeChart
+    )
+    if (publishedReferences.length) {
+        const descriptions = Object.entries(
+            _.groupBy(publishedReferences, (ref) => ref.target)
+        ).map(
+            ([name, refs]) =>
+                `"${name}" (used in ${_.uniq(refs.map((r) => r.slug)).join(", ")})`
+        )
+        throw new JsonError(
+            `Cannot delete chart because some of its narrative charts are used in published content: ${descriptions.join("; ")}`
+        )
+    }
+
+    for (const { id, chartConfigId, patchConfigId } of narrativeCharts) {
+        await trx(NarrativeChartsTableName).where({ id }).delete()
+        await deleteChartConfigPairFromDbAndR2(trx, {
+            configId: chartConfigId,
+            patchConfigId,
+        })
+    }
+}
+
 export async function deleteChart(
     req: Request,
     res: HandlerResponse,
@@ -1564,14 +1608,18 @@ export async function deleteChart(
 ) {
     const chart = await expectChartById(trx, req.params.chartId)
     if (chart.id) {
-        const references = await getReferencesByChartId(chart.id, trx).then(
-            (references) => Object.values(references).flat()
-        )
-        if (references.length) {
+        const { narrativeCharts = [], ...otherReferences } =
+            await getReferencesByChartId(chart.id, trx)
+        const inUse = Object.entries(otherReferences)
+            .filter(([, refs]) => refs.length > 0)
+            .map(([kind, refs]) => `${kind} (${refs.length})`)
+        if (inUse.length) {
             throw new JsonError(
-                `Cannot delete chart in-use in the following places:` +
-                    references.join(", ")
+                `Cannot delete chart in-use in the following places: ${inUse.join(", ")}`
             )
+        }
+        if (narrativeCharts.length) {
+            await deleteUnpublishedNarrativeChartsOfChart(trx, chart.id)
         }
     }
 
