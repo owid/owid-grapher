@@ -518,7 +518,7 @@ async function getExistingRecordsForPath(
  *   same slug while resolving to different pages (e.g. a data insight and an article) - see #6591.
  */
 export async function indexIndividualGdoc(
-    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
+    gdoc: IndexableInPagesGdoc,
     knex: db.KnexReadonlyTransaction,
     indexedSlug: string
 ) {
@@ -614,7 +614,7 @@ export async function indexIndividualGdoc(
  * Get Algolia records for a single gdoc
  */
 export async function getIndividualGdocRecords(
-    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
+    gdoc: IndexableInPagesGdoc,
     knex: db.KnexReadonlyTransaction,
     indexedSlug?: string
 ) {
