@@ -14,6 +14,8 @@ import {
     StaticVizTableName,
     DbPlainAnalyticsGrapherView,
     AnalyticsGrapherViewWithRank,
+    DbPlainNarrativeChart,
+    NarrativeChartsTableName,
 } from "@ourworldindata/types"
 import {
     diffGrapherConfigs,
@@ -65,6 +67,8 @@ import { deleteGrapherConfigFromR2 } from "../../serverUtils/r2/chartConfigR2Hel
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
+import { getPublishedSlugsByNarrativeChartName } from "../../db/model/NarrativeChart.js"
+import { deleteNarrativeCharts } from "./narrativeCharts.js"
 import { getChartsRecords } from "../../baker/algolia/utils/charts.js"
 
 import { Request } from "../authentication.js"
@@ -95,15 +99,27 @@ export const getReferencesByChartId = async (
             chartId = ?`,
         [chartId]
     )
-    const narrativeChartsPromise = db.knexRaw<NarrativeChartMinimalInformation>(
-        knex,
-        `-- sql
-        SELECT nc.id, nc.name, cc.config ->> "$.title" AS title
-        FROM narrative_charts nc
-        JOIN chart_configs cc ON cc.id = nc.chartConfigId
-        WHERE nc.parentChartId = ?`,
-        [chartId]
-    )
+    const narrativeChartsPromise = db
+        .knexRaw<Omit<NarrativeChartMinimalInformation, "publishedIn">>(
+            knex,
+            `-- sql
+            SELECT nc.id, nc.name, cc.config ->> "$.title" AS title
+            FROM narrative_charts nc
+            JOIN chart_configs cc ON cc.id = nc.chartConfigId
+            WHERE nc.parentChartId = ?`,
+            [chartId]
+        )
+        .then(async (rows) => {
+            const publishedSlugsByName =
+                await getPublishedSlugsByNarrativeChartName(
+                    knex,
+                    rows.map((row) => row.name)
+                )
+            return rows.map((row) => ({
+                ...row,
+                publishedIn: publishedSlugsByName.get(row.name) ?? [],
+            }))
+        })
     const chartSlugsPromise = db.knexRaw<{ targetSlug: string }>(
         knex,
         `-- sql
@@ -1564,15 +1580,25 @@ export async function deleteChart(
 ) {
     const chart = await expectChartById(trx, req.params.chartId)
     if (chart.id) {
-        const references = await getReferencesByChartId(chart.id, trx).then(
-            (references) => Object.values(references).flat()
+        // Narrative charts don't block deletion; they're deleted along with it
+        const otherReferences = _.omit(
+            await getReferencesByChartId(chart.id, trx),
+            "narrativeCharts"
         )
-        if (references.length) {
+        const inUse = Object.entries(otherReferences)
+            .filter(([, refs]) => refs.length > 0)
+            .map(([kind, refs]) => `${kind} (${refs.length})`)
+        if (inUse.length) {
             throw new JsonError(
-                `Cannot delete chart in-use in the following places:` +
-                    references.join(", ")
+                `Cannot delete chart in-use in the following places: ${inUse.join(", ")}`
             )
         }
+        await deleteNarrativeCharts(
+            trx,
+            await trx<DbPlainNarrativeChart>(NarrativeChartsTableName)
+                .select("id", "name", "chartConfigId", "patchConfigId")
+                .where({ parentChartId: chart.id })
+        )
     }
 
     await db.knexRaw(trx, `DELETE FROM chart_dimensions WHERE chartId=?`, [

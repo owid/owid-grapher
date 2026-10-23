@@ -95,6 +95,8 @@ export interface NarrativeChartMinimalInformation {
     id: number
     name: string
     title: string
+    /** Slugs of the published gdocs that use the narrative chart */
+    publishedIn: string[]
 }
 
 export interface References {
@@ -150,17 +152,38 @@ export async function deleteChart(params: {
 
     if (chartId === undefined || chartId === 0) return
 
-    if (references && getFullReferencesCount(references) > 0) {
+    const chartName = chartSlug || `#${chartId}`
+
+    const { narrativeCharts = [], ...otherReferences } = references ?? {}
+    const otherReferencesCount = getFullReferencesCount(otherReferences)
+    if (otherReferencesCount > 0) {
         window.alert(
-            `Cannot delete chart ${chartSlug} because it is used in ${getFullReferencesCount(
-                references
-            )} places. See the references tab in the chart editor for details.`
+            `Cannot delete chart ${chartName} because it is used in ${otherReferencesCount} places. See the references tab in the chart editor for details.`
         )
         return
     }
 
-    const chartName = chartSlug || `#${chartId}`
+    const publishedNarrativeCharts = narrativeCharts.filter(
+        (nc) => nc.publishedIn.length > 0
+    )
+    if (publishedNarrativeCharts.length > 0) {
+        window.alert(
+            `Cannot delete chart ${chartName} because the following narrative charts based on it are used in published content:\n${publishedNarrativeCharts
+                .map(
+                    (nc) =>
+                        `• ${nc.name} (used in ${nc.publishedIn.join(", ")})`
+                )
+                .join("\n")}`
+        )
+        return
+    }
+
     let confirmMessage = `Delete the chart ${chartName}? This action cannot be undone!`
+    if (narrativeCharts.length > 0) {
+        confirmMessage += `\n\nThe following narrative charts based on this chart will be deleted too:\n${narrativeCharts
+            .map((nc) => `• ${nc.name}`)
+            .join("\n")}`
+    }
     if (ENV === "staging") {
         confirmMessage +=
             "\n\n⚠️ WARNING: You are on a staging server. Deleted charts are NOT synced to production servers. If this chart exists on production, it will remain there even after deletion here."
