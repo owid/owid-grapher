@@ -70,9 +70,7 @@ function LabsPanel({ featuresOnPage }: { featuresOnPage: number[] }) {
             {features.length > 0 ? (
                 <ul className="labs-panel__features">
                     {features.map((feature) => {
-                        const isOnPage = featuresOnPage.includes(
-                            feature.number
-                        )
+                        const isOnPage = featuresOnPage.includes(feature.number)
                         return (
                             <li
                                 key={feature.number}
