@@ -213,6 +213,8 @@ export interface SiteInstantSearchClickParams {
 export interface SiteErrorParams {
     /** Action type (e.g., 'not_found') */
     eventAction: string
+    /** Target element or label */
+    eventTarget?: string
     /** Error details or URL */
     eventContext: string
 }
