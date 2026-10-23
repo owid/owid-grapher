@@ -451,20 +451,30 @@ export class SiteAnalytics extends GrapherAnalytics {
             signal: controller.signal,
         }
         let hasLoggedOpen = false
-        // Time of the last pointer press/keypress in the page. A <details>
-        // opening right after one was opened by the user (or by UI code
-        // reacting to them), not by find-in-page.
+        // Time of the last pointer press, click or keypress in the page. A
+        // <details> opening right after one was opened by the user (or by UI
+        // code reacting to them), not by find-in-page. `click` also covers
+        // screen readers and voice control, which synthesize a click with no
+        // pointerdown or keydown.
         let lastInteractionAt = -Infinity
         const revealed = new WeakSet<HTMLDetailsElement>()
 
         document.addEventListener(
             "keydown",
             (ev) => {
+                // Latin layouts: the shortcut follows the produced key (on
+                // Dvorak, the physical F key types "u", and Cmd+U isn't
+                // find). Non-Latin layouts (e.g. Cyrillic) produce no Latin
+                // letter, and browsers fall back to the physical key there.
+                const key = ev.key.toLowerCase()
+                const isF = /^[a-z]$/.test(key)
+                    ? key === "f"
+                    : ev.code === "KeyF"
                 const isModF =
                     (ev.metaKey || ev.ctrlKey) &&
                     !ev.altKey &&
                     !ev.shiftKey &&
-                    (ev.key.toLowerCase() === "f" || ev.code === "KeyF")
+                    isF
                 const isF3 = ev.key === "F3"
                 if (!isModF && !isF3) {
                     lastInteractionAt = ev.timeStamp
@@ -477,11 +487,12 @@ export class SiteAnalytics extends GrapherAnalytics {
             listenerOptions
         )
 
-        document.addEventListener(
-            "pointerdown",
-            (ev) => (lastInteractionAt = ev.timeStamp),
-            listenerOptions
-        )
+        for (const type of ["pointerdown", "click"] as const)
+            document.addEventListener(
+                type,
+                (ev) => (lastInteractionAt = ev.timeStamp),
+                listenerOptions
+            )
 
         // `toggle` doesn't bubble, but capture listeners still see it
         document.addEventListener(
@@ -506,11 +517,15 @@ export class SiteAnalytics extends GrapherAnalytics {
         return () => controller.abort()
     }
 
+    // Both variants set eventContext and eventTarget explicitly: GTM keeps a
+    // key from the previous push when a push omits it (see logToGA), so a
+    // reveal would otherwise inherit the open's "mod+f" and vice versa.
     private logFindInPageOpen(shortcut: "mod+f" | "f3") {
         this.logToGA({
             event: EventCategory.SiteFindInPage,
             eventAction: "open",
             eventContext: shortcut,
+            eventTarget: undefined,
         })
     }
 
@@ -518,6 +533,7 @@ export class SiteAnalytics extends GrapherAnalytics {
         this.logToGA({
             event: EventCategory.SiteFindInPage,
             eventAction: "reveal",
+            eventContext: undefined,
             eventTarget: summaryText,
         })
     }

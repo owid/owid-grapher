@@ -65,6 +65,21 @@ describe("find-in-page tracking", () => {
         ])
     })
 
+    it("follows the produced key, with a physical-key fallback", () => {
+        // Dvorak: the physical F key types "u", and Cmd+U isn't find
+        press({ key: "u", code: "KeyF", metaKey: true })
+        expect(findEvents()).toEqual([])
+
+        // Cyrillic: Ctrl+F types "а", and browsers still open find
+        press({ key: "а", code: "KeyF", ctrlKey: true })
+        expect(findEvents()).toEqual([
+            expect.objectContaining({
+                eventAction: "open",
+                eventContext: "mod+f",
+            }),
+        ])
+    })
+
     it("ignores other shortcuts", () => {
         press({ key: "f" })
         press({ key: "f", metaKey: true, shiftKey: true })
@@ -98,6 +113,17 @@ describe("find-in-page tracking", () => {
         expect(findEvents()).toEqual([])
     })
 
+    it("does not count a <details> opened by a bare click", () => {
+        // Screen readers and voice control synthesize a bare click
+        const assisted = makeDetails("Assisted")
+        assisted
+            .querySelector("summary")!
+            .dispatchEvent(new MouseEvent("click"))
+        open(assisted)
+
+        expect(findEvents()).toEqual([])
+    })
+
     it("does not treat the find shortcut as an interaction", () => {
         press({ key: "f", metaKey: true })
         open(makeDetails("Found"))
@@ -106,5 +132,14 @@ describe("find-in-page tracking", () => {
             "open",
             "reveal",
         ])
+    })
+
+    it("sets both context fields so GTM can't carry one over", () => {
+        press({ key: "f", metaKey: true })
+        open(makeDetails("Found"))
+
+        const [openEvent, revealEvent] = findEvents()
+        expect(openEvent).toHaveProperty("eventTarget", undefined)
+        expect(revealEvent).toHaveProperty("eventContext", undefined)
     })
 })
