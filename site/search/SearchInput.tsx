@@ -37,7 +37,7 @@ export const SearchInput = forwardRef(
         const {
             activeIndex,
             setActiveIndex,
-            suggestions,
+            itemCount,
             showSuggestions,
             setShowSuggestions,
             onSelectActiveItem,
@@ -64,13 +64,13 @@ export const SearchInput = forwardRef(
                 return
             }
 
-            if (!showSuggestions || !suggestions.length) return
+            if (!showSuggestions || !itemCount) return
 
             switch (e.key) {
                 case "ArrowDown":
                     e.preventDefault()
                     setActiveIndex(
-                        activeIndex < suggestions.length - 1
+                        activeIndex < itemCount - 1
                             ? activeIndex + 1
                             : activeIndex
                     )

@@ -11074,6 +11074,7 @@ __metadata:
   dependencies:
     "@algolia/client-common": "npm:^5.57.0"
     "@algolia/requester-fetch": "npm:^5.57.0"
+    "@anthropic-ai/sdk": "npm:^0.133.0"
     "@cloudflare/workers-types": "npm:^5.20261003.1"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
