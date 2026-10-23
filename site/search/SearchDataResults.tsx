@@ -63,7 +63,15 @@ export const SearchDataResults = ({
                             Data
                         </SearchResultHeader>
                         {featuredVizHit && (
-                            <SearchFeaturedVizHit hit={featuredVizHit} />
+                            <SearchFeaturedVizHit
+                                hit={featuredVizHit}
+                                onClick={() =>
+                                    analytics.logSearchResultClick(
+                                        featuredVizHit,
+                                        { position: 1, source: "search" }
+                                    )
+                                }
+                            />
                         )}
                         {isClosestMatches && <SearchClosestMatchesNotice />}
                         <ul className="search-data-results__list">

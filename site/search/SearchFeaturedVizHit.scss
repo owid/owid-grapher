@@ -1,0 +1,96 @@
+// Dark amber for the label: $amber on $amber-10 is too low contrast for text.
+$featured-viz-label-color: #8a5d00;
+
+.search-featured-viz-hit {
+    display: block;
+    // Same spacing below as .search-data-results__hit
+    margin: 16px 0;
+    padding: 16px;
+    background-color: $amber-10;
+    text-decoration: none;
+    cursor: pointer;
+
+    @include sm-only {
+        margin: 8px 0;
+        padding: 12px;
+    }
+
+    &:hover {
+        .search-featured-viz-hit__title {
+            text-decoration: underline;
+        }
+    }
+}
+
+.search-featured-viz-hit__label {
+    @include h6-black-caps;
+    color: $featured-viz-label-color;
+    margin-bottom: 8px;
+}
+
+.search-featured-viz-hit__label-icon {
+    color: $amber;
+    margin-right: 6px;
+}
+
+.search-featured-viz-hit__content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    @include sm-only {
+        gap: 12px;
+    }
+}
+
+.search-featured-viz-hit__image {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    background-color: $white;
+
+    @include sm-only {
+        width: 56px;
+        height: 56px;
+    }
+}
+
+.search-featured-viz-hit__text {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-featured-viz-hit__title {
+    @include h3-bold;
+    color: $blue-90;
+    margin: 0 0 2px 0;
+
+    @include sm-only {
+        font-size: 16px;
+    }
+}
+
+.search-featured-viz-hit__authors {
+    @include body-3-medium;
+    color: $blue-60;
+    margin: 0 0 2px 0;
+}
+
+.search-featured-viz-hit__excerpt {
+    @include body-3-medium;
+    color: $blue-90;
+    margin: 0;
+    display: -webkit-box;
+    overflow: hidden;
+    // see https://github.com/owid/owid-grapher/issues/4982
+    overflow-wrap: anywhere;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+
+    @include sm-only {
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+}
