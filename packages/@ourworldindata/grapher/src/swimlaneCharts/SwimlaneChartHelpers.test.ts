@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest"
 
+import { convertDateToDaysSinceEpoch, dayjs } from "@ourworldindata/utils"
 import { ColumnTypeNames, Time } from "@ourworldindata/types"
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import { CoreColumn, OwidTable, TimeColumn } from "@ourworldindata/core-table"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import { FocusArray } from "../focus/FocusArray"
 import { CategoricalBin } from "../color/ColorScaleBin"
@@ -74,7 +75,10 @@ function makeSizedSeries(
 /** Places the rows one under the other from y = 0, 20px apart by default */
 function placeRows(
     series: SizedSwimlaneSeries[],
-    { heightPerSeries = 20 }: { heightPerSeries?: number } = {}
+    {
+        heightPerSeries = 20,
+        visibleExclusiveEndTime = 2005,
+    }: { heightPerSeries?: number; visibleExclusiveEndTime?: Time } = {}
 ): PlacedSwimlaneSeries[] {
     const seriesNames = series.map((s) => s.seriesName)
     return toPlacedSwimlaneSeries({
@@ -84,6 +88,7 @@ function placeRows(
         placeSeries: (seriesName) =>
             (seriesNames.indexOf(seriesName) + 0.5) * heightPerSeries,
         placeTime,
+        visibleExclusiveEndTime,
         shouldShowSegmentLabels: false,
         segmentLabelStyle: {
             category: { fontSize: 12, fontWeight: 700, lineHeight: 1.2 },
@@ -93,7 +98,7 @@ function placeRows(
 }
 
 describe("placement", () => {
-    it("extends each segment to where the next one starts, and the last one a step past its end", () => {
+    it("extends each segment to where the next one starts, and the last one to the exclusive end of the visible range", () => {
         const [row] = placeRows([
             makeSizedSeries("France", [
                 makeCategorySegment("X", 2000, 2001),
@@ -109,6 +114,15 @@ describe("placement", () => {
             { x: 20, width: 20 },
             { x: 40, width: 10 },
         ])
+    })
+
+    it("ends the last segment at the plot end, however long a time interval is", () => {
+        const [row] = placeRows(
+            [makeSizedSeries("France", [makeCategorySegment("X", 2000, 2010)])],
+            { visibleExclusiveEndTime: 2020 }
+        )
+
+        expect(row.placedSegments[0]).toMatchObject({ x: 0, width: 200 })
     })
 
     it("draws each bar centred in its series, with the row spacing split above and below", () => {
@@ -136,22 +150,33 @@ describe(computeHeightPerSeries, () => {
 })
 
 describe("hit-testing", () => {
-    const [france, germany] = placeRows([
-        makeSizedSeries("France", [
-            makeCategorySegment("X", 2000, 2001),
-            makeCategorySegment("Y", 2002, 2003),
-        ]),
-        makeSizedSeries("Germany", [makeCategorySegment("X", 2000, 2003)]),
-    ])
-    const [x, y] = france.placedSegments
+    function placeFranceAndGermany(): PlacedSwimlaneSeries[] {
+        return placeRows(
+            [
+                makeSizedSeries("France", [
+                    makeCategorySegment("X", 2000, 2001),
+                    makeCategorySegment("Y", 2002, 2003),
+                ]),
+                makeSizedSeries("Germany", [
+                    makeCategorySegment("X", 2000, 2003),
+                ]),
+            ],
+            { visibleExclusiveEndTime: 2004 }
+        )
+    }
 
     it("finds a segment from its start up to, but not including, its end", () => {
+        const [france] = placeFranceAndGermany()
+        const [x, y] = france.placedSegments
+
         expect(findSegmentAtX(france.placedSegments, 0)).toBe(x)
         expect(findSegmentAtX(france.placedSegments, 19.9)).toBe(x)
         expect(findSegmentAtX(france.placedSegments, 20)).toBe(y)
     })
 
     it("finds no segment before the first or after the last", () => {
+        const [france] = placeFranceAndGermany()
+
         expect(findSegmentAtX(france.placedSegments, -1)).toBeUndefined()
         expect(findSegmentAtX(france.placedSegments, 40)).toBeUndefined()
     })
@@ -169,24 +194,14 @@ describe("hit-testing", () => {
     })
 
     it("finds no row above the first or below the last", () => {
-        expect(findRowAtY([france, germany], -1)).toBeUndefined()
-        expect(findRowAtY([france, germany], 40)).toBeUndefined()
+        const rows = placeFranceAndGermany()
+
+        expect(findRowAtY(rows, -1)).toBeUndefined()
+        expect(findRowAtY(rows, 40)).toBeUndefined()
     })
 })
 
 describe("emphasis", () => {
-    const rows = placeRows([
-        makeSizedSeries("France", [
-            makeCategorySegment("X", 2000, 2001),
-            makeMissingSegment(2002, 2002),
-            makeCategorySegment("Y", 2003, 2003),
-        ]),
-        makeSizedSeries("Germany", [
-            makeCategorySegment("Y", 2000, 2001),
-            makeCategorySegment("X", 2002, 2003),
-        ]),
-    ])
-
     function makeBin(value: string): CategoricalBin {
         return new CategoricalBin({ index: 0, value, label: value, color: "" })
     }
@@ -194,6 +209,17 @@ describe("emphasis", () => {
     function findEmphases(
         options: Omit<Parameters<typeof toRenderSwimlaneSeries>[0], "series">
     ): { row: Emphasis; segments: Emphasis[] }[] {
+        const rows = placeRows([
+            makeSizedSeries("France", [
+                makeCategorySegment("X", 2000, 2001),
+                makeMissingSegment(2002, 2002),
+                makeCategorySegment("Y", 2003, 2003),
+            ]),
+            makeSizedSeries("Germany", [
+                makeCategorySegment("Y", 2000, 2001),
+                makeCategorySegment("X", 2002, 2003),
+            ]),
+        ])
         return toRenderSwimlaneSeries({ series: rows, ...options }).map(
             (series) => ({
                 row: series.emphasis,
@@ -263,6 +289,9 @@ describe("emphasis", () => {
 })
 
 describe(formatSegmentTimeRange, () => {
+    const day = (iso: string): number =>
+        convertDateToDaysSinceEpoch(dayjs.utc(iso))
+
     function makeTimeColumn(
         type: ColumnTypeNames,
         times: number[]
@@ -274,16 +303,6 @@ describe(formatSegmentTimeRange, () => {
         return table.timeColumn
     }
 
-    it("formats a single year as one time", () => {
-        expect(
-            formatSegmentTimeRange({
-                startTime: 2000,
-                endTime: 2000,
-                timeColumn: makeTimeColumn(ColumnTypeNames.Year, [2000]),
-            })
-        ).toEqual("2000")
-    })
-
     it("formats a run of years as a range", () => {
         expect(
             formatSegmentTimeRange({
@@ -293,37 +312,62 @@ describe(formatSegmentTimeRange, () => {
             })
         ).toEqual("2000 to 2002")
     })
+
+    it("formats a single week as the week's own dates", () => {
+        const monday = day("2020-01-20")
+        expect(
+            formatSegmentTimeRange({
+                startTime: monday,
+                endTime: monday,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Week, [monday]),
+            })
+        ).toEqual("Week of Jan 20, 2020")
+    })
+
+    it("ends a run of weeks where its last week ends", () => {
+        const [first, last] = [day("2020-01-20"), day("2020-02-03")]
+        expect(
+            formatSegmentTimeRange({
+                startTime: first,
+                endTime: last,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Week, [first, last]),
+            })
+        ).toEqual("Jan 20, 2020 to Feb 9, 2020")
+    })
 })
 
 describe(formatSegmentDuration, () => {
-    function makeYearColumn(): CoreColumn {
-        return new OwidTable(
+    function makeYearColumn(): TimeColumn {
+        const { timeColumn } = new OwidTable(
             [2000, 2002].map((year) => ({ entityName: "France", year })),
             [{ slug: "year", type: ColumnTypeNames.Year }]
-        ).timeColumn
+        )
+        if (!(timeColumn instanceof TimeColumn))
+            throw new Error("No time column")
+        return timeColumn
     }
 
-    it("counts a category's run from its first to its last time", () => {
+    it("counts a category's run inclusively, so a single time lasts one", () => {
+        const timeColumn = makeYearColumn()
         expect(
             formatSegmentDuration({
                 segment: makeCategorySegment("Monarchy", 2000, 2002),
-                timeColumn: makeYearColumn(),
+                timeColumn,
             })
-        ).toEqual("2 years")
-    })
-
-    it("gives a single-time run and a missing segment no duration", () => {
-        const timeColumn = makeYearColumn()
+        ).toEqual("3 years")
         expect(
             formatSegmentDuration({
                 segment: makeCategorySegment("Republic", 2005, 2005),
                 timeColumn,
             })
-        ).toBeUndefined()
+        ).toEqual("a year")
+    })
+
+    it("gives a missing segment no duration", () => {
         expect(
             formatSegmentDuration({
                 segment: makeMissingSegment(2003, 2004),
-                timeColumn,
+                timeColumn: makeYearColumn(),
             })
         ).toBeUndefined()
     })
