@@ -8,10 +8,9 @@ import {
 import {
     buildCandidatePool,
     ChartHitWithoutId,
-    createLineSplitter,
     PageHitWithoutId,
     parseAiSearchSettings,
-    parseComposerLine,
+    createComposerLineParser,
     parsePlannerAnswer,
 } from "./aiSearch.js"
 
@@ -22,8 +21,6 @@ const chart = (
     type: ChartRecordType.Chart,
     title: slug,
     slug,
-    objectID: slug,
-    availableEntities: [],
     availableTabs,
 })
 
@@ -43,7 +40,7 @@ describe(buildCandidatePool, () => {
                 },
                 { charts: ["b1", "b2"].map((s) => chart(s)), pages: [] },
             ],
-            80
+            { charts: 80, pages: 22 }
         )
         expect(pool.charts.map((c) => c.slug)).toEqual([
             "a1",
@@ -61,7 +58,7 @@ describe(buildCandidatePool, () => {
                 { charts: [chart("shared"), chart("a2")], pages: [] },
                 { charts: [chart("shared"), chart("b2")], pages: [] },
             ],
-            80
+            { charts: 80, pages: 22 }
         )
         expect(pool.charts.map((c) => c.slug)).toEqual(["shared", "a2", "b2"])
     })
@@ -75,7 +72,7 @@ describe(buildCandidatePool, () => {
                     pages: many.map((s) => page(s)),
                 },
             ],
-            80
+            { charts: 80, pages: 22 }
         )
         expect(pool.charts).toHaveLength(80)
         expect(pool.pages).toHaveLength(22)
@@ -85,7 +82,7 @@ describe(buildCandidatePool, () => {
     })
 })
 
-describe(parseComposerLine, () => {
+describe(createComposerLineParser, () => {
     const pool = buildCandidatePool(
         [
             {
@@ -102,7 +99,7 @@ describe(parseComposerLine, () => {
                 ],
             },
         ],
-        80
+        { charts: 80, pages: 22 }
     )
     const id = (slug: string): number =>
         [...pool.charts, ...pool.pages].find((c) => c.slug === slug)!.id
@@ -118,7 +115,7 @@ describe(parseComposerLine, () => {
                 { id: id("line-only"), view: "map" },
             ],
         })
-        const group = parseComposerLine(line, pool, new Set())
+        const group = createComposerLineParser(pool)(line)
         expect(group).toMatchObject({
             type: "group",
             charts: [
@@ -129,13 +126,11 @@ describe(parseComposerLine, () => {
     })
 
     it("drops ids that don't exist, were used by an earlier group, or have the wrong kind", () => {
-        const used = new Set<number>()
-        parseComposerLine(
-            JSON.stringify({ type: "group", charts: [{ id: id("with-map") }] }),
-            pool,
-            used
+        const parseLine = createComposerLineParser(pool)
+        parseLine(
+            JSON.stringify({ type: "group", charts: [{ id: id("with-map") }] })
         )
-        const group = parseComposerLine(
+        const group = parseLine(
             JSON.stringify({
                 type: "group",
                 angle: "made-up",
@@ -147,9 +142,7 @@ describe(parseComposerLine, () => {
                 // an insight among articles, an article among insights
                 articles: [id("an-insight"), id("an-article")],
                 insights: [id("an-article")],
-            }),
-            pool,
-            used
+            })
         )
         expect(group).toMatchObject({
             angle: "other",
@@ -160,16 +153,10 @@ describe(parseComposerLine, () => {
     })
 
     it("ignores lines that aren't a usable group", () => {
-        const used = new Set<number>()
-        expect(parseComposerLine("Here are the groups:", pool, used)).toBeNull()
-        expect(parseComposerLine("{not json", pool, used)).toBeNull()
-        expect(
-            parseComposerLine(
-                '{"type":"group","charts":[{"id":999}]}',
-                pool,
-                used
-            )
-        ).toBeNull()
+        const parseLine = createComposerLineParser(pool)
+        expect(parseLine("Here are the groups:")).toBeNull()
+        expect(parseLine("{not json")).toBeNull()
+        expect(parseLine('{"type":"group","charts":[{"id":999}]}')).toBeNull()
     })
 
     it("reads a group wrapped in a code fence", () => {
@@ -177,20 +164,7 @@ describe(parseComposerLine, () => {
             '```json{"type":"group","charts":[{"id":' +
             id("line-only") +
             "}]}```"
-        expect(parseComposerLine(line, pool, new Set())?.type).toBe("group")
-    })
-})
-
-describe(createLineSplitter, () => {
-    it("emits complete lines across deltas and the trailing line on flush", () => {
-        const lines: string[] = []
-        const splitter = createLineSplitter((line) => lines.push(line))
-        splitter.push('{"a":')
-        splitter.push('1}\n{"b"')
-        expect(lines).toEqual(['{"a":1}'])
-        splitter.push(":2}")
-        splitter.flush()
-        expect(lines).toEqual(['{"a":1}', '{"b":2}'])
+        expect(createComposerLineParser(pool)(line)?.type).toBe("group")
     })
 })
 

@@ -7,7 +7,7 @@ import {
 } from "@ourworldindata/types"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 import { LiteClient } from "algoliasearch/lite"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { match } from "ts-pattern"
 import { useIsFetching } from "@tanstack/react-query"
 
@@ -74,6 +74,12 @@ export const Search = ({
     // AI search runs for the query it was started with, and closes when the
     // reader changes the search in any other way than switching result type.
     const [aiQuery, setAiQuery] = useState<string | null>(null)
+    // Back and forward change the search without going through the actions
+    useEffect(() => {
+        const close = (): void => setAiQuery(null)
+        window.addEventListener("popstate", close)
+        return () => window.removeEventListener("popstate", close)
+    }, [])
     const actions = useMemo<SearchActions>(() => {
         const closingAi =
             <Args extends unknown[]>(action: (...args: Args) => void) =>

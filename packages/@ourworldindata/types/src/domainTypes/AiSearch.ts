@@ -1,6 +1,5 @@
-import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
-import { SearchChartHit } from "./Search.js"
+import { ChartRecord, PageRecord } from "./Search.js"
 
 /**
  * Types shared by the AI-assisted search prototype: the /api/ai-search
@@ -53,25 +52,29 @@ export type AiSearchAngle =
     | "other"
 
 /** A chart the model may pick, as the client needs it to render a card. */
-export type AiSearchChartCandidate = Omit<
-    SearchChartHit,
-    "__position" | "_highlightResult" | "_snippetResult"
-> & {
-    id: number
-    // Ranking hints for the model (see ChartRecord)
-    keyChartForTags?: string[]
-    numRelatedArticles?: number
-}
+export type AiSearchChartCandidate = Pick<
+    ChartRecord,
+    "type" | "slug" | "title" | "availableTabs"
+> &
+    Partial<
+        Pick<
+            ChartRecord,
+            | "queryParams"
+            | "variantName"
+            | "subtitle"
+            // Ranking hints for the model
+            | "keyChartForTags"
+            | "numRelatedArticles"
+        >
+    > & { id: number }
 
-export interface AiSearchPageCandidate {
-    id: number
-    title: string
-    slug: string
-    type: OwidGdocType
-    thumbnailUrl?: string
-    authors?: string[]
-    date?: string
-}
+export type AiSearchPageCandidate = Pick<
+    PageRecord,
+    "title" | "slug" | "type"
+> &
+    Partial<Pick<PageRecord, "thumbnailUrl" | "authors" | "date">> & {
+        id: number
+    }
 
 export interface AiSearchGroup {
     angle: AiSearchAngle
@@ -103,4 +106,4 @@ export type AiSearchEvent =
     | { type: "related"; queries: string[] }
     | { type: "debug"; title: string; text: string }
     | { type: "done"; model: string; timings: Record<string, number> }
-    | { type: "error"; code: AiSearchErrorCode; message: string }
+    | { type: "error"; code: AiSearchErrorCode }

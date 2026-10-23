@@ -15,10 +15,8 @@ $ai-meta-line: #d9a400;
 
 .search-ai-beta-badge {
     display: inline-block;
+    @include overline-black-caps;
     font-size: 0.6875rem;
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
     background: $amber;
     color: $blue-100;
     padding: 2px 6px;
@@ -103,10 +101,7 @@ $ai-meta-line: #d9a400;
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    font-size: 0.8125rem;
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    @include overline-black-caps;
     color: $accent-electric-blue;
 }
 
@@ -257,10 +252,7 @@ $ai-meta-line: #d9a400;
 }
 
 .search-ai-group__angle {
-    font-size: 0.6875rem;
-    font-weight: 900;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
+    @include overline-black-caps;
     color: $blue-50;
 }
 
@@ -440,11 +432,9 @@ $ai-meta-line: #d9a400;
     max-width: 100%;
 }
 
+// Pulsed by the shared animate-pulse class (skeletons.scss)
 .search-ai-skeleton {
-    background: linear-gradient(90deg, $blue-5, $white 40%, $blue-5 80%);
-    background-size: 200% 100%;
-    animation: search-ai-shimmer 1.4s linear infinite;
-    border-radius: 2px;
+    background-color: $blue-10;
     margin-bottom: 10px;
 }
 
@@ -467,15 +457,8 @@ $ai-meta-line: #d9a400;
     aspect-ratio: 850 / 600;
 }
 
-@keyframes search-ai-shimmer {
-    to {
-        background-position: -200% 0;
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
     .search-ai-group,
-    .search-ai-skeleton,
     .search-ai-spinner {
         animation: none;
     }

@@ -4,6 +4,7 @@ import {
     AiSearchSettings,
     DEFAULT_AI_SEARCH_SETTINGS,
 } from "@ourworldindata/types"
+import { createLineSplitter } from "@ourworldindata/utils"
 
 const AI_SEARCH_API_URL = "/api/ai-search"
 
@@ -13,7 +14,7 @@ export interface AiSearchPageSettings extends AiSearchSettings {
     teaser: boolean
 }
 
-export const DEFAULT_AI_SEARCH_PAGE_SETTINGS: AiSearchPageSettings = {
+const DEFAULT_AI_SEARCH_PAGE_SETTINGS: AiSearchPageSettings = {
     ...DEFAULT_AI_SEARCH_SETTINGS,
     cache: true,
     teaser: true,
@@ -34,10 +35,7 @@ export function useAiSearchSettings(): [
 const CACHE_TTL_MS = 5 * 60 * 1000
 const answerCache = new Map<string, { at: number; events: AiSearchEvent[] }>()
 
-export function buildAiSearchUrl(
-    query: string,
-    settings: AiSearchSettings
-): string {
+function buildAiSearchUrl(query: string, settings: AiSearchSettings): string {
     const params = new URLSearchParams({
         q: query,
         model: settings.model,
@@ -79,10 +77,6 @@ export async function streamAiSearch({
         onEvent({
             type: "error",
             code: response.status === 404 ? "unavailable" : "failed",
-            message:
-                response.status === 404
-                    ? "AI search isn't available on this server."
-                    : "Something went wrong while grouping the results. Try again.",
         })
         return
     }
@@ -100,18 +94,16 @@ export async function streamAiSearch({
         onEvent(event)
     }
 
+    const splitter = createLineSplitter(handleLine)
     const reader = response.body
         .pipeThrough(new TextDecoderStream())
         .getReader()
-    let buffer = ""
     while (true) {
         const { value, done } = await reader.read()
         if (done) break
-        const lines = (buffer + value).split("\n")
-        buffer = lines.pop() ?? ""
-        lines.forEach(handleLine)
+        splitter.push(value)
     }
-    handleLine(buffer)
+    splitter.flush()
 
     if (events.some((event) => event.type === "done"))
         answerCache.set(url, { at: Date.now(), events })

@@ -7,8 +7,8 @@ import {
     AiSearchGroup,
     AiSearchPageCandidate,
     AiSearchSettings,
+    AiSearchEvent,
     DEFAULT_AI_SEARCH_SETTINGS,
-    getAiSearchPagePoolSize,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
     OwidGdocType,
@@ -49,13 +49,13 @@ export interface RankedHits {
     pages: PageHitWithoutId[]
 }
 
-export interface CandidatePool {
+interface CandidatePool {
     charts: AiSearchChartCandidate[]
     pages: (AiSearchPageCandidate & { excerpt?: string })[]
 }
 
 const chartKey = (hit: ChartHitWithoutId): string =>
-    `${hit.slug}${"queryParams" in hit ? (hit.queryParams ?? "") : ""}`
+    `${hit.slug}${hit.queryParams ?? ""}`
 
 /**
  * Interleaves the original search with the expansion searches so that each
@@ -65,9 +65,11 @@ const chartKey = (hit: ChartHitWithoutId): string =>
  */
 export function buildCandidatePool(
     lists: RankedHits[],
-    chartPoolSize: number
+    {
+        charts: chartPoolSize,
+        pages: pagePoolSize,
+    }: { charts: number; pages: number }
 ): CandidatePool {
-    const pagePool = getAiSearchPagePoolSize(chartPoolSize)
     const charts: AiSearchChartCandidate[] = []
     const pages: CandidatePool["pages"] = []
     const seenCharts = new Set<string>()
@@ -95,7 +97,7 @@ export function buildCandidatePool(
                 const page = list.pages[position]
                 if (
                     page &&
-                    pages.length < pagePool &&
+                    pages.length < pagePoolSize &&
                     !seenPages.has(`${page.type}/${page.slug}`)
                 ) {
                     seenPages.add(`${page.type}/${page.slug}`)
@@ -241,19 +243,29 @@ const ANGLES: readonly AiSearchAngle[] = [
     "other",
 ]
 
-export type ComposerLine =
-    | ({ type: "group" } & AiSearchGroup)
-    | { type: "related"; queries: string[] }
+export type ComposerLine = Extract<AiSearchEvent, { type: "group" | "related" }>
 
 /**
- * Turns one line of the composer's JSON Lines output into an event, keeping
- * only ids that are in the pool and haven't been used by an earlier group
- * (the model is told not to repeat ids, but isn't guaranteed to comply).
- * Returns null for lines that aren't a usable group or related list.
+ * Returns a parser for the lines of the composer's JSON Lines output. Each
+ * line becomes an event, keeping only ids that are in the pool and haven't
+ * been used by an earlier group (the model is told not to repeat ids, but
+ * isn't guaranteed to comply). Lines that aren't a usable group or related
+ * list give null.
  */
-export function parseComposerLine(
+export function createComposerLineParser(
+    pool: CandidatePool
+): (rawLine: string) => ComposerLine | null {
+    const chartsById = new Map(pool.charts.map((chart) => [chart.id, chart]))
+    const pagesById = new Map(pool.pages.map((page) => [page.id, page]))
+    const usedIds = new Set<number>()
+    return (rawLine) =>
+        parseComposerLine(rawLine, chartsById, pagesById, usedIds)
+}
+
+function parseComposerLine(
     rawLine: string,
-    pool: CandidatePool,
+    chartsById: Map<number, AiSearchChartCandidate>,
+    pagesById: Map<number, AiSearchPageCandidate>,
     usedIds: Set<number>
 ): ComposerLine | null {
     const line = rawLine
@@ -277,8 +289,6 @@ export function parseComposerLine(
     }
     if (obj.type !== "group") return null
 
-    const chartsById = new Map(pool.charts.map((chart) => [chart.id, chart]))
-    const pagesById = new Map(pool.pages.map((page) => [page.id, page]))
     const claim = (id: number): boolean => {
         if (usedIds.has(id)) return false
         usedIds.add(id)
@@ -317,28 +327,5 @@ export function parseComposerLine(
         charts,
         articles,
         insights,
-    }
-}
-
-/** Splits streamed text into complete lines, holding back a partial one. */
-export function createLineSplitter(onLine: (line: string) => void): {
-    push: (delta: string) => void
-    flush: () => void
-    reset: () => void
-} {
-    let buffer = ""
-    return {
-        reset: () => {
-            buffer = ""
-        },
-        push: (delta) => {
-            const lines = (buffer + delta).split("\n")
-            buffer = lines.pop() ?? ""
-            lines.forEach(onLine)
-        },
-        flush: () => {
-            if (buffer) onLine(buffer)
-            buffer = ""
-        },
     }
 }

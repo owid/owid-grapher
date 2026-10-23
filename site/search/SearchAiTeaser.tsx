@@ -8,11 +8,8 @@ export const SearchAiBetaBadge = () => (
     <span className="search-ai-beta-badge">Beta</span>
 )
 
-export const SearchAiIcon = ({ className }: { className?: string }) => (
-    <FontAwesomeIcon
-        className={cx("search-ai-icon", className)}
-        icon={faWandMagicSparkles}
-    />
+export const SearchAiIcon = () => (
+    <FontAwesomeIcon className="search-ai-icon" icon={faWandMagicSparkles} />
 )
 
 /** The "Try AI search" row after the autocomplete suggestions. */

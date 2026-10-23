@@ -1,20 +1,19 @@
 import Anthropic from "@anthropic-ai/sdk"
 import * as Sentry from "@sentry/cloudflare"
 import {
-    AiSearchErrorCode,
     AiSearchEvent,
     AiSearchSettings,
     getAiSearchPagePoolSize,
 } from "@ourworldindata/types"
+import { createLineSplitter } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "../search/algoliaClient.js"
 import {
     buildCandidatePool,
     composerPrompt,
-    createLineSplitter,
+    createComposerLineParser,
     MAX_QUERY_LENGTH,
     parseAiSearchSettings,
-    parseComposerLine,
     parsePlannerAnswer,
     PLANNER_SCHEMA,
     plannerPrompt,
@@ -30,14 +29,15 @@ import { searchKeywords } from "./retrieval.js"
  * back as newline-delimited JSON (AiSearchEvent), so groups render as soon as
  * the model writes them.
  *
- * Every request costs a model call, so the endpoint is disabled in
- * production; it runs where ANTHROPIC_API_KEY is configured (staging, local).
+ * Every request costs a model call, so the endpoint only runs under `wrangler
+ * pages dev` (ENV=development: staging servers and local dev) with an
+ * ANTHROPIC_API_KEY, not in production or on public Cloudflare previews.
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     const url = new URL(request.url)
     const query = (url.searchParams.get("q") ?? "").trim()
 
-    if (env.ENV === "production" || !env.ANTHROPIC_API_KEY)
+    if (env.ENV !== "development" || !env.ANTHROPIC_API_KEY)
         return jsonError(404, "AI search isn't available here.")
     if (!query) return jsonError(400, "Missing q parameter.")
     if (query.length > MAX_QUERY_LENGTH)
@@ -174,13 +174,12 @@ async function runAiSearch({
               })
           )
         : []
-    const pool = buildCandidatePool([base, ...expanded], chartPool)
+    const pool = buildCandidatePool([base, ...expanded], {
+        charts: chartPool,
+        pages: pagePool,
+    })
     if (!pool.charts.length && !pool.pages.length) {
-        emit({
-            type: "error",
-            code: "no_candidates",
-            message: `We couldn't find any charts or articles matching “${query}”. Try different words.`,
-        })
+        emit({ type: "error", code: "no_candidates" })
         return
     }
     emit({
@@ -201,11 +200,11 @@ async function runAiSearch({
             text: prompt,
         })
 
-    const usedIds = new Set<number>()
     let groupCount = 0
     let rawOutput = ""
+    const parseLine = createComposerLineParser(pool)
     const splitter = createLineSplitter((line) => {
-        const parsed = parseComposerLine(line, pool, usedIds)
+        const parsed = parseLine(line)
         if (!parsed) return
         if (parsed.type === "group") {
             if (!groupCount) timings["first group"] = Date.now() - started
@@ -259,21 +258,10 @@ async function runAiSearch({
     if (settings.debug)
         emit({ type: "debug", title: "Raw model output", text: rawOutput })
     if (!groupCount) {
-        emit(
-            message.stop_reason === "refusal"
-                ? {
-                      type: "error",
-                      code: "refused",
-                      message:
-                          "Claude declined this search. Try wording it differently.",
-                  }
-                : {
-                      type: "error",
-                      code: "no_groups",
-                      message:
-                          "The model didn't return any groups. Try again or change the settings.",
-                  }
-        )
+        emit({
+            type: "error",
+            code: message.stop_reason === "refusal" ? "refused" : "no_groups",
+        })
         return
     }
     emit({ type: "done", model: message.model, timings })
@@ -282,18 +270,10 @@ async function runAiSearch({
 const textOf = (content: Anthropic.ContentBlock[]): string =>
     content.map((block) => (block.type === "text" ? block.text : "")).join("")
 
-function errorEvent(error: unknown): AiSearchEvent {
-    const code: AiSearchErrorCode =
-        error instanceof Anthropic.RateLimitError ? "rate_limited" : "failed"
-    return {
-        type: "error",
-        code,
-        message:
-            code === "rate_limited"
-                ? "Too many AI searches in a short time. Wait a minute, then try again."
-                : "Something went wrong while grouping the results. Try again.",
-    }
-}
+const errorEvent = (error: unknown): AiSearchEvent => ({
+    type: "error",
+    code: error instanceof Anthropic.RateLimitError ? "rate_limited" : "failed",
+})
 
 const jsonError = (status: number, error: string): Response =>
     new Response(JSON.stringify({ error }), {

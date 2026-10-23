@@ -10,7 +10,6 @@ import {
     GRAPHER_TAB_NAMES,
     GrapherTabName,
     OwidGdocType,
-    SearchChartHit,
 } from "@ourworldindata/types"
 import { getCanonicalPath } from "@ourworldindata/components"
 import { listedRegionsNames } from "@ourworldindata/utils"
@@ -23,6 +22,7 @@ import { streamAiSearch, useAiSearchSettings } from "./aiSearchClient.js"
 import {
     constructChartUrl,
     constructPreviewUrl,
+    getPageTypeNameAndIcon,
     toGrapherQueryParams,
 } from "./searchUtils.js"
 import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
@@ -37,7 +37,7 @@ interface AiSearchView {
     related: string[]
     expansions: string[]
     debug: { title: string; text: string }[]
-    error?: { code: AiSearchErrorCode; message: string }
+    error?: AiSearchErrorCode
     model?: string
     timings?: Record<string, number>
 }
@@ -97,33 +97,33 @@ function reduceAiSearch(
                 timings: action.timings,
             }
         case "error":
-            // Keep the groups that already arrived
-            return view.groups.length
-                ? { ...view, status: "done" }
-                : {
-                      ...view,
-                      status: "error",
-                      error: { code: action.code, message: action.message },
-                  }
+            return failed(view, action.code)
         case "stopped":
             return view.status === "running"
                 ? { ...view, status: "stopped" }
                 : view
         case "finished":
-            if (view.status !== "running") return view
-            return view.groups.length
-                ? { ...view, status: "done" }
-                : {
-                      ...view,
-                      status: "error",
-                      error: {
-                          code: "failed",
-                          message:
-                              "Something went wrong while grouping the results. Try again.",
-                      },
-                  }
+            return view.status === "running" ? failed(view, "failed") : view
     }
 }
+
+/** An error, unless some groups already arrived: those are kept. */
+const failed = (view: AiSearchView, code: AiSearchErrorCode): AiSearchView =>
+    view.groups.length
+        ? { ...view, status: "done" }
+        : { ...view, status: "error", error: code }
+
+const errorMessage = (code: AiSearchErrorCode, query: string): string =>
+    ({
+        unavailable: "AI search isn't available on this server.",
+        no_candidates: `We couldn't find any charts or articles matching “${query}”. Try different words.`,
+        rate_limited:
+            "Too many AI searches in a short time. Wait a minute, then try again.",
+        refused: "Claude declined this search. Try wording it differently.",
+        no_groups:
+            "The model didn't return any groups. Try again or change the settings.",
+        failed: "Something went wrong while grouping the results. Try again.",
+    })[code]
 
 // Errors that can't be fixed by asking again
 const FINAL_ERRORS: AiSearchErrorCode[] = ["unavailable", "no_candidates"]
@@ -238,8 +238,8 @@ export const SearchAiResults = ({ query }: { query: string }) => {
                 )}
                 {view.status === "error" && view.error && (
                     <div className="search-ai-results__message search-ai-results__message--error">
-                        {view.error.message}
-                        {!FINAL_ERRORS.includes(view.error.code) && (
+                        {errorMessage(view.error, query)}
+                        {!FINAL_ERRORS.includes(view.error) && (
                             <button type="button" onClick={retry}>
                                 Try again
                             </button>
@@ -362,8 +362,6 @@ const SearchAiChartCard = ({
     tab?: GrapherTabName
     country?: string
 }) => {
-    // The URL helpers only read the slug, type and query params
-    const chartHit = hit as unknown as SearchChartHit
     const grapherParams = toGrapherQueryParams({
         entities: country ? [country] : [],
         tab,
@@ -371,7 +369,7 @@ const SearchAiChartCard = ({
     return (
         <a
             className="search-ai-chart-card"
-            href={constructChartUrl({ hit: chartHit, grapherParams })}
+            href={constructChartUrl({ hit, grapherParams })}
         >
             <span className="search-ai-chart-card__thumbnail">
                 <img
@@ -380,7 +378,7 @@ const SearchAiChartCard = ({
                     width={GRAPHER_THUMBNAIL_WIDTH}
                     height={GRAPHER_THUMBNAIL_HEIGHT}
                     src={constructPreviewUrl({
-                        hit: chartHit,
+                        hit,
                         grapherParams,
                         variant: PreviewVariant.Thumbnail,
                     })}
@@ -408,13 +406,6 @@ const SearchAiChartCard = ({
     )
 }
 
-const PAGE_KIND_LABELS: Partial<Record<OwidGdocType, string>> = {
-    [OwidGdocType.Article]: "Article",
-    [OwidGdocType.TopicPage]: "Topic page",
-    [OwidGdocType.LinearTopicPage]: "Topic page",
-    [OwidGdocType.DataInsight]: "Data insight",
-}
-
 const SearchAiReadLink = ({ page }: { page: AiSearchPageCandidate }) => {
     const isTopicPage =
         page.type === OwidGdocType.TopicPage ||
@@ -437,7 +428,7 @@ const SearchAiReadLink = ({ page }: { page: AiSearchPageCandidate }) => {
             )}
             <span>
                 <span className="search-ai-read__kind">
-                    {PAGE_KIND_LABELS[page.type] ?? "Article"}
+                    {getPageTypeNameAndIcon(page.type).name}
                     {author && ` · ${author}`}
                 </span>
                 <span className="search-ai-read__title">{page.title}</span>
@@ -525,15 +516,15 @@ const SearchAiGroupSkeleton = () => (
         aria-hidden="true"
     >
         <div className="search-ai-group__text">
-            <div className="search-ai-skeleton search-ai-skeleton--line-short" />
-            <div className="search-ai-skeleton search-ai-skeleton--title" />
-            <div className="search-ai-skeleton search-ai-skeleton--line" />
+            <div className="search-ai-skeleton animate-pulse search-ai-skeleton--line-short" />
+            <div className="search-ai-skeleton animate-pulse search-ai-skeleton--title" />
+            <div className="search-ai-skeleton animate-pulse search-ai-skeleton--line" />
         </div>
         <div className="search-ai-group__charts">
             {[0, 1, 2].map((i) => (
                 <div
                     key={i}
-                    className="search-ai-skeleton search-ai-skeleton--thumbnail"
+                    className="search-ai-skeleton animate-pulse search-ai-skeleton--thumbnail"
                 />
             ))}
         </div>

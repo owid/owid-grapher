@@ -222,17 +222,16 @@ export const SearchAutocomplete = ({
                         </button>
                     </li>
                 ))}
-                {localQuery.trim() && (
-                    <SearchAutocompleteAiItem
-                        id={getSearchAutocompleteItemId(suggestions.length)}
-                        query={localQuery.trim()}
-                        isActive={activeIndex === suggestions.length}
-                        onSelect={() =>
-                            handleSelection(undefined, suggestions.length)
-                        }
-                        onHover={() => setActiveIndex(suggestions.length)}
-                    />
-                )}
+                {/* Counted in the autocomplete context's itemCount */}
+                <SearchAutocompleteAiItem
+                    id={getSearchAutocompleteItemId(suggestions.length)}
+                    query={localQuery.trim()}
+                    isActive={activeIndex === suggestions.length}
+                    onSelect={() =>
+                        handleSelection(undefined, suggestions.length)
+                    }
+                    onHover={() => setActiveIndex(suggestions.length)}
+                />
             </ul>
         </div>
     )

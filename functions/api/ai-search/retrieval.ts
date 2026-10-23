@@ -1,9 +1,9 @@
 import {
     ChartRecordType,
     OwidGdocType,
-    SearchChartHit,
     SearchIndexName,
 } from "@ourworldindata/types"
+import { buildChartsFacetFilters } from "@ourworldindata/utils"
 import {
     AlgoliaConfig,
     createSearchClient,
@@ -11,20 +11,17 @@ import {
 } from "../search/algoliaClient.js"
 import { ChartHitWithoutId, PageHitWithoutId, RankedHits } from "./aiSearch.js"
 
+// The fields of AiSearchChartCandidate and PageHitWithoutId
 const CHART_ATTRIBUTES = [
     "title",
-    "containerTitle",
     "slug",
     "type",
     "queryParams",
     "variantName",
-    "titleVariant",
     "subtitle",
     "availableTabs",
     "keyChartForTags",
     "numRelatedArticles",
-    "explorerType",
-    "chartConfigId",
 ]
 
 const PAGE_ATTRIBUTES = [
@@ -44,33 +41,10 @@ const PAGE_TYPES = [
     OwidGdocType.DataInsight,
 ]
 
-type ChartRecordHit = SearchChartHit & {
-    keyChartForTags?: string[]
-    numRelatedArticles?: number
-}
-
-function toChartHit(hit: ChartRecordHit): ChartHitWithoutId {
-    const {
-        __position: _position,
-        _highlightResult,
-        _snippetResult,
-        ...rest
-    } = hit
-    // availableEntities isn't retrieved: the prompt doesn't use it and it's
-    // the bulk of a record.
-    return { ...rest, availableEntities: [] }
-}
-
-function toPageHit(hit: Record<string, unknown>): PageHitWithoutId {
-    return {
-        title: String(hit.title),
-        slug: String(hit.slug),
-        type: hit.type as OwidGdocType,
-        thumbnailUrl: hit.thumbnailUrl as string | undefined,
-        authors: hit.authors as string[] | undefined,
-        date: hit.date as string | undefined,
-        excerpt: hit.excerpt as string | undefined,
-    }
+/** A hit without the attributes Algolia adds to every hit. */
+function withoutAlgoliaAttributes<T>(hit: Record<string, unknown>): T {
+    const { objectID: _id, _highlightResult, _snippetResult, ...rest } = hit
+    return rest as T
 }
 
 /**
@@ -101,9 +75,11 @@ export async function searchKeywords(
                 attributesToHighlight: [],
                 attributesToSnippet: [],
                 hitsPerPage: Math.ceil(charts * share),
-                // Income-group-specific featured metrics duplicate their
-                // parent chart in a plain search.
-                facetFilters: ["isIncomeGroupSpecificFM:false"],
+                facetFilters: buildChartsFacetFilters({
+                    query,
+                    filters: [],
+                    requireAllCountries: false,
+                }),
             },
             {
                 indexName: pagesIndex,
@@ -123,8 +99,10 @@ export async function searchKeywords(
 
     return queries.map((_, i) => ({
         charts: (results[2 * i]?.hits ?? [])
-            .map((hit) => toChartHit(hit as unknown as ChartRecordHit))
+            .map((hit) => withoutAlgoliaAttributes<ChartHitWithoutId>(hit))
             .filter((hit) => Object.values(ChartRecordType).includes(hit.type)),
-        pages: (results[2 * i + 1]?.hits ?? []).map(toPageHit),
+        pages: (results[2 * i + 1]?.hits ?? []).map((hit) =>
+            withoutAlgoliaAttributes<PageHitWithoutId>(hit)
+        ),
     }))
 }
