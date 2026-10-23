@@ -45,22 +45,14 @@ import {
  *   Topics and Mailchimp-owned OWID Brief controls
  * - expired token: offers to email a new link
  */
-export const EmailNotificationsPreferencesForm = ({
-    topicAreaNames,
-}: {
-    topicAreaNames: string[]
-}) => {
+export const EmailNotificationsPreferencesForm = () => {
     const [token] = useState(
         () => window.location.hash.match(/token=([^&]+)/)?.[1] ?? null
     )
 
     return (
         <SiteQueryClientProvider>
-            {token ? (
-                <TokenScreen token={token} topicAreaNames={topicAreaNames} />
-            ) : (
-                <EnterEmailScreen />
-            )}
+            {token ? <TokenScreen token={token} /> : <EnterEmailScreen />}
         </SiteQueryClientProvider>
     )
 }
@@ -233,13 +225,7 @@ type TokenScreenResult =
     | { state: "unsubscribed" }
     | { state: "expired" }
 
-const TokenScreen = ({
-    token,
-    topicAreaNames,
-}: {
-    token: string
-    topicAreaNames: string[]
-}) => {
+const TokenScreen = ({ token }: { token: string }) => {
     const [result, setResult] = useState<TokenScreenResult | null>(null)
     const lookup = useQuery({
         queryKey: ["email-notifications-preferences", token],
@@ -305,7 +291,6 @@ const TokenScreen = ({
         .with({ state: "valid" }, (data) => (
             <PreferencesEditor
                 token={token}
-                topicAreaNames={topicAreaNames}
                 email={data.email}
                 initialPreferences={data.preferences}
                 initialSubscribedToTopicNotifications={
@@ -320,7 +305,6 @@ const TokenScreen = ({
 
 const PreferencesEditor = ({
     token,
-    topicAreaNames,
     email,
     initialPreferences,
     initialSubscribedToTopicNotifications,
@@ -328,7 +312,6 @@ const PreferencesEditor = ({
     onDone,
 }: {
     token: string
-    topicAreaNames: string[]
     email: string
     initialPreferences: EmailNotificationsPreferences | null
     initialSubscribedToTopicNotifications: boolean
@@ -336,10 +319,7 @@ const PreferencesEditor = ({
     initialSubscribedToOwidBrief: boolean | null
     onDone: (result: TokenScreenResult) => void
 }) => {
-    const preferences = useNotificationPreferences(
-        topicAreaNames,
-        initialPreferences
-    )
+    const preferences = useNotificationPreferences(initialPreferences)
     const [subscribedToTopicNotifications, setSubscribedToTopicNotifications] =
         useState(initialSubscribedToTopicNotifications)
     const [subscribedToOwidBrief, setSubscribedToOwidBrief] = useState(
