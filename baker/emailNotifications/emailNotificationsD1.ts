@@ -140,6 +140,30 @@ export function createRemoteD1Client(): D1Client {
 }
 
 /**
+ * The remote database's size in bytes, via the Cloudflare HTTP API.
+ * https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/get/
+ */
+export async function fetchRemoteD1DatabaseSize(): Promise<number> {
+    const response = await fetch(
+        `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database/${EMAIL_NOTIFICATIONS_D1_DATABASE_ID}`,
+        {
+            headers: {
+                Authorization: `Bearer ${EMAIL_NOTIFICATIONS_CLOUDFLARE_API_TOKEN}`,
+            },
+        }
+    )
+    const data = (await response.json().catch(() => undefined)) as
+        | { success: boolean; result: { file_size: number } }
+        | undefined
+    if (!response.ok || !data?.success) {
+        throw new Error(
+            `Fetching the D1 database size failed (${response.status})`
+        )
+    }
+    return data.result.file_size
+}
+
+/**
  * Query the local D1 database by shelling out to wrangler, for testing the
  * send job against the same local database that `wrangler pages dev` uses.
  * Wrangler's CLI can't bind parameters, so they are inlined with basic
