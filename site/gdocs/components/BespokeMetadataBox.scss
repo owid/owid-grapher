@@ -45,6 +45,13 @@
 }
 
 .bespoke-metadata-box
+    .metadata-box-key-data
+    + .metadata-box-expander
+    .metadata-box-expander__preview {
+    margin-top: 16px;
+}
+
+.bespoke-metadata-box
     .metadata-box-expander__details
     .metadata-box-expander__summary {
     align-self: stretch;
