@@ -31,14 +31,14 @@ function publicUrlForCurrentPage(): string {
     return `${PROD_URL}${pathname}${search}${hash}`
 }
 
-/** Sentry's feedback form, loaded from Sentry's CDN on first use */
-async function loadFeedback(): Promise<ReturnType<typeof Sentry.getFeedback>> {
+/**
+ * Sentry's feedback form, added on first use. It's bundled rather than lazy-loaded
+ * from Sentry's CDN, which ad blockers block even when they let replays through.
+ */
+function loadFeedback(): ReturnType<typeof Sentry.getFeedback> {
     if (Sentry.getFeedback() || !Sentry.getClient()) return Sentry.getFeedback()
-    const feedbackIntegration = await Sentry.lazyLoadIntegration(
-        "feedbackIntegration"
-    )
     Sentry.addIntegration(
-        feedbackIntegration({
+        Sentry.feedbackIntegration({
             autoInject: false,
             colorScheme: "light",
             showBranding: false,
@@ -56,7 +56,7 @@ async function loadFeedback(): Promise<ReturnType<typeof Sentry.getFeedback>> {
 /** The feedback arrives in Sentry with the session's replay and the features on the page */
 async function openFeedbackForm(featuresOnPage: number[]): Promise<void> {
     try {
-        const feedback = await loadFeedback()
+        const feedback = loadFeedback()
         if (!feedback) throw new Error("Sentry isn't loaded")
         const form = await feedback.createForm({
             tags: {
