@@ -192,9 +192,10 @@ export function toPlacedSwimlaneSeries({
             })
         )
 
-        const { labelY } = computeCenteredLabelYPositions({
+        const { labelY, annotationY } = computeCenteredLabelYPositions({
             y,
             label: sizedSeries.label,
+            annotation: sizedSeries.annotationTextWrap,
         })
 
         return {
@@ -202,6 +203,10 @@ export function toPlacedSwimlaneSeries({
             y,
             height: heightPerSeries,
             labelPosition: { x: labelX, yOffset: labelY - y },
+            annotationPosition:
+                annotationY !== undefined
+                    ? { x: labelX, yOffset: annotationY - y }
+                    : undefined,
             placedSegments,
         }
     })

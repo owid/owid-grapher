@@ -24,6 +24,12 @@ export class SwimlaneChartTooltip extends React.Component<SwimlaneChartTooltipPr
         return this.props.tooltipState.target ?? undefined
     }
 
+    private get annotation(): string | undefined {
+        return this.chartState.series.find(
+            (series) => series.entityName === this.target?.entityName
+        )?.annotation
+    }
+
     private get formattedDuration(): string | undefined {
         const segment = this.target?.segment
         const { timeColumn } = this.chartState
@@ -51,6 +57,7 @@ export class SwimlaneChartTooltip extends React.Component<SwimlaneChartTooltipPr
                 offsetX={20}
                 offsetY={-16}
                 title={target.entityName}
+                titleAnnotation={this.annotation}
                 subtitle={target.segment.timeRangeLabel}
                 dissolve={fading}
                 dismiss={this.props.dismissTooltip}
