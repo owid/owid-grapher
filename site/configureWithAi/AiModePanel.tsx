@@ -532,7 +532,9 @@ function PagesSummary({
                 type="button"
                 onClick={() => store.setOverlay(true)}
             >
-                Show the {request.pages.length} pages
+                {request.pages.length === 1
+                    ? "Show the page"
+                    : `Show the ${request.pages.length} pages`}
             </button>
         </div>
     )

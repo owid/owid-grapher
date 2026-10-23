@@ -119,10 +119,12 @@ export async function callClaude(
         const calls = body.content.filter((block) => block.type === "tool_use")
         if (body.stop_reason !== "tool_use" || !calls.length) {
             // After searching, the model sometimes ends its turn without
-            // writing the reply; ask for it once
-            const isEmptyAfterSearch =
-                round > 0 && body.stop_reason === "end_turn" && !result.text
-            if (!isEmptyAfterSearch || hasAskedForReply) return result
+            // writing the reply, or with only a remark; ask for it once
+            const isNoReplyAfterSearch =
+                round > 0 &&
+                body.stop_reason === "end_turn" &&
+                !result.text.includes("{")
+            if (!isNoReplyAfterSearch || hasAskedForReply) return result
             hasAskedForReply = true
             if (body.content.length)
                 messages.push({ role: "assistant", content: body.content })
