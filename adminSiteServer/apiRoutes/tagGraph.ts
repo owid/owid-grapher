@@ -3,6 +3,7 @@ import * as db from "../../db/db.js"
 import * as R from "remeda"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
+import { TOPIC_AREA_CHANGE_MESSAGE } from "./tags.js"
 
 export async function handleGetFlatTagGraph(
     req: Request,
@@ -64,6 +65,19 @@ export async function handlePostTagGraph(
     if (!isValid) {
         throw new JsonError("Invalid tag graph provided", 400)
     }
+
+    // Reordering areas is fine; adding or removing one is not.
+    const { rootId, areaTagIds } = await db.getTopicAreaTagIds(trx)
+    const newAreaTagIds = new Set(
+        (tagGraph[rootId] ?? []).map(({ childId }) => childId)
+    )
+    if (newAreaTagIds.symmetricDifference(areaTagIds).size > 0) {
+        throw new JsonError(
+            `This change adds or removes a top-level topic area. ${TOPIC_AREA_CHANGE_MESSAGE}`,
+            400
+        )
+    }
+
     await db.updateTagGraph(trx, tagGraph)
     return { success: true }
 }

@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
+import { flushSync } from "react-dom"
 import {
     EMAIL_NOTIFICATIONS_CONTENT_TYPES,
     EmailNotificationsContentType,
@@ -13,6 +14,7 @@ import {
     topicTagsForStorage,
     topicTagsFromStorage,
 } from "./emailNotificationsValidation.js"
+import { scrollAlertIntoView } from "./scrollAlertIntoView.js"
 
 /**
  * Announcements are opt-in: they are topic-independent news about Our World in
@@ -34,10 +36,13 @@ function toggleInArray<T>(items: T[], item: T): T[] {
 interface NotificationPreferencesState {
     /** Spread onto <EmailNotificationsPreferenceFields>. */
     fieldsProps: EmailNotificationsPreferenceFieldsProps
-    setTopicTags: (topicTags: string[]) => void
+    setTopicTags: (topicTags: TopicAreaName[]) => void
     /** The shape the API stores, with "all topics" collapsed to []. */
     forStorage: () => EmailNotificationsPreferences
-    /** Records per-field errors and returns whether the selection is valid. */
+    /**
+     * Records per-field errors, scrolls the first one into view and returns
+     * whether the selection is valid.
+     */
     validate: () => boolean
     resetValidation: () => void
 }
@@ -49,14 +54,13 @@ interface NotificationPreferencesState {
  * the stored preferences to prefill from.
  */
 export function useNotificationPreferences(
-    topicAreaNames: string[],
     initialPreferences?: EmailNotificationsPreferences | null
 ): NotificationPreferencesState {
     // New subscribers pick their topics; stored preferences present the
     // empty-means-all-topics shape with every pill selected.
-    const [topicTags, setTopicTags] = useState<string[]>(() =>
+    const [topicTags, setTopicTags] = useState<TopicAreaName[]>(() =>
         initialPreferences
-            ? topicTagsFromStorage(initialPreferences.topicTags, topicAreaNames)
+            ? topicTagsFromStorage(initialPreferences.topicTags)
             : []
     )
     const [contentTypes, setContentTypes] = useState<
@@ -67,10 +71,12 @@ export function useNotificationPreferences(
     )
     const [validationErrors, setValidationErrors] =
         useState<PreferencesValidationErrors | null>(null)
+    // The submit button sits below the fieldsets, so a failed submit may
+    // leave the error off-screen.
+    const firstAlertRef = useRef<HTMLDivElement>(null)
 
     return {
         fieldsProps: {
-            topicAreaNames,
             topicTags,
             contentTypes,
             frequency,
@@ -82,15 +88,11 @@ export function useNotificationPreferences(
                 ),
             onSetFrequency: setFrequency,
             validationErrors,
+            firstAlertRef,
         },
         setTopicTags,
         forStorage: () => ({
-            // The form only ever toggles names from topicAreaNames, which is
-            // TOPIC_AREA_NAMES at both call sites.
-            topicTags: topicTagsForStorage(
-                topicTags,
-                topicAreaNames
-            ) as TopicAreaName[],
+            topicTags: topicTagsForStorage(topicTags),
             contentTypes,
             frequency,
         }),
@@ -99,7 +101,8 @@ export function useNotificationPreferences(
                 topicTags,
                 contentTypes
             )
-            setValidationErrors(errors)
+            flushSync(() => setValidationErrors(errors))
+            if (errors) scrollAlertIntoView(firstAlertRef.current)
             return !errors
         },
         resetValidation: () => setValidationErrors(null),

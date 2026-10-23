@@ -42,13 +42,23 @@
     }
 }
 
-.newsletter-preference-fields__header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
+// The legend and the select-all button share a row. A floated legend isn't
+// rendered as the fieldset's caption, so it can take part in the grid; the
+// pills and the alert span the full width below.
+.newsletter-preference-fields__topics {
+    display: grid;
+    grid-template-columns: 1fr auto;
     align-items: center;
+    column-gap: 16px;
+
     legend {
-        margin-bottom: 0;
+        float: left;
+        margin-bottom: 8px;
+    }
+
+    .newsletter-preference-fields__pills,
+    .newsletter-form__alert {
+        grid-column: 1 / -1;
     }
 }
 
@@ -57,6 +67,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    margin-bottom: 8px;
     padding: 4px 0;
     border: none;
     background: none;
