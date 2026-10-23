@@ -22,8 +22,6 @@ export interface BespokeMetadataKeyDataRow {
 export function getBespokeKeyDataRows(
     metadata: BespokeMetadata
 ): BespokeMetadataKeyDataRow[] {
-    if (!metadata.title) return []
-
     const attributions = getAttributionFragmentsFromBespokeMetadata(metadata)
 
     const lastUpdated = getLastUpdatedFromVariable(metadata)
