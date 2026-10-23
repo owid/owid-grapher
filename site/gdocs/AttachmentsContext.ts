@@ -2,6 +2,7 @@ import { createContext } from "react"
 import {
     LinkedAuthor,
     LinkedCallouts,
+    LinkedRankings,
     LinkedChart,
     LinkedIndicator,
     OwidGdocMinimalPostInterface,
@@ -33,6 +34,7 @@ export type Attachments = {
     linkedStaticViz?: Record<string, LinkedStaticViz>
     tags: MinimalTag[]
     linkedCallouts?: LinkedCallouts
+    linkedRankings?: LinkedRankings
     bespokeMetadata?: BespokeMetadata
 }
 
@@ -51,4 +53,5 @@ export const AttachmentsContext = createContext<Attachments>({
     linkedStaticViz: {},
     tags: [],
     linkedCallouts: {},
+    linkedRankings: {},
 })

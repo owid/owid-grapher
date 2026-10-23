@@ -3,6 +3,7 @@ import {
     EnrichedBlockKeyIndicator,
     gdocUrlRegex,
     LinkedCallouts,
+    LinkedRankings,
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
     SpanCallout,
 } from "@ourworldindata/types"
@@ -16,6 +17,7 @@ import {
     excludeNullish,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
+import { rankingBlockToText } from "./rankingBlockText.js"
 
 /**
  * Options for markdown conversion functions.
@@ -25,6 +27,11 @@ export interface MarkdownConversionOptions {
     linkedCallouts?: LinkedCallouts
     /** URL of the current data-callout block (set when inside a data-callout) */
     currentDataCalloutUrl?: string
+    /**
+     * Rankings for ranking-cards, peer-ranking and peer-comparison blocks.
+     * Without them, these blocks are dropped from the markdown.
+     */
+    linkedRankings?: LinkedRankings
 }
 
 /**
@@ -381,7 +388,9 @@ ${items}
             b.items.map((item) => `${item.goal}: ${item.link}`).join("\n")
         )
         .with(
-            { type: P.union("side-by-side", "sticky-left", "sticky-right") },
+            {
+                type: P.union("side-by-side", "sticky-left", "sticky-right"),
+            },
             (b): string | undefined => {
                 const nonNullishLeft = excludeNullish(
                     b.left.map((item) =>
@@ -615,6 +624,25 @@ ${links}`
         .with(
             { type: "bespoke-component" },
             (_): string | undefined => undefined
+        )
+        .with(
+            {
+                type: P.union(
+                    "ranking-cards",
+                    "peer-ranking",
+                    "peer-comparison"
+                ),
+            },
+            (b): string | undefined => {
+                if (!options?.linkedRankings) return undefined
+                const text = rankingBlockToText(b, options.linkedRankings)
+                if (!text) return undefined
+                return _.compact([
+                    text.heading ? `### ${text.heading}` : undefined,
+                    text.subheading,
+                    text.lines.map((line) => `* ${line}`).join("\n"),
+                ]).join("\n\n")
+            }
         )
         .with({ type: "chart-rows" }, (b): string | undefined => {
             const header = _.compact([

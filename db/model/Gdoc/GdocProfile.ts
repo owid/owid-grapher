@@ -17,8 +17,10 @@ import {
 } from "@ourworldindata/utils"
 import * as db from "../../db.js"
 import { GdocBase } from "./GdocBase.js"
-import { loadAndClearLinkedCallouts } from "./dataCallouts.js"
-import type { PreparedCalloutTable } from "@ourworldindata/grapher"
+import {
+    loadAndClearLinkedCallouts,
+    type LoadLinkedCalloutsOptions,
+} from "./dataCallouts.js"
 
 const GENERIC_PROFILE_SCOPES = new Set<OwidGdocProfileScope>([
     "countries",
@@ -136,29 +138,32 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
     }
 }
 
+/** A profile instantiated for one entity, with its data attachments loaded */
+export type InstantiatedProfile = OwidGdocProfileInterface &
+    Required<
+        Pick<OwidGdocProfileInterface, "linkedCallouts" | "linkedRankings">
+    >
+
 /**
  * Renders a profile template for a specific entity by replacing template tokens
  * with entity-specific values.
  *
- * For bulk baking (SiteBaker), pass preparedTables to use pre-fetched chart data.
+ * For bulk baking (SiteBaker), pass preparedTables to use pre-fetched chart data,
+ * and a rankingCache (one per template) so that rankings, which don't depend
+ * on the entity, are only computed once.
  */
 export async function instantiateProfileForEntity(
     profileTemplate: GdocProfile,
     entity: ProfileEntity,
-    options?: {
-        knex?: db.KnexReadonlyTransaction
-        preparedTables?: Map<string, PreparedCalloutTable>
-    }
-): Promise<OwidGdocProfileInterface> {
+    options?: LoadLinkedCalloutsOptions
+): Promise<InstantiatedProfile> {
     const instantiatedContent = instantiateProfile(
         profileTemplate.content,
         entity
     )
 
-    const { content, linkedCallouts } = await loadAndClearLinkedCallouts(
-        instantiatedContent,
-        options
-    )
+    const { content, linkedCallouts, linkedRankings } =
+        await loadAndClearLinkedCallouts(instantiatedContent, options)
 
     if (content["sidebar-toc"]) {
         content.toc = generateToc(content.body, true)
@@ -168,6 +173,7 @@ export async function instantiateProfileForEntity(
         ...profileTemplate,
         content,
         linkedCallouts,
+        linkedRankings,
         slug: getSlugForProfileEntity(profileTemplate, entity),
     }
 }

@@ -29,7 +29,8 @@ url: https://ourworldindata.org/grapher/population?country=$entityCode
   to a search page with a country filter applied.
 - `$entityCode`: the entity's code — "AUS", "GBR" for countries, an
   `OWID_`-prefixed code for continents. Use it in chart query params, e.g.
-  `country=$entityCode`.
+  `country=$entityCode` — including the `url` of data callouts and ranking
+  blocks, which must select exactly one country.
 
 `$entityName`, `$EntityName` and `$noArticleEntityName` each also have a
 possessive form, written with an apostrophe-s the way Google Docs types it
@@ -49,8 +50,10 @@ they happen to be registered variant names, e.g. `USA`.
 
 A profile built around `{.data-callout}` blocks may end up with some,
 all, or none of them renderable for a given entity, depending on data
-availability — see `{guide:data-callout-functions}`. Say a profile has
-ten callouts:
+availability — see `{guide:data-callout-functions}`. The ranking blocks
+`{.ranking-cards}`, `{.peer-ranking}` and `{.peer-comparison}` count the
+same way: each hides when it has no data for the entity (and for any
+entity that isn't a country). Say a profile has ten callouts:
 
 - All ten render for the UK — the page bakes, every section shows.
 - Four of the ten render for Somalia — the page bakes, the other six

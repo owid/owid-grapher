@@ -1721,6 +1721,141 @@
       "valueProps": []
     },
     {
+      "id": "peer-comparison",
+      "title": "Peer Comparison",
+      "typeName": "EnrichedBlockPeerComparison",
+      "category": "Charts & data",
+      "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Rankings.ts",
+      "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/PeerComparison.md",
+      "prose": {
+        "intro": "Compares a country with its peers across several indicators. Each\nindicator gets a strip with one dot per country in the selected peer\ngroup, a mark for the group's population-weighted average and the selected country highlighted,\nnext to the country's value. A toggle switches between the peer groups.\n\n```archie\n{.peer-comparison}\ntitle: How Germany compares\ngroups: Europe, European Union (27), World\n[.indicators]\nurl: https://ourworldindata.org/grapher/life-expectancy?country=DEU\nurl: https://ourworldindata.org/grapher/gdp-per-capita-worldbank?country=DEU\ntitle: GDP per capita\n[]\n{}\n```",
+        "whenToUse": "- A `{template:profile}` section showing at a glance whether the country\n  sits above or below its peers on several related indicators.",
+        "whenNotToUse": "- For one indicator where the reader should see which countries rank\n  above and below — use `{.peer-ranking}`.\n- For ranks among all countries — use `{.ranking-cards}`.",
+        "notes": "`Neighbours` is the country and the countries it shares a land border\nwith; countries without land neighbours (e.g. islands) skip it silently. An indicator without data for the country is hidden,\nand the block is hidden when none has data."
+      },
+      "examples": [
+        {
+          "archie": "{.peer-comparison}\ntitle: How Germany compares\ngroups: Europe, European Union (27), World\n[.indicators]\nurl: https://ourworldindata.org/grapher/life-expectancy?country=DEU\nurl: https://ourworldindata.org/grapher/gdp-per-capita-worldbank?country=DEU\ntitle: GDP per capita\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
+        }
+      ],
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "optional": true,
+          "description": "The heading above the strips. Omitted, no heading is shown."
+        },
+        {
+          "name": "groups",
+          "type": "string[]",
+          "optional": false,
+          "description": "The peer groups to toggle between, comma-separated, in display order — `World` (or `All countries`), `Neighbours`, or the name of a region with member countries, e.g. `Europe`; an unknown name drops the block. Groups the country isn't part of are skipped. Omitted, the country's neighbours (where available), its continent, its income group, the EU if it's a member, and the World."
+        },
+        {
+          "name": "indicators",
+          "type": "EnrichedPeerComparisonIndicator[]",
+          "optional": false,
+          "description": "The indicators, authored as an `[.indicators]` … `[]` section, each entry starting with `url:` — a Grapher or explorer URL that selects exactly one country via the `country` query parameter, e.g. `?country=$entityCode` in a profile. Optional per indicator: `title` (replaces the indicator's name) and `column` (the short name of the y-indicator, for charts with several; omitted, the first one). At least one indicator is required; an invalid one drops the block."
+        }
+      ],
+      "valueProps": [],
+      "related": [
+        {
+          "kind": "template",
+          "id": "profile"
+        },
+        {
+          "kind": "component",
+          "id": "peer-ranking"
+        },
+        {
+          "kind": "component",
+          "id": "ranking-cards"
+        }
+      ]
+    },
+    {
+      "id": "peer-ranking",
+      "title": "Peer Ranking",
+      "typeName": "EnrichedBlockPeerRanking",
+      "category": "Charts & data",
+      "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Rankings.ts",
+      "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/PeerRanking.md",
+      "prose": {
+        "intro": "A ranked list of one indicator across a country's peer groups: where the\ncountry ranks among, say, its neighbours, Europe and the World, with a\ntoggle to switch between the groups. Each row shows a country's value as a\ndot on a shared axis, with the selected country highlighted and the group\nmedian marked.\n\n```archie\n{.peer-ranking}\nurl: https://ourworldindata.org/grapher/life-expectancy?country=DEU\ngroups: Neighbours, Europe, High-income countries, World\n{}\n```",
+        "whenToUse": "- A section of a `{template:profile}` that dives into one key indicator\n  and should show how the country compares with similar countries.\n- When the reader should see the countries above and below the country,\n  not just its rank.",
+        "whenNotToUse": "- To compare several indicators at once — use `{.peer-comparison}`.\n- For a quick overview of ranks among all countries — use\n  `{.ranking-cards}`.",
+        "notes": "`Neighbours` is the country and the countries it shares a land border\nwith, e.g. Germany and its nine neighbours. Countries without land\nneighbours (e.g. Japan or Iceland) silently skip the group, so it is\nsafe to list in a profile template.\n\nThe block is hidden when the chart has no data for the country."
+      },
+      "examples": [
+        {
+          "archie": "{.peer-ranking}\nurl: https://ourworldindata.org/grapher/life-expectancy?country=DEU\ngroups: Neighbours, Europe, High-income countries, World\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
+        }
+      ],
+      "props": [
+        {
+          "name": "url",
+          "type": "string",
+          "optional": false,
+          "description": "The chart to rank by — a Grapher or explorer URL that selects exactly one country via the `country` query parameter, e.g. `?country=$entityCode` in a profile. Add `time` to rank at a specific year instead of the latest. Required; without it, or with zero or several countries, the block is dropped."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "optional": true,
+          "description": "The heading above the ranking. Omitted, the indicator's name."
+        },
+        {
+          "name": "groups",
+          "type": "string[]",
+          "optional": false,
+          "description": "The peer groups to toggle between, comma-separated, in display order. Each must be `World` (or `All countries`), `Neighbours`, or the name of a region with member countries, e.g. `Europe`, `High-income countries` or `European Union (27)`; an unknown name drops the block. Groups the country isn't part of are skipped. Omitted, the country's neighbours (where available), its continent, its income group, the EU if it's a member, and the World."
+        },
+        {
+          "name": "sort",
+          "type": "\"highest\" | \"lowest\"",
+          "optional": false,
+          "description": "`highest` (the default) ranks the highest value 1st; `lowest` ranks the lowest value 1st, for indicators where lower is better."
+        },
+        {
+          "name": "tolerance",
+          "type": "number",
+          "optional": true,
+          "description": "How many years older than the ranking time a country's data may be and still be ranked, as a whole number (0 or more). Omitted, the indicator's own tolerance."
+        },
+        {
+          "name": "column",
+          "type": "string",
+          "optional": true,
+          "description": "The short name of the y-indicator to rank, for charts with several — the same name the `{guide:data-callout-functions}` take. Omitted, the first one."
+        }
+      ],
+      "valueProps": [
+        "sort",
+        "tolerance"
+      ],
+      "related": [
+        {
+          "kind": "template",
+          "id": "profile"
+        },
+        {
+          "kind": "component",
+          "id": "peer-comparison"
+        },
+        {
+          "kind": "component",
+          "id": "ranking-cards"
+        }
+      ]
+    },
+    {
       "id": "people",
       "title": "People",
       "typeName": "EnrichedBlockPeople",
@@ -2084,6 +2219,86 @@
         {
           "kind": "component",
           "id": "blockquote"
+        }
+      ]
+    },
+    {
+      "id": "ranking-cards",
+      "title": "Ranking Cards",
+      "typeName": "EnrichedBlockRankingCards",
+      "category": "Charts & data",
+      "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Rankings.ts",
+      "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/RankingCards.md",
+      "prose": {
+        "intro": "A grid of cards that shows where a country ranks among all countries on\nseveral indicators. Each card shows the indicator, the country's latest\nvalue, its rank (e.g. \"30th of 229\"), a bar placing the value between the\nlowest and highest country, and how many places it moved since an earlier\nyear. Each card links to its chart.\n\n```archie\n{.ranking-cards}\ntitle: Germany at a glance\nchange-since: 10\n[.cards]\nurl: https://ourworldindata.org/grapher/life-expectancy?country=DEU\ntopic: Health\nurl: https://ourworldindata.org/grapher/child-mortality?country=DEU\ntopic: Health\nsort: lowest\nurl: https://ourworldindata.org/grapher/gdp-per-capita-worldbank?country=DEU\ntitle: GDP per capita\ntopic: Economy\n[]\n{}\n```",
+        "whenToUse": "- An \"at a glance\" overview near the top of a `{template:profile}`,\n  summarising where the country stands on a handful of key indicators.\n- When the rank among all countries matters more than the exact value.",
+        "whenNotToUse": "- To rank a country within a region or income group — use\n  `{.peer-ranking}` (one indicator, full ranked list) or\n  `{.peer-comparison}` (several indicators side by side).\n- To weave a single value into prose — use `{.data-callout}`.\n- For indicators where a rank isn't meaningful, e.g. totals that mostly\n  reflect population size.",
+        "notes": "Ranks are among all countries (up to 229) that have data at the ranking\ntime — the latest year any country has data for, or the end of the `time`\nrange in the `url` if it sets one. A country whose data is a year or two older\ncan still be ranked if the indicator allows for that (its tolerance).\n\nA card without data for the country is hidden; if no card has data, the\nwhole block is hidden. In a profile, a block that renders counts like a\nrendering `{.data-callout}` for whether the page is baked — see\n`{guide:profile-placeholders}`."
+      },
+      "examples": [
+        {
+          "archie": "{.ranking-cards}\ntitle: Germany at a glance\nchange-since: 10\n[.cards]\nurl: https://ourworldindata.org/grapher/life-expectancy?country=DEU\ntopic: Health\nurl: https://ourworldindata.org/grapher/child-mortality?country=DEU\ntopic: Health\nsort: lowest\nurl: https://ourworldindata.org/grapher/gdp-per-capita-worldbank?country=DEU\ntitle: GDP per capita\ntopic: Economy\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
+        }
+      ],
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "optional": true,
+          "description": "A heading above the grid. Omitted, no heading is shown."
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "optional": true,
+          "description": "A short line under the title. Omitted, none is shown."
+        },
+        {
+          "name": "sparklines",
+          "type": "boolean",
+          "optional": false,
+          "description": "`true` adds a small line chart to each card comparing the country with the World over time. Omitted or `false`, no sparklines."
+        },
+        {
+          "name": "changeSinceYears",
+          "type": "number",
+          "optional": false,
+          "description": "How many years back the \"Up/Down N places since YEAR\" line compares the rank with, authored as `change-since:` and a whole number of years (1 or more). Omitted, 10 years. Cards hide the line when there's no data that far back."
+        },
+        {
+          "name": "cards",
+          "type": "EnrichedRankingCard[]",
+          "optional": false,
+          "description": "The cards, authored as a `[.cards]` … `[]` section, each entry starting with `url:`. `url` is required: a Grapher or explorer URL that selects exactly one country via the `country` query parameter, e.g. `?country=$entityCode` in a profile. Optional per card: `title` (replaces the indicator's name), `topic` (a short label above the title, e.g. \"Health\", coloured by topic), `sort` (`highest`, the default, ranks the highest value 1st; `lowest` ranks the lowest value 1st, for indicators where lower is better) and `column` (the short name of the y-indicator to rank, for charts with several — the same name the `{guide:data-callout-functions}` take; omitted, the first one). At least one card is required; an invalid card drops the block."
+        }
+      ],
+      "valueProps": [
+        "changeSinceYears",
+        "sparklines"
+      ],
+      "related": [
+        {
+          "kind": "template",
+          "id": "profile"
+        },
+        {
+          "kind": "component",
+          "id": "peer-ranking"
+        },
+        {
+          "kind": "component",
+          "id": "peer-comparison"
+        },
+        {
+          "kind": "component",
+          "id": "data-callout"
+        },
+        {
+          "kind": "guide",
+          "id": "profile-placeholders"
         }
       ]
     },
@@ -2883,6 +3098,8 @@
     "EnrichedChartRowItem": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ChartRows.ts",
     "EnrichedChartStoryItem": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ChartStory.ts",
     "EnrichedHybridLink": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/generic.ts",
+    "EnrichedPeerComparisonIndicator": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Rankings.ts",
+    "EnrichedRankingCard": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Rankings.ts",
     "EnrichedSDGGridItem": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SDGGrid.ts",
     "EnrichedSocialLink": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Socials.ts",
     "EnrichedTopicPageIntroDownloadButton": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/TopicPageIntro.ts",

@@ -1,0 +1,61 @@
+.peer-group-toggle {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.peer-group-toggle__button {
+    @include body-3-medium;
+    font-weight: 600;
+    min-height: 44px;
+    padding: 0 16px;
+    color: $blue-90;
+    background-color: $white;
+    border: 1px solid $blue-20;
+    cursor: pointer;
+    transition:
+        background-color 150ms,
+        color 150ms;
+
+    &:hover {
+        background-color: $blue-5;
+    }
+
+    &[data-selected] {
+        color: $white;
+        background-color: $blue-100;
+        border-color: $blue-100;
+    }
+
+    &[data-focus-visible] {
+        outline: 2px solid $controls-color;
+        outline-offset: 2px;
+        position: relative;
+        z-index: 1;
+    }
+}
+
+// Segmented control: buttons share their borders
+.peer-group-toggle--segmented .peer-group-toggle__button {
+    margin: 0 -1px -1px 0;
+}
+
+.peer-group-toggle--segmented {
+    // compensate for the negative margins of the buttons
+    padding: 0 1px 1px 0;
+}
+
+.peer-group-toggle--pills {
+    gap: 8px;
+}
+
+.peer-group-toggle--pills .peer-group-toggle__button {
+    @include body-3-medium;
+    font-weight: 700;
+    min-height: 36px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+
+    @include sm-only {
+        min-height: 44px;
+    }
+}

@@ -21,3 +21,7 @@ In addition, the script regenerates [TopoJSON file](../../packages/@ourworldinda
 The `regions.data.ts` and `MapTopology.ts` files can be updated manually by running `yarn runRegionsUpdater` which triggers the `update.ts` script in `devTools/regionsUpdater` and prints out a diff if anything has changed. If, after looking over the changes, everything looks good-to-go you can commit the updated files and merge back into `master`.
 
 > Note: pay particular attention to changes in `slug` values for countries since this determines the URL of their country page. If a slug changes, be sure to add a redirect from the old value to the new one in WordPress.
+
+## Neighbours
+
+The updater also regenerates [`neighbours.data.ts`](../../packages/@ourworldindata/utils/src/regions/neighbours.data.ts), the land neighbours of every entity (used for the "Neighbours" peer group in country profile rankings). Neighbours are derived from the borders shared in `MapTopology.ts`, plus a short list of manual overrides in [`generateNeighbours.ts`](./generateNeighbours.ts) for entities that aren't on the map (e.g. Vatican, Hong Kong) and borders lost in the map's simplification (e.g. Norway–Russia). Run `yarn buildNeighboursData` to regenerate only this file.

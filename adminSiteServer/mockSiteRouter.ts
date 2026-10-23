@@ -621,7 +621,12 @@ getPlainRouteWithROTransaction(
                 { knex: trx }
             )
 
-            if (!checkShouldProfileRender(instantiatedProfile.content)) {
+            if (
+                !checkShouldProfileRender(
+                    instantiatedProfile.content,
+                    instantiatedProfile.linkedRankings
+                )
+            ) {
                 return res.status(404).send(renderNotFoundPage())
             }
 

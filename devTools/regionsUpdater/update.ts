@@ -12,6 +12,7 @@ import oxfmtConfig from "../../.oxfmtrc.json"
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import { parseRegionNameSuffix } from "@ourworldindata/utils"
+import { generateNeighboursData } from "./generateNeighbours.js"
 
 // This is the number of decimal places to round lat/long coordinates to when generating the MapTopology.ts file.
 // at n=2 that's ~1.1km at the equator, more than enough for a world map
@@ -365,6 +366,14 @@ async function main() {
     if (await didChange(GRAPHER_TOPOLOGY_PATH, newTopology)) {
         await writeFile(GRAPHER_TOPOLOGY_PATH, newTopology)
     }
+
+    // derive land neighbours from the (new) topology
+    await generateNeighboursData(
+        entities.map(({ code, name }) => ({
+            code: String(code),
+            name: String(name),
+        }))
+    )
 
     // generate new regions.data.ts file and compare to old version
     const regionsTs = await prettifiedTs(

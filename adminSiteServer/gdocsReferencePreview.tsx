@@ -500,7 +500,12 @@ export async function renderGdocsReferenceDocumentPreview(
                 knex,
             }
         )
-        if (!checkShouldProfileRender(instantiated.content))
+        if (
+            !checkShouldProfileRender(
+                instantiated.content,
+                instantiated.linkedRankings
+            )
+        )
             throw new JsonError(
                 `Profile "${gdocId}" has no renderable content for "${entityParam}"`,
                 404

@@ -7,7 +7,7 @@ This note complements the Google Docs CMS pipeline overview by mapping the serve
 `GdocBase` (`db/model/Gdoc/GdocBase.ts`) implements the shared life cycle for every Google Doc type:
 
 - Fetches the document from the Google Docs API (`fetchAndEnrichGdoc`), records the `revisionId`, and converts the document to enriched JSON (`gdocToArchie` → `archieToEnriched`).
-- Provides shared state: `content`, `linkedCharts`, `linkedIndicators`, `linkedDocuments`, `imageMetadata`, `latestDataInsights`, `errors`, etc.
+- Provides shared state: `content`, `linkedCharts`, `linkedIndicators`, `linkedDocuments`, `imageMetadata`, `linkedCallouts`, `linkedRankings`, `latestDataInsights`, `errors`, etc.
 - Coordinates attachment loading (`loadLinkedCharts`, `loadLinkedIndicators`, `loadLinkedDocuments`, `loadImageMetadataFromDB`, `loadNarrativeChartsInfo`).
 - Enforces cross-cutting validation (`validate`) including whitespace checks, linked author verification, image metadata completeness, and link integrity.
 - Offers hook methods that subclasses override:
@@ -52,6 +52,11 @@ This note complements the Google Docs CMS pipeline overview by mapping the serve
 - Normalises HTML summary fields (bio) into enriched text, parses socials (`parseSocials`), and exposes these blocks to the markdown/export pipeline.
 - Loads the author’s latest work (with fallback featured image) and associated image metadata.
 - Warns when bio or social information is missing.
+
+### `GdocProfile` (`db/model/Gdoc/GdocProfile.ts`)
+
+- A template (e.g. country profiles) instantiated once per entity in its `scope`: `instantiateProfileForEntity` substitutes `$entityName`/`$entityCode` tokens, then loads the per-entity data attachments (`linkedCallouts`, `linkedRankings`) via `loadAndClearLinkedCallouts`. The template itself skips that step in `loadState`.
+- Bulk baking prepares chart tables once per template (`prepareCalloutTablesForProfile`) and shares a ranking cache across entities; pages for entities without visible data blocks are skipped (`checkShouldProfileRender`). See `gdocs-attachments.md`.
 
 ### `GdocAnnouncement` (`db/model/Gdoc/GdocAnnouncement.ts`)
 

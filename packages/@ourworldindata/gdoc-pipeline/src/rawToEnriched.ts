@@ -24,6 +24,15 @@ import {
     EnrichedBlockList,
     EnrichedBlockNumberedList,
     EnrichedBlockMissingData,
+    EnrichedBlockPeerComparison,
+    EnrichedPeerComparisonIndicator,
+    EnrichedRankingCard,
+    RankingSortOrder,
+    RawBlockPeerComparison,
+    RawBlockPeerRanking,
+    RawBlockRankingCards,
+    EnrichedBlockPeerRanking,
+    EnrichedBlockRankingCards,
     EnrichedBlockProminentLink,
     EnrichedBlockPullQuote,
     EnrichedBlockGuidedChart,
@@ -185,6 +194,7 @@ import {
     toAsciiQuotes,
     traverseEnrichedBlock,
     validateConditionalSectionLists,
+    checkIsPeerGroupName,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink, getLinkType } from "@ourworldindata/components"
 import {
@@ -193,6 +203,7 @@ import {
     parseAuthors,
     spansToSimpleString,
     transformCalloutTokensInBlock,
+    DEFAULT_RANKING_CHANGE_SINCE_YEARS,
 } from "./gdocUtils.js"
 import {
     htmlToEnrichedTextBlock,
@@ -288,6 +299,9 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "homepage-intro" }, parseHomepageIntro)
         .with({ type: "socials" }, parseSocials)
         .with({ type: "country-profile-selector" }, parseCountryProfileSelector)
+        .with({ type: "ranking-cards" }, parseRankingCards)
+        .with({ type: "peer-ranking" }, parsePeerRanking)
+        .with({ type: "peer-comparison" }, parsePeerComparison)
         .exhaustive()
 }
 
@@ -2104,6 +2118,270 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
     }
 }
 
+/**
+ * Validates a chart URL that selects exactly one country, as used by
+ * data-callout and the ranking blocks (e.g. `?country=$entityCode` in a
+ * profile template). `name` describes what the url belongs to in error
+ * messages, e.g. "data-callout block" or "ranking-cards card 2".
+ */
+function parseSingleCountryChartUrl(
+    rawUrl: string | undefined,
+    name: string
+): { url: string; error?: undefined } | { url?: undefined; error: ParseError } {
+    if (!rawUrl) return { error: { message: `Missing url for ${name}` } }
+
+    const url = Url.fromURL(extractUrl(rawUrl))
+    if (!url.isGrapher && !url.isExplorer) {
+        return {
+            error: {
+                message: `${name} url must be a grapher or explorer link`,
+            },
+        }
+    }
+
+    const countryValues =
+        url.queryParams["country"]?.split("~").filter(Boolean) ?? []
+    if (countryValues.length !== 1) {
+        return {
+            error: {
+                message: `${name} url must specify exactly one country using the 'country' query parameter`,
+            },
+        }
+    }
+
+    return { url: url.fullUrl }
+}
+
+/**
+ * Parses a comma-separated list of peer groups, e.g.
+ * "Neighbours, Europe, High-income countries, World". Some region names
+ * contain commas themselves (e.g. "Northern, Southern and Western Europe
+ * (ILO)"), so adjacent parts are joined greedily when the longer name is a
+ * known peer group. An empty or missing value means "use the default
+ * groups for the entity".
+ */
+function parsePeerGroups(
+    raw: string | undefined,
+    blockName: string
+): { groups: string[]; error?: undefined } | { error: ParseError } {
+    const parts = (raw ?? "")
+        .split(",")
+        .map((part) => part.trim())
+        .filter(Boolean)
+
+    const groups: string[] = []
+    let i = 0
+    while (i < parts.length) {
+        let end = parts.length
+        while (end > i && !checkIsPeerGroupName(parts.slice(i, end).join(", ")))
+            end--
+        if (end === i) {
+            return {
+                error: {
+                    message: `${blockName} has an unknown peer group "${parts[i]}". Use "World", "Neighbours" or the name of a region with member countries, e.g. "Europe" or "High-income countries"`,
+                },
+            }
+        }
+        groups.push(parts.slice(i, end).join(", "))
+        i = end
+    }
+
+    return { groups: _.uniq(groups) }
+}
+
+function parseRankingSortOrder(
+    raw: string | undefined,
+    name: string
+): { sort: RankingSortOrder; error?: undefined } | { error: ParseError } {
+    const value = raw?.trim().toLowerCase()
+    if (!value) return { sort: "highest" }
+    if (value === "highest" || value === "lowest") return { sort: value }
+    return {
+        error: {
+            message: `${name} sort must be "highest" or "lowest", but it's set to "${raw}"`,
+        },
+    }
+}
+
+function parseNonNegativeInteger(
+    raw: string | undefined,
+    min: number
+): number | undefined {
+    const value = raw?.trim()
+    if (!value || !/^\d+$/.test(value)) return undefined
+    const parsed = parseInt(value, 10)
+    return parsed >= min ? parsed : undefined
+}
+
+function parseOptionalString(raw: string | undefined): string | undefined {
+    return raw?.trim() || undefined
+}
+
+function parseRankingCards(
+    raw: RawBlockRankingCards
+): EnrichedBlockRankingCards {
+    const createError = (error: ParseError): EnrichedBlockRankingCards => ({
+        type: "ranking-cards",
+        sparklines: false,
+        changeSinceYears: DEFAULT_RANKING_CHANGE_SINCE_YEARS,
+        cards: [],
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value === "string")
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
+
+    const sparklinesValidation = validateRawBoolean("sparklines", raw.value)
+    if (!sparklinesValidation.isValid)
+        return createError({ message: sparklinesValidation.message })
+
+    let changeSinceYears = DEFAULT_RANKING_CHANGE_SINCE_YEARS
+    if (raw.value["change-since"] !== undefined) {
+        const parsed = parseNonNegativeInteger(raw.value["change-since"], 1)
+        if (parsed === undefined)
+            return createError({
+                message: `ranking-cards change-since must be a whole number of years (1 or more), but it's set to "${raw.value["change-since"]}"`,
+            })
+        changeSinceYears = parsed
+    }
+
+    const rawCards = raw.value.cards
+    if (!Array.isArray(rawCards) || rawCards.length === 0)
+        return createError({
+            message:
+                "ranking-cards must have at least one card in a [.cards] array",
+        })
+
+    const cards: EnrichedRankingCard[] = []
+    for (const [index, rawCard] of rawCards.entries()) {
+        const name = `ranking-cards card ${index + 1}`
+        if (!_.isPlainObject(rawCard))
+            return createError({
+                message: `${name} must be a set of properties (url, topic, …), not "${String(rawCard)}"`,
+            })
+        const parsedUrl = parseSingleCountryChartUrl(rawCard.url, name)
+        if (parsedUrl.error) return createError(parsedUrl.error)
+        const parsedSort = parseRankingSortOrder(rawCard.sort, name)
+        if (parsedSort.error) return createError(parsedSort.error)
+        cards.push({
+            url: parsedUrl.url,
+            title: parseOptionalString(rawCard.title),
+            topic: parseOptionalString(rawCard.topic),
+            sort: parsedSort.sort,
+            column: parseOptionalString(rawCard.column),
+        })
+    }
+
+    return {
+        type: "ranking-cards",
+        title: parseOptionalString(raw.value.title),
+        subtitle: parseOptionalString(raw.value.subtitle),
+        sparklines: raw.value.sparklines === "true",
+        changeSinceYears,
+        cards,
+        parseErrors: [],
+    }
+}
+
+function parsePeerRanking(raw: RawBlockPeerRanking): EnrichedBlockPeerRanking {
+    const createError = (error: ParseError): EnrichedBlockPeerRanking => ({
+        type: "peer-ranking",
+        url: "",
+        groups: [],
+        sort: "highest",
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value === "string")
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
+
+    const parsedUrl = parseSingleCountryChartUrl(
+        raw.value.url,
+        "peer-ranking block"
+    )
+    if (parsedUrl.error) return createError(parsedUrl.error)
+
+    const parsedGroups = parsePeerGroups(raw.value.groups, "peer-ranking")
+    if (parsedGroups.error) return createError(parsedGroups.error)
+
+    const parsedSort = parseRankingSortOrder(raw.value.sort, "peer-ranking")
+    if (parsedSort.error) return createError(parsedSort.error)
+
+    let tolerance: number | undefined
+    if (raw.value.tolerance !== undefined) {
+        tolerance = parseNonNegativeInteger(raw.value.tolerance, 0)
+        if (tolerance === undefined)
+            return createError({
+                message: `peer-ranking tolerance must be a whole number of years (0 or more), but it's set to "${raw.value.tolerance}"`,
+            })
+    }
+
+    return {
+        type: "peer-ranking",
+        url: parsedUrl.url,
+        title: parseOptionalString(raw.value.title),
+        groups: parsedGroups.groups,
+        sort: parsedSort.sort,
+        tolerance,
+        column: parseOptionalString(raw.value.column),
+        parseErrors: [],
+    }
+}
+
+function parsePeerComparison(
+    raw: RawBlockPeerComparison
+): EnrichedBlockPeerComparison {
+    const createError = (error: ParseError): EnrichedBlockPeerComparison => ({
+        type: "peer-comparison",
+        groups: [],
+        indicators: [],
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value === "string")
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
+
+    const parsedGroups = parsePeerGroups(raw.value.groups, "peer-comparison")
+    if (parsedGroups.error) return createError(parsedGroups.error)
+
+    const rawIndicators = raw.value.indicators
+    if (!Array.isArray(rawIndicators) || rawIndicators.length === 0)
+        return createError({
+            message:
+                "peer-comparison must have at least one indicator in an [.indicators] array",
+        })
+
+    const indicators: EnrichedPeerComparisonIndicator[] = []
+    for (const [index, rawIndicator] of rawIndicators.entries()) {
+        const name = `peer-comparison indicator ${index + 1}`
+        if (!_.isPlainObject(rawIndicator))
+            return createError({
+                message: `${name} must be a set of properties (url, title, …), not "${String(rawIndicator)}"`,
+            })
+        const parsedUrl = parseSingleCountryChartUrl(rawIndicator.url, name)
+        if (parsedUrl.error) return createError(parsedUrl.error)
+        indicators.push({
+            url: parsedUrl.url,
+            title: parseOptionalString(rawIndicator.title),
+            column: parseOptionalString(rawIndicator.column),
+        })
+    }
+
+    return {
+        type: "peer-comparison",
+        title: parseOptionalString(raw.value.title),
+        groups: parsedGroups.groups,
+        indicators,
+        parseErrors: [],
+    }
+}
+
 function parseDataCallout(raw: RawBlockDataCallout): EnrichedBlockDataCallout {
     const createError = (error: ParseError): EnrichedBlockDataCallout => ({
         type: "data-callout",
@@ -2112,28 +2390,11 @@ function parseDataCallout(raw: RawBlockDataCallout): EnrichedBlockDataCallout {
         content: [],
     })
 
-    if (!raw.value.url) {
-        return createError({
-            message: "Missing url for data-callout block",
-        })
-    }
-
-    // Validate that the URL is a grapher or explorer link
-    const url = Url.fromURL(extractUrl(raw.value.url))
-
-    if (!url.isGrapher && !url.isExplorer) {
-        return createError({
-            message: "data-callout url must be a grapher or explorer link",
-        })
-    }
-    const countryQueryParams = url.queryParams["country"]
-    const countryValues = countryQueryParams?.split("~").filter(Boolean) || []
-    if (countryValues.length !== 1) {
-        return createError({
-            message:
-                "data-callout url must specify exactly one country using the 'country' query parameter",
-        })
-    }
+    const parsedUrl = parseSingleCountryChartUrl(
+        raw.value.url,
+        "data-callout block"
+    )
+    if (parsedUrl.error) return createError(parsedUrl.error)
 
     if (!raw.value.content) {
         return createError({
@@ -2158,7 +2419,7 @@ function parseDataCallout(raw: RawBlockDataCallout): EnrichedBlockDataCallout {
 
     return {
         type: "data-callout",
-        url: url.fullUrl,
+        url: parsedUrl.url,
         content: transformedContent,
         parseErrors: [],
     }

@@ -190,6 +190,11 @@ export {
     type PreparedCalloutTable,
 } from "./core/GrapherValuesJson"
 export {
+    computeRankingFromPreparedTable,
+    computeRankingSparkline,
+    type RankingComputationOptions,
+} from "./core/GrapherRankings"
+export {
     CsvDownloadType,
     createCsvBlobLocally,
     getDataDownloadFilename,
