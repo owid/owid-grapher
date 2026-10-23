@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest"
-import { injectAutomaticSubscribeBanner } from "./gdocComponentUtils.js"
+import {
+    getIntroEndIndex,
+    injectAutomaticSubscribeBanner,
+} from "./gdocComponentUtils.js"
 import type {
     EnrichedBlockHeading,
+    EnrichedBlockList,
+    EnrichedBlockLTPToc,
+    EnrichedBlockResourcePanel,
     EnrichedBlockText,
     EnrichedBlockSubscribeBanner,
     OwidEnrichedGdocBlock,
@@ -17,6 +23,24 @@ const headingBlock = (level: number): EnrichedBlockHeading => ({
 const textBlock = (): EnrichedBlockText => ({
     type: "text",
     value: [],
+    parseErrors: [],
+})
+
+const listBlock = (): EnrichedBlockList => ({
+    type: "list",
+    items: [],
+    parseErrors: [],
+})
+
+const ltpTocBlock = (): EnrichedBlockLTPToc => ({
+    type: "ltp-toc",
+    parseErrors: [],
+})
+
+const resourcePanelBlock = (): EnrichedBlockResourcePanel => ({
+    type: "resource-panel",
+    title: "",
+    links: [],
     parseErrors: [],
 })
 
@@ -74,5 +98,49 @@ describe(injectAutomaticSubscribeBanner, () => {
             result.filter((block) => block.type === "subscribe-banner")
         ).toHaveLength(1)
         expect(result[finalHeadingIndex + 1]).toBe(trailingText)
+    })
+})
+
+describe(getIntroEndIndex, () => {
+    it("points at the last block before the heading that follows the first text block", () => {
+        expect(
+            getIntroEndIndex([
+                headingBlock(1),
+                textBlock(),
+                textBlock(),
+                listBlock(),
+                resourcePanelBlock(),
+                textBlock(),
+                headingBlock(2),
+                textBlock(),
+            ])
+        ).toBe(5)
+    })
+
+    it("stops at a table of contents", () => {
+        expect(
+            getIntroEndIndex([
+                textBlock(),
+                textBlock(),
+                ltpTocBlock(),
+                headingBlock(1),
+                textBlock(),
+            ])
+        ).toBe(1)
+    })
+
+    it("points at the only paragraph when the intro is a single one", () => {
+        expect(
+            getIntroEndIndex([textBlock(), headingBlock(2), textBlock()])
+        ).toBe(0)
+    })
+
+    it("runs to the end when nothing closes the intro", () => {
+        expect(getIntroEndIndex([textBlock(), textBlock()])).toBe(1)
+    })
+
+    it("falls back to the first block when there is no text", () => {
+        expect(getIntroEndIndex([headingBlock(1)])).toBe(0)
+        expect(getIntroEndIndex([])).toBe(0)
     })
 })

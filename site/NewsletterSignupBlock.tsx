@@ -1,9 +1,6 @@
 import cx from "clsx"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
-import {
-    NewsletterSubscriptionForm,
-    NewsletterSubscriptionHeader,
-} from "./NewsletterSubscription.js"
+import { NewsletterSignup } from "./NewsletterSubscription.js"
 import { OwidSocials } from "./OwidSocials.js"
 
 export const NewsletterSignupBlock = ({
@@ -14,10 +11,11 @@ export const NewsletterSignupBlock = ({
     className?: string
 }) => {
     return (
-        <div className={cx("newsletter-signup", className)}>
-            <NewsletterSubscriptionHeader />
-            <NewsletterSubscriptionForm context={context} />
+        <NewsletterSignup
+            className={cx("newsletter-signup", className)}
+            context={context}
+        >
             <OwidSocials context={context} />
-        </div>
+        </NewsletterSignup>
     )
 }

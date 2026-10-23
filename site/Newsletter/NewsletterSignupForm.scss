@@ -1,0 +1,63 @@
+// The compact newsletter signup: one look in every context (header nav, site
+// tools, homepage, /latest). Containers only position it and set its width.
+// Imported after the context stylesheets so these rules win ties.
+.newsletter-signup-panel {
+    padding: 16px;
+    background-color: $accent-pale-blue;
+
+    .newsletter-subscription-header {
+        margin-bottom: 16px;
+    }
+
+    .newsletter-subscription-header__heading {
+        font-size: 1.25rem;
+        line-height: 1.2;
+    }
+}
+
+.newsletter-signup-form {
+    @include body-3-medium;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.newsletter-signup-form__alert {
+    color: $vermillion;
+}
+
+.newsletter-signup-form__email {
+    @include body-3-medium;
+    padding: 8px 16px;
+    border: 1px solid $blue-20;
+    background: $white;
+
+    &::placeholder {
+        color: $blue-40;
+    }
+
+    @include sm-only {
+        font-size: 16px; // Prevents auto-zoom in iOS Safari.
+    }
+}
+
+.newsletter-signup-form .newsletter-signup-form__submit {
+    // Directly under the email field, with the same 8px gap the design uses
+    // between the two.
+    margin-top: -8px;
+    width: 100%;
+    height: 40px;
+}
+
+.newsletter-signup-form__privacy-notice {
+    color: $blue-60;
+
+    a {
+        @include owid-link-60;
+    }
+}
+
+.newsletter-signup-form__success {
+    @include body-3-medium;
+    color: $blue-90;
+}

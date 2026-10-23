@@ -1,5 +1,8 @@
 import { LatestState, LatestUrlParam } from "@ourworldindata/types"
-import { deserializeSet, serializeSet } from "../search/searchUtils.js"
+import {
+    serializeSet,
+    topicAreasFromSearchParams,
+} from "../search/searchUtils.js"
 import { decodeLatestType } from "./latestUtils.js"
 
 // Whitelist + validate /latest URL params. Topics not present in `allAreas`
@@ -10,11 +13,7 @@ export function searchParamsToState(
     searchParams: URLSearchParams,
     allAreas: string[]
 ): LatestState {
-    const topics = [
-        ...deserializeSet(searchParams.get(LatestUrlParam.TOPICS)).intersection(
-            new Set(allAreas)
-        ),
-    ]
+    const topics = topicAreasFromSearchParams(searchParams, allAreas)
     return {
         topics,
         latestType: decodeLatestType(searchParams.get(LatestUrlParam.TYPE)),
