@@ -205,3 +205,13 @@ $labs-flask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' v
         background: $vermillion;
     }
 }
+
+.labs-bar__notice {
+    max-width: 420px;
+    margin: 0;
+    padding: 12px 16px;
+    background: $amber-10;
+    color: $oxford-blue;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    line-height: 1.45;
+}

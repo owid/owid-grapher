@@ -22,8 +22,6 @@ import "./LabsBar.scss"
 // plus every open PR labelled `labs`. This bar only exists on that branch.
 
 const REPO_URL = "https://github.com/owid/owid-grapher"
-// Where feedback goes when Sentry isn't loaded (e.g. blocked)
-const LABS_SLACK_URL = "https://owid.slack.com/archives/C0CBP0Y2XB6"
 const PANEL_ID = "labs-panel"
 
 function publicUrlForCurrentPage(): string {
@@ -53,24 +51,38 @@ function loadFeedback(): ReturnType<typeof Sentry.getFeedback> {
     return Sentry.getFeedback()
 }
 
-/** The feedback arrives in Sentry with the session's replay and the features on the page */
-async function openFeedbackForm(featuresOnPage: number[]): Promise<void> {
+/**
+ * Whether this browser can reach Sentry. Ad blockers block its host outright,
+ * and then feedback (and the replay) would fail only once it's sent.
+ */
+async function canReachSentry(): Promise<boolean> {
+    const dsn = Sentry.getClient()?.getDsn()
+    if (!dsn) return false
     try {
-        const feedback = loadFeedback()
-        if (!feedback) throw new Error("Sentry isn't loaded")
-        const form = await feedback.createForm({
-            tags: {
-                labs_features_on_page: featuresOnPage.join(",") || "none",
-            },
-            onFormClose: () => form.removeFromDom(),
-            onFormSubmitted: () => form.removeFromDom(),
-        })
-        form.appendToDom()
-        form.open()
-    } catch (error) {
-        console.warn("The feedback form didn't load", error)
-        window.open(LABS_SLACK_URL, "_blank", "noopener")
+        await fetch(`${dsn.protocol}://${dsn.host}/`, { mode: "no-cors" })
+        return true
+    } catch {
+        return false
     }
+}
+
+/**
+ * The feedback arrives in Sentry with the session's replay and the features on
+ * the page. Returns false when Sentry is blocked, so the bar can say so.
+ */
+async function openFeedbackForm(featuresOnPage: number[]): Promise<boolean> {
+    const feedback = loadFeedback()
+    if (!feedback || !(await canReachSentry())) return false
+    const form = await feedback.createForm({
+        tags: {
+            labs_features_on_page: featuresOnPage.join(",") || "none",
+        },
+        onFormClose: () => form.removeFromDom(),
+        onFormSubmitted: () => form.removeFromDom(),
+    })
+    form.appendToDom()
+    form.open()
+    return true
 }
 
 function LabsPanel({ featuresOnPage }: { featuresOnPage: number[] }) {
@@ -155,6 +167,7 @@ export function LabsBar({ onHide }: { onHide: () => void }) {
     const [isHidden, setIsHidden] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
     const [isCopied, setIsCopied] = useState(false)
+    const [isFeedbackBlocked, setIsFeedbackBlocked] = useState(false)
     const featuresOnPage = useFeaturesOnPage()
 
     useEffect(() => {
@@ -193,6 +206,13 @@ export function LabsBar({ onHide }: { onHide: () => void }) {
     return (
         <div className="labs-bar">
             {isOpen && <LabsPanel featuresOnPage={featuresOnPage} />}
+            {isFeedbackBlocked && (
+                <p className="labs-bar__notice" role="alert">
+                    An ad blocker is blocking Sentry, where feedback goes. Allow
+                    it on labs.owid.io (or switch the blocker off here) and
+                    reload. It also keeps your session from being recorded.
+                </p>
+            )}
             <div className="labs-bar__row">
                 <button
                     type="button"
@@ -231,7 +251,10 @@ export function LabsBar({ onHide }: { onHide: () => void }) {
                 <button
                     type="button"
                     className="labs-bar__button"
-                    onClick={() => openFeedbackForm(featuresOnPage)}
+                    onClick={async () => {
+                        const opened = await openFeedbackForm(featuresOnPage)
+                        setIsFeedbackBlocked(!opened)
+                    }}
                 >
                     <FontAwesomeIcon icon={faComment} />
                     Feedback
