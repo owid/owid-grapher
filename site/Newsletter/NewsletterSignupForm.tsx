@@ -79,7 +79,13 @@ const NewsletterSignupFormInner = ({
                 `Subscribe [${context}]`
             )
         },
-        onError: resetCaptcha,
+        onError: (error) => {
+            analytics.logNewsletterSubscribeError(
+                context,
+                getErrorMessage(error)
+            )
+            resetCaptcha()
+        },
     })
 
     const isSubmittable = subscribeToOwidBrief || followTopics
