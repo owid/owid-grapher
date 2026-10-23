@@ -114,5 +114,12 @@ export const defineViteConfigForEntrypoint = (
         preview: {
             port: vitePort,
         },
+        // Lazily loaded chunks (e.g. site/configureWithAi/) and their CSS are
+        // fetched relative to the entry file, which is served from
+        // /<outDir>/ rather than the root
+        experimental: {
+            renderBuiltUrl: (_filename, { hostType }) =>
+                hostType === "js" ? { relative: true } : undefined,
+        },
     })
 }
