@@ -253,6 +253,16 @@ function getWindowAdmin(): { isSuperuser?: unknown } | undefined {
     return (window as { admin?: { isSuperuser?: unknown } }).admin
 }
 
+/**
+ * Experimental: lets the page hosting a Grapher fill its side panel, e.g. to
+ * put tabs around the entity selector. `entitySelector` is null on tabs where
+ * entities can't be selected; the panel is shown on every tab while a
+ * renderer is set.
+ */
+export type SidePanelRenderer = (args: {
+    entitySelector: React.ReactElement | null
+}) => React.ReactElement
+
 export class GrapherState
     implements
         AxisManager,
@@ -586,6 +596,7 @@ export class GrapherState
     seriesColorMap: SeriesColorMap = new Map()
 
     isEntitySelectorModalOrDrawerOpen = false
+    sidePanelRenderer: SidePanelRenderer | undefined = undefined
     activeModal?: GrapherModal
     activeDownloadModalTab: DownloadModalTabName = DownloadModalTabName.Vis
     isShareMenuActive = false
@@ -767,6 +778,7 @@ export class GrapherState
             timelineDragTarget: observable.ref,
             frozenToleranceNotice: observable.ref,
             isEntitySelectorModalOrDrawerOpen: observable.ref,
+            sidePanelRenderer: observable.ref,
             activeModal: observable.ref,
             activeDownloadModalTab: observable.ref,
             shouldIncludeDetailsInStaticExport: observable,
@@ -4282,20 +4294,20 @@ export class GrapherState
             : GrapherWindowType.drawer
     }
 
-    @computed private get isEntitySelectorPanelActive(): boolean {
+    /** Whether the entity selector can be shown on the current tab */
+    @computed get canShowEntitySelector(): boolean {
         if (this.hideEntityControls) return false
 
-        const shouldShowPanel =
-            this.shouldShowEntitySelectorAs === GrapherWindowType.panel
+        if (this.isOnMapTab && this.isMapSelectionEnabled) return true
 
-        if (this.isOnMapTab && this.isMapSelectionEnabled && shouldShowPanel)
-            return true
+        return this.isOnChartTab && this.canChangeAddOrHighlightEntities
+    }
 
-        return (
-            this.isOnChartTab &&
-            this.canChangeAddOrHighlightEntities &&
-            shouldShowPanel
-        )
+    @computed private get isEntitySelectorPanelActive(): boolean {
+        if (this.shouldShowEntitySelectorAs !== GrapherWindowType.panel)
+            return false
+
+        return !!this.sidePanelRenderer || this.canShowEntitySelector
     }
 
     @computed get isEntitySelectorModalOpen(): boolean {

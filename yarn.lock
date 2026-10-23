@@ -2956,6 +2956,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@pydantic/genai-prices@npm:0.1.13":
+  version: 0.1.13
+  resolution: "@pydantic/genai-prices@npm:0.1.13"
+  bin:
+    genai-prices: dist/cli.js
+  checksum: 10/e7f99bc7aee8ffbc776eefb7bd00b428826021911e6bdaadea7efd97eaaa0bea7c21a3fd24336bd148cd901b6f8125c0cf428b12ba7e85815ae002ee56a9a588
+  languageName: node
+  linkType: hard
+
 "@pydantic/genai-prices@npm:^0.1.11":
   version: 0.1.11
   resolution: "@pydantic/genai-prices@npm:0.1.11"
@@ -11065,6 +11074,7 @@ __metadata:
   dependencies:
     "@algolia/client-common": "npm:^5.57.0"
     "@algolia/requester-fetch": "npm:^5.57.0"
+    "@anthropic-ai/sdk": "npm:^0.133.0"
     "@cloudflare/workers-types": "npm:^5.20261003.1"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
@@ -11072,6 +11082,7 @@ __metadata:
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
+    "@pydantic/genai-prices": "npm:0.1.13"
     "@sentry/cloudflare": "npm:^11.8.0"
     "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.3.0"

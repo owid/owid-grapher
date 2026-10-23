@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/react"
 import { get as getCookie, getAll as getAllCookies } from "es-cookie"
-import { getPreferenceValue, PreferenceType } from "./cookiePreferences.js"
 import {
     experiments,
     isInIFrame,
@@ -93,11 +92,9 @@ function isSessionRecording(): boolean {
  * @returns {boolean} True if the session is allowed to be recorded, false otherwise.
  */
 function allowRecording(): boolean {
-    const analyticsConsent = getPreferenceValue(PreferenceType.Analytics)
-    if (analyticsConsent && !isInIFrame()) {
-        return true
-    }
-    return false
+    // Labs is staff-only and exists to see how features are used, so it records every
+    // session without waiting for analytics consent
+    return !isInIFrame()
 }
 
 /**
@@ -122,9 +119,12 @@ function allowRecording(): boolean {
 export function getSessionSampleRate(): number {
     let p = 0
     if (allowRecording()) {
-        p =
-            parseExperimentsSampleRate() ||
+        // Labs records every session, including on pages running an experiment
+        // with its own (lower) sample rate
+        p = Math.max(
+            parseExperimentsSampleRate() ?? 0,
             SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE
+        )
     }
     return p
 }

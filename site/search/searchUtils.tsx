@@ -188,11 +188,16 @@ export const toGrapherQueryParams = ({
     }
 }
 
+/** The fields of a chart hit that its URLs are built from */
+type ChartHitUrlFields = Pick<SearchChartHit, "slug" | "type"> & {
+    queryParams?: string
+}
+
 const generateQueryStrForChartHit = ({
     hit,
     grapherParams,
 }: {
-    hit: SearchChartHit
+    hit: ChartHitUrlFields
     grapherParams?: GrapherQueryParams
 }): string => {
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
@@ -219,7 +224,7 @@ export const constructChartUrl = ({
     grapherParams,
     overlay,
 }: {
-    hit: SearchChartHit
+    hit: ChartHitUrlFields
     grapherParams?: GrapherQueryParams
     overlay?: "sources" | "download-data"
 }): string => {
@@ -307,7 +312,7 @@ export const constructPreviewUrl = ({
     imageWidth,
     imageHeight,
 }: {
-    hit: SearchChartHit
+    hit: ChartHitUrlFields
     grapherParams?: GrapherQueryParams
     variant: PreviewVariant
     isMinimal?: boolean
