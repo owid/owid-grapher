@@ -492,7 +492,7 @@ $ai-meta-line: #d9a400;
 
 .search-ai-settings-toggle {
     position: fixed;
-    right: 16px;
+    left: 16px;
     bottom: 16px;
     z-index: $zindex-search-overlay;
     display: flex;
@@ -510,7 +510,7 @@ $ai-meta-line: #d9a400;
 
 .search-ai-settings {
     position: fixed;
-    right: 16px;
+    left: 16px;
     bottom: 64px;
     z-index: $zindex-search-overlay;
     width: min(360px, calc(100vw - 32px));

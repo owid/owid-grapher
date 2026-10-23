@@ -115,6 +115,7 @@ const VIEW_TABS: Record<string, GrapherTabName[]> = {
     line: [GRAPHER_TAB_NAMES.LineChart],
     bar: [GRAPHER_TAB_NAMES.DiscreteBar, GRAPHER_TAB_NAMES.StackedDiscreteBar],
     scatter: [GRAPHER_TAB_NAMES.ScatterPlot],
+    area: [GRAPHER_TAB_NAMES.StackedArea],
 }
 
 const TAB_VIEW_LABELS: Partial<Record<GrapherTabName, string>> = {
@@ -222,7 +223,7 @@ Rules:
 - Each group has 2 to 4 charts, best first. Add up to 2 articles or topic pages and up to 1 data insight to a group only when they clearly fit it. Put the main topic page, if there is one, in the first group.
 - Use only ids from the list, and never use the same id twice.
 - When charts are otherwise equal, prefer KEY CHARTs and charts cited in many articles. Prefer the headline chart over niche variants, and avoid near-duplicates in a group unless the difference is the point of the group.
-- Pick a view for each chart that suits its group, only from the views that chart lists: "map" for comparing countries today, "line" for trends, "scatter" for correlates, "bar" for rankings, or "default".
+- Pick a view for each chart that suits its group, only from the views that chart lists: "map" for comparing countries today, "line" for trends, "scatter" for correlates, "bar" for rankings, "area" for how a total splits into parts, or "default".
 - Group titles: plain language, sentence case, at most 6 words, saying what the reader will learn (e.g. "How life expectancy has changed").
 - Blurbs: one sentence of at most 25 words saying what the group shows. Don't state numbers or findings that aren't in the titles and descriptions below: this orients the reader, it doesn't answer the question.
 - If the search is a country, a vague word or something OWID covers only indirectly, build the groups from the closest content we have. Don't comment on what OWID lacks.
