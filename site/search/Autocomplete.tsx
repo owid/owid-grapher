@@ -31,6 +31,7 @@ import { getAutocompleteSearchClient } from "./searchClients.js"
 import {
     PAGES_INDEX,
     CHARTS_INDEX,
+    AUTOCOMPLETE_PAGES_FILTER,
     suggestFiltersFromQuerySuffix,
     getFilterIcon,
     getItemUrlForFilter,
@@ -291,7 +292,7 @@ const createAlgoliaPagesSource = (
                         query,
                         hitsPerPage: 2,
                         distinct: true,
-                        filters: `NOT type:${OwidGdocType.Profile}`,
+                        filters: AUTOCOMPLETE_PAGES_FILTER,
                         ...ALGOLIA_PAGES_ITEM_PARAMS,
                     },
                 },

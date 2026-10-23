@@ -24,6 +24,7 @@ import { getAlgoliaClient } from "../configureAlgolia.js"
 import {
     PageRecord,
     OwidGdocProfileInterface,
+    OwidGdocFeaturedVizInterface,
     OwidGdoc,
 } from "@ourworldindata/types"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
@@ -138,7 +139,10 @@ function filterSpansForExcerptLong(span: Span): Span | null {
 }
 
 function getExcerptLongFromGdoc(
-    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
+    gdoc:
+        | OwidGdocPostInterface
+        | OwidGdocDataInsightInterface
+        | OwidGdocFeaturedVizInterface
 ): string[] | undefined {
     if (
         gdoc.content.type !== OwidGdocType.TopicPage &&
@@ -148,15 +152,20 @@ function getExcerptLongFromGdoc(
     ) {
         return
     }
+    // The check above narrows content.type, but not the gdoc itself
+    const topicPage = gdoc as OwidGdocPostInterface
 
     let textBlocks: EnrichedBlockText[]
-    const topicPageIntroBlock = getFirstBlockOfType(gdoc, "topic-page-intro")
+    const topicPageIntroBlock = getFirstBlockOfType(
+        topicPage,
+        "topic-page-intro"
+    )
     const maxParagraphs = 3
     if (topicPageIntroBlock) {
         textBlocks = topicPageIntroBlock.content.slice(0, maxParagraphs)
     } else {
         textBlocks = takeConsecutiveBlocksOfType(
-            gdoc,
+            topicPage,
             "text",
             maxParagraphs
         ).filter((block) => {
@@ -205,7 +214,8 @@ export function getPreprocessedIndexableText<
     IndexableGdoc extends
         | OwidGdocPostInterface
         | OwidGdocDataInsightInterface
-        | OwidGdocProfileInterface,
+        | OwidGdocProfileInterface
+        | OwidGdocFeaturedVizInterface,
 >(
     body: IndexableGdoc["content"]["body"] | undefined,
     linkedCallouts: IndexableGdoc["linkedCallouts"]
@@ -228,23 +238,36 @@ const getPostImportance = (
         | OwidGdocDataInsightInterface
         | OwidGdocPostInterface
         | OwidGdocProfileInterface
+        | OwidGdocFeaturedVizInterface
 ): number => {
-    return match(gdoc.content.type)
-        .with(OwidGdocType.Article, () =>
-            "deprecation-notice" in gdoc.content ? -0.5 : 0
-        )
-        .with(P.union(OwidGdocType.AboutPage, OwidGdocType.Profile), () => 1)
-        .with(
-            P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
-            () => 3
-        )
-        .with(P.union(OwidGdocType.Fragment, undefined), () => 0)
-        .with(OwidGdocType.DataInsight, () => 0)
-        .exhaustive()
+    return (
+        match(gdoc.content.type)
+            .with(OwidGdocType.Article, () =>
+                "deprecation-notice" in gdoc.content ? -0.5 : 0
+            )
+            .with(
+                P.union(OwidGdocType.AboutPage, OwidGdocType.Profile),
+                () => 1
+            )
+            .with(
+                P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
+                () => 3
+            )
+            .with(P.union(OwidGdocType.Fragment, undefined), () => 0)
+            .with(OwidGdocType.DataInsight, () => 0)
+            // The featured-viz slot filters by type, so this only ranks
+            // featured-viz pages against each other; views then decide.
+            .with(OwidGdocType.FeaturedViz, () => 0)
+            .exhaustive()
+    )
 }
 
 async function generateGdocRecords(
-    gdocs: (OwidGdocPostInterface | OwidGdocDataInsightInterface)[],
+    gdocs: (
+        | OwidGdocPostInterface
+        | OwidGdocDataInsightInterface
+        | OwidGdocFeaturedVizInterface
+    )[],
     pageviews: Record<string, RawPageview>,
     cloudflareImagesByFilename: Record<string, DbEnrichedImage>,
     knex: db.KnexReadonlyTransaction
@@ -414,12 +437,14 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
                 OwidGdocType.TopicPage,
                 OwidGdocType.AboutPage,
                 OwidGdocType.DataInsight,
+                OwidGdocType.FeaturedViz,
             ],
             { excludeDeprecated: true }
         )
         .then((gdocs) => gdocs.map(gdocFromJSON))) as (
         | OwidGdocPostInterface
         | OwidGdocDataInsightInterface
+        | OwidGdocFeaturedVizInterface
     )[]
 
     // Only load linkedCallouts — the sole attachment that affects indexed

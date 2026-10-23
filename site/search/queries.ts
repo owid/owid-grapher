@@ -14,6 +14,7 @@ import {
     PageChronologicalRecord,
     DataInsightHit,
     FlatArticleHit,
+    FeaturedVizHit,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
@@ -62,6 +63,8 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+    featuredViz: (state: SearchState) =>
+        [PAGES_INDEX, "featured-viz", makeStateForKey(state)] as const,
 } as const
 
 export const latestPagesQueryKey = {
@@ -358,6 +361,37 @@ export async function queryProfiles(
     }
 
     return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
+}
+
+/**
+ * The featured viz at the top of the Data results: the single best
+ * matching featured-viz page. Honours the topic filter, ignores country
+ * filters. No closest-matches fallback: there are so few featured-viz pages
+ * that one shared word would be enough to show one.
+ */
+export async function queryFeaturedViz(
+    liteSearchClient: LiteClient,
+    state: SearchState
+): Promise<SearchResponse<FeaturedVizHit>> {
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+
+    const searchParams = {
+        indexName: PAGES_INDEX,
+        query: state.query,
+        filters: `type:${OwidGdocType.FeaturedViz}`,
+        facetFilters: formatTopicFacetFilters(selectedTopics),
+        attributesToRetrieve: [
+            "title",
+            "slug",
+            "type",
+            "thumbnailUrl",
+            "authors",
+            "excerpt",
+        ],
+        hitsPerPage: 1,
+    }
+
+    return searchSingleForHits<FeaturedVizHit>(liteSearchClient, searchParams)
 }
 
 export interface LatestPagesResult {
