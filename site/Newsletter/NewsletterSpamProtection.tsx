@@ -24,9 +24,12 @@ export function NewsletterSpamProtection({
 
     return (
         <>
-            <div className="newsletter-form__honeypot" aria-hidden="true">
+            {/* A trap for form-filling bots: humans never see it, so a filled
+            value marks the submission as spam. Keep anything that would give
+            that away out of the rendered markup. */}
+            <div className="newsletter-form__website" aria-hidden="true">
                 <label>
-                    Leave this field empty
+                    Website
                     <input
                         type="text"
                         name={NEWSLETTER_HONEYPOT_FIELD}
