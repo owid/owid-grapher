@@ -5,7 +5,6 @@ import {
     BespokeMetadataHeading,
     BespokeMetadataKeyData,
     BespokeMetadataSections,
-    getBespokeKeyDataRows,
     MetadataBoxCollapseButton,
     MetadataBoxExpander,
     SimpleMarkdownText,
@@ -26,16 +25,6 @@ export function BespokeMetadataBox({
 }) {
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
 
-    const hasKeyData = getBespokeKeyDataRows(metadata).length > 0
-    const shouldPreviewDescriptionKey =
-        !metadata.descriptionShort && !hasKeyData
-    const descriptionKeyPreview = shouldPreviewDescriptionKey
-        ? metadata.descriptionKey
-        : undefined
-    const descriptionKeyRest = shouldPreviewDescriptionKey
-        ? undefined
-        : metadata.descriptionKey
-
     return (
         <div className={cx("metadata-box", "bespoke-metadata-box", className)}>
             <MetadataBoxCollapseButton detailsRef={detailsRef} />
@@ -48,16 +37,11 @@ export function BespokeMetadataBox({
                 detailsRef={detailsRef}
                 showMoreLabel="More about this data"
                 preview={
-                    descriptionKeyPreview ? (
-                        <SimpleMarkdownText text={descriptionKeyPreview} />
+                    metadata.descriptionKey ? (
+                        <SimpleMarkdownText text={metadata.descriptionKey} />
                     ) : undefined
                 }
             >
-                {descriptionKeyRest && (
-                    <div className="metadata-box-expander__remainder metadata-box-expander__prose">
-                        <SimpleMarkdownText text={descriptionKeyRest} />
-                    </div>
-                )}
                 <BespokeMetadataSections
                     metadata={metadata}
                     citationUrl={citationUrl}
