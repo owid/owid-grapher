@@ -1,4 +1,5 @@
-import { queryCharts, searchQueryKeys } from "./queries.js"
+import { useQuery } from "@tanstack/react-query"
+import { queryCharts, queryFeaturedViz, searchQueryKeys } from "./queries.js"
 import { useSelectedRegionNames, useInfiniteSearch } from "./searchHooks.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { SearchChartHit } from "@ourworldindata/types"
@@ -7,13 +8,14 @@ import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 import { SearchClosestMatchesNotice } from "./SearchClosestMatchesNotice.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 import { useSearchContext } from "./SearchContext.js"
+import { SearchFeaturedVizHit } from "./SearchFeaturedVizHit.js"
 
 export const SearchDataResults = ({
     isFirstChartLarge,
 }: {
     isFirstChartLarge: boolean
 }) => {
-    const { analytics } = useSearchContext()
+    const { analytics, state, liteSearchClient } = useSearchContext()
     const selectedRegionNames = useSelectedRegionNames()
 
     const query = useInfiniteSearch({
@@ -21,7 +23,20 @@ export const SearchDataResults = ({
         queryFn: queryCharts,
     })
 
-    const { hits, totalResults, isLoading, isClosestMatches } = query
+    // The featured viz: at most one page, fetched beside the charts. Not
+    // shown when browsing by filters alone. A failed request only hides it.
+    const featuredVizQuery = useQuery({
+        queryKey: searchQueryKeys.featuredViz(state),
+        queryFn: () => queryFeaturedViz(liteSearchClient, state),
+        enabled: state.query.trim() !== "",
+    })
+    const featuredVizHit = featuredVizQuery.data?.hits[0]
+
+    const { hits, isClosestMatches } = query
+    // One loading state for the whole section, as in SearchWritingResults,
+    // so the featured viz doesn't pop in above already-rendered charts.
+    const isLoading = query.isLoading || featuredVizQuery.isLoading
+    const totalResults = query.totalResults + (featuredVizHit ? 1 : 0)
 
     function handleClick(
         hit: SearchChartHit,
@@ -47,6 +62,9 @@ export const SearchDataResults = ({
                         <SearchResultHeader count={totalResults}>
                             Data
                         </SearchResultHeader>
+                        {featuredVizHit && (
+                            <SearchFeaturedVizHit hit={featuredVizHit} />
+                        )}
                         {isClosestMatches && <SearchClosestMatchesNotice />}
                         <ul className="search-data-results__list">
                             {hits.map((hit, hitIndex) => {
