@@ -10,6 +10,8 @@ export interface ClaudeResult {
     outputTokens: number
     cacheReadTokens: number
     cacheWriteTokens: number
+    /** Each API call's stop reason and block types, for debugging */
+    rounds: string[]
 }
 
 /** A tool the model can call; `run` gets the model's input and returns the result */
@@ -74,8 +76,10 @@ export async function callClaude(
         outputTokens: 0,
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
+        rounds: [],
     }
     const toolDefinitions = tools.map(({ run: _run, ...tool }) => tool)
+    let hasAskedForReply = false
     for (let round = 0; ; round++) {
         const body = await postMessages(apiKey, useFallbacks, {
             model,
@@ -99,16 +103,35 @@ export async function callClaude(
         result.outputTokens += body.usage.output_tokens
         result.cacheReadTokens += body.usage.cache_read_input_tokens ?? 0
         result.cacheWriteTokens += body.usage.cache_creation_input_tokens ?? 0
-        const text = body.content
+        result.text = body.content
             .filter((block) => block.type === "text")
             .map((block) => block.text ?? "")
             .join("")
-        // A reply written before one more search can be followed by a
-        // closing remark only; keep the round that has the reply
-        if (text.includes("{") || !result.text.includes("{")) result.text = text
+        result.rounds.push(
+            `${body.stop_reason}: ${body.content.map((b) => b.type).join(", ")}`
+        )
 
         const calls = body.content.filter((block) => block.type === "tool_use")
-        if (body.stop_reason !== "tool_use" || !calls.length) return result
+        if (body.stop_reason !== "tool_use" || !calls.length) {
+            // After searching, the model sometimes ends its turn without
+            // writing the reply; ask for it once
+            const isEmptyAfterSearch =
+                round > 0 && body.stop_reason === "end_turn" && !result.text
+            if (!isEmptyAfterSearch || hasAskedForReply) return result
+            hasAskedForReply = true
+            if (body.content.length)
+                messages.push({ role: "assistant", content: body.content })
+            messages.push({
+                role: "user",
+                content: [
+                    {
+                        type: "text",
+                        text: "Reply now with only the JSON object described above.",
+                    },
+                ],
+            })
+            continue
+        }
         const results = await Promise.all(
             calls.map(async (call) => {
                 const tool = tools.find((t) => t.name === call.name)

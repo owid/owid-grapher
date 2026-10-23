@@ -120,6 +120,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                     runId,
                     usage,
                     raw: claude.text.slice(0, 2000),
+                    rounds: claude.rounds,
                 },
                 502
             )
