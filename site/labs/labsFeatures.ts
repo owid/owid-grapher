@@ -13,28 +13,33 @@ export const LABS_MASTER_SHA: string = labsBuild.master
 export const LABS_FEATURES: LabsFeature[] = labsBuild.features
 
 // A feature's PR labels the control it adds with data-labs-feature="<PR
-// number>". The attribute does nothing outside Labs; here LabsBar.scss draws
-// the flask after it, and the bar finds the features on the page by it.
+// number>". The attribute does nothing outside Labs, and it stays on once the
+// feature ships, so the bar only marks (data-labs-mark, which LabsBar.scss
+// draws the flask for) and counts the features that are on Labs right now.
 const MARK_ATTRIBUTE = "data-labs-feature"
+const DRAWN_ATTRIBUTE = "data-labs-mark"
+
+function featureOnLabs(element: Element): LabsFeature | undefined {
+    const number = Number(element.getAttribute(MARK_ATTRIBUTE))
+    return LABS_FEATURES.find((feature) => feature.number === number)
+}
 
 function markedElements(): HTMLElement[] {
     return Array.from(document.querySelectorAll(`[${MARK_ATTRIBUTE}]`))
 }
 
-function describeMarks(): void {
+function markFeatures(): void {
     for (const element of markedElements()) {
-        if (element.title) continue
-        const number = Number(element.getAttribute(MARK_ATTRIBUTE))
-        const feature = LABS_FEATURES.find((f) => f.number === number)
-        element.title = feature
-            ? `Labs feature: ${feature.title} (#${number})`
-            : "Labs feature"
+        const feature = featureOnLabs(element)
+        if (!feature || element.hasAttribute(DRAWN_ATTRIBUTE)) continue
+        element.setAttribute(DRAWN_ATTRIBUTE, "")
+        element.title ||= `Labs feature: ${feature.title} (#${feature.number})`
     }
 }
 
 function featureNumbersOnPage(): number[] {
-    const numbers = markedElements().map((element) =>
-        Number(element.getAttribute(MARK_ATTRIBUTE))
+    const numbers = markedElements().flatMap(
+        (element) => featureOnLabs(element)?.number ?? []
     )
     return [...new Set(numbers)].sort((a, b) => a - b)
 }
@@ -47,7 +52,7 @@ export function useFeaturesOnPage(): number[] {
         let frame = 0
         const update = (): void => {
             frame = 0
-            describeMarks()
+            markFeatures()
             const current = featureNumbersOnPage()
             setNumbers((previous) =>
                 previous.join() === current.join() ? previous : current

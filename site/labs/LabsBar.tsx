@@ -42,6 +42,7 @@ async function openFeedbackForm(featuresOnPage: number[]): Promise<void> {
     const form = await feedback.createForm({
         tags: { labs_features_on_page: featuresOnPage.join(",") || "none" },
         onFormClose: () => form.removeFromDom(),
+        onFormSubmitted: () => form.removeFromDom(),
     })
     form.appendToDom()
     form.open()
