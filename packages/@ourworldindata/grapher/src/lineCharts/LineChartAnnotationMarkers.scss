@@ -1,0 +1,21 @@
+.line-chart-annotation-markers__icon {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: line-chart-annotation-markers-pop-in var(--duration-press)
+        var(--ease-out) both;
+}
+
+@keyframes line-chart-annotation-markers-pop-in {
+    from {
+        transform: scale(0.5);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .line-chart-annotation-markers__icon {
+        animation: none;
+    }
+}
