@@ -391,6 +391,12 @@ export interface AxisConfigInterface {
      * Defaults to true.
      */
     shouldOffsetTickLabelAtEnd?: boolean
+
+    /**
+     * Whether the domain is half-open, `[min, max)`, so that `max` itself gets
+     * no tick. Defaults to false.
+     */
+    isDomainEndExclusive?: boolean
 }
 
 export interface VerticalComparisonLineConfig {

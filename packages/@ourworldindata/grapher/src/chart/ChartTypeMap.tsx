@@ -19,6 +19,7 @@ import { StackedDiscreteBarChartState } from "../stackedCharts/StackedDiscreteBa
 import { ScatterPlotChartState } from "../scatterCharts/ScatterPlotChartState"
 import { MarimekkoChartState } from "../marimekko/MarimekkoChartState"
 import { DumbbellChartState } from "../dumbbellCharts/DumbbellChartState"
+import { SwimlaneChartState } from "../swimlaneCharts/SwimlaneChartState"
 import { MapChartState } from "../mapCharts/MapChartState"
 
 import { LineChart } from "../lineCharts/LineChart"
@@ -30,6 +31,7 @@ import { StackedDiscreteBarChart } from "../stackedCharts/StackedDiscreteBarChar
 import { ScatterPlotChart } from "../scatterCharts/ScatterPlotChart"
 import { MarimekkoChart } from "../marimekko/MarimekkoChart"
 import { DumbbellChart } from "../dumbbellCharts/DumbbellChart"
+import { SwimlaneChart } from "../swimlaneCharts/SwimlaneChart"
 import { MapChart } from "../mapCharts/MapChart"
 
 import { LineChartThumbnail } from "../lineCharts/LineChartThumbnail"
@@ -74,6 +76,7 @@ const ChartComponentClassMap = new Map<
     [GRAPHER_CHART_TYPES.ScatterPlot, ScatterPlotChart],
     [GRAPHER_CHART_TYPES.Marimekko, MarimekkoChart],
     [GRAPHER_CHART_TYPES.Dumbbell, DumbbellChart],
+    [GRAPHER_CHART_TYPES.Swimlane, SwimlaneChart],
     [GRAPHER_MAP_TYPE, MapChart],
 ])
 
@@ -90,6 +93,7 @@ const ChartThumbnailClassMap = new Map<
     [GRAPHER_CHART_TYPES.ScatterPlot, ScatterPlotChartThumbnail],
     [GRAPHER_CHART_TYPES.Marimekko, MarimekkoChartThumbnail],
     [GRAPHER_CHART_TYPES.Dumbbell, DumbbellChartThumbnail],
+    [GRAPHER_CHART_TYPES.Swimlane, SwimlaneChart],
     [GRAPHER_MAP_TYPE, MapChartThumbnail],
 ])
 
@@ -106,6 +110,7 @@ const ChartStateMap = new Map<
     [GRAPHER_CHART_TYPES.ScatterPlot, ScatterPlotChartState],
     [GRAPHER_CHART_TYPES.Marimekko, MarimekkoChartState],
     [GRAPHER_CHART_TYPES.Dumbbell, DumbbellChartState],
+    [GRAPHER_CHART_TYPES.Swimlane, SwimlaneChartState],
     [GRAPHER_MAP_TYPE, MapChartState],
 ])
 

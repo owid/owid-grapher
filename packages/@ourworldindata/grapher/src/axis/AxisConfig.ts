@@ -49,6 +49,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
     bandValues: number[] | undefined = undefined
     shouldOffsetTickLabelAtStart: boolean | undefined = undefined
     shouldOffsetTickLabelAtEnd: boolean | undefined = undefined
+    isDomainEndExclusive: boolean | undefined = undefined
 
     constructor() {
         makeObservable(this, {
@@ -74,6 +75,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
             bandValues: observable.ref,
             shouldOffsetTickLabelAtStart: observable.ref,
             shouldOffsetTickLabelAtEnd: observable.ref,
+            isDomainEndExclusive: observable.ref,
         })
     }
 }
