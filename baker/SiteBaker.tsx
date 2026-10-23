@@ -108,6 +108,22 @@ import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/Archive
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../db/model/ArchivedMultiDimVersion.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
 import { PostArchivalManifest } from "../serverUtils/archivalUtils.js"
+import {
+    BakeState,
+    getChangedPageKeys,
+    IncrementalBakeStep,
+    PageFingerprints,
+    readBakeState,
+    writeBakeState,
+} from "./bakeState.js"
+import {
+    getChartPageFingerprints,
+    getExplorerPageFingerprints,
+    getGdocPostFingerprints,
+    getMultiDimPageFingerprints,
+    FingerprintInputs,
+    getFingerprintInputs,
+} from "./bakeFingerprints.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -174,17 +190,25 @@ export class SiteBaker {
     progressBar: ProgressBar
     explorerAdminServer: ExplorerAdminServer
     bakeSteps: BakeStepConfig
+    private readonly incremental: boolean
     private readonly _renderedProfileEntityCodes: Map<string, string[]> =
         new Map()
 
+    /**
+     * With `incremental`, the steps in `incrementalBakeSteps` render only the
+     * pages whose inputs changed since the previous bake into `bakedSiteDir`
+     * (see `bakeChangedPages`). The other steps run as usual.
+     */
     constructor(
         bakedSiteDir: string,
         baseUrl: string,
-        bakeSteps: BakeStepConfig = defaultSteps
+        bakeSteps: BakeStepConfig = defaultSteps,
+        { incremental = false }: { incremental?: boolean } = {}
     ) {
         this.bakedSiteDir = bakedSiteDir
         this.baseUrl = baseUrl
         this.bakeSteps = bakeSteps
+        this.incremental = incremental
         this.progressBar = new ProgressBar(
             "--- BakeAll [:bar] :current/:total :elapseds :name\n",
             {
@@ -193,6 +217,63 @@ export class SiteBaker {
             }
         )
         this.explorerAdminServer = new ExplorerAdminServer()
+    }
+
+    private _bakeState: Promise<BakeState> | undefined
+    private getBakeState(): Promise<BakeState> {
+        this._bakeState ??= readBakeState(this.bakedSiteDir)
+        return this._bakeState
+    }
+
+    private _fingerprintInputs: Promise<FingerprintInputs> | undefined
+    private getFingerprintInputs(
+        knex: db.KnexReadonlyTransaction
+    ): Promise<FingerprintInputs> {
+        this._fingerprintInputs ??= getFingerprintInputs(knex)
+        return this._fingerprintInputs
+    }
+
+    /**
+     * Runs a bake step that can render a subset of its pages. An incremental
+     * bake renders only the pages whose fingerprint changed since the
+     * previous bake into this directory, and all of them if the step has no
+     * fingerprints from a previous bake; a regular bake renders all of them.
+     * `bakePages` gets the keys of the pages to render, or undefined for all,
+     * and is responsible for removing pages that no longer exist.
+     *
+     * Either way, the fingerprints are recorded for the next incremental bake.
+     * They are taken before rendering, so that a change made while the step
+     * runs is picked up by the next bake rather than lost.
+     */
+    private async bakeChangedPages(
+        knex: db.KnexReadonlyTransaction,
+        step: IncrementalBakeStep,
+        getFingerprints: (
+            inputs: FingerprintInputs
+        ) => Promise<PageFingerprints>,
+        bakePages: (keysToBake: Set<string> | undefined) => Promise<void>
+    ) {
+        const fingerprints = await traceJob(`fingerprint-${step}`, async () =>
+            getFingerprints(await this.getFingerprintInputs(knex))
+        )
+        const state = await this.getBakeState()
+        const previous = this.incremental ? state.steps[step] : undefined
+        let keysToBake: Set<string> | undefined
+        if (previous) {
+            keysToBake = new Set(getChangedPageKeys(previous, fingerprints))
+            console.log(
+                `Incremental bake: ${keysToBake.size} of ${Object.keys(fingerprints).length} pages changed in step "${step}"`
+            )
+        } else if (this.incremental) {
+            console.log(
+                `Incremental bake: no fingerprints from a previous bake for step "${step}", baking all of its pages`
+            )
+        }
+
+        await bakePages(keysToBake)
+
+        state.steps[step] = fingerprints
+        await writeBakeState(this.bakedSiteDir, state)
     }
 
     private async bakeCountryProfiles(knex: db.KnexReadonlyTransaction) {
@@ -984,10 +1065,17 @@ export class SiteBaker {
             knex
         )
 
-        await bakeAllPublishedExplorers(
-            `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}`,
-            this.explorerAdminServer,
-            knex
+        await this.bakeChangedPages(
+            knex,
+            "explorers",
+            (inputs) => getExplorerPageFingerprints(knex, inputs),
+            (slugsToBake) =>
+                bakeAllPublishedExplorers(
+                    `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}`,
+                    this.explorerAdminServer,
+                    knex,
+                    slugsToBake
+                )
         )
     }
 
@@ -1049,8 +1137,25 @@ export class SiteBaker {
     private async bakeMultiDimPages(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("multiDimPages")) return
         this.progressBar.tick({ name: "Baking multi-dim pages" })
-        const { imageMetadata } = await this.getPrefetchedGdocAttachments(knex)
-        await bakeAllMultiDimDataPages(knex, this.bakedSiteDir, imageMetadata)
+        await this.bakeChangedPages(
+            knex,
+            "multiDimPages",
+            (inputs) => getMultiDimPageFingerprints(knex, inputs),
+            async (slugsToBake) => {
+                // Prefetching the attachments is slow, and only rendering
+                // pages needs them
+                const { imageMetadata } =
+                    slugsToBake?.size === 0
+                        ? { imageMetadata: {} }
+                        : await this.getPrefetchedGdocAttachments(knex)
+                await bakeAllMultiDimDataPages(
+                    knex,
+                    this.bakedSiteDir,
+                    imageMetadata,
+                    slugsToBake
+                )
+            }
+        )
     }
 
     private async bakeDetailsOnDemand(knex: db.KnexReadonlyTransaction) {
@@ -1360,15 +1465,30 @@ export class SiteBaker {
             this.progressBar.tick({
                 name: "Baking all changed grapher pages and deleting removed graphers",
             })
-            await bakeAllChangedGrapherPagesAndDeleteRemovedGraphers(
-                this.bakedSiteDir,
-                knex
+            await this.bakeChangedPages(
+                knex,
+                "charts",
+                (inputs) => getChartPageFingerprints(knex, inputs),
+                (chartIdsToBake) =>
+                    bakeAllChangedGrapherPagesAndDeleteRemovedGraphers(
+                        this.bakedSiteDir,
+                        knex,
+                        chartIdsToBake &&
+                            new Set([...chartIdsToBake].map(Number))
+                    )
             )
         }
         await this.bakeMultiDimPages(knex)
         await this.bakeDetailsOnDemand(knex)
         await this.validateGrapherDodReferences(knex)
-        await this.bakeGDocPosts(knex)
+        if (this.bakeSteps.has("gdocPosts"))
+            await this.bakeChangedPages(
+                knex,
+                "gdocPosts",
+                (inputs) => getGdocPostFingerprints(knex, inputs),
+                (slugsToBake) =>
+                    this.bakeGDocPosts(knex, slugsToBake && [...slugsToBake])
+            )
         await this.bakeGDocTombstones(knex)
         await this.bakeDataInsights(knex)
         await this.bakeAuthors(knex)
