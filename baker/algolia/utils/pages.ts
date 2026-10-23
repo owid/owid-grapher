@@ -24,6 +24,7 @@ import { getAlgoliaClient } from "../configureAlgolia.js"
 import {
     PageRecord,
     OwidGdocProfileInterface,
+    OwidGdocFeaturedVizInterface,
     OwidGdoc,
 } from "@ourworldindata/types"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
@@ -51,6 +52,13 @@ import {
     prepareCalloutTablesForProfile,
     checkShouldProfileRender,
 } from "../../../db/model/Gdoc/dataCallouts.js"
+
+/** Gdoc types that get records in the pages index, apart from profiles,
+ *  which have their own indexing path */
+export type IndexableInPagesGdoc =
+    | OwidGdocPostInterface
+    | OwidGdocDataInsightInterface
+    | OwidGdocFeaturedVizInterface
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -138,7 +146,7 @@ function filterSpansForExcerptLong(span: Span): Span | null {
 }
 
 function getExcerptLongFromGdoc(
-    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
+    gdoc: IndexableInPagesGdoc
 ): string[] | undefined {
     if (
         gdoc.content.type !== OwidGdocType.TopicPage &&
@@ -148,15 +156,20 @@ function getExcerptLongFromGdoc(
     ) {
         return
     }
+    // The check above narrows content.type, but not the gdoc itself
+    const topicPage = gdoc as OwidGdocPostInterface
 
     let textBlocks: EnrichedBlockText[]
-    const topicPageIntroBlock = getFirstBlockOfType(gdoc, "topic-page-intro")
+    const topicPageIntroBlock = getFirstBlockOfType(
+        topicPage,
+        "topic-page-intro"
+    )
     const maxParagraphs = 3
     if (topicPageIntroBlock) {
         textBlocks = topicPageIntroBlock.content.slice(0, maxParagraphs)
     } else {
         textBlocks = takeConsecutiveBlocksOfType(
-            gdoc,
+            topicPage,
             "text",
             maxParagraphs
         ).filter((block) => {
@@ -202,10 +215,7 @@ function stripNonSearchableCharacters(content: string): string {
 /** Build indexable body text with linked-callout resolution and lightweight
  *  cleanup (remove non-searchable symbols), while preserving paragraph breaks. */
 export function getPreprocessedIndexableText<
-    IndexableGdoc extends
-        | OwidGdocPostInterface
-        | OwidGdocDataInsightInterface
-        | OwidGdocProfileInterface,
+    IndexableGdoc extends IndexableInPagesGdoc | OwidGdocProfileInterface,
 >(
     body: IndexableGdoc["content"]["body"] | undefined,
     linkedCallouts: IndexableGdoc["linkedCallouts"]
@@ -225,26 +235,33 @@ function flattenToSingleLine(chunk: string): string {
 const getPostImportance = (
     gdoc:
         | OwidGdocAboutInterface
-        | OwidGdocDataInsightInterface
-        | OwidGdocPostInterface
+        | IndexableInPagesGdoc
         | OwidGdocProfileInterface
 ): number => {
-    return match(gdoc.content.type)
-        .with(OwidGdocType.Article, () =>
-            "deprecation-notice" in gdoc.content ? -0.5 : 0
-        )
-        .with(P.union(OwidGdocType.AboutPage, OwidGdocType.Profile), () => 1)
-        .with(
-            P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
-            () => 3
-        )
-        .with(P.union(OwidGdocType.Fragment, undefined), () => 0)
-        .with(OwidGdocType.DataInsight, () => 0)
-        .exhaustive()
+    return (
+        match(gdoc.content.type)
+            .with(OwidGdocType.Article, () =>
+                "deprecation-notice" in gdoc.content ? -0.5 : 0
+            )
+            .with(
+                P.union(OwidGdocType.AboutPage, OwidGdocType.Profile),
+                () => 1
+            )
+            .with(
+                P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
+                () => 3
+            )
+            .with(P.union(OwidGdocType.Fragment, undefined), () => 0)
+            .with(OwidGdocType.DataInsight, () => 0)
+            // Only the featured-viz search returns featured-viz pages, so
+            // this number never ranks them against other page types.
+            .with(OwidGdocType.FeaturedViz, () => 0)
+            .exhaustive()
+    )
 }
 
 async function generateGdocRecords(
-    gdocs: (OwidGdocPostInterface | OwidGdocDataInsightInterface)[],
+    gdocs: IndexableInPagesGdoc[],
     pageviews: Record<string, RawPageview>,
     cloudflareImagesByFilename: Record<string, DbEnrichedImage>,
     knex: db.KnexReadonlyTransaction
@@ -414,13 +431,11 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
                 OwidGdocType.TopicPage,
                 OwidGdocType.AboutPage,
                 OwidGdocType.DataInsight,
+                OwidGdocType.FeaturedViz,
             ],
             { excludeDeprecated: true }
         )
-        .then((gdocs) => gdocs.map(gdocFromJSON))) as (
-        | OwidGdocPostInterface
-        | OwidGdocDataInsightInterface
-    )[]
+        .then((gdocs) => gdocs.map(gdocFromJSON))) as IndexableInPagesGdoc[]
 
     // Only load linkedCallouts — the sole attachment that affects indexed
     // text (via span-callout resolution in enrichedBlocksToIndexableText).
