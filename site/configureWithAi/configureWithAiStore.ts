@@ -100,6 +100,8 @@ export interface PanelState {
     isBusy: boolean
     /** "Try…" suggestions written by the model, for staff on charts without any */
     suggestions: Suggestions
+    /** The overlay over the chart that shows an answer on other pages */
+    overlay: boolean
 }
 
 export type Suggestions =
@@ -125,6 +127,7 @@ export class PanelStore {
         currentId: null,
         isBusy: false,
         suggestions: { status: "idle" },
+        overlay: false,
     }
     private readonly listeners = new Set<() => void>()
     private abortController: AbortController | null = null
@@ -215,6 +218,7 @@ export class PanelStore {
                         runId: body.runId,
                         usage: body.usage,
                     },
+                    overlay: true,
                 })
                 return
             }
@@ -242,6 +246,8 @@ export class PanelStore {
                 request: { status: "idle" },
                 history: [entry, ...this.state.history].slice(0, MAX_HISTORY),
                 currentId: entry.id,
+                // The answer is on the chart, so the overlay makes way for it
+                overlay: false,
             })
             this.adapter.applyView(entry.views[0])
         } catch (error) {
@@ -314,11 +320,21 @@ export class PanelStore {
         // An answer still on its way would otherwise land on top of this
         const pending = this.abortController
         this.abortController = null
-        this.update({ currentId: id, request: { status: "idle" } })
+        this.update({
+            currentId: id,
+            request: { status: "idle" },
+            overlay: false,
+        })
         pending?.abort()
         const entry = this.current
         if (entry) this.adapter.applyView(entry.views[entry.active])
         else this.adapter.restoreStart()
+    }
+
+    /** Opens or closes the overlay; it opens only on an answer with other pages */
+    setOverlay(overlay: boolean): void {
+        if (overlay && this.state.request.status !== "pages") return
+        this.update({ overlay })
     }
 
     sendFeedback(feedback: "up" | "down"): void {

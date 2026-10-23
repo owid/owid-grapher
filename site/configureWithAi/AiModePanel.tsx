@@ -3,16 +3,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
     faCalendar,
-    faChartColumn,
     faEyeSlash,
-    faFileLines,
     faMagnifyingGlass,
     faChartLine,
     faEarthAmericas,
     faRotateLeft,
-    faTable,
-    faThumbsDown,
-    faThumbsUp,
     faWandMagicSparkles,
     type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
@@ -20,7 +15,6 @@ import cx from "clsx"
 import { shouldShowStaffControls } from "@ourworldindata/grapher"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.mjs"
 import {
-    pageThumbnailUrl,
     viewThumbnailUrl,
     type ConfigureWithAiView,
 } from "./configureWithAiView.js"
@@ -30,10 +24,12 @@ import type {
     PanelStore,
     Request,
     Scope,
-    SitePage,
     Suggestions,
     Usage,
 } from "./configureWithAiStore.js"
+import { ExploreOverlay } from "./ExploreOverlay.js"
+import { Feedback } from "./Feedback.js"
+import { iconForTab } from "./tabIcons.js"
 
 const MODELS = [
     { id: "claude-haiku-5-5", label: "Haiku 5.5" },
@@ -106,29 +102,7 @@ function rememberChoice(key: string, value: string): void {
     }
 }
 
-const KIND_LABEL: Record<SitePage["kind"], string> = {
-    chart: "Chart",
-    explorer: "Data explorer",
-    article: "Article",
-    topic: "Topic page",
-}
-
-const BAR_TABS = [
-    "discrete-bar",
-    "stacked-discrete-bar",
-    "stacked-bar",
-    "marimekko",
-]
 const COUNTER_FROM = 80
-
-const iconForTab = (tab: string): IconDefinition =>
-    tab === "table"
-        ? faTable
-        : tab === "map"
-          ? faEarthAmericas
-          : BAR_TABS.includes(tab)
-            ? faChartColumn
-            : faChartLine
 
 const modelLabel = (model: string): string =>
     MODELS.find((m) => model.startsWith(m.id))?.label ?? model
@@ -220,8 +194,20 @@ export function AiModePanel({
     const isIdle = request.status === "idle" || request.status === "stopped"
     const inputRef = useRef<HTMLTextAreaElement>(null)
     const bodyRef = useRef<HTMLDivElement>(null)
+    const rootRef = useRef<HTMLDivElement>(null)
+    // The overlay covers the whole Grapher, chart and side panel
+    const [grapherRoot, setGrapherRoot] = useState<HTMLElement | null>(null)
+    useLayoutEffect(() => {
+        setGrapherRoot(
+            rootRef.current?.closest<HTMLElement>(".GrapherComponent") ?? null
+        )
+    }, [])
 
     const focusInput = (): void => inputRef.current?.focus()
+    const closeOverlay = (): void => {
+        store.setOverlay(false)
+        focusInput()
+    }
 
     const ask = (query: string): void => {
         // The answer's entry shows the question from here on
@@ -261,7 +247,18 @@ export function AiModePanel({
     const showIntro = !current && isIdle
 
     return (
-        <div className="configure-with-ai__ai">
+        <div className="configure-with-ai__ai" ref={rootRef}>
+            {state.overlay && grapherRoot && (
+                <ExploreOverlay
+                    store={store}
+                    state={state}
+                    container={grapherRoot}
+                    ask={(query) => {
+                        void store.ask(query, model, scope)
+                    }}
+                    onClose={closeOverlay}
+                />
+            )}
             <form
                 className="configure-with-ai__form"
                 autoComplete="off"
@@ -499,8 +496,8 @@ function RequestStatus({
                     </button>
                 </div>
             )}
-            {request.status === "pages" && (
-                <Pages store={store} request={request} />
+            {request.status === "pages" && !state.overlay && (
+                <PagesSummary store={store} request={request} />
             )}
             {request.status === "empty" && (
                 <div className="configure-with-ai__message">
@@ -519,8 +516,8 @@ function RequestStatus({
     )
 }
 
-/** An answer on other pages: links that open in a new tab, so History stays */
-function Pages({
+/** An answer on other pages once its overlay is closed */
+function PagesSummary({
     store,
     request,
 }: {
@@ -528,79 +525,16 @@ function Pages({
     request: Extract<Request, { status: "pages" }>
 }) {
     return (
-        <div className="configure-with-ai__answer">
-            {request.message && (
-                <p className="configure-with-ai__pages-message">
-                    {request.message}
-                </p>
-            )}
-            <ul className="configure-with-ai__pages">
-                {request.pages.map((page) => (
-                    <li key={page.url}>
-                        <PageLink page={page} />
-                    </li>
-                ))}
-            </ul>
-            <Feedback store={store} feedback={request.feedback} />
+        <div className="configure-with-ai__message">
+            {request.message && <p>{request.message}</p>}
+            <button
+                className="configure-with-ai__link-button"
+                type="button"
+                onClick={() => store.setOverlay(true)}
+            >
+                Show the {request.pages.length} pages
+            </button>
         </div>
-    )
-}
-
-function PageLink({ page }: { page: SitePage }) {
-    const src = pageThumbnailUrl(GRAPHER_DYNAMIC_THUMBNAIL_URL, page)
-    const [hasFailed, setHasFailed] = useState(false)
-    const isData = page.kind === "chart" || page.kind === "explorer"
-    // A variant shows under the name of the data page it belongs to
-    const title = page.page ?? page.title
-    const subtitle = page.page && page.page !== page.title ? page.title : null
-    return (
-        <a
-            className="configure-with-ai__page"
-            href={page.url}
-            target="_blank"
-            rel="noopener"
-        >
-            {src && !hasFailed ? (
-                <img
-                    className="configure-with-ai__page-image"
-                    src={src}
-                    alt=""
-                    loading="lazy"
-                    onError={() => setHasFailed(true)}
-                />
-            ) : (
-                <span className="configure-with-ai__page-icon" aria-hidden>
-                    <FontAwesomeIcon
-                        icon={
-                            isData
-                                ? iconForTab(page.tab ?? "line")
-                                : faFileLines
-                        }
-                    />
-                </span>
-            )}
-            <span className="configure-with-ai__page-text">
-                <span className="configure-with-ai__page-kind">
-                    {KIND_LABEL[page.kind]}
-                </span>
-                <span className="configure-with-ai__page-title">{title}</span>
-                {(subtitle || page.variant) && (
-                    <span className="configure-with-ai__page-variant">
-                        {[subtitle, page.variant].filter(Boolean).join(" · ")}
-                    </span>
-                )}
-                {isData && page.label !== page.title && (
-                    <span className="configure-with-ai__page-label">
-                        {page.label}
-                    </span>
-                )}
-                {page.why && (
-                    <span className="configure-with-ai__page-why">
-                        {page.why}
-                    </span>
-                )}
-            </span>
-        </a>
     )
 }
 
@@ -781,40 +715,6 @@ function Answer({
                 </div>
             )}
             <Feedback store={store} feedback={entry.feedback} />
-        </div>
-    )
-}
-
-function Feedback({
-    store,
-    feedback,
-}: {
-    store: PanelStore
-    feedback: "up" | "down" | undefined
-}) {
-    return (
-        <div className="configure-with-ai__feedback">
-            <span>
-                {feedback ? "Thanks for the feedback" : "Was this useful?"}
-            </span>
-            <button
-                className="configure-with-ai__thumb"
-                type="button"
-                aria-pressed={feedback === "up"}
-                aria-label="Useful"
-                onClick={() => store.sendFeedback("up")}
-            >
-                <FontAwesomeIcon icon={faThumbsUp} />
-            </button>
-            <button
-                className="configure-with-ai__thumb"
-                type="button"
-                aria-pressed={feedback === "down"}
-                aria-label="Not useful"
-                onClick={() => store.sendFeedback("down")}
-            >
-                <FontAwesomeIcon icon={faThumbsDown} />
-            </button>
         </div>
     )
 }
