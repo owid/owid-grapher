@@ -126,13 +126,11 @@ const NewsletterSignupFormInner = ({
             </div>
         )
 
-    // Until the page hydrates, submits are handled natively by the browser:
-    // the action sends them to /subscribe, and the email input has no `name`
-    // so the address can't leak into the URL as a query param.
+    // The submit button stays disabled until a captcha token arrives, so the
+    // form needs JavaScript: there is no native fallback before hydration.
     return (
         <form
             className={cx("newsletter-signup-form", className)}
-            action="/subscribe"
             onSubmit={handleSubmit}
         >
             <NewsletterOption
