@@ -16,10 +16,14 @@ import {
     RedirectsTableName,
     OwidGdocType,
     GdocComponentPreviewRefreshResult,
+    OwidGdoc,
+    OwidGdocBaseInterface,
+    OwidGdocPostInterface,
+    OwidGdocDataInsightInterface,
+    OwidGdocFeaturedVizInterface,
 } from "@ourworldindata/types"
 import {
     checkIsChronologicalGdoc,
-    checkIsDataInsight,
     checkIsGdocPostExcludingFragments,
     checkShouldDataCalloutRender,
     getEntitiesForProfile,
@@ -314,6 +318,20 @@ function checkIsProfile(gdoc: { content: { type?: OwidGdocType } }): boolean {
     return gdoc.content.type === OwidGdocType.Profile
 }
 
+/** Gdoc types indexed in pages via `indexIndividualGdoc` (profiles are handled separately) */
+function checkIsIndexedInPages(
+    gdoc: OwidGdoc | OwidGdocBaseInterface
+): gdoc is
+    | OwidGdocPostInterface
+    | OwidGdocDataInsightInterface
+    | OwidGdocFeaturedVizInterface {
+    return (
+        checkIsGdocPostExcludingFragments(gdoc) ||
+        gdoc.content.type === OwidGdocType.DataInsight ||
+        gdoc.content.type === OwidGdocType.FeaturedViz
+    )
+}
+
 /**
  * Handles all four `GdocPublishingAction` cases
  * - SavingDraft (no action)
@@ -321,7 +339,7 @@ function checkIsProfile(gdoc: { content: { type?: OwidGdocType } }): boolean {
  * - Updating (index and bake (potentially via lightning deploy))
  * - Unpublishing (remove from index and bake)
  */
-async function indexAndBakeGdocIfNeccesary(
+export async function indexAndBakeGdocIfNeccesary(
     trx: db.KnexReadWriteTransaction,
     user: Required<DbInsertUser>,
     prevGdoc: AnyGdoc,
@@ -331,12 +349,8 @@ async function indexAndBakeGdocIfNeccesary(
     const nextJson = nextGdoc.toJSON()
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
     const action = getPublishingAction(prevJson, nextJson)
-    const wasIndexedInPages =
-        checkIsGdocPostExcludingFragments(prevJson) ||
-        checkIsDataInsight(prevJson)
-    const shouldIndexInPages =
-        checkIsGdocPostExcludingFragments(nextJson) ||
-        checkIsDataInsight(nextJson)
+    const wasIndexedInPages = checkIsIndexedInPages(prevJson)
+    const shouldIndexInPages = checkIsIndexedInPages(nextJson)
     const wasProfile = checkIsProfile(prevJson)
     const isProfile = checkIsProfile(nextJson)
     const wasChronologicalPost = checkIsChronologicalGdoc(prevJson)
@@ -578,10 +592,7 @@ export async function deleteGdoc(
         .where({ gdocId: id })
         .delete()
     if (gdoc.published) {
-        if (
-            checkIsGdocPostExcludingFragments(gdoc) ||
-            gdoc.content.type === OwidGdocType.DataInsight
-        ) {
+        if (checkIsIndexedInPages(gdoc)) {
             await removeIndividualGdocFromIndex(gdoc)
         }
         if (checkIsProfile(gdoc)) {
@@ -692,11 +703,7 @@ export async function getPreviewGdocIndexRecords(
             return payload
         }
 
-        // Only generate records for posts (excluding fragments)
-        if (
-            !checkIsGdocPostExcludingFragments(gdocJson) &&
-            !checkIsDataInsight(gdocJson)
-        ) {
+        if (!checkIsIndexedInPages(gdocJson)) {
             const payload: PagesIndexRecordsResponse = {
                 records: [],
                 count: 0,
