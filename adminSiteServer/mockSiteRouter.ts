@@ -382,26 +382,6 @@ getPlainRouteWithROTransaction(
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
-    "/featured-viz/:slug",
-    async (req, res, trx) => {
-        try {
-            return res.send(
-                await renderGdocsPageBySlug(
-                    trx,
-                    req.params.slug,
-                    [OwidGdocType.FeaturedViz],
-                    true
-                )
-            )
-        } catch (e) {
-            console.error(e)
-            return res.status(404).send(renderNotFoundPage())
-        }
-    }
-)
-
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
     SEARCH_BASE_PATH,
     async (_, res, trx) => {
         res.send(await renderSearchPage(trx))
@@ -709,7 +689,6 @@ getPlainRouteWithROTransaction(
                     (type) =>
                         type !== OwidGdocType.Profile &&
                         type !== OwidGdocType.DataInsight &&
-                        type !== OwidGdocType.FeaturedViz &&
                         type !== OwidGdocType.Author
                 ),
                 true
