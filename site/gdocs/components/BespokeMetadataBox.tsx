@@ -1,7 +1,7 @@
 import { useRef } from "react"
 import cx from "clsx"
 import {
-    BESPOKE_METADATA_FALLBACK_TITLE,
+    BESPOKE_METADATA_TITLE,
     BespokeMetadataHeading,
     BespokeMetadataKeyData,
     BespokeMetadataSections,
@@ -40,7 +40,7 @@ export function BespokeMetadataBox({
             <MetadataBoxCollapseButton detailsRef={detailsRef} />
             <BespokeMetadataHeading
                 metadata={metadata}
-                fallbackTitle={BESPOKE_METADATA_FALLBACK_TITLE}
+                title={BESPOKE_METADATA_TITLE}
             />
             <BespokeMetadataKeyData metadata={metadata} />
             <MetadataBoxExpander
