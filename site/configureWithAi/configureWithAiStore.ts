@@ -36,6 +36,23 @@ export interface ChartAdapter {
 
 export type PanelTab = "customize" | "ai"
 
+/** "site" also lets the model point to other pages */
+export type Scope = "page" | "site"
+
+/** Mirrors SitePageSuggestion in functions/api/configure-with-ai/site.ts */
+export interface SitePage {
+    kind: "chart" | "explorer" | "article" | "topic"
+    title: string
+    page: string | null
+    variant: string | null
+    label: string
+    why: string
+    /** Relative URL, with the tab, countries and time already set */
+    url: string
+    tab: string | null
+    thumbnailUrl: string | null
+}
+
 export interface HistoryEntry {
     id: number
     query: string
@@ -60,6 +77,16 @@ export type Request =
           interpretation: string
           /** What to search other charts for, if the model suggested it */
           searchQuery: string | null
+      }
+    /** The answer is on other pages; the chart stays as it is */
+    | {
+          status: "pages"
+          query: string
+          message: string | null
+          pages: SitePage[]
+          runId: string
+          usage: Usage
+          feedback?: "up" | "down"
       }
 
 export interface PanelState {
@@ -137,7 +164,7 @@ export class PanelStore {
         if (isBusy !== this.state.isBusy) this.update({ isBusy })
     }
 
-    async ask(rawQuery: string, model: string): Promise<void> {
+    async ask(rawQuery: string, model: string, scope: Scope): Promise<void> {
         const query = rawQuery.trim()
         // While an MDim page loads a view, the current view isn't settled yet
         if (
@@ -161,6 +188,7 @@ export class PanelStore {
                     queryStr: this.adapter.getQueryStr(),
                     tableSort: this.adapter.getTableSort(),
                     model,
+                    scope,
                 }),
                 signal: controller.signal,
             })
@@ -173,6 +201,19 @@ export class PanelStore {
                         status: "error",
                         query,
                         message: errorMessage(body.error),
+                    },
+                })
+                return
+            }
+            if (body.intent === "elsewhere" && body.pages?.length) {
+                this.update({
+                    request: {
+                        status: "pages",
+                        query,
+                        message: body.message ?? null,
+                        pages: body.pages,
+                        runId: body.runId,
+                        usage: body.usage,
                     },
                 })
                 return
@@ -281,13 +322,22 @@ export class PanelStore {
     }
 
     sendFeedback(feedback: "up" | "down"): void {
-        const entry = this.current
-        if (!entry) return
-        this.replaceEntry({ ...entry, feedback })
+        // An answer with other pages isn't in History, so it's rated where it is
+        const { request } = this.state
+        let runId: string
+        if (request.status === "pages") {
+            this.update({ request: { ...request, feedback } })
+            runId = request.runId
+        } else {
+            const entry = this.current
+            if (!entry) return
+            this.replaceEntry({ ...entry, feedback })
+            runId = entry.runId
+        }
         void fetch(`${CONFIGURE_WITH_AI_API_URL}/feedback`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ runId: entry.runId, feedback }),
+            body: JSON.stringify({ runId, feedback }),
         }).catch((error) => console.warn("Feedback not saved", error))
     }
 

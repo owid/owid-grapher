@@ -5,6 +5,7 @@ import {
     faCalendar,
     faChartColumn,
     faEyeSlash,
+    faFileLines,
     faMagnifyingGlass,
     faChartLine,
     faEarthAmericas,
@@ -19,6 +20,7 @@ import cx from "clsx"
 import { shouldShowStaffControls } from "@ourworldindata/grapher"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.mjs"
 import {
+    pageThumbnailUrl,
     viewThumbnailUrl,
     type ConfigureWithAiView,
 } from "./configureWithAiView.js"
@@ -26,6 +28,9 @@ import type {
     HistoryEntry,
     PanelState,
     PanelStore,
+    Request,
+    Scope,
+    SitePage,
     Suggestions,
     Usage,
 } from "./configureWithAiStore.js"
@@ -38,6 +43,11 @@ const MODELS = [
 type ModelId = (typeof MODELS)[number]["id"]
 const DEFAULT_MODEL: ModelId = "claude-sonnet-5-5"
 const MODEL_STORAGE_KEY = "configure-with-ai:model"
+const SCOPES: { id: Scope; label: string }[] = [
+    { id: "page", label: "This chart" },
+    { id: "site", label: "Across the site" },
+]
+const SCOPE_STORAGE_KEY = "configure-with-ai:scope"
 const MAX_QUERY_LENGTH = 100
 const SLOW_AFTER_SECONDS = 10
 
@@ -76,6 +86,31 @@ function readStoredModel(): ModelId {
     } catch {
         return DEFAULT_MODEL
     }
+}
+
+function readStoredScope(): Scope {
+    try {
+        return localStorage.getItem(SCOPE_STORAGE_KEY) === "site"
+            ? "site"
+            : "page"
+    } catch {
+        return "page"
+    }
+}
+
+function rememberChoice(key: string, value: string): void {
+    try {
+        localStorage.setItem(key, value)
+    } catch {
+        // The choice just isn't remembered
+    }
+}
+
+const KIND_LABEL: Record<SitePage["kind"], string> = {
+    chart: "Chart",
+    explorer: "Data explorer",
+    article: "Article",
+    topic: "Topic page",
 }
 
 const BAR_TABS = [
@@ -178,6 +213,9 @@ export function AiModePanel({
     const [isStaff] = useState(shouldShowStaffControls)
     const [storedModel, setModel] = useState<ModelId>(readStoredModel)
     const model = isStaff ? storedModel : DEFAULT_MODEL
+    // Pointing to other pages is a staff-only trial for now
+    const [storedScope, setScope] = useState<Scope>(readStoredScope)
+    const scope = isStaff ? storedScope : "page"
     const isThinking = request.status === "thinking"
     const isIdle = request.status === "idle" || request.status === "stopped"
     const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -188,7 +226,7 @@ export function AiModePanel({
     const ask = (query: string): void => {
         // The answer's entry shows the question from here on
         setDraft({ forId: -1, text: "" })
-        void store.ask(query, model)
+        void store.ask(query, model, scope)
         focusInput()
     }
 
@@ -209,12 +247,14 @@ export function AiModePanel({
 
     const changeModel = (id: ModelId): void => {
         setModel(id)
-        try {
-            localStorage.setItem(MODEL_STORAGE_KEY, id)
-        } catch {
-            // The choice just isn't remembered
-        }
+        rememberChoice(MODEL_STORAGE_KEY, id)
     }
+    const changeScope = (id: Scope): void => {
+        setScope(id)
+        rememberChoice(SCOPE_STORAGE_KEY, id)
+    }
+    // An answer with other pages has its usage on the request, not in History
+    const usage = request.status === "pages" ? request.usage : current?.usage
 
     // Also shown after going back to the chart as it was opened; History
     // stays below it
@@ -316,13 +356,16 @@ export function AiModePanel({
                         store={store}
                         state={state}
                         isStaff={isStaff}
+                        scope={scope}
                         ask={ask}
                     />
                 )}
 
                 {/* A failed or empty answer replaces the previous one, which
                     is summed up as what the chart still shows */}
-                {(request.status === "empty" || request.status === "error") && (
+                {(request.status === "empty" ||
+                    request.status === "error" ||
+                    request.status === "pages") && (
                     <StillShows slug={store.slug} entry={current} />
                 )}
 
@@ -348,8 +391,8 @@ export function AiModePanel({
                         <span
                             className="configure-with-ai__staff-label"
                             title={
-                                current
-                                    ? usageSummary(current.usage).details
+                                usage
+                                    ? usageSummary(usage).details
                                     : "Only visible to OWID staff"
                             }
                         >
@@ -357,10 +400,25 @@ export function AiModePanel({
                                 icon={faEyeSlash}
                                 aria-label="Only visible to OWID staff"
                             />
-                            {current
-                                ? usageSummary(current.usage).line
+                            {usage
+                                ? usageSummary(usage).line
                                 : "Only visible to OWID staff"}
                         </span>
+                        <label className="configure-with-ai__model">
+                            <span className="sr-only">Scope</span>
+                            <select
+                                value={scope}
+                                onChange={(e) =>
+                                    changeScope(e.target.value as Scope)
+                                }
+                            >
+                                {SCOPES.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
                         <label className="configure-with-ai__model">
                             <span className="sr-only">Model</span>
                             <select
@@ -441,6 +499,9 @@ function RequestStatus({
                     </button>
                 </div>
             )}
+            {request.status === "pages" && (
+                <Pages store={store} request={request} />
+            )}
             {request.status === "empty" && (
                 <div className="configure-with-ai__message">
                     <strong>No view of this chart matches</strong>
@@ -458,15 +519,102 @@ function RequestStatus({
     )
 }
 
+/** An answer on other pages: links that open in a new tab, so History stays */
+function Pages({
+    store,
+    request,
+}: {
+    store: PanelStore
+    request: Extract<Request, { status: "pages" }>
+}) {
+    return (
+        <div className="configure-with-ai__answer">
+            {request.message && (
+                <p className="configure-with-ai__pages-message">
+                    {request.message}
+                </p>
+            )}
+            <ul className="configure-with-ai__pages">
+                {request.pages.map((page) => (
+                    <li key={page.url}>
+                        <PageLink page={page} />
+                    </li>
+                ))}
+            </ul>
+            <Feedback store={store} feedback={request.feedback} />
+        </div>
+    )
+}
+
+function PageLink({ page }: { page: SitePage }) {
+    const src = pageThumbnailUrl(GRAPHER_DYNAMIC_THUMBNAIL_URL, page)
+    const [hasFailed, setHasFailed] = useState(false)
+    const isData = page.kind === "chart" || page.kind === "explorer"
+    // A variant shows under the name of the data page it belongs to
+    const title = page.page ?? page.title
+    const subtitle = page.page && page.page !== page.title ? page.title : null
+    return (
+        <a
+            className="configure-with-ai__page"
+            href={page.url}
+            target="_blank"
+            rel="noopener"
+        >
+            {src && !hasFailed ? (
+                <img
+                    className="configure-with-ai__page-image"
+                    src={src}
+                    alt=""
+                    loading="lazy"
+                    onError={() => setHasFailed(true)}
+                />
+            ) : (
+                <span className="configure-with-ai__page-icon" aria-hidden>
+                    <FontAwesomeIcon
+                        icon={
+                            isData
+                                ? iconForTab(page.tab ?? "line")
+                                : faFileLines
+                        }
+                    />
+                </span>
+            )}
+            <span className="configure-with-ai__page-text">
+                <span className="configure-with-ai__page-kind">
+                    {KIND_LABEL[page.kind]}
+                </span>
+                <span className="configure-with-ai__page-title">{title}</span>
+                {(subtitle || page.variant) && (
+                    <span className="configure-with-ai__page-variant">
+                        {[subtitle, page.variant].filter(Boolean).join(" · ")}
+                    </span>
+                )}
+                {isData && page.label !== page.title && (
+                    <span className="configure-with-ai__page-label">
+                        {page.label}
+                    </span>
+                )}
+                {page.why && (
+                    <span className="configure-with-ai__page-why">
+                        {page.why}
+                    </span>
+                )}
+            </span>
+        </a>
+    )
+}
+
 function Intro({
     store,
     state,
     isStaff,
+    scope,
     ask,
 }: {
     store: PanelStore
     state: PanelState
     isStaff: boolean
+    scope: Scope
     ask: (q: string) => void
 }) {
     const suggestions = SUGGESTIONS[store.slug] ?? []
@@ -503,13 +651,20 @@ function Intro({
                     </span>
                 </li>
             </ul>
-            <p className="configure-with-ai__muted">
-                It shows this chart's data only. For other data,{" "}
-                <a href="https://ourworldindata.org/search">
-                    search all charts
-                </a>
-                .
-            </p>
+            {scope === "site" ? (
+                <p className="configure-with-ai__muted">
+                    When this chart can't answer, it points you to other charts
+                    and articles on Our World in Data.
+                </p>
+            ) : (
+                <p className="configure-with-ai__muted">
+                    It shows this chart's data only. For other data,{" "}
+                    <a href="https://ourworldindata.org/search">
+                        search all charts
+                    </a>
+                    .
+                </p>
+            )}
             {suggestions.length > 0 && (
                 <>
                     <p className="configure-with-ai__section-title">Try</p>
@@ -625,31 +780,41 @@ function Answer({
                     </ul>
                 </div>
             )}
-            <div className="configure-with-ai__feedback">
-                <span>
-                    {entry.feedback
-                        ? "Thanks for the feedback"
-                        : "Was this useful?"}
-                </span>
-                <button
-                    className="configure-with-ai__thumb"
-                    type="button"
-                    aria-pressed={entry.feedback === "up"}
-                    aria-label="Useful"
-                    onClick={() => store.sendFeedback("up")}
-                >
-                    <FontAwesomeIcon icon={faThumbsUp} />
-                </button>
-                <button
-                    className="configure-with-ai__thumb"
-                    type="button"
-                    aria-pressed={entry.feedback === "down"}
-                    aria-label="Not useful"
-                    onClick={() => store.sendFeedback("down")}
-                >
-                    <FontAwesomeIcon icon={faThumbsDown} />
-                </button>
-            </div>
+            <Feedback store={store} feedback={entry.feedback} />
+        </div>
+    )
+}
+
+function Feedback({
+    store,
+    feedback,
+}: {
+    store: PanelStore
+    feedback: "up" | "down" | undefined
+}) {
+    return (
+        <div className="configure-with-ai__feedback">
+            <span>
+                {feedback ? "Thanks for the feedback" : "Was this useful?"}
+            </span>
+            <button
+                className="configure-with-ai__thumb"
+                type="button"
+                aria-pressed={feedback === "up"}
+                aria-label="Useful"
+                onClick={() => store.sendFeedback("up")}
+            >
+                <FontAwesomeIcon icon={faThumbsUp} />
+            </button>
+            <button
+                className="configure-with-ai__thumb"
+                type="button"
+                aria-pressed={feedback === "down"}
+                aria-label="Not useful"
+                onClick={() => store.sendFeedback("down")}
+            >
+                <FontAwesomeIcon icon={faThumbsDown} />
+            </button>
         </div>
     )
 }

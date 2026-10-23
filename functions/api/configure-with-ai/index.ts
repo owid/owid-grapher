@@ -2,9 +2,11 @@ import * as Sentry from "@sentry/cloudflare"
 import { StatusError } from "itty-router"
 import * as z from "zod"
 import { Env } from "../../_common/env.js"
+import { getAlgoliaConfig } from "../search/algoliaClient.js"
 import { loadChartContext } from "./chartContext.js"
 import { callClaude } from "./claude.js"
 import { costOf, costsByModel } from "./cost.js"
+import { SEARCH_TOOL, sanitizeSiteReply, SiteSearch } from "./site.js"
 import {
     buildPrompt,
     parseJsonReply,
@@ -38,7 +40,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             },
             400
         )
-    const { slug, query, queryStr, model, tableSort } = parsed.data
+    const { slug, query, queryStr, model, scope, tableSort } = parsed.data
     const runId = crypto.randomUUID()
     const started = Date.now()
 
@@ -47,10 +49,19 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             ...(await loadChartContext(slug, queryStr, env)),
             currentTableSort: tableSort,
         }
-        const prompt = buildPrompt(ctx, query)
+        const search =
+            scope === "site" ? new SiteSearch(getAlgoliaConfig(env)) : null
+        const prompt = buildPrompt(ctx, query, { site: !!search })
         const contextMs = Date.now() - started
 
-        const claude = await callClaude(env.ANTHROPIC_API_KEY, model, prompt)
+        const claude = await callClaude(
+            env.ANTHROPIC_API_KEY,
+            model,
+            prompt,
+            search
+                ? [{ ...SEARCH_TOOL, run: (input) => search.run(input) }]
+                : []
+        )
         const ms = Date.now() - started
         const usage = {
             model: claude.model,
@@ -96,7 +107,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             )
             return json({ error: "invalid_json", runId, usage }, 502)
         }
-        const clean = sanitizeViews(reply, ctx)
+        const views = sanitizeViews(reply, ctx)
+        const clean = search
+            ? sanitizeSiteReply(reply, views, search.found)
+            : { ...views, intent: "here" as const, message: null, pages: [] }
         // One JSON line per run; read them back with `pm2 logs site` on staging
         console.log(
             JSON.stringify({
@@ -105,7 +119,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                 slug,
                 query,
                 queryStr,
+                scope,
                 ...clean,
+                searches: search?.searches,
                 usage,
             })
         )
