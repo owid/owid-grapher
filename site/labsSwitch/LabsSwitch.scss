@@ -2,9 +2,9 @@
     position: fixed;
     left: 16px;
     bottom: 16px;
-    // Above page content, but below the site header, fullscreen charts, drawers
-    // and the cookie notice, so it never covers their controls
-    z-index: $zindex-popover;
+    // Below the reader survey (UserSurvey.scss), which takes the same corner:
+    // the survey is what readers came across, the button can wait
+    z-index: 19;
     display: flex;
     align-items: center;
     height: 44px;
