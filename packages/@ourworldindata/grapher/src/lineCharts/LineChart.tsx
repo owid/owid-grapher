@@ -490,7 +490,7 @@ export class LineChart
         )
     }
 
-    private readonly numericBinSize = 6
+    private readonly numericBinHeight = 6
     private readonly legendTickSize = 1
 
     // Used when faceted
@@ -509,7 +509,7 @@ export class LineChart
                   align: HorizontalAlign.center,
                   title: this.legendTitle,
                   tickSize: this.legendTickSize,
-                  binSize: this.numericBinSize,
+                  binHeight: this.numericBinHeight,
               })
             : undefined
     }
@@ -669,7 +669,7 @@ export class LineChart
                 categoricalLegendData,
                 legendTitle: this.legendTitle,
                 legendTickSize: this.legendTickSize,
-                numericBinSize: this.numericBinSize,
+                numericBinHeight: this.numericBinHeight,
                 categoricalLegendStyleConfig: this.categoricalLegendStyleConfig,
                 numericLegendStyleConfig: this.numericLegendStyleConfig,
             }

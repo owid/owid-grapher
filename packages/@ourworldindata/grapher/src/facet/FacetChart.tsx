@@ -809,8 +809,8 @@ export class FacetChart
         return this.getExternalLegendProp("legendTickSize")
     }
 
-    @computed private get numericBinSize(): number | undefined {
-        return this.getExternalLegendProp("numericBinSize")
+    @computed private get numericBinHeight(): number | undefined {
+        return this.getExternalLegendProp("numericBinHeight")
     }
 
     @computed private get hoverColors(): Color[] | undefined {
@@ -939,7 +939,7 @@ export class FacetChart
                         title: this.legendTitle,
                         align: this.legendAlign,
                         tickSize: this.legendTickSize,
-                        binSize: this.numericBinSize,
+                        binHeight: this.numericBinHeight,
                     }
                 ),
             }

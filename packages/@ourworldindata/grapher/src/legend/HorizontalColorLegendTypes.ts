@@ -1,11 +1,12 @@
 import { Bounds, HorizontalAlign } from "@ourworldindata/utils"
 import { ColorScaleBin, CategoricalBin } from "../color/ColorScaleBin"
+import { TextWrap } from "@ourworldindata/components"
 import { BinEmphasis, LegendStyleConfig } from "./LegendStyleConfig"
 
-export interface PositionedBin {
+export interface PositionedBin<Bin extends ColorScaleBin = ColorScaleBin> {
     x: number
     width: number
-    bin: ColorScaleBin
+    bin: Bin
 }
 
 export interface NumericLabel {
@@ -17,6 +18,8 @@ export interface NumericLabel {
     raised: boolean
     bin: ColorScaleBin
 }
+
+export type LabelSide = "above" | "below"
 
 export interface CategoricalMark {
     x: number
@@ -43,7 +46,7 @@ export interface HorizontalNumericColorLegendOptions {
     title?: string
     align?: HorizontalAlign
     tickSize?: number
-    binSize?: number
+    binHeight?: number
 }
 
 export interface HorizontalCategoricalColorLegendOptions {
@@ -75,7 +78,22 @@ export interface ExternalColorLegendData {
     categoricalLegendData?: CategoricalBin[]
     legendTitle?: string
     legendTickSize?: number
-    numericBinSize?: number
+    numericBinHeight?: number
     numericLegendStyleConfig?: LegendStyleConfig
     categoricalLegendStyleConfig?: LegendStyleConfig
+}
+
+export interface HorizontalOrdinalColorLegendOptions {
+    maxWidth: number
+    baseFontSize?: number
+    align?: HorizontalAlign
+    binHeight?: number
+}
+
+export interface OrdinalLabel {
+    bin: CategoricalBin
+    side: LabelSide
+    textWrap: TextWrap
+    left: number
+    top: number
 }

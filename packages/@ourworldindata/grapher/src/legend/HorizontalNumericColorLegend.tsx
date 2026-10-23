@@ -44,7 +44,7 @@ export function HorizontalNumericColorLegend(
     } = props
     const {
         numericLabels,
-        binSize,
+        binHeight,
         positionedBins,
         height,
         title,
@@ -108,9 +108,9 @@ export function HorizontalNumericColorLegend(
                         : positionedBin.x
                 }
                 x={x + positionedBin.x}
-                y={bottomY - binSize}
+                y={bottomY - binHeight}
                 width={positionedBin.width}
-                height={binSize}
+                height={binHeight}
                 fill={isHighlightOverlay ? "none" : fill}
                 stroke={style.stroke}
                 strokeWidth={style.strokeWidth}
@@ -138,7 +138,7 @@ export function HorizontalNumericColorLegend(
                             x1={roundForSvg(
                                 x + label.bounds.x + label.bounds.width / 2
                             )}
-                            y1={roundForSvg(bottomY - binSize)}
+                            y1={roundForSvg(bottomY - binHeight)}
                             x2={roundForSvg(
                                 x + label.bounds.x + label.bounds.width / 2
                             )}
