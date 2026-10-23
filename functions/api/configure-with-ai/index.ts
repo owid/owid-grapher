@@ -49,8 +49,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             ...(await loadChartContext(slug, queryStr, env)),
             currentTableSort: tableSort,
         }
+        // The shared indices, not the branch's own: a staging branch only gets
+        // its own with the staging-algolia label, and the staging Algolia app
+        // is over its record quota for those
         const search =
-            scope === "site" ? new SiteSearch(getAlgoliaConfig(env)) : null
+            scope === "site"
+                ? new SiteSearch({
+                      ...getAlgoliaConfig(env),
+                      indexPrefix: undefined,
+                  })
+                : null
         const prompt = buildPrompt(ctx, query, { site: !!search })
         const contextMs = Date.now() - started
 
