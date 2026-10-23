@@ -6,7 +6,9 @@ import * as Sentry from "@sentry/node"
 import { traceJob } from "../../serverUtils/sentryTracing.js"
 import fs from "fs-extra"
 import path from "path"
-import { Errors, Models, ServerClient } from "postmark"
+import { v7 as uuidv7 } from "uuid"
+import * as _ from "lodash-es"
+import { Models, ServerClient } from "postmark"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import {
@@ -25,13 +27,17 @@ import {
     D1Client,
     createLocalD1Client,
     createRemoteD1Client,
+    queryWithRetry,
 } from "./emailNotificationsD1.js"
 import {
     D1SubscriberRow,
     EmailNotificationsSubscriber,
+    NotificationEmailGroup,
     NotificationEmailItem,
-    filterItemsForSubscriber,
+    areWebhooksMissing,
+    fillPostmarkTemplate,
     getWindowStart,
+    groupSubscribersByItems,
     parseSubscriberRow,
 } from "./emailNotificationsUtils.js"
 import { buildNotificationItems } from "./notificationItems.js"
@@ -58,7 +64,9 @@ async function fetchSubscribers(
                 notification_preferences.topicTags,
                 notification_preferences.contentTypes,
                 notification_preferences.frequency,
-                notification_preferences.lastSentAt
+                (SELECT MAX(messages.sentAt)
+                 FROM messages
+                 WHERE messages.userId = users.id) AS lastSentAt
          FROM users
          JOIN notification_preferences
              ON notification_preferences.userId = users.id
@@ -92,203 +100,311 @@ function createPostmarkClient(): ServerClient {
     )
 }
 
-/** Send an email via Postmark. Returns the Postmark message id. */
-async function sendViaPostmark(
+// D1 limits a bound string to 2 MB; a JSON row of a recorded message is about
+// 100 bytes.
+const D1_RECORD_CHUNK_SIZE = 1000
+
+// Postmark limits a bulk request to 50 MB; a message is about 250 bytes of
+// JSON, so a full chunk is about 6 MB. Smaller chunks mean fewer re-sent
+// emails if a request times out or we crash before recording it.
+const POSTMARK_BULK_CHUNK_SIZE = 25_000
+
+/**
+ * Per-recipient values, filled in by Postmark from each message's
+ * TemplateModel. Triple braces insert them unescaped, so the same placeholder
+ * works in the HTML and text bodies. Tokens are UUIDs, and the address only
+ * appears in its recipient's own email.
+ */
+const TEMPLATE_TOKEN = "{{{token}}}"
+const TEMPLATE_EMAIL = "{{{email}}}"
+
+interface NotificationEmailTemplate {
+    html: string
+    text: string
+}
+
+/**
+ * Render a group's email once, with template variables in place of the
+ * recipient's details.
+ *
+ * Postmark parses the whole body as a template, so any "{{" in our content
+ * would be read as template syntax. We accept that for now because our content
+ * practically never contains it.
+ */
+async function renderNotificationEmailTemplate(
+    group: NotificationEmailGroup,
+    now: Date
+): Promise<NotificationEmailTemplate> {
+    return renderNotificationEmail({
+        subscriber: {
+            ...group.subscribers[0],
+            token: TEMPLATE_TOKEN,
+            email: TEMPLATE_EMAIL,
+        },
+        items: group.items,
+        baseUrl: BAKED_BASE_URL,
+        // Links in emails must be absolute; the email notifications API is
+        // served on the same host as the baked site.
+        apiBaseUrl: `${BAKED_BASE_URL}/api/email-notifications`,
+        now,
+    })
+}
+
+/**
+ * The values for the template placeholders above. Shared by sending and
+ * previews so the placeholders and their values stay in sync.
+ */
+function makeTemplateModel(
+    subscriber: EmailNotificationsSubscriber
+): Record<string, string> {
+    return { token: subscriber.token, email: subscriber.email }
+}
+
+interface PreparedMessage {
+    subscriber: EmailNotificationsSubscriber
+    /**
+     * Sent as message metadata, so webhooks can find the messages row. The
+     * bulk API doesn't return per-recipient Postmark message IDs.
+     */
+    correlationId: string
+}
+
+/**
+ * Submit a chunk of a group's email as one Postmark bulk request. Returns
+ * the bulk request id.
+ */
+async function sendBulkViaPostmark(
     client: ServerClient,
-    email: {
-        to: string
-        subject: string
-        htmlBody: string
-        textBody: string
-        metadata: Record<string, string>
-    }
+    frequency: EmailNotificationsFrequency,
+    template: NotificationEmailTemplate,
+    messages: PreparedMessage[]
 ): Promise<string> {
-    const response = await client.sendEmail({
+    const response = await client.sendBulkEmail({
         From: EMAIL_NOTIFICATIONS_FROM_ADDRESS,
-        To: email.to,
-        Subject: email.subject,
-        HtmlBody: email.htmlBody,
+        Subject: makeNotificationEmailSubject(frequency),
+        HtmlBody: template.html,
         // Text alternative for clients that don't render HTML, and one of
         // the signals spam filters weigh.
-        TextBody: email.textBody,
+        TextBody: template.text,
         // Bulk emails must go through a Postmark broadcast stream (not the
         // transactional "outbound" stream). Postmark adds the unsubscribe
         // headers automatically.
         MessageStream: "broadcast",
         Tag: "email-notifications", // For analytics
-        Metadata: email.metadata,
+        Messages: messages.map(({ subscriber, correlationId }) => ({
+            To: subscriber.email,
+            TemplateModel: makeTemplateModel(subscriber),
+            Metadata: {
+                userId: String(subscriber.userId),
+                frequency,
+                correlationId,
+            },
+        })),
     })
-    return response.MessageID
-}
-
-async function recordSentEmail(
-    d1: D1Client,
-    subscriber: EmailNotificationsSubscriber,
-    items: NotificationEmailItem[],
-    postmarkMessageId: string,
-    sentAt: Date
-): Promise<void> {
-    const sentAtIso = sentAt.toISOString()
-    await d1.query(
-        `UPDATE notification_preferences
-         SET lastSentAt = ?1, updatedAt = ?1
-         WHERE userId = ?2`,
-        [sentAtIso, subscriber.userId]
-    )
-    await d1.query(
-        `INSERT INTO messages
-             (userId, frequency, itemSlugs, messageId, status, sentAt)
-         VALUES (?1, ?2, ?3, ?4, 'sent', ?5)`,
-        [
-            subscriber.userId,
-            subscriber.frequency,
-            JSON.stringify(items.map((item) => item.slug)),
-            postmarkMessageId,
-            sentAtIso,
-        ]
-    )
-}
-
-interface SendFailure {
-    userId: number
-    error: unknown
+    if (response.Status !== Models.BulkEmailStatus.Accepted) {
+        throw new Error(
+            `Postmark did not accept the bulk request status=${response.Status}`
+        )
+    }
+    return response.Id
 }
 
 /**
- * Sends to every subscriber it can. Inactive Postmark recipients are collected
- * so one bad address doesn't stop the rest of the list; all other failures are
- * thrown immediately. Any collected failure makes the run fail afterward.
+ * Record a group's messages, one write per chunk rather than per subscriber:
+ * each write is a request to the Cloudflare API, which is rate limited. Each
+ * chunk is a single statement, so a subscriber is either recorded, which
+ * also advances their window, or not. The statement ignores rows that are
+ * already recorded, so it's safe to retry after a write that failed but may
+ * have been committed.
+ */
+async function recordSentMessages(
+    d1: D1Client,
+    frequency: EmailNotificationsFrequency,
+    items: NotificationEmailItem[],
+    messages: PreparedMessage[],
+    bulkRequestId: string,
+    sentAt: Date
+): Promise<void> {
+    const itemSlugs = JSON.stringify(items.map((item) => item.slug))
+    for (const chunk of _.chunk(messages, D1_RECORD_CHUNK_SIZE)) {
+        const rows = JSON.stringify(
+            chunk.map(({ subscriber, correlationId }) => ({
+                userId: subscriber.userId,
+                correlationId,
+            }))
+        )
+        await queryWithRetry(
+            d1,
+            `INSERT INTO messages
+                 (userId, frequency, itemSlugs, correlationId, bulkRequestId,
+                  status, sentAt)
+             SELECT json_extract(value, '$.userId'), ?1, ?2,
+                 json_extract(value, '$.correlationId'), ?3, 'sent', ?4
+             FROM json_each(?5)
+             -- SQLite needs a WHERE before ON CONFLICT in INSERT ... SELECT.
+             WHERE true
+             ON CONFLICT (correlationId) DO NOTHING`,
+            [frequency, itemSlugs, bulkRequestId, sentAt.toISOString(), rows]
+        )
+    }
+}
+
+/**
+ * Report if Postmark webhooks have stopped arriving. Without them, unsubscribes
+ * and suppressions don't reach D1, and nothing else would tell us.
+ */
+async function checkWebhooksArriving(d1: D1Client, now: Date): Promise<void> {
+    const [row] = await d1.query<{
+        lastSentAt: string | null
+        lastWebhookAt: string | null
+    }>(
+        `SELECT (SELECT MAX(sentAt) FROM messages) AS lastSentAt,
+                (SELECT MAX(processedAt) FROM postmark_webhook_receipts)
+                    AS lastWebhookAt`
+    )
+    const lastSentAt = row?.lastSentAt ? new Date(row.lastSentAt) : null
+    const lastWebhookAt = row?.lastWebhookAt
+        ? new Date(row.lastWebhookAt)
+        : null
+    if (areWebhooksMissing({ lastSentAt, lastWebhookAt, now })) {
+        console.error(
+            `No Postmark webhooks received since the last send lastSentAt=${row?.lastSentAt} lastWebhookAt=${row?.lastWebhookAt}`
+        )
+        Sentry.captureMessage(
+            "No Postmark webhooks received since the last email notification send",
+            "error"
+        )
+    }
+}
+
+async function writePreview(
+    group: NotificationEmailGroup,
+    groupIndex: number,
+    frequency: EmailNotificationsFrequency,
+    template: NotificationEmailTemplate
+): Promise<string> {
+    // Filled in for the group's first subscriber, as Postmark would.
+    const model = makeTemplateModel(group.subscribers[0])
+    const previewPath = path.join(
+        PREVIEW_DIR,
+        `group-${groupIndex + 1}-${frequency}.html`
+    )
+    await fs.outputFile(previewPath, fillPostmarkTemplate(template.html, model))
+    await fs.outputFile(
+        previewPath.replace(/\.html$/, ".txt"),
+        fillPostmarkTemplate(template.text, model)
+    )
+    return previewPath
+}
+
+/**
+ * Sends each group of subscribers with the same items in bulk requests of up
+ * to POSTMARK_BULK_CHUNK_SIZE recipients.
+ *
+ * We don't wait for Postmark to process the requests. Recipients it skips,
+ * e.g. because they're on its suppression list, only show up as a failed
+ * count on the bulk request, and our local copy of the suppression list
+ * already leaves them out unless a webhook was missed.
  */
 async function sendEmailNotifications(options: {
     frequency: EmailNotificationsFrequency
     dryRun: boolean
     local: boolean
-}): Promise<SendFailure[]> {
+}): Promise<void> {
     const { frequency, dryRun, local } = options
     const d1 = local
         ? createLocalD1Client(LOCAL_D1_DATABASE_NAME)
         : createRemoteD1Client()
 
-    const subscribers = await fetchSubscribers(d1, frequency)
-    if (subscribers.length === 0) return []
-
     const now = new Date()
+    // Webhooks never reach the local database.
+    if (!local) await checkWebhooksArriving(d1, now)
+
+    const subscribers = await fetchSubscribers(d1, frequency)
+    if (subscribers.length === 0) return
     // Fetch content back to the oldest window start of any subscriber (capped
-    // at MAX_WINDOW_MS), then filter per subscriber.
+    // at MAX_WINDOW_MS), then filter per subscriber. _.min rather than
+    // Math.min(...) because spreading a very large array exceeds the call
+    // stack.
+    const oldestWindowStart =
+        _.min(
+            subscribers.map((subscriber) =>
+                getWindowStart(subscriber, now).getTime()
+            )
+        ) ?? now.getTime()
     const minWindowStart = new Date(
-        Math.max(
-            Math.min(
-                ...subscribers.map((subscriber) =>
-                    getWindowStart(subscriber, now).getTime()
-                )
-            ),
-            now.getTime() - MAX_WINDOW_MS
-        )
+        Math.max(oldestWindowStart, now.getTime() - MAX_WINDOW_MS)
     )
     const items = await db.knexReadonlyTransaction(
         (trx) => buildNotificationItems(trx, minWindowStart),
         db.TransactionCloseMode.Close
     )
 
+    const groups = groupSubscribersByItems(items, subscribers, now)
+    const groupedCount = _.sumBy(groups, (group) => group.subscribers.length)
+    console.log(
+        `Subscribers grouped subscriberCount=${subscribers.length} skippedWithoutNewItems=${subscribers.length - groupedCount} groupCount=${groups.length}`
+    )
+
     // Constructed once, and only when we're actually sending.
     const postmarkClient = dryRun ? undefined : createPostmarkClient()
 
-    const failures: SendFailure[] = []
-    for (const subscriber of subscribers) {
-        const subscriberItems = filterItemsForSubscriber(items, subscriber, now)
-        if (subscriberItems.length === 0) {
-            console.log(
-                `Subscriber skipped because there are no new items userId=${subscriber.userId}`
-            )
-            continue
-        }
-
-        const { html, text } = await renderNotificationEmail({
-            subscriber,
-            items: subscriberItems,
-            baseUrl: BAKED_BASE_URL,
-            // Links in emails must be absolute; the email notifications API
-            // is served on the same host as the baked site.
-            apiBaseUrl: `${BAKED_BASE_URL}/api/email-notifications`,
-            now,
-        })
-        const slugs = subscriberItems.map((item) => item.slug).join(", ")
-
-        if (dryRun) {
-            const previewPath = path.join(
-                PREVIEW_DIR,
-                `user-${subscriber.userId}-${frequency}.html`
-            )
-            await fs.outputFile(previewPath, html)
-            await fs.outputFile(previewPath.replace(/\.html$/, ".txt"), text)
-            console.log(
-                `Email preview written userId=${subscriber.userId} itemCount=${subscriberItems.length} itemSlugs=${JSON.stringify(slugs)} previewPath=${JSON.stringify(previewPath)}`
-            )
-            continue
-        }
+    for (const [groupIndex, group] of groups.entries()) {
+        const template = await renderNotificationEmailTemplate(group, now)
+        const groupLog = `group=${groupIndex + 1} recipientCount=${group.subscribers.length} itemSlugs=${JSON.stringify(group.items.map((item) => item.slug).join(", "))}`
 
         if (!postmarkClient) {
-            throw new Error("Postmark client was not initialized")
-        }
-
-        // Deliberate ordering: send first, record after. A crash between
-        // the two means the next run re-sends this email — a rare
-        // duplicate is preferable to the reverse order, where a crash
-        // would silently drop the email forever.
-        let postmarkMessageId: string
-        try {
-            postmarkMessageId = await sendViaPostmark(postmarkClient, {
-                to: subscriber.email,
-                subject: makeNotificationEmailSubject(frequency),
-                htmlBody: html,
-                textBody: text,
-                metadata: {
-                    userId: String(subscriber.userId),
-                    frequency,
-                },
-            })
-        } catch (error) {
-            if (!(error instanceof Errors.InactiveRecipientsError)) throw error
-
-            // We exclude subscribers marked as suppressed in our local
-            // Postmark state. A refusal here means that state is stale, for
-            // example because a subscription-change webhook was delayed,
-            // missed, or failed to process. Leave the mismatch visible for
-            // manual reconciliation rather than guessing why it occurred.
-            console.error(
-                `Email send refused userId=${subscriber.userId} reason=inactiveRecipient`
+            // Dry run
+            const previewPath = await writePreview(
+                group,
+                groupIndex,
+                frequency,
+                template
             )
-            Sentry.captureException(error)
-            failures.push({ userId: subscriber.userId, error })
+            console.log(
+                `Email preview written ${groupLog} previewPath=${JSON.stringify(previewPath)}`
+            )
             continue
         }
 
-        await recordSentEmail(
-            d1,
-            subscriber,
-            subscriberItems,
-            postmarkMessageId,
-            now
-        )
-        console.log(
-            `Email sent userId=${subscriber.userId} itemCount=${subscriberItems.length} itemSlugs=${JSON.stringify(slugs)}`
-        )
+        const chunks = _.chunk(group.subscribers, POSTMARK_BULK_CHUNK_SIZE)
+        for (const [chunkIndex, chunk] of chunks.entries()) {
+            // Deliberate ordering: send first, record after. A crash between
+            // the two means the next run re-sends this chunk's emails — a
+            // rare duplicate is preferable to the reverse order, where a
+            // crash would silently drop the emails forever.
+            const messages = chunk.map((subscriber) => ({
+                subscriber,
+                correlationId: uuidv7(),
+            }))
+            const bulkRequestId = await sendBulkViaPostmark(
+                postmarkClient,
+                frequency,
+                template,
+                messages
+            )
+            try {
+                await recordSentMessages(
+                    d1,
+                    frequency,
+                    group.items,
+                    messages,
+                    bulkRequestId,
+                    now
+                )
+            } catch (error) {
+                // Postmark is already sending these emails, so the next run
+                // will send them again unless they're recorded by hand.
+                console.error(
+                    `Recording sent messages failed bulkRequestId=${bulkRequestId} userIds=${messages.map(({ subscriber }) => subscriber.userId).join(",")}`
+                )
+                throw error
+            }
+            console.log(
+                `Bulk request submitted ${groupLog} chunk=${chunkIndex + 1}/${chunks.length} chunkRecipientCount=${messages.length} bulkRequestId=${bulkRequestId}`
+            )
+        }
     }
-
-    if (failures.length > 0) {
-        console.error(
-            `Email sending failed failureCount=${failures.length} subscriberCount=${subscribers.length} failedUserIds=${failures.map(({ userId }) => userId).join(",")}`
-        )
-    }
-    const inactiveRecipientUserIds = failures
-        .filter(({ error }) => error instanceof Errors.InactiveRecipientsError)
-        .map(({ userId }) => userId)
-    if (inactiveRecipientUserIds.length > 0) {
-        console.error(
-            `Suppression reconciliation required recipientCount=${inactiveRecipientUserIds.length} userIds=${inactiveRecipientUserIds.join(",")}`
-        )
-    }
-    return failures
 }
 
 void yargs(hideBin(process.argv))
@@ -320,16 +436,9 @@ void yargs(hideBin(process.argv))
         },
         async ({ frequency, dryRun, local }) => {
             try {
-                const failures = await traceJob(
-                    "send-email-notifications",
-                    () => sendEmailNotifications({ frequency, dryRun, local })
+                await traceJob("send-email-notifications", () =>
+                    sendEmailNotifications({ frequency, dryRun, local })
                 )
-                // Exit non-zero so the scheduled Buildkite run alerts if any
-                // subscriber failed, including an inactive Postmark recipient.
-                if (failures.length > 0) {
-                    await Sentry.close()
-                    process.exit(1)
-                }
                 await Sentry.close(2000)
                 process.exit(0)
             } catch (error) {

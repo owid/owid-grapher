@@ -180,72 +180,35 @@ Each system has a deliberately narrow responsibility:
 | Scheduled sender | Selecting new content and producing daily or weekly notification emails                                                 |
 
 The central modeling rule is that **subscription intent and deliverability are
-different state**:
-
-- `users.emailNotificationsStatus` records whether the reader wants email notifications.
-- `postmark_suppressions` stores Postmark's latest known suppression state for
-  each address and message stream.
+different state**: `users.emailNotificationsStatus` records whether the reader
+wants email notifications, while `postmark_suppressions` mirrors Postmark's
+suppression state. An address must be subscribed and unsuppressed to receive a
+scheduled message. A hard bounce suppresses an address without changing the
+reader's intent, and reactivating an address in Postmark restores deliverability
+but doesn't opt the reader back in. Only an explicit resubscription through an OWID form removes a
+suppression, and the reader is marked subscribed only once Postmark accepts the
+removal.
 
 Every address submitted through the subscription form has a D1 `users` row so
-it can request a magic link and use the unified preferences page. A Brief-only
-identity remains unsubscribed from Follow Topics and has no
-`notification_preferences` row. The Brief's subscription state is never copied
-to D1; Mailchimp remains its source of truth.
-
-An address must be subscribed and unsuppressed to receive a scheduled message.
-A hard bounce can suppress an address without changing the reader's intent.
-Conversely, reactivating an address in Postmark does not demonstrate consent and
-must not opt the reader back in.
-
-An explicit resubscription through an OWID form may remove a locally mirrored
-Postmark suppression. The local subscription is changed only after Postmark
-accepts that reactivation, so the UI never claims success while the provider
-would still refuse delivery. Spam-complaint suppressions cannot be removed, so
-those attempts remain an error rather than silently opting the reader in.
+it can use the unified preferences page, even if it's only subscribed to the
+Brief. The Brief's subscription state is never copied to D1; Mailchimp remains
+its source of truth.
 
 ### User flows and trust boundaries
 
 The public subscribe form is single opt-in. Because it is tokenless, an existing
 reader's selections may be broadened but not narrowed; narrowing preferences
 requires a short-lived magic link proving current control of the inbox. The
-form uses the same success response for new and existing addresses, and a
-welcome email lets the owner notice and undo an unwanted submission.
+form gives the same response for new and existing addresses, and a welcome
+email lets the owner notice and undo an unwanted submission.
 
-Permanent tokens in email footers have intentionally limited authority: they
-can unsubscribe or request a short-lived preferences link, but cannot expose or
-edit preferences directly. Requesting a link for an unknown address produces
-the same public response without sending email, avoiding both address
-enumeration and an arbitrary-mail endpoint.
+Permanent tokens in email footers can only unsubscribe or request a
+short-lived preferences link. Requesting a link for an unknown address gives
+the same public response without sending email, so the endpoint can't be used
+to enumerate addresses or send arbitrary mail.
 
-The OWID Brief remains a separate Mailchimp subscription, managed through the
-Mailchimp Marketing API by both the public subscribe form and the
-authenticated preferences API. A Brief signup depends on the address's
-Mailchimp status:
-
-- **New address:** created as an active member with the Brief interest enabled.
-  This is single opt-in, like Follow Topics.
-- **Active member:** the Brief interest is enabled immediately.
-- **Previously unsubscribed:** set to `pending`, which makes Mailchimp send a
-  double-opt-in confirmation email. Other interests are cleared because
-  confirmation resubscribes the contact to the whole audience, but they
-  consented only to the Brief.
-- **Already pending:** keeps the interests from the unconfirmed signup.
-  Mailchimp does not resend the confirmation email.
-- **Cleaned (hard bounce):** cannot be resubscribed through the API or receive
-  a confirmation email.
-
-The APIs report these outcomes differently:
-
-- **Token-gated preferences API:** reports whether the Brief is active,
-  awaiting confirmation, or the address is cleaned.
-- **Public subscribe form:** returns the same response in every case to avoid
-  revealing an address's Mailchimp history. Its confirmation copy covers both
-  immediate subscription and email confirmation.
-
-Brief status reads fail soft so a Mailchimp outage does not make Follow Topics
-preferences unavailable.
-
-The relevant routes and their trust boundaries are:
+Brief signups follow Mailchimp's rules for the address's existing status (see
+`functions/_common/mailchimp.ts`). The public form never reveals that status.
 
 | Route                                       | Role                                                                      |
 | ------------------------------------------- | ------------------------------------------------------------------------- |
@@ -257,48 +220,36 @@ The relevant routes and their trust boundaries are:
 
 ### Postmark synchronization
 
-Postmark webhooks project provider state into D1: delivery updates message
-state, and broadcast subscription changes maintain the suppression mirror.
-Only a recipient-originated unsubscribe changes local Follow Topics intent;
-administrative reactivation affects deliverability only. Mailchimp handles the
-OWID Brief's own unsubscribe links and remains authoritative for its state.
+Postmark webhooks project provider state into D1: deliveries update message
+state, and broadcast subscription changes maintain the suppression mirror. Only
+a recipient's own unsubscribe changes their Follow Topics intent. Webhook
+delivery is at least once, so processing is idempotent (see
+`functions/_common/postmarkWebhook.ts`).
 
-Detailed bounce diagnostics remain in Postmark rather than being duplicated in
-D1; D1 only stores the operational state needed by this feature.
-
-Postmark webhook delivery is at least once, so handlers must tolerate retries. The
-`postmark_webhook_receipts` table is a shared idempotency ledger, not an event
-history. Its keys identify webhook events rather than messages because several
-event types may legitimately refer to the same Postmark `MessageID`, while some
-subscription changes have no message ID. Each event's domain changes and its
-receipt are committed atomically, with the receipt last, so a failed attempt can
-be retried safely.
-
-A fast Delivery webhook can arrive before the sender has stored Postmark's
-message ID. The handler leaves that event unacknowledged so Postmark retries it
-after the message row exists.
-
-Postmark does not sign webhooks. Configure HTTP Basic Authentication and enable
+Postmark doesn't sign webhooks. Configure HTTP Basic Authentication and enable
 Delivery and Subscription Change for the broadcast message stream.
 
-### Sending and failure recovery
+### Sending
 
 `yarn sendEmailNotifications <daily|weekly>` runs outside Cloudflare. It reads
-eligible subscribers from D1, selects newly published content from MySQL, sends
-through Postmark, and records enough message metadata to correlate later
-webhooks.
-
-The suppression mirror normally keeps undeliverable addresses out of a run. An
-"inactive recipient" response from Postmark therefore indicates that the mirror
-has drifted, usually because a webhook was missed. The sender continues with
-other recipients but fails the run and reports the discrepancy to Sentry so the
-Postmark suppression list can be reconciled with D1.
+eligible subscribers from D1 and newly published content from MySQL, and sends
+one Postmark [bulk](https://postmarkapp.com/developer/api/bulk-email) request
+per group of subscribers who get the same items.
 
 Useful development options:
 
 - `--local` uses the local Wrangler D1 database.
 - `--dry-run` renders messages to `.email-notifications-preview/` without
   sending them.
+
+### Monitoring
+
+- Webhook processing failures are reported to Sentry.
+- Each send run reports to Sentry if no webhook has arrived since the previous
+  send, which catches webhooks not reaching us at all (e.g. a mismatched
+  secret).
+- Known gap: if a single subscription-change webhook is lost, D1 keeps the
+  reader subscribed while Postmark keeps skipping them, and nothing alerts.
 
 ### Configuration and local development
 
