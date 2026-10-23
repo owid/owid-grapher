@@ -7695,6 +7695,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dotenv@npm:^18.0.8":
+  version: 18.0.8
+  resolution: "dotenv@npm:18.0.8"
+  bin:
+    dotenv: dist/index.cjs
+  checksum: 10/db96395978bb0fb6c634c11f03040315588b0f5d534a7a49b37d931114918848765c6bdf54f2746231f429eadf17252a33daae9292431510d1a21750bdaa5a52
+  languageName: node
+  linkType: hard
+
 "dts-resolver@npm:^3.0.0":
   version: 3.0.0
   resolution: "dts-resolver@npm:3.0.0"
@@ -8833,7 +8842,7 @@ __metadata:
     core-js: "npm:^3.49.0"
     d3: "npm:^7.9.0"
     dayjs: "npm:^1.11.23"
-    dotenv: "npm:^17.4.2"
+    dotenv: "npm:^18.0.8"
     entities: "npm:^8.0.0"
     es-cookie: "npm:^1.5.0"
     es-module-lexer: "npm:^3.0.2"
