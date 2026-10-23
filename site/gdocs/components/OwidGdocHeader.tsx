@@ -136,7 +136,8 @@ function OwidArticleHeader({
                                 {dateText}
                             </span>
                         )}
-                        <span>
+                        {/* data-labs-feature: the Labs mark; does nothing outside Labs */}
+                        <span data-labs-feature="7592">
                             <FontAwesomeIcon icon={faClock} />
                             {readingMinutes} min read
                         </span>
