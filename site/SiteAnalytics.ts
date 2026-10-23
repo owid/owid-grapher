@@ -417,6 +417,51 @@ export class SiteAnalytics extends GrapherAnalytics {
         )
     }
 
+    /**
+     * Track use of the browser's own find-in-page (Cmd/Ctrl+F or F3). The
+     * find bar itself is invisible to page scripts, so we log the shortcut
+     * reaching the page, at most once per page view. Misses find opened from
+     * the browser menu, which is how mobile users open it, so treat this as a
+     * desktop signal.
+     *
+     * Returns a function that removes the listener.
+     */
+    startFindInPageTracking(): () => void {
+        const controller = new AbortController()
+        let hasLogged = false
+
+        document.addEventListener(
+            "keydown",
+            (ev) => {
+                if (hasLogged || ev.repeat) return
+                // Latin layouts: the shortcut follows the produced key (on
+                // Dvorak, the physical F key types "u", and Cmd+U isn't
+                // find). Non-Latin layouts (e.g. Cyrillic) produce no Latin
+                // letter, and browsers fall back to the physical key there.
+                const key = ev.key.toLowerCase()
+                const isF = /^[a-z]$/.test(key)
+                    ? key === "f"
+                    : ev.code === "KeyF"
+                const isModF =
+                    (ev.metaKey || ev.ctrlKey) &&
+                    !ev.altKey &&
+                    !ev.shiftKey &&
+                    isF
+                const isF3 = ev.key === "F3"
+                if (!isModF && !isF3) return
+                hasLogged = true
+                this.logToGA({
+                    event: EventCategory.SiteFindInPage,
+                    eventAction: "open",
+                    eventContext: isModF ? "mod+f" : "f3",
+                })
+            },
+            { capture: true, passive: true, signal: controller.signal }
+        )
+
+        return () => controller.abort()
+    }
+
     startPrintTracking(): void {
         window.addEventListener(
             "beforeprint",
