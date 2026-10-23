@@ -1,10 +1,11 @@
-import { EmailNotificationsContentType } from "@ourworldindata/types"
+import {
+    EmailNotificationsContentType,
+    TOPIC_AREA_NAMES,
+    TopicAreaName,
+} from "@ourworldindata/types"
 
-export function areAllTopicsSelected(
-    topicTags: string[],
-    topicAreaNames: string[]
-): boolean {
-    return topicAreaNames.every((name) => topicTags.includes(name))
+export function areAllTopicsSelected(topicTags: TopicAreaName[]): boolean {
+    return TOPIC_AREA_NAMES.every((name) => topicTags.includes(name))
 }
 
 /**
@@ -13,17 +14,15 @@ export function areAllTopicsSelected(
  * shape and the form's pill selection (where every pill is selected).
  */
 export function topicTagsForStorage(
-    topicTags: string[],
-    topicAreaNames: string[]
-): string[] {
-    return areAllTopicsSelected(topicTags, topicAreaNames) ? [] : topicTags
+    topicTags: TopicAreaName[]
+): TopicAreaName[] {
+    return areAllTopicsSelected(topicTags) ? [] : topicTags
 }
 
 export function topicTagsFromStorage(
-    topicTags: string[],
-    topicAreaNames: string[]
-): string[] {
-    return topicTags.length === 0 ? topicAreaNames : topicTags
+    topicTags: TopicAreaName[]
+): TopicAreaName[] {
+    return topicTags.length === 0 ? [...TOPIC_AREA_NAMES] : topicTags
 }
 
 export interface PreferencesValidationErrors {
@@ -44,7 +43,7 @@ export interface PreferencesValidationErrors {
  * each can be rendered next to the fieldset it refers to.
  */
 export function getPreferencesValidationErrors(
-    topicTags: string[],
+    topicTags: TopicAreaName[],
     contentTypes: EmailNotificationsContentType[]
 ): PreferencesValidationErrors | null {
     const hasTopicDependentContentType = contentTypes.some(

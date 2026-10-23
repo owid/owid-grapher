@@ -1,15 +1,17 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as React from "react"
+import { flushSync } from "react-dom"
 import { useMutation } from "@tanstack/react-query"
 import {
     EmailNotificationsSubscribeRequest,
     LatestUrlParam,
+    TOPIC_AREA_NAMES,
 } from "@ourworldindata/types"
 import { getWindowUrl, setWindowUrl } from "@ourworldindata/utils"
 import { Button, TextInput } from "@ourworldindata/components"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { EmailNotificationsPreferenceFields } from "./EmailNotificationsPreferenceFields.js"
-import { useScrollAlertIntoView } from "./useScrollAlertIntoView.js"
+import { scrollAlertIntoView } from "./scrollAlertIntoView.js"
 import {
     apiPost,
     getErrorMessage,
@@ -39,22 +41,24 @@ export interface Subscription {
 }
 
 export const EmailNotificationsSubscribeForm = ({
-    topicAreaNames,
     onSubscribed,
 }: {
-    topicAreaNames: string[]
     onSubscribed: (subscription: Subscription) => void
 }) => {
     const [email, setEmail] = useState("")
     const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
     const [followTopics, setFollowTopics] = useState(true)
-    // An object rather than a string so every failed submit has a fresh
-    // identity for the scroll-into-view below.
-    const [validationError, setValidationError] = useState<{
-        message: string
-    } | null>(null)
-    const preferences = useNotificationPreferences(topicAreaNames)
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const alertRef = useRef<HTMLDivElement>(null)
+    const preferences = useNotificationPreferences()
     const { setTopicTags } = preferences
+
+    // Client-side and server errors share this path. The alert is rendered
+    // synchronously so it can be scrolled to before the handler returns.
+    const showError = (message: string) => {
+        flushSync(() => setErrorMessage(message))
+        scrollAlertIntoView(alertRef.current)
+    }
 
     // The page is baked, so the URL and storage are only known after
     // hydration. The form isn't kept in sync with either afterwards, so both
@@ -71,14 +75,14 @@ export const EmailNotificationsSubscribeForm = ({
         const url = getWindowUrl()
         const topicAreas = topicAreasFromSearchParams(
             new URLSearchParams(url.queryStr),
-            topicAreaNames
+            TOPIC_AREA_NAMES
         )
         if (!topicAreas.length) return
         setTopicTags(topicAreas)
         setWindowUrl(
             url.updateQueryParams({ [LatestUrlParam.TOPICS]: undefined })
         )
-    }, [topicAreaNames, setTopicTags])
+    }, [setTopicTags])
 
     const subscribe = useMutation({
         mutationFn: async (request: EmailNotificationsSubscribeRequest) => {
@@ -100,33 +104,26 @@ export const EmailNotificationsSubscribeForm = ({
 
     const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
-        setValidationError(null)
+        setErrorMessage(null)
         preferences.resetValidation()
 
         const trimmedEmail = email.trim()
-        if (!trimmedEmail) {
-            setValidationError({ message: "Please enter your email address." })
-            return
-        }
-        if (!followTopics && !subscribeToOwidBrief) {
-            setValidationError({
-                message: "Please select at least one newsletter.",
-            })
-            return
-        }
+        if (!trimmedEmail) return showError("Please enter your email address.")
+        if (!followTopics && !subscribeToOwidBrief)
+            return showError("Please select at least one newsletter.")
         if (followTopics && !preferences.validate()) return
 
-        subscribe.mutate({
-            email: trimmedEmail,
-            notifications: followTopics ? preferences.forStorage() : undefined,
-            subscribeToOwidBrief,
-        })
+        subscribe.mutate(
+            {
+                email: trimmedEmail,
+                notifications: followTopics
+                    ? preferences.forStorage()
+                    : undefined,
+                subscribeToOwidBrief,
+            },
+            { onError: (error) => showError(getErrorMessage(error)) }
+        )
     }
-
-    const errorMessage =
-        validationError?.message ??
-        (subscribe.error ? getErrorMessage(subscribe.error) : null)
-    const alertRef = useScrollAlertIntoView(validationError ?? subscribe.error)
 
     return (
         <form
