@@ -21,18 +21,13 @@ type SubscribeFlowState =
     | { name: "form" }
     | { name: "success"; subscription: Subscription }
 
-export const SubscribeFlow = ({
-    topicAreaNames,
-}: {
-    topicAreaNames: string[]
-}) => {
+export const SubscribeFlow = () => {
     const [state, setState] = useState<SubscribeFlowState>({ name: "form" })
 
     return match(state)
         .with({ name: "form" }, () => (
             <SiteQueryClientProvider>
                 <SubscribeFormScreen
-                    topicAreaNames={topicAreaNames}
                     onSubscribed={(subscription) =>
                         setState({ name: "success", subscription })
                     }
@@ -88,10 +83,8 @@ const SubscribedText = ({
 )
 
 const SubscribeFormScreen = ({
-    topicAreaNames,
     onSubscribed,
 }: {
-    topicAreaNames: string[]
     onSubscribed: (subscription: Subscription) => void
 }) => {
     return (
@@ -106,10 +99,7 @@ const SubscribeFormScreen = ({
                     SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES
                 )}
             >
-                <EmailNotificationsSubscribeForm
-                    topicAreaNames={topicAreaNames}
-                    onSubscribed={onSubscribed}
-                />
+                <EmailNotificationsSubscribeForm onSubscribed={onSubscribed} />
             </div>
             <aside className="subscribe-page__aside span-cols-3 col-start-11 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
                 <p className="subscribe-page__aside-heading h6-black-caps">
