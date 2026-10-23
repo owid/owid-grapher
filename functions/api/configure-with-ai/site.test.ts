@@ -117,10 +117,19 @@ describe(configuredUrl, () => {
                 tab: "line",
                 entities: ["Germany", "Brazil"],
                 time: "2000..2020",
+                mapRegion: null,
             })
         ).toBe(
             "/explorers/inequality?Indicator=Gini&tab=line&time=2000..2020&country=DEU~BRA"
         )
+        expect(
+            configuredUrl("/grapher/gini-coefficient", {
+                tab: "map",
+                entities: [],
+                time: null,
+                mapRegion: "Europe",
+            })
+        ).toBe("/grapher/gini-coefficient?tab=map&region=Europe")
     })
 })
 
@@ -165,6 +174,18 @@ describe(sanitizeSiteReply, () => {
                         tab: "scatter",
                         entities: ["germany", "France", "Atlantis"],
                         time: "2020",
+                        // Ignored: only a map zooms
+                        mapRegion: "Europe",
+                    },
+                    {
+                        id: "c1",
+                        label: "Again",
+                    },
+                    {
+                        id: "c2",
+                        label: "Map of Europe",
+                        tab: "map",
+                        mapRegion: "Europe",
                     },
                     {
                         id: "w1",
@@ -186,11 +207,15 @@ describe(sanitizeSiteReply, () => {
                 "/grapher/life-expectancy-vs-gdp-per-capita?tab=scatter&time=2020&country=DEU~FRA",
                 "scatter",
             ],
+            // The same result twice is listed once; a tab the result doesn't
+            // have is dropped, and the region with it
+            ["explorer", "/explorers/inequality?Indicator=Gini", null],
             // Writing gets no chart settings
             ["article", "/life-expectancy", null],
         ])
         expect(result.dropped).toEqual([
             'entity "Atlantis" on /grapher/life-expectancy-vs-gdp-per-capita',
+            'tab "map"',
             'page id "c9"',
         ])
     })

@@ -15,7 +15,12 @@ import {
     searchCharts,
     searchPages,
 } from "../search/searchApi.js"
-import { MAX_PAGES, SanitizedReply, TIME_PATTERN } from "./viewfinder.js"
+import {
+    MAP_REGIONS,
+    MAX_PAGES,
+    SanitizedReply,
+    TIME_PATTERN,
+} from "./viewfinder.js"
 
 export type SitePageKind = "chart" | "explorer" | "article" | "topic"
 
@@ -212,14 +217,20 @@ function matchEntity(name: string, entities: string[]): string | undefined {
     return entities.find((e) => e.toLowerCase() === low)
 }
 
-/** A chart's URL with the tab, countries and time a suggestion asks for */
+/** A chart's URL with the tab, countries, time and map region a suggestion asks for */
 export function configuredUrl(
     url: string,
-    view: { tab: string | null; entities: string[]; time: string | null }
+    view: {
+        tab: string | null
+        entities: string[]
+        time: string | null
+        mapRegion: string | null
+    }
 ): string {
     const parsed = new URL(url, "https://ourworldindata.org")
     if (view.tab) parsed.searchParams.set("tab", view.tab)
     if (view.time) parsed.searchParams.set("time", view.time)
+    if (view.mapRegion) parsed.searchParams.set("region", view.mapRegion)
     if (view.entities.length)
         parsed.searchParams.set(
             "country",
@@ -271,6 +282,13 @@ export function sanitizePages(
             TIME_PATTERN.test(s.time.trim())
                 ? s.time.trim()
                 : null
+        // Only a link that opens the map tab zooms
+        const mapRegion =
+            tab === "map" &&
+            typeof s.mapRegion === "string" &&
+            MAP_REGIONS.includes(s.mapRegion)
+                ? s.mapRegion
+                : null
         pages.push({
             kind: hit.kind,
             title: hit.title,
@@ -279,7 +297,7 @@ export function sanitizePages(
             label: String(s.label || hit.title).slice(0, 80),
             why: typeof s.why === "string" ? s.why.trim().slice(0, 200) : "",
             url: isData
-                ? configuredUrl(hit.url, { tab, entities, time })
+                ? configuredUrl(hit.url, { tab, entities, time, mapRegion })
                 : hit.url,
             tab,
             thumbnailUrl: hit.thumbnailUrl,

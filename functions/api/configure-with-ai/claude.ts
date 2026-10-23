@@ -10,6 +10,8 @@ export interface ClaudeResult {
     outputTokens: number
     cacheReadTokens: number
     cacheWriteTokens: number
+    /** See TokenUsage in cost.ts */
+    firstCallCacheReadTokens?: number
     /** Each API call's stop reason and block types, for debugging */
     rounds: string[]
 }
@@ -102,6 +104,9 @@ export async function callClaude(
         result.inputTokens += body.usage.input_tokens
         result.outputTokens += body.usage.output_tokens
         result.cacheReadTokens += body.usage.cache_read_input_tokens ?? 0
+        if (round === 0)
+            result.firstCallCacheReadTokens =
+                body.usage.cache_read_input_tokens ?? 0
         result.cacheWriteTokens += body.usage.cache_creation_input_tokens ?? 0
         result.text = body.content
             .filter((block) => block.type === "text")

@@ -371,13 +371,13 @@ You can also send the reader to other pages on Our World in Data: thousands of c
 A stand-in on this chart ("closestMatch") is a worse answer than another chart that has what was asked: search before settling for one.
 `
 
-const SITE_REPLY_FIELDS = `"intent": "here"|"elsewhere", "message": string|null, "pages": [{"id": string, "label": string, "why": string, "tab": string|null, "entities": string[], "time": string|null}], `
+const SITE_REPLY_FIELDS = `"intent": "here"|"elsewhere", "message": string|null, "pages": [{"id": string, "label": string, "why": string, "tab": string|null, "entities": string[], "time": string|null, "mapRegion": string|null}], `
 
 const SITE_RULES = `- "intent": "here" or "elsewhere" (see "Beyond this chart"). For "here", "message" is null and "pages" is [].
 - For "elsewhere", "views" is []. "message": one or two plain sentences (max 30 words) shown above the pages: what this chart doesn't have and what the pages offer, e.g. "This chart covers life expectancy only. These charts compare it with GDP per capita:". No "You asked…", no reference to yourself.
 - "pages": 2 to ${MAX_PAGES} pages, best first, each "id" from a search_site result. Mix charts and writing when both help. Prefer a chart over a data explorer view when both show the same thing.
 - Page "label": what the link will show, at most 50 characters, e.g. "Line chart, Germany and France, 1990–2023", "Map, 2023" or "Article". "why": at most 20 words on how the page answers the request.
-- Page "tab", "entities" and "time" set up a chart's link: "tab" one of that result's tabs, "entities" exact names of countries the result has data for, "time" as for views below. Use null and [] for writing, or to keep the chart's default.
+- Page "tab", "entities", "time" and "mapRegion" set up a chart's link: "tab" one of that result's tabs, "entities" exact names of countries the result has data for, "time" and "mapRegion" as for views below. Use null and [] for writing, or to keep the chart's default. A link can't set anything else, so the label mustn't promise more.
 `
 
 /**
