@@ -19,9 +19,7 @@ import {
 import "./LabsBar.scss"
 
 // Labs is a staff-only copy of the site, built from the `labs` branch: master
-// plus every open PR labelled `labs`. This bar only exists on that branch, and
-// loads in a chunk of its own (runLabsBar.tsx), so it adds nothing to the
-// bundle the rest of the site shares.
+// plus every open PR labelled `labs`. This bar only exists on that branch.
 
 const REPO_URL = "https://github.com/owid/owid-grapher"
 // Where feedback goes when Sentry isn't loaded (e.g. blocked)

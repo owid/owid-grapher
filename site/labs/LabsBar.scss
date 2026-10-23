@@ -1,4 +1,4 @@
-// Loaded with the Labs bar's own chunk, so it imports what it uses itself
+// Imported by LabsBar.tsx rather than owid.scss, so it imports what it uses itself
 @use "../../packages/@ourworldindata/components/src/styles/colors.scss" as *;
 @use "../../packages/@ourworldindata/components/src/styles/variables.scss" as *;
 @use "../../packages/@ourworldindata/components/src/styles/typography-constants.scss"

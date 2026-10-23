@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client"
 import { isInIFrame } from "@ourworldindata/utils"
+import { LabsBar } from "./LabsBar.js"
 
 // Hiding the bar lasts for the rest of the browser session
 const LABS_BAR_HIDDEN_KEY = "labsBarHidden"
@@ -24,12 +25,10 @@ export function runLabsBar(): void {
     // Embedded charts load the same bundle; only show the bar on full pages
     if (isInIFrame() || wasHiddenThisSession()) return
 
-    // A chunk of its own, so the bar adds nothing to the bundle every page loads
-    import("./LabsBar.js")
-        .then(({ LabsBar }) => {
-            const container = document.createElement("div")
-            document.body.appendChild(container)
-            createRoot(container).render(<LabsBar onHide={rememberHidden} />)
-        })
-        .catch((error) => console.warn("The Labs bar didn't load", error))
+    // In the main bundle rather than a lazy chunk: a second lazy chunk (AI mode
+    // is the first) makes the build split out shared chunks, which the archive
+    // baker doesn't know about, and the bake fails
+    const container = document.createElement("div")
+    document.body.appendChild(container)
+    createRoot(container).render(<LabsBar onHide={rememberHidden} />)
 }
