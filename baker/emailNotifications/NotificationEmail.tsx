@@ -80,7 +80,7 @@ function NotificationEmail({
             title={makeNotificationEmailSubject(subscriber.frequency)}
             preview={items.map((item) => item.title).join(" · ")}
             baseUrl={baseUrl}
-            header="broadcast"
+            header="update"
         >
             <EmailContent>
                 {items.map((item, index) => (
