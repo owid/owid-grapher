@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest"
 import { getAdminTestEnv } from "./testEnv.js"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
+import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
 import { ChartConfigValidationReport } from "../apiRoutes/chartConfigs.js"
 
 const env = getAdminTestEnv()
@@ -17,8 +18,7 @@ describe("POST /chart-configs/validate", { timeout: 15000 }, () => {
     it("returns one result per config, even when some are invalid", async () => {
         const outdatedConfig = {
             ...testChartConfig,
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            $schema: formatGrapherSchemaUrl("010"),
             dimensions: [
                 { property: "y", variableId: 1, display: { yearIsDay: true } },
             ],

@@ -3,6 +3,7 @@ import * as path from "node:path"
 import { fileURLToPath } from "node:url"
 import * as _ from "lodash-es"
 import type { JSONSchema7, JSONSchema7Definition } from "json-schema"
+import { parseGrapherSchemaName } from "@ourworldindata/utils"
 
 export type SchemaDefinitions = NonNullable<JSONSchema7["$defs"]>
 
@@ -14,7 +15,6 @@ export const SCHEMA_DIR = path.join(
 )
 
 const schemaFilePattern = /^grapher-schema\.(?<version>\d+)\.yaml$/
-const schemaIdPattern = /grapher-schema\.(?<version>\d+)\.json$/
 
 export async function findLatestSchemaFile(): Promise<{
     filePath: string
@@ -65,13 +65,26 @@ export function resolveRef(
     return { ...toSchemaObject(def), ...schema, $ref: undefined }
 }
 
-export function assertSchemaIdMatchesVersion(
+export function assertSchemaIdentityIsConsistent(
     schema: JSONSchema7,
     version: string
 ): void {
-    const idVersion = schema.$id?.match(schemaIdPattern)?.groups?.version
-    if (idVersion !== version)
+    const id = schema.$id ?? ""
+    const declared = parseGrapherSchemaName(id)
+    if (declared?.version !== version || declared.revision === undefined)
         throw new Error(
-            `Expected $id to name version ${version}, got ${JSON.stringify(schema.$id)}`
+            `Expected $id to name version ${version} and a two-digit revision, got ${JSON.stringify(schema.$id)}`
         )
+
+    const { pattern } = toSchemaObject(schema.properties?.$schema ?? {})
+    if (pattern === undefined || !new RegExp(pattern).test(id))
+        throw new Error(
+            `Expected the $schema property's pattern to accept ${id}, got ${JSON.stringify(pattern)}`
+        )
+}
+
+export function findDeclaredSchemaRevision(
+    schema: JSONSchema7
+): number | undefined {
+    return parseGrapherSchemaName(schema.$id ?? "")?.revision
 }
