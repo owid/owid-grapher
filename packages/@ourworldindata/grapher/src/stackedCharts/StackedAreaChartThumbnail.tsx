@@ -242,10 +242,12 @@ export class StackedAreaChartThumbnail
 
         return (
             <>
-                <VerticalAxisZeroLine
-                    axis={this.dualAxis.verticalAxis}
-                    bounds={this.dualAxis.innerBounds}
-                />
+                {!this.manager.hideAxesAndLabels && (
+                    <VerticalAxisZeroLine
+                        axis={this.dualAxis.verticalAxis}
+                        bounds={this.dualAxis.innerBounds}
+                    />
+                )}
                 {!this.dualAxis.horizontalAxis.hideAxis && (
                     <HorizontalAxisComponent
                         axis={this.dualAxis.horizontalAxis}
