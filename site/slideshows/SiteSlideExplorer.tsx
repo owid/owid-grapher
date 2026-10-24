@@ -44,7 +44,8 @@ export function SiteSlideExplorer(props: {
             if (cancelled) return
             void buildExplorerProps(
                 html,
-                withHiddenControls(parsed.queryString)
+                withHiddenControls(parsed.queryString),
+                {}
             ).then((props) => {
                 if (!cancelled) setExplorerProps(props)
             })

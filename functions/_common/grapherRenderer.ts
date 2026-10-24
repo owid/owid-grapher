@@ -11,6 +11,7 @@ import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf
 import { Env } from "./env.js"
 import { ImageOptions, extractOptions } from "./imageOptions.js"
 import {
+    getDataApiHeaders,
     getDataApiUrl,
     GrapherIdentifier,
     initGrapher,
@@ -57,6 +58,7 @@ async function fetchAndRenderGrapherToSvg(
         dimensions: grapher.grapherState.dimensionConfigs,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl: getDataApiUrl(env),
+        dataApiHeaders: getDataApiHeaders(env),
     })
 
     let fetchDodsPromise: Promise<void> | undefined

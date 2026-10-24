@@ -146,6 +146,7 @@ export function DataPageContent({
             getCachingInputTableFetcher(
                 DATA_API_URL,
                 archiveContext,
+                {},
                 isPreviewing
             ),
         [archiveContext, isPreviewing]
