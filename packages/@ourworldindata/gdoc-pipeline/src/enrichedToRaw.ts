@@ -96,6 +96,7 @@ export function enrichedBlockToRawBlock(
             value: {
                 heading: b.heading,
                 top: b.top,
+                suggested: b.suggested,
             },
         }))
         .with({ type: "additional-charts" }, (b): RawBlockAdditionalCharts => ({
