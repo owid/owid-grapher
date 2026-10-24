@@ -16,6 +16,18 @@ $lato: $sans-serif-font-stack;
 $indent: 15px;
 $control-row-height: 32px;
 
+nav.controlsRow {
+    .controlsRow__ContentSwitchers {
+        flex: 1;
+        min-width: 0;
+    }
+
+    > .controls {
+        width: auto;
+        flex-shrink: 0;
+    }
+}
+
 // Buttons in the main controls row of the grapher view
 nav.controlsRow .controls {
     display: flex;
@@ -153,24 +165,30 @@ nav.controlsRow .controls {
 
 @container grapher (max-width:500px) {
     // hide labels on smaller screens
-    .ContentSwitchers .Tabs__Tab .label {
+    .ContentSwitchers .Tabs__Tab .label,
+    .ContentSwitchers__Measurement
+        .Tabs__Tab:not(.ContentSwitchers__OverflowMenuButton)
+        .label {
         display: none;
     }
 
     // center the icon now that it's the only content in the tab
-    .ContentSwitchers .Tabs__Tab .ContentSwitchers__TabContent {
+    .ContentSwitchers .Tabs__Tab .ContentSwitchers__TabContent,
+    .ContentSwitchers__Measurement .Tabs__Tab .ContentSwitchers__TabContent {
         justify-content: center;
     }
 }
 
 // reduce the horizontal padding of a content switcher tab based on grapher's size
 @container grapher (max-width:725px) {
-    .ContentSwitchers .Tabs__Tab {
+    .ContentSwitchers .Tabs__Tab,
+    .ContentSwitchers__Measurement .Tabs__Tab {
         --tab-padding: 12px;
     }
 }
 @container grapher (max-width:335px) {
-    .ContentSwitchers .Tabs__Tab {
+    .ContentSwitchers .Tabs__Tab,
+    .ContentSwitchers__Measurement .Tabs__Tab {
         --tab-padding: 8px;
     }
 }

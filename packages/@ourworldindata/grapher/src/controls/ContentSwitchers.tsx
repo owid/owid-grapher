@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useCallback } from "react"
-import { action, computed } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import cx from "clsx"
 import { observer } from "mobx-react"
 import { GrapherTabName } from "@ourworldindata/types"
@@ -24,9 +24,6 @@ export interface ContentSwitchersManager {
     isMedium?: boolean
 }
 
-const MAX_VISIBLE_TABS = 4
-const MAX_VISIBLE_TABS_BEFORE_OVERFLOW = 3
-
 function shouldShowContentSwitchers(manager: ContentSwitchersManager): boolean {
     return (manager.availableTabs ?? []).length > 1
 }
@@ -35,6 +32,64 @@ function shouldShowContentSwitchers(manager: ContentSwitchersManager): boolean {
 export class ContentSwitchers extends React.Component<{
     manager: ContentSwitchersManager
 }> {
+    private readonly wrapper = React.createRef<HTMLDivElement>()
+    private readonly measurement = React.createRef<HTMLDivElement>()
+    private resizeObserver?: ResizeObserver
+    private availableWidth = 0
+    private tabWidths: number[] = []
+    private overflowWidth = 0
+
+    constructor(props: { manager: ContentSwitchersManager }) {
+        super(props)
+        makeObservable<this, "availableWidth" | "tabWidths" | "overflowWidth">(
+            this,
+            {
+                availableWidth: observable,
+                tabWidths: observable.ref,
+                overflowWidth: observable,
+            }
+        )
+    }
+
+    override componentDidMount(): void {
+        this.resizeObserver = new ResizeObserver(this.measure)
+        this.observeSizes()
+    }
+
+    override componentDidUpdate(): void {
+        this.observeSizes()
+    }
+
+    override componentWillUnmount(): void {
+        this.resizeObserver?.disconnect()
+    }
+
+    private observeSizes(): void {
+        this.resizeObserver?.disconnect()
+        if (this.wrapper.current)
+            this.resizeObserver?.observe(this.wrapper.current)
+        for (const element of this.measurement.current?.children ?? []) {
+            this.resizeObserver?.observe(element)
+        }
+        this.measure()
+    }
+
+    @action.bound private measure(): void {
+        if (!this.wrapper.current || !this.measurement.current) return
+        this.availableWidth = this.wrapper.current.getBoundingClientRect().width
+        const widths = Array.from(
+            this.measurement.current.children,
+            (element) => element.getBoundingClientRect().width
+        )
+        this.overflowWidth = widths.pop() ?? 0
+        if (
+            widths.length !== this.tabWidths.length ||
+            widths.some((width, index) => width !== this.tabWidths[index])
+        ) {
+            this.tabWidths = widths
+        }
+    }
+
     static shouldShow(manager: ContentSwitchersManager): boolean {
         return shouldShowContentSwitchers(manager)
     }
@@ -54,23 +109,39 @@ export class ContentSwitchers extends React.Component<{
     @computed private get visibleTabs(): GrapherTabName[] {
         const { activeTab, availableTabs } = this
 
-        // If there are four or fewer tabs, show all of them
-        if (availableTabs.length <= MAX_VISIBLE_TABS) {
-            return availableTabs
+        // Preserve the existing layout until the browser can measure the tabs.
+        if (this.tabWidths.length !== availableTabs.length) {
+            const visibleTabs = availableTabs.slice(
+                0,
+                availableTabs.length <= 4 ? 4 : 3
+            )
+            if (!visibleTabs.includes(activeTab))
+                visibleTabs[visibleTabs.length - 1] = activeTab
+            return visibleTabs
         }
 
-        // Otherwise, only show the first 3 tabs
-        const visibleTabs = availableTabs.slice(
-            0,
-            MAX_VISIBLE_TABS_BEFORE_OVERFLOW
+        // The slim tab list has 2px of padding on each side.
+        const availableWidth = this.availableWidth - 4
+        if (
+            this.tabWidths.reduce((sum, width) => sum + width, 0) <=
+            availableWidth
         )
+            return availableTabs
 
-        // If the active tab is not visible, replace the last visible tab with it
-        if (!visibleTabs.includes(activeTab)) {
-            visibleTabs[visibleTabs.length - 1] = activeTab
+        for (let count = availableTabs.length - 1; count > 0; count--) {
+            const visibleTabs = availableTabs.slice(0, count)
+            // Keep the active tab visible, including its width in the fit check.
+            if (!visibleTabs.includes(activeTab))
+                visibleTabs[count - 1] = activeTab
+            const width = visibleTabs.reduce(
+                (sum, tab) =>
+                    sum +
+                    (this.tabWidths[availableTabs.indexOf(tab)] ?? Infinity),
+                this.overflowWidth
+            )
+            if (width <= availableWidth || count === 1) return visibleTabs
         }
-
-        return visibleTabs
+        return availableTabs
     }
 
     @computed private get hiddenTabs(): GrapherTabName[] {
@@ -106,20 +177,38 @@ export class ContentSwitchers extends React.Component<{
         if (!this.shouldShow) return null
 
         return (
-            <div className="ContentSwitchers__Container">
-                <Tabs
-                    variant="slim"
-                    className="ContentSwitchers"
-                    items={this.tabItems}
-                    selectedKey={this.activeTab}
-                    onChange={this.setTab}
-                />
-                {this.hiddenTabs.length > 0 && (
-                    <OverflowMenu
-                        hiddenTabs={this.hiddenTabs}
-                        onSelect={this.setTab}
+            <div className="ContentSwitchers__Wrapper" ref={this.wrapper}>
+                <div className="ContentSwitchers__Container">
+                    <Tabs
+                        variant="slim"
+                        className="ContentSwitchers"
+                        items={this.tabItems}
+                        selectedKey={this.activeTab}
+                        onChange={this.setTab}
                     />
-                )}
+                    {this.hiddenTabs.length > 0 && (
+                        <OverflowMenu
+                            hiddenTabs={this.hiddenTabs}
+                            onSelect={this.setTab}
+                        />
+                    )}
+                </div>
+                <div
+                    className="ContentSwitchers__Container ContentSwitchers__Measurement"
+                    aria-hidden="true"
+                    ref={this.measurement}
+                >
+                    {this.availableTabs.map((tab) => (
+                        <span key={tab} data-tab={tab} className="Tabs__Tab">
+                            <TabContent tab={tab} />
+                        </span>
+                    ))}
+                    <span className="Tabs__Tab ContentSwitchers__OverflowMenuButton">
+                        <span className="label">
+                            +&#8202;{this.hiddenTabs.length}
+                        </span>
+                    </span>
+                </div>
             </div>
         )
     }
