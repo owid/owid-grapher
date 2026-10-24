@@ -424,6 +424,42 @@ describe("projectionColumnInfoBySlug", () => {
 })
 
 describe("tableForSelection", () => {
+    it("excludes entities with no y data (DiscreteBar)", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "year", "x", "y", "otherY", "color"],
+                ["X only", 2000, 1, null, null, null],
+                ["Y only", 2000, null, 2, null, null],
+                ["Other Y only", 2000, null, null, 3, null],
+                ["Color only", 2000, null, null, null, 4],
+                ["Within tolerance", 2000, 1, 2, null, null],
+                ["Within tolerance", 2001, 1, null, null, null],
+            ],
+            [
+                {
+                    slug: "y",
+                    type: ColumnTypeNames.Numeric,
+                    display: { tolerance: 1 },
+                },
+            ]
+        )
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+            xSlug: "x",
+            ySlugs: "y otherY",
+            colorSlug: "color",
+            minTime: 2001,
+            maxTime: 2001,
+        })
+
+        expect(grapher.tableForSelection.availableEntityNames).toEqual([
+            "Y only",
+            "Other Y only",
+            "Within tolerance",
+        ])
+    })
+
     it("should include all available entities (LineChart)", () => {
         const table = SynthesizeGDPTable({ entityNames: ["A", "B"] })
 
