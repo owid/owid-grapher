@@ -7,6 +7,7 @@ import {
     ExplorerChoiceParams,
 } from "@ourworldindata/explorer"
 import { renderSvgToPng } from "./grapherRenderer.js"
+import { getDataApiHeaders } from "./grapherTools.js"
 import { error, png } from "itty-router"
 import { createZip, UncompressedFile } from "littlezipper"
 import { Bounds, slugify, Url } from "@ourworldindata/utils"
@@ -57,6 +58,7 @@ async function initGrapherForExplorerView(
     const explorerProps = await buildExplorerProps(
         html,
         queryStr,
+        getDataApiHeaders(env),
         selection,
         bounds
     )

@@ -879,6 +879,24 @@ export function getOwidDataFetchUserAgent(): string | undefined {
             : "unknown"
     return `owid-grapher/1.0 (Our World In Data; +https://ourworldindata.org; ${runtime})`
 }
+/** Header that carries the data API's internal key, see getDataApiInternalHeaders */
+export const DATA_API_INTERNAL_KEY_HEADER = "X-OWID-Internal-Key"
+
+/**
+ * Headers that let our own servers fetch indicator data files from the data
+ * API, including those of non-redistributable indicators, which the API only
+ * serves to browsers on our sites otherwise. Returns no headers when no key is
+ * given, e.g. in a dev setup without the secret.
+ *
+ * Only ever call this server-side: the key is a secret and must not end up in
+ * client code.
+ */
+export function getDataApiInternalHeaders(
+    internalKey: string | undefined
+): Record<string, string> {
+    return internalKey ? { [DATA_API_INTERNAL_KEY_HEADER]: internalKey } : {}
+}
+
 export async function retryPromise<T>(
     promiseGetter: () => Promise<T>,
     {

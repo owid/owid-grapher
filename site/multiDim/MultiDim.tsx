@@ -71,7 +71,12 @@ export default function MultiDim({
     /* oxlint-enable react/refs */
 
     const grapherDataLoader = useRef(
-        getCachingInputTableFetcher(DATA_API_URL, archiveContext, isPreviewing)
+        getCachingInputTableFetcher(
+            DATA_API_URL,
+            archiveContext,
+            {},
+            isPreviewing
+        )
     )
     const grapherContainerRef = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(grapherContainerRef)

@@ -29,6 +29,7 @@ import {
     multiDimDimensionsToViewQueryStr,
     searchParamsToMultiDimView,
     escapeJSONStringForInlineScript,
+    getDataApiInternalHeaders,
 } from "@ourworldindata/utils"
 import * as Sentry from "@sentry/cloudflare"
 import { StatusError } from "itty-router"
@@ -82,6 +83,12 @@ export function getDataApiUrl(env: Env) {
     throw new Error(
         "Neither DATA_API_URL_COMPLETE nor DATA_API_URL_PARTIAL_PREFIX and DATA_API_URL_PARTIAL_POSTFIX were declared!"
     )
+}
+
+// Headers for our requests to the data API. The internal key lets the API serve
+// us the data files of non-redistributable indicators, e.g. to render thumbnails
+export function getDataApiHeaders(env: Env): Record<string, string> {
+    return getDataApiInternalHeaders(env.DATA_API_INTERNAL_KEY)
 }
 
 function buildResponseFromR2Object(

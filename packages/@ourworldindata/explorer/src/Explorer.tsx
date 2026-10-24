@@ -97,6 +97,8 @@ export interface ExplorerProps extends SerializedGridProgram {
     bakedBaseUrl: string
     bakedGrapherUrl: string
     dataApiUrl: string
+    /** See `dataApiHeaders` of fetchInputTableForConfig */
+    dataApiHeaders: Record<string, string>
     catalogUrl: string
     bounds?: Bounds
     staticBounds?: Bounds
@@ -269,6 +271,7 @@ export class Explorer
         const props: ExplorerProps = {
             ...program,
             ...explorerConstants,
+            dataApiHeaders: {},
             grapherConfigs,
             partialGrapherConfigs,
             isEmbeddedInAnOwidPage: false,
@@ -634,6 +637,7 @@ export class Explorer
                 dimensions: config.dimensions,
                 selectedEntityColors: config.selectedEntityColors,
                 dataApiUrl: this.props.dataApiUrl,
+                dataApiHeaders: this.props.dataApiHeaders,
                 archiveContext: this.props.archiveContext,
                 noCache: this.props.isPreview,
                 loadMetadataOnly: this.props.loadMetadataOnly,
@@ -832,6 +836,7 @@ export class Explorer
                 selectedEntityColors: config.selectedEntityColors,
                 archiveContext: this.props.archiveContext,
                 dataApiUrl: this.props.dataApiUrl,
+                dataApiHeaders: this.props.dataApiHeaders,
                 noCache: this.props.isPreview,
                 loadMetadataOnly: this.props.loadMetadataOnly,
             }).then((owidTable) => (owidTable ? owidTable : BlankOwidTable()))

@@ -88,7 +88,8 @@ export function SlideExplorer(props: {
         let cancelled = false
         void buildExplorerProps(
             explorerHtml,
-            withHiddenControls(parsed.queryString)
+            withHiddenControls(parsed.queryString),
+            {}
         ).then((props) => {
             if (!cancelled)
                 setExplorerPropsState({ key: explorerPropsKey, props })
