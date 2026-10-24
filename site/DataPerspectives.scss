@@ -1,0 +1,392 @@
+// Data perspectives prototype: ?dpLayout=pageswipe|accordion.
+// See dataPerspectivesVariant.ts for the params.
+
+// --- pageswipe -------------------------------------------------------------
+
+// While pageswipe is active: horizontal drags belong to us (vertical still
+// scrolls natively), and the chart block can slide past the edge without
+// giving the page a horizontal scrollbar.
+body.dp-pageswipe-active {
+    touch-action: pan-y;
+    overflow-x: hidden;
+
+    .chart-with-perspectives {
+        will-change: transform;
+        user-select: none;
+    }
+}
+
+// The page spaces its chart from what follows with the chart's own
+// margin-bottom (.DataPageContent .GrapherWithFallback, 24px / 40px from sm).
+// Here the chart is wrapped, so that space moves to the wrapper — otherwise it
+// sits inside the panel as dead space and the next heading butts up against it.
+.chart-with-perspectives {
+    margin-bottom: 24px;
+
+    @include sm-up {
+        margin-bottom: 40px;
+    }
+}
+
+.DataPageContent .chart-with-perspectives .GrapherWithFallback {
+    margin-bottom: 0;
+}
+
+.data-perspectives-pageswipe {
+    position: relative;
+}
+
+// Dots above the panel, outside what slides: the signal that there's more to
+// swipe through, and a position indicator that stays put.
+.data-perspectives-pageswipe__dots {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    padding: 0;
+}
+
+.data-perspectives-pageswipe__dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border-radius: 50%;
+    background-color: $blue-20;
+    cursor: pointer;
+    // A bigger hit area than the dot itself, for thumbs.
+    box-sizing: content-box;
+    background-clip: content-box;
+    border: 6px solid transparent;
+    margin: -6px;
+
+    &.data-perspectives-pageswipe__dot--active {
+        background-color: $blue-60;
+    }
+}
+
+// On the grey page (panel / narrative) the light inactive dots nearly vanish,
+// so they go one shade darker there.
+body.dp-page-grey
+    .data-perspectives-pageswipe__dot:not(
+        .data-perspectives-pageswipe__dot--active
+    ) {
+    background-color: $blue-30;
+}
+
+.data-perspectives-pageswipe__card {
+    padding: 12px 14px;
+    border-radius: 4px;
+    background-color: $blue-5;
+}
+
+.data-perspectives-pageswipe__title {
+    @include body-2-semibold;
+    margin: 0;
+    color: $blue-90;
+}
+
+// --- dpStyle ---------------------------------------------------------------
+
+// panel / seamless / narrative: no box behind the perspective and no border
+// around the chart, so they read as one block rather than a caption stacked on
+// a separate chart.
+.chart-with-perspectives--style-panel,
+.chart-with-perspectives--style-seamless,
+.chart-with-perspectives--style-narrative {
+    .data-perspectives-pageswipe__card {
+        padding: 0 0 8px;
+        background: none;
+    }
+
+    .GrapherComponent {
+        border-color: transparent;
+    }
+}
+
+// panel / narrative: the page goes light grey and the perspective + chart sit
+// together in one white panel — one object, which is also exactly the thing
+// that slides when you swipe.
+body.dp-page-grey {
+    background-color: $gray-10;
+}
+
+.chart-with-perspectives--style-panel,
+.chart-with-perspectives--style-narrative {
+    padding: 12px;
+    border-radius: 8px;
+    background-color: $white;
+
+    // One shared left edge for the perspective and the chart title. Grapher
+    // draws its content 17px inside its own box, so the perspective is
+    // indented by the same amount; and on phones the chart's
+    // `full-width-on-mobile` negative margins (gdocs/components/Chart.scss)
+    // are cancelled, since here the panel — not the screen — is the frame.
+    > .data-perspectives-pageswipe {
+        padding: 0 17px;
+    }
+
+    .GrapherWithFallback.full-width-on-mobile {
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+// --- narrative, once the reader has changed the view ------------------------
+//   dpNarrativeStale=hide    — the title becomes blank space (its room is
+//                              kept, so nothing below it jumps)
+//   dpNarrativeStale=disable — the title stays, greyed and struck through
+//   dpNarrativeStale=revert  — handled in JS: grapher gets its own title back
+
+.chart-with-perspectives--narrative-hidden .GrapherComponent h1 {
+    visibility: hidden;
+}
+
+.chart-with-perspectives--narrative-disabled .GrapherComponent h1 {
+    color: $blue-40;
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+
+// The control to jump back to the perspective, placed over the chart's title.
+.data-perspectives-pageswipe__restore-icon {
+    position: absolute;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid $blue-20;
+    border-radius: 50%;
+    background: $white;
+    color: $blue-60;
+    font-size: 11px;
+    cursor: pointer;
+
+    &:hover {
+        border-color: $blue-60;
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: 1px;
+    }
+}
+
+// --- swipe nudge -----------------------------------------------------------
+
+// Fixed near the bottom of the screen; `bottom` is set inline, so it can sit
+// above the cookie banner when that's open.
+.data-perspectives-pageswipe__hint {
+    position: fixed;
+    left: 50%;
+    z-index: 40;
+    // Tight corners: the countdown bar runs along the bottom edge, and a pill
+    // would clip it into a sliver.
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translateX(-50%);
+    animation: dp-hint-in 0.3s ease both;
+}
+
+.data-perspectives-pageswipe__hint-body {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 16px 12px;
+}
+
+// Upright hand, travelling left: the conventional swipe demonstration.
+.data-perspectives-pageswipe__hint-icon {
+    font-size: 20px;
+    color: #fff;
+    animation: dp-hand-swipe-left 1.4s ease-in-out infinite;
+}
+
+.data-perspectives-pageswipe__hint-label {
+    @include body-3-medium;
+    color: #fff;
+}
+
+// Drains from full width to zero over the nudge's lifetime, so it's clear it
+// will go away on its own.
+.data-perspectives-pageswipe__hint-timer {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.85);
+    transform-origin: left center;
+    animation: dp-hint-countdown var(--dp-hint-duration, 5000ms) linear forwards;
+}
+
+@keyframes dp-hint-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes dp-hand-swipe-left {
+    0% {
+        transform: translateX(10px);
+        opacity: 0;
+    }
+    15% {
+        opacity: 1;
+    }
+    70% {
+        transform: translateX(-14px);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(-14px);
+        opacity: 0;
+    }
+}
+
+@keyframes dp-hint-countdown {
+    from {
+        transform: scaleX(1);
+    }
+    to {
+        transform: scaleX(0);
+    }
+}
+
+// The countdown stays without motion (it's slow, linear and small); only the
+// hand stops.
+@media (prefers-reduced-motion: reduce) {
+    .data-perspectives-pageswipe__hint-icon {
+        animation: none;
+    }
+}
+
+// --- accordion -------------------------------------------------------------
+
+.data-perspectives-accordion {
+    list-style: none;
+    // Same spacing as the chart it replaces (see .chart-with-perspectives).
+    margin: 0 0 24px;
+    padding: 0;
+
+    @include sm-up {
+        margin-bottom: 40px;
+    }
+}
+
+.data-perspectives-accordion__item {
+    border-bottom: 1px solid $blue-10;
+
+    &:first-child {
+        border-top: 1px solid $blue-10;
+    }
+}
+
+.data-perspectives-accordion__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 0;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover .data-perspectives-accordion__title {
+        color: $blue-60;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: -2px;
+    }
+}
+
+.data-perspectives-accordion__thumb {
+    flex: 0 0 96px;
+
+    picture,
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 1px solid $blue-10;
+        border-radius: 3px;
+    }
+}
+
+.data-perspectives-accordion__heading {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.data-perspectives-accordion__title {
+    @include body-2-semibold;
+    display: block;
+    color: $blue-90;
+}
+
+.data-perspectives-accordion__chevron {
+    flex: 0 0 auto;
+    color: $blue-50;
+    transition: transform 0.15s ease;
+
+    .data-perspectives-accordion__item--expanded & {
+        transform: rotate(180deg);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}
+
+.data-perspectives-accordion__body {
+    padding-bottom: 16px;
+}
+
+// --- prototype aid: ignored dp… params -------------------------------------
+
+.dp-ignored-params {
+    @include body-3-medium;
+    position: fixed;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: calc(100vw - 16px);
+    padding: 6px 10px;
+    border-radius: 4px;
+    background: #fff3cd;
+    border: 1px solid #e0b000;
+    color: #5c4400;
+
+    code {
+        font-size: 12px;
+        word-break: break-all;
+    }
+
+    button {
+        padding: 0 4px;
+        border: none;
+        background: none;
+        font-size: 18px;
+        line-height: 1;
+        color: inherit;
+        cursor: pointer;
+    }
+}
