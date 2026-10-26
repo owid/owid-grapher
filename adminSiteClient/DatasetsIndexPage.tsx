@@ -30,6 +30,8 @@ const SEARCH_FIELDS: SearchField<DatasetListItem>[] = [
         type: "string",
         description: "Version",
         get: (d) => d.version,
+        // otherwise typing a year would list every dataset of that version
+        freeText: false,
     },
     {
         name: "tag",
