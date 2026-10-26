@@ -102,17 +102,19 @@ export function MarkdownTextWrapSvg({
                 style={textWrap.style}
                 {...svgTextProps}
             >
-                {lines.map((line, lineIndex) => (
-                    <tspan
-                        key={lineIndex}
-                        x={roundForSvg(x)}
-                        y={roundForSvg(getLineY(lineIndex))}
-                    >
-                        {line.map((token, tokenIndex) =>
-                            token.toSVG(tokenIndex)
-                        )}
-                    </tspan>
-                ))}
+                {lines.map((line, lineIndex) => {
+                    const lineX = roundForSvg(x)
+                    const lineY = roundForSvg(getLineY(lineIndex))
+                    return (
+                        <tspan key={lineIndex} x={lineX} y={lineY}>
+                            {renderSvgLine(line, {
+                                x: lineX,
+                                y: lineY,
+                                textAnchor: svgTextProps.textAnchor,
+                            })}
+                        </tspan>
+                    )
+                })}
             </text>
             {/* SVG doesn't support dotted underlines, so we draw them manually */}
             {detailsMarker === "underline" &&
@@ -137,5 +139,88 @@ export function MarkdownTextWrapSvg({
                     )
                 })}
         </g>
+    )
+}
+
+/**
+ * Baseline shift that makes Figma's SVG importer start a new text node.
+ *
+ * Figma merges runs on the same baseline into one text node and takes the
+ * node's font weight, style and decoration from its first run, so text that
+ * has to keep its own style must sit on a slightly different baseline. The
+ * shift is too small to be visible in browsers.
+ */
+export const FIGMA_TEXT_NODE_BREAK_DY = 0.01
+
+interface SvgLinePosition {
+    x: number
+    y: number
+    textAnchor?: string
+}
+
+function renderSvgLine(
+    line: IRToken[],
+    position: SvgLinePosition
+): React.ReactNode[] {
+    const nodes = line.map((token, tokenIndex) => token.toSVG(tokenIndex))
+    const [first, ...rest] = nodes
+
+    const startsWithPlainText = !isTspan(first) && !isStyledElement(first)
+    if (startsWithPlainText) return nodes
+
+    return correctLineStartForFigma(first, rest, position)
+}
+
+/**
+ * Rewrites a line that starts with a nested element for Figma's SVG import
+ *
+ * <tspan x="10" y="32">
+ *      <tspan style="font-weight:700">Data source:</tspan> UN WPP
+ * </tspan>
+ *
+ * becomes
+ *
+ * <tspan x="10" y="32">
+ *   <tspan style="font-weight:700" x="10" y="32">Data source:</tspan>
+ *   <tspan dy="0.01" xml:space="preserve"> UN WPP</tspan>
+ * </tspan>
+ */
+function correctLineStartForFigma(
+    first: React.ReactNode,
+    rest: React.ReactNode[],
+    { x, y, textAnchor }: SvgLinePosition
+): React.ReactNode[] {
+    // Figma joins a line that starts with a nested tspan onto the previous
+    // line. Repeating the line's x/y on the nested tspan keeps the break.
+    const positionedFirst = isTspan(first)
+        ? React.cloneElement(first, { x, y })
+        : first
+
+    const isStartAnchored = !textAnchor || textAnchor === "start"
+    const needsNodeBreak =
+        isStartAnchored && isStyledElement(first) && rest.length > 0
+    if (!needsNodeBreak) return [positionedFirst, ...rest]
+
+    // Figma styles a whole text node like its first run, so split off the rest
+    return [
+        positionedFirst,
+        <tspan key="rest" dy={FIGMA_TEXT_NODE_BREAK_DY}>
+            {rest}
+        </tspan>,
+    ]
+}
+
+type SvgElement = React.ReactElement<React.SVGProps<SVGTSpanElement>>
+
+function isTspan(node: React.ReactNode): node is SvgElement {
+    return React.isValidElement(node) && node.type === "tspan"
+}
+
+function isStyledElement(node: React.ReactNode): boolean {
+    if (!React.isValidElement<React.SVGProps<SVGTSpanElement>>(node))
+        return false
+    return (
+        node.type === "a" ||
+        _.some(node.props.style, (value) => value !== undefined)
     )
 }
