@@ -41,8 +41,9 @@ export interface CatalogDataset {
     namespace?: string
     version?: string
     /**
-     * How many of its indicators match, when more than `variables` holds. The
-     * picker then offers the rest as the search `dataset-id:<id> <query>`.
+     * How many of its indicators match, shown in its header. When it exceeds
+     * `variables`, the picker offers the rest as the search
+     * `dataset-id:<id> <query>`.
      */
     matchCount?: number
     variables: CatalogIndicator[]
