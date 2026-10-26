@@ -80,7 +80,7 @@ export function StackedDiscreteBarRow({
                 y={-label.height / 2}
                 onMouseEnter={(): void => onEntityMouseEnter(label.text)}
                 onMouseLeave={onEntityMouseLeave}
-                onInfoTooltipShow={onClearTooltip}
+                onTooltipShow={onClearTooltip}
                 opacity={labelStyle.opacity}
             />
             {showTotalValueLabel && (
