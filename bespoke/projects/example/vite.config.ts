@@ -2,7 +2,10 @@ import { defineConfig } from "vite"
 import pluginReact from "@vitejs/plugin-react"
 import { viteCssPosition } from "vite-plugin-css-position"
 
-import { pluginSwcDecorators } from "../../../rolldown.config-common.mts"
+import {
+    BUILD_TARGET,
+    pluginSwcDecorators,
+} from "../../../rolldown.config-common.mts"
 import { DEDUPED_PACKAGES } from "../../shared/viteDedupe.js"
 import { entrypoints } from "./package.json"
 
@@ -20,6 +23,7 @@ export default defineConfig({
         dedupe: DEDUPED_PACKAGES,
     },
     build: {
+        target: BUILD_TARGET, // see docs/browser-support.md
         lib: {
             entry: entrypoints.js,
             formats: ["es"],
