@@ -90,6 +90,29 @@ const topicPageIntro = (downloadButton?: {
         parseErrors: [],
     }) as unknown as OwidEnrichedGdocBlock
 
+// A bespoke-component block as the parser enriches it. `variant` is left
+// out when undefined; pass "" for a block with an empty variant.
+const bespoke = (
+    bundle: string,
+    variant?: string,
+    config: Record<string, string> = {}
+): OwidEnrichedGdocBlock =>
+    ({
+        type: "bespoke-component",
+        bundle,
+        ...(variant !== undefined && { variant }),
+        size: "wide",
+        config,
+        parseErrors: [],
+    }) as unknown as OwidEnrichedGdocBlock
+
+// Admin (non-API) routes live one level up from env.baseUrl (/admin/api)
+async function rawAdminGet(path: string): Promise<Response> {
+    return await fetch(env.baseUrl.replace(/\/api$/, "") + path, {
+        headers: { Authorization: `Bearer ${env.apiKey}` },
+    })
+}
+
 describe("writing reference live API", { timeout: 20000 }, () => {
     it("usage.json aggregates published docs only, with labels", async () => {
         await seedDoc({
@@ -382,5 +405,227 @@ describe("writing reference live API", { timeout: 20000 }, () => {
         expect(refs).toBeDefined()
         expect(refs?.category).toBe("Writing")
         expect(refs?.examples.length).toBeGreaterThan(0)
+    })
+
+    it("bespoke-viz.json serves the committed bespoke viz registry", async () => {
+        const res = await rawGet("/gdocs-reference/bespoke-viz.json")
+        expect(res.status).toBe(200)
+        const { bundles } = (await res.json()) as {
+            bundles: { id: string; variants: { name: string }[] }[]
+        }
+        const demography = bundles.find((b) => b.id === "demography")
+        expect(demography?.variants[0].name).toBe("simulation")
+    })
+
+    it("bespoke-viz/usage.json counts published bespoke blocks per bundle and variant", async () => {
+        // Older doc: one demography block with a stale variant, one without
+        // a variant, one with an empty variant
+        await seedDoc({
+            id: "bespoke-old",
+            slug: "bespoke-old",
+            type: "article",
+            published: true,
+            publishedAt: new Date("2025-01-01"),
+            body: [
+                bespoke("demography", "old"),
+                bespoke("demography"),
+                bespoke("demography", ""),
+            ],
+        })
+        // Newer doc: two demography variants (listed out of registry order)
+        // and a bundle that is not in the registry
+        await seedDoc({
+            id: "bespoke-new",
+            slug: "bespoke-new",
+            type: "article",
+            published: true,
+            publishedAt: new Date("2026-01-01"),
+            body: [
+                heading("Projections"),
+                bespoke("demography", "population"),
+                bespoke("demography", "simulation", { region: "France" }),
+                bespoke("not-a-bundle", "x"),
+            ],
+        })
+        // Key adoption: 3 causes-of-death blocks, 2 set region (one to its
+        // default), plus a key the registry doesn't know, which isn't counted
+        await seedDoc({
+            id: "bespoke-cod",
+            slug: "bespoke-cod",
+            type: "article",
+            published: true,
+            body: [
+                bespoke("causes-of-death", "treemap", { region: "World" }),
+                bespoke("causes-of-death", "treemap", {
+                    region: "Nigeria",
+                    legacyKey: "1",
+                }),
+                bespoke("causes-of-death", "treemap"),
+            ],
+        })
+        // Neither drafts nor scheduled docs count
+        await seedDoc({
+            id: "bespoke-draft",
+            slug: "bespoke-draft",
+            type: "article",
+            published: false,
+            body: [bespoke("migration", "sankey")],
+        })
+        await seedDoc({
+            id: "bespoke-scheduled",
+            slug: "bespoke-scheduled",
+            type: "article",
+            published: true,
+            publishedAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            body: [bespoke("demography", "population")],
+        })
+
+        const usage = await env.fetchJson(
+            "/gdocs-reference/bespoke-viz/usage.json"
+        )
+        // Registry order; unused and unregistered bundles are omitted
+        expect(usage.bundles.map((b: { bundle: string }) => b.bundle)).toEqual([
+            "causes-of-death",
+            "demography",
+        ])
+
+        const [causesOfDeath, demography] = usage.bundles
+        expect(causesOfDeath).toMatchObject({ uses: 3, docs: 1 })
+        expect(causesOfDeath.configAdoption).toEqual({ region: 2 })
+
+        // Every block counts as a use, whatever its variant
+        expect(demography.uses).toBe(5)
+        expect(demography.docs).toBe(2)
+        expect(demography.configAdoption).toEqual({ region: 1 })
+        // Registry variants only, in registry order: the stale, missing and
+        // empty variants are left out
+        expect(
+            demography.variants.map(
+                (v: { variant: string; uses: number; docs: number }) => [
+                    v.variant,
+                    v.uses,
+                    v.docs,
+                ]
+            )
+        ).toEqual([
+            ["simulation", 1, 1],
+            ["population", 1, 1],
+        ])
+
+        const [simulation] = demography.variants
+        expect(simulation.instances).toEqual([
+            {
+                gdocId: "bespoke-new",
+                slug: "bespoke-new",
+                title: "Title of bespoke-new",
+                docType: "article",
+                path: "$.body[2]",
+                anchor: "projections",
+                publishedAt: expect.any(String),
+                variation: "simulation",
+                archie: expect.any(String),
+            },
+        ])
+        // The copyable source comes from the real block in the doc
+        expect(simulation.instances[0].archie).toMatch(/^bundle: demography$/m)
+        expect(simulation.instances[0].archie).toMatch(/^variant: simulation$/m)
+    })
+
+    it("bespoke-viz/usage.json lists instances newest first", async () => {
+        await seedDoc({
+            id: "bespoke-older",
+            slug: "bespoke-older",
+            type: "article",
+            published: true,
+            publishedAt: new Date("2025-01-01"),
+            body: [bespoke("migration", "sankey")],
+        })
+        await seedDoc({
+            id: "bespoke-newer",
+            slug: "bespoke-newer",
+            type: "article",
+            published: true,
+            publishedAt: new Date("2026-01-01"),
+            body: [bespoke("migration", "sankey")],
+        })
+        const usage = await env.fetchJson(
+            "/gdocs-reference/bespoke-viz/usage.json"
+        )
+        const [migration] = usage.bundles
+        expect(migration).toMatchObject({ bundle: "migration", docs: 2 })
+        expect(
+            migration.variants[0].instances.map((i: { slug: string }) => i.slug)
+        ).toEqual(["bespoke-newer", "bespoke-older"])
+    })
+
+    it("bespoke-viz/usage.json counts a doc using two variants once per bundle", async () => {
+        await seedDoc({
+            id: "bespoke-two-variants",
+            slug: "bespoke-two-variants",
+            type: "article",
+            published: true,
+            body: [
+                bespoke("demography", "simulation"),
+                bespoke("demography", "population"),
+            ],
+        })
+        const usage = await env.fetchJson(
+            "/gdocs-reference/bespoke-viz/usage.json"
+        )
+        const [demography] = usage.bundles
+        expect(demography).toMatchObject({
+            bundle: "demography",
+            uses: 2,
+            docs: 1,
+        })
+        expect(
+            demography.variants.map(
+                (v: { variant: string; uses: number; docs: number }) => [
+                    v.variant,
+                    v.uses,
+                    v.docs,
+                ]
+            )
+        ).toEqual([
+            ["simulation", 1, 1],
+            ["population", 1, 1],
+        ])
+    })
+
+    it("bespoke-viz preview 404s for an unknown bundle, unknown variant or no variant", async () => {
+        const unknownBundle = await rawAdminGet(
+            "/gdocs-reference/bespoke-viz/no-such-bundle/preview?variant=treemap"
+        )
+        expect(unknownBundle.status).toBe(404)
+        const unknownVariant = await rawAdminGet(
+            "/gdocs-reference/bespoke-viz/causes-of-death/preview?variant=nope"
+        )
+        expect(unknownVariant.status).toBe(404)
+        const noVariant = await rawAdminGet(
+            "/gdocs-reference/bespoke-viz/causes-of-death/preview"
+        )
+        expect(noVariant.status).toBe(404)
+    })
+
+    it("bespoke-viz preview 404s for an empty variant and bad example params", async () => {
+        // causes-of-death has no docs.md, so every example index is out of
+        // range. Picking an example is tested in bespokeVizPreviewBlock.test.ts;
+        // rendering one isn't tested here, as it needs a production build
+        // manifest this suite doesn't have.
+        const base = "/gdocs-reference/bespoke-viz/causes-of-death/preview"
+        for (const query of [
+            "?variant=",
+            "?variant=treemap&variant=treemap",
+            "?example=9",
+            "?example=0",
+            "?example=1.5",
+            "?example=",
+            "?example=-1",
+            "?example=0&variant=treemap",
+            "?example=0&example=1",
+        ]) {
+            const res = await rawAdminGet(base + query)
+            expect(res.status, query).toBe(404)
+        }
     })
 })

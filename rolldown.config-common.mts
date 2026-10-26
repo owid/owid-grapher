@@ -1,6 +1,6 @@
 // Build configuration that is shared between our vite builds (see
-// vite.config-common.mts) and the standalone grapher library build, which uses
-// tsdown (see packages/@ourworldindata/grapher/tsdown.config.ts).
+// vite.config-common.mts) and the npm package builds, which use tsdown (see
+// packages/@ourworldindata/tsdown.config-common.mts).
 //
 // Both bundlers run on rolldown, so everything in here must only depend on
 // rolldown - nothing vite-specific.

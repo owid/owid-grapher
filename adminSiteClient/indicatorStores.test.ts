@@ -2,7 +2,11 @@
  * @vitest-environment happy-dom
  */
 import { describe, expect, it } from "vitest"
-import { ColumnTypeNames, DimensionProperty } from "@ourworldindata/types"
+import {
+    ColumnTypeNames,
+    DimensionProperty,
+    OwidTableSlugs,
+} from "@ourworldindata/types"
 import { csvIndicatorStore } from "./indicatorStores.js"
 
 const csv = `entityName,year,rent_index,vacancy_rate,region
@@ -67,6 +71,17 @@ describe(csvIndicatorStore, () => {
         expect(table!.get("rent_index").displayName).toBe("Rent index")
         expect(table!.get("rent_index").unit).toBe("index (2015 = 100)")
         expect(table!.get("rent_index").values).toEqual([100, 131, 100, 112])
+    })
+
+    it("colors the entities the config picks a color for", async () => {
+        const table = await makeStore().loadTable(
+            [{ property: DimensionProperty.y, slug: "rent_index" }],
+            { Berlin: "#ff0000" }
+        )
+        expect(table!.get(OwidTableSlugs.EntityColor).values).toEqual([
+            "#ff0000",
+            "#ff0000",
+        ])
     })
 
     it("applies a dimension's display on every load, from the raw values", async () => {

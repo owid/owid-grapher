@@ -3,12 +3,13 @@ import cx from "clsx"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { queryClient, useDemographyData } from "../core/fetch.js"
+import type { DemographyConfig } from "../index.js"
+import type { PopulationPyramidUnit } from "../core/types.js"
+import { isUserLocationCountry } from "../../../../hooks/useResolveUserLocation.js"
 import type {
-    PopulationPyramidUnit,
-    SimulationVariantConfig,
-} from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import { CHART_FOOTER_SOURCES, DEFAULT_ENTITY_NAME } from "../core/constants.js"
 import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import {
@@ -25,6 +26,7 @@ import {
 import { CountryData, DemographyMetadata, ParameterKey } from "../core/types.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { SimulationContent } from "../components/SimulationContent.js"
 import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
@@ -38,7 +40,7 @@ import {
 export function SimulationVariant({
     config,
     urls,
-}: VariantProps<SimulationVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<DemographyConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
@@ -67,7 +69,7 @@ function FetchingSimulationVariant({
     config,
     urls,
 }: {
-    config: SimulationVariantConfig
+    config: DemographyConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
     const { urlSync } = useEmbedConfig()
@@ -104,10 +106,9 @@ function FetchingSimulationVariant({
 
     // Fall back to another entity if the selected one has no data
     if (metadata && !metadata.slugs[entityName]) {
-        const fallbackEntityName =
-            config.region && metadata.slugs[config.region]
-                ? config.region
-                : DEFAULT_ENTITY_NAME
+        const fallbackEntityName = metadata.slugs[config.region]
+            ? config.region
+            : DEFAULT_ENTITY_NAME
         if (entityName !== fallbackEntityName) {
             setEntityNameRaw(fallbackEntityName)
             setShouldSyncEntityName(false)
@@ -118,7 +119,7 @@ function FetchingSimulationVariant({
     const shouldSyncAutoDetectedEntityName =
         urlSync &&
         !urlState.entityName &&
-        (!config.region || config.region === "userLocation") &&
+        isUserLocationCountry(config.region) &&
         isInitialEntityNameResolved
     const [
         prevShouldSyncAutoDetectedEntityName,
@@ -191,9 +192,8 @@ function getUrlAssumptionState(
     }
 }
 
-function getBaselineEntityName(region: string | undefined): string | undefined {
-    if (!region || region === "userLocation") return undefined
-    return region
+function getBaselineEntityName(region: string): string | undefined {
+    return isUserLocationCountry(region) ? undefined : region
 }
 
 function CaptionedSimulationVariant({
@@ -227,7 +227,7 @@ function CaptionedSimulationVariant({
     title?: string
     subtitle?: string
     hideEntitySelector?: boolean
-    focusParameter?: ParameterKey
+    focusParameter: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: PopulationPyramidUnit
     fertilityRateAssumptions?: Record<number, number>
@@ -265,50 +265,58 @@ function CaptionedSimulationVariant({
         "Demographers publish projections of how populations will change in the future. But what if fertility rates fall faster, or rebound? Or migration rates change? Adjust these assumptions and compare."
 
     return (
-        <Frame className="demography-captioned-chart">
-            <ChartHeader
-                className="demography-header"
-                title={title}
-                subtitle={subtitle}
-            />
-            <div className="demography-captioned-chart__chart-area">
-                {isLoading && <Spinner />}
-                <SimulationContent
-                    data={data}
-                    focusParameter={focusParameter}
-                    hidePopulationPyramid={hidePopulationPyramid}
-                    populationPyramidUnit={populationPyramidUnit}
-                    fertilityRateAssumptions={fertilityRateAssumptions}
-                    lifeExpectancyAssumptions={lifeExpectancyAssumptions}
-                    netMigrationRateAssumptions={netMigrationRateAssumptions}
-                    urlFertilityRateAssumptions={urlFertilityRateAssumptions}
-                    urlLifeExpectancyAssumptions={urlLifeExpectancyAssumptions}
-                    urlNetMigrationRateAssumptions={
-                        urlNetMigrationRateAssumptions
-                    }
-                    baselineEntityName={baselineEntityName}
-                    shouldSyncEntityName={shouldSyncEntityName}
-                    urlTab={urlTab}
-                    urlYear={urlYear}
+        <BespokeMetadataProvider metadata={metadata.provenance}>
+            <Frame className="demography-captioned-chart">
+                <ChartHeader
+                    className="demography-header"
+                    title={title}
+                    subtitle={subtitle}
                 />
-            </div>
-            <ChartFooter
-                className="demography-footer"
-                source={CHART_FOOTER_SOURCES}
-                note={
-                    <>
-                        Technical details and assumptions used in this
-                        population model are available at{" "}
-                        <a
-                            href="https://docs.owid.io/projects/etl/analyses/population_tool"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            https://docs.owid.io/projects/etl/analyses/population_tool
-                        </a>
-                    </>
-                }
-            />
-        </Frame>
+                <div className="demography-captioned-chart__chart-area">
+                    {isLoading && <Spinner />}
+                    <SimulationContent
+                        data={data}
+                        focusParameter={focusParameter}
+                        hidePopulationPyramid={hidePopulationPyramid}
+                        populationPyramidUnit={populationPyramidUnit}
+                        fertilityRateAssumptions={fertilityRateAssumptions}
+                        lifeExpectancyAssumptions={lifeExpectancyAssumptions}
+                        netMigrationRateAssumptions={
+                            netMigrationRateAssumptions
+                        }
+                        urlFertilityRateAssumptions={
+                            urlFertilityRateAssumptions
+                        }
+                        urlLifeExpectancyAssumptions={
+                            urlLifeExpectancyAssumptions
+                        }
+                        urlNetMigrationRateAssumptions={
+                            urlNetMigrationRateAssumptions
+                        }
+                        baselineEntityName={baselineEntityName}
+                        shouldSyncEntityName={shouldSyncEntityName}
+                        urlTab={urlTab}
+                        urlYear={urlYear}
+                    />
+                </div>
+                <ChartFooter
+                    className="demography-footer"
+                    source={CHART_FOOTER_SOURCES}
+                    note={
+                        <>
+                            Technical details and assumptions used in this
+                            population model are available at{" "}
+                            <a
+                                href="https://docs.owid.io/projects/etl/analyses/population_tool"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                https://docs.owid.io/projects/etl/analyses/population_tool
+                            </a>
+                        </>
+                    }
+                />
+            </Frame>
+        </BespokeMetadataProvider>
     )
 }

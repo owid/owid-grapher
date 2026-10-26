@@ -3,12 +3,12 @@ metadata:
     A 0-1 popularity score per piece of content, computed and written by the analytics service (owid/analytics) on prod. Used to rank search results, e.g. indicators in the admin's indicator search, joined on `type = 'indicator' AND slug = variables.catalogPath`.
 
     Availability:
-    - Production and staging databases: populated by the analytics service
-    - Local development: shipped with the database snapshot
+    - Production: refreshed by the analytics service's sync
+    - Staging and local development: copied from prod with the metadata dump (`owid_metadata.sql.gz`) when the database is seeded, so the scores are as old as the database
     - Databases built from migrations alone (the test databases): empty
 fields:
   type:
-    description: Kind of content, e.g. indicator, chart, explorer, article, topic-page, data-insight, dataset, country
+    description: Kind of content the analytics service scores (indicator, chart, article, …); this repo only reads `indicator`
   slug:
     description: The content's identifier within its type; for indicators this is the catalog path
   popularity:

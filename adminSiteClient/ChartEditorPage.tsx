@@ -16,11 +16,13 @@ import {
     OwidChartDimensionInterface,
 } from "@ourworldindata/types"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.mjs"
+import { ChartSourceBadge, EtlSourceSection } from "./ChartSourceBadge.js"
+import { EtlSource, getOverriddenFields, makeEtlDrift } from "./etlChartSync.js"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { LoadingBlocker, Timeago } from "./Forms.js"
-import { GrapherEditor } from "./GrapherEditor.js"
+import { AdminGrapherEditor } from "./AdminGrapherEditor.js"
 import {
     ConfigEditor,
     EditorExtraTab,
@@ -42,14 +44,9 @@ import {
     References,
 } from "./adminChartApi.js"
 import {
-    adminDetailsProvider,
-    adminIndicatorCatalog,
     adminOriginUrlSuggestions,
     adminScatterDefaults,
-    defaultEditorEnvironment,
-    DetailsProvider,
-} from "./editorProviders.js"
-import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
+} from "./adminEditorProviders.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
@@ -72,7 +69,14 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     indicatorConfig: GrapherInterface | undefined = undefined
     isInheritanceEnabled = true
     etlConfig: GrapherInterface | undefined = undefined
+    etlConfigCatalogPath: string | undefined = undefined
     patchConfig: GrapherInterface = {}
+    // The patch as stored in the database, kept up to date on save
+    savedPatchConfig: GrapherInterface = {}
+    // A click on the ETL badge highlights the ETL section in the Debug tab
+    // once; the count remounts the section to replay it on repeated clicks
+    etlSectionHighlightCount = 0
+    isEtlSectionHighlightPending = false
 
     logs: Log[] = []
     references: References | undefined = undefined
@@ -98,7 +102,11 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             indicatorConfig: observable.ref,
             isInheritanceEnabled: observable.ref,
             etlConfig: observable.ref,
+            etlConfigCatalogPath: observable.ref,
             patchConfig: observable.ref,
+            savedPatchConfig: observable.ref,
+            etlSectionHighlightCount: observable.ref,
+            isEtlSectionHighlightPending: observable.ref,
             logs: observable,
             references: observable,
             redirects: observable,
@@ -120,17 +128,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         return this.props.grapherId === undefined
     }
 
-    @computed get store(): IndicatorStore {
-        return dataApiIndicatorStore({
-            dataApiUrl: defaultEditorEnvironment.dataApiUrl,
-            catalog: adminIndicatorCatalog(this.admin),
-        })
-    }
-
-    @computed get details(): DetailsProvider {
-        return adminDetailsProvider(this.admin)
-    }
-
     @computed get scatterDefaults(): OwidChartDimensionInterface[] {
         return adminScatterDefaults(this.variableIdsByCatalogPath)
     }
@@ -144,6 +141,19 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         if (grapherId === undefined) return undefined
         const query = this.forceDatapage ? "?forceDatapage=true" : ""
         return `/admin/charts/${grapherId}/preview${query}`
+    }
+
+    /** Undefined unless the chart has an ETL config layer */
+    @computed get etlSource(): EtlSource | undefined {
+        if (!this.etlConfig) return undefined
+        return {
+            catalogPath: this.etlConfigCatalogPath ?? null,
+            drift: makeEtlDrift({
+                overriddenFields: getOverriddenFields(this.savedPatchConfig),
+                slug: this.savedPatchConfig.slug,
+                etlSlug: this.etlConfig.slug,
+            }),
+        }
     }
 
     @computed get baseConfig(): GrapherInterface {
@@ -170,9 +180,11 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             ])
             runInAction(() => {
                 this.patchConfig = patch
+                this.savedPatchConfig = patch
                 this.indicatorConfig = parent?.variableConfig
                 this.indicatorId = parent?.variableId
                 this.etlConfig = parent?.etlConfig
+                this.etlConfigCatalogPath = parent?.etlConfigCatalogPath
                 this.isInheritanceEnabled = parent?.isInheritanceEnabled ?? true
                 this.forceDatapage = settings?.forceDatapage ?? false
             })
@@ -375,6 +387,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             } else {
                 grapherState.version += 1
                 this.logs.unshift(json.newLog)
+                this.savedPatchConfig = json.savedPatch
             }
         })
         return json.savedPatch
@@ -510,24 +523,27 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                 key: "publishing",
                 label: "Publishing",
                 render: (editor) => (
-                    <EditorPublishingTab
-                        editor={editor}
-                        indicatorId={this.indicatorId}
-                        indicatorConfig={this.indicatorConfig}
-                        isInheritanceEnabled={this.isInheritanceEnabled}
-                        onInheritanceChange={action(
-                            (isEnabled: boolean) =>
-                                (this.isInheritanceEnabled = isEnabled)
-                        )}
-                        tags={this.tags}
-                        availableTags={this.availableTags}
-                        onSaveTags={this.saveTags}
-                        forceDatapage={this.forceDatapage}
-                        onForceDatapageChange={action(
-                            (forceDatapage: boolean) =>
-                                (this.forceDatapage = forceDatapage)
-                        )}
-                    />
+                    <>
+                        {this.renderEtlSourceSection()}
+                        <EditorPublishingTab
+                            editor={editor}
+                            indicatorId={this.indicatorId}
+                            indicatorConfig={this.indicatorConfig}
+                            isInheritanceEnabled={this.isInheritanceEnabled}
+                            onInheritanceChange={action(
+                                (isEnabled: boolean) =>
+                                    (this.isInheritanceEnabled = isEnabled)
+                            )}
+                            tags={this.tags}
+                            availableTags={this.availableTags}
+                            onSaveTags={this.saveTags}
+                            forceDatapage={this.forceDatapage}
+                            onForceDatapageChange={action(
+                                (forceDatapage: boolean) =>
+                                    (this.forceDatapage = forceDatapage)
+                            )}
+                        />
+                    </>
                 ),
             },
         ]
@@ -560,20 +576,55 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         }
     }
 
+    private readonly renderPreviewHeader = (
+        editor: ConfigEditor
+    ): React.ReactNode => {
+        if (this.isNewChart) return undefined
+        return (
+            <ChartSourceBadge
+                etl={this.etlSource}
+                // the Publishing tab explains the ETL badge in detail
+                onClick={
+                    this.etlSource
+                        ? action(() => {
+                              editor.tab = "publishing"
+                              editor.showStaticPreview = false
+                              this.etlSectionHighlightCount += 1
+                              this.isEtlSectionHighlightPending = true
+                          })
+                        : undefined
+                }
+            />
+        )
+    }
+
+    private renderEtlSourceSection(): React.ReactNode {
+        if (!this.etlSource) return undefined
+        return (
+            <EtlSourceSection
+                key={this.etlSectionHighlightCount}
+                etl={this.etlSource}
+                highlightOnMount={this.isEtlSectionHighlightPending}
+                onHighlighted={action(
+                    () => (this.isEtlSectionHighlightPending = false)
+                )}
+            />
+        )
+    }
+
     private renderEditor(): React.ReactElement {
         return (
-            <GrapherEditor
+            <AdminGrapherEditor
                 key={this.props.grapherId ?? "new"}
                 config={this.patchConfig}
                 baseConfig={this.baseConfig}
-                store={this.store}
-                details={this.details}
                 scatterDefaults={this.scatterDefaults}
                 onSave={this.onSave}
                 onChange={this.syncIndicatorConfig}
                 extraTabs={this.extraTabs}
                 renderSaveButtons={this.renderSaveButtons}
                 previewUrl={this.previewUrl}
+                renderPreviewHeader={this.renderPreviewHeader}
                 renderNote={this.renderNote}
                 originUrlSuggestions={this.originUrlSuggestions}
             />

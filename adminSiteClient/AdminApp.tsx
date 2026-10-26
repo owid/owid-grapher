@@ -199,7 +199,7 @@ export class AdminApp extends React.Component<{
                                 />
                                 <Route
                                     exact
-                                    path="/gdocs-reference/:kind?/:id?"
+                                    path="/gdocs-reference/:kind?/:id?/:bundle?"
                                     component={GdocsReferencePage}
                                 />
                                 <Route

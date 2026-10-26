@@ -51,6 +51,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     private nearSeries: ScatterSeries | undefined = undefined
     // currently hovered-over point via mouseenter/leave
     private overSeries: ScatterSeries | undefined = undefined
+    private readonly renderUid = guid()
 
     constructor(props: ScatterPointsWithLabelsProps) {
         super(props)
@@ -488,10 +489,6 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                 })}
             </g>
         )
-    }
-
-    @computed get renderUid(): number {
-        return guid()
     }
 
     private renderForegroundSeries(): React.ReactElement {

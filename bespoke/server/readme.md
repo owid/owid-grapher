@@ -8,7 +8,7 @@ A development server for working on bespoke data viz projects locally.
 yarn startBespokeDevServer
 ```
 
-The server starts on port **8089** (override with the `PORT` env var). It's also included in `make up.full`.
+The server starts on port **8089** (override with `BESPOKE_PORT`, in the environment or `.env`; the site's default `BESPOKE_BASE_URL` follows it). It's also included in `make up.full`. `make up.worktree` doesn't start it, but writes a `BESPOKE_PORT` of its own into each worktree's `.env`, so running it there doesn't clash with the main checkout.
 
 ## How it works
 

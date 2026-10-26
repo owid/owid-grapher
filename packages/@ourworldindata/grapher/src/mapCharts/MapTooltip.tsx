@@ -14,6 +14,7 @@ import {
     makeTooltipRoundingNotice,
     TooltipValueRange,
     formatTooltipRangeValues,
+    NO_DATA_COLOR,
 } from "../tooltip/Tooltip"
 import { MapChartManager, MapColumnInfo } from "./MapChartConstants"
 import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
@@ -37,6 +38,7 @@ import { match } from "ts-pattern"
 import { MapFormatValueForTooltip } from "./MapChartState.js"
 
 interface MapTooltipProps {
+    id: number
     entityName: EntityName
     manager: MapChartManager
     mapColumnSlug: ColumnSlug
@@ -321,9 +323,8 @@ export class MapTooltip
 
         return (
             <Tooltip
-                id="mapTooltip"
+                id={this.props.id}
                 tooltipManager={this.props.manager}
-                key="mapTooltip"
                 x={position?.x}
                 y={position?.y}
                 style={{ maxWidth: "250px" }}
@@ -357,6 +358,7 @@ export class MapTooltip
                         }
                         colorScale={colorScale}
                         isProjection={isProjection}
+                        isInapplicable={this.isInapplicableEntity}
                     />
                 )}
                 <MapSparkline
@@ -375,22 +377,26 @@ function MapTooltipValue({
     formattedValue,
     colorScale,
     isProjection = false,
+    isInapplicable = false,
 }: {
     mapColumn: CoreColumn
     datum?: OwidVariableRow<number | string>
     formattedValue?: string
     colorScale: ColorScale
     isProjection?: boolean
+    isInapplicable?: boolean
 }): React.ReactElement {
-    const color = makeTextColorForValue(datum?.value, { colorScale })
+    const color = isInapplicable
+        ? darkenColorForHighContrastText(colorScale.inapplicableColor)
+        : makeTextColorForValue(datum?.value, { colorScale })
 
     return (
         <TooltipValue
             label={mapColumn.displayName}
-            unit={mapColumn.displayUnit}
+            unit={isInapplicable ? undefined : mapColumn.displayUnit}
             value={formattedValue}
             color={color}
-            isProjection={isProjection}
+            isProjection={!isInapplicable && isProjection}
             labelVariant="unit-only"
             noDataLabel={colorScale.noDataLabel}
         />
@@ -448,5 +454,6 @@ function makeTextColorForValue(
     value: PrimitiveType | undefined,
     { colorScale }: { colorScale: ColorScale }
 ): string {
+    if (value === undefined) return NO_DATA_COLOR
     return darkenColorForHighContrastText(colorScale.getColor(value) ?? "#333")
 }

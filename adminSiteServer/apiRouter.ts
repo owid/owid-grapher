@@ -1,5 +1,6 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
+import express from "express"
 import { TaggableType } from "@ourworldindata/types"
 import {
     getSlideshows,
@@ -51,6 +52,11 @@ import {
     getResearchAndWritingOrphans,
 } from "./apiRoutes/gdocs.js"
 import {
+    createGdocArchieMl,
+    getGdocArchieMl,
+    putGdocArchieMl,
+} from "./apiRoutes/gdocArchieMl.js"
+import {
     getImagesHandler,
     postImageHandler,
     putImageHandler,
@@ -60,9 +66,11 @@ import {
 } from "./apiRoutes/images.js"
 import { getFiles, uploadFileToR2 } from "./apiRoutes/files.js"
 import { getComponentsReference } from "./apiRoutes/components.js"
+import { getBespokeVizReference } from "./apiRoutes/bespokeViz.js"
 import { getTemplatesReference } from "./apiRoutes/templates.js"
 import { getGuidesReference } from "./apiRoutes/guides.js"
 import {
+    getBespokeVizUsage,
     getComponentInstances,
     getGdocsReferenceUsage,
     getTemplateExemplars,
@@ -90,9 +98,9 @@ import {
 } from "./apiRoutes/redirects.js"
 import { triggerStaticBuild } from "../baker/GrapherBakingUtils.js"
 import {
-    suggestGptTopics,
-    suggestGptAltTextForCloudflareImage,
-    suggestGptAltText,
+    suggestTopics,
+    suggestAltTextForCloudflareImage,
+    suggestAltText,
     extractTextFromImage,
 } from "./apiRoutes/suggest.js"
 import {
@@ -156,7 +164,10 @@ import {
     upsertEtlConfigByChartConfigId,
     deleteChartsChartIdEtlConfig,
 } from "./apiRoutes/charts.js"
-import { getChartConfig } from "./apiRoutes/chartConfigs.js"
+import {
+    getChartConfig,
+    validateChartConfigs,
+} from "./apiRoutes/chartConfigs.js"
 import {
     createDataInsightGDoc,
     getAllDataInsightIndexItems,
@@ -281,6 +292,7 @@ getRouteWithROTransaction(
     "/chart-configs/:chartConfigId.config.json",
     getChartConfig
 )
+apiRouter.post("/chart-configs/validate", validateChartConfigs)
 
 // Narrative chart routes
 getRouteWithROTransaction(apiRouter, "/narrative-charts", getNarrativeCharts)
@@ -392,6 +404,24 @@ getRouteWithROTransaction(
     apiRouter,
     "/gdocs/:id/coverage",
     getGdocCalloutCoverage
+)
+// ArchieML read and write for agents. GET reads any registered doc; writes
+// need unpublished docs outside shared drives
+getRouteWithROTransaction(apiRouter, "/gdocs/:id/archieml", getGdocArchieMl)
+// The writes' body is plain text, which FunctionalRouter's parsers don't
+// cover. They open their own short transactions, rather than holding one
+// across the Google API calls
+const archieMlTextBody = express.text({ type: "text/plain", limit: "50mb" })
+apiRouter.router.put(
+    "/gdocs/:id/archieml",
+    archieMlTextBody,
+    apiRouter.wrap(putGdocArchieMl)
+)
+// Creates a doc of any type, shared with the `email` query parameter
+apiRouter.router.post(
+    "/gdocs/archieml",
+    archieMlTextBody,
+    apiRouter.wrap(createGdocArchieMl)
 )
 getRouteWithROTransaction(
     apiRouter,
@@ -556,18 +586,18 @@ deleteRouteWithRWTransaction(
     handleDeleteChartRedirect
 )
 
-// GPT routes
+// LLM suggestion routes (the /gpt/ paths predate the move to Claude)
 getRouteWithROTransaction(
     apiRouter,
     `/gpt/suggest-topics/${TaggableType.Charts}/:chartId.json`,
-    suggestGptTopics
+    suggestTopics
 )
 getRouteWithROTransaction(
     apiRouter,
     `/gpt/suggest-alt-text/:imageId`,
-    suggestGptAltTextForCloudflareImage
+    suggestAltTextForCloudflareImage
 )
-getRouteWithROTransaction(apiRouter, `/gpt/suggest-alt-text`, suggestGptAltText)
+getRouteWithROTransaction(apiRouter, `/gpt/suggest-alt-text`, suggestAltText)
 getRouteWithROTransaction(
     apiRouter,
     `/gpt/extract-text-from-image`,
@@ -661,11 +691,12 @@ apiRouter.get("/svgtester/suites.json", getSvgTesterSuites)
 apiRouter.get("/svgtester/:suite/results.json", getSvgTesterResults)
 apiRouter.router.get("/svgtester/:suite/:kind/:filename", getSvgTesterSvg)
 
-// ArchieML component, gdoc template and guide references (served from the
-// committed registry JSONs)
+// ArchieML component, gdoc template, guide and bespoke viz references
+// (served from the committed registry JSONs)
 apiRouter.get("/gdocs-reference/components.json", getComponentsReference)
 apiRouter.get("/gdocs-reference/templates.json", getTemplatesReference)
 apiRouter.get("/gdocs-reference/guides.json", getGuidesReference)
+apiRouter.get("/gdocs-reference/bespoke-viz.json", getBespokeVizReference)
 
 // The live half of the writing reference: component usage across published
 // docs, real instances with provenance, and template exemplar outlines
@@ -683,6 +714,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/gdocs-reference/templates/:id/exemplars.json",
     getTemplateExemplars
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs-reference/bespoke-viz/usage.json",
+    getBespokeVizUsage
 )
 
 // Deploy helpers

@@ -8,6 +8,8 @@ import {
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEdit, faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons"
+import { Tooltip } from "antd"
+import cx from "clsx"
 import { TagBadge } from "./TagBadge.js"
 import { EditTags } from "./EditTags.js"
 import {
@@ -33,6 +35,8 @@ interface EditableTagsProps {
     hasKeyChartSupport?: boolean
     hasSuggestionsSupport?: boolean
     taggable?: TaggableItem
+    /** Show the suggest and edit actions as icons, named on hover */
+    iconOnlyActions?: boolean
 }
 
 export function EditableTags(props: EditableTagsProps): React.ReactElement {
@@ -118,7 +122,15 @@ export function EditableTags(props: EditableTagsProps): React.ReactElement {
         )
     }
 
-    const { disabled, hasKeyChartSupport, hasSuggestionsSupport } = props
+    const {
+        disabled,
+        hasKeyChartSupport,
+        hasSuggestionsSupport,
+        iconOnlyActions,
+    } = props
+    const actionClassName = cx("btn btn-link EditableTags__action", {
+        "EditableTags__action--icon-only": iconOnlyActions,
+    })
     const tagGraphRolesById =
         props.tagGraphRolesById ?? getTagGraphRolesById(props.suggestions)
     return (
@@ -152,35 +164,64 @@ export function EditableTags(props: EditableTagsProps): React.ReactElement {
                 {!disabled && (
                     <>
                         {hasSuggestionsSupport && (
+                            <TagsAction
+                                label="Suggest tags"
+                                iconOnly={iconOnlyActions}
+                            >
+                                <button
+                                    type="button"
+                                    className={actionClassName}
+                                    aria-label="Suggest tags"
+                                    onClick={handleSuggest}
+                                    disabled={
+                                        suggestTagsMutation.isPending ||
+                                        isSaving
+                                    }
+                                >
+                                    <FontAwesomeIcon
+                                        icon={faWandMagicSparkles}
+                                    />
+                                    {!iconOnlyActions && "Suggest"}
+                                </button>
+                            </TagsAction>
+                        )}
+                        <TagsAction
+                            label="Edit tags"
+                            iconOnly={iconOnlyActions}
+                        >
                             <button
                                 type="button"
-                                className="btn btn-link EditableTags__action"
-                                onClick={handleSuggest}
-                                disabled={
-                                    suggestTagsMutation.isPending || isSaving
-                                }
+                                className={actionClassName}
+                                aria-label="Edit tags"
+                                onClick={(event) => {
+                                    setInitialEditorTags(tags)
+                                    event.stopPropagation()
+                                }}
+                                disabled={isSaving}
                             >
-                                <FontAwesomeIcon icon={faWandMagicSparkles} />
-                                Suggest
+                                <FontAwesomeIcon icon={faEdit} />
+                                {!iconOnlyActions && "Edit tags"}
                             </button>
-                        )}
-                        <button
-                            type="button"
-                            className="btn btn-link EditableTags__action"
-                            onClick={(event) => {
-                                setInitialEditorTags(tags)
-                                event.stopPropagation()
-                            }}
-                            disabled={isSaving}
-                        >
-                            <FontAwesomeIcon icon={faEdit} />
-                            Edit tags
-                        </button>
+                        </TagsAction>
                     </>
                 )}
             </div>
         </div>
     )
+}
+
+/** An icon-only action is named in a tooltip instead */
+function TagsAction({
+    label,
+    iconOnly,
+    children,
+}: {
+    label: string
+    iconOnly?: boolean
+    children: React.ReactElement
+}): React.ReactElement {
+    if (!iconOnly) return children
+    return <Tooltip title={label}>{children}</Tooltip>
 }
 
 function TagsEditor({
@@ -227,7 +268,7 @@ function TagsEditor({
 
 function addTag(tags: DbChartTagJoin[], tag: DbChartTagJoin): DbChartTagJoin[] {
     // We only want to keep one occurrence of the same tag, whether entered
-    // manually or suggested through GPT. If GPT suggests a tag already in the
+    // manually or suggested by the LLM. If the LLM suggests a tag already in the
     // list, keep the first one to preserve its status and key chart level.
     return sortTagsByName(
         removeUncategorized(_.uniqBy([...tags, tag], (tag) => tag.id))

@@ -1,4 +1,5 @@
 import React from "react"
+import { Color } from "@ourworldindata/types"
 import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import {
     BLUR_FILL_OPACITY,
@@ -8,7 +9,6 @@ import {
     DEFAULT_STROKE_WIDTH,
     HOVER_STROKE_COLOR,
     HOVER_STROKE_WIDTH,
-    PATTERN_STROKE_WIDTH,
     SELECTED_STROKE_WIDTH,
     SVGMouseEvent,
     RenderFeature,
@@ -19,6 +19,7 @@ import { isMapRenderFeature } from "./MapHelpers"
 import { getExternalMarkerEndPosition } from "./MapAnnotations"
 import { Patterns, makePatternId } from "../core/GrapherConstants"
 import { calculateLightnessScore, isDarkColor } from "../color/ColorUtils"
+import { INAPPLICABLE_COLOR } from "../color/ColorScale"
 import { Halo } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState"
 
@@ -151,11 +152,13 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     )
 }
 
-export function NoDataPattern({
-    patternId,
+export function InapplicablePattern({
+    patternId = Patterns.inapplicablePattern,
+    color = INAPPLICABLE_COLOR,
     scale = 1,
 }: {
-    patternId: string
+    patternId?: string
+    color?: Color
     scale?: number
 }): React.ReactElement {
     const roundedScale = R.round(scale, 3)
@@ -167,11 +170,8 @@ export function NoDataPattern({
             height="4"
             patternTransform={`rotate(-45 2 2) scale(${roundedScale})`}
         >
-            <path
-                d="M -1,2 l 6,0"
-                stroke="#ccc"
-                strokeWidth={PATTERN_STROKE_WIDTH}
-            />
+            <rect width="4" height="4" fill={color} />
+            <path d="M -1,2 l 6,0" stroke="#fff" strokeWidth={0.7} />
         </pattern>
     )
 }

@@ -12,6 +12,10 @@ import {
 } from "@ourworldindata/utils"
 import { type MultiDimDataPageConfigEnriched } from "@ourworldindata/types"
 import {
+    DEFAULT_GRAPHER_HEIGHT,
+    DEFAULT_GRAPHER_WIDTH,
+} from "@ourworldindata/grapher"
+import {
     CLOUDFLARE_IMAGES_URL,
     GDOCS_CHART_PREVIEW_EXPLORER_URL,
     GDOCS_CHART_PREVIEW_GRAPHER_URL,
@@ -41,10 +45,7 @@ export type ComponentPreviewSource =
     | {
           status: "resolved"
           imageUrl: string
-          /**
-           * Width / height of the image, if it can have any shape (unlike our
-           * chart renders, which all share one)
-           */
+          /** Width / height of the image, if known */
           aspectRatio?: number
           /** Something the author should know about the image */
           message?: string
@@ -127,6 +128,17 @@ function computeVersion(
         )
         .digest("hex")
         .slice(0, 12)
+}
+
+/**
+ * Chart PNGs render at the default grapher size unless the link asks for a
+ * different one with `im*` params, whose resulting shape we don't predict
+ */
+function getChartRenderAspectRatio(queryStr: string): number | undefined {
+    const params = new URLSearchParams(queryStr)
+    if (["imType", "imWidth", "imHeight"].some((param) => params.has(param)))
+        return undefined
+    return DEFAULT_GRAPHER_WIDTH / DEFAULT_GRAPHER_HEIGHT
 }
 
 function appendVersion(
@@ -732,6 +744,7 @@ export async function resolveComponentPreviewSources(
                           target.queryStr,
                           computeVersion(target, checksums)
                       ),
+                      aspectRatio: getChartRenderAspectRatio(target.queryStr),
                       message: target.message,
                   }
                 : target

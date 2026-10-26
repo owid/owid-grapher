@@ -182,7 +182,10 @@ test.describe("Refs tab", () => {
                 type: "chart",
                 name,
                 parentChartId: chart.id,
-                config: { title: "A narrative about life expectancy" },
+                config: {
+                    $schema: latestGrapherConfigSchema,
+                    title: "A narrative about life expectancy",
+                },
             },
         })
         const { narrativeChartId } = await response.json()
@@ -214,7 +217,7 @@ test.describe("Refs tab", () => {
                 type: "chart",
                 name: `keeps-alive-${chart.id}`,
                 parentChartId: chart.id,
-                config: {},
+                config: { $schema: latestGrapherConfigSchema },
             },
         })
         const editor = await openEditor(chart)

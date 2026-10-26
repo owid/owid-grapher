@@ -110,6 +110,7 @@ GRAPHER_DB_PORT=3307
 ADMIN_SERVER_PORT=3030
 VITE_PORT=8090
 WRANGLER_PORT=8788  # only needed for make up.full and make up.worktree
+BESPOKE_PORT=8089  # only needed for make up.full and make up.worktree
 ```
 
 **Repository #2** (`.env`):
@@ -121,6 +122,7 @@ GRAPHER_DB_PORT=3308
 ADMIN_SERVER_PORT=3031
 VITE_PORT=8091
 WRANGLER_PORT=8789  # only needed for make up.full and make up.worktree
+BESPOKE_PORT=7089  # only needed for make up.full and make up.worktree
 ```
 
 With these settings configured, each repository can run `make up` or `make up.full` without conflicts:

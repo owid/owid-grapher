@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
-    migrateGrapherConfigToLatestVersionAndFailOnError,
 } from "@ourworldindata/grapher"
 import {
     JsonError,
@@ -10,7 +9,6 @@ import {
     DbRawChartConfig,
     GrapherInterface,
     OwidVariableWithSource,
-    parseChartConfig,
     ChartConfigsTableName,
     R2GrapherConfigDirectory,
 } from "@ourworldindata/types"
@@ -27,7 +25,9 @@ import {
     updateIndicatorChartConfig,
     deleteIndicators,
 } from "../../db/model/Variable.js"
+import { parseAndMigrateChartConfig } from "../../db/model/ChartConfigs.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
+import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
 import { DATA_API_URL } from "../../settings/clientSettings.mjs"
 import * as db from "../../db/db.js"
 import {
@@ -187,7 +187,7 @@ export async function getVariableJson(
     // check for parent indicators
     const charts = rawCharts.map((chart) => {
         const parentIndicatorId = getParentIndicatorIdFromChartConfig(
-            parseChartConfig(chart.config)
+            parseAndMigrateChartConfig(chart.config)
         )
         const hasParentIndicator = parentIndicatorId !== undefined
         return _.omit({ ...chart, hasParentIndicator }, "config")
@@ -216,17 +216,7 @@ export async function putIndicatorChartConfig(
 ) {
     const variableId = expectInt(req.params.variableId)
 
-    let validConfig: GrapherInterface
-    try {
-        validConfig = migrateGrapherConfigToLatestVersionAndFailOnError(
-            req.body
-        )
-    } catch (err) {
-        return {
-            success: false,
-            error: String(err),
-        }
-    }
+    const validConfig = ingestGrapherConfig(req.body)
 
     const indicator = await getIndicatorChartConfigRecord(trx, variableId)
     if (!indicator) {

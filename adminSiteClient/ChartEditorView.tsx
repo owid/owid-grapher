@@ -11,7 +11,6 @@ import {
     makeObservable,
     comparer,
 } from "mobx"
-import { Prompt } from "react-router-dom"
 import {
     Bounds,
     DetailDictionary,
@@ -67,6 +66,8 @@ export interface ChartEditorViewManager {
     details?: DetailsProvider
     initialQueryParams?: GrapherQueryParams
     previewUrl?: string
+    /** Host content shown next to the preview link, e.g. a status badge */
+    renderPreviewHeader?: (editor: ConfigEditor) => React.ReactNode
 }
 
 interface ChartEditorViewProps {
@@ -77,15 +78,20 @@ interface ChartEditorViewProps {
 export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     details: DetailDictionary = {}
     private cleanupDetailsOnDemand: (() => void) | undefined
+    private latestDetailsLoad = 0
 
     constructor(props: ChartEditorViewProps) {
         super(props)
 
-        makeObservable<ChartEditorView, "isConfigApplied">(this, {
-            details: observable,
-            simulateVisionDeficiency: observable,
-            isConfigApplied: observable,
-        })
+        makeObservable<ChartEditorView, "isConfigApplied" | "isChartLoaded">(
+            this,
+            {
+                details: observable,
+                simulateVisionDeficiency: observable,
+                isConfigApplied: observable,
+                isChartLoaded: observable,
+            }
+        )
     }
 
     @computed get grapherState(): GrapherState {
@@ -101,15 +107,29 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     // The tabs arm reactions on the chart as they mount, and React mounts them
     // before this view's componentDidMount, so they wait for the config
     private isConfigApplied = false
+    // Until the data arrives, an edit would be marked as saved
+    private isChartLoaded = false
 
-    @action.bound async loadInitialConfig(): Promise<void> {
-        const config = this.manager.editor.originalGrapherConfig
-        this.manager.editor.grapherState.updateFromObject(config)
-        this.isConfigApplied = true
-        await this.manager.editor.reloadGrapherData()
-        this.grapherState.externalBounds = this.bounds
-
-        this.manager.editor.markAsSaved()
+    async loadInitialConfig(): Promise<void> {
+        // Outside an action: creating the editor arms its reactions, which
+        // inside one would first run after the config is applied and so
+        // never report it through onChange
+        const { editor } = this.manager
+        runInAction(() => {
+            editor.grapherState.updateFromObject(editor.originalGrapherConfig)
+            this.isConfigApplied = true
+            // Also before the await, so loading never counts as an edit
+            editor.markAsSaved()
+        })
+        try {
+            await this.manager.editor.reloadGrapherData()
+        } finally {
+            runInAction(() => {
+                this.grapherState.externalBounds = this.bounds
+                this.manager.editor.markAsSaved()
+                this.isChartLoaded = true
+            })
+        }
 
         const { initialQueryParams } = this.manager
         if (initialQueryParams)
@@ -117,7 +137,10 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     }
 
     async fetchDetails(): Promise<void> {
+        const load = ++this.latestDetailsLoad
         const details = (await this.manager.details?.load()) ?? {}
+        // Unmounted, or superseded by a newer load, in the meantime
+        if (load !== this.latestDetailsLoad) return
 
         this.cleanupDetailsOnDemand = initializeDetailsOnDemand({ details })
 
@@ -311,15 +334,15 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
 
     disposers: IReactionDisposer[] = []
     override componentWillUnmount(): void {
-        this.disposers.forEach((dispose) => dispose())
+        this.disposers.splice(0).forEach((dispose) => dispose())
+        this.latestDetailsLoad++
         this.cleanupDetailsOnDemand?.()
-        this.editor?.dispose()
     }
 
     override render(): React.ReactElement {
         return (
             <main className="ChartEditorPage">
-                <LoadingBlocker isLoading={this.editor === undefined} />
+                <LoadingBlocker isLoading={!this.isChartLoaded} />
                 {this.editor !== undefined && this.renderReady(this.editor)}
             </main>
         )
@@ -341,6 +364,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     renderReady(editor: ConfigEditor): React.ReactElement {
         const { grapherState, availableTabs } = editor
         const { previewUrl } = this.manager
+        const previewHeader = this.manager.renderPreviewHeader?.(editor)
         const extraTabs = editor.manager.extraTabs ?? []
 
         const activeTab = availableTabs.includes(editor.tab)
@@ -355,10 +379,6 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
 
         return (
             <>
-                <Prompt
-                    when={editor.isModified}
-                    message="Are you sure you want to leave? Unsaved changes will be lost."
-                />
                 <div className="chart-editor-settings">
                     <div className="p-2">
                         <ul className="nav nav-tabs">
@@ -428,15 +448,19 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
                     {activeTab !== "export" && this.renderSaveButtons(editor)}
                 </div>
                 <div className="chart-editor-view">
-                    {previewUrl && (
-                        <a
-                            className="preview"
-                            href={previewUrl}
-                            target="_blank"
-                            rel="noopener"
-                        >
-                            View Grapher or Data page
-                        </a>
+                    {(previewUrl || previewHeader) && (
+                        <div className="chart-editor-view__header">
+                            {previewHeader}
+                            {previewUrl && (
+                                <a
+                                    href={previewUrl}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    View Grapher or Data page
+                                </a>
+                            )}
+                        </div>
                     )}
                     <figure
                         style={{

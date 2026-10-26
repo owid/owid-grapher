@@ -209,6 +209,15 @@ export {
     type GuideReference,
 } from "./gdocTypes/GuideReference.js"
 
+export type {
+    BespokeVizRegistry,
+    BundleReference,
+    BundleVariantReference,
+    BundleVariantSize,
+    BundleConfigField,
+    BundleConfigFieldType,
+} from "./gdocTypes/BespokeVizReference.js"
+
 export {
     COMPONENT_USAGE_LABELS,
     componentUsageLabel,
@@ -222,6 +231,9 @@ export {
     type SyntheticExampleInfo,
     type ExemplarOutline,
     type TemplateExemplarsResponse,
+    type BespokeVizUsage,
+    type BundleUsage,
+    type BundleVariantUsage,
 } from "./gdocTypes/GdocsReferenceApi.js"
 
 export {
@@ -302,6 +314,7 @@ export type {
     GdocComponentPreviewStatus,
     GdocComponentPreviewItem,
     GdocComponentPreviewRefreshResult,
+    GdocComponentPreviewUpdateReason,
 } from "./gdocTypes/ComponentPreviews.js"
 
 export {
@@ -455,6 +468,10 @@ export {
     AnalyticsGrapherViewsTableName,
 } from "./dbTypes/AnalyticsGrapherViews.js"
 export {
+    type DbPlainAnalyticsPopularity,
+    AnalyticsPopularityTableName,
+} from "./dbTypes/AnalyticsPopularity.js"
+export {
     type DbInsertArchivedChartVersion,
     type DbPlainArchivedChartVersion,
     type DbEnrichedArchivedChartVersion,
@@ -482,8 +499,6 @@ export {
     type DbInsertChartConfig,
     type DbRawChartConfig,
     type DbEnrichedChartConfig,
-    parseChartConfig,
-    serializeChartConfig,
     ChartConfigsTableName,
 } from "./dbTypes/ChartConfigs.js"
 export {
@@ -496,8 +511,6 @@ export {
     type DbRawChartRevision,
     type DbEnrichedChartRevision,
     ChartRevisionsTableName,
-    parseChartRevisionsRow,
-    serializeChartRevisionsRow,
 } from "./dbTypes/ChartRevisions.js"
 export {
     type DbInsertChart,
@@ -609,6 +622,7 @@ export {
 } from "./dbTypes/FeaturedMetrics.js"
 export {
     type DbEnrichedMultiDimDataPage,
+    type DbEnrichedPublishedMultiDimDataPage,
     type DbInsertMultiDimDataPage,
     type DbPlainMultiDimDataPage,
     MultiDimDataPagesTableName,
@@ -829,6 +843,7 @@ export {
 } from "./dbTypes/MultiDimViewDimensions.js"
 
 export { type Nominal, wrap, unwrap } from "./NominalType.js"
+export type { LiteralsOnly } from "./LiteralsOnly.js"
 
 export {
     type DbRawLatestWork,

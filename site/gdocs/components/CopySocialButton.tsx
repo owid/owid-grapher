@@ -1,7 +1,7 @@
 import { useState } from "react"
 import cx from "clsx"
 import { copyToClipboard } from "@ourworldindata/utils"
-import { CookieKey } from "@ourworldindata/grapher"
+import { shouldShowStaffControls } from "@ourworldindata/grapher"
 import { useIsClient } from "usehooks-ts"
 
 export function CopySocialButton({
@@ -14,12 +14,7 @@ export function CopySocialButton({
     const isClient = useIsClient()
     const [label, setLabel] = useState("Copy for social")
 
-    if (!isClient) return null
-    try {
-        if (!document.cookie.includes(CookieKey.isAdmin)) return null
-    } catch {
-        return null
-    }
+    if (!isClient || !shouldShowStaffControls()) return null
 
     function handleClick() {
         void copyToClipboard(text)

@@ -13,6 +13,9 @@
         },
         {
             "path": "../../db"
+        },
+        {
+            "path": "../../bespoke/shared"
         }
     ]
 }

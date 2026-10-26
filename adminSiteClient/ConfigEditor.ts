@@ -22,11 +22,9 @@ import {
     loadCatalogData,
 } from "@ourworldindata/grapher"
 import { EditorFeatures } from "./EditorFeatures.js"
-import {
-    defaultEditorEnvironment,
-    EditorEnvironment,
-} from "./editorProviders.js"
-import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
+import { IndicatorStore } from "./indicatorStores.js"
+
+const PUBLIC_CATALOG_URL = "https://catalog.ourworldindata.org"
 
 const EDITOR_TAB_NAMES = [
     "basic",
@@ -71,15 +69,23 @@ export interface ConfigEditorManager {
     patchConfig: GrapherInterface
     baseConfig?: GrapherInterface
 
-    store?: IndicatorStore
-    environment?: EditorEnvironment
+    store: IndicatorStore
+    /** Where the preview loads catalog data, such as region lists, from */
+    catalogUrl?: string
     scatterDefaults?: OwidChartDimensionInterface[]
+    /** Without it, indicator names are plain text */
+    indicatorUrl?: (
+        dimension: OwidChartDimensionInterface
+    ) => string | undefined
 
     onSave: (
         config: GrapherInterface,
         editor: ConfigEditor
     ) => void | GrapherInterface | Promise<void | GrapherInterface>
+    /** Called with the config when it loads and after every edit */
     onChange?: (config: GrapherInterface, editor: ConfigEditor) => void
+    /** Called when the config gains or loses unsaved changes; each editor starts without any */
+    onModifiedChange?: (isModified: boolean) => void
 
     tabs?: EditorTabName[]
     extraTabs?: EditorExtraTab[]
@@ -90,6 +96,8 @@ export interface ConfigEditorManager {
 
     renderNote?: (slot: EditorNoteSlot) => ReactNode
     originUrlSuggestions?: OriginUrlSuggestion[]
+    /** Mirror the active tab in the page's `?tab=` query param; read once, when the editor starts */
+    syncTabWithUrl?: boolean
 }
 
 export class ConfigEditor {
@@ -110,20 +118,19 @@ export class ConfigEditor {
 
     constructor(props: { manager: ConfigEditorManager }) {
         this.manager = props.manager
-        const environment = this.manager.environment ?? defaultEditorEnvironment
-        this.store =
-            this.manager.store ??
-            dataApiIndicatorStore({ dataApiUrl: environment.dataApiUrl })
+        this.store = this.manager.store
 
         this.grapherState = new GrapherState({
             additionalDataLoaderFn: (catalogKey) =>
                 loadCatalogData(catalogKey, {
-                    baseUrl: environment.catalogUrl,
+                    baseUrl: this.manager.catalogUrl ?? PUBLIC_CATALOG_URL,
                 }),
         })
         this.baseConfig = nonEmptyConfig(this.manager.baseConfig)
 
-        this.tab = this.tabFromUrl() ?? "basic"
+        this.tab =
+            (this.manager.syncTabWithUrl ? this.tabFromUrl() : undefined) ??
+            "basic"
 
         makeObservable(this, {
             grapherState: observable.ref,
@@ -134,6 +141,12 @@ export class ConfigEditor {
             showStaticPreview: observable.ref,
         })
 
+        this.markAsSaved()
+        this.start()
+    }
+
+    start(): void {
+        if (this.disposers.length > 0) return
         this.disposers.push(
             reaction(
                 () => this.patchConfig,
@@ -146,10 +159,17 @@ export class ConfigEditor {
                 { equals: comparer.structural }
             ),
             reaction(
-                () => this.tab,
-                (tab) => writeTabToUrl(tab)
+                () => this.isModified,
+                (isModified) => this.manager.onModifiedChange?.(isModified)
             )
         )
+        if (this.manager.syncTabWithUrl)
+            this.disposers.push(
+                reaction(
+                    () => this.tab,
+                    (tab) => writeTabToUrl(tab)
+                )
+            )
     }
 
     @action.bound private rebaseEdits(
@@ -177,7 +197,9 @@ export class ConfigEditor {
         const tabParam = new URLSearchParams(window.location.search).get("tab")
         if (
             tabParam &&
-            (EDITOR_TAB_NAMES.includes(tabParam as EditorTabName) ||
+            ((this.manager.tabs ?? EDITOR_TAB_NAMES).includes(
+                tabParam as EditorTabName
+            ) ||
                 this.extraTabKeys.includes(tabParam))
         )
             return tabParam
@@ -185,7 +207,7 @@ export class ConfigEditor {
     }
 
     dispose(): void {
-        this.disposers.forEach((dispose) => dispose())
+        this.disposers.splice(0).forEach((dispose) => dispose())
     }
 
     @computed get originalGrapherConfig(): GrapherInterface {
@@ -355,10 +377,34 @@ export class ConfigEditor {
         }
         runInAction(() => {
             const savedPatch = saved ?? patchConfig
-            if (this.configsDiffer(savedPatch, patchConfig))
-                this.updateLiveGrapher(
-                    mergeGrapherConfigs(this.baseConfig ?? {}, savedPatch)
+            // An edit made while the save ran stays, as an unsaved change on
+            // top of what the host saved
+            const editedKeys = _.union(
+                Object.keys(this.patchConfig),
+                Object.keys(patchConfig)
+            ).filter(
+                (key) =>
+                    !_.isEqual(
+                        this.patchConfig[key as keyof GrapherInterface],
+                        patchConfig[key as keyof GrapherInterface]
+                    )
+            ) as (keyof GrapherInterface)[]
+            const livePatch: GrapherInterface = _.omit(
+                { ...savedPatch, ..._.pick(this.patchConfig, editedKeys) },
+                editedKeys.filter((key) => !(key in this.patchConfig))
+            )
+            if (this.configsDiffer(livePatch, this.patchConfig)) {
+                // Both go into the store's loadTable
+                const dataChanged = (
+                    ["dimensions", "selectedEntityColors"] as const
+                ).some(
+                    (key) => !_.isEqual(livePatch[key], this.patchConfig[key])
                 )
+                this.updateLiveGrapher(
+                    mergeGrapherConfigs(this.baseConfig ?? {}, livePatch)
+                )
+                if (dataChanged) void this.reloadGrapherData()
+            }
             this.markAsSaved(savedPatch)
         })
     }
@@ -374,5 +420,5 @@ function writeTabToUrl(tab: EditorTabKey): void {
     const url = new URL(window.location.href)
     if (tab === "basic") url.searchParams.delete("tab")
     else url.searchParams.set("tab", tab)
-    window.history.replaceState({}, "", url.toString())
+    window.history.replaceState(window.history.state, "", url.toString())
 }

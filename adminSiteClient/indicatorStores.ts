@@ -7,6 +7,7 @@ import {
     SelectedEntityColors,
 } from "@ourworldindata/types"
 import {
+    appendSelectedEntityColors,
     applyDimensionDisplayAndConversionFactor,
     getCachingInputTableFetcher,
 } from "@ourworldindata/grapher"
@@ -95,7 +96,7 @@ export function tableIndicatorStore(
     return {
         catalog,
 
-        loadTable: (dimensions) => {
+        loadTable: (dimensions, selectedEntityColors) => {
             for (const dimension of dimensions)
                 if (!isDataColumn(dimension.slug))
                     console.warn(
@@ -108,9 +109,12 @@ export function tableIndicatorStore(
                 (slug) => !dimensionSlugs.has(slug)
             )
             return Promise.resolve(
-                applyDimensionDisplayAndConversionFactor(
-                    table.dropColumns(excludedSlugs),
-                    dimensions
+                appendSelectedEntityColors(
+                    applyDimensionDisplayAndConversionFactor(
+                        table.dropColumns(excludedSlugs),
+                        dimensions
+                    ),
+                    selectedEntityColors
                 )
             )
         },

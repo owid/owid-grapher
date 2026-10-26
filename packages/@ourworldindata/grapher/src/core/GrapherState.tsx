@@ -103,7 +103,6 @@ import {
     isMobile,
     guid,
 } from "@ourworldindata/utils"
-import { get as getCookie } from "es-cookie"
 import * as _ from "lodash-es"
 import {
     computed,
@@ -148,8 +147,17 @@ import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
 import {
     DataTableConfig,
+    DataTableSortState,
+    DataTableFilter,
+    DataTableFilterOption,
     DataTableManager,
 } from "../dataTable/DataTableConstants.js"
+import {
+    buildDataTableFilterOptions,
+    DataTableEntities,
+    getEntityNamesForDataTableFilter,
+    pickDefaultDataTableFilter,
+} from "../dataTable/DataTableHelpers.js"
 import {
     type EntitySelectorState,
     EntitySelector,
@@ -181,7 +189,6 @@ import {
     RegionGroup,
     groupEntitiesByRegionType,
     EntitiesByRegionGroup,
-    isEntityRegionGroupKey,
 } from "./RegionGroups.js"
 import {
     MinimalNarrativeChartInfo,
@@ -204,7 +211,6 @@ import {
     GRAPHER_FRAME_PADDING_VERTICAL,
     DEFAULT_GRAPHER_BOUNDS,
     GrapherModal,
-    CookieKey,
     GRAPHER_PROD_URL,
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_WIDTH,
@@ -220,6 +226,7 @@ import {
 } from "./GrapherQueryParamParser.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { getErrorMessageRelatedQuestionUrl } from "./relatedQuestion.js"
+import { shouldShowStaffControls } from "./staffControls.js"
 import {
     buildSourcesLineFromColumns,
     pickColumnsForSourcesLine,
@@ -525,6 +532,7 @@ export class GrapherState
     tableSlugs: ColumnSlugs | undefined = undefined
 
     bakedGrapherURL: string | undefined = undefined
+    canonicalUrlOverride: string | null | undefined = undefined
     adminBaseUrl: string | undefined = undefined
 
     isEmbeddedInAnOwidPage?: boolean = false
@@ -560,7 +568,8 @@ export class GrapherState
     selection: SelectionArray = new SelectionArray()
     focusArray = new FocusArray()
 
-    dataTableConfig: DataTableConfig = { filter: "all", search: "" }
+    dataTableConfig: DataTableConfig = { search: "" }
+    dataTableSort: DataTableSortState | undefined = undefined
 
     entitySelectorState: Partial<EntitySelectorState> = {}
 
@@ -604,6 +613,7 @@ export class GrapherState
     hideDownloadButton = false
     hideEntityControls = false
     hideShareButton = false
+    hideDonateButton = false
     hideExploreTheDataButton = true
     hideControlsRow = false
     hideRelatedQuestion = false
@@ -723,6 +733,7 @@ export class GrapherState
             comparisonLines: observable,
             relatedQuestions: observable,
             dataTableConfig: observable,
+            dataTableSort: observable,
             highlightedTimesInLineChart: observable.ref,
             hideFacetControl: observable.ref,
             selectedFacetStrategy: observable,
@@ -734,6 +745,7 @@ export class GrapherState
             windowInnerHeight: observable.ref,
             screenHeight: observable.ref,
             bakedGrapherURL: observable,
+            canonicalUrlOverride: observable,
             externalQueryParams: observable.ref,
             _inputTable: observable.ref,
             legacyConfigAsAuthored: observable.ref,
@@ -775,6 +787,7 @@ export class GrapherState
             forceHideAnnotationFieldsInTitle: observable,
             hasTableTab: observable,
             hideShareButton: observable,
+            hideDonateButton: observable,
             hideExploreTheDataButton: observable,
             useMinimalLabeling: observable,
         })
@@ -819,6 +832,7 @@ export class GrapherState
         updatePersistables(this, obj)
 
         this.bindUrlToWindow = obj.bindUrlToWindow ?? false
+        this.canonicalUrlOverride = obj.canonicalUrl
 
         // Update selection
         if (obj.selectedEntityNames)
@@ -949,29 +963,25 @@ export class GrapherState
     @computed get tableAfterColorAndSizeToleranceApplication(): OwidTable {
         let table = this.inputTable
 
-        if (this.hasScatter && this.inputSizeColumnSlug) {
-            const tolerance =
-                table.get(this.inputSizeColumnSlug)?.display?.tolerance ??
-                Infinity
-            table = table.interpolateColumnWithTolerance(
-                this.inputSizeColumnSlug,
-                {
-                    toleranceOverride: tolerance,
-                }
-            )
-        }
+        const slugs = excludeUndefined([
+            this.hasScatter ? this.inputSizeColumnSlug : undefined,
+            this.hasScatter || this.hasMarimekko
+                ? this.inputCategoricalColorColumnSlug
+                : undefined,
+        ])
 
-        if (
-            (this.hasScatter || this.hasMarimekko) &&
-            this.inputCategoricalColorColumnSlug
-        ) {
-            const tolerance =
-                table.get(this.inputCategoricalColorColumnSlug)?.display
-                    ?.tolerance ?? Infinity
-            table = table.interpolateColumnWithTolerance(
-                this.inputCategoricalColorColumnSlug,
-                { toleranceOverride: tolerance }
-            )
+        for (const slug of slugs) {
+            const tolerance = table.get(slug)?.display?.tolerance ?? Infinity
+            table = table
+                .interpolateColumnWithTolerance(slug, {
+                    toleranceOverride: tolerance,
+                })
+                // The data table re-applies each column's own tolerance
+                .updateDefs((def) =>
+                    def.slug === slug
+                        ? { ...def, display: { ...def.display, tolerance } }
+                        : def
+                )
         }
 
         return table
@@ -1117,32 +1127,41 @@ export class GrapherState
         return table
     }
 
+    @computed private get dataTableEntities(): DataTableEntities {
+        return {
+            availableEntityNames:
+                this.tableForDisplayBeforeEntityFilter.availableEntityNames,
+            entitiesByRegionGroup: this.entitiesByRegionGroup,
+            selectedEntityNames: this.dataTableSelection.selectedEntityNames,
+        }
+    }
+
+    @computed get dataTableFilterOptions(): DataTableFilterOption[] {
+        return buildDataTableFilterOptions(this.dataTableEntities, {
+            canFilterBySelection:
+                !this.shouldShowSelectionOnlyInDataTable &&
+                this.dataTableSelection.hasSelection &&
+                this.canChangeAddOrHighlightEntities,
+        })
+    }
+
+    @computed get dataTableFilter(): DataTableFilter {
+        if (this.dataTableConfig.filter) return this.dataTableConfig.filter
+        if (this.dataTableConfig.search) return "all"
+        if (this.shouldShowSelectionOnlyInDataTable) return "all"
+        return pickDefaultDataTableFilter(this.dataTableFilterOptions)
+    }
+
     /** Table for display in the data table tab */
     @computed get tableForDisplay(): OwidTable {
-        let table = this.tableForDisplayBeforeEntityFilter
-        const { filter } = this.dataTableConfig
-
-        const availableEntities = table.availableEntityNames
-
-        // Determine which entities should be visible based on the filter
-        const visibleEntities = match(filter)
-            .with("all", () => availableEntities)
-            .with("selection", () =>
-                this.selection.hasSelection
-                    ? this.selection.selectedEntityNames
-                    : availableEntities
-            )
-            .when(isEntityRegionGroupKey, (filter) => {
-                const regionNames = this.entitiesByRegionGroup.get(filter)
-                return regionNames ?? availableEntities
-            })
-            .exhaustive()
-
-        // Apply entity filter if necessary
-        if (visibleEntities.length < availableEntities.length)
-            table = table.filterByEntityNames(visibleEntities)
-
-        return table
+        const table = this.tableForDisplayBeforeEntityFilter
+        const visibleEntities = getEntityNamesForDataTableFilter(
+            this.dataTableFilter,
+            this.dataTableEntities
+        )
+        return visibleEntities.length < table.availableEntityNames.length
+            ? table.filterByEntityNames(visibleEntities)
+            : table
     }
 
     /**
@@ -1389,8 +1408,7 @@ export class GrapherState
         if (parsed.tableFilter.status === "valid") {
             this.dataTableConfig.filter = parsed.tableFilter.value
         } else if (parsed.tableFilter.status === "invalid") {
-            // Reset to default if invalid value provided
-            this.dataTableConfig.filter = "all"
+            this.dataTableConfig.filter = undefined
         }
 
         // Table search
@@ -1627,16 +1645,6 @@ export class GrapherState
         return this.isExportingToSvgOrPng
     }
 
-    private get isStaging(): boolean {
-        if (typeof location === "undefined") return false
-        return location.host.includes("staging")
-    }
-
-    private get isLocalhost(): boolean {
-        if (typeof location === "undefined") return false
-        return location.host.includes("localhost")
-    }
-
     @computed get editUrl(): string | undefined {
         if (this.showAdminControls && this.adminBaseUrl && this.id) {
             return `${this.adminBaseUrl}/admin/charts/${this.id}/edit`
@@ -1691,25 +1699,11 @@ export class GrapherState
         return false
     }
 
-    @computed private get isUserLoggedInAsAdmin(): boolean {
-        // This cookie is set by visiting ourworldindata.org/identifyadmin on the static site.
-        // There is an iframe on owid.cloud to trigger a visit to that page.
-        try {
-            // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error
-            // see https://github.com/owid/owid-grapher/pull/2452
-            return !!getCookie(CookieKey.isAdmin)
-        } catch {
-            return false
-        }
-    }
-
     @computed get showAdminControls(): boolean {
         return (
-            this.isUserLoggedInAsAdmin ||
+            shouldShowStaffControls() ||
             this.isAdmin || // Useful for gdoc previews.
-            this.isDev ||
-            this.isLocalhost ||
-            this.isStaging
+            this.isDev
         )
     }
 
@@ -1819,10 +1813,9 @@ export class GrapherState
         // so that we don't show times on the timeline for which data may not
         // exist, e.g. when the selected entity doesn't contain data for all
         // years in the table. The table tab is the exception: it uses the
-        // untransformed table so that the timeline includes all data available
-        // in the table.
+        // table it displays.
         const table = this.isOnTableTab
-            ? this.table
+            ? this.tableForDisplayBeforeEntityFilter
             : this.tableAfterAuthorTimelineAndActiveChartTransform
         return table.getTimesUniqSortedAscForColumns(columnSlugs)
     }
@@ -1996,18 +1989,26 @@ export class GrapherState
         )
     }
 
+    /** Whether the authored config selects a time range rather than a single time */
+    @computed private get isAuthoredTimeRange(): boolean {
+        const { minTime, maxTime } = this.authorsVersion
+        return (
+            minTimeBoundFromJSONOrNegativeInfinity(minTime) !==
+            maxTimeBoundFromJSONOrPositiveInfinity(maxTime)
+        )
+    }
+
     private readonly checkSingleTimeSelectionPreferred = (
         tabName: GrapherTabName
     ): boolean => {
-        // Scatter plots can show a time range, but a single time is preferred
-        // when the scatter is not the main chart, but a secondary tab.
-        // In relative mode, a scatter shows the average annual change, which
-        // requires a time range, so we don't collapse to a single time then.
-        return (
-            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
-            !this.isScatter &&
-            !this.isRelativeMode
-        )
+        if (tabName === GRAPHER_TAB_NAMES.Table) return true
+
+        if (tabName !== GRAPHER_TAB_NAMES.ScatterPlot) return false
+        if (this.isRelativeMode) return false
+
+        // A secondary scatter prefers a single time, a primary one follows its
+        // authored time mode
+        return !this.isScatter || !this.isAuthoredTimeRange
     }
 
     private readonly checkOnlyTimeRangeSelectionPossible = (
@@ -2025,13 +2026,12 @@ export class GrapherState
         tabName: GrapherTabName
     ): boolean => {
         // In relative mode, a scatter shows the average annual change, which
-        // requires a time range rather than a single time
-        if (
-            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
-            !this.isScatter &&
-            this.isRelativeMode
-        )
-            return true
+        // requires a time range
+        if (tabName === GRAPHER_TAB_NAMES.ScatterPlot)
+            return (
+                this.isRelativeMode ||
+                (this.isScatter && this.isAuthoredTimeRange)
+            )
 
         return [
             GRAPHER_TAB_NAMES.StackedArea,
@@ -3861,6 +3861,7 @@ export class GrapherState
         this.showNoDataArea = authorsVersion.showNoDataArea
         this.dataTableConfig.filter = authorsVersion.dataTableConfig.filter
         this.dataTableConfig.search = authorsVersion.dataTableConfig.search
+        this.dataTableSort = undefined
         this.mapConfig.globe.isActive = authorsVersion.mapConfig.globe.isActive
         this.clearSelection()
         this.clearFocus()
@@ -3884,6 +3885,7 @@ export class GrapherState
         this.colorSlug = grapherState.colorSlug
         this.sizeSlug = grapherState.sizeSlug
 
+        this.dataTableSort = undefined
         this.selection.clearSelection()
         this.focusArray.clear()
     }
@@ -3995,6 +3997,8 @@ export class GrapherState
      * e.g. https://ourworldindata.org/grapher/life-expectancy?tab=map
      */
     @computed get canonicalUrl(): string | undefined {
+        if (this.canonicalUrlOverride !== undefined)
+            return this.canonicalUrlOverride ?? undefined
         return (
             this.canonicalUrlIfIsNarrativeChart ??
             (this.baseUrl ? this.baseUrl + this.queryStr : undefined)
