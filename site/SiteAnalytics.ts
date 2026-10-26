@@ -462,7 +462,7 @@ export class SiteAnalytics extends GrapherAnalytics {
                 if (!/^[a-z]$/i.test(ev.key)) logOpen("mod+f")
             },
             // F3 is "find next"
-            "[Shift]+F3": (ev) => logOpen("f3"),
+            "[Shift]+F3": () => logOpen("f3"),
         }
 
         const unsubscribe = tinykeys(document, keybindings, {
