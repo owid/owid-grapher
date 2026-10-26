@@ -8,9 +8,6 @@
         "directory": "packages/@ourworldindata/grapher-editor"
     },
     "type": "module",
-    "engines": {
-        "node": ">=20"
-    },
     "main": "src/editor.public.ts",
     "types": "src/editor.public.ts",
     "publishConfig": {

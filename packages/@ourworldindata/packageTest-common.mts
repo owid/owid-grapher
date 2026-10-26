@@ -86,8 +86,12 @@ export function testPublint(
         const tarball = Readable.toWeb(fs.createReadStream(tarballPath))
         const { messages, pkg } = await publint({ pack: { tarball } })
 
+        // USE_ENGINES_NODE asks for an `engines.node` floor, which doesn't
+        // apply to packages meant for the browser.
         const unexpected = messages.filter(
-            (message) => !knownFalsePositive?.matches(message)
+            (message) =>
+                message.code !== "USE_ENGINES_NODE" &&
+                !knownFalsePositive?.matches(message)
         )
         expect(
             unexpected.map(
