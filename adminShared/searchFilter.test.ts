@@ -141,6 +141,13 @@ describe(makeSearchFilter, () => {
         expect(search("")).toHaveLength(3)
     })
 
+    it("ignores terms still being typed", () => {
+        expect(search("-")).toHaveLength(3)
+        expect(search("name:")).toHaveLength(3)
+        expect(search("measles -tag:")).toEqual(["Measles cases"])
+        expect(search("charts:>")).toHaveLength(3)
+    })
+
     it("matches free text against the string fields", () => {
         expect(search("measles")).toEqual(["Measles cases"])
         expect(search("who")).toEqual(["Measles cases"])

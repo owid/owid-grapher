@@ -70,23 +70,9 @@ export function parseSearchQuery(query: string | undefined): SearchToken[] {
             // A lone `-` is an exclusion about to be typed, not an exclusion of
             // everything
             .filter((term) => term !== "-")
-            .map((term): SearchToken => {
-                const {
-                    raw,
-                    negate: exclude,
-                    field,
-                    value,
-                } = parseSearchTerm(term)
+            .map(parseSearchTerm)
+            .map(({ raw, negate: exclude, field, value }): SearchToken => {
                 if (field === undefined) return { value, exclude, raw }
-
-                // A trailing colon is someone halfway through typing `field:value`;
-                // search for the text so the results don't blank out mid-keystroke
-                if (value === "")
-                    return {
-                        value: raw.slice(exclude ? 1 : 0, -1),
-                        exclude,
-                        raw,
-                    }
 
                 const operatorMatch = OPERATOR.exec(value)
                 if (operatorMatch)
@@ -200,6 +186,33 @@ function isFreeTextField<T>(field: SearchField<T>): boolean {
 }
 
 /**
+ * The query's terms as the page reads them: a `field:` the page doesn't
+ * declare is ordinary text, so pasting a URL searches for it; a declared one
+ * with no value yet is still being typed, and narrows nothing so the list
+ * doesn't blank out mid-keystroke.
+ */
+function resolveTokens(
+    query: string | undefined,
+    fieldNames: ReadonlySet<string>
+): SearchToken[] {
+    return parseSearchQuery(query).flatMap((token): SearchToken[] => {
+        if (token.field === undefined) return [token]
+        // `charts:>` hasn't got its number yet either
+        if (fieldNames.has(token.field))
+            return /^[<>=]*$/.test(token.value) ? [] : [token]
+        const text = token.exclude ? token.raw.slice(1) : token.raw
+        return [
+            {
+                // `who:` is someone typing a word, not looking for the colon
+                value: text.endsWith(":") ? text.slice(0, -1) : text,
+                exclude: token.exclude,
+                raw: token.raw,
+            },
+        ]
+    })
+}
+
+/**
  * Builds a predicate for `query` over `fields`. All terms must match; terms
  * prefixed with `-` must not.
  */
@@ -207,27 +220,18 @@ export function makeSearchFilter<T>(
     query: string | undefined,
     fields: readonly SearchField<T>[]
 ): (item: T) => boolean {
-    const tokens = parseSearchQuery(query)
+    const fieldsByName = new Map(fields.map((field) => [field.name, field]))
+    const tokens = resolveTokens(query, new Set(fieldsByName.keys()))
     if (tokens.length === 0) return () => true
 
-    const fieldsByName = new Map(fields.map((field) => [field.name, field]))
     const freeTextFields = fields.filter(isFreeTextField)
 
     const matchers = tokens.map((token) => {
         const field = token.field ? fieldsByName.get(token.field) : undefined
         if (field) return (item: T) => matchesField(item, field, token)
-
-        // An unknown field means the colon was part of the text
-        const freeTextToken: SearchToken = token.field
-            ? {
-                  value: token.exclude ? token.raw.slice(1) : token.raw,
-                  exclude: token.exclude,
-                  raw: token.raw,
-              }
-            : token
         return (item: T) =>
             freeTextFields.some((freeTextField) =>
-                matchesField(item, freeTextField, freeTextToken)
+                matchesField(item, freeTextField, token)
             )
     })
 
@@ -246,24 +250,18 @@ export function searchWordsToHighlight(
     fields: readonly Pick<SearchField<never>, "name" | "type">[]
 ): SearchWord[] {
     const fieldsByName = new Map(fields.map((field) => [field.name, field]))
-    return parseSearchQuery(query)
-        .filter((token) => {
-            if (token.exclude) return false
-            if (!token.field) return true
-            const field = fieldsByName.get(token.field)
-            // An unknown field is free text, and its raw form is what shows up
-            // in the results
-            return !field || field.type === "string"
-        })
-        .map((token) => {
-            const known = token.field && fieldsByName.has(token.field)
-            const word = known || !token.field ? token.value : token.raw
-            return {
-                regex: buildRegexFromSearchWord(word),
-                word,
-                exclude: false,
-            }
-        })
+    return resolveTokens(query, new Set(fieldsByName.keys()))
+        .filter(
+            (token) =>
+                !token.exclude &&
+                (!token.field ||
+                    fieldsByName.get(token.field)?.type === "string")
+        )
+        .map((token) => ({
+            regex: buildRegexFromSearchWord(token.value),
+            word: token.value,
+            exclude: false,
+        }))
 }
 
 /** What a search box's help popover shows of a field. */
