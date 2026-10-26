@@ -63,6 +63,17 @@ describe(legacyToOwidTableAndDimensions, () => {
         ])
     })
 
+    it("adds the config's selected entity colors as a color column", () => {
+        const table = legacyToOwidTableAndDimensions(
+            legacyVariableConfig,
+            legacyGrapherConfig.dimensions ?? [],
+            { World: "#123456" }
+        )
+        expect(table.get(OwidTableSlugs.EntityColor).values).toEqual([
+            "#123456",
+        ])
+    })
+
     describe("conversionFactor", () => {
         it("applies the more specific chart-level conversionFactor", () => {
             const table = legacyToOwidTableAndDimensions(

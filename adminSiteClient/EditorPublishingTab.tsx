@@ -1,4 +1,4 @@
-import { Component } from "react"
+import { Component, type ReactElement } from "react"
 import { observer } from "mobx-react"
 import { action } from "mobx"
 import { copyToClipboard, slugify } from "@ourworldindata/utils"
@@ -6,6 +6,7 @@ import {
     DbChartTagJoin,
     GrapherInterface,
     MinimalTagWithMetadata,
+    TaggableType,
 } from "@ourworldindata/types"
 import { Button, Space } from "antd"
 import {
@@ -14,7 +15,7 @@ import {
 } from "../settings/clientSettings.mjs"
 import { ConfigEditor } from "./ConfigEditor.js"
 import { AutoTextField, Section, Toggle } from "./Forms.js"
-import { TagsSection } from "./EditorBasicTab.js"
+import { EditableTags } from "./EditableTags.js"
 
 interface EditorPublishingTabProps {
     editor: ConfigEditor
@@ -131,4 +132,42 @@ export class EditorPublishingTab extends Component<EditorPublishingTabProps> {
             </>
         )
     }
+}
+
+const TagsSection = (props: {
+    chartId: number | undefined
+    tags: DbChartTagJoin[] | undefined
+    availableTags: MinimalTagWithMetadata[] | undefined
+    onSaveTags: (tags: DbChartTagJoin[]) => Promise<void>
+}): ReactElement => {
+    const { chartId, tags, availableTags } = props
+    const canTag = !!chartId && tags && availableTags
+    return (
+        <Section name="Tags">
+            {canTag ? (
+                <>
+                    <EditableTags
+                        onSave={props.onSaveTags}
+                        tags={tags}
+                        suggestions={availableTags}
+                        hasKeyChartSupport
+                        hasSuggestionsSupport
+                        taggable={{
+                            type: TaggableType.Charts,
+                            id: props.chartId,
+                        }}
+                    />
+                    <small className="form-text text-muted">
+                        Changes to tags will be applied instantly, without the
+                        need to save the chart.
+                    </small>
+                </>
+            ) : (
+                <p>
+                    Can't tag this chart
+                    {!chartId && <>, because it hasn't been saved yet</>}.
+                </p>
+            )}
+        </Section>
+    )
 }

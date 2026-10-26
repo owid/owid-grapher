@@ -22,7 +22,7 @@ import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { LoadingBlocker, Timeago } from "./Forms.js"
-import { GrapherEditor } from "./GrapherEditor.js"
+import { AdminGrapherEditor } from "./AdminGrapherEditor.js"
 import {
     ConfigEditor,
     EditorExtraTab,
@@ -44,14 +44,9 @@ import {
     References,
 } from "./adminChartApi.js"
 import {
-    adminDetailsProvider,
-    adminIndicatorCatalog,
     adminOriginUrlSuggestions,
     adminScatterDefaults,
-    defaultEditorEnvironment,
-    DetailsProvider,
-} from "./editorProviders.js"
-import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
+} from "./adminEditorProviders.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
@@ -131,17 +126,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
 
     @computed get isNewChart(): boolean {
         return this.props.grapherId === undefined
-    }
-
-    @computed get store(): IndicatorStore {
-        return dataApiIndicatorStore({
-            dataApiUrl: defaultEditorEnvironment.dataApiUrl,
-            catalog: adminIndicatorCatalog(this.admin),
-        })
-    }
-
-    @computed get details(): DetailsProvider {
-        return adminDetailsProvider(this.admin)
     }
 
     @computed get scatterDefaults(): OwidChartDimensionInterface[] {
@@ -630,12 +614,10 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
 
     private renderEditor(): React.ReactElement {
         return (
-            <GrapherEditor
+            <AdminGrapherEditor
                 key={this.props.grapherId ?? "new"}
                 config={this.patchConfig}
                 baseConfig={this.baseConfig}
-                store={this.store}
-                details={this.details}
                 scatterDefaults={this.scatterDefaults}
                 onSave={this.onSave}
                 onChange={this.syncIndicatorConfig}
