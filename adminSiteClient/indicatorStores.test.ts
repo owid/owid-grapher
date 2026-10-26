@@ -1,13 +1,13 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import {
     ColumnTypeNames,
     DimensionProperty,
     OwidTableSlugs,
 } from "@ourworldindata/types"
-import { csvIndicatorStore } from "./indicatorStores.js"
+import { csvIndicatorStore, listIndicatorCatalog } from "./indicatorStores.js"
 
 const csv = `entityName,year,rent_index,vacancy_rate,region
 Berlin,2015,100,3.1,DE
@@ -106,5 +106,59 @@ describe(csvIndicatorStore, () => {
         expect(table!.numericColumnSlugs).toEqual([])
         expect(table!.has("region")).toBe(false)
         expect(table!.availableEntityNames).toEqual(["Berlin", "Vienna"])
+    })
+})
+
+describe(listIndicatorCatalog, () => {
+    // What a 0.1.0 host's `catalog.load` returned
+    const legacyLoad = () =>
+        Promise.resolve({
+            namespaces: [{ name: "who", isArchived: false }],
+            datasets: Array.from({ length: 10 }, (_, i) => ({
+                id: i + 1,
+                name: `Dataset ${i + 1}`,
+                namespace: "who",
+                version: "2024-01-01",
+                isPrivate: false,
+                nonRedistributable: false,
+                variables: [
+                    { id: 100 + i, name: `Deaths ${i + 1}` },
+                    { id: 200 + i, name: `Births ${i + 1}` },
+                ],
+            })),
+        })
+
+    it("upgrades a 0.1.0 catalog's load, with picks naming indicators by id", async () => {
+        const page = await listIndicatorCatalog(legacyLoad).search(
+            "births 3",
+            1
+        )
+        expect(page).toMatchObject({ unit: "datasets", total: 1 })
+        expect(page.datasets[0]).toMatchObject({
+            id: 3,
+            namespace: "who",
+            matchCount: 1,
+            variables: [{ id: 202, column: { variableId: 202 } }],
+        })
+    })
+
+    it("pages through the datasets with a match", async () => {
+        const catalog = listIndicatorCatalog(legacyLoad)
+        const first = await catalog.search("deaths", 1)
+        const second = await catalog.search("deaths", 2)
+        expect(first.total).toBe(10)
+        expect([...first.datasets, ...second.datasets]).toHaveLength(10)
+        expect(second.datasets[0].id).toBe(first.pageSize + 1)
+    })
+
+    it("loads the list once, and again after a failed load", async () => {
+        const load = vi
+            .fn(legacyLoad)
+            .mockRejectedValueOnce(new Error("offline"))
+        const catalog = listIndicatorCatalog(load)
+        await expect(catalog.search("", 1)).rejects.toThrow("offline")
+        await catalog.search("", 1)
+        await catalog.search("deaths", 1)
+        expect(load).toHaveBeenCalledTimes(2)
     })
 })

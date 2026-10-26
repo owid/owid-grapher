@@ -39,6 +39,7 @@ const PUBLIC_FUNCTIONS = [
     "dataApiIndicatorStore",
     "tableIndicatorStore",
     "csvIndicatorStore",
+    "listIndicatorCatalog",
     "OwidTable",
 ]
 

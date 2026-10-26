@@ -110,7 +110,26 @@ The editor never talks to a database. Everything it knows about indicators comes
 | `csvIndicatorStore({ csv, columnDefs?, name? })`  | `slug`                        | the CSV, with metadata from `columnDefs`                   |
 | `tableIndicatorStore(owidTable, { name? })`       | `slug`                        | an in-memory `OwidTable`                                   |
 
-The CSV and table stores offer every data column under "Add indicators". Column metadata (name, unit, description, sources) is shown in the editor but not edited there, because it belongs to the data rather than the chart; a dimension's `display` block overrides it for one chart.
+The CSV and table stores offer every data column under "Add indicators", searched by name and slug. Column metadata (name, unit, description, sources) is shown in the editor but not edited there, because it belongs to the data rather than the chart; a dimension's `display` block overrides it for one chart.
+
+### Offering OWID indicators: the catalog
+
+`dataApiIndicatorStore` loads data for any `variableId`, but "Add indicators" only appears when it has a `catalog` to search. There are two ways to give it one:
+
+- **A list you load once**: `listIndicatorCatalog(load)`, where `load` resolves to `{ datasets: [{ id, name, namespace?, version?, variables: [{ id, name }] }] }`. The picker searches it in the browser by indicator name, eight datasets a page. It suits a few thousand indicators.
+
+    ```ts
+    const store = dataApiIndicatorStore({
+        dataApiUrl: "https://api.ourworldindata.org/v1/indicators",
+        catalog: listIndicatorCatalog(() =>
+            fetch("/my-indicators.json").then((r) => r.json())
+        ),
+    })
+    ```
+
+- **Your own search backend**: an `IndicatorCatalog` object with `search(query, page)`, which returns an `IndicatorSearchPage` (the matching indicators grouped by dataset, the `total` and `pageSize` to page through, and `unit: "datasets"` when `total` counts datasets). `initialQuery(datasetIds)` picks the query the picker opens on, and `fields` lists any `field:value` terms your search understands, for the picker's help. Each indicator's `column` is what picking it puts in the slot: `{ variableId }` for an OWID indicator.
+
+In 0.1.0 a catalog was `{ load() }`, returning every dataset at once. `listIndicatorCatalog(oldCatalog.load)` turns one into the current shape.
 
 ### Other props
 

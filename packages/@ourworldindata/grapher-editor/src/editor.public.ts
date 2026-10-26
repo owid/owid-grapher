@@ -29,7 +29,16 @@ export {
     dataApiIndicatorStore,
     tableIndicatorStore,
     csvIndicatorStore,
+    listIndicatorCatalog,
+    type IndicatorListDataset,
 } from "../../../../adminSiteClient/indicatorStores.js"
+export type {
+    IndicatorCatalog,
+    IndicatorSearchPage,
+    CatalogDataset,
+    CatalogIndicator,
+    PickedColumn,
+} from "../../../../adminSiteClient/editorProviders.js"
 
 export { OwidTable } from "@ourworldindata/core-table"
 export {
