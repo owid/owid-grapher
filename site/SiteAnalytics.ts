@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import { tinykeys, type KeybindingsMap } from "tinykeys"
 import { setSentryTagsAndAttributes } from "./SentryUtils.js"
 import { GrapherAnalytics, splitPathForGA4 } from "@ourworldindata/grapher"
 import {
@@ -439,39 +440,38 @@ export class SiteAnalytics extends GrapherAnalytics {
      * Returns a function that removes the listener.
      */
     startFindInPageTracking(): () => void {
-        const controller = new AbortController()
-        let hasLogged = false
+        const logOpen = (eventContext: "mod+f" | "f3"): void => {
+            unsubscribe()
+            this.logToGA({
+                event: EventCategory.SiteFindInPage,
+                eventAction: "open",
+                eventContext,
+            })
+        }
 
-        document.addEventListener(
-            "keydown",
-            (ev) => {
-                if (hasLogged || ev.repeat) return
-                // Latin layouts: the shortcut follows the produced key (on
-                // Dvorak, the physical F key types "u", and Cmd+U isn't
-                // find). Non-Latin layouts (e.g. Cyrillic) produce no Latin
-                // letter, and browsers fall back to the physical key there.
-                const key = ev.key.toLowerCase()
-                const isF = /^[a-z]$/.test(key)
-                    ? key === "f"
-                    : ev.code === "KeyF"
-                const isModF =
-                    (ev.metaKey || ev.ctrlKey) &&
-                    !ev.altKey &&
-                    !ev.shiftKey &&
-                    isF
-                const isF3 = ev.key === "F3"
-                if (!isModF && !isF3) return
-                hasLogged = true
-                this.logToGA({
-                    event: EventCategory.SiteFindInPage,
-                    eventAction: "open",
-                    eventContext: isModF ? "mod+f" : "f3",
-                })
+        // `$mod` is Cmd on Apple platforms and Ctrl elsewhere (on a Mac,
+        // Ctrl+F moves the cursor instead). Handlers must never call
+        // `preventDefault`, so that the find bar opens as usual.
+        const keybindings: KeybindingsMap = {
+            // Latin layouts: the shortcut follows the produced key (on
+            // Dvorak, the physical F key types "u", and Cmd+U isn't find)
+            "$mod+f": () => logOpen("mod+f"),
+            // Non-Latin layouts (e.g. Cyrillic) produce no Latin letter, and
+            // browsers fall back to the physical key there
+            "$mod+KeyF": (ev) => {
+                if (!/^[a-z]$/i.test(ev.key)) logOpen("mod+f")
             },
-            { capture: true, passive: true, signal: controller.signal }
-        )
+            // F3 is "find next"
+            "[Shift]+F3": (ev) => logOpen("f3"),
+        }
 
-        return () => controller.abort()
+        const unsubscribe = tinykeys(document, keybindings, {
+            capture: true,
+            // Unlike the default, also count presses inside text fields: the
+            // find bar opens from there too
+            ignore: (ev) => ev.repeat || ev.isComposing,
+        })
+        return unsubscribe
     }
 
     private logBrowserTranslationEvent(ctx: {

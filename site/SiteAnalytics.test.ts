@@ -11,6 +11,7 @@ const gtmWindow = window as unknown as {
     dataLayer: Record<string, unknown>[]
 }
 
+// happy-dom reports a non-Apple platform, so `$mod` is Ctrl in these tests
 describe("find-in-page tracking", () => {
     let stop: () => void
 
@@ -19,8 +20,20 @@ describe("find-in-page tracking", () => {
             (e) => e.event === EventCategory.SiteFindInPage
         )
 
-    const press = (init: KeyboardEventInit) =>
-        document.dispatchEvent(new KeyboardEvent("keydown", init))
+    const press = (
+        init: KeyboardEventInit,
+        target: EventTarget = document
+    ): KeyboardEvent => {
+        const ev = new KeyboardEvent("keydown", {
+            bubbles: true,
+            cancelable: true,
+            ...init,
+        })
+        target.dispatchEvent(ev)
+        return ev
+    }
+
+    const ctrlF = { key: "f", code: "KeyF", ctrlKey: true }
 
     beforeEach(() => {
         gtmWindow.dataLayer = []
@@ -30,9 +43,9 @@ describe("find-in-page tracking", () => {
     afterEach(() => stop())
 
     it("logs the find shortcut once per page view", () => {
-        press({ key: "f", metaKey: true })
-        press({ key: "f", ctrlKey: true })
-        press({ key: "F3" })
+        press(ctrlF)
+        press(ctrlF)
+        press({ key: "F3", code: "F3" })
 
         expect(findEvents()).toEqual([
             expect.objectContaining({
@@ -42,8 +55,8 @@ describe("find-in-page tracking", () => {
         ])
     })
 
-    it("logs F3", () => {
-        press({ key: "F3" })
+    it("logs F3, with or without Shift", () => {
+        press({ key: "F3", code: "F3", shiftKey: true })
         expect(findEvents()).toEqual([
             expect.objectContaining({
                 eventAction: "open",
@@ -53,8 +66,8 @@ describe("find-in-page tracking", () => {
     })
 
     it("follows the produced key, with a physical-key fallback", () => {
-        // Dvorak: the physical F key types "u", and Cmd+U isn't find
-        press({ key: "u", code: "KeyF", metaKey: true })
+        // Dvorak: the physical F key types "u", and Ctrl+U isn't find
+        press({ key: "u", code: "KeyF", ctrlKey: true })
         expect(findEvents()).toEqual([])
 
         // Cyrillic: Ctrl+F types "а", and browsers still open find
@@ -68,9 +81,30 @@ describe("find-in-page tracking", () => {
     })
 
     it("ignores other shortcuts", () => {
-        press({ key: "f" })
-        press({ key: "f", metaKey: true, shiftKey: true })
-        press({ key: "g", metaKey: true })
-        expect(findEvents()).toEqual([])
+        press({ key: "f", code: "KeyF" })
+        press({ ...ctrlF, shiftKey: true })
+        press({ ...ctrlF, metaKey: true })
+        press({ key: "f", code: "KeyF", metaKey: true }) // not $mod here
+        press({ key: "g", code: "KeyG", ctrlKey: true })
+        press({ key: "F3", code: "F3", altKey: true })
+        press({ ...ctrlF, repeat: true })
+        expect(findEvents()).toHaveLength(0)
+    })
+
+    it("counts the shortcut inside text fields", () => {
+        const input = document.createElement("input")
+        document.body.append(input)
+        press(ctrlF, input)
+        input.remove()
+        expect(findEvents()).toHaveLength(1)
+    })
+
+    it("never blocks the browser's find bar", () => {
+        expect(press(ctrlF).defaultPrevented).toBe(false)
+    })
+
+    it("ignores key events without a key, e.g. from autofill", () => {
+        expect(() => press({})).not.toThrow()
+        expect(findEvents()).toHaveLength(0)
     })
 })
