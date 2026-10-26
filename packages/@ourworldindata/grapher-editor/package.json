@@ -73,19 +73,19 @@
         "@ourworldindata/grapher": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
-        "@react-aria/optimize-locales-plugin": "^2.0.2",
+        "@react-aria/optimize-locales-plugin": "^2.1.0",
         "@tsdown/css": "^0.23.0",
-        "@types/react": "^19.2.14",
-        "@types/react-dom": "^19.2.3",
+        "@types/react": "^19.3.0",
+        "@types/react-dom": "^19.3.0",
         "bumpp": "^12.2.0",
         "http-server": "^14.1.1",
-        "react": "^19.2.4",
-        "react-dom": "^19.2.4",
+        "react": "^19.3.1",
+        "react-dom": "^19.3.1",
         "sass": "^1.89.2",
         "tippy.js": "^6.3.7",
         "tsdown": "^0.23.0",
         "typescript": "^7.0.2",
-        "vitest": "^5.0.0"
+        "vitest": "^5.0.5"
     },
     "license": "SEE LICENSE IN LICENSE.md"
 }
