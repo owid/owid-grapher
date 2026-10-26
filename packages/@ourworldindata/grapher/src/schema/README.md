@@ -40,9 +40,7 @@ In one commit:
 
 Before merging:
 
-- Prepare a sibling PR in the etl repo, following the version-bump section of its
-  `/sync-grapher-schema` skill. It moves `DEFAULT_GRAPHER_SCHEMA` in `etl/config.py`, updates
-  the `$ref`s in the ETL's own schemas and re-vendors the schema.
+- Prepare a sibling PR in the etl repo that bumps `DEFAULT_GRAPHER_SCHEMA` in `etl/config.py`, the version ETL stamps on the configs it pushes (see its `docs/guides/schema-management.md`). ETL keeps no copy of the schema, so nothing else there changes, and in-place changes to the current version need no ETL PR at all.
 
 After merging:
 
