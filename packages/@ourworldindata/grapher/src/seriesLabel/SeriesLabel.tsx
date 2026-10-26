@@ -16,7 +16,7 @@ import {
     SpanLine,
 } from "./SeriesLabelState.js"
 import { Bounds, isTouchDevice, roundForSvg } from "@ourworldindata/utils"
-import { Halo } from "@ourworldindata/components"
+import { FIGMA_TEXT_NODE_BREAK_DY, Halo } from "@ourworldindata/components"
 import { RegionTooltip } from "./RegionTooltip.js"
 import { getDescriptionForKey, getRegionsForKey } from "./RegionTooltipData.js"
 
@@ -175,20 +175,20 @@ function NativeAlignedLabelText({
         >
             {spanLines.map((spans, lineIndex) =>
                 spans.map((span, spanIndex) => {
-                    const isFirstLine = lineIndex === 0
-                    const isLineStart = spanIndex === 0
-
-                    const renderX = isLineStart ? roundForSvg(x) : undefined
-                    const renderY =
-                        isLineStart && !isFirstLine
-                            ? roundForSvg(lineHeight)
-                            : undefined
+                    const renderX = getSpanX({ spanIndex, x })
+                    const renderDy = getSpanDy({
+                        spanLines,
+                        lineIndex,
+                        spanIndex,
+                        lineHeight,
+                        textAnchor,
+                    })
 
                     return (
                         <tspan
                             key={span.text}
                             x={renderX}
-                            dy={renderY}
+                            dy={renderDy}
                             fontWeight={span.fontWeight}
                             fill={colors[span.role]}
                         >
@@ -405,4 +405,65 @@ function IconFragment({
             </Tippy>
         </g>
     )
+}
+
+function getSpanX({
+    spanIndex,
+    x,
+}: {
+    spanIndex: number
+    x: number
+}): number | undefined {
+    const isLineStart = spanIndex === 0
+    return isLineStart ? roundForSvg(x) : undefined
+}
+
+function getSpanDy({
+    spanLines,
+    lineIndex,
+    spanIndex,
+    lineHeight,
+    textAnchor,
+}: {
+    spanLines: SpanLine[]
+    lineIndex: number
+    spanIndex: number
+    lineHeight: number
+    textAnchor: "start" | "end"
+}): number | undefined {
+    const isFirstLine = lineIndex === 0
+    const isLineStart = spanIndex === 0
+    const isSecondSpan = spanIndex === 1
+
+    // The first line sits on the text element's y
+    if (isLineStart && isFirstLine) return undefined
+
+    // Move down to the next line, undoing the previous line's Figma nudge, if any
+    if (isLineStart) {
+        const previousLineBreakDy = getFigmaNodeBreakDy(
+            spanLines[lineIndex - 1],
+            textAnchor
+        )
+        return roundForSvg(lineHeight - previousLineBreakDy)
+    }
+
+    // Nudge the rest of the line so Figma gives it its own text node
+    if (isSecondSpan)
+        return (
+            getFigmaNodeBreakDy(spanLines[lineIndex], textAnchor) || undefined
+        )
+
+    return undefined
+}
+
+/** Figma nudge for a left-aligned line whose name is followed by text in another weight, otherwise 0 */
+function getFigmaNodeBreakDy(
+    spans: SpanLine,
+    textAnchor: "start" | "end"
+): number {
+    return textAnchor === "start" &&
+        spans.length > 1 &&
+        spans[0].fontWeight !== spans[1].fontWeight
+        ? FIGMA_TEXT_NODE_BREAK_DY
+        : 0
 }
