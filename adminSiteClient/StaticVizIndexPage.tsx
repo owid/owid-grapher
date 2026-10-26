@@ -129,7 +129,8 @@ function createColumns({
             title: "Name",
             dataIndex: "name",
             key: "name",
-            width: 300,
+            // the sticky header lays the table out fixed, so the name gets
+            // whatever the other columns leave
             sorter: (a, b) => a.name.localeCompare(b.name),
             render: (name) => {
                 return (
@@ -190,7 +191,7 @@ function createColumns({
                 a.createdBy && b.createdBy
                     ? a.createdBy.localeCompare(b.createdBy)
                     : 0,
-            width: 200,
+            width: 150,
         },
         {
             title: "Updated by",
@@ -200,7 +201,7 @@ function createColumns({
                 a.updatedBy && b.updatedBy
                     ? a.updatedBy.localeCompare(b.updatedBy)
                     : 0,
-            width: 200,
+            width: 150,
         },
         {
             title: "Action",

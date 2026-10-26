@@ -62,7 +62,7 @@ function createColumns(ctx: {
             key: "action",
             width: 200,
             render: (_, slideshow) => (
-                <Space size="middle">
+                <Space size="middle" wrap>
                     <Link to={`/slideshows/${slideshow.id}/edit`}>
                         <Button type="primary">Edit</Button>
                     </Link>

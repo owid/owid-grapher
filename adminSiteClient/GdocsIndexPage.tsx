@@ -168,6 +168,8 @@ const SEARCH_FIELDS: SearchField<OwidGdocIndexItem>[] = [
         type: "string",
         description: "Gdoc type",
         get: (gdoc) => gdoc.type,
+        // otherwise typing "data" would list every data insight
+        freeText: false,
     },
     {
         name: "id",
@@ -271,8 +273,12 @@ export function GdocsIndexPage(props: RouteComponentProps): React.ReactElement {
                     />
                     <button
                         className="btn btn-primary text-nowrap"
+                        // The search lives in the URL, so carry it into the
+                        // modal's route and back out
                         onClick={() =>
-                            props.history.push(`${props.match.path}/add`)
+                            props.history.push(
+                                `${props.match.path}/add${props.location.search}`
+                            )
                         }
                     >
                         <FontAwesomeIcon icon={faCirclePlus} /> Add document
@@ -335,7 +341,11 @@ export function GdocsIndexPage(props: RouteComponentProps): React.ReactElement {
                     path={`${props.match.path}/add`}
                     render={() => (
                         <Modal
-                            onClose={() => props.history.push(props.match.path)}
+                            onClose={() =>
+                                props.history.push(
+                                    `${props.match.path}${props.location.search}`
+                                )
+                            }
                         >
                             <GdocsAdd
                                 onAdd={(id) =>
