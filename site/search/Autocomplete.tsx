@@ -44,7 +44,7 @@ import {
     queryParamsToStr,
 } from "@ourworldindata/utils"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import Mousetrap from "mousetrap"
+import { tinykeys } from "tinykeys"
 import * as Sentry from "@sentry/react"
 import { match } from "ts-pattern"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
@@ -733,18 +733,17 @@ export function Autocomplete({
     useEffect(() => {
         if (!search) return
 
-        Mousetrap.bind("/", (e) => {
+        const openSearch = (e: KeyboardEvent): void => {
             e.preventDefault() // don't type "/" into input
             search.setIsOpen(true)
 
             const input =
                 containerRef.current?.querySelector<HTMLInputElement>("input")
             input?.focus()
-        })
-
-        return () => {
-            Mousetrap.unbind("/")
         }
+
+        // "/" needs Shift on many non-US keyboard layouts (e.g. German, Spanish, Swedish, ...)
+        return tinykeys(window, { "[Shift]+/": openSearch })
     }, [search, containerRef])
 
     return <div className={className} ref={containerRef} id={id} />

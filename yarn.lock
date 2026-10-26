@@ -2204,7 +2204,6 @@ __metadata:
     "@types/geojson": "npm:^7946.0.16"
     "@types/indefinite": "npm:^2.3.4"
     "@types/lodash-es": "npm:^4.17.12"
-    "@types/mousetrap": "npm:^1.6.15"
     "@types/react": "npm:^19.3.0"
     "@types/react-dom": "npm:^19.3.0"
     "@types/topojson-client": "npm:^3.1.5"
@@ -2219,7 +2218,6 @@ __metadata:
     lodash-es: "npm:^4.18.1"
     mobx: "npm:^6.15.4"
     mobx-react: "npm:^7.6.0"
-    mousetrap: "npm:^1.6.5"
     react: "npm:^19.3.1"
     react-aria: "npm:^3.53.1"
     react-aria-components: "npm:^1.22.1"
@@ -2227,6 +2225,7 @@ __metadata:
     react-flip-toolkit: "npm:^7.2.4"
     remeda: "npm:^2.52.0"
     sass: "npm:^1.89.2"
+    tinykeys: "npm:^4.0.1"
     tippy.js: "npm:^6.3.7"
     topojson-client: "npm:^3.1.0"
     ts-pattern: "npm:^5.8.0"
@@ -5244,13 +5243,6 @@ __metadata:
   version: 1.2.5
   resolution: "@types/minimist@npm:1.2.5"
   checksum: 10/477047b606005058ab0263c4f58097136268007f320003c348794f74adedc3166ffc47c80ec3e94687787f2ab7f4e72c468223946e79892cf0fd9e25e9970a90
-  languageName: node
-  linkType: hard
-
-"@types/mousetrap@npm:^1.6.15":
-  version: 1.6.15
-  resolution: "@types/mousetrap@npm:1.6.15"
-  checksum: 10/58ec552218108f8e5f0d40ee81579aafbdb00c3af0ef4b6d3fb193a8a11a2d37aa84c6e20524120b7f218c2a87dac24f426ee3b23e1269d42f8145a1a37c9eca
   languageName: node
   linkType: hard
 
@@ -8812,7 +8804,6 @@ __metadata:
     "@types/lodash-es": "npm:^4.17.12"
     "@types/mdast": "npm:^4.0.4"
     "@types/minimist": "npm:^1.2.5"
-    "@types/mousetrap": "npm:^1.6.15"
     "@types/multer": "npm:^2.1.0"
     "@types/node": "npm:^24.12.4"
     "@types/papaparse": "npm:^5.5.2"
@@ -8869,7 +8860,6 @@ __metadata:
     minimist: "npm:^1.2.6"
     mobx: "npm:^6.15.4"
     mobx-react: "npm:^7.6.0"
-    mousetrap: "npm:^1.6.5"
     multer: "npm:^2.4.0"
     mysql2: "npm:^3.23.1"
     nodejs-polars: "npm:^0.7.2"
@@ -8905,6 +8895,7 @@ __metadata:
     sharp: "npm:^0.35.5"
     simple-git: "npm:^4.0.2"
     tinyexec: "npm:^1.1.1"
+    tinykeys: "npm:^4.0.1"
     tippy.js: "npm:^6.3.7"
     topojson-server: "npm:^3.0.1"
     ts-pattern: "npm:^5.8.0"
@@ -10680,13 +10671,6 @@ __metadata:
   version: 6.15.4
   resolution: "mobx@npm:6.15.4"
   checksum: 10/5c8dc30a9418359dc5aa0214fda105f878c34cefe47ecda72dfa0414c0c33e743bc4798fb4699ff5e2f6e34faabcdd326812198531a5b23e50a37fbbb507a78c
-  languageName: node
-  linkType: hard
-
-"mousetrap@npm:^1.6.5":
-  version: 1.6.5
-  resolution: "mousetrap@npm:1.6.5"
-  checksum: 10/2f55e715c8e106fa96135f8f3bc7fe71a3c497e803a451f357ae70598c3994a88c2907780f7abf51df4268c26cfb23f94db8687cd37154d65a0cc74cb530d438
   languageName: node
   linkType: hard
 
@@ -13239,6 +13223,13 @@ __metadata:
     fdir: "npm:^6.5.0"
     picomatch: "npm:^4.0.4"
   checksum: 10/f85e8a217d675c3f78d5f0ad25ea4557e7e023ed13ddc2b014da10bd0312eea53a34cd52356af07ccdff777f1243012547656282a4ca70936f68bf5065fbaa71
+  languageName: node
+  linkType: hard
+
+"tinykeys@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "tinykeys@npm:4.0.1"
+  checksum: 10/0887919562a119cced330204584c7c281509c35647c4d165b43ef43239c854d031a1187606d0716a83246f93349e88c14a817f2626add458898b716411b8358c
   languageName: node
   linkType: hard
 
