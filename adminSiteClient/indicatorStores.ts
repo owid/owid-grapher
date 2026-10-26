@@ -16,6 +16,7 @@ import {
     filterFunctionForSearchWords,
 } from "../adminShared/search.js"
 import {
+    CATALOG_DATASETS_PER_PAGE,
     CatalogDataset,
     CatalogIndicator,
     IndicatorCatalog,
@@ -82,8 +83,6 @@ function listCatalog(
     )
 }
 
-const DATASETS_PER_PAGE = 8
-
 function inMemoryCatalog(
     load: () => Promise<CatalogDataset[]>
 ): IndicatorCatalog {
@@ -112,12 +111,12 @@ function inMemoryCatalog(
             })
             return {
                 datasets: groups.slice(
-                    (page - 1) * DATASETS_PER_PAGE,
-                    page * DATASETS_PER_PAGE
+                    (page - 1) * CATALOG_DATASETS_PER_PAGE,
+                    page * CATALOG_DATASETS_PER_PAGE
                 ),
                 unit: "datasets",
                 total: groups.length,
-                pageSize: DATASETS_PER_PAGE,
+                pageSize: CATALOG_DATASETS_PER_PAGE,
             }
         },
     }

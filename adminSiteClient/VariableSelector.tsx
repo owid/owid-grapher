@@ -170,7 +170,7 @@ export function VariableSelector({
                             onComplete(selected.map((entry) => entry.column))
                         }
                     >
-                        Set variable{s}
+                        Set indicator{s}
                     </Button>
                 </>
             }
@@ -190,7 +190,7 @@ export function VariableSelector({
                         <Alert
                             type="error"
                             showIcon
-                            title="The search failed on the server. Try again in a moment."
+                            title="The search failed. Try again in a moment."
                         />
                     ) : (
                         <>

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 import { Admin } from "./Admin.js"
 import { adminIndicatorCatalog } from "./adminEditorProviders.js"
+import type { CatalogDataset } from "./editorProviders.js"
 import {
     VariableResultView,
     VariablesGroupedSearchResult,
@@ -97,8 +98,12 @@ describe(adminIndicatorCatalog, () => {
             pageSize: 20,
             regexError: "missing )",
         })
+        // The admin's headers also carry the dataset's short name, for its list
+        const datasets = page.datasets as (CatalogDataset & {
+            shortName?: string
+        })[]
         expect(
-            page.datasets.map(
+            datasets.map(
                 ({ id, namespace, version, shortName, variables }) => ({
                     id,
                     path: `${namespace}/${version}/${shortName}`,

@@ -5,7 +5,6 @@ import {
 import { DetailDictionary } from "@ourworldindata/utils"
 import { ChartDimension } from "@ourworldindata/grapher"
 import type { SearchFieldHelp } from "../adminShared/variableSearch.js"
-import type { DatasetListGroup, VariableListItem } from "./VariableList.js"
 
 /** What a slot draws: an OWID indicator by id, or a host table's column by slug */
 export type PickedColumn =
@@ -26,9 +25,31 @@ export function columnOfDimension(dimension: ChartDimension): PickedColumn {
 }
 
 /** An indicator the picker offers, with the column picking it puts in a slot */
-export type CatalogIndicator = VariableListItem & { column: PickedColumn }
+export interface CatalogIndicator {
+    /** Keys the row within its dataset */
+    id: number
+    name: string
+    /** Tells same-named picks apart in the picker's selection */
+    datasetName?: string
+    column: PickedColumn
+}
 
-export type CatalogDataset = DatasetListGroup<CatalogIndicator>
+/** A dataset and the indicators of it that match a search */
+export interface CatalogDataset {
+    id: number
+    name: string
+    namespace?: string
+    version?: string
+    /**
+     * How many of its indicators match, when more than `variables` holds. The
+     * picker then offers the rest as the search `dataset-id:<id> <query>`.
+     */
+    matchCount?: number
+    variables: CatalogIndicator[]
+}
+
+/** Datasets on a page of a grouped search, in the admin and the stores alike */
+export const CATALOG_DATASETS_PER_PAGE = 8
 
 export interface IndicatorSearchPage {
     datasets: CatalogDataset[]

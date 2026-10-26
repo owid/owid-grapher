@@ -137,7 +137,7 @@ class IndicatorSelector {
 
     async confirm(): Promise<void> {
         await this.modal
-            .getByRole("button", { name: /^Set variables?$/ })
+            .getByRole("button", { name: /^Set indicators?$/ })
             .click()
         await expect(this.modal).toHaveCount(0)
     }

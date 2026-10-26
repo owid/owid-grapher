@@ -138,7 +138,7 @@ describe(VariableSelector, () => {
 
         fireEvent.click(await screen.findByLabelText("Rent index"))
         fireEvent.click(screen.getByLabelText("Oil"))
-        fireEvent.click(screen.getByRole("button", { name: "Set variables" }))
+        fireEvent.click(screen.getByRole("button", { name: "Set indicators" }))
 
         expect(onComplete).toHaveBeenCalledWith([
             { variableId: 10 },
@@ -157,7 +157,7 @@ describe(VariableSelector, () => {
 
         fireEvent.click(await screen.findByLabelText("Oil"))
         expect(selectedNames()).toEqual(["Oil Energy"])
-        fireEvent.click(screen.getByRole("button", { name: "Set variable" }))
+        fireEvent.click(screen.getByRole("button", { name: "Set indicator" }))
         expect(onComplete).toHaveBeenCalledWith([{ variableId: 11 }])
     })
 
@@ -175,7 +175,7 @@ describe(VariableSelector, () => {
 
         expect(selectedNames()).toEqual([])
         expect(isTicked("Coal")).toBe(false)
-        fireEvent.click(screen.getByRole("button", { name: "Set variables" }))
+        fireEvent.click(screen.getByRole("button", { name: "Set indicators" }))
         expect(onComplete).toHaveBeenCalledWith([])
     })
 
@@ -194,9 +194,7 @@ describe(VariableSelector, () => {
             slotOf([])
         )
 
-        await screen.findByText(
-            "The search failed on the server. Try again in a moment."
-        )
+        await screen.findByText("The search failed. Try again in a moment.")
         expect(
             screen.queryByText("No indicators match this search.")
         ).toBeNull()

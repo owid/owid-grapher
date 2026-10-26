@@ -8,12 +8,14 @@ import { Admin } from "./Admin.js"
 import type { References } from "./adminChartApi.js"
 import type { OriginUrlSuggestion } from "./ConfigEditor.js"
 import {
+    DatasetSearchGroup,
     INDICATOR_SEARCH_FIELDS,
     VariableResultView,
     VariablesGroupedSearchResult,
     VariablesSearchResult,
 } from "../adminShared/variableSearch.js"
 import {
+    CATALOG_DATASETS_PER_PAGE,
     CatalogDataset,
     CatalogIndicator,
     DetailsProvider,
@@ -35,8 +37,12 @@ export function adminIndicatorUrl(
         : undefined
 }
 
-const DATASETS_PER_PAGE = 8
 const INDICATORS_PER_PAGE = 20
+
+// The admin's rows carry more than a host's, which the admin's list shows
+type AdminCatalogIndicator = CatalogIndicator & VariableResultView
+type AdminCatalogDataset = CatalogDataset &
+    Partial<Pick<DatasetSearchGroup, "shortName" | "uploadedAt" | "uploadedBy">>
 
 /** The admin's indicators, through the same search as /admin/variables */
 export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
@@ -74,17 +80,18 @@ export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
             const result = await get<VariablesGroupedSearchResult>({
                 search: query,
                 group: "dataset",
-                limit: DATASETS_PER_PAGE,
-                offset: (page - 1) * DATASETS_PER_PAGE,
+                limit: CATALOG_DATASETS_PER_PAGE,
+                offset: (page - 1) * CATALOG_DATASETS_PER_PAGE,
             })
             return {
                 datasets: result.datasets.map((dataset) => ({
                     ...dataset,
+                    version: dataset.version ?? undefined,
                     variables: dataset.variables.map(asCatalogIndicator),
                 })),
                 unit: "datasets",
                 total: result.numTotalDatasets,
-                pageSize: DATASETS_PER_PAGE,
+                pageSize: CATALOG_DATASETS_PER_PAGE,
                 regexError: result.regexError,
                 unindexedTerms: result.unindexedTerms,
             }
@@ -92,7 +99,7 @@ export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
     }
 }
 
-function headerOf(variable: VariableResultView): CatalogDataset {
+function headerOf(variable: VariableResultView): AdminCatalogDataset {
     const path = variable.catalogPath
         ? parseCatalogPath(variable.catalogPath)
         : undefined
@@ -108,13 +115,17 @@ function headerOf(variable: VariableResultView): CatalogDataset {
     }
 }
 
-function asCatalogIndicator(variable: VariableResultView): CatalogIndicator {
+function asCatalogIndicator(
+    variable: VariableResultView
+): AdminCatalogIndicator {
     return { ...variable, column: { variableId: variable.id } }
 }
 
 /** A page of indicators, under the headers of the datasets they are from */
-function groupByDataset(variables: VariableResultView[]): CatalogDataset[] {
-    const groups = new Map<number, CatalogDataset>()
+function groupByDataset(
+    variables: VariableResultView[]
+): AdminCatalogDataset[] {
+    const groups = new Map<number, AdminCatalogDataset>()
     for (const variable of variables) {
         const group = groups.get(variable.datasetId) ?? headerOf(variable)
         group.variables.push(asCatalogIndicator(variable))
