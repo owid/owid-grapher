@@ -202,7 +202,7 @@ function createColumns(
         {
             title: "Preview",
             dataIndex: "thumbnailUrl",
-            width: 100,
+            width: 220,
             key: "thumbnail",
             render: (_, record) => {
                 return (

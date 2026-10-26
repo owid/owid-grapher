@@ -170,7 +170,7 @@ function createColumns({
             title: "Name",
             dataIndex: "name",
             key: "name",
-            width: 50,
+            width: 200,
         },
         {
             title: "Last updated by",
@@ -626,8 +626,9 @@ export function DodsIndexPage() {
         [users]
     )
 
+    const dodList = useMemo(() => dods && Object.values(dods), [dods])
     const { results: filteredDods, search } = useListSearch(
-        dods ? Object.values(dods) : undefined,
+        dodList,
         searchFields,
         {
             placeholder: "Search by content, id, or most recent user",

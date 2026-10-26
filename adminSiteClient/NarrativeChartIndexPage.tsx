@@ -86,7 +86,7 @@ function createColumns(ctx: {
         {
             title: "Action",
             key: "action",
-            width: 100,
+            width: 180,
             render: (_, narrativeChart) => (
                 <Space size="middle">
                     <Link to={`/narrative-charts/${narrativeChart.id}/edit`}>
