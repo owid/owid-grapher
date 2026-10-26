@@ -44,6 +44,7 @@ import {
     DEFAULT_MARKER_RADIUS,
     LINE_CHART_CLASS_NAME,
     ELEVATED_MARKER_RADIUS,
+    AnnotationTooltipEvent,
     AnnotationTooltipState,
     RenderAnnotation,
 } from "./LineChartConstants"
@@ -64,6 +65,7 @@ import {
     toPlacedLineChartSeries,
     toRenderLineChartSeries,
     toSeriesLabelAnnotations,
+    transitionAnnotationTooltipState,
 } from "./LineChartHelpers"
 import { LineChartActiveTimeMarkers } from "./LineChartActiveTimeMarkers"
 import { LineChartAnnotationMarkers } from "./LineChartAnnotationMarkers"
@@ -161,8 +163,7 @@ export class LineChart
             this.clearVerticalLabelHover()
         }
 
-        // The cursor crosses the plot on its way into the label's tooltip
-        if (this.annotationTooltipState.kind === "open") return
+        if (this.isAnnotationTooltipOpen) return
 
         this.tooltipState.target =
             hoverTime === undefined ? null : { time: hoverTime }
@@ -261,22 +262,61 @@ export class LineChart
     ): void {
         this.chartState.focusArray.clear()
         this.dismissTooltip()
-        this.annotationTooltipState = { kind: "open", seriesName }
+        this.dispatchAnnotationTooltipEvent({
+            type: "labelTooltipShow",
+            seriesName,
+        })
     }
 
     @action.bound private onVerticalLabelTooltipHide(
         seriesName: SeriesName
     ): void {
-        const state = this.annotationTooltipState
-        if (state.kind === "open" && state.seriesName === seriesName)
-            this.annotationTooltipState = { kind: "idle" }
+        this.dispatchAnnotationTooltipEvent({
+            type: "labelTooltipHide",
+            seriesName,
+        })
+    }
+
+    @action.bound private onAnnotationMarkerClick(
+        seriesName: SeriesName,
+        time: Time
+    ): void {
+        this.chartState.focusArray.clear()
+        this.dismissTooltip()
+        this.dispatchAnnotationTooltipEvent({
+            type: "markerClick",
+            seriesName,
+            time,
+        })
+    }
+
+    @action.bound private onAnnotationTooltipClose(): void {
+        this.dispatchAnnotationTooltipEvent({ type: "markerTooltipClose" })
+    }
+
+    @action.bound private onDocumentKeyDown(e: KeyboardEvent): void {
+        if (e.key === "Escape") this.onAnnotationTooltipClose()
+    }
+
+    @action.bound private dispatchAnnotationTooltipEvent(
+        event: AnnotationTooltipEvent
+    ): void {
+        this.annotationTooltipState = transitionAnnotationTooltipState(
+            this.annotationTooltipState,
+            event
+        )
+    }
+
+    @computed private get isAnnotationTooltipOpen(): boolean {
+        const { kind } = this.annotationTooltipState
+        return kind === "labelOpen" || kind === "markerOpen"
     }
 
     @computed private get verticalLabelTooltipSeriesName():
         | SeriesName
         | undefined {
         const state = this.annotationTooltipState
-        return state.kind === "open" ? state.seriesName : undefined
+        return state.kind === "labelOpen" ? state.seriesName : undefined
     }
 
     @computed private get hoveredSeriesNames(): string[] {
@@ -331,12 +371,14 @@ export class LineChart
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,
         })
+        document.addEventListener("keydown", this.onDocumentKeyDown)
     }
 
     override componentWillUnmount(): void {
         document.removeEventListener("click", this.onDocumentClick, {
             capture: true,
         })
+        document.removeEventListener("keydown", this.onDocumentKeyDown)
     }
 
     @computed get fontSize(): number {
@@ -483,6 +525,8 @@ export class LineChart
                 <LineChartAnnotationMarkers
                     annotations={this.renderAnnotations}
                     radius={this.annotationMarkerRadius}
+                    onClick={this.onAnnotationMarkerClick}
+                    onTooltipClose={this.onAnnotationTooltipClose}
                 />
                 <LineChartTooltip
                     id={this.tooltipId}
@@ -625,18 +669,26 @@ export class LineChart
 
     @computed private get renderAnnotations(): RenderAnnotation[] {
         return this.renderSeries.flatMap((series, index) => {
-            if (series.hover.background) return []
+            const state = this.annotationTooltipState
+            const isTooltipOpenAt = (time: Time): boolean =>
+                state.kind === "markerOpen" &&
+                state.seriesName === series.seriesName &&
+                state.time === time
             return series.placedAnnotations
                 .filter(
                     ({ point }) =>
-                        series.seriesName ===
-                            this.verticalLabelTooltipSeriesName ||
-                        this.isAtHoveredTime(point.time)
+                        isTooltipOpenAt(point.time) ||
+                        (!series.hover.background &&
+                            (series.seriesName ===
+                                this.verticalLabelTooltipSeriesName ||
+                                this.isAtHoveredTime(point.time)))
                 )
                 .map((placedAnnotation) => ({
                     ...placedAnnotation,
-                    key: getSeriesKey(series, index),
+                    key: `${getSeriesKey(series, index)}-${placedAnnotation.point.time}`,
+                    seriesName: series.seriesName,
                     emphasis: series.emphasis,
+                    isTooltipOpen: isTooltipOpenAt(placedAnnotation.point.time),
                 }))
         })
     }

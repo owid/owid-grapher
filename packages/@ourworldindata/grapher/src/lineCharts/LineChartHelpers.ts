@@ -6,6 +6,7 @@ import {
     PointVector,
 } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
+import { match } from "ts-pattern"
 import {
     AxisAlign,
     AxisConfigInterface,
@@ -18,6 +19,8 @@ import {
     Time,
 } from "@ourworldindata/types"
 import {
+    AnnotationTooltipEvent,
+    AnnotationTooltipState,
     LineChartSeries,
     LinePoint,
     PlacedLineChartSeries,
@@ -253,4 +256,31 @@ export function toSeriesLabelAnnotations(
         heading: formatTime(annotation.time),
         text: annotation.text,
     }))
+}
+
+export function transitionAnnotationTooltipState(
+    state: AnnotationTooltipState,
+    event: AnnotationTooltipEvent
+): AnnotationTooltipState {
+    return match<AnnotationTooltipEvent, AnnotationTooltipState>(event)
+        .with({ type: "labelTooltipShow" }, ({ seriesName }) => ({
+            kind: "labelOpen",
+            seriesName,
+        }))
+        .with({ type: "labelTooltipHide" }, ({ seriesName }) =>
+            state.kind === "labelOpen" && state.seriesName === seriesName
+                ? { kind: "idle" }
+                : state
+        )
+        .with({ type: "markerClick" }, ({ seriesName, time }) =>
+            state.kind === "markerOpen" &&
+            state.seriesName === seriesName &&
+            state.time === time
+                ? { kind: "idle" }
+                : { kind: "markerOpen", seriesName, time }
+        )
+        .with({ type: "markerTooltipClose" }, () =>
+            state.kind === "markerOpen" ? { kind: "idle" } : state
+        )
+        .exhaustive()
 }

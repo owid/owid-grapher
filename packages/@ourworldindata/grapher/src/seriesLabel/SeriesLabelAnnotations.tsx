@@ -20,9 +20,11 @@ export function SeriesLabelAnnotations({
         >
             {annotations.map((annotation, index) => (
                 <li key={index} className="series-label-annotations__entry">
-                    <div className="series-label-annotations__heading">
-                        {annotation.heading}
-                    </div>
+                    {annotation.heading && (
+                        <div className="series-label-annotations__heading">
+                            {annotation.heading}
+                        </div>
+                    )}
                     <SimpleMarkdownText
                         text={annotation.text}
                         openLinksInNewTab

@@ -20,7 +20,7 @@ import { hasTooltipData, TooltipKey } from "./RegionTooltipData.js"
 const INFO_ICON_GAP = 4
 
 export interface SeriesLabelAnnotation {
-    heading: string
+    heading?: string
     text: string
 }
 
