@@ -108,7 +108,9 @@ export interface PlacedAnnotation {
 
 export interface RenderAnnotation extends PlacedAnnotation {
     key: string
+    seriesName: SeriesName
     emphasis: Emphasis
+    isTooltipOpen: boolean
 }
 
 export interface PlacedLineChartSeries extends LineChartSeries {
@@ -130,4 +132,11 @@ export interface LineChartManager extends ChartManager {
 
 export type AnnotationTooltipState =
     | { kind: "idle" }
-    | { kind: "open"; seriesName: SeriesName }
+    | { kind: "labelOpen"; seriesName: SeriesName }
+    | { kind: "markerOpen"; seriesName: SeriesName; time: Time }
+
+export type AnnotationTooltipEvent =
+    | { type: "labelTooltipShow"; seriesName: SeriesName }
+    | { type: "labelTooltipHide"; seriesName: SeriesName }
+    | { type: "markerClick"; seriesName: SeriesName; time: Time }
+    | { type: "markerTooltipClose" }
