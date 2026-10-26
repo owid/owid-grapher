@@ -16,6 +16,7 @@ import { Bounds, isTouchDevice, roundForSvg } from "@ourworldindata/utils"
 import { FIGMA_TEXT_NODE_BREAK_DY, Halo } from "@ourworldindata/components"
 import { RegionTooltip } from "./RegionTooltip.js"
 import { SeriesLabelAnnotations } from "./SeriesLabelAnnotations.js"
+import { AnnotationInfoIcon } from "../annotations/AnnotationInfoIcon.js"
 import { getDescriptionForKey, getRegionsForKey } from "./RegionTooltipData.js"
 
 const defaultColors: Record<TextRole, string> = {
@@ -34,6 +35,7 @@ export interface SeriesLabelProps {
     color?: Partial<Record<TextRole, string>>
     opacity?: number
     outline?: boolean
+    showInfoIcon?: boolean
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
     onTooltipShow?: () => void
@@ -54,6 +56,7 @@ export function SeriesLabel({
     color,
     opacity,
     outline,
+    showInfoIcon = false,
     onMouseEnter,
     onMouseLeave,
     onTooltipShow,
@@ -81,53 +84,71 @@ export function SeriesLabel({
         )
     }
 
-    if (!state.hasRegionTooltip && !state.hasAnnotations) {
-        return withHalo(
-            <NativeAlignedLabelText
-                x={renderX}
-                y={renderY}
-                spanLines={state.spanLines}
-                textAnchor={state.textAnchor}
-                fontSize={fontSize}
-                lineHeight={state.singleLineHeight}
-                colors={colors}
-                {...props}
-            />
-        )
-    }
-
-    return (
-        <g {...props}>
-            {withHalo(
-                <LabelText
+    const label =
+        !state.hasRegionTooltip && !state.hasAnnotations ? (
+            withHalo(
+                <NativeAlignedLabelText
                     x={renderX}
                     y={renderY}
-                    fragments={state.positionedFragments}
+                    spanLines={state.spanLines}
+                    textAnchor={state.textAnchor}
                     fontSize={fontSize}
+                    lineHeight={state.singleLineHeight}
                     colors={colors}
+                    {...props}
                 />
-            )}
-            {state.positionedFragments.map((fragment, index) => {
-                const isAnnotated =
-                    state.hasAnnotations && fragment.role === "name"
-                if (!isAnnotated && !fragment.regionTooltip) return null
-                return (
-                    <TooltipTrigger
-                        key={index}
+            )
+        ) : (
+            <g {...props}>
+                {withHalo(
+                    <LabelText
                         x={renderX}
                         y={renderY}
-                        fragment={fragment}
+                        fragments={state.positionedFragments}
                         fontSize={fontSize}
-                        stroke={colors[fragment.role]}
-                        annotations={isAnnotated ? state.annotations : []}
-                        onTooltipShow={onTooltipShow}
-                        onTooltipHide={onTooltipHide}
-                        onMouseEnter={onMouseEnter}
-                        onMouseLeave={onMouseLeave}
+                        colors={colors}
                     />
-                )
-            })}
-        </g>
+                )}
+                {state.positionedFragments.map((fragment, index) => {
+                    const isAnnotated =
+                        state.hasAnnotations && fragment.role === "name"
+                    if (!isAnnotated && !fragment.regionTooltip) return null
+                    return (
+                        <TooltipTrigger
+                            key={index}
+                            x={renderX}
+                            y={renderY}
+                            fragment={fragment}
+                            fontSize={fontSize}
+                            stroke={colors[fragment.role]}
+                            annotations={isAnnotated ? state.annotations : []}
+                            onTooltipShow={onTooltipShow}
+                            onTooltipHide={onTooltipHide}
+                            onMouseEnter={onMouseEnter}
+                            onMouseLeave={onMouseLeave}
+                        />
+                    )
+                })}
+            </g>
+        )
+
+    if (!showInfoIcon) return label
+
+    const { x: iconX, y: iconY } = state.infoIconCenterOffset
+    return (
+        <>
+            {label}
+            <g
+                transform={`translate(${roundForSvg(x + iconX)}, ${roundForSvg(y + iconY)})`}
+                opacity={opacity}
+                style={{ pointerEvents: "none" }}
+            >
+                <AnnotationInfoIcon
+                    radius={state.infoIconRadius}
+                    color={colors.name}
+                />
+            </g>
+        </>
     )
 }
 
