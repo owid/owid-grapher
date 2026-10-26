@@ -9,6 +9,7 @@ import {
 } from "../../db/model/Gdoc/GdocFactory.js"
 import {
     createGdoc,
+    NoEditAccessError,
     replaceGdocContentWithArchieMlText,
     StaleRevisionError,
 } from "../../db/model/Gdoc/archieToGdoc.js"
@@ -25,6 +26,7 @@ import {
     isShareableEmail,
     loadWritableGdoc,
     type ReadBack,
+    requireRevisionId,
 } from "../gdocArchieMl.js"
 
 // Refuses docs that have no posts_gdocs row (404)
@@ -117,6 +119,7 @@ function readArchieMlBody(req: Request): string {
  * The doc's ArchieML text, its revision id (to send back with the PUT), the
  * report a PUT of that text would return, and whether it is published. Reads
  * any registered doc, so published docs can serve as structure references.
+ * The revision id is null on docs the service account can only view.
  */
 export async function getGdocArchieMl(
     req: Request,
@@ -124,7 +127,7 @@ export async function getGdocArchieMl(
     trx: db.KnexReadonlyTransaction
 ): Promise<{
     text: string
-    revisionId: string
+    revisionId: string | null
     report: DocReport
     published: boolean
 }> {
@@ -175,6 +178,11 @@ export async function putGdocArchieMl(
             requiredRevisionId,
         })
     } catch (error) {
+        if (error instanceof NoEditAccessError)
+            throw new JsonError(
+                `${error.message} Only docs it can edit can be written here.`,
+                403
+            )
         if (error instanceof StaleRevisionError)
             throw new JsonError(
                 `${error.message} Read the doc again and re-apply your edit.`,
@@ -190,7 +198,10 @@ export async function putGdocArchieMl(
     )
 
     return {
-        revisionId: writtenRevisionId ?? stored.revisionId,
+        revisionId: requireRevisionId(
+            writtenRevisionId ?? stored.revisionId,
+            id
+        ),
         readBack,
         report,
     }
@@ -282,6 +293,7 @@ export async function createGdocArchieMl(
 
     try {
         const stored = await fetchGdocArchieMl(id)
+        const revisionId = requireRevisionId(stored.revisionId, id)
         const readBack = compareReadBack(text, stored.text)
 
         // Registering fetches the doc from Google again; accepted for create
@@ -292,7 +304,13 @@ export async function createGdocArchieMl(
             getDocReport(trx, await getRegisteredGdocBase(trx, id), stored.text)
         )
 
-        return { id, url, revisionId: stored.revisionId, readBack, report }
+        return {
+            id,
+            url,
+            revisionId,
+            readBack,
+            report,
+        }
     } catch (error) {
         throw new JsonError(
             `Created, shared and wrote ${url}, but reading it back or registering it failed, so it may not be registered in the admin: ${getErrorMessage(error)}`,

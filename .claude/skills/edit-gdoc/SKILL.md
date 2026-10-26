@@ -47,13 +47,13 @@ Works on any registered doc, published or not.
     jq -r .revisionId doc.json
     ```
 
-    `jq -j` keeps the text byte-exact (no added trailing newline).
+    `jq -j` keeps the text byte-exact (no added trailing newline). `revisionId` is `null` when the service account can only view the doc (e.g. most published docs): it can be read, not written.
 
 ## Edit a doc
 
 Change a local copy of the text with `Edit`, then send that file. **Never retype the doc into a request** — that is where content gets lost.
 
-1. Read the doc (see "Read a doc") and keep its `revisionId`. If `jq .published doc.json` prints `true`, stop: tell the user the doc is published and can only be read.
+1. Read the doc (see "Read a doc") and keep its `revisionId`. If `jq .published doc.json` prints `true`, or `jq .revisionId doc.json` prints `null`, stop: tell the user the doc can only be read (published, or the service account can only view it).
 
 2. `Read` `doc.archieml`, then make the change with `Edit`. Touch only the lines that need to change.
 
@@ -130,6 +130,7 @@ List `report.errors` (block publishing) and `report.warnings`, each with its `pr
 | `PUT /gdocs/:id/archieml?revisionId=…` | `{ revisionId, readBack, report }`          |
 | `POST /gdocs/archieml?email=…`         | `{ id, url, revisionId, readBack, report }` |
 
+- `revisionId` — from GET, `null` on docs the service account can only view; such a doc can't be PUT.
 - `report: { errors, warnings }` — the admin's publishability checks. A doc with errors is **still written**; tell the user about them.
 - `readBack.match: true` — Google stored exactly the text you sent. Done.
 - `readBack.match: false` — Google stored something different. Nothing is rolled back. `readBack.line` is the first line that differs, with `sent` and `stored` (either is absent when that side has fewer lines). Show the user that line. **Don't retry blindly**: the same text will likely read back the same way.
@@ -140,7 +141,7 @@ Every 400, 403, 404 and 409 means **nothing was written**.
 
 - **400** — fix and send again. Causes: the text doesn't parse, or its front-matter `type` is missing or invalid, or the admin can't load it; a missing `revisionId` (PUT) or `email` (POST); a body that isn't `text/plain`; a character Google would strip (the message gives the line and code point, e.g. `U+000D` — remove it from the file).
 - **409** — the doc changed since your GET. GET again into a fresh file, re-apply your edit to it with `Edit`, and PUT with the new `revisionId`. Don't PUT your old file: it would undo the other change.
-- **403** — the doc is published, or in a shared drive (an author's doc). This skill can only read it.
+- **403** — the doc is published, in a shared drive (an author's doc), or one the service account can only view. This skill can only read it.
 - **404** — the doc isn't registered in the admin. The user must add it once in the admin: `$HOST/admin/gdocs` → "Add document", paste the URL.
 - **500 on PUT** — if the message says the shared-drive check failed, nothing was written; try again later. Otherwise the write may already have happened: GET again and compare its text with your file before sending anything again.
 - **500 on create** — if the message names a docs URL (it starts `Created and shared https://docs.google.com/…` or `Created, shared and wrote https://docs.google.com/…`), that doc exists and is shared with the email, but may be empty or not registered. Give the user the URL; don't create again blindly. A 500 without a URL means no doc anyone can open was created. When sharing failed, the server deletes the new doc; if that delete fails too, an unshared doc stays in the service account's Drive (the server logs its id).

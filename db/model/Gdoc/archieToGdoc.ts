@@ -371,12 +371,23 @@ function isRequiredRevisionError(error: unknown): boolean {
     return isBadRequest && /required revision/i.test(error.message)
 }
 
+// Google returns no revision id to accounts that can only view the doc
+export class NoEditAccessError extends Error {
+    constructor(readonly documentId: string) {
+        super(
+            `The service account can only view gdoc "${documentId}", not edit it.`
+        )
+        this.name = "NoEditAccessError"
+    }
+}
+
 /**
  * Replaces the content of a Google Doc with ArchieML text, written as-is, in
  * a single batchUpdate. Pass `requiredRevisionId` to refuse the write when the
  * doc has changed since: we compare it with the fetched revision first, and
  * Google checks it again at write time for the race window. Both cases throw
- * a `StaleRevisionError`.
+ * a `StaleRevisionError`. A doc with no revision id, which the service
+ * account can only view, throws a `NoEditAccessError` instead.
  *
  * Returns the revision id of the doc after the write.
  */
@@ -392,6 +403,8 @@ export async function replaceGdocContentWithArchieMlText(
     // No suggestionsViewMode: the indices must match the stored doc that
     // batchUpdate edits, pending suggestions included.
     const { data: document } = await client.documents.get({ documentId })
+    if (requiredRevisionId && !document.revisionId)
+        throw new NoEditAccessError(documentId)
     if (requiredRevisionId && document.revisionId !== requiredRevisionId) {
         throw new StaleRevisionError(
             requiredRevisionId,
