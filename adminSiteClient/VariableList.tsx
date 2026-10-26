@@ -328,7 +328,7 @@ function createColumns<Item extends VariableListItem>({
     fields: VariableListField[]
     searchWords: SearchWord[]
     sortable: boolean
-    selection?: IndicatorSelection<Item>;
+    selection?: IndicatorSelection<Item>
     autoColumnWidths: boolean
 }): TableColumnsType<Item> {
     const shares = columnWidths(fields)
