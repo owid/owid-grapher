@@ -58,12 +58,24 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             entities: ["Africa (WHO)"],
             time: 2020,
         },
+        {
+            // long name, so "(WHO)" can drop to its own line
+            text: "Conflict in several countries held back coverage.",
+            entities: ["Eastern Mediterranean (WHO)"],
+            time: 2020,
+        },
     ],
     // foreign-aid-given-net, where "Non-DAC countries" has a legacy annotation
     1293408: [
         {
             text: "Aid from non-DAC donors rose after the invasion of Ukraine.",
             entities: ["Non-DAC countries"],
+            time: 2022,
+        },
+        {
+            // long name that wraps onto several lines
+            text: "Gavi's disbursements peaked during the COVID-19 vaccine rollout.",
+            entities: ["Global Alliance for Vaccines and Immunization"],
             time: 2022,
         },
     ],
