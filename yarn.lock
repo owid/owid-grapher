@@ -8933,6 +8933,7 @@ __metadata:
     simple-git: "npm:^4.0.2"
     tinyexec: "npm:^1.1.1"
     tinykeys: "npm:^4.0.1"
+    tinypool: "npm:^2.1.2"
     tippy.js: "npm:^6.3.7"
     topojson-server: "npm:^3.0.1"
     ts-pattern: "npm:^5.8.0"
@@ -8945,7 +8946,6 @@ __metadata:
     uuid: "npm:^14.0.0"
     vite: "npm:^8.3.4"
     vitest: "npm:^5.0.5"
-    workerpool: "npm:^10.0.1"
     wrangler: "npm:^4.149.0"
     yaml: "npm:^2.8.3"
     yargs: "npm:^17.7.2"
@@ -13277,6 +13277,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tinypool@npm:^2.1.2":
+  version: 2.2.0
+  resolution: "tinypool@npm:2.2.0"
+  checksum: 10/170460a7dc9c0610ea87731ead55bbb9935bd4793b9d4f0563cf40c1a5f11621b5d37810cc27347815f68e195bf3e758756dc879c6833c91e000dd4179c63375
+  languageName: node
+  linkType: hard
+
 "tinyqueue@npm:^2.0.0":
   version: 2.0.3
   resolution: "tinyqueue@npm:2.0.3"
@@ -14382,13 +14389,6 @@ __metadata:
   bin:
     workerd: bin/workerd
   checksum: 10/a3f128642a561bc19261c4a402f45797e70cc9c26ce46092d2a32a18f057265185bd1f36aeb408305889fb53062130a637ee2c48f562fed5461d2bf4a873a227
-  languageName: node
-  linkType: hard
-
-"workerpool@npm:^10.0.1":
-  version: 10.0.1
-  resolution: "workerpool@npm:10.0.1"
-  checksum: 10/63ff097cf0cd3514b62fe99affa881b4b18e234ad3d10f888f5b646d812e57b145a4a90d766442f0d9f40f7249721a3a1cf687d7677f6816ef9c24e407486f4a
   languageName: node
   linkType: hard
 
