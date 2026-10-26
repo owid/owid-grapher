@@ -54,10 +54,6 @@ export const defaultGrapherConfig = ${JSON.stringify(defaultConfig, undefined, 2
     return formatted.code
 }
 
-export function formatSchemaFileName(version: string): string {
-    return `grapher-schema.${version}.json`
-}
-
 export function serializeJson(value: unknown): string {
     return `${JSON.stringify(value, null, 2)}\n`
 }
