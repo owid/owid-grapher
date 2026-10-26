@@ -4,6 +4,7 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
     SynthesizeProjectedPopulationTable,
+    OwidTable,
 } from "@ourworldindata/core-table"
 import { MapChartManager } from "./MapChartConstants"
 import { MapChart } from "./MapChart"
@@ -15,6 +16,11 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { GrapherState } from "../core/GrapherState"
 import { legacyMapGrapher, legacyMapGrapherData } from "./MapChart.sample"
 import { legacyToOwidTableAndDimensions } from "../core/LegacyToOwidTable"
+import {
+    ColumnTypeNames,
+    DimensionProperty,
+    GRAPHER_TAB_CONFIG_OPTIONS,
+} from "@ourworldindata/types"
 
 const table = SynthesizeGDPTable({
     timeRange: [2000, 2001],
@@ -197,4 +203,58 @@ describe("not applicable entities", () => {
                 expect(pattern).toContain(`fill="${expected}"`)
         }
     )
+})
+
+describe("static SVG export of projected data", () => {
+    it("keeps projected countries' colors as solid fills and leaves them out of the patterns", async () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "year", "population"],
+                ["France", 2030, 100],
+                ["Germany", 2030, 200],
+            ],
+            [
+                {
+                    slug: "population",
+                    type: ColumnTypeNames.Numeric,
+                    display: { isProjection: true },
+                },
+            ]
+        )
+        const grapherState = new GrapherState({
+            table,
+            dimensions: [{ slug: "population", property: DimensionProperty.y }],
+            chartTypes: [],
+            hasMapTab: true,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            map: { columnSlug: "population" },
+        })
+        const svg = await grapherState.generateStaticSvg(renderToStaticMarkup)
+
+        const projectedCountries = grapherState.chartState.series.filter(
+            (series) => ["France", "Germany"].includes(series.seriesName)
+        )
+        expect(projectedCountries).toHaveLength(2)
+
+        // Sanity check: the SVG does draw projected data with patterns
+        const patternContents = [
+            ...svg.matchAll(
+                /<pattern id="projectedDataPattern[^>]*>(.*?)<\/pattern>/g
+            ),
+        ].map((match) => match[1])
+        expect(patternContents.length).toBeGreaterThan(0)
+
+        // Figma drops pattern fills, so a pattern must not paint a color
+        for (const content of patternContents)
+            for (const { color } of projectedCountries)
+                expect(content).not.toContain(color)
+
+        // The country shapes themselves keep the color as a solid fill
+        for (const { seriesName, color } of projectedCountries) {
+            const countryPath = svg.match(
+                new RegExp(`<path id="${seriesName}"[^>]*>`)
+            )![0]
+            expect(countryPath).toContain(`fill="${color}"`)
+        }
+    })
 })

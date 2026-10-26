@@ -10,11 +10,19 @@ import {
     OwidTable,
 } from "@ourworldindata/core-table"
 import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
-import { ColorSchemeName, SeriesStrategy } from "@ourworldindata/types"
+import {
+    ColorSchemeName,
+    ColumnTypeNames,
+    DimensionProperty,
+    GRAPHER_CHART_TYPES,
+    SeriesStrategy,
+} from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { SortBy, SortOrder } from "@ourworldindata/utils"
 import { OwidDistinctColorScheme } from "../color/CustomSchemes"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
+import { renderToStaticMarkup } from "react-dom/server"
+import { GrapherState } from "../core/GrapherState"
 
 function makeDiscreteBarChart(
     table: OwidTable,
@@ -206,5 +214,57 @@ describe("sorting", () => {
             "United States",
             "Sweden",
         ])
+    })
+})
+
+describe("static SVG export of projected data", () => {
+    it("keeps projected bars' colors as solid fills and leaves them out of the stripe patterns", async () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "year", "population"],
+                ["France", 2030, 100],
+                ["Germany", 2030, 200],
+            ],
+            [
+                {
+                    slug: "population",
+                    type: ColumnTypeNames.Numeric,
+                    display: { isProjection: true },
+                },
+            ]
+        )
+        const grapherState = new GrapherState({
+            table,
+            dimensions: [{ slug: "population", property: DimensionProperty.y }],
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+            selectedEntityNames: ["France", "Germany"],
+        })
+        const svg = await grapherState.generateStaticSvg(renderToStaticMarkup)
+
+        const projectedBars = grapherState.chartState.series
+        expect(projectedBars.map((series) => series.seriesName).sort()).toEqual(
+            ["France", "Germany"]
+        )
+
+        // Sanity check: the SVG does draw projected bars with stripes
+        const patternContents = [
+            ...svg.matchAll(
+                /<pattern id="DiscreteBarChart_stripes[^>]*>(.*?)<\/pattern>/g
+            ),
+        ].map((match) => match[1])
+        expect(patternContents.length).toBeGreaterThan(0)
+
+        // Figma drops pattern fills, so a pattern must not paint a color
+        for (const content of patternContents)
+            for (const { color } of projectedBars)
+                expect(content).not.toContain(color)
+
+        // The bars themselves keep the color as a solid fill
+        for (const { seriesName, color } of projectedBars) {
+            const bar = svg.match(
+                new RegExp(`<rect id="${seriesName}"[^>]*>`)
+            )![0]
+            expect(bar).toContain(`fill="${color}"`)
+        }
     })
 })
