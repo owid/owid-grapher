@@ -17,6 +17,8 @@ import { ParsedLabel, parseLabel } from "../core/RegionGroups.js"
 import { FontSettings } from "../core/GrapherConstants.js"
 import { hasTooltipData, TooltipKey } from "./RegionTooltipData.js"
 
+const INFO_ICON_GAP = 4
+
 export interface SeriesLabelAnnotation {
     heading: string
     text: string
@@ -340,6 +342,25 @@ export class SeriesLabelState {
             _.sumBy(line, (fragment) => fragment.width)
         )
         return lineWidths.length > 0 ? Math.max(...lineWidths) : 0
+    }
+
+    @computed get infoIconRadius(): number {
+        return this.options.fontSize / 2
+    }
+
+    @computed get infoIconCenterOffset(): Point {
+        const { contentLines, singleLineHeight, infoIconRadius } = this
+        const lastLine = contentLines[contentLines.length - 1]
+        const lastLineWidth =
+            this.options.textAnchor === "end"
+                ? 0
+                : _.sumBy(lastLine, (fragment) => fragment.width)
+        return {
+            x: lastLineWidth + INFO_ICON_GAP + infoIconRadius,
+            y:
+                (contentLines.length - 1) * singleLineHeight +
+                singleLineHeight / 2,
+        }
     }
 
     @computed get height(): number {

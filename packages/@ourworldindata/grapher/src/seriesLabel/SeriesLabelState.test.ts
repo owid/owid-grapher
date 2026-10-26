@@ -283,4 +283,37 @@ describe(SeriesLabelState, () => {
             "Middle East, North Africa, Afghanistan and Pakistan (WB)"
         )
     })
+
+    describe("infoIconCenterOffset", () => {
+        it("trails a single-line label, centered on it", () => {
+            const label = new SeriesLabelState({
+                text: "United States",
+                maxWidth: Infinity,
+                fontSize: FONT_SIZE,
+            })
+
+            expect(label.infoIconCenterOffset).toEqual({
+                x: label.width + 4 + label.infoIconRadius,
+                y: label.singleLineHeight / 2,
+            })
+        })
+
+        it("trails the last line rather than the widest one", () => {
+            const label = new SeriesLabelState({
+                text: "Latin America and the Caribbean (UN)",
+                maxWidth: 140,
+                fontSize: FONT_SIZE,
+            })
+
+            expect(label.spanLines).toHaveLength(2)
+            const lastFragment = label.positionedFragments.at(-1)!
+            const lastLineWidth = lastFragment.x + lastFragment.width
+            expect(lastLineWidth).toBeLessThan(label.width)
+
+            expect(label.infoIconCenterOffset).toEqual({
+                x: lastLineWidth + 4 + label.infoIconRadius,
+                y: label.singleLineHeight * 1.5,
+            })
+        })
+    })
 })
