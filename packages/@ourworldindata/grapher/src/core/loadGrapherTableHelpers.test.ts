@@ -33,7 +33,7 @@ afterEach(() => {
     vi.restoreAllMocks()
 })
 
-describe("fetchInputTableForConfig", () => {
+describe("fetching a chart's input table from the data API", () => {
     it("sends the given headers with both the data and the metadata request", async () => {
         const requestHeaders = mockDataApi()
 
