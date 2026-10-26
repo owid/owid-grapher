@@ -621,18 +621,23 @@ export class ChoroplethMap extends React.Component<{
                 {this.sortedFeaturesWithProjectedData.map((feature) => {
                     const series = this.choroplethData.get(feature.id)
                     if (!series) return null
-                    return (
-                        <React.Fragment key={feature.id}>
-                            {this.renderCountryWithData(feature, series)}
+                    return this.renderCountryWithData(feature, series)
+                })}
+                <g id={makeFigmaId("projected-data-patterns")}>
+                    {this.sortedFeaturesWithProjectedData.map((feature) => {
+                        const series = this.choroplethData.get(feature.id)
+                        if (!series) return null
+                        return (
                             <ProjectedDataOverlay
+                                key={feature.id}
                                 feature={feature}
                                 series={series}
                                 patternIdSuffix={this.manager.patternIdSuffix}
                                 hover={this.manager.getHoverState?.(feature.id)}
                             />
-                        </React.Fragment>
-                    )
-                })}
+                        )
+                    })}
+                </g>
             </g>
         )
     }
