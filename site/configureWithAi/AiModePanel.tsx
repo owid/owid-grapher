@@ -44,6 +44,7 @@ const SCOPES: { id: Scope; label: string }[] = [
     { id: "site", label: "Across the site" },
 ]
 const SCOPE_STORAGE_KEY = "configure-with-ai:scope"
+const DEFAULT_SCOPE: Scope = "site"
 const MAX_QUERY_LENGTH = 100
 const SLOW_AFTER_SECONDS = 10
 
@@ -86,11 +87,10 @@ function readStoredModel(): ModelId {
 
 function readStoredScope(): Scope {
     try {
-        return localStorage.getItem(SCOPE_STORAGE_KEY) === "site"
-            ? "site"
-            : "page"
+        const stored = localStorage.getItem(SCOPE_STORAGE_KEY)
+        return SCOPES.find((s) => s.id === stored)?.id ?? DEFAULT_SCOPE
     } catch {
-        return "page"
+        return DEFAULT_SCOPE
     }
 }
 
@@ -187,9 +187,9 @@ export function AiModePanel({
     const [isStaff] = useState(shouldShowStaffControls)
     const [storedModel, setModel] = useState<ModelId>(readStoredModel)
     const model = isStaff ? storedModel : DEFAULT_MODEL
-    // Pointing to other pages is a staff-only trial for now
+    // Staff can limit answers to this chart; everyone else gets the default
     const [storedScope, setScope] = useState<Scope>(readStoredScope)
-    const scope = isStaff ? storedScope : "page"
+    const scope = isStaff ? storedScope : DEFAULT_SCOPE
     const isThinking = request.status === "thinking"
     const isIdle = request.status === "idle" || request.status === "stopped"
     const inputRef = useRef<HTMLTextAreaElement>(null)
