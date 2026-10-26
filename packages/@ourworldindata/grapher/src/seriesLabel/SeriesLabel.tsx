@@ -191,6 +191,12 @@ function NativeAlignedLabelText({
                             dy={renderDy}
                             fontWeight={span.fontWeight}
                             fill={colors[span.role]}
+                            // librsvg (Wikimedia's renderer) drops a leading space otherwise
+                            xmlSpace={
+                                span.text.startsWith(" ")
+                                    ? "preserve"
+                                    : undefined
+                            }
                         >
                             {span.text}
                         </tspan>
