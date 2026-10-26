@@ -48,7 +48,6 @@ export function BackgroundCountry<Feature extends RenderFeature>({
 export function CountryWithData<Feature extends RenderFeature>({
     feature,
     series,
-    patternIdSuffix,
     path,
     isSelected = false,
     hover,
@@ -59,7 +58,6 @@ export function CountryWithData<Feature extends RenderFeature>({
 }: {
     feature: Feature
     series: ChoroplethSeries
-    patternIdSuffix?: string
     path?: string
     isSelected?: boolean
     hover?: InteractionState
@@ -68,7 +66,6 @@ export function CountryWithData<Feature extends RenderFeature>({
     onPointerEnter?: (feature: Feature, event: PointerEvent) => void
     onPointerLeave?: (event: PointerEvent) => void
 }): React.ReactElement {
-    const isProjection = series.isProjection
     const isHovered = hover?.active ?? false
 
     const stroke =
@@ -79,9 +76,6 @@ export function CountryWithData<Feature extends RenderFeature>({
     )
     const strokeOpacity = hover?.background ? BLUR_STROKE_OPACITY : 1
 
-    const fill = isProjection
-        ? `url(#${makeProjectedDataPatternId(series.color, { idSuffix: patternIdSuffix })})`
-        : series.color
     const fillOpacity = hover?.background ? BLUR_FILL_OPACITY : 1
 
     return (
@@ -93,11 +87,37 @@ export function CountryWithData<Feature extends RenderFeature>({
             stroke={stroke}
             strokeOpacity={strokeOpacity}
             cursor="pointer"
-            fill={fill}
+            fill={series.color}
             fillOpacity={fillOpacity}
             onClick={(event) => onClick?.(feature, event)}
             onPointerEnter={(e) => onPointerEnter?.(feature, e.nativeEvent)}
             onPointerLeave={(e) => onPointerLeave?.(e.nativeEvent)}
+        />
+    )
+}
+
+/** Dots drawn over a projected country's solid fill */
+export function ProjectedDataOverlay<Feature extends RenderFeature>({
+    feature,
+    series,
+    patternIdSuffix,
+    path,
+    hover,
+}: {
+    feature: Feature
+    series: ChoroplethSeries
+    patternIdSuffix?: string
+    path?: string
+    hover?: InteractionState
+}): React.ReactElement {
+    return (
+        <path
+            id={makeFigmaId(feature.id, "projected-data-pattern")}
+            d={isMapRenderFeature(feature) ? feature.path : path}
+            stroke="none"
+            fill={`url(#${makeProjectedDataPatternId(series.color, patternIdSuffix)})`}
+            fillOpacity={hover?.background ? BLUR_FILL_OPACITY : 1}
+            pointerEvents="none"
         />
     )
 }
@@ -180,47 +200,50 @@ export function ProjectedDataPattern({
     color,
     scale = 1,
     idSuffix,
-    forLegend = false,
 }: {
     color: string
     scale?: number
-    forLegend?: boolean
+    idSuffix?: string
+}): React.ReactElement {
+    const lightness = calculateLightnessScore(color) ?? 0
+    return (
+        <DottedProjectedDataPattern
+            patternId={makeProjectedDataPatternId(color, idSuffix)}
+            scale={scale}
+            dotOpacity={Math.max(1 - lightness, 0.1)}
+        />
+    )
+}
+
+export function ProjectedDataLegendPattern({
+    scale = 1,
+    idSuffix,
+}: {
+    scale?: number
     idSuffix?: string
 }): React.ReactElement {
     return (
         <DottedProjectedDataPattern
-            patternId={makeProjectedDataPatternId(color, {
-                forLegend,
-                idSuffix,
-            })}
-            color={color}
+            patternId={makeProjectedDataLegendPatternId(idSuffix)}
             scale={scale}
-            dotOpacity={forLegend ? 0.2 : undefined}
+            dotOpacity={0.2}
         />
     )
 }
 
 function DottedProjectedDataPattern({
     patternId,
-    color,
+    dotOpacity,
     scale = 1,
     patternSize = 4,
     dotSize = patternSize / 4,
-    dotOpacity,
 }: {
     patternId: string
-    color: string
+    dotOpacity: number
     scale?: number
     patternSize?: number
     dotSize?: number
-    dotOpacity?: number // inferred from color lightness if not provided
 }): React.ReactElement {
-    // Choose the dot opacity based on the lightness of the color:
-    // - If the color is light, make the dots more transparent
-    // - If the color is dark, make the dots more opaque
-    const lightness = calculateLightnessScore(color) ?? 0
-    const opacity = dotOpacity ?? Math.max(1 - lightness, 0.1)
-
     const roundedScale = R.round(scale, 3)
 
     return (
@@ -231,14 +254,12 @@ function DottedProjectedDataPattern({
             height={roundForSvg(patternSize)}
             patternTransform={`rotate(45) scale(${roundedScale})`}
         >
-            <rect width={patternSize} height={patternSize} fill={color} />
-
             <circle
                 cx={roundForSvg(patternSize / 2)}
                 cy={roundForSvg(patternSize / 2)}
                 r={roundForSvg(dotSize)}
                 fill="black"
-                fillOpacity={opacity}
+                fillOpacity={dotOpacity}
             />
         </pattern>
     )
@@ -346,10 +367,11 @@ function getStrokeWidth({
 
 export function makeProjectedDataPatternId(
     color: string,
-    options?: { forLegend?: boolean; idSuffix?: string }
+    idSuffix?: string
 ): string {
-    const prefix = options?.forLegend
-        ? Patterns.projectedDataPatternForLegend
-        : Patterns.projectedDataPattern
-    return makePatternId(`${prefix}_${color}`, options?.idSuffix)
+    return makePatternId(`${Patterns.projectedDataPattern}_${color}`, idSuffix)
+}
+
+export function makeProjectedDataLegendPatternId(idSuffix?: string): string {
+    return makePatternId(Patterns.projectedDataPatternForLegend, idSuffix)
 }

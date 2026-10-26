@@ -75,7 +75,7 @@ import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { match } from "ts-pattern"
 import {
     InapplicablePattern,
-    makeProjectedDataPatternId,
+    makeProjectedDataLegendPatternId,
 } from "./MapComponents"
 import { MapChartState } from "./MapChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
@@ -382,11 +382,11 @@ export class MapChart
             .exhaustive()
     }
 
-    private maybeAddPatternRefToBin<Bin extends ColorScaleBin>(bin: Bin): Bin {
+    private maybeAddPatternRefsToBin<Bin extends ColorScaleBin>(bin: Bin): Bin {
         if (isNoDataBin(bin))
             return new CategoricalBin({
                 ...bin.props,
-                patternRef: makePatternId(
+                fillPatternRef: makePatternId(
                     Patterns.noDataPattern,
                     this.patternIdSuffix
                 ),
@@ -395,31 +395,29 @@ export class MapChart
         if (isInapplicableBin(bin))
             return new CategoricalBin({
                 ...bin.props,
-                patternRef: makePatternId(
+                fillPatternRef: makePatternId(
                     Patterns.inapplicablePattern,
                     this.patternIdSuffix
                 ),
             }) as Bin
 
-        if (isProjectedDataBin(bin)) {
-            const patternRef = makeProjectedDataPatternId(
-                PROJECTED_DATA_LEGEND_COLOR,
-                { forLegend: true, idSuffix: this.patternIdSuffix }
-            )
-            return new CategoricalBin({ ...bin.props, patternRef }) as Bin
-        }
+        const overlayPatternRef = makeProjectedDataLegendPatternId(
+            this.patternIdSuffix
+        )
 
-        if (this.shouldAddProjectionPatternToLegendBins) {
-            const patternRef = makeProjectedDataPatternId(bin.color, {
-                forLegend: true,
-                idSuffix: this.patternIdSuffix,
-            })
+        if (isProjectedDataBin(bin))
+            return new CategoricalBin({
+                ...bin.props,
+                color: PROJECTED_DATA_LEGEND_COLOR,
+                overlayPatternRef,
+            }) as Bin
+
+        if (this.shouldAddProjectionPatternToLegendBins)
             return (
                 bin instanceof CategoricalBin
-                    ? new CategoricalBin({ ...bin.props, patternRef })
-                    : new NumericBin({ ...bin.props, patternRef })
+                    ? new CategoricalBin({ ...bin.props, overlayPatternRef })
+                    : new NumericBin({ ...bin.props, overlayPatternRef })
             ) as Bin
-        }
 
         return bin
     }
@@ -427,7 +425,7 @@ export class MapChart
     @computed get numericLegendData(): ColorScaleBin[] {
         const numericBins = this.legendData
             .filter((bin) => isNumericBin(bin))
-            .map((bin) => this.maybeAddPatternRefToBin(bin))
+            .map((bin) => this.maybeAddPatternRefsToBin(bin))
 
         if (this.hasCategoricalLegendData) return numericBins
 
@@ -435,7 +433,7 @@ export class MapChart
         // "Not applicable") to the numeric legend
         const categoricalBins = this.legendData
             .filter((bin) => isCategoricalBin(bin))
-            .map((bin) => this.maybeAddPatternRefToBin(bin))
+            .map((bin) => this.maybeAddPatternRefsToBin(bin))
 
         return [...categoricalBins, ...numericBins]
     }
@@ -460,7 +458,7 @@ export class MapChart
     @computed get categoricalLegendData(): CategoricalBin[] {
         let categoricalLegendData = this.legendData
             .filter((bin) => isCategoricalBin(bin))
-            .map((bin) => this.maybeAddPatternRefToBin(bin))
+            .map((bin) => this.maybeAddPatternRefsToBin(bin))
 
         // Hide empty bins in thumbnails
         if (
