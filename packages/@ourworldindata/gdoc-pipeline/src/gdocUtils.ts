@@ -16,6 +16,9 @@ import {
 import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
 
+/** Default `change-since` of ranking-cards: compare ranks with 10 years earlier */
+export const DEFAULT_RANKING_CHANGE_SINCE_YEARS = 10
+
 export function spanToSimpleString(s: Span): string {
     return match(s)
         .with({ spanType: "span-simple-text" }, (span) => span.text)
@@ -315,7 +318,10 @@ export function extractFilenamesFromBlock(
                     "topic-page-intro",
                     "data-callout",
                     "data-callout-group",
-                    "country-profile-selector"
+                    "country-profile-selector",
+                    "ranking-cards",
+                    "peer-ranking",
+                    "peer-comparison"
                 ),
             },
             _.noop

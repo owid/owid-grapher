@@ -70,6 +70,9 @@ import { LTPTableOfContents } from "./LTPTableOfContents.js"
 import { DataCallout } from "./DataCallout.js"
 import { DataCalloutGroup } from "./DataCalloutGroup.js"
 import { CountryProfileSelector } from "./CountryProfileSelector.js"
+import { RankingCards } from "./RankingCards.js"
+import { PeerRanking } from "./PeerRanking.js"
+import { PeerComparison } from "./PeerComparison.js"
 
 function ArticleBlockInternal({
     b: rawBlock,
@@ -1106,6 +1109,24 @@ function ArticleBlockInternal({
                 className={getLayout("pull-chart", containerType)}
                 d={block}
                 shouldRenderLinks={shouldRenderLinks}
+            />
+        ))
+        .with({ type: "ranking-cards" }, (block) => (
+            <RankingCards
+                block={block}
+                className={getLayout("ranking-cards", containerType)}
+            />
+        ))
+        .with({ type: "peer-ranking" }, (block) => (
+            <PeerRanking
+                block={block}
+                className={getLayout("peer-ranking", containerType)}
+            />
+        ))
+        .with({ type: "peer-comparison" }, (block) => (
+            <PeerComparison
+                block={block}
+                className={getLayout("peer-comparison", containerType)}
             />
         ))
         .exhaustive()

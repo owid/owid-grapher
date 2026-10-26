@@ -1,5 +1,10 @@
 import * as cheerio from "cheerio"
-import { LinkedCallouts, Span, SpanCallout } from "@ourworldindata/types"
+import {
+    LinkedCallouts,
+    LinkedRankings,
+    Span,
+    SpanCallout,
+} from "@ourworldindata/types"
 import {
     OwidEnrichedGdocBlock,
     checkShouldDataCalloutRender,
@@ -9,10 +14,16 @@ import {
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { htmlToEnrichedBlocks } from "./htmlToEnriched.js"
+import { rankingBlockToText } from "./rankingBlockText.js"
 
 export interface IndexableTextConversionOptions {
     linkedCallouts?: LinkedCallouts
     currentDataCalloutUrl?: string
+    /**
+     * Rankings for ranking-cards, peer-ranking and peer-comparison blocks.
+     * Without them, these blocks are not indexed.
+     */
+    linkedRankings?: LinkedRankings
 }
 
 function resolveSpanCalloutValue(
@@ -203,6 +214,27 @@ export function enrichedBlockToIndexableText(
             })
             .with({ type: "data-callout-group" }, (b): string | undefined =>
                 enrichedBlocksToIndexableText(b.content, options)
+            )
+            .with(
+                {
+                    type: P.union(
+                        "ranking-cards",
+                        "peer-ranking",
+                        "peer-comparison"
+                    ),
+                },
+                (b): string | undefined => {
+                    if (!options?.linkedRankings) return undefined
+                    const text = rankingBlockToText(b, options.linkedRankings)
+                    if (!text) return undefined
+                    return (
+                        joinBlocksAsSentences([
+                            text.heading,
+                            text.subheading,
+                            ...text.lines,
+                        ]) || undefined
+                    )
+                }
             )
             .with({ type: "expandable-paragraph" }, (b): string | undefined =>
                 enrichedBlocksToIndexableText(b.items, options)

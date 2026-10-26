@@ -64,6 +64,9 @@ import {
     RawBlockBespokeComponent,
     RawBlockChartRows,
     RawBlockPullChart,
+    RawBlockRankingCards,
+    RawBlockPeerRanking,
+    RawBlockPeerComparison,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -1069,6 +1072,67 @@ function* rawBlockCountryProfileSelectorToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockRankingCardsToArchieMLString(
+    block: RawBlockRankingCards
+): Generator<string, void, undefined> {
+    yield "{.ranking-cards}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("title", block.value)
+        yield* propertyToArchieMLString("subtitle", block.value)
+        yield* propertyToArchieMLString("sparklines", block.value)
+        yield* propertyToArchieMLString("change-since", block.value)
+        if (block.value.cards) {
+            yield "[.cards]"
+            for (const card of block.value.cards) {
+                // url comes first: ArchieML starts a new array item whenever
+                // the first key of the previous item repeats
+                yield* propertyToArchieMLString("url", card)
+                yield* propertyToArchieMLString("title", card)
+                yield* propertyToArchieMLString("topic", card)
+                yield* propertyToArchieMLString("sort", card)
+                yield* propertyToArchieMLString("column", card)
+            }
+            yield "[]"
+        }
+    }
+    yield "{}"
+}
+
+function* rawBlockPeerRankingToArchieMLString(
+    block: RawBlockPeerRanking
+): Generator<string, void, undefined> {
+    yield "{.peer-ranking}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("url", block.value)
+        yield* propertyToArchieMLString("title", block.value)
+        yield* propertyToArchieMLString("groups", block.value)
+        yield* propertyToArchieMLString("sort", block.value)
+        yield* propertyToArchieMLString("tolerance", block.value)
+        yield* propertyToArchieMLString("column", block.value)
+    }
+    yield "{}"
+}
+
+function* rawBlockPeerComparisonToArchieMLString(
+    block: RawBlockPeerComparison
+): Generator<string, void, undefined> {
+    yield "{.peer-comparison}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("title", block.value)
+        yield* propertyToArchieMLString("groups", block.value)
+        if (block.value.indicators) {
+            yield "[.indicators]"
+            for (const indicator of block.value.indicators) {
+                yield* propertyToArchieMLString("url", indicator)
+                yield* propertyToArchieMLString("title", indicator)
+                yield* propertyToArchieMLString("column", indicator)
+            }
+            yield "[]"
+        }
+    }
+    yield "{}"
+}
+
 function* rawBlockBespokeComponentToArchieMLString(
     block: RawBlockBespokeComponent
 ): Generator<string, void, undefined> {
@@ -1215,6 +1279,12 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with(
             { type: "bespoke-component" },
             rawBlockBespokeComponentToArchieMLString
+        )
+        .with({ type: "ranking-cards" }, rawBlockRankingCardsToArchieMLString)
+        .with({ type: "peer-ranking" }, rawBlockPeerRankingToArchieMLString)
+        .with(
+            { type: "peer-comparison" },
+            rawBlockPeerComparisonToArchieMLString
         )
         .exhaustive()
     yield* content

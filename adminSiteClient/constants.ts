@@ -12,6 +12,7 @@ export const GDOC_DIFF_OMITTABLE_PROPERTIES = [
     "linkedNarrativeCharts",
     "linkedStaticViz",
     "linkedCallouts",
+    "linkedRankings",
 ]
 
 // Version-agnostic catalog paths for the indicators we use as defaults when

@@ -280,6 +280,29 @@ export {
     checkShouldDataCalloutRender,
     getCalloutValue,
 } from "./profiles.js"
+export {
+    type EnrichedBlockWithRankings,
+    type RankingSpec,
+    type LinkedRankingKeyOptions,
+    type RankedRow,
+    type RankSummary,
+    ALL_COUNTRIES_PEER_GROUP_NAMES,
+    WORLD_PEER_GROUP_NAME,
+    NEIGHBOURS_PEER_GROUP_NAME,
+    makeLinkedRankingKey,
+    getEntityCodeFromChartUrl,
+    checkIsPeerGroupName,
+    resolvePeerGroupCodes,
+    defaultPeerGroupsForEntity,
+    rankRows,
+    computeRankSummary,
+    formatOrdinal,
+    checkIsBlockWithRankings,
+    getRankingSpecsForBlock,
+    getLinkedRanking,
+    checkHasEntityRanking,
+    checkShouldRankingBlockRender,
+} from "./rankings.js"
 
 export {
     type PadObject,

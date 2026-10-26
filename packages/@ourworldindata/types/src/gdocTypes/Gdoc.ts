@@ -2,7 +2,9 @@ import {
     GrapherChartOrMapType,
     GrapherTabConfigOption,
     RelatedChart,
+    Time,
 } from "../grapherTypes/GrapherTypes.js"
+import { EntityCode } from "../domainTypes/CoreTableTypes.js"
 import { BespokeMetadata } from "../domainTypes/BespokeMetadata.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { TocHeadingWithSupertitle } from "../domainTypes/Toc.js"
@@ -115,6 +117,50 @@ export interface LinkedCallout {
 
 export type LinkedCallouts = Record<string, LinkedCallout>
 
+/** One country's value in a {@link LinkedRanking}. */
+export interface LinkedRankingRow {
+    /** Entity code of the country, e.g. "DEU" */
+    code: EntityCode
+    value: number
+    /** The time the value is from; may be earlier than the ranking time (tolerance) */
+    time: Time
+    formattedValue: string
+    /** The country's value at the ranking's `prevTime` (within tolerance), if available */
+    prevValue?: number
+}
+
+/**
+ * A linked ranking stores the values of all eligible countries for one
+ * indicator of a chart, so that ranking blocks (ranking-cards, peer-ranking,
+ * peer-comparison) can compute ranks within any peer group on the client.
+ * Rows are unsorted; use computeRankSummary from @ourworldindata/utils.
+ */
+export interface LinkedRanking {
+    /** Key of the chart state the ranking was computed from (see makeCalloutGrapherStateKey) */
+    chartKey: string
+    columnSlug: string
+    /** Indicator display name */
+    title: string
+    unit?: string
+    shortUnit?: string
+    /** Sources line of the indicator */
+    source: string
+    /** The ranking time */
+    time: Time
+    formattedTime: string
+    /** The time used for rank change comparisons (time - changeSinceYears), if any country has data there */
+    prevTime?: Time
+    rows: LinkedRankingRow[]
+    worldValue?: number
+    sparkline?: {
+        entity: [Time, number][]
+        world?: [Time, number][]
+    }
+}
+
+/** Key: makeLinkedRankingKey(url, column, tolerance) from @ourworldindata/utils */
+export type LinkedRankings = Record<string, LinkedRanking>
+
 export enum OwidGdocType {
     Article = "article",
     TopicPage = "topic-page",
@@ -151,6 +197,7 @@ export interface OwidGdocBaseInterface {
     linkedStaticViz?: Record<string, LinkedStaticViz>
     linkedIndicators?: Record<number, LinkedIndicator>
     linkedCallouts?: LinkedCallouts
+    linkedRankings?: LinkedRankings
     imageMetadata?: Record<string, ImageMetadata>
     relatedCharts?: RelatedChart[]
     tags?: MinimalTag[] | null

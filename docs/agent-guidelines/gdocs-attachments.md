@@ -14,6 +14,7 @@ All Google Doc subclasses inherit the attachment workflow from `GdocBase` (`db/m
     - `loadLinkedCharts` → `linkedCharts`: fetches Grapher, Explorer, or MultiDim configs for all linked slugs. (Currently an `O(n)` set of queries; see limitations below.)
     - `loadLinkedIndicators` → `linkedIndicators`: derives indicator metadata for datapage-linked charts.
     - `loadNarrativeChartsInfo` → `linkedNarrativeCharts`: fetches metadata for referenced narrative charts.
+    - `loadAndClearLinkedCallouts` → `linkedCallouts` and `linkedRankings`: chart _data_ for data-callout and ranking blocks (see [Chart data attachments](#chart-data-attachments-linkedcallouts-and-linkedrankings)). The only loader that mutates `content` (it clears callouts without data).
     - Subclass overrides `_loadSubclassAttachments` to append type-specific data (e.g., donor names, homepage metrics, latest insights, author “latest work” tiles).
 3. `validate` runs after attachments are loaded so that missing metadata (images, authors, links, etc.) can trigger contextual errors.
 
@@ -44,6 +45,17 @@ Some pages aggregate attachments from multiple sources before providing them:
 
 Pages that do not rely on Google Docs (e.g., WordPress articles) bypass this system entirely.
 
+## Chart data attachments: `linkedCallouts` and `linkedRankings`
+
+Data-callout blocks (`linkedCallouts`) and ranking blocks — `ranking-cards`, `peer-ranking`, `peer-comparison` (`linkedRankings`) — need values computed from chart data at bake time. Both come from `db/model/Gdoc/dataCallouts.ts`:
+
+- `extractDataCalloutUrls(body)` / `extractRankingSpecs(body)` list what a body needs. Ranking keys come only from `getRankingSpecsForBlock` (`packages/@ourworldindata/utils/src/rankings.ts`), which the site also uses for lookups; specs with the same key are merged (`includeSparkline` OR-ed).
+- Each referenced chart is fetched once (`prepareCalloutTableForUrl` → `PreparedCalloutTable`), keyed by the URL without origin and grapher params, so a chart used by callouts and rankings is shared.
+- `linkedCallouts` are per entity (`constructGrapherValuesJsonFromTable`). `linkedRankings` are entity-independent — all listed countries' values via `computeRankingFromPreparedTable` — except for the optional entity-vs-World sparkline (`computeRankingSparkline`), drawn for the country in the block's URL.
+- `loadAndClearLinkedCallouts(content, { knex | preparedTables, rankingCache })` is the single entry point. Regular gdocs call it with `knex` from `GdocBase.loadState` (and the baker / Algolia indexer call it directly), so articles with a literal country code get both attachments. Profiles skip it in `loadState` (templates contain `$entityCode`) and call it per entity from `instantiateProfileForEntity`.
+- Profile bulk paths (`SiteBaker.bakeCountryProfiles`, Algolia `generateProfileRecords`) call `prepareCalloutTablesForProfile` once per template and pass a `createRankingCache()` per template, so the O(countries) ranking work runs once per chart per template.
+- Ranking blocks are not cleared from `content`; the site hides blocks/cards without data. `checkShouldProfileRender(content, linkedRankings)` treats ranking blocks as data blocks: a profile renders if any callout, callout group or ranking block (`checkShouldRankingBlockRender`) is visible.
+
 ## Subclass-specific Attachments
 
 - **`GdocPost`** uses `_loadSubclassAttachments` to fetch `relatedCharts` when the document contains an “all charts” block and has tags (`db/model/Gdoc/GdocPost.ts:140`). It also exposes parsed FAQ content through `_getSubclassEnrichedBlocks`.
@@ -52,6 +64,7 @@ Pages that do not rely on Google Docs (e.g., WordPress articles) bypass this sys
 - **`GdocAbout`** loads donor names when the document references a donors block (`db/model/Gdoc/GdocAbout.ts:20`).
 - **`GdocAuthor`** retrieves “latest work” cards and associated images (`db/model/Gdoc/GdocAuthor.ts:76`).
 - **`GdocAnnouncement`** currently only inherits the base attachments.
+- **`GdocProfile`** makes `loadAndClearLinkedCallouts` a no-op; `instantiateProfileForEntity` (`db/model/Gdoc/GdocProfile.ts`) loads `linkedCallouts` and `linkedRankings` per entity instead.
 
 ## Limitations and Trade-offs
 

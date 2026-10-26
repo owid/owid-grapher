@@ -238,6 +238,15 @@ import type {
 } from "./archieMLComponents/Video.js"
 
 import type {
+    EnrichedBlockPeerComparison,
+    EnrichedBlockPeerRanking,
+    EnrichedBlockRankingCards,
+    RawBlockPeerComparison,
+    RawBlockPeerRanking,
+    RawBlockRankingCards,
+} from "./archieMLComponents/Rankings.js"
+
+import type {
     RawBlockBespokeComponent,
     EnrichedBlockBespokeComponent,
 } from "./archieMLComponents/BespokeComponent.js"
@@ -306,6 +315,9 @@ export type OwidRawGdocBlock =
     | RawBlockStaticViz
     | RawBlockCountryProfileSelector
     | RawBlockBespokeComponent
+    | RawBlockRankingCards
+    | RawBlockPeerRanking
+    | RawBlockPeerComparison
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -372,6 +384,9 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockStaticViz
     | EnrichedBlockCountryProfileSelector
     | EnrichedBlockBespokeComponent
+    | EnrichedBlockRankingCards
+    | EnrichedBlockPeerRanking
+    | EnrichedBlockPeerComparison
 
 /**
  * A map of all possible block types, with the type as the key and the block type as the value
@@ -435,6 +450,7 @@ export type * from "./archieMLComponents/NumberedList.js"
 export type * from "./archieMLComponents/PeopleRows.js"
 export type * from "./archieMLComponents/PillRow.js"
 export type * from "./archieMLComponents/ProminentLink.js"
+export type * from "./archieMLComponents/Rankings.js"
 export type * from "./archieMLComponents/Recirc.js"
 export type * from "./archieMLComponents/SDGGrid.js"
 export type * from "./archieMLComponents/SDGToc.js"

@@ -72,6 +72,7 @@ import {
 import {
     prepareCalloutTablesForProfile,
     checkShouldProfileRender,
+    createRankingCache,
 } from "../db/model/Gdoc/dataCallouts.js"
 import {
     gdocFromJSON,
@@ -265,6 +266,9 @@ export class SiteBaker {
             )
 
             const renderedCodes: string[] = []
+            // Rankings don't depend on the entity: compute them once per
+            // template and only attach the per-entity sparkline in the loop
+            const rankingCache = createRankingCache()
 
             for (const entity of entities) {
                 await traceJob(
@@ -275,12 +279,13 @@ export class SiteBaker {
                             await instantiateProfileForEntity(
                                 profileTemplate,
                                 entity,
-                                { preparedTables }
+                                { preparedTables, rankingCache }
                             )
 
                         if (
                             !checkShouldProfileRender(
-                                instantiatedProfile.content
+                                instantiatedProfile.content,
+                                instantiatedProfile.linkedRankings
                             )
                         ) {
                             return

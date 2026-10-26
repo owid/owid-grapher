@@ -150,7 +150,8 @@ export class OwidAdminApp {
 
                         if (
                             !checkShouldProfileRender(
-                                instantiatedProfile.content
+                                instantiatedProfile.content,
+                                instantiatedProfile.linkedRankings
                             )
                         ) {
                             res.status(404).send(
