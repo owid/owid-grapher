@@ -74,6 +74,8 @@ function listCatalog(
             variables: dataset.variables.map((variable) => ({
                 id: variable.id,
                 name: variable.name,
+                // tells same-named picks apart in the picker's selected list
+                datasetName: dataset.name,
                 column: { variableId: variable.id },
             })),
         }))

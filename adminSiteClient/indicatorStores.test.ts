@@ -132,7 +132,13 @@ describe("dataApiIndicatorStore with datasets", () => {
             id: 3,
             namespace: "who",
             matchCount: 1,
-            variables: [{ id: 202, column: { variableId: 202 } }],
+            variables: [
+                {
+                    id: 202,
+                    datasetName: "Dataset 3",
+                    column: { variableId: 202 },
+                },
+            ],
         })
     })
 

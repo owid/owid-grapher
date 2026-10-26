@@ -116,7 +116,7 @@ The CSV and table stores offer every data column under "Add indicators", searche
 
 `dataApiIndicatorStore` loads data for any `variableId`, but "Add indicators" only appears when the store knows which indicators to offer. There are two ways to tell it:
 
-- **`datasets`**: a function resolving to `[{ id, name, namespace?, version?, variables: [{ id, name }] }]`. It is called when the picker first opens, and the picker searches the result in the browser by indicator name, eight datasets a page. It suits a few thousand indicators.
+- **`datasets`**: a function resolving to `[{ id, name, namespace?, version?, variables: [{ id, name }] }]`. It is called when the picker first opens, and the picker searches the result in the browser by indicator name. It suits a few thousand indicators.
 
     ```ts
     const store = dataApiIndicatorStore({

@@ -38,6 +38,7 @@ export type {
     CatalogIndicator,
     PickedColumn,
 } from "../../../../adminSiteClient/editorProviders.js"
+export type { SearchFieldHelp } from "../../../../adminShared/variableSearch.js"
 
 export { OwidTable } from "@ourworldindata/core-table"
 export {
