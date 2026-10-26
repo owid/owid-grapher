@@ -204,7 +204,12 @@ function correctLineStartForFigma(
     // Figma styles a whole text node like its first run, so split off the rest
     return [
         positionedFirst,
-        <tspan key="rest" dy={FIGMA_TEXT_NODE_BREAK_DY}>
+        <tspan
+            key="rest"
+            dy={FIGMA_TEXT_NODE_BREAK_DY}
+            // librsvg (Wikimedia's renderer) drops a leading space otherwise
+            xmlSpace="preserve"
+        >
             {rest}
         </tspan>,
     ]
