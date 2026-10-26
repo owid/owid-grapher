@@ -18,5 +18,5 @@ if (typeof import.meta.dirname !== "undefined") {
     } else {
         dotenvPath = [`${baseDir}/.env`]
     }
-    dotenv.config({ path: dotenvPath })
+    dotenv.config({ path: dotenvPath, quiet: true })
 }

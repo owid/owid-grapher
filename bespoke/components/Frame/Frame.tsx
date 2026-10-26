@@ -15,7 +15,7 @@ export function Frame({
     return (
         <div ref={metadataContext?.frameRef} className={cx("frame", className)}>
             {children}
-            {metadataContext?.metadata && (
+            {metadataContext?.hasModal && metadataContext.metadata && (
                 <MetadataModal
                     metadata={metadataContext.metadata}
                     frameRef={metadataContext.frameRef}

@@ -86,8 +86,6 @@ export interface ConfigEditorManager {
     onChange?: (config: GrapherInterface, editor: ConfigEditor) => void
     /** Called when the config gains or loses unsaved changes; each editor starts without any */
     onModifiedChange?: (isModified: boolean) => void
-    /** Offers "Animate chart" on the Export tab of a published chart */
-    chartAnimationUrl?: (canonicalUrl: string | undefined) => string
 
     tabs?: EditorTabName[]
     extraTabs?: EditorExtraTab[]

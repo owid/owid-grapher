@@ -10,6 +10,7 @@ import {
     RawSeries,
 } from "./types.js"
 import { sexFromId } from "./helpers.js"
+import { getBespokeSourceLine } from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 const queryKeys = {
     metadata: () => ["migration", "metadata"],
@@ -28,7 +29,7 @@ export const useMigrationMetadata = (metadataUrl: string) => {
             const raw = (await res.json()) as RawMetadata
             return {
                 times: raw.years,
-                source: raw.source,
+                source: getBespokeSourceLine(raw),
                 entities: raw.dimensions.entities,
                 genders: raw.dimensions.genders,
             }

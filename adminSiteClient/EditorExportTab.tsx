@@ -12,8 +12,7 @@ import { Section, Toggle } from "./Forms.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { ConfigEditor } from "./ConfigEditor.js"
-import { faHatWizard, faDownload } from "@fortawesome/free-solid-svg-icons"
-import { Button } from "antd"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 type ExportSettings = Required<
@@ -216,15 +215,7 @@ export class EditorExportTab extends Component<EditorExportTabProps> {
         }
     }
 
-    @computed private get chartAnimationUrl(): string | undefined {
-        return this.props.editor.manager.chartAnimationUrl?.(
-            this.grapherState.canonicalUrl
-        )
-    }
-
     override render() {
-        const { chartAnimationUrl } = this
-
         return (
             <div className="EditorExportTab">
                 <Section name="Displayed elements">
@@ -329,25 +320,6 @@ export class EditorExportTab extends Component<EditorExportTabProps> {
                         </button>
                     </div>
                 </Section>
-
-                {/* Link to Wizard dataset preview */}
-                {this.grapherState.isPublished && chartAnimationUrl && (
-                    <Section name="Animate chart">
-                        <a
-                            href={chartAnimationUrl}
-                            target="_blank"
-                            className="btn btn-tertiary"
-                            rel="noopener"
-                        >
-                            <Button
-                                type="default"
-                                icon={<FontAwesomeIcon icon={faHatWizard} />}
-                            >
-                                Animate with Wizard
-                            </Button>
-                        </a>
-                    </Section>
-                )}
             </div>
         )
     }

@@ -1,6 +1,10 @@
+import { BespokeMetadata } from "@ourworldindata/types"
+
 export type VariantName = "sankey"
 
 export const SEXES = ["both", "female", "male"] as const
+
+export const DEFAULT_COUNTRY = "United States"
 
 export type Sex = (typeof SEXES)[number]
 
@@ -47,10 +51,9 @@ export const MIGRATION_VIEWS = ["both", "immigrants", "emigrants"] as const
 export type MigrationView = (typeof MIGRATION_VIEWS)[number]
 
 // Raw shape returned by the metadata endpoint.
-export type RawMetadata = {
+export type RawMetadata = Pick<BespokeMetadata, "attribution" | "origins"> & {
     timeRange: { start: number; end: number }
     years: number[]
-    source: string
     dimensions: {
         entities: { id: number; name: string; population: number[] }[]
         genders: { id: number; name: string }[]

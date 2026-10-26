@@ -18,9 +18,8 @@ like to reuse any part of this codebase, please get in touch and we will
 consider your request. See [LICENSE.md](LICENSE.md) for the full terms and
 contact details.
 
-Contributions are welcome and are accepted under our [Contributor
-Agreement](CONTRIBUTOR_AGREEMENT.md); see [CONTRIBUTING.md](CONTRIBUTING.md)
-for details.
+We do not accept external pull requests. Bug reports, suggestions, and feedback
+are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## ✋ Disclaimer
 

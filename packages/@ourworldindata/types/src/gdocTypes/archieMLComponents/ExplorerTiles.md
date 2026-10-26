@@ -9,7 +9,7 @@ subtitle: Interactive visualization tools to explore a wide range of related ind
 url: https://ourworldindata.org/explorers/poverty-explorer
 url: https://ourworldindata.org/explorers/population-and-demography
 url: https://ourworldindata.org/explorers/global-health
-url: https://ourworldindata.org/explorers/energy
+url: https://ourworldindata.org/grapher/energy-mix
 []
 {}
 ```

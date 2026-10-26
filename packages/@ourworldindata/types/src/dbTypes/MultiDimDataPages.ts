@@ -22,3 +22,15 @@ export type DbEnrichedMultiDimDataPage = Omit<
 > & {
     config: MultiDimDataPageConfigEnriched
 }
+
+/**
+ * A published page, which always has a slug. Only queries that filter on both
+ * `published` and a non-null `slug` may return this.
+ */
+export type DbEnrichedPublishedMultiDimDataPage = Omit<
+    DbEnrichedMultiDimDataPage,
+    "slug" | "published"
+> & {
+    slug: string
+    published: true
+}

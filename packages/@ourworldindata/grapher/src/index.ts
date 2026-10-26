@@ -16,6 +16,7 @@ export {
     type FetchInputTableForConfigFn,
 } from "./core/loadGrapherTableHelpers.js"
 export { loadVariableDataAndMetadata } from "./core/loadVariable.js"
+export { shouldShowStaffControls } from "./core/staffControls.js"
 export { applyDimensionDisplayAndConversionFactor } from "./core/applyDisplayAndConversionFactor.js"
 export {
     GRAPHER_ROUTE_FOLDER,
@@ -32,7 +33,6 @@ export {
     GRAPHER_SQUARE_SIZE,
     STATIC_EXPORT_DETAIL_SPACING,
     DEFAULT_GRAPHER_ENTITY_TYPE,
-    CookieKey,
     BASE_FONT_SIZE,
     WORLD_ENTITY_NAME,
     Patterns,
@@ -126,11 +126,15 @@ export {
     type SlideShowManager,
     SlideShowController,
 } from "./slideshowController/SlideShowController"
-export { defaultGrapherConfig } from "./schema/defaultGrapherConfig"
 export {
-    migrateGrapherConfigToLatestVersion,
-    migrateGrapherConfigToLatestVersionAndFailOnError,
-} from "./schema/migrations/migrate"
+    defaultGrapherConfig,
+    latestSchemaVersion,
+} from "./schema/defaultGrapherConfig"
+export { migrateGrapherConfigToLatestVersion } from "./schema/migrations/migrate"
+export {
+    getSchemaVersion,
+    type UntypedGrapherConfig,
+} from "./schema/migrations/helpers"
 export { generateGrapherImageSrcSet } from "./chart/ChartUtils"
 export {
     useMaybeGlobalGrapherStateRef,

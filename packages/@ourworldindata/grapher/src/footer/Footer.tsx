@@ -5,6 +5,7 @@ import {
     Bounds,
     getRelativeMouse,
     makeFigmaId,
+    openLinkInNewTabAttrs,
     Url,
     Point,
 } from "@ourworldindata/utils"
@@ -449,10 +450,7 @@ abstract class AbstractFooter<
                     <>
                         <a
                             href={this.finalUrl}
-                            {...(this.manager.isInIFrame && {
-                                target: "_blank",
-                                rel: "noopener",
-                            })}
+                            {...openLinkInNewTabAttrs(this.manager.isInIFrame)}
                         >
                             {this.finalUrlText}
                         </a>{" "}
@@ -463,10 +461,7 @@ abstract class AbstractFooter<
                     className={this.showsCcLicense ? "cclogo" : undefined}
                     href={this.licenseUrl}
                     style={{ textDecoration: "none" }}
-                    {...(this.manager.isInIFrame && {
-                        target: "_blank",
-                        rel: "noopener",
-                    })}
+                    {...openLinkInNewTabAttrs(this.manager.isInIFrame)}
                 >
                     {this.licenseText}
                 </a>

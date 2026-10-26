@@ -7,6 +7,8 @@
  *     skeleton from sidecars)
  *   - the writing guides reference (one entry per guides/*.md sidecar:
  *     cross-cutting concepts that are neither a block nor a document type)
+ *   - the bespoke viz reference (one entry per bespoke bundle: its variants
+ *     and config keys from code, prose + examples from an optional docs.md)
  *
  * Run:
  *     yarn generateGdocsReferences
@@ -16,11 +18,14 @@
  *     components.registry.generated.json
  *     templates.registry.generated.json
  *     guides.registry.generated.json
+ *     bespoke-viz.registry.generated.json
  *
  * Exits non-zero on: missing sidecar, missing "type:" discriminator, an
  * unrecognized or misspelled sidecar section, missing decision prose, an
- * archie example that fails to parse/validate, or a field description that
- * does not match the content interface. The registries are committed; the
+ * archie example that fails to parse/validate, a field description that
+ * does not match the content interface, or a bespoke bundle whose project
+ * files, VARIANTS/CONFIG_SPEC or docs.md can't be read or don't check out
+ * (see "Bespoke viz pipeline" below). The registries are committed; the
  * "gdocs-references" CI job re-runs this generator and fails the build
  * when the committed output is stale or a sidecar is invalid — run the
  * generator locally and commit the result.
@@ -79,6 +84,26 @@
  *   4. Mentions are harvested from the intro and the notes, the sections a
  *      guide reasons in.
  *
+ * Bespoke viz pipeline:
+ *   1. For each key of BESPOKE_COMPONENT_REGISTRY, read VARIANTS and
+ *      CONFIG_SPEC from bespoke/projects/<key>/src/index.tsx via tsgo AST
+ *      (./bespokeVizReferences.ts) — statically: no bespoke code runs, since
+ *      CI installs only the root dependencies. Identifiers resolve to the
+ *      literals they are bound to (a local const or a named relative
+ *      import); anything else that can't be read as a literal fails the
+ *      build, naming the file and the entry.
+ *   2. Check the declarations and build the entries (./bespokeVizDeclarations.ts):
+ *      descriptions present, variant names unique, config defaults allowed
+ *      by the spec, and every variant's default {.bespoke-component} block
+ *      (bundle, variant and size, no config) validated like an example.
+ *   3. Read the optional bespoke/projects/<key>/docs.md (an intro,
+ *      "## Notes", fenced archie examples; front matter is rejected) with
+ *      the "bundle" kind. Each example must be a single valid block of this
+ *      bundle, with a known variant and allowed config. Without the file the
+ *      prose is empty.
+ *   This pipeline runs before any registry is written, so a bad bundle
+ *   writes nothing.
+ *
  * Completeness is structural: every union member / writable type becomes an
  * entry by iteration, and missing/malformed sidecars fail the build.
  *
@@ -88,7 +113,6 @@
 
 import fs from "fs-extra"
 import path from "path"
-import * as yaml from "yaml"
 
 import { API } from "typescript/unstable/sync"
 import type {
@@ -100,11 +124,8 @@ import type {
     SourceFile,
     TypeAliasDeclaration,
     TypeNode,
-    VariableDeclaration,
 } from "typescript/unstable/ast"
 import {
-    isArrayLiteralExpression,
-    isAsExpression,
     isComputedPropertyName,
     isEnumDeclaration,
     isIdentifier,
@@ -121,13 +142,19 @@ import {
 } from "typescript/unstable/ast/is"
 
 import { splitSidecarProse } from "./sidecarSections.js"
+import { harvestExamples, hasFence } from "./sidecarExamples.js"
 import {
-    assertWellFormedFences,
-    harvestExamples,
-    hasFence,
-} from "./sidecarExamples.js"
+    assertAllowedKeys,
+    constStringArrayValues,
+    inspect,
+    parseOptionalTitle,
+    parseSidecar,
+    toJsonFile,
+} from "./sidecarFiles.js"
 import { validateExample } from "./exampleValidation.js"
 import { parseFieldDescriptions } from "./fieldDescriptions.js"
+import { extractBespokeVizReferences } from "./bespokeVizReferences.js"
+import { BESPOKE_COMPONENT_REGISTRY } from "../../bespoke/shared/bespokeComponentRegistry.js"
 import {
     findBareKnownIds,
     harvestMentions,
@@ -262,13 +289,6 @@ const REGISTRY_OUT_DIR = path.resolve(
     "packages/@ourworldindata/types/src/gdocTypes"
 )
 
-// Trailing newline: without it, any tool that adds one (an editor, a hook)
-// makes the committed file differ from what the generator writes, and the
-// staleness check fails on a file nobody meaningfully changed.
-function toJsonFile(value: unknown): string {
-    return JSON.stringify(value, null, 2) + "\n"
-}
-
 const JSON_OUT = path.join(
     REGISTRY_OUT_DIR,
     "components.registry.generated.json"
@@ -284,6 +304,10 @@ const GUIDES_DIR = path.resolve(
 const GUIDES_JSON_OUT = path.join(
     REGISTRY_OUT_DIR,
     "guides.registry.generated.json"
+)
+const BESPOKE_VIZ_JSON_OUT = path.join(
+    REGISTRY_OUT_DIR,
+    "bespoke-viz.registry.generated.json"
 )
 const UNION_NAME = "OwidEnrichedGdocBlock"
 
@@ -330,23 +354,6 @@ interface TypeIndex {
     interfaces: Map<string, InterfaceDeclaration>
     /** 'const xs = ["a", "b"] as const' arrays backing (typeof xs)[number] aliases */
     constArrays: Map<string, string[]>
-}
-
-// The values of a 'const xs = ["a", "b"] as const' declaration; undefined for
-// any other shape of variable declaration.
-function constStringArrayValues(
-    decl: VariableDeclaration
-): string[] | undefined {
-    const initializer = decl.initializer
-    if (!initializer || !isAsExpression(initializer)) return undefined
-    const expression = initializer.expression
-    if (!isArrayLiteralExpression(expression)) return undefined
-    const values: string[] = []
-    for (const element of expression.elements) {
-        if (!isStringLiteral(element)) return undefined
-        values.push(element.text)
-    }
-    return values
 }
 
 function buildTypeIndex(
@@ -551,38 +558,6 @@ function deriveTitle(aliasName: string): string {
         .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
 }
 
-function parseSidecar(
-    text: string,
-    sidecarPathRel: string
-): { frontMatter: Record<string, unknown>; body: string } {
-    let rest = text
-    let frontMatter: Record<string, unknown> = {}
-    const fmMatch = /^---\r?\n([\s\S]+?)\r?\n---\r?\n/.exec(rest)
-    if (fmMatch) {
-        let parsed: unknown
-        try {
-            parsed = yaml.parse(fmMatch[1])
-        } catch (err) {
-            throw new Error(
-                sidecarPathRel +
-                    " has invalid YAML front matter: " +
-                    (err instanceof Error ? err.message : String(err)),
-                { cause: err }
-            )
-        }
-        if (parsed === null || parsed === undefined) parsed = {}
-        if (typeof parsed !== "object" || Array.isArray(parsed))
-            throw new Error(
-                sidecarPathRel + " front matter is not a YAML mapping"
-            )
-        frontMatter = parsed as Record<string, unknown>
-        rest = rest.slice(fmMatch[0].length)
-    }
-    const body = rest.trim()
-    assertWellFormedFences(body, sidecarPathRel)
-    return { frontMatter, body }
-}
-
 // ---------------------------------------------------------------------------
 // Sidecar front-matter validation
 // ---------------------------------------------------------------------------
@@ -600,37 +575,6 @@ function assertWellFormedSlug(
             file + ": " + what + " must be a gdoc slug, got " + inspect(value)
         )
     return value
-}
-
-function inspect(value: unknown): string {
-    return JSON.stringify(value) ?? String(value)
-}
-
-function assertAllowedKeys(
-    fm: Record<string, unknown>,
-    allowed: string[],
-    file: string
-): void {
-    for (const key of Object.keys(fm)) {
-        if (!allowed.includes(key))
-            throw new Error(
-                file +
-                    ' has unknown front-matter key "' +
-                    key +
-                    '" — allowed: ' +
-                    allowed.join(", ")
-            )
-    }
-}
-
-function parseOptionalTitle(
-    fm: Record<string, unknown>,
-    file: string
-): string | undefined {
-    if (fm.title === undefined) return undefined
-    if (typeof fm.title !== "string" || fm.title.trim().length === 0)
-        throw new Error(file + ": title must be a non-empty string")
-    return fm.title.trim()
 }
 
 interface ComponentFrontMatter {
@@ -1434,6 +1378,13 @@ async function main(): Promise<void> {
         const guides = extractGuideReferences()
         console.log("Extracted " + guides.length + " guide(s).")
 
+        const bespokeViz = extractBespokeVizReferences(
+            Object.keys(BESPOKE_COMPONENT_REGISTRY)
+        )
+        console.log(
+            "Extracted " + bespokeViz.bundles.length + " bespoke bundle(s)."
+        )
+
         // Every fenced example of every kind goes through the real pipeline.
         const failures: string[] = []
         const validateAll = (
@@ -1572,6 +1523,10 @@ async function main(): Promise<void> {
         console.log("Wrote " + path.relative(process.cwd(), TEMPLATES_JSON_OUT))
         await fs.writeFile(GUIDES_JSON_OUT, toJsonFile(guides))
         console.log("Wrote " + path.relative(process.cwd(), GUIDES_JSON_OUT))
+        await fs.writeFile(BESPOKE_VIZ_JSON_OUT, toJsonFile(bespokeViz))
+        console.log(
+            "Wrote " + path.relative(process.cwd(), BESPOKE_VIZ_JSON_OUT)
+        )
     } finally {
         api.close()
     }

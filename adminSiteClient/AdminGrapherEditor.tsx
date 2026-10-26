@@ -4,7 +4,6 @@ import { CATALOG_URL } from "../settings/clientSettings.mjs"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { GrapherEditor, GrapherEditorProps } from "./GrapherEditor.js"
 import {
-    adminChartAnimationUrl,
     adminDetailsProvider,
     adminIndicatorStore,
     adminIndicatorUrl,
@@ -16,7 +15,6 @@ export function AdminGrapherEditor(
         | "store"
         | "details"
         | "catalogUrl"
-        | "chartAnimationUrl"
         | "indicatorUrl"
         | "syncTabWithUrl"
         | "onModifiedChange"
@@ -37,7 +35,6 @@ export function AdminGrapherEditor(
                 store={store}
                 details={details}
                 catalogUrl={CATALOG_URL}
-                chartAnimationUrl={adminChartAnimationUrl}
                 indicatorUrl={adminIndicatorUrl}
                 syncTabWithUrl
                 onModifiedChange={setIsModified}

@@ -1,3 +1,5 @@
+import { BespokeMetadata } from "@ourworldindata/types"
+
 export type VariantName = "pyramid"
 
 export const SHOW_MODES = ["number", "share"] as const
@@ -24,10 +26,12 @@ export interface RawMetadataEntity {
     name: string
 }
 
-export interface RawMigrantDemographicsMetadata {
+export interface RawMigrantDemographicsMetadata extends Pick<
+    BespokeMetadata,
+    "attribution" | "origins"
+> {
     meta: {
         title: string
-        source: string
         unit: string
         note?: string
     }

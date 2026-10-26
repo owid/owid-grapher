@@ -19,7 +19,7 @@ import { CoreColumn } from "@ourworldindata/core-table"
 type TooltipValueType = number | string | undefined
 
 const NO_DATA_LABEL = "No data"
-const NO_DATA_COLOR = "#999"
+export const NO_DATA_COLOR = "#999"
 
 export function TooltipValue({
     label,

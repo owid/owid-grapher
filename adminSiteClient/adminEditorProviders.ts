@@ -10,12 +10,7 @@ import type { OriginUrlSuggestion } from "./ConfigEditor.js"
 import { Dataset, IndicatorCatalogData, Namespace } from "./EditorDatabase.js"
 import { DetailsProvider, IndicatorCatalog } from "./editorProviders.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
-import urljoin from "url-join"
-import {
-    BAKED_BASE_URL,
-    DATA_API_URL,
-    ETL_WIZARD_URL,
-} from "../settings/clientSettings.mjs"
+import { BAKED_BASE_URL, DATA_API_URL } from "../settings/clientSettings.mjs"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
     POPULATION_CATALOG_PATH,
@@ -66,15 +61,6 @@ export function adminIndicatorStore(admin: Admin): IndicatorStore {
         dataApiUrl: DATA_API_URL,
         catalog: adminIndicatorCatalog(admin),
     })
-}
-
-export function adminChartAnimationUrl(
-    canonicalUrl: string | undefined
-): string {
-    const url = new URL(urljoin(ETL_WIZARD_URL, "chart-animation"))
-    if (canonicalUrl) url.searchParams.set("animation_chart_url", canonicalUrl)
-    url.searchParams.set("animation_skip_button", "True")
-    return url.toString()
 }
 
 /** Details on demand from the admin API */

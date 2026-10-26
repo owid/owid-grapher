@@ -231,8 +231,8 @@
     background-color: $gray-90;
     color: white;
     border-radius: 4px;
-    font-size: 12px;
-    line-height: 16px;
+    // tippy portals into <body>, so it doesn't inherit grapher's font on pages that don't set it globally
+    font: 400 12px/16px $sans-serif-font-stack;
     padding: 8px;
 
     .tippy-content {

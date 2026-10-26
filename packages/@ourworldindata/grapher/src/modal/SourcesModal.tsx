@@ -12,6 +12,7 @@ import {
     IndicatorTitleWithFragments,
     joinTitleFragments,
     getIndicatorCitations,
+    openLinkInNewTabAttrs,
 } from "@ourworldindata/utils"
 import {
     IndicatorSources,
@@ -58,6 +59,7 @@ export interface SourcesModalManager {
     frameBounds?: Bounds
     base: React.RefObject<HTMLDivElement | null>
     isEmbeddedInADataPage?: boolean
+    isInIFrame?: boolean
     isNarrow?: boolean
     fontSize?: number
 }
@@ -207,6 +209,7 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
                 isEmbeddedInADataPage={
                     this.manager.isEmbeddedInADataPage ?? false
                 }
+                openLinksInNewTab={this.manager.isInIFrame}
             />
         )
     }
@@ -374,6 +377,7 @@ interface SourceProps {
     title?: string
     editBaseUrl?: string
     isEmbeddedInADataPage?: boolean
+    openLinksInNewTab?: boolean
 }
 
 @observer
@@ -502,7 +506,10 @@ export class Source extends React.Component<SourceProps> {
                     </>
                 )}
                 {this.editUrl && (
-                    <a href={this.editUrl}>
+                    <a
+                        href={this.editUrl}
+                        {...openLinkInNewTabAttrs(this.props.openLinksInNewTab)}
+                    >
                         <FontAwesomeIcon icon={faPencilAlt} />
                     </a>
                 )}
@@ -516,7 +523,10 @@ export class Source extends React.Component<SourceProps> {
                 {this.renderTitle()}
                 {this.descriptionBelowTitle && (
                     <div className="description-below-title">
-                        <SimpleMarkdownText text={this.descriptionBelowTitle} />
+                        <SimpleMarkdownText
+                            text={this.descriptionBelowTitle}
+                            openLinksInNewTab={this.props.openLinksInNewTab}
+                        />
                     </div>
                 )}
                 <SourcesKeyDataTable
@@ -529,6 +539,7 @@ export class Source extends React.Component<SourceProps> {
                     link={this.source.link}
                     unitConversionFactor={this.column.unitConversionFactor}
                     isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
+                    openLinksInNewTab={this.props.openLinksInNewTab}
                 />
                 {this.showDescriptions && (
                     <SourcesDescriptions
@@ -543,6 +554,7 @@ export class Source extends React.Component<SourceProps> {
                         }
                         additionalInfo={this.source.additionalInfo}
                         isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
+                        openLinksInNewTab={this.props.openLinksInNewTab}
                     />
                 )}
                 {!this.hideSourcesForDisplay &&
@@ -557,6 +569,7 @@ export class Source extends React.Component<SourceProps> {
                                 isEmbeddedInADataPage={
                                     this.props.isEmbeddedInADataPage
                                 }
+                                openLinksInNewTab={this.props.openLinksInNewTab}
                             />
                         </>
                     )}
@@ -565,6 +578,7 @@ export class Source extends React.Component<SourceProps> {
                 </h3>
                 <IndicatorProcessing
                     descriptionProcessing={this.def.descriptionProcessing}
+                    openLinksInNewTab={this.props.openLinksInNewTab}
                 />
                 <h3 className="heading heading--tight">
                     How to cite this data:

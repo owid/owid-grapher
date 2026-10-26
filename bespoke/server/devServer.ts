@@ -9,7 +9,7 @@
  * Visiting / lists all available projects, /__all stacks every project's demo page.
  *
  * Usage:  npx tsx devServer.ts
- * Port:   defaults to 8089, override with PORT env var
+ * Port:   BESPOKE_PORT (from the env or .env), defaults to 8089; PORT still works as a fallback
  *
  * NOTE that this file has been fully written by Claude Code, and is therefore not very understandable.
  */
@@ -27,10 +27,17 @@ import util from "node:util"
 // repo's .env, which is what gives a staging server's demo pages that environment's own feed.
 import { escapeJSONStringForInlineScript } from "@ourworldindata/utils"
 
-import { BESPOKE_DATA_URL } from "../../settings/clientSettings.mjs"
+import {
+    BESPOKE_DATA_URL,
+    BESPOKE_PORT,
+} from "../../settings/clientSettings.mjs"
 
 const dirname = import.meta.dirname
-const PORT = parseInt(process.env.PORT ?? "8089", 10)
+// PORT is the older override; BESPOKE_PORT wins, since it's what the rest of the dev setup reads
+const PORT =
+    !process.env.BESPOKE_PORT && process.env.PORT
+        ? parseInt(process.env.PORT, 10)
+        : BESPOKE_PORT
 const PROJECTS_DIR = path.resolve(dirname, "..", "projects")
 const hostname = os.hostname()
 const BUILD_MODE = process.argv.includes("--build")

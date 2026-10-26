@@ -10,22 +10,24 @@ import {
     MultipleOwidVariableDataDimensionsMap,
     DbChartTagJoin,
     getParentIndicatorIdFromChartConfig,
+    KEYS_EXCLUDED_FROM_INHERITANCE,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
     RelatedChart,
     DbPlainChart,
-    parseChartConfig,
     ChartRedirect,
     DbPlainTag,
     DbRawChartConfig,
     DbEnrichedChartConfig,
     GrapherChartType,
     RelatedChartsTableName,
+    type LiteralsOnly,
 } from "@ourworldindata/types"
-import { OpenAI } from "openai"
-import { zodResponseFormat } from "openai/helpers/zod"
-import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
+import { parseAndMigrateChartConfig } from "./ChartConfigs.js"
+import type Anthropic from "@anthropic-ai/sdk"
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod"
+import { getAnthropicClient } from "../../serverUtils/anthropic.js"
 import * as z from "zod"
 
 // Only considers published charts, because only in that case the mapping slug -> id is unique
@@ -97,7 +99,7 @@ export async function mapSlugsToConfigs(
         .then((results) =>
             results.map((result) => ({
                 ...result,
-                config: JSON.parse(result.config),
+                config: parseAndMigrateChartConfig(result.config),
             }))
         )
 }
@@ -142,7 +144,10 @@ export async function getEnrichedChartBySlug(
 
     if (!chart) return null
 
-    const enrichedChart = { ...chart, config: parseChartConfig(chart.config) }
+    const enrichedChart = {
+        ...chart,
+        config: parseAndMigrateChartConfig(chart.config),
+    }
 
     return enrichedChart
 }
@@ -201,7 +206,7 @@ export async function getPatchConfigByChartId(
         [id]
     )
     if (!chart) return undefined
-    return parseChartConfig(chart.config)
+    return parseAndMigrateChartConfig(chart.config)
 }
 
 export async function getEnrichedChartById(
@@ -212,7 +217,7 @@ export async function getEnrichedChartById(
 > {
     const rawChart = await getRawChartById(knex, id)
     if (!rawChart) return null
-    return { ...rawChart, config: parseChartConfig(rawChart.config) }
+    return { ...rawChart, config: parseAndMigrateChartConfig(rawChart.config) }
 }
 
 export async function getEnrichedChartsByIds(
@@ -222,7 +227,7 @@ export async function getEnrichedChartsByIds(
     const charts = await getRawChartsByIds(knex, ids)
     return charts.map((rawChart) => ({
         ...rawChart,
-        config: parseChartConfig(rawChart.config),
+        config: parseAndMigrateChartConfig(rawChart.config),
     }))
 }
 
@@ -273,7 +278,7 @@ export const getChartConfigById = async (
     return {
         id: grapher.id,
         forceDatapage: Boolean(grapher.forceDatapage),
-        config: parseChartConfig(grapher.config),
+        config: parseAndMigrateChartConfig(grapher.config),
     }
 }
 
@@ -313,7 +318,7 @@ export async function getChartConfigBySlug(
 
     if (!row) throw new JsonError(`No chart found for slug ${slug}`, 404)
 
-    return { id: row.id, config: parseChartConfig(row.config) }
+    return { id: row.id, config: parseAndMigrateChartConfig(row.config) }
 }
 
 export async function getForceDatapageByChartId(
@@ -469,11 +474,14 @@ export async function assignTagsForCharts(
     }
 }
 
-export async function getGptTopicSuggestions(
+const TOPIC_SUGGESTION_MODEL =
+    "claude-haiku-5-5" satisfies LiteralsOnly<Anthropic.Model>
+
+export async function getTopicSuggestions(
     knex: db.KnexReadonlyTransaction,
     chartId: number
 ): Promise<Pick<DbPlainTag, "id" | "name">[]> {
-    if (!OPENAI_API_KEY) throw new JsonError("No OPENAI_API_KEY env found", 500)
+    const client = getAnthropicClient()
 
     const chartConfigOnly = await db.knexRawFirst<{ config: string }>(
         knex,
@@ -487,7 +495,9 @@ export async function getGptTopicSuggestions(
     )
     if (!chartConfigOnly)
         throw new JsonError(`No chart found for id ${chartId}`, 404)
-    const enrichedChartConfig = parseChartConfig(chartConfigOnly.config)
+    const enrichedChartConfig = parseAndMigrateChartConfig(
+        chartConfigOnly.config
+    )
 
     const topics = await db.getAllTopicTags(knex)
 
@@ -521,18 +531,17 @@ export async function getGptTopicSuggestions(
 
             Select the one or two categories you think best describe the chart.`
 
-    const openai = new OpenAI({
-        apiKey: OPENAI_API_KEY,
-    })
-    const completion = await openai.chat.completions.parse({
+    const message = await client.messages.parse({
+        model: TOPIC_SUGGESTION_MODEL,
+        // The model thinks before answering, which counts toward the cap.
+        max_tokens: 4000,
         messages: [{ role: "user", content: prompt }],
-        model: "gpt-5-mini",
-        response_format: zodResponseFormat(TopicsResponseSchema, "topics"),
+        output_config: { format: zodOutputFormat(TopicsResponseSchema) },
     })
 
-    const parsedResponse = completion.choices[0].message.parsed
+    const parsedResponse = message.parsed_output
     if (!parsedResponse?.topics?.length)
-        throw new JsonError("No response from GPT", 500)
+        throw new JsonError("No topic suggestions from the model", 500)
 
     // We only want to return topics that are in the list of possible topics
     const confirmedTopics = topics.filter((topic) =>
@@ -546,6 +555,7 @@ export async function getGptTopicSuggestions(
 
 export interface OldChartFieldList {
     id: number
+    configId: string
     title: string
     slug: string
     type?: string
@@ -565,10 +575,22 @@ export interface OldChartFieldList {
     narrativeChartsCount: number
     referencesCount: number
     isExplorable: boolean
+    etlConfigCatalogPath: string | null
+    isEtlManaged: boolean
+    // The remaining etl* fields are NULL unless the chart is ETL-managed.
+    // JSON array of the top-level fields the admin patch overrides
+    etlOverriddenFields: string | null
+    etlSlug: string | null
 }
+
+// JSON paths of the keys every admin patch carries, overridden or not
+const nonOverrideJsonPaths = KEYS_EXCLUDED_FROM_INHERITANCE.map(
+    (key) => `'$."${key}"'`
+).join(", ")
 
 export const oldChartFieldList = `
         charts.id,
+        charts.configId,
         chart_configs.config->>"$.title" AS title,
         chart_configs.config->>"$.slug" AS slug,
         chart_configs.chartType AS type,
@@ -586,7 +608,19 @@ export const oldChartFieldList = `
         publishedByUser.fullName AS publishedBy,
         round(agv.views_365d / 365, 1) as grapherViewsPerDay,
         crv.narrativeChartsCount,
-        crv.referencesCount
+        crv.referencesCount,
+        charts.etlConfigCatalogPath,
+        charts.patchConfigIdETL IS NOT NULL AS isEtlManaged,
+        IF(charts.patchConfigIdETL IS NULL, NULL, (
+            SELECT JSON_KEYS(JSON_REMOVE(cc_patch.config, ${nonOverrideJsonPaths}))
+            FROM chart_configs cc_patch
+            WHERE cc_patch.id = charts.patchConfigId
+        )) AS etlOverriddenFields,
+        IF(charts.patchConfigIdETL IS NULL, NULL, (
+            SELECT cc_etl.slug
+            FROM chart_configs cc_etl
+            WHERE cc_etl.id = charts.patchConfigIdETL
+        )) AS etlSlug
     `
 // TODO: replace this with getBySlug and pick
 

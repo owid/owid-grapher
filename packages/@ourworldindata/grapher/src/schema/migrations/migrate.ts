@@ -3,10 +3,10 @@ import { GrapherInterface } from "@ourworldindata/types"
 
 import { defaultGrapherConfig } from "../defaultGrapherConfig"
 import {
-    hasValidSchema,
+    hasKnownSchemaVersion,
     getSchemaVersion,
     isOutdatedVersion,
-    type AnyConfig,
+    type UntypedGrapherConfig,
 } from "./helpers"
 import { runMigration } from "./migrations"
 import * as Sentry from "@sentry/browser"
@@ -21,17 +21,17 @@ import * as Sentry from "@sentry/browser"
  * Note that the given config is not actually validated against the schema!
  */
 export const migrateGrapherConfigToLatestVersion = (
-    config: AnyConfig
+    config: UntypedGrapherConfig
 ): GrapherInterface => {
-    if (config.$schema === undefined) throw new Error("Schema missing")
-
     const clone = _.cloneDeep(config)
-    if (hasValidSchema(clone)) {
+    if (hasKnownSchemaVersion(clone)) {
         let version = getSchemaVersion(clone)
         while (isOutdatedVersion(version))
             version = runMigration(clone, version)
         return clone
     }
+
+    if (clone.$schema === undefined) return clone
 
     /**
      * If the schema version is not outdated and not the latest, we have most likely received a
@@ -46,17 +46,4 @@ export const migrateGrapherConfigToLatestVersion = (
     Sentry.captureMessage(message, { level: "warning" })
 
     return clone
-}
-
-export const migrateGrapherConfigToLatestVersionAndFailOnError = (
-    config: AnyConfig
-): GrapherInterface => {
-    const migrated = migrateGrapherConfigToLatestVersion(config)
-
-    if (migrated.$schema !== defaultGrapherConfig.$schema) {
-        throw new Error(
-            `Invalid schema version after schema migration: ${migrated.$schema}. Expected: ${defaultGrapherConfig.$schema}`
-        )
-    }
-    return migrated
 }

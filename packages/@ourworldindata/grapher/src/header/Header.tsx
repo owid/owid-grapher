@@ -6,6 +6,7 @@ import {
     makeFigmaId,
     Bounds,
     FontFamily,
+    openLinkInNewTabAttrs,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -323,8 +324,12 @@ abstract class AbstractHeader<
     private renderTitle(): React.ReactElement {
         const { manager } = this
 
-        // Avoid linking to a grapher/data page when we're already on it
-        if (manager.isOnCanonicalUrl && !this.manager.isInIFrame) {
+        // Avoid linking to a grapher/data page when there is none, or when
+        // we're already on it
+        if (
+            !manager.canonicalUrl ||
+            (manager.isOnCanonicalUrl && !manager.isInIFrame)
+        ) {
             return (
                 <h1 style={this.titleStyle} aria-label={this.titleAriaLabel}>
                     <MarkdownTextWrapHtml textWrap={this.title} />
@@ -338,10 +343,7 @@ abstract class AbstractHeader<
                 <a
                     href={manager.canonicalUrl}
                     data-track-note="chart_click_title"
-                    {...(manager.isInIFrame && {
-                        target: "_blank",
-                        rel: "noopener",
-                    })}
+                    {...openLinkInNewTabAttrs(manager.isInIFrame)}
                 >
                     <h1
                         style={this.titleStyle}
@@ -360,10 +362,7 @@ abstract class AbstractHeader<
                     href={manager.canonicalUrl}
                     data-track-note="chart_click_title"
                     aria-label={this.titleAriaLabel}
-                    {...(manager.isInIFrame && {
-                        target: "_blank",
-                        rel: "noopener",
-                    })}
+                    {...openLinkInNewTabAttrs(manager.isInIFrame)}
                 >
                     <MarkdownTextWrapHtml textWrap={this.title} />
                 </a>
@@ -460,10 +459,7 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
                             fontFamily:
                                 "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
                         }}
-                        {...(manager.isInIFrame && {
-                            target: "_blank",
-                            rel: "noopener",
-                        })}
+                        {...openLinkInNewTabAttrs(manager.isInIFrame)}
                     >
                         <MarkdownTextWrapSvg
                             textWrap={title}

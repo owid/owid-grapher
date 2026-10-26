@@ -13,6 +13,8 @@ import { useEmbedConfig } from "../../hooks/useEmbedConfig.js"
 
 interface BespokeMetadataContextValue {
     metadata?: BespokeMetadata
+    /** False when the embedding page shows the metadata itself, as a featured viz page does */
+    hasModal: boolean
     isModalOpen: boolean
     openModal: () => void
     closeModal: () => void
@@ -39,7 +41,8 @@ export function BespokeMetadataProvider({
 
     const value = useMemo(
         () => ({
-            metadata: hideMetadataModal ? undefined : metadata,
+            metadata,
+            hasModal: !!metadata && !hideMetadataModal,
             isModalOpen,
             openModal,
             closeModal,

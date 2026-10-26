@@ -144,8 +144,6 @@ export const GDOCS_PRIVATE_KEY: string = (
     .replaceAll('"', "")
     .replaceAll("'", "")
 export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
-export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
-    serverSettings.GDOCS_BACKPORTING_TARGET_FOLDER ?? ""
 
 export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
     serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ?? ""
@@ -217,13 +215,16 @@ export const BUILDKITE_BRANCH: string =
 export const BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL: string =
     serverSettings.BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL || "C06EWA0DK4H" // #content-updates
 
-export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
+export const ANTHROPIC_API_KEY: string = serverSettings.ANTHROPIC_API_KEY ?? ""
 
 export const SLACK_BOT_OAUTH_TOKEN: string =
     serverSettings.SLACK_BOT_OAUTH_TOKEN ?? ""
 
 export const SLACK_ALGOLIA_INDEXING_CHANNEL_ID: string =
     serverSettings.SLACK_ALGOLIA_INDEXING_CHANNEL_ID ?? ""
+
+export const SLACK_CONFIG_VALIDATION_CHANNEL_ID: string =
+    serverSettings.SLACK_CONFIG_VALIDATION_CHANNEL_ID ?? "C5JJW19PS" // #developers-errors-server
 
 export const LEGACY_WORDPRESS_IMAGE_URL: string =
     serverSettings.LEGACY_WORDPRESS_IMAGE_URL ??

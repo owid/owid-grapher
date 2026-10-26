@@ -40,3 +40,15 @@ export function formatEntityNameForSentence(
         return entityName.charAt(0).toLowerCase() + entityName.slice(1)
     return articulateEntity(entityName)
 }
+
+export function pickAvailableEntityName(
+    entityName: string,
+    fallbacks: readonly string[],
+    hasEntity: (name: string) => boolean
+): string {
+    return (
+        [entityName, ...fallbacks].find(hasEntity) ??
+        fallbacks.at(-1) ??
+        entityName
+    )
+}

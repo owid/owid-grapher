@@ -130,5 +130,6 @@ After enrichment and validation, `upsertGdoc` serialises the enriched content to
 7. **Document the block in the writing reference** — this requires a `.md` sidecar, a category entry, and regenerated registries, all of which are checked during the build; see `docs/gdocs-writing-reference.md` for the steps (same for new front-matter fields).
 8. Cover the new behaviour with unit tests in `packages/@ourworldindata/gdoc-pipeline/src/gdocTests.test.ts`. Optionally add an author-facing text-expansion snippet to `types/src/gdocTypes/raycastSnippets.json`.
 9. Consider whether Gdoc subclasses need additional enrichment, validation, or derived metadata.
+10. **Flag that a new `@ourworldindata/gdoc-pipeline` release is needed.** The [gdocs-chrome-extension](https://github.com/owid/gdocs-chrome-extension) consumes the published npm package, so new or changed components (and any change to the package's exported functions) only reach it after a release. Tell the user; the release steps are in the package's `readme.md`.
 
 By following these steps we keep the ingestion pipeline deterministic while preserving the rich authoring experience our authors expect inside Google Docs.

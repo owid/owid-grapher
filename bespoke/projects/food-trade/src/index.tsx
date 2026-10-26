@@ -1,18 +1,19 @@
 import { createRoot } from "react-dom/client"
 import { enableShadowDOM } from "@react-stately/flags"
 
-import { VariantName } from "./core/types.js"
-import { parseConfig } from "./core/config.js"
+import { ALL_COUNTRIES } from "./core/helpers.js"
+import { FLOWS, VariantName } from "./core/types.js"
 import { SankeyVariant } from "./variants/SankeyVariant"
 
 import type {
     BespokeComponentMountFn,
     BespokeComponentMountOpts,
     BespokeComponentVariantsList,
+    BespokeConfigSpec,
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
-import { parseEmbedConfig } from "../../../helpers/config.js"
+import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
 
 import "./index.scss"
 
@@ -21,8 +22,59 @@ import "./index.scss"
 enableShadowDOM()
 
 export const VARIANTS = [
-    { name: "sankey", component: SankeyVariant, demoConfig: {} },
+    {
+        name: "sankey",
+        description:
+            "Sankey of which countries trade one food product with each other",
+        component: SankeyVariant,
+    },
 ] satisfies BespokeComponentVariantsList<VariantName>
+
+export const CONFIG_SPEC = {
+    title: {
+        type: "string",
+        description:
+            "Chart title, replacing the generated one. Also hides the heading and controls",
+    },
+    subtitle: {
+        type: "string",
+        description:
+            "Chart subtitle, replacing the generated one. Also hides the heading and controls",
+    },
+    product: {
+        type: "string",
+        default: "Maize",
+        description: "Food product shown first",
+    },
+    country: {
+        type: "string",
+        default: ALL_COUNTRIES,
+        description:
+            "Country shown first, or All countries if the data doesn't have it. `userLocation` picks the reader's country",
+    },
+    flow: {
+        type: "enum",
+        values: FLOWS,
+        default: "both",
+        description:
+            "Trade direction shown first. Ignored when the country is All countries",
+    },
+    hideControls: {
+        type: "boolean",
+        description:
+            "Hide the heading and the product, country and flow controls",
+    },
+    hideHeading: {
+        type: "boolean",
+        description: "Hide the heading above the controls",
+    },
+    hideFlowSwitcher: {
+        type: "boolean",
+        description: "Hide the switch between imports, exports and both",
+    },
+} as const satisfies BespokeConfigSpec
+
+export type FoodTradeConfig = ConfigFromSpec<typeof CONFIG_SPEC>
 
 export const mount: BespokeComponentMountFn = (
     container: HTMLDivElement,
@@ -42,11 +94,8 @@ export const mount: BespokeComponentMountFn = (
 
     const urls = { dataUrl: opts.dataUrl, metadataUrl: opts.metadataUrl }
 
-    const rawConfig = opts.config ?? {}
-    const config = {
-        ...parseConfig(rawConfig),
-        ...parseEmbedConfig(rawConfig),
-    }
+    const authoredConfig = opts.config ?? {}
+    const config = parseConfigFromSpec(CONFIG_SPEC, authoredConfig)
 
     const root = createRoot(container)
     root.render(

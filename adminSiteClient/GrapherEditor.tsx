@@ -26,13 +26,13 @@ export interface GrapherEditorProps {
     onSave: ConfigEditorManager["onSave"]
     onChange?: ConfigEditorManager["onChange"]
     onModifiedChange?: ConfigEditorManager["onModifiedChange"]
-    chartAnimationUrl?: ConfigEditorManager["chartAnimationUrl"]
 
     /** Default editor tabs to show */
     tabs?: EditorTabName[]
     /** Tabs provided by the the host */
     extraTabs?: EditorExtraTab[]
     previewUrl?: string
+    renderPreviewHeader?: ChartEditorViewManager["renderPreviewHeader"]
     renderSaveButtons?: ConfigEditorManager["renderSaveButtons"]
 
     renderNote?: ConfigEditorManager["renderNote"]
@@ -94,10 +94,6 @@ export class GrapherEditor
         return this.props.onModifiedChange
     }
 
-    get chartAnimationUrl(): ConfigEditorManager["chartAnimationUrl"] {
-        return this.props.chartAnimationUrl
-    }
-
     get tabs(): EditorTabName[] | undefined {
         return this.props.tabs
     }
@@ -112,6 +108,10 @@ export class GrapherEditor
 
     get previewUrl(): string | undefined {
         return this.props.previewUrl
+    }
+
+    get renderPreviewHeader(): ChartEditorViewManager["renderPreviewHeader"] {
+        return this.props.renderPreviewHeader
     }
 
     get renderNote(): ConfigEditorManager["renderNote"] {

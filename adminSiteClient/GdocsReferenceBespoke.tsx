@@ -1,0 +1,615 @@
+import { useState } from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCode, faPenToSquare } from "@fortawesome/free-solid-svg-icons"
+import type {
+    BespokeVizRegistry,
+    BespokeVizUsage,
+    BundleConfigField,
+    BundleReference,
+    BundleUsage,
+    ComponentInstance,
+} from "@ourworldindata/types"
+import { Link } from "./Link.js"
+import { GdocsReferenceExample } from "./GdocsReferenceExample.js"
+import {
+    GdocsReferenceMarkdown,
+    InlineMarkdownText,
+    TitleFor,
+} from "./GdocsReferenceMarkdown.js"
+import {
+    FormCardHeader,
+    InstanceProvenance,
+    Pager,
+    ValueChips,
+} from "./GdocsReferenceLive.js"
+import { BESPOKE_COMPONENT_ID } from "./gdocsReferenceNav.js"
+import {
+    BundleVariantEntry,
+    bundleUsageLabel,
+    githubBlobUrl,
+    githubEditUrl,
+    instancePreviewPath,
+    orderBundleVariants,
+    sortBundlesByUse,
+    useAdminJson,
+} from "./gdocsReferenceLiveHelpers.js"
+
+/**
+ * The bespoke component's own pages in the writing reference. A bespoke
+ * block embeds one of the bundles the dev team built, so its reference page
+ * lists those bundles rather than the raw forms of the block.
+ */
+
+const REGISTRY_PATH = "/api/gdocs-reference/bespoke-viz.json"
+const USAGE_PATH = "/api/gdocs-reference/bespoke-viz/usage.json"
+
+const COMPONENT_PAGE_PATH = `/gdocs-reference/components/${BESPOKE_COMPONENT_ID}`
+
+const bundlePagePath = (bundleId: string): string =>
+    `${COMPONENT_PAGE_PATH}/${bundleId}`
+
+// Preview paths, without /admin (GdocsReferenceExample adds it)
+const bundlePreviewPath = (bundleId: string): string =>
+    `/gdocs-reference/bespoke-viz/${encodeURIComponent(bundleId)}/preview`
+
+const variantPreviewPath = (bundleId: string, variantName: string): string =>
+    `${bundlePreviewPath(bundleId)}?variant=${encodeURIComponent(variantName)}`
+
+const examplePreviewPath = (bundleId: string, exampleIndex: number): string =>
+    `${bundlePreviewPath(bundleId)}?example=${exampleIndex}`
+
+/** "Bundles" — every bundle of the registry, most used first. */
+export function BespokeBundleIndex(): React.ReactElement {
+    const registry = useAdminJson<BespokeVizRegistry>(REGISTRY_PATH)
+    const usage = useAdminJson<BespokeVizUsage>(USAGE_PATH)
+
+    if (registry === undefined || usage === undefined)
+        return (
+            <section className="gdocs-ref__section">
+                <h2 className="gdocs-ref__section-title">Bundles</h2>
+                <p className="gdocs-ref-live__loading">Loading the bundles…</p>
+            </section>
+        )
+
+    if (registry === null)
+        return (
+            <section className="gdocs-ref__section">
+                <h2 className="gdocs-ref__section-title">Bundles</h2>
+                <p className="gdocs-ref__note">
+                    We couldn't load the bundle list.
+                </p>
+            </section>
+        )
+
+    const usageById = new Map(
+        (usage?.bundles ?? []).map((entry) => [entry.bundle, entry])
+    )
+    const bundles = sortBundlesByUse(registry.bundles, usage)
+
+    return (
+        <section className="gdocs-ref__section">
+            <h2 className="gdocs-ref__section-title">
+                Bundles
+                <span className="gdocs-ref__section-count">
+                    {bundles.length}
+                </span>
+            </h2>
+            <ul className="gdocs-ref-bespoke__index">
+                {bundles.map((bundle) => (
+                    <li key={bundle.id} className="gdocs-ref-bespoke__row">
+                        <div className="gdocs-ref-bespoke__row-name">
+                            <Link
+                                to={bundlePagePath(bundle.id)}
+                                className="gdocs-ref-bespoke__row-title"
+                            >
+                                {bundle.id}
+                            </Link>
+                        </div>
+                        <div className="gdocs-ref-bespoke__row-variants">
+                            {bundle.variants
+                                .map((variant) => variant.name)
+                                .join(" · ")}
+                        </div>
+                        {/* No usage line at all when the lookup failed:
+                            "not used yet" would be a false claim. */}
+                        {usage && (
+                            <div className="gdocs-ref-bespoke__row-usage">
+                                {bundleUsageLabel(usageById.get(bundle.id))}
+                            </div>
+                        )}
+                    </li>
+                ))}
+            </ul>
+        </section>
+    )
+}
+
+// -----------------------------------------------------------------------------
+// Bundle page
+// -----------------------------------------------------------------------------
+
+/** The header shared by every state of the bundle page. */
+function BundleHeader({ bundleId }: { bundleId: string }): React.ReactElement {
+    return (
+        <header className="gdocs-ref__detail-header">
+            <nav className="gdocs-ref-bespoke__breadcrumb">
+                <Link to={COMPONENT_PAGE_PATH}>Bespoke Component</Link>
+                <span aria-hidden="true"> › </span>
+                <code>{bundleId}</code>
+            </nav>
+            <div className="gdocs-ref__detail-title-row">
+                <h1 className="gdocs-ref__detail-title">{bundleId}</h1>
+                <span className="gdocs-ref__category-pill">Bespoke bundle</span>
+            </div>
+        </header>
+    )
+}
+
+/**
+ * One bundle of the bespoke component: its variants (each with a copyable
+ * default block and its published uses) and its config keys.
+ */
+export function BespokeBundlePage({
+    bundleId,
+    titleFor,
+}: {
+    bundleId: string
+    titleFor?: TitleFor
+}): React.ReactElement {
+    const registry = useAdminJson<BespokeVizRegistry>(REGISTRY_PATH)
+    const usage = useAdminJson<BespokeVizUsage>(USAGE_PATH)
+
+    if (registry === undefined || usage === undefined)
+        return (
+            <article className="gdocs-ref__detail">
+                <BundleHeader bundleId={bundleId} />
+                <p className="gdocs-ref-live__loading">Loading the bundle…</p>
+            </article>
+        )
+
+    if (registry === null)
+        return (
+            <article className="gdocs-ref__detail">
+                <BundleHeader bundleId={bundleId} />
+                <p className="gdocs-ref__note">We couldn't load this bundle.</p>
+            </article>
+        )
+
+    const bundle = registry.bundles.find((entry) => entry.id === bundleId)
+    if (!bundle)
+        return (
+            <div className="gdocs-ref__empty">
+                No such bundle: <code>{bundleId}</code>.{" "}
+                <Link to={COMPONENT_PAGE_PATH}>
+                    See the bundles of the bespoke component.
+                </Link>
+            </div>
+        )
+
+    // undefined: the bundle has no published use; null: the lookup failed
+    const bundleUsage =
+        usage === null
+            ? null
+            : usage.bundles.find((entry) => entry.bundle === bundle.id)
+    const previewPathForExample = (index: number): string =>
+        examplePreviewPath(bundle.id, index)
+
+    return (
+        <article className="gdocs-ref__detail">
+            <BundleHeader bundleId={bundle.id} />
+            {bundle.prose.intro && (
+                <GdocsReferenceMarkdown
+                    body={bundle.prose.intro}
+                    section="intro"
+                    examples={bundle.examples}
+                    previewPathForExample={previewPathForExample}
+                    titleFor={titleFor}
+                />
+            )}
+            {/* Keyed so the expanded tail and each carousel's slide don't
+                carry over to the next bundle */}
+            <BundleVariants
+                key={bundle.id}
+                bundle={bundle}
+                usage={bundleUsage}
+                titleFor={titleFor}
+            />
+            <BundleConfigTable
+                bundle={bundle}
+                usage={bundleUsage}
+                titleFor={titleFor}
+                notes={
+                    bundle.prose.notes ? (
+                        <GdocsReferenceMarkdown
+                            body={bundle.prose.notes}
+                            section="notes"
+                            examples={bundle.examples}
+                            previewPathForExample={previewPathForExample}
+                            titleFor={titleFor}
+                        />
+                    ) : undefined
+                }
+            />
+            <footer className="gdocs-ref__detail-footer">
+                <a
+                    href={githubEditUrl(bundle.sidecarFile ?? bundle.entryFile)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <FontAwesomeIcon icon={faPenToSquare} /> Suggest an edit to
+                    this page
+                </a>
+                <a
+                    href={githubBlobUrl(bundle.entryFile)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <FontAwesomeIcon icon={faCode} /> View the bundle's code (
+                    {bundle.entryFile})
+                </a>
+            </footer>
+        </article>
+    )
+}
+
+/** "Variants": open cards first, then the collapsed tail. */
+function BundleVariants({
+    bundle,
+    usage,
+    titleFor,
+}: {
+    bundle: BundleReference
+    usage: BundleUsage | undefined | null
+    titleFor?: TitleFor
+}): React.ReactElement {
+    const [expanded, setExpanded] = useState<Set<string>>(new Set())
+    const { open, collapsed } = orderBundleVariants(bundle, usage)
+    const usageKnown = usage !== null
+
+    const toggle = (name: string): void => {
+        const next = new Set(expanded)
+        if (next.has(name)) next.delete(name)
+        else next.add(name)
+        setExpanded(next)
+    }
+
+    const card = (
+        entry: BundleVariantEntry,
+        inTail: boolean
+    ): React.ReactElement => (
+        <VariantCard
+            key={entry.variant.name}
+            bundle={bundle}
+            entry={entry}
+            usageKnown={usageKnown}
+            collapsed={inTail && !expanded.has(entry.variant.name)}
+            onToggle={inTail ? () => toggle(entry.variant.name) : undefined}
+            titleFor={titleFor}
+        />
+    )
+
+    // "not used yet" would be a false claim when the lookup failed
+    const tailTitle = usageKnown
+        ? `${collapsed.length} variant${collapsed.length > 1 ? "s" : ""} not used yet`
+        : `${collapsed.length} more variant${collapsed.length > 1 ? "s" : ""}`
+
+    return (
+        <section className="gdocs-ref__section">
+            <h2 className="gdocs-ref__section-title">
+                Variants
+                <span className="gdocs-ref__section-count">
+                    {bundle.variants.length}
+                </span>
+            </h2>
+            {open.map((entry) => card(entry, false))}
+            {collapsed.length > 0 && (
+                <div className="gdocs-ref-live__form-tail">
+                    <div className="gdocs-ref-live__form-tail-title">
+                        {tailTitle}
+                    </div>
+                    {collapsed.map((entry) => card(entry, true))}
+                </div>
+            )}
+        </section>
+    )
+}
+
+/**
+ * One variant of the bundle: its description, the default block to copy
+ * and its published uses. A collapsed card renders its header only, so it
+ * mounts no preview.
+ */
+function VariantCard({
+    bundle,
+    entry,
+    usageKnown,
+    collapsed,
+    onToggle,
+    titleFor,
+}: {
+    bundle: BundleReference
+    entry: BundleVariantEntry
+    usageKnown: boolean
+    collapsed: boolean
+    onToggle?: () => void
+    titleFor?: TitleFor
+}): React.ReactElement {
+    const { variant, usage } = entry
+    const title = (
+        <span className="gdocs-ref-live__form-title">
+            <span className="gdocs-ref-live__form-title-part">
+                {variant.name}
+            </span>
+        </span>
+    )
+    const badge = usageKnown ? (
+        <span
+            className={
+                usage
+                    ? "gdocs-ref-bespoke__uses"
+                    : "gdocs-ref-bespoke__uses gdocs-ref-bespoke__uses--none"
+            }
+        >
+            {bundleUsageLabel(usage)}
+        </span>
+    ) : null
+
+    return (
+        <div className="gdocs-ref-live__form-card">
+            <FormCardHeader
+                title={title}
+                badge={badge}
+                collapsed={collapsed}
+                onToggle={onToggle}
+            />
+            {!collapsed && (
+                <div className="gdocs-ref-bespoke__variant-body">
+                    {variant.description && (
+                        <p className="gdocs-ref-bespoke__variant-description">
+                            <InlineMarkdownText
+                                text={variant.description}
+                                titleFor={titleFor}
+                            />
+                        </p>
+                    )}
+                    <VariantCarousel
+                        bundleId={bundle.id}
+                        variantName={variant.name}
+                        archie={variant.archie}
+                        instances={usage?.instances ?? []}
+                    />
+                </div>
+            )}
+        </div>
+    )
+}
+
+/**
+ * The variant's default block, then its published uses, one slide at a
+ * time: only the current slide mounts its preview. The pager counts the
+ * published uses; the default block is slide 0 and isn't counted.
+ */
+function VariantCarousel({
+    bundleId,
+    variantName,
+    archie,
+    instances,
+}: {
+    bundleId: string
+    variantName: string
+    archie: string
+    instances: ComponentInstance[]
+}): React.ReactElement {
+    const [index, setIndex] = useState(0)
+    const slide = Math.min(index, instances.length)
+    const instance = slide > 0 ? instances[slide - 1] : undefined
+    const example = instance
+        ? {
+              archie: instance.archie,
+              previewPath: instancePreviewPath(instance),
+              previewTitle: `Used in ${instance.title}`,
+          }
+        : {
+              archie,
+              previewPath: variantPreviewPath(bundleId, variantName),
+              previewTitle: `${bundleId} ${variantName}`,
+          }
+    return (
+        <>
+            {/* Keyed so a slide's tab and height don't carry to the next */}
+            <GdocsReferenceExample
+                key={slide}
+                archie={example.archie}
+                previewPath={example.previewPath}
+                previewTitle={example.previewTitle}
+            />
+            {instances.length > 0 && (
+                <div className="gdocs-ref-live__form-example-footer">
+                    {instance ? (
+                        <InstanceProvenance instance={instance} />
+                    ) : (
+                        // Keeps the pager on the right
+                        <span />
+                    )}
+                    <Pager
+                        label={
+                            instance
+                                ? `use ${slide} of ${instances.length}`
+                                : "Default block"
+                        }
+                        prevTitle="Previous slide"
+                        nextTitle="Next slide"
+                        prevDisabled={slide === 0}
+                        nextDisabled={slide >= instances.length}
+                        onPrev={() => setIndex(slide - 1)}
+                        onNext={() => setIndex(slide + 1)}
+                    />
+                </div>
+            )}
+        </>
+    )
+}
+
+/** The values a config key takes, as chips: enum values and booleans. */
+function configChoices(field: BundleConfigField): string[] | undefined {
+    if (field.type === "enum") return field.values
+    if (field.type === "boolean") return ["true", "false"]
+    return undefined
+}
+
+function ConfigTypeCell({
+    field,
+}: {
+    field: BundleConfigField
+}): React.ReactElement {
+    const choices = configChoices(field)
+    if (choices)
+        return (
+            <ValueChips
+                values={choices}
+                defaultValue={field.default}
+                defaultHint="What you get when the key is unset"
+            />
+        )
+    return (
+        <>
+            <code className="gdocs-ref__field-type">{field.type}</code>
+            {field.default !== undefined && (
+                <span className="gdocs-ref-live__props-default">
+                    default <code>{field.default}</code>
+                </span>
+            )}
+        </>
+    )
+}
+
+/**
+ * Every config key of the bundle, in CONFIG_SPEC order, with adoption. The
+ * docs.md notes render underneath, as on component pages.
+ */
+function BundleConfigTable({
+    bundle,
+    usage,
+    titleFor,
+    notes,
+}: {
+    bundle: BundleReference
+    usage: BundleUsage | undefined | null
+    titleFor?: TitleFor
+    notes?: React.ReactNode
+}): React.ReactElement {
+    const uses = usage?.uses ?? 0
+    const showAdoption = uses > 0
+    const hasConfig = bundle.config.length > 0
+    return (
+        <section className="gdocs-ref__section">
+            <h2 className="gdocs-ref__section-title">Config</h2>
+            {!hasConfig && (
+                <p className="gdocs-ref__note">
+                    This bundle has no config keys.
+                </p>
+            )}
+            {(hasConfig || notes) && (
+                <div className="gdocs-ref-live__props">
+                    {hasConfig && (
+                        <>
+                            <div className="gdocs-ref-live__props-header">
+                                <span className="gdocs-ref-live__props-title">
+                                    Config keys
+                                </span>
+                                <span className="gdocs-ref-live__props-source">
+                                    derived from <code>CONFIG_SPEC</code> · set
+                                    them in the block's{" "}
+                                    <code>{"{.config}"}</code>
+                                </span>
+                            </div>
+                            <div
+                                className="gdocs-ref-live__props-scroll"
+                                role="region"
+                                aria-label="Config keys"
+                                tabIndex={0}
+                            >
+                                <table className="gdocs-ref-live__props-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Key</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            {showAdoption && <th>Adoption</th>}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {bundle.config.map((field) => {
+                                            const adoption =
+                                                usage?.configAdoption[
+                                                    field.name
+                                                ] ?? 0
+                                            return (
+                                                <tr key={field.name}>
+                                                    <td>
+                                                        <code>
+                                                            {field.name}
+                                                        </code>
+                                                    </td>
+                                                    <td>
+                                                        <ConfigTypeCell
+                                                            field={field}
+                                                        />
+                                                    </td>
+                                                    <td className="gdocs-ref-live__props-effect">
+                                                        <InlineMarkdownText
+                                                            text={
+                                                                field.description
+                                                            }
+                                                            titleFor={titleFor}
+                                                        />
+                                                        {field.type ===
+                                                            "custom" &&
+                                                            field.format && (
+                                                                <span className="gdocs-ref-bespoke__config-format">
+                                                                    Format:{" "}
+                                                                    <InlineMarkdownText
+                                                                        text={
+                                                                            field.format
+                                                                        }
+                                                                        titleFor={
+                                                                            titleFor
+                                                                        }
+                                                                    />
+                                                                </span>
+                                                            )}
+                                                    </td>
+                                                    {showAdoption && (
+                                                        <td
+                                                            className="gdocs-ref-bespoke__config-adoption"
+                                                            title={`Set in ${adoption} of ${uses} published uses`}
+                                                        >
+                                                            {adoption} of {uses}
+                                                        </td>
+                                                    )}
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
+                    )}
+                    {notes && (
+                        <div className="gdocs-ref-live__props-notes">
+                            <div className="gdocs-ref-live__props-notes-title">
+                                Authored notes
+                            </div>
+                            {notes}
+                        </div>
+                    )}
+                </div>
+            )}
+            <p className="gdocs-ref-bespoke__block-props">
+                Block properties such as <code>size</code> and{" "}
+                <code>fallbackImageFilename</code> are documented on the{" "}
+                <Link to={COMPONENT_PAGE_PATH}>Bespoke Component</Link> page.
+            </p>
+        </section>
+    )
+}
