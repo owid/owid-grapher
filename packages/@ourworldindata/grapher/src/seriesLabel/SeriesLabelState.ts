@@ -17,6 +17,11 @@ import { ParsedLabel, parseLabel } from "../core/RegionGroups.js"
 import { FontSettings } from "../core/GrapherConstants.js"
 import { hasTooltipData, TooltipKey } from "./RegionTooltipData.js"
 
+export interface SeriesLabelAnnotation {
+    heading: string
+    text: string
+}
+
 export interface SeriesLabelStateOptions {
     text: string
     maxWidth: number
@@ -27,6 +32,7 @@ export interface SeriesLabelStateOptions {
     formattedValue?: string
     placeFormattedValueInNewLine?: boolean
     showRegionTooltip?: boolean
+    annotations?: SeriesLabelAnnotation[]
 }
 
 export type TextRole = "name" | "value" | "regionPublisherSuffix"
@@ -61,11 +67,6 @@ type ContentLine = ContentFragment[]
 
 export type PositionedTextFragment = TextFragment & Point
 
-export type RegionTooltipFragment = RequiredBy<
-    PositionedTextFragment,
-    "regionTooltip"
->
-
 /**
  * Computes layout and positioning for a series label typically rendered
  * in the chart area
@@ -83,6 +84,7 @@ export class SeriesLabelState {
         lineHeight: 1.1,
         placeFormattedValueInNewLine: false,
         showRegionTooltip: false,
+        annotations: [],
         textAnchor: "start",
     } as const satisfies Partial<SeriesLabelStateOptions>
 
@@ -322,7 +324,15 @@ export class SeriesLabelState {
     }
 
     @computed get hasRegionTooltip(): boolean {
-        return this.regionTooltipFragments.length > 0
+        return this.regionTooltipTarget !== undefined
+    }
+
+    @computed get annotations(): SeriesLabelAnnotation[] {
+        return this.options.annotations
+    }
+
+    @computed get hasAnnotations(): boolean {
+        return this.annotations.length > 0
     }
 
     @computed get width(): number {
@@ -349,13 +359,6 @@ export class SeriesLabelState {
                 y: lineIndex * this.singleLineHeight,
                 textAnchor: this.options.textAnchor,
             })
-        )
-    }
-
-    @computed get regionTooltipFragments(): RegionTooltipFragment[] {
-        return this.positionedFragments.filter(
-            (fragment): fragment is RegionTooltipFragment =>
-                fragment.regionTooltip !== undefined
         )
     }
 }

@@ -16,7 +16,7 @@ import {
 } from "./VerticalLabelsFilterAlgorithms.js"
 import { computeHeight } from "./VerticalLabelsHelpers.js"
 import {
-    ANNOTATION_PADDING,
+    INLINE_ANNOTATION_PADDING,
     DEFAULT_CONNECTOR_LINE_WIDTH,
     DEFAULT_FONT_WEIGHT,
     LEGEND_ITEM_MIN_SPACING,
@@ -38,7 +38,7 @@ export interface VerticalLabelsStateOptions {
     fontWeight?: number
     verticalAlign?: VerticalAlign
     textAnchor?: "start" | "end"
-    showRegionTooltip?: boolean
+    isInteractive?: boolean
     seriesNamesSortedByImportance?: SeriesName[]
 }
 
@@ -56,7 +56,7 @@ export class VerticalLabelsState {
         maxWidth: Infinity,
         verticalAlign: VerticalAlign.middle,
         textAnchor: "start",
-        showRegionTooltip: true,
+        isInteractive: true,
     } as const satisfies Partial<VerticalLabelsStateOptions>
 
     constructor(series: LabelSeries[], options: VerticalLabelsStateOptions) {
@@ -69,6 +69,10 @@ export class VerticalLabelsState {
         keyof typeof this.defaultOptions
     > {
         return { ...this.defaultOptions, ...this.initialOptions }
+    }
+
+    @computed get isInteractive(): boolean {
+        return this.options.isInteractive
     }
 
     @computed get textAnchor(): "start" | "end" {
@@ -87,11 +91,13 @@ export class VerticalLabelsState {
         return this.options.maxWidth - DEFAULT_CONNECTOR_LINE_WIDTH
     }
 
-    private makeAnnotationTextWrap(series: LabelSeries): TextWrap | undefined {
-        if (!series.annotation) return undefined
+    private makeInlineAnnotationTextWrap(
+        series: LabelSeries
+    ): TextWrap | undefined {
+        if (!series.inlineAnnotation) return undefined
         const maxWidth = Math.min(this.textMaxWidth, 150)
         return new TextWrap({
-            text: series.annotation,
+            text: series.inlineAnnotation,
             maxWidth,
             fontSize: roundFontSize(this.fontSize * 0.9),
             lineHeight: 1,
@@ -113,21 +119,25 @@ export class VerticalLabelsState {
                 formattedValue: series.formattedValue,
                 placeFormattedValueInNewLine:
                     series.placeFormattedValueInNewLine,
-                showRegionTooltip: this.options.showRegionTooltip,
+                showRegionTooltip: this.isInteractive,
+                annotations: this.isInteractive
+                    ? series.annotations
+                    : undefined,
             })
 
-            const annotationTextWrap = this.makeAnnotationTextWrap(series)
-            const annotationWidth = annotationTextWrap?.width ?? 0
-            const annotationHeight = annotationTextWrap
-                ? ANNOTATION_PADDING + annotationTextWrap.height
+            const inlineAnnotationTextWrap =
+                this.makeInlineAnnotationTextWrap(series)
+            const inlineAnnotationWidth = inlineAnnotationTextWrap?.width ?? 0
+            const inlineAnnotationHeight = inlineAnnotationTextWrap
+                ? INLINE_ANNOTATION_PADDING + inlineAnnotationTextWrap.height
                 : 0
 
             return {
                 ...series,
                 seriesLabel,
-                annotationTextWrap,
-                width: Math.max(seriesLabel.width, annotationWidth),
-                height: seriesLabel.height + annotationHeight,
+                inlineAnnotationTextWrap,
+                width: Math.max(seriesLabel.width, inlineAnnotationWidth),
+                height: seriesLabel.height + inlineAnnotationHeight,
             }
         })
     }
@@ -379,12 +389,14 @@ export class VerticalLabelsState {
         })
     }
 
-    @computed get annotatedSeries(): RenderLabelSeries[] {
-        return this.renderSeries.filter((series) => series.annotationTextWrap)
+    @computed get seriesWithInlineAnnotation(): RenderLabelSeries[] {
+        return this.renderSeries.filter(
+            (series) => series.inlineAnnotationTextWrap
+        )
     }
 
-    @computed get hasAnnotatedSeries(): boolean {
-        return this.annotatedSeries.length > 0
+    @computed get hasInlineAnnotations(): boolean {
+        return this.seriesWithInlineAnnotation.length > 0
     }
 }
 

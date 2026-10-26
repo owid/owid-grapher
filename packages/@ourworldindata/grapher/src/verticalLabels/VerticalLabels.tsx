@@ -4,7 +4,10 @@ import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { SeriesName } from "@ourworldindata/types"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
-import { ANNOTATION_PADDING, LABEL_STYLE } from "./VerticalLabelsConstants.js"
+import {
+    INLINE_ANNOTATION_PADDING,
+    LABEL_STYLE,
+} from "./VerticalLabelsConstants.js"
 import { getSeriesKey } from "./VerticalLabelsHelpers"
 import { PlacedLabelSeries, RenderLabelSeries } from "./VerticalLabelsTypes"
 import { VerticalLabelsState } from "./VerticalLabelsState"
@@ -17,23 +20,25 @@ export function VerticalLabels({
     outline = false,
     onMouseEnter,
     onMouseLeave,
-    interactive = true,
+    onTooltipShow,
+    onTooltipHide,
 }: {
     state: VerticalLabelsState
     x?: number
     outline?: boolean
     onMouseEnter?: (key: SeriesName) => void
     onMouseLeave?: () => void
-    interactive?: boolean
+    onTooltipShow?: (seriesName: SeriesName) => void
+    onTooltipHide?: (seriesName: SeriesName) => void
 }): React.ReactElement {
-    const { renderSeries, annotatedSeries, textAnchor } = state
+    const { renderSeries, seriesWithInlineAnnotation, textAnchor } = state
 
     return (
         <g
             id={makeFigmaId("vertical-labels")}
             transform={`translate(${roundForSvg(x)}, 0)`}
         >
-            {interactive && (
+            {state.isInteractive && (
                 <InteractionOverlays
                     series={state.placedSeries}
                     anchor={textAnchor}
@@ -44,14 +49,19 @@ export function VerticalLabels({
             {state.needsConnectorLines && (
                 <ConnectorLines series={renderSeries} />
             )}
-            {state.hasAnnotatedSeries && (
-                <Annotations series={annotatedSeries} anchor={textAnchor} />
+            {state.hasInlineAnnotations && (
+                <InlineAnnotations
+                    series={seriesWithInlineAnnotation}
+                    anchor={textAnchor}
+                />
             )}
             <Labels
                 series={renderSeries}
                 outline={outline}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
+                onTooltipShow={onTooltipShow}
+                onTooltipHide={onTooltipHide}
             />
         </g>
     )
@@ -62,11 +72,15 @@ function Labels({
     outline = false,
     onMouseEnter,
     onMouseLeave,
+    onTooltipShow,
+    onTooltipHide,
 }: {
     series: RenderLabelSeries[]
     outline: boolean
     onMouseEnter?: (key: SeriesName) => void
     onMouseLeave?: (key: SeriesName) => void
+    onTooltipShow?: (key: SeriesName) => void
+    onTooltipHide?: (key: SeriesName) => void
 }): React.ReactElement {
     return (
         <g id={makeFigmaId("text-labels")} style={{ pointerEvents: "none" }}>
@@ -85,6 +99,8 @@ function Labels({
                         outline={outline}
                         onMouseEnter={() => onMouseEnter?.(series.seriesName)}
                         onMouseLeave={() => onMouseLeave?.(series.seriesName)}
+                        onTooltipShow={() => onTooltipShow?.(series.seriesName)}
+                        onTooltipHide={() => onTooltipHide?.(series.seriesName)}
                     />
                 )
             })}
@@ -92,7 +108,7 @@ function Labels({
     )
 }
 
-function Annotations({
+function InlineAnnotations({
     series,
     anchor,
 }: {
@@ -105,17 +121,17 @@ function Annotations({
             style={{ pointerEvents: "none" }}
         >
             {series.map((series, index) => {
-                if (!series.annotationTextWrap) return null
+                if (!series.inlineAnnotationTextWrap) return null
                 const emphasis = series.emphasis ?? Emphasis.Default
                 return (
                     <React.Fragment key={getSeriesKey(series, index)}>
                         <TextWrapSvg
-                            textWrap={series.annotationTextWrap}
+                            textWrap={series.inlineAnnotationTextWrap}
                             x={series.labelCoords.x}
                             y={
                                 series.labelCoords.y +
                                 series.seriesLabel.height +
-                                ANNOTATION_PADDING
+                                INLINE_ANNOTATION_PADDING
                             }
                             fill="#333"
                             opacity={LABEL_STYLE[emphasis].opacity}

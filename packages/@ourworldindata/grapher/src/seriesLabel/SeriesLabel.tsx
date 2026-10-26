@@ -8,13 +8,14 @@ import {
 import {
     SeriesLabelState,
     PositionedTextFragment,
-    RegionTooltipFragment,
     TextRole,
     SpanLine,
+    SeriesLabelAnnotation,
 } from "./SeriesLabelState.js"
 import { Bounds, isTouchDevice, roundForSvg } from "@ourworldindata/utils"
 import { FIGMA_TEXT_NODE_BREAK_DY, Halo } from "@ourworldindata/components"
 import { RegionTooltip } from "./RegionTooltip.js"
+import { SeriesLabelAnnotations } from "./SeriesLabelAnnotations.js"
 import { getDescriptionForKey, getRegionsForKey } from "./RegionTooltipData.js"
 
 const defaultColors: Record<TextRole, string> = {
@@ -35,7 +36,8 @@ export interface SeriesLabelProps {
     outline?: boolean
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
-    onInfoTooltipShow?: () => void
+    onTooltipShow?: () => void
+    onTooltipHide?: () => void
 }
 
 /**
@@ -54,7 +56,8 @@ export function SeriesLabel({
     outline,
     onMouseEnter,
     onMouseLeave,
-    onInfoTooltipShow,
+    onTooltipShow,
+    onTooltipHide,
 }: SeriesLabelProps): React.ReactElement {
     const [renderX, renderY] = state.getPositionForSvgRendering(x, y)
 
@@ -78,7 +81,7 @@ export function SeriesLabel({
         )
     }
 
-    if (!state.hasRegionTooltip) {
+    if (!state.hasRegionTooltip && !state.hasAnnotations) {
         return withHalo(
             <NativeAlignedLabelText
                 x={renderX}
@@ -104,19 +107,26 @@ export function SeriesLabel({
                     colors={colors}
                 />
             )}
-            {state.regionTooltipFragments.map((fragment, index) => (
-                <RegionTooltipTrigger
-                    key={index}
-                    x={renderX}
-                    y={renderY}
-                    fragment={fragment}
-                    fontSize={fontSize}
-                    stroke={colors[fragment.role]}
-                    onMouseEnter={onMouseEnter}
-                    onMouseLeave={onMouseLeave}
-                    onInfoTooltipShow={onInfoTooltipShow}
-                />
-            ))}
+            {state.positionedFragments.map((fragment, index) => {
+                const isAnnotated =
+                    state.hasAnnotations && fragment.role === "name"
+                if (!isAnnotated && !fragment.regionTooltip) return null
+                return (
+                    <TooltipTrigger
+                        key={index}
+                        x={renderX}
+                        y={renderY}
+                        fragment={fragment}
+                        fontSize={fontSize}
+                        stroke={colors[fragment.role]}
+                        annotations={isAnnotated ? state.annotations : []}
+                        onTooltipShow={onTooltipShow}
+                        onTooltipHide={onTooltipHide}
+                        onMouseEnter={onMouseEnter}
+                        onMouseLeave={onMouseLeave}
+                    />
+                )
+            })}
         </g>
     )
 }
@@ -316,27 +326,34 @@ function TextSpanFragment({
     )
 }
 
-function RegionTooltipTrigger({
+function TooltipTrigger({
     x,
     y,
     fragment,
     fontSize,
     stroke,
+    annotations,
+    onTooltipShow,
+    onTooltipHide,
     onMouseEnter,
     onMouseLeave,
-    onInfoTooltipShow,
 }: {
     x: number
     y: number
-    fragment: RegionTooltipFragment
+    fragment: PositionedTextFragment
     fontSize: number
     stroke: string
+    annotations: SeriesLabelAnnotation[]
+    onTooltipShow?: () => void
+    onTooltipHide?: () => void
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
-    onInfoTooltipShow?: () => void
 }): React.ReactElement {
     // Used as react key to remount RegionTooltip with fresh state
     const [tooltipRemountKey, setTooltipRemountKey] = useState(false)
+
+    const { regionTooltip } = fragment
+    const hasAnnotations = annotations.length > 0
 
     const left = x + fragment.x
     const baseline = y + fragment.y
@@ -368,32 +385,43 @@ function RegionTooltipTrigger({
             {/* Hit area for tooltip interaction */}
             <Tippy
                 theme="grapher-explanation"
-                placement="top"
-                interactive={!isTouchDevice()}
+                placement="top-start"
+                arrow={false}
+                offset={[0, 0]}
+                interactive={hasAnnotations || !isTouchDevice()}
+                delay={[100, 200]}
                 appendTo={() => document.body}
                 onShow={(instance) => {
                     // Hide any other open tooltips
                     hideAll({ exclude: instance })
 
-                    onInfoTooltipShow?.()
+                    onTooltipShow?.()
                 }}
+                onHide={() => onTooltipHide?.()}
                 // Changing the key forces RegionTooltip to remount on the
                 // next show, resetting its internal hover state back to
                 // the initially highlighted region
                 onHidden={() => setTooltipRemountKey((k) => !k)}
                 content={
-                    <RegionTooltip
-                        key={tooltipRemountKey.toString()}
-                        description={getDescriptionForKey(
-                            fragment.regionTooltip.tooltipKey
+                    <>
+                        {hasAnnotations && (
+                            <SeriesLabelAnnotations annotations={annotations} />
                         )}
-                        regions={getRegionsForKey(
-                            fragment.regionTooltip.tooltipKey
+                        {regionTooltip && (
+                            <RegionTooltip
+                                key={tooltipRemountKey.toString()}
+                                description={getDescriptionForKey(
+                                    regionTooltip.tooltipKey
+                                )}
+                                regions={getRegionsForKey(
+                                    regionTooltip.tooltipKey
+                                )}
+                                initiallyHighlightedRegion={
+                                    regionTooltip.regionName
+                                }
+                            />
                         )}
-                        initiallyHighlightedRegion={
-                            fragment.regionTooltip.regionName
-                        }
-                    />
+                    </>
                 }
             >
                 <rect

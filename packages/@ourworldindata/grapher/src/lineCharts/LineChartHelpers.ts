@@ -32,6 +32,8 @@ import {
     getHoverStateForSeries,
 } from "../chart/ChartUtils"
 import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
+import { PointAnnotation } from "../annotations/EntityAnnotations"
+import { SeriesLabelAnnotation } from "../seriesLabel/SeriesLabelState"
 
 export type AnnotationsMap = Map<PrimitiveType, Set<PrimitiveType>>
 
@@ -240,4 +242,15 @@ export function toRenderLineChartSeries(
     }
 
     return series
+}
+
+/** Point annotations as entries of a series label's tooltip */
+export function toSeriesLabelAnnotations(
+    annotations: PointAnnotation[],
+    formatTime: (time: Time) => string
+): SeriesLabelAnnotation[] {
+    return annotations.map((annotation) => ({
+        heading: formatTime(annotation.time),
+        text: annotation.text,
+    }))
 }

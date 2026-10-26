@@ -1,0 +1,31 @@
+.series-label-annotations {
+    max-width: 320px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: $gray-100;
+    font-size: 0.875rem;
+
+    a {
+        @include owid-link-90;
+        color: inherit;
+    }
+
+    p {
+        margin: 0;
+    }
+
+    .series-label-annotations__entry:not(:last-child) {
+        margin-bottom: 8px;
+    }
+
+    .series-label-annotations__heading {
+        font-weight: 700;
+    }
+
+    + .region-tooltip {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid $gray-20;
+    }
+}
