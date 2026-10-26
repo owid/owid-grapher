@@ -31,6 +31,7 @@ import {
     ANNOTATION_COLOR_DARK,
     ANNOTATION_COLOR_LIGHT,
     ChoroplethMapManager,
+    ChoroplethSeries,
     ChoroplethSeriesByName,
     DEFAULT_GLOBE_SIZE,
     ExternalAnnotation,
@@ -52,6 +53,7 @@ import {
     BackgroundCountry,
     CountryWithData,
     CountryWithNoData,
+    ProjectedDataOverlay,
     ExternalValueAnnotation,
     InternalValueAnnotation,
     ProjectedDataPattern,
@@ -165,6 +167,20 @@ export class ChoroplethGlobe extends React.Component<{
             isSelected: (featureId) =>
                 this.manager.isSelected?.(featureId) ?? false,
         })
+    }
+
+    @computed
+    private get sortedFeaturesWithHistoricalData(): GlobeRenderFeature[] {
+        return this.sortedFeaturesWithData.filter(
+            (feature) => !this.choroplethData.get(feature.id)?.isProjection
+        )
+    }
+
+    @computed
+    private get sortedFeaturesWithProjectedData(): GlobeRenderFeature[] {
+        return this.sortedFeaturesWithData.filter(
+            (feature) => this.choroplethData.get(feature.id)?.isProjection
+        )
     }
 
     @computed private get featuresWithNoData(): GlobeRenderFeature[] {
@@ -772,45 +788,80 @@ export class ChoroplethGlobe extends React.Component<{
         )
     }
 
+    renderProjectedDataPatterns(): React.ReactElement | undefined {
+        if (!this.manager.hasProjectedData) return
+
+        return (
+            <defs>
+                <ProjectedDataLegendPattern
+                    idSuffix={this.manager.patternIdSuffix}
+                    scale={this.manager.patternScale}
+                />
+
+                {this.binColors.map((color, index) => (
+                    <ProjectedDataPattern
+                        idSuffix={this.manager.patternIdSuffix}
+                        key={`${color}-${index}`}
+                        color={color}
+                        scale={this.manager.patternScale}
+                    />
+                ))}
+            </defs>
+        )
+    }
+
+    private renderCountryWithData(
+        feature: GlobeRenderFeature,
+        series: ChoroplethSeries
+    ): React.ReactElement {
+        return (
+            <CountryWithData
+                key={feature.id}
+                feature={feature}
+                series={series}
+                path={this.getPath(feature)}
+                isSelected={this.manager.isSelected?.(feature.id)}
+                hover={this.manager.getHoverState?.(feature.id)}
+                onClick={this.onClickFeature}
+                onPointerEnter={this.onPointerEnterFeature}
+                onPointerLeave={this.onPointerLeaveFeature}
+            />
+        )
+    }
+
     renderFeaturesWithData(): React.ReactElement | undefined {
-        if (this.sortedFeaturesWithData.length === 0) return
+        if (this.sortedFeaturesWithHistoricalData.length === 0) return
 
         return (
             <g id={makeFigmaId("countries-with-data")}>
-                {this.manager.hasProjectedData && (
-                    <defs>
-                        <ProjectedDataLegendPattern
-                            idSuffix={this.manager.patternIdSuffix}
-                            scale={this.manager.patternScale}
-                        />
+                {this.sortedFeaturesWithHistoricalData.map((feature) => {
+                    const series = this.choroplethData.get(feature.id)
+                    if (!series) return null
+                    return this.renderCountryWithData(feature, series)
+                })}
+            </g>
+        )
+    }
 
-                        {this.binColors.map((color, index) => (
-                            <ProjectedDataPattern
-                                idSuffix={this.manager.patternIdSuffix}
-                                key={`${color}-${index}`}
-                                color={color}
-                                scale={this.manager.patternScale}
-                            />
-                        ))}
-                    </defs>
-                )}
+    renderFeaturesWithProjectedData(): React.ReactElement | undefined {
+        if (this.sortedFeaturesWithProjectedData.length === 0) return
 
-                {this.sortedFeaturesWithData.map((feature) => {
+        return (
+            <g id={makeFigmaId("countries-with-projected-data")}>
+                {this.sortedFeaturesWithProjectedData.map((feature) => {
                     const series = this.choroplethData.get(feature.id)
                     if (!series) return null
                     return (
-                        <CountryWithData
-                            patternIdSuffix={this.manager.patternIdSuffix}
-                            key={feature.id}
-                            feature={feature}
-                            series={series}
-                            path={this.getPath(feature)}
-                            isSelected={this.manager.isSelected?.(feature.id)}
-                            hover={this.manager.getHoverState?.(feature.id)}
-                            onClick={this.onClickFeature}
-                            onPointerEnter={this.onPointerEnterFeature}
-                            onPointerLeave={this.onPointerLeaveFeature}
-                        />
+                        <React.Fragment key={feature.id}>
+                            {this.renderCountryWithData(feature, series)}
+                            <ProjectedDataOverlay
+                                feature={feature}
+                                series={series}
+                                patternIdSuffix={this.manager.patternIdSuffix}
+                                path={this.getPath(feature)}
+                                hover={this.manager.getHoverState?.(feature.id)}
+                            />
+                        </React.Fragment>
                     )
                 })}
             </g>
@@ -866,9 +917,11 @@ export class ChoroplethGlobe extends React.Component<{
             <>
                 {this.renderGlobeOutline()}
                 <g id={makeFigmaId("globe")}>
+                    {this.renderProjectedDataPatterns()}
                     {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithNoData()}
                     {this.renderFeaturesWithData()}
+                    {this.renderFeaturesWithProjectedData()}
                     {this.renderInternalAnnotations()}
                     {this.renderExternalAnnotations()}
                 </g>
@@ -904,9 +957,11 @@ export class ChoroplethGlobe extends React.Component<{
             >
                 {this.renderGlobeOutline()}
                 <g className={GEO_FEATURES_CLASSNAME}>
+                    {this.renderProjectedDataPatterns()}
                     {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithNoData()}
                     {this.renderFeaturesWithData()}
+                    {this.renderFeaturesWithProjectedData()}
                     {this.renderInternalAnnotations()}
                     {this.renderExternalAnnotations()}
                 </g>

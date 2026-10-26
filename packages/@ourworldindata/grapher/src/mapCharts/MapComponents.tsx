@@ -48,7 +48,6 @@ export function BackgroundCountry<Feature extends RenderFeature>({
 export function CountryWithData<Feature extends RenderFeature>({
     feature,
     series,
-    patternIdSuffix,
     path,
     isSelected = false,
     hover,
@@ -59,7 +58,6 @@ export function CountryWithData<Feature extends RenderFeature>({
 }: {
     feature: Feature
     series: ChoroplethSeries
-    patternIdSuffix?: string
     path?: string
     isSelected?: boolean
     hover?: InteractionState
@@ -68,7 +66,6 @@ export function CountryWithData<Feature extends RenderFeature>({
     onPointerEnter?: (feature: Feature, event: PointerEvent) => void
     onPointerLeave?: (event: PointerEvent) => void
 }): React.ReactElement {
-    const isProjection = series.isProjection
     const isHovered = hover?.active ?? false
 
     const stroke =
@@ -80,35 +77,48 @@ export function CountryWithData<Feature extends RenderFeature>({
     const strokeOpacity = hover?.background ? BLUR_STROKE_OPACITY : 1
 
     const fillOpacity = hover?.background ? BLUR_FILL_OPACITY : 1
-    const featurePath = isMapRenderFeature(feature) ? feature.path : path
 
     return (
-        <>
-            <path
-                id={makeFigmaId(feature.id)}
-                data-feature-id={feature.id}
-                d={featurePath}
-                strokeWidth={strokeWidth}
-                stroke={stroke}
-                strokeOpacity={strokeOpacity}
-                cursor="pointer"
-                fill={series.color}
-                fillOpacity={fillOpacity}
-                onClick={(event) => onClick?.(feature, event)}
-                onPointerEnter={(e) => onPointerEnter?.(feature, e.nativeEvent)}
-                onPointerLeave={(e) => onPointerLeave?.(e.nativeEvent)}
-            />
-            {isProjection && (
-                <path
-                    id={makeFigmaId(feature.id, "projected-data-pattern")}
-                    d={featurePath}
-                    stroke="none"
-                    fill={`url(#${makeProjectedDataPatternId(series.color, patternIdSuffix)})`}
-                    fillOpacity={fillOpacity}
-                    pointerEvents="none"
-                />
-            )}
-        </>
+        <path
+            id={makeFigmaId(feature.id)}
+            data-feature-id={feature.id}
+            d={isMapRenderFeature(feature) ? feature.path : path}
+            strokeWidth={strokeWidth}
+            stroke={stroke}
+            strokeOpacity={strokeOpacity}
+            cursor="pointer"
+            fill={series.color}
+            fillOpacity={fillOpacity}
+            onClick={(event) => onClick?.(feature, event)}
+            onPointerEnter={(e) => onPointerEnter?.(feature, e.nativeEvent)}
+            onPointerLeave={(e) => onPointerLeave?.(e.nativeEvent)}
+        />
+    )
+}
+
+/** Dots drawn over a projected country's solid fill */
+export function ProjectedDataOverlay<Feature extends RenderFeature>({
+    feature,
+    series,
+    patternIdSuffix,
+    path,
+    hover,
+}: {
+    feature: Feature
+    series: ChoroplethSeries
+    patternIdSuffix?: string
+    path?: string
+    hover?: InteractionState
+}): React.ReactElement {
+    return (
+        <path
+            id={makeFigmaId(feature.id, "projected-data-pattern")}
+            d={isMapRenderFeature(feature) ? feature.path : path}
+            stroke="none"
+            fill={`url(#${makeProjectedDataPatternId(series.color, patternIdSuffix)})`}
+            fillOpacity={hover?.background ? BLUR_FILL_OPACITY : 1}
+            pointerEvents="none"
+        />
     )
 }
 
