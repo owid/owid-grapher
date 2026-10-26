@@ -306,7 +306,6 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     }
 
     override componentDidMount(): void {
-        void this.loadInitialConfig()
         this.disposers.push(
             reaction(
                 () => this.editor && this.editor.previewMode,
@@ -329,6 +328,8 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
                 { equals: comparer.structural }
             )
         )
+        // After the reactions, so the loaded config is the author's version
+        void this.loadInitialConfig()
         void this.fetchDetails()
     }
 

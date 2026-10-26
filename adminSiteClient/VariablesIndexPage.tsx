@@ -28,9 +28,9 @@ import {
     namesOneDataset,
     plural,
     searchWordsToHighlight,
-    useSearchQueryParam,
     withoutTerms,
 } from "./variableSearchQuery.js"
+import { useSearchQueryParam } from "./useSearchQueryParam.js"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
 
 // Readership is drawn inside "Used in", as in the grouped view, rather than in

@@ -99,6 +99,14 @@ describe("GrapherEditor callbacks", () => {
         expect(onModifiedChange.mock.calls).toEqual([[true]])
     })
 
+    // The preview reads the author's time range and selection from it
+    it("takes the loaded config as the author's version", async () => {
+        const view = await mountEditor({})
+        expect(view.editor.grapherState.legacyConfigAsAuthored).toMatchObject({
+            title: "Rents",
+        })
+    })
+
     it("keeps reporting edits when rendered in StrictMode", async () => {
         const onChange = vi.fn<(config: GrapherInterface) => void>()
         const onModifiedChange = vi.fn<(isModified: boolean) => void>()

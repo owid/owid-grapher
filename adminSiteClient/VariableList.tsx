@@ -15,7 +15,6 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEyeSlash, faLock } from "@fortawesome/free-solid-svg-icons"
 
-import { Link } from "./Link.js"
 import { Timeago } from "./Forms.js"
 import {
     buildRegexFromSearchWord,
@@ -33,6 +32,7 @@ import {
     DatasetSearchGroup,
     VariableResultView,
 } from "../adminShared/variableSearch.js"
+import { VariableListLinkContext } from "./variableListLink.js"
 
 /** Rows per page of the flat list. */
 export const INDICATORS_PAGE_SIZE = 50
@@ -243,6 +243,7 @@ function CatalogPathCell({
     /** Built from `pathSearchWords`. */
     highlight: SearchHighlighter
 }): React.ReactElement {
+    const link = React.useContext(VariableListLinkContext)
     const { catalogPath, datasetId } = variable
     if (!catalogPath) return <span className="text-muted">—</span>
 
@@ -259,16 +260,13 @@ function CatalogPathCell({
                 {slash}
                 {highlight(version)}
                 {slash}
-                {datasetId ? (
-                    <Link
-                        to={`/datasets/${datasetId}`}
-                        title={variable.datasetName}
-                    >
-                        {highlight(dataset)}
-                    </Link>
-                ) : (
-                    highlight(dataset)
-                )}
+                {datasetId
+                    ? link({
+                          to: `/datasets/${datasetId}`,
+                          title: variable.datasetName,
+                          children: highlight(dataset),
+                      })
+                    : highlight(dataset)}
                 {table && (
                     <>
                         {slash}
@@ -488,6 +486,7 @@ function DatasetGroupHeader({
     isSearch: boolean
     isLinked: boolean
 }): React.ReactElement {
+    const link = React.useContext(VariableListLinkContext)
     const path = [group.namespace, group.version, group.shortName]
         .filter(Boolean)
         .join("/")
@@ -498,11 +497,9 @@ function DatasetGroupHeader({
     return (
         <Flex justify="space-between" align="baseline" gap="middle" wrap>
             <Flex align="baseline" gap="small" wrap>
-                {isLinked ? (
-                    <Link to={`/datasets/${group.id}`}>{name}</Link>
-                ) : (
-                    name
-                )}
+                {isLinked
+                    ? link({ to: `/datasets/${group.id}`, children: name })
+                    : name}
                 {path && (
                     <Typography.Text type="secondary">{path}</Typography.Text>
                 )}
@@ -531,6 +528,7 @@ function IndicatorCell<Item extends VariableListItem>({
     highlight: SearchHighlighter
     selection?: IndicatorSelection<Item>
 }): React.ReactElement {
+    const link = React.useContext(VariableListLinkContext)
     return (
         <>
             {variable.nonRedistributable ? (
@@ -557,12 +555,11 @@ function IndicatorCell<Item extends VariableListItem>({
                     {highlight(variable.name)}
                 </Checkbox>
             ) : (
-                <Link
-                    to={`/variables/${variable.id}`}
-                    title={variable.catalogPath ?? undefined}
-                >
-                    {highlight(variable.name)}
-                </Link>
+                link({
+                    to: `/variables/${variable.id}`,
+                    title: variable.catalogPath ?? undefined,
+                    children: highlight(variable.name),
+                })
             )}
         </>
     )
@@ -714,12 +711,13 @@ function MoreInDataset({
     search: string
     onNarrow?: (search: string) => void
 }): React.ReactElement {
+    const link = React.useContext(VariableListLinkContext)
     const label = <>{count} more in this dataset →</>
     return onNarrow ? (
         <Typography.Link onClick={() => onNarrow(search)}>
             {label}
         </Typography.Link>
     ) : (
-        <Link to={searchHref(search)}>{label}</Link>
+        link({ to: searchHref(search), children: label })
     )
 }
