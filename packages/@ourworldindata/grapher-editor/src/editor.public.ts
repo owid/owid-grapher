@@ -29,7 +29,6 @@ export {
     dataApiIndicatorStore,
     tableIndicatorStore,
     csvIndicatorStore,
-    listIndicatorCatalog,
     type IndicatorListDataset,
 } from "../../../../adminSiteClient/indicatorStores.js"
 export type {

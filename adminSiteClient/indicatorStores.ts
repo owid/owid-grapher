@@ -29,24 +29,7 @@ export interface IndicatorStore {
     ): Promise<OwidTable | undefined>
 }
 
-/** OWID's indicator store: variableIds resolved against the Data API */
-export function dataApiIndicatorStore(options: {
-    dataApiUrl: string
-    catalog?: IndicatorCatalog
-}): IndicatorStore {
-    const fetchTable = getCachingInputTableFetcher(
-        options.dataApiUrl,
-        undefined,
-        true
-    )
-    return {
-        catalog: options.catalog,
-        loadTable: (dimensions, selectedEntityColors) =>
-            fetchTable(dimensions, selectedEntityColors),
-    }
-}
-
-/** A dataset of OWID indicators, as `listIndicatorCatalog` takes them */
+/** A dataset of OWID indicators, for `dataApiIndicatorStore`'s `datasets` */
 export interface IndicatorListDataset {
     id: number
     name: string
@@ -56,15 +39,34 @@ export interface IndicatorListDataset {
 }
 
 /**
- * A catalog over a list of datasets the host loads once, searched in the
- * browser by indicator name. `load` has the shape of a 0.1.0 catalog's, so
- * `listIndicatorCatalog(catalog.load)` upgrades one.
+ * OWID's indicator store: variableIds resolved against the Data API. "Add
+ * indicators" offers either `datasets`, loaded when the picker first opens and
+ * searched in the browser by indicator name, or a `catalog` with its own search.
  */
-export function listIndicatorCatalog(
-    load: () => Promise<{ datasets: IndicatorListDataset[] }>
+export function dataApiIndicatorStore(
+    options: { dataApiUrl: string } & (
+        | { datasets: () => Promise<IndicatorListDataset[]>; catalog?: never }
+        | { catalog?: IndicatorCatalog; datasets?: never }
+    )
+): IndicatorStore {
+    const fetchTable = getCachingInputTableFetcher(
+        options.dataApiUrl,
+        undefined,
+        true
+    )
+    const { datasets } = options
+    return {
+        catalog: datasets ? listCatalog(datasets) : options.catalog,
+        loadTable: (dimensions, selectedEntityColors) =>
+            fetchTable(dimensions, selectedEntityColors),
+    }
+}
+
+function listCatalog(
+    load: () => Promise<IndicatorListDataset[]>
 ): IndicatorCatalog {
     return inMemoryCatalog(async () =>
-        (await load()).datasets.map((dataset) => ({
+        (await load()).map((dataset) => ({
             id: dataset.id,
             name: dataset.name,
             namespace: dataset.namespace,

@@ -7,7 +7,7 @@ import {
     DimensionProperty,
     OwidTableSlugs,
 } from "@ourworldindata/types"
-import { csvIndicatorStore, listIndicatorCatalog } from "./indicatorStores.js"
+import { csvIndicatorStore, dataApiIndicatorStore } from "./indicatorStores.js"
 
 const csv = `entityName,year,rent_index,vacancy_rate,region
 Berlin,2015,100,3.1,DE
@@ -109,30 +109,24 @@ describe(csvIndicatorStore, () => {
     })
 })
 
-describe(listIndicatorCatalog, () => {
-    // What a 0.1.0 host's `catalog.load` returned
-    const legacyLoad = () =>
-        Promise.resolve({
-            namespaces: [{ name: "who", isArchived: false }],
-            datasets: Array.from({ length: 10 }, (_, i) => ({
+describe("dataApiIndicatorStore with datasets", () => {
+    const datasets = () =>
+        Promise.resolve(
+            Array.from({ length: 10 }, (_, i) => ({
                 id: i + 1,
                 name: `Dataset ${i + 1}`,
                 namespace: "who",
-                version: "2024-01-01",
-                isPrivate: false,
-                nonRedistributable: false,
                 variables: [
                     { id: 100 + i, name: `Deaths ${i + 1}` },
                     { id: 200 + i, name: `Births ${i + 1}` },
                 ],
-            })),
-        })
-
-    it("upgrades a 0.1.0 catalog's load, with picks naming indicators by id", async () => {
-        const page = await listIndicatorCatalog(legacyLoad).search(
-            "births 3",
-            1
+            }))
         )
+    const catalogOf = (load: typeof datasets) =>
+        dataApiIndicatorStore({ dataApiUrl: "", datasets: load }).catalog!
+
+    it("offers the datasets' indicators, picked by id", async () => {
+        const page = await catalogOf(datasets).search("births 3", 1)
         expect(page).toMatchObject({ unit: "datasets", total: 1 })
         expect(page.datasets[0]).toMatchObject({
             id: 3,
@@ -143,7 +137,7 @@ describe(listIndicatorCatalog, () => {
     })
 
     it("pages through the datasets with a match", async () => {
-        const catalog = listIndicatorCatalog(legacyLoad)
+        const catalog = catalogOf(datasets)
         const first = await catalog.search("deaths", 1)
         const second = await catalog.search("deaths", 2)
         expect(first.total).toBe(10)
@@ -151,11 +145,10 @@ describe(listIndicatorCatalog, () => {
         expect(second.datasets[0].id).toBe(first.pageSize + 1)
     })
 
-    it("loads the list once, and again after a failed load", async () => {
-        const load = vi
-            .fn(legacyLoad)
-            .mockRejectedValueOnce(new Error("offline"))
-        const catalog = listIndicatorCatalog(load)
+    it("loads the datasets once, and again after a failed load", async () => {
+        const load = vi.fn(datasets).mockRejectedValueOnce(new Error("offline"))
+        const catalog = catalogOf(load)
+        expect(load).not.toHaveBeenCalled()
         await expect(catalog.search("", 1)).rejects.toThrow("offline")
         await catalog.search("", 1)
         await catalog.search("deaths", 1)
