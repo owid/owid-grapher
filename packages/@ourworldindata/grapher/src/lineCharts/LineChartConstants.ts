@@ -1,5 +1,10 @@
 import { ChartManager } from "../chart/ChartManager"
-import { CoreValueType, EntityName, Time } from "@ourworldindata/types"
+import {
+    CoreValueType,
+    EntityName,
+    SeriesName,
+    Time,
+} from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState"
@@ -101,6 +106,11 @@ export interface PlacedAnnotation {
     point: PlacedPoint
 }
 
+export interface RenderAnnotation extends PlacedAnnotation {
+    key: string
+    emphasis: Emphasis
+}
+
 export interface PlacedLineChartSeries extends LineChartSeries {
     placedPoints: PlacedPoint[]
     placedAnnotations: PlacedAnnotation[]
@@ -117,3 +127,7 @@ export interface LineChartManager extends ChartManager {
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
     hasScatter?: boolean // x-axis config is ignored if a secondary scatter plot is present
 }
+
+export type AnnotationTooltipState =
+    | { kind: "idle" }
+    | { kind: "open"; seriesName: SeriesName }

@@ -724,7 +724,7 @@ export class DumbbellChart
                             range={xRange}
                             valueLabelStyle={valueLabelStyle}
                             y={0}
-                            onInfoTooltipShow={this.dismissTooltip}
+                            onTooltipShow={this.dismissTooltip}
                         />
                     )}
                 />
