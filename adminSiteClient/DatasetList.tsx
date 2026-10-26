@@ -35,10 +35,8 @@ function createColumns({
     return [
         {
             title: "Dataset",
-            // antd lays the table out fixed once a column has `ellipsis`, and
-            // the columns without a width then split what is left equally —
-            // which left the dataset's name a hundred pixels wide
-            width: "26%",
+            // The sticky header lays the table out fixed, so every other
+            // column has a width and the names get whatever is left
             dataIndex: "name",
             key: "name",
             sorter: (a, b) => a.name.localeCompare(b.name),
@@ -61,12 +59,12 @@ function createColumns({
             title: "Namespace",
             dataIndex: "namespace",
             key: "namespace",
-            width: 120,
+            width: 130,
             sorter: (a, b) => a.namespace.localeCompare(b.namespace),
         },
         {
             title: "Short name",
-            width: "14%",
+            width: 160,
             dataIndex: "shortName",
             key: "shortName",
             sorter: (a, b) =>
@@ -77,14 +75,14 @@ function createColumns({
             title: "Version",
             dataIndex: "version",
             key: "version",
-            width: 110,
+            width: 100,
             sorter: (a, b) => (a.version ?? "").localeCompare(b.version ?? ""),
         },
         {
             title: "Charts",
             dataIndex: "numCharts",
             key: "numCharts",
-            width: 90,
+            width: 80,
             align: "right",
             sorter: (a, b) => a.numCharts - b.numCharts,
         },
@@ -92,7 +90,7 @@ function createColumns({
             title: "Uploaded",
             dataIndex: "dataEditedAt",
             key: "dataEditedAt",
-            width: 170,
+            width: 150,
             sorter: (a, b) =>
                 new Date(a.dataEditedAt).getTime() -
                 new Date(b.dataEditedAt).getTime(),
@@ -105,17 +103,21 @@ function createColumns({
         },
         {
             title: "Notes",
-            width: "12%",
+            width: 120,
             dataIndex: "description",
             key: "description",
-            ellipsis: true,
-            render: (description) => highlight(description),
+            // Clamped to a few lines, where antd's `ellipsis` would cut it to one
+            render: (description) => (
+                <div className="DatasetList__notes">
+                    {highlight(description)}
+                </div>
+            ),
         },
         {
             title: "Tags",
             dataIndex: "tags",
             key: "tags",
-            width: 240,
+            width: 200,
             render: (tags, dataset) => (
                 <EditableTags
                     tags={tags}
