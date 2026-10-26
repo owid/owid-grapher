@@ -246,7 +246,6 @@ describe("static SVG export of projected data", () => {
             ["France", "Germany"]
         )
 
-        // Sanity check: the SVG does draw projected bars with stripes
         const patternContents = [
             ...svg.matchAll(
                 /<pattern id="DiscreteBarChart_stripes[^>]*>(.*?)<\/pattern>/g
@@ -259,7 +258,6 @@ describe("static SVG export of projected data", () => {
             for (const { color } of projectedBars)
                 expect(content).not.toContain(color)
 
-        // The bars themselves keep the color as a solid fill
         for (const { seriesName, color } of projectedBars) {
             const bar = svg.match(
                 new RegExp(`<rect id="${seriesName}"[^>]*>`)

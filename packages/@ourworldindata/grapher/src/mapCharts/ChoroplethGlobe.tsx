@@ -43,7 +43,6 @@ import {
     GlobeRenderFeature,
     InternalAnnotation,
     MAP_HOVER_TARGET_RANGE,
-    PROJECTED_DATA_LEGEND_COLOR,
     RenderFeature,
     SVGMouseEvent,
 } from "./MapChartConstants"
@@ -56,6 +55,7 @@ import {
     ExternalValueAnnotation,
     InternalValueAnnotation,
     ProjectedDataPattern,
+    ProjectedDataLegendPattern,
 } from "./MapComponents"
 import { Patterns, makePatternId } from "../core/GrapherConstants"
 import {
@@ -779,28 +779,11 @@ export class ChoroplethGlobe extends React.Component<{
             <g id={makeFigmaId("countries-with-data")}>
                 {this.manager.hasProjectedData && (
                     <defs>
-                        {/* Pattern used by the map legend for the projected data bin */}
-                        <ProjectedDataPattern
+                        <ProjectedDataLegendPattern
                             idSuffix={this.manager.patternIdSuffix}
-                            key={PROJECTED_DATA_LEGEND_COLOR}
-                            color={PROJECTED_DATA_LEGEND_COLOR}
                             scale={this.manager.patternScale}
-                            forLegend
                         />
 
-                        {/* Patterns used by the map legend. These duplicate the patterns below,
-                            but use a legend-specific id */}
-                        {this.binColors.map((color, index) => (
-                            <ProjectedDataPattern
-                                idSuffix={this.manager.patternIdSuffix}
-                                key={`${color}-${index}`}
-                                color={color}
-                                scale={this.manager.patternScale}
-                                forLegend
-                            />
-                        ))}
-
-                        {/* Pattern used by features */}
                         {this.binColors.map((color, index) => (
                             <ProjectedDataPattern
                                 idSuffix={this.manager.patternIdSuffix}

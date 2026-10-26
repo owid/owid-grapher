@@ -236,7 +236,6 @@ describe("static SVG export of projected data", () => {
         )
         expect(projectedCountries).toHaveLength(2)
 
-        // Sanity check: the SVG does draw projected data with patterns
         const patternContents = [
             ...svg.matchAll(
                 /<pattern id="projectedDataPattern[^>]*>(.*?)<\/pattern>/g
@@ -249,7 +248,6 @@ describe("static SVG export of projected data", () => {
             for (const { color } of projectedCountries)
                 expect(content).not.toContain(color)
 
-        // The country shapes themselves keep the color as a solid fill
         for (const { seriesName, color } of projectedCountries) {
             const countryPath = svg.match(
                 new RegExp(`<path id="${seriesName}"[^>]*>`)

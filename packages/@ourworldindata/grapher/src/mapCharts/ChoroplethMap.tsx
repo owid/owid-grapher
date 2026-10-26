@@ -24,7 +24,6 @@ import {
     ANNOTATION_COLOR_LIGHT,
     ANNOTATION_COLOR_DARK,
     RenderFeature,
-    PROJECTED_DATA_LEGEND_COLOR,
     MapViewport,
     MAP_VIEWPORTS,
     MAP_REGION_LABELS,
@@ -37,6 +36,7 @@ import {
     ExternalValueAnnotation,
     InternalValueAnnotation,
     ProjectedDataPattern,
+    ProjectedDataLegendPattern,
     InapplicablePattern,
 } from "./MapComponents"
 import { NoDataPattern } from "../chart/ChartUtils"
@@ -549,28 +549,11 @@ export class ChoroplethMap extends React.Component<{
             <g id={makeFigmaId("countries-with-data")}>
                 {this.manager.hasProjectedData && (
                     <defs>
-                        {/* Pattern used by the map legend for the projected data bin */}
-                        <ProjectedDataPattern
+                        <ProjectedDataLegendPattern
                             idSuffix={this.manager.patternIdSuffix}
-                            key={PROJECTED_DATA_LEGEND_COLOR}
-                            color={PROJECTED_DATA_LEGEND_COLOR}
                             scale={this.manager.patternScale}
-                            forLegend
                         />
-                        {/* Patterns used by the map legend. The map legend can't re-use
-                            the features' patterns defined below because those also undo
-                            the map's viewport scale. */}
-                        {this.binColors.map((color, index) => (
-                            <ProjectedDataPattern
-                                idSuffix={this.manager.patternIdSuffix}
-                                key={`${color}-${index}`}
-                                color={color}
-                                scale={this.manager.patternScale}
-                                forLegend
-                            />
-                        ))}
 
-                        {/* Pattern used by features */}
                         {this.binColors.map((color, index) => (
                             <ProjectedDataPattern
                                 idSuffix={this.manager.patternIdSuffix}
