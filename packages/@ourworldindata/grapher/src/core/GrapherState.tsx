@@ -2370,13 +2370,16 @@ export class GrapherState
     @computed get detailRenderers(): MarkdownTextWrap[] {
         if (typeof window === "undefined") return []
         return this.detailsOrderedByReference.map((term, i) => {
-            let text = `**${i + 1}.** `
+            const referenceLabel = `${i + 1}.`
+            let text = `**${referenceLabel}** `
             const detail: EnrichedDetail | undefined = window.details?.[term]
             if (detail?.text) {
                 const lines = detail.text.split("\n")
-                const title = lines[0]
+                const title = lines[0].trim()
                 const description = lines.slice(2).join("\n")
-                text += `**${title}** ${description}`
+                text = title
+                    ? `**${referenceLabel} ${title}** ${description}`
+                    : `**${referenceLabel}** ${description}`
             }
 
             // We can't use the computed property here because Grapher might
