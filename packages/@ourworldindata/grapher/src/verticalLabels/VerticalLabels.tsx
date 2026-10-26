@@ -22,6 +22,7 @@ export function VerticalLabels({
     onMouseLeave,
     onTooltipShow,
     onTooltipHide,
+    seriesNamesWithInfoIcon,
 }: {
     state: VerticalLabelsState
     x?: number
@@ -30,6 +31,7 @@ export function VerticalLabels({
     onMouseLeave?: () => void
     onTooltipShow?: (seriesName: SeriesName) => void
     onTooltipHide?: (seriesName: SeriesName) => void
+    seriesNamesWithInfoIcon?: ReadonlySet<SeriesName>
 }): React.ReactElement {
     const { renderSeries, seriesWithInlineAnnotation, textAnchor } = state
 
@@ -62,6 +64,7 @@ export function VerticalLabels({
                 onMouseLeave={onMouseLeave}
                 onTooltipShow={onTooltipShow}
                 onTooltipHide={onTooltipHide}
+                seriesNamesWithInfoIcon={seriesNamesWithInfoIcon}
             />
         </g>
     )
@@ -74,6 +77,7 @@ function Labels({
     onMouseLeave,
     onTooltipShow,
     onTooltipHide,
+    seriesNamesWithInfoIcon,
 }: {
     series: RenderLabelSeries[]
     outline: boolean
@@ -81,6 +85,7 @@ function Labels({
     onMouseLeave?: (key: SeriesName) => void
     onTooltipShow?: (key: SeriesName) => void
     onTooltipHide?: (key: SeriesName) => void
+    seriesNamesWithInfoIcon?: ReadonlySet<SeriesName>
 }): React.ReactElement {
     return (
         <g id={makeFigmaId("text-labels")} style={{ pointerEvents: "none" }}>
@@ -97,6 +102,9 @@ function Labels({
                         color={{ name: color, value: color }}
                         opacity={LABEL_STYLE[emphasis].opacity}
                         outline={outline}
+                        showInfoIcon={seriesNamesWithInfoIcon?.has(
+                            series.seriesName
+                        )}
                         onMouseEnter={() => onMouseEnter?.(series.seriesName)}
                         onMouseLeave={() => onMouseLeave?.(series.seriesName)}
                         onTooltipShow={() => onTooltipShow?.(series.seriesName)}
