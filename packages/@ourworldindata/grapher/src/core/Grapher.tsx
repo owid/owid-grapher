@@ -48,7 +48,7 @@ import { observer } from "mobx-react"
 import { SourcesModal } from "../modal/SourcesModal"
 import { Command, CommandPalette } from "../controls/CommandPalette"
 import { EmbedModal } from "../modal/EmbedModal"
-import Mousetrap from "mousetrap"
+import { tinykeys } from "tinykeys"
 import { SelectionArray } from "../selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import classnames from "clsx"
@@ -342,7 +342,7 @@ export class Grapher extends React.Component<GrapherProps> {
                 category: "Navigation",
             },
             {
-                combo: "?",
+                combo: "[Shift]+?",
                 fn: this.toggleCommandPalette,
                 title: `Toggle Help`,
                 category: "Navigation",
@@ -393,7 +393,7 @@ export class Grapher extends React.Component<GrapherProps> {
                 title: "Toggle download modal",
                 category: "Chart",
             },
-            { combo: "esc", fn: this.clearErrors },
+            { combo: "Escape", fn: this.clearErrors },
             {
                 combo: "z",
                 fn: this.toggleTimelineCommand,
@@ -401,7 +401,7 @@ export class Grapher extends React.Component<GrapherProps> {
                 category: "Timeline",
             },
             {
-                combo: "shift+o",
+                combo: "Shift+O",
                 fn: this.grapherState.clearQueryParams,
                 title: "Reset to original",
                 category: "Navigation",
@@ -417,13 +417,13 @@ export class Grapher extends React.Component<GrapherProps> {
         if (this.grapherState.slideShow) {
             const slideShow = this.grapherState.slideShow
             shortcuts.push({
-                combo: "right",
+                combo: "ArrowRight",
                 fn: slideShow.playNext,
                 title: "Next chart",
                 category: "Browse",
             })
             shortcuts.push({
-                combo: "left",
+                combo: "ArrowLeft",
                 fn: slideShow.playPrevious,
                 title: "Previous chart",
                 category: "Browse",
@@ -813,29 +813,33 @@ export class Grapher extends React.Component<GrapherProps> {
         this.freezeToleranceNoticeWhileTimelineMoves()
     }
 
-    private _shortcutsBound = false
+    private unbindKeyboardShortcutsFn?: () => void
     private bindKeyboardShortcuts(): void {
-        if (!this.grapherState.enableKeyboardShortcuts || this._shortcutsBound)
+        if (
+            !this.grapherState.enableKeyboardShortcuts ||
+            this.unbindKeyboardShortcutsFn
+        )
             return
-        this.keyboardShortcuts.forEach((shortcut) => {
-            Mousetrap.bind(shortcut.combo, () => {
-                shortcut.fn()
-                this.grapherState.analytics.logKeyboardShortcut(
-                    shortcut.title || "",
-                    shortcut.combo
-                )
-                return false
-            })
-        })
-        this._shortcutsBound = true
+        const keybindings = Object.fromEntries(
+            this.keyboardShortcuts.map((shortcut) => [
+                shortcut.combo,
+                (event: KeyboardEvent): void => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    shortcut.fn()
+                    this.grapherState.analytics.logKeyboardShortcut(
+                        shortcut.title || "",
+                        shortcut.combo
+                    )
+                },
+            ])
+        )
+        this.unbindKeyboardShortcutsFn = tinykeys(window, keybindings)
     }
 
     private unbindKeyboardShortcuts(): void {
-        if (!this._shortcutsBound) return
-        this.keyboardShortcuts.forEach((shortcut) => {
-            Mousetrap.unbind(shortcut.combo)
-        })
-        this._shortcutsBound = false
+        this.unbindKeyboardShortcutsFn?.()
+        this.unbindKeyboardShortcutsFn = undefined
     }
 
     override componentWillUnmount(): void {

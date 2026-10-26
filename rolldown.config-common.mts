@@ -10,7 +10,7 @@ import { withFilter } from "rolldown/filter"
 import type { DeprecationOrId } from "sass"
 
 // see docs/browser-support.md
-export const BUILD_TARGET = ["chrome106", "firefox110", "safari16.0"]
+export const BUILD_TARGET = ["chrome106", "firefox110", "safari16.4"]
 
 export const scssPreprocessorOptions = {
     // Prevent reintroducing deprecated features.
