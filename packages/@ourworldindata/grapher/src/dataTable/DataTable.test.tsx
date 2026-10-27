@@ -565,3 +565,58 @@ describe("when a scatter's colour column has a single observation", () => {
         )
     })
 })
+
+describe("when the table is sorted by an ordinal column", () => {
+    const renderSortedByMonth = (order: SortOrder): (string | null)[] => {
+        const table = new OwidTable(
+            [
+                ["entityName", "year", "month"],
+                ["Brazil", 2020, "Mar"],
+                ["Chad", 2020, "Jan"],
+                ["Denmark", 2020, "Apr"],
+                ["Egypt", 2020, "Feb"],
+                ["Fiji", 2010, "Jan"],
+            ],
+            [
+                {
+                    slug: "month",
+                    type: ColumnTypeNames.Ordinal,
+                    sort: ["Jan", "Feb", "Mar", "Apr"],
+                },
+            ]
+        )
+        const grapher = new GrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+            ySlugs: "month",
+            table,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        })
+        grapher.dataTableSort = {
+            dimIndex: 0,
+            columnKey: PointColumnKey.single,
+            order,
+        }
+        const { container } = render(<DataTable manager={grapher} />)
+        return getEntityNames(container)
+    }
+
+    it("sorts ascending by the column's sort order rather than alphabetically", () => {
+        expect(renderSortedByMonth(SortOrder.asc)).toEqual([
+            "Chad",
+            "Egypt",
+            "Brazil",
+            "Denmark",
+            "Fiji",
+        ])
+    })
+
+    it("sorts descending by the reverse of the column's sort order", () => {
+        expect(renderSortedByMonth(SortOrder.desc)).toEqual([
+            "Denmark",
+            "Brazil",
+            "Egypt",
+            "Chad",
+            "Fiji",
+        ])
+    })
+})
