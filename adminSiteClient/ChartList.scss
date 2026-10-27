@@ -1,8 +1,3 @@
-.chart-list__search {
-    max-width: 500px;
-    margin-bottom: 16px;
-}
-
 .chart-list__preview {
     display: block;
     width: 104px;
@@ -103,8 +98,18 @@
 }
 
 .chart-list__author {
+    padding: 0;
+    border: 0;
+    background: none;
     font-size: 0.85em;
     color: #777;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        color: #0d6efd;
+        text-decoration: underline;
+    }
 }
 
 .chart-list__header-help {

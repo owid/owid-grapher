@@ -44,6 +44,8 @@ $admin-section: "section:not(:where(.GrapherComponent *))";
 @import "./SvgTesterSuitePage.scss";
 @import "./VariableList.scss";
 @import "./ChartList.scss";
+@import "./ChartSearchToolbar.scss";
+@import "./SearchHelp.scss";
 @import "./ChartSourceBadge.scss";
 
 html {
