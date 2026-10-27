@@ -5,10 +5,6 @@
         margin-bottom: 8px;
     }
 
-    table {
-        border-collapse: collapse;
-    }
-
     td {
         padding: 2px 12px 2px 0;
         vertical-align: top;
@@ -17,4 +13,23 @@
     td:first-child {
         white-space: nowrap;
     }
+}
+
+.search-help__heading {
+    margin: 12px 0 4px;
+    font-size: 13px;
+    font-weight: 600;
+
+    &:first-child {
+        margin-top: 0;
+    }
+}
+
+.search-help__table {
+    border-collapse: collapse;
+}
+
+.search-help__note {
+    margin: 12px 0 0;
+    color: rgba(0, 0, 0, 0.55);
 }

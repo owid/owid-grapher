@@ -3,7 +3,6 @@ import { useMemo, useRef, useState } from "react"
 import * as _ from "lodash-es"
 import { AutoComplete, Button, Input, Select } from "antd"
 import {
-    CHART_SEARCH_FIELDS,
     ChartSearchFacet,
     getFacetValues,
     hasChartFilters,
@@ -12,7 +11,7 @@ import {
     setFacetValues,
     suggestChartSearchTerms,
 } from "./chartSearchQuery.js"
-import { SearchHelp } from "./SearchHelp.js"
+import { SearchHelp, SearchHelpRow, SearchHelpTable } from "./SearchHelp.js"
 
 const SUGGESTION_VALUE_PREFIX = "\u0000suggestion:"
 
@@ -34,6 +33,42 @@ function optionsOfIsFacet(
 
 const STATUS_OPTIONS = optionsOfIsFacet("status")
 const SOURCE_OPTIONS = optionsOfIsFacet("source")
+
+const WORD_HELP: SearchHelpRow[] = [
+    { example: "solar wind", meaning: 'Contains "solar" and "wind"' },
+    { example: '"solar power"', meaning: "Contains the exact phrase" },
+    { example: "-wind", meaning: 'Doesn\'t contain "wind"' },
+]
+
+const FILTER_HELP: SearchHelpRow[] = [
+    ...Object.entries(IS_VALUES).map(([name, { label }]) => ({
+        example: `is:${name}`,
+        meaning: label,
+    })),
+    { example: "tag:Energy", meaning: 'Tagged "Energy"' },
+    { example: "tag:ener", meaning: 'Any tag that starts with "ener"' },
+    {
+        example: 'tag:"Air Pollution"',
+        meaning: "Quote a name that has spaces",
+    },
+    {
+        example: "author:ada",
+        meaning:
+            'Last edited or published by someone whose name starts with "ada"',
+    },
+]
+
+const COMBINING_HELP: SearchHelpRow[] = [
+    {
+        example: "tag:Energy tag:Health",
+        meaning: 'Tagged "Energy" or "Health"',
+    },
+    { example: "tag:Energy is:draft", meaning: 'Tagged "Energy" and a draft' },
+    {
+        example: "-is:draft",
+        meaning: "Not a draft. A minus excludes any filter",
+    },
+]
 
 interface NameOption {
     value: string
@@ -210,22 +245,18 @@ export function ChartSearchToolbar({
                         autoFocus={autoFocus}
                     />
                 </AutoComplete>
-                <SearchHelp
-                    intro={
-                        <>
-                            Words are combined with AND and are looked for in
-                            the title, variant, notes, slug, id, chart type,
-                            tags and people. Use <code>"a phrase"</code> to keep
-                            words together and <code>-word</code> to exclude;
-                            both work for filters too (<code>-is:draft</code>).
-                            Repeat a filter to match any of its values:{" "}
-                            <code>tag:Energy tag:Health</code>. The filters next
-                            to the box write these terms for you, and the whole
-                            search is kept in the page URL.
-                        </>
-                    }
-                    fields={CHART_SEARCH_FIELDS}
-                />
+                <SearchHelp>
+                    <SearchHelpTable heading="Words" rows={WORD_HELP} />
+                    <SearchHelpTable heading="Filters" rows={FILTER_HELP} />
+                    <SearchHelpTable
+                        heading="Combining"
+                        rows={COMBINING_HELP}
+                    />
+                    <p className="search-help__note">
+                        Words are looked for in the title, variant, notes, slug,
+                        id, chart type, tags and people.
+                    </p>
+                </SearchHelp>
             </div>
             <div className="chart-search__filters">
                 <Select

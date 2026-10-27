@@ -17,8 +17,7 @@ export const CHART_SEARCH_FIELDS = [
     {
         name: "is",
         type: "string",
-        description:
-            "draft or published; etl, drifted (ETL, since changed in the admin) or admin",
+        description: "draft, published, etl, drifted or admin",
     },
     { name: "tag", type: "string", description: "Has this tag" },
     {
@@ -62,7 +61,7 @@ export const IS_VALUES = {
     },
     drifted: {
         facet: "source",
-        label: "ETL, since changed in the admin",
+        label: "Created in ETL, then changed in the admin",
         test: (chart) => {
             const etlSource = getChartListItemEtlSource(chart)
             return !!etlSource && hasEtlDrift(etlSource.drift)
