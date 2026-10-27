@@ -173,7 +173,7 @@ function renderSvgLine(
  *
  * <tspan x="10" y="32">
  *   <tspan style="font-weight:700" x="10" y="32">Data source:</tspan>
- *   <tspan dy="0.1" xml:space="preserve"> UN WPP</tspan>
+ *   <tspan dy="0.01" xml:space="preserve"> UN WPP</tspan>
  * </tspan>
  */
 function correctLineStartForFigma(

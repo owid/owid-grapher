@@ -30,7 +30,7 @@ const SUPERSCRIPT_NUMERALS = {
  * weight, to the whole node. It also ignores `dx` on the merged runs. The
  * shift is too small to be visible in browsers.
  */
-export const FIGMA_TEXT_NODE_BREAK_DY = 0.1
+export const FIGMA_TEXT_NODE_BREAK_DY = 0.01
 
 export interface IRFontParams {
     fontSize?: number

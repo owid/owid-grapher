@@ -64,8 +64,8 @@ describe(SeriesLabel, () => {
         ])
         expect(spans.map((span) => span.getAttribute("dy"))).toEqual([
             null,
-            "0.1",
-            "11.9",
+            "0.01",
+            "11.99",
         ])
     })
 
