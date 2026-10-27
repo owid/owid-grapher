@@ -1,5 +1,4 @@
 import React from "react"
-import { curveLinearClosed, line } from "d3-shape"
 import { dyFromAlign, roundForSvg } from "@ourworldindata/utils"
 import { VerticalAlign } from "@ourworldindata/types"
 import { GRAY_100 } from "../color/ColorConstants"
@@ -62,7 +61,7 @@ function SwimlaneSegmentShape({
             />
         )
 
-    return <path d={toSegmentOutlinePath(segment)} fill={fill} />
+    return <polygon points={toSegmentOutlinePoints(segment)} fill={fill} />
 }
 
 function SwimlaneSegmentLabelText({
@@ -102,7 +101,7 @@ function SwimlaneSegmentLabelText({
 }
 
 /** Outline of a segment, tapered to a point at each edge the timeline window cropped */
-function toSegmentOutlinePath({
+function toSegmentOutlinePoints({
     x,
     y,
     width,
@@ -135,8 +134,10 @@ function toSegmentOutlinePath({
               [right, bottom],
           ]
 
-    const outline = [...leftEdge, ...rightEdge].map(
-        ([pointX, pointY]): Point => [roundForSvg(pointX), roundForSvg(pointY)]
-    )
-    return line<Point>().curve(curveLinearClosed)(outline) ?? ""
+    return [...leftEdge, ...rightEdge]
+        .map(
+            ([pointX, pointY]) =>
+                `${roundForSvg(pointX)},${roundForSvg(pointY)}`
+        )
+        .join(" ")
 }
