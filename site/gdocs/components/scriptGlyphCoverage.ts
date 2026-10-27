@@ -9,9 +9,7 @@ import { createContext } from "react"
 export const LATO_SUPS_CHARACTERS = new Set(
     "()+0123456789=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz−"
 )
-export const LATO_SUBS_CHARACTERS = new Set(
-    "#$()+,.0123456789=n¢£¤¥€−"
-)
+export const LATO_SUBS_CHARACTERS = new Set("#$()+,.0123456789=n¢£¤¥€−")
 
 export type ScriptPosition = "superscript" | "subscript"
 
