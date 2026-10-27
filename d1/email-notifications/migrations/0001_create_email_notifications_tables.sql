@@ -56,6 +56,7 @@ CREATE INDEX tokens_userId ON tokens (userId);
 -- Notification emails submitted to Postmark. Delivery webhooks update the
 -- status, deliveredAt and messageId fields. Only send history: subscribers'
 -- windows start at notification_preferences.lastSentAt.
+-- The send job deletes messages after MESSAGES_RETENTION_MS.
 CREATE TABLE messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     userId INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
@@ -78,11 +79,14 @@ CREATE TABLE messages (
 
 -- For deleting a user's messages along with the user.
 CREATE INDEX messages_userId ON messages (userId);
+-- For pruning old messages.
+CREATE INDEX messages_sentAt ON messages (sentAt);
 
 -- Receipt ledger used only to make Postmark webhook processing idempotent.
 -- The application-generated key includes the record type because delivery and
 -- subscription-change events can refer to the same Postmark MessageID.
 -- Subscription changes may have no MessageID at all.
+-- The send job deletes receipts after WEBHOOK_RECEIPTS_RETENTION_MS.
 CREATE TABLE postmark_webhook_receipts (
     idempotencyKey TEXT PRIMARY KEY,
     recordType TEXT NOT NULL,
@@ -92,6 +96,10 @@ CREATE TABLE postmark_webhook_receipts (
     messageId TEXT,
     processedAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
+
+-- For pruning old receipts.
+CREATE INDEX postmark_webhook_receipts_processedAt
+    ON postmark_webhook_receipts (processedAt);
 
 -- Latest known Postmark suppression state for each address and message stream.
 -- Reactivated addresses remain with isSuppressed = 0 so delayed older webhooks
