@@ -197,23 +197,6 @@ export async function fetchGdocArchieMl(
     return { text, revisionId: document.revisionId ?? null }
 }
 
-/**
- * The revision id PUT and POST return after writing. Throws a 500 when
- * Google gave none, which shouldn't happen for a doc the service account
- * just wrote.
- */
-export function requireRevisionId(
-    revisionId: string | null | undefined,
-    documentId: string
-): string {
-    if (!revisionId)
-        throw new JsonError(
-            `Wrote gdoc "${documentId}", but Google returned no revision id when reading it back.`,
-            500
-        )
-    return revisionId
-}
-
 function splitReport(messages: OwidGdocErrorMessage[]): DocReport {
     return {
         errors: messages.filter(

@@ -27,7 +27,6 @@ import {
     isShareableEmail,
     loadWritableGdoc,
     type ReadBack,
-    requireRevisionId,
 } from "../gdocArchieMl.js"
 
 // Refuses docs that have no posts_gdocs row (404)
@@ -143,7 +142,7 @@ export async function putGdocArchieMl(
     // refused before anything is written
     await db.knexReadonlyTransaction((trx) => loadWritableGdoc(trx, base, text))
 
-    let writtenRevisionId: string | undefined
+    let writtenRevisionId: string
     try {
         writtenRevisionId = await replaceGdocContentWithArchieMlText(id, text, {
             requiredRevisionId,
@@ -168,23 +167,16 @@ export async function putGdocArchieMl(
         getDocReport(trx, base, stored.text)
     )
 
-    return {
-        revisionId: requireRevisionId(
-            writtenRevisionId ?? stored.revisionId,
-            id
-        ),
-        readBack,
-        report,
-    }
+    return { revisionId: writtenRevisionId, readBack, report }
 }
 
 /**
- * POST /gdocs/archieml?email=<email>[&folderId=<id>]   (Content-Type: text/plain)
+ * POST /gdocs/archieml?email=<email>&folderId=<id>   (Content-Type: text/plain)
  *
  * Creates a new doc of any type from the request body, in the Drive folder
- * `folderId` (which may be in a shared drive), else in the service account's
- * My Drive. Shares it as writer with `email` (devs can't open the service
- * account's My Drive, so an unshared doc is lost), writes the text as-is, reads it back and
+ * `folderId` (which may be in a shared drive; the service account's own My
+ * Drive has no storage). Shares it as writer with `email` (otherwise only
+ * the folder's members could open it), writes the text as-is, reads it back and
  * registers it in posts_gdocs. Every refusal happens before anything is
  * created in Google. No DB transaction is held across the create, share and
  * write; registering fetches the doc from Google again inside its own
@@ -206,13 +198,12 @@ export async function createGdocArchieMl(
             `The "email" query parameter must be the email address to share the new doc with.`,
             400
         )
-    const folderIdParam = req.query.folderId
-    if (folderIdParam !== undefined && !isDriveFolderId(folderIdParam))
+    const folderId = req.query.folderId
+    if (!isDriveFolderId(folderId))
         throw new JsonError(
             `The "folderId" query parameter must be the id of the Drive folder to create the doc in (the part of the folder URL after /folders/).`,
             400
         )
-    const folderId = isDriveFolderId(folderIdParam) ? folderIdParam : undefined
 
     const text = readArchieMlBody(req)
 
@@ -249,7 +240,7 @@ export async function createGdocArchieMl(
             requestBody: { type: "user", role: "writer", emailAddress: email },
         })
     } catch (error) {
-        // Nobody but the service account could open the doc, so remove it
+        // The email can't open the doc, so remove it
         await driveClient.files
             .delete({ fileId: id, supportsAllDrives: true })
             .catch((deleteError) =>
@@ -264,8 +255,9 @@ export async function createGdocArchieMl(
         )
     }
 
+    let revisionId: string
     try {
-        await replaceGdocContentWithArchieMlText(id, text)
+        revisionId = await replaceGdocContentWithArchieMlText(id, text)
     } catch (error) {
         throw new JsonError(
             `Created and shared ${url}, but writing its content failed, so it is empty and not registered in the admin: ${getErrorMessage(error)}`,
@@ -275,7 +267,6 @@ export async function createGdocArchieMl(
 
     try {
         const stored = await fetchGdocArchieMl(id)
-        const revisionId = requireRevisionId(stored.revisionId, id)
         const readBack = compareReadBack(text, stored.text)
 
         // Registering fetches the doc from Google again; accepted for create
@@ -286,13 +277,7 @@ export async function createGdocArchieMl(
             getDocReport(trx, await getRegisteredGdocBase(trx, id), stored.text)
         )
 
-        return {
-            id,
-            url,
-            revisionId,
-            readBack,
-            report,
-        }
+        return { id, url, revisionId, readBack, report }
     } catch (error) {
         throw new JsonError(
             `Created, shared and wrote ${url}, but reading it back or registering it failed, so it may not be registered in the admin: ${getErrorMessage(error)}`,

@@ -10,7 +10,6 @@ import {
     isDriveFolderId,
     isShareableEmail,
     loadWritableGdoc,
-    requireRevisionId,
 } from "./gdocArchieMl.js"
 
 // The document Google returns to fetchGdocArchieMl
@@ -207,26 +206,4 @@ describe(fetchGdocArchieMl, () => {
             revisionId: null,
         })
     })
-})
-
-describe(requireRevisionId, () => {
-    it("passes a revision id through", () => {
-        expect(requireRevisionId("rev-1", "doc")).toBe("rev-1")
-    })
-
-    it.each([null, undefined, ""])(
-        "refuses %j with a 500 naming the doc",
-        (revisionId) => {
-            const thrown = (() => {
-                try {
-                    return requireRevisionId(revisionId, "view-only-doc")
-                } catch (error) {
-                    return error
-                }
-            })()
-            expect(thrown).toBeInstanceOf(JsonError)
-            expect((thrown as JsonError).status).toBe(500)
-            expect((thrown as JsonError).message).toMatch(/view-only-doc/)
-        }
-    )
 })

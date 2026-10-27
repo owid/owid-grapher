@@ -75,9 +75,7 @@ describe(replaceGdocContentWithArchieMlText, () => {
         googleDocument.current = {}
 
         await expect(
-            replaceGdocContentWithArchieMlText("view-only-doc", "title: Hi\n", {
-                requiredRevisionId: "null",
-            })
+            replaceGdocContentWithArchieMlText("view-only-doc", "title: Hi\n")
         ).rejects.toBeInstanceOf(NoEditAccessError)
     })
 
