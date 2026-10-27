@@ -2,13 +2,26 @@ import {
     DimensionProperty,
     OwidChartDimensionInterface,
 } from "@ourworldindata/types"
-import { DetailDictionary } from "@ourworldindata/utils"
+import { DetailDictionary, Json } from "@ourworldindata/utils"
 import { CONTINENTS_INDICATOR_ID } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import type { References } from "./adminChartApi.js"
 import type { OriginUrlSuggestion } from "./ConfigEditor.js"
-import { Dataset, IndicatorCatalogData, Namespace } from "./EditorDatabase.js"
-import { DetailsProvider, IndicatorCatalog } from "./editorProviders.js"
+import {
+    DatasetSearchGroup,
+    INDICATOR_SEARCH_FIELDS,
+    VariableResultView,
+    VariablesGroupedSearchResult,
+    VariablesSearchResult,
+} from "../adminShared/variableSearch.js"
+import {
+    CATALOG_DATASETS_PER_PAGE,
+    CatalogDataset,
+    CatalogIndicator,
+    DetailsProvider,
+    IndicatorCatalog,
+} from "./editorProviders.js"
+import { namesOneDataset, parseCatalogPath } from "./variableSearchQuery.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
 import { BAKED_BASE_URL, DATA_API_URL } from "../settings/clientSettings.mjs"
 import {
@@ -24,36 +37,101 @@ export function adminIndicatorUrl(
         : undefined
 }
 
-/** The admin's indicators, ranked by how many charts use each */
-function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
+const INDICATORS_PER_PAGE = 20
+
+// The admin's rows carry more than a host's, which the admin's list shows
+type AdminCatalogIndicator = CatalogIndicator & VariableResultView
+type AdminCatalogDataset = CatalogDataset &
+    Partial<Pick<DatasetSearchGroup, "shortName" | "uploadedAt" | "uploadedBy">>
+
+/** The admin's indicators, through the same search as /admin/variables */
+export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
     return {
-        async load(): Promise<IndicatorCatalogData> {
-            const usagesPromise = admin
-                .getJSONInBackground<
-                    { variableId: number; usageCount: number }[]
-                >("/api/variables.usages.json")
-                .catch(() => [])
-            const [namespaces, variables, usages] = await Promise.all([
-                admin.getJSON<{ namespaces: Namespace[] }>(
-                    "/api/editorData/namespaces.json"
-                ),
-                admin.getJSON<{ datasets: Dataset[] }>(
-                    "/api/editorData/variables.json"
-                ),
-                usagesPromise,
-            ])
+        fields: INDICATOR_SEARCH_FIELDS,
+        initialQuery: (datasetIds) => {
+            // A slot's next indicator most often comes from the dataset its
+            // others are from; one spanning several gets no guess
+            const distinct = new Set(datasetIds)
+            return distinct.size === 1 ? `dataset-id:${[...distinct][0]}` : ""
+        },
+        async search(query, page) {
+            // The picker says when a search fails; the admin's own error
+            // dialog would reload the page and lose the chart's edits
+            const get = <T extends Json>(params: Json): Promise<T> =>
+                admin.requestJSON<T>("/api/variables.json", params, "GET", {
+                    onFailure: "continue",
+                    isBackground: true,
+                })
+            if (namesOneDataset(query)) {
+                const result = await get<VariablesSearchResult>({
+                    search: query,
+                    limit: INDICATORS_PER_PAGE,
+                    offset: (page - 1) * INDICATORS_PER_PAGE,
+                })
+                return {
+                    datasets: groupByDataset(result.variables),
+                    unit: "indicators",
+                    total: result.numTotalRows,
+                    pageSize: INDICATORS_PER_PAGE,
+                    regexError: result.regexError,
+                    unindexedTerms: result.unindexedTerms,
+                }
+            }
+            const result = await get<VariablesGroupedSearchResult>({
+                search: query,
+                group: "dataset",
+                limit: CATALOG_DATASETS_PER_PAGE,
+                offset: (page - 1) * CATALOG_DATASETS_PER_PAGE,
+            })
             return {
-                namespaces: namespaces.namespaces,
-                datasets: variables.datasets,
-                usageCounts: new Map(
-                    usages.map(({ variableId, usageCount }) => [
-                        variableId,
-                        +usageCount,
-                    ])
-                ),
+                datasets: result.datasets.map((dataset) => ({
+                    ...dataset,
+                    version: dataset.version ?? undefined,
+                    variables: dataset.variables.map(asCatalogIndicator),
+                })),
+                unit: "datasets",
+                total: result.numTotalDatasets,
+                pageSize: CATALOG_DATASETS_PER_PAGE,
+                regexError: result.regexError,
+                unindexedTerms: result.unindexedTerms,
             }
         },
     }
+}
+
+function headerOf(variable: VariableResultView): AdminCatalogDataset {
+    const path = variable.catalogPath
+        ? parseCatalogPath(variable.catalogPath)
+        : undefined
+    return {
+        id: variable.datasetId,
+        name: variable.datasetName,
+        namespace: path?.namespace,
+        version: path?.version,
+        shortName: path?.dataset,
+        uploadedAt: variable.uploadedAt,
+        uploadedBy: variable.uploadedBy,
+        variables: [],
+    }
+}
+
+function asCatalogIndicator(
+    variable: VariableResultView
+): AdminCatalogIndicator {
+    return { ...variable, column: { variableId: variable.id } }
+}
+
+/** A page of indicators, under the headers of the datasets they are from */
+function groupByDataset(
+    variables: VariableResultView[]
+): AdminCatalogDataset[] {
+    const groups = new Map<number, AdminCatalogDataset>()
+    for (const variable of variables) {
+        const group = groups.get(variable.datasetId) ?? headerOf(variable)
+        group.variables.push(asCatalogIndicator(variable))
+        groups.set(variable.datasetId, group)
+    }
+    return [...groups.values()]
 }
 
 export function adminIndicatorStore(admin: Admin): IndicatorStore {
