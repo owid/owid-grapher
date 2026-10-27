@@ -167,6 +167,7 @@ export function ChartSearchToolbar({
 
     const onInputChange = (value: string): void => {
         if (!value.startsWith(SUGGESTION_VALUE_PREFIX)) {
+            keepOpen.current = false
             setTypedQuery(value)
             return onQueryChange(value)
         }

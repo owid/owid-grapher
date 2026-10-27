@@ -419,6 +419,7 @@ function HeaderWithHelp({
 
 function createColumns({
     highlight,
+    highlightAuthor,
     availableTags,
     tagGraphRolesById,
     showInheritanceColumn,
@@ -426,6 +427,7 @@ function createColumns({
     onAuthorClick,
 }: {
     highlight: Highlighter
+    highlightAuthor: Highlighter
     availableTags: MinimalTagWithMetadata[]
     tagGraphRolesById: ReturnType<typeof getTagGraphRolesById>
     showInheritanceColumn: boolean
@@ -486,7 +488,7 @@ function createColumns({
                 <TimestampCell
                     time={chart.lastEditedAt}
                     by={chart.lastEditedBy}
-                    highlight={highlight}
+                    highlight={highlightAuthor}
                     onAuthorClick={onAuthorClick}
                 />
             ),
@@ -500,7 +502,7 @@ function createColumns({
                 <TimestampCell
                     time={chart.publishedAt}
                     by={chart.publishedBy}
-                    highlight={highlight}
+                    highlight={highlightAuthor}
                     onAuthorClick={onAuthorClick}
                 />
             ),
@@ -748,9 +750,11 @@ class ChartTable extends React.Component<ChartTableProps> {
         const showInheritanceColumn =
             charts[0]?.isInheritanceEnabled !== undefined
 
+        const wordsToHighlight = chartSearchWordsToHighlight(query)
         const columns = createColumns({
-            highlight: highlightFunctionForSearchWords(
-                chartSearchWordsToHighlight(query)
+            highlight: highlightFunctionForSearchWords(wordsToHighlight.inText),
+            highlightAuthor: highlightFunctionForSearchWords(
+                wordsToHighlight.inAuthors
             ),
             availableTags: availableTags ?? [],
             tagGraphRolesById: getTagGraphRolesById(availableTags ?? []),

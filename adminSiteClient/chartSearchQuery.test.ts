@@ -153,10 +153,14 @@ describe("the filter controls' rewrites", () => {
         )
     })
 
-    it("drop the facet's exclusions when set", () => {
+    it("keep the facet's exclusions, except of a value now included", () => {
         expect(setFacetValues("-tag:Health x", "tag", ["Energy"])).toBe(
-            "x tag:Energy"
+            "-tag:Health x tag:Energy"
         )
+        expect(setFacetValues("-tag:Health x", "tag", ["health"])).toBe(
+            "x tag:health"
+        )
+        expect(setFacetValues("-is:draft", "status", [])).toBe("-is:draft")
     })
 
     it("write a query that reads back the same", () => {
@@ -173,12 +177,17 @@ describe("the filter controls' rewrites", () => {
 })
 
 describe(chartSearchWordsToHighlight, () => {
-    it("highlights plain words and named authors, not other filters", () => {
-        expect(
-            chartSearchWordsToHighlight(
-                'solar -wind tag:Energy author:"Ada Lovelace"'
-            ).map(({ word, exclude }) => [word, exclude])
-        ).toEqual([
+    it("highlights plain words, and named authors only among authors", () => {
+        const { inText, inAuthors } = chartSearchWordsToHighlight(
+            'solar -wind tag:Energy author:"Ada Lovelace"'
+        )
+        const pairs = (words: typeof inText): [string, boolean][] =>
+            words.map(({ word, exclude }) => [word, exclude])
+        expect(pairs(inText)).toEqual([
+            ["solar", false],
+            ["wind", true],
+        ])
+        expect(pairs(inAuthors)).toEqual([
             ["solar", false],
             ["wind", true],
             ["Ada Lovelace", false],
@@ -241,6 +250,12 @@ describe(suggestChartSearchTerms, () => {
         expect(suggest("tag:Energy tag:ener")).toEqual([
             ["Tags", 'tag:Energy tag:"Energy Mix" '],
         ])
+        expect(suggest("-tag:Energy -tag:ener")).toEqual([
+            ["Tags", '-tag:Energy -tag:"Energy Mix" '],
+        ])
+        expect(suggest("is:draft is:d")).toEqual([
+            ["Status and source", "is:draft is:drifted "],
+        ])
     })
 
     it("offers the name the term being typed already spells", () => {
@@ -263,6 +278,9 @@ describe(suggestChartSearchTerms, () => {
     it("keeps a tag: term going past a space", () => {
         expect(suggest("tag:life exp")).toEqual([
             ["Tags", 'tag:"Life Expectancy" '],
+        ])
+        expect(suggest("-tag:life exp")).toEqual([
+            ["Tags", '-tag:"Life Expectancy" '],
         ])
     })
 

@@ -208,14 +208,18 @@ export function chartSearchFilter(
         )
 }
 
-export function chartSearchWordsToHighlight(query: string): SearchWord[] {
+export function chartSearchWordsToHighlight(query: string): {
+    inText: SearchWord[]
+    inAuthors: SearchWord[]
+} {
     const terms = parseSearchQuery(query)
     const authors = terms
         .filter((term) => !term.negate && facetOfTerm(term) === "author")
         .map((term) => term.value)
         .filter(Boolean)
         .map((word) => toSearchWord(word, false))
-    return [...textWords(terms), ...authors]
+    const inText = textWords(terms)
+    return { inText, inAuthors: [...inText, ...authors] }
 }
 
 export function formatTerm(
@@ -259,8 +263,15 @@ export function setFacetValues(
     values: readonly string[]
 ): string {
     const field = fieldOfFacet(facet)
+    const picked = new Set(values.map((value) => value.toLowerCase()))
     const kept = parseSearchQuery(query)
-        .filter((term) => facetOfTerm(term) !== facet)
+        .filter(
+            (term) =>
+                facetOfTerm(term) !== facet ||
+                (term.negate &&
+                    term.value &&
+                    !picked.has(term.value.toLowerCase()))
+        )
         .map(reformatTerm)
     return [...kept, ...values.map((value) => formatTerm(field, value))].join(
         " "
@@ -355,6 +366,7 @@ interface Phrase {
     start: number
     value: string
     field?: "tag" | "author"
+    negate?: boolean
 }
 
 function isPlainWord(token: Token): boolean {
@@ -383,7 +395,6 @@ function nameTermWithWords(
     const head = headToken && parseSearchTerm(headToken.text)
     if (
         !head ||
-        head.negate ||
         !head.value ||
         headToken.text.includes('"') ||
         (head.field !== "tag" && head.field !== "author") ||
@@ -394,6 +405,7 @@ function nameTermWithWords(
         start: headToken.start,
         value: join([head.value, ...words.map((word) => word.text)]),
         field: head.field,
+        negate: head.negate,
     }
 }
 
@@ -437,10 +449,12 @@ export function suggestChartSearchTerms(
 ): ChartSearchSuggestion[] {
     const takenIn = (
         before: string,
-        facet: "tag" | "author"
+        field: ChartSearchField
     ): ReadonlySet<string> =>
         new Set(
-            getFacetValues(before, facet).map((value) => value.toLowerCase())
+            parseSearchQuery(before)
+                .filter((term) => term.field === field && term.value)
+                .map((term) => term.value.toLowerCase())
         )
     const nameSuggestions = (
         facet: "tag" | "author",
@@ -473,7 +487,8 @@ export function suggestChartSearchTerms(
                 facet,
                 phrase.value,
                 phrase.field ? MAX_NAMES.field : MAX_NAMES.word,
-                before
+                before,
+                phrase.negate
             )
         )
         if (phraseSuggestions.length > 0) break
@@ -483,12 +498,14 @@ export function suggestChartSearchTerms(
     if (!current) return phraseSuggestions
     const term = parseSearchTerm(current.replaceAll('"', ""))
 
+    const isTaken = takenIn(before, "is")
     const isSuggestions = (value: string): ChartSearchSuggestion[] =>
         Object.entries(IS_VALUES)
             .filter(
                 ([name, { label }]) =>
-                    name.startsWith(value.toLowerCase()) ||
-                    label.toLowerCase().startsWith(value.toLowerCase())
+                    !isTaken.has(name) &&
+                    (name.startsWith(value.toLowerCase()) ||
+                        label.toLowerCase().startsWith(value.toLowerCase()))
             )
             .map(([name, { label }]) => ({
                 resultingQuery: `${before}${formatTerm("is", name, term.negate)} `,
