@@ -34,6 +34,7 @@ import {
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_ENTITY_TYPE,
+    SVG_FONT_FAMILY,
     SVG_STYLE_PROPS,
 } from "../core/GrapherConstants"
 import * as R from "remeda"
@@ -500,6 +501,7 @@ export class DataTable extends React.Component<DataTableProps> {
             <svg
                 width={this.bounds.width}
                 height={this.bounds.height}
+                fontFamily={SVG_FONT_FAMILY}
                 style={SVG_STYLE_PROPS}
             >
                 <NoDataMessage

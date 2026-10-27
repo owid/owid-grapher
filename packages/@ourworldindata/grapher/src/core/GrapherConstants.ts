@@ -153,9 +153,16 @@ export function makePatternId(baseId: string, idSuffix?: string): string {
     return idSuffix ? `${baseId}-${idSuffix}` : baseId
 }
 
+/**
+ * Set as the `font-family` attribute rather than in `style`: the browser
+ * re-serializes inline styles with double quotes, which come out as `&quot;` in
+ * exported SVGs, and Figma's SVG import doesn't pick up fonts written like that.
+ * Attributes are kept exactly as written.
+ */
+export const SVG_FONT_FAMILY =
+    "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif"
+
 export const SVG_STYLE_PROPS: React.CSSProperties = {
-    fontFamily:
-        "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif",
     fontFeatureSettings: '"liga", "kern", "calt", "lnum"', // keep in sync with typography.scss$default-font-features
     textRendering: "geometricPrecision",
     WebkitFontSmoothing: "antialiased",

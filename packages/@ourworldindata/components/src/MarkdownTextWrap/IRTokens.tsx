@@ -363,14 +363,11 @@ export class IRFragment extends IRElement {
                         ? FIGMA_TEXT_NODE_BREAK_DY
                         : undefined
                 }
-                style={{
-                    fontSize,
-                    fontWeight,
-                    fontFamily: fontFamily
-                        ? cssFontFamily(fontFamily)
-                        : undefined,
-                    fill: color,
-                }}
+                // Attributes rather than `style`, see MarkdownTextWrapSvg
+                fontSize={fontSize}
+                fontWeight={fontWeight}
+                fontFamily={fontFamily ? cssFontFamily(fontFamily) : undefined}
+                fill={color}
             >
                 {children}
             </tspan>

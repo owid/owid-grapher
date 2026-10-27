@@ -511,11 +511,11 @@ describe(TextWrapGroup, () => {
         })
         const fragment = textWrap.svgLines[0].at(-1) as IRFragment
 
-        const svg = fragment.toSVG() as React.ReactElement<{
-            style: React.CSSProperties
-        }>
+        const svg = fragment.toSVG() as React.ReactElement<
+            React.SVGProps<SVGTSpanElement>
+        >
         expect(svg.type).toEqual("tspan")
-        expect(svg.props.style).toMatchObject({
+        expect(svg.props).toMatchObject({
             fontSize: 10,
             fontWeight: 700,
             fill: "#767676",
@@ -641,10 +641,10 @@ describe(TextWrapGroup, () => {
         expect(textWrap.svgLines.length).toEqual(1)
 
         const mainFragment = textWrap.svgLines[0][0] as IRFragment
-        const svg = mainFragment.toSVG() as React.ReactElement<{
-            style: React.CSSProperties
-        }>
+        const svg = mainFragment.toSVG() as React.ReactElement<
+            React.SVGProps<SVGTSpanElement>
+        >
         expect(svg.type).toEqual("tspan")
-        expect(svg.props.style).toMatchObject({ fontWeight: 700 })
+        expect(svg.props).toMatchObject({ fontWeight: 700 })
     })
 })
