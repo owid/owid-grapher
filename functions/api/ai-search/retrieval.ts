@@ -11,7 +11,7 @@ import {
 } from "../search/algoliaClient.js"
 import { ChartHitWithoutId, PageHitWithoutId, RankedHits } from "./aiSearch.js"
 
-// The fields of AiSearchChartCandidate and PageHitWithoutId
+// The fields of AiSearchChartCandidate and AiSearchPageCandidate
 const CHART_ATTRIBUTES = [
     "title",
     "slug",
@@ -19,6 +19,10 @@ const CHART_ATTRIBUTES = [
     "queryParams",
     "variantName",
     "subtitle",
+    "containerTitle",
+    "titleVariant",
+    "chartConfigId",
+    "explorerType",
     "availableTabs",
     "keyChartForTags",
     "numRelatedArticles",

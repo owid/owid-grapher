@@ -40,9 +40,7 @@ export function parseAiSearchSettings(
 }
 
 export type ChartHitWithoutId = Omit<AiSearchChartCandidate, "id">
-export type PageHitWithoutId = Omit<AiSearchPageCandidate, "id"> & {
-    excerpt?: string
-}
+export type PageHitWithoutId = Omit<AiSearchPageCandidate, "id">
 
 export interface RankedHits {
     charts: ChartHitWithoutId[]
@@ -51,7 +49,7 @@ export interface RankedHits {
 
 interface CandidatePool {
     charts: AiSearchChartCandidate[]
-    pages: (AiSearchPageCandidate & { excerpt?: string })[]
+    pages: AiSearchPageCandidate[]
 }
 
 const chartKey = (hit: ChartHitWithoutId): string =>

@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from "react"
-import cx from "clsx"
+import { useEffect, useReducer, useRef, useState } from "react"
 import {
     AiSearchAngle,
     AiSearchChartCandidate,
@@ -7,26 +6,16 @@ import {
     AiSearchEvent,
     AiSearchGroup,
     AiSearchPageCandidate,
-    GRAPHER_TAB_NAMES,
-    GrapherTabName,
     OwidGdocType,
+    SearchChartHit,
+    StackedArticleHit,
 } from "@ourworldindata/types"
-import { getCanonicalPath } from "@ourworldindata/components"
-import { listedRegionsNames } from "@ourworldindata/utils"
-import {
-    GRAPHER_THUMBNAIL_HEIGHT,
-    GRAPHER_THUMBNAIL_WIDTH,
-} from "@ourworldindata/grapher"
 import { useSearchContext } from "./SearchContext.js"
 import { streamAiSearch, useAiSearchSettings } from "./aiSearchClient.js"
-import {
-    constructChartUrl,
-    constructPreviewUrl,
-    getPageTypeNameAndIcon,
-    toGrapherQueryParams,
-} from "./searchUtils.js"
-import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
 import { SearchAiBetaBadge, SearchAiIcon } from "./SearchAiTeaser.js"
+import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
+import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
+import { SearchStackedArticleHit } from "./SearchStackedArticleHit.js"
 
 interface AiSearchView {
     status: "running" | "done" | "stopped" | "error"
@@ -215,7 +204,7 @@ export const SearchAiResults = ({ query }: { query: string }) => {
 
             <div className="search-ai-results__groups">
                 {view.groups.map((group, i) => (
-                    <SearchAiGroup
+                    <SearchAiSection
                         key={i}
                         group={group}
                         isLead={i === 0}
@@ -226,7 +215,7 @@ export const SearchAiResults = ({ query }: { query: string }) => {
                 {isRunning &&
                     Array.from(
                         { length: view.groups.length ? 1 : 3 },
-                        (_, i) => <SearchAiGroupSkeleton key={i} />
+                        (_, i) => <SearchAiSectionSkeleton key={i} />
                     )}
                 {view.status === "stopped" && !view.groups.length && (
                     <div className="search-ai-results__message">
@@ -284,10 +273,27 @@ const ANGLE_LABELS: Record<AiSearchAngle, string> = {
     other: "",
 }
 
-// Groups whose charts read well with one country highlighted
-const COUNTRY_ANGLES: AiSearchAngle[] = ["today", "history", "breakdown"]
+const noop = (): void => undefined
 
-const SearchAiGroup = ({
+/**
+ * The fields the standard chart results need beyond what the endpoint sends:
+ * they pick entities from availableEntities only when the user selected
+ * countries, which the AI panel doesn't do.
+ */
+const toSearchChartHit = (chart: AiSearchChartCandidate): SearchChartHit =>
+    ({
+        ...chart,
+        objectID: `ai-search-${chart.id}`,
+        availableEntities: [],
+        __position: 0,
+    }) as SearchChartHit
+
+/**
+ * One theme, laid out with the standard search results: its first chart as a
+ * rich result (large in the first theme), the rest as compact rows, then the
+ * articles and data insights the model filed under the same theme.
+ */
+const SearchAiSection = ({
     group,
     isLead,
     charts,
@@ -298,236 +304,97 @@ const SearchAiGroup = ({
     charts: Map<number, AiSearchChartCandidate>
     pages: Map<number, AiSearchPageCandidate>
 }) => {
-    const [country, setCountry] = useState<string | undefined>()
-    const groupCharts = group.charts.flatMap(({ id, tab }) => {
-        const hit = charts.get(id)
-        return hit ? [{ hit, tab }] : []
+    const groupCharts = group.charts.flatMap(({ id }) => {
+        const chart = charts.get(id)
+        return chart ? [toSearchChartHit(chart)] : []
     })
     const reads = [...group.articles, ...group.insights].flatMap((id) => {
         const page = pages.get(id)
         return page ? [page] : []
     })
-    const canAddCountry =
-        groupCharts.length > 0 && COUNTRY_ANGLES.includes(group.angle)
 
     return (
-        <article className="search-ai-group">
-            <div className="search-ai-group__text">
-                {ANGLE_LABELS[group.angle] && (
-                    <div className="search-ai-group__angle">
-                        {ANGLE_LABELS[group.angle]}
-                    </div>
-                )}
-                <h3 className="search-ai-group__title">{group.title}</h3>
-                <p className="search-ai-group__blurb">{group.blurb}</p>
-                {reads.length > 0 && (
-                    <div className="search-ai-group__reads">
-                        {reads.map((page) => (
-                            <SearchAiReadLink key={page.id} page={page} />
-                        ))}
-                    </div>
-                )}
-                {canAddCountry && (
-                    <SearchAiCountryPicker
-                        country={country}
-                        setCountry={setCountry}
-                    />
-                )}
-            </div>
-            <div
-                className={cx("search-ai-group__charts", {
-                    "search-ai-group__charts--lead":
-                        isLead && groupCharts.length >= 3,
-                })}
-            >
-                {groupCharts.map(({ hit, tab }) => (
-                    <SearchAiChartCard
-                        key={hit.id}
-                        hit={hit}
-                        tab={tab}
-                        country={country}
-                    />
-                ))}
-            </div>
+        <article className="search-ai-section">
+            {ANGLE_LABELS[group.angle] && (
+                <div className="search-ai-section__angle">
+                    {ANGLE_LABELS[group.angle]}
+                </div>
+            )}
+            <h3 className="search-ai-section__title">{group.title}</h3>
+            <p className="search-ai-section__blurb">{group.blurb}</p>
+            {groupCharts.length > 0 && (
+                <ul className="search-ai-section__charts">
+                    {groupCharts.map((hit, i) => (
+                        <li
+                            key={hit.objectID}
+                            className="search-ai-section__chart"
+                        >
+                            <SearchChartHitComponent
+                                hit={hit}
+                                variant={
+                                    i > 0
+                                        ? "small"
+                                        : isLead
+                                          ? "large"
+                                          : "medium"
+                                }
+                                onClick={noop}
+                            />
+                        </li>
+                    ))}
+                </ul>
+            )}
+            {reads.length > 0 && (
+                <div className="search-ai-section__reads">
+                    {reads.map((page) => (
+                        <SearchAiRead key={page.id} page={page} />
+                    ))}
+                </div>
+            )}
         </article>
     )
 }
 
-const SearchAiChartCard = ({
-    hit,
-    tab,
-    country,
-}: {
-    hit: AiSearchChartCandidate
-    tab?: GrapherTabName
-    country?: string
-}) => {
-    const grapherParams = toGrapherQueryParams({
-        entities: country ? [country] : [],
-        tab,
-    })
-    return (
-        <a
-            className="search-ai-chart-card"
-            href={constructChartUrl({ hit, grapherParams })}
-        >
-            <span className="search-ai-chart-card__thumbnail">
-                <img
-                    alt=""
-                    loading="lazy"
-                    width={GRAPHER_THUMBNAIL_WIDTH}
-                    height={GRAPHER_THUMBNAIL_HEIGHT}
-                    src={constructPreviewUrl({
-                        hit,
-                        grapherParams,
-                        variant: PreviewVariant.Thumbnail,
-                    })}
-                />
-                {tab === GRAPHER_TAB_NAMES.WorldMap && (
-                    <span className="search-ai-chart-card__view">Map</span>
-                )}
-            </span>
-            <span className="search-ai-chart-card__title">
-                {hit.title}
-                {hit.variantName && (
-                    <span className="search-ai-chart-card__variant">
-                        {" "}
-                        {hit.variantName}
-                    </span>
-                )}
-                {country && (
-                    <span className="search-ai-chart-card__variant">
-                        {" "}
-                        · with {country}
-                    </span>
-                )}
-            </span>
-        </a>
-    )
-}
-
-const SearchAiReadLink = ({ page }: { page: AiSearchPageCandidate }) => {
-    const isTopicPage =
-        page.type === OwidGdocType.TopicPage ||
-        page.type === OwidGdocType.LinearTopicPage
-    const author = !isTopicPage ? page.authors?.[0] : undefined
-    return (
-        <a
-            className="search-ai-read"
-            href={getCanonicalPath(page.slug, page.type)}
-        >
-            {page.thumbnailUrl ? (
-                <img
-                    className="search-ai-read__image"
-                    src={page.thumbnailUrl}
-                    alt=""
-                    loading="lazy"
-                />
-            ) : (
-                <span className="search-ai-read__image" />
-            )}
-            <span>
-                <span className="search-ai-read__kind">
-                    {getPageTypeNameAndIcon(page.type).name}
-                    {author && ` · ${author}`}
-                </span>
-                <span className="search-ai-read__title">{page.title}</span>
-            </span>
-        </a>
-    )
-}
-
-const SearchAiCountryPicker = ({
-    country,
-    setCountry,
-}: {
-    country?: string
-    setCountry: (country: string | undefined) => void
-}) => {
-    const [isEditing, setIsEditing] = useState(false)
-    const regions = useMemo(() => listedRegionsNames(), [])
-
-    if (country)
+const SearchAiRead = ({ page }: { page: AiSearchPageCandidate }) => {
+    if (page.type === OwidGdocType.DataInsight)
         return (
-            <div className="search-ai-group__country">
-                <span className="search-ai-country-pill">
-                    {country}
-                    <button
-                        type="button"
-                        aria-label={`Remove ${country}`}
-                        onClick={() => setCountry(undefined)}
-                    >
-                        ×
-                    </button>
-                </span>
-            </div>
-        )
-
-    if (!isEditing)
-        return (
-            <div className="search-ai-group__country">
-                <button
-                    type="button"
-                    className="search-ai-country-button"
-                    onClick={() => setIsEditing(true)}
-                >
-                    + Add a country
-                </button>
-            </div>
-        )
-
-    const commit = (value: string): void => {
-        const match = regions.find(
-            (region) => region.toLowerCase() === value.trim().toLowerCase()
-        )
-        if (match) {
-            setCountry(match)
-            setIsEditing(false)
-        }
-    }
-
-    return (
-        <div className="search-ai-group__country">
-            <input
-                className="search-ai-country-input"
-                list="search-ai-country-list"
-                placeholder="Type a country…"
-                aria-label="Country"
-                autoFocus
-                onChange={(e) => commit(e.target.value)}
-                onKeyDown={(e) => {
-                    if (e.key === "Enter") commit(e.currentTarget.value)
-                    if (e.key === "Escape") setIsEditing(false)
+            <SearchDataInsightHit
+                hit={{
+                    title: page.title,
+                    slug: page.slug,
+                    type: OwidGdocType.DataInsight,
+                    thumbnailUrl: page.thumbnailUrl ?? "",
+                    date: page.date ?? "",
+                    objectID: `ai-search-${page.id}`,
                 }}
-                onBlur={() => setIsEditing(false)}
+                onClick={noop}
             />
-            <datalist id="search-ai-country-list">
-                {regions.map((region) => (
-                    <option key={region} value={region} />
-                ))}
-            </datalist>
-        </div>
+        )
+    return (
+        <SearchStackedArticleHit
+            hit={{
+                title: page.title,
+                slug: page.slug,
+                // Topic pages link the same way, by slug and type
+                type: page.type as StackedArticleHit["type"],
+                thumbnailUrl: page.thumbnailUrl ?? "",
+                excerpt: page.excerpt ?? "",
+                objectID: `ai-search-${page.id}`,
+            }}
+            onClick={noop}
+        />
     )
 }
 
-const SearchAiGroupSkeleton = () => (
+const SearchAiSectionSkeleton = () => (
     <div
-        className="search-ai-group search-ai-group--skeleton"
+        className="search-ai-section search-ai-section--skeleton"
         aria-hidden="true"
     >
-        <div className="search-ai-group__text">
-            <div className="search-ai-skeleton animate-pulse search-ai-skeleton--line-short" />
-            <div className="search-ai-skeleton animate-pulse search-ai-skeleton--title" />
-            <div className="search-ai-skeleton animate-pulse search-ai-skeleton--line" />
-        </div>
-        <div className="search-ai-group__charts">
-            {[0, 1, 2].map((i) => (
-                <div
-                    key={i}
-                    className="search-ai-skeleton animate-pulse search-ai-skeleton--thumbnail"
-                />
-            ))}
-        </div>
+        <div className="search-ai-skeleton animate-pulse search-ai-skeleton--line-short" />
+        <div className="search-ai-skeleton animate-pulse search-ai-skeleton--title" />
+        <div className="search-ai-skeleton animate-pulse search-ai-skeleton--line" />
+        <div className="search-ai-skeleton animate-pulse search-ai-skeleton--chart" />
     </div>
 )
 
