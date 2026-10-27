@@ -180,16 +180,10 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
                         .exhaustive()
                 )
 
-                const lastCategorySegment = R.findLast(
-                    segments,
-                    (segment) => segment.kind === "category"
-                )
-
                 return {
                     seriesName: entityName,
                     entityName,
                     shortEntityName: getShortNameForEntity(entityName),
-                    color: lastCategorySegment?.color ?? colorScale.noDataColor,
                     segments,
                 }
             }

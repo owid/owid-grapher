@@ -194,25 +194,8 @@ describe("x axis", () => {
     })
 })
 
-describe("row color", () => {
-    it("is the color of the last category, even when missing data trails it", () => {
-        const chartState = makeChartState(
-            makeCategoricalTable([
-                { entityName: "France", time: 2000, status: "X" },
-                { entityName: "France", time: 2001, status: "Y" },
-                { entityName: "Germany", time: 2002, status: "X" },
-            ])
-        )
-        const { colorScale } = chartState
-        const france = chartState.series.find(
-            (series) => series.entityName === "France"
-        )
-
-        expect(colorScale.getColor("X")).not.toEqual(colorScale.getColor("Y"))
-        expect(france?.color).toEqual(colorScale.getColor("Y"))
-    })
-
-    it("is the no-data color for a selected entity without data, whose row is one missing segment", () => {
+describe("rows without data", () => {
+    it("are one missing segment for a selected entity without data", () => {
         const chartState = makeChartState(
             makeCategoricalTable([
                 { entityName: "France", time: 2000, status: "X" },
@@ -220,11 +203,7 @@ describe("row color", () => {
             ]),
             { selection: ["France", "Spain"] }
         )
-        const spain = chartState.series.find(
-            (series) => series.entityName === "Spain"
-        )
 
-        expect(spain?.color).toEqual(chartState.colorScale.noDataColor)
         expect(findSegments(chartState, "Spain")).toEqual([
             { kind: "missing", startTime: 2000, endTime: 2001 },
         ])
