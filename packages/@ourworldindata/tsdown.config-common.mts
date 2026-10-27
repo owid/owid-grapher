@@ -4,6 +4,7 @@ import type { UserConfig } from "tsdown"
 import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
 import {
     BUILD_TARGET,
+    CSS_BUILD_TARGET,
     pluginSwcDecorators,
     scssPreprocessorOptions,
 } from "../../rolldown.config-common.mts"
@@ -86,5 +87,6 @@ export const packageCssOptions = (
     splitting: false,
     fileName,
     minify: true,
+    target: CSS_BUILD_TARGET,
     preprocessorOptions: { scss: scssPreprocessorOptions },
 })

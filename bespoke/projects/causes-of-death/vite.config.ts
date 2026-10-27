@@ -4,6 +4,7 @@ import { viteCssPosition } from "vite-plugin-css-position"
 
 import {
     BUILD_TARGET,
+    CSS_BUILD_TARGET,
     pluginSwcDecorators,
 } from "../../../rolldown.config-common.mts"
 import { DEDUPED_PACKAGES } from "../../shared/viteDedupe.js"
@@ -24,6 +25,7 @@ export default defineConfig({
     },
     build: {
         target: BUILD_TARGET, // see docs/browser-support.md
+        cssTarget: CSS_BUILD_TARGET,
         lib: {
             entry: entrypoints.js,
             formats: ["es"],

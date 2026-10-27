@@ -9,6 +9,8 @@ As of **2026-10-26**, we officially support the following browsers:
 
 Older versions of these browsers may still work, but we don't actively test or support them, and the site may be seriously broken.
 
+Our **CSS** additionally supports Safari/iOS Safari 16.0+, so that pages still look right where our JS doesn't run (e.g. Safari < 16.4 hits a `SyntaxError` and falls back to the no-JS experience, see below). CSS is built with the separate `CSS_BUILD_TARGET` in `rolldown.config-common.mts`. If we instead set the CSS target to 16.4+, it would rewrite media queries to [the `width>=769px` syntax](https://caniuse.com/css-media-range-syntax), breaking all media queries for older browsers.
+
 ### "Most breaking" features
 
 "Most breaking" features we use are:
@@ -24,12 +26,6 @@ Vite/Rolldown may emit syntax in the bundled output that we don't actively write
 - [Private class methods](https://caniuse.com/mdn-javascript_classes_private_class_methods) - Chrome 84+, Safari 15+, Firefox 90+.
 - [Nullish coalescing assignment operator (`??=`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing_assignment) — Chrome 85+, Safari 14+, Firefox 79+.
 - [Class static blocks](https://caniuse.com/mdn-javascript_classes_static_initialization_blocks) (`static { … }`) — Chrome 94+, Firefox 93+, Safari 16.4+.
-
-All of these are safe for our current targets, but they will causes issues (incl. SyntaxErrors) when our code is run in older browsers, especially in Safari < 16.4.
-
-- [Media query range syntax](https://caniuse.com/css-media-range-syntax) (`@media (width <= 768px)`) — Chrome 104+, Firefox 63+, Safari 16.4+.
-
-The CSS minifier (Lightning CSS) rewrites our `min-width`/`max-width` media queries into range syntax (e.g. `width>=769px`).
 
 ### Features we can't yet use
 
@@ -49,6 +45,7 @@ The following features are **not** available across all our supported browsers a
 - [Fullscreen API, unprefixed (`requestFullscreen()`, `document.fullscreenElement`)](https://caniuse.com/fullscreen) — Chrome 71+, Firefox 64+, Safari 16.4+, but not at all on iPhone. Check `document.fullscreenEnabled` before offering fullscreen.
 - [`ClipboardItem`](https://caniuse.com/mdn-api_clipboarditem) — Chrome 76+, Safari 13.1+, but Firefox 127+.
 - [CSS `lh` unit](https://caniuse.com/mdn-css_types_length_lh) — Chrome 109+, Firefox 120+, Safari 16.4+. Declare a fallback (e.g. in `em`) first.
+- [CSS `@property`](https://caniuse.com/mdn-css_at-rules_property) — Chrome 85+, Firefox 128+, Safari 16.4+.
 - [CSS `dvh`/`svh`/`lvh` units](https://caniuse.com/viewport-unit-variants) — Chrome 108+, Firefox 101+, Safari 15.4+. Use a `vh` fallback.
 
 Note: some of the JS features above (e.g. `Map.getOrInsert`) could be polyfilled using [core-js](https://github.com/nicolo-ribaudo/core-js-contrib) or similar libraries if we wanted to use them before raising our browser targets. CSS features or JS syntax features obviously can't be polyfilled this way.
