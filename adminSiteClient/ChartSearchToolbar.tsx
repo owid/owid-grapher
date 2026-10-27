@@ -13,7 +13,6 @@ import {
     suggestChartSearchTerms,
 } from "./chartSearchQuery.js"
 import { SearchHelp } from "./SearchHelp.js"
-import "./ChartSearchToolbar.scss"
 
 const SUGGESTION_VALUE_PREFIX = "\u0000suggestion:"
 

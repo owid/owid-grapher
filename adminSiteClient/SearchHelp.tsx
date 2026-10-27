@@ -3,7 +3,6 @@ import { Button, Popover } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons"
 import type { SearchFieldHelp } from "../adminShared/variableSearch.js"
-import "./SearchHelp.scss"
 
 export function SearchHelp({
     intro,
