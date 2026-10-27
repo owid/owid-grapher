@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import Tippy from "@tippyjs/react"
 import { hideAll } from "tippy.js"
+import { getMinHitAreaSize } from "../core/GrapherConstants"
 import {
     GRAPHER_DARK_TEXT,
     GRAPHER_LIGHT_TEXT,
@@ -380,7 +381,7 @@ function TooltipTrigger({
     const baseline = y + fragment.y
     const underlineY = roundForSvg(baseline + UNDERLINE_OFFSET)
 
-    const minHitAreaHeight = isTouchDevice() ? 40 : 20
+    const minHitAreaHeight = getMinHitAreaSize()
     const verticalPadding = Math.ceil(
         Math.max(0, minHitAreaHeight - fontSize) / 2
     )

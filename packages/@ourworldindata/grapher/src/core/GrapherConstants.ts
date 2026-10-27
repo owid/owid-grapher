@@ -3,7 +3,7 @@ import {
     GRAPHER_CHART_TYPES,
     GrapherChartType,
 } from "@ourworldindata/types"
-import { Bounds } from "@ourworldindata/utils"
+import { Bounds, isTouchDevice } from "@ourworldindata/utils"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 
 export const GRAPHER_PROD_URL = "https://ourworldindata.org"
@@ -71,6 +71,11 @@ export const BASE_FONT_SIZE = 16
 
 // keep in sync with $max-tooltip-width in Tooltip.scss
 export const GRAPHER_MAX_TOOLTIP_WIDTH = 400
+
+/** Minimum width and height of a pointer target, per WCAG 2.5.8 and 2.5.5 */
+export function getMinHitAreaSize(): number {
+    return isTouchDevice() ? 44 : 24
+}
 
 export const latestGrapherConfigSchema = defaultGrapherConfig.$schema
 
