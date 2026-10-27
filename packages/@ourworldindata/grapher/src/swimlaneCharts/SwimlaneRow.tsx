@@ -17,7 +17,7 @@ export function SwimlaneRow({
     return (
         <g
             id={makeFigmaId(series.seriesName)}
-            transform={`translate(0, ${roundForSvg(y)})`}
+            transform={y ? `translate(0, ${roundForSvg(y)})` : undefined}
         >
             <SeriesLabel
                 state={series.label}
