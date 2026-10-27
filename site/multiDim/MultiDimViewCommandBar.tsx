@@ -152,9 +152,7 @@ export function MultiDimViewCommandBar({
                                         </span>
                                         <span className="view-command-bar__item-meta">
                                             {view.choices.map((c, i) => (
-                                                <Fragment
-                                                    key={c.dimensionName}
-                                                >
+                                                <Fragment key={c.dimensionName}>
                                                     {i > 0 && (
                                                         <span
                                                             className="view-command-bar__item-meta-sep"
