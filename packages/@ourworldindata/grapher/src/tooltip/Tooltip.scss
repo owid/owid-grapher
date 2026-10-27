@@ -471,7 +471,7 @@
         }
 
         // adapt to smaller display areas
-        @container grapher (max-width:900px) {
+        @container grapher (width <= 900px) {
             .Tooltip {
                 .content {
                     padding: 4px 12px;

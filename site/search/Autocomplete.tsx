@@ -59,7 +59,7 @@ export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
 // enough room for everything in the site nav between 960-1045px. Related to
 // vars in Autocomplete.scss.
 export const DETACHED_MODE_MAX_WIDTH = 1045
-const DETACHED_MEDIA_QUERY = `(max-width: ${DETACHED_MODE_MAX_WIDTH}px)`
+const DETACHED_MEDIA_QUERY = `(width <= ${DETACHED_MODE_MAX_WIDTH}px)`
 const AUTOCOMPLETE_DEBOUNCE_MS = 200
 // Account for the intentional debounce before using Algolia's default 300 ms
 // threshold to show the stalled loading state as recommended in the docs.

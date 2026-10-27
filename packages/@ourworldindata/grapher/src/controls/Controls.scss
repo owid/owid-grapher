@@ -87,7 +87,7 @@ nav.controlsRow .controls {
     }
 }
 
-@container grapher (max-width:575px) {
+@container grapher (width <= 575px) {
     // collapse the Settings toggle down to just an icon on small screens
     nav.controlsRow .settings-menu button.menu-toggle {
         min-height: $control-row-height;
@@ -107,7 +107,7 @@ nav.controlsRow .controls {
     }
 }
 
-@container grapher (max-width:675px) {
+@container grapher (width <= 675px) {
     // default entity type: shorten the entity name in the Edit/Select/Change
     // button ("Edit countries and regions" -> "Edit countries")
     nav.controlsRow
@@ -131,7 +131,7 @@ nav.controlsRow .controls {
 }
 
 // now also drop the shortened entity name ("Edit countries" -> "Edit")
-@container grapher (max-width:350px) {
+@container grapher (width <= 350px) {
     nav.controlsRow
         .chart-controls
         .entity-selection-menu--shortenable
@@ -142,7 +142,7 @@ nav.controlsRow .controls {
     }
 }
 
-@container grapher (max-width:725px) {
+@container grapher (width <= 725px) {
     // hide the entity name in the Edit/Select/Change button
     nav.controlsRow .map-controls .entity-selection-menu button.menu-toggle {
         label span {
@@ -151,7 +151,7 @@ nav.controlsRow .controls {
     }
 }
 
-@container grapher (max-width:500px) {
+@container grapher (width <= 500px) {
     // hide labels on smaller screens
     .ContentSwitchers .Tabs__Tab .label {
         display: none;
@@ -164,12 +164,12 @@ nav.controlsRow .controls {
 }
 
 // reduce the horizontal padding of a content switcher tab based on grapher's size
-@container grapher (max-width:725px) {
+@container grapher (width <= 725px) {
     .ContentSwitchers .Tabs__Tab {
         --tab-padding: 12px;
     }
 }
-@container grapher (max-width:335px) {
+@container grapher (width <= 335px) {
     .ContentSwitchers .Tabs__Tab {
         --tab-padding: 8px;
     }

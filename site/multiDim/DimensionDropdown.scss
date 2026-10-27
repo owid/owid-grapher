@@ -59,7 +59,7 @@ $toggle-full-width-breakpoint: 520px;
         }
     }
 
-    @media (max-width: $toggle-full-width-breakpoint) {
+    @media (width <= $toggle-full-width-breakpoint) {
         width: 100%;
     }
 }
@@ -82,13 +82,13 @@ $toggle-full-width-breakpoint: 520px;
     min-width: 0;
     margin-left: auto;
 
-    @media (max-width: $toggle-full-width-breakpoint) {
+    @media (width <= $toggle-full-width-breakpoint) {
         max-width: none;
     }
 }
 
 .md-settings__dropdown {
-    @media (max-width: $toggle-full-width-breakpoint) {
+    @media (width <= $toggle-full-width-breakpoint) {
         width: 100%;
     }
 }
