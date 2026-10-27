@@ -82,8 +82,6 @@ const SHARED_X_AXIS_MAX_CELL_HEIGHT = 175
 const THUMBNAIL_MAX_CELL_LENGTH = 150
 const FACET_LABEL_FONT_WEIGHT = 700
 
-const facetBackgroundColor = "none" // we don't use color yet but may use it for background later
-
 const getContentBounds = (
     containerBounds: Bounds,
     manager: ChartManager,
@@ -413,7 +411,6 @@ export class FacetChart
                 contentBounds: bounds,
                 manager,
                 seriesName: series.seriesName,
-                color: series.color,
             }
         })
     }
@@ -682,18 +679,13 @@ export class FacetChart
                 selection: [seriesName],
                 seriesStrategy: SeriesStrategy.column,
             }
-            return {
-                seriesName,
-                color: facetBackgroundColor,
-                manager,
-            }
+            return { seriesName, manager }
         })
     }
 
     @computed private get columnFacets(): FacetSeries[] {
         return this.yColumns.map((col) => ({
             seriesName: col.displayName,
-            color: facetBackgroundColor,
             // Only set overrides for this facet strategy.
             // Default properties are set elsewhere.
             manager: {
@@ -823,10 +815,14 @@ export class FacetChart
 
         // find colours of all currently focused series
         const activeColors = _.uniq(
-            this.intermediateChartInstances.flatMap((chartInstance) =>
-                chartInstance.chartState.series
-                    .filter((series) => this.focusArray.has(series.seriesName))
-                    .map((series) => series.color)
+            excludeUndefined(
+                this.intermediateChartInstances.flatMap((chartInstance) =>
+                    chartInstance.chartState.series
+                        .filter((series) =>
+                            this.focusArray.has(series.seriesName)
+                        )
+                        .map((series) => series.color)
+                )
             )
         )
 
