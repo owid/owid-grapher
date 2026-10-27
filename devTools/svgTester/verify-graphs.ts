@@ -163,11 +163,11 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
             onTick: reportProgress,
         })
 
-        // Parallelize the CPU heavy verification using the tinypool library
-        // This call will then in parallel take the descriptions of the verifyJobs,
-        // load the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
-        // the reference csv file (from the referenceDataByChartKey lookup above). The entire parallel operation returns a promise containing an array
-        // of result values.
+        // Parallelize the CPU heavy verification using the tinypool library,
+        // with pMap keeping at most one job per thread in flight (see above).
+        // Each job loads the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
+        // the reference csv file (from the referenceDataByChartKey lookup above). pMap resolves to the results in
+        // the order of verifyJobs.
         let validationResults: utils.VerifyResult[]
         try {
             validationResults = await pMap(
