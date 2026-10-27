@@ -1,0 +1,275 @@
+.walkthrough {
+    position: relative;
+    color: $dark-text;
+}
+
+.walkthrough-skeleton {
+    height: 560px;
+}
+
+.walkthrough__graphic {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    height: 100vh;
+    padding: 24px 0 16px;
+    background: #fff;
+}
+
+.walkthrough__plot {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+}
+
+.walkthrough__footer {
+    flex: none;
+    margin-top: 8px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    transition: background-color 400ms ease;
+}
+
+.walkthrough__footer--highlighted {
+    background-color: $blue-10;
+}
+
+.walkthrough__steps {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.walkthrough__step {
+    display: flex;
+    align-items: center;
+    min-height: 80vh;
+}
+
+.walkthrough__step:last-child {
+    min-height: 100vh;
+}
+
+.walkthrough__card {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid $blue-10;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px rgba(29, 61, 99, 0.08);
+    // Still readable ahead of its turn (AA contrast for regular text)
+    opacity: 0.65;
+    transition: opacity 300ms ease;
+}
+
+.walkthrough__step--active .walkthrough__card {
+    opacity: 1;
+}
+
+.walkthrough__kicker {
+    margin-bottom: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $light-text;
+}
+
+.walkthrough__text {
+    margin: 0;
+    font-size: 1.25rem;
+    line-height: 1.4;
+    color: $blue-90;
+    text-wrap: pretty;
+}
+
+.walkthrough__text strong {
+    font-weight: 700;
+}
+
+.walkthrough__text--placeholder {
+    color: #8a6a52;
+}
+
+.walkthrough__text--placeholder::before {
+    content: "Placeholder copy · ";
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+// Wide: the cards scroll in a column beside the sticky plot
+.walkthrough--wide {
+    display: grid;
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    column-gap: 40px;
+}
+
+.walkthrough--wide .walkthrough__graphic {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+}
+
+.walkthrough--wide .walkthrough__steps {
+    grid-column: 1;
+    grid-row: 1;
+    // The first card arrives with the plot already in view
+    padding-top: 40vh;
+}
+
+// Narrow: the plot fills the top of the screen and each card comes in
+// underneath it, then scrolls up over it as the next one takes over
+.walkthrough--narrow .walkthrough__graphic {
+    height: 62vh;
+    padding-top: 12px;
+}
+
+.walkthrough--narrow .walkthrough__steps {
+    z-index: 1;
+    margin-top: -62vh;
+    padding-top: 62vh;
+    pointer-events: none;
+}
+
+.walkthrough--narrow .walkthrough__step {
+    align-items: flex-start;
+    min-height: 60vh;
+}
+
+// Hidden cards mustn't catch taps meant for the plot or its footer
+.walkthrough--narrow .walkthrough__card {
+    opacity: 0;
+}
+
+.walkthrough--narrow .walkthrough__step--active .walkthrough__card {
+    pointer-events: auto;
+    opacity: 1;
+}
+
+.walkthrough--narrow .walkthrough__text {
+    font-size: 1.0625rem;
+}
+
+@supports (height: 100svh) {
+    .walkthrough__graphic {
+        height: 100svh;
+    }
+
+    .walkthrough--narrow .walkthrough__graphic {
+        height: 62svh;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .walkthrough__card,
+    .walkthrough__footer {
+        transition: none;
+    }
+}
+
+// The plot
+.walkthrough-plot {
+    position: absolute;
+    inset: 0;
+}
+
+.walkthrough-plot__svg {
+    display: block;
+}
+
+.walkthrough-plot__tick {
+    font-size: 12px;
+    fill: #858585;
+}
+
+.walkthrough-plot__tick--unit {
+    font-size: 11px;
+    fill: $gray-60;
+}
+
+.walkthrough-plot__label {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.walkthrough-plot__corner {
+    font-size: 12px;
+    fill: #858585;
+}
+
+.walkthrough-plot__tag-title {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.walkthrough-plot__tag-text {
+    font-size: 12px;
+    fill: #5b5b5b;
+}
+
+.walkthrough-plot__nowcast {
+    font-weight: 700;
+    fill: $blue-90;
+}
+
+.walkthrough-plot__readout-title {
+    font-size: 13px;
+    font-weight: 700;
+    fill: #2d2d2d;
+}
+
+.walkthrough-plot__readout-income {
+    font-size: 15px;
+    font-weight: 700;
+    fill: #2d2d2d;
+}
+
+.walkthrough-plot__readout-share {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.walkthrough-plot__readout-caption {
+    font-size: 13px;
+    font-weight: 400;
+    fill: #5b5b5b;
+}
+
+.walkthrough-plot__hop {
+    font-size: 22px;
+    font-weight: 700;
+    fill: #2d2d2d;
+}
+
+.walkthrough-plot__legend {
+    position: absolute;
+    top: 6px;
+    right: 20px;
+    margin: 0;
+    padding: 8px 10px;
+    list-style: none;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e7e7e7;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #5b5b5b;
+    pointer-events: none;
+}
+
+.walkthrough-plot__legend li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.walkthrough-plot__swatch {
+    flex: none;
+    width: 10px;
+    height: 10px;
+}
