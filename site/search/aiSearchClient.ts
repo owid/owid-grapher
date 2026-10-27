@@ -46,13 +46,20 @@ export async function streamAiSearch({
         return
     }
 
+    // The stream ends with a done or error event, unless the function was
+    // cut off (e.g. by a Workers limit)
+    let hasEnded = false
     const splitter = createLineSplitter((line) => {
         if (!line.trim()) return
+        let event: AiSearchEvent
         try {
-            onEvent(JSON.parse(line))
+            event = JSON.parse(line)
         } catch {
             // A malformed line is skipped, the rest of the page still renders
+            return
         }
+        if (event.type === "done" || event.type === "error") hasEnded = true
+        onEvent(event)
     })
     const reader = response.body
         .pipeThrough(new TextDecoderStream())
@@ -63,4 +70,5 @@ export async function streamAiSearch({
         splitter.push(value)
     }
     splitter.flush()
+    if (!hasEnded) onEvent({ type: "error", code: "failed" })
 }

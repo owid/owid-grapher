@@ -150,7 +150,6 @@ export function SearchAiResults({
 
             {isStreaming && (
                 <div className="search-ai-results__status" aria-live="polite">
-                    <span className="search-ai-results__spinner" />
                     {state.status ?? "Starting…"}
                 </div>
             )}

@@ -77,26 +77,8 @@
 
 .search-ai-results__status {
     @include body-3-medium;
-    display: flex;
-    align-items: center;
-    gap: 8px;
     margin: 16px 0;
     color: $blue-50;
-}
-
-.search-ai-results__spinner {
-    width: 14px;
-    height: 14px;
-    border: 2px solid $blue-20;
-    border-top-color: $blue-60;
-    border-radius: 50%;
-    animation: search-ai-spin 0.8s linear infinite;
-}
-
-@keyframes search-ai-spin {
-    to {
-        transform: rotate(360deg);
-    }
 }
 
 .search-ai-results__page {

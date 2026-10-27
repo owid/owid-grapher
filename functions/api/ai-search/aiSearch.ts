@@ -243,8 +243,8 @@ const strings = (value: unknown): string[] =>
 /**
  * Returns a parser for the lines of the composer's JSON Lines output. Each
  * line becomes a block whose ids are replaced by the hits they refer to.
- * Ids that aren't in the pool or were already used are dropped, as is a
- * second large chart (it becomes medium), and lines that don't make a usable
+ * Ids that aren't in the pool or were already used are dropped, and a
+ * large chart in a group or after the first becomes medium. Lines that don't make a usable
  * block give null. The model is told all of this, but isn't guaranteed to
  * comply.
  */
@@ -256,7 +256,10 @@ export function createBlockParser(
 
     const resolveContent = (
         obj: Record<string, unknown>,
-        defaultSize: AiSearchChartSize
+        {
+            defaultSize,
+            inGroup,
+        }: { defaultSize: AiSearchChartSize; inGroup: boolean }
     ): AiSearchContentBlock | null => {
         const id = Number(obj.id)
         if (usedIds.has(id)) return null
@@ -266,9 +269,10 @@ export function createBlockParser(
             usedIds.add(id)
             let size =
                 CHART_SIZES.find((option) => option === obj.size) ?? defaultSize
+            // The large card is the page's headline chart
             if (size === "large") {
-                if (hasLargeChart) size = "medium"
-                hasLargeChart = true
+                if (hasLargeChart || inGroup) size = "medium"
+                else hasLargeChart = true
             }
             const country = findEntity(chart, str(obj.country))
             return {
@@ -294,17 +298,27 @@ export function createBlockParser(
         switch (obj.type) {
             case "chart":
             case "page":
-                return resolveContent(obj, "medium")
+                return resolveContent(obj, {
+                    defaultSize: "medium",
+                    inGroup: false,
+                })
             case "group": {
+                // Checked first, so a rejected group doesn't use up its ids
+                const title = str(obj.title)
+                if (!title) return null
                 const blocks = (Array.isArray(obj.blocks) ? obj.blocks : [])
                     .filter(
                         (child): child is Record<string, unknown> =>
                             typeof child === "object" && child !== null
                     )
-                    .map((child) => resolveContent(child, "small"))
+                    .map((child) =>
+                        resolveContent(child, {
+                            defaultSize: "small",
+                            inGroup: true,
+                        })
+                    )
                     .filter((block) => block !== null)
-                const title = str(obj.title)
-                if (!blocks.length || !title) return null
+                if (!blocks.length) return null
                 return { type: "group", title, blurb: str(obj.blurb), blocks }
             }
             case "forks": {
