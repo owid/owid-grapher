@@ -15,8 +15,6 @@ import {
 } from "./SwimlaneChartConstants"
 import {
     computeHeightPerSeries,
-    findRowAtY,
-    findSegmentAtX,
     formatSegmentDuration,
     formatSegmentTimeRange,
     toPlacedSwimlaneSeries,
@@ -132,45 +130,6 @@ describe(computeHeightPerSeries, () => {
 
     it("splits the height evenly between many series", () => {
         expect(computeHeightPerSeries({ height: 400, rowCount: 20 })).toBe(20)
-    })
-})
-
-describe("hit-testing", () => {
-    const [france, germany] = placeRows([
-        makeSizedSeries("France", [
-            makeCategorySegment("X", 2000, 2001),
-            makeCategorySegment("Y", 2002, 2003),
-        ]),
-        makeSizedSeries("Germany", [makeCategorySegment("X", 2000, 2003)]),
-    ])
-    const [x, y] = france.placedSegments
-
-    it("finds a segment from its start up to, but not including, its end", () => {
-        expect(findSegmentAtX(france.placedSegments, 0)).toBe(x)
-        expect(findSegmentAtX(france.placedSegments, 19.9)).toBe(x)
-        expect(findSegmentAtX(france.placedSegments, 20)).toBe(y)
-    })
-
-    it("finds no segment before the first or after the last", () => {
-        expect(findSegmentAtX(france.placedSegments, -1)).toBeUndefined()
-        expect(findSegmentAtX(france.placedSegments, 40)).toBeUndefined()
-    })
-
-    it("finds a row from halfway to the row above up to, but not including, halfway to the row below", () => {
-        const rows = placeRows([
-            makeSizedSeries("France", []),
-            makeSizedSeries("Germany", []),
-        ])
-
-        expect(findRowAtY(rows, 0)).toBe(rows[0])
-        expect(findRowAtY(rows, 19.9)).toBe(rows[0])
-        expect(findRowAtY(rows, 20)).toBe(rows[1])
-        expect(findRowAtY(rows, 40)).toBeUndefined()
-    })
-
-    it("finds no row above the first or below the last", () => {
-        expect(findRowAtY([france, germany], -1)).toBeUndefined()
-        expect(findRowAtY([france, germany], 40)).toBeUndefined()
     })
 })
 

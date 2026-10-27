@@ -265,24 +265,6 @@ export function toRenderSwimlaneSeries({
     })
 }
 
-export function findSegmentAtX(
-    segments: PlacedSwimlaneSegment[],
-    x: number
-): PlacedSwimlaneSegment | undefined {
-    return segments.find(
-        (segment) => x >= segment.x && x < segment.x + segment.width
-    )
-}
-
-export function findRowAtY(
-    series: PlacedSwimlaneSeries[],
-    y: number
-): PlacedSwimlaneSeries | undefined {
-    return series.find(
-        ({ y: rowY, height }) => y >= rowY - height / 2 && y < rowY + height / 2
-    )
-}
-
 /** A category as one step of the ordinal legend's numeric strip */
 export function toLabelledNumericBin(
     bin: CategoricalBin,

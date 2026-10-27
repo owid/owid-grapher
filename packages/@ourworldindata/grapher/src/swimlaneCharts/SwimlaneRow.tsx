@@ -3,6 +3,7 @@ import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel"
 import {
+    RenderSwimlaneSegment,
     RenderSwimlaneSeries,
     SWIMLANE_LABEL_STYLE,
 } from "./SwimlaneChartConstants"
@@ -12,10 +13,17 @@ export function SwimlaneRow({
     series,
     y,
     noDataPatternId,
+    onSegmentMouseEnter,
+    onSegmentMouseLeave,
 }: {
     series: RenderSwimlaneSeries
     y: number
     noDataPatternId: string
+    onSegmentMouseEnter?: (
+        entityName: string,
+        segment: RenderSwimlaneSegment
+    ) => void
+    onSegmentMouseLeave?: () => void
 }): React.ReactElement {
     return (
         <g
@@ -32,6 +40,12 @@ export function SwimlaneRow({
             <SwimlaneSegments
                 segments={series.placedSegments}
                 noDataPatternId={noDataPatternId}
+                onMouseEnter={
+                    onSegmentMouseEnter &&
+                    ((segment): void =>
+                        onSegmentMouseEnter(series.entityName, segment))
+                }
+                onMouseLeave={onSegmentMouseLeave}
             />
         </g>
     )

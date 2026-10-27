@@ -18,14 +18,22 @@ type Point = [x: number, y: number]
 export function SwimlaneSegments({
     segments,
     noDataPatternId,
+    onMouseEnter,
+    onMouseLeave,
 }: {
     segments: RenderSwimlaneSegment[]
     noDataPatternId: string
+    onMouseEnter?: (segment: RenderSwimlaneSegment) => void
+    onMouseLeave?: () => void
 }): React.ReactElement {
     return (
         <>
             {segments.map((segment) => (
-                <g key={segment.startTime}>
+                <g
+                    key={segment.startTime}
+                    onMouseEnter={(): void => onMouseEnter?.(segment)}
+                    onMouseLeave={onMouseLeave}
+                >
                     <SwimlaneSegmentShape
                         segment={segment}
                         noDataPatternId={noDataPatternId}

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest"
-import type React from "react"
 import { Bounds } from "@ourworldindata/utils"
 import {
     ColumnTypeNames,
@@ -96,8 +95,6 @@ function hasLabel(segment: PlacedSwimlaneSegment): boolean {
     return "label" in segment && segment.label !== undefined
 }
 
-const CURSOR_EVENT = {} as React.MouseEvent
-
 describe("legend", () => {
     it("is a numeric legend for an ordinal indicator, in the indicator's order", () => {
         const { chart } = makeChart(ColumnTypeNames.Ordinal)
@@ -182,9 +179,10 @@ describe("interaction", () => {
 
     it.each([
         {
-            interaction: "the cursor enters the plot",
+            interaction: "a segment is hovered",
             interact: (chart: SwimlaneChart): void => {
-                chart["onCursorEnter"](CURSOR_EVENT)
+                const [segment] = findRow(chart, "France").placedSegments
+                chart["onSegmentMouseEnter"]("France", segment)
             },
         },
         {
