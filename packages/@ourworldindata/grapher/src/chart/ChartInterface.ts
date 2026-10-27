@@ -20,7 +20,7 @@ import { FocusArray } from "../focus/FocusArray"
 
 export interface ChartSeries {
     seriesName: SeriesName
-    color: Color
+    color?: Color
 }
 
 export type ChartTableTransformer = (inputTable: OwidTable) => OwidTable

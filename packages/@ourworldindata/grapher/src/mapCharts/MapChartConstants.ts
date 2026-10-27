@@ -85,6 +85,7 @@ export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
 export const MAP_REGION_NAMES = R.invert(MAP_REGION_LABELS)
 
 export interface ChoroplethSeries extends ChartSeries {
+    color: Color
     value: number | string
     time: number
     isProjection?: boolean
