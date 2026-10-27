@@ -1,6 +1,7 @@
 import {
     MarkdownTextWrap,
     sumTextWrapHeights,
+    reactRenderToStringClientOnly,
 } from "@ourworldindata/components"
 import {
     OwidTable,
@@ -3158,8 +3159,10 @@ export class GrapherState
         const { width, height } = this.staticBoundsWithDetails
 
         try {
-            const { renderToStaticMarkup } = await import("react-dom/server")
-            const staticSVG = await this.generateStaticSvg(renderToStaticMarkup)
+            // We need to ensure `rasterize` is only called on the client-side, otherwise this will fail
+            const staticSVG = await this.generateStaticSvg(
+                reactRenderToStringClientOnly
+            )
             return new StaticChartRasterizer(staticSVG, width, height).render()
         } finally {
             this.shouldIncludeDetailsInStaticExport =
