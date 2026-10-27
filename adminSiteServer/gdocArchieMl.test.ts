@@ -1,13 +1,49 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
+import type { docs_v1 } from "@googleapis/docs"
 import { JsonError, type OwidGdocBaseInterface } from "@ourworldindata/types"
 import type { KnexReadonlyTransaction } from "../db/db.js"
 import {
     compareReadBack,
+    fetchGdocArchieMl,
     findUnwritableCharacter,
     getNewGdocName,
+    isDriveFolderId,
     isShareableEmail,
     loadWritableGdoc,
 } from "./gdocArchieMl.js"
+
+// The document Google returns to fetchGdocArchieMl
+const googleDocument = vi.hoisted(() => ({
+    current: {} as docs_v1.Schema$Document,
+}))
+vi.mock(import("@googleapis/docs"), async (importOriginal) => {
+    const originalModule = await importOriginal()
+    const docs = (() => ({
+        documents: {
+            get: async () => ({ data: googleDocument.current }),
+        },
+    })) as unknown as typeof originalModule.docs
+    return { ...originalModule, docs }
+})
+
+// A doc whose body is the single paragraph `line`
+function documentWithLine(
+    line: string,
+    revisionId?: string
+): docs_v1.Schema$Document {
+    return {
+        revisionId,
+        body: {
+            content: [
+                {
+                    paragraph: {
+                        elements: [{ textRun: { content: `${line}\n` } }],
+                    },
+                },
+            ],
+        },
+    }
+}
 
 describe(isShareableEmail, () => {
     it("accepts an address with a local part and a domain", () => {
@@ -24,6 +60,19 @@ describe(isShareableEmail, () => {
     it("refuses a repeated query parameter, which Express parses as an array", () => {
         expect(isShareableEmail(["a@b.c", "d@e.f"])).toBe(false)
     })
+})
+
+describe(isDriveFolderId, () => {
+    it("accepts the id from a folder URL", () => {
+        expect(isDriveFolderId("1aB-cD_eF2gH")).toBe(true)
+    })
+
+    it.each([undefined, "", "a/b", "a b", ["a", "b"]])(
+        "refuses %j",
+        (value) => {
+            expect(isDriveFolderId(value)).toBe(false)
+        }
+    )
 })
 
 describe(getNewGdocName, () => {
@@ -134,6 +183,27 @@ describe(compareReadBack, () => {
             line: 3,
             sent: undefined,
             stored: "",
+        })
+    })
+})
+
+describe(fetchGdocArchieMl, () => {
+    it("returns the text and revision id of a doc the service account can edit", async () => {
+        googleDocument.current = documentWithLine("title: Hello", "rev-1")
+
+        expect(await fetchGdocArchieMl("editable-doc")).toEqual({
+            text: expect.stringContaining("title: Hello"),
+            revisionId: "rev-1",
+        })
+    })
+
+    it("returns a null revision id for a doc it can only view", async () => {
+        // Google leaves out revisionId without edit access
+        googleDocument.current = documentWithLine("title: Hello")
+
+        expect(await fetchGdocArchieMl("view-only-doc")).toEqual({
+            text: expect.stringContaining("title: Hello"),
+            revisionId: null,
         })
     })
 })

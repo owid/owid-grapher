@@ -13,7 +13,7 @@ metadata:
 
 # Edit, create and check gdocs as ArchieML
 
-Three admin routes read and write a gdoc's ArchieML text. Writes need **unpublished** docs outside shared drives; GET reads any registered doc. A write **replaces the whole doc**: Google comments and any styling the parser ignores are lost. The old version stays in the doc's revision history (File → Version history).
+Three admin routes read and write a gdoc's ArchieML text. Writes need **unpublished** docs the service account can edit (Google permissions decide which); GET reads any registered doc. A write **replaces the whole doc**: Google comments and any styling the parser ignores are lost. The old version stays in the doc's revision history (File → Version history).
 
 The doc id is the part of the URL after `/document/d/`.
 
@@ -47,13 +47,13 @@ Works on any registered doc, published or not.
     jq -r .revisionId doc.json
     ```
 
-    `jq -j` keeps the text byte-exact (no added trailing newline).
+    `jq -j` keeps the text byte-exact (no added trailing newline). `revisionId` is `null` when the service account can only view the doc (e.g. most published docs): it can be read, not written.
 
 ## Edit a doc
 
 Change a local copy of the text with `Edit`, then send that file. **Never retype the doc into a request** — that is where content gets lost.
 
-1. Read the doc (see "Read a doc") and keep its `revisionId`. If `jq .published doc.json` prints `true`, stop: tell the user the doc is published and can only be read.
+1. Read the doc (see "Read a doc") and keep its `revisionId`. If `jq .published doc.json` prints `true`, or `jq .revisionId doc.json` prints `null`, stop: tell the user the doc can only be read (published, or the service account can only view it).
 
 2. `Read` `doc.archieml`, then make the change with `Edit`. Touch only the lines that need to change.
 
@@ -68,6 +68,8 @@ Change a local copy of the text with `Edit`, then send that file. **Never retype
     `--data-binary` sends the file as-is (`-d` would strip newlines).
 
 4. Read the response (below). For another edit, use the new `revisionId` it returns, or GET again.
+
+5. If this is the first write to this doc in the session, give the user both links (see "Links").
 
 ## Create a doc
 
@@ -87,10 +89,11 @@ Mirror a real doc of the same type. Field lists alone miss the structure (e.g. a
 
     If that prints `null` too, there is no doc of the type: build from the fields in `$HOST/admin/api/gdocs-reference/templates.json`, and tell the user the structure is unverified.
 
-2. Read the exemplar as in "Read a doc" (`exemplar.json` → `exemplar.archieml`), then `Read` the local file. It is usually published and always read-only: a PUT on it returns 403, as does a PUT on any doc in a shared drive. Never send it.
-3. `Write` the new doc to a local file, e.g. `new.archieml`. Mirror the exemplar's front matter and block layout; replace its content with yours. For block syntax, see `$HOST/admin/api/gdocs-reference/components.json`.
+2. Read the exemplar as in "Read a doc" (`exemplar.json` → `exemplar.archieml`), then `Read` the local file. It is usually published and always read-only: a PUT on it returns 403. Never send it.
+3. `Write` the new doc to a local file, e.g. `new.archieml`. Mirror the exemplar's front matter and block layout; replace its content with yours. Prefix the front-matter `title` with `[TEST] ` (e.g. `title: [TEST] Life expectancy`): the Drive name is taken from it, so test docs stand out in Drive and in the admin. For block syntax, see `$HOST/admin/api/gdocs-reference/components.json`.
 4. Share with the **Claude session's account email** (the user's email from your session context). If you don't know it, ask. Never guess.
-5. Encode the email (a `+` in it would otherwise read as a space):
+5. Pick the Drive folder (`$FOLDER_ID`): the one the user names (the part of its URL after `/folders/`), else the default: the "GDoc test" folder in the OWID engineering shared drive. Find its id with a Drive search if you have a Drive connector, else ask the user for its URL. Always pass one: the service account's own Drive has no storage, so the route refuses a create without `folderId`.
+6. Encode the email (a `+` in it would otherwise read as a space):
 
     ```sh
     jq -rn --arg e "$EMAIL" '$e|@uri'
@@ -99,16 +102,16 @@ Mirror a real doc of the same type. Field lists alone miss the structure (e.g. a
     Then send the file, with that output written in as `$ENCODED_EMAIL`. Keep these as two separate Bash calls: a command that starts with a variable assignment doesn't match the `curl` allowlist.
 
     ```sh
-    curl -s -X POST "$HOST/admin/api/gdocs/archieml?email=$ENCODED_EMAIL" \
+    curl -s -X POST "$HOST/admin/api/gdocs/archieml?email=$ENCODED_EMAIL&folderId=$FOLDER_ID" \
         -H "Content-Type: text/plain; charset=utf-8" \
         --data-binary @new.archieml | jq
     ```
 
     Don't use `curl -G --data-urlencode`: `-G` moves the `--data-binary` body into the URL too.
 
-6. If `report.errors` is non-empty, fix the errors in `new.archieml` with `Edit` and PUT it to the new `id` with the returned `revisionId` (as in "Edit a doc" step 3). Repeat until there are no errors. If an error is still there unchanged after a PUT, the text can't fix it: stop and tell the user about it.
+7. If `report.errors` is non-empty, fix the errors in `new.archieml` with `Edit` and PUT it to the new `id` with the returned `revisionId` (as in "Edit a doc" step 3). Repeat until there are no errors. If an error is still there unchanged after a PUT, the text can't fix it: stop and tell the user about it.
 
-The doc lands in the service account's Drive, shared with that email as writer, and registered in the admin. Give the user the `url`.
+The doc lands in that folder, shared with that email as writer, and registered in the admin. Give the user both links (see "Links"), the doc link being the returned `url`.
 
 ## Check a doc
 
@@ -122,14 +125,22 @@ If it prints an `error`, handle it as in Refusals.
 
 List `report.errors` (block publishing) and `report.warnings`, each with its `property` and `message`.
 
+## Links
+
+The first time you write or create a doc in a session, give the user both links. Don't repeat them after later writes to the same doc.
+
+- the doc: `https://docs.google.com/document/d/$ID/edit`
+- the admin preview: `$HOST/admin/gdocs/$ID/preview`
+
 ## Responses
 
-| Route                                  | 200 body                                    |
-| -------------------------------------- | ------------------------------------------- |
-| `GET /gdocs/:id/archieml`              | `{ text, revisionId, report, published }`   |
-| `PUT /gdocs/:id/archieml?revisionId=…` | `{ revisionId, readBack, report }`          |
-| `POST /gdocs/archieml?email=…`         | `{ id, url, revisionId, readBack, report }` |
+| Route                                     | 200 body                                    |
+| ----------------------------------------- | ------------------------------------------- |
+| `GET /gdocs/:id/archieml`                 | `{ text, revisionId, report, published }`   |
+| `PUT /gdocs/:id/archieml?revisionId=…`    | `{ revisionId, readBack, report }`          |
+| `POST /gdocs/archieml?email=…&folderId=…` | `{ id, url, revisionId, readBack, report }` |
 
+- `revisionId` — from GET, `null` on docs the service account can only view; such a doc can't be PUT.
 - `report: { errors, warnings }` — the admin's publishability checks. A doc with errors is **still written**; tell the user about them.
 - `readBack.match: true` — Google stored exactly the text you sent. Done.
 - `readBack.match: false` — Google stored something different. Nothing is rolled back. `readBack.line` is the first line that differs, with `sent` and `stored` (either is absent when that side has fewer lines). Show the user that line. **Don't retry blindly**: the same text will likely read back the same way.
@@ -138,9 +149,9 @@ List `report.errors` (block publishing) and `report.warnings`, each with its `pr
 
 Every 400, 403, 404 and 409 means **nothing was written**.
 
-- **400** — fix and send again. Causes: the text doesn't parse, or its front-matter `type` is missing or invalid, or the admin can't load it; a missing `revisionId` (PUT) or `email` (POST); a body that isn't `text/plain`; a character Google would strip (the message gives the line and code point, e.g. `U+000D` — remove it from the file).
+- **400** — fix and send again. Causes: the text doesn't parse, or its front-matter `type` is missing or invalid, or the admin can't load it; a missing `revisionId` (PUT), or a missing `email` or a missing or malformed `folderId` (POST); a body that isn't `text/plain`; a character Google would strip (the message gives the line and code point, e.g. `U+000D` — remove it from the file).
 - **409** — the doc changed since your GET. GET again into a fresh file, re-apply your edit to it with `Edit`, and PUT with the new `revisionId`. Don't PUT your old file: it would undo the other change.
-- **403** — the doc is published, or in a shared drive (an author's doc). This skill can only read it.
+- **403** — the doc is published, or the service account can only view it. This skill can only read it.
 - **404** — the doc isn't registered in the admin. The user must add it once in the admin: `$HOST/admin/gdocs` → "Add document", paste the URL.
-- **500 on PUT** — if the message says the shared-drive check failed, nothing was written; try again later. Otherwise the write may already have happened: GET again and compare its text with your file before sending anything again.
-- **500 on create** — if the message names a docs URL (it starts `Created and shared https://docs.google.com/…` or `Created, shared and wrote https://docs.google.com/…`), that doc exists and is shared with the email, but may be empty or not registered. Give the user the URL; don't create again blindly. A 500 without a URL means no doc anyone can open was created. When sharing failed, the server deletes the new doc; if that delete fails too, an unshared doc stays in the service account's Drive (the server logs its id).
+- **500 on PUT** — the write may already have happened: GET again and compare its text with your file before sending anything again.
+- **500 on create** — if the message names a docs URL (it starts `Created and shared https://docs.google.com/…` or `Created, shared and wrote https://docs.google.com/…`), that doc exists and is shared with the email, but may be empty or not registered. Give the user the URL; don't create again blindly. A 500 without a URL means no doc was created, or sharing failed and the server deleted it. If that delete fails too, the unshared doc stays in the folder, where only the folder's members can open it (the server logs its id).

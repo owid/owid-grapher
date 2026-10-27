@@ -371,12 +371,23 @@ function isRequiredRevisionError(error: unknown): boolean {
     return isBadRequest && /required revision/i.test(error.message)
 }
 
+// Google returns no revision id to accounts that can only view the doc
+export class NoEditAccessError extends Error {
+    constructor(documentId: string) {
+        super(
+            `The service account can only view gdoc "${documentId}", not edit it.`
+        )
+        this.name = "NoEditAccessError"
+    }
+}
+
 /**
  * Replaces the content of a Google Doc with ArchieML text, written as-is, in
  * a single batchUpdate. Pass `requiredRevisionId` to refuse the write when the
  * doc has changed since: we compare it with the fetched revision first, and
  * Google checks it again at write time for the race window. Both cases throw
- * a `StaleRevisionError`.
+ * a `StaleRevisionError`. A doc with no revision id, which the service
+ * account can only view, throws a `NoEditAccessError` instead.
  *
  * Returns the revision id of the doc after the write.
  */
@@ -384,7 +395,7 @@ export async function replaceGdocContentWithArchieMlText(
     documentId: string,
     text: string,
     options: { requiredRevisionId?: string } = {}
-): Promise<string | undefined> {
+): Promise<string> {
     const { requiredRevisionId } = options
     const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
     const client = googleDocs({ version: "v1", auth })
@@ -392,14 +403,13 @@ export async function replaceGdocContentWithArchieMlText(
     // No suggestionsViewMode: the indices must match the stored doc that
     // batchUpdate edits, pending suggestions included.
     const { data: document } = await client.documents.get({ documentId })
+    if (!document.revisionId) throw new NoEditAccessError(documentId)
     if (requiredRevisionId && document.revisionId !== requiredRevisionId) {
-        throw new StaleRevisionError(
-            requiredRevisionId,
-            document.revisionId ?? undefined
-        )
+        throw new StaleRevisionError(requiredRevisionId, document.revisionId)
     }
     const requests = buildReplaceDocumentRequests(document, text)
 
+    let writtenRevisionId: string | null | undefined
     try {
         const { data } = await client.documents.batchUpdate({
             documentId,
@@ -410,27 +420,38 @@ export async function replaceGdocContentWithArchieMlText(
                     : undefined,
             },
         })
-        return data.writeControl?.requiredRevisionId ?? undefined
+        writtenRevisionId = data.writeControl?.requiredRevisionId
     } catch (error) {
         if (requiredRevisionId && isRequiredRevisionError(error)) {
             throw new StaleRevisionError(requiredRevisionId, undefined)
         }
         throw error
     }
+    if (writtenRevisionId) return writtenRevisionId
+    // The write landed, so read the revision id rather than fail it
+    const { data: written } = await client.documents.get({ documentId })
+    if (!written.revisionId)
+        throw new Error(
+            `Wrote gdoc "${documentId}", but Google returned no revision id.`
+        )
+    return written.revisionId
 }
 
 const GOOGLE_DOCS_MIME_TYPE = "application/vnd.google-apps.document"
 
-// The doc lands in the root of the auth's My Drive
+// The doc lands in `folderId`, which may be in a shared drive. Always needed:
+// the service account's own My Drive has no storage.
 export async function createGdoc(
     driveClient: drive_v3.Drive,
-    title: string
+    title: string,
+    folderId: string
 ): Promise<string> {
     const createResp = await driveClient.files.create({
         supportsAllDrives: true,
         requestBody: {
             mimeType: GOOGLE_DOCS_MIME_TYPE,
             name: title,
+            parents: [folderId],
         },
         media: {
             mimeType: GOOGLE_DOCS_MIME_TYPE,

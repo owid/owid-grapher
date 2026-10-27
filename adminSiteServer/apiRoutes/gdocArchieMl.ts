@@ -9,6 +9,7 @@ import {
 } from "../../db/model/Gdoc/GdocFactory.js"
 import {
     createGdoc,
+    NoEditAccessError,
     replaceGdocContentWithArchieMlText,
     StaleRevisionError,
 } from "../../db/model/Gdoc/archieToGdoc.js"
@@ -22,6 +23,7 @@ import {
     getDocReport,
     getErrorMessage,
     getNewGdocName,
+    isDriveFolderId,
     isShareableEmail,
     loadWritableGdoc,
     type ReadBack,
@@ -63,34 +65,6 @@ function getReadWriteDriveClient(): drive_v3.Drive {
 }
 
 /**
- * Refuses (403) a doc in any shared drive: those are authors' docs, even when
- * unpublished. Drive returns a `driveId` only for files in a shared drive.
- * When the lookup fails, refuses (500) rather than risk writing.
- */
-async function assertNotInSharedDrive(id: string): Promise<void> {
-    const driveClient = getReadWriteDriveClient()
-    let driveId: string | null | undefined
-    try {
-        const { data } = await driveClient.files.get({
-            fileId: id,
-            fields: "driveId",
-            supportsAllDrives: true,
-        })
-        driveId = data.driveId
-    } catch (error) {
-        throw new JsonError(
-            `Could not check whether gdoc "${id}" is in a shared drive, so nothing was written: ${getErrorMessage(error)}`,
-            500
-        )
-    }
-    if (driveId)
-        throw new JsonError(
-            `Gdoc "${id}" is in a shared drive. Only docs outside shared drives can be written here.`,
-            403
-        )
-}
-
-/**
  * The request body as ArchieML text. Refuses (400) a body that isn't
  * text/plain, or that contains a character Google strips on insert.
  */
@@ -117,6 +91,7 @@ function readArchieMlBody(req: Request): string {
  * The doc's ArchieML text, its revision id (to send back with the PUT), the
  * report a PUT of that text would return, and whether it is published. Reads
  * any registered doc, so published docs can serve as structure references.
+ * The revision id is null on docs the service account can only view.
  */
 export async function getGdocArchieMl(
     req: Request,
@@ -124,7 +99,7 @@ export async function getGdocArchieMl(
     trx: db.KnexReadonlyTransaction
 ): Promise<{
     text: string
-    revisionId: string
+    revisionId: string | null
     report: DocReport
     published: boolean
 }> {
@@ -163,18 +138,21 @@ export async function putGdocArchieMl(
         getWritableGdocBase(trx, id)
     )
 
-    await assertNotInSharedDrive(id)
-
     // Parse with the subclass enrichment, so text the admin can't load is
     // refused before anything is written
     await db.knexReadonlyTransaction((trx) => loadWritableGdoc(trx, base, text))
 
-    let writtenRevisionId: string | undefined
+    let writtenRevisionId: string
     try {
         writtenRevisionId = await replaceGdocContentWithArchieMlText(id, text, {
             requiredRevisionId,
         })
     } catch (error) {
+        if (error instanceof NoEditAccessError)
+            throw new JsonError(
+                `${error.message} Only docs it can edit can be written here.`,
+                403
+            )
         if (error instanceof StaleRevisionError)
             throw new JsonError(
                 `${error.message} Read the doc again and re-apply your edit.`,
@@ -189,19 +167,16 @@ export async function putGdocArchieMl(
         getDocReport(trx, base, stored.text)
     )
 
-    return {
-        revisionId: writtenRevisionId ?? stored.revisionId,
-        readBack,
-        report,
-    }
+    return { revisionId: writtenRevisionId, readBack, report }
 }
 
 /**
- * POST /gdocs/archieml?email=<email>   (Content-Type: text/plain)
+ * POST /gdocs/archieml?email=<email>&folderId=<id>   (Content-Type: text/plain)
  *
- * Creates a new doc of any type from the request body, in the service
- * account's My Drive. Shares it as writer with `email` (devs can't open that
- * Drive, so an unshared doc is lost), writes the text as-is, reads it back and
+ * Creates a new doc of any type from the request body, in the Drive folder
+ * `folderId` (which may be in a shared drive; the service account's own My
+ * Drive has no storage). Shares it as writer with `email` (otherwise only
+ * the folder's members could open it), writes the text as-is, reads it back and
  * registers it in posts_gdocs. Every refusal happens before anything is
  * created in Google. No DB transaction is held across the create, share and
  * write; registering fetches the doc from Google again inside its own
@@ -223,6 +198,12 @@ export async function createGdocArchieMl(
             `The "email" query parameter must be the email address to share the new doc with.`,
             400
         )
+    const folderId = req.query.folderId
+    if (!isDriveFolderId(folderId))
+        throw new JsonError(
+            `The "folderId" query parameter must be the id of the Drive folder to create the doc in (the part of the folder URL after /folders/).`,
+            400
+        )
 
     const text = readArchieMlBody(req)
 
@@ -234,10 +215,13 @@ export async function createGdocArchieMl(
     )
 
     const driveClient = getReadWriteDriveClient()
-    // Lands in the service account's My Drive
     let id: string
     try {
-        id = await createGdoc(driveClient, getNewGdocName(parsed.content.title))
+        id = await createGdoc(
+            driveClient,
+            getNewGdocName(parsed.content.title),
+            folderId
+        )
     } catch (error) {
         // A 500 rather than Google's own status (e.g. a quota 403), which
         // would read as a refusal of the input
@@ -256,7 +240,7 @@ export async function createGdocArchieMl(
             requestBody: { type: "user", role: "writer", emailAddress: email },
         })
     } catch (error) {
-        // Nobody but the service account could open the doc, so remove it
+        // The email can't open the doc, so remove it
         await driveClient.files
             .delete({ fileId: id, supportsAllDrives: true })
             .catch((deleteError) =>
@@ -271,8 +255,9 @@ export async function createGdocArchieMl(
         )
     }
 
+    let revisionId: string
     try {
-        await replaceGdocContentWithArchieMlText(id, text)
+        revisionId = await replaceGdocContentWithArchieMlText(id, text)
     } catch (error) {
         throw new JsonError(
             `Created and shared ${url}, but writing its content failed, so it is empty and not registered in the admin: ${getErrorMessage(error)}`,
@@ -292,7 +277,7 @@ export async function createGdocArchieMl(
             getDocReport(trx, await getRegisteredGdocBase(trx, id), stored.text)
         )
 
-        return { id, url, revisionId: stored.revisionId, readBack, report }
+        return { id, url, revisionId, readBack, report }
     } catch (error) {
         throw new JsonError(
             `Created, shared and wrote ${url}, but reading it back or registering it failed, so it may not be registered in the admin: ${getErrorMessage(error)}`,

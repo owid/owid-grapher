@@ -85,6 +85,14 @@ export function isShareableEmail(value: unknown): value is string {
     return typeof value === "string" && EMAIL_PATTERN.test(value)
 }
 
+// Drive ids are URL-safe base64: letters, digits, "-" and "_"
+const DRIVE_ID_PATTERN = /^[\w-]+$/
+
+/** Whether `value` looks like a Drive folder id to create a new doc in. */
+export function isDriveFolderId(value: unknown): value is string {
+    return typeof value === "string" && DRIVE_ID_PATTERN.test(value)
+}
+
 /** The Drive name for a new doc: its front-matter title, else "Untitled". */
 export function getNewGdocName(title: unknown): string {
     if (typeof title === "string" && title.trim()) return title.trim()
@@ -171,10 +179,12 @@ export function compareReadBack(sent: string, stored: string): ReadBack {
  * The doc's current ArchieML text and revision id, as the admin preview sees
  * it (suggestions not applied). Uses the read-write auth: revision ids can't
  * be shared across users, and the writer checks them with that auth.
+ * `revisionId` is null when the service account can only view the doc:
+ * Google returns revision ids only to accounts that can edit it.
  */
 export async function fetchGdocArchieMl(
     documentId: string
-): Promise<{ text: string; revisionId: string }> {
+): Promise<{ text: string; revisionId: string | null }> {
     const client = googleDocs({
         version: "v1",
         auth: OwidGoogleAuth.getGoogleReadWriteAuth(),
@@ -183,10 +193,8 @@ export async function fetchGdocArchieMl(
         documentId,
         suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
     })
-    if (!document.revisionId)
-        throw new Error(`Google returned no revision id for gdoc ${documentId}`)
     const { text } = await gdocToArchie(document)
-    return { text, revisionId: document.revisionId }
+    return { text, revisionId: document.revisionId ?? null }
 }
 
 function splitReport(messages: OwidGdocErrorMessage[]): DocReport {
