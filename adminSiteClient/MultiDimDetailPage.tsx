@@ -15,6 +15,7 @@ import {
     Table,
     TableColumnsType,
     Popconfirm,
+    Modal,
 } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExternalLink, faTrash } from "@fortawesome/free-solid-svg-icons"
@@ -79,6 +80,11 @@ type MultiDimRedirect = {
     viewConfigId: string | null
 }
 
+type RedirectToPath = {
+    kind: "site" | "multiDim" | "chartSlug"
+    source: string
+}
+
 function deserializeMultiDim(mdim: ApiMultiDimDetail): MultiDimDetail {
     return {
         ...mdim,
@@ -136,18 +142,29 @@ async function fetchMultiDimRedirects(
     return redirects
 }
 
+async function fetchRedirectsToPath(
+    admin: Admin,
+    path: string
+): Promise<RedirectToPath[]> {
+    const { redirects } = await admin.getJSON<{
+        redirects: RedirectToPath[]
+    }>("/api/multi-dim-redirects/redirects-to", { path })
+    return redirects
+}
+
 async function createMultiDimRedirect(
     admin: Admin,
     multiDimId: number,
     source: string,
     viewConfigId: string | null,
-    sourceQueryParams: Record<string, string> | null
+    sourceQueryParams: Record<string, string> | null,
+    repointRedirectsToSource: boolean
 ): Promise<MultiDimRedirect> {
     const { redirect } = await admin.requestJSON<{
         redirect: MultiDimRedirect
     }>(
         `/api/multi-dims/${multiDimId}/redirects`,
-        { source, viewConfigId, sourceQueryParams },
+        { source, viewConfigId, sourceQueryParams, repointRedirectsToSource },
         "POST"
     )
     return redirect
@@ -296,17 +313,20 @@ export function MultiDimDetailPage({ id }: { id: number }) {
             source,
             viewConfigId,
             sourceQueryParams,
+            repointRedirectsToSource,
         }: {
             source: string
             viewConfigId: string | null
             sourceQueryParams: Record<string, string> | null
+            repointRedirectsToSource: boolean
         }) =>
             createMultiDimRedirect(
                 admin,
                 id,
                 source,
                 viewConfigId,
-                sourceQueryParams
+                sourceQueryParams,
+                repointRedirectsToSource
             ),
         onSuccess: () => {
             void queryClient.invalidateQueries({
@@ -376,16 +396,62 @@ export function MultiDimDetailPage({ id }: { id: number }) {
         return `${baseUrl}?${params.toString()}`
     }, [multiDim, currentDimensions])
 
-    function handleCreateRedirect(values: RedirectFormValues) {
-        const normalizedSource = normalizeRedirectSource(values.source.trim())
-        createRedirectMutation.mutate({
-            source: normalizedSource,
-            viewConfigId: values.redirectToSpecificView
-                ? currentViewConfigId
-                : null,
-            sourceQueryParams: parseSourceQueryParamsInput(
-                values.sourceQueryParams
+    async function handleCreateRedirect(
+        values: RedirectFormValues
+    ): Promise<void> {
+        const source = normalizeRedirectSource(values.source.trim())
+        const sourceQueryParams = parseSourceQueryParamsInput(
+            values.sourceQueryParams
+        )
+        const createRedirect = (repointRedirectsToSource: boolean): void =>
+            createRedirectMutation.mutate({
+                source,
+                viewConfigId: values.redirectToSpecificView
+                    ? currentViewConfigId
+                    : null,
+                sourceQueryParams,
+                repointRedirectsToSource,
+            })
+
+        // A conditioned redirect can't take over the redirects to its source,
+        // so let the API reject it as a chain if there are any
+        if (sourceQueryParams) return createRedirect(false)
+
+        const redirectsToSource = await fetchRedirectsToPath(admin, source)
+        if (redirectsToSource.length === 0) return createRedirect(false)
+
+        Modal.confirm({
+            title: `${redirectsToSource.length === 1 ? "1 address redirects" : `${redirectsToSource.length} addresses redirect`} to ${source}`,
+            content: (
+                <>
+                    <ul>
+                        {redirectsToSource.map((redirect) => (
+                            <li key={`${redirect.kind}:${redirect.source}`}>
+                                <Typography.Text code>
+                                    {redirect.source}
+                                </Typography.Text>
+                            </li>
+                        ))}
+                    </ul>
+                    <p>
+                        Redirect them straight to this multi-dim view too?
+                        Without that, they'd redirect twice, which isn't
+                        allowed.
+                    </p>
+                    {redirectsToSource.some(
+                        (redirect) => redirect.kind === "chartSlug"
+                    ) && (
+                        <p>
+                            Old chart slugs will no longer point to their chart,
+                            even if it's republished later.
+                        </p>
+                    )}
+                </>
             ),
+            okText: "Redirect them too",
+            cancelText: "Cancel",
+            width: 600,
+            onOk: () => createRedirect(true),
         })
     }
 
