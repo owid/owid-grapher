@@ -229,10 +229,6 @@ function timeAgo(time: string): string {
         .replace(/^an? (minute|hour|day|month|year) ago$/, "1 $1 ago")
 }
 
-/**
- * "7 hours ago" over the author's name, with the exact time on hover. Clicking
- * the name lists only that person's charts, as on GitHub.
- */
 function TimestampCell({
     time,
     by,
@@ -622,8 +618,6 @@ export class ChartList extends React.Component<ChartListProps> {
         return params.get("chartSearch") || ""
     }
 
-    // The search holds every filter too, so a filtered list can be shared.
-    // Other query params, like a page's tab, are kept.
     setSearchInputInUrl(searchInput: string) {
         setWindowUrl(
             getWindowUrl().updateQueryParams({
@@ -656,7 +650,6 @@ export class ChartList extends React.Component<ChartListProps> {
         this.setSearchInputInUrl(input)
     }
 
-    /** Lists only this person's charts; clicking them again lifts the filter. */
     @action.bound onAuthorClick(author: string) {
         const current = getFacetValues(this.searchInput, "author")
         const isOnlyAuthor =
@@ -716,13 +709,6 @@ interface ChartTableProps {
     onAuthorClick: (author: string) => void
 }
 
-/**
- * The table, a step behind the search box. Rendering a page of rows takes far
- * longer than a keystroke, so the box shows each character at once, and the
- * table follows with the latest query, skipping the ones typed meanwhile.
- * `ChartTable` is an observer, so it is only rendered again once the deferred
- * query has changed.
- */
 function DeferredChartTable(props: ChartTableProps): React.ReactElement {
     const query = useDeferredValue(props.query)
     return <ChartTable {...props} query={query} />
@@ -730,37 +716,34 @@ function DeferredChartTable(props: ChartTableProps): React.ReactElement {
 
 @observer
 class ChartTable extends React.Component<ChartTableProps> {
-    private filtered?: {
+    private filterCache?: {
         query: string
         charts: ChartListItem[]
         result: IComputedValue<ChartListItem[]>
     }
 
-    /**
-     * The charts the query finds. Paging renders the table again without
-     * filtering again; deleting a chart or editing its tags filters again.
-     */
     private chartsFiltered(): ChartListItem[] {
         const { query, charts } = this.props
-        if (this.filtered?.query !== query || this.filtered.charts !== charts)
-            this.filtered = {
+        if (
+            this.filterCache?.query !== query ||
+            this.filterCache.charts !== charts
+        )
+            this.filterCache = {
                 query,
                 charts,
-                // always a fresh array, so the table notices when a chart is deleted
                 result: computed(() =>
                     query.trim()
                         ? charts.filter(chartSearchFilter(query, charts))
                         : [...charts]
                 ),
             }
-        return this.filtered.result.get()
+        return this.filterCache.result.get()
     }
 
     override render() {
         const { query, charts, availableTags } = this.props
         const chartsFiltered = this.chartsFiltered()
 
-        // if the first chart has inheritance information, we assume all charts have it
         const showInheritanceColumn =
             charts[0]?.isInheritanceEnabled !== undefined
 
@@ -778,15 +761,10 @@ class ChartTable extends React.Component<ChartTableProps> {
         return (
             <Table<ChartListItem>
                 size="small"
-                // sized to the content, so the chart column gets the room
-                // the narrow ones don't need, however wide the page is.
-                // Not sticky: a sticky header is a table of its own, which
-                // falls out of line with content-sized columns
                 tableLayout="auto"
                 scroll={{ x: true }}
                 rowKey="id"
                 columns={columns}
-                // tag cells need the tag graph roles, which come with the tags
                 dataSource={availableTags ? chartsFiltered : []}
                 loading={this.props.loading || !availableTags}
                 pagination={{
@@ -795,8 +773,6 @@ class ChartTable extends React.Component<ChartTableProps> {
                     onChange: this.props.onPageChange,
                     showSizeChanger: true,
                     pageSizeOptions: [25, 50, 100, 200],
-                    // above the table too, so how many charts the search
-                    // finds is in view while typing
                     placement: ["topStart", "bottomEnd"],
                     showTotal: (total, [from, to]) =>
                         `${from}–${to} of ${total.toLocaleString()} ${total === 1 ? "chart" : "charts"}` +

@@ -5,7 +5,6 @@ import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons"
 import type { SearchFieldHelp } from "../adminShared/variableSearch.js"
 import "./SearchHelp.scss"
 
-/** A "?" next to a search box, explaining its syntax and `field:` terms. */
 export function SearchHelp({
     intro,
     fields,

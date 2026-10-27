@@ -13,15 +13,6 @@ import {
 import type { ChartListItem } from "./ChartList.js"
 import { getChartListItemEtlSource, hasEtlDrift } from "./etlChartSync.js"
 
-// The chart list's search, run in the browser over the charts it holds. It
-// speaks the indicator search's grammar (`adminShared/variableSearch.ts`):
-// space-separated words, `"phrases"`, `-exclusions` and `field:value` terms.
-//
-// The query is the whole of the list's filter state. The filter controls next
-// to the search box read their value out of it and write it back into it, so
-// the box and the controls can't disagree, and the URL holds every filter.
-
-/** The `field:value` terms the chart search understands, as listed in its help. */
 export const CHART_SEARCH_FIELDS = [
     {
         name: "is",
@@ -43,11 +34,6 @@ const FIELD_NAMES: ReadonlySet<string> = new Set(
     CHART_SEARCH_FIELDS.map((field) => field.name)
 )
 
-/**
- * What a filter control sets. Terms of one facet are alternatives (OR), terms
- * of different facets all have to hold (AND). `is:` covers two facets, so that
- * `is:draft is:etl` means ETL drafts rather than drafts or ETL charts.
- */
 export type ChartSearchFacet = IsFacet | "tag" | "author"
 
 type IsFacet = "status" | "source"
@@ -99,10 +85,6 @@ function facetOfTerm(term: SearchTerm): ChartSearchFacet | undefined {
     return term.field as ChartSearchFacet
 }
 
-/**
- * A name matches a value that is that name, ignoring case. While the value is
- * still being typed and no name is it yet, it matches the names it begins.
- */
 function nameMatcher(
     value: string,
     knownNames: () => ReadonlySet<string>
@@ -122,11 +104,6 @@ interface ChartFilter {
     test: (chart: ChartListItem) => boolean
 }
 
-/**
- * A plain word, or an unknown `field:` searched as text, as the indicator
- * search does: `https://…` is no field. A known field's terms never are, even
- * while unfinished.
- */
 function isTextTerm(term: SearchTerm): boolean {
     return term.field === undefined || !FIELD_NAMES.has(term.field)
 }
@@ -157,13 +134,6 @@ function chartTextFields(chart: ChartListItem): (string | undefined)[] {
     ]
 }
 
-/**
- * The filter a query describes, over the charts it will run on (which also
- * tell a finished tag or author name from one still being typed).
- *
- * A known field with no value yet and an `is:` value that isn't one narrow
- * nothing, so the list doesn't empty while a term is being typed.
- */
 export function chartSearchFilter(
     query: string,
     charts: readonly ChartListItem[]
@@ -238,10 +208,6 @@ export function chartSearchFilter(
         )
 }
 
-/**
- * What to highlight in the list: the plain words, and the people an `author:`
- * term names, so the filter shows where it matched.
- */
 export function chartSearchWordsToHighlight(query: string): SearchWord[] {
     const terms = parseSearchQuery(query)
     const authors = terms
@@ -252,9 +218,6 @@ export function chartSearchWordsToHighlight(query: string): SearchWord[] {
     return [...textWords(terms), ...authors]
 }
 
-// Rewriting the query, for the filter controls
-
-/** A term as it goes back into the query, quoted if it has spaces. */
 export function formatTerm(
     field: ChartSearchField,
     value: string,
@@ -271,7 +234,6 @@ function reformatTerm(term: SearchTerm): string {
             term.value,
             term.negate
         )
-    // a phrase has to go back in quotes to stay one term
     return /\s/.test(term.raw) ? `"${term.raw}"` : term.raw
 }
 
@@ -279,7 +241,6 @@ function fieldOfFacet(facet: ChartSearchFacet): ChartSearchField {
     return facet === "status" || facet === "source" ? "is" : facet
 }
 
-/** The values a facet's control shows: its included terms, as typed. */
 export function getFacetValues(
     query: string,
     facet: ChartSearchFacet
@@ -292,10 +253,6 @@ export function getFacetValues(
         )
 }
 
-/**
- * The query with a facet's terms, excluded ones too, replaced by one term per
- * value, at the end. Everything else is kept, in order.
- */
 export function setFacetValues(
     query: string,
     facet: ChartSearchFacet,
@@ -310,18 +267,14 @@ export function setFacetValues(
     )
 }
 
-/** Whether the query filters on anything beyond plain words. */
 export function hasChartFilters(query: string): boolean {
     return parseSearchQuery(query).some(
         (term) => term.value !== "" && facetOfTerm(term) !== undefined
     )
 }
 
-// Suggestions as the user types
-
 export interface NameCount {
     name: string
-    /** How many of the list's charts it applies to. */
     count: number
 }
 
@@ -332,20 +285,13 @@ export type SuggestionGroup =
     | "Filters"
 
 export interface ChartSearchSuggestion {
-    /** The whole query once the suggestion is taken. */
-    query: string
+    resultingQuery: string
     group: SuggestionGroup
     label: string
     count?: number
-    /** Set on a bare `field:`, whose value is picked next. */
     expectsValue?: boolean
 }
 
-/**
- * The query up to the term being typed, and that term. Typing happens at the
- * end, so that is the last term, or none after a space; a space inside an
- * open quote is still part of the term.
- */
 export function splitOffCurrentTerm(query: string): {
     before: string
     current: string
@@ -360,10 +306,8 @@ export function splitOffCurrentTerm(query: string): {
 
 const MAX_NAMES = { field: 8, word: 4 }
 
-/** How long a plain word gets before it is offered as a filter. */
-const MIN_WORD_LENGTH = 3
+const MIN_SUGGESTION_LENGTH = 3
 
-/** Names containing `value`, those it begins first, then the most used. */
 function matchingNames(
     names: readonly NameCount[],
     value: string,
@@ -388,7 +332,6 @@ interface Token {
     text: string
 }
 
-/** The terms of a query with where each starts, and whether a quote is open. */
 function tokenize(query: string): { tokens: Token[]; inQuotes: boolean } {
     const tokens: Token[] = []
     let inQuotes = false
@@ -409,73 +352,82 @@ function tokenize(query: string): { tokens: Token[]; inQuotes: boolean } {
 const MAX_PHRASE_WORDS = 4
 
 interface Phrase {
-    /** Where in the query the phrase starts, so a pick replaces all of it. */
     start: number
     value: string
-    /** Set when the phrase continues a `tag:` or `author:` term. */
     field?: "tag" | "author"
 }
 
-/**
- * The multi-word names the end of the query could be the start of, longest
- * first: its last few plain words, or a `tag:` or `author:` term and the words
- * typed after it. A space ends a term, so "Life Expectancy" typed out is two
- * words, "life" and "exp…", and only the phrase finds the tag. After a space,
- * the phrase keeps it: "life " is still typing a name.
- */
-function trailingPhrases(query: string): Phrase[] {
-    const { tokens, inQuotes } = tokenize(query)
-    // an open quote is a single term still being typed, handled as such
-    if (inQuotes) return []
-    const isPlainWord = (token: Token): boolean =>
+function isPlainWord(token: Token): boolean {
+    return (
         !token.text.includes('"') &&
         !token.text.startsWith("-") &&
         parseSearchTerm(token.text).field === undefined
+    )
+}
 
+function trailingPlainWords(tokens: Token[]): Token[] {
     const words: Token[] = []
     for (let i = tokens.length - 1; i >= 0; i--) {
         if (!isPlainWord(tokens[i]) || words.length === MAX_PHRASE_WORDS) break
         words.unshift(tokens[i])
     }
-    const trailingSpace = /\s$/.test(query) ? " " : ""
-    const join = (parts: string[]): string => parts.join(" ") + trailingSpace
-
-    const phrases: Phrase[] = []
-    const headToken = tokens[tokens.length - words.length - 1]
-    const head = headToken && parseSearchTerm(headToken.text)
-    if (
-        head &&
-        !head.negate &&
-        head.value &&
-        !headToken.text.includes('"') &&
-        (head.field === "tag" || head.field === "author") &&
-        (words.length > 0 || trailingSpace)
-    )
-        phrases.push({
-            start: headToken.start,
-            value: join([head.value, ...words.map((word) => word.text)]),
-            field: head.field,
-        })
-    for (let k = words.length; k >= 1; k--) {
-        // a single word without a space after it is the term being typed
-        if (k === 1 && !trailingSpace) break
-        const phraseWords = words.slice(-k)
-        phrases.push({
-            start: phraseWords[0].start,
-            value: join(phraseWords.map((word) => word.text)),
-        })
-    }
-    return phrases.filter(
-        (phrase) => phrase.value.trim().length >= MIN_WORD_LENGTH
-    )
+    return words
 }
 
-/**
- * Filter terms for what is being typed. After `tag:`, `author:` or `is:`, its
- * values; after a plain word, the tags, people, statuses and fields it could
- * mean, so that typing "energy" offers `tag:Energy` without getting in the way
- * of searching titles for it.
- */
+function nameTermWithWords(
+    headToken: Token | undefined,
+    words: Token[],
+    join: (parts: string[]) => string,
+    hasTrailingSpace: boolean
+): Phrase | undefined {
+    const head = headToken && parseSearchTerm(headToken.text)
+    if (
+        !head ||
+        head.negate ||
+        !head.value ||
+        headToken.text.includes('"') ||
+        (head.field !== "tag" && head.field !== "author") ||
+        (words.length === 0 && !hasTrailingSpace)
+    )
+        return undefined
+    return {
+        start: headToken.start,
+        value: join([head.value, ...words.map((word) => word.text)]),
+        field: head.field,
+    }
+}
+
+function wordPhrases(
+    words: Token[],
+    join: (parts: string[]) => string,
+    hasTrailingSpace: boolean
+): Phrase[] {
+    const minWords = hasTrailingSpace ? 1 : 2
+    return _.range(words.length, minWords - 1, -1).map((k) => {
+        const phraseWords = words.slice(-k)
+        return {
+            start: phraseWords[0].start,
+            value: join(phraseWords.map((word) => word.text)),
+        }
+    })
+}
+
+function trailingPhrases(query: string): Phrase[] {
+    const { tokens, inQuotes } = tokenize(query)
+    if (inQuotes) return []
+    const words = trailingPlainWords(tokens)
+    const hasTrailingSpace = /\s$/.test(query)
+    const join = (parts: string[]): string =>
+        parts.join(" ") + (hasTrailingSpace ? " " : "")
+
+    const headToken = tokens[tokens.length - words.length - 1]
+    const nameTerm = nameTermWithWords(headToken, words, join, hasTrailingSpace)
+    return [
+        ...(nameTerm ? [nameTerm] : []),
+        ...wordPhrases(words, join, hasTrailingSpace),
+    ].filter((phrase) => phrase.value.trim().length >= MIN_SUGGESTION_LENGTH)
+}
+
 export function suggestChartSearchTerms(
     query: string,
     {
@@ -498,13 +450,12 @@ export function suggestChartSearchTerms(
         matchingNames(facet === "tag" ? tags : authors, value, taken[facet])
             .slice(0, max)
             .map(({ name, count }) => ({
-                query: `${before}${formatTerm(facet, name, negate)} `,
+                resultingQuery: `${before}${formatTerm(facet, name, negate)} `,
                 group: facet === "tag" ? "Tags" : "Authors",
                 label: name,
                 count,
             }))
 
-    // The longest phrase that names something, replacing all of its words
     let phraseSuggestions: ChartSearchSuggestion[] = []
     for (const phrase of trailingPhrases(query)) {
         const before = query.slice(0, phrase.start)
@@ -534,7 +485,7 @@ export function suggestChartSearchTerms(
                     label.toLowerCase().startsWith(value.toLowerCase())
             )
             .map(([name, { label }]) => ({
-                query: `${before}${formatTerm("is", name, term.negate)} `,
+                resultingQuery: `${before}${formatTerm("is", name, term.negate)} `,
                 group: "Status and source",
                 label: `${formatTerm("is", name)} — ${label}`,
             }))
@@ -553,23 +504,19 @@ export function suggestChartSearchTerms(
             return isSuggestions(term.value)
     }
 
-    // A plain word, too short to tell what it might mean
-    if (term.field !== undefined || term.value.length < MIN_WORD_LENGTH)
+    if (term.field !== undefined || term.value.length < MIN_SUGGESTION_LENGTH)
         return phraseSuggestions
 
     const fieldSuggestions: ChartSearchSuggestion[] =
         CHART_SEARCH_FIELDS.filter((field) =>
             field.name.startsWith(term.value.toLowerCase())
         ).map((field) => ({
-            // no space after it: the value comes next
-            query: `${before}${term.negate ? "-" : ""}${field.name}:`,
+            resultingQuery: `${before}${term.negate ? "-" : ""}${field.name}:`,
             group: "Filters",
             label: `${field.name}: — ${field.description}`,
             expectsValue: true,
         }))
 
-    // When the words typed so far name something, the last word on its own
-    // ("exp" of "life exp") is no longer what is meant
     const wordNameSuggestions =
         phraseSuggestions.length > 0
             ? []
@@ -590,7 +537,6 @@ export function suggestChartSearchTerms(
     ]
 }
 
-/** Each name with how many of the charts it applies to, most used first. */
 export function countNames(
     charts: readonly ChartListItem[],
     namesOf: (chart: ChartListItem) => (string | undefined | null)[]

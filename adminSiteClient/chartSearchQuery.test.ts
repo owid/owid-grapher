@@ -12,11 +12,6 @@ import {
     suggestChartSearchTerms,
 } from "./chartSearchQuery.js"
 
-// The chart list's query is its whole filter state: the search box shows it,
-// the filter controls read and rewrite their part of it, and the URL keeps it.
-// These tests pin down what a query selects, that the controls' rewrites leave
-// the rest of the query alone, and what is offered while typing.
-
 function chart(
     id: number,
     overrides: Partial<ChartListItem> = {}
@@ -94,11 +89,13 @@ describe(chartSearchFilter, () => {
         expect(ids("is:admin")).toEqual([1, 4])
     })
 
-    it("ORs terms of one facet and ANDs different facets", () => {
+    it("ORs terms of one facet", () => {
         expect(ids("tag:Energy tag:Health")).toEqual([1, 3])
-        // status and source are different facets, though both are is:
-        expect(ids("is:draft is:etl")).toEqual([2])
         expect(ids("is:draft is:published")).toEqual([1, 2, 3, 4])
+    })
+
+    it("ANDs status and source, though both are is: terms", () => {
+        expect(ids("is:draft is:etl")).toEqual([2])
     })
 
     it("excludes with a minus", () => {
@@ -106,10 +103,12 @@ describe(chartSearchFilter, () => {
         expect(ids("is:etl -tag:Health")).toEqual([2])
     })
 
-    it("matches a tag by its whole name, or by its start while being typed", () => {
-        // "Energy" is a tag, so it doesn't also match "Energy Mix"
+    it("matches a known tag by its whole name only", () => {
         expect(ids("tag:energy")).toEqual([1])
         expect(ids('tag:"Energy Mix"')).toEqual([2])
+    })
+
+    it("matches a tag by its start while it is being typed", () => {
         expect(ids("tag:ener")).toEqual([1, 2])
     })
 
@@ -146,7 +145,9 @@ describe("the filter controls' rewrites", () => {
         expect(setFacetValues(query, "status", [])).toBe(
             'grid tag:"Energy Mix" "solar power"'
         )
-        // the source facet is is: too, but leaves the status term alone
+    })
+
+    it("leave the status term alone when setting the source", () => {
         expect(setFacetValues(query, "source", ["etl"])).toBe(
             'grid is:draft tag:"Energy Mix" "solar power" is:etl'
         )
@@ -211,7 +212,10 @@ describe(suggestChartSearchTerms, () => {
         authors: countNames(CHARTS, (c) => [c.lastEditedBy, c.publishedBy]),
     }
     const suggest = (query: string): [string, string][] =>
-        suggestChartSearchTerms(query, names).map((s) => [s.group, s.query])
+        suggestChartSearchTerms(query, names).map((s) => [
+            s.group,
+            s.resultingQuery,
+        ])
 
     it("offers a field's values after it, finishing the term", () => {
         expect(suggest("solar tag:mix")).toEqual([
@@ -239,18 +243,23 @@ describe(suggestChartSearchTerms, () => {
         ])
     })
 
-    it("finds a multi-word name from the words typed so far", () => {
-        // the phrase replaces both words, not just the last one, and what
-        // "exp" alone would match isn't offered
+    it("replaces all the words of a multi-word name, offering nothing for the last word alone", () => {
         expect(suggest("solar life exp")).toEqual([
             ["Tags", 'solar tag:"Life Expectancy" '],
         ])
-        // a space doesn't end a name being typed
+    })
+
+    it("keeps a name going past a space", () => {
         expect(suggest("life ")).toEqual([["Tags", 'tag:"Life Expectancy" ']])
-        // nor does it end a tag: term
+    })
+
+    it("keeps a tag: term going past a space", () => {
         expect(suggest("tag:life exp")).toEqual([
             ["Tags", 'tag:"Life Expectancy" '],
         ])
+    })
+
+    it("finds a multi-word name inside an open quote", () => {
         expect(suggest('author:"grace h')).toEqual([
             ["Authors", 'author:"Grace Hopper" '],
         ])

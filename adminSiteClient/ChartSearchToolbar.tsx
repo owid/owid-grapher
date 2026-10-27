@@ -15,13 +15,11 @@ import {
 import { SearchHelp } from "./SearchHelp.js"
 import "./ChartSearchToolbar.scss"
 
-// Nothing typed starts with it, so no option looks like a completion
 const SUGGESTION_VALUE_PREFIX = "\u0000suggestion:"
 
 interface ChartSearchToolbarProps {
     query: string
     onQueryChange: (query: string) => void
-    /** The tags and people of the charts listed, most used first. */
     tags: readonly NameCount[]
     authors: readonly NameCount[]
     autoFocus?: boolean
@@ -41,8 +39,6 @@ interface NameOption {
     count: number
 }
 
-// The label is the bare name, as the selected chips show it; the count is
-// added in the list only, by `renderNameOption`
 function nameOptions(names: readonly NameCount[]): NameOption[] {
     return names.map(({ name, count }) => ({ value: name, label: name, count }))
 }
@@ -70,11 +66,6 @@ function NameWithCount({
     )
 }
 
-/**
- * A query's values for a facet, spelled as the control's options are, so
- * `tag:energy` selects "Energy". A value no option has, like a name still being
- * typed, is shown as typed.
- */
 function canonicalValues(
     values: string[],
     names: readonly NameCount[]
@@ -87,7 +78,6 @@ function canonicalValues(
     )
 }
 
-/** A multi-select over tags or people, with how many charts each has */
 function NameFilter({
     placeholder,
     names,
@@ -99,7 +89,6 @@ function NameFilter({
     values: string[]
     onChange: (values: string[]) => void
 }): React.ReactElement {
-    // built once per list, not on every keystroke
     const options = useMemo(() => nameOptions(names), [names])
     return (
         <Select
@@ -107,7 +96,6 @@ function NameFilter({
             mode="multiple"
             placeholder={placeholder}
             allowClear
-            // one chip, shortened, and "+ 2" for the rest
             maxTagCount={1}
             showSearch={{ optionFilterProp: "value" }}
             value={canonicalValues(values, names)}
@@ -119,11 +107,6 @@ function NameFilter({
     )
 }
 
-/**
- * The search box, with suggestions for filter terms as they are typed, and a
- * control per filter. Each control shows and sets its own terms in the query,
- * so typing `tag:Energy` and picking "Energy" from the tags are the same.
- */
 export function ChartSearchToolbar({
     query,
     onQueryChange,
@@ -131,11 +114,7 @@ export function ChartSearchToolbar({
     authors,
     autoFocus,
 }: ChartSearchToolbarProps): React.ReactElement {
-    // Suggestions are for what is typed in the box: a filter control
-    // changing the query shouldn't open them
     const [typedQuery, setTypedQuery] = useState<string | undefined>()
-    // and they follow a step behind, like the table, so that opening them
-    // never holds up the character just typed
     const deferredQuery = useDeferredValue(query)
     const suggestions = useMemo(
         () =>
@@ -193,9 +172,9 @@ export function ChartSearchToolbar({
         const index = Number(value.slice(SUGGESTION_VALUE_PREFIX.length))
         const suggestion = suggestions[index]
         if (!suggestion) return
-        onQueryChange(suggestion.query)
+        onQueryChange(suggestion.resultingQuery)
         if (suggestion.expectsValue) {
-            setTypedQuery(suggestion.query)
+            setTypedQuery(suggestion.resultingQuery)
             keepOpen.current = true
             setIsOpen(true)
         } else setTypedQuery(undefined)
