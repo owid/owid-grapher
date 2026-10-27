@@ -206,11 +206,11 @@ Below is the OWID content our keyword search found. Work out what the reader mos
 
 Blocks:
 - {"type":"chart","id":12,"size":"large","country":"Nigeria"}
-  A chart card. "large" is a big chart with a data table, for the one chart that best answers the search; use it at most once. "medium" is a row with the chart, a table, a map and a headline number. "small" is a thumbnail with the title, for supporting charts. Medium and large cards load real data and take up a lot of space, so a few of them are plenty. When the search names a country or region, add "country" (its exact name) to every chart where it applies, since that place is what the reader asked about; the card then shows that place's data. Leave it out otherwise.
+  A chart. "large" is a big interactive-looking card with the chart and a data table: the page's headline, for the one chart that best answers the search. "medium" is a wide card with the chart, a table, a map and a headline number. Both take a whole screen row and load real data, so the page has at most two of them, usually a single large one at the top. "small" is a thumbnail with the chart's title; consecutive small charts sit side by side, four to a row. When the search names a country or region, add "country" (its exact name) to every chart where it applies, since that place is what the reader asked about; the chart then shows that place's data. Leave it out otherwise.
 - {"type":"page","id":34}
   A topic page, article or data insight card.
 - {"type":"group","title":"...","blurb":"...","blocks":[...]}
-  A titled section holding chart and page blocks (no other kinds). Title: plain language, sentence case, at most 6 words. Blurb: one sentence saying what the section shows.
+  A titled section that shows its chart and page blocks as a row of cards, four to a row (charts as thumbnails, whatever size you give them). 2 to 4 charts make a good group, plus at most two pages. Title: plain language, sentence case, at most 6 words. Blurb: one short sentence saying what the section shows.
 - {"type":"forks","question":"...","options":[{"label":"...","query":"..."}]}
   For a search that could mean distinct things: 2 to 4 options. Picking one runs a new search for its query, so make each query specific (2 to 5 words). Put this block first, then add a few charts that help whichever meaning the reader had.
 - {"type":"related","queries":["..."]}
@@ -220,7 +220,7 @@ Ground rules:
 - Use only ids from the list below, and each id at most once.
 - Titles, blurbs, questions and labels orient the reader; they don't answer the question. Don't state numbers, trends or findings: readers trust OWID for exact data and anything written here hasn't been checked against it. The charts carry the facts.
 - When charts are otherwise equal, prefer KEY CHARTs, charts cited in many articles and headline charts over niche variants, and avoid near-duplicates unless the difference is the point.
-- The first screen matters most, so put the most useful block first.
+- The first screen matters most, so put the most useful block first. Keep the page short enough to take in: a headline chart, 2 to 4 groups and the related searches are usually plenty. Leave out content that only repeats what's already shown; the full keyword results appear below this page anyway.
 - If OWID only covers the search indirectly, lay out the closest content we have without commenting on what's missing.
 
 Output format: JSON Lines, one block per line in page order, nothing else (no code fences, no commentary).
@@ -243,16 +243,20 @@ const strings = (value: unknown): string[] =>
 /**
  * Returns a parser for the lines of the composer's JSON Lines output. Each
  * line becomes a block whose ids are replaced by the hits they refer to.
- * Ids that aren't in the pool or were already used are dropped, and a
- * large chart in a group or after the first becomes medium. Lines that don't make a usable
- * block give null. The model is told all of this, but isn't guaranteed to
+ * Ids that aren't in the pool or were already used are dropped. Charts in
+ * groups become small, a second large chart becomes medium, and charts after
+ * the second large or medium one become small. Lines that don't make a
+ * usable block give null. The model is told all of this, but isn't guaranteed to
  * comply.
  */
 export function createBlockParser(
     pool: CandidatePool
 ): (rawLine: string) => AiSearchBlock | null {
     const usedIds = new Set<number>()
+    // Large and medium cards take a whole row each, so the page has at most
+    // one large card and two such cards in all
     let hasLargeChart = false
+    let wideChartCount = 0
 
     const resolveContent = (
         obj: Record<string, unknown>,
@@ -269,11 +273,12 @@ export function createBlockParser(
             usedIds.add(id)
             let size =
                 CHART_SIZES.find((option) => option === obj.size) ?? defaultSize
-            // The large card is the page's headline chart
-            if (size === "large") {
-                if (hasLargeChart || inGroup) size = "medium"
-                else hasLargeChart = true
-            }
+            // Groups show their charts as thumbnails
+            if (inGroup) size = "small"
+            if (size === "large" && hasLargeChart) size = "medium"
+            if (size !== "small" && wideChartCount >= 2) size = "small"
+            if (size === "large") hasLargeChart = true
+            if (size !== "small") wideChartCount++
             const country = findEntity(chart, str(obj.country))
             return {
                 type: "chart",

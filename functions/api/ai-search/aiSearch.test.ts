@@ -128,16 +128,27 @@ describe(createBlockParser, () => {
         })
     })
 
-    it("keeps the large card for the page, not a group", () => {
+    it("shows charts in groups as thumbnails", () => {
         const parse = createBlockParser(candidates)
         expect(
             parse(
                 '{"type":"group","title":"More","blocks":[{"type":"chart","id":2,"size":"large"}]}'
             )
-        ).toMatchObject({ blocks: [{ size: "medium" }] })
+        ).toMatchObject({ blocks: [{ size: "small" }] })
         expect(parse('{"type":"chart","id":1,"size":"large"}')).toMatchObject({
             size: "large",
         })
+    })
+
+    it("allows two wide cards on the page", () => {
+        const parse = createBlockParser(candidates)
+        const sizeOf = (id: number): unknown =>
+            (
+                parse(`{"type":"chart","id":${id},"size":"medium"}`) as {
+                    size?: string
+                } | null
+            )?.size
+        expect([1, 2, 3].map(sizeOf)).toEqual(["medium", "medium", "small"])
     })
 
     it("leaves the charts of a rejected group free for later blocks", () => {

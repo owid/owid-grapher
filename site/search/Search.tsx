@@ -145,12 +145,17 @@ export const Search = ({
                 <SearchResultTypeToggle />
             </div>
             {isAiSearchOpen ? (
-                <SearchAiResults
-                    key={aiQuery}
-                    query={aiQuery}
-                    onSearch={startAiSearch}
-                    onClose={() => setAiQuery(null)}
-                />
+                <>
+                    <SearchAiResults
+                        key={aiQuery}
+                        query={aiQuery}
+                        onSearch={startAiSearch}
+                        onClose={() => setAiQuery(null)}
+                    />
+                    <h2 className="search-ai-all-results col-start-2 span-cols-12">
+                        All results for “{aiQuery}”
+                    </h2>
+                </>
             ) : (
                 state.query && (
                     <div className="search-ai-entry col-start-2 span-cols-12">
