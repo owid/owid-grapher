@@ -86,6 +86,10 @@ export function MarkdownTextWrapSvg({
 
     const [, yOffset] = textWrap.getPositionForSvgRendering(x, y)
 
+    // Set the font family as an attribute rather than in `style`: otherwise they'll
+    // break the Figma import
+    const { fontFamily, ...style } = textWrap.style
+
     // The first line's baseline is given by yOffset; every subsequent line
     // advances the baseline by its own line height plus its line gap
     const lineHeights = lines.map(
@@ -99,7 +103,8 @@ export function MarkdownTextWrapSvg({
             <text
                 x={roundForSvg(x)}
                 y={roundForSvg(yOffset)}
-                style={textWrap.style}
+                fontFamily={fontFamily}
+                style={style}
                 {...svgTextProps}
             >
                 {lines.map((line, lineIndex) => {

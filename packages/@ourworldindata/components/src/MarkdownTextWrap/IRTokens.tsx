@@ -348,14 +348,10 @@ export class IRFragment extends IRElement {
             <tspan
                 key={key}
                 dx={this.inlineGap || undefined}
-                style={{
-                    fontSize,
-                    fontWeight,
-                    fontFamily: fontFamily
-                        ? cssFontFamily(fontFamily)
-                        : undefined,
-                    fill: color,
-                }}
+                fontSize={fontSize}
+                fontWeight={fontWeight}
+                fontFamily={fontFamily ? cssFontFamily(fontFamily) : undefined}
+                fill={color}
             >
                 {children}
             </tspan>
