@@ -5,6 +5,7 @@ import { hideBin } from "yargs/helpers"
 import fs from "fs-extra"
 import path from "path"
 import * as _ from "lodash-es"
+import pMap from "p-map"
 
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
@@ -146,7 +147,18 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         const pool = utils.createWorkerPool()
 
-        const progress = utils.startProgress(testSuite, jobCount, pool, {
+        // Jobs are handed to the pool only once a thread is free, because a
+        // job's timeout starts when it's submitted: submitting the whole suite
+        // at once would time out every job still queued once the run passed
+        // JOB_TIMEOUT_MS. So the queue lives here rather than in the pool.
+        let submitted = 0
+        const queue = {
+            get queueSize(): number {
+                return jobCount - submitted + pool.queueSize
+            },
+        }
+
+        const progress = utils.startProgress(testSuite, jobCount, queue, {
             withOutcomes: true,
             onTick: reportProgress,
         })
@@ -158,9 +170,11 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         // of result values.
         let validationResults: utils.VerifyResult[]
         try {
-            validationResults = await Promise.all(
-                verifyJobs.map((job) =>
-                    pool
+            validationResults = await pMap(
+                verifyJobs,
+                (job) => {
+                    submitted += 1
+                    return pool
                         .run(job, {
                             name: "renderAndVerifySvg",
                             signal: AbortSignal.timeout(JOB_TIMEOUT_MS),
@@ -190,7 +204,8 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                             completed.push(result)
                             return result
                         })
-                )
+                },
+                { concurrency: pool.options.maxThreads }
             )
         } finally {
             progress.stop()
