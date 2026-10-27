@@ -213,7 +213,6 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GrapherModal,
     GRAPHER_PROD_URL,
-    BASE_FONT_SIZE,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     STATIC_EXPORT_DETAIL_SPACING,
@@ -638,9 +637,6 @@ export class GrapherState
     isWikimediaExport = false
     shouldIncludeDetailsInStaticExport = true
 
-    /** Base font size for responsive scaling of chart elements */
-    _baseFontSize = BASE_FONT_SIZE
-
     _isInFullScreenMode = false
     windowInnerWidth: number | undefined = undefined
     windowInnerHeight: number | undefined = undefined
@@ -777,7 +773,6 @@ export class GrapherState
             shouldIncludeDetailsInStaticExport: observable,
             _externalBounds: observable,
             slideShow: observable,
-            _baseFontSize: observable,
             isShareMenuActive: observable,
             isCommandPaletteOpen: observable,
             hideTitle: observable,
@@ -2911,10 +2906,6 @@ export class GrapherState
         this.selectedFacetStrategy = facet
     }
 
-    set baseFontSize(val: number) {
-        this._baseFontSize = val
-    }
-
     @computed private get defaultSourcesLine(): string {
         const columnSlugs = pickColumnsForSourcesLine({
             table: this.inputTable,
@@ -3750,7 +3741,7 @@ export class GrapherState
             return this.computeBaseFontSizeFromHeight(this.staticBounds)
         }
         if (this.isStatic) return 18
-        return this._baseFontSize
+        return this.computeBaseFontSizeFromWidth(this.captionedChartBounds)
     }
 
     // The header and footer don't rely on the base font size unless explicitly specified
@@ -3764,7 +3755,7 @@ export class GrapherState
         return Math.max(10, bounds.height / factor)
     }
 
-    computeBaseFontSizeFromWidth(bounds: Bounds): number {
+    private computeBaseFontSizeFromWidth(bounds: Bounds): number {
         if (bounds.width <= 400) return 14
         else if (bounds.width < 1080) return 16
         else if (bounds.width >= 1080) return 18
