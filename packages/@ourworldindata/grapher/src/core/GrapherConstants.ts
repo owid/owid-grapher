@@ -154,10 +154,8 @@ export function makePatternId(baseId: string, idSuffix?: string): string {
 }
 
 /**
- * Set as the `font-family` attribute rather than in `style`: the browser
- * re-serializes inline styles with double quotes, which come out as `&quot;` in
- * exported SVGs, and Figma's SVG import doesn't pick up fonts written like that.
- * Attributes are kept exactly as written.
+ * Set as the `font-family` attribute rather than inside `style`: otherwise,
+ * the font will not get picked up by Figma correctly.
  */
 export const SVG_FONT_FAMILY =
     "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif"

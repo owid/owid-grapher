@@ -87,10 +87,8 @@ export function MarkdownTextWrapSvg({
 
     const [, yOffset] = textWrap.getPositionForSvgRendering(x, y)
 
-    // Set the font family as an attribute rather than in `style`: the browser
-    // re-serializes inline styles with double quotes, which come out as `&quot;`
-    // in exported SVGs, and Figma's SVG import doesn't pick up fonts written
-    // like that. Attributes are kept exactly as written.
+    // Set the font family as an attribute rather than in `style`: otherwise they'll
+    // break the Figma import
     const { fontFamily, ...style } = textWrap.style
 
     // The first line's baseline is given by yOffset; every subsequent line

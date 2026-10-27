@@ -363,7 +363,6 @@ export class IRFragment extends IRElement {
                         ? FIGMA_TEXT_NODE_BREAK_DY
                         : undefined
                 }
-                // Attributes rather than `style`, see MarkdownTextWrapSvg
                 fontSize={fontSize}
                 fontWeight={fontWeight}
                 fontFamily={fontFamily ? cssFontFamily(fontFamily) : undefined}
