@@ -4,7 +4,7 @@ export type DbInsertDonor = {
     name: string
     originalName: string
     shouldPublish?: boolean
-    comment?: string | null
+    comment?: string
     createdAt?: Date
     updatedAt?: Date
 }
