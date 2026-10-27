@@ -34,6 +34,7 @@ import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
 import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchNoResults } from "./SearchNoResults.js"
+import { SearchAiResults } from "./SearchAiResults.js"
 import { buildSynonymMap } from "./synonymUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { PoweredBy } from "react-instantsearch"
@@ -66,6 +67,15 @@ export const Search = ({
         eligibleTopicsAndAreas,
         synonymMap
     )
+
+    // The AI search prototype shows for the query it was started with, so it
+    // closes when the reader searches for something else
+    const [aiQuery, setAiQuery] = useState<string | null>(null)
+    const isAiSearchOpen = aiQuery !== null && aiQuery === state.query
+    const startAiSearch = (query: string): void => {
+        setAiQuery(query)
+        if (query !== state.query) actions.setQuery(query)
+    }
 
     // Handle analytics tracking (skips initial page load)
     useSearchAnalytics(state, analytics)
@@ -134,6 +144,26 @@ export const Search = ({
                 <SearchTopicsRefinementList topicType={topicType} />
                 <SearchResultTypeToggle />
             </div>
+            {isAiSearchOpen ? (
+                <SearchAiResults
+                    key={aiQuery}
+                    query={aiQuery}
+                    onSearch={startAiSearch}
+                    onClose={() => setAiQuery(null)}
+                />
+            ) : (
+                state.query && (
+                    <div className="search-ai-entry col-start-2 span-cols-12">
+                        <button
+                            type="button"
+                            className="search-ai-entry__button"
+                            onClick={() => startAiSearch(state.query)}
+                        >
+                            ✨ Try AI search for “{state.query}”
+                        </button>
+                    </div>
+                )
+            )}
             <div className="search-template-results col-start-2 span-cols-12">
                 {/* SearchNoResults is hidden by CSS unless it ends up being
                     the only child of this container, i.e. unless none of the

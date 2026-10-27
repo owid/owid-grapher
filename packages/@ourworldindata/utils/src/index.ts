@@ -453,6 +453,7 @@ export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
+export { createLineSplitter, type LineSplitter } from "./search/lineSplitter.js"
 
 export {
     type DecisionTreeNode,
