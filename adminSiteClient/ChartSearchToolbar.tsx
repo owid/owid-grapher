@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useDeferredValue, useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import * as _ from "lodash-es"
 import { AutoComplete, Button, Input, Select } from "antd"
 import {
@@ -24,13 +24,16 @@ interface ChartSearchToolbarProps {
     autoFocus?: boolean
 }
 
-function isOptions(
+function optionsOfIsFacet(
     facet: "status" | "source"
 ): { value: string; label: string }[] {
     return Object.entries(IS_VALUES)
         .filter(([, value]) => value.facet === facet)
         .map(([name, value]) => ({ value: name, label: value.label }))
 }
+
+const STATUS_OPTIONS = optionsOfIsFacet("status")
+const SOURCE_OPTIONS = optionsOfIsFacet("source")
 
 interface NameOption {
     value: string
@@ -114,13 +117,12 @@ export function ChartSearchToolbar({
     autoFocus,
 }: ChartSearchToolbarProps): React.ReactElement {
     const [typedQuery, setTypedQuery] = useState<string | undefined>()
-    const deferredQuery = useDeferredValue(query)
     const suggestions = useMemo(
         () =>
-            deferredQuery === typedQuery
-                ? suggestChartSearchTerms(deferredQuery, { tags, authors })
+            query === typedQuery
+                ? suggestChartSearchTerms(query, { tags, authors })
                 : [],
-        [deferredQuery, typedQuery, tags, authors]
+        [query, typedQuery, tags, authors]
     )
     // An option's value is its index, not the query it leads to: the select
     // highlights an option whose value begins with what was typed, so `is:dr`
@@ -230,7 +232,7 @@ export function ChartSearchToolbar({
                     placeholder="Status"
                     allowClear
                     value={getFacetValues(query, "status")[0]}
-                    options={isOptions("status")}
+                    options={STATUS_OPTIONS}
                     onChange={(value?: string) =>
                         setSingleFacet("status", value)
                     }
@@ -240,7 +242,7 @@ export function ChartSearchToolbar({
                     placeholder="Source"
                     allowClear
                     value={getFacetValues(query, "source")[0]}
-                    options={isOptions("source")}
+                    options={SOURCE_OPTIONS}
                     onChange={(value?: string) =>
                         setSingleFacet("source", value)
                     }

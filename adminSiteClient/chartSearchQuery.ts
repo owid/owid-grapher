@@ -435,11 +435,13 @@ export function suggestChartSearchTerms(
         authors,
     }: { tags: readonly NameCount[]; authors: readonly NameCount[] }
 ): ChartSearchSuggestion[] {
-    const takenOf = (facet: "tag" | "author"): ReadonlySet<string> =>
+    const takenIn = (
+        before: string,
+        facet: "tag" | "author"
+    ): ReadonlySet<string> =>
         new Set(
-            getFacetValues(query, facet).map((value) => value.toLowerCase())
+            getFacetValues(before, facet).map((value) => value.toLowerCase())
         )
-    const taken = { tag: takenOf("tag"), author: takenOf("author") }
     const nameSuggestions = (
         facet: "tag" | "author",
         value: string,
@@ -447,7 +449,11 @@ export function suggestChartSearchTerms(
         before: string,
         negate = false
     ): ChartSearchSuggestion[] =>
-        matchingNames(facet === "tag" ? tags : authors, value, taken[facet])
+        matchingNames(
+            facet === "tag" ? tags : authors,
+            value,
+            takenIn(before, facet)
+        )
             .slice(0, max)
             .map(({ name, count }) => ({
                 resultingQuery: `${before}${formatTerm(facet, name, negate)} `,

@@ -243,6 +243,13 @@ describe(suggestChartSearchTerms, () => {
         ])
     })
 
+    it("offers the name the term being typed already spells", () => {
+        expect(suggest("tag:energy")).toEqual([
+            ["Tags", "tag:Energy "],
+            ["Tags", 'tag:"Energy Mix" '],
+        ])
+    })
+
     it("replaces all the words of a multi-word name, offering nothing for the last word alone", () => {
         expect(suggest("solar life exp")).toEqual([
             ["Tags", 'solar tag:"Life Expectancy" '],

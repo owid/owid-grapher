@@ -38,6 +38,7 @@ import {
     chartSearchWordsToHighlight,
     countNames,
     getFacetValues,
+    NameCount,
     setFacetValues,
 } from "./chartSearchQuery.js"
 import { ChartSearchToolbar } from "./ChartSearchToolbar.js"
@@ -631,13 +632,13 @@ export class ChartList extends React.Component<ChartListProps> {
         void this.getTags()
     }
 
-    @computed get tagCounts() {
+    @computed get tagCounts(): NameCount[] {
         return countNames(this.props.charts, (chart) =>
             chart.tags.map((tag) => tag.name)
         )
     }
 
-    @computed get authorCounts() {
+    @computed get authorCounts(): NameCount[] {
         return countNames(this.props.charts, (chart) => [
             chart.lastEditedBy,
             chart.publishedBy,
