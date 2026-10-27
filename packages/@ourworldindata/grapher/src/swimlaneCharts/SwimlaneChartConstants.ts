@@ -6,7 +6,7 @@ import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 export const ROW_SPACING_FACTOR = 0.35
 export const ENTITY_LABEL_CHART_GAP = 8
 export const PADDING_BETWEEN_LEGEND_AND_ROWS = 8
-export const MAX_ROW_HEIGHT = 36
+export const MAX_ROW_HEIGHT = 54
 export const MAX_HEIGHT_PER_SERIES = MAX_ROW_HEIGHT / (1 - ROW_SPACING_FACTOR)
 
 export type SwimlaneChartManager = ChartManager

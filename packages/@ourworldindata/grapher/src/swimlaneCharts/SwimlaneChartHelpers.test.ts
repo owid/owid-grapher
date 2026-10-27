@@ -91,8 +91,8 @@ describe("placement", () => {
             { heightPerSeries: MAX_HEIGHT_PER_SERIES }
         )
 
-        expect(row.placedSegments[0].height).toBeCloseTo(36)
-        expect(row.placedSegments[0].y).toBeCloseTo(-18)
+        expect(row.placedSegments[0].height).toBeCloseTo(54)
+        expect(row.placedSegments[0].y).toBeCloseTo(-27)
     })
 })
 
