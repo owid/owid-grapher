@@ -312,19 +312,21 @@ describe(formatSegmentDuration, () => {
         ).toEqual("2 years")
     })
 
-    it("gives a single-time run and a missing segment no duration", () => {
-        const timeColumn = makeYearColumn()
+    it("gives a single-time run no duration", () => {
         expect(
             formatSegmentDuration({
                 segment: makeCategorySegment("Republic", 2005, 2005),
-                timeColumn,
+                timeColumn: makeYearColumn(),
             })
         ).toBeUndefined()
+    })
+
+    it("counts a gap in the data the same way", () => {
         expect(
             formatSegmentDuration({
                 segment: makeMissingSegment(2003, 2004),
-                timeColumn,
+                timeColumn: makeYearColumn(),
             })
-        ).toBeUndefined()
+        ).toEqual("a year")
     })
 })

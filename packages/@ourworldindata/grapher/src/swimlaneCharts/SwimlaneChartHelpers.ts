@@ -126,7 +126,7 @@ export function formatSegmentTimeRange({
     return timeColumn.formatTimeRange(startTime, endTime)
 }
 
-/** How long a category segment's whole run lasts, e.g. "2 years" */
+/** How long a segment's whole run lasts, e.g. "2 years" */
 export function formatSegmentDuration({
     segment,
     timeColumn,
@@ -134,7 +134,6 @@ export function formatSegmentDuration({
     segment: SwimlaneSegment
     timeColumn: CoreColumn
 }): string | undefined {
-    if (segment.kind === "missing") return undefined
     const duration = segment.endTime - segment.startTime
     if (duration === 0) return undefined
     return formatTimeSpan(duration, timeColumn.timeInterval)
