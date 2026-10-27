@@ -27,7 +27,9 @@ import {
     D1Client,
     createLocalD1Client,
     createRemoteD1Client,
+    fetchRemoteD1DatabaseSize,
     batchWithRetry,
+    queryWithRetry,
 } from "./emailNotificationsD1.js"
 import {
     D1SubscriberRow,
@@ -51,6 +53,21 @@ const PREVIEW_DIR = path.join(BASE_DIR, ".email-notifications-preview")
 // Never include content older than this, even if a subscriber's lastSentAt
 // is much older (e.g. because the send job was down for a while).
 const MAX_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
+
+// Sent messages are kept for a quarter as send history. Subscribers' windows
+// start at notification_preferences.lastSentAt, so pruning doesn't affect
+// them.
+const MESSAGES_RETENTION_MS = 90 * 24 * 60 * 60 * 1000
+
+// Webhook receipts only need to outlast Postmark's retries of a webhook, but
+// checkWebhooksArriving compares the latest receipt with the latest message,
+// so they're kept as long as messages.
+const WEBHOOK_RECEIPTS_RETENTION_MS = MESSAGES_RETENTION_MS
+
+const PRUNE_BATCH_SIZE = 10_000
+
+// Half of D1's 10 GB limit per database, so there's time to react.
+const D1_DATABASE_SIZE_WARNING_BYTES = 5 * 1000 ** 3
 
 async function fetchSubscribers(
     d1: D1Client,
@@ -383,6 +400,70 @@ async function checkWebhooksArriving(d1: D1Client, now: Date): Promise<void> {
     }
 }
 
+/**
+ * Delete messages and webhook receipts past their retention, in batches so
+ * no single statement runs long, e.g. after shortening a retention period.
+ */
+async function pruneOldRows(d1: D1Client, now: Date): Promise<void> {
+    const tables = [
+        {
+            table: "messages",
+            timestampColumn: "sentAt",
+            retentionMs: MESSAGES_RETENTION_MS,
+        },
+        {
+            table: "postmark_webhook_receipts",
+            timestampColumn: "processedAt",
+            retentionMs: WEBHOOK_RECEIPTS_RETENTION_MS,
+        },
+    ]
+    for (const { table, timestampColumn, retentionMs } of tables) {
+        const cutoff = new Date(now.getTime() - retentionMs).toISOString()
+        let deletedCount = 0
+        while (true) {
+            // Safe to retry: running a delete twice deletes nothing more.
+            const deleted = await queryWithRetry(
+                d1,
+                `DELETE FROM ${table}
+                 WHERE ${timestampColumn} < ?1
+                 RETURNING rowid
+                 LIMIT ?2`,
+                [cutoff, PRUNE_BATCH_SIZE]
+            )
+            deletedCount += deleted.length
+            if (deleted.length < PRUNE_BATCH_SIZE) break
+        }
+        console.log(
+            `Old rows pruned table=${table} deletedCount=${deletedCount} cutoff=${cutoff}`
+        )
+    }
+}
+
+/** Report when the database is getting close to D1's size limit. */
+async function checkDatabaseSize(): Promise<void> {
+    let sizeBytes: number
+    try {
+        sizeBytes = await fetchRemoteD1DatabaseSize()
+    } catch (error) {
+        // Not worth stopping the send over.
+        console.warn(
+            `D1 database size lookup failed error=${JSON.stringify(String(error))}`
+        )
+        Sentry.captureException(error, { level: "warning" })
+        return
+    }
+    console.log(`D1 database size sizeBytes=${sizeBytes}`)
+    if (sizeBytes > D1_DATABASE_SIZE_WARNING_BYTES) {
+        console.error(
+            `D1 database is approaching its size limit sizeBytes=${sizeBytes} warningBytes=${D1_DATABASE_SIZE_WARNING_BYTES}`
+        )
+        Sentry.captureMessage(
+            "Email notifications D1 database is approaching its size limit",
+            "warning"
+        )
+    }
+}
+
 async function writePreview(
     group: NotificationEmailGroup,
     groupIndex: number,
@@ -422,8 +503,12 @@ async function sendEmailNotifications(options: {
         : createRemoteD1Client()
 
     const now = new Date()
-    // Webhooks never reach the local database.
-    if (!local) await checkWebhooksArriving(d1, now)
+    // Webhooks never reach the local database, and its size doesn't matter.
+    if (!local) {
+        await checkWebhooksArriving(d1, now)
+        await checkDatabaseSize()
+    }
+    if (!dryRun) await pruneOldRows(d1, now)
 
     const subscribers = await fetchSubscribers(d1, frequency)
     if (subscribers.length === 0) return
