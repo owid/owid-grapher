@@ -9,6 +9,7 @@ import { SeriesLabelAnnotations } from "../seriesLabel/SeriesLabelAnnotations"
 interface LineChartAnnotationMarkersProps {
     annotations: RenderAnnotation[]
     radius: number
+    hitRadius: number
     onClick: (seriesName: SeriesName, time: Time) => void
     onTooltipClose: () => void
 }
@@ -16,6 +17,7 @@ interface LineChartAnnotationMarkersProps {
 export function LineChartAnnotationMarkers({
     annotations,
     radius,
+    hitRadius,
     onClick,
     onTooltipClose,
 }: LineChartAnnotationMarkersProps): React.ReactElement {
@@ -52,6 +54,7 @@ export function LineChartAnnotationMarkers({
                             opacity={LINE_STYLE[emphasis].opacity}
                             onClick={() => onClick(seriesName, point.time)}
                         >
+                            <circle r={hitRadius} fill="transparent" />
                             <AnnotationInfoIcon
                                 radius={radius}
                                 color={point.color}
