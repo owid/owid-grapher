@@ -30,6 +30,10 @@ CREATE TABLE notification_preferences (
     contentTypes TEXT NOT NULL CHECK (json_valid(contentTypes)),
     frequency TEXT NOT NULL
         CHECK (frequency IN ('daily', 'weekly')),
+    -- When the latest email for these preferences was sent: where the send
+    -- job starts the window of new content for the next one. NULL until the
+    -- first email.
+    lastSentAt TEXT,
     createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     updatedAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
@@ -50,9 +54,8 @@ CREATE TABLE tokens (
 CREATE INDEX tokens_userId ON tokens (userId);
 
 -- Notification emails submitted to Postmark. Delivery webhooks update the
--- status, deliveredAt and messageId fields. A user's latest sentAt is where
--- the send job starts the window of new content for their next email; it isn't
--- stored separately, so recording a sent email is a single write.
+-- status, deliveredAt and messageId fields. Only send history: subscribers'
+-- windows start at notification_preferences.lastSentAt.
 CREATE TABLE messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     userId INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
@@ -73,7 +76,8 @@ CREATE TABLE messages (
     sentAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
-CREATE INDEX messages_userId_sentAt ON messages (userId, sentAt);
+-- For deleting a user's messages along with the user.
+CREATE INDEX messages_userId ON messages (userId);
 
 -- Receipt ledger used only to make Postmark webhook processing idempotent.
 -- The application-generated key includes the record type because delivery and

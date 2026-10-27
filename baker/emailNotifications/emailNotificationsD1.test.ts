@@ -14,6 +14,9 @@ function makeFlakyClient(errors: Error[]): D1Client & { attempts: number } {
             if (error) throw error
             return [{ ok: true }] as T[]
         },
+        batch: async (): Promise<void> => {
+            throw new Error("Not used in these tests")
+        },
     }
     return client
 }

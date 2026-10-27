@@ -27,7 +27,7 @@ import {
     D1Client,
     createLocalD1Client,
     createRemoteD1Client,
-    queryWithRetry,
+    batchWithRetry,
 } from "./emailNotificationsD1.js"
 import {
     D1SubscriberRow,
@@ -61,9 +61,7 @@ async function fetchSubscribers(
                 notification_preferences.topicTags,
                 notification_preferences.contentTypes,
                 notification_preferences.frequency,
-                (SELECT MAX(messages.sentAt)
-                 FROM messages
-                 WHERE messages.userId = users.id) AS lastSentAt
+                notification_preferences.lastSentAt
          FROM users
          JOIN notification_preferences
              ON notification_preferences.userId = users.id
@@ -238,12 +236,12 @@ async function sendBulkViaPostmark(
 }
 
 /**
- * Record a group's messages, one write per chunk rather than per subscriber:
- * each write is a request to the Cloudflare API, which is rate limited. Each
- * chunk is a single statement, so a subscriber is either recorded, which
- * also advances their window, or not. The statement ignores rows that are
- * already recorded, so it's safe to retry after a write that failed but may
- * have been committed.
+ * Record a group's messages, one request per chunk rather than per
+ * subscriber: each request goes to the Cloudflare API, which is rate limited.
+ * Each chunk's messages and the advance of those subscribers' windows are
+ * committed together, so a subscriber is either recorded or not. Rerunning
+ * the batch records nothing twice, so it's safe to retry after a write that
+ * failed but may have been committed.
  */
 async function recordSentMessages(
     d1: D1Client,
@@ -261,19 +259,38 @@ async function recordSentMessages(
                 correlationId,
             }))
         )
-        await queryWithRetry(
-            d1,
-            `INSERT INTO messages
-                 (userId, frequency, itemSlugs, correlationId, bulkRequestId,
-                  status, sentAt)
-             SELECT json_extract(value, '$.userId'), ?1, ?2,
-                 json_extract(value, '$.correlationId'), ?3, 'sent', ?4
-             FROM json_each(?5)
-             -- SQLite needs a WHERE before ON CONFLICT in INSERT ... SELECT.
-             WHERE true
-             ON CONFLICT (correlationId) DO NOTHING`,
-            [frequency, itemSlugs, bulkRequestId, sentAt.toISOString(), rows]
-        )
+        await batchWithRetry(d1, [
+            {
+                sql: `INSERT INTO messages
+                          (userId, frequency, itemSlugs, correlationId,
+                           bulkRequestId, status, sentAt)
+                      SELECT json_extract(value, '$.userId'), ?1, ?2,
+                          json_extract(value, '$.correlationId'), ?3, 'sent',
+                          ?4
+                      FROM json_each(?5)
+                      -- SQLite needs a WHERE before ON CONFLICT in
+                      -- INSERT ... SELECT.
+                      WHERE true
+                      ON CONFLICT (correlationId) DO NOTHING`,
+                params: [
+                    frequency,
+                    itemSlugs,
+                    bulkRequestId,
+                    sentAt.toISOString(),
+                    rows,
+                ],
+            },
+            {
+                sql: `UPDATE notification_preferences
+                      SET lastSentAt = ?1,
+                          updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+                      WHERE userId IN (
+                          SELECT json_extract(value, '$.userId')
+                          FROM json_each(?2)
+                      )`,
+                params: [sentAt.toISOString(), rows],
+            },
+        ])
     }
 }
 

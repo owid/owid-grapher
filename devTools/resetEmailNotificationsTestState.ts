@@ -5,7 +5,7 @@
  *
  *   yarn resetEmailNotificationsTestState [slug]
  *
- * Deletes all sent messages in the LOCAL D1 database, which resets every
+ * Deletes all sent messages in the LOCAL D1 database and resets every
  * subscriber's window to their frequency, and, when
  * a slug is given, bumps that post's publishedAt to now in the local MySQL
  * database so it falls inside every subscriber's frequency window.
@@ -20,10 +20,15 @@ const LOCAL_D1_DATABASE_NAME = "owid-email-notifications-staging"
 
 async function resetSentMessages(): Promise<void> {
     const d1 = createLocalD1Client(LOCAL_D1_DATABASE_NAME)
-    const rows = await d1.query<{ id: number }>(
-        "DELETE FROM messages RETURNING id"
-    )
-    console.log(`Deleted ${rows.length} sent message(s) in local D1`)
+    await d1.batch([
+        { sql: "DELETE FROM messages" },
+        {
+            sql: `UPDATE notification_preferences
+                  SET lastSentAt = NULL,
+                      updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`,
+        },
+    ])
+    console.log("Deleted all sent messages in local D1")
 }
 
 async function bumpPublishedAt(slug: string): Promise<void> {
