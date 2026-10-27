@@ -8,7 +8,6 @@ import {
     getFacetValues,
     hasChartFilters,
     IS_VALUES,
-    IsValueName,
     NameCount,
     setFacetValues,
     suggestChartSearchTerms,
@@ -30,13 +29,10 @@ interface ChartSearchToolbarProps {
 
 function isOptions(
     facet: "status" | "source"
-): { value: IsValueName; label: string }[] {
+): { value: string; label: string }[] {
     return Object.entries(IS_VALUES)
         .filter(([, value]) => value.facet === facet)
-        .map(([name, value]) => ({
-            value: name as IsValueName,
-            label: value.label,
-        }))
+        .map(([name, value]) => ({ value: name, label: value.label }))
 }
 
 interface NameOption {
@@ -88,6 +84,38 @@ function canonicalValues(
     )
     return _.uniq(
         values.map((value) => byLowerName.get(value.toLowerCase()) ?? value)
+    )
+}
+
+/** A multi-select over tags or people, with how many charts each has */
+function NameFilter({
+    placeholder,
+    names,
+    values,
+    onChange,
+}: {
+    placeholder: string
+    names: readonly NameCount[]
+    values: string[]
+    onChange: (values: string[]) => void
+}): React.ReactElement {
+    // built once per list, not on every keystroke
+    const options = useMemo(() => nameOptions(names), [names])
+    return (
+        <Select
+            className="chart-search__filter chart-search__filter--names"
+            mode="multiple"
+            placeholder={placeholder}
+            allowClear
+            // one chip, shortened, and "+ 2" for the rest
+            maxTagCount={1}
+            showSearch={{ optionFilterProp: "value" }}
+            value={canonicalValues(values, names)}
+            options={options}
+            optionRender={renderNameOption}
+            onChange={onChange}
+            popupMatchSelectWidth={280}
+        />
     )
 }
 
@@ -166,20 +194,13 @@ export function ChartSearchToolbar({
         const suggestion = suggestions[index]
         if (!suggestion) return
         onQueryChange(suggestion.query)
-        if (suggestion.group === "Filters") {
-            // a field's values come next
+        if (suggestion.expectsValue) {
             setTypedQuery(suggestion.query)
             keepOpen.current = true
             setIsOpen(true)
         } else setTypedQuery(undefined)
     }
 
-    // Built once per list, not on every keystroke
-    const tagOptions = useMemo(() => nameOptions(tags), [tags])
-    const authorOptions = useMemo(() => nameOptions(authors), [authors])
-
-    const facetValues = (facet: ChartSearchFacet): string[] =>
-        getFacetValues(query, facet)
     const setFacet = (
         facet: ChartSearchFacet,
         values: readonly string[]
@@ -230,7 +251,7 @@ export function ChartSearchToolbar({
                     className="chart-search__filter"
                     placeholder="Status"
                     allowClear
-                    value={facetValues("status")[0]}
+                    value={getFacetValues(query, "status")[0]}
                     options={isOptions("status")}
                     onChange={(value?: string) =>
                         setSingleFacet("status", value)
@@ -240,40 +261,24 @@ export function ChartSearchToolbar({
                     className="chart-search__filter chart-search__filter--wide"
                     placeholder="Source"
                     allowClear
-                    value={facetValues("source")[0]}
+                    value={getFacetValues(query, "source")[0]}
                     options={isOptions("source")}
                     onChange={(value?: string) =>
                         setSingleFacet("source", value)
                     }
                     popupMatchSelectWidth={false}
                 />
-                <Select
-                    className="chart-search__filter chart-search__filter--names"
-                    mode="multiple"
+                <NameFilter
                     placeholder="Tags"
-                    allowClear
-                    // one chip, shortened, and "+ 2" for the rest
-                    maxTagCount={1}
-                    showSearch={{ optionFilterProp: "value" }}
-                    value={canonicalValues(facetValues("tag"), tags)}
-                    options={tagOptions}
-                    optionRender={renderNameOption}
-                    onChange={(values: string[]) => setFacet("tag", values)}
-                    popupMatchSelectWidth={280}
+                    names={tags}
+                    values={getFacetValues(query, "tag")}
+                    onChange={(values) => setFacet("tag", values)}
                 />
-                <Select
-                    className="chart-search__filter chart-search__filter--names"
-                    mode="multiple"
+                <NameFilter
                     placeholder="Authors"
-                    allowClear
-                    // one chip, shortened, and "+ 2" for the rest
-                    maxTagCount={1}
-                    showSearch={{ optionFilterProp: "value" }}
-                    value={canonicalValues(facetValues("author"), authors)}
-                    options={authorOptions}
-                    optionRender={renderNameOption}
-                    onChange={(values: string[]) => setFacet("author", values)}
-                    popupMatchSelectWidth={280}
+                    names={authors}
+                    values={getFacetValues(query, "author")}
+                    onChange={(values) => setFacet("author", values)}
                 />
                 {hasChartFilters(query) && (
                     <Button type="link" onClick={() => onQueryChange("")}>

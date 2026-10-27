@@ -1,7 +1,14 @@
 import * as React from "react"
 import { useDeferredValue } from "react"
 import { observer } from "mobx-react"
-import { runInAction, observable, computed, action, makeObservable } from "mobx"
+import {
+    runInAction,
+    observable,
+    computed,
+    action,
+    makeObservable,
+    IComputedValue,
+} from "mobx"
 import * as lodash from "lodash-es"
 import cx from "clsx"
 import {
@@ -11,6 +18,8 @@ import {
     TaggableType,
     copyToClipboard,
     excludeUndefined,
+    getWindowUrl,
+    setWindowUrl,
 } from "@ourworldindata/utils"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
@@ -616,14 +625,10 @@ export class ChartList extends React.Component<ChartListProps> {
     // The search holds every filter too, so a filtered list can be shared.
     // Other query params, like a page's tab, are kept.
     setSearchInputInUrl(searchInput: string) {
-        const params = new URLSearchParams(window.location.search)
-        if (searchInput) params.set("chartSearch", searchInput)
-        else params.delete("chartSearch")
-        const query = params.toString()
-        window.history.replaceState(
-            {},
-            "",
-            `${window.location.pathname}${query ? `?${query}` : ""}`
+        setWindowUrl(
+            getWindowUrl().updateQueryParams({
+                chartSearch: searchInput || undefined,
+            })
         )
     }
 
@@ -725,13 +730,35 @@ function DeferredChartTable(props: ChartTableProps): React.ReactElement {
 
 @observer
 class ChartTable extends React.Component<ChartTableProps> {
+    private filtered?: {
+        query: string
+        charts: ChartListItem[]
+        result: IComputedValue<ChartListItem[]>
+    }
+
+    /**
+     * The charts the query finds. Paging renders the table again without
+     * filtering again; deleting a chart or editing its tags filters again.
+     */
+    private chartsFiltered(): ChartListItem[] {
+        const { query, charts } = this.props
+        if (this.filtered?.query !== query || this.filtered.charts !== charts)
+            this.filtered = {
+                query,
+                charts,
+                // always a fresh array, so the table notices when a chart is deleted
+                result: computed(() =>
+                    query.trim()
+                        ? charts.filter(chartSearchFilter(query, charts))
+                        : [...charts]
+                ),
+            }
+        return this.filtered.result.get()
+    }
+
     override render() {
         const { query, charts, availableTags } = this.props
-
-        // Always a fresh array, so the table notices when a chart is deleted
-        const chartsFiltered = query.trim()
-            ? charts.filter(chartSearchFilter(query, charts))
-            : [...charts]
+        const chartsFiltered = this.chartsFiltered()
 
         // if the first chart has inheritance information, we assume all charts have it
         const showInheritanceColumn =
