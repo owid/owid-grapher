@@ -8,7 +8,7 @@ $panel-gap: 12px;
 :root {
     --grid-gap: 24px;
 
-    @media (max-width: 768px) {
+    @media (width <= 768px) {
         --grid-gap: 16px;
     }
 }

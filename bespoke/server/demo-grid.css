@@ -10,7 +10,7 @@
     --grid-gap: 24px;
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
     :root {
         --grid-gap: 16px;
     }
@@ -58,8 +58,8 @@
     grid-column-start: 5;
 }
 
-/* Tablet (max-width: 960px) */
-@media only screen and (max-width: 960px) {
+/* Tablet (width <= 960px) */
+@media only screen and (width <= 960px) {
     .span-md-cols-10 {
         grid-column: span 10 / span 10;
     }
@@ -74,8 +74,8 @@
     }
 }
 
-/* Mobile (max-width: 768px) */
-@media only screen and (max-width: 768px) {
+/* Mobile (width <= 768px) */
+@media only screen and (width <= 768px) {
     .span-sm-cols-12 {
         grid-column: span 12 / span 12;
     }

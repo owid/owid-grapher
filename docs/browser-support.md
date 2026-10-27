@@ -11,6 +11,8 @@ Older versions of these browsers may still work, but we don't actively test or s
 
 Our **CSS** additionally supports Safari/iOS Safari 16.0+, so that pages still look right where our JS doesn't run (e.g. Safari < 16.4 hits a `SyntaxError` and falls back to the no-JS experience, see below). CSS is built with the separate `CSS_BUILD_TARGET` in `rolldown.config-common.mts`. If we instead set the CSS target to 16.4+, it would rewrite media queries to [the `width>=769px` syntax](https://caniuse.com/css-media-range-syntax), breaking all media queries for older browsers.
 
+In our stylesheets, write media queries in range syntax (`@media (width <= $md)`); Lightning CSS lowers it to `min-width`/`max-width` for the CSS target. Stick to inclusive `<=`/`>=`: exclusive `<`/`>` get lowered to `not (max-width: …)`. Media queries that don't go through the CSS build, like the `media` and `sizes` attributes on `<img>`/`<source>`, must keep using `min-width`/`max-width`. `matchMedia()` queries in JS can use range syntax, since our JS needs Safari 16.4+ anyway.
+
 ### "Most breaking" features
 
 "Most breaking" features we use are:

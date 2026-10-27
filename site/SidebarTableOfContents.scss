@@ -30,11 +30,11 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
     top: $sidebar-toc-header-gap;
     z-index: $zindex-sidebar;
 
-    @media (max-width: $sidebar-toc-sm) {
+    @media (width <= $sidebar-toc-sm) {
         grid-column: 2 / span 12;
     }
 
-    @media (min-width: #{$sidebar-toc-sm + 1px}) {
+    @media (width >= #{$sidebar-toc-sm + 1px}) {
         grid-column: 1;
         align-self: start;
     }
@@ -59,7 +59,7 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
         background-color var(--duration-hover) ease,
         border-color var(--duration-hover) ease;
 
-    @media (max-width: $sidebar-toc-sm) {
+    @media (width <= $sidebar-toc-sm) {
         display: none;
     }
 }
@@ -287,7 +287,7 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
 }
 
 // Narrow panels use a shorter CTA label.
-@container sidebar-toc-panel (max-width: #{$sidebar-toc-frame-wide - 2px}) {
+@container sidebar-toc-panel (width <= #{$sidebar-toc-frame-wide - 2px}) {
     .sidebar-toc__cta-label--full {
         display: none;
     }
@@ -317,7 +317,7 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
         color: $blue-60;
     }
 
-    @media (min-width: #{$sidebar-toc-sm + 1px}) {
+    @media (width >= #{$sidebar-toc-sm + 1px}) {
         display: none;
     }
 }
@@ -372,7 +372,7 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
 // ── Narrow sidebar (sm band) ──────────────────────────────────────────────────
 
 // Tighter frame and padding so 8-col content still fits.
-@media (min-width: #{$sidebar-toc-sm + 1px}) and (max-width: $sidebar-toc-lg) {
+@media (#{$sidebar-toc-sm + 1px} <= width <= $sidebar-toc-lg) {
     .sidebar-toc__sidebar {
         width: $sidebar-toc-frame-narrow;
         --sidebar-toc-padding: #{$sidebar-toc-padding-narrow};
@@ -400,7 +400,7 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
     .article-block__heading {
         scroll-margin-top: 16px;
 
-        @media (max-width: $sidebar-toc-sm) {
+        @media (width <= $sidebar-toc-sm) {
             scroll-margin-top: 64px;
         }
     }
