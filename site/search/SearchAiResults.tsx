@@ -143,9 +143,13 @@ export function SearchAiResults({
             )}
 
             <div className="search-ai-results__blocks">
-                {state.blocks.map((block, index) => (
-                    <AiBlock key={index} block={block} onSearch={onSearch} />
-                ))}
+                {withInsightRows(state.blocks).map((item, index) =>
+                    Array.isArray(item) ? (
+                        <AiInsightRow key={index} blocks={item} />
+                    ) : (
+                        <AiBlock key={index} block={item} onSearch={onSearch} />
+                    )
+                )}
             </div>
 
             {isStreaming && (
@@ -207,9 +211,13 @@ function AiBlock({
                     {block.blurb && (
                         <p className="search-ai-group__blurb">{block.blurb}</p>
                     )}
-                    {block.blocks.map((child, index) => (
-                        <AiContentBlock key={index} block={child} />
-                    ))}
+                    {withInsightRows(block.blocks).map((item, index) =>
+                        Array.isArray(item) ? (
+                            <AiInsightRow key={index} blocks={item} />
+                        ) : (
+                            <AiContentBlock key={index} block={item} />
+                        )
+                    )}
                 </section>
             )
         case "forks":
@@ -301,14 +309,41 @@ function AiContentBlock({ block }: { block: AiSearchContentBlock }) {
                 />
             )
         case "dataInsight":
-            return (
+            return <AiInsightRow blocks={[block]} />
+    }
+}
+
+type AiDataInsightBlock = Extract<AiSearchBlock, { type: "dataInsight" }>
+
+/**
+ * Gathers consecutive data insights into rows, which render like the data
+ * insights section of standard search
+ */
+function withInsightRows<T extends AiSearchBlock>(
+    blocks: T[]
+): (T | AiDataInsightBlock[])[] {
+    const items: (T | AiDataInsightBlock[])[] = []
+    for (const block of blocks) {
+        const last = items.at(-1)
+        if (block.type !== "dataInsight") items.push(block)
+        else if (Array.isArray(last)) last.push(block)
+        else items.push([block])
+    }
+    return items
+}
+
+function AiInsightRow({ blocks }: { blocks: AiDataInsightBlock[] }) {
+    return (
+        <div className="search-data-insights-results__hits search-ai-results__page">
+            {blocks.map((block) => (
                 <SearchDataInsightHit
-                    className="search-ai-results__page search-ai-results__insight"
+                    key={block.hit.slug}
                     hit={block.hit}
                     onClick={noop}
                 />
-            )
-    }
+            ))}
+        </div>
+    )
 }
 
 /** A block with hits reduced to their slugs, for the debug output */

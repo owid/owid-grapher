@@ -85,10 +85,6 @@
     margin: 16px 0;
 }
 
-.search-ai-results__insight {
-    max-width: 320px;
-}
-
 .search-ai-results__debug {
     @include note-1-regular;
     margin-top: 8px;
@@ -96,8 +92,6 @@
     pre {
         max-height: 400px;
         overflow: auto;
-        padding: 8px;
-        background: $gray-10;
         white-space: pre-wrap;
     }
 }
@@ -184,8 +178,4 @@
     background: none;
     color: $blue-90;
     cursor: pointer;
-
-    &:hover {
-        background: $blue-5;
-    }
 }

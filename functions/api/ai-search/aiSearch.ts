@@ -206,7 +206,7 @@ Below is the OWID content our keyword search found. Work out what the reader mos
 
 Blocks:
 - {"type":"chart","id":12,"size":"large","country":"Nigeria"}
-  A chart card. "large" is a big chart with a data table, for the one chart that best answers the search; use it at most once. "medium" is a row with the chart, a table, a map and a headline number. "small" is a thumbnail with the title, for supporting charts. Medium and large cards load real data and take up a lot of space, so a few of them are plenty. Add "country" (the exact name of a country or region) only when the search is about a particular place; the card then highlights it.
+  A chart card. "large" is a big chart with a data table, for the one chart that best answers the search; use it at most once. "medium" is a row with the chart, a table, a map and a headline number. "small" is a thumbnail with the title, for supporting charts. Medium and large cards load real data and take up a lot of space, so a few of them are plenty. When the search names a country or region, add "country" (its exact name) to every chart where it applies, since that place is what the reader asked about; the card then shows that place's data. Leave it out otherwise.
 - {"type":"page","id":34}
   A topic page, article or data insight card.
 - {"type":"group","title":"...","blurb":"...","blocks":[...]}
