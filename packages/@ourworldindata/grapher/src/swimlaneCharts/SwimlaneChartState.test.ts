@@ -195,14 +195,28 @@ describe("x axis", () => {
 })
 
 describe("rows without data", () => {
-    it("are one missing segment for a selected entity without data", () => {
-        const chartState = makeChartState(
-            makeCategoricalTable([
-                { entityName: "France", time: 2000, status: "X" },
-                { entityName: "France", time: 2001, status: "Y" },
-            ]),
-            { selection: ["France", "Spain"] }
-        )
+    const table = makeCategoricalTable([
+        { entityName: "France", time: 2000, status: "X" },
+        { entityName: "France", time: 2001, status: "Y" },
+        { entityName: "Spain", time: 2005, status: "X" },
+    ])
+
+    it("are not drawn for a selected entity the indicator has no rows for", () => {
+        const chartState = makeChartState(table, {
+            selection: ["France", "Brazil"],
+        })
+
+        expect(chartState.series.map((series) => series.entityName)).toEqual([
+            "France",
+        ])
+    })
+
+    it("are one missing segment for an entity whose data is all outside the timeline window", () => {
+        const chartState = makeChartState(table, {
+            selection: ["France", "Spain"],
+            startTime: 2000,
+            endTime: 2001,
+        })
 
         expect(findSegments(chartState, "Spain")).toEqual([
             { kind: "missing", startTime: 2000, endTime: 2001 },
