@@ -49,6 +49,9 @@ export default defineConfig([
             "grapher.standalone.min": "./src/grapher.standalone.entry.ts",
         },
         minify: true,
+        // The download modal lazy-loads react-dom/server, which would
+        // otherwise become chunks the package's `files` don't ship
+        outputOptions: { codeSplitting: false },
     },
     // The bundled type declarations for the public API, shared by both builds
     // above. Uses the CSS- and polyfill-free grapher.public.ts entry - the
