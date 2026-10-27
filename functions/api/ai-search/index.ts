@@ -188,7 +188,7 @@ async function runAiSearch({
     emit({
         type: "candidates",
         charts: pool.charts,
-        pages: pool.pages.map(({ excerpt: _excerpt, ...page }) => page),
+        pages: pool.pages,
     })
 
     emit({

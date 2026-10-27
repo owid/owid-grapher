@@ -40,9 +40,7 @@ export function parseAiSearchSettings(
 }
 
 export type ChartHitWithoutId = Omit<AiSearchChartCandidate, "id">
-export type PageHitWithoutId = Omit<AiSearchPageCandidate, "id"> & {
-    excerpt?: string
-}
+export type PageHitWithoutId = Omit<AiSearchPageCandidate, "id">
 
 export interface RankedHits {
     charts: ChartHitWithoutId[]
@@ -51,7 +49,7 @@ export interface RankedHits {
 
 interface CandidatePool {
     charts: AiSearchChartCandidate[]
-    pages: (AiSearchPageCandidate & { excerpt?: string })[]
+    pages: AiSearchPageCandidate[]
 }
 
 const chartKey = (hit: ChartHitWithoutId): string =>
@@ -231,7 +229,7 @@ Typical angles. Use only the ones the content supports, and use better ones when
 
 Rules:
 - 3 to 6 groups, most useful first. The first group answers the most likely intent behind the search.
-- Each group has 2 to 4 charts, best first. Add up to 2 articles or topic pages and up to 1 data insight to a group only when they clearly fit it. Put the main topic page, if there is one, in the first group.
+- Each group has 2 to 4 charts, best first. The first chart is shown large with its data, the others as compact rows, so lead with the chart that best answers the group's question. Prefer charts of observed data over scenario projections unless the reader asks about the future. Add up to 2 articles or topic pages and up to 1 data insight to a group only when they clearly fit it. Put the main topic page, if there is one, in the first group.
 - Use only ids from the list, and never use the same id twice.
 - When charts are otherwise equal, prefer KEY CHARTs and charts cited in many articles. Prefer the headline chart over niche variants, and avoid near-duplicates in a group unless the difference is the point of the group.
 - Pick a view for each chart that suits its group, only from the views that chart lists: "map" for comparing countries today, "line" for trends, "scatter" for correlates, "bar" for rankings, "area" for how a total splits into parts, or "default".

@@ -1,5 +1,5 @@
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
-import { ChartRecord, PageRecord } from "./Search.js"
+import { ChartRecord, ExplorerType, PageRecord } from "./Search.js"
 
 /**
  * Types shared by the AI-assisted search prototype: the /api/ai-search
@@ -51,7 +51,10 @@ export type AiSearchAngle =
     | "correlates"
     | "other"
 
-/** A chart the model may pick, as the client needs it to render a card. */
+/**
+ * A chart the model may pick, with the fields the search page's standard
+ * chart results need to render it.
+ */
 export type AiSearchChartCandidate = Pick<
     ChartRecord,
     "type" | "slug" | "title" | "availableTabs"
@@ -62,17 +65,22 @@ export type AiSearchChartCandidate = Pick<
             | "queryParams"
             | "variantName"
             | "subtitle"
+            | "containerTitle"
+            | "titleVariant"
+            | "chartConfigId"
             // Ranking hints for the model
             | "keyChartForTags"
             | "numRelatedArticles"
         >
-    > & { id: number }
+    > & { id: number; explorerType?: ExplorerType }
 
 export type AiSearchPageCandidate = Pick<
     PageRecord,
     "title" | "slug" | "type"
 > &
-    Partial<Pick<PageRecord, "thumbnailUrl" | "authors" | "date">> & {
+    Partial<
+        Pick<PageRecord, "thumbnailUrl" | "authors" | "date" | "excerpt">
+    > & {
         id: number
     }
 
