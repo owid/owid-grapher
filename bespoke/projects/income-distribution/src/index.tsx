@@ -13,6 +13,7 @@ import { parseEmbedConfig } from "../../../helpers/config.js"
 import { VariantName } from "./core/types.js"
 import { parseConfig } from "./core/config.js"
 import { DistributionVariant } from "./variants/DistributionVariant.js"
+import { WalkthroughVariant } from "./variants/WalkthroughVariant.js"
 
 import "./index.scss"
 
@@ -22,6 +23,12 @@ enableShadowDOM()
 
 export const VARIANTS = [
     { name: "distribution", component: DistributionVariant, demoConfig: {} },
+    {
+        name: "walkthrough",
+        component: WalkthroughVariant,
+        demoConfig: {},
+        demoSize: "widest",
+    },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (

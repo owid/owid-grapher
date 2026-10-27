@@ -1,6 +1,6 @@
 import type { BespokeMetadata } from "@ourworldindata/types"
 
-export type VariantName = "distribution"
+export type VariantName = "distribution" | "walkthrough"
 
 /** Which chart the reader is looking at */
 export const VIEWS = ["global", "countries"] as const
