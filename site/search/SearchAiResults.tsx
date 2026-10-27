@@ -9,13 +9,17 @@ import {
     AiSearchErrorCode,
     AiSearchEvent,
     AiSearchModel,
-    GRAPHER_TAB_NAMES,
 } from "@ourworldindata/types"
 import { streamAiSearch, useAiSearchSettings } from "./aiSearchClient.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail.js"
 import { SearchChartHitMediumSkeleton } from "./SearchDataTopicsResultsSkeleton.js"
-import { constructChartAndPreviewUrlsForTab } from "./SearchChartHitSmallHelpers.js"
+import {
+    constructChartUrl,
+    constructPreviewUrl,
+    toGrapherQueryParams,
+} from "./searchUtils.js"
+import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
 import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
 import { SearchStackedArticleHit } from "./SearchStackedArticleHit.js"
 import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
@@ -361,13 +365,15 @@ function AiCard({ block }: { block: AiSearchContentBlock }) {
 /** A chart thumbnail with its title, for rows of cards */
 function AiChartCard({ block }: { block: AiSearchChartBlock }) {
     const { hit, country } = block
-    const { chartUrl, previewUrl } = constructChartAndPreviewUrlsForTab({
+    // The chart's default view, which its authors picked
+    const grapherParams = toGrapherQueryParams({
+        entities: country ? [country] : [],
+    })
+    const chartUrl = constructChartUrl({ hit, grapherParams })
+    const previewUrl = constructPreviewUrl({
         hit,
-        // A table makes a poor thumbnail
-        tab:
-            hit.availableTabs.find((tab) => tab !== GRAPHER_TAB_NAMES.Table) ??
-            hit.availableTabs[0],
-        entities: country ? [country] : undefined,
+        grapherParams,
+        variant: PreviewVariant.Thumbnail,
     })
     return (
         <a

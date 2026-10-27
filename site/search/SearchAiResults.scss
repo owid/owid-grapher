@@ -17,7 +17,7 @@
 }
 
 .search-ai {
-    margin-bottom: 48px;
+    margin: 16px 0 48px;
 }
 
 .search-ai__header {
@@ -99,9 +99,26 @@
         max-width: none;
     }
 
+    // Article and data insight images take the shape of chart thumbnails,
+    // so a row of mixed cards lines up
     .search-stacked-article-hit__image {
         height: auto;
-        aspect-ratio: 4 / 3;
+        aspect-ratio: calc(
+            $grapher-thumbnail-width / $grapher-thumbnail-height
+        );
+    }
+
+    .search-data-insight-hit__title {
+        font-family: $serif-font-stack;
+        font-size: 1rem;
+        line-height: 1.25;
+    }
+
+    .search-data-insight-hit__image-container {
+        padding-bottom: calc(
+            100% * $grapher-thumbnail-height / $grapher-thumbnail-width
+        );
+        margin-bottom: 12px;
     }
 }
 

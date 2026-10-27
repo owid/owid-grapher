@@ -140,6 +140,17 @@ describe(createBlockParser, () => {
         })
     })
 
+    it("keeps a group to one row and leaves the rest free", () => {
+        const parse = createBlockParser(
+            pool([1, 2, 3, 4, 5].map((id) => [id, chart(`c${id}`)]))
+        )
+        const group = parse(
+            '{"type":"group","title":"Row","blocks":[{"type":"chart","id":1},{"type":"chart","id":2},{"type":"chart","id":3},{"type":"chart","id":4},{"type":"chart","id":5}]}'
+        )
+        expect(group).toMatchObject({ blocks: { length: 4 } })
+        expect(parse('{"type":"chart","id":5}')).not.toBeNull()
+    })
+
     it("allows two wide cards on the page", () => {
         const parse = createBlockParser(candidates)
         const sizeOf = (id: number): unknown =>

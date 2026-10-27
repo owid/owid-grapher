@@ -210,7 +210,7 @@ Blocks:
 - {"type":"page","id":34}
   A topic page, article or data insight card.
 - {"type":"group","title":"...","blurb":"...","blocks":[...]}
-  A titled section that shows its chart and page blocks as a row of cards, four to a row (charts as thumbnails, whatever size you give them). 2 to 4 charts make a good group, plus at most two pages. Title: plain language, sentence case, at most 6 words. Blurb: one short sentence saying what the section shows.
+  A titled section that shows its chart and page blocks as a single row of four cards (charts as thumbnails, whatever size you give them), so give it 3 or 4 blocks in total, mostly charts; cards past the fourth are dropped. Put a topic page that is the group's natural next stop last in the row. Title: plain language, sentence case, at most 6 words. Blurb: one short sentence saying what the section shows.
 - {"type":"forks","question":"...","options":[{"label":"...","query":"..."}]}
   For a search that could mean distinct things: 2 to 4 options. Picking one runs a new search for its query, so make each query specific (2 to 5 words). Put this block first, then add a few charts that help whichever meaning the reader had.
 - {"type":"related","queries":["..."]}
@@ -233,6 +233,9 @@ ${[
 }
 
 const CHART_SIZES: readonly AiSearchChartSize[] = ["large", "medium", "small"]
+
+// The cards in a row on the page, and so in a group
+const GROUP_SIZE = 4
 
 const str = (value: unknown): string =>
     typeof value === "string" ? value.trim() : ""
@@ -311,18 +314,20 @@ export function createBlockParser(
                 // Checked first, so a rejected group doesn't use up its ids
                 const title = str(obj.title)
                 if (!title) return null
-                const blocks = (Array.isArray(obj.blocks) ? obj.blocks : [])
-                    .filter(
-                        (child): child is Record<string, unknown> =>
-                            typeof child === "object" && child !== null
-                    )
-                    .map((child) =>
-                        resolveContent(child, {
-                            defaultSize: "small",
-                            inGroup: true,
-                        })
-                    )
-                    .filter((block) => block !== null)
+                // A group is one row of cards. Children past the row are left
+                // unresolved, so their ids stay free for later blocks.
+                const blocks: AiSearchContentBlock[] = []
+                for (const child of Array.isArray(obj.blocks)
+                    ? obj.blocks
+                    : []) {
+                    if (blocks.length === GROUP_SIZE) break
+                    if (typeof child !== "object" || child === null) continue
+                    const block = resolveContent(child, {
+                        defaultSize: "small",
+                        inGroup: true,
+                    })
+                    if (block) blocks.push(block)
+                }
                 if (!blocks.length) return null
                 return { type: "group", title, blurb: str(obj.blurb), blocks }
             }
