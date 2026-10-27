@@ -7,6 +7,7 @@ import {
     fetchGdocArchieMl,
     findUnwritableCharacter,
     getNewGdocName,
+    isDriveFolderId,
     isShareableEmail,
     loadWritableGdoc,
     requireRevisionId,
@@ -60,6 +61,19 @@ describe(isShareableEmail, () => {
     it("refuses a repeated query parameter, which Express parses as an array", () => {
         expect(isShareableEmail(["a@b.c", "d@e.f"])).toBe(false)
     })
+})
+
+describe(isDriveFolderId, () => {
+    it("accepts the id from a folder URL", () => {
+        expect(isDriveFolderId("1aB-cD_eF2gH")).toBe(true)
+    })
+
+    it.each([undefined, "", "a/b", "a b", ["a", "b"]])(
+        "refuses %j",
+        (value) => {
+            expect(isDriveFolderId(value)).toBe(false)
+        }
+    )
 })
 
 describe(getNewGdocName, () => {

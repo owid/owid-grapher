@@ -434,16 +434,19 @@ export async function replaceGdocContentWithArchieMlText(
 
 const GOOGLE_DOCS_MIME_TYPE = "application/vnd.google-apps.document"
 
-// The doc lands in the root of the auth's My Drive
+// The doc lands in `folderId` (which may be in a shared drive), else in the
+// root of the auth's My Drive
 export async function createGdoc(
     driveClient: drive_v3.Drive,
-    title: string
+    title: string,
+    folderId?: string
 ): Promise<string> {
     const createResp = await driveClient.files.create({
         supportsAllDrives: true,
         requestBody: {
             mimeType: GOOGLE_DOCS_MIME_TYPE,
             name: title,
+            parents: folderId ? [folderId] : undefined,
         },
         media: {
             mimeType: GOOGLE_DOCS_MIME_TYPE,

@@ -23,6 +23,7 @@ import {
     getDocReport,
     getErrorMessage,
     getNewGdocName,
+    isDriveFolderId,
     isShareableEmail,
     loadWritableGdoc,
     type ReadBack,
@@ -62,34 +63,6 @@ function getReadWriteDriveClient(): drive_v3.Drive {
         version: "v3",
         auth: OwidGoogleAuth.getGoogleReadWriteAuth(),
     })
-}
-
-/**
- * Refuses (403) a doc in any shared drive: those are authors' docs, even when
- * unpublished. Drive returns a `driveId` only for files in a shared drive.
- * When the lookup fails, refuses (500) rather than risk writing.
- */
-async function assertNotInSharedDrive(id: string): Promise<void> {
-    const driveClient = getReadWriteDriveClient()
-    let driveId: string | null | undefined
-    try {
-        const { data } = await driveClient.files.get({
-            fileId: id,
-            fields: "driveId",
-            supportsAllDrives: true,
-        })
-        driveId = data.driveId
-    } catch (error) {
-        throw new JsonError(
-            `Could not check whether gdoc "${id}" is in a shared drive, so nothing was written: ${getErrorMessage(error)}`,
-            500
-        )
-    }
-    if (driveId)
-        throw new JsonError(
-            `Gdoc "${id}" is in a shared drive. Only docs outside shared drives can be written here.`,
-            403
-        )
 }
 
 /**
@@ -166,8 +139,6 @@ export async function putGdocArchieMl(
         getWritableGdocBase(trx, id)
     )
 
-    await assertNotInSharedDrive(id)
-
     // Parse with the subclass enrichment, so text the admin can't load is
     // refused before anything is written
     await db.knexReadonlyTransaction((trx) => loadWritableGdoc(trx, base, text))
@@ -208,11 +179,12 @@ export async function putGdocArchieMl(
 }
 
 /**
- * POST /gdocs/archieml?email=<email>   (Content-Type: text/plain)
+ * POST /gdocs/archieml?email=<email>[&folderId=<id>]   (Content-Type: text/plain)
  *
- * Creates a new doc of any type from the request body, in the service
- * account's My Drive. Shares it as writer with `email` (devs can't open that
- * Drive, so an unshared doc is lost), writes the text as-is, reads it back and
+ * Creates a new doc of any type from the request body, in the Drive folder
+ * `folderId` (which may be in a shared drive), else in the service account's
+ * My Drive. Shares it as writer with `email` (devs can't open the service
+ * account's My Drive, so an unshared doc is lost), writes the text as-is, reads it back and
  * registers it in posts_gdocs. Every refusal happens before anything is
  * created in Google. No DB transaction is held across the create, share and
  * write; registering fetches the doc from Google again inside its own
@@ -234,6 +206,13 @@ export async function createGdocArchieMl(
             `The "email" query parameter must be the email address to share the new doc with.`,
             400
         )
+    const folderIdParam = req.query.folderId
+    if (folderIdParam !== undefined && !isDriveFolderId(folderIdParam))
+        throw new JsonError(
+            `The "folderId" query parameter must be the id of the Drive folder to create the doc in (the part of the folder URL after /folders/).`,
+            400
+        )
+    const folderId = isDriveFolderId(folderIdParam) ? folderIdParam : undefined
 
     const text = readArchieMlBody(req)
 
@@ -245,10 +224,13 @@ export async function createGdocArchieMl(
     )
 
     const driveClient = getReadWriteDriveClient()
-    // Lands in the service account's My Drive
     let id: string
     try {
-        id = await createGdoc(driveClient, getNewGdocName(parsed.content.title))
+        id = await createGdoc(
+            driveClient,
+            getNewGdocName(parsed.content.title),
+            folderId
+        )
     } catch (error) {
         // A 500 rather than Google's own status (e.g. a quota 403), which
         // would read as a refusal of the input

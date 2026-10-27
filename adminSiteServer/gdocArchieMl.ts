@@ -85,6 +85,14 @@ export function isShareableEmail(value: unknown): value is string {
     return typeof value === "string" && EMAIL_PATTERN.test(value)
 }
 
+// Drive ids are URL-safe base64: letters, digits, "-" and "_"
+const DRIVE_ID_PATTERN = /^[\w-]+$/
+
+/** Whether `value` looks like a Drive folder id to create a new doc in. */
+export function isDriveFolderId(value: unknown): value is string {
+    return typeof value === "string" && DRIVE_ID_PATTERN.test(value)
+}
+
 /** The Drive name for a new doc: its front-matter title, else "Untitled". */
 export function getNewGdocName(title: unknown): string {
     if (typeof title === "string" && title.trim()) return title.trim()
