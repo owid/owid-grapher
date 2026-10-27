@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
 import React from "react"
+import { hideAll } from "tippy.js"
 import * as R from "remeda"
 import {
     guid,
@@ -23,6 +24,7 @@ import { SeriesName, VerticalAlign, Time } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
+    getMinHitAreaSize,
 } from "../core/GrapherConstants"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
@@ -227,6 +229,10 @@ export class LineChart
         return 2 * this.activeTimeCircleRadius
     }
 
+    @computed private get annotationMarkerHitRadius(): number {
+        return getMinHitAreaSize() / 2
+    }
+
     @computed private get isTooltipActive(): boolean {
         return this.manager.tooltip?.get()?.id === this.tooltipId
     }
@@ -283,6 +289,7 @@ export class LineChart
     ): void {
         this.chartState.focusArray.clear()
         this.dismissTooltip()
+        hideAll()
         this.dispatchAnnotationTooltipEvent({
             type: "markerClick",
             seriesName,
@@ -525,6 +532,7 @@ export class LineChart
                 <LineChartAnnotationMarkers
                     annotations={this.renderAnnotations}
                     radius={this.annotationMarkerRadius}
+                    hitRadius={this.annotationMarkerHitRadius}
                     onClick={this.onAnnotationMarkerClick}
                     onTooltipClose={this.onAnnotationTooltipClose}
                 />
