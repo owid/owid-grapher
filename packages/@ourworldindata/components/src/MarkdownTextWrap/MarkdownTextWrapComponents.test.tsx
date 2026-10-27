@@ -6,10 +6,10 @@ import { describe, expect, it } from "vitest"
 import { render } from "@testing-library/react"
 import { MarkdownTextWrap } from "./MarkdownTextWrap.js"
 import { AbstractTokenTextWrap } from "./AbstractTokenTextWrap.js"
-import {
-    FIGMA_TEXT_NODE_BREAK_DY,
-    MarkdownTextWrapSvg,
-} from "./MarkdownTextWrapComponents.js"
+import { TextWrapGroup } from "./TextWrapGroup.js"
+import { FIGMA_TEXT_NODE_BREAK_DY } from "./IRTokens.js"
+import { MarkdownTextWrapSvg } from "./MarkdownTextWrapComponents.js"
+import { FontFamily } from "@ourworldindata/utils"
 
 function renderLines(
     textWrap: AbstractTokenTextWrap,
@@ -107,5 +107,30 @@ describe(MarkdownTextWrapSvg, () => {
         const [line] = renderLines(markdown(text), textAnchor)
 
         expect(nudgedRuns(line)).toEqual([])
+    })
+
+    it("moves a fragment with its own font family or gap onto its own baseline", () => {
+        const title = new TextWrapGroup({
+            fragments: [
+                { text: "Population" },
+                {
+                    text: "2024",
+                    fontFamily: FontFamily.Lato,
+                    fontWeight: 700,
+                    inlineGap: 6,
+                },
+            ],
+            fontFamily: FontFamily.PlayfairDisplay,
+            fontSize: 24,
+            maxWidth: 1000,
+        })
+
+        const [line] = renderLines(title)
+
+        const suffix = Array.from(line.querySelectorAll("tspan")).find(
+            (tspan) => tspan.textContent === "2024"
+        )!
+        expect(suffix.getAttribute("dx")).toBe("6")
+        expect(suffix.getAttribute("dy")).toBe(String(FIGMA_TEXT_NODE_BREAK_DY))
     })
 })

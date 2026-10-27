@@ -5,6 +5,7 @@ import {
     getDodUnderlineSegments,
     getLineFontSize,
     getLineGap,
+    FIGMA_TEXT_NODE_BREAK_DY,
     IRToken,
 } from "./IRTokens.js"
 import { AbstractTokenTextWrap } from "./AbstractTokenTextWrap.js"
@@ -141,16 +142,6 @@ export function MarkdownTextWrapSvg({
         </g>
     )
 }
-
-/**
- * Baseline shift that makes Figma's SVG importer start a new text node.
- *
- * Figma merges runs on the same baseline into one text node and takes the
- * node's font weight, style and decoration from its first run, so text that
- * has to keep its own style must sit on a slightly different baseline. The
- * shift is too small to be visible in browsers.
- */
-export const FIGMA_TEXT_NODE_BREAK_DY = 0.1
 
 interface SvgLinePosition {
     x: number

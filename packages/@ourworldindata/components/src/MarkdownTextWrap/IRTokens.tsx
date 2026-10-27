@@ -22,6 +22,16 @@ const SUPERSCRIPT_NUMERALS = {
     "9": "\u2079",
 }
 
+/**
+ * Baseline shift that makes Figma's SVG importer start a new text node.
+ *
+ * Figma merges runs on the same baseline into one text node and takes the
+ * node's font weight, style and decoration from its first run, so text that
+ * has to keep its own style must sit on a slightly different baseline. The
+ * shift is too small to be visible in browsers.
+ */
+export const FIGMA_TEXT_NODE_BREAK_DY = 0.1
+
 export interface IRFontParams {
     fontSize?: number
     fontWeight?: number
