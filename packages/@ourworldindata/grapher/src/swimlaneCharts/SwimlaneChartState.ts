@@ -149,13 +149,13 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         if (this.yColumn.isMissing) return []
 
         const { yColumn, timesAsc, colorScale } = this
+        const rowsByEntityNameAndTime = yColumn.owidRowByEntityNameAndTime
 
-        return this.selectionArray.selectedEntityNames.map(
-            (entityName): SwimlaneSeries => {
+        return this.selectionArray.selectedEntityNames
+            .filter((entityName) => rowsByEntityNameAndTime.has(entityName))
+            .map((entityName): SwimlaneSeries => {
                 const rows =
-                    yColumn.owidRowByEntityNameAndTime
-                        .get(entityName)
-                        ?.values() ?? []
+                    rowsByEntityNameAndTime.get(entityName)?.values() ?? []
 
                 const observations: SwimlaneObservation[] = Array.from(rows)
                     .filter((row) => row.value !== "")
@@ -186,8 +186,7 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
                     shortEntityName: getShortNameForEntity(entityName),
                     segments,
                 }
-            }
-        )
+            })
     }
 
     @computed get series(): SwimlaneSeries[] {
