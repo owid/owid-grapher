@@ -75,6 +75,23 @@ sup {
     @include superscript;
 }
 
+// Characters that Lato has no "sups"/"subs" glyph for (e.g. the "." in
+// "1.585") are wrapped in these by SpanElement, and scaled and shifted to
+// match Lato's superscript/subscript digits: those are drawn at ~51% size,
+// with their baseline 0.45em above / 0.113em below the regular baseline.
+// `top` is relative to the reduced font size, hence 0.45 / 0.51 ≈ 0.88.
+.span-superscript-fallback {
+    position: relative;
+    top: -0.88em;
+    font-size: 0.51em;
+}
+
+.span-subscript-fallback {
+    position: relative;
+    top: 0.22em;
+    font-size: 0.51em;
+}
+
 /* ----------------------------------------------------------- */
 
 h6 {
