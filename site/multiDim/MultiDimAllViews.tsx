@@ -14,6 +14,11 @@ import {
     MultiDimDimensionChoices,
 } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import {
+    MultiDimViewCommandBar,
+    useCommandBarShortcutLabel,
+} from "./MultiDimViewCommandBar.js"
+import { highlightTokens, useViewSearch } from "./useViewSearch.js"
 
 const analytics = new SiteAnalytics()
 
@@ -36,12 +41,6 @@ interface ViewGroup {
     views: MultiDimAllViewsView[]
 }
 
-const normalizeForSearch = (str: string): string =>
-    str
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[̀-ͯ]/g, "")
-
 export function MultiDimAllViews({
     slug,
     pageTitle,
@@ -56,6 +55,8 @@ export function MultiDimAllViews({
     onSelectView?: (dimensions: MultiDimDimensionChoices) => void
 }) {
     const [query, setQuery] = useState("")
+    const [isCommandBarOpen, setIsCommandBarOpen] = useState(false)
+    const shortcutLabel = useCommandBarShortcutLabel()
     const inputRef = useRef<HTMLInputElement>(null)
 
     const total = views.length
@@ -63,31 +64,9 @@ export function MultiDimAllViews({
     const dimensionNames = views[0]?.choices.map((c) => c.dimensionName) ?? []
     const isGrouped = dimensionNames.length >= 2
 
-    const haystacks = useMemo(
-        () =>
-            new Map(
-                views.map((view) => [
-                    view.queryStr,
-                    normalizeForSearch(
-                        [
-                            view.title,
-                            ...view.choices.map(
-                                (c) => `${c.dimensionName} ${c.choiceName}`
-                            ),
-                        ].join(" ")
-                    ),
-                ])
-            ),
-        [views]
-    )
-
-    const tokens = normalizeForSearch(query).split(/\s+/).filter(Boolean)
-    const isSearching = tokens.length > 0
-    const matches = (view: MultiDimAllViewsView): boolean => {
-        const haystack = haystacks.get(view.queryStr) ?? ""
-        return tokens.every((token) => haystack.includes(token))
-    }
+    const { tokens, isSearching, matches } = useViewSearch(views, query)
     const visibleCount = isSearching ? views.filter(matches).length : total
+    const showEmptyState = isSearching && visibleCount === 0
 
     const groups = useMemo((): ViewGroup[] => {
         if (!isGrouped) return []
@@ -117,6 +96,23 @@ export function MultiDimAllViews({
         inputRef.current?.focus()
     }
 
+    // Switches the chart above to `view` and scrolls up to it
+    const selectView = (
+        selectViewDimensions: (dimensions: MultiDimDimensionChoices) => void,
+        view: MultiDimAllViewsView
+    ): void => {
+        selectViewDimensions(
+            Object.fromEntries(new URLSearchParams(view.queryStr))
+        )
+        const prefersReducedMotion = window.matchMedia(
+            "(prefers-reduced-motion: reduce)"
+        ).matches
+        document.getElementById("explore-the-data")?.scrollIntoView({
+            behavior: prefersReducedMotion ? "auto" : "smooth",
+            block: "start",
+        })
+    }
+
     const handleViewClick = (
         e: React.MouseEvent<HTMLAnchorElement>,
         view: MultiDimAllViewsView
@@ -132,14 +128,7 @@ export function MultiDimAllViews({
         )
             return
         e.preventDefault()
-        onSelectView(Object.fromEntries(new URLSearchParams(view.queryStr)))
-        const prefersReducedMotion = window.matchMedia(
-            "(prefers-reduced-motion: reduce)"
-        ).matches
-        document.getElementById("explore-the-data")?.scrollIntoView({
-            behavior: prefersReducedMotion ? "auto" : "smooth",
-            block: "start",
-        })
+        selectView(onSelectView, view)
     }
 
     const renderList = (listViews: MultiDimAllViewsView[]) => (
@@ -164,7 +153,7 @@ export function MultiDimAllViews({
                             data-track-note="mdim_all_views_link"
                             onClick={(e) => handleViewClick(e, view)}
                         >
-                            {view.title}
+                            {highlightTokens(view.title, tokens)}
                         </a>
                         {isCurrent && (
                             <span className="all-views__current-label">
@@ -183,7 +172,12 @@ export function MultiDimAllViews({
                                                 ·
                                             </span>
                                         )}
-                                        {c.dimensionName}: {c.choiceName}
+                                        {highlightTokens(
+                                            c.dimensionName,
+                                            tokens
+                                        )}
+                                        :{" "}
+                                        {highlightTokens(c.choiceName, tokens)}
                                     </Fragment>
                                 ))}
                             </span>
@@ -275,6 +269,21 @@ export function MultiDimAllViews({
                                     <FontAwesomeIcon icon={faXmark} />
                                 </button>
                             )}
+                            {/* Takes the clear button's place */}
+                            {!query && onSelectView && shortcutLabel && (
+                                <button
+                                    type="button"
+                                    className="all-views__command-bar-button"
+                                    onClick={() => setIsCommandBarOpen(true)}
+                                >
+                                    <span className="sr-only">
+                                        Open the chart switcher
+                                    </span>
+                                    <kbd aria-hidden="true">
+                                        {shortcutLabel}
+                                    </kbd>
+                                </button>
+                            )}
                             <p
                                 id="all-views-status"
                                 className="all-views__status"
@@ -284,14 +293,14 @@ export function MultiDimAllViews({
                                 {isSearching &&
                                     visibleCount > 0 &&
                                     `${visibleCount} of ${total} charts match`}
-                                {isSearching && visibleCount === 0 && (
+                                {showEmptyState && (
                                     <>No charts match “{query.trim()}”.</>
                                 )}
                             </p>
                         </div>
                     )}
 
-                    {isSearching && visibleCount === 0 && (
+                    {showEmptyState && (
                         <div className="all-views__empty">
                             <p className="all-views__empty-text">
                                 Try a shorter word, or search for one of the
@@ -330,9 +339,16 @@ export function MultiDimAllViews({
                                 <summary className="all-views__group-summary">
                                     <h3 className="all-views__group-title">
                                         <span className="all-views__group-dimension">
-                                            {group.dimensionName}:
+                                            {highlightTokens(
+                                                group.dimensionName,
+                                                tokens
+                                            )}
+                                            :
                                         </span>{" "}
-                                        {group.choiceName}
+                                        {highlightTokens(
+                                            group.choiceName,
+                                            tokens
+                                        )}
                                     </h3>
                                     <span className="all-views__group-count">
                                         {isSearching
@@ -354,6 +370,16 @@ export function MultiDimAllViews({
                     })}
                 </div>
             </details>
+
+            {onSelectView && (
+                <MultiDimViewCommandBar
+                    currentQueryStr={currentQueryStr}
+                    views={views}
+                    isOpen={isCommandBarOpen}
+                    onOpenChange={setIsCommandBarOpen}
+                    onSelectView={(view) => selectView(onSelectView, view)}
+                />
+            )}
         </div>
     )
 }

@@ -259,3 +259,44 @@
 .all-views__meta-sep {
     margin: 0 6px;
 }
+
+.all-views__command-bar-button {
+    position: absolute;
+    top: 0;
+    right: 8px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+
+    kbd {
+        @include note-1-regular;
+        color: $blue-60;
+        padding: 1px 6px;
+        border: 1px solid $blue-20;
+        border-radius: 4px;
+        font-family: inherit;
+    }
+
+    &:hover kbd {
+        color: $blue-90;
+        border-color: $blue-50;
+    }
+
+    // Only useful with a keyboard
+    @media (hover: none) {
+        display: none;
+    }
+}
+
+// Search matches, in the list above and in the command bar
+.view-search-mark {
+    background-color: $amber-10;
+    color: inherit;
+    font-weight: 700;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px $amber-10;
+}
