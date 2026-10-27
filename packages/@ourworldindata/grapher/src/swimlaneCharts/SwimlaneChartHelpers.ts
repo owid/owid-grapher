@@ -233,24 +233,16 @@ function toPlacedSwimlaneSegment({
     shouldShowLabel: boolean
     labelStyle: SwimlaneSegmentLabelStyle
 }): PlacedSwimlaneSegment {
-    const isCategory = segment.kind === "category"
-    const isStartCropped =
-        isCategory && segment.startTime < segment.visibleStartTime
-    const isEndCropped = isCategory && segment.endTime > segment.visibleEndTime
-    const cropTaper = Math.min(SEGMENT_CROP_TAPER_RATIO * height, width / 3)
-    const placement = {
-        x,
-        width,
-        y,
-        height,
-        isStartCropped,
-        isEndCropped,
-        cropTaper,
-    }
-
+    const placement = { x, width, y, height }
     if (segment.kind === "missing") return { ...segment, ...placement }
 
-    const placedSegment = { ...segment, ...placement }
+    const placedSegment = {
+        ...segment,
+        ...placement,
+        isStartCropped: segment.startTime < segment.visibleStartTime,
+        isEndCropped: segment.endTime > segment.visibleEndTime,
+        cropTaper: Math.min(SEGMENT_CROP_TAPER_RATIO * height, width / 3),
+    }
     return {
         ...placedSegment,
         label: shouldShowLabel

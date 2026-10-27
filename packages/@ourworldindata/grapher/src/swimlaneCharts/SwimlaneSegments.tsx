@@ -7,6 +7,7 @@ import { isDarkColor } from "../color/ColorUtils"
 import {
     PlacedSwimlaneCategorySegment,
     PlacedSwimlaneSegment,
+    SwimlaneSegmentCrop,
     SwimlaneSegmentPlacement,
 } from "./SwimlaneChartConstants"
 
@@ -47,7 +48,10 @@ function SwimlaneSegmentShape({
     const fill =
         segment.kind === "missing" ? `url(#${noDataPatternId})` : segment.color
 
-    if (!segment.isStartCropped && !segment.isEndCropped)
+    if (
+        segment.kind === "missing" ||
+        (!segment.isStartCropped && !segment.isEndCropped)
+    )
         return (
             <rect
                 x={roundForSvg(x)}
@@ -106,7 +110,7 @@ function toSegmentOutlinePath({
     isStartCropped,
     isEndCropped,
     cropTaper,
-}: SwimlaneSegmentPlacement): string {
+}: SwimlaneSegmentPlacement & SwimlaneSegmentCrop): string {
     const [left, right, top, bottom] = [x, x + width, y, y + height]
     const middle = y + height / 2
 

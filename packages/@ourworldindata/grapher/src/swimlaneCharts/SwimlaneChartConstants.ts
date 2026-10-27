@@ -63,6 +63,9 @@ export interface SwimlaneSegmentPlacement {
     width: number
     y: number
     height: number
+}
+
+export interface SwimlaneSegmentCrop {
     isStartCropped: boolean
     isEndCropped: boolean
     cropTaper: number
@@ -80,7 +83,8 @@ export interface PlacedSwimlaneSegmentLabel {
 }
 
 export type PlacedSwimlaneCategorySegment = SwimlaneCategorySegment &
-    SwimlaneSegmentPlacement & { label?: PlacedSwimlaneSegmentLabel }
+    SwimlaneSegmentPlacement &
+    SwimlaneSegmentCrop & { label?: PlacedSwimlaneSegmentLabel }
 
 export type PlacedSwimlaneSegment =
     | PlacedSwimlaneCategorySegment

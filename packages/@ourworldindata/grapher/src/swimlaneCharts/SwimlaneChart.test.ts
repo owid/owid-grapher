@@ -141,13 +141,17 @@ describe("segments", () => {
         const segments = findRow(chart, "France").placedSegments
 
         expect(
-            segments.map(({ isStartCropped, isEndCropped }) => ({
-                isStartCropped,
-                isEndCropped,
-            }))
+            segments.map((segment) =>
+                segment.kind === "category"
+                    ? {
+                          isStartCropped: segment.isStartCropped,
+                          isEndCropped: segment.isEndCropped,
+                      }
+                    : undefined
+            )
         ).toEqual([
             { isStartCropped: true, isEndCropped: false },
-            { isStartCropped: false, isEndCropped: false },
+            undefined,
             { isStartCropped: false, isEndCropped: false },
         ])
         expect(segments[0].timeRangeLabel).toEqual("2000 to 2002")
