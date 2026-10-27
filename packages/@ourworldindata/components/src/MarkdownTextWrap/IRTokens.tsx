@@ -25,9 +25,9 @@ const SUPERSCRIPT_NUMERALS = {
 /**
  * Baseline shift that makes Figma's SVG importer start a new text node.
  *
- * Figma merges runs on the same baseline into one text node and takes the
- * node's font weight, style and decoration from its first run, so text that
- * has to keep its own style must sit on a slightly different baseline. The
+ * Figma merges runs on the same baseline into one text node and applies some
+ * of its first run's styles, like the font family or a leading run's font
+ * weight, to the whole node. It also ignores `dx` on the merged runs. The
  * shift is too small to be visible in browsers.
  */
 export const FIGMA_TEXT_NODE_BREAK_DY = 0.1
@@ -358,6 +358,11 @@ export class IRFragment extends IRElement {
             <tspan
                 key={key}
                 dx={this.inlineGap || undefined}
+                dy={
+                    this.inlineGap || fontFamily
+                        ? FIGMA_TEXT_NODE_BREAK_DY
+                        : undefined
+                }
                 style={{
                     fontSize,
                     fontWeight,
