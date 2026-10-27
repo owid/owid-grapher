@@ -245,16 +245,20 @@ $ai-meta-line: #d9a400;
 
 .search-ai-section__title {
     @include h2-bold;
-    color: $blue-90;
-    margin: 4px 0 6px;
-    text-wrap: balance;
+    & {
+        color: $blue-90;
+        margin: 4px 0 6px;
+        text-wrap: balance;
+    }
 }
 
 .search-ai-section__blurb {
     @include body-2-regular;
-    color: $blue-60;
-    max-width: 760px;
-    margin: 0;
+    & {
+        color: $blue-60;
+        max-width: 760px;
+        margin: 0;
+    }
 }
 
 .search-ai-section__charts {
