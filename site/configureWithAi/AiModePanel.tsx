@@ -3,15 +3,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
     faCalendar,
-    faChartColumn,
     faEyeSlash,
     faMagnifyingGlass,
     faChartLine,
     faEarthAmericas,
     faRotateLeft,
-    faTable,
-    faThumbsDown,
-    faThumbsUp,
     faWandMagicSparkles,
     type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
@@ -26,9 +22,14 @@ import type {
     HistoryEntry,
     PanelState,
     PanelStore,
+    Request,
+    Scope,
     Suggestions,
     Usage,
 } from "./configureWithAiStore.js"
+import { ExploreOverlay } from "./ExploreOverlay.js"
+import { Feedback } from "./Feedback.js"
+import { iconForTab } from "./tabIcons.js"
 
 const MODELS = [
     { id: "claude-haiku-5-5", label: "Haiku 5.5" },
@@ -38,6 +39,12 @@ const MODELS = [
 type ModelId = (typeof MODELS)[number]["id"]
 const DEFAULT_MODEL: ModelId = "claude-sonnet-5-5"
 const MODEL_STORAGE_KEY = "configure-with-ai:model"
+const SCOPES: { id: Scope; label: string }[] = [
+    { id: "page", label: "This chart" },
+    { id: "site", label: "Across the site" },
+]
+const SCOPE_STORAGE_KEY = "configure-with-ai:scope"
+const DEFAULT_SCOPE: Scope = "site"
 const MAX_QUERY_LENGTH = 100
 const SLOW_AFTER_SECONDS = 10
 
@@ -78,22 +85,24 @@ function readStoredModel(): ModelId {
     }
 }
 
-const BAR_TABS = [
-    "discrete-bar",
-    "stacked-discrete-bar",
-    "stacked-bar",
-    "marimekko",
-]
-const COUNTER_FROM = 80
+function readStoredScope(): Scope {
+    try {
+        const stored = localStorage.getItem(SCOPE_STORAGE_KEY)
+        return SCOPES.find((s) => s.id === stored)?.id ?? DEFAULT_SCOPE
+    } catch {
+        return DEFAULT_SCOPE
+    }
+}
 
-const iconForTab = (tab: string): IconDefinition =>
-    tab === "table"
-        ? faTable
-        : tab === "map"
-          ? faEarthAmericas
-          : BAR_TABS.includes(tab)
-            ? faChartColumn
-            : faChartLine
+function rememberChoice(key: string, value: string): void {
+    try {
+        localStorage.setItem(key, value)
+    } catch {
+        // The choice just isn't remembered
+    }
+}
+
+const COUNTER_FROM = 80
 
 const modelLabel = (model: string): string =>
     MODELS.find((m) => model.startsWith(m.id))?.label ?? model
@@ -178,17 +187,32 @@ export function AiModePanel({
     const [isStaff] = useState(shouldShowStaffControls)
     const [storedModel, setModel] = useState<ModelId>(readStoredModel)
     const model = isStaff ? storedModel : DEFAULT_MODEL
+    // Staff can limit answers to this chart; everyone else gets the default
+    const [storedScope, setScope] = useState<Scope>(readStoredScope)
+    const scope = isStaff ? storedScope : DEFAULT_SCOPE
     const isThinking = request.status === "thinking"
     const isIdle = request.status === "idle" || request.status === "stopped"
     const inputRef = useRef<HTMLTextAreaElement>(null)
     const bodyRef = useRef<HTMLDivElement>(null)
+    const rootRef = useRef<HTMLDivElement>(null)
+    // The overlay covers the whole Grapher, chart and side panel
+    const [grapherRoot, setGrapherRoot] = useState<HTMLElement | null>(null)
+    useLayoutEffect(() => {
+        setGrapherRoot(
+            rootRef.current?.closest<HTMLElement>(".GrapherComponent") ?? null
+        )
+    }, [])
 
     const focusInput = (): void => inputRef.current?.focus()
+    const closeOverlay = (): void => {
+        store.setOverlay(false)
+        focusInput()
+    }
 
     const ask = (query: string): void => {
         // The answer's entry shows the question from here on
         setDraft({ forId: -1, text: "" })
-        void store.ask(query, model)
+        void store.ask(query, model, scope)
         focusInput()
     }
 
@@ -209,19 +233,32 @@ export function AiModePanel({
 
     const changeModel = (id: ModelId): void => {
         setModel(id)
-        try {
-            localStorage.setItem(MODEL_STORAGE_KEY, id)
-        } catch {
-            // The choice just isn't remembered
-        }
+        rememberChoice(MODEL_STORAGE_KEY, id)
     }
+    const changeScope = (id: Scope): void => {
+        setScope(id)
+        rememberChoice(SCOPE_STORAGE_KEY, id)
+    }
+    // An answer with other pages has its usage on the request, not in History
+    const usage = request.status === "pages" ? request.usage : current?.usage
 
     // Also shown after going back to the chart as it was opened; History
     // stays below it
     const showIntro = !current && isIdle
 
     return (
-        <div className="configure-with-ai__ai">
+        <div className="configure-with-ai__ai" ref={rootRef}>
+            {state.overlay && grapherRoot && (
+                <ExploreOverlay
+                    store={store}
+                    state={state}
+                    container={grapherRoot}
+                    ask={(query) => {
+                        void store.ask(query, model, scope)
+                    }}
+                    onClose={closeOverlay}
+                />
+            )}
             <form
                 className="configure-with-ai__form"
                 autoComplete="off"
@@ -316,13 +353,16 @@ export function AiModePanel({
                         store={store}
                         state={state}
                         isStaff={isStaff}
+                        scope={scope}
                         ask={ask}
                     />
                 )}
 
                 {/* A failed or empty answer replaces the previous one, which
                     is summed up as what the chart still shows */}
-                {(request.status === "empty" || request.status === "error") && (
+                {(request.status === "empty" ||
+                    request.status === "error" ||
+                    request.status === "pages") && (
                     <StillShows slug={store.slug} entry={current} />
                 )}
 
@@ -348,8 +388,8 @@ export function AiModePanel({
                         <span
                             className="configure-with-ai__staff-label"
                             title={
-                                current
-                                    ? usageSummary(current.usage).details
+                                usage
+                                    ? usageSummary(usage).details
                                     : "Only visible to OWID staff"
                             }
                         >
@@ -357,10 +397,25 @@ export function AiModePanel({
                                 icon={faEyeSlash}
                                 aria-label="Only visible to OWID staff"
                             />
-                            {current
-                                ? usageSummary(current.usage).line
+                            {usage
+                                ? usageSummary(usage).line
                                 : "Only visible to OWID staff"}
                         </span>
+                        <label className="configure-with-ai__model">
+                            <span className="sr-only">Scope</span>
+                            <select
+                                value={scope}
+                                onChange={(e) =>
+                                    changeScope(e.target.value as Scope)
+                                }
+                            >
+                                {SCOPES.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
                         <label className="configure-with-ai__model">
                             <span className="sr-only">Model</span>
                             <select
@@ -441,6 +496,9 @@ function RequestStatus({
                     </button>
                 </div>
             )}
+            {request.status === "pages" && !state.overlay && (
+                <PagesSummary store={store} request={request} />
+            )}
             {request.status === "empty" && (
                 <div className="configure-with-ai__message">
                     <strong>No view of this chart matches</strong>
@@ -458,15 +516,41 @@ function RequestStatus({
     )
 }
 
+/** An answer on other pages once its overlay is closed */
+function PagesSummary({
+    store,
+    request,
+}: {
+    store: PanelStore
+    request: Extract<Request, { status: "pages" }>
+}) {
+    return (
+        <div className="configure-with-ai__message">
+            {request.message && <p>{request.message}</p>}
+            <button
+                className="configure-with-ai__link-button"
+                type="button"
+                onClick={() => store.setOverlay(true)}
+            >
+                {request.pages.length === 1
+                    ? "Show the page"
+                    : `Show the ${request.pages.length} pages`}
+            </button>
+        </div>
+    )
+}
+
 function Intro({
     store,
     state,
     isStaff,
+    scope,
     ask,
 }: {
     store: PanelStore
     state: PanelState
     isStaff: boolean
+    scope: Scope
     ask: (q: string) => void
 }) {
     const suggestions = SUGGESTIONS[store.slug] ?? []
@@ -503,13 +587,20 @@ function Intro({
                     </span>
                 </li>
             </ul>
-            <p className="configure-with-ai__muted">
-                It shows this chart's data only. For other data,{" "}
-                <a href="https://ourworldindata.org/search">
-                    search all charts
-                </a>
-                .
-            </p>
+            {scope === "site" ? (
+                <p className="configure-with-ai__muted">
+                    When this chart can't answer, it points you to other charts
+                    and articles on Our World in Data.
+                </p>
+            ) : (
+                <p className="configure-with-ai__muted">
+                    It shows this chart's data only. For other data,{" "}
+                    <a href="https://ourworldindata.org/search">
+                        search all charts
+                    </a>
+                    .
+                </p>
+            )}
             {suggestions.length > 0 && (
                 <>
                     <p className="configure-with-ai__section-title">Try</p>
@@ -625,31 +716,7 @@ function Answer({
                     </ul>
                 </div>
             )}
-            <div className="configure-with-ai__feedback">
-                <span>
-                    {entry.feedback
-                        ? "Thanks for the feedback"
-                        : "Was this useful?"}
-                </span>
-                <button
-                    className="configure-with-ai__thumb"
-                    type="button"
-                    aria-pressed={entry.feedback === "up"}
-                    aria-label="Useful"
-                    onClick={() => store.sendFeedback("up")}
-                >
-                    <FontAwesomeIcon icon={faThumbsUp} />
-                </button>
-                <button
-                    className="configure-with-ai__thumb"
-                    type="button"
-                    aria-pressed={entry.feedback === "down"}
-                    aria-label="Not useful"
-                    onClick={() => store.sendFeedback("down")}
-                >
-                    <FontAwesomeIcon icon={faThumbsDown} />
-                </button>
-            </div>
+            <Feedback store={store} feedback={entry.feedback} />
         </div>
     )
 }
