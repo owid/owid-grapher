@@ -79,6 +79,7 @@ $ai-meta-line: #d9a400;
 }
 
 .search-ai-results {
+    min-width: 0;
     border-top: 3px solid $accent-electric-blue;
     padding: 16px 0 0;
     margin-bottom: 32px;
@@ -150,6 +151,8 @@ $ai-meta-line: #d9a400;
 
 .search-ai-results__groups {
     display: grid;
+    // Without minmax, the column grows to fit the rich chart results
+    grid-template-columns: minmax(0, 1fr);
     gap: 32px;
     margin-top: 16px;
 }
