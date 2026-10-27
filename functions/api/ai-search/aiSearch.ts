@@ -83,7 +83,11 @@ export function buildCandidatePool(
                 const position = rank * take + k
                 const chart = list.charts[position]
                 const chartKey = chart && `chart:${chart.objectID}`
-                if (chart && charts.size < chartPoolSize && !seen.has(chartKey)) {
+                if (
+                    chart &&
+                    charts.size < chartPoolSize &&
+                    !seen.has(chartKey)
+                ) {
                     seen.add(chartKey)
                     charts.set(nextId++, chart)
                 }
@@ -173,9 +177,7 @@ const PAGE_KIND_LABELS: Record<PageCandidate["type"], string> = {
 }
 
 function chartLine(id: number, chart: ChartCandidate): string {
-    const tabs = [
-        ...new Set(chart.availableTabs.map((tab) => TAB_LABELS[tab])),
-    ]
+    const tabs = [...new Set(chart.availableTabs.map((tab) => TAB_LABELS[tab]))]
         .filter(Boolean)
         .join(", ")
     const variant = chart.variantName ? ` (${chart.variantName})` : ""
@@ -263,14 +265,18 @@ export function createBlockParser(
         if (chart) {
             usedIds.add(id)
             let size =
-                CHART_SIZES.find((option) => option === obj.size) ??
-                defaultSize
+                CHART_SIZES.find((option) => option === obj.size) ?? defaultSize
             if (size === "large") {
                 if (hasLargeChart) size = "medium"
                 hasLargeChart = true
             }
             const country = findEntity(chart, str(obj.country))
-            return { type: "chart", hit: chart, size, ...(country && { country }) }
+            return {
+                type: "chart",
+                hit: chart,
+                size,
+                ...(country && { country }),
+            }
         }
 
         const page = obj.type === "page" && pool.pages.get(id)
@@ -350,7 +356,10 @@ function pageBlock(page: PageCandidate): AiSearchContentBlock {
     switch (page.type) {
         case OwidGdocType.TopicPage:
         case OwidGdocType.LinearTopicPage:
-            return { type: "topicPage", hit: { ...page, excerpt: page.excerpt ?? "" } }
+            return {
+                type: "topicPage",
+                hit: { ...page, excerpt: page.excerpt ?? "" },
+            }
         case OwidGdocType.DataInsight:
             return { type: "dataInsight", hit: page }
         default:

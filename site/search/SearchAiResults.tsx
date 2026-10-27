@@ -96,7 +96,8 @@ export function SearchAiResults({
         <section className="search-ai-results col-start-2 span-cols-12">
             <header className="search-ai-results__header">
                 <h2 className="search-ai-results__title">
-                    AI search <span className="search-ai-results__beta">Prototype</span>
+                    AI search{" "}
+                    <span className="search-ai-results__beta">Prototype</span>
                 </h2>
                 <div className="search-ai-results__settings">
                     <select
@@ -143,11 +144,7 @@ export function SearchAiResults({
 
             <div className="search-ai-results__blocks">
                 {state.blocks.map((block, index) => (
-                    <AiBlock
-                        key={index}
-                        block={block}
-                        onSearch={onSearch}
-                    />
+                    <AiBlock key={index} block={block} onSearch={onSearch} />
                 ))}
             </div>
 
@@ -166,7 +163,10 @@ export function SearchAiResults({
                 <p className="search-ai-results__note">
                     {state.done.model} ·{" "}
                     {Object.entries(state.done.timings)
-                        .map(([label, ms]) => `${label} ${(ms / 1000).toFixed(1)}s`)
+                        .map(
+                            ([label, ms]) =>
+                                `${label} ${(ms / 1000).toFixed(1)}s`
+                        )
                         .join(" · ")}
                 </p>
             )}
@@ -180,7 +180,13 @@ export function SearchAiResults({
             {debug && state.blocks.length > 0 && (
                 <details className="search-ai-results__debug">
                     <summary>Resolved blocks</summary>
-                    <pre>{JSON.stringify(state.blocks.map(summarizeBlock), null, 2)}</pre>
+                    <pre>
+                        {JSON.stringify(
+                            state.blocks.map(summarizeBlock),
+                            null,
+                            2
+                        )}
+                    </pre>
                 </details>
             )}
         </section>
@@ -238,7 +244,9 @@ function AiBlock({
         case "related":
             return (
                 <section className="search-ai-related">
-                    <h3 className="search-ai-related__title">Related searches</h3>
+                    <h3 className="search-ai-related__title">
+                        Related searches
+                    </h3>
                     <div className="search-ai-related__queries">
                         {block.queries.map((query) => (
                             <button

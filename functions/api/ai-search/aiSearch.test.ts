@@ -48,7 +48,10 @@ describe(buildCandidatePool, () => {
             charts: ["a1", "a2", "a3", "a4"].map((s) => chart(s)),
             pages: [],
         }
-        const expansion = { charts: ["b1", "b2"].map((s) => chart(s)), pages: [] }
+        const expansion = {
+            charts: ["b1", "b2"].map((s) => chart(s)),
+            pages: [],
+        }
         const { charts } = buildCandidatePool([original, expansion])
         expect([...charts.values()].map((c) => c.slug)).toEqual([
             "a1",
@@ -111,7 +114,9 @@ describe(createBlockParser, () => {
         expect(parse('{"type":"chart","id":2}')).not.toBeNull()
         expect(parse('{"type":"chart","id":2}')).toBeNull()
         expect(
-            parse('{"type":"group","title":"Gone","blocks":[{"type":"chart","id":2}]}')
+            parse(
+                '{"type":"group","title":"Gone","blocks":[{"type":"chart","id":2}]}'
+            )
         ).toBeNull()
     })
 
@@ -125,7 +130,9 @@ describe(createBlockParser, () => {
 
     it("defaults to medium cards on the page and small ones in groups", () => {
         const parse = createBlockParser(candidates)
-        expect(parse('{"type":"chart","id":1}')).toMatchObject({ size: "medium" })
+        expect(parse('{"type":"chart","id":1}')).toMatchObject({
+            size: "medium",
+        })
         expect(
             parse(
                 '{"type":"group","title":"More","blurb":"","blocks":[{"type":"chart","id":2},{"type":"forks"}]}'
