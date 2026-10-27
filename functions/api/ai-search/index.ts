@@ -118,7 +118,10 @@ async function runAiSearch({
     )
 
     let expansions: string[] = []
-    if (settings.expand && (base.charts.length || base.pages.length)) {
+    // Also runs when the search found nothing: keyword search needs every
+    // word to match, so a question phrased as a sentence often finds nothing
+    // until the planner rewrites it into short searches.
+    if (settings.expand) {
         emit({ type: "status", text: "Working out the angles on this topic…" })
         try {
             const topTitles = [...base.charts, ...base.pages]

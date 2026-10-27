@@ -166,12 +166,23 @@ function pageLine(page: CandidatePool["pages"][number]): string {
 }
 
 export function plannerPrompt(query: string, topTitles: string[]): string {
-    return `A reader searched Our World in Data (OWID) for: "${query}"
+    const angles =
+        "how it varies across countries today, its long-run history, breakdowns (by age, sex, cause, region, income), correlates and drivers (e.g. versus GDP per capita, health spending, education), and closely related topics"
+    const intro = `A reader searched Our World in Data (OWID) for: "${query}"
+
+OWID's keyword search only matches words in titles and descriptions, and only returns content that contains every word of the search.`
+
+    if (!topTitles.length)
+        return `${intro} This search found nothing, usually because it is phrased as a question or sentence.
+
+Suggest up to ${MAX_EXPANSION_QUERIES} short keyword searches (2 to 4 words each, using words likely to appear in OWID chart or article titles) that would find content to answer it. Start with the searches that capture what the reader is asking about most directly, then cover other main angles of the topic: ${angles}.`
+
+    return `${intro}
 
 Our keyword search found these as the top matches:
 ${topTitles.map((title) => "- " + title).join("\n")}
 
-OWID's keyword search only matches words in titles and descriptions. Suggest up to ${MAX_EXPANSION_QUERIES} additional short keyword searches (2 to 4 words each, using words likely to appear in OWID chart or article titles) that would find content covering the other main angles of this topic: how it varies across countries today, its long-run history, breakdowns (by age, sex, cause, region, income), correlates and drivers (e.g. versus GDP per capita, health spending, education), and closely related topics. Don't repeat the original search. If the search is already very specific, suggest fewer.`
+Suggest up to ${MAX_EXPANSION_QUERIES} additional short keyword searches (2 to 4 words each, using words likely to appear in OWID chart or article titles) that would find content covering the other main angles of this topic: ${angles}. Don't repeat the original search. If the search is already very specific, suggest fewer.`
 }
 
 export const PLANNER_SCHEMA = {
