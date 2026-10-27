@@ -16,12 +16,10 @@
     }
 }
 
-// The divider needs key data above it and revealed content below it
 .bespoke-metadata-box
     .metadata-box-key-data
     + .metadata-box-expander
     .metadata-box-expander__details[open] {
-    border-top: 1px solid $blue-20;
     margin-top: 16px;
 }
 
