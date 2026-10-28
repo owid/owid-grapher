@@ -50,6 +50,27 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             time: 1985,
             timeEnd: 2005,
         },
+        {
+            // inside the segment from 1913 to 1950
+            text: "Two world wars and the Spanish flu left few reliable records of life expectancy.",
+            entities: ["World"],
+            time: 1915,
+            timeEnd: 1940,
+        },
+        {
+            // spans the Europe 1950 point
+            text: "The Second World War and its aftermath disrupted vital registration across Europe.",
+            entities: ["Europe"],
+            time: 1940,
+            timeEnd: 1960,
+        },
+        {
+            // ends after the last data point
+            text: "Projections assume continued recovery after the COVID-19 pandemic.",
+            entities: ["Asia"],
+            time: 2015,
+            timeEnd: 2030,
+        },
     ],
     // share-of-children-immunized-dtp3
     1077436: [
@@ -85,6 +106,12 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             text: "The 2015–16 El Niño was one of the strongest on record.",
             entities: ["World"],
             time: "2016-02-15",
+        },
+        {
+            text: "Global temperatures stayed high for a year around the El Niño peak.",
+            entities: ["World"],
+            time: "2015-06-15",
+            timeEnd: "2016-06-15",
         },
     ],
 }
