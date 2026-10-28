@@ -9,6 +9,11 @@ export type PointAnnotation = Extract<
     { timeScope: "point"; entityNames: EntityName[] }
 >
 
+export type RangeAnnotation = Extract<
+    IndicatorAnnotation,
+    { timeScope: "range"; entityNames: EntityName[] }
+>
+
 function isPointAnnotation(
     annotation: IndicatorAnnotation
 ): annotation is PointAnnotation {
@@ -17,7 +22,14 @@ function isPointAnnotation(
     )
 }
 
-/** Point annotations for an entity within a time range, in time order */
+function isRangeAnnotation(
+    annotation: IndicatorAnnotation
+): annotation is RangeAnnotation {
+    return (
+        annotation.timeScope === "range" && annotation.entityNames !== undefined
+    )
+}
+
 export function selectEntityPointAnnotations(
     annotations: IndicatorAnnotation[],
     entityName: EntityName,
@@ -33,4 +45,21 @@ export function selectEntityPointAnnotations(
                 annotation.time <= endTime
         )
         .sort((a, b) => a.time - b.time)
+}
+
+export function selectEntityRangeAnnotations(
+    annotations: IndicatorAnnotation[],
+    entityName: EntityName,
+    timeRange: TimeRange
+): RangeAnnotation[] {
+    const [windowStart, windowEnd] = timeRange
+    return annotations
+        .filter(isRangeAnnotation)
+        .filter(
+            (annotation) =>
+                annotation.entityNames.includes(entityName) &&
+                annotation.startTime <= windowEnd &&
+                annotation.endTime >= windowStart
+        )
+        .sort((a, b) => a.startTime - b.startTime)
 }
