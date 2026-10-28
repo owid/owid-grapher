@@ -32,6 +32,8 @@ export interface Env {
     ALGOLIA_INDEX_PREFIX?: string
     CATALOG_URL: string
     USER_SURVEYS_R2?: R2Bucket
+    // Workers AI binding; only configured where /api/search?rerank= is enabled
+    AI?: Ai
 }
 // We collect the possible extensions here so we can easily take them into account
 // when handling redirects

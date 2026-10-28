@@ -31,6 +31,8 @@ CLOUDFLARE_ACCOUNT_ID=078fcdfed9955087315dd86792e71a7e
 
 `make setup.worktree` copies both into new worktrees' `.env` from the main checkout.
 
+The experimental `/api/search?rerank=jev` also calls Workers AI through the same token, so it needs **Workers AI (Read)** on top. Without it everything else works and the parameter falls back to the unreranked order, with the error in the response's `rerank.error`.
+
 Note: the compatibility date is defined in [`wrangler.jsonc`](../wrangler.jsonc) at the repo root, which is the authoritative source for local development, previews and production alike (not the Cloudflare dashboard). The e2e tests carry their own copy in [`test/wrangler.e2e.jsonc`](./test/wrangler.e2e.jsonc) — keep the two in sync.
 
 3. _Refer to each function's "Development" section below for further instructions._
