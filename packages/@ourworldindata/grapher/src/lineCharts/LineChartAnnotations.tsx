@@ -1,6 +1,6 @@
 import React from "react"
 import Tippy from "@tippyjs/react"
-import { SeriesName, Time } from "@ourworldindata/types"
+import { SeriesName } from "@ourworldindata/types"
 import { pointsToPath, roundForSvg } from "@ourworldindata/utils"
 import {
     LINE_STYLE,
@@ -10,13 +10,14 @@ import {
     RenderRangeAnnotation,
 } from "./LineChartConstants"
 import { AnnotationInfoIcon } from "../annotations/AnnotationInfoIcon"
+import { AnnotationMarker } from "../annotations/EntityAnnotations"
 import { SeriesLabelAnnotations } from "../seriesLabel/SeriesLabelAnnotations"
 
 interface LineChartPointAnnotationsProps {
     annotations: RenderPointAnnotation[]
     radius: number
     hitRadius: number
-    onClick: (seriesName: SeriesName, time: Time) => void
+    onClick: (seriesName: SeriesName, marker: AnnotationMarker) => void
     onTooltipClose: () => void
 }
 
@@ -62,7 +63,12 @@ export function LineChartPointAnnotations({
                             // nearest point and unmount this marker mid-click
                             onTouchStart={(event) => event.stopPropagation()}
                             onMouseMove={(event) => event.stopPropagation()}
-                            onClick={() => onClick(seriesName, point.time)}
+                            onClick={() =>
+                                onClick(seriesName, {
+                                    timeScope: "point",
+                                    time: point.time,
+                                })
+                            }
                         >
                             <circle r={hitRadius} fill="transparent" />
                             <AnnotationInfoIcon

@@ -14,6 +14,7 @@ import { Emphasis } from "../interaction/Emphasis"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants"
 import {
+    AnnotationMarker,
     PointAnnotation,
     RangeAnnotation,
 } from "../annotations/EntityAnnotations"
@@ -158,7 +159,7 @@ export interface LineChartManager extends ChartManager {
 export type AnnotationTooltipState =
     | { kind: "idle" }
     | { kind: "labelOpen"; seriesName: SeriesName; hasAnnotations: boolean }
-    | { kind: "markerOpen"; seriesName: SeriesName; time: Time }
+    | { kind: "markerOpen"; seriesName: SeriesName; marker: AnnotationMarker }
 
 export type AnnotationTooltipEvent =
     | {
@@ -167,5 +168,5 @@ export type AnnotationTooltipEvent =
           hasAnnotations: boolean
       }
     | { type: "labelTooltipHide"; seriesName: SeriesName }
-    | { type: "markerClick"; seriesName: SeriesName; time: Time }
+    | { type: "markerClick"; seriesName: SeriesName; marker: AnnotationMarker }
     | { type: "markerTooltipClose" }
