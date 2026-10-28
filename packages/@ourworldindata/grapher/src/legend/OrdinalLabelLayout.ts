@@ -72,18 +72,15 @@ function placeBinLabels({
         Math.min(x, maxWidth - textWraps[index].width)
     )
     const rights = lefts.map((left, index) => left + textWraps[index].width)
+    const { previousIndices, nextIndices } = findSameSideNeighbors(sides)
 
     return bins.map(({ x }, index) => {
         const left = lefts[index]
 
-        const nextSameSideBin = bins.find(
-            (_, otherIndex) =>
-                otherIndex > index && sides[otherIndex] === sides[index]
-        )
-        const previousSameSideIndex = bins.findLastIndex(
-            (_, otherIndex) =>
-                otherIndex < index && sides[otherIndex] === sides[index]
-        )
+        const nextSameSideIndex = nextIndices[index]
+        const nextSameSideBin =
+            nextSameSideIndex >= 0 ? bins[nextSameSideIndex] : undefined
+        const previousSameSideIndex = previousIndices[index]
 
         const canRunIntoPrevious = left < x && previousSameSideIndex >= 0
         const intrusionIntoPrevious = canRunIntoPrevious
@@ -102,6 +99,28 @@ function placeBinLabels({
             overflow,
         }
     })
+}
+
+function findSameSideNeighbors(sides: LabelSide[]): {
+    previousIndices: number[]
+    nextIndices: number[]
+} {
+    const previousIndices = new Array<number>(sides.length).fill(-1)
+    const nextIndices = new Array<number>(sides.length).fill(-1)
+
+    const lastIndexBySide: Partial<Record<LabelSide, number>> = {}
+    for (let index = 0; index < sides.length; index++) {
+        previousIndices[index] = lastIndexBySide[sides[index]] ?? -1
+        lastIndexBySide[sides[index]] = index
+    }
+
+    const nextIndexBySide: Partial<Record<LabelSide, number>> = {}
+    for (let index = sides.length - 1; index >= 0; index--) {
+        nextIndices[index] = nextIndexBySide[sides[index]] ?? -1
+        nextIndexBySide[sides[index]] = index
+    }
+
+    return { previousIndices, nextIndices }
 }
 
 type LabelLayoutScore = [
