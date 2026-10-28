@@ -776,6 +776,7 @@ export class LineChart
             const { seriesName, displayName, color, focus } = series
             const lastValue = R.last(series.points)!.y
             const hover = this.hoverStateForSeries(series)
+            const seriesForLabel = this.findSeriesForLabel(series)
             return {
                 color,
                 seriesName,
@@ -785,13 +786,15 @@ export class LineChart
                     seriesName
                 ),
                 annotations: toSeriesLabelAnnotations(
-                    _.sortBy(
-                        this.findSeriesForLabel(series).flatMap(
+                    {
+                        pointAnnotations: seriesForLabel.flatMap(
                             (s) => s.pointAnnotations
                         ),
-                        (annotation) => annotation.time
-                    ),
-                    (time) => this.chartState.formatColumn.formatTime(time)
+                        rangeAnnotations: seriesForLabel.flatMap(
+                            (s) => s.rangeAnnotations
+                        ),
+                    },
+                    this.chartState.formatColumn
                 ),
                 yValue: lastValue,
                 emphasis: resolveEmphasis({ focus, hover }),
