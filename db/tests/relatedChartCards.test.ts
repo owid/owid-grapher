@@ -137,6 +137,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+    // Leaves the database empty: everything in it was created by this file
     if (knexInstance) await cleanTestDb(knexInstance)
     await Promise.allSettled([knexInstance?.destroy()])
 })

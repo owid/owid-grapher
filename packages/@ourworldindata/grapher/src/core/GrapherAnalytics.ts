@@ -163,7 +163,7 @@ export class GrapherAnalytics {
             event: EventCategory.SiteClick,
             eventAction: action,
             eventTarget: label,
-            ...(context !== undefined && { eventContext: context }),
+            eventContext: context,
         })
     }
 
