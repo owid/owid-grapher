@@ -25,6 +25,7 @@ import {
     LinePoint,
     PlacedLineChartSeries,
     PlacedPoint,
+    PlacedRangeAnnotation,
     RenderLineChartSeries,
 } from "./LineChartConstants"
 import { DualAxis, HorizontalAxis } from "../axis/Axis"
@@ -35,6 +36,7 @@ import {
     getHoverStateForSeries,
 } from "../chart/ChartUtils"
 import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
+import { RangeAnnotation } from "../annotations/EntityAnnotations"
 import { SeriesLabelAnnotation } from "../seriesLabel/SeriesLabelState"
 
 export type AnnotationsMap = Map<PrimitiveType, Set<PrimitiveType>>
@@ -167,8 +169,75 @@ export function toPlacedLineChartSeries(
                 return point ? { annotation, point } : undefined
             })
         )
-        return { ...series, placedPoints, placedPointAnnotations }
+        const placedRangeAnnotations = excludeUndefined(
+            series.rangeAnnotations.map((annotation) =>
+                placeRangeAnnotation(annotation, placedPoints)
+            )
+        )
+        return {
+            ...series,
+            placedPoints,
+            placedPointAnnotations,
+            placedRangeAnnotations,
+        }
     })
+}
+
+export function placeRangeAnnotation(
+    annotation: RangeAnnotation,
+    placedPoints: readonly PlacedPoint[]
+): PlacedRangeAnnotation | undefined {
+    const { startTime, endTime } = annotation
+    const startIndex = placedPoints.findIndex(
+        (point) => point.time >= startTime
+    )
+    const endIndex = placedPoints.findLastIndex(
+        (point) => point.time <= endTime
+    )
+    if (startIndex === -1 || endIndex === -1) return undefined
+
+    const startsMidSegment =
+        startIndex > 0 && placedPoints[startIndex].time > startTime
+    const endsMidSegment =
+        endIndex < placedPoints.length - 1 &&
+        placedPoints[endIndex].time < endTime
+
+    const midSegmentStart = startsMidSegment
+        ? placePointOnSegment(
+              placedPoints[startIndex - 1],
+              placedPoints[startIndex],
+              startTime
+          )
+        : undefined
+    const midSegmentEnd = endsMidSegment
+        ? placePointOnSegment(
+              placedPoints[endIndex],
+              placedPoints[endIndex + 1],
+              endTime
+          )
+        : undefined
+
+    const points = excludeUndefined([
+        midSegmentStart,
+        ...placedPoints.slice(startIndex, endIndex + 1),
+        midSegmentEnd,
+    ])
+
+    return { annotation, points }
+}
+
+function placePointOnSegment(
+    a: PlacedPoint,
+    b: PlacedPoint,
+    time: Time
+): PlacedPoint {
+    const fraction = (time - a.time) / (b.time - a.time)
+    return {
+        time,
+        x: a.x + (b.x - a.x) * fraction,
+        y: a.y + (b.y - a.y) * fraction,
+        color: a.color,
+    }
 }
 
 /**

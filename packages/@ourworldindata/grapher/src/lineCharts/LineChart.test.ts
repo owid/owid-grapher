@@ -516,6 +516,27 @@ describe("point annotations", () => {
         ).toEqual([["data", pointIn2001]])
     })
 
+    it("places ranges on the line and leaves the ones off it unplaced", () => {
+        const { chart } = makeAnnotatedChart({
+            annotations: [
+                rangeAnnotation("off the line", 1990, 1995),
+                rangeAnnotation("on the line", 2000, 2001),
+            ],
+        })
+
+        const [series] = chart.placedSeries
+        expect(series.rangeAnnotations.map((a) => a.text)).toEqual([
+            "off the line",
+            "on the line",
+        ])
+        expect(
+            series.placedRangeAnnotations.map((placed) => [
+                placed.annotation.text,
+                placed.points,
+            ])
+        ).toEqual([["on the line", series.placedPoints.slice(0, 2)]])
+    })
+
     it("drops annotations outside the start and end time", () => {
         const { chart } = makeAnnotatedChart({
             annotations: [
