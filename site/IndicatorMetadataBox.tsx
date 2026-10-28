@@ -85,6 +85,44 @@ function groupFaqsByQuestion(
     return questions
 }
 
+function IndicatorDataDetails({
+    datapageData,
+}: {
+    datapageData: DataPageDataV2
+}): React.ReactElement | null {
+    const { unit, dateRange, lastUpdated, nextUpdate } = datapageData
+    if (!unit && !dateRange && !lastUpdated && !nextUpdate) return null
+    return (
+        <MetadataBoxSection
+            title="Data details"
+            className="indicator-metadata-box__data-details"
+        >
+            <MetadataBoxKeyData>
+                {unit && (
+                    <MetadataBoxKeyDataRow label="Unit">
+                        {unit}
+                    </MetadataBoxKeyDataRow>
+                )}
+                {dateRange && (
+                    <MetadataBoxKeyDataRow label="Date range">
+                        {makeDateRange({ dateRange })}
+                    </MetadataBoxKeyDataRow>
+                )}
+                {lastUpdated && (
+                    <MetadataBoxKeyDataRow label="Last updated">
+                        {makeLastUpdated({ lastUpdated })}
+                    </MetadataBoxKeyDataRow>
+                )}
+                {nextUpdate && (
+                    <MetadataBoxKeyDataRow label="Next expected update">
+                        {makeNextUpdate({ nextUpdate })}
+                    </MetadataBoxKeyDataRow>
+                )}
+            </MetadataBoxKeyData>
+        </MetadataBoxSection>
+    )
+}
+
 function IndicatorMetadataSections({
     datapageData,
     className,
@@ -166,6 +204,7 @@ function IndicatorMetadataSections({
                     />
                 </div>
             )}
+            <IndicatorDataDetails datapageData={datapageData} />
             <MetadataBoxSection
                 title="Frequently asked questions"
                 id="faqs"
@@ -425,30 +464,6 @@ export default function IndicatorMetadataBox({
                         labelClassName="metadata-box-key-data__key--source"
                     >
                         {sourceString}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.unit && (
-                    <MetadataBoxKeyDataRow label="Unit">
-                        {datapageData.unit}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.dateRange && (
-                    <MetadataBoxKeyDataRow label="Date range">
-                        {makeDateRange({ dateRange: datapageData.dateRange })}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.lastUpdated && (
-                    <MetadataBoxKeyDataRow label="Last updated">
-                        {makeLastUpdated({
-                            lastUpdated: datapageData.lastUpdated,
-                        })}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.nextUpdate && (
-                    <MetadataBoxKeyDataRow label="Next expected update">
-                        {makeNextUpdate({
-                            nextUpdate: datapageData.nextUpdate,
-                        })}
                     </MetadataBoxKeyDataRow>
                 )}
             </MetadataBoxKeyData>

@@ -126,6 +126,13 @@
     gap: 8px 24px;
 }
 
+// The section heading above already spaces it
+.indicator-metadata-box
+    .indicator-metadata-box__data-details
+    .metadata-box-key-data {
+    margin-top: 0;
+}
+
 .indicator-metadata-box .metadata-box-key-data__key,
 .indicator-metadata-box .metadata-box-key-data__value {
     @include body-3-regular;
