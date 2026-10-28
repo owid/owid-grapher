@@ -1,4 +1,5 @@
 import {
+    AnnotationTimeScope,
     EntityName,
     IndicatorAnnotation,
     TimeRange,
@@ -12,6 +13,11 @@ export type PointAnnotation = Extract<
 export type RangeAnnotation = Extract<
     IndicatorAnnotation,
     { timeScope: "range"; entityNames: EntityName[] }
+>
+
+export type AnnotationMarker = Extract<
+    AnnotationTimeScope,
+    { timeScope: "point" | "range" }
 >
 
 function isPointAnnotation(

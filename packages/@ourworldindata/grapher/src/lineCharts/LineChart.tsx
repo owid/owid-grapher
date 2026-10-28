@@ -17,6 +17,7 @@ import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { SeriesLabelTooltip } from "../seriesLabel/SeriesLabel"
 import { VerticalLabels } from "../verticalLabels/VerticalLabels"
+import { AnnotationMarker } from "../annotations/EntityAnnotations"
 import { VerticalLabelsState } from "../verticalLabels/VerticalLabelsState"
 import { TooltipState } from "../tooltip/Tooltip"
 import { LineChartTooltip } from "./LineChartTooltip"
@@ -68,6 +69,7 @@ import {
     findClosestTimeAtMouse,
     getAnnotationsForSeries,
     getYAxisConfigDefaults,
+    isMarkerTooltipOpen,
     toPlacedLineChartSeries,
     toRenderLineChartSeries,
     toSeriesLabelAnnotations,
@@ -294,7 +296,7 @@ export class LineChart
 
     @action.bound private onAnnotationMarkerClick(
         seriesName: SeriesName,
-        time: Time
+        marker: AnnotationMarker
     ): void {
         this.chartState.focusArray.clear()
         this.dismissTooltip()
@@ -302,7 +304,7 @@ export class LineChart
         this.dispatchAnnotationTooltipEvent({
             type: "markerClick",
             seriesName,
-            time,
+            marker,
         })
     }
 
@@ -738,11 +740,12 @@ export class LineChart
 
     @computed private get renderPointAnnotations(): RenderPointAnnotation[] {
         return this.renderSeries.flatMap((series, index) => {
-            const state = this.annotationTooltipState
             const isTooltipOpenAt = (time: Time): boolean =>
-                state.kind === "markerOpen" &&
-                state.seriesName === series.seriesName &&
-                state.time === time
+                isMarkerTooltipOpen(
+                    this.annotationTooltipState,
+                    series.seriesName,
+                    { timeScope: "point", time }
+                )
             return series.placedPointAnnotations
                 .filter(
                     ({ point }) =>
