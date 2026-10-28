@@ -1071,7 +1071,7 @@ class DateColumn<
  * We don't use dayjs here because its `diff`, `add` and `startOf` are quite
  * slow, and we call these methods on many table rows in hot paths.
  */
-abstract class CalendarPeriodColumn<
+abstract class MonthBasedPeriodColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
 > extends DayColumn<TABLE_TYPE, DEF_TYPE> {
@@ -1132,7 +1132,7 @@ abstract class CalendarPeriodColumn<
 class MonthColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
-> extends CalendarPeriodColumn<TABLE_TYPE, DEF_TYPE> {
+> extends MonthBasedPeriodColumn<TABLE_TYPE, DEF_TYPE> {
     override intervalName = "Month"
     override preposition = "in"
     protected monthsPerPeriod = 1
@@ -1196,7 +1196,7 @@ class WeekColumn<
 class QuarterColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
-> extends CalendarPeriodColumn<TABLE_TYPE, DEF_TYPE> {
+> extends MonthBasedPeriodColumn<TABLE_TYPE, DEF_TYPE> {
     override intervalName = "Quarter"
     override preposition = "in"
     protected monthsPerPeriod = 3
