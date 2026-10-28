@@ -161,13 +161,13 @@ export function toPlacedLineChartSeries(
         const placedPointsByTime = new Map(
             placedPoints.map((point) => [point.time, point])
         )
-        const placedAnnotations = excludeUndefined(
+        const placedPointAnnotations = excludeUndefined(
             series.pointAnnotations.map((annotation) => {
                 const point = placedPointsByTime.get(annotation.time)
                 return point ? { annotation, point } : undefined
             })
         )
-        return { ...series, placedPoints, placedAnnotations }
+        return { ...series, placedPoints, placedPointAnnotations }
     })
 }
 

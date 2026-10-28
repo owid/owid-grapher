@@ -105,12 +105,12 @@ export interface LineChartSeries extends ChartSeries {
     rangeAnnotations: RangeAnnotation[]
 }
 
-export interface PlacedAnnotation {
+export interface PlacedPointAnnotation {
     annotation: PointAnnotation
     point: PlacedPoint
 }
 
-export interface RenderAnnotation extends PlacedAnnotation {
+export interface RenderPointAnnotation extends PlacedPointAnnotation {
     key: string
     seriesName: SeriesName
     emphasis: Emphasis
@@ -119,7 +119,7 @@ export interface RenderAnnotation extends PlacedAnnotation {
 
 export interface PlacedLineChartSeries extends LineChartSeries {
     placedPoints: PlacedPoint[]
-    placedAnnotations: PlacedAnnotation[]
+    placedPointAnnotations: PlacedPointAnnotation[]
 }
 
 export interface RenderLineChartSeries extends PlacedLineChartSeries {

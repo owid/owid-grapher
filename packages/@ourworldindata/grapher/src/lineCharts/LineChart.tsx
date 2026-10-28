@@ -48,7 +48,7 @@ import {
     ELEVATED_MARKER_RADIUS,
     AnnotationTooltipEvent,
     AnnotationTooltipState,
-    RenderAnnotation,
+    RenderPointAnnotation,
 } from "./LineChartConstants"
 import {
     getHoverStateForSeries,
@@ -530,7 +530,7 @@ export class LineChart
                     />
                 )}
                 <LineChartAnnotationMarkers
-                    annotations={this.renderAnnotations}
+                    annotations={this.renderPointAnnotations}
                     radius={this.annotationMarkerRadius}
                     hitRadius={this.annotationMarkerHitRadius}
                     onClick={this.onAnnotationMarkerClick}
@@ -667,7 +667,7 @@ export class LineChart
                 .filter(
                     (series) =>
                         !series.hover.background &&
-                        series.placedAnnotations.some(({ point }) =>
+                        series.placedPointAnnotations.some(({ point }) =>
                             this.isAtHoveredTime(point.time)
                         )
                 )
@@ -675,14 +675,14 @@ export class LineChart
         )
     }
 
-    @computed private get renderAnnotations(): RenderAnnotation[] {
+    @computed private get renderPointAnnotations(): RenderPointAnnotation[] {
         return this.renderSeries.flatMap((series, index) => {
             const state = this.annotationTooltipState
             const isTooltipOpenAt = (time: Time): boolean =>
                 state.kind === "markerOpen" &&
                 state.seriesName === series.seriesName &&
                 state.time === time
-            return series.placedAnnotations
+            return series.placedPointAnnotations
                 .filter(
                     ({ point }) =>
                         isTooltipOpenAt(point.time) ||

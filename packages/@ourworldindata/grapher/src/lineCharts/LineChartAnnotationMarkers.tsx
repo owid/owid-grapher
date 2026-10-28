@@ -2,12 +2,12 @@ import React from "react"
 import Tippy from "@tippyjs/react"
 import { SeriesName, Time } from "@ourworldindata/types"
 import { roundForSvg } from "@ourworldindata/utils"
-import { LINE_STYLE, RenderAnnotation } from "./LineChartConstants"
+import { LINE_STYLE, RenderPointAnnotation } from "./LineChartConstants"
 import { AnnotationInfoIcon } from "../annotations/AnnotationInfoIcon"
 import { SeriesLabelAnnotations } from "../seriesLabel/SeriesLabelAnnotations"
 
 interface LineChartAnnotationMarkersProps {
-    annotations: RenderAnnotation[]
+    annotations: RenderPointAnnotation[]
     radius: number
     hitRadius: number
     onClick: (seriesName: SeriesName, time: Time) => void

@@ -509,7 +509,7 @@ describe("point annotations", () => {
             "data",
         ])
         expect(
-            series.placedAnnotations.map((placed) => [
+            series.placedPointAnnotations.map((placed) => [
                 placed.annotation.text,
                 placed.point,
             ])
