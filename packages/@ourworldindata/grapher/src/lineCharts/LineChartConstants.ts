@@ -32,6 +32,10 @@ export const VARIABLE_COLOR_MARKER_RADIUS = 2.2
 export const DISCONNECTED_DOTS_MARKER_RADIUS = 2.6
 export const STATIC_SMALL_MARKER_RADIUS = 3
 
+// Range annotation outline
+export const RANGE_ANNOTATION_OUTLINE_WIDTH = 8
+export const RANGE_ANNOTATION_OUTLINE_OPACITY = 0.3
+
 // Line outline
 export const DEFAULT_LINE_OUTLINE_WIDTH = 0.5
 export const VARIABLE_COLOR_LINE_OUTLINE_WIDTH = 1.0
@@ -113,6 +117,7 @@ export interface PlacedPointAnnotation {
 export interface PlacedRangeAnnotation {
     annotation: RangeAnnotation
     points: PlacedPoint[]
+    snappedTimeRange: { startTime: Time; endTime: Time }
 }
 
 export interface RenderPointAnnotation extends PlacedPointAnnotation {
@@ -120,6 +125,12 @@ export interface RenderPointAnnotation extends PlacedPointAnnotation {
     seriesName: SeriesName
     emphasis: Emphasis
     isTooltipOpen: boolean
+}
+
+export interface RenderRangeAnnotation extends PlacedRangeAnnotation {
+    key: string
+    seriesName: SeriesName
+    emphasis: Emphasis
 }
 
 export interface PlacedLineChartSeries extends LineChartSeries {

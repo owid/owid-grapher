@@ -223,7 +223,16 @@ export function placeRangeAnnotation(
         midSegmentEnd,
     ])
 
-    return { annotation, points }
+    const snappedTimeRange = {
+        startTime: startsMidSegment
+            ? placedPoints[startIndex - 1].time
+            : placedPoints[startIndex].time,
+        endTime: endsMidSegment
+            ? placedPoints[endIndex + 1].time
+            : placedPoints[endIndex].time,
+    }
+
+    return { annotation, points, snappedTimeRange }
 }
 
 function placePointOnSegment(

@@ -146,6 +146,10 @@ describe(placeRangeAnnotation, () => {
         )
 
         expect(placed?.points).toEqual([placedPoints[1], placedPoints[2]])
+        expect(placed?.snappedTimeRange).toEqual({
+            startTime: 2010,
+            endTime: 2020,
+        })
     })
 
     it("cuts the line where both ends fall between data points", () => {
@@ -159,6 +163,10 @@ describe(placeRangeAnnotation, () => {
             placedPoints[1],
             placedPoint(2015, 150, 25),
         ])
+        expect(placed?.snappedTimeRange).toEqual({
+            startTime: 2000,
+            endTime: 2020,
+        })
     })
 
     it("cuts a range inside one segment at both ends", () => {
@@ -171,6 +179,10 @@ describe(placeRangeAnnotation, () => {
             placedPoint(2002, 20, 80),
             placedPoint(2008, 80, 20),
         ])
+        expect(placed?.snappedTimeRange).toEqual({
+            startTime: 2000,
+            endTime: 2010,
+        })
     })
 
     it("stops at the ends of the line when the range runs past them", () => {
@@ -180,6 +192,10 @@ describe(placeRangeAnnotation, () => {
         )
 
         expect(placed?.points).toEqual(placedPoints)
+        expect(placed?.snappedTimeRange).toEqual({
+            startTime: 2000,
+            endTime: 2030,
+        })
     })
 
     it("keeps a range that touches the line only at its first or last point", () => {
