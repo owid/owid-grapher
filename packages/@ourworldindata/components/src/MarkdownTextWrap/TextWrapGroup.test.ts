@@ -1,6 +1,7 @@
 import { expect, it, describe } from "vitest"
 
 import * as React from "react"
+import { Bounds } from "@ourworldindata/utils"
 import {
     getDodUnderlineSegments,
     getLineWidth,
@@ -431,7 +432,8 @@ describe(TextWrapGroup, () => {
 
         const svg = fragment.toSVG() as React.ReactElement<{ dx?: number }>
         expect(svg.type).toEqual("tspan")
-        expect(svg.props.dx).toEqual(4)
+        const spaceWidth = Bounds.forText(" ", fragment.fontParams).width
+        expect(svg.props.dx! + spaceWidth).toBeCloseTo(4)
 
         const html = fragment.toHTML() as React.ReactElement<{
             style: React.CSSProperties

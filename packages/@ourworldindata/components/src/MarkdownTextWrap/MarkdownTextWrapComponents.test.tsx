@@ -6,10 +6,10 @@ import { describe, expect, it } from "vitest"
 import { render } from "@testing-library/react"
 import { MarkdownTextWrap } from "./MarkdownTextWrap.js"
 import { AbstractTokenTextWrap } from "./AbstractTokenTextWrap.js"
-import {
-    FIGMA_TEXT_NODE_BREAK_DY,
-    MarkdownTextWrapSvg,
-} from "./MarkdownTextWrapComponents.js"
+import { TextWrapGroup } from "./TextWrapGroup.js"
+import { FIGMA_TEXT_NODE_BREAK_DY } from "./IRTokens.js"
+import { MarkdownTextWrapSvg } from "./MarkdownTextWrapComponents.js"
+import { Bounds, FontFamily } from "@ourworldindata/utils"
 
 function renderLines(
     textWrap: AbstractTokenTextWrap,
@@ -106,6 +106,38 @@ describe(MarkdownTextWrapSvg, () => {
     ])("keeps a line that $case on one baseline", ({ text, textAnchor }) => {
         const [line] = renderLines(markdown(text), textAnchor)
 
+        expect(nudgedRuns(line)).toEqual([])
+    })
+
+    it("renders a fragment's inline gap as a leading space plus the remaining dx", () => {
+        const title = new TextWrapGroup({
+            fragments: [
+                { text: "Population" },
+                {
+                    text: "2024",
+                    fontFamily: FontFamily.Lato,
+                    fontWeight: 700,
+                    inlineGap: 6,
+                },
+            ],
+            fontFamily: FontFamily.PlayfairDisplay,
+            fontSize: 24,
+            maxWidth: 1000,
+        })
+
+        const [line] = renderLines(title)
+
+        expect(line.textContent).toBe("Population 2024")
+        const suffix = Array.from(line.querySelectorAll("tspan")).find(
+            (tspan) => tspan.textContent === " 2024"
+        )!
+        const spaceWidth = Bounds.forText(" ", {
+            fontSize: 24,
+            fontWeight: 700,
+            fontFamily: FontFamily.Lato,
+        }).width
+        expect(Number(suffix.getAttribute("dx")) + spaceWidth).toBeCloseTo(6)
+        expect(suffix.getAttribute("xml:space")).toBe("preserve")
         expect(nudgedRuns(line)).toEqual([])
     })
 })
