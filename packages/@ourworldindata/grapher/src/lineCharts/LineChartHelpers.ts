@@ -36,7 +36,10 @@ import {
     getHoverStateForSeries,
 } from "../chart/ChartUtils"
 import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
-import { RangeAnnotation } from "../annotations/EntityAnnotations"
+import {
+    AnnotationMarker,
+    RangeAnnotation,
+} from "../annotations/EntityAnnotations"
 import { SeriesLabelAnnotation } from "../seriesLabel/SeriesLabelState"
 
 export type AnnotationsMap = Map<PrimitiveType, Set<PrimitiveType>>
@@ -359,15 +362,35 @@ export function transitionAnnotationTooltipState(
                 ? { kind: "idle" }
                 : state
         )
-        .with({ type: "markerClick" }, ({ seriesName, time }) =>
-            state.kind === "markerOpen" &&
-            state.seriesName === seriesName &&
-            state.time === time
+        .with({ type: "markerClick" }, ({ seriesName, marker }) =>
+            isMarkerTooltipOpen(state, seriesName, marker)
                 ? { kind: "idle" }
-                : { kind: "markerOpen", seriesName, time }
+                : { kind: "markerOpen", seriesName, marker }
         )
         .with({ type: "markerTooltipClose" }, () =>
             state.kind === "markerOpen" ? { kind: "idle" } : state
         )
         .exhaustive()
+}
+
+export function isMarkerTooltipOpen(
+    state: AnnotationTooltipState,
+    seriesName: SeriesName,
+    marker: AnnotationMarker
+): boolean {
+    return (
+        state.kind === "markerOpen" &&
+        state.seriesName === seriesName &&
+        isSameMarker(state.marker, marker)
+    )
+}
+
+function isSameMarker(a: AnnotationMarker, b: AnnotationMarker): boolean {
+    if (a.timeScope === "point")
+        return b.timeScope === "point" && a.time === b.time
+    return (
+        b.timeScope === "range" &&
+        a.startTime === b.startTime &&
+        a.endTime === b.endTime
+    )
 }

@@ -14,7 +14,7 @@ import { OwidTable } from "@ourworldindata/core-table"
 const markerOpen: AnnotationTooltipState = {
     kind: "markerOpen",
     seriesName: "France",
-    time: 2000,
+    marker: { timeScope: "point", time: 2000 },
 }
 
 describe(transitionAnnotationTooltipState, () => {
@@ -22,7 +22,11 @@ describe(transitionAnnotationTooltipState, () => {
         expect(
             transitionAnnotationTooltipState(
                 { kind: "idle" },
-                { type: "markerClick", seriesName: "France", time: 2000 }
+                {
+                    type: "markerClick",
+                    seriesName: "France",
+                    marker: { timeScope: "point", time: 2000 },
+                }
             )
         ).toEqual(markerOpen)
     })
@@ -32,7 +36,7 @@ describe(transitionAnnotationTooltipState, () => {
             transitionAnnotationTooltipState(markerOpen, {
                 type: "markerClick",
                 seriesName: "France",
-                time: 2000,
+                marker: { timeScope: "point", time: 2000 },
             })
         ).toEqual({ kind: "idle" })
     })
@@ -42,9 +46,32 @@ describe(transitionAnnotationTooltipState, () => {
             transitionAnnotationTooltipState(markerOpen, {
                 type: "markerClick",
                 seriesName: "France",
-                time: 2010,
+                marker: { timeScope: "point", time: 2010 },
             })
-        ).toEqual({ kind: "markerOpen", seriesName: "France", time: 2010 })
+        ).toEqual({
+            kind: "markerOpen",
+            seriesName: "France",
+            marker: { timeScope: "point", time: 2010 },
+        })
+    })
+
+    it("tells a range marker from a point marker at its start time", () => {
+        const rangeMarker = {
+            timeScope: "range",
+            startTime: 2000,
+            endTime: 2010,
+        } as const
+        expect(
+            transitionAnnotationTooltipState(markerOpen, {
+                type: "markerClick",
+                seriesName: "France",
+                marker: rangeMarker,
+            })
+        ).toEqual({
+            kind: "markerOpen",
+            seriesName: "France",
+            marker: rangeMarker,
+        })
     })
 
     it("replaces an open marker tooltip with a label tooltip", () => {
