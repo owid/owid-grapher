@@ -42,10 +42,6 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
 
-// Where the data source's processing link points when the indicator has no
-// processing notes of its own
-const PROCESSING_NOTICE_ID = "processing-notice"
-
 interface IndicatorMetadataSectionsProps {
     datapageData: DataPageDataV2
     className?: string
@@ -384,7 +380,7 @@ function IndicatorMetadataSections({
                 </MetadataBoxSection>
             )}
             <MetadataBoxSection className="indicator-metadata-box__reuse-notice">
-                <p id={PROCESSING_NOTICE_ID}>
+                <p>
                     All data and visualizations on Our World in Data rely on
                     data sourced from one or several original data providers.
                     Preparing this original data involves several processing
@@ -440,9 +436,10 @@ export default function IndicatorMetadataBox({
     const sourceString = makeSource({
         attribution,
         owidProcessingLevel: datapageData.owidProcessingLevel,
-        processingId: descriptionProcessing
-            ? INDICATOR_PROCESSING_SECTION_ID
-            : PROCESSING_NOTICE_ID,
+        // Only link the processing phrase when there are processing notes to
+        // point it at
+        isEmbeddedInADataPage: !!descriptionProcessing,
+        processingId: INDICATOR_PROCESSING_SECTION_ID,
     })
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
