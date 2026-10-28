@@ -211,8 +211,13 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
     }
 
     @computed private get unsortedSeries(): SwimlaneSeries[] {
-        const { rawSegmentsByEntityName, visibleTimeRange, colorScale } = this
-        if (!visibleTimeRange) return []
+        const {
+            rawSegmentsByEntityName,
+            visibleTimeRange,
+            colorScale,
+            timeColumn,
+        } = this
+        if (!visibleTimeRange || !timeColumn) return []
 
         return Array.from(rawSegmentsByEntityName).map(
             ([entityName, rawSegments]): SwimlaneSeries => {
@@ -220,7 +225,7 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
                     rawSegments,
                     visibleTimeRange,
                     colorScale,
-                    timeColumn: this.inputTable.timeColumn,
+                    timeColumn,
                 })
 
                 return {

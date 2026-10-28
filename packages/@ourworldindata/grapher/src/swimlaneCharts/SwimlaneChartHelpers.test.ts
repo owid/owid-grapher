@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import { convertDateToDaysSinceEpoch, dayjs } from "@ourworldindata/utils"
 import { ColumnTypeNames, Time } from "@ourworldindata/types"
-import { CoreColumn, OwidTable, TimeColumn } from "@ourworldindata/core-table"
+import { OwidTable, TimeColumn } from "@ourworldindata/core-table"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import { FocusArray } from "../focus/FocusArray"
 import { CategoricalBin } from "../color/ColorScaleBin"
@@ -241,12 +241,14 @@ describe(formatSegmentTimeRange, () => {
     function makeTimeColumn(
         type: ColumnTypeNames,
         times: number[]
-    ): CoreColumn {
-        const table = new OwidTable(
+    ): TimeColumn {
+        const { timeColumn } = new OwidTable(
             times.map((time) => ({ entityName: "France", time })),
             [{ slug: "time", type }]
         )
-        return table.timeColumn
+        if (!(timeColumn instanceof TimeColumn))
+            throw new Error("No time column")
+        return timeColumn
     }
 
     it("formats a run of years as a range", () => {

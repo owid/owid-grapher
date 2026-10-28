@@ -1,5 +1,5 @@
 import { SeriesName, Time } from "@ourworldindata/types"
-import { CoreColumn, TimeColumn } from "@ourworldindata/core-table"
+import { TimeColumn } from "@ourworldindata/core-table"
 import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import { resolveEmphasis } from "../interaction/Emphasis"
 import { InteractionState } from "../interaction/InteractionState"
@@ -77,7 +77,7 @@ export function toSwimlaneSegments({
     rawSegments: RawSwimlaneSegment[]
     visibleTimeRange: SwimlaneVisibleTimeRange
     colorScale: ColorScale
-    timeColumn: CoreColumn
+    timeColumn: TimeColumn
 }): SwimlaneSegment[] {
     const { startTime: firstVisibleTime, endTime: lastVisibleTime } =
         visibleTimeRange
@@ -120,7 +120,7 @@ export function formatSegmentTimeRange({
 }: {
     startTime: Time
     endTime: Time
-    timeColumn: CoreColumn
+    timeColumn: TimeColumn
 }): string {
     if (startTime === endTime) return timeColumn.formatTime(startTime)
     return timeColumn.formatTimeRange(startTime, endTime)
