@@ -43,6 +43,7 @@ import {
     findFinestCommonTimeInterval,
     diffDatesInDays,
     convertDateToDaysSinceEpoch,
+    convertDaysSinceEpochToDate,
     toStartOfDayUtc,
     epochDate,
     sentenceCaseIfNotTopicPage,
@@ -687,6 +688,40 @@ describe(convertDateToDaysSinceEpoch, () => {
         expect(
             convertDateToDaysSinceEpoch(dayjs.utc("2020-01-22T12:00:00Z"))
         ).toEqual(1)
+    })
+})
+
+describe(convertDaysSinceEpochToDate, () => {
+    it.each([
+        { days: 0, date: "2020-01-21" },
+        { days: 39, date: "2020-02-29" }, // leap day
+        { days: -21, date: "2019-12-31" },
+        { days: -153363, date: "1600-02-29" }, // leap day of a leap century
+    ])("converts day $days to UTC midnight on $date", ({ days, date }) => {
+        const result = convertDaysSinceEpochToDate(days)
+        expect(result.isUTC()).toBe(true)
+        expect(result.toISOString()).toEqual(`${date}T00:00:00.000Z`)
+        expect(convertDateToDaysSinceEpoch(result)).toEqual(days)
+    })
+
+    it("rounds fractional days to the nearest day", () => {
+        expect(convertDaysSinceEpochToDate(0.4).toISOString()).toEqual(
+            "2020-01-21T00:00:00.000Z"
+        )
+        expect(convertDaysSinceEpochToDate(0.6).toISOString()).toEqual(
+            "2020-01-22T00:00:00.000Z"
+        )
+        expect(convertDaysSinceEpochToDate(-0.6).toISOString()).toEqual(
+            "2020-01-20T00:00:00.000Z"
+        )
+    })
+
+    it("returns UTC midnight whatever the local timezone", () => {
+        timezoneMock.register("US/Pacific")
+        expect(
+            convertDaysSinceEpochToDate(1).format("YYYY-MM-DD HH:mm")
+        ).toEqual("2020-01-22 00:00")
+        timezoneMock.unregister()
     })
 })
 

@@ -241,7 +241,8 @@ export const toStartOfDayUtc = (date: dayjs.Dayjs): dayjs.Dayjs =>
     date.valueOf() % MS_PER_DAY === 0 ? date : date.utc().startOf("day")
 
 export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {
-    return epochDate().add(dayAsYear, "days")
+    // Same as epochDate().add(dayAsYear, "days"), but faster!
+    return dayjs.utc(epochDate().valueOf() + Math.round(dayAsYear) * MS_PER_DAY)
 }
 
 // Inverse of convertDaysSinceEpochToDate.
