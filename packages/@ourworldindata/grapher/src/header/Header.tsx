@@ -455,10 +455,6 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
                     <a
                         id={makeFigmaId("title")}
                         href={manager.canonicalUrl}
-                        style={{
-                            fontFamily:
-                                "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
-                        }}
                         {...openLinkInNewTabAttrs(manager.isInIFrame)}
                     >
                         <MarkdownTextWrapSvg
