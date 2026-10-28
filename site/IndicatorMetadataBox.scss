@@ -32,11 +32,11 @@
 .indicator-metadata-box
     .metadata-box-expander:has(> .metadata-box-expander__preview) {
     border-top: 1px solid $blue-20;
-    margin-top: 12px;
+    margin-top: 16px;
 }
 
 .indicator-metadata-box .metadata-box-expander__preview {
-    margin-top: 12px;
+    margin-top: 16px;
 }
 
 .indicator-metadata-box .metadata-box-expander__prose {
