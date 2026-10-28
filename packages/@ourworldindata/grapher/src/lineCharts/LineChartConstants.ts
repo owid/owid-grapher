@@ -132,6 +132,8 @@ export interface RenderRangeAnnotation extends PlacedRangeAnnotation {
     key: string
     seriesName: SeriesName
     emphasis: Emphasis
+    heading: string
+    isTooltipOpen: boolean
 }
 
 export interface PlacedLineChartSeries extends LineChartSeries {

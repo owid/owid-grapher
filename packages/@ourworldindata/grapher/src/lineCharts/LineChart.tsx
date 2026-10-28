@@ -240,6 +240,10 @@ export class LineChart
         return getMinHitAreaSize() / 2
     }
 
+    @computed private get annotationRangeHitWidth(): number {
+        return getMinHitAreaSize()
+    }
+
     @computed private get isTooltipActive(): boolean {
         return this.manager.tooltip?.get()?.id === this.tooltipId
     }
@@ -528,6 +532,9 @@ export class LineChart
                 {this.renderChartElements()}
                 <LineChartRangeAnnotations
                     annotations={this.renderRangeAnnotations}
+                    hitWidth={this.annotationRangeHitWidth}
+                    onClick={this.onAnnotationMarkerClick}
+                    onTooltipClose={this.onAnnotationTooltipClose}
                 />
 
                 {(this.isTooltipActive || this.hasTimeHighlights) && (
@@ -727,19 +734,32 @@ export class LineChart
     @computed private get renderRangeAnnotations(): RenderRangeAnnotation[] {
         return this.renderSeries.flatMap((series, index) =>
             series.placedRangeAnnotations
+                .map((placedAnnotation) => {
+                    const { startTime, endTime } = placedAnnotation.annotation
+                    return {
+                        ...placedAnnotation,
+                        key: `${getSeriesKey(series, index)}-${startTime}-${endTime}`,
+                        seriesName: series.seriesName,
+                        emphasis: series.emphasis,
+                        heading: this.chartState.formatColumn.formatTimeRange(
+                            startTime,
+                            endTime
+                        ),
+                        isTooltipOpen: isMarkerTooltipOpen(
+                            this.annotationTooltipState,
+                            series.seriesName,
+                            { timeScope: "range", startTime, endTime }
+                        ),
+                    }
+                })
                 .filter(
-                    ({ snappedTimeRange }) =>
-                        !series.hover.background &&
-                        (series.seriesName ===
-                            this.verticalLabelTooltipSeriesName ||
-                            this.isActiveTimeInRange(snappedTimeRange))
+                    ({ isTooltipOpen, snappedTimeRange }) =>
+                        isTooltipOpen ||
+                        (!series.hover.background &&
+                            (series.seriesName ===
+                                this.verticalLabelTooltipSeriesName ||
+                                this.isActiveTimeInRange(snappedTimeRange)))
                 )
-                .map((placedAnnotation) => ({
-                    ...placedAnnotation,
-                    key: `${getSeriesKey(series, index)}-${placedAnnotation.annotation.startTime}-${placedAnnotation.annotation.endTime}`,
-                    seriesName: series.seriesName,
-                    emphasis: series.emphasis,
-                }))
         )
     }
 

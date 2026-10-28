@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useRef } from "react"
 import Tippy from "@tippyjs/react"
 import { SeriesName } from "@ourworldindata/types"
 import { pointsToPath, roundForSvg } from "@ourworldindata/utils"
@@ -81,28 +81,110 @@ export function LineChartPointAnnotations({
 
 interface LineChartRangeAnnotationsProps {
     annotations: RenderRangeAnnotation[]
+    hitWidth: number
+    onClick: (seriesName: SeriesName, marker: AnnotationMarker) => void
+    onTooltipClose: () => void
 }
 
 export function LineChartRangeAnnotations({
     annotations,
+    hitWidth,
+    onClick,
+    onTooltipClose,
 }: LineChartRangeAnnotationsProps): React.ReactElement {
     return (
         <g className="line-chart-range-annotations">
-            {annotations.map(({ key, points, emphasis }) => (
-                <path
-                    key={key}
-                    className="line-chart-range-annotations__outline"
-                    d={pointsToPath(points)}
-                    fill="none"
-                    stroke={points[0].color}
-                    strokeWidth={RANGE_ANNOTATION_OUTLINE_WIDTH}
-                    strokeOpacity={RANGE_ANNOTATION_OUTLINE_OPACITY}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    opacity={LINE_STYLE[emphasis].opacity}
-                    pointerEvents="none"
-                />
+            {annotations.map((renderAnnotation) => (
+                <g key={renderAnnotation.key}>
+                    <path
+                        className="line-chart-range-annotations__outline"
+                        d={pointsToPath(renderAnnotation.points)}
+                        fill="none"
+                        stroke={renderAnnotation.points[0].color}
+                        strokeWidth={RANGE_ANNOTATION_OUTLINE_WIDTH}
+                        strokeOpacity={RANGE_ANNOTATION_OUTLINE_OPACITY}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        opacity={LINE_STYLE[renderAnnotation.emphasis].opacity}
+                        pointerEvents="none"
+                    />
+                    <RangeAnnotationHitArea
+                        rangeAnnotation={renderAnnotation}
+                        hitWidth={hitWidth}
+                        onClick={onClick}
+                        onTooltipClose={onTooltipClose}
+                    />
+                </g>
             ))}
         </g>
+    )
+}
+
+interface RangeAnnotationHitAreaProps extends Omit<
+    LineChartRangeAnnotationsProps,
+    "annotations"
+> {
+    rangeAnnotation: RenderRangeAnnotation
+}
+
+function RangeAnnotationHitArea({
+    rangeAnnotation: { seriesName, points, heading, isTooltipOpen, annotation },
+    hitWidth,
+    onClick,
+    onTooltipClose,
+}: RangeAnnotationHitAreaProps): React.ReactElement {
+    const pathRef = useRef<SVGPathElement>(null)
+    const clickOffsetRef = useRef({ x: 0, y: 0 })
+
+    const getReferenceClientRect = (): DOMRect => {
+        const rect = pathRef.current?.getBoundingClientRect()
+        return new DOMRect(
+            (rect?.left ?? 0) + clickOffsetRef.current.x,
+            (rect?.top ?? 0) + clickOffsetRef.current.y,
+            0,
+            0
+        )
+    }
+
+    return (
+        <Tippy
+            theme="grapher-explanation"
+            placement="top"
+            arrow={false}
+            interactive
+            appendTo={() => document.body}
+            visible={isTooltipOpen}
+            onClickOutside={onTooltipClose}
+            getReferenceClientRect={getReferenceClientRect}
+            content={
+                <SeriesLabelAnnotations
+                    annotations={[{ heading, text: annotation.text }]}
+                />
+            }
+        >
+            <path
+                ref={pathRef}
+                className="line-chart-range-annotations__hit-area"
+                d={pointsToPath(points)}
+                fill="none"
+                stroke="transparent"
+                strokeWidth={hitWidth}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                pointerEvents="stroke"
+                onClick={(event) => {
+                    const rect = event.currentTarget.getBoundingClientRect()
+                    clickOffsetRef.current = {
+                        x: event.clientX - rect.left,
+                        y: event.clientY - rect.top,
+                    }
+                    onClick(seriesName, {
+                        timeScope: "range",
+                        startTime: annotation.startTime,
+                        endTime: annotation.endTime,
+                    })
+                }}
+            />
+        </Tippy>
     )
 }
