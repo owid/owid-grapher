@@ -7,7 +7,6 @@ import {
     ExpandableToggle,
     CodeSnippet,
     makeSource,
-    IndicatorProcessing,
     INDICATOR_PROCESSING_SECTION_ID,
     MetadataBoxExpander,
     MetadataBoxToggleButton,
@@ -42,6 +41,10 @@ import { splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
+
+// Where the data source's processing link points when the indicator has no
+// processing notes of its own
+const PROCESSING_NOTICE_ID = "processing-notice"
 
 interface IndicatorMetadataSectionsProps {
     datapageData: DataPageDataV2
@@ -229,23 +232,27 @@ function IndicatorMetadataSections({
                         }
                     />
                 ))}
-                <ExpandableToggle
-                    label="How did Our World in Data process this data?"
-                    contentId={INDICATOR_PROCESSING_SECTION_ID}
-                    content={
-                        <IndicatorProcessing
-                            descriptionProcessing={descriptionProcessing}
-                            trackNote="processing_link"
-                            dodTrackNote="processing"
-                        />
-                    }
-                    onToggle={(isOpen) =>
-                        analytics.logExpandableToggle(
-                            "how_owid_processed_data",
-                            isOpen
-                        )
-                    }
-                />
+                {descriptionProcessing && (
+                    <ExpandableToggle
+                        label="How did Our World in Data process this data?"
+                        contentId={INDICATOR_PROCESSING_SECTION_ID}
+                        content={
+                            <div className="indicator-metadata-box__processing-notes">
+                                <SimpleMarkdownText
+                                    text={descriptionProcessing}
+                                    dataTrackNote="processing_link"
+                                    dodTrackNote="processing"
+                                />
+                            </div>
+                        }
+                        onToggle={(isOpen) =>
+                            analytics.logExpandableToggle(
+                                "how_owid_processed_data",
+                                isOpen
+                            )
+                        }
+                    />
+                )}
             </MetadataBoxSection>
             {datapageData.descriptionFromProducer && (
                 <MetadataBoxSection title="Documentation from data sources">
@@ -377,7 +384,7 @@ function IndicatorMetadataSections({
                 </MetadataBoxSection>
             )}
             <MetadataBoxSection className="indicator-metadata-box__reuse-notice">
-                <p>
+                <p id={PROCESSING_NOTICE_ID}>
                     All data and visualizations on Our World in Data rely on
                     data sourced from one or several original data providers.
                     Preparing this original data involves several processing
@@ -428,11 +435,14 @@ export default function IndicatorMetadataBox({
     // expander per indicator, so we don't merge owners across datasets here.
     const owners = datapageData.owners?.[0]?.owners ?? []
 
+    const descriptionProcessing = datapageData.descriptionProcessing?.trim()
     const attribution = formatAttributions(datapageData.attributions ?? [])
     const sourceString = makeSource({
         attribution,
         owidProcessingLevel: datapageData.owidProcessingLevel,
-        processingId: INDICATOR_PROCESSING_SECTION_ID,
+        processingId: descriptionProcessing
+            ? INDICATOR_PROCESSING_SECTION_ID
+            : PROCESSING_NOTICE_ID,
     })
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
@@ -497,7 +507,7 @@ export default function IndicatorMetadataBox({
                 archiveContext={archiveContext}
                 primaryTopic={datapageData.primaryTopic}
                 title={datapageData.title}
-                descriptionProcessing={datapageData.descriptionProcessing}
+                descriptionProcessing={descriptionProcessing}
                 license={license}
             />
         </div>

@@ -1,6 +1,4 @@
 .indicator-metadata-box {
-    --indicator-processing-background: transparent;
-    --indicator-processing-title: #{$blue-90};
     --indicator-sources-key-data-title: #{$blue-50};
     --indicator-metadata-box-padding: 24px;
     padding: var(--indicator-metadata-box-padding);
@@ -256,32 +254,13 @@
     }
 }
 
-// The processing notes read as part of the answer rather than as a callout
-.indicator-metadata-box
-    .metadata-box-section--faqs
-    .indicator-processing
-    .indicator-processing-callout {
-    margin: 24px 0 0;
-    padding: 0;
-
-    .indicator-processing-callout__title {
-        @include body-3-bold;
-        letter-spacing: normal;
-        text-transform: none;
-        margin: 0;
-    }
-}
-
 // Free-form text in "Documentation from data sources", the source
 // descriptions and the processing notes: paragraphs a blank line apart,
 // headings in bold body text right above their paragraph, and bullets 8px
 // apart
 .indicator-metadata-box .indicator-metadata-box__producer-docs,
 .indicator-metadata-box .indicator-sources .source .description,
-.indicator-metadata-box
-    .indicator-processing
-    .indicator-processing-callout
-    .indicator-processing-callout__content {
+.indicator-metadata-box .indicator-metadata-box__processing-notes {
     // The content's first-child reset can't reach through this wrapper
     > :first-child {
         margin-top: 0;
