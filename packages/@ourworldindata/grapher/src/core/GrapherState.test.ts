@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import React from "react"
 import { expect, it, describe } from "vitest"
 import {
     GRAPHER_CHART_TYPES,
@@ -3118,5 +3119,33 @@ describe("time and year url params", () => {
                 expect(grapher.changedParams.time).toEqual(query)
             })
         })
+    })
+})
+
+describe("side panel renderer", () => {
+    const makeGrapher = (bounds: Bounds): GrapherState =>
+        new GrapherState({
+            bounds,
+            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+            selectedEntityNames: ["Spain", "Italy"],
+        })
+    const renderer = (): React.ReactElement => React.createElement("div")
+
+    it("keeps the side panel on tabs without an entity selector", () => {
+        const grapher = makeGrapher(new Bounds(0, 0, 1200, 800))
+        expect(grapher.canShowEntitySelector).toBe(false)
+        expect(grapher.sidePanelBounds).toBeUndefined()
+        const fullWidth = grapher.captionedChartBounds.width
+
+        grapher.sidePanelRenderer = renderer
+        expect(grapher.sidePanelBounds).toBeDefined()
+        expect(grapher.captionedChartBounds.width).toBeLessThan(fullWidth)
+    })
+
+    it("doesn't add a side panel where Grapher would use a modal or drawer", () => {
+        const grapher = makeGrapher(new Bounds(0, 0, 800, 600))
+        grapher.sidePanelRenderer = renderer
+        expect(grapher.sidePanelBounds).toBeUndefined()
     })
 })
