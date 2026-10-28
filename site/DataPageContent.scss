@@ -213,21 +213,6 @@
         color: $blue-50;
     }
 
-    .section-wrapper__related-charts {
-        .related-charts {
-            margin-bottom: 0;
-        }
-
-        figure[data-grapher-src],
-        figure.grapher-component {
-            height: $grapher-height;
-        }
-    }
-
-    .related-charts__title {
-        @include datapage-section-title;
-    }
-
     .wp-code-snippet {
         margin-bottom: 16px;
     }
