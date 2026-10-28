@@ -236,13 +236,16 @@ export function makeFigmaId(...unsafeKeys: (string | undefined)[]): string {
 
 export const epochDate = lazy(() => dayjs.utc(EPOCH_DATE))
 
+// The epoch as milliseconds since the Unix epoch, for plain date arithmetic
+const epochTimestamp = lazy(() => epochDate().valueOf())
+
 const MS_PER_DAY = 86_400_000
 export const toStartOfDayUtc = (date: dayjs.Dayjs): dayjs.Dayjs =>
     date.valueOf() % MS_PER_DAY === 0 ? date : date.utc().startOf("day")
 
 export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {
     // Same as epochDate().add(dayAsYear, "days"), but faster!
-    return dayjs.utc(epochDate().valueOf() + Math.round(dayAsYear) * MS_PER_DAY)
+    return dayjs.utc(epochTimestamp() + Math.round(dayAsYear) * MS_PER_DAY)
 }
 
 // Inverse of convertDaysSinceEpochToDate.
@@ -303,22 +306,49 @@ export function findFinestCommonTimeInterval(
 /**
  * Snap a time to the start of its interval, so indicators that pick different
  * representative days for the same period still align: month → first of the
- * month, quarter → first of the quarter, week → the ISO-week Monday. Day and
- * year are returned unchanged.
+ * month, quarter → first of the quarter, week → the ISO-week Monday, decade →
+ * the decade's first year. Day and year are returned unchanged.
  */
 export function snapToIntervalStart(
     time: number,
     interval: TimeInterval
 ): number {
     if (!Number.isFinite(time)) return time
-    const date = convertDaysSinceEpochToDate(time)
-    let start: dayjs.Dayjs
-    if (interval === TimeInterval.Month) start = date.startOf("month")
-    else if (interval === TimeInterval.Quarter) start = date.startOf("quarter")
-    else if (interval === TimeInterval.Week) start = date.startOf("isoWeek")
-    else return time
-    return convertDateToDaysSinceEpoch(start)
+    // Plain arithmetic and a native Date instead of dayjs, since this runs
+    // once per data point
+    const day = Math.round(time)
+    switch (interval) {
+        case TimeInterval.Day:
+        case TimeInterval.Year:
+            return time
+        case TimeInterval.Week: {
+            // Our epoch is a Tuesday, i.e. one day after an ISO-week Monday.
+            // We need the +1 below to align the epoch with the ISO-week Monday.
+            const daysSinceMonday = positiveModulo(day + 1, 7)
+            return day - daysSinceMonday
+        }
+        case TimeInterval.Month:
+        case TimeInterval.Quarter: {
+            const date = new Date(epochTimestamp() + day * MS_PER_DAY)
+            // Set the day before the month so the month change can't overflow
+            date.setUTCDate(1)
+            if (interval === TimeInterval.Quarter) {
+                const month = date.getUTCMonth()
+                date.setUTCMonth(month - (month % 3))
+            }
+            return Math.round((date.getTime() - epochTimestamp()) / MS_PER_DAY)
+        }
+        case TimeInterval.Decade:
+            return time - positiveModulo(time, 10)
+    }
 }
+
+/**
+ * Like `n % m`, but always in the range [0, m) for positive `m`, whereas
+ * JavaScript's `%` takes the sign of `n` (e.g. `-2 % 7` is `-2`, not `5`)
+ */
+export const positiveModulo = (n: number, m: number): number =>
+    ((n % m) + m) % m
 
 export const formatYear = (year: number): string => {
     if (isNaN(year)) {
