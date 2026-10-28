@@ -4,6 +4,7 @@ import { MINIMUM_BIN_LABEL_DISTANCE } from "./HorizontalColorLegendConstants"
 import { LabelSide, PositionedBin } from "./HorizontalColorLegendTypes"
 
 const MAX_SEARCHED_LABELS = 12
+const MAX_OVERRUN_INTO_NEXT_BIN = 0.5
 const LABEL_LINE_HEIGHT = 1.1
 
 export interface PlacedBinLabel {
@@ -24,7 +25,7 @@ export function layOutOrdinalLabels({
 }): PlacedBinLabel[] {
     const lastBin = _.last(bins)
     const lastBinRight = lastBin ? lastBin.x + lastBin.width : 0
-    const textWraps = wrapBinLabels({ bins, lastBinRight, fontSize })
+    const binLabelWraps = wrapBinLabels({ bins, lastBinRight, fontSize })
 
     // The number of side assignments grows exponentially with the number of
     // labels, so long legends only try all-above and alternating.
@@ -38,6 +39,7 @@ export function layOutOrdinalLabels({
 
     let best: { labels: PlacedBinLabel[]; score: LabelLayoutScore } | undefined
     for (const sides of candidates) {
+        const textWraps = pickTextWraps({ binLabelWraps, sides })
         const placed = placeBinLabels({
             bins,
             textWraps,
@@ -50,28 +52,6 @@ export function layOutOrdinalLabels({
             best = { labels: placed, score }
     }
     return best!.labels
-}
-
-function wrapBinLabels({
-    bins,
-    lastBinRight,
-    fontSize,
-}: {
-    bins: PositionedBin[]
-    lastBinRight: number
-    fontSize: number
-}): TextWrap[] {
-    return bins.map(
-        ({ x, bin }, index) =>
-            new TextWrap({
-                text: bin.text,
-                fontSize,
-                maxWidth: Math.ceil(
-                    findRightLimit(bins[index + 1], lastBinRight) - x
-                ),
-                lineHeight: LABEL_LINE_HEIGHT,
-            })
-    )
 }
 
 function placeBinLabels({
@@ -186,4 +166,66 @@ function findRightLimit(
     lastBinRight: number
 ): number {
     return next ? next.x - MINIMUM_BIN_LABEL_DISTANCE : lastBinRight
+}
+
+function findWidenedRightLimit(
+    bins: PositionedBin[],
+    index: number,
+    lastBinRight: number
+): number {
+    const next = bins[index + 1]
+    if (!next) return lastBinRight
+    const overrunLimit = next.x + MAX_OVERRUN_INTO_NEXT_BIN * next.width
+    const binAfterNextLimit = findRightLimit(bins[index + 2], lastBinRight)
+    return Math.min(overrunLimit, binAfterNextLimit)
+}
+
+interface BinLabelWraps {
+    contained: TextWrap
+    widened: TextWrap
+}
+
+function wrapBinLabels({
+    bins,
+    lastBinRight,
+    fontSize,
+}: {
+    bins: PositionedBin[]
+    lastBinRight: number
+    fontSize: number
+}): BinLabelWraps[] {
+    return bins.map(({ x, bin }, index) => {
+        const containedLimit = findRightLimit(bins[index + 1], lastBinRight)
+        const widenedLimit = findWidenedRightLimit(bins, index, lastBinRight)
+
+        const wrapTo = (maxWidth: number): TextWrap =>
+            new TextWrap({
+                text: bin.text,
+                fontSize,
+                maxWidth,
+                lineHeight: LABEL_LINE_HEIGHT,
+            })
+
+        const containedWidth = Math.ceil(containedLimit - x)
+        const widenedWidth = Math.ceil(widenedLimit - x)
+        const contained = wrapTo(containedWidth)
+        const widened =
+            widenedWidth === containedWidth ? contained : wrapTo(widenedWidth)
+
+        return { contained, widened }
+    })
+}
+
+function pickTextWraps({
+    binLabelWraps,
+    sides,
+}: {
+    binLabelWraps: BinLabelWraps[]
+    sides: LabelSide[]
+}): TextWrap[] {
+    return binLabelWraps.map(({ contained, widened }, index) =>
+        index + 1 < sides.length && sides[index + 1] !== sides[index]
+            ? widened
+            : contained
+    )
 }

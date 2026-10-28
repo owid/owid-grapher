@@ -20,16 +20,20 @@ function longestWordWidth(text: string): number {
     return Math.max(...text.split(" ").map(textWidth))
 }
 
+function categoricalBin(text: string, index: number): CategoricalBin {
+    return new CategoricalBin({
+        index,
+        value: text,
+        label: text,
+        color: "#888",
+    })
+}
+
 function binned(texts: string[], binWidth: number): PositionedBin[] {
     return texts.map((text, index) => ({
         x: index * binWidth,
         width: binWidth,
-        bin: new CategoricalBin({
-            index,
-            value: text,
-            label: text,
-            color: "#888",
-        }),
+        bin: categoricalBin(text, index),
     }))
 }
 
@@ -44,9 +48,12 @@ function expectCleanLayout(
 ): void {
     placed.forEach((label, index) => {
         const { x: left, bin } = bins[index]
-        const binRight = bins[index + 1]
-            ? bins[index + 1].x - MINIMUM_BIN_LABEL_DISTANCE
-            : findRightEdge(bins[index])
+        const next = bins[index + 1]
+        const binRight = !next
+            ? findRightEdge(bins[index])
+            : placed[index + 1].side === label.side
+              ? next.x - MINIMUM_BIN_LABEL_DISTANCE
+              : left + Math.ceil(next.x + next.width / 2 - left)
         const right = label.left + label.textWrap.width
         const isAtBinStart = label.left === left
         const isAtLegendEdge =
@@ -83,10 +90,15 @@ const MEDIUM = "Civil union or other partnership"
 const UNBREAKABLE = "Antidisestablishmentarianism"
 
 describe("wrapping", () => {
-    it("wraps each label to the space before the next bin", () => {
+    it("wraps a label to the space before the next bin when the next label is on the same side", () => {
         const bins = binned([LONG, MEDIUM, LONGER], 100)
         const placed = findBest(bins)
 
+        expect(placed.map((label) => label.side)).toEqual([
+            "above",
+            "above",
+            "above",
+        ])
         placed.forEach(({ textWrap }, index) => {
             const isLast = index === bins.length - 1
             expect(textWrap.width).toBeLessThanOrEqual(
@@ -94,6 +106,46 @@ describe("wrapping", () => {
             )
         })
         expectCleanLayout(bins, placed)
+    })
+
+    it("wraps a label up to halfway into the next bin when the next label is on the other side", () => {
+        const bins = binned([MEDIUM, UNBREAKABLE, "Legal"], 80)
+        const placed = findBest(bins)
+
+        expect(placed.map((label) => label.side)).toEqual([
+            "above",
+            "below",
+            "above",
+        ])
+        const { width } = placed[0].textWrap
+        expect(width).toBeGreaterThan(bins[1].x - MINIMUM_BIN_LABEL_DISTANCE)
+        expect(width).toBeLessThanOrEqual(bins[1].x + bins[1].width / 2)
+        expect(totalOverflow(placed)).toBe(0)
+    })
+
+    it("stops a widened wrap before the next label on the same side", () => {
+        const firstLineWhenUncapped = "Civil union or other"
+        const cappedLimit = Math.floor(textWidth(firstLineWhenUncapped)) - 2
+        const narrowBinWidth = MINIMUM_BIN_LABEL_DISTANCE
+        const nextSameSideX = cappedLimit + narrowBinWidth
+        const bins: PositionedBin[] = [
+            { x: 0, width: cappedLimit, bin: categoricalBin(MEDIUM, 0) },
+            {
+                x: cappedLimit,
+                width: narrowBinWidth,
+                bin: categoricalBin("Legal", 1),
+            },
+            { x: nextSameSideX, width: 80, bin: categoricalBin(MEDIUM, 2) },
+        ]
+        const placed = findBest(bins)
+
+        expect(placed.map((label) => label.side)).toEqual([
+            "above",
+            "below",
+            "above",
+        ])
+        expect(placed[0].textWrap.width).toBeLessThanOrEqual(cappedLimit)
+        expect(totalOverflow(placed)).toBe(0)
     })
 
     it("keeps a label whose words all fit inside its bin", () => {
@@ -230,6 +282,26 @@ describe(layOutOrdinalLabels, () => {
             "above",
             "below",
         ])
+        expect(totalOverflow(best)).toBe(0)
+    })
+
+    it("moves a label below the bins when that lets its neighbor widen onto fewer lines", () => {
+        const bins = binned(
+            [MEDIUM, "Unregistered cohabitation", "Varies by region"],
+            80
+        )
+        const best = findBest(bins, 240)
+
+        expect(best.map((label) => label.side)).toEqual([
+            "above",
+            "below",
+            "above",
+        ])
+        expect(best[0].textWrap.lineCount).toBe(2)
+        expect(
+            findMaxLabelHeight(best, "above") +
+                findMaxLabelHeight(best, "below")
+        ).toBe(best[0].textWrap.height + best[1].textWrap.height)
         expect(totalOverflow(best)).toBe(0)
     })
 
