@@ -1948,7 +1948,7 @@
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/FeaturedViz.md",
     "title": "Featured Viz",
     "prose": {
-      "intro": "A page built around one custom, interactive data visualization: a bespoke\ncomponent on a full-bleed hero band, with prose above and below it. Published\nunder `/featured-viz/{slug}`.",
+      "intro": "A page built around one custom, interactive data visualization: a bespoke\ncomponent on a full-bleed hero band, with prose above and below it.",
       "whenToUse": "- Presenting a single `{.bespoke-component}` as the page itself, rather than\n  as one block inside a longer piece.",
       "whenNotToUse": "- Prefer `{template:article}` when the visualization supports a narrative\n  with sections and several charts — an article embeds the same\n  `{.bespoke-component}` inline.\n- Prefer `{template:data-insight}` for a short, chart-led observation around\n  a static image.",
       "notes": "The hero is the first `{.bespoke-component}` in the body. The page keeps the\nviz's state in the URL, and when the bundle publishes metadata (origins or a\ndescription key) that metadata renders as a methods box beside the hero\ninstead of the component's own metadata modal."
