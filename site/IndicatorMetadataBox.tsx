@@ -377,6 +377,27 @@ function IndicatorMetadataSections({
                 </MetadataBoxSection>
             )}
             <MetadataBoxSection className="indicator-metadata-box__reuse-notice">
+                <p>
+                    All data and visualizations on Our World in Data rely on
+                    data sourced from one or several original data providers.
+                    Preparing this original data involves several processing
+                    steps. Depending on the data, this can include standardizing
+                    country names and world region definitions, converting
+                    units, calculating derived indicators such as per capita
+                    measures, as well as adding or adapting metadata such as the
+                    name or the description given to an indicator.
+                </p>
+                <p>
+                    At the link below you can find a detailed description of the
+                    structure of our data pipeline, including links to all the
+                    code used to prepare data across Our World in Data.{" "}
+                    <a
+                        href="https://docs.owid.io/projects/etl/"
+                        data-track-note="processing_link"
+                    >
+                        Read about our data pipeline
+                    </a>
+                </p>
                 <MetadataBoxReuseNotice>
                     <ChartLicenseNotice license={license} />
                 </MetadataBoxReuseNotice>
