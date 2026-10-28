@@ -1,10 +1,11 @@
 import { TextWrap } from "@ourworldindata/components"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
-import { Bounds, Point } from "@ourworldindata/utils"
+import { Bounds, Color, Point } from "@ourworldindata/utils"
 import { ChartSeries } from "../chart/ChartInterface.js"
 import { Emphasis } from "../interaction/Emphasis.js"
 
 export interface LabelSeries extends ChartSeries {
+    color: Color
     label: string
     yValue: number
     annotation?: string

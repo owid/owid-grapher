@@ -34,24 +34,23 @@ abstract class HotCommand {
         return pos ? this.program.findAll(pos) : []
     }
 
-    // handles the "this" binding needed by HOT
     toHotCommand(): MenuItemConfig {
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const baseCommand = this
         return {
-            name: function () {
-                return baseCommand.name(this)
-            },
-            callback: function () {
-                return baseCommand.callback(this)
-            },
-            disabled: function () {
-                return baseCommand.disabled(this)
-            },
-            hidden: function () {
-                return baseCommand.hidden(this)
-            },
+            name: withHotInstance((hot) => this.name(hot)),
+            callback: withHotInstance((hot) => this.callback(hot)),
+            disabled: withHotInstance((hot) => this.disabled(hot)),
+            hidden: withHotInstance((hot) => this.hidden(hot)),
         }
+    }
+}
+
+// Handsontable calls context menu item functions with the table instance as
+// `this`, so pass it on as a regular argument instead
+function withHotInstance<T>(
+    fn: (hot: Handsontable) => T
+): (this: Handsontable) => T {
+    return function (this: Handsontable) {
+        return fn(this)
     }
 }
 

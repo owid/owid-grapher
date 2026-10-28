@@ -17,8 +17,12 @@
 
 import type { SidecarProse } from "@ourworldindata/types"
 
-/** The kind of sidecar being parsed — templates and guides have no properties table */
-export type SidecarKind = "component" | "template" | "guide"
+/**
+ * The kind of sidecar being parsed — templates and guides have no properties
+ * table, and Notes is the only structural section of a bespoke bundle's
+ * docs.md
+ */
+export type SidecarKind = "component" | "template" | "guide" | "bundle"
 
 interface SidecarSectionSpec {
     /** Where the section's content ends up */
@@ -49,7 +53,7 @@ export const SIDECAR_SECTIONS: readonly SidecarSectionSpec[] = [
     {
         key: "notes",
         heading: "Notes",
-        kinds: ["component", "template", "guide"],
+        kinds: ["component", "template", "guide", "bundle"],
     },
 ]
 

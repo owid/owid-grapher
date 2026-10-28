@@ -74,20 +74,21 @@ const openLatest = async (page: Page, url = "/latest"): Promise<void> => {
 // the pinned bar's padding, which grows the bar's border box without touching
 // its content box, so a class applied afterwards leaves the reveal hook
 // holding a stale height and the bar parked too low.
+//
+// The cookie has to be in place before the first visit. On staging the
+// middleware assigns a random arm to a visitor without one and stamps its
+// class into the HTML, but leaves the ETag alone — so a reload with a
+// different cookie gets a 304, and the browser keeps the first visit's body
+// with both arms' classes on it.
 const openLatestInStickyFiltersArm = async (
     page: Page,
     arm: StickyFiltersArm
 ): Promise<void> => {
-    // Visit first only to learn the origin the cookie has to be scoped to,
-    // since the base URL differs between local dev and CI.
-    await page.goto("/latest")
-    await page.context().addCookies([
-        {
-            name: STICKY_FILTERS_COOKIE,
-            value: arm,
-            url: new URL(page.url()).origin,
-        },
-    ])
+    const { baseURL } = test.info().project.use
+    if (!baseURL) throw new Error("The Playwright config sets no baseURL")
+    await page
+        .context()
+        .addCookies([{ name: STICKY_FILTERS_COOKIE, value: arm, url: baseURL }])
     await page.addInitScript(
         ({ cookie, arm }) => {
             document.addEventListener("DOMContentLoaded", () =>
@@ -96,8 +97,7 @@ const openLatestInStickyFiltersArm = async (
         },
         { cookie: STICKY_FILTERS_COOKIE, arm }
     )
-    await page.reload()
-    await waitForFeed(page)
+    await openLatest(page)
 }
 
 // --- Actions ---

@@ -20,6 +20,7 @@ export {
     MarkdownTextWrapSvg,
     MarkdownTextWrapHtml,
 } from "./MarkdownTextWrap/MarkdownTextWrapComponents.js"
+export { FIGMA_TEXT_NODE_BREAK_DY } from "./MarkdownTextWrap/IRTokens.js"
 
 export {
     SimpleMarkdownText,

@@ -12,6 +12,7 @@ import {
     exposeInstanceOnWindow,
     makeFigmaId,
     bind,
+    guid,
     roundForSvg,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
@@ -88,6 +89,7 @@ export class StackedDiscreteBarChart
 
     private legendHoverSeriesName: SeriesName | undefined = undefined
 
+    private readonly tooltipId = guid()
     private readonly tooltipState = new TooltipState<{
         entityName: string
         seriesName?: string
@@ -561,7 +563,7 @@ export class StackedDiscreteBarChart
             target &&
             item && (
                 <Tooltip
-                    id="stackedDiscreteBarTooltip"
+                    id={this.tooltipId}
                     tooltipManager={this.manager}
                     x={position.x}
                     y={position.y}

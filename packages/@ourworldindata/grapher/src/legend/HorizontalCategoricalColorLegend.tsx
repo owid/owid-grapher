@@ -55,20 +55,37 @@ export function HorizontalCategoricalColorLegend(
                         }
                     )
 
-                    const fill = mark.bin.patternRef
-                        ? `url(#${mark.bin.patternRef})`
+                    const fill = mark.bin.fillPatternRef
+                        ? `url(#${mark.bin.fillPatternRef})`
                         : style.fill
 
+                    const geometry = {
+                        x: roundForSvg(x + mark.x),
+                        y: roundForSvg(y + mark.y),
+                        width: roundForSvg(mark.rectSize),
+                        height: roundForSvg(mark.rectSize),
+                    }
+
                     return (
-                        <rect
-                            id={makeFigmaId(mark.label.text)}
-                            key={`${mark.label}-${index}`}
-                            x={roundForSvg(x + mark.x)}
-                            y={roundForSvg(y + mark.y)}
-                            width={roundForSvg(mark.rectSize)}
-                            height={roundForSvg(mark.rectSize)}
-                            style={{ ...style, fill }}
-                        />
+                        <React.Fragment key={`${mark.label}-${index}`}>
+                            <rect
+                                id={makeFigmaId(mark.label.text)}
+                                {...geometry}
+                                style={{ ...style, fill }}
+                            />
+                            {mark.bin.overlayPatternRef && (
+                                <rect
+                                    id={makeFigmaId(
+                                        mark.label.text,
+                                        "projected-data-pattern"
+                                    )}
+                                    {...geometry}
+                                    fill={`url(#${mark.bin.overlayPatternRef})`}
+                                    opacity={style.opacity}
+                                    pointerEvents="none"
+                                />
+                            )}
+                        </React.Fragment>
                     )
                 })}
             </g>

@@ -1,6 +1,6 @@
 # The chart config
 
-The `config` object accepted by all three `GrapherLoader` factories is a standard Grapher config (`GrapherInterface`) — the same format OWID stores for every chart on the site. Commonly used fields include `title`, `subtitle`, `note`, `chartTypes`, `tab`, `hasMapTab`, and `selectedEntityNames`.
+The `config` object accepted by all three `GrapherLoader` factories is a [`GrapherProgrammaticInterface`](../api/reference/interfaces/GrapherProgrammaticInterface.md): a standard Grapher config (`GrapherInterface`) — the same format OWID stores for every chart on the site — plus [options beyond the schema](#options-beyond-the-schema). Commonly used fields include `title`, `subtitle`, `note`, `chartTypes`, `tab`, `hasMapTab`, and `selectedEntityNames`.
 
 ```js
 GrapherLoader.fromCsv({
@@ -22,4 +22,21 @@ and also shipped with the package as `@ourworldindata/grapher/grapher-schema.jso
 
 A browsable, field-by-field rendering of that schema is available in the [schema reference](../schema-reference/index.md).
 
-One note on requiredness: the schema describes **persisted** configs, which must carry `$schema` and `dimensions`. Configs passed to `GrapherLoader` are looser — `$schema` is never needed, and `dimensions` is only required for [`fromApi`](../api/index.md#grapherloaderfromapi-config-dataapiurl), where it says which indicators to fetch.
+## Options beyond the schema
+
+The config also accepts options that control how the chart is embedded and which parts of its interface are shown, rather than what it shows. They aren't part of the persisted schema; the full list is in the [`GrapherProgrammaticInterface`](../api/reference/interfaces/GrapherProgrammaticInterface.md) reference. The ones you're most likely to need:
+
+- `canonicalUrl` — the URL of the chart's own page, which the title and the "Explore the data" button link to and the share menu shares. By default it's derived from `slug` (as `/grapher/<slug>`, for published configs), which only resolves on ourworldindata.org. Pass `null` if the chart has no such page: the title is then plain text, and the "Explore the data" button and share menu are not shown.
+- `hideDownloadButton`, `hideShareButton`, `hideDonateButton`, `hideFullscreenButton` — set to `true` to remove these buttons below the chart. The "Donate" button is only shown when the chart is rendered inside an iframe.
+- `hideTitle`, `hideSubtitle`, `hideNote`, `hideEntityControls`, `hasTableTab` — trim parts of the chart's interface.
+
+```js
+GrapherLoader.fromCsv({
+    config: { ...config, canonicalUrl: null },
+    csvUrl: "./data.csv",
+}).mount(container)
+```
+
+## Requiredness
+
+The schema describes **persisted** configs, which must carry `$schema` and `dimensions`. Configs passed to `GrapherLoader` are looser — `$schema` is never needed (but recommended; if present it will be migrated to the latest schema version, easing package updates), and `dimensions` is only required for [`fromApi`](../api/index.md#grapherloaderfromapi-config-dataapiurl), where it says which indicators to fetch.

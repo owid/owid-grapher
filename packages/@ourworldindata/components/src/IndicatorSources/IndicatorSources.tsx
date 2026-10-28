@@ -23,6 +23,9 @@ export interface IndicatorSourcesProps {
     retrievedFromTrackNote?: string
     descriptionTrackNote?: string
     dodTrackNote?: string
+    /** Open links in a new tab, e.g. when rendered inside an iframe whose
+     *  host page can't be navigated away from. */
+    openLinksInNewTab?: boolean
 }
 
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
@@ -44,6 +47,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                         retrievedFromTrackNote={props.retrievedFromTrackNote}
                         descriptionTrackNote={props.descriptionTrackNote}
                         dodTrackNote={props.dodTrackNote}
+                        openLinksInNewTab={props.openLinksInNewTab}
                     />
                 )
                 const useExpandableToggle =
@@ -93,6 +97,7 @@ const SourceContent = (props: {
     retrievedFromTrackNote?: string
     descriptionTrackNote?: string
     dodTrackNote?: string
+    openLinksInNewTab?: boolean
 }) => {
     const { source } = props
     const retrievedOn = formatSourceDate(source.retrievedOn, "MMMM D, YYYY")
@@ -109,6 +114,7 @@ const SourceContent = (props: {
                         text={source.description.trim()}
                         dataTrackNote={props.descriptionTrackNote}
                         dodTrackNote={props.dodTrackNote}
+                        openLinksInNewTab={props.openLinksInNewTab}
                     />
                 </div>
             )}
@@ -124,6 +130,7 @@ const SourceContent = (props: {
                                     text={source.dataPublishedBy.trim()}
                                     dataTrackNote={props.descriptionTrackNote}
                                     dodTrackNote={props.dodTrackNote}
+                                    openLinksInNewTab={props.openLinksInNewTab}
                                 />
                             </div>
                         </div>
@@ -158,6 +165,8 @@ const SourceContent = (props: {
                                     {makeLinks({
                                         link: source.retrievedFrom,
                                         trackNote: props.retrievedFromTrackNote,
+                                        openLinksInNewTab:
+                                            props.openLinksInNewTab,
                                     })}
                                 </div>
                             </div>

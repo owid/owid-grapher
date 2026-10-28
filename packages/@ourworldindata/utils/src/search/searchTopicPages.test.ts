@@ -1,11 +1,13 @@
 import { expect, it, describe, vi } from "vitest"
 import {
+    FilterType,
     TagGraphNode,
     TagGraphRoot,
     TagGraphRootName,
 } from "@ourworldindata/types"
 import {
     rankTopicsOfChartHits,
+    recommendTopicPages,
     searchTopicPagesOfMatchingCharts,
 } from "./searchTopicPages.js"
 
@@ -145,7 +147,7 @@ describe(searchTopicPagesOfMatchingCharts, () => {
         pagesIndexName: "pages",
         query: "gdp",
         chartsFacetFilters: [],
-        tagGraph,
+        loadTagGraph: (): Promise<TagGraphRoot> => Promise.resolve(tagGraph),
         attributesToRetrieve: ["title", "slug"],
         offset: 0,
         length: 10,
@@ -264,7 +266,12 @@ describe(searchTopicPagesOfMatchingCharts, () => {
 
         const result = await searchTopicPagesOfMatchingCharts<MockHit>(
             client as never,
-            { ...params, query: "popul", tagGraph: tagGraphWithPopulation }
+            {
+                ...params,
+                query: "popul",
+                loadTagGraph: (): Promise<TagGraphRoot> =>
+                    Promise.resolve(tagGraphWithPopulation),
+            }
         )
 
         expect(result?.hits.map((hit) => hit.slug)).toEqual([
@@ -276,15 +283,80 @@ describe(searchTopicPagesOfMatchingCharts, () => {
         expect(secondRequest.queryType).toBe("prefixLast")
     })
 
-    it("returns undefined without querying pages when no chart matched", async () => {
+    it("returns undefined without querying pages or loading the tag graph when no chart matched", async () => {
         const client = makeClient([{ hits: [] }, { hits: [] }])
+        const loadTagGraph = vi.fn((): Promise<TagGraphRoot> =>
+            Promise.resolve(tagGraph)
+        )
 
         const result = await searchTopicPagesOfMatchingCharts<MockHit>(
+            client as never,
+            { ...params, loadTagGraph }
+        )
+
+        expect(result).toBeUndefined()
+        expect(loadTagGraph).not.toHaveBeenCalled()
+        expect(client.searchForHits).toHaveBeenCalledTimes(2)
+    })
+})
+
+describe(recommendTopicPages, () => {
+    const params = {
+        chartsIndexName: "charts",
+        pagesIndexName: "pages",
+        state: {
+            query: "max roser",
+            filters: [{ type: FilterType.TOPIC, name: "Health" }],
+            requireAllCountries: false,
+        },
+        loadTagGraph: (): Promise<TagGraphRoot> => Promise.resolve(tagGraph),
+        attributesToRetrieve: ["title", "slug"],
+        offset: 0,
+        length: 10,
+    }
+
+    it("searches the topic pages' text when no chart matches, without closest matches", async () => {
+        // The site and /api/search both answer through this function, so a
+        // query no chart matches must fall back the same way for both: one
+        // exact text search, and an empty answer when that finds nothing.
+        const client = makeClient([
+            { hits: [] }, // charts, whole words
+            { hits: [] }, // charts, prefix
+            { hits: [], nbHits: 0 }, // topic pages by text
+        ])
+
+        const result = await recommendTopicPages<MockHit>(
             client as never,
             params
         )
 
-        expect(result).toBeUndefined()
-        expect(client.searchForHits).toHaveBeenCalledTimes(2)
+        expect(result.hits).toEqual([])
+        expect(client.searchForHits).toHaveBeenCalledTimes(3)
+        const [textRequest] = client.searchForHits.mock.calls[2][0]
+        expect(textRequest).toMatchObject({
+            indexName: "pages",
+            query: "max roser",
+            filters: "type:topic-page OR type:linear-topic-page",
+            facetFilters: [["tags:Health"]],
+        })
+        expect(textRequest.removeWordsIfNoResults).toBeUndefined()
+    })
+
+    it("goes straight to the text search without a query, never loading the tag graph", async () => {
+        const client = makeClient([{ hits: [], nbHits: 0 }])
+        const loadTagGraph = vi.fn((): Promise<TagGraphRoot> =>
+            Promise.resolve(tagGraph)
+        )
+
+        await recommendTopicPages<MockHit>(client as never, {
+            ...params,
+            state: { ...params.state, query: " " },
+            loadTagGraph,
+        })
+
+        expect(loadTagGraph).not.toHaveBeenCalled()
+        expect(client.searchForHits).toHaveBeenCalledOnce()
+        const [textRequest] = client.searchForHits.mock.calls[0][0]
+        expect(textRequest.indexName).toBe("pages")
     })
 })

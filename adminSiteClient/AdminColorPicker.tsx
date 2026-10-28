@@ -26,7 +26,6 @@ import {
     type ColorPaletteKey,
     type PaletteGroup,
 } from "./colorPalettes.js"
-import "./AdminColorPicker.scss"
 
 interface AdminColorPickerProps {
     color?: string

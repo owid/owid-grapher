@@ -294,7 +294,6 @@ export const GdocFeaturedVizSettings = ({
                 gdoc={gdoc}
                 setCurrentGdoc={setCurrentGdoc}
                 errors={errors}
-                subdirectory="featured-viz/"
             />
             <div className="form-group">
                 <h3 className="form-section-heading">Featured viz settings</h3>

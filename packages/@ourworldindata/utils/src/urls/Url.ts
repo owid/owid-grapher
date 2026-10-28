@@ -8,7 +8,11 @@ import {
     omitUndefinedValues,
 } from "../Util.js"
 
-import { queryParamsToStr, strToQueryParams } from "./UrlUtils.js"
+import {
+    queryParamsToStr,
+    strToEncodedQueryParams,
+    strToQueryParams,
+} from "./UrlUtils.js"
 import * as R from "remeda"
 
 const parseUrl = (url: string): urlParseLib<string> => urlParseLib(url, {})
@@ -120,7 +124,7 @@ export class Url {
     }
 
     get encodedQueryParams(): QueryParams {
-        return strToQueryParams(this.queryStr, true)
+        return strToEncodedQueryParams(this.queryStr)
     }
 
     get isGoogleDoc(): boolean {

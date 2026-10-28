@@ -53,6 +53,7 @@ export const regionGroupLabels: Record<RegionGroupKey, string> = {
     ilo: "International Labour Organization regions",
     fao: "Food and Agriculture Organization regions",
     ihme_gbd: "IHME Global Burden of Disease regions",
+    ucdp: "Uppsala Conflict Data Program regions",
 
     // Publishers with no region definitions in regions.ts
     unsd: "UN Statistics Division regions",

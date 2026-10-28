@@ -5,18 +5,16 @@ import { action, computed, makeObservable, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 
 @observer
-export class EditorScatterTab<
-    Editor extends AbstractChartEditor,
-> extends Component<{
-    editor: Editor
+export class EditorScatterTab extends Component<{
+    editor: ConfigEditor
 }> {
     xOverrideTimeInputValue: number | undefined = undefined
     disposers: (() => void)[] = []
 
-    constructor(props: { editor: Editor }) {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this, {
             xOverrideTimeInputValue: observable,
@@ -84,12 +82,16 @@ export class EditorScatterTab<
                         value={!!grapherState.hideConnectedScatterLines}
                         onValue={this.onToggleConnection}
                     />
-                    <NumberField
-                        label="Override X axis target year"
-                        value={this.xOverrideTimeInputValue}
-                        onValue={(val) => (this.xOverrideTimeInputValue = val)}
-                        allowNegative
-                    />
+                    {grapherState.canOverrideXTime && (
+                        <NumberField
+                            label="Override X axis target year"
+                            value={this.xOverrideTimeInputValue}
+                            onValue={(val) =>
+                                (this.xOverrideTimeInputValue = val)
+                            }
+                            allowNegative
+                        />
+                    )}
                 </Section>
                 <Section name="Point Labels">
                     <SelectField

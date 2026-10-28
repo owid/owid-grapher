@@ -1,0 +1,10 @@
+{
+    // For `yarn testPackage:typecheck`; the declarations are built from
+    // ../../../tsconfig.editor-dts.json
+    "extends": "../../../devTools/tsconfigs/tsconfig.base.json",
+    "include": ["src/**/*.ts", "../grapher/src/styles.d.ts"],
+    "compilerOptions": {
+        "composite": false,
+        "noEmit": true
+    }
+}

@@ -90,7 +90,7 @@ export const SidebarTableOfContents = ({
     // Close the mobile drawer if the viewport grows to desktop (resize /
     // rotate / zoom) so it isn't stranded over the sidebar.
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false)
-    const isDesktop = useMediaQuery(`(min-width: ${SIDEBAR_TOC_SM + 1}px)`)
+    const isDesktop = useMediaQuery(`(width >= ${SIDEBAR_TOC_SM + 1}px)`)
     if (isDesktop && isMobileDrawerOpen) setIsMobileDrawerOpen(false)
 
     // No H1 sections → no sidebar. This is intentional: an LTP with no H1s is

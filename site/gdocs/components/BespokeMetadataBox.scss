@@ -103,6 +103,14 @@
 }
 
 .bespoke-metadata-box
+    .metadata-box-section--faqs
+    .indicator-processing
+    .indicator-processing-callout {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.bespoke-metadata-box
     .bespoke-metadata-sections__citation
     .citation__paragraph {
     color: $blue-90;

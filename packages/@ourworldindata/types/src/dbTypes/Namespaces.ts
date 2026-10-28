@@ -3,7 +3,7 @@ export interface DbInsertNamespace {
     createdAt?: Date
     description?: string | null
     id?: number
-    isArchived?: number
+    isArchived?: boolean
     name: string
     updatedAt?: Date
 }

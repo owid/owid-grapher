@@ -22,7 +22,8 @@ export const RECORD_WITHOUT_POPULATION = {
 } as RawYearRecord
 
 export const METADATA: RawMigrantDemographicsMetadata = {
-    meta: { title: "t", source: "s", unit: "persons" },
+    attribution: "s",
+    meta: { title: "t", unit: "persons" },
     ageBands: ["0-4", "5+"],
     years: [2010, 2020],
     entities: [

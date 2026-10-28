@@ -4,16 +4,12 @@ import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import fs from "fs-extra"
 import path from "path"
-import workerpool from "workerpool"
 import * as _ from "lodash-es"
+import pMap from "p-map"
 
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
-import {
-    JOB_TIMEOUT_MS,
-    MAX_WORKERS,
-    grapherSlugToExportFileKey,
-} from "./utils.js"
+import { JOB_TIMEOUT_MS, grapherSlugToExportFileKey } from "./utils.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
     SVG_TESTER_SUITES,
@@ -149,36 +145,45 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         // know how much of it is left from the start.
         reportProgress()
 
-        const pool = workerpool.pool(__dirname + "/worker.ts", {
-            minWorkers: 2,
-            maxWorkers: MAX_WORKERS,
-            workerThreadOpts: {
-                execArgv: ["--require", "tsx"],
-            },
-        })
+        const pool = utils.createWorkerPool()
 
-        const progress = utils.startProgress(testSuite, jobCount, pool, {
+        // Jobs are handed to the pool only once a thread is free, because a
+        // job's timeout starts when it's submitted: submitting the whole suite
+        // at once would time out every job still queued once the run passed
+        // JOB_TIMEOUT_MS. So the queue lives here rather than in the pool.
+        let submitted = 0
+        const queue = {
+            get queueSize(): number {
+                return jobCount - submitted + pool.queueSize
+            },
+        }
+
+        const progress = utils.startProgress(testSuite, jobCount, queue, {
             withOutcomes: true,
             onTick: reportProgress,
         })
 
-        // Parallelize the CPU heavy verification using the workerpool library
-        // This call will then in parallel take the descriptions of the verifyJobs,
-        // load the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
-        // the reference csv file (from the referenceDataByChartKey lookup above). The entire parallel operation returns a promise containing an array
-        // of result values.
+        // Parallelize the CPU heavy verification using the tinypool library,
+        // with pMap keeping at most one job per thread in flight (see above).
+        // Each job loads the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
+        // the reference csv file (from the referenceDataByChartKey lookup above). pMap resolves to the results in
+        // the order of verifyJobs.
         let validationResults: utils.VerifyResult[]
         try {
-            validationResults = await Promise.all(
-                verifyJobs.map((job) =>
-                    pool
-                        .exec("renderAndVerifySvg", [job])
-                        .timeout(JOB_TIMEOUT_MS)
+            validationResults = await pMap(
+                verifyJobs,
+                (job) => {
+                    submitted += 1
+                    return pool
+                        .run(job, {
+                            name: "renderAndVerifySvg",
+                            signal: AbortSignal.timeout(JOB_TIMEOUT_MS),
+                        })
                         .catch((err: Error) => {
                             // Only pool-level rejections reach here - a job that
                             // throws is caught inside renderAndVerifySvg, which
                             // logs it and resolves. So nothing else reports these.
-                            if (err?.name === "TimeoutError")
+                            if (err?.name === "AbortError")
                                 console.warn(
                                     `${job.dir.viewId}: timed out after ${JOB_TIMEOUT_MS}ms`
                                 )
@@ -199,7 +204,8 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                             completed.push(result)
                             return result
                         })
-                )
+                },
+                { concurrency: pool.options.maxThreads }
             )
         } finally {
             progress.stop()

@@ -28,6 +28,7 @@ import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartManager } from "./ChartManager"
 import {
+    SVG_FONT_FAMILY,
     SVG_STYLE_PROPS,
     BASE_FONT_SIZE,
     Patterns,
@@ -309,28 +310,6 @@ export function NoDataPattern({
     )
 }
 
-export function InapplicablePattern({
-    patternId = Patterns.inapplicablePattern,
-    scale = 1,
-}: {
-    patternId?: string
-    scale?: number
-}): React.ReactElement {
-    const roundedScale = R.round(scale, 3)
-    return (
-        <pattern
-            id={patternId}
-            patternUnits="userSpaceOnUse"
-            width="4"
-            height="4"
-            patternTransform={`rotate(-45 2 2) scale(${roundedScale})`}
-        >
-            <rect width="4" height="4" fill="#ccc" />
-            <path d="M -1,2 l 6,0" stroke="#fff" strokeWidth={0.7} />
-        </pattern>
-    )
-}
-
 export function ChartPatternDefs({
     scale = 1,
     idSuffix,
@@ -342,13 +321,6 @@ export function ChartPatternDefs({
         <defs>
             <NoDataPattern
                 patternId={makePatternId(Patterns.noDataPattern, idSuffix)}
-                scale={scale}
-            />
-            <InapplicablePattern
-                patternId={makePatternId(
-                    Patterns.inapplicablePattern,
-                    idSuffix
-                )}
                 scale={scale}
             />
         </defs>
@@ -363,9 +335,10 @@ export function getChartSvgProps({
     return {
         xmlns: "http://www.w3.org/2000/svg",
         version: "1.1",
+        fontFamily: SVG_FONT_FAMILY,
+        fontSize: fontSize ?? BASE_FONT_SIZE,
         style: {
             ...SVG_STYLE_PROPS,
-            fontSize: fontSize ?? BASE_FONT_SIZE,
             // Needs to be set here or else pngs will have a black or
             // transparent background; resvg in the cloudflare functions
             // relies on it to paint the png background, too

@@ -80,6 +80,7 @@ export class LineChart
 {
     private readonly base = React.createRef<SVGGElement>()
 
+    private readonly tooltipId = guid()
     private readonly tooltipState = new TooltipState<{ time: Time }>({
         fade: "immediate",
     })
@@ -208,10 +209,6 @@ export class LineChart
         return this.lineStrokeWidth / 2 + 3.5
     }
 
-    @computed private get tooltipId(): number {
-        return this.renderUid
-    }
-
     @computed private get isTooltipActive(): boolean {
         return this.manager.tooltip?.get()?.id === this.tooltipId
     }
@@ -299,10 +296,6 @@ export class LineChart
         document.removeEventListener("click", this.onDocumentClick, {
             capture: true,
         })
-    }
-
-    @computed private get renderUid(): number {
-        return guid()
     }
 
     @computed get fontSize(): number {

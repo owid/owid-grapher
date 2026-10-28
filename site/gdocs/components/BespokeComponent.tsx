@@ -10,6 +10,7 @@ import { useIntersectionObserver } from "usehooks-ts"
 import Image from "./Image.js"
 import { useImage } from "../utils.js"
 import { BESPOKE_COMPONENT_REGISTRY } from "../../../bespoke/shared/bespokeComponentRegistry.js"
+import { isBespokeConfigError } from "../../../bespoke/shared/bespokeComponentTypes.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
 import { resolveBespokeComponentUrls } from "../../../bespoke/shared/bespokeComponentUrls.js"
 import {
@@ -111,7 +112,9 @@ export function BespokeComponent({
                 const message =
                     err instanceof Error ? err.message : "Unknown error"
                 setLoadError(
-                    `Failed to load bespoke bundle "${block.bundle}": ${message}`
+                    isBespokeConfigError(err)
+                        ? `Invalid config for bespoke bundle "${block.bundle}": ${message}`
+                        : `Failed to load bespoke bundle "${block.bundle}": ${message}`
                 )
                 console.error(
                     `Failed to hydrate bespoke bundle "${block.bundle}":`,

@@ -21,15 +21,19 @@ import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
+import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 import {
     isUserLocationCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 
-import { SankeyVariantConfig } from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+import type { MigrationConfig } from "../index.js"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import {
+    DEFAULT_COUNTRY,
     MigrationFlow,
     MigrationRow,
     MigrationView,
@@ -46,15 +50,15 @@ import {
 import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
 
-const DEFAULT_COUNTRY = "United States"
-const DEFAULT_VIEW: MigrationView = "both"
+/** Sentinel year that resolves to the latest year in the data */
+const LATEST_YEAR = -1
 
 const queryClient = new QueryClient()
 
 export function SankeyVariant({
     config,
     urls,
-}: VariantProps<SankeyVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<MigrationConfig>): React.ReactElement {
     const { width, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
@@ -82,28 +86,27 @@ function FetchingSankeyVariant({
     config,
     urls,
 }: {
-    config: SankeyVariantConfig
+    config: MigrationConfig
     urls: BespokeComponentDataUrls
 }) {
-    const initialCountry =
-        !config.country || isUserLocationCountry(config.country)
-            ? DEFAULT_COUNTRY
-            : config.country
+    const initialCountry = isUserLocationCountry(config.country)
+        ? DEFAULT_COUNTRY
+        : config.country
 
-    const [country, setCountry] = useUrlState({
+    const [requestedCountry, setCountry] = useUrlState({
         key: "migrationCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
     })
-    const [year, setYear] = useUrlState({
+    const [requestedYear, setYear] = useUrlState({
         key: "migrationYear",
         parser: parseAsInteger,
-        defaultValue: config.year ?? 2024,
+        defaultValue: config.year ?? LATEST_YEAR,
     })
     const [sex, setSex] = useUrlState({
         key: "migrationSex",
         parser: parseAsStringEnum<Sex>(["both", "female", "male"]),
-        defaultValue: config.sex ?? "both",
+        defaultValue: config.sex,
     })
     const [_view, setView] = useUrlState({
         key: "migrationFlow",
@@ -112,12 +115,17 @@ function FetchingSankeyVariant({
             "immigrants",
             "emigrants",
         ]),
-        defaultValue: config.flow ?? DEFAULT_VIEW,
+        defaultValue: config.flow,
     })
 
     const { data: metadata, status: metadataStatus } = useMigrationMetadata(
         urls.metadataUrl
     )
+
+    const year =
+        metadata && !metadata.times.includes(requestedYear)
+            ? (R.last(metadata.times) ?? requestedYear)
+            : requestedYear
 
     const availableCountryNames = useMemo(
         () =>
@@ -132,6 +140,12 @@ function FetchingSankeyVariant({
         urlStateKey: "migrationCountry",
         setCountry,
     })
+
+    const country = useAvailableEntityName(
+        requestedCountry,
+        [config.country, DEFAULT_COUNTRY],
+        availableCountryNames && ((name) => availableCountryNames.has(name))
+    )
 
     const countryId = useMemo(() => {
         if (!metadata) return undefined
@@ -263,7 +277,7 @@ function CaptionedSankeyVariant({
     setSex,
     setView,
 }: {
-    config: SankeyVariantConfig
+    config: MigrationConfig
     metadata: Metadata
     country: string
     displayedCountry: string
@@ -295,15 +309,18 @@ function CaptionedSankeyVariant({
         <>
             {!shouldHideChrome && (
                 <>
-                    <header className="migration-heading">
-                        <h1 className="migration-heading__title">
-                            Where do migrants live, and where were they born?
-                        </h1>
-                        <p className="migration-heading__description">
-                            Based on the total migrant population — not annual
-                            flows — by country of birth.
-                        </p>
-                    </header>
+                    {!config.hideHeading && (
+                        <header className="migration-heading">
+                            <h1 className="migration-heading__title">
+                                Where do migrants live, and where were they
+                                born?
+                            </h1>
+                            <p className="migration-heading__description">
+                                Based on the total migrant population — not
+                                annual flows — by country of birth.
+                            </p>
+                        </header>
+                    )}
                     <MigrationControls
                         metadata={metadata}
                         country={country}
@@ -360,7 +377,7 @@ function MigrationChartHeader({
     immigrantsTotal,
     emigrantsTotal,
 }: {
-    config: SankeyVariantConfig
+    config: MigrationConfig
     country: string
     year: number
     sex: Sex

@@ -70,6 +70,7 @@ export {
     getClosestTimePairs,
     omitUndefinedValues,
     isInIFrame,
+    openLinkInNewTabAttrs,
     differenceObj,
     findDOMParent,
     textAnchorFromAlign,
@@ -146,6 +147,7 @@ export {
     isSubYearly,
     findFinestCommonTimeInterval,
     snapToIntervalStart,
+    positiveModulo,
     logPerf,
     sleep,
     lowercaseObjectKeys,
@@ -291,6 +293,7 @@ export { FontFamily, cssFontFamily } from "./fonts.js"
 
 export {
     type Persistable,
+    type PersistedObject,
     objectWithPersistablesToObject,
     updatePersistables,
     deleteRuntimeAndUnchangedProps,
@@ -302,6 +305,7 @@ export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 
 export {
     strToQueryParams,
+    safeDecodeURIComponent,
     queryParamsToStr,
     multiDimDimensionsToViewQueryStr,
     getWindowQueryStr,
@@ -372,7 +376,8 @@ export { isAndroid, isIOS } from "./BrowserUtils.js"
 export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
-} from "./grapherConfigUtils.js"
+    KEYS_EXCLUDED_FROM_INHERITANCE,
+} from "./grapherConfigInheritance.js"
 
 export {
     MultiDimDataPageConfig,
@@ -435,10 +440,8 @@ export {
 } from "./search/searchClosestMatches.js"
 
 export {
-    TOPIC_PAGE_TYPES,
-    isTopicPageType,
-    rankTopicsOfChartHits,
-    searchTopicPagesOfMatchingCharts,
+    TOPIC_PAGE_TYPE_FILTER,
+    recommendTopicPages,
 } from "./search/searchTopicPages.js"
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"

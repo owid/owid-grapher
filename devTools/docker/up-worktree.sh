@@ -24,6 +24,7 @@ export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-owid-grapher}"
 export ADMIN_SERVER_PORT="${ADMIN_SERVER_PORT:-3031}"
 export VITE_PORT="${VITE_PORT:-8091}"
 export WRANGLER_PORT="${WRANGLER_PORT:?is missing from .env, run make setup.worktree}"
+export BESPOKE_PORT="${BESPOKE_PORT:?is missing from .env, run make setup.worktree}"
 # never wait on an interactive prompt when corepack fetches yarn
 export COREPACK_ENABLE_DOWNLOAD_PROMPT="${COREPACK_ENABLE_DOWNLOAD_PROMPT:-0}"
 SESSION="${TMUX_SESSION_NAME:-grapher-$(basename "$PWD")}"
@@ -50,7 +51,7 @@ while read -r name; do
     session_env+=(-e "$name=${!name}")
 done < <({
     sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' .env
-    printf '%s\n' COMPOSE_PROJECT_NAME ADMIN_SERVER_PORT VITE_PORT WRANGLER_PORT COREPACK_ENABLE_DOWNLOAD_PROMPT
+    printf '%s\n' COMPOSE_PROJECT_NAME ADMIN_SERVER_PORT VITE_PORT WRANGLER_PORT BESPOKE_PORT COREPACK_ENABLE_DOWNLOAD_PROMPT
 } | sort -u)
 
 # the functions window is marked @optional: it exits during startup without
@@ -108,5 +109,8 @@ echo "    http://localhost:${WRANGLER_PORT}/grapher/life-expectancy.png  <-- the
 echo
 echo "The functions server needs Cloudflare credentials (see functions/README.md); without"
 echo "them it exits (logs/functions.log says why), and everything else still works."
+echo
+echo "The bespoke component dev server isn't started; run \`yarn startBespokeDevServer\` when you"
+echo "need it, and it comes up on this worktree's port: http://localhost:${BESPOKE_PORT}/"
 echo
 echo 'Note that MySQL is shared with your other checkouts, so db changes here show up there too.'

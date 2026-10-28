@@ -1,9 +1,10 @@
 import { defineConfig, type PluginOption } from "vite"
 import pluginReact from "@vitejs/plugin-react"
 import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
-import { sentryVitePlugin } from "@sentry/vite-plugin"
+import { sentryVitePlugin } from "@sentry/bundler-plugins/vite"
 import {
     BUILD_TARGET,
+    CSS_BUILD_TARGET,
     pluginSwcDecorators,
     scssPreprocessorOptions,
 } from "./rolldown.config-common.mts"
@@ -66,6 +67,7 @@ export const defineViteConfigForEntrypoint = (
             outDir: `dist/${entrypointInfo.outDir}`,
             sourcemap: true,
             target: BUILD_TARGET, // see docs/browser-support.md
+            cssTarget: CSS_BUILD_TARGET,
             rolldownOptions: {
                 input: {
                     [entrypointInfo.outName]: entrypointInfo.entryPointFile,

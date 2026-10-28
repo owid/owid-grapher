@@ -59,7 +59,7 @@ export const LatestHitMetadata = ({
                     </span>
                 )}
                 {latestType && firstTag && (
-                    <span className="latest-hit-metadata__separator">—</span>
+                    <span className="latest-hit-metadata__separator">·</span>
                 )}
                 {firstTag && (
                     <span className="latest-hit-metadata__area-tag">

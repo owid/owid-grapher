@@ -51,7 +51,15 @@ export interface ComponentPreviewBlock {
     /** Start index of the paragraph that opens the component, e.g. `{.chart}` */
     componentStartIndex: number
     spec: ComponentPreviewComponentSpec
+    /** The preview image right above the component */
     image?: ComponentPreviewImage
+    /**
+     * Some authors put the image below the component instead. Set when there's
+     * no image above, the first thing after the component's closing `{}` (or
+     * its single line) is an image, and that image isn't the one above another
+     * component. We leave such images alone, since previews go above.
+     */
+    imageBelow?: ComponentPreviewImage
 }
 
 export interface ComponentPreviewImage {
@@ -323,13 +331,19 @@ function flattenTabs(tabs: docs_v1.Schema$Tab[]): docs_v1.Schema$Tab[] {
     return tabs.flatMap((tab) => [tab, ...flattenTabs(tab.childTabs ?? [])])
 }
 
-export interface FindComponentPreviewBlocksOptions {
-    /**
-     * Some authors put the image below the component instead. With this, a
-     * component without an image above uses the image right below it (after
-     * blank lines), unless that image is the one above another component.
-     */
-    acceptImageBelow?: boolean
+function makeImage(
+    found: { objectId: string; startIndex: number },
+    inlineObjects: docs_v1.Schema$DocumentTab["inlineObjects"]
+): ComponentPreviewImage {
+    const embeddedObject =
+        inlineObjects?.[found.objectId]?.inlineObjectProperties?.embeddedObject
+    const width = toPoints(embeddedObject?.size?.width)
+    const height = toPoints(embeddedObject?.size?.height)
+    return {
+        ...found,
+        sourceUri: embeddedObject?.imageProperties?.sourceUri ?? undefined,
+        size: width && height ? { width, height } : undefined,
+    }
 }
 
 /**
@@ -342,8 +356,7 @@ export interface FindComponentPreviewBlocksOptions {
  * the new url. Accepting suggestions keeps the elements' indices as they are.
  */
 export function findComponentPreviewBlocks(
-    document: docs_v1.Schema$Document,
-    { acceptImageBelow = false }: FindComponentPreviewBlocksOptions = {}
+    document: docs_v1.Schema$Document
 ): ComponentPreviewBlock[] {
     const blocks: ComponentPreviewBlock[] = []
     const accepted = acceptAllGdocSuggestions(document)
@@ -378,38 +391,22 @@ export function findComponentPreviewBlocks(
                 lastParagraphIndex,
                 imageAbove,
             } of components) {
-                let found = imageAbove
-                if (
-                    !found &&
-                    acceptImageBelow &&
-                    lastParagraphIndex !== undefined
-                ) {
-                    const below = findImageBelow(paragraphs, lastParagraphIndex)
-                    if (below && !imagesAbove.has(below.objectId)) found = below
-                }
-                const embeddedObject = found
-                    ? inlineObjects[found.objectId]?.inlineObjectProperties
-                          ?.embeddedObject
-                    : undefined
-                const width = toPoints(embeddedObject?.size?.width)
-                const height = toPoints(embeddedObject?.size?.height)
+                const below =
+                    !imageAbove && lastParagraphIndex !== undefined
+                        ? findImageBelow(paragraphs, lastParagraphIndex)
+                        : undefined
                 blocks.push({
                     tabId,
                     tabTitle,
                     componentStartIndex: paragraphs[index].startIndex,
                     spec,
-                    image: found
-                        ? {
-                              ...found,
-                              sourceUri:
-                                  embeddedObject?.imageProperties?.sourceUri ??
-                                  undefined,
-                              size:
-                                  width && height
-                                      ? { width, height }
-                                      : undefined,
-                          }
+                    image: imageAbove
+                        ? makeImage(imageAbove, inlineObjects)
                         : undefined,
+                    imageBelow:
+                        below && !imagesAbove.has(below.objectId)
+                            ? makeImage(below, inlineObjects)
+                            : undefined,
                 })
             }
         }
@@ -433,8 +430,8 @@ export function makeReplaceImageRequest({
             tabId: block.tabId,
             uri: imageUrl,
             // Keeps the size the image has in the doc, cropping if the new
-            // image has a different shape. Our chart PNGs all have the same
-            // aspect ratio; other images get reinserted instead.
+            // image has a different shape. We reinsert images whose shape
+            // differs from their frame instead.
             imageReplaceMethod: "CENTER_CROP",
         },
     }

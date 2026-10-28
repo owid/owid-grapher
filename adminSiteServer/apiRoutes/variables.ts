@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
-    migrateGrapherConfigToLatestVersionAndFailOnError,
 } from "@ourworldindata/grapher"
 import {
     DbRawVariable,
@@ -12,7 +11,6 @@ import {
     DbRawChartConfig,
     GrapherInterface,
     OwidVariableWithSource,
-    parseChartConfig,
     ChartConfigsTableName,
     R2GrapherConfigDirectory,
 } from "@ourworldindata/types"
@@ -23,12 +21,15 @@ import {
     getIndicatorChartConfigRecord,
     getIndicatorChartConfig,
     searchVariables,
+    searchVariablesGroupedByDataset,
     updateAllChartsThatInheritFromIndicator,
     updateAllMultiDimViewsThatInheritFromIndicator,
     updateIndicatorChartConfig,
     deleteIndicators,
 } from "../../db/model/Variable.js"
+import { parseAndMigrateChartConfig } from "../../db/model/ChartConfigs.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
+import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
 import { DATA_API_URL } from "../../settings/clientSettings.mjs"
 import * as db from "../../db/db.js"
 import {
@@ -50,6 +51,9 @@ import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import * as z from "zod"
 
+// Still serving the chart editor's indicator picker, which downloads every
+// indicator up front. The picker moves onto `getVariablesJson` in a follow-up,
+// and this goes with it.
 export async function getEditorVariablesJson(
     req: Request,
     _res: HandlerResponse,
@@ -160,9 +164,22 @@ export async function getVariablesJson(
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
-    const query = req.query.search as string
-    return await searchVariables(query, limit, trx)
+    // Clamped, not just parsed: a negative number survives `parseIntOrUndefined`
+    // and `LIMIT -1` is a syntax error, so a hand-edited URL would be a 500.
+    const limit = Math.max(
+        0,
+        parseIntOrUndefined(req.query.limit as string) ?? 50
+    )
+    const offset = Math.max(
+        0,
+        parseIntOrUndefined(req.query.offset as string) ?? 0
+    )
+    // Absent, the search is empty rather than undefined
+    const query = typeof req.query.search === "string" ? req.query.search : ""
+    // The same search, paged over the datasets the matches belong to
+    if (req.query.group === "dataset")
+        return await searchVariablesGroupedByDataset(query, limit, offset, trx)
+    return await searchVariables(query, limit, offset, trx)
 }
 
 export async function getVariablesUsagesJson(
@@ -265,7 +282,7 @@ export async function getVariableJson(
     // check for parent indicators
     const charts = rawCharts.map((chart) => {
         const parentIndicatorId = getParentIndicatorIdFromChartConfig(
-            parseChartConfig(chart.config)
+            parseAndMigrateChartConfig(chart.config)
         )
         const hasParentIndicator = parentIndicatorId !== undefined
         return _.omit({ ...chart, hasParentIndicator }, "config")
@@ -294,17 +311,7 @@ export async function putIndicatorChartConfig(
 ) {
     const variableId = expectInt(req.params.variableId)
 
-    let validConfig: GrapherInterface
-    try {
-        validConfig = migrateGrapherConfigToLatestVersionAndFailOnError(
-            req.body
-        )
-    } catch (err) {
-        return {
-            success: false,
-            error: String(err),
-        }
-    }
+    const validConfig = ingestGrapherConfig(req.body)
 
     const indicator = await getIndicatorChartConfigRecord(trx, variableId)
     if (!indicator) {

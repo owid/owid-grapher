@@ -11,11 +11,9 @@ import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     getFilterNamesOfType,
     buildChartsFacetFilters,
-    formatTopicFacetFilters,
     searchSingleForHitsWithClosestMatches,
-    searchTopicPagesOfMatchingCharts,
+    recommendTopicPages,
     MAX_FACET_VALUES,
-    TOPIC_PAGE_TYPES,
 } from "@ourworldindata/utils"
 import {
     getIndexName,
@@ -88,6 +86,12 @@ export interface SearchApiResponse {
     // "closest matches" instead (see searchSingleForHitsWithClosestMatches).
     closestMatches?: boolean
 }
+
+/** A type=topics response: page results that are never closest matches. */
+export type SearchTopicsApiResponse = Omit<
+    SearchPagesApiResponse,
+    "closestMatches"
+> & { closestMatches?: never }
 
 export interface SearchPagesApiResponse {
     query: string
@@ -267,9 +271,7 @@ export async function searchPages(
     offset: number = 0,
     length: number = 10,
     pageTypes: string[] = ["article", "about-page"],
-    baseUrl: string = "https://ourworldindata.org",
-    /** Restrict to pages tagged with any of these topics. */
-    topics: Set<string> = new Set()
+    baseUrl: string = "https://ourworldindata.org"
 ): Promise<SearchPagesApiResponse> {
     const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
 
@@ -284,7 +286,6 @@ export async function searchPages(
             indexName,
             query,
             filters,
-            facetFilters: formatTopicFacetFilters(topics),
             attributesToRetrieve: PAGE_ATTRIBUTES,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
@@ -303,60 +304,30 @@ export async function searchPages(
     }
 }
 
-/**
- * Topic pages for a query, derived from the charts matching it rather than
- * from the topic pages' own text, exactly as the site's search page does
- * (see searchTopicPagesOfMatchingCharts). Country and topic filters apply to
- * the chart search. Falls back to searchPages when no chart matches, so a
- * query that only matches prose (an author's name, say) still finds pages.
- */
+/** Topic pages to recommend for a query, as on the site (see recommendTopicPages). */
 export async function searchTopicPages(
     config: AlgoliaConfig,
     state: SearchState,
-    tagGraph: TagGraphRoot,
+    loadTagGraph: () => Promise<TagGraphRoot>,
     offset: number = 0,
     length: number = 10,
     baseUrl: string = "https://ourworldindata.org"
-): Promise<SearchPagesApiResponse> {
+): Promise<SearchTopicsApiResponse> {
     const client = createSearchClient(config)
 
-    const result = await searchTopicPagesOfMatchingCharts<SearchPageHit>(
-        client,
-        {
-            chartsIndexName: getIndexName(
-                SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-                config.indexPrefix
-            ),
-            pagesIndexName: getIndexName(
-                SearchIndexName.Pages,
-                config.indexPrefix
-            ),
-            query: state.query,
-            chartsFacetFilters: buildChartsFacetFilters({
-                query: state.query,
-                filters: state.filters,
-                requireAllCountries: state.requireAllCountries,
-            }),
-            tagGraph,
-            attributesToRetrieve: PAGE_ATTRIBUTES,
-            offset,
-            length,
-        }
-    )
-    if (!result) {
-        const fallback = await searchPages(
-            config,
-            state.query,
-            offset,
-            length,
-            [...TOPIC_PAGE_TYPES],
-            baseUrl,
-            getFilterNamesOfType(state.filters, FilterType.TOPIC)
-        )
-        if (fallback.nbHits === 0)
-            await assertTopicsExist(config, state.filters)
-        return fallback
-    }
+    const result = await recommendTopicPages<SearchPageHit>(client, {
+        chartsIndexName: getIndexName(
+            SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+            config.indexPrefix
+        ),
+        pagesIndexName: getIndexName(SearchIndexName.Pages, config.indexPrefix),
+        state,
+        loadTagGraph,
+        attributesToRetrieve: PAGE_ATTRIBUTES,
+        offset,
+        length,
+    })
+    if (!result.nbHits) await assertTopicsExist(config, state.filters)
 
     return {
         query: state.query,

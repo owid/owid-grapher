@@ -25,6 +25,22 @@ $active-text: $blue-90;
 $zindex-controls-backdrop: 130;
 $zindex-controls-popup: 140;
 
+// When opening a dimension dropdown, react-aria locks body scroll by setting
+// `scrollbar-gutter: stable` on <html>. In Chromium, dynamically toggling the
+// gutter changes how `vw` units resolve. Because the chart's height is set in
+// `vw` to preserve its aspect ratio, this caused the chart to jump in height
+// whenever a dropdown opened or closed. Reserving the gutter permanently keeps
+// `vw` units constant.
+html:has(body.MultiDimDataPage) {
+    scrollbar-gutter: stable;
+}
+
+// In iframe embeds, the chart fits without scrolling, so a permanently
+// reserved gutter would leave an empty strip next to the chart.
+html.IsInIframe:has(body.MultiDimDataPage) {
+    scrollbar-gutter: auto;
+}
+
 .MultiDimDataPageContent {
     .header {
         margin-bottom: 24px;

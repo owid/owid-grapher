@@ -590,6 +590,13 @@ export const ContinentColors = {
     "Australasia (IHME GBD)": OwidDistinctColors.Teal,
     "Oceania (IHME GBD)": OwidDistinctColors.Turquoise,
 
+    // UCDP regions
+    "Americas (UCDP)": OwidDistinctColors.Peach,
+    "Africa (UCDP)": OwidDistinctColors.Mauve,
+    "Middle East (UCDP)": OwidDistinctColors.Camel,
+    "Europe (UCDP)": OwidDistinctColors.Denim,
+    "Asia and Oceania (UCDP)": OwidDistinctColors.Teal,
+
     // Income groups
     "High-income countries": IncomeGroupColors.HighIncome,
     "Upper-middle-income countries": IncomeGroupColors.UpperMiddleIncome,
@@ -1142,6 +1149,13 @@ export const MapContinentColors = {
     "High-income Asia Pacific (IHME GBD)": OwidMapColors.LightTeal,
     "Australasia (IHME GBD)": OwidMapColors.MutedTeal,
     "Oceania (IHME GBD)": OwidMapColors.SkyTurquoise,
+
+    // UCDP regions
+    "Americas (UCDP)": OwidMapColors.SoftOrange,
+    "Africa (UCDP)": OwidMapColors.LightPurple,
+    "Middle East (UCDP)": OwidMapColors.Sand,
+    "Europe (UCDP)": OwidMapColors.MutedDenim,
+    "Asia and Oceania (UCDP)": OwidMapColors.MutedTeal,
 } as const
 
 /**

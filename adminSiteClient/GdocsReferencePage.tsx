@@ -33,6 +33,10 @@ import {
     InlineMarkdownText,
 } from "./GdocsReferenceMarkdown.js"
 import {
+    BESPOKE_COMPONENT_ID,
+    ReferenceRouteParams,
+    Selection,
+    selectionFromParams,
     sortGuides,
     sortTemplatesByUsage,
     stepHighlight,
@@ -47,6 +51,10 @@ import {
     TemplateComponentShortlist,
     UsageSummary,
 } from "./GdocsReferenceLive.js"
+import {
+    BespokeBundleIndex,
+    BespokeBundlePage,
+} from "./GdocsReferenceBespoke.js"
 import {
     docTypeNoun,
     githubBlobUrl,
@@ -76,13 +84,6 @@ function searchScore(
     if (id.startsWith(query) || title.startsWith(query)) return 80
     if (id.includes(query) || title.includes(query)) return 60
     return 10
-}
-
-type ReferenceRouteParams = { kind?: string; id?: string }
-
-interface Selection {
-    kind: "components" | "templates" | "guides"
-    id: string
 }
 
 // The sidebar's top-level groups, in order. Each folds to its header: the
@@ -153,11 +154,7 @@ export class GdocsReferencePage extends Component<
     }
 
     @computed private get selection(): Selection | undefined {
-        const { kind, id } = this.props.match.params
-        if (!id) return undefined
-        if (kind === "components" || kind === "templates" || kind === "guides")
-            return { kind, id }
-        return undefined
+        return selectionFromParams(this.props.match.params)
     }
 
     @computed private get selectedComponent(): ComponentReference | undefined {
@@ -1033,6 +1030,8 @@ export class GdocsReferencePage extends Component<
     ): React.ReactElement {
         const { intro, whenToUse, whenNotToUse, notes } = component.prose
         const previewPath = this.previewPathForComponent(component)
+        // The bespoke block's page lists its bundles instead of its raw forms
+        const isBespoke = component.id === BESPOKE_COMPONENT_ID
         return (
             <article className="gdocs-ref__detail">
                 <header className="gdocs-ref__detail-header">
@@ -1082,11 +1081,13 @@ export class GdocsReferencePage extends Component<
                         }
                     />
                 )}
+                {isBespoke && <BespokeBundleIndex />}
                 {/* One route serves every component, so without a key the
                     forms section would carry its doc-type filter and expanded
                     long tail over to the next component. */}
                 <ComponentForms
                     key={component.id}
+                    showForms={!isBespoke}
                     component={component}
                     usage={this.usageOf(component)}
                     typeLinks={this.propTypeLinks}
@@ -1103,7 +1104,7 @@ export class GdocsReferencePage extends Component<
                         ) : undefined
                     }
                 />
-                {component.examples.length === 0 && (
+                {component.examples.length === 0 && !isBespoke && (
                     <p className="gdocs-ref__note">
                         This component has no standalone ArchieML example — it
                         only appears nested inside other components.
@@ -1338,6 +1339,14 @@ export class GdocsReferencePage extends Component<
                 </div>
             )
         if (!selection) return this.renderOverview()
+        // A bundle's own page, under the bespoke component
+        if (selection.bundle && selectedComponent?.id === BESPOKE_COMPONENT_ID)
+            return (
+                <BespokeBundlePage
+                    bundleId={selection.bundle}
+                    titleFor={this.titleOf}
+                />
+            )
         if (selectedComponent)
             return this.renderComponentDetail(selectedComponent)
         if (selectedTemplate) return this.renderTemplateDetail(selectedTemplate)
@@ -1421,7 +1430,11 @@ export class GdocsReferencePage extends Component<
     ): void {
         const prev = prevProps.match.params
         const current = this.props.match.params
-        if (prev.kind !== current.kind || prev.id !== current.id) {
+        if (
+            prev.kind !== current.kind ||
+            prev.id !== current.id ||
+            prev.bundle !== current.bundle
+        ) {
             this.contentRef.current?.scrollTo({ top: 0 })
             this.expandNavGroupOfSelection()
         }

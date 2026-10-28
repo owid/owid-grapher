@@ -149,6 +149,8 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
 // etc have switched from HTML to markdown for their sources
 export const HtmlOrSimpleMarkdownText = (props: {
     text: string
+    /** Only applied to the markdown branch; raw HTML is rendered as-is. */
+    openLinksInNewTab?: boolean
 }): React.ReactElement => {
     // check the text for closing a, li or p tags. If
     // one is found, render using dangerouslySetInnerHTML,
@@ -159,6 +161,11 @@ export const HtmlOrSimpleMarkdownText = (props: {
     if (match) {
         return <span dangerouslySetInnerHTML={{ __html: text }} />
     } else {
-        return <SimpleMarkdownText text={text} />
+        return (
+            <SimpleMarkdownText
+                text={text}
+                openLinksInNewTab={props.openLinksInNewTab}
+            />
+        )
     }
 }
