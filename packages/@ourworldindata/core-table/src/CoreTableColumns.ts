@@ -6,13 +6,12 @@ import {
     formatDay,
     convertDaysSinceEpochToDate,
     convertDateToDaysSinceEpoch,
-    EPOCH_DATE,
+    plainUtcTimestamp,
     withUniformSpacing,
     sortNumeric,
     omitUndefinedValues,
     isPresent,
     dayjs,
-    Dayjs,
     OwidSource,
     formatValue,
     checkIsVeryShortUnit,
@@ -1065,56 +1064,64 @@ class DateColumn<
     }
 }
 
-type CalendarUnit = "month" | "quarter"
-
 /**
  * A sub-yearly column whose periods vary in length (months, quarters), so it
  * steps through the calendar instead of by a fixed `periodLength`.
+ *
+ * We don't use dayjs here because its `diff`, `add` and `startOf` are quite
+ * slow, and we call these methods on many table rows in hot paths.
  */
 abstract class CalendarPeriodColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
 > extends DayColumn<TABLE_TYPE, DEF_TYPE> {
-    protected abstract calendarUnit: CalendarUnit
+    /** The number of calendar months in one period, e.g. 3 for quarters */
+    protected abstract monthsPerPeriod: number
 
-    private static readonly epochPeriodStarts: Record<CalendarUnit, Dayjs> = {
-        month: dayjs.utc(EPOCH_DATE).startOf("month"),
-        quarter: dayjs.utc(EPOCH_DATE).startOf("quarter"),
+    /**
+     * Whole periods since January of year 0 (not EPOCH_DATE), so period
+     * boundaries fall on calendar boundaries. For example, Feb 2020 is month
+     * 2020 × 12 + 1 = 24241, or quarter ⌊24241 / 3⌋ = 8080 (Q1 2020).
+     */
+    private periodsSinceYearZero(time: Time): number {
+        const date = convertDaysSinceEpochToDate(time)
+        const monthsSinceYearZero = date.year() * 12 + date.month()
+        return Math.floor(monthsSinceYearZero / this.monthsPerPeriod)
     }
 
-    private periodsSinceEpoch(time: Time): number {
-        return convertDaysSinceEpochToDate(time)
-            .startOf(this.calendarUnit)
-            .diff(
-                CalendarPeriodColumn.epochPeriodStarts[this.calendarUnit],
-                this.calendarUnit
-            )
-    }
-
-    private startOfPeriod(periodsSinceEpoch: number): Time {
-        return convertDateToDaysSinceEpoch(
-            CalendarPeriodColumn.epochPeriodStarts[this.calendarUnit].add(
-                periodsSinceEpoch,
-                this.calendarUnit
-            )
-        )
+    private startOfPeriod(periodsSinceYearZero: number): Time {
+        const monthsSinceYearZero = periodsSinceYearZero * this.monthsPerPeriod
+        const year = Math.floor(monthsSinceYearZero / 12)
+        const month = monthsSinceYearZero - year * 12
+        const date = dayjs.utc(plainUtcTimestamp(year, month, 1))
+        return convertDateToDaysSinceEpoch(date)
     }
 
     override addPeriods(time: Time, count: number): Time {
-        return this.startOfPeriod(this.periodsSinceEpoch(time) + count)
+        return this.startOfPeriod(this.periodsSinceYearZero(time) + count)
     }
 
     override countPeriods(startTime: Time, endTime: Time): number {
         return (
-            this.periodsSinceEpoch(endTime) -
-            this.periodsSinceEpoch(startTime) +
+            this.periodsSinceYearZero(endTime) -
+            this.periodsSinceYearZero(startTime) +
             1
+        )
+    }
+
+    // custom implementation, so we don't need to run
+    // `periodsSinceYearZero(startTime)` over and over
+    override getConsecutiveTimes(startTime: Time, endTime: Time): Time[] {
+        const firstPeriod = this.periodsSinceYearZero(startTime)
+        const lastPeriod = this.periodsSinceYearZero(endTime)
+        return R.range(firstPeriod, lastPeriod + 1).map((period) =>
+            this.startOfPeriod(period)
         )
     }
 
     override getUniformlySpacedTimes(sortedTimes: Time[]): Time[] {
         const periods = new Set(
-            sortedTimes.map((time) => this.periodsSinceEpoch(time))
+            sortedTimes.map((time) => this.periodsSinceYearZero(time))
         )
         return withUniformSpacing([...periods]).map((period) =>
             this.startOfPeriod(period)
@@ -1128,7 +1135,7 @@ class MonthColumn<
 > extends CalendarPeriodColumn<TABLE_TYPE, DEF_TYPE> {
     override intervalName = "Month"
     override preposition = "in"
-    protected calendarUnit: CalendarUnit = "month"
+    protected monthsPerPeriod = 1
 
     override get timeInterval(): TimeInterval {
         return TimeInterval.Month
@@ -1192,7 +1199,7 @@ class QuarterColumn<
 > extends CalendarPeriodColumn<TABLE_TYPE, DEF_TYPE> {
     override intervalName = "Quarter"
     override preposition = "in"
-    protected calendarUnit: CalendarUnit = "quarter"
+    protected monthsPerPeriod = 3
 
     override get timeInterval(): TimeInterval {
         return TimeInterval.Quarter
