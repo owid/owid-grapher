@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
-import { AnnotationTooltipState } from "./LineChartConstants"
+import { AnnotationTooltipState, PlacedPoint } from "./LineChartConstants"
 import {
+    placeRangeAnnotation,
     toSeriesLabelAnnotations,
     transitionAnnotationTooltipState,
 } from "./LineChartHelpers"
@@ -80,23 +81,24 @@ describe(transitionAnnotationTooltipState, () => {
     })
 })
 
+const range = (
+    text: string,
+    startTime: number,
+    endTime: number
+): RangeAnnotation => ({
+    timeScope: "range",
+    entityNames: ["France"],
+    text,
+    startTime,
+    endTime,
+})
+
 describe(toSeriesLabelAnnotations, () => {
     const point = (text: string, time: number): PointAnnotation => ({
         timeScope: "point",
         entityNames: ["France"],
         text,
         time,
-    })
-    const range = (
-        text: string,
-        startTime: number,
-        endTime: number
-    ): RangeAnnotation => ({
-        timeScope: "range",
-        entityNames: ["France"],
-        text,
-        startTime,
-        endTime,
     })
 
     it("merges points and ranges by start time, points first on a tie", () => {
@@ -120,5 +122,87 @@ describe(toSeriesLabelAnnotations, () => {
             { heading: "2000", text: "point 2000" },
             { heading: "2000 to 2005", text: "range 2000" },
         ])
+    })
+})
+
+describe(placeRangeAnnotation, () => {
+    const placedPoint = (time: number, x: number, y: number): PlacedPoint => ({
+        time,
+        x,
+        y,
+        color: "red",
+    })
+    const placedPoints = [
+        placedPoint(2000, 0, 100),
+        placedPoint(2010, 100, 0),
+        placedPoint(2020, 200, 50),
+        placedPoint(2030, 300, 150),
+    ]
+
+    it("keeps the data points when both ends fall on them", () => {
+        const placed = placeRangeAnnotation(
+            range("on data", 2010, 2020),
+            placedPoints
+        )
+
+        expect(placed?.points).toEqual([placedPoints[1], placedPoints[2]])
+    })
+
+    it("cuts the line where both ends fall between data points", () => {
+        const placed = placeRangeAnnotation(
+            range("between", 2005, 2015),
+            placedPoints
+        )
+
+        expect(placed?.points).toEqual([
+            placedPoint(2005, 50, 50),
+            placedPoints[1],
+            placedPoint(2015, 150, 25),
+        ])
+    })
+
+    it("cuts a range inside one segment at both ends", () => {
+        const placed = placeRangeAnnotation(
+            range("inside", 2002, 2008),
+            placedPoints
+        )
+
+        expect(placed?.points).toEqual([
+            placedPoint(2002, 20, 80),
+            placedPoint(2008, 80, 20),
+        ])
+    })
+
+    it("stops at the ends of the line when the range runs past them", () => {
+        const placed = placeRangeAnnotation(
+            range("past both ends", 1990, 2040),
+            placedPoints
+        )
+
+        expect(placed?.points).toEqual(placedPoints)
+    })
+
+    it("keeps a range that touches the line only at its first or last point", () => {
+        expect(
+            placeRangeAnnotation(
+                range("ends at start", 1990, 2000),
+                placedPoints
+            )?.points
+        ).toEqual([placedPoints[0]])
+        expect(
+            placeRangeAnnotation(
+                range("starts at end", 2030, 2040),
+                placedPoints
+            )?.points
+        ).toEqual([placedPoints[3]])
+    })
+
+    it("returns undefined when the range misses the line", () => {
+        expect(
+            placeRangeAnnotation(range("before", 1980, 1990), placedPoints)
+        ).toBeUndefined()
+        expect(
+            placeRangeAnnotation(range("after", 2040, 2050), placedPoints)
+        ).toBeUndefined()
     })
 })
