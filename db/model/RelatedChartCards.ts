@@ -4,11 +4,10 @@ import {
     getChartsByAggregateCoviewScore,
     getRelatedChartsForChart,
     getTopicTagIdsForChart,
-    getTopicTagIdsInSameAreas,
 } from "./Chart.js"
 
 /** Number of related-chart cards a data page shows */
-export const RELATED_CHART_CARD_COUNT = 5
+const RELATED_CHART_CARD_COUNT = 5
 
 /** One step of the selection: where its charts come from, and how to fetch them */
 export interface RelatedChartStage {
@@ -89,7 +88,7 @@ export async function getRelatedChartCards(
         {
             source: "topic-area",
             fetch: byScore(async () =>
-                getTopicTagIdsInSameAreas(knex, await getTopicTagIds())
+                db.getTopicTagIdsInSameAreas(knex, await getTopicTagIds())
             ),
         },
         {

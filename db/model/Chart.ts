@@ -661,7 +661,8 @@ export const getMostViewedGrapherIdsByChartType = async (
 }
 
 // A published chart that isn't tagged Unlisted: the only charts eligible to appear
-// as a related-chart card.
+// as a related-chart card. Expects the query to join `charts` and `chart_configs`
+// under those names.
 const LISTED_CHART_CLAUSE = `-- sql
     chart_configs.config->>"$.isPublished" = "true"
     AND NOT EXISTS (
@@ -770,6 +771,8 @@ export const getTopicTagIdsForChart = async (
     chartId: number,
     topicTagNames: string[]
 ): Promise<number[]> => {
+    const curatedClause =
+        topicTagNames.length > 0 ? "t.name IN (:topicTagNames) OR" : ""
     const rows = await db.knexRaw<{
         id: number
         name: string
@@ -783,14 +786,10 @@ export const getTopicTagIdsForChart = async (
             JOIN tags parent ON parent.id = tg.parentId
             LEFT JOIN chart_tags ct ON ct.tagId = t.id AND ct.chartId = :chartId
             WHERE parent.name != :rootName
-                AND (t.name IN (:topicTagNames) OR ct.chartId IS NOT NULL)
+                AND (${curatedClause} ct.chartId IS NOT NULL)
+            ORDER BY t.id
         `,
-        {
-            chartId,
-            rootName: TagGraphRootName,
-            // MySQL rejects an empty IN (); a name that can't exist keeps the query valid
-            topicTagNames: topicTagNames.length > 0 ? topicTagNames : [""],
-        }
+        { chartId, rootName: TagGraphRootName, topicTagNames }
     )
     const idByName = new Map(rows.map((r) => [r.name, r.id]))
     const curated = lodash.compact(
@@ -798,53 +797,6 @@ export const getTopicTagIdsForChart = async (
     )
     const onChartOnly = rows.filter((r) => r.onChart).map((r) => r.id)
     return lodash.uniq([...curated, ...onChartOnly])
-}
-
-/**
- * All topic tags under the areas that the given topic tags belong to: the
- * pool for the topic-area fallback step.
- */
-export const getTopicTagIdsInSameAreas = async (
-    knex: db.KnexReadonlyTransaction,
-    topicTagIds: number[]
-): Promise<number[]> => {
-    if (topicTagIds.length === 0) return []
-    const rows = await db.knexRaw<{ tagId: number }>(
-        knex,
-        `-- sql
-            WITH RECURSIVE ancestors AS (
-                SELECT tg.childId AS tagId, tg.parentId
-                FROM tag_graph tg
-                WHERE tg.childId IN (:topicTagIds)
-
-                UNION DISTINCT
-
-                SELECT tg.childId, tg.parentId
-                FROM tag_graph tg
-                JOIN ancestors a ON tg.childId = a.parentId
-            ),
-            areas AS (
-                SELECT DISTINCT a.tagId AS areaId
-                FROM ancestors a
-                JOIN tags root ON root.id = a.parentId
-                WHERE root.name = :rootName
-            ),
-            descendants AS (
-                SELECT tg.childId AS tagId
-                FROM tag_graph tg
-                WHERE tg.parentId IN (SELECT areaId FROM areas)
-
-                UNION DISTINCT
-
-                SELECT tg.childId
-                FROM tag_graph tg
-                JOIN descendants d ON tg.parentId = d.tagId
-            )
-            SELECT DISTINCT tagId FROM descendants
-        `,
-        { topicTagIds, rootName: TagGraphRootName }
-    )
-    return rows.map((r) => r.tagId)
 }
 
 export const getRedirectsByChartId = async (
