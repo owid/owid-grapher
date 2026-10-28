@@ -18,10 +18,11 @@ export const makeSource = ({
     attribution?: string
     owidProcessingLevel?: OwidProcessingLevel
     isEmbeddedInADataPage?: boolean
-    processingId?: string
+    /** Where the processing phrase links to; `null` leaves it unlinked */
+    processingId?: string | null
 }): React.ReactNode => {
     if (!attribution) return null
-    const isEmbedded = isEmbeddedInADataPage ?? true
+    const isLinked = (isEmbeddedInADataPage ?? true) && processingId !== null
     const processingLevelPhrase = getProcessingPhraseForAttribution(
         attribution,
         owidProcessingLevel
@@ -32,7 +33,7 @@ export const makeSource = ({
             {processingLevelPhrase && (
                 <>
                     {" – "}
-                    {isEmbedded ? (
+                    {isLinked ? (
                         <a
                             href={`#${processingId}`}
                             data-track-note="data_processing_level"

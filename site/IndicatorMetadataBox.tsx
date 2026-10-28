@@ -396,7 +396,7 @@ function IndicatorMetadataSections({
                     code used to prepare data across Our World in Data.{" "}
                     <a
                         href="https://docs.owid.io/projects/etl/"
-                        data-track-note="processing_link"
+                        data-track-note="data_pipeline_link"
                     >
                         Read about our data pipeline
                     </a>
@@ -436,10 +436,10 @@ export default function IndicatorMetadataBox({
     const sourceString = makeSource({
         attribution,
         owidProcessingLevel: datapageData.owidProcessingLevel,
-        // Only link the processing phrase when there are processing notes to
-        // point it at
-        isEmbeddedInADataPage: !!descriptionProcessing,
-        processingId: INDICATOR_PROCESSING_SECTION_ID,
+        // Without processing notes there's nothing to link to
+        processingId: descriptionProcessing
+            ? INDICATOR_PROCESSING_SECTION_ID
+            : null,
     })
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
