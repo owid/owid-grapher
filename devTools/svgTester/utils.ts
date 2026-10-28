@@ -662,11 +662,25 @@ export function numberBoundsClipPaths(svg: string): string {
 }
 
 function prepareSvgForComparison(svg: string): string {
-    // React renders the whole svg onto a single line, and the line diff in the
-    // admin needs lines to work with, so break it up one tag per line. `><`
-    // only ever occurs at a tag boundary because React escapes `>` in text and
-    // in attributes.
-    return numberBoundsClipPaths(svg).replaceAll("><", ">\n<")
+    return breakSvgTagsOntoLines(numberBoundsClipPaths(svg))
+}
+
+/**
+ * React renders the whole svg onto a single line, and the line diff in the
+ * admin needs lines to work with, so break it up one tag per line. Each `<text>`
+ * element stays on one line: a line break inside it is whitespace that renders
+ * as a space. `><` only ever occurs at a tag boundary because React escapes `>`
+ * in text and in attributes.
+ */
+export function breakSvgTagsOntoLines(svg: string): string {
+    return (
+        svg
+            .split(/(<text\b.*?<\/text>)/s)
+            // split puts the captured text elements at the odd indexes
+            .map((part, i) => (i % 2 ? part : part.replaceAll("><", ">\n<")))
+            .filter(Boolean)
+            .join("\n")
+    )
 }
 
 export interface RenderSvgAndSaveJobDescription {
