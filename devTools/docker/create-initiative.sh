@@ -7,15 +7,9 @@
 # restacking your other branches) and the new branch is tracked with master as
 # its parent.
 #
-# The worktree gets its .env from `make setup.worktree`, and BMad from the main
-# checkout:
-#
-#   _bmad/<item>                 symlink to main (one shared install)
-#   _bmad/custom/<file>          symlink to main; config.user.toml is left out,
-#                                so the worktree has its own active_initiative
-#   _bmad/render/                real directory (disposable cache)
-#   _bmad-output                 symlink to main (one shared planning folder)
-#   .claude/settings.local.json  allows Claude Code to write through that symlink
+# The worktree gets its .env from `make setup.worktree`. BMad is not set up
+# here: a user-level Claude Code SessionStart hook links _bmad and _bmad-output
+# to the main checkout in every worktree, and user settings allow writes there.
 #
 # The initiative itself is created with `bmad` in the new window.
 #
@@ -60,36 +54,6 @@ git -C "$MAIN" worktree add "$WORKTREE" -b "$INITIATIVE" master
 
 echo "==> Writing the worktree's .env"
 make -C "$WORKTREE" setup.worktree
-
-echo "==> Linking BMad from $MAIN"
-cd "$WORKTREE"
-mkdir -p _bmad/custom _bmad/render .claude
-for item in "$MAIN"/_bmad/* "$MAIN"/_bmad/.[!.]*; do
-    [ -e "$item" ] || continue
-    case "$(basename "$item")" in
-        custom | render) ;;
-        *) ln -s "$item" _bmad/ ;;
-    esac
-done
-for item in "$MAIN"/_bmad/custom/* "$MAIN"/_bmad/custom/.[!.]*; do
-    [ -e "$item" ] || continue
-    [ "$(basename "$item")" = config.user.toml ] || ln -s "$item" _bmad/custom/
-done
-mkdir -p "$MAIN/_bmad-output"
-ln -s "$MAIN/_bmad-output" _bmad-output
-
-# Claude Code resolves symlinks before checking permissions, so a session in
-# this worktree can only write to main's _bmad-output if it is an allowed
-# directory
-node -e '
-const fs = require("fs");
-const [file, dir] = process.argv.slice(1);
-const settings = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : {};
-settings.permissions ??= {};
-settings.permissions.additionalDirectories ??= [];
-settings.permissions.additionalDirectories.push(dir);
-fs.writeFileSync(file, JSON.stringify(settings, null, 2) + "\n");
-' .claude/settings.local.json "$MAIN/_bmad-output"
 
 if command -v code >/dev/null 2>&1; then
     echo "==> Opening $WORKTREE in a new VS Code window"
