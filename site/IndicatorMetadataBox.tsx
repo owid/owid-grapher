@@ -411,6 +411,14 @@ export default function IndicatorMetadataBox({
                         />
                     </MetadataBoxKeyDataRow>
                 )}
+                {owners.length > 0 && (
+                    <MetadataBoxKeyDataRow
+                        label="Managed by"
+                        className="indicator-metadata-box__managed-by"
+                    >
+                        <AvatarByline authors={owners} />
+                    </MetadataBoxKeyDataRow>
+                )}
                 {sourceString && (
                     <MetadataBoxKeyDataRow
                         label="Data source"
@@ -441,14 +449,6 @@ export default function IndicatorMetadataBox({
                         {makeNextUpdate({
                             nextUpdate: datapageData.nextUpdate,
                         })}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {owners.length > 0 && (
-                    <MetadataBoxKeyDataRow
-                        label="Managed by"
-                        className="indicator-metadata-box__managed-by"
-                    >
-                        <AvatarByline authors={owners} />
                     </MetadataBoxKeyDataRow>
                 )}
             </MetadataBoxKeyData>
