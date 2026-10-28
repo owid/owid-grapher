@@ -69,6 +69,10 @@
     margin-top: 32px;
 }
 
+.indicator-metadata-box .metadata-box-section__title {
+    margin-bottom: 8px;
+}
+
 .indicator-metadata-box .indicator-metadata-box__description-key-title {
     @include body-2-bold-tight;
     color: $blue-90;
@@ -207,7 +211,19 @@
     }
 
     &[open] > .ExpandableToggle__content {
-        padding: 12px 16px 24px;
+        padding: 8px 16px 24px;
+    }
+}
+
+// Accordions and single sources have a line under each one only, so the first
+// sits right under its section heading and neighbours share one line
+.indicator-metadata-box details.ExpandableToggle,
+.indicator-metadata-box .indicator-sources div.NonExpandable {
+    border-top: none;
+
+    &,
+    &:has(+ .ExpandableToggle, + .NonExpandable) {
+        border-bottom: 1px solid var(--border);
     }
 }
 
