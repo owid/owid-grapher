@@ -50,7 +50,9 @@ import {
     ELEVATED_MARKER_RADIUS,
     AnnotationTooltipEvent,
     AnnotationTooltipState,
+    PlacedRangeAnnotation,
     RenderPointAnnotation,
+    RenderRangeAnnotation,
 } from "./LineChartConstants"
 import {
     getHoverStateForSeries,
@@ -72,7 +74,10 @@ import {
     transitionAnnotationTooltipState,
 } from "./LineChartHelpers"
 import { LineChartActiveTimeMarkers } from "./LineChartActiveTimeMarkers"
-import { LineChartPointAnnotations } from "./LineChartAnnotations"
+import {
+    LineChartPointAnnotations,
+    LineChartRangeAnnotations,
+} from "./LineChartAnnotations"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
 import { Lines } from "./Lines"
 import { LineChartState } from "./LineChartState.js"
@@ -560,6 +565,9 @@ export class LineChart
                 {this.renderColorLegend()}
                 {this.renderDualAxis()}
                 {this.renderChartElements()}
+                <LineChartRangeAnnotations
+                    annotations={this.renderRangeAnnotations}
+                />
 
                 {(this.isTooltipActive || this.hasTimeHighlights) && (
                     <LineChartActiveTimeMarkers
@@ -702,6 +710,18 @@ export class LineChart
         return this.isTooltipActive && this.activeTimes.includes(time)
     }
 
+    private isActiveTimeInRange({
+        startTime,
+        endTime,
+    }: PlacedRangeAnnotation["snappedTimeRange"]): boolean {
+        return (
+            this.isTooltipActive &&
+            this.activeTimes.some(
+                (time) => time >= startTime && time <= endTime
+            )
+        )
+    }
+
     @computed private get seriesNamesWithLabelInfoIcon(): Set<SeriesName> {
         return new Set(
             this.renderSeries
@@ -741,6 +761,26 @@ export class LineChart
                     isTooltipOpen: isTooltipOpenAt(placedAnnotation.point.time),
                 }))
         })
+    }
+
+    @computed private get renderRangeAnnotations(): RenderRangeAnnotation[] {
+        return this.renderSeries.flatMap((series, index) =>
+            series.placedRangeAnnotations
+                .filter(
+                    ({ snappedTimeRange }) =>
+                        !series.hover.background &&
+                        (this.isLabelTooltipShowingAnnotations(
+                            series.seriesName
+                        ) ||
+                            this.isActiveTimeInRange(snappedTimeRange))
+                )
+                .map((placedAnnotation) => ({
+                    ...placedAnnotation,
+                    key: `${getSeriesKey(series, index)}-${placedAnnotation.annotation.startTime}-${placedAnnotation.annotation.endTime}`,
+                    seriesName: series.seriesName,
+                    emphasis: series.emphasis,
+                }))
+        )
     }
 
     private findSeriesForLabel(series: LineChartSeries): LineChartSeries[] {
