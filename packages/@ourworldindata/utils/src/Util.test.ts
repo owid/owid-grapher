@@ -40,6 +40,7 @@ import {
     stripOuterParentheses,
     groupTocIntoSections,
     snapToIntervalStart,
+    positiveModulo,
     findFinestCommonTimeInterval,
     diffDatesInDays,
     convertDateToDaysSinceEpoch,
@@ -770,12 +771,63 @@ describe(snapToIntervalStart, () => {
         ).toEqual(day("2021-01-01"))
     })
 
-    it("leaves day, year and decade values unchanged", () => {
+    it("snaps dates before the epoch", () => {
+        // 2019-12-29 is a Sunday; its ISO week starts Monday 2019-12-23
+        expect(
+            snapToIntervalStart(day("2019-12-29"), TimeInterval.Week)
+        ).toEqual(day("2019-12-23"))
+        // 1850-06-15 is a Saturday; its ISO week starts Monday 1850-06-10
+        expect(
+            snapToIntervalStart(day("1850-06-15"), TimeInterval.Week)
+        ).toEqual(day("1850-06-10"))
+        expect(
+            snapToIntervalStart(day("1850-06-15"), TimeInterval.Month)
+        ).toEqual(day("1850-06-01"))
+        expect(
+            snapToIntervalStart(day("1850-06-15"), TimeInterval.Quarter)
+        ).toEqual(day("1850-04-01"))
+    })
+
+    it("leaves dates already at the start of their interval unchanged", () => {
+        expect(
+            snapToIntervalStart(day("2021-01-11"), TimeInterval.Week)
+        ).toEqual(day("2021-01-11"))
+        expect(
+            snapToIntervalStart(day("2019-12-30"), TimeInterval.Week)
+        ).toEqual(day("2019-12-30"))
+        expect(
+            snapToIntervalStart(day("2021-03-01"), TimeInterval.Month)
+        ).toEqual(day("2021-03-01"))
+        expect(
+            snapToIntervalStart(day("2021-07-01"), TimeInterval.Quarter)
+        ).toEqual(day("2021-07-01"))
+    })
+
+    it("leaves day and year values unchanged", () => {
         expect(
             snapToIntervalStart(day("2021-03-15"), TimeInterval.Day)
         ).toEqual(day("2021-03-15"))
         expect(snapToIntervalStart(2021, TimeInterval.Year)).toEqual(2021)
-        expect(snapToIntervalStart(2025, TimeInterval.Decade)).toEqual(2025)
+    })
+
+    it("snaps decade values to the start of the decade", () => {
+        expect(snapToIntervalStart(2025, TimeInterval.Decade)).toEqual(2020)
+        expect(snapToIntervalStart(2029, TimeInterval.Decade)).toEqual(2020)
+        expect(snapToIntervalStart(2020, TimeInterval.Decade)).toEqual(2020)
+        expect(snapToIntervalStart(0, TimeInterval.Decade)).toEqual(0)
+        // Negative years (BCE) snap down too, e.g. -5 is in the -10s decade
+        expect(snapToIntervalStart(-5, TimeInterval.Decade)).toEqual(-10)
+        expect(snapToIntervalStart(-10, TimeInterval.Decade)).toEqual(-10)
+    })
+})
+
+describe(positiveModulo, () => {
+    it("wraps negative numbers into [0, m)", () => {
+        expect(positiveModulo(5, 7)).toEqual(5)
+        expect(positiveModulo(7, 7)).toEqual(0)
+        expect(positiveModulo(-2, 7)).toEqual(5)
+        expect(positiveModulo(-7, 7)).toEqual(0)
+        expect(positiveModulo(-15, 7)).toEqual(6)
     })
 })
 
