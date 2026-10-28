@@ -731,8 +731,8 @@ export class LineChart
                     seriesName
                 ),
                 annotations: toSeriesLabelAnnotations(
-                    series.pointAnnotations,
-                    (time) => this.chartState.formatColumn.formatTime(time)
+                    series,
+                    this.chartState.formatColumn
                 ),
                 yValue: lastValue,
                 emphasis: resolveEmphasis({ focus, hover }),

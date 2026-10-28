@@ -11,7 +11,10 @@ import { InteractionState } from "../interaction/InteractionState"
 import { Emphasis } from "../interaction/Emphasis"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants"
-import { PointAnnotation } from "../annotations/EntityAnnotations"
+import {
+    PointAnnotation,
+    RangeAnnotation,
+} from "../annotations/EntityAnnotations"
 
 export const LINE_CHART_CLASS_NAME = "LineChart"
 
@@ -99,6 +102,7 @@ export interface LineChartSeries extends ChartSeries {
     columnName: string
     focus: InteractionState
     pointAnnotations: PointAnnotation[]
+    rangeAnnotations: RangeAnnotation[]
 }
 
 export interface PlacedAnnotation {

@@ -458,6 +458,18 @@ describe("point annotations", () => {
         time,
     })
 
+    const rangeAnnotation = (
+        text: string,
+        startTime: number,
+        endTime: number
+    ): IndicatorAnnotation => ({
+        text,
+        entityNames: ["usa"],
+        timeScope: "range",
+        startTime,
+        endTime,
+    })
+
     const makeAnnotatedChart = ({
         annotations,
         ...managerOptions
@@ -515,6 +527,33 @@ describe("point annotations", () => {
         })
 
         expect(chart.series[0].pointAnnotations.map((a) => a.text)).toEqual([
+            "inside",
+        ])
+    })
+
+    it("gives a series the ranges that overlap the start and end time", () => {
+        const annotations = [
+            rangeAnnotation("early", 1990, 1995),
+            rangeAnnotation("straddling", 1999, 2001),
+            rangeAnnotation("inside", 2001, 2001),
+            rangeAnnotation("late", 2005, 2010),
+        ]
+
+        const { chart: allTimes } = makeAnnotatedChart({ annotations })
+        expect(allTimes.series[0].rangeAnnotations.map((a) => a.text)).toEqual([
+            "early",
+            "straddling",
+            "inside",
+            "late",
+        ])
+
+        const { chart: windowed } = makeAnnotatedChart({
+            annotations,
+            startTime: 2000,
+            endTime: 2002,
+        })
+        expect(windowed.series[0].rangeAnnotations.map((a) => a.text)).toEqual([
+            "straddling",
             "inside",
         ])
     })
