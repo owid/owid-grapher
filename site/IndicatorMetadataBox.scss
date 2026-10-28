@@ -4,7 +4,7 @@
     --indicator-sources-key-data-title: #{$blue-50};
     --indicator-metadata-box-padding: 24px;
     padding: var(--indicator-metadata-box-padding);
-    background-color: $blue-5;
+    background-color: $gray-5;
     grid-template-columns: repeat(12, 1fr);
     grid-column-start: 2;
     grid-column-end: span 12;
