@@ -18,6 +18,7 @@ import {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
     isInIFrame,
+    multiDimDimensionsToViewQueryStr,
 } from "@ourworldindata/utils"
 import {
     ArchiveContext,
@@ -48,6 +49,7 @@ import {
     cachedGetVariableMetadata,
 } from "./api.js"
 import MultiDim from "./MultiDim.js"
+import { MultiDimAllViews, MultiDimAllViewsView } from "./MultiDimAllViews.js"
 import { useBaseGrapherConfig, useMultiDimAnalytics } from "./hooks.js"
 import {
     DATA_API_URL,
@@ -80,6 +82,7 @@ export type MultiDimDataPageContentProps = {
     archiveContext?: ArchiveContext
     initialViewData?: MultiDimDataPageInitialViewData
     initialViewDimensions?: MultiDimDimensionChoices
+    viewTitles?: Record<string, string>
 }
 
 export type MultiDimDataPageData = Omit<
@@ -108,6 +111,7 @@ export function DataPageContent({
     archiveContext,
     initialViewData,
     initialViewDimensions,
+    viewTitles,
 }: MultiDimDataPageContentProps) {
     const assetMap =
         archiveContext?.type === "archive-page"
@@ -417,6 +421,30 @@ export function DataPageContent({
         !!grapherStateRef.current
     )
 
+    const allViews = useMemo((): MultiDimAllViewsView[] => {
+        const dimensions = config.dimensions
+        const dimensionSlugs = config.config.dimensions.map((d) => d.slug)
+        return config.config.views.map((view) => {
+            const queryStr = multiDimDimensionsToViewQueryStr(view.dimensions)
+            const choices = dimensionSlugs.flatMap((dimSlug) => {
+                const dimension = dimensions[dimSlug]
+                const choice =
+                    dimension?.choicesBySlug[view.dimensions[dimSlug]]
+                if (!dimension || !choice) return []
+                return [
+                    { dimensionName: dimension.name, choiceName: choice.name },
+                ]
+            })
+            return {
+                queryStr,
+                title:
+                    viewTitles?.[queryStr] ??
+                    choices.map((c) => c.choiceName).join(" – "),
+                choices,
+            }
+        })
+    }, [config, viewTitles])
+
     const downloadSection = slug ? (
         <DownloadSection
             slug={slug}
@@ -518,6 +546,20 @@ export function DataPageContent({
                             relatedResearch={relatedResearch}
                         />
                     )}
+                    {slug &&
+                        viewTitles &&
+                        archiveContext?.type !== "archive-page" &&
+                        allViews.length >= 2 && (
+                            <MultiDimAllViews
+                                slug={slug}
+                                pageTitle={config.config.title.title}
+                                currentQueryStr={multiDimDimensionsToViewQueryStr(
+                                    displayedSettings
+                                )}
+                                views={allViews}
+                                onSelectView={handleSettingsChange}
+                            />
+                        )}
                 </div>
                 {varDatapageData && (
                     <MetadataSection
@@ -559,6 +601,7 @@ export function MultiDimDataPageContent({
     archiveContext,
     initialViewData,
     initialViewDimensions,
+    viewTitles,
 }: MultiDimDataPageContentProps) {
     return isIframe ? (
         <MultiDim
@@ -582,6 +625,7 @@ export function MultiDimDataPageContent({
             archiveContext={archiveContext}
             initialViewData={initialViewData}
             initialViewDimensions={initialViewDimensions}
+            viewTitles={viewTitles}
         />
     )
 }

@@ -290,6 +290,16 @@ export async function renderMultiDimDataPageFromConfig({
         }
     }
 
+    // Titles of all views, for the server-rendered list of view links. Not on
+    // archival pages, where the links would point at live views.
+    const viewTitles =
+        archiveContext?.type === "archive-page"
+            ? undefined
+            : _.mapValues(
+                  (await getMultiDimPageCompanion(knex, config)).views,
+                  (view) => view.title
+              )
+
     let canonicalUrl: string
     if (archiveContext?.type === "archive-page") {
         canonicalUrl = archiveContext.archiveUrl
@@ -311,6 +321,7 @@ export async function renderMultiDimDataPageFromConfig({
         imageMetadata,
         isPreviewing,
         archiveContext,
+        viewTitles,
     }
 
     return renderMultiDimDataPageFromProps(props)

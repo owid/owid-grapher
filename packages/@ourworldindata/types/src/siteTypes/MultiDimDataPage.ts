@@ -172,4 +172,6 @@ export interface MultiDimDataPageProps {
     imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean
     archiveContext?: ArchiveContext
+    /** View titles, keyed by the view's canonical dimensions query string. */
+    viewTitles?: Record<string, string>
 }
