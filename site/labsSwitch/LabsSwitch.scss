@@ -1,0 +1,50 @@
+.labs-switch {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    // Below the reader survey (UserSurvey.scss), which takes the same corner:
+    // the survey is what readers came across, the button can wait
+    z-index: 19;
+    display: flex;
+    align-items: center;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 4px;
+    background-color: $oxford-blue;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+        color: #fff;
+        background-color: $blue-90;
+
+        .labs-switch__label {
+            display: flex;
+        }
+    }
+}
+
+.labs-switch__tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    box-sizing: border-box;
+    border: 1px solid #fff;
+    font-size: 0.9375rem;
+}
+
+// Slides out on hover and focus, so at rest the button is just the mark
+.labs-switch__label {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px 0 12px;
+}
