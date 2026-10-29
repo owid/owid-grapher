@@ -18,6 +18,11 @@ export type RangeAnnotation = Extract<
     { timeScope: "range"; entityNames: EntityName[] }
 >
 
+export interface EntityAnnotations {
+    pointAnnotations: PointAnnotation[]
+    rangeAnnotations: RangeAnnotation[]
+}
+
 export type AnnotationMarker = Extract<
     AnnotationTimeScope,
     { timeScope: "point" | "range" }
@@ -39,11 +44,26 @@ function isRangeAnnotation(
     )
 }
 
-export function selectEntityPointAnnotations(
-    annotations: IndicatorAnnotation[],
-    entityName: EntityName,
+interface SelectEntityAnnotationsArgs {
+    annotations: IndicatorAnnotation[]
+    entityName: EntityName
     timeRange: TimeRange
-): PointAnnotation[] {
+}
+
+export function selectEntityAnnotations(
+    args: SelectEntityAnnotationsArgs
+): EntityAnnotations {
+    return {
+        pointAnnotations: selectEntityPointAnnotations(args),
+        rangeAnnotations: selectEntityRangeAnnotations(args),
+    }
+}
+
+function selectEntityPointAnnotations({
+    annotations,
+    entityName,
+    timeRange,
+}: SelectEntityAnnotationsArgs): PointAnnotation[] {
     const [startTime, endTime] = timeRange
     return annotations
         .filter(isPointAnnotation)
@@ -56,11 +76,11 @@ export function selectEntityPointAnnotations(
         .sort((a, b) => a.time - b.time)
 }
 
-export function selectEntityRangeAnnotations(
-    annotations: IndicatorAnnotation[],
-    entityName: EntityName,
-    timeRange: TimeRange
-): RangeAnnotation[] {
+function selectEntityRangeAnnotations({
+    annotations,
+    entityName,
+    timeRange,
+}: SelectEntityAnnotationsArgs): RangeAnnotation[] {
     const [windowStart, windowEnd] = timeRange
     return annotations
         .filter(isRangeAnnotation)
@@ -74,10 +94,7 @@ export function selectEntityRangeAnnotations(
 }
 
 export function toSeriesLabelAnnotations(
-    annotations: {
-        pointAnnotations: PointAnnotation[]
-        rangeAnnotations: RangeAnnotation[]
-    },
+    annotations: EntityAnnotations,
     timeColumn: CoreColumn
 ): SeriesLabelAnnotation[] {
     const entries = [
