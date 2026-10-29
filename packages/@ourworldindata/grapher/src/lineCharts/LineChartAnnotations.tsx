@@ -44,6 +44,7 @@ export function LineChartPointAnnotations({
                     seriesName,
                     point,
                     emphasis,
+                    heading,
                     isTooltipOpen,
                     annotation,
                 }) => (
@@ -59,7 +60,9 @@ export function LineChartPointAnnotations({
                         onClickOutside={onTooltipClose}
                         content={
                             <SeriesLabelAnnotations
-                                annotations={[{ text: annotation.text }]}
+                                annotations={[
+                                    { heading, text: annotation.text },
+                                ]}
                             />
                         }
                     >
