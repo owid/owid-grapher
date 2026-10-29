@@ -696,9 +696,13 @@ export class LineChart
                 .filter(
                     (series) =>
                         !series.hover.background &&
-                        series.placedPointAnnotations.some(({ point }) =>
+                        (series.placedPointAnnotations.some(({ point }) =>
                             this.isAtHoveredTime(point.time)
-                        )
+                        ) ||
+                            series.placedRangeAnnotations.some(
+                                ({ snappedTimeRange }) =>
+                                    this.isActiveTimeInRange(snappedTimeRange)
+                            ))
                 )
                 .map((series) => series.seriesName)
         )
