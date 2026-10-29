@@ -6,6 +6,7 @@ import {
     DbPlainMultiDimDataPage,
     DbInsertMultiDimRedirect,
     DbPlainMultiDimRedirect,
+    DbPlainRedirect,
     JsonError,
     MultiDimDataPageConfigRaw,
     MultiDimDataPagesTableName,
@@ -21,6 +22,7 @@ import {
     getMultiDimDataPageByCatalogPath,
 } from "../../db/model/MultiDimDataPage.js"
 import { redirectWithSourceExists } from "../../db/model/Redirect.js"
+import { buildQueryStrFromConfig } from "../../db/model/MultiDimRedirects.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
     upsertMultiDim,
@@ -152,60 +154,130 @@ async function checkSourceNotDuplicateMultiDimRedirect(
     }
 }
 
+// An existing redirect whose target is a given path, i.e. one that would become
+// the first hop of a chain (X -> path -> target) if that path became a redirect
+// source itself.
+interface RedirectToPath {
+    kind: "site" | "multiDim" | "chartSlug"
+    id: number
+    source: string
+}
+
+async function getRedirectsToPath(
+    trx: db.KnexReadonlyTransaction,
+    path: string
+): Promise<RedirectToPath[]> {
+    const siteRedirects = await trx<DbPlainRedirect>("redirects")
+        .select("id", "source")
+        .where("target", path)
+    const redirects: RedirectToPath[] = siteRedirects.map((redirect) => ({
+        kind: "site",
+        ...redirect,
+    }))
+
+    // Multi-dims and charts are only served at /grapher/ paths
+    if (!path.startsWith("/grapher/")) return redirects
+    const slug = Url.fromURL(path).slug
+
+    const multiDimRedirects = await db.knexRaw<{ id: number; source: string }>(
+        trx,
+        `-- sql
+        SELECT mdr.id, mdr.source
+        FROM ${MultiDimRedirectsTableName} mdr
+        JOIN ${MultiDimDataPagesTableName} mdp ON mdr.multiDimId = mdp.id
+        WHERE mdp.slug = ?`,
+        [slug]
+    )
+    for (const redirect of multiDimRedirects) {
+        redirects.push({ kind: "multiDim", ...redirect })
+    }
+
+    // Old slugs of the chart currently published at this path
+    const chartSlugRedirects = await db.knexRaw<{ id: number; slug: string }>(
+        trx,
+        `-- sql
+        SELECT csr.id, csr.slug
+        FROM ${ChartSlugRedirectsTableName} csr
+        JOIN charts c ON csr.chart_id = c.id
+        JOIN chart_configs cc ON c.configId = cc.id
+        WHERE cc.slug = ?`,
+        [slug]
+    )
+    for (const redirect of chartSlugRedirects) {
+        redirects.push({
+            kind: "chartSlug",
+            id: redirect.id,
+            source: `/grapher/${redirect.slug}`,
+        })
+    }
+
+    return redirects
+}
+
+const redirectKindLabels: Record<RedirectToPath["kind"], string> = {
+    site: "site redirect",
+    multiDim: "multi-dim redirect",
+    chartSlug: "chart slug redirect",
+}
+
 // Source must not already be a redirect *target* (would create chain:
 // X -> source -> target).
 async function checkSourceNotRedirectTarget(
     trx: db.KnexReadonlyTransaction,
     source: string
 ): Promise<void> {
-    const sourceIsTargetOfSiteRedirect = await trx<{ id: number }>("redirects")
-        .select("id")
-        .where("target", source)
-        .first()
-    if (sourceIsTargetOfSiteRedirect) {
+    const [redirect] = await getRedirectsToPath(trx, source)
+    if (redirect) {
         throw new JsonError(
-            `Creating this redirect would form a redirect chain: '${source}' is already a target of an existing site redirect`,
+            `Creating this redirect would form a redirect chain: '${source}' is already a target of ${redirectKindLabels[redirect.kind]} '${redirect.source}'`,
             400
         )
     }
-    const sourceSlug = Url.fromURL(source).slug
-    // Multi-dim targets are always at /grapher/ paths, so only check if source is a /grapher/ path
-    if (source.startsWith("/grapher/")) {
-        const sourceIsMultiDimTarget = await db.knexRaw<{ source: string }>(
-            trx,
-            `-- sql
-            SELECT mdr.source
-            FROM ${MultiDimRedirectsTableName} mdr
-            JOIN ${MultiDimDataPagesTableName} mdp ON mdr.multiDimId = mdp.id
-            WHERE mdp.slug = ?
-            LIMIT 1`,
-            [sourceSlug]
-        )
-        if (sourceIsMultiDimTarget.length > 0) {
-            throw new JsonError(
-                `Creating this redirect would form a redirect chain: '${source}' is already a target of redirect '${sourceIsMultiDimTarget[0].source}'`,
-                400
-            )
+}
+
+// Points every redirect that targets `path` straight at the multi-dim instead,
+// so that turning `path` into a multi-dim redirect source doesn't form a chain.
+// Site redirects keep being site redirects with the new target; chart slug and
+// multi-dim redirects become multi-dim redirects to the given view. Returns the
+// repointed redirects.
+export async function repointRedirectsToPath(
+    trx: db.KnexReadWriteTransaction,
+    path: string,
+    target: {
+        multiDimId: number
+        viewConfigId: string | null
+        // The multi-dim URL including the view's query params
+        targetFullPath: string
+    }
+): Promise<RedirectToPath[]> {
+    const redirects = await getRedirectsToPath(trx, path)
+    for (const redirect of redirects) {
+        if (redirect.kind === "site") {
+            await trx("redirects")
+                .where({ id: redirect.id })
+                .update({ target: target.targetFullPath })
+        } else if (redirect.kind === "multiDim") {
+            await trx(MultiDimRedirectsTableName)
+                .where({ id: redirect.id })
+                .update({
+                    multiDimId: target.multiDimId,
+                    viewConfigId: target.viewConfigId,
+                })
+        } else {
+            await trx(ChartSlugRedirectsTableName)
+                .where({ id: redirect.id })
+                .delete()
+            await validatePathIsNotRedirectSource(trx, redirect.source)
+            await trx<DbInsertMultiDimRedirect>(
+                MultiDimRedirectsTableName
+            ).insert({
+                source: redirect.source,
+                multiDimId: target.multiDimId,
+                viewConfigId: target.viewConfigId,
+            })
         }
     }
-    // Check if source matches a chart's current slug that has old slugs redirecting to it
-    const sourceIsChartSlugTarget = await db.knexRaw<{ slug: string }>(
-        trx,
-        `-- sql
-        SELECT csr.slug
-        FROM ${ChartSlugRedirectsTableName} csr
-        JOIN charts c ON csr.chart_id = c.id
-        JOIN chart_configs cc ON c.configId = cc.id
-        WHERE cc.slug = ?
-        LIMIT 1`,
-        [sourceSlug]
-    )
-    if (sourceIsChartSlugTarget.length > 0) {
-        throw new JsonError(
-            `Creating this redirect would form a redirect chain: '${source}' is already a target of chart slug redirect '${sourceIsChartSlugTarget[0].slug}'`,
-            400
-        )
-    }
+    return redirects
 }
 
 // Target (a /grapher/<slug> path) must not already be a redirect source (would
@@ -247,7 +319,7 @@ async function checkTargetNotRedirectSource(
     }
 }
 
-async function validatePathIsNotRedirectSource(
+export async function validatePathIsNotRedirectSource(
     trx: db.KnexReadonlyTransaction,
     path: string,
     // When provided (multi-dim redirect creation), the source path may repeat as
@@ -440,6 +512,23 @@ export async function handlePatchMultiDim(
     return { success: true, multiDim }
 }
 
+// Lists the redirects that target a path, so the admin can ask whether to
+// repoint them before making the path a multi-dim redirect source.
+export async function handleGetRedirectsToPath(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+): Promise<{ redirects: Pick<RedirectToPath, "kind" | "source">[] }> {
+    const path = req.query.path
+    if (typeof path !== "string" || !path) {
+        throw new JsonError("Missing 'path' query param", 400)
+    }
+    const redirects = await getRedirectsToPath(trx, path)
+    return {
+        redirects: redirects.map(({ kind, source }) => ({ kind, source })),
+    }
+}
+
 export async function handleGetMultiDimRedirects(
     req: Request,
     _res: HandlerResponse,
@@ -501,6 +590,9 @@ const postMultiDimRedirectSchema = z
             .record(z.string(), z.string().nullable())
             .nullable()
             .optional(),
+        // Repoint the redirects that currently target the source to the
+        // multi-dim, instead of rejecting the redirect as a chain
+        repointRedirectsToSource: z.boolean().optional(),
     })
     // Query-param conditions are only honored for /explorers/ sources, which are
     // baked into per-source decision trees. The /grapher/ redirect path is a
@@ -517,6 +609,19 @@ const postMultiDimRedirectSchema = z
             message:
                 "Source query params are only supported for /explorers/ redirects, not /grapher/ sources",
             path: ["sourceQueryParams"],
+        }
+    )
+    // A conditioned redirect only covers some URLs of the source, so the
+    // redirects targeting the source must keep going there
+    .refine(
+        (data) =>
+            !data.repointRedirectsToSource ||
+            !data.sourceQueryParams ||
+            Object.keys(data.sourceQueryParams).length === 0,
+        {
+            message:
+                "Redirects targeting the source can't be repointed by a redirect with source query params",
+            path: ["repointRedirectsToSource"],
         }
     )
 
@@ -602,7 +707,7 @@ export async function handlePostMultiDimRedirect(
             400
         )
     }
-    const { source, viewConfigId } = parseResult.data
+    const { source, viewConfigId, repointRedirectsToSource } = parseResult.data
     const sourceQueryParams = normalizeSourceQueryParams(
         parseResult.data.sourceQueryParams
     )
@@ -610,6 +715,21 @@ export async function handlePostMultiDimRedirect(
     const multiDim = await getMultiDimDataPageById(trx, multiDimId)
     if (!multiDim) {
         throw new JsonError("Multi-dimensional data page not found", 404)
+    }
+
+    // Repointing first lets the regular validation below pass, and the
+    // transaction rolls it back if the redirect is rejected anyway
+    if (repointRedirectsToSource && multiDim.slug) {
+        const queryStr = buildQueryStrFromConfig(
+            viewConfigId ?? null,
+            JSON.stringify(multiDim.config),
+            multiDim.slug
+        )
+        await repointRedirectsToPath(trx, source, {
+            multiDimId: multiDim.id,
+            viewConfigId: viewConfigId ?? null,
+            targetFullPath: `/grapher/${multiDim.slug}${queryStr ? `?${queryStr}` : ""}`,
+        })
     }
 
     const { id } = await createMultiDimRedirect(

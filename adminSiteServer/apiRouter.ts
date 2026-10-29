@@ -81,6 +81,7 @@ import {
     handleGetMultiDims,
     handlePatchMultiDim,
     handleGetMultiDimRedirects,
+    handleGetRedirectsToPath,
     handlePostMultiDimRedirect,
     handleBulkCreateMultiDimRedirects,
     handleDeleteMultiDimRedirect,
@@ -503,6 +504,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/multi-dims/:id/redirects",
     handleGetMultiDimRedirects
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/multi-dim-redirects/redirects-to",
+    handleGetRedirectsToPath
 )
 postRouteWithRWTransaction(
     apiRouter,
