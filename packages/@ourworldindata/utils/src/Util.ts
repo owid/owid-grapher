@@ -606,14 +606,6 @@ export interface Json {
     [x: string]: any
 }
 
-// Escape a function for storage in a csv cell
-export const csvEscape = (value: unknown): string => {
-    const valueStr = _.toString(value)
-    return valueStr.includes(",")
-        ? `"${valueStr.replace(/"/g, '""')}"`
-        : valueStr
-}
-
 // Removes all undefineds from an object.
 export const trimObject = <Obj>(
     obj: Obj,

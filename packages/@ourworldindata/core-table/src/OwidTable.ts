@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import { dsvFormat } from "d3-dsv"
 import {
     intersectionOfSets,
     findClosestTimeIndex,
@@ -12,7 +13,6 @@ import {
     imemo,
     ToleranceStrategy,
     sortedFindClosestIndex,
-    csvEscape,
 } from "@ourworldindata/utils"
 import {
     Time,
@@ -833,24 +833,18 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             formatColumnName = (col: OwidColumn): string => col.slug,
         } = options ?? {}
 
-        const header =
-            this.columnsAsArray
-                .map((col) => csvEscape(formatColumnName(col)))
-                .join(delimiter) + "\n"
+        const header = this.columnsAsArray.map(formatColumnName)
 
-        const body = this.rows
-            .map((row) =>
-                this.columnsAsArray.map((col) => {
-                    const value = row[col.slug]
-                    return isNotErrorValue(value)
-                        ? (col.formatForCsv(value) ?? "")
-                        : ""
-                })
-            )
-            .map((row) => row.join(delimiter))
-            .join("\n")
+        const body = this.rows.map((row) =>
+            this.columnsAsArray.map((col) => {
+                const value = row[col.slug]
+                return isNotErrorValue(value)
+                    ? (col.formatForCsv(value) ?? "")
+                    : ""
+            })
+        )
 
-        return header + body
+        return dsvFormat(delimiter).formatRows([header, ...body])
     }
 
     @imemo get entityNameColorIndex(): Map<EntityName, Color> {
