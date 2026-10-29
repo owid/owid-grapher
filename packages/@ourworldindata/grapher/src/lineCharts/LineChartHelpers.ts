@@ -5,7 +5,7 @@ import {
     isMobile,
     PointVector,
 } from "@ourworldindata/utils"
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import { OwidTable } from "@ourworldindata/core-table"
 import { match } from "ts-pattern"
 import { scaleLinear } from "d3-scale"
 import {
@@ -45,7 +45,6 @@ import {
     AnnotationMarker,
     RangeAnnotation,
 } from "../annotations/EntityAnnotations"
-import { SeriesLabelAnnotation } from "../seriesLabel/SeriesLabelState"
 
 export type AnnotationsMap = Map<PrimitiveType, Set<PrimitiveType>>
 
@@ -401,27 +400,6 @@ export function toRenderLineChartSeries(
     }
 
     return series
-}
-
-export function toSeriesLabelAnnotations(
-    series: Pick<LineChartSeries, "pointAnnotations" | "rangeAnnotations">,
-    timeColumn: CoreColumn
-): SeriesLabelAnnotation[] {
-    const entries = [
-        ...series.pointAnnotations.map(({ time, text }) => ({
-            startTime: time,
-            heading: timeColumn.formatTime(time),
-            text,
-        })),
-        ...series.rangeAnnotations.map(({ startTime, endTime, text }) => ({
-            startTime,
-            heading: timeColumn.formatTimeRange(startTime, endTime),
-            text,
-        })),
-    ]
-    return _.sortBy(entries, (entry) => entry.startTime).map(
-        ({ heading, text }) => ({ heading, text })
-    )
 }
 
 export function transitionAnnotationTooltipState(

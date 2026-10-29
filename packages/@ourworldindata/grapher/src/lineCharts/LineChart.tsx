@@ -16,7 +16,10 @@ import { observer } from "mobx-react"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { VerticalLabels } from "../verticalLabels/VerticalLabels"
-import { AnnotationMarker } from "../annotations/EntityAnnotations"
+import {
+    AnnotationMarker,
+    toSeriesLabelAnnotations,
+} from "../annotations/EntityAnnotations"
 import { VerticalLabelsState } from "../verticalLabels/VerticalLabelsState"
 import { TooltipState } from "../tooltip/Tooltip"
 import { LineChartTooltip } from "./LineChartTooltip"
@@ -70,7 +73,6 @@ import {
     isMarkerTooltipOpen,
     toPlacedLineChartSeries,
     toRenderLineChartSeries,
-    toSeriesLabelAnnotations,
     transitionAnnotationTooltipState,
 } from "./LineChartHelpers"
 import { LineChartActiveTimeMarkers } from "./LineChartActiveTimeMarkers"

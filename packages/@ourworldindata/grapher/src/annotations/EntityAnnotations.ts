@@ -1,9 +1,12 @@
+import * as _ from "lodash-es"
 import {
     AnnotationTimeScope,
     EntityName,
     IndicatorAnnotation,
     TimeRange,
 } from "@ourworldindata/types"
+import { CoreColumn } from "@ourworldindata/core-table"
+import { SeriesLabelAnnotation } from "../seriesLabel/SeriesLabelState"
 
 export type PointAnnotation = Extract<
     IndicatorAnnotation,
@@ -68,4 +71,28 @@ export function selectEntityRangeAnnotations(
                 annotation.endTime >= windowStart
         )
         .sort((a, b) => a.startTime - b.startTime)
+}
+
+export function toSeriesLabelAnnotations(
+    annotations: {
+        pointAnnotations: PointAnnotation[]
+        rangeAnnotations: RangeAnnotation[]
+    },
+    timeColumn: CoreColumn
+): SeriesLabelAnnotation[] {
+    const entries = [
+        ...annotations.pointAnnotations.map(({ time, text }) => ({
+            startTime: time,
+            heading: timeColumn.formatTime(time),
+            text,
+        })),
+        ...annotations.rangeAnnotations.map(({ startTime, endTime, text }) => ({
+            startTime,
+            heading: timeColumn.formatTimeRange(startTime, endTime),
+            text,
+        })),
+    ]
+    return _.sortBy(entries, (entry) => entry.startTime).map(
+        ({ heading, text }) => ({ heading, text })
+    )
 }

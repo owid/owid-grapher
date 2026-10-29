@@ -1,8 +1,12 @@
-import { expect, it } from "vitest"
+import { describe, expect, it } from "vitest"
 import { EntityName, IndicatorAnnotation } from "@ourworldindata/types"
+import { OwidTable } from "@ourworldindata/core-table"
 import {
+    PointAnnotation,
+    RangeAnnotation,
     selectEntityPointAnnotations,
     selectEntityRangeAnnotations,
+    toSeriesLabelAnnotations,
 } from "./EntityAnnotations"
 
 it("keeps points that name the entity, alone or among others", () => {
@@ -258,4 +262,47 @@ it("returns ranges in ascending start time order", () => {
         "middle",
         "late",
     ])
+})
+
+describe(toSeriesLabelAnnotations, () => {
+    const point = (text: string, time: number): PointAnnotation => ({
+        timeScope: "point",
+        entityNames: ["France"],
+        text,
+        time,
+    })
+    const range = (
+        text: string,
+        startTime: number,
+        endTime: number
+    ): RangeAnnotation => ({
+        timeScope: "range",
+        entityNames: ["France"],
+        text,
+        startTime,
+        endTime,
+    })
+
+    it("merges points and ranges by start time, points first on a tie", () => {
+        const entries = toSeriesLabelAnnotations(
+            {
+                pointAnnotations: [
+                    point("point 2000", 2000),
+                    point("point 1990", 1990),
+                ],
+                rangeAnnotations: [
+                    range("range 2000", 2000, 2005),
+                    range("range 1985", 1985, 2005),
+                ],
+            },
+            new OwidTable({ year: [2000], value: [1] }).timeColumn
+        )
+
+        expect(entries).toEqual([
+            { heading: "1985 to 2005", text: "range 1985" },
+            { heading: "1990", text: "point 1990" },
+            { heading: "2000", text: "point 2000" },
+            { heading: "2000 to 2005", text: "range 2000" },
+        ])
+    })
 })
