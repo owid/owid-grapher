@@ -23,14 +23,15 @@
     position: static;
     top: auto;
     font-size: 100%;
-    font-feature-settings: $default-font-features, "sups";
+    // unlike font-feature-settings, doesn't override the inherited features
+    font-variant-position: super;
 }
 
 @mixin subscript {
     position: static;
     bottom: auto;
     font-size: 100%;
-    font-feature-settings: $default-font-features, "subs";
+    font-variant-position: sub;
 }
 
 @mixin fraction {

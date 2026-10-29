@@ -11,12 +11,7 @@ import cx from "clsx"
 import { Footnote } from "../../Footnote.js"
 import { useCalloutValue } from "../utils.js"
 import { useHasHydrated } from "../../hooks.js"
-import {
-    SCRIPT_POSITION_CHARACTERS,
-    ScriptPosition,
-    ScriptPositionContext,
-    splitByGlyphCoverage,
-} from "./scriptGlyphCoverage.js"
+import { getScriptFallbackClassName } from "./scriptGlyphCoverage.js"
 
 function SpanCalloutElement({
     span,
@@ -25,32 +20,6 @@ function SpanCalloutElement({
 }): React.ReactElement {
     const value = useCalloutValue(span.functionName, span.parameters)
     return value ? <span className="span-callout">{value}</span> : <></>
-}
-
-/**
- * Wraps the characters our font has no superscript/subscript glyph for, so CSS
- * can raise/lower them to match the glyphs of the characters it does cover.
- * Text the font fully covers is returned unchanged.
- */
-function renderScriptPositionedText(
-    text: string,
-    scriptPosition: ScriptPosition | undefined
-): React.ReactNode {
-    if (!scriptPosition) return text
-    const runs = splitByGlyphCoverage(
-        text,
-        SCRIPT_POSITION_CHARACTERS[scriptPosition]
-    )
-    if (runs.every((run) => run.isCovered)) return text
-    return runs.map((run, index) =>
-        run.isCovered ? (
-            run.text
-        ) : (
-            <span key={index} className={`span-${scriptPosition}-fallback`}>
-                {run.text}
-            </span>
-        )
-    )
 }
 
 export default function SpanElement({
@@ -62,7 +31,6 @@ export default function SpanElement({
 }): React.ReactElement {
     const handleGuidedChartLinkClick = useGuidedChartLinkHandler()
     const hasHydrated = useHasHydrated()
-    const scriptPosition = React.useContext(ScriptPositionContext)
 
     return match(span)
         .with({ spanType: "span-simple-text" }, (span) => (
@@ -72,7 +40,7 @@ export default function SpanElement({
                 // TODO: https://github.com/owid/owid-grapher/issues/5437
                 className={cx({ "span-plain-arrow": span.text.trim() === "→" })}
             >
-                {renderScriptPositionedText(span.text, scriptPosition)}
+                {span.text}
             </span>
         ))
         .with({ spanType: "span-link" }, (span) =>
@@ -171,23 +139,29 @@ export default function SpanElement({
             </u>
         ))
         .with({ spanType: "span-subscript" }, (span) => (
-            <sub>
-                <ScriptPositionContext.Provider value="subscript">
-                    <SpanElements
-                        spans={span.children}
-                        shouldRenderLinks={shouldRenderLinks}
-                    />
-                </ScriptPositionContext.Provider>
+            <sub
+                className={getScriptFallbackClassName(
+                    span.children,
+                    "subscript"
+                )}
+            >
+                <SpanElements
+                    spans={span.children}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             </sub>
         ))
         .with({ spanType: "span-superscript" }, (span) => (
-            <sup>
-                <ScriptPositionContext.Provider value="superscript">
-                    <SpanElements
-                        spans={span.children}
-                        shouldRenderLinks={shouldRenderLinks}
-                    />
-                </ScriptPositionContext.Provider>
+            <sup
+                className={getScriptFallbackClassName(
+                    span.children,
+                    "superscript"
+                )}
+            >
+                <SpanElements
+                    spans={span.children}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             </sup>
         ))
         .with({ spanType: "span-quote" }, (span) => (
