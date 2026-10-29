@@ -19,7 +19,14 @@ The doc id is the part of the URL after `/document/d/`.
 
 ## Host
 
-- Default: the local admin of the checkout you are in. Worktrees use their own port, so `Read` the `.env` at the checkout root and take `ADMIN_SERVER_PORT` (3030 when unset). `HOST=http://localhost:<port>`.
+- Default: the local admin of the checkout you are in. Worktrees use their own port, so run this from the checkout root to take it from `.env`. Don't `Read` the `.env` itself, because it holds secrets.
+
+    ```sh
+    jq -Rr 'select(startswith("ADMIN_SERVER_PORT=")) | ltrimstr("ADMIN_SERVER_PORT=")' .env
+    ```
+
+    It prints the port, or nothing when the port is 3030. `HOST=http://localhost:<port>`.
+
 - When the user names a branch: `HOST=http://staging-site-<branch>`, with slashes in the branch name turned into hyphens and the branch part truncated to 28 characters.
 - No auth headers. Localhost logs you in automatically; staging knows you through Tailscale.
 
@@ -92,7 +99,10 @@ Mirror a real doc of the same type. Field lists alone miss the structure (e.g. a
 2. Read the exemplar as in "Read a doc" (`exemplar.json` → `exemplar.archieml`), then `Read` the local file. It is usually published and always read-only: a PUT on it returns 403. Never send it.
 3. `Write` the new doc to a local file, e.g. `new.archieml`. Mirror the exemplar's front matter and block layout; replace its content with yours. Prefix the front-matter `title` with `[TEST] ` (e.g. `title: [TEST] Life expectancy`): the Drive name is taken from it, so test docs stand out in Drive and in the admin. For block syntax, see `$HOST/admin/api/gdocs-reference/components.json`.
 4. Share with the **Claude session's account email** (the user's email from your session context). If you don't know it, ask. Never guess.
-5. Pick the Drive folder (`$FOLDER_ID`): the one the user names (the part of its URL after `/folders/`), else the default: the "GDoc test" folder in the OWID engineering shared drive. Find its id with a Drive search if you have a Drive connector, else ask the user for its URL. Always pass one: the service account's own Drive has no storage, so the route refuses a create without `folderId`.
+5. Pick the Drive folder. If the user names one, add `&folderId=$FOLDER_ID` to the URL in step 6, where `$FOLDER_ID` is the part of the folder's URL after `/folders/`. Otherwise leave `folderId` out, and the server uses the folder set in its `GDOCS_EDIT_GDOC_FOLDER_ID`.
+
+    If the create returns a 400 about `folderId`, the server has no default folder. Find the "GDoc test" folder in the OWID engineering shared drive with a Drive search if you have a Drive connector. Otherwise, ask the user for its URL. Send again with `folderId`, and tell the user that setting `GDOCS_EDIT_GDOC_FOLDER_ID` in the admin server's `.env` (then restarting it) skips this step.
+
 6. Encode the email (a `+` in it would otherwise read as a space):
 
     ```sh
@@ -102,7 +112,7 @@ Mirror a real doc of the same type. Field lists alone miss the structure (e.g. a
     Then send the file, with that output written in as `$ENCODED_EMAIL`. Keep these as two separate Bash calls: a command that starts with a variable assignment doesn't match the `curl` allowlist.
 
     ```sh
-    curl -s -X POST "$HOST/admin/api/gdocs/archieml?email=$ENCODED_EMAIL&folderId=$FOLDER_ID" \
+    curl -s -X POST "$HOST/admin/api/gdocs/archieml?email=$ENCODED_EMAIL" \
         -H "Content-Type: text/plain; charset=utf-8" \
         --data-binary @new.archieml | jq
     ```
@@ -134,11 +144,11 @@ The first time you write or create a doc in a session, give the user both links.
 
 ## Responses
 
-| Route                                     | 200 body                                    |
-| ----------------------------------------- | ------------------------------------------- |
-| `GET /gdocs/:id/archieml`                 | `{ text, revisionId, report, published }`   |
-| `PUT /gdocs/:id/archieml?revisionId=…`    | `{ revisionId, readBack, report }`          |
-| `POST /gdocs/archieml?email=…&folderId=…` | `{ id, url, revisionId, readBack, report }` |
+| Route                                       | 200 body                                    |
+| ------------------------------------------- | ------------------------------------------- |
+| `GET /gdocs/:id/archieml`                   | `{ text, revisionId, report, published }`   |
+| `PUT /gdocs/:id/archieml?revisionId=…`      | `{ revisionId, readBack, report }`          |
+| `POST /gdocs/archieml?email=…[&folderId=…]` | `{ id, url, revisionId, readBack, report }` |
 
 - `revisionId` — from GET, `null` on docs the service account can only view; such a doc can't be PUT.
 - `report: { errors, warnings }` — the admin's publishability checks. A doc with errors is **still written**; tell the user about them.
@@ -149,7 +159,7 @@ The first time you write or create a doc in a session, give the user both links.
 
 Every 400, 403, 404 and 409 means **nothing was written**.
 
-- **400** — fix and send again. Causes: the text doesn't parse, or its front-matter `type` is missing or invalid, or the admin can't load it; a missing `revisionId` (PUT), or a missing `email` or a missing or malformed `folderId` (POST); a body that isn't `text/plain`; a character Google would strip (the message gives the line and code point, e.g. `U+000D` — remove it from the file).
+- **400** — fix and send again. Causes: the text doesn't parse, or its front-matter `type` is missing or invalid, or the admin can't load it; a missing `revisionId` (PUT), or a missing `email` or a malformed `folderId` (POST), or none when the server has no `GDOCS_EDIT_GDOC_FOLDER_ID` (POST); a body that isn't `text/plain`; a character Google would strip (the message gives the line and code point, e.g. `U+000D` — remove it from the file).
 - **409** — the doc changed since your GET. GET again into a fresh file, re-apply your edit to it with `Edit`, and PUT with the new `revisionId`. Don't PUT your old file: it would undo the other change.
 - **403** — the doc is published, or the service account can only view it. This skill can only read it.
 - **404** — the doc isn't registered in the admin. The user must add it once in the admin: `$HOST/admin/gdocs` → "Add document", paste the URL.

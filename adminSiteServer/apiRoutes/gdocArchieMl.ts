@@ -13,6 +13,7 @@ import {
     replaceGdocContentWithArchieMlText,
     StaleRevisionError,
 } from "../../db/model/Gdoc/archieToGdoc.js"
+import { GDOCS_EDIT_GDOC_FOLDER_ID } from "../../settings/serverSettings.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import {
@@ -171,11 +172,11 @@ export async function putGdocArchieMl(
 }
 
 /**
- * POST /gdocs/archieml?email=<email>&folderId=<id>   (Content-Type: text/plain)
+ * POST /gdocs/archieml?email=<email>[&folderId=<id>]   (Content-Type: text/plain)
  *
  * Creates a new doc of any type from the request body, in the Drive folder
- * `folderId` (which may be in a shared drive; the service account's own My
- * Drive has no storage). Shares it as writer with `email` (otherwise only
+ * `folderId`, else GDOCS_EDIT_GDOC_FOLDER_ID (which may be in a shared drive;
+ * the service account's own My Drive has no storage). Shares it as writer with `email` (otherwise only
  * the folder's members could open it), writes the text as-is, reads it back and
  * registers it in posts_gdocs. Every refusal happens before anything is
  * created in Google. No DB transaction is held across the create, share and
@@ -198,10 +199,11 @@ export async function createGdocArchieMl(
             `The "email" query parameter must be the email address to share the new doc with.`,
             400
         )
-    const folderId = req.query.folderId
+    const folderId =
+        req.query.folderId ?? (GDOCS_EDIT_GDOC_FOLDER_ID || undefined)
     if (!isDriveFolderId(folderId))
         throw new JsonError(
-            `The "folderId" query parameter must be the id of the Drive folder to create the doc in (the part of the folder URL after /folders/).`,
+            `The "folderId" query parameter must be the id of the Drive folder to create the doc in (the part of the folder URL after /folders/). It can be left out when the server's .env sets GDOCS_EDIT_GDOC_FOLDER_ID.`,
             400
         )
 
