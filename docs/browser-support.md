@@ -1,20 +1,25 @@
 ## Supported browsers
 
-As of **2026-03-24**, we officially support the following browsers:
+As of **2026-10-26**, we officially support the following browsers:
 
-- Safari 16.0+ [September 2022]
-- iOS Safari 16.0+ [September 2022]
+- Safari 16.4+ [March 2023]
+- iOS Safari 16.4+ [March 2023]
 - Chrome/Edge 106+ [September 2022] (note that Chrome 109 is the last supported version on Windows 7/8, so we want to support that for a tad bit longer)
 - Firefox 110+ [February 2023] (note that 115 is an ESR version)
 
 Older versions of these browsers may still work, but we don't actively test or support them, and the site may be seriously broken.
 
+Our **CSS** additionally supports Safari/iOS Safari 16.0+, so that pages still look right where our JS doesn't run (e.g. Safari < 16.4 hits a `SyntaxError` and falls back to the no-JS experience, see below). CSS is built with the separate `CSS_BUILD_TARGET` in `rolldown.config-common.mts`. If we instead set the CSS target to 16.4+, it would rewrite media queries to [the `width>=769px` syntax](https://caniuse.com/css-media-range-syntax), breaking all media queries for older browsers.
+
+In our stylesheets, write media queries in range syntax (`@media (width <= $md)`); Lightning CSS lowers it to `min-width`/`max-width` for the CSS target. Stick to inclusive `<=`/`>=`: exclusive `<`/`>` get lowered to `not (max-width: …)`. Media queries that don't go through the CSS build, like the `media` and `sizes` attributes on `<img>`/`<source>`, must keep using `min-width`/`max-width`. `matchMedia()` queries in JS can use range syntax, since our JS needs Safari 16.4+ anyway.
+
 ### "Most breaking" features
 
 "Most breaking" features we use are:
 
-- [CSS `:has()` selector](https://caniuse.com/css-has) (Chrome 105+, Safari 15.4+, Firefox 121+) — used extensively in stylesheets. Note: Firefox only supports `:has()` from version 121 (December 2023), so make sure it degrades gracefully in Firefox <120.
+- [CSS `:has()` selector](https://caniuse.com/css-has) (Chrome 105+, Safari 15.4+, Firefox 121+) — used extensively in stylesheets. Note: Firefox only supports `:has()` from version 121 (December 2023), so make sure it degrades gracefully in Firefox <121. Beware of `:not(:has(...))`: in browsers without `:has()` support the whole rule is dropped, so only use it for cosmetic tweaks.
 - [CSS container queries (`@container`)](https://caniuse.com/css-container-queries) (Chrome 106+, Safari 16.0+, Firefox 110+) — used in grapher controls and tooltips.
+- [Lookbehind assertions in regular expressions](https://caniuse.com/js-regexp-lookbehind) (Chrome 62+, Firefox 79+, Safari 16.4+) — used by `tinykeys`. A regex literal is parsed with the script, so in older Safari the whole bundle fails with a `SyntaxError`.
 
 ### "Most breaking" features in Vite-generated code
 
@@ -22,8 +27,7 @@ Vite/Rolldown may emit syntax in the bundled output that we don't actively write
 
 - [Private class methods](https://caniuse.com/mdn-javascript_classes_private_class_methods) - Chrome 84+, Safari 15+, Firefox 90+.
 - [Nullish coalescing assignment operator (`??=`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing_assignment) — Chrome 85+, Safari 14+, Firefox 79+.
-
-Both are safe for our current targets, but they will causes issues (incl. SyntaxErrors) when our code is run in older browsers, especially in Safari < 16.0.
+- [Class static blocks](https://caniuse.com/mdn-javascript_classes_static_initialization_blocks) (`static { … }`) — Chrome 94+, Firefox 93+, Safari 16.4+.
 
 ### Features we can't yet use
 
@@ -34,20 +38,32 @@ The following features are **not** available across all our supported browsers a
 - [`URL.canParse()`](https://caniuse.com/mdn-api_url_canparse_static) — Chrome 120+, Firefox 115+, Safari 17+.
 - [Popover API (`popover` attribute, `showPopover()`)](https://caniuse.com/mdn-api_htmlelement_popover) — Chrome 114+, Firefox 125+, Safari 17+.
 - [`Array.fromAsync()`](https://caniuse.com/mdn-javascript_builtins_array_fromasync) — Chrome 121+, Firefox 115+, Safari 16.4+. Missing in Chrome 111–120.
-- [RegExp `v` flag (unicodeSets)](https://caniuse.com/mdn-javascript_builtins_regexp_unicodesets) — Chrome 112+, Firefox 116+, Safari 17+.
-- [CSS `@starting-style`](https://caniuse.com/mdn-css_at-rules_starting-style) — Chrome 117+, Firefox 129+, Safari 17.5+.
-- [View Transitions API](https://caniuse.com/view-transitions) — Chrome 111+, Safari 18+, Firefox 144+.
+- [RegExp `v` flag (unicodeSets)](https://caniuse.com/mdn-javascript_builtins_regexp_unicodesets) — Chrome 112+, Firefox 116+, Safari 17+. This includes `tinykeys` keybindings using the `(regex)` key syntax, which compile with the `v` flag.
 - [CSS subgrid](https://caniuse.com/css-subgrid) — Firefox 71+, Safari 16+, but Chrome 117+.
-- [Lookbehind assertions in regular expressions](https://caniuse.com/js-regexp-lookbehind) — Chrome 62+, Firefox 78+, Safari 16.4+.
 - [CSS support for oklab, oklch, lab, lch color spaces](https://caniuse.com/wf-oklab) — Chrome 111+, Firefox 113+, Safari 15.4+.
 - [CSS `color-mix()` function](https://caniuse.com/wf-color-mix) — Chrome 111+, Firefox 113+, Safari 16.2+.
 - [`Map.getOrInsert()`](https://caniuse.com/wf-getorinsert) — Chrome 145+, Firefox 144+, Safari 26.2+.
+- [`AbortSignal.any()`](https://caniuse.com/mdn-api_abortsignal_any_static) — Chrome 116+, Firefox 124+, Safari 17.4+.
+- [Fullscreen API, unprefixed (`requestFullscreen()`, `document.fullscreenElement`)](https://caniuse.com/fullscreen) — Chrome 71+, Firefox 64+, Safari 16.4+, but not at all on iPhone. Check `document.fullscreenEnabled` before offering fullscreen.
+- [`ClipboardItem`](https://caniuse.com/mdn-api_clipboarditem) — Chrome 76+, Safari 13.1+, but Firefox 127+.
+- [CSS `lh` unit](https://caniuse.com/mdn-css_types_length_lh) — Chrome 109+, Firefox 120+, Safari 16.4+. Declare a fallback (e.g. in `em`) first.
+- [CSS `@property`](https://caniuse.com/mdn-css_at-rules_property) — Chrome 85+, Firefox 128+, Safari 16.4+.
+- [CSS `dvh`/`svh`/`lvh` units](https://caniuse.com/viewport-unit-variants) — Chrome 108+, Firefox 101+, Safari 15.4+. Use a `vh` fallback.
 
 Note: some of the JS features above (e.g. `Map.getOrInsert`) could be polyfilled using [core-js](https://github.com/nicolo-ribaudo/core-js-contrib) or similar libraries if we wanted to use them before raising our browser targets. CSS features or JS syntax features obviously can't be polyfilled this way.
 
+### Fine as progressive enhancement only
+
+These aren't supported in all our target browsers, but are fine to use where the page still works without them (e.g. it just loses an animation or some polish):
+
+- [CSS `@starting-style`](https://caniuse.com/mdn-css_at-rules_starting-style) — Chrome 117+, Firefox 129+, Safari 17.5+.
+- [View Transitions API](https://caniuse.com/view-transitions) — Chrome 111+, Safari 18+, Firefox 144+. Always feature-detect `document.startViewTransition` and fall back to applying the update directly, e.g. `document.startViewTransition ? document.startViewTransition(update) : update()`. `view-transition-name` and `::view-transition-*` styles are simply ignored where unsupported. React's (19.3+) `<ViewTransition>` component does this progressive fallback automatically.
+- [CSS `text-wrap: balance` / `pretty`](https://caniuse.com/css-text-wrap-balance) — Chrome 114+, Firefox 121+, Safari 17.5+.
+- [CSS `scrollbar-width`](https://caniuse.com/mdn-css_properties_scrollbar-width) and [`scrollbar-gutter`](https://caniuse.com/mdn-css_properties_scrollbar-gutter) — Safari 18.2+ (`scrollbar-width` is also Chrome 121+). Pair `scrollbar-width: none` with `::-webkit-scrollbar { display: none }`.
+
 ### Polyfills
 
-We ship explicit polyfills in `site/polyfills.ts` (via [core-js](https://github.com/nicolo-ribaudo/core-js-contrib)) for features that aren't available in all supported browsers. Currently polyfilled:
+We ship explicit polyfills in `packages/@ourworldindata/utils/src/polyfills.ts`, (via [core-js](https://github.com/zloirock/core-js)), imported at the top of the site entry points, for features that aren't available in all supported browsers. Currently polyfilled:
 
 - `Array.prototype.at`, `String.prototype.at` — Chrome 92+, Safari 15.4+, Firefox 90+
 - `Object.hasOwn` — Chrome 93+, Safari 15.4+, Firefox 92+

@@ -8,12 +8,21 @@ import * as R from "remeda"
 import { articulateEntity } from "@ourworldindata/utils"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
-import { SankeyVariantConfig, Flow } from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import { FoodTradeMetadata, ProductTradeData, Mode } from "../core/types.js"
+import type { FoodTradeConfig } from "../index.js"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
+import {
+    Flow,
+    FoodTradeMetadata,
+    ProductTradeData,
+    Mode,
+} from "../core/types.js"
 import { useFoodTradeMetadata, useProductTradeData } from "../core/data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
 import { FoodTradeChart } from "../components/FoodTradeChart.js"
@@ -27,21 +36,21 @@ import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
+import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 import {
     isUserLocationCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
-
-const DEFAULT_PRODUCT = "Maize"
-const DEFAULT_COUNTRY = ALL_COUNTRIES
-const DEFAULT_VIEW: Flow = "both"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
 
 const queryClient = new QueryClient()
 
 export function SankeyVariant({
     config,
-}: VariantProps<SankeyVariantConfig>): React.ReactElement {
+    urls,
+}: BespokeVariantProps<FoodTradeConfig>): React.ReactElement {
     const { width, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
@@ -55,7 +64,7 @@ export function SankeyVariant({
                             "food-trade-chart--narrow": isNarrow,
                         })}
                     >
-                        <FetchingSankeyVariant config={config} />
+                        <FetchingSankeyVariant config={config} urls={urls} />
                     </div>
                 </QueryClientProvider>
             </NuqsAdapter>
@@ -63,21 +72,23 @@ export function SankeyVariant({
     )
 }
 
-function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
-    const initialProduct = config.product ?? DEFAULT_PRODUCT
+function FetchingSankeyVariant({
+    config,
+    urls,
+}: {
+    config: FoodTradeConfig
+    urls: BespokeComponentDataUrls
+}) {
     const isUserLocation = isUserLocationCountry(config.country)
-    const initialCountry =
-        !config.country || isUserLocation ? DEFAULT_COUNTRY : config.country
+    const initialCountry = isUserLocation ? ALL_COUNTRIES : config.country
     const initialView =
-        !isUserLocation && isAllCountry(initialCountry)
-            ? "both"
-            : (config.flow ?? DEFAULT_VIEW)
+        !isUserLocation && isAllCountry(initialCountry) ? "both" : config.flow
     const [product, setProduct] = useUrlState({
         key: "foodTradeProduct",
         parser: parseAsString,
-        defaultValue: initialProduct,
+        defaultValue: config.product,
     })
-    const [country, _setCountry] = useUrlState({
+    const [requestedCountry, _setCountry] = useUrlState({
         key: "foodTradeCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
@@ -88,13 +99,28 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         defaultValue: initialView,
     })
 
-    const { data: metadata, status: metadataStatus } = useFoodTradeMetadata()
+    const { data: metadata, status: metadataStatus } = useFoodTradeMetadata(
+        urls.metadataUrl
+    )
+    const availableCountryNames = useMemo(
+        () =>
+            metadata
+                ? new Set(metadata.entities.map((e) => e.name))
+                : undefined,
+        [metadata]
+    )
+    const country = useAvailableEntityName(
+        requestedCountry,
+        [config.country, ALL_COUNTRIES],
+        availableCountryNames &&
+            ((name) => isAllCountry(name) || availableCountryNames.has(name))
+    )
     const productId = metadata?.productByName.get(product)?.id
     const {
         data: productData,
         status: productStatus,
         isPlaceholderData,
-    } = useProductTradeData(productId, metadata)
+    } = useProductTradeData(productId, metadata, urls.dataUrl)
 
     // Dim the chart and show a spinner while a new product file loads,
     // keeping the previous product on screen until the new one arrives.
@@ -126,13 +152,6 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         [_setCountry, setView]
     )
 
-    const availableCountryNames = useMemo(
-        () =>
-            metadata
-                ? new Set(metadata.entities.map((e) => e.name))
-                : undefined,
-        [metadata]
-    )
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
@@ -140,15 +159,16 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         setCountry,
     })
 
-    if (metadataStatus === "pending") return <FoodTradeSkeleton />
+    if (metadataStatus === "pending")
+        return <ChartSkeleton className="food-trade-chart-box" />
     if (metadataStatus === "error" || !metadata)
-        return <FoodTradeChartError message="Failed to load trade metadata" />
+        return <ChartError className="food-trade-chart-box" />
     if (productId === undefined)
-        return <FoodTradeChartError message={`Unknown product: ${product}`} />
+        return <ChartError className="food-trade-chart-box" />
     if (productStatus === "pending" || !isCountryResolved)
-        return <FoodTradeSkeleton />
+        return <ChartSkeleton className="food-trade-chart-box" />
     if (productStatus === "error" || !productData)
-        return <FoodTradeChartError message="Failed to load trade data" />
+        return <ChartError className="food-trade-chart-box" />
 
     return (
         <CaptionedSankeyVariant
@@ -178,7 +198,7 @@ function CaptionedSankeyVariant({
     setView,
     config,
 }: {
-    config: SankeyVariantConfig
+    config: FoodTradeConfig
     metadata: FoodTradeMetadata
     productData: ProductTradeData
     product: string
@@ -210,16 +230,18 @@ function CaptionedSankeyVariant({
         <>
             {!shouldHideChrome && (
                 <>
-                    <header className="food-trade-heading">
-                        <h1 className="food-trade-heading__title">
-                            How does food get traded around the world?
-                        </h1>
-                        <p className="food-trade-heading__description">
-                            Where food products are exported to and imported
-                            from, based on trade as reported by importing
-                            countries.
-                        </p>
-                    </header>
+                    {!config.hideHeading && (
+                        <header className="food-trade-heading">
+                            <h1 className="food-trade-heading__title">
+                                How does food get traded around the world?
+                            </h1>
+                            <p className="food-trade-heading__description">
+                                Where food products are exported to and imported
+                                from, based on trade as reported by importing
+                                countries.
+                            </p>
+                        </header>
+                    )}
                     <FoodTradeControls
                         metadata={metadata}
                         productData={productData}
@@ -233,34 +255,36 @@ function CaptionedSankeyVariant({
                     />
                 </>
             )}
-            <Frame className="food-trade-captioned-chart">
-                <FoodTradeChartHeader
-                    config={config}
-                    country={country}
-                    product={displayedProduct}
-                    year={metadata.year}
-                    view={view}
-                    tradedTotal={tradedTotal}
-                    mode={mode}
-                />
-                <FoodTradeChart
-                    productData={productData}
-                    country={country}
-                    product={displayedProduct}
-                    year={metadata.year}
-                    view={view}
-                    mode={mode}
-                    isLoading={isLoading}
-                    hideFlowSwitcher={config.hideFlowSwitcher}
-                    setCountry={setCountry}
-                    setView={setView}
-                />
-                <FoodTradeChartFooter
-                    source={metadata.source}
-                    tradedTotal={tradedTotal}
-                    mode={mode}
-                />
-            </Frame>
+            <BespokeMetadataProvider metadata={metadata.provenance}>
+                <Frame className="food-trade-captioned-chart">
+                    <FoodTradeChartHeader
+                        config={config}
+                        country={country}
+                        product={displayedProduct}
+                        year={metadata.year}
+                        view={view}
+                        tradedTotal={tradedTotal}
+                        mode={mode}
+                    />
+                    <FoodTradeChart
+                        productData={productData}
+                        country={country}
+                        product={displayedProduct}
+                        year={metadata.year}
+                        view={view}
+                        mode={mode}
+                        isLoading={isLoading}
+                        hideFlowSwitcher={config.hideFlowSwitcher}
+                        setCountry={setCountry}
+                        setView={setView}
+                    />
+                    <FoodTradeChartFooter
+                        source={metadata.source}
+                        tradedTotal={tradedTotal}
+                        mode={mode}
+                    />
+                </Frame>
+            </BespokeMetadataProvider>
         </>
     )
 }
@@ -274,7 +298,7 @@ function FoodTradeChartHeader({
     mode,
     tradedTotal,
 }: {
-    config: SankeyVariantConfig
+    config: FoodTradeConfig
     country: string
     product: string
     year: number
@@ -345,12 +369,4 @@ function FoodTradeChartFooter({
     const note = [topPartners, smallFlowsNote].filter(Boolean).join(" ")
 
     return <ChartFooter source={source} note={note} />
-}
-
-function FoodTradeSkeleton() {
-    return <div className="food-trade-skeleton" />
-}
-
-function FoodTradeChartError({ message }: { message: string }) {
-    return <div className="food-trade-chart__error">{message}</div>
 }

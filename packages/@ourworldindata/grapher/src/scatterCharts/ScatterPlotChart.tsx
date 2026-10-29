@@ -7,15 +7,15 @@ import { Quadtree, quadtree } from "d3-quadtree"
 import { pairs } from "d3-array"
 import { quantize, interpolate } from "d3-interpolate"
 import {
-    intersection,
-    excludeUndefined,
-    getRelativeMouse,
-    exposeInstanceOnWindow,
-    PointVector,
     Bounds,
+    PointVector,
+    exposeInstanceOnWindow,
+    getRelativeMouse,
+    guid,
+    intersection,
     isTouchDevice,
     makeFigmaId,
-    guid,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
@@ -44,13 +44,14 @@ import {
     ClipPath,
     getShortNameForEntity,
     makeClipPath,
+    scaleFontSize,
 } from "../chart/ChartUtils"
 import {
     ScatterPlotManager,
     ScatterSeries,
-    SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR,
-    SCATTER_LABEL_MAX_FONT_SIZE_FACTOR,
-    SCATTER_LABEL_MIN_FONT_SIZE_FACTOR,
+    SCATTER_LABEL_DEFAULT_FONT_SIZE,
+    SCATTER_LABEL_MAX_FONT_SIZE,
+    SCATTER_LABEL_MIN_FONT_SIZE,
     SCATTER_POINT_OPACITY,
     SeriesPoint,
     ScatterPointQuadtreeNode,
@@ -96,6 +97,9 @@ export class ScatterPlotChart
             tooltipState: observable,
         })
     }
+
+    private readonly tooltipId = guid()
+    private readonly renderUid = guid()
 
     // currently hovered legend color
     private hoveredLegendColor: Color | undefined = undefined
@@ -171,17 +175,17 @@ export class ScatterPlotChart
             )?.valuesIncludingErrorValues ?? []
 
         // Need to convert InvalidCell to undefined for color scale to assign correct color
-        const colorValues = _.uniq(
+        const colorValues = new Set(
             allValues.map((value: any) =>
                 isNotErrorValue(value) ? value : undefined
             )
-        ) as (string | number)[]
+        ) as Set<string | number | undefined>
 
-        return excludeUndefined(
-            colorValues.map((colorValue) =>
-                this.colorScale.getColor(colorValue)
-            )
-        )
+        return colorValues
+            .values()
+            .map((colorValue) => this.colorScale.getColor(colorValue))
+            .filter((color) => color !== undefined)
+            .toArray()
     }
 
     @computed get detailsOrderedByReference(): string[] {
@@ -326,7 +330,7 @@ export class ScatterPlotChart
         if (this.categoricalLegendData.length === 0 || !this.manager.showLegend)
             return undefined
         return new VerticalColorLegendState(this.categoricalLegendData, {
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             maxWidth: this.maxLegendWidth,
             title: this.legendTitle,
         })
@@ -401,13 +405,16 @@ export class ScatterPlotChart
                 activeSeriesNames.includes(g.seriesName)
             )
 
-            const colorValues = _.uniq(
+            const colorValues = new Set(
                 activeSeries.flatMap((s) => s.points.map((p) => p.color))
             )
 
-            excludeUndefined(
-                colorValues.map((color) => this.colorScale.getColor(color))
-            ).forEach((color) => activeColorsSet.add(color))
+            for (const color of colorValues
+                .values()
+                .map((color) => this.colorScale.getColor(color))
+                .filter((color) => color !== undefined)) {
+                activeColorsSet.add(color)
+            }
         }
 
         // If nothing is active (no hover, no selection), show all colors
@@ -553,16 +560,18 @@ export class ScatterPlotChart
     }
 
     @computed private get fontScale(): ScaleLinear<number, number> {
-        const defaultFontSize =
-            SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR * this.fontSize
-        const minFactor = this.manager.isNarrow
-            ? SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR
-            : SCATTER_LABEL_MIN_FONT_SIZE_FACTOR
-        const maxFactor = this.manager.isNarrow
-            ? SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR
-            : SCATTER_LABEL_MAX_FONT_SIZE_FACTOR
-        const minFontSize = minFactor * this.fontSize
-        const maxFontSize = maxFactor * this.fontSize
+        const defaultFontSize = scaleFontSize(
+            SCATTER_LABEL_DEFAULT_FONT_SIZE,
+            this.fontSize
+        )
+        const minSize = this.manager.isNarrow
+            ? SCATTER_LABEL_DEFAULT_FONT_SIZE
+            : SCATTER_LABEL_MIN_FONT_SIZE
+        const maxSize = this.manager.isNarrow
+            ? SCATTER_LABEL_DEFAULT_FONT_SIZE
+            : SCATTER_LABEL_MAX_FONT_SIZE
+        const minFontSize = scaleFontSize(minSize, this.fontSize)
+        const maxFontSize = scaleFontSize(maxSize, this.fontSize)
         return scaleSqrt()
             .domain(this.chartState.sizeDomain)
             .range(
@@ -604,10 +613,6 @@ export class ScatterPlotChart
 
     override componentDidMount(): void {
         exposeInstanceOnWindow(this)
-    }
-
-    @computed private get renderUid(): number {
-        return guid()
     }
 
     @computed private get clipPath(): ClipPath {
@@ -652,10 +657,10 @@ export class ScatterPlotChart
             y > bounds.top ? (
                 <line
                     id={makeFigmaId("separator")}
-                    x1={this.legendX}
-                    y1={y - 0.5 * legendPadding}
-                    x2={bounds.right}
-                    y2={y - 0.5 * legendPadding}
+                    x1={roundForSvg(this.legendX)}
+                    y1={roundForSvg(y - 0.5 * legendPadding)}
+                    x2={roundForSvg(bounds.right)}
+                    y2={roundForSvg(y - 0.5 * legendPadding)}
                     stroke="#e7e7e7"
                 />
             ) : null
@@ -763,6 +768,7 @@ export class ScatterPlotChart
     @computed private get tooltip(): React.ReactElement | null {
         return (
             <ScatterPlotTooltip
+                id={this.tooltipId}
                 chartState={this.chartState}
                 tooltipState={this.tooltipState}
             />

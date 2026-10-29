@@ -1,23 +1,23 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import cx from "clsx"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { queryClient, useDemographyData } from "../core/fetch.js"
+import type { DemographyConfig } from "../index.js"
+import type { PopulationPyramidUnit } from "../core/types.js"
+import { isUserLocationCountry } from "../../../../hooks/useResolveUserLocation.js"
 import type {
-    PopulationPyramidUnit,
-    SimulationVariantConfig,
-} from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import { CHART_FOOTER_SOURCES, DEFAULT_ENTITY_NAME } from "../core/constants.js"
 import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import {
     parseSimulationUrlState,
     type SimulationUrlState,
 } from "../core/urlState.js"
-import {
-    DemographyChartError,
-    DemographySkeleton,
-} from "../components/DemographyLoadAndError.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import {
     EmbedConfigProvider,
@@ -26,6 +26,7 @@ import {
 import { CountryData, DemographyMetadata, ParameterKey } from "../core/types.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { SimulationContent } from "../components/SimulationContent.js"
 import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
@@ -38,7 +39,8 @@ import {
 
 export function SimulationVariant({
     config,
-}: VariantProps<SimulationVariantConfig>): React.ReactElement {
+    urls,
+}: BespokeVariantProps<DemographyConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
@@ -52,7 +54,10 @@ export function SimulationVariant({
                             breakpointClass(breakpoint)
                         )}
                     >
-                        <FetchingSimulationVariant config={config} />
+                        <FetchingSimulationVariant
+                            config={config}
+                            urls={urls}
+                        />
                     </div>
                 </BreakpointProvider>
             </QueryClientProvider>
@@ -62,8 +67,10 @@ export function SimulationVariant({
 
 function FetchingSimulationVariant({
     config,
+    urls,
 }: {
-    config: SimulationVariantConfig
+    config: DemographyConfig
+    urls: BespokeComponentDataUrls
 }): React.ReactElement {
     const { urlSync } = useEmbedConfig()
 
@@ -79,7 +86,10 @@ function FetchingSimulationVariant({
         Boolean(urlState.entityName)
     )
     const [entityName, setEntityNameRaw, isInitialEntityNameResolved] =
-        useInitialEntityName(urlState.entityName ?? config.region)
+        useInitialEntityName(
+            urlState.entityName ?? config.region,
+            urls.metadataUrl
+        )
     const setEntityName = useCallback(
         (name: string) => {
             if (urlSync) {
@@ -92,38 +102,45 @@ function FetchingSimulationVariant({
     )
 
     const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName)
+        useDemographyData(entityName, urls)
 
-    useEffect(() => {
-        if (!metadata) return
-        if (metadata.slugs[entityName]) return
+    // Fall back to another entity if the selected one has no data
+    if (metadata && !metadata.slugs[entityName]) {
+        const fallbackEntityName = metadata.slugs[config.region]
+            ? config.region
+            : DEFAULT_ENTITY_NAME
+        if (entityName !== fallbackEntityName) {
+            setEntityNameRaw(fallbackEntityName)
+            setShouldSyncEntityName(false)
+        }
+    }
 
-        const fallbackEntityName =
-            config.region && metadata.slugs[config.region]
-                ? config.region
-                : DEFAULT_ENTITY_NAME
-        setEntityNameRaw(fallbackEntityName)
-        setShouldSyncEntityName(false)
-    }, [config.region, entityName, metadata, setEntityNameRaw])
-
-    useEffect(() => {
-        const shouldSyncAutoDetectedEntityName =
-            urlSync &&
-            !urlState.entityName &&
-            (!config.region || config.region === "userLocation") &&
-            isInitialEntityNameResolved
-
+    // Start syncing the entity name to the URL once it's been auto-detected
+    const shouldSyncAutoDetectedEntityName =
+        urlSync &&
+        !urlState.entityName &&
+        isUserLocationCountry(config.region) &&
+        isInitialEntityNameResolved
+    const [
+        prevShouldSyncAutoDetectedEntityName,
+        setPrevShouldSyncAutoDetectedEntityName,
+    ] = useState(false)
+    if (
+        shouldSyncAutoDetectedEntityName !==
+        prevShouldSyncAutoDetectedEntityName
+    ) {
+        setPrevShouldSyncAutoDetectedEntityName(
+            shouldSyncAutoDetectedEntityName
+        )
         if (shouldSyncAutoDetectedEntityName) setShouldSyncEntityName(true)
-    }, [
-        config.region,
-        urlSync,
-        isInitialEntityNameResolved,
-        urlState.entityName,
-    ])
+    }
 
-    if (status === "pending") return <DemographySkeleton />
-    if (metadata && !metadata.slugs[entityName]) return <DemographySkeleton />
-    if (!metadata || !entityData) return <DemographyChartError />
+    if (status === "pending")
+        return <ChartSkeleton className="demography-chart-box" />
+    if (metadata && !metadata.slugs[entityName])
+        return <ChartSkeleton className="demography-chart-box" />
+    if (!metadata || !entityData)
+        return <ChartError className="demography-chart-box" />
 
     return (
         <CaptionedSimulationVariant
@@ -175,9 +192,8 @@ function getUrlAssumptionState(
     }
 }
 
-function getBaselineEntityName(region: string | undefined): string | undefined {
-    if (!region || region === "userLocation") return undefined
-    return region
+function getBaselineEntityName(region: string): string | undefined {
+    return isUserLocationCountry(region) ? undefined : region
 }
 
 function CaptionedSimulationVariant({
@@ -211,7 +227,7 @@ function CaptionedSimulationVariant({
     title?: string
     subtitle?: string
     hideEntitySelector?: boolean
-    focusParameter?: ParameterKey
+    focusParameter: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: PopulationPyramidUnit
     fertilityRateAssumptions?: Record<number, number>
@@ -249,50 +265,58 @@ function CaptionedSimulationVariant({
         "Demographers publish projections of how populations will change in the future. But what if fertility rates fall faster, or rebound? Or migration rates change? Adjust these assumptions and compare."
 
     return (
-        <Frame className="demography-captioned-chart">
-            <ChartHeader
-                className="demography-header"
-                title={title}
-                subtitle={subtitle}
-            />
-            <div className="demography-captioned-chart__chart-area">
-                {isLoading && <Spinner />}
-                <SimulationContent
-                    data={data}
-                    focusParameter={focusParameter}
-                    hidePopulationPyramid={hidePopulationPyramid}
-                    populationPyramidUnit={populationPyramidUnit}
-                    fertilityRateAssumptions={fertilityRateAssumptions}
-                    lifeExpectancyAssumptions={lifeExpectancyAssumptions}
-                    netMigrationRateAssumptions={netMigrationRateAssumptions}
-                    urlFertilityRateAssumptions={urlFertilityRateAssumptions}
-                    urlLifeExpectancyAssumptions={urlLifeExpectancyAssumptions}
-                    urlNetMigrationRateAssumptions={
-                        urlNetMigrationRateAssumptions
-                    }
-                    baselineEntityName={baselineEntityName}
-                    shouldSyncEntityName={shouldSyncEntityName}
-                    urlTab={urlTab}
-                    urlYear={urlYear}
+        <BespokeMetadataProvider metadata={metadata.provenance}>
+            <Frame className="demography-captioned-chart">
+                <ChartHeader
+                    className="demography-header"
+                    title={title}
+                    subtitle={subtitle}
                 />
-            </div>
-            <ChartFooter
-                className="demography-footer"
-                source={CHART_FOOTER_SOURCES}
-                note={
-                    <>
-                        Technical details and assumptions used in this
-                        population model are available at{" "}
-                        <a
-                            href="https://docs.owid.io/projects/etl/analyses/population_tool"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            https://docs.owid.io/projects/etl/analyses/population_tool
-                        </a>
-                    </>
-                }
-            />
-        </Frame>
+                <div className="demography-captioned-chart__chart-area">
+                    {isLoading && <Spinner />}
+                    <SimulationContent
+                        data={data}
+                        focusParameter={focusParameter}
+                        hidePopulationPyramid={hidePopulationPyramid}
+                        populationPyramidUnit={populationPyramidUnit}
+                        fertilityRateAssumptions={fertilityRateAssumptions}
+                        lifeExpectancyAssumptions={lifeExpectancyAssumptions}
+                        netMigrationRateAssumptions={
+                            netMigrationRateAssumptions
+                        }
+                        urlFertilityRateAssumptions={
+                            urlFertilityRateAssumptions
+                        }
+                        urlLifeExpectancyAssumptions={
+                            urlLifeExpectancyAssumptions
+                        }
+                        urlNetMigrationRateAssumptions={
+                            urlNetMigrationRateAssumptions
+                        }
+                        baselineEntityName={baselineEntityName}
+                        shouldSyncEntityName={shouldSyncEntityName}
+                        urlTab={urlTab}
+                        urlYear={urlYear}
+                    />
+                </div>
+                <ChartFooter
+                    className="demography-footer"
+                    source={CHART_FOOTER_SOURCES}
+                    note={
+                        <>
+                            Technical details and assumptions used in this
+                            population model are available at{" "}
+                            <a
+                                href="https://docs.owid.io/projects/etl/analyses/population_tool"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                https://docs.owid.io/projects/etl/analyses/population_tool
+                            </a>
+                        </>
+                    }
+                />
+            </Frame>
+        </BespokeMetadataProvider>
     )
 }

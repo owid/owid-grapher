@@ -22,6 +22,7 @@ interface SourcesKeyDataTableProps {
     link?: string
     unitConversionFactor?: number
     isEmbeddedInADataPage?: boolean // true by default
+    openLinksInNewTab?: boolean
 }
 
 export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {

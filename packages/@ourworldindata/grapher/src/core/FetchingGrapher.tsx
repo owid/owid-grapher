@@ -30,7 +30,7 @@ export function FetchingGrapher(
         GrapherInterface | undefined
     >(undefined)
 
-    const grapherState = useMaybeGlobalGrapherStateRef({
+    const grapherStateRef = useMaybeGlobalGrapherStateRef({
         ...props.config,
         additionalDataLoaderFn: (catalogKey) =>
             loadCatalogData(catalogKey, {
@@ -49,15 +49,15 @@ export function FetchingGrapher(
     // frame at stale/default bounds.
     useIsomorphicLayoutEffect(() => {
         if (props.externalBounds) {
-            grapherState.current.externalBounds = props.externalBounds
+            grapherStateRef.current.externalBounds = props.externalBounds
         }
-    }, [props.externalBounds, grapherState])
+    }, [props.externalBounds, grapherStateRef])
 
     // update grapherState when the config from props changes
     React.useEffect(() => {
         if (props.config?.bounds)
-            grapherState.current.externalBounds = props.config.bounds
-    }, [props.config?.bounds, grapherState])
+            grapherStateRef.current.externalBounds = props.config.bounds
+    }, [props.config?.bounds, grapherStateRef])
 
     React.useEffect(() => {
         const abortController = new AbortController()
@@ -86,17 +86,17 @@ export function FetchingGrapher(
 
                     // TODO we may not need to this anymore in React 18.
                     unstable_batchedUpdates(() => {
-                        grapherState.current.reset()
-                        grapherState.current.updateFromObject(mergedConfig)
-                        grapherState.current.legacyConfigAsAuthored =
+                        grapherStateRef.current.reset()
+                        grapherStateRef.current.updateFromObject(mergedConfig)
+                        grapherStateRef.current.legacyConfigAsAuthored =
                             mergedConfig
-                        grapherState.current.isConfigReady = true
+                        grapherStateRef.current.isConfigReady = true
 
                         // We now need to make sure that the query params are re-applied again
-                        grapherState.current.populateFromQueryParams(
+                        grapherStateRef.current.populateFromQueryParams(
                             legacyToCurrentGrapherQueryParams(
-                                grapherState.current.initialOptions.queryStr ??
-                                    ""
+                                grapherStateRef.current.initialOptions
+                                    .queryStr ?? ""
                             )
                         )
                     })
@@ -112,12 +112,12 @@ export function FetchingGrapher(
         return (): void => {
             abortController.abort()
         }
-    }, [props.config, props.configUrl, grapherState])
+    }, [props.config, props.configUrl, grapherStateRef])
 
     React.useEffect(() => {
         let isCancelled = false
 
-        grapherState.current.isDataReady = false
+        grapherStateRef.current.isDataReady = false
 
         async function fetchData(): Promise<void> {
             const inputTable = await fetchInputTableForConfig({
@@ -133,9 +133,9 @@ export function FetchingGrapher(
 
             if (isCancelled) return
 
-            if (inputTable) grapherState.current.inputTable = inputTable
+            if (inputTable) grapherStateRef.current.inputTable = inputTable
 
-            grapherState.current.isDataReady = true
+            grapherStateRef.current.isDataReady = true
         }
         void fetchData()
 
@@ -150,17 +150,21 @@ export function FetchingGrapher(
         props.config?.selectedEntityColors,
         props.archiveContext,
         props.noCache,
-        grapherState,
+        grapherStateRef,
     ])
 
+    // Reading the ref during render is fine here: the MobX GrapherState is
+    // created once and never replaced, and Grapher observes it itself.
+    /* oxlint-disable react/refs */
     return (
         <Grapher
             // Force remount when the slug changes to make sure the GA
             // grapher_view event is fired when navigating between different
             // graphers using the same FetchingGrapher instance (e.g. in the
             // All charts block)
-            key={grapherState.current.slug}
-            grapherState={grapherState.current}
+            key={grapherStateRef.current.slug}
+            grapherState={grapherStateRef.current}
         />
     )
+    /* oxlint-enable react/refs */
 }

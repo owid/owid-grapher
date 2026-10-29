@@ -4,6 +4,7 @@ import {
     getProcessingPhraseForAttribution,
     formatSourceDate,
     getDateRange,
+    openLinkInNewTabAttrs,
 } from "@ourworldindata/utils"
 import { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "../SharedDataPageConstants.js"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
@@ -91,7 +92,16 @@ const splitSourceTextIntoFragments = (text: string | undefined): string[] => {
     return text ? text.split(";").map((fragment) => fragment.trim()) : []
 }
 
-export const makeLinks = ({ link }: { link?: string }): React.ReactNode => {
+export const makeLinks = ({
+    link,
+    trackNote,
+    openLinksInNewTab,
+}: {
+    link?: string
+    trackNote?: string
+    /** Open links in a new tab, e.g. when rendered inside an iframe. */
+    openLinksInNewTab?: boolean
+}): React.ReactNode => {
     if (!link) return null
     const linkFragments = splitSourceTextIntoFragments(link)
     return linkFragments.map((urlOrText, index) => {
@@ -100,11 +110,18 @@ export const makeLinks = ({ link }: { link?: string }): React.ReactNode => {
             <React.Fragment key={urlOrText}>
                 <span>
                     {isUrl ? (
-                        <a href={urlOrText}>{urlOrText}</a>
+                        <a
+                            href={urlOrText}
+                            data-track-note={trackNote}
+                            {...openLinkInNewTabAttrs(openLinksInNewTab)}
+                        >
+                            {urlOrText}
+                        </a>
                     ) : (
                         <SimpleMarkdownText
                             text={urlOrText}
                             useParagraphs={false}
+                            openLinksInNewTab={openLinksInNewTab}
                         />
                     )}
                 </span>

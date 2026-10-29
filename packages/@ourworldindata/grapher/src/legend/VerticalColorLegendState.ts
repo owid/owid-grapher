@@ -2,10 +2,8 @@ import * as _ from "lodash-es"
 import { computed } from "mobx"
 import { TextWrap } from "@ourworldindata/components"
 import { Bounds } from "@ourworldindata/utils"
-import {
-    GRAPHER_FONT_SCALE_11_2,
-    BASE_FONT_SIZE,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 import { ColorScaleBin, isNumericBin } from "../color/ColorScaleBin"
 import {
     PlacedLegendSeries,
@@ -35,9 +33,7 @@ export class VerticalColorLegendState {
     }
 
     @computed private get fontSize(): number {
-        return (
-            GRAPHER_FONT_SCALE_11_2 * (this.options.fontSize ?? BASE_FONT_SIZE)
-        )
+        return scaleFontSize(11.2, this.options.baseFontSize ?? BASE_FONT_SIZE)
     }
 
     @computed private get rectSize(): number {

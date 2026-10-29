@@ -1,0 +1,3800 @@
+{
+    "documentId": "1-X5zMYoLTJqD6kidXYd1GuIDj1uhlPe5-Em5B7vsgNo",
+    "title": "OWID Homepage",
+    "tabs": [
+        {
+            "tabProperties": {
+                "tabId": "t.0",
+                "title": "OWID Homepage",
+                "index": 0
+            },
+            "documentTab": {
+                "body": {
+                    "content": [
+                        { "endIndex": 1 },
+                        {
+                            "startIndex": 1,
+                            "endIndex": 7,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1,
+                                        "endIndex": 7,
+                                        "textRun": { "content": ":skip\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7,
+                            "endIndex": 91,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7,
+                                        "endIndex": 90,
+                                        "textRun": {
+                                            "content": "https://owid.cloud/admin/gdocs/1-X5zMYoLTJqD6kidXYd1GuIDj1uhlPe5-Em5B7vsgNo/preview",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://owid.cloud/admin/gdocs/1-X5zMYoLTJqD6kidXYd1GuIDj1uhlPe5-Em5B7vsgNo/preview"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 90,
+                                        "endIndex": 91,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 91,
+                            "endIndex": 101,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 91,
+                                        "endIndex": 101,
+                                        "textRun": { "content": ":endskip \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 101,
+                            "endIndex": 102,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 101,
+                                        "endIndex": 102,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 102,
+                            "endIndex": 123,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 102,
+                                        "endIndex": 109,
+                                        "textRun": { "content": "title: " }
+                                    },
+                                    {
+                                        "startIndex": 109,
+                                        "endIndex": 122,
+                                        "textRun": {
+                                            "content": "OWID Homepage"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 122,
+                                        "endIndex": 123,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 123,
+                            "endIndex": 146,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 123,
+                                        "endIndex": 132,
+                                        "textRun": { "content": "excerpt: " }
+                                    },
+                                    {
+                                        "startIndex": 132,
+                                        "endIndex": 145,
+                                        "textRun": {
+                                            "content": "OWID Homepage"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 145,
+                                        "endIndex": 146,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 146,
+                            "endIndex": 161,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 146,
+                                        "endIndex": 152,
+                                        "textRun": { "content": "type: " }
+                                    },
+                                    {
+                                        "startIndex": 152,
+                                        "endIndex": 161,
+                                        "textRun": { "content": "homepage\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 161,
+                            "endIndex": 188,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 161,
+                                        "endIndex": 170,
+                                        "textRun": { "content": "authors: " }
+                                    },
+                                    {
+                                        "startIndex": 170,
+                                        "endIndex": 187,
+                                        "textRun": {
+                                            "content": "Our World in Data"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 187,
+                                        "endIndex": 188,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 188,
+                            "endIndex": 189,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 188,
+                                        "endIndex": 189,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 189,
+                            "endIndex": 190,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 189,
+                                        "endIndex": 190,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 190,
+                            "endIndex": 198,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 190,
+                                        "endIndex": 198,
+                                        "textRun": { "content": "[+body]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 198,
+                            "endIndex": 210,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 198,
+                                        "endIndex": 210,
+                                        "textRun": {
+                                            "content": "{.pill-row}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 210,
+                            "endIndex": 231,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 210,
+                                        "endIndex": 217,
+                                        "textRun": { "content": "title: " }
+                                    },
+                                    {
+                                        "startIndex": 217,
+                                        "endIndex": 231,
+                                        "textRun": {
+                                            "content": "Popular pages\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 231,
+                            "endIndex": 240,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 231,
+                                        "endIndex": 239,
+                                        "textRun": { "content": "[.pills]" }
+                                    },
+                                    {
+                                        "startIndex": 239,
+                                        "endIndex": 240,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 240,
+                            "endIndex": 241,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 240,
+                                        "endIndex": 241,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 241,
+                            "endIndex": 261,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 241,
+                                        "endIndex": 247,
+                                        "textRun": { "content": "text: " }
+                                    },
+                                    {
+                                        "startIndex": 247,
+                                        "endIndex": 261,
+                                        "textRun": {
+                                            "content": "CO₂ Emissions\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 261,
+                            "endIndex": 327,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 261,
+                                        "endIndex": 266,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 266,
+                                        "endIndex": 325,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/co2-and-greenhouse-gas-emissions",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/co2-and-greenhouse-gas-emissions"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 325,
+                                        "endIndex": 327,
+                                        "textRun": { "content": " \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 327,
+                            "endIndex": 328,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 327,
+                                        "endIndex": 328,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 328,
+                            "endIndex": 352,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 328,
+                                        "endIndex": 334,
+                                        "textRun": { "content": "text: " }
+                                    },
+                                    {
+                                        "startIndex": 334,
+                                        "endIndex": 352,
+                                        "textRun": {
+                                            "content": "Population Growth\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 352,
+                            "endIndex": 404,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 352,
+                                        "endIndex": 357,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 357,
+                                        "endIndex": 401,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/population-growth",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/population-growth"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 401,
+                                        "endIndex": 402,
+                                        "textRun": { "content": " " }
+                                    },
+                                    {
+                                        "startIndex": 402,
+                                        "endIndex": 404,
+                                        "textRun": { "content": " \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 404,
+                            "endIndex": 405,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 404,
+                                        "endIndex": 405,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 405,
+                            "endIndex": 427,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 405,
+                                        "endIndex": 411,
+                                        "textRun": { "content": "text: " }
+                                    },
+                                    {
+                                        "startIndex": 411,
+                                        "endIndex": 427,
+                                        "textRun": {
+                                            "content": "Life Expectancy\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 427,
+                            "endIndex": 476,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 427,
+                                        "endIndex": 432,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 432,
+                                        "endIndex": 474,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/life-expectancy",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/life-expectancy"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 474,
+                                        "endIndex": 476,
+                                        "textRun": { "content": " \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 476,
+                            "endIndex": 477,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 476,
+                                        "endIndex": 477,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 477,
+                            "endIndex": 491,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 477,
+                                        "endIndex": 483,
+                                        "textRun": { "content": "text: " }
+                                    },
+                                    {
+                                        "startIndex": 483,
+                                        "endIndex": 491,
+                                        "textRun": { "content": "Poverty\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 491,
+                            "endIndex": 532,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 491,
+                                        "endIndex": 496,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 496,
+                                        "endIndex": 530,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/poverty",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/poverty"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 530,
+                                        "endIndex": 532,
+                                        "textRun": { "content": " \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 532,
+                            "endIndex": 533,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 532,
+                                        "endIndex": 533,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 533,
+                            "endIndex": 555,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 533,
+                                        "endIndex": 539,
+                                        "textRun": { "content": "text: " }
+                                    },
+                                    {
+                                        "startIndex": 539,
+                                        "endIndex": 554,
+                                        "textRun": {
+                                            "content": "Impacts of Food"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 554,
+                                        "endIndex": 555,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 555,
+                            "endIndex": 618,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 555,
+                                        "endIndex": 560,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 560,
+                                        "endIndex": 616,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/environmental-impacts-of-food",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/environmental-impacts-of-food"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 616,
+                                        "endIndex": 617,
+                                        "textRun": { "content": " " }
+                                    },
+                                    {
+                                        "startIndex": 617,
+                                        "endIndex": 618,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 618,
+                            "endIndex": 619,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 618,
+                                        "endIndex": 619,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 619,
+                            "endIndex": 637,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 619,
+                                        "endIndex": 625,
+                                        "textRun": { "content": "text: " }
+                                    },
+                                    {
+                                        "startIndex": 625,
+                                        "endIndex": 637,
+                                        "textRun": {
+                                            "content": "War & Peace\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 637,
+                            "endIndex": 684,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 637,
+                                        "endIndex": 642,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 642,
+                                        "endIndex": 682,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/war-and-peace",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/war-and-peace"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 682,
+                                        "endIndex": 684,
+                                        "textRun": { "content": " \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 684,
+                            "endIndex": 685,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 684,
+                                        "endIndex": 685,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 685,
+                            "endIndex": 708,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 685,
+                                        "endIndex": 708,
+                                        "textRun": {
+                                            "content": "text: Global Education\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 708,
+                            "endIndex": 758,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 708,
+                                        "endIndex": 713,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 713,
+                                        "endIndex": 756,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/global-education",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/global-education"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 756,
+                                        "endIndex": 758,
+                                        "textRun": { "content": " \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 758,
+                            "endIndex": 759,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 758,
+                                        "endIndex": 759,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 759,
+                            "endIndex": 789,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 759,
+                                        "endIndex": 789,
+                                        "textRun": {
+                                            "content": "text: Artificial Intelligence\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 789,
+                            "endIndex": 846,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 789,
+                                        "endIndex": 794,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 794,
+                                        "endIndex": 844,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/artificial-intelligence",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/artificial-intelligence"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 844,
+                                        "endIndex": 845,
+                                        "textRun": { "content": " " }
+                                    },
+                                    {
+                                        "startIndex": 845,
+                                        "endIndex": 846,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 846,
+                            "endIndex": 847,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 846,
+                                        "endIndex": 847,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 847,
+                            "endIndex": 863,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 847,
+                                        "endIndex": 863,
+                                        "textRun": {
+                                            "content": "text: Democracy\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 863,
+                            "endIndex": 906,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 863,
+                                        "endIndex": 868,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 868,
+                                        "endIndex": 904,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/democracy",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/democracy"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 904,
+                                        "endIndex": 906,
+                                        "textRun": { "content": " \n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 906,
+                            "endIndex": 907,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 906,
+                                        "endIndex": 907,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 907,
+                            "endIndex": 908,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 907,
+                                        "endIndex": 908,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 908,
+                            "endIndex": 911,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 908,
+                                        "endIndex": 910,
+                                        "textRun": { "content": "[]" }
+                                    },
+                                    {
+                                        "startIndex": 910,
+                                        "endIndex": 911,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 911,
+                            "endIndex": 914,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 911,
+                                        "endIndex": 914,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 914,
+                            "endIndex": 915,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 914,
+                                        "endIndex": 915,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 915,
+                            "endIndex": 916,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 915,
+                                        "endIndex": 916,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 916,
+                            "endIndex": 935,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 916,
+                                        "endIndex": 935,
+                                        "textRun": {
+                                            "content": "{.homepage-search}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 935,
+                            "endIndex": 938,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 935,
+                                        "endIndex": 938,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 938,
+                            "endIndex": 939,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 938,
+                                        "endIndex": 939,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 939,
+                            "endIndex": 957,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 939,
+                                        "endIndex": 957,
+                                        "textRun": {
+                                            "content": "{.homepage-intro}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 957,
+                            "endIndex": 958,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 957,
+                                        "endIndex": 958,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 958,
+                            "endIndex": 975,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 958,
+                                        "endIndex": 975,
+                                        "textRun": {
+                                            "content": "[.featured-work]\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 975,
+                            "endIndex": 976,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 975,
+                                        "endIndex": 976,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 976,
+                            "endIndex": 1006,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 976,
+                                        "endIndex": 1006,
+                                        "textRun": {
+                                            "content": "kicker: Article · 15 min read\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1006,
+                            "endIndex": 1018,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1006,
+                                        "endIndex": 1018,
+                                        "textRun": {
+                                            "content": "isNew: true\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1018,
+                            "endIndex": 1108,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1018,
+                                        "endIndex": 1108,
+                                        "textRun": {
+                                            "content": "url: https://docs.google.com/document/d/1oYGPnjcjiLWnEbFZ3tX5EYHPD_IJ18sGESn47EEih3M/edit\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1108,
+                            "endIndex": 1109,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1108,
+                                        "endIndex": 1109,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1109,
+                            "endIndex": 1135,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1109,
+                                        "endIndex": 1135,
+                                        "textRun": {
+                                            "content": "kicker: From our classics\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1135,
+                            "endIndex": 1225,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1135,
+                                        "endIndex": 1225,
+                                        "textRun": {
+                                            "content": "url: https://docs.google.com/document/d/1Gy4UgmD_jVEAIhCN4PX0fdx4eP-GMyq29ZhVQiFSsnA/edit\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1225,
+                            "endIndex": 1226,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1225,
+                                        "endIndex": 1226,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1226,
+                            "endIndex": 1247,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1226,
+                                        "endIndex": 1247,
+                                        "textRun": {
+                                            "content": "kicker: Topic update\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1247,
+                            "endIndex": 1314,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1247,
+                                        "endIndex": 1314,
+                                        "textRun": {
+                                            "content": "title: We have updated our topic page on forests and deforestation\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1314,
+                            "endIndex": 1404,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1314,
+                                        "endIndex": 1404,
+                                        "textRun": {
+                                            "content": "url: https://docs.google.com/document/d/1iTocsoZaQQ_n-24LmYIT7XrOaPb9B6_3L-bbzQwu43M/edit\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1404,
+                            "endIndex": 1405,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1404,
+                                        "endIndex": 1405,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1405,
+                            "endIndex": 1434,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1405,
+                                        "endIndex": 1434,
+                                        "textRun": {
+                                            "content": "kicker: Article · 5 min read\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1434,
+                            "endIndex": 1524,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1434,
+                                        "endIndex": 1524,
+                                        "textRun": {
+                                            "content": "url: https://docs.google.com/document/d/1LoLwY9gQrY37kuXjJzR-qDtF_kajbFxt5u6bbBEhSPk/edit\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1524,
+                            "endIndex": 1525,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1524,
+                                        "endIndex": 1525,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1525,
+                            "endIndex": 1526,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1525,
+                                        "endIndex": 1526,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1526,
+                            "endIndex": 1530,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1526,
+                                        "endIndex": 1529,
+                                        "textRun": { "content": "[] " }
+                                    },
+                                    {
+                                        "startIndex": 1529,
+                                        "endIndex": 1530,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1530,
+                            "endIndex": 1533,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1530,
+                                        "endIndex": 1533,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1533,
+                            "endIndex": 1534,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1533,
+                                        "endIndex": 1534,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1534,
+                            "endIndex": 1558,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1534,
+                                        "endIndex": 1558,
+                                        "textRun": {
+                                            "content": "{.latest-data-insights}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1558,
+                            "endIndex": 1561,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1558,
+                                        "endIndex": 1561,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1561,
+                            "endIndex": 1562,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1561,
+                                        "endIndex": 1562,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1562,
+                            "endIndex": 1590,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1562,
+                                        "endIndex": 1590,
+                                        "textRun": {
+                                            "content": "{.key-indicator-collection}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1590,
+                            "endIndex": 1591,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1590,
+                                        "endIndex": 1591,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1591,
+                            "endIndex": 1606,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1591,
+                                        "endIndex": 1606,
+                                        "textRun": {
+                                            "content": "[.+indicators]\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1606,
+                            "endIndex": 1623,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1606,
+                                        "endIndex": 1623,
+                                        "textRun": {
+                                            "content": "{.key-indicator}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1623,
+                            "endIndex": 1709,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1623,
+                                        "endIndex": 1636,
+                                        "textRun": {
+                                            "content": "datapageUrl: "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 1636,
+                                        "endIndex": 1709,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/grapher/child-mortality?time=earliest..latest\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1709,
+                            "endIndex": 1772,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1709,
+                                        "endIndex": 1716,
+                                        "textRun": { "content": "title: " }
+                                    },
+                                    {
+                                        "startIndex": 1716,
+                                        "endIndex": 1772,
+                                        "textRun": {
+                                            "content": "What share of children die before their fifth birthday?\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1772,
+                            "endIndex": 1834,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1772,
+                                        "endIndex": 1780,
+                                        "textRun": { "content": "source: " }
+                                    },
+                                    {
+                                        "startIndex": 1780,
+                                        "endIndex": 1834,
+                                        "textRun": {
+                                            "content": "Long-run estimates combining data from UN & Gapminder\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1834,
+                            "endIndex": 1843,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1834,
+                                        "endIndex": 1843,
+                                        "textRun": { "content": "[.+text]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1843,
+                            "endIndex": 1844,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1843,
+                                        "endIndex": 1844,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1844,
+                            "endIndex": 2012,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1844,
+                                        "endIndex": 1974,
+                                        "textRun": {
+                                            "content": "What could be more tragic than the death of a young child? Child mortality, the death of children under the age of five, is still "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 1974,
+                                        "endIndex": 1990,
+                                        "textRun": {
+                                            "content": "extremely common",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/much-better-awful-can-be-better"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 1990,
+                                        "endIndex": 2012,
+                                        "textRun": {
+                                            "content": " in our world today. \n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2012,
+                            "endIndex": 2475,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2012,
+                                        "endIndex": 2084,
+                                        "textRun": {
+                                            "content": "The historical data makes clear that it doesn’t have to be this way: it "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2084,
+                                        "endIndex": 2095,
+                                        "textRun": {
+                                            "content": "is possible",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/child-mortality-big-problem-in-brief"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2095,
+                                        "endIndex": 2270,
+                                        "textRun": {
+                                            "content": " for societies to protect their children and reduce child mortality to very low rates. For child mortality to reach low levels, many things have to go right at the same time: "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2270,
+                                        "endIndex": 2285,
+                                        "textRun": {
+                                            "content": "good healthcare",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/financing-healthcare"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2285,
+                                        "endIndex": 2286,
+                                        "textRun": { "content": "," }
+                                    },
+                                    {
+                                        "startIndex": 2286,
+                                        "endIndex": 2287,
+                                        "textRun": {
+                                            "content": " ",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/hunger-and-undernourishment"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2287,
+                                        "endIndex": 2301,
+                                        "textRun": {
+                                            "content": "good nutrition",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/hunger-and-undernourishment"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2301,
+                                        "endIndex": 2302,
+                                        "textRun": { "content": "," }
+                                    },
+                                    {
+                                        "startIndex": 2302,
+                                        "endIndex": 2303,
+                                        "textRun": {
+                                            "content": " ",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/maternal-mortality"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2303,
+                                        "endIndex": 2329,
+                                        "textRun": {
+                                            "content": "clean water and sanitation",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/clean-water-sanitation"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2329,
+                                        "endIndex": 2331,
+                                        "textRun": { "content": ", " }
+                                    },
+                                    {
+                                        "startIndex": 2331,
+                                        "endIndex": 2346,
+                                        "textRun": {
+                                            "content": "maternal health",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/maternal-mortality"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2346,
+                                        "endIndex": 2357,
+                                        "textRun": { "content": ", and high " }
+                                    },
+                                    {
+                                        "startIndex": 2357,
+                                        "endIndex": 2373,
+                                        "textRun": {
+                                            "content": "living standards",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/economic-growth"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2373,
+                                        "endIndex": 2402,
+                                        "textRun": {
+                                            "content": ". We can, therefore, think of"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2402,
+                                        "endIndex": 2403,
+                                        "textRun": {
+                                            "content": " ",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/child-mortality"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2403,
+                                        "endIndex": 2418,
+                                        "textRun": {
+                                            "content": "child mortality",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/child-mortality"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2418,
+                                        "endIndex": 2475,
+                                        "textRun": {
+                                            "content": " as a proxy indicator of a country’s living conditions. \n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2475,
+                            "endIndex": 2616,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2475,
+                                        "endIndex": 2615,
+                                        "textRun": {
+                                            "content": "The chart shows our long-run data on child mortality, which allows you to see how child mortality has changed in countries around the world."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2615,
+                                        "endIndex": 2616,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2616,
+                            "endIndex": 2619,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2616,
+                                        "endIndex": 2619,
+                                        "textRun": { "content": "[]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2619,
+                            "endIndex": 2622,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2619,
+                                        "endIndex": 2622,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2622,
+                            "endIndex": 2623,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2622,
+                                        "endIndex": 2623,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2623,
+                            "endIndex": 2640,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2623,
+                                        "endIndex": 2640,
+                                        "textRun": {
+                                            "content": "{.key-indicator}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2640,
+                            "endIndex": 2727,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2640,
+                                        "endIndex": 2653,
+                                        "textRun": {
+                                            "content": "datapageUrl: "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2653,
+                                        "endIndex": 2727,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2727,
+                            "endIndex": 2789,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2727,
+                                        "endIndex": 2734,
+                                        "textRun": { "content": "title: " }
+                                    },
+                                    {
+                                        "startIndex": 2734,
+                                        "endIndex": 2789,
+                                        "textRun": {
+                                            "content": "What share of the population lives in extreme poverty?\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2789,
+                            "endIndex": 2798,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2789,
+                                        "endIndex": 2798,
+                                        "textRun": { "content": "[.+text]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2798,
+                            "endIndex": 3121,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2798,
+                                        "endIndex": 3121,
+                                        "textRun": {
+                                            "content": "The UN sets the “International Poverty Line” as a worldwide comparable definition for extreme poverty. Extreme poverty is currently defined as living on less than $3 per day. This indicator, published by the World Bank, has successfully drawn attention to the terrible depths of poverty of the poorest people in the world.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3121,
+                            "endIndex": 3528,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3121,
+                                        "endIndex": 3139,
+                                        "textRun": {
+                                            "content": "Two centuries ago,"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3139,
+                                        "endIndex": 3140,
+                                        "textRun": {
+                                            "content": " ",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/extreme-poverty-in-brief"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3140,
+                                        "endIndex": 3152,
+                                        "textRun": {
+                                            "content": "the majority",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/extreme-poverty-in-brief"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3152,
+                                        "endIndex": 3334,
+                                        "textRun": {
+                                            "content": " of the world’s population was extremely poor. Back then, it was widely believed that widespread poverty was inevitable. This turned out to be wrong. Economic growth is possible and "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3334,
+                                        "endIndex": 3351,
+                                        "textRun": {
+                                            "content": "makes it possible",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/what-is-economic-growth"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3351,
+                                        "endIndex": 3527,
+                                        "textRun": {
+                                            "content": " for entire societies to leave the deep poverty of the past behind. Whether or not countries are leaving the worst poverty behind can be monitored by relying on this indicator."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3527,
+                                        "endIndex": 3528,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3528,
+                            "endIndex": 3531,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3528,
+                                        "endIndex": 3531,
+                                        "textRun": { "content": "[]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3531,
+                            "endIndex": 3534,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3531,
+                                        "endIndex": 3534,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3534,
+                            "endIndex": 3535,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3534,
+                                        "endIndex": 3535,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3535,
+                            "endIndex": 3552,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3535,
+                                        "endIndex": 3552,
+                                        "textRun": {
+                                            "content": "{.key-indicator}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3552,
+                            "endIndex": 3616,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3552,
+                                        "endIndex": 3565,
+                                        "textRun": {
+                                            "content": "datapageUrl: "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3565,
+                                        "endIndex": 3616,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/grapher/life-expectancy\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3616,
+                            "endIndex": 3675,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3616,
+                                        "endIndex": 3623,
+                                        "textRun": { "content": "title: " }
+                                    },
+                                    {
+                                        "startIndex": 3623,
+                                        "endIndex": 3675,
+                                        "textRun": {
+                                            "content": "How has people’s life expectancy changed over time?\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3675,
+                            "endIndex": 3754,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3675,
+                                        "endIndex": 3683,
+                                        "textRun": { "content": "source: " }
+                                    },
+                                    {
+                                        "startIndex": 3683,
+                                        "endIndex": 3754,
+                                        "textRun": {
+                                            "content": "Long-run estimates collated from multiple sources by Our World in Data\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3754,
+                            "endIndex": 3763,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3754,
+                                        "endIndex": 3763,
+                                        "textRun": { "content": "[.+text]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3763,
+                            "endIndex": 3764,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3763,
+                                        "endIndex": 3764,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3764,
+                            "endIndex": 3928,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3764,
+                                        "endIndex": 3928,
+                                        "textRun": {
+                                            "content": "Across the world, people are living longer. In 1900, the global average life expectancy of a newborn was 32 years. By 2021, this had more than doubled to 71 years.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3928,
+                            "endIndex": 4181,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3928,
+                                        "endIndex": 3972,
+                                        "textRun": {
+                                            "content": "Big improvements were achieved by countries "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3972,
+                                        "endIndex": 3988,
+                                        "textRun": {
+                                            "content": "around the world",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/life-expectancy-globally"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3988,
+                                        "endIndex": 4168,
+                                        "textRun": {
+                                            "content": ". The chart shows that life expectancy has more than doubled in every region of the world. This improvement is not only due to declining child mortality; life expectancy increased "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4168,
+                                        "endIndex": 4179,
+                                        "textRun": {
+                                            "content": "at all ages",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/its-not-just-about-child-mortality-life-expectancy-improved-at-all-ages"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4179,
+                                        "endIndex": 4181,
+                                        "textRun": { "content": ".\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4181,
+                            "endIndex": 4393,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4181,
+                                        "endIndex": 4333,
+                                        "textRun": {
+                                            "content": "This visualization shows long-run estimates of life expectancy brought together by our team from several different data sources. It also shows that the "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4333,
+                                        "endIndex": 4350,
+                                        "textRun": {
+                                            "content": "COVID-19 pandemic",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/coronavirus"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4350,
+                                        "endIndex": 4392,
+                                        "textRun": {
+                                            "content": " led to reduced life expectancy worldwide."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4392,
+                                        "endIndex": 4393,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4393,
+                            "endIndex": 4396,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4393,
+                                        "endIndex": 4396,
+                                        "textRun": { "content": "[]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4396,
+                            "endIndex": 4399,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4396,
+                                        "endIndex": 4399,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4399,
+                            "endIndex": 4400,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4399,
+                                        "endIndex": 4400,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4400,
+                            "endIndex": 4417,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4400,
+                                        "endIndex": 4417,
+                                        "textRun": {
+                                            "content": "{.key-indicator}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4417,
+                            "endIndex": 4527,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4417,
+                                        "endIndex": 4430,
+                                        "textRun": {
+                                            "content": "datapageUrl: "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4430,
+                                        "endIndex": 4527,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/grapher/co-emissions-per-capita?tab=chart&country=USA~GBR~CHN~ZAF~PAN\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4527,
+                            "endIndex": 4577,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4527,
+                                        "endIndex": 4534,
+                                        "textRun": { "content": "title: " }
+                                    },
+                                    {
+                                        "startIndex": 4534,
+                                        "endIndex": 4577,
+                                        "textRun": {
+                                            "content": "How have CO₂ emissions per capita changed?\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4577,
+                            "endIndex": 4634,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4577,
+                                        "endIndex": 4585,
+                                        "textRun": { "content": "source: " }
+                                    },
+                                    {
+                                        "startIndex": 4585,
+                                        "endIndex": 4634,
+                                        "textRun": {
+                                            "content": "Long-run estimates from the Global Carbon Budget\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4634,
+                            "endIndex": 4643,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4634,
+                                        "endIndex": 4643,
+                                        "textRun": { "content": "[.+text]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4643,
+                            "endIndex": 4644,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4643,
+                                        "endIndex": 4644,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4644,
+                            "endIndex": 4783,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4644,
+                                        "endIndex": 4681,
+                                        "textRun": {
+                                            "content": "The main source of carbon dioxide (CO"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4681,
+                                        "endIndex": 4682,
+                                        "textRun": { "content": "2" }
+                                    },
+                                    {
+                                        "startIndex": 4682,
+                                        "endIndex": 4744,
+                                        "textRun": {
+                                            "content": ") emissions is the burning of fossil fuels. It is the primary "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4744,
+                                        "endIndex": 4758,
+                                        "textRun": {
+                                            "content": "greenhouse gas",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/co2-and-greenhouse-gas-emissions"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4758,
+                                        "endIndex": 4767,
+                                        "textRun": { "content": " causing " }
+                                    },
+                                    {
+                                        "startIndex": 4767,
+                                        "endIndex": 4781,
+                                        "textRun": {
+                                            "content": "climate change",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/explorers/climate-change"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4781,
+                                        "endIndex": 4783,
+                                        "textRun": { "content": ".\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4783,
+                            "endIndex": 5029,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4783,
+                                        "endIndex": 4795,
+                                        "textRun": { "content": "Globally, CO" }
+                                    },
+                                    {
+                                        "startIndex": 4795,
+                                        "endIndex": 4796,
+                                        "textRun": { "content": "2" }
+                                    },
+                                    {
+                                        "startIndex": 4796,
+                                        "endIndex": 5029,
+                                        "textRun": {
+                                            "content": " emissions have remained at just below 5 tonnes per person for over a decade. Between countries, however, there are large differences, and while emissions are rapidly increasing in some countries, they are rapidly falling in others.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5029,
+                            "endIndex": 5327,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5029,
+                                        "endIndex": 5051,
+                                        "textRun": {
+                                            "content": "The source for this CO"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 5051,
+                                        "endIndex": 5052,
+                                        "textRun": { "content": "2" }
+                                    },
+                                    {
+                                        "startIndex": 5052,
+                                        "endIndex": 5287,
+                                        "textRun": {
+                                            "content": " data is the Global Carbon Budget, a dataset we update yearly as soon as it is published. In addition to these production-based emissions, they publish consumption-based emissions for the last three decades, which can be viewed in our "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 5287,
+                                        "endIndex": 5325,
+                                        "textRun": {
+                                            "content": "Greenhouse Gas Emissions Data Explorer",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/explorers/co2?facet=none&country=CHN~USA~IND~FRA&Gas+or+Warming=CO%E2%82%82&Accounting=Consumption-based&Fuel+or+Land+Use+Change=All+fossil+emissions&Count=Per+capita"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 5325,
+                                        "endIndex": 5326,
+                                        "textRun": { "content": "." }
+                                    },
+                                    {
+                                        "startIndex": 5326,
+                                        "endIndex": 5327,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5327,
+                            "endIndex": 5330,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5327,
+                                        "endIndex": 5330,
+                                        "textRun": { "content": "[]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5330,
+                            "endIndex": 5333,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5330,
+                                        "endIndex": 5333,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5333,
+                            "endIndex": 5334,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5333,
+                                        "endIndex": 5334,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5334,
+                            "endIndex": 5351,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5334,
+                                        "endIndex": 5351,
+                                        "textRun": {
+                                            "content": "{.key-indicator}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5351,
+                            "endIndex": 5440,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5351,
+                                        "endIndex": 5364,
+                                        "textRun": {
+                                            "content": "datapageUrl: "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 5364,
+                                        "endIndex": 5440,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/grapher/gdp-per-capita-maddison-project-database\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5440,
+                            "endIndex": 5514,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5440,
+                                        "endIndex": 5447,
+                                        "textRun": { "content": "title: " }
+                                    },
+                                    {
+                                        "startIndex": 5447,
+                                        "endIndex": 5514,
+                                        "textRun": {
+                                            "content": "How do average incomes compare between countries around the world?\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5514,
+                            "endIndex": 5576,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5514,
+                                        "endIndex": 5522,
+                                        "textRun": { "content": "source: " }
+                                    },
+                                    {
+                                        "startIndex": 5522,
+                                        "endIndex": 5576,
+                                        "textRun": {
+                                            "content": "Long-run estimates from the Maddison Project Database\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5576,
+                            "endIndex": 5585,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5576,
+                                        "endIndex": 5585,
+                                        "textRun": { "content": "[.+text]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5585,
+                            "endIndex": 5892,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5585,
+                                        "endIndex": 5644,
+                                        "textRun": {
+                                            "content": "GDP per capita is a very comprehensive measure of people’s "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 5644,
+                                        "endIndex": 5658,
+                                        "textRun": {
+                                            "content": "average income",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/what-is-economic-growth"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 5658,
+                                        "endIndex": 5892,
+                                        "textRun": {
+                                            "content": ". This indicator reveals how large the inequality between people in different countries is. In the poorest countries, people live on less than $1,000 per year, while in rich countries, the average income is more than 50 times higher.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5892,
+                            "endIndex": 6339,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5892,
+                                        "endIndex": 6175,
+                                        "textRun": {
+                                            "content": "The data shown is sourced from the Maddison Project Database. Drawing together the careful work of hundreds of economic historians, the particular value of this data lies in the historical coverage it provides. This data makes clear that the vast majority of people in all countries "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6175,
+                                        "endIndex": 6184,
+                                        "textRun": {
+                                            "content": "were poor",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/extreme-history-methods"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6184,
+                                        "endIndex": 6242,
+                                        "textRun": {
+                                            "content": " in the past. It allows us to understand when and how the "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6242,
+                                        "endIndex": 6257,
+                                        "textRun": {
+                                            "content": "economic growth",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/economic-growth"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6257,
+                                        "endIndex": 6280,
+                                        "textRun": {
+                                            "content": " that made it possible "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6280,
+                                        "endIndex": 6288,
+                                        "textRun": {
+                                            "content": "to leave",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/breaking-the-malthusian-trap"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6288,
+                                        "endIndex": 6338,
+                                        "textRun": {
+                                            "content": " the deep poverty of the past behind was achieved."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6338,
+                                        "endIndex": 6339,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6339,
+                            "endIndex": 6342,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6339,
+                                        "endIndex": 6342,
+                                        "textRun": { "content": "[]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6342,
+                            "endIndex": 6345,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6342,
+                                        "endIndex": 6345,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6345,
+                            "endIndex": 6346,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6345,
+                                        "endIndex": 6346,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6346,
+                            "endIndex": 6363,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6346,
+                                        "endIndex": 6363,
+                                        "textRun": {
+                                            "content": "{.key-indicator}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6363,
+                            "endIndex": 6442,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6363,
+                                        "endIndex": 6376,
+                                        "textRun": {
+                                            "content": "datapageUrl: "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6376,
+                                        "endIndex": 6442,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/grapher/prevalence-of-undernourishment\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6442,
+                            "endIndex": 6504,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6442,
+                                        "endIndex": 6449,
+                                        "textRun": { "content": "title: " }
+                                    },
+                                    {
+                                        "startIndex": 6449,
+                                        "endIndex": 6504,
+                                        "textRun": {
+                                            "content": "What share of the population is suffering from hunger?\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6504,
+                            "endIndex": 6505,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6504,
+                                        "endIndex": 6505,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6505,
+                            "endIndex": 6514,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6505,
+                                        "endIndex": 6514,
+                                        "textRun": { "content": "[.+text]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6514,
+                            "endIndex": 6515,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6514,
+                                        "endIndex": 6515,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6515,
+                            "endIndex": 6741,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6515,
+                                        "endIndex": 6521,
+                                        "textRun": {
+                                            "content": "Hunger",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/hunger-and-undernourishment"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6521,
+                                        "endIndex": 6703,
+                                        "textRun": {
+                                            "content": " has been a severe problem for most of humanity throughout history. Growing enough food to feed one’s family was a constant struggle in daily life. Food shortages, malnutrition, and "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6703,
+                                        "endIndex": 6710,
+                                        "textRun": {
+                                            "content": "famines",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/famines"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6710,
+                                        "endIndex": 6741,
+                                        "textRun": {
+                                            "content": " were common around the world.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6741,
+                            "endIndex": 7059,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6741,
+                                        "endIndex": 7059,
+                                        "textRun": {
+                                            "content": "The UN’s Food and Agriculture Organization publishes global data on undernourishment, defined as not consuming enough calories to maintain a normal, active, healthy life. These minimum requirements vary by a person’s sex, weight, height, and activity levels. This is considered in these national and global estimates.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7059,
+                            "endIndex": 7369,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7059,
+                                        "endIndex": 7368,
+                                        "textRun": {
+                                            "content": "The world has made much progress in reducing global hunger in recent decades. But we are still far away from an end to hunger, as this indicator shows. Tragically, nearly one in ten people still do not get enough food to eat and in recent years — especially during the pandemic — hunger levels have increased."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7368,
+                                        "endIndex": 7369,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7369,
+                            "endIndex": 7372,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7369,
+                                        "endIndex": 7372,
+                                        "textRun": { "content": "[]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7372,
+                            "endIndex": 7375,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7372,
+                                        "endIndex": 7375,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7375,
+                            "endIndex": 7376,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7375,
+                                        "endIndex": 7376,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7376,
+                            "endIndex": 7393,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7376,
+                                        "endIndex": 7393,
+                                        "textRun": {
+                                            "content": "{.key-indicator}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7393,
+                            "endIndex": 7470,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7393,
+                                        "endIndex": 7406,
+                                        "textRun": {
+                                            "content": "datapageUrl: "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7406,
+                                        "endIndex": 7470,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/grapher/cross-country-literacy-rates\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7470,
+                            "endIndex": 7522,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7470,
+                                        "endIndex": 7477,
+                                        "textRun": { "content": "title: " }
+                                    },
+                                    {
+                                        "startIndex": 7477,
+                                        "endIndex": 7522,
+                                        "textRun": {
+                                            "content": "When has literacy become a widespread skill?\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7522,
+                            "endIndex": 7601,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7522,
+                                        "endIndex": 7529,
+                                        "textRun": { "content": "source:" }
+                                    },
+                                    {
+                                        "startIndex": 7529,
+                                        "endIndex": 7601,
+                                        "textRun": {
+                                            "content": " Long-run estimates collated from multiple sources by Our World in Data\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7601,
+                            "endIndex": 7602,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7601,
+                                        "endIndex": 7602,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7602,
+                            "endIndex": 7611,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7602,
+                                        "endIndex": 7611,
+                                        "textRun": { "content": "[.+text]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7611,
+                            "endIndex": 7856,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7611,
+                                        "endIndex": 7856,
+                                        "textRun": {
+                                            "content": "Literacy is a foundational skill. Children need to learn to read so that they can read to learn. When we fail to teach this foundational skill, people have fewer opportunities to lead the rich and interesting lives that a good education offers.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7856,
+                            "endIndex": 8138,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7856,
+                                        "endIndex": 8048,
+                                        "textRun": {
+                                            "content": "The historical data shows that only a very small share of the population, a tiny elite, was able to read and write. Over the course of the last few generations, literacy levels increased, but "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8048,
+                                        "endIndex": 8058,
+                                        "textRun": {
+                                            "content": "it remains",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/better-learning"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8058,
+                                        "endIndex": 8138,
+                                        "textRun": {
+                                            "content": " an important challenge for our time to provide this foundational skill to all.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8138,
+                            "endIndex": 8448,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8138,
+                                        "endIndex": 8160,
+                                        "textRun": {
+                                            "content": "At Our World in Data, "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8160,
+                                        "endIndex": 8175,
+                                        "textRun": {
+                                            "content": "we investigated",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/how-is-literacy-measured"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8175,
+                                        "endIndex": 8447,
+                                        "textRun": {
+                                            "content": " the strengths and shortcomings of the available data on literacy. Based on this work, our team brought together the long-run data shown in the chart by combining several different sources, including historical and recent UNESCO data and a range of research publications. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8447,
+                                        "endIndex": 8448,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8448,
+                            "endIndex": 8449,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8448,
+                                        "endIndex": 8449,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8449,
+                            "endIndex": 8452,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8449,
+                                        "endIndex": 8452,
+                                        "textRun": { "content": "[]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8452,
+                            "endIndex": 8455,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8452,
+                                        "endIndex": 8455,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8455,
+                            "endIndex": 8456,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8455,
+                                        "endIndex": 8456,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8456,
+                            "endIndex": 8473,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8456,
+                                        "endIndex": 8473,
+                                        "textRun": {
+                                            "content": "{.key-indicator}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8473,
+                            "endIndex": 8584,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8473,
+                                        "endIndex": 8486,
+                                        "textRun": {
+                                            "content": "datapageUrl: "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8486,
+                                        "endIndex": 8584,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/grapher/share-of-the-population-with-access-to-electricity?time=latest\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8584,
+                            "endIndex": 8662,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8584,
+                                        "endIndex": 8591,
+                                        "textRun": { "content": "title: " }
+                                    },
+                                    {
+                                        "startIndex": 8591,
+                                        "endIndex": 8662,
+                                        "textRun": {
+                                            "content": "Where do people lack access to even the most basic electricity supply?\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8662,
+                            "endIndex": 8671,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8662,
+                                        "endIndex": 8671,
+                                        "textRun": { "content": "[.+text]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8671,
+                            "endIndex": 8974,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8671,
+                                        "endIndex": 8685,
+                                        "textRun": {
+                                            "content": "Light at night",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/light-at-night"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8685,
+                                        "endIndex": 8734,
+                                        "textRun": {
+                                            "content": " makes it possible to get together after sunset; "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8734,
+                                        "endIndex": 8747,
+                                        "textRun": {
+                                            "content": "mobile phones",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/grapher/mobile-cellular-subscriptions-per-100-people"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8747,
+                                        "endIndex": 8845,
+                                        "textRun": {
+                                            "content": " allow us to stay in touch with those far away; the refrigeration of food reduces food waste; and "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8845,
+                                        "endIndex": 8865,
+                                        "textRun": {
+                                            "content": "household appliances",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/grapher/technology-adoption-by-households-in-the-united-states"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8865,
+                                        "endIndex": 8974,
+                                        "textRun": {
+                                            "content": " free up time from household chores. Access to electricity improves people’s living conditions in many ways.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8974,
+                            "endIndex": 9181,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8974,
+                                        "endIndex": 9050,
+                                        "textRun": {
+                                            "content": "The World Bank data on the world map captures whether people have access to "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9050,
+                                        "endIndex": 9054,
+                                        "textRun": { "content": "the " }
+                                    },
+                                    {
+                                        "startIndex": 9054,
+                                        "endIndex": 9064,
+                                        "textRun": {
+                                            "content": "most basic",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/definition-electricity-access"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9064,
+                                        "endIndex": 9181,
+                                        "textRun": {
+                                            "content": " electricity supply — just enough to provide basic lighting and charge a phone or power a radio for 4 hours per day.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9181,
+                            "endIndex": 9351,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9181,
+                                        "endIndex": 9350,
+                                        "textRun": {
+                                            "content": "It shows that, especially in several African countries, a large share of the population lacks the benefits that basic electricity offers. No radio and no light at night."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9350,
+                                        "endIndex": 9351,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9351,
+                            "endIndex": 9354,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9351,
+                                        "endIndex": 9354,
+                                        "textRun": { "content": "[]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9354,
+                            "endIndex": 9357,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9354,
+                                        "endIndex": 9357,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9357,
+                            "endIndex": 9360,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9357,
+                                        "endIndex": 9360,
+                                        "textRun": { "content": "[]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9360,
+                            "endIndex": 9361,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9360,
+                                        "endIndex": 9361,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9361,
+                            "endIndex": 9364,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9361,
+                                        "endIndex": 9364,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9364,
+                            "endIndex": 9365,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9364,
+                                        "endIndex": 9365,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9365,
+                            "endIndex": 9383,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9365,
+                                        "endIndex": 9383,
+                                        "textRun": {
+                                            "content": "{.explorer-tiles}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9383,
+                            "endIndex": 9405,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9383,
+                                        "endIndex": 9390,
+                                        "textRun": { "content": "title: " }
+                                    },
+                                    {
+                                        "startIndex": 9390,
+                                        "endIndex": 9405,
+                                        "textRun": {
+                                            "content": "Data explorers\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9405,
+                            "endIndex": 9494,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9405,
+                                        "endIndex": 9415,
+                                        "textRun": { "content": "subtitle: " }
+                                    },
+                                    {
+                                        "startIndex": 9415,
+                                        "endIndex": 9494,
+                                        "textRun": {
+                                            "content": "Interactive visualization tools to explore a wide range of related indicators.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9494,
+                            "endIndex": 9507,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9494,
+                                        "endIndex": 9507,
+                                        "textRun": {
+                                            "content": "[.explorers]\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9507,
+                            "endIndex": 9566,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9507,
+                                        "endIndex": 9512,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 9512,
+                                        "endIndex": 9565,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/explorers/poverty-explorer",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/explorers/poverty-explorer"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9565,
+                                        "endIndex": 9566,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9566,
+                            "endIndex": 9634,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9566,
+                                        "endIndex": 9571,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 9571,
+                                        "endIndex": 9633,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/explorers/population-and-demography",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/explorers/population-and-demography"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9633,
+                                        "endIndex": 9634,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9634,
+                            "endIndex": 9700,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9634,
+                                        "endIndex": 9644,
+                                        "textRun": { "content": "          " }
+                                    },
+                                    {
+                                        "startIndex": 9644,
+                                        "endIndex": 9649,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 9649,
+                                        "endIndex": 9699,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/explorers/global-health",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/explorers/global-health"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9699,
+                                        "endIndex": 9700,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9700,
+                            "endIndex": 9751,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9700,
+                                        "endIndex": 9705,
+                                        "textRun": { "content": "url: " }
+                                    },
+                                    {
+                                        "startIndex": 9705,
+                                        "endIndex": 9750,
+                                        "textRun": {
+                                            "content": "https://ourworldindata.org/grapher/energy-mix",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://ourworldindata.org/grapher/energy-mix"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 9750,
+                                        "endIndex": 9751,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9751,
+                            "endIndex": 9754,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9751,
+                                        "endIndex": 9754,
+                                        "textRun": { "content": "[]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9754,
+                            "endIndex": 9757,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9754,
+                                        "endIndex": 9757,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9757,
+                            "endIndex": 9758,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9757,
+                                        "endIndex": 9758,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9758,
+                            "endIndex": 9759,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9758,
+                                        "endIndex": 9759,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9759,
+                            "endIndex": 9760,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9759,
+                                        "endIndex": 9760,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9760,
+                            "endIndex": 9763,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9760,
+                                        "endIndex": 9763,
+                                        "textRun": { "content": "[]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9763,
+                            "endIndex": 9764,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9763,
+                                        "endIndex": 9764,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9764,
+                            "endIndex": 9770,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9764,
+                                        "endIndex": 9770,
+                                        "textRun": { "content": ":skip\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9770,
+                            "endIndex": 9771,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9770,
+                                        "endIndex": 9771,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9771,
+                            "endIndex": 9772,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9771,
+                                        "endIndex": 9772,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9772,
+                            "endIndex": 9773,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9772,
+                                        "endIndex": 9773,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9773,
+                            "endIndex": 9774,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9773,
+                                        "endIndex": 9774,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9774,
+                            "endIndex": 9775,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9774,
+                                        "endIndex": 9775,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 9775,
+                            "endIndex": 9784,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 9775,
+                                        "endIndex": 9784,
+                                        "textRun": { "content": ":endskip\n" }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

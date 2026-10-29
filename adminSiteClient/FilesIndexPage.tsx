@@ -220,7 +220,7 @@ function PostFileButton({ currentPath }: { currentPath: string }) {
     const queryClient = useQueryClient()
     const history = useHistory()
 
-    const now = new Date()
+    const [now] = useState(() => new Date())
     const defaultPath = urlJoin(
         "uploads",
         `${now.getFullYear()}`,

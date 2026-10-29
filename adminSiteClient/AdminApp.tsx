@@ -9,6 +9,7 @@ import { ChartEditorPage } from "./ChartEditorPage.js"
 import { action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartIndexPage } from "./ChartIndexPage.js"
+import { GdocsReferencePage } from "./GdocsReferencePage.js"
 import { UsersIndexPage } from "./UsersIndexPage.js"
 import { DatasetsIndexPage } from "./DatasetsIndexPage.js"
 import { UserEditPage } from "./UserEditPage.js"
@@ -198,6 +199,11 @@ export class AdminApp extends React.Component<{
                                 />
                                 <Route
                                     exact
+                                    path="/gdocs-reference/:kind?/:id?/:bundle?"
+                                    component={GdocsReferencePage}
+                                />
+                                <Route
+                                    exact
                                     path="/narrative-charts"
                                     component={NarrativeChartIndexPage}
                                 />
@@ -209,12 +215,11 @@ export class AdminApp extends React.Component<{
                                 <Route
                                     exact
                                     path="/narrative-charts/:narrativeChartId/edit"
-                                    render={({ match, history }) => (
+                                    render={({ match }) => (
                                         <NarrativeChartEditorPage
                                             narrativeChartId={parseInt(
                                                 match.params.narrativeChartId
                                             )}
-                                            history={history}
                                         />
                                     )}
                                 />

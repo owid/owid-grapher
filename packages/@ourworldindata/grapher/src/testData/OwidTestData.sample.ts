@@ -6,7 +6,7 @@ import {
     createOwidTestDataset,
     fakeEntities,
 } from "../testData/OwidTestData"
-import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "../core/LegacyToOwidTable.js"
+import { legacyToOwidTableAndDimensions } from "../core/LegacyToOwidTable.js"
 
 /**
 Grapher properties:
@@ -61,7 +61,7 @@ export const LifeExpectancyGrapher = (
         ...props,
         dimensions,
     })
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         createOwidTestDataset([
             { data: lifeExpectancyData, metadata: lifeExpectancyMetadata },
         ]),

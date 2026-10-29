@@ -12,10 +12,10 @@
     height: 400px;
 }
 
-// Tighten the shared chrome around the chart: the reserved legend row
-// already separates the header from the chart, and the chart's bottom
-// margin already separates it from the footer
-.migrant-pyramid-captioned-chart .chart-header__subtitle {
+// Tighten the shared chrome around the chart: the legend row already
+// separates the header from the chart, and the chart's bottom margin
+// already separates it from the footer
+.migrant-pyramid-captioned-chart--with-legend .chart-header__subtitle {
     margin-bottom: 12px;
 }
 
@@ -44,15 +44,8 @@
     background-color: $gray-100;
 }
 
-.migrant-pyramid-skeleton {
-    position: relative;
+.migrant-pyramid-chart-box {
     min-height: 480px;
-    background: $gray-5;
-}
-
-.migrant-pyramid__error {
-    padding: 24px;
-    color: $error-text-color;
 }
 
 .migrant-pyramid__no-data {

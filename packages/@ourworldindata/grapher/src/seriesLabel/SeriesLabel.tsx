@@ -15,8 +15,8 @@ import {
     TextRole,
     SpanLine,
 } from "./SeriesLabelState.js"
-import { Bounds, isTouchDevice } from "@ourworldindata/utils"
-import { Halo } from "@ourworldindata/components"
+import { Bounds, isTouchDevice, roundForSvg } from "@ourworldindata/utils"
+import { FIGMA_TEXT_NODE_BREAK_DY, Halo } from "@ourworldindata/components"
 import { RegionTooltip } from "./RegionTooltip.js"
 import { getDescriptionForKey, getRegionsForKey } from "./RegionTooltipData.js"
 
@@ -62,10 +62,9 @@ export function SeriesLabel({
     onMouseLeave,
     onInfoTooltipShow,
 }: SeriesLabelProps): React.ReactElement {
-    // Get the corrected position for SVG text rendering
     const [renderX, renderY] = state.getPositionForSvgRendering(x, y)
 
-    const fontSize = state.fontSettings.fontSize.toFixed(2)
+    const fontSize = state.fontSettings.fontSize
     const colors = { ...defaultColors, ...color }
     const props = { id, opacity, onMouseEnter, onMouseLeave }
 
@@ -153,7 +152,7 @@ function NativeAlignedLabelText({
     y: number
     spanLines: SpanLine[]
     textAnchor: "start" | "end"
-    fontSize: string
+    fontSize: number
     lineHeight: number
     colors: Record<TextRole, string>
     id?: string
@@ -166,8 +165,8 @@ function NativeAlignedLabelText({
         <text
             id={id}
             style={style}
-            x={x.toFixed(1)}
-            y={y.toFixed(1)}
+            x={roundForSvg(x)}
+            y={roundForSvg(y)}
             textAnchor={textAnchor}
             fontSize={fontSize}
             opacity={opacity}
@@ -176,22 +175,28 @@ function NativeAlignedLabelText({
         >
             {spanLines.map((spans, lineIndex) =>
                 spans.map((span, spanIndex) => {
-                    const isFirstLine = lineIndex === 0
-                    const isLineStart = spanIndex === 0
-
-                    const renderX = isLineStart ? x.toFixed(1) : undefined
-                    const renderY =
-                        isLineStart && !isFirstLine
-                            ? lineHeight.toFixed(1)
-                            : undefined
+                    const renderX = getSpanX({ spanIndex, x })
+                    const renderDy = getSpanDy({
+                        spanLines,
+                        lineIndex,
+                        spanIndex,
+                        lineHeight,
+                        textAnchor,
+                    })
 
                     return (
                         <tspan
                             key={span.text}
                             x={renderX}
-                            dy={renderY}
+                            dy={renderDy}
                             fontWeight={span.fontWeight}
                             fill={colors[span.role]}
+                            // librsvg (Wikimedia's renderer) drops a leading space otherwise
+                            xmlSpace={
+                                span.text.startsWith(" ")
+                                    ? "preserve"
+                                    : undefined
+                            }
                         >
                             {span.text}
                         </tspan>
@@ -217,7 +222,7 @@ function LabelText({
     x: number
     y: number
     fragments: PositionedTextFragment[]
-    fontSize: string
+    fontSize: number
     colors: Record<TextRole, string>
     id?: string
     opacity?: number
@@ -279,7 +284,7 @@ function TextFragment({
     x: number
     y: number
     fragment: PositionedTextFragment
-    fontSize: string
+    fontSize: number
     fill: string
     id?: string
     opacity?: number
@@ -314,8 +319,8 @@ function TextSpanFragment({
 }): React.ReactElement {
     return (
         <tspan
-            x={(x + fragment.x).toFixed(1)}
-            y={(y + fragment.y).toFixed(1)}
+            x={roundForSvg(x + fragment.x)}
+            y={roundForSvg(y + fragment.y)}
             fontWeight={fragment.fontWeight}
             fill={fill}
         >
@@ -360,8 +365,9 @@ function IconFragment({
 
     return (
         <g>
-            {/* Info icon */}
-            <g transform={`translate(${iconX}, ${iconY})`}>
+            <g
+                transform={`translate(${roundForSvg(iconX)}, ${roundForSvg(iconY)})`}
+            >
                 <FontAwesomeIcon
                     icon={faCircleInfo}
                     width={fragment.iconSize}
@@ -405,4 +411,65 @@ function IconFragment({
             </Tippy>
         </g>
     )
+}
+
+function getSpanX({
+    spanIndex,
+    x,
+}: {
+    spanIndex: number
+    x: number
+}): number | undefined {
+    const isLineStart = spanIndex === 0
+    return isLineStart ? roundForSvg(x) : undefined
+}
+
+function getSpanDy({
+    spanLines,
+    lineIndex,
+    spanIndex,
+    lineHeight,
+    textAnchor,
+}: {
+    spanLines: SpanLine[]
+    lineIndex: number
+    spanIndex: number
+    lineHeight: number
+    textAnchor: "start" | "end"
+}): number | undefined {
+    const isFirstLine = lineIndex === 0
+    const isLineStart = spanIndex === 0
+    const isSecondSpan = spanIndex === 1
+
+    // The first line sits on the text element's y
+    if (isLineStart && isFirstLine) return undefined
+
+    // Move down to the next line, undoing the previous line's Figma nudge, if any
+    if (isLineStart) {
+        const previousLineBreakDy = getFigmaNodeBreakDy(
+            spanLines[lineIndex - 1],
+            textAnchor
+        )
+        return roundForSvg(lineHeight - previousLineBreakDy)
+    }
+
+    // Nudge the rest of the line so Figma gives it its own text node
+    if (isSecondSpan)
+        return (
+            getFigmaNodeBreakDy(spanLines[lineIndex], textAnchor) || undefined
+        )
+
+    return undefined
+}
+
+/** Figma nudge for a left-aligned line whose name is followed by text in another weight, otherwise 0 */
+function getFigmaNodeBreakDy(
+    spans: SpanLine,
+    textAnchor: "start" | "end"
+): number {
+    return textAnchor === "start" &&
+        spans.length > 1 &&
+        spans[0].fontWeight !== spans[1].fontWeight
+        ? FIGMA_TEXT_NODE_BREAK_DY
+        : 0
 }

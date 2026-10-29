@@ -284,17 +284,19 @@ export const getParentRegions = (regionName: string): Region[] => {
  */
 export const getSiblingRegions = (regionName: string): Region[] => {
     const parentRegions = getParentRegions(regionName)
-    const siblingCodes = _.uniq(
+    const siblingCodes = new Set(
         parentRegions.flatMap((region) =>
             checkHasMembers(region) ? region.members : []
         )
     )
     return siblingCodes
+        .values()
         .map(getRegionByCode)
         .filter(
             (region): region is Region =>
                 region !== undefined && region.name !== regionName
         )
+        .toArray()
 }
 
 /**

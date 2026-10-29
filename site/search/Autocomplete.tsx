@@ -17,6 +17,7 @@ import {
     FilterType,
     SynonymMap,
     SearchResultType,
+    SearchUrlParam,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
@@ -43,7 +44,7 @@ import {
     queryParamsToStr,
 } from "@ourworldindata/utils"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import Mousetrap from "mousetrap"
+import { tinykeys } from "tinykeys"
 import * as Sentry from "@sentry/react"
 import { match } from "ts-pattern"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
@@ -58,7 +59,7 @@ export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
 // enough room for everything in the site nav between 960-1045px. Related to
 // vars in Autocomplete.scss.
 export const DETACHED_MODE_MAX_WIDTH = 1045
-const DETACHED_MEDIA_QUERY = `(max-width: ${DETACHED_MODE_MAX_WIDTH}px)`
+const DETACHED_MEDIA_QUERY = `(width <= ${DETACHED_MODE_MAX_WIDTH}px)`
 const AUTOCOMPLETE_DEBOUNCE_MS = 200
 // Account for the intentional debounce before using Algolia's default 300 ms
 // threshold to show the stalled loading state as recommended in the docs.
@@ -531,6 +532,18 @@ export function Autocomplete({
             },
             openOnFocus: true,
             stallThreshold: STALL_THRESHOLD_MS,
+            // Submitting is handled in onSubmit; the form's action and the
+            // input's name let Firefox offer "Add Search Engine" on
+            // right-click. autocomplete-js types the action as "", but
+            // applies whatever we return to the form element.
+            getFormProps: ({ props }) => ({
+                ...props,
+                action: SEARCH_BASE_PATH as "",
+            }),
+            getInputProps: ({ props }) => ({
+                ...props,
+                name: SearchUrlParam.QUERY,
+            }),
             onStateChange({ state, prevState }) {
                 if (onActivate && !prevState.isOpen && state.isOpen) {
                     onActivate()
@@ -720,18 +733,17 @@ export function Autocomplete({
     useEffect(() => {
         if (!search) return
 
-        Mousetrap.bind("/", (e) => {
+        const openSearch = (e: KeyboardEvent): void => {
             e.preventDefault() // don't type "/" into input
             search.setIsOpen(true)
 
             const input =
                 containerRef.current?.querySelector<HTMLInputElement>("input")
             input?.focus()
-        })
-
-        return () => {
-            Mousetrap.unbind("/")
         }
+
+        // "/" needs Shift on many non-US keyboard layouts (e.g. German, Spanish, Swedish, ...)
+        return tinykeys(window, { "[Shift]+/": openSearch })
     }, [search, containerRef])
 
     return <div className={className} ref={containerRef} id={id} />

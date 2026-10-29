@@ -12,9 +12,9 @@
     "author": "",
     "license": "SEE LICENSE IN LICENSE.md",
     "dependencies": {
-        "zod": "^4.5.4"
+        "zod": "^4.6.7"
     },
     "devDependencies": {
-        "vitest": "^5.0.0"
+        "vitest": "^5.0.5"
     }
 }

@@ -36,6 +36,7 @@ tmp/
 tmp-downloads
 tmp-uploads
 tmp-logs
+tmp-playwright-standalone-dist
 /data_files_checksums
 packages/@ourworldindata/*/dist/
 packages/@ourworldindata/*/dist-package/
@@ -62,6 +63,7 @@ playwright-report/
 
 # Claude
 .claude/settings.local.json
+/.worktrees/
 
 # Plans
 /plans/
@@ -87,3 +89,8 @@ packageDocs/docs/schema-reference/
 packageDocs/site/
 packageDocs/.venv/
 packageDocs/.cache/
+
+# BMAD
+/_bmad/
+# no trailing slash: worktrees symlink it to the main checkout's
+/_bmad-output

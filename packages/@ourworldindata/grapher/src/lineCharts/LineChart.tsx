@@ -80,6 +80,7 @@ export class LineChart
 {
     private readonly base = React.createRef<SVGGElement>()
 
+    private readonly tooltipId = guid()
     private readonly tooltipState = new TooltipState<{ time: Time }>({
         fade: "immediate",
     })
@@ -208,10 +209,6 @@ export class LineChart
         return this.lineStrokeWidth / 2 + 3.5
     }
 
-    @computed private get tooltipId(): number {
-        return this.renderUid
-    }
-
     @computed private get isTooltipActive(): boolean {
         return this.manager.tooltip?.get()?.id === this.tooltipId
     }
@@ -301,10 +298,6 @@ export class LineChart
         })
     }
 
-    @computed private get renderUid(): number {
-        return guid()
-    }
-
     @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
@@ -333,7 +326,7 @@ export class LineChart
             yAxis: () => this.yAxis,
             yRange: () => this.verticalLabelsYRange,
             maxWidth: this.maxVerticalLabelsWidth,
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             fontWeight: this.fontWeight,
             verticalAlign: VerticalAlign.top,
             showRegionTooltip: !this.isStatic,
@@ -511,7 +504,7 @@ export class LineChart
         | undefined {
         return this.hasColorScale && this.manager.showLegend
             ? new HorizontalNumericColorLegendState(this.numericLegendData, {
-                  fontSize: this.fontSize,
+                  baseFontSize: this.fontSize,
                   maxWidth: this.bounds.width,
                   align: HorizontalAlign.center,
                   title: this.legendTitle,

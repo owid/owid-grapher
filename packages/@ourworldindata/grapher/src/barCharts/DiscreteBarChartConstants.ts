@@ -20,6 +20,7 @@ import {
 } from "../core/GrapherConstants"
 
 export interface DiscreteBarSeries extends ChartSeries {
+    color: Color
     entityName: string
     shortEntityName?: string
     yColumn: CoreColumn

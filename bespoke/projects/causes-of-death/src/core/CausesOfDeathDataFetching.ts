@@ -3,23 +3,21 @@ import { DataJson, MetadataJson, DataRow } from "./CausesOfDeathConstants"
 import { fetchJson } from "@ourworldindata/utils"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 
-const BASE_URL = "https://owid-public.owid.io/data/gbd"
-const METADATA_PATH = BASE_URL + "/causes-of-death.metadata.json"
-const DATA_PATH = BASE_URL + "/causes-of-death.{entityId}.json"
-
 const queryKeys = {
     metadata: () => ["causes-of-death", "metadata"],
     data: (entityId: number) => ["causes-of-death", "data", entityId],
 }
 
 /** Fetch causes of death metadata */
-export const useCausesOfDeathMetadata = (): {
+export const useCausesOfDeathMetadata = (
+    metadataUrl: string
+): {
     data?: CausesOfDeathMetadata
     status: QueryStatus
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<MetadataJson>(METADATA_PATH),
+        queryFn: () => fetchJson<MetadataJson>(metadataUrl),
     })
 
     const data = result.data
@@ -32,7 +30,8 @@ export const useCausesOfDeathMetadata = (): {
 /** Fetch causes of death data for a specific entity */
 export const useCausesOfDeathEntityData = (
     entityName: string,
-    metadata?: CausesOfDeathMetadata
+    metadata: CausesOfDeathMetadata | undefined,
+    dataUrl: string
 ): {
     data?: DataRow[]
     status: QueryStatus
@@ -41,13 +40,11 @@ export const useCausesOfDeathEntityData = (
 } => {
     const entityId = metadata?.entityNameToId.get(entityName)
     const unknownEntity = metadata !== undefined && entityId === undefined
+    const url = `${dataUrl}/causes-of-death.${entityId}.json`
 
     const result = useQuery({
         queryKey: queryKeys.data(entityId!),
-        queryFn: async (): Promise<DataJson> => {
-            const path = DATA_PATH.replace("{entityId}", entityId!.toString())
-            return fetchJson<DataJson>(path)
-        },
+        queryFn: async (): Promise<DataJson> => fetchJson<DataJson>(url),
         enabled: entityId !== undefined,
         // Keep previous data while fetching new data
         placeholderData: (previousData) => previousData,

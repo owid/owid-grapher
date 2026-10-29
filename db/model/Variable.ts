@@ -2,10 +2,19 @@ import * as _ from "lodash-es"
 import { Writable } from "stream"
 import * as db from "../db.js"
 import {
+    DatasetSearchGroup,
+    IndicatorSearchField,
+    parseSearchQuery,
+    VariablesGroupedSearchResult,
+    VariablesSearchResult,
+    VariableUsage,
+} from "../../adminShared/variableSearch.js"
+import {
     retryPromise,
     omitUndefinedValues,
     mergeGrapherConfigs,
     getOwidDataFetchUserAgent,
+    parseIntOrUndefined,
 } from "@ourworldindata/utils"
 import {
     getVariableDataRoute,
@@ -15,12 +24,12 @@ import pl from "nodejs-polars"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
 import { deleteGrapherConfigFromR2ByUuid } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import pMap from "p-map"
-import { escape } from "mysql2"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
+    OwidVariableDisplayConfigInterface,
     OwidVariableId,
     DimensionProperty,
     GrapherInterface,
@@ -29,7 +38,6 @@ import {
     DatasetsTableName,
     DbRawChartConfig,
     DbPlainDatapage,
-    parseChartConfig,
     DbEnrichedChartConfig,
     DbEnrichedVariable,
     DbPlainChart,
@@ -39,9 +47,15 @@ import {
     DatasetOwners,
     DbPlainDataset,
     normalizeDescriptionKey,
+    parseVariableDisplayConfig,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
-import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
+import {
+    insertChartConfig,
+    parseAndMigrateChartConfig,
+    updateChartConfig,
+} from "./ChartConfigs.js"
+import { assertValidGrapherConfig } from "../grapherConfigValidation.js"
 import {
     buildMdimViewPatchConfig,
     getMultiDimDataPageById,
@@ -91,7 +105,7 @@ export async function getIndicatorChartConfig(
         [variableId]
     )
 
-    return row ? parseChartConfig(row.config) : undefined
+    return row ? parseAndMigrateChartConfig(row.config) : undefined
 }
 
 export async function getIndicatorChartConfigs(
@@ -112,7 +126,10 @@ export async function getIndicatorChartConfigs(
     )
 
     return new Map(
-        rows.map((row) => [row.variableId, parseChartConfig(row.config)])
+        rows.map((row) => [
+            row.variableId,
+            parseAndMigrateChartConfig(row.config),
+        ])
     )
 }
 
@@ -203,9 +220,9 @@ async function findAllChartsThatInheritFromIndicator(
     return charts.map((chart) => ({
         chartId: chart.chartId,
         chartConfigId: chart.chartConfigId,
-        patchConfig: parseChartConfig(chart.patchConfig),
+        patchConfig: parseAndMigrateChartConfig(chart.patchConfig),
         patchConfigETL: chart.patchConfigETL
-            ? parseChartConfig(chart.patchConfigETL)
+            ? parseAndMigrateChartConfig(chart.patchConfigETL)
             : null,
         isPublished: Boolean(chart.isPublished),
     }))
@@ -274,7 +291,7 @@ async function findAllMultiDimViewsThatInheritFromIndicator(
     )
         .select("multiDimId", "chartConfigId")
         .where({ variableId })
-    const multiDimIds = _.uniq(rows.map((row) => row.multiDimId))
+    const multiDimIds = new Set(rows.map((row) => row.multiDimId))
     const chartConfigIds = new Set(rows.map((row) => row.chartConfigId))
 
     const inheritingViews = []
@@ -314,6 +331,9 @@ export async function updateAllMultiDimViewsThatInheritFromIndicator(
             patchConfigETL ?? {},
             view.patchConfig
         )
+
+        assertValidGrapherConfig(fullConfig)
+
         await updateChartConfig(trx, {
             configId: view.chartConfigId,
             config: fullConfig,
@@ -414,6 +434,59 @@ export async function getDatapageIndicatorId(
     )
 
     return row?.variableId
+}
+
+/**
+ * Fetch the title-related metadata fields for the given variables, shaped like
+ * (a subset of) the variable metadata JSON so it can be merged with metadata
+ * overrides from multi-dim configs.
+ */
+export async function getVariableTitleMetadataByIds(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<
+    Map<
+        number,
+        {
+            name?: string
+            display?: OwidVariableDisplayConfigInterface
+            presentation?: { titlePublic?: string }
+        }
+    >
+> {
+    if (variableIds.length === 0) return new Map()
+    const rows: Pick<
+        DbRawVariable,
+        "id" | "name" | "titlePublic" | "display"
+    >[] = await knex(VariablesTableName)
+        .select("id", "name", "titlePublic", "display")
+        .whereIn("id", variableIds)
+    return new Map(
+        rows.map((row) => {
+            // One malformed display value shouldn't abort a whole bake
+            let display: OwidVariableDisplayConfigInterface | undefined
+            try {
+                display = row.display
+                    ? parseVariableDisplayConfig(row.display)
+                    : undefined
+            } catch (e) {
+                console.error(
+                    `Error parsing display config of variable ${row.id}`,
+                    e
+                )
+            }
+            return [
+                row.id,
+                {
+                    name: row.name ?? undefined,
+                    display,
+                    presentation: row.titlePublic
+                        ? { titlePublic: row.titlePublic }
+                        : undefined,
+                },
+            ]
+        })
+    )
 }
 
 // TODO: these are domain functions and should live somewhere else
@@ -814,216 +887,641 @@ export async function getOwnersForVariables(
 }
 
 /**
- * Perform regex search over the variables table.
+ * Where each of the given indicators is used: which charts, multi-dims and
+ * path-based explorers. Deduplicated on entity ids rather than slugs, since a
+ * draft chart or multi-dim can have none.
+ *
+ * Scoped to the ids passed in — call it with one page of results or one
+ * dataset's indicators, not with a whole search.
  */
-export const searchVariables = async (
-    query: string,
-    limit: number,
-    knex: db.KnexReadonlyTransaction
-): Promise<VariablesSearchResult> => {
-    const whereClauses = buildWhereClauses(query)
+export async function getVariableUsagesByIds(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Map<number, VariableUsage>> {
+    const usages = new Map<number, VariableUsage>()
+    if (variableIds.length === 0) return usages
 
-    const fromWhere = `
-        FROM variables AS v
-        LEFT JOIN active_datasets d ON d.id=v.datasetId
-        LEFT JOIN users u ON u.id=d.dataEditedByUserId
-        ${whereClauses.length ? "WHERE " + whereClauses.join(" AND ") : ""}
-    `
-    const sqlCount = `
-        SELECT COUNT(*) count
-        ${fromWhere}
-    `
+    const chartUsages = await knexRaw<
+        VariableUsage["charts"][number] & { variableId: number }
+    >(
+        knex,
+        `-- sql
+        SELECT DISTINCT
+            cd.variableId,
+            cd.chartId AS id,
+            cc.slug,
+            cc.config->>'$.title' AS title
+        FROM chart_dimensions cd
+        JOIN charts c ON c.id = cd.chartId
+        JOIN chart_configs cc ON cc.id = c.configId
+        WHERE cd.variableId IN (?)
+        `,
+        [variableIds]
+    )
 
-    const sqlResults = `
-        SELECT
-            v.id,
-            v.name,
-            v.catalogPath AS catalogPath,
-            d.id AS datasetId,
-            d.name AS datasetName,
-            d.isPrivate AS isPrivate,
-            d.nonRedistributable AS nonRedistributable,
-            d.dataEditedAt AS uploadedAt,
-            u.fullName AS uploadedBy
-        ${fromWhere}
-        ORDER BY d.dataEditedAt DESC
-        LIMIT ${escape(limit)}
-    `
-    const rows = await queryRegexSafe(sqlResults, knex)
+    // Scans the view configs so an indicator used only as x / size / color counts too
+    const multiDimUsages = await knexRaw<
+        VariableUsage["multiDims"][number] & { variableId: number }
+    >(
+        knex,
+        `-- sql
+        SELECT DISTINCT
+            mdxcc.multiDimId AS id,
+            mdp.slug,
+            mdp.config->>'$.title.title' AS title,
+            jt.variableId
+        FROM multi_dim_x_chart_configs mdxcc
+        JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
+        JOIN multi_dim_data_pages mdp ON mdp.id = mdxcc.multiDimId
+        JOIN JSON_TABLE(
+            cc.config,
+            '$.dimensions[*]' COLUMNS (variableId INT PATH '$.variableId')
+        ) jt ON jt.variableId IS NOT NULL
+        WHERE jt.variableId IN (?)
+        `,
+        [variableIds]
+    )
 
-    const numTotalRows = await queryRegexCount(sqlCount, knex)
+    const explorerUsages = await knexRaw<{
+        variableId: number
+        explorerSlug: string
+    }>(
+        knex,
+        `-- sql
+        SELECT DISTINCT variableId, explorerSlug
+        FROM explorer_variables
+        WHERE variableId IN (?)
+        `,
+        [variableIds]
+    )
 
-    rows.forEach((row: any) => {
-        if (row.catalogPath) {
-            const [path, shortName] = row.catalogPath.split("#")
-            const [namespace, version, dataset, table] = path
-                .substring("grapher/".length)
-                .split("/")
+    const chartsById = _.groupBy(chartUsages, "variableId")
+    const multiDimsById = _.groupBy(multiDimUsages, "variableId")
+    const explorersById = _.groupBy(explorerUsages, "variableId")
 
-            row.namespace = namespace
-            row.version = version
-            row.dataset = dataset
-            row.table = table
-            row.shortName = shortName
-        }
-    })
+    for (const variableId of variableIds) {
+        const charts = (chartsById[variableId] ?? []).map(
+            ({ id, slug, title }) => ({ id, slug, title })
+        )
+        const multiDims = (multiDimsById[variableId] ?? []).map(
+            ({ id, slug, title }) => ({ id, slug, title })
+        )
+        const explorerSlugs = (explorersById[variableId] ?? []).map(
+            ({ explorerSlug }) => explorerSlug
+        )
+        usages.set(variableId, {
+            charts,
+            multiDims,
+            explorerSlugs,
+            usageCount: charts.length + multiDims.length + explorerSlugs.length,
+        })
+    }
 
-    return { variables: rows, numTotalRows: numTotalRows }
+    return usages
 }
 
-const buildWhereClauses = (query: string): string[] => {
-    const whereClauses: string[] = []
+/** Adds each row's usage (see `getVariableUsagesByIds`) to the row itself. */
+export async function attachVariableUsages(
+    knex: db.KnexReadonlyTransaction,
+    rows: { id: number }[]
+): Promise<void> {
+    const usages = await getVariableUsagesByIds(
+        knex,
+        rows.map((row) => row.id)
+    )
+    for (const row of rows) Object.assign(row, usages.get(row.id))
+}
 
-    if (!query) {
-        return whereClauses
-    }
+/** What every indicator search returns per row: the list's `VariableListItem`. */
+const RESULT_COLUMNS = `
+    v.id,
+    v.name,
+    v.catalogPath AS catalogPath,
+    d.id AS datasetId,
+    d.name AS datasetName,
+    d.isPrivate AS isPrivate,
+    d.nonRedistributable AS nonRedistributable,
+    d.dataEditedAt AS uploadedAt,
+    u.fullName AS uploadedBy,
+    ap.popularity AS popularity
+`
 
-    for (let part of query.split(" ")) {
-        part = part.trim()
-        let not = " "
-        if (part.startsWith("-")) {
-            part = part.substring(1)
-            not = "NOT "
-        }
-        if (part.startsWith("name:")) {
-            const q = part.substring("name:".length)
-            if (q) {
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(v.name, ${escape(q)}, 'i')`
-                )
-            }
-        } else if (part.startsWith("path:")) {
-            const q = part.substring("path:".length)
-            if (q) {
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(v.catalogPath, ${escape(q)}, 'i')`
-                )
-            }
-        } else if (part.startsWith("namespace:")) {
-            const q = part.substring("namespace:".length)
-            if (q) {
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(d.name, ${escape(q)}, 'i')`
-                )
-            }
-        } else if (part.startsWith("version:")) {
-            const q = part.substring("version:".length)
-            if (q) {
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(d.version, ${escape(q)}, 'i')`
-                )
-            }
-        } else if (part.startsWith("dataset:")) {
-            const q = part.substring("dataset:".length)
-            if (q) {
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(d.shortName, ${escape(q)}, 'i')`
-                )
-            }
-        } else if (part.startsWith("table:")) {
-            const q = part.substring("table:".length)
-            // NOTE: we don't have the table name in any db field, it's horrible to query
-            if (q) {
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', 5), '/', -1), ${escape(
-                        q
-                    )}, 'i')`
-                )
-            }
-        } else if (part.startsWith("short:")) {
-            const q = part.substring("short:".length)
-            if (q) {
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(v.shortName, ${escape(q)}, 'i')`
-                )
-            }
-        } else if (part.startsWith("before:")) {
-            const q = part.substring("before:".length)
-            if (q) {
-                whereClauses.push(
-                    `${not} IF(d.version is not null, d.version < ${escape(
-                        q
-                    )}, cast(date(d.createdAt) as char) < ${escape(q)})`
-                )
-            }
-        } else if (part.startsWith("after:")) {
-            const q = part.substring("after:".length)
-            if (q) {
-                whereClauses.push(
-                    `${not} (IF (d.version is not null, d.version = "latest" OR d.version > ${escape(
-                        q
-                    )}, cast(date(d.createdAt) as char) > ${escape(q)}))`
-                )
-            }
-        } else if (part === "is:published") {
-            whereClauses.push(`${not} (NOT d.isPrivate)`)
-        } else if (part === "is:private") {
-            whereClauses.push(`${not} d.isPrivate`)
-        } else {
-            if (part) {
-                whereClauses.push(
-                    `${not} (REGEXP_LIKE(v.name, ${escape(
-                        part
-                    )}, 'i') OR REGEXP_LIKE(v.catalogPath, ${escape(
-                        part
-                    )}, 'i'))`
-                )
-            }
-        }
+/** An inner join, so indicators whose dataset has been archived are left out. */
+const FROM_VARIABLES = `
+    FROM variables AS v
+    JOIN active_datasets d ON d.id=v.datasetId
+    LEFT JOIN users u ON u.id=d.dataEditedByUserId
+`
+
+const JOIN_POPULARITY = `
+    LEFT JOIN analytics_popularity ap
+        ON ap.type = 'indicator' AND ap.slug = v.catalogPath
+`
+
+interface SqlFragment {
+    sql: string
+    /** An array binding expands into a list, for `IN (?)`. */
+    bindings: (string | number | number[])[]
+}
+
+const whereSql = (clauses: SqlFragment[]): SqlFragment => ({
+    sql: clauses.length
+        ? "WHERE " + clauses.map((clause) => clause.sql).join(" AND ")
+        : "",
+    bindings: clauses.flatMap((clause) => clause.bindings),
+})
+
+/**
+ * Search the indicators, one page of them ranked by popularity, with the
+ * total number of matches.
+ */
+export const searchVariables = (
+    query: string,
+    limit: number,
+    offset: number,
+    knex: db.KnexReadonlyTransaction
+): Promise<VariablesSearchResult> =>
+    reportingRegexErrors(
+        () => searchVariablesOrThrow(query, limit, offset, knex),
+        { variables: [], numTotalRows: 0, unindexedTerms: [] }
+    )
+
+const searchVariablesOrThrow = async (
+    query: string,
+    limit: number,
+    offset: number,
+    knex: db.KnexReadonlyTransaction
+): Promise<VariablesSearchResult> => {
+    const { whereClauses, unindexedTerms } = analyzeVariableSearch(query)
+    const where = whereSql(whereClauses)
+
+    // Ordered by how much our readers use each indicator, which is what makes
+    // an 800-hit search usable. Indicators without an analytics row sort last
+    // (MySQL puts NULLs last in DESC), ordered among themselves by upload date.
+    // The admin only pages through this flat list within one dataset, so
+    // there is always a search to narrow it; without one, sorting every
+    // indicator takes seconds. Browsing goes through the grouped search.
+    //
+    // Sorting visits every matching row, so the total comes from that same
+    // pass rather than from a second query that would repeat the scan.
+    const sqlResults: SqlFragment = {
+        sql: `
+            SELECT ${RESULT_COLUMNS}, COUNT(*) OVER () AS numTotalRows
+            ${FROM_VARIABLES} ${JOIN_POPULARITY} ${where.sql}
+            ORDER BY ap.popularity DESC, d.dataEditedAt DESC, v.id
+            LIMIT ? OFFSET ?
+        `,
+        bindings: [...where.bindings, limit, offset],
     }
-    return whereClauses
+    const rows = await queryRegexSafe(sqlResults, knex)
+    // A page past the end has no row to carry the total, and reports none.
+    // The admin resets to the first page with each search, so only results
+    // shrinking under an open pager can get there.
+    const numTotalRows = Number(rows[0]?.numTotalRows ?? 0)
+
+    rows.forEach((row: any) => {
+        delete row.numTotalRows
+    })
+    await attachVariableUsages(knex, rows)
+
+    return {
+        variables: rows,
+        numTotalRows: numTotalRows,
+        unindexedTerms,
+    }
+}
+
+/** How many of a dataset's matching indicators a group shows before linking to the rest. */
+const INDICATORS_PER_DATASET = 5
+
+/**
+ * The same search as `searchVariables`, but paging over the datasets the
+ * matches belong to rather than over the matches themselves. A search like
+ * "road deaths" hits 831 indicators across 12 datasets, and the datasets are
+ * the useful unit: each group shows its most-read few and says how many more
+ * it holds.
+ *
+ * Two queries, because the grouped pass can't also carry each dataset's rows.
+ * Both are dominated by the scan the search pays for either way.
+ */
+export const searchVariablesGroupedByDataset = (
+    query: string,
+    limit: number,
+    offset: number,
+    knex: db.KnexReadonlyTransaction
+): Promise<VariablesGroupedSearchResult> =>
+    reportingRegexErrors(
+        () =>
+            searchVariablesGroupedByDatasetOrThrow(query, limit, offset, knex),
+        {
+            datasets: [],
+            numTotalDatasets: 0,
+            numTotalRows: 0,
+            unindexedTerms: [],
+        }
+    )
+
+const searchVariablesGroupedByDatasetOrThrow = async (
+    query: string,
+    limit: number,
+    offset: number,
+    knex: db.KnexReadonlyTransaction
+): Promise<VariablesGroupedSearchResult> => {
+    const { whereClauses, unindexedTerms } = analyzeVariableSearch(query)
+    const isSearch = whereClauses.length > 0
+    const where = whereSql(whereClauses)
+    // Joined only when a search has something to rank: grouping every
+    // indicator through it costs seconds, and browsing ranks by upload date
+    const joinPopularity = isSearch ? JOIN_POPULARITY : ""
+    const fromWhere = `${FROM_VARIABLES} ${joinPopularity} ${where.sql}`
+
+    // `COUNT(*) OVER ()` counts the groups and `SUM(COUNT(*)) OVER ()` the
+    // matches behind them, so one pass answers both totals
+    const windowTotals = `,
+            COUNT(*) OVER () AS numTotalDatasets,
+            SUM(COUNT(*)) OVER () AS numTotalRows`
+    const sqlDatasets = `
+        SELECT
+            d.id,
+            d.name,
+            d.namespace,
+            d.version,
+            d.shortName,
+            COUNT(*) AS matchCount,
+            ${isSearch ? "MAX(ap.popularity) AS popularity," : ""}
+            MAX(d.dataEditedAt) AS uploadedAt,
+            MAX(u.fullName) AS uploadedBy
+            ${windowTotals}
+        ${fromWhere}
+        -- by the key alone: the other dataset columns follow from it, and
+        -- grouping by the five of them together costs 412ms against 36ms
+        GROUP BY d.id
+        ORDER BY
+            ${
+                // Searching ranks datasets by their most-read indicator;
+                // browsing has no relevance to rank by, so the newest leads
+                isSearch
+                    ? "popularity DESC, uploadedAt DESC, d.id"
+                    : "uploadedAt DESC, d.id"
+            }
+        LIMIT ? OFFSET ?
+    `
+    const datasetRows = await queryRegexSafe(
+        { sql: sqlDatasets, bindings: [...where.bindings, limit, offset] },
+        knex
+    )
+    // As in `searchVariables`, a page past the end reports no totals
+    if (datasetRows.length === 0)
+        return {
+            datasets: [],
+            numTotalDatasets: 0,
+            numTotalRows: 0,
+            unindexedTerms,
+        }
+
+    const datasetIds: number[] = datasetRows.map(
+        (row: { id: number }) => row.id
+    )
+    const selectedWhere = whereSql([
+        ...whereClauses,
+        {
+            sql: "v.datasetId IN (?)",
+            bindings: [datasetIds],
+        },
+    ])
+
+    const sqlVariables: SqlFragment = {
+        sql: `
+            SELECT * FROM (
+                SELECT ${RESULT_COLUMNS},
+                    ROW_NUMBER() OVER (
+                        PARTITION BY v.datasetId
+                        ORDER BY ap.popularity DESC, v.id
+                    ) AS rankInDataset
+                ${FROM_VARIABLES}
+                ${JOIN_POPULARITY}
+                ${selectedWhere.sql}
+            ) ranked
+            WHERE rankInDataset <= ?
+            ORDER BY rankInDataset
+        `,
+        bindings: [...selectedWhere.bindings, INDICATORS_PER_DATASET],
+    }
+    const variableRows = await queryRegexSafe(sqlVariables, knex)
+
+    variableRows.forEach((row: any) => delete row.rankInDataset)
+    await attachVariableUsages(knex, variableRows)
+
+    const variablesByDataset = _.groupBy(variableRows, (row: any) =>
+        String(row.datasetId)
+    )
+
+    return {
+        datasets: datasetRows.map((row: any): DatasetSearchGroup => ({
+            id: row.id,
+            name: row.name,
+            namespace: row.namespace,
+            version: row.version,
+            shortName: row.shortName,
+            matchCount: Number(row.matchCount),
+            uploadedAt: row.uploadedAt,
+            uploadedBy: row.uploadedBy,
+            variables: variablesByDataset[String(row.id)] ?? [],
+        })),
+        numTotalDatasets: Number(datasetRows[0].numTotalDatasets),
+        numTotalRows: Number(datasetRows[0].numTotalRows),
+        unindexedTerms,
+    }
 }
 
 /**
- * Run a MySQL query that's robust to regular expression failures, simply
- * returning an empty result if the query fails.
+ * The nth slash-separated segment of a catalog path, counting `grapher` as 1:
+ * `grapher/ihme_gbd/2026-02-07/gbd_cause_deaths/gbd_cause_deaths#short_name`.
  *
- * This is useful if the regex is user-supplied and we want them to be able
- * to construct it incrementally.
+ * These are the segments the admin's indicator list shows, so `namespace:`,
+ * `version:`, `dataset:` and `table:` search the path rather than the dataset
+ * columns they were once pointed at — `namespace:ihme_gbd` used to search the
+ * dataset's title and so matched nothing. The dataset's title is `dataset-name:`.
  */
+const catalogPathSegment = (n: number): string =>
+    // the last segment carries the #short_name, which `short:` searches instead
+    `SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', ${n}), '/', -1), '#', 1)`
+
+/**
+ * The fields searched as a regex over one column, with whether the full-text
+ * index can narrow them. Keyed by the shared field list, so a field added
+ * there has to be handled here or in `analyzeVariableSearch`.
+ */
+const REGEX_FIELDS: ReadonlyMap<
+    string,
+    { expression: string; indexed: boolean }
+> = new Map(
+    Object.entries({
+        name: { expression: "v.name", indexed: true },
+        path: { expression: "v.catalogPath", indexed: true },
+        namespace: { expression: catalogPathSegment(2), indexed: true },
+        version: { expression: catalogPathSegment(3), indexed: true },
+        dataset: { expression: catalogPathSegment(4), indexed: true },
+        table: { expression: catalogPathSegment(5), indexed: true },
+        short: { expression: "v.shortName", indexed: true },
+        "dataset-name": { expression: "d.name", indexed: false },
+    } satisfies Record<
+        Exclude<IndicatorSearchField, "dataset-id" | "before" | "after" | "is">,
+        { expression: string; indexed: boolean }
+    >)
+)
+
+/** Build SQL and its slow-term notice together, using the same index decision. */
+export const analyzeVariableSearch = (
+    query: string
+): {
+    whereClauses: SqlFragment[]
+    unindexedTerms: string[]
+} => {
+    const whereClauses: SqlFragment[] = []
+    const fulltextTerms: string[] = []
+    const unindexedTerms: string[] = []
+
+    for (const term of parseSearchQuery(query)) {
+        const { field, value } = term
+        const not = term.negate ? "NOT " : ""
+        // An unanchored match already allows anything around it, so a `.*` at
+        // either end changes nothing but the cost: `.*deaths` took over a
+        // minute where `deaths` takes two seconds. It still asked for a match
+        // anywhere in a word, so it stays a scan rather than using the index.
+        // Nothing but wildcards still means "any value", which `-.*` negates
+        // into "no value at all", so that can't be dropped. Only for values
+        // run as a regex: the filters below see theirs as typed, so that
+        // `is:private.*` doesn't become `is:private`.
+        const regexValue =
+            value.replace(/^(?:\.\*)+/, "").replace(/(?<!\\)(?:\.\*)+$/, "") ||
+            value
+        const isRegex = regexValue !== value
+        // A fielded term is a regex on one column, which no index can answer.
+        // Where its value is an ordinary word it is also required through the
+        // full-text index, which narrows to a handful of rows before the regex
+        // runs — `namespace:climate` goes from a second to a few milliseconds.
+        // Same trade as free text: the value matches from the start of a word
+        // rather than anywhere inside one.
+        const alsoIndex = (text: string): void => {
+            // Exclusions and dataset-only filters don't get a slow-term notice.
+            if (term.negate) return
+            const tokens = isRegex ? [] : fulltextTokens(text)
+            fulltextTerms.push(...tokens)
+            if (tokens.length === 0) unindexedTerms.push(term.raw)
+        }
+
+        const regexField =
+            field === undefined ? undefined : REGEX_FIELDS.get(field)
+        if (regexField) {
+            if (regexValue) {
+                if (regexField.indexed) alsoIndex(regexValue)
+                whereClauses.push({
+                    sql: `${not}REGEXP_LIKE(${regexField.expression}, ?, 'i')`,
+                    bindings: [regexValue],
+                })
+            }
+        } else if (field === "dataset-id") {
+            // Exact, for the "more in this dataset" link: 78 groups of active
+            // datasets share a shortName, so `dataset:` alone would widen the
+            // list to another dataset's indicators and disagree with the count
+            // the link was offering.
+            const id = parseIntOrUndefined(value)
+            if (id !== undefined)
+                whereClauses.push({
+                    sql: `${not}d.id = ?`,
+                    bindings: [id],
+                })
+        } else if (field === "before") {
+            if (value) {
+                whereClauses.push({
+                    sql: `${not}IF(d.version is not null, d.version < ?, cast(date(d.createdAt) as char) < ?)`,
+                    bindings: [value, value],
+                })
+            }
+        } else if (field === "after") {
+            if (value) {
+                whereClauses.push({
+                    sql: `${not}(IF (d.version is not null, d.version = "latest" OR d.version > ?, cast(date(d.createdAt) as char) > ?))`,
+                    bindings: [value, value],
+                })
+            }
+        } else if (
+            field === "is" &&
+            // the search help has always advertised is:public
+            (value === "published" || value === "public")
+        ) {
+            whereClauses.push({ sql: `${not}(NOT d.isPrivate)`, bindings: [] })
+        } else if (field === "is" && value === "private") {
+            whereClauses.push({ sql: `${not}d.isPrivate`, bindings: [] })
+        } else {
+            // Plain text, the common case: a substring regex over the name and
+            // the catalog path, with the index narrowing to the rows worth
+            // running it on. An unknown `field:` is searched as text too.
+            const text =
+                field === undefined ? regexValue : `${field}:${regexValue}`
+            if (!text) continue
+            whereClauses.push({
+                sql: `${not}(REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))`,
+                bindings: [text, text],
+            })
+            alsoIndex(text)
+        }
+    }
+
+    if (fulltextTerms.length > 0)
+        whereClauses.push({
+            sql: "MATCH(v.name, v.catalogPath) AGAINST(? IN BOOLEAN MODE)",
+            bindings: [
+                // every token required, each matching from its start so that a
+                // half-typed word still narrows
+                _.uniq(fulltextTerms)
+                    .map((token) => `+${token}*`)
+                    .join(" "),
+            ],
+        })
+
+    return { whereClauses, unindexedTerms }
+}
+
+/**
+ * Whether a word can't be matched through the index because it is, or could
+ * be the start of, a stopword the index left out: `whe*` would miss rows whose
+ * only match is "where".
+ */
+function isStopwordPrefix(word: string): boolean {
+    return FULLTEXT_STOPWORDS.some((stopword) => stopword.startsWith(word))
+}
+
+/**
+ * MySQL's default bounds on an indexed token's length (`innodb_ft_min_token_size`
+ * and `innodb_ft_max_token_size`). A word outside them isn't in the index, so
+ * requiring it would rule out rows the regex matches.
+ */
+const FULLTEXT_MIN_TERM_LENGTH = 3
+const FULLTEXT_MAX_TERM_LENGTH = 84
+
+/**
+ * MySQL's built-in stopword list, which the index leaves out. `who` is in it,
+ * and it is one of our namespaces, so these have to keep working — they fall
+ * back to a substring scan below.
+ *
+ * Hardcoded rather than read from the server, because the point is that every
+ * database behaves the same: the list a given index was built with is not
+ * recorded in its DDL, so a restored dump can differ from where the migration
+ * ran.
+ */
+const FULLTEXT_STOPWORDS = [
+    "a",
+    "about",
+    "an",
+    "are",
+    "as",
+    "at",
+    "be",
+    "by",
+    "com",
+    "de",
+    "en",
+    "for",
+    "from",
+    "how",
+    "i",
+    "in",
+    "is",
+    "it",
+    "la",
+    "of",
+    "on",
+    "or",
+    "that",
+    "the",
+    "this",
+    "to",
+    "und",
+    "was",
+    "what",
+    "when",
+    "where",
+    "who",
+    "will",
+    "with",
+    "www",
+]
+
+/** Regular-expression syntax, which the search box advertises and supports. */
+const REGEX_SYNTAX = /[\\^$.|?*+()[\]{}]/
+
+/** Everything MySQL's tokenizer treats as a word boundary. `_` is not one. */
+const TOKEN_SEPARATOR = /[^\p{L}\p{N}_]+/u
+
+/**
+ * The words to require through the full-text index for a search term.
+ *
+ * A term is a regex over the whole string, but the index stores words and
+ * boolean mode reads punctuation as operators. Handed a term whole,
+ * `age-standardized` becomes `+age-standardized*`, which MySQL reads as "must
+ * contain age, must NOT contain standardized" — it matched none of the rows it
+ * should. Splitting the term and requiring each usable word instead narrows to
+ * a superset that the regex then filters exactly.
+ *
+ * Words the index doesn't hold are simply left out, so `covid-19` narrows on
+ * `covid` and `grapher/who` on `grapher`. A term carrying regex syntax yields
+ * nothing: alternation makes its words alternatives rather than requirements,
+ * so `deaths|births` must not be turned into "both".
+ *
+ * With no tokens — the term is too short, a stopword, or a regex — the term is
+ * matched by scanning, and the list says so. That is decided per term rather
+ * than per query: a term means the same thing however much of the rest of the
+ * query you have typed, so adding a word never re-interprets the words
+ * already there.
+ */
+export function fulltextTokens(term: string): string[] {
+    if (REGEX_SYNTAX.test(term)) return []
+    return term
+        .split(TOKEN_SEPARATOR)
+        .filter(
+            (token) =>
+                token.length >= FULLTEXT_MIN_TERM_LENGTH &&
+                token.length <= FULLTEXT_MAX_TERM_LENGTH &&
+                !isStopwordPrefix(token.toLowerCase())
+        )
+}
+
+/** A search term MySQL couldn't run as a regular expression, with its reason. */
+class RegexError extends Error {}
+
 const queryRegexSafe = async (
-    query: string,
+    query: SqlFragment,
     knex: db.KnexReadonlyTransaction
 ): Promise<any> => {
-    // catch regular expression failures in MySQL and return empty result
-    return await knexRaw(knex, query).catch((err) => {
-        if (err.message.includes("regular expression")) {
-            return []
-        }
+    return await knexRaw(knex, query.sql, query.bindings).catch((err) => {
+        // every MySQL regex error has an ER_REGEXP_* code; not all say so
+        if (
+            err.code?.startsWith("ER_REGEXP_") ||
+            err.message.includes("regular expression")
+        )
+            throw new RegexError(err.sqlMessage ?? err.message)
         throw err
     })
 }
 
-const queryRegexCount = async (
-    query: string,
-    knex: db.KnexReadonlyTransaction
-): Promise<number> => {
-    const results = await queryRegexSafe(query, knex)
-    if (!results.length) {
-        return 0
+/**
+ * Runs a search, turning a regular expression MySQL rejected or gave up on
+ * into an empty result that says why, rather than a result that just looks
+ * empty.
+ */
+async function reportingRegexErrors<T extends object>(
+    run: () => Promise<T>,
+    empty: T
+): Promise<T & { regexError?: string }> {
+    try {
+        return await run()
+    } catch (err) {
+        if (err instanceof RegexError)
+            return { ...empty, regexError: err.message }
+        throw err
     }
-    return results[0].count
-}
-
-export interface VariablesSearchResult {
-    variables: VariableResultView[]
-    numTotalRows: number
-}
-
-export interface VariableResultView {
-    variableId: number
-    variableName: string
-    datasetId: number
-    datasetName: string
-    isPrivate: boolean
-    nonRedistributable: boolean
-    uploadedAt: string
-    uploadedBy: string
-    namespace: string
-    version: string
-    dataset: string
-    table: string
-    shortName: string
 }
 
 export const getIndicatorIdsByCatalogPath = async (

@@ -1,6 +1,7 @@
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { Bounds, ColumnSlug } from "@ourworldindata/utils"
 import {
+    Color,
     EntityName,
     MapRegionName,
     SeriesName,
@@ -31,7 +32,6 @@ export const HOVER_STROKE_COLOR = "#111"
 export const DEFAULT_STROKE_WIDTH = 0.3
 export const HOVER_STROKE_WIDTH = 1.5
 export const SELECTED_STROKE_WIDTH = 1
-export const PATTERN_STROKE_WIDTH = 0.7
 
 export const BLUR_FILL_OPACITY = 0.2
 export const BLUR_STROKE_OPACITY = 0.5
@@ -85,6 +85,7 @@ export const MAP_REGION_LABELS: Record<MapRegionName, string> = {
 export const MAP_REGION_NAMES = R.invert(MAP_REGION_LABELS)
 
 export interface ChoroplethSeries extends ChartSeries {
+    color: Color
     value: number | string
     time: number
     isProjection?: boolean
@@ -106,9 +107,12 @@ export interface ChoroplethMapManager {
     onMapMouseLeave?: () => void
     isMapSelectionEnabled?: boolean
     isStatic?: boolean
+    patternScale?: number
+    patternIdSuffix?: string
     binColors?: string[]
     hasProjectedData?: boolean
     inapplicableEntityNamesSet?: Set<EntityName>
+    inapplicableColor?: Color
     mapViewport?: MapViewport
     isFaceted?: boolean
 }
@@ -177,7 +181,7 @@ export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
 
 /** Viewport for each region, defined by center and width+height in fractional coordinates */
 export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
-    World: { x: 0.565, y: 0.5, width: 1.01, height: 1.01, ratio: 2.29 },
+    World: { x: 0.545, y: 0.5, width: 0.91, height: 1.01, ratio: 2.1 },
     Europe: { x: 0.53, y: 0.21, width: 0.2, height: 0.2, ratio: 1.77 },
     Africa: { x: 0.48, y: 0.7, width: 0.21, height: 0.38, ratio: 1.07 },
     NorthAmerica: { x: 0.46, y: 0.4, width: 0.19, height: 0.35, ratio: 1.12 },
@@ -186,14 +190,8 @@ export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
     Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2, ratio: 1.47 },
 }
 
-// Custom viewport for faceted world map, which zooms in a little bit to make best use of the available space
-export const MAP_VIEWPORT_FACETED_WORLD: MapViewport = {
-    x: 0.545,
-    y: 0.5,
-    width: 0.91,
-    height: 1.01,
-    ratio: 2.29,
-}
+// On narrow screens, the 2D map extends into the frame padding, leaving only this much space on either side
+export const MAP_NARROW_FRAME_PADDING_HORIZONTAL = 4
 
 export interface Circle {
     cx: number // center x

@@ -1,6 +1,7 @@
 import React, {
     useCallback,
     useEffect,
+    useEffectEvent,
     useLayoutEffect,
     useRef,
     useState,
@@ -26,6 +27,7 @@ import {
 import { SlideRenderer } from "./SlideRenderer.js"
 import { SiteSlideChartEmbed } from "./SiteSlideChartEmbed.js"
 import { SlideLogo } from "./SlideLogo.js"
+import { useHasHydrated } from "../hooks.js"
 
 export const _OWID_SLIDESHOW_PROPS = "_OWID_SLIDESHOW_PROPS"
 
@@ -96,6 +98,7 @@ export function SlideshowPresentation(props: {
     // slide's background.
     const [isHydrated, setIsHydrated] = useState(isControlled)
     useLayoutEffect(() => {
+        // oxlint-disable-next-line react/set-state-in-effect -- flips before the first paint after hydration
         setIsHydrated(true)
     }, [])
 
@@ -119,13 +122,6 @@ export function SlideshowPresentation(props: {
         setCurrentIndex(Math.min(slides.length - 1, currentIndex + 1))
     }, [currentIndex, slides.length, setCurrentIndex])
 
-    // Consolidated keyboard handler using refs so the listener
-    // is only registered once (not torn down on every navigation).
-    const goToPrevRef = useRef(goToPrev)
-    goToPrevRef.current = goToPrev
-    const goToNextRef = useRef(goToNext)
-    goToNextRef.current = goToNext
-
     // Default chart renderer for the baked site: each chart owns
     // its own state (no shared grapherStateRef needed since all
     // slides are mounted simultaneously).
@@ -144,10 +140,14 @@ export function SlideshowPresentation(props: {
 
     const containerRef = useRef<HTMLDivElement>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    // Fullscreen isn't available on iPhone, or in iframes that don't allow it.
+    // Only checked after hydration to avoid a mismatch.
+    const hasHydrated = useHasHydrated()
+    const canFullscreen = hasHydrated && !!document.fullscreenEnabled
 
     const toggleFullscreen = useCallback(() => {
         const el = containerRef.current
-        if (!el) return
+        if (!el || !document.fullscreenEnabled) return
         if (!document.fullscreenElement) {
             void el.requestFullscreen()
         } else {
@@ -165,32 +165,30 @@ export function SlideshowPresentation(props: {
             document.removeEventListener("fullscreenchange", handleChange)
     }, [])
 
-    const isFullscreenRef = useRef(isFullscreen)
-    isFullscreenRef.current = isFullscreen
-    const toggleFullscreenRef = useRef(toggleFullscreen)
-    toggleFullscreenRef.current = toggleFullscreen
+    // Consolidated keyboard handler. An effect event, so the listener is only
+    // registered once (not torn down on every navigation).
+    const handleKeyDown = useEffectEvent((e: KeyboardEvent): void => {
+        match(e.key)
+            .with("ArrowLeft", "ArrowUp", () => {
+                e.preventDefault()
+                goToPrev()
+            })
+            .with("ArrowRight", "ArrowDown", " ", () => {
+                e.preventDefault()
+                goToNext()
+            })
+            .with("Escape", () => {
+                if (isFullscreen) {
+                    void document.exitFullscreen()
+                }
+            })
+            .with("f", () => {
+                toggleFullscreen()
+            })
+            .otherwise(() => undefined)
+    })
 
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent): void => {
-            match(e.key)
-                .with("ArrowLeft", "ArrowUp", () => {
-                    e.preventDefault()
-                    goToPrevRef.current()
-                })
-                .with("ArrowRight", "ArrowDown", " ", () => {
-                    e.preventDefault()
-                    goToNextRef.current()
-                })
-                .with("Escape", () => {
-                    if (isFullscreenRef.current) {
-                        void document.exitFullscreen()
-                    }
-                })
-                .with("f", () => {
-                    toggleFullscreenRef.current()
-                })
-                .otherwise(() => undefined)
-        }
         window.addEventListener("keydown", handleKeyDown)
         return () => window.removeEventListener("keydown", handleKeyDown)
     }, [])
@@ -266,17 +264,21 @@ export function SlideshowPresentation(props: {
                         <FontAwesomeIcon icon={faChevronRight} />
                     </button>
                 </div>
-                <button
-                    className="SlideshowPresentation__fullscreen-button"
-                    onClick={toggleFullscreen}
-                    aria-label={
-                        isFullscreen ? "Exit fullscreen" : "Enter fullscreen"
-                    }
-                >
-                    <FontAwesomeIcon
-                        icon={isFullscreen ? faCompress : faExpand}
-                    />
-                </button>
+                {canFullscreen && (
+                    <button
+                        className="SlideshowPresentation__fullscreen-button"
+                        onClick={toggleFullscreen}
+                        aria-label={
+                            isFullscreen
+                                ? "Exit fullscreen"
+                                : "Enter fullscreen"
+                        }
+                    >
+                        <FontAwesomeIcon
+                            icon={isFullscreen ? faCompress : faExpand}
+                        />
+                    </button>
+                )}
             </div>
         </div>
     )

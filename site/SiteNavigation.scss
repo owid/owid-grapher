@@ -111,7 +111,7 @@
 
         .SiteNavigationToggle.newsletter-subscription {
             // hide the newsletter button at the last little bit before we switch to the mobile view
-            @media (max-width: calc($sm + 40px)) and (min-width: $sm) {
+            @media ($sm <= width <= calc($sm + 40px)) {
                 display: none;
             }
             @include sm-only {

@@ -5,7 +5,11 @@ set -o pipefail
 set -o nounset
 
 if [ -e .env ]; then
+    # variables that are already exported take precedence over .env, like in
+    # db/tests/run-db-tests.sh
+    preset_env=$(export -p)
     source .env
+    eval "$preset_env"
 fi
 
 : "${GRAPHER_TEST_DB_NAME:?Need to set GRAPHER_TEST_DB_NAME non-empty}"

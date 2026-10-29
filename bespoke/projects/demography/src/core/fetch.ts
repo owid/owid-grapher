@@ -1,12 +1,15 @@
 import { QueryClient, QueryStatus, useQuery } from "@tanstack/react-query"
 import { fetchJson } from "@ourworldindata/utils"
-import { CountryData, DemographyMetadata } from "./types"
-import { combineStatuses } from "./utils.js"
+import {
+    CountryData,
+    DemographyMetadata,
+    DemographyMetadataJson,
+} from "./types"
+import { combineStatuses } from "../../../../helpers/queryStatus.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
-
-const BASE_URL = "https://owid-public.owid.io/bespoke/demography"
-const METADATA_PATH = BASE_URL + "/demography.metadata.json"
-const DATA_PATH = BASE_URL + "/demography.{countrySlug}.data.json"
+import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
+import { parseBespokeMetadata } from "../../../../components/MetadataModal/bespokeMetadata.js"
+import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 
 export const queryClient = new QueryClient()
 
@@ -16,13 +19,18 @@ const queryKeys = {
 }
 
 /** Fetch demography metadata */
-export const useDemographyMetadata = (): {
+export const useDemographyMetadata = (
+    metadataUrl: string
+): {
     data?: DemographyMetadata
     status: QueryStatus
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<DemographyMetadata>(METADATA_PATH),
+        queryFn: async (): Promise<DemographyMetadata> => {
+            const raw = await fetchJson<DemographyMetadataJson>(metadataUrl)
+            return { ...raw, provenance: parseBespokeMetadata(raw) }
+        },
     })
 
     return { data: result.data, status: result.status }
@@ -31,6 +39,7 @@ export const useDemographyMetadata = (): {
 /** Fetch demography data for a specific entity */
 export const useDemographyEntityData = (
     entityName: string,
+    dataUrl: string,
     metadata?: DemographyMetadata
 ): {
     data?: CountryData
@@ -43,13 +52,10 @@ export const useDemographyEntityData = (
 
     const result = useQuery({
         queryKey: queryKeys.data(entitySlug!),
-        queryFn: async (): Promise<CountryData> => {
-            const path = DATA_PATH.replace(
-                "{countrySlug}",
-                entitySlug!.toString()
-            )
-            return fetchJson<CountryData>(path)
-        },
+        queryFn: async (): Promise<CountryData> =>
+            fetchJson<CountryData>(
+                `${dataUrl}/demography.${entitySlug}.data.json`
+            ),
         enabled: entitySlug !== undefined,
         // Keep previous data while fetching new data
         placeholderData: (previousData) => previousData,
@@ -64,16 +70,28 @@ export const useDemographyEntityData = (
 }
 
 /** Combined hook for loading demography metadata + entity data */
-export function useDemographyData(entityName: string): {
+export function useDemographyData(
+    requestedEntityName: string,
+    urls: BespokeComponentDataUrls,
+    fallbacks: readonly string[] = []
+): {
+    entityName: string
     metadata?: DemographyMetadata
     entityData?: CountryData
     isLoadingEntityData: boolean
     status: QueryStatus
 } {
-    const metadataResponse = useDemographyMetadata()
+    const metadataResponse = useDemographyMetadata(urls.metadataUrl)
+    const metadata = metadataResponse.data
+    const entityName = useAvailableEntityName(
+        requestedEntityName,
+        fallbacks,
+        metadata && ((name) => Boolean(metadata.slugs[name]))
+    )
     const entityDataResponse = useDemographyEntityData(
         entityName,
-        metadataResponse.data
+        urls.dataUrl,
+        metadata
     )
     const isLoadingEntityData = useDelayedLoading(
         entityDataResponse.isPlaceholderData,
@@ -84,7 +102,8 @@ export function useDemographyData(entityName: string): {
         entityDataResponse.status
     )
     return {
-        metadata: metadataResponse.data,
+        entityName,
+        metadata,
         entityData: entityDataResponse.data,
         isLoadingEntityData,
         status,

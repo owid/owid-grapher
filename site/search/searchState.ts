@@ -230,12 +230,6 @@ export function useSearchParamsState(
                 updateParams((s) => ({ ...s, resultType }))
             },
 
-            replaceQueryWithFilter: (filter: ScoredFilterPositioned) => {
-                updateParams((s) => replaceQueryWordsWithFilters(s, [filter]), {
-                    replace: true,
-                })
-            },
-
             reset: () => {
                 setSearchParams(new URLSearchParams())
             },

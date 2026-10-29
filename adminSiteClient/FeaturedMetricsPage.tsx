@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useContext, useMemo, useState } from "react"
 import {
     Input,
     Popconfirm,
@@ -176,6 +176,26 @@ function filterUrlQueryParams(url: string): string {
     return url
 }
 
+function validateFeaturedMetricUrl(value: string): {
+    isValid: boolean
+    reason: string
+} {
+    const url = Url.fromURL(value)
+    if (!url.isExplorer && !url.isGrapher) {
+        return {
+            isValid: false,
+            reason: "URL must be an OWID grapher/explorer URL",
+        }
+    }
+    if (url.isExplorer && !url.queryStr) {
+        return {
+            isValid: false,
+            reason: "Explorer URLs must have the view's query string",
+        }
+    }
+    return { isValid: true, reason: "" }
+}
+
 function FeaturedMetricSection({
     parentTagName,
     featuredMetrics,
@@ -206,27 +226,9 @@ function FeaturedMetricSection({
         setNewFeaturedMetricInputValue(filterUrlQueryParams(inputValue))
     }
 
-    const [{ isValid, reason }, setIsValid] = useState({
-        isValid: false,
-        reason: "",
-    })
-
-    useEffect(() => {
-        const url = Url.fromURL(newFeaturedMetricInputValue)
-        if (!url.isExplorer && !url.isGrapher) {
-            setIsValid({
-                isValid: false,
-                reason: "URL must be an OWID grapher/explorer URL",
-            })
-        } else if (url.isExplorer && !url.queryStr) {
-            setIsValid({
-                isValid: false,
-                reason: "Explorer URLs must have the view's query string",
-            })
-        } else {
-            setIsValid({ isValid: true, reason: "" })
-        }
-    }, [newFeaturedMetricInputValue])
+    const { isValid, reason } = validateFeaturedMetricUrl(
+        newFeaturedMetricInputValue
+    )
 
     const [newFeaturedMetricIncomeGroup, setNewFeaturedMetricIncomeGroup] =
         useState(FeaturedMetricIncomeGroup.Default)

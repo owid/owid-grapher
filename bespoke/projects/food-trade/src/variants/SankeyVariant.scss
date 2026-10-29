@@ -19,14 +19,9 @@
     margin: 0;
 }
 
-.food-trade-chart__error {
-    padding: 24px;
-    color: $error-text-color;
-}
-
 .food-trade-chart--narrow .food-trade-controls {
     border: none;
-    padding: 0;
+    padding: 12px;
 }
 
 .food-trade-chart--narrow .food-trade-controls .controls__row {
@@ -48,11 +43,7 @@
 
 .food-trade-chart--narrow .food-trade-captioned-chart {
     border: none;
-    padding: 8px 0 0;
-}
-
-.food-trade-chart--narrow .food-trade-captioned-chart__chart-area {
-    height: 380px;
+    padding: 8px 12px;
 }
 
 .food-trade-chart .tooltip-container.fixed-bottom .content-and-endmatter {

@@ -3,7 +3,11 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import { dayjs, getEntitiesForProfile } from "@ourworldindata/utils"
+import {
+    dayjs,
+    getEntitiesForProfile,
+    multiDimDimensionsToViewQueryStr,
+} from "@ourworldindata/utils"
 import {
     DbPlainChart,
     DbPlainSlideshow,
@@ -80,17 +84,10 @@ async function getPublishedGdocPosts(knex: db.KnexReadonlyTransaction) {
                 OwidGdocType.LinearTopicPage,
                 OwidGdocType.TopicPage,
                 OwidGdocType.AboutPage,
+                OwidGdocType.FeaturedViz,
             ],
         }
     )
-}
-
-const MDIM_INDEX_INDIVIDUAL_VIEWS: Record<
-    string,
-    boolean | Record<string, string>
-> = {
-    "vaccination-coverage-who-unicef": true,
-    "years-of-schooling": { sex: "both" }, // only index all views with sex=both
 }
 
 export const makeSitemap = async (
@@ -177,45 +174,18 @@ export const makeSitemap = async (
                 const { slug, config } = multiDim
                 if (!slug) return []
 
-                const indexIndividualViews = MDIM_INDEX_INDIVIDUAL_VIEWS[slug]
-
                 const mdimEntry: SitemapUrl = {
                     loc: urljoin(BAKED_GRAPHER_URL, slug),
                     lastmod,
                 }
-
-                if (!indexIndividualViews) {
-                    return [mdimEntry]
-                } else {
-                    const individualViews = config.views.flatMap((view) => {
-                        if (
-                            typeof indexIndividualViews === "object" &&
-                            Object.entries(indexIndividualViews).some(
-                                ([dimension, value]) =>
-                                    view.dimensions[dimension] !== value
-                            )
-                        ) {
-                            return []
-                        }
-
-                        const searchParams = new URLSearchParams(
-                            view.dimensions
-                        )
-                        searchParams.sort()
-                        const queryStr = searchParams.toString()
-                        return [
-                            {
-                                loc: urljoin(
-                                    BAKED_GRAPHER_URL,
-                                    `${slug}?${queryStr}`
-                                ),
-                                lastmod,
-                            },
-                        ]
-                    })
-                    // Include the top-level entry in the sitemap in any case, too
-                    return [mdimEntry, ...individualViews]
-                }
+                const individualViews = config.views.map((view) => ({
+                    loc: urljoin(
+                        BAKED_GRAPHER_URL,
+                        `${slug}?${multiDimDimensionsToViewQueryStr(view.dimensions)}`
+                    ),
+                    lastmod,
+                }))
+                return [mdimEntry, ...individualViews]
             })
         )
         .concat(

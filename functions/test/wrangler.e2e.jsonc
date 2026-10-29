@@ -3,6 +3,7 @@
     "name": "owid-functions-e2e-tests",
     "main": "./grapher-config.e2e.worker.ts",
     "compatibility_date": "2025-05-05",
+    "compatibility_flags": ["nodejs_compat"],
     // Intentionally no `remote: true` flags: tests use local Miniflare R2 only.
     "r2_buckets": [
         {

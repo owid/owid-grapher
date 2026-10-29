@@ -25,7 +25,6 @@ import {
     DbRawVariable,
     DbRawPostGdoc,
     OwidGdocType,
-    parseChartConfig,
     PostsGdocsLinksTableName,
     DbPlainPostGdocLink,
     ContentGraphLinkType,
@@ -33,6 +32,7 @@ import {
     ImagesTableName,
 } from "@ourworldindata/types"
 import * as db from "../../db.js"
+import { parseAndMigrateChartConfig } from "../ChartConfigs.js"
 import { stringify } from "safe-stable-stringify"
 import { hashHex } from "../../../serverUtils/hash.js"
 import { es6mapValues, getAllVariableIds } from "@ourworldindata/utils"
@@ -408,10 +408,11 @@ export const getExplorerChecksumsFromDb = async (
         if (!variablesByExplorerSlug.has(slug)) {
             variablesByExplorerSlug.set(slug, new Set<number>())
         }
-        const config = parseChartConfig(row.chartConfigFull)
+        const config = parseAndMigrateChartConfig(row.chartConfigFull)
         if (config.dimensions) {
             for (const dimension of config.dimensions) {
                 const variableId = dimension.variableId
+                if (variableId === undefined) continue
                 variablesByExplorerSlug.get(slug)?.add(variableId)
                 allVariableIds.add(variableId)
             }

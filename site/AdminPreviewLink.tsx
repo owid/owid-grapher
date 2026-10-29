@@ -1,7 +1,7 @@
 import { useIsClient } from "usehooks-ts"
+import { shouldShowStaffControls } from "@ourworldindata/grapher"
 
 import { ADMIN_BASE_URL } from "../settings/clientSettings.mjs"
-import { hasAdminCookie } from "./adminCookie.js"
 
 /**
  * Takes staff from a live data page or multi-dim to its admin preview, which is
@@ -26,7 +26,8 @@ export function AdminPreviewLink({
     // baking it would put it on the public page for everyone.
     const isClient = useIsClient()
     // No point offering it on a preview - that is where the link goes
-    if (isPreviewing || !isClient || !slug || !hasAdminCookie()) return null
+    if (isPreviewing || !isClient || !slug || !shouldShowStaffControls())
+        return null
 
     return (
         <div className="admin-preview-link">

@@ -1,0 +1,344 @@
+import { useContext, useEffect, useState } from "react"
+import {
+    BespokeVizUsage,
+    BundleReference,
+    BundleUsage,
+    BundleVariantReference,
+    BundleVariantUsage,
+    COMPONENT_USAGE_LABELS,
+    ComponentInstance,
+    ComponentProp,
+    ComponentReference,
+    ComponentUsage,
+    ComponentUsageLabel,
+    ComponentVariation,
+    componentUsageLabel,
+    OwidGdocType,
+} from "@ourworldindata/types"
+import { getCanonicalPath } from "@ourworldindata/components"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
+import { AdminAppContext } from "./AdminAppContext.js"
+
+/**
+ * Non-component helpers behind the live half of the writing reference UI:
+ * data fetching and the qualitative wording layer — computed facts presented
+ * as words first, raw numbers only in tooltips.
+ */
+
+/** Fetch an admin API JSON path; undefined while loading, null on failure. */
+export function useAdminJson<T>(
+    path: string | undefined
+): T | undefined | null {
+    const { admin } = useContext(AdminAppContext)
+    // Tagged with the path it was fetched for, so that a result for a
+    // previous path reads as still loading
+    const [result, setResult] = useState<{ path: string; value: T | null }>()
+    useEffect(() => {
+        if (!path) return
+        let cancelled = false
+        admin
+            .getJSON(path)
+            // getJSON's Json constraint rejects named interfaces (they lack
+            // an implicit index signature); the cast is as safe as any other
+            // typed API response.
+            .then((json) => {
+                if (!cancelled) setResult({ path, value: json as unknown as T })
+            })
+            .catch(() => {
+                if (!cancelled) setResult({ path, value: null })
+            })
+        return () => {
+            cancelled = true
+        }
+    }, [admin, path])
+    return path && result?.path === path ? result.value : undefined
+}
+
+// Component docs live as .md sidecars in the repo, gated by CI; the reference
+// links technical editors to GitHub to propose changes or read definitions.
+const GITHUB_REPO = "https://github.com/owid/owid-grapher"
+export const githubEditUrl = (sidecarFile: string): string =>
+    `${GITHUB_REPO}/edit/master/${sidecarFile}`
+export const githubBlobUrl = (sourceFile: string): string =>
+    `${GITHUB_REPO}/blob/master/${sourceFile}`
+
+const DOC_TYPE_NOUNS: Partial<Record<OwidGdocType, [string, string]>> = {
+    [OwidGdocType.Article]: ["article", "articles"],
+    [OwidGdocType.DataInsight]: ["data insight", "data insights"],
+    [OwidGdocType.TopicPage]: ["topic page", "topic pages"],
+    [OwidGdocType.LinearTopicPage]: ["linear topic page", "linear topic pages"],
+    [OwidGdocType.Fragment]: ["fragment", "fragments"],
+    [OwidGdocType.AboutPage]: ["about page", "about pages"],
+    [OwidGdocType.Announcement]: ["announcement", "announcements"],
+    [OwidGdocType.Author]: ["author page", "author pages"],
+    [OwidGdocType.Profile]: ["profile", "profiles"],
+    [OwidGdocType.Homepage]: ["homepage", "homepage"],
+}
+
+export function docTypeNoun(docType: OwidGdocType, plural: boolean): string {
+    const nouns = DOC_TYPE_NOUNS[docType]
+    if (!nouns) return docType
+    return plural ? nouns[1] : nouns[0]
+}
+
+// The doc types authors actually choose between — the where-it's-used bar
+// always accounts for these; marginal types only appear when a component is
+// used there.
+export const MAJOR_DOC_TYPES: OwidGdocType[] = [
+    OwidGdocType.Article,
+    OwidGdocType.DataInsight,
+    OwidGdocType.TopicPage,
+    OwidGdocType.LinearTopicPage,
+    OwidGdocType.Announcement,
+]
+
+export function indefinite(noun: string): string {
+    return (/^[aeiou]/.test(noun) ? "an " : "a ") + noun
+}
+
+/**
+ * The one visual frequency vocabulary: every adoption label maps to a number
+ * of filled dots on the four-dot glyph. Synthetic "new" forms render the
+ * glyph dashed instead.
+ */
+export const FREQUENCY_DOTS: Record<ComponentUsageLabel, number> = {
+    standard: 4,
+    common: 3,
+    occasional: 2,
+    rare: 1,
+    unused: 0,
+}
+
+/**
+ * Fraction → qualitative label, through the same implementation the server
+ * applies for per-doc-type usage — reused client-side for form frequency
+ * (share of a component's uses) and per-prop adoption, so one vocabulary
+ * reads the same everywhere.
+ */
+export function fractionUsageLabel(
+    count: number,
+    total: number
+): ComponentUsageLabel {
+    return componentUsageLabel(total > 0 ? count / total : 0)
+}
+
+/** The component's overall adoption: its best label across doc types. */
+export function overallUsageLabel(
+    usage: ComponentUsage | undefined
+): ComponentUsageLabel {
+    let best = COMPONENT_USAGE_LABELS.length - 1
+    for (const entry of usage?.byDocType ?? []) {
+        const index = COMPONENT_USAGE_LABELS.indexOf(entry.label)
+        if (index >= 0 && index < best) best = index
+    }
+    return COMPONENT_USAGE_LABELS[best]
+}
+
+/** Raw numbers behind a glyph — tooltip material, never the lead. */
+export function usageTooltip(usage: ComponentUsage | undefined): string {
+    if (!usage) return "No published uses"
+    return usage.byDocType
+        .map(
+            (entry) =>
+                `${entry.docsUsingIt} of ${entry.totalDocs} ${docTypeNoun(
+                    entry.docType,
+                    entry.totalDocs === 1 ? false : true
+                )}`
+        )
+        .join(" · ")
+}
+
+export function liveUrl(instance: {
+    slug: string
+    docType: OwidGdocType
+    anchor?: string
+    /**
+     * Profiles bake per-entity at `/profile/<slug>/<entitySlug>` — the bare
+     * template slug 404s, so the live link needs the instantiated entity.
+     */
+    entitySlug?: string
+}): string {
+    const path = getCanonicalPath(instance.slug, instance.docType)
+    const entitySegment =
+        instance.docType === OwidGdocType.Profile && instance.entitySlug
+            ? `/${instance.entitySlug}`
+            : ""
+    return `${BAKED_BASE_URL}${path}${entitySegment}${instance.anchor ? `#${instance.anchor}` : ""}`
+}
+
+/** The admin path previewing a real published use of a component. */
+export function instancePreviewPath(instance: ComponentInstance): string {
+    return `/gdocs-reference/instance/preview?gdocId=${encodeURIComponent(
+        instance.gdocId
+    )}&path=${encodeURIComponent(instance.path)}`
+}
+
+/**
+ * Share of docs using a component, as the whole-number percentage that backs
+ * an adoption word in the where-it's-used sentence: "standard in articles
+ * (46%)". Sub-1% shares read "<1%" rather than rounding to a misleading 0%.
+ */
+export function formatUsagePercent(count: number, total: number): string {
+    if (total <= 0 || count <= 0) return "0%"
+    const percent = (count / total) * 100
+    return percent < 1 ? "<1%" : `${Math.round(percent)}%`
+}
+
+// -----------------------------------------------------------------------------
+// Form cards: what a form sets
+// -----------------------------------------------------------------------------
+
+// Child blocks are omitted from the stored configs the usage index is built
+// on, so adoption of block-content props is unmeasurable. (Span props are
+// flattened to plain text and kept, so they stay measurable.)
+export function isContentProp(prop: ComponentProp): boolean {
+    return /Enriched/.test(prop.type)
+}
+
+export interface PropAdoptionInfo {
+    propAdoption: Record<string, number>
+    scanned: number
+    /** Parser defaults per prop, when the scan could read one */
+    propDefaults?: Record<string, string>
+}
+
+// Declared required on the enriched type, but the parser fills a default when
+// omitted — proven by uses whose minimal source drops it.
+export function isEffectivelyRequired(
+    prop: ComponentProp,
+    live: PropAdoptionInfo | undefined
+): boolean {
+    if (prop.optional) return false
+    if (
+        live &&
+        live.scanned > 0 &&
+        !isContentProp(prop) &&
+        (live.propAdoption[prop.name] ?? 0) < live.scanned
+    )
+        return false
+    return true
+}
+
+/** One part of a form's signature: a prop it sets, with the value it fixes. */
+export interface FormSetPart {
+    name: string
+    /** The fixed value of a value prop ("narrow"); undefined = present */
+    value?: string
+    /** The declared prop, for its description — undefined for undeclared parts */
+    prop?: ComponentProp
+}
+
+/**
+ * What defines a form: its signature parts — the props whose presence or
+ * value make this form this form. Everything else the component declares is
+ * either required scaffolding every form carries or left at its default,
+ * and the properties table covers both.
+ */
+export function formDefiningParts(
+    component: ComponentReference,
+    variation: ComponentVariation
+): FormSetPart[] {
+    const byName = new Map(component.props.map((prop) => [prop.name, prop]))
+    if (variation.signature === "") return []
+    return variation.signature.split("+").map((part): FormSetPart => {
+        const colon = part.indexOf(":")
+        const name = colon > 0 ? part.slice(0, colon) : part
+        return {
+            name,
+            value: colon > 0 ? part.slice(colon + 1) : undefined,
+            prop: byName.get(name),
+        }
+    })
+}
+
+// -----------------------------------------------------------------------------
+// Bespoke component page: the bundle index
+// -----------------------------------------------------------------------------
+
+/**
+ * Bundles for the index: most used first, ties (and unused bundles) by id.
+ * Without usage (the lookup failed) every bundle counts as 0, so the list
+ * falls back to id order — registry order is not id order.
+ */
+export function sortBundlesByUse(
+    bundles: BundleReference[],
+    usage: BespokeVizUsage | null
+): BundleReference[] {
+    const usesById = new Map(
+        (usage?.bundles ?? []).map((entry) => [entry.bundle, entry.uses])
+    )
+    return [...bundles].sort((a, b) => {
+        const usesA = usesById.get(a.id) ?? 0
+        const usesB = usesById.get(b.id) ?? 0
+        if (usesA !== usesB) return usesB - usesA
+        return a.id.localeCompare(b.id)
+    })
+}
+
+/** "12 uses in 4 docs", "1 use in 1 doc", or "not used yet". */
+export function bundleUsageLabel(
+    usage: Pick<BundleUsage, "uses" | "docs"> | undefined
+): string {
+    if (!usage || usage.uses === 0) return "not used yet"
+    const uses = `${usage.uses} use${usage.uses === 1 ? "" : "s"}`
+    const docs = `${usage.docs} doc${usage.docs === 1 ? "" : "s"}`
+    return `${uses} in ${docs}`
+}
+
+// -----------------------------------------------------------------------------
+// Bespoke component page: a bundle's variants
+// -----------------------------------------------------------------------------
+
+/** A registry variant, with its published usage when it has any. */
+export interface BundleVariantEntry {
+    variant: BundleVariantReference
+    usage?: BundleVariantUsage
+}
+
+export interface OrderedBundleVariants {
+    /** Variant cards shown open */
+    open: BundleVariantEntry[]
+    /** The "N variants not used yet" tail, in registry order */
+    collapsed: BundleVariantEntry[]
+}
+
+/**
+ * The order of a bundle's variant cards. `usage` is the bundle's entry in
+ * the usage response: undefined when the bundle has no published use, null
+ * when the usage lookup failed.
+ *
+ * - Used variants come first, most uses first (ties in registry order).
+ * - The rest wait in the collapsed tail, in registry order.
+ * - The first variant is open when nothing is used.
+ * - Without usage, only the first variant is open.
+ */
+export function orderBundleVariants(
+    bundle: BundleReference,
+    usage: BundleUsage | undefined | null
+): OrderedBundleVariants {
+    const entries: BundleVariantEntry[] = bundle.variants.map((variant) => ({
+        variant,
+    }))
+
+    if (usage === null)
+        return { open: entries.slice(0, 1), collapsed: entries.slice(1) }
+
+    const usageByName = new Map(
+        (usage?.variants ?? [])
+            .filter((entry) => entry.uses > 0)
+            .map((entry) => [entry.variant, entry])
+    )
+    for (const entry of entries) {
+        const variantUsage = usageByName.get(entry.variant.name)
+        if (variantUsage) entry.usage = variantUsage
+    }
+
+    // Array sort is stable, so ties keep registry order
+    const used = entries
+        .filter((entry) => entry.usage)
+        .sort((a, b) => (b.usage?.uses ?? 0) - (a.usage?.uses ?? 0))
+    const open = used.length > 0 ? used : entries.slice(0, 1)
+    const collapsed = entries.filter((entry) => !open.includes(entry))
+
+    return { open, collapsed }
+}

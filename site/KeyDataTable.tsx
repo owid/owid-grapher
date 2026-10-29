@@ -53,6 +53,7 @@ export default function KeyDataTable({
                     <div data-comment-field="descriptionShort">
                         <SimpleMarkdownText
                             text={datapageData.descriptionShort}
+                            dodTrackNote="key_data"
                             useParagraphs={false}
                         />
                     </div>

@@ -21,13 +21,20 @@ import {
     DbInsertPostGdocLink,
     DbPlainTag,
     formatDate,
-    excludeUndefined,
     Url,
     getRegionByNameOrVariantName,
 } from "@ourworldindata/utils"
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
-import { gdocToArchie } from "./gdocToArchie.js"
-import { archieToEnriched } from "./archieToEnriched.js"
+import {
+    archieToEnriched,
+    documentContainsMixedStraightAndCurlyQuotes,
+    enrichedBlocksToMarkdown,
+    extractFilenamesFromBlock,
+    extractUrl,
+    gdocToArchie,
+    getAllLinksFromResearchAndWritingBlock,
+    spansToSimpleString,
+} from "@ourworldindata/gdoc-pipeline"
 import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
 import {
     BAKED_BASE_URL,
@@ -38,32 +45,27 @@ import {
 import { PROD_URL } from "../../../site/SiteConstants.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { match, P } from "ts-pattern"
-import {
-    extractFilenamesFromBlock,
-    extractUrl,
-    getAllLinksFromResearchAndWritingBlock,
-    spansToSimpleString,
-} from "./gdocUtils.js"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import { acceptAllGdocSuggestions } from "./acceptAllGdocSuggestions.js"
-import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { getDatapageIndicatorId } from "../Variable.js"
 import { createLinkForNarrativeChart, createLinkFromUrl } from "../Link.js"
-import {
-    getMultiDimDataPageBySlug,
-    multiDimDataPageExists,
-} from "../MultiDimDataPage.js"
+import { multiDimDataPageExists } from "../MultiDimDataPage.js"
 import {
     getMultiDimRedirectSourcesWithMultipleTargets,
     getMultiDimRedirectTargets,
 } from "../MultiDimRedirects.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import {
+    type GdocLinkTarget,
+    resolveGdocLinkTargets,
+} from "./gdocLinkTargets.js"
+import {
     ARCHIVED_THUMBNAIL_FILENAME,
     ChartConfigType,
     NarrativeChartInfo,
     ContentGraphLinkType,
     GrapherInterface,
+    LatestAnnouncement,
     LatestDataInsight,
     LinkedAuthor,
     MultiDimDataPageConfigEnriched,
@@ -99,7 +101,6 @@ import { getDods } from "../Dod.js"
 import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../ArchivedExplorerVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../ArchivedMultiDimVersion.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
-import { documentContainsMixedStraightAndCurlyQuotes } from "./gdocValidation.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
 
@@ -146,24 +147,8 @@ export async function loadLinkedChartsForSlugs(
 ): Promise<LinkedChart[]> {
     if (grapherSlugs.length === 0 && explorerSlugs.length === 0) return []
 
-    const slugToIdMap = await mapSlugsToIds(knex)
-
-    const [
-        archivedChartVersions,
-        archivedMultiDimVersions,
-        archivedExplorerVersions,
-        grapherMultiDimRedirects,
-        explorerMultiDimRedirects,
-        explorerRedirectFanOut,
-    ] = await Promise.all([
-        getLatestArchivedChartPageVersionsIfEnabled(
-            knex,
-            excludeUndefined(grapherSlugs.map((slug) => slugToIdMap[slug]))
-        ),
-        getLatestArchivedMultiDimPageVersionsIfEnabled(knex),
-        getLatestArchivedExplorerPageVersionsIfEnabled(knex, explorerSlugs),
-        getMultiDimRedirectTargets(knex, grapherSlugs, "/grapher/"),
-        getMultiDimRedirectTargets(knex, explorerSlugs, "/explorers/"),
+    const [targets, explorerRedirectFanOut] = await Promise.all([
+        resolveGdocLinkTargets(knex, { grapherSlugs, explorerSlugs }),
         // Fan-out redirects are fine to have, but the gdoc link layer resolves
         // by slug only (query-param matching happens at request time), so a
         // linked explorer that redirects to multiple multi-dims would resolve to
@@ -173,6 +158,19 @@ export async function loadLinkedChartsForSlugs(
             explorerSlugs,
             "/explorers/"
         ),
+    ])
+
+    const chartIds = [...targets.grapher.values()].flatMap((target) =>
+        target.type === "chart" ? [target.chartId] : []
+    )
+    const [
+        archivedChartVersions,
+        archivedMultiDimVersions,
+        archivedExplorerVersions,
+    ] = await Promise.all([
+        getLatestArchivedChartPageVersionsIfEnabled(knex, chartIds),
+        getLatestArchivedMultiDimPageVersionsIfEnabled(knex),
+        getLatestArchivedExplorerPageVersionsIfEnabled(knex, explorerSlugs),
     ])
 
     for (const [sourceSlug, targetSlugs] of explorerRedirectFanOut) {
@@ -186,99 +184,56 @@ Explorer '/explorers/${sourceSlug}' is linked from a gdoc, but it redirects to s
         )
     }
 
-    // TODO: rewrite this as a single query instead of N queries
-    const linkedGrapherCharts = await Promise.all(
-        grapherSlugs.map(async (originalSlug) => {
-            const multiDimRedirect = grapherMultiDimRedirects.get(originalSlug)
-
-            if (multiDimRedirect) {
-                const targetSlug = multiDimRedirect.targetSlug
-                const multiDim = await getMultiDimDataPageBySlug(
-                    knex,
-                    targetSlug,
-                    { onlyPublished: false }
-                )
-                if (!multiDim) return
-
-                return makeMultiDimLinkedChart(multiDim.config, originalSlug, {
-                    archivedPageVersion:
-                        archivedMultiDimVersions[multiDim.id] || undefined,
-                    queryStr: multiDimRedirect.queryStr,
-                    resolvedSlug: targetSlug,
-                })
-            }
-
-            const chartId = slugToIdMap[originalSlug]
-            if (chartId) {
-                const chart = await getChartConfigById(knex, chartId)
+    const makeLinkedChart = async (
+        target: GdocLinkTarget | undefined,
+        originalSlug: string
+    ): Promise<LinkedChart | undefined> => {
+        if (!target) return
+        switch (target.type) {
+            case "chart": {
+                const chart = await getChartConfigById(knex, target.chartId)
                 if (!chart) return
-
                 return makeGrapherLinkedChart(
                     knex,
                     chart.config,
                     originalSlug,
                     {
                         archivedPageVersion:
-                            archivedChartVersions[chartId] || undefined,
+                            archivedChartVersions[target.chartId] || undefined,
                     }
                 )
-            } else {
-                const multiDim = await getMultiDimDataPageBySlug(
-                    knex,
-                    originalSlug,
-                    { onlyPublished: false }
-                )
-                if (!multiDim) return
-
+            }
+            case "multiDim": {
+                const { multiDim, redirect } = target
                 return makeMultiDimLinkedChart(multiDim.config, originalSlug, {
                     archivedPageVersion:
                         archivedMultiDimVersions[multiDim.id] || undefined,
+                    ...(redirect
+                        ? {
+                              queryStr: redirect.queryStr,
+                              resolvedSlug: redirect.targetSlug,
+                          }
+                        : {}),
                 })
             }
-        })
-    ).then(excludeNullish)
-
-    const publishedExplorersBySlug = await db.getPublishedExplorersBySlug(knex)
-
-    const linkedExplorerCharts = excludeNullish(
-        await Promise.all(
-            explorerSlugs.map(async (originalSlug) => {
-                const multiDimRedirect =
-                    explorerMultiDimRedirects.get(originalSlug)
-
-                if (multiDimRedirect) {
-                    const targetSlug = multiDimRedirect.targetSlug
-                    const multiDim = await getMultiDimDataPageBySlug(
-                        knex,
-                        targetSlug,
-                        { onlyPublished: false }
-                    )
-                    if (!multiDim) return
-
-                    return makeMultiDimLinkedChart(
-                        multiDim.config,
-                        originalSlug,
-                        {
-                            archivedPageVersion:
-                                archivedMultiDimVersions[multiDim.id] ||
-                                undefined,
-                            queryStr: multiDimRedirect.queryStr,
-                            resolvedSlug: targetSlug,
-                        }
-                    )
-                }
-
-                const explorer = publishedExplorersBySlug[originalSlug]
-                if (!explorer) return
-                return makeExplorerLinkedChart(explorer, originalSlug, {
+            case "explorer":
+                return makeExplorerLinkedChart(target.explorer, originalSlug, {
                     archivedPageVersion:
                         archivedExplorerVersions[originalSlug] || undefined,
                 })
-            })
-        )
-    )
+        }
+    }
 
-    return [...linkedGrapherCharts, ...linkedExplorerCharts]
+    // TODO: rewrite this as a single query instead of N queries
+    const linkedCharts = await Promise.all([
+        ...grapherSlugs.map((slug) =>
+            makeLinkedChart(targets.grapher.get(slug), slug)
+        ),
+        ...explorerSlugs.map((slug) =>
+            makeLinkedChart(targets.explorer.get(slug), slug)
+        ),
+    ])
+    return excludeNullish(linkedCharts)
 }
 
 export class GdocBase implements OwidGdocBaseInterface {
@@ -305,6 +260,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     latestDataInsights: LatestDataInsight[] = []
+    latestAnnouncements: LatestAnnouncement[] = []
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo> = {}
     linkedStaticViz?: Record<string, LinkedStaticViz> = {}
     linkedCallouts: LinkedCallouts = {}
@@ -414,19 +370,19 @@ export class GdocBase implements OwidGdocBaseInterface {
         return [...details]
     }
 
+    get linkedAuthorNames(): string[] {
+        const contributors =
+            "contributors" in this.content
+                ? (this.content.contributors ?? [])
+                : []
+        return _.uniq([...this.content.authors, ...contributors])
+    }
+
     async loadLinkedAuthors(knex: db.KnexReadonlyTransaction): Promise<void> {
-        const authors = await getMinimalAuthorsByNames(
+        this.linkedAuthors = await getMinimalAuthorsByNames(
             knex,
-            this.content.authors
+            this.linkedAuthorNames
         )
-        const authorRoles = this.content.authorRoles
-        if (authorRoles) {
-            for (const author of authors) {
-                const role = authorRoles[author.name]
-                if (role) author.role = role
-            }
-        }
-        this.linkedAuthors = authors
     }
 
     get links(): DbInsertPostGdocLink[] {
@@ -1142,7 +1098,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             })
         }
 
-        const authorErrors = this.content.authors.reduce(
+        const authorErrors = this.linkedAuthorNames.reduce(
             (errors: OwidGdocErrorMessage[], name): OwidGdocErrorMessage[] => {
                 if (!this.linkedAuthors.some((a) => a.name === name)) {
                     errors.push({
@@ -1391,9 +1347,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 })
                 .with(
                     {
-                        linkType: P.optional(
-                            P.union(ContentGraphLinkType.Url, null)
-                        ),
+                        linkType: ContentGraphLinkType.Url,
                     },
                     () => {
                         return
@@ -1456,7 +1410,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadNarrativeChartsInfo(knex)
         await this.loadLinkedStaticViz(knex)
         await this.loadAndClearLinkedCallouts(knex) // clones and reassigns this.content
-        await this._loadSubclassAttachments(knex) // for GdocHomepage, mutates linkedCharts and linkedDocuments
+        await this._loadSubclassAttachments(knex)
         await this.validate(knex)
     }
 

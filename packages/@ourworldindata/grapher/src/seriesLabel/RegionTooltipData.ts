@@ -67,6 +67,7 @@ const descriptions: Record<TooltipKey, string> = {
         "The **Institute for Health Metrics and Evaluation (IHME)** groups countries into seven super-regions for its Global Burden of Disease (GBD) study:",
     ihme_gbd_2:
         "The **Institute for Health Metrics and Evaluation (IHME)** groups countries into 21 regions for its Global Burden of Disease (GBD) study:",
+    ucdp: "The **Uppsala Conflict Data Program (UCDP)** groups countries into [five world regions](https://ourworldindata.org/world-region-map-definitions#uppsala-conflict-data-program-ucdp):",
 }
 
 // Geographic display order: left-to-right on the map
@@ -306,6 +307,13 @@ export const customRegionDisplayOrder: Record<
         "High-income Asia Pacific (IHME GBD)",
         "Australasia (IHME GBD)",
         "Oceania (IHME GBD)",
+    ],
+    ucdp: [
+        "Americas (UCDP)",
+        "Africa (UCDP)",
+        "Middle East (UCDP)",
+        "Europe (UCDP)",
+        "Asia and Oceania (UCDP)",
     ],
 }
 

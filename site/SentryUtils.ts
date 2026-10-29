@@ -193,7 +193,13 @@ function getSentrySessionStorage(): Record<string, any> | undefined {
  * @returns {number | undefined} The last sample rate (or undefined if not set).
  */
 function getSessionLastSampleRate(): number | undefined {
-    const raw = sessionStorage.getItem(SENTRY_SAMPLED_RATE_KEY)
+    let raw: string | null
+    try {
+        raw = sessionStorage.getItem(SENTRY_SAMPLED_RATE_KEY)
+    } catch {
+        // Storage may be unavailable in a sandboxed iframe.
+        return undefined
+    }
 
     // Return undefined if no value is stored
     if (raw === null || raw === undefined || raw === "") {
@@ -212,10 +218,14 @@ function getSessionLastSampleRate(): number | undefined {
 }
 
 function setSessionLastSampleRate(p: number | null | undefined) {
-    if (p === null || p === undefined) {
-        sessionStorage.removeItem(SENTRY_SAMPLED_RATE_KEY)
-    } else {
-        sessionStorage.setItem(SENTRY_SAMPLED_RATE_KEY, p.toString())
+    try {
+        if (p === null || p === undefined) {
+            sessionStorage.removeItem(SENTRY_SAMPLED_RATE_KEY)
+        } else {
+            sessionStorage.setItem(SENTRY_SAMPLED_RATE_KEY, p.toString())
+        }
+    } catch {
+        // Storage may be unavailable in a sandboxed iframe.
     }
 }
 
@@ -260,6 +270,14 @@ export function updateSentryTags() {
     updateSentryExperimentTags()
 }
 
+export function setSentryTagsAndAttributes(tags: Record<string, string>): void {
+    // Tags annotate error events and session replays; Sentry v11's streamed
+    // spans only carry attributes, so set both to keep the same context
+    // searchable in each.
+    Sentry.setTags(tags)
+    Sentry.setAttributes(tags)
+}
+
 /**
  * Updates the Sentry experiment tags from the current experiment state.
  */
@@ -272,7 +290,7 @@ export function updateSentryExperimentTags() {
                 value.arm,
             ])
         )
-        Sentry.setTags(tags)
+        setSentryTagsAndAttributes(tags)
     }
 }
 
@@ -311,6 +329,6 @@ function extractGaClientIdFromCookie(): string | undefined {
 function updateSentryReferrerTag() {
     if (document.referrer) {
         const ref = new URL(document.referrer).hostname
-        Sentry.setTag("referrer", ref)
+        setSentryTagsAndAttributes({ referrer: ref })
     }
 }

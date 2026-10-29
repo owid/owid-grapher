@@ -71,7 +71,7 @@
                 margin-right: 0;
             }
         }
-        @media (max-width: 480px) {
+        @media (width <= 480px) {
             grid-template-columns: repeat(2, 1fr);
         }
     }

@@ -6,6 +6,7 @@ import {
     makeFigmaId,
     Bounds,
     FontFamily,
+    openLinkInNewTabAttrs,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -31,7 +32,7 @@ import {
     GRAPHER_LIGHT_TEXT,
     GRAY_100,
 } from "../color/ColorConstants"
-import { roundFontSize } from "../chart/ChartUtils.js"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils.js"
 
 interface HeaderProps {
     manager: HeaderManager
@@ -279,7 +280,7 @@ abstract class AbstractHeader<
     @computed get subtitleFontSize(): number {
         if (this.manager.isStaticAndSmall) return 16
         if (this.useBaseFontSize) {
-            return Math.round((15 / BASE_FONT_SIZE) * this.baseFontSize)
+            return scaleFontSize(15, this.baseFontSize)
         }
         return this.manager.isSmall ? 12 : this.manager.isMedium ? 13 : 15
     }
@@ -323,8 +324,12 @@ abstract class AbstractHeader<
     private renderTitle(): React.ReactElement {
         const { manager } = this
 
-        // Avoid linking to a grapher/data page when we're already on it
-        if (manager.isOnCanonicalUrl && !this.manager.isInIFrame) {
+        // Avoid linking to a grapher/data page when there is none, or when
+        // we're already on it
+        if (
+            !manager.canonicalUrl ||
+            (manager.isOnCanonicalUrl && !manager.isInIFrame)
+        ) {
             return (
                 <h1
                     data-grapher-part="title"
@@ -342,10 +347,7 @@ abstract class AbstractHeader<
                 <a
                     href={manager.canonicalUrl}
                     data-track-note="chart_click_title"
-                    {...(manager.isInIFrame && {
-                        target: "_blank",
-                        rel: "noopener",
-                    })}
+                    {...openLinkInNewTabAttrs(manager.isInIFrame)}
                 >
                     <h1
                         data-grapher-part="title"
@@ -365,10 +367,7 @@ abstract class AbstractHeader<
                     href={manager.canonicalUrl}
                     data-track-note="chart_click_title"
                     aria-label={this.titleAriaLabel}
-                    {...(manager.isInIFrame && {
-                        target: "_blank",
-                        rel: "noopener",
-                    })}
+                    {...openLinkInNewTabAttrs(manager.isInIFrame)}
                 >
                     <MarkdownTextWrapHtml textWrap={this.title} />
                 </a>
@@ -461,14 +460,7 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
                     <a
                         id={makeFigmaId("title")}
                         href={manager.canonicalUrl}
-                        style={{
-                            fontFamily:
-                                "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
-                        }}
-                        {...(manager.isInIFrame && {
-                            target: "_blank",
-                            rel: "noopener",
-                        })}
+                        {...openLinkInNewTabAttrs(manager.isInIFrame)}
                     >
                         <MarkdownTextWrapSvg
                             textWrap={title}

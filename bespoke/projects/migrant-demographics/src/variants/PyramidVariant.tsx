@@ -10,25 +10,36 @@ import {
 } from "nuqs"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
+import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import {
     isUserLocationCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
+import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
+import { combineStatuses } from "../../../../helpers/queryStatus.js"
 
-import { PyramidVariantConfig } from "../core/config.js"
-import { ShowMode } from "../core/types.js"
-import type { VariantProps } from "../../../../helpers/config.js"
+import type { MigrantDemographicsConfig } from "../index.js"
+import { RawEntityYears, ShowMode } from "../core/types.js"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import {
-    MigrantDemographics,
+    computePyramidData,
+    MigrantDemographicsMetadata,
     queryClient,
-    useMigrantDemographics,
+    useMigrantDemographicsEntity,
+    useMigrantDemographicsMetadata,
 } from "../core/data.js"
 import {
     computeAxisMax,
@@ -42,25 +53,13 @@ import { PyramidControls } from "../components/PyramidControls.js"
 
 export function PyramidVariant({
     config,
-}: VariantProps<PyramidVariantConfig>): React.ReactElement {
-    const { width, ref } = useContainerWidth()
-    const isNarrow = width > 0 && width < NARROW_BREAKPOINT
-
+    urls,
+}: BespokeVariantProps<MigrantDemographicsConfig>): React.ReactElement {
     return (
         <EmbedConfigProvider config={config}>
             <NuqsAdapter>
                 <QueryClientProvider client={queryClient}>
-                    <div
-                        ref={ref}
-                        className={cx("migrant-pyramid", {
-                            "migrant-pyramid--narrow": isNarrow,
-                        })}
-                    >
-                        <FetchingPyramidVariant
-                            config={config}
-                            isNarrow={isNarrow}
-                        />
-                    </div>
+                    <FetchingPyramidVariant config={config} urls={urls} />
                 </QueryClientProvider>
             </NuqsAdapter>
         </EmbedConfigProvider>
@@ -69,17 +68,16 @@ export function PyramidVariant({
 
 function FetchingPyramidVariant({
     config,
-    isNarrow,
+    urls,
 }: {
-    config: PyramidVariantConfig
-    isNarrow: boolean
+    config: MigrantDemographicsConfig
+    urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const initialCountry =
-        !config.country || isUserLocationCountry(config.country)
-            ? DEFAULT_COUNTRY
-            : config.country
+    const initialCountry = isUserLocationCountry(config.country)
+        ? DEFAULT_COUNTRY
+        : config.country
 
-    const [country, setCountry] = useUrlState({
+    const [requestedCountry, setCountry] = useUrlState({
         key: "migrantPyramidCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
@@ -92,7 +90,7 @@ function FetchingPyramidVariant({
     const [show, setShow] = useUrlState({
         key: "migrantPyramidShow",
         parser: parseAsStringEnum<ShowMode>(["number", "share"]),
-        defaultValue: config.show ?? "number",
+        defaultValue: config.show,
     })
     const [compare, setCompare] = useUrlState({
         key: "migrantPyramidCompare",
@@ -100,11 +98,27 @@ function FetchingPyramidVariant({
         defaultValue: config.compare,
     })
 
-    const { data, status } = useMigrantDemographics()
+    const { data: metadata, status: metadataStatus } =
+        useMigrantDemographicsMetadata(urls.metadataUrl)
+
+    const selectedCountry = useAvailableEntityName(
+        requestedCountry,
+        [config.country, DEFAULT_COUNTRY],
+        metadata && ((name) => metadata.hasEntity(name))
+    )
+
+    const {
+        data: entityYears,
+        status: entityStatus,
+        isPlaceholderData,
+    } = useMigrantDemographicsEntity(selectedCountry, metadata, urls.dataUrl)
+
+    const status = combineStatuses(metadataStatus, entityStatus)
+    const isLoadingCountry = useDelayedLoading(isPlaceholderData)
 
     const availableCountryNames = useMemo(
-        () => (data ? new Set(data.entityNames) : undefined),
-        [data]
+        () => (metadata ? new Set(metadata.entityNames) : undefined),
+        [metadata]
     )
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
@@ -113,30 +127,27 @@ function FetchingPyramidVariant({
         setCountry,
     })
 
-    if (status === "pending" || !isCountryResolved) return <PyramidSkeleton />
-    if (status === "error" || !data)
-        return (
-            <div className="migrant-pyramid__error">
-                Failed to load the migrant demographics data
-            </div>
-        )
+    if (status === "pending")
+        return <ChartSkeleton className="migrant-pyramid-chart-box" />
+    if (status === "error" || !metadata || !entityYears)
+        return <ChartError className="migrant-pyramid-chart-box" />
+    if (!isCountryResolved)
+        return <ChartSkeleton className="migrant-pyramid-chart-box" />
 
-    // Fall back gracefully when the config or URL asks for something the
-    // data doesn't have
-    const selectedCountry = data.hasEntity(country) ? country : DEFAULT_COUNTRY
-    const selectedYear = data.years.includes(year)
+    const selectedYear = metadata.years.includes(year)
         ? year
-        : data.years[data.years.length - 1]
+        : metadata.years[metadata.years.length - 1]
 
     return (
         <CaptionedPyramidVariant
             config={config}
-            data={data}
+            metadata={metadata}
+            entityYears={entityYears}
             country={selectedCountry}
             year={selectedYear}
             show={show}
             compare={compare}
-            isNarrow={isNarrow}
+            isLoading={isLoadingCountry}
             setCountry={setCountry}
             setYear={setYear}
             setShow={setShow}
@@ -147,48 +158,58 @@ function FetchingPyramidVariant({
 
 function CaptionedPyramidVariant({
     config,
-    data,
+    metadata,
+    entityYears,
     country,
     year,
     show,
     compare,
-    isNarrow,
+    isLoading,
     setCountry,
     setYear,
     setShow,
     setCompare,
 }: {
-    config: PyramidVariantConfig
-    data: MigrantDemographics
+    config: MigrantDemographicsConfig
+    metadata: MigrantDemographicsMetadata
+    entityYears: RawEntityYears
     country: string
     year: number
     show: ShowMode
     compare: boolean
-    isNarrow: boolean
+    isLoading: boolean
     setCountry: (name: string) => void
     setYear: (year: number) => void
     setShow: (show: ShowMode) => void
     setCompare: (compare: boolean) => void
 }): React.ReactElement {
+    const { width, ref } = useContainerWidth()
+    const isNarrow = width > 0 && width < NARROW_BREAKPOINT
+
     // Comparing absolute numbers is meaningless (there are far more
     // native-born residents), so comparison always shows shares
     const mode: ShowMode = compare ? "share" : show
 
-    const pyramidData = useMemo(
-        () => data.getPyramidData(country, year),
-        [data, country, year]
-    )
+    const pyramidData = useMemo(() => {
+        const record = entityYears[String(year)]
+        return record ? computePyramidData(record) : undefined
+    }, [entityYears, year])
     const view = useMemo(
         () =>
             pyramidData
-                ? computePyramidView(pyramidData, data.ageBands, mode, compare)
+                ? computePyramidView(
+                      pyramidData,
+                      metadata.ageBands,
+                      mode,
+                      compare
+                  )
                 : undefined,
-        [pyramidData, data.ageBands, mode, compare]
+        [pyramidData, metadata.ageBands, mode, compare]
     )
     // Fixed across years so the axis is stable while dragging the slider
     const xMax = useMemo(
-        () => computeAxisMax(data, country, mode, compare),
-        [data, country, mode, compare]
+        () => computeAxisMax(entityYears, metadata.ageBands, mode, compare),
+        [entityYears, metadata.ageBands, mode, compare]
     )
 
     // A year with no migrant stock at all draws an empty pyramid and makes
@@ -202,12 +223,19 @@ function CaptionedPyramidVariant({
 
     // The outline only appears once the comparison is switched on
     const isShowingNatives = !!view?.natives
+    const canToggleNatives = !config.hideControls
+    const hasLegendRow = isShowingNatives || canToggleNatives
 
     return (
-        <>
+        <div
+            ref={ref}
+            className={cx("migrant-pyramid", {
+                "migrant-pyramid--narrow": isNarrow,
+            })}
+        >
             {!config.hideControls && (
                 <PyramidControls
-                    data={data}
+                    metadata={metadata}
                     country={country}
                     year={year}
                     mode={mode}
@@ -219,62 +247,73 @@ function CaptionedPyramidVariant({
                     setCompare={setCompare}
                 />
             )}
-            <Frame className="migrant-pyramid-captioned-chart">
-                <ChartHeader title={title} subtitle={subtitle} />
-                {/* Always rendered so toggling the comparison doesn't
-                    shift the chart below */}
-                <div
-                    className={cx("migrant-pyramid-legend", {
-                        "migrant-pyramid-legend--hidden": !isShowingNatives,
+            <BespokeMetadataProvider metadata={metadata.provenance}>
+                <Frame
+                    className={cx("migrant-pyramid-captioned-chart", {
+                        "migrant-pyramid-captioned-chart--with-legend":
+                            hasLegendRow,
                     })}
-                    aria-hidden={!isShowingNatives}
                 >
-                    <span className="migrant-pyramid-legend__line" />
-                    Native-born residents
-                </div>
-                <div className="migrant-pyramid-captioned-chart__chart-area">
-                    {view && pyramidData && total > 0 ? (
-                        <MigrantPyramid
-                            view={view}
-                            xMax={xMax}
-                            mode={mode}
-                            axisLabel={
-                                mode === "share"
-                                    ? isShowingNatives
-                                        ? "Share of each population"
-                                        : "Share of all immigrants"
-                                    : "Number of immigrants"
-                            }
-                            menLabel={{
-                                name: "Men",
-                                annotation: formatSexShare(
-                                    pyramidData.migrantsTotal.men,
-                                    pyramidData.migrantsTotal.total
-                                ),
-                            }}
-                            womenLabel={{
-                                name: "Women",
-                                annotation: formatSexShare(
-                                    pyramidData.migrantsTotal.women,
-                                    pyramidData.migrantsTotal.total
-                                ),
-                            }}
-                            isNarrow={isNarrow}
-                        />
-                    ) : (
-                        <div className="migrant-pyramid__no-data">
-                            {pyramidData
-                                ? `No immigrants recorded in ${formatEntityNameForSentence(country)} in ${year}.`
-                                : `No data for ${formatEntityNameForSentence(country)} in ${year}.`}
+                    <ChartHeader title={title} subtitle={subtitle} />
+                    {/* Kept in the layout while the comparison can still be
+                        toggled, so switching it doesn't shift the chart below */}
+                    {hasLegendRow && (
+                        <div
+                            className={cx("migrant-pyramid-legend", {
+                                "migrant-pyramid-legend--hidden":
+                                    !isShowingNatives,
+                            })}
+                            aria-hidden={!isShowingNatives}
+                        >
+                            <span className="migrant-pyramid-legend__line" />
+                            Native-born residents
                         </div>
                     )}
-                </div>
-                <ChartFooter
-                    source={data.source}
-                    note="Immigrants are people living in a country other than the one they were born in. Native-born residents are the total resident population minus the international migrant stock. The age and sex breakdown mostly comes from national censuses. For countries with only one census since 1990, that single profile is carried across all years and scaled to population totals."
-                />
-            </Frame>
-        </>
+                    <div className="migrant-pyramid-captioned-chart__chart-area">
+                        {isLoading && <Spinner />}
+                        {view && pyramidData && total > 0 ? (
+                            <MigrantPyramid
+                                view={view}
+                                xMax={xMax}
+                                mode={mode}
+                                axisLabel={
+                                    mode === "share"
+                                        ? isShowingNatives
+                                            ? "Share of each population"
+                                            : "Share of all immigrants"
+                                        : "Number of immigrants"
+                                }
+                                menLabel={{
+                                    name: "Men",
+                                    annotation: formatSexShare(
+                                        pyramidData.migrantsTotal.men,
+                                        pyramidData.migrantsTotal.total
+                                    ),
+                                }}
+                                womenLabel={{
+                                    name: "Women",
+                                    annotation: formatSexShare(
+                                        pyramidData.migrantsTotal.women,
+                                        pyramidData.migrantsTotal.total
+                                    ),
+                                }}
+                                isNarrow={isNarrow}
+                            />
+                        ) : (
+                            <div className="migrant-pyramid__no-data">
+                                {pyramidData
+                                    ? `No immigrants recorded in ${formatEntityNameForSentence(country)} in ${year}.`
+                                    : `No data for ${formatEntityNameForSentence(country)} in ${year}.`}
+                            </div>
+                        )}
+                    </div>
+                    <ChartFooter
+                        source={metadata.source}
+                        note="Immigrants are people living in a country other than the one they were born in. Native-born residents are the total resident population minus the international migrant stock. The age and sex breakdown mostly comes from national censuses. For countries with only one census since 1990, that single profile is carried across all years and scaled to population totals."
+                    />
+                </Frame>
+            </BespokeMetadataProvider>
+        </div>
     )
 }
 
@@ -285,12 +324,4 @@ function chartTitle(country: string, year: number): string {
 function chartSubtitle(country: string, total: number): string {
     const count = formatCountLong(total)
     return `The age and sex profile of the ${count} people living in ${formatEntityNameForSentence(country)} who were born elsewhere.`
-}
-
-function PyramidSkeleton(): React.ReactElement {
-    return (
-        <div className="migrant-pyramid-skeleton">
-            <Spinner />
-        </div>
-    )
 }

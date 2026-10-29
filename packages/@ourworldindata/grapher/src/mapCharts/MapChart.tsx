@@ -29,6 +29,7 @@ import {
     MapColumnInfo,
     PROJECTED_DATA_LEGEND_COLOR,
     MapViewport,
+    MAP_NARROW_FRAME_PADDING_HORIZONTAL,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
@@ -37,6 +38,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_MAX_TOOLTIP_WIDTH,
     Patterns,
+    makePatternId,
 } from "../core/GrapherConstants"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
@@ -57,6 +59,7 @@ import {
 } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
+    Color,
     ColumnSlug,
     EntityName,
     GrapherVariant,
@@ -70,7 +73,10 @@ import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { match } from "ts-pattern"
-import { makeProjectedDataPatternId } from "./MapComponents"
+import {
+    InapplicablePattern,
+    makeProjectedDataLegendPatternId,
+} from "./MapComponents"
 import { MapChartState } from "./MapChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
@@ -95,6 +101,9 @@ export class MapChart
             tooltipState: observable,
         })
     }
+
+    private readonly tooltipId = guid()
+    private readonly renderUid = guid()
 
     hoverBracket: MapBracket | undefined = undefined
 
@@ -128,6 +137,10 @@ export class MapChart
 
     @computed get inapplicableEntityNamesSet(): Set<EntityName> {
         return this.chartState.inapplicableEntityNamesSet
+    }
+
+    @computed get inapplicableColor(): Color {
+        return this.colorScale.inapplicableColor
     }
 
     @computed private get targetTime(): number | undefined {
@@ -206,6 +219,14 @@ export class MapChart
 
     @action.bound onLegendMouseLeave(): void {
         this.hoverBracket = undefined
+    }
+
+    @computed get patternScale(): number {
+        return this.manager.patternScale ?? 1
+    }
+
+    @computed get patternIdSuffix(): string | undefined {
+        return this.manager.patternIdSuffix
     }
 
     @computed get mapConfig(): MapConfig {
@@ -307,18 +328,43 @@ export class MapChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
+    // On narrow screens and small static exports (e.g. thumbnails), the width
+    // of the 2D map is the limiting factor, so we let the map extend into the
+    // horizontal frame padding
+    @computed private get shouldExtendMapIntoFramePadding(): boolean {
+        return (
+            !this.isFaceted &&
+            !this.mapConfig.globe.isActive &&
+            !!(this.manager.isSemiNarrow || this.manager.isStaticAndSmall)
+        )
+    }
+
     @computed get choroplethMapBounds(): Bounds {
-        return this.bounds.padBottom(
+        // On narrow viewports (especially on mobile), EXPAND the viewport
+        // so that it doesn't have the typical frame padding around it, but instead
+        // only a very narrow frame padding.
+        // This way, the map can expand a lot more horizontally and is displayed
+        // a lot bigger.
+        // The frame padding isn't always the same: captioned charts use
+        // GRAPHER_FRAME_PADDING_HORIZONTAL, while thumbnails and other uncaptioned
+        // charts use a size-dependent chart area padding. Since the map's bounds
+        // are positioned relative to the frame edge, their x offset is the actual
+        // padding we can extend into.
+        const expansion = Math.max(
+            0,
+            this.bounds.x - MAP_NARROW_FRAME_PADDING_HORIZONTAL
+        )
+        const bounds = this.shouldExtendMapIntoFramePadding
+            ? this.bounds.expand({ left: expansion, right: expansion })
+            : this.bounds
+
+        return bounds.padBottom(
             this.legendHeight
                 ? this.legendHeight +
                       PADDING_BETWEEN_MAP_AND_LEGEND +
                       PADDING_BELOW_MAP_LEGEND
                 : 0
         )
-    }
-
-    @computed private get region(): MapRegionName {
-        return this.mapConfig.region
     }
 
     @computed private get shouldAddProjectionPatternToLegendBins(): boolean {
@@ -336,37 +382,42 @@ export class MapChart
             .exhaustive()
     }
 
-    private maybeAddPatternRefToBin<Bin extends ColorScaleBin>(bin: Bin): Bin {
+    private maybeAddPatternRefsToBin<Bin extends ColorScaleBin>(bin: Bin): Bin {
         if (isNoDataBin(bin))
             return new CategoricalBin({
                 ...bin.props,
-                patternRef: Patterns.noDataPattern,
+                fillPatternRef: makePatternId(
+                    Patterns.noDataPattern,
+                    this.patternIdSuffix
+                ),
             }) as Bin
 
         if (isInapplicableBin(bin))
             return new CategoricalBin({
                 ...bin.props,
-                patternRef: Patterns.inapplicablePattern,
+                fillPatternRef: makePatternId(
+                    Patterns.inapplicablePattern,
+                    this.patternIdSuffix
+                ),
             }) as Bin
 
-        if (isProjectedDataBin(bin)) {
-            const patternRef = makeProjectedDataPatternId(
-                PROJECTED_DATA_LEGEND_COLOR,
-                { forLegend: true }
-            )
-            return new CategoricalBin({ ...bin.props, patternRef }) as Bin
-        }
+        const overlayPatternRef = makeProjectedDataLegendPatternId(
+            this.patternIdSuffix
+        )
 
-        if (this.shouldAddProjectionPatternToLegendBins) {
-            const patternRef = makeProjectedDataPatternId(bin.color, {
-                forLegend: true,
-            })
+        if (isProjectedDataBin(bin))
+            return new CategoricalBin({
+                ...bin.props,
+                color: PROJECTED_DATA_LEGEND_COLOR,
+                overlayPatternRef,
+            }) as Bin
+
+        if (this.shouldAddProjectionPatternToLegendBins)
             return (
                 bin instanceof CategoricalBin
-                    ? new CategoricalBin({ ...bin.props, patternRef })
-                    : new NumericBin({ ...bin.props, patternRef })
+                    ? new CategoricalBin({ ...bin.props, overlayPatternRef })
+                    : new NumericBin({ ...bin.props, overlayPatternRef })
             ) as Bin
-        }
 
         return bin
     }
@@ -374,7 +425,7 @@ export class MapChart
     @computed get numericLegendData(): ColorScaleBin[] {
         const numericBins = this.legendData
             .filter((bin) => isNumericBin(bin))
-            .map((bin) => this.maybeAddPatternRefToBin(bin))
+            .map((bin) => this.maybeAddPatternRefsToBin(bin))
 
         if (this.hasCategoricalLegendData) return numericBins
 
@@ -382,7 +433,7 @@ export class MapChart
         // "Not applicable") to the numeric legend
         const categoricalBins = this.legendData
             .filter((bin) => isCategoricalBin(bin))
-            .map((bin) => this.maybeAddPatternRefToBin(bin))
+            .map((bin) => this.maybeAddPatternRefsToBin(bin))
 
         return [...categoricalBins, ...numericBins]
     }
@@ -407,7 +458,7 @@ export class MapChart
     @computed get categoricalLegendData(): CategoricalBin[] {
         let categoricalLegendData = this.legendData
             .filter((bin) => isCategoricalBin(bin))
-            .map((bin) => this.maybeAddPatternRefToBin(bin))
+            .map((bin) => this.maybeAddPatternRefsToBin(bin))
 
         // Hide empty bins in thumbnails
         if (
@@ -429,6 +480,13 @@ export class MapChart
         // Collapse bins that would render identical swatches (same label and
         // color) into one, so the legend doesn't show visual duplicates
         return mergeCategoricalBinsByLabelAndColor(categoricalLegendData)
+    }
+
+    @computed private get shouldDefineInapplicablePattern(): boolean {
+        return (
+            this.chartState.hasInapplicableBin ||
+            this.legendData.some((bin) => isInapplicableBin(bin))
+        )
     }
 
     @computed private get hasCategoricalLegendData(): boolean {
@@ -538,7 +596,7 @@ export class MapChart
         return new HorizontalCategoricalColorLegendState(
             this.categoricalLegendData,
             {
-                fontSize: this.fontSize,
+                baseFontSize: this.fontSize,
                 width: this.legendMaxWidth,
                 align: HorizontalAlign.center,
             }
@@ -551,7 +609,7 @@ export class MapChart
         if (!this.manager.showLegend || this.numericLegendData.length <= 1)
             return undefined
         return new HorizontalNumericColorLegendState(this.numericLegendData, {
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             maxWidth: this.legendMaxWidth,
             align: HorizontalAlign.center,
             binSize: this.numericBinSize,
@@ -583,10 +641,6 @@ export class MapChart
 
     @computed get isStatic(): boolean {
         return this.manager.isStatic ?? false
-    }
-
-    @computed private get renderUid(): number {
-        return guid()
     }
 
     @computed private get clipPath(): ClipPath {
@@ -635,17 +689,30 @@ export class MapChart
         )
     }
 
-    renderMapOrGlobe({ clipping = true } = {}): React.ReactElement {
+    renderMapOrGlobe(): React.ReactElement {
         const mapOrGlobe = this.mapConfig.globe.isActive ? (
             <ChoroplethGlobe manager={this} />
         ) : (
             <ChoroplethMap manager={this} />
         )
 
-        if (!clipping) return mapOrGlobe
-
         return (
             <>
+                {this.shouldDefineInapplicablePattern && (
+                    <defs>
+                        <InapplicablePattern
+                            patternId={makePatternId(
+                                Patterns.inapplicablePattern,
+                                this.patternIdSuffix
+                            )}
+                            color={this.inapplicableColor}
+                            scale={this.patternScale}
+                        />
+                    </defs>
+                )}
+                {/* Clip the map to its bounds, since the viewport can crop the
+                map (e.g. the World map cuts off some Pacific islands at its
+                edges) */}
                 {this.clipPath.element}
                 <g clipPath={this.clipPath.id}>{mapOrGlobe}</g>
             </>
@@ -653,16 +720,9 @@ export class MapChart
     }
 
     renderStatic(): React.ReactElement {
-        // Clipping the chart area is only necessary when the map is
-        // zoomed in or we're showing the globe. If that isn't the case,
-        // then we don't add a clipping element since it introduces noise
-        // in SVG editing programs like Figma.
-        const clipping =
-            this.mapConfig.globe.isActive || this.region !== MapRegionName.World
-
         return (
             <>
-                {this.renderMapOrGlobe({ clipping })}
+                {this.renderMapOrGlobe()}
                 {this.renderMapLegend()}
             </>
         )
@@ -697,6 +757,7 @@ export class MapChart
                 {this.renderMapLegend()}
                 {tooltipCountry && (
                     <MapTooltip
+                        id={this.tooltipId}
                         mapColumnSlug={this.mapColumnSlug}
                         mapColumnInfo={this.mapColumnInfo}
                         entityName={tooltipCountry}

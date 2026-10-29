@@ -7,7 +7,7 @@ import {
     ValueRange,
 } from "@ourworldindata/utils"
 import {
-    SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES,
+    SCATTER_LABEL_FONT_SIZE_WHEN_HIDDEN_LINES,
     SCATTER_LINE_DEFAULT_WIDTH,
     SCATTER_LINE_MAX_WIDTH,
     SCATTER_POINT_DEFAULT_RADIUS,
@@ -16,7 +16,7 @@ import {
     ScatterRenderPoint,
     ScatterRenderSeries,
 } from "./ScatterPlotChartConstants"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
 import { OwidTable } from "@ourworldindata/core-table"
 
@@ -41,12 +41,12 @@ export const makeStartLabel = (
     if (!series.isForeground || series.points.length <= 1) return undefined
 
     const fontSize = hideConnectedScatterLines
-        ? SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES * baseFontSize
+        ? scaleFontSize(SCATTER_LABEL_FONT_SIZE_WHEN_HIDDEN_LINES, baseFontSize)
         : series.isForeground
           ? isSubtleForeground
-              ? (8 / BASE_FONT_SIZE) * baseFontSize
-              : (9 / BASE_FONT_SIZE) * baseFontSize
-          : (7 / BASE_FONT_SIZE) * baseFontSize
+              ? scaleFontSize(8, baseFontSize)
+              : scaleFontSize(9, baseFontSize)
+          : scaleFontSize(7, baseFontSize)
     const firstValue = series.points[0]
     const nextValue = series.points[1]
     const nextSegment = nextValue.position.subtract(firstValue.position)
@@ -99,12 +99,12 @@ export const makeMidLabels = (
         return []
 
     const fontSize = hideConnectedScatterLines
-        ? SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES * baseFontSize
+        ? scaleFontSize(SCATTER_LABEL_FONT_SIZE_WHEN_HIDDEN_LINES, baseFontSize)
         : series.isForeground
           ? isSubtleForeground
-              ? (8 / BASE_FONT_SIZE) * baseFontSize
-              : (9 / BASE_FONT_SIZE) * baseFontSize
-          : (7 / BASE_FONT_SIZE) * baseFontSize
+              ? scaleFontSize(8, baseFontSize)
+              : scaleFontSize(9, baseFontSize)
+          : scaleFontSize(7, baseFontSize)
     const fontWeight = 400
 
     // label all the way to the end for the tooltip series, otherwise to n-1
@@ -180,9 +180,11 @@ export const makeEndLabel = (
     const lastValue = R.last(series.points) as ScatterRenderPoint
     const lastPos = lastValue.position
     const fontSize = hideConnectedScatterLines
-        ? SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES * baseFontSize
-        : series.fontSize *
-          (series.isForeground ? (isSubtleForeground ? 1.2 : 1.3) : 1.1)
+        ? scaleFontSize(SCATTER_LABEL_FONT_SIZE_WHEN_HIDDEN_LINES, baseFontSize)
+        : roundFontSize(
+              series.fontSize *
+                  (series.isForeground ? (isSubtleForeground ? 1.2 : 1.3) : 1.1)
+          )
     const fontWeight =
         series.isForeground && !hideConnectedScatterLines ? 700 : 400
 

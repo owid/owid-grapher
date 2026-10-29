@@ -4,15 +4,15 @@ import {
     Bounds,
     GridParameters,
     HorizontalAlign,
-    makeFigmaId,
-    exposeInstanceOnWindow,
     SplitBoundsPadding,
+    exposeInstanceOnWindow,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_18,
 } from "../core/GrapherConstants"
 import {
     ChartErrorInfo,
@@ -22,6 +22,7 @@ import {
     Time,
 } from "@ourworldindata/types"
 import { calculateAspectRatio } from "./FacetChartUtils"
+import { scaleFontSize } from "../chart/ChartUtils"
 import {
     FacetMapManager,
     MapFacetSeries,
@@ -51,7 +52,6 @@ import {
 } from "../mapCharts/MapChart"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
 import {
-    MAP_VIEWPORT_FACETED_WORLD,
     MAP_VIEWPORTS,
     MapChartManager,
     MapViewport,
@@ -150,7 +150,7 @@ export class FacetMap
     }
 
     @computed private get facetFontSize(): number {
-        return Math.floor(this.fontSize * GRAPHER_FONT_SCALE_18)
+        return scaleFontSize(18, this.fontSize)
     }
 
     @computed private get mapConfig(): MapConfig {
@@ -159,10 +159,6 @@ export class FacetMap
 
     @computed private get mapViewport(): MapViewport {
         const { region } = this.mapConfig
-
-        // Use a custom viewport for the World map that zooms in a little bit to make best use of the space
-        if (region === MapRegionName.World) return MAP_VIEWPORT_FACETED_WORLD
-
         return MAP_VIEWPORTS[region]
     }
 
@@ -228,8 +224,6 @@ export class FacetMap
     @computed get series(): MapFacetSeries[] {
         return this.targetTimes.map((time) => ({
             seriesName: this.table.timeColumn.formatTime(time),
-            // Required for a ChartSeries, but isn't meaningful for facets
-            color: "none",
             // Only set overrides for this facet. Default properties are set elsewhere.
             manager: { targetTime: time },
         }))
@@ -280,6 +274,8 @@ export class FacetMap
             projectionColumnInfoBySlug,
             isFaceted,
             yColumnSlug,
+            patternScale,
+            patternIdSuffix,
         } = manager
 
         return series.map((series, index) => {
@@ -307,6 +303,8 @@ export class FacetMap
                 mapViewport,
                 isFaceted,
                 yColumnSlug,
+                patternScale,
+                patternIdSuffix,
                 ...series.manager,
             }
 
@@ -314,7 +312,6 @@ export class FacetMap
                 bounds,
                 manager,
                 seriesName: series.seriesName,
-                color: series.color,
             }
         })
     }
@@ -434,7 +431,7 @@ export class FacetMap
         return new HorizontalCategoricalColorLegendState(
             this.categoricalLegendData,
             {
-                fontSize: this.fontSize,
+                baseFontSize: this.fontSize,
                 width: this.legendMaxWidth,
                 align: HorizontalAlign.center,
             }
@@ -446,7 +443,7 @@ export class FacetMap
         | undefined {
         if (this.numericLegendData.length <= 1) return undefined
         return new HorizontalNumericColorLegendState(this.numericLegendData, {
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             maxWidth: this.legendMaxWidth,
             align: HorizontalAlign.center,
         })
@@ -527,7 +524,7 @@ export class FacetMap
         // It looks nicer to position the facet label closer to the actual map content
         // rather than at the very top
 
-        const mapAspectRatio = MAP_VIEWPORT_FACETED_WORLD.ratio
+        const mapAspectRatio = MAP_VIEWPORTS.World.ratio
 
         // Find the map's width and height
         const mapWidth = bounds.width
@@ -594,10 +591,10 @@ export class FacetMap
         ) {
             return (
                 <line
-                    x1={bounds.centerX}
-                    y1={bounds.top}
-                    x2={bounds.centerX}
-                    y2={bounds.bottom}
+                    x1={roundForSvg(bounds.centerX)}
+                    y1={roundForSvg(bounds.top)}
+                    x2={roundForSvg(bounds.centerX)}
+                    y2={roundForSvg(bounds.bottom)}
                     stroke={GRAY_30}
                 />
             )

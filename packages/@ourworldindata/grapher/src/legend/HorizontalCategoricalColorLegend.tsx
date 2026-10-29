@@ -1,5 +1,10 @@
 import * as React from "react"
-import { dyFromAlign, makeFigmaId, VerticalAlign } from "@ourworldindata/utils"
+import {
+    VerticalAlign,
+    dyFromAlign,
+    makeFigmaId,
+    roundForSvg,
+} from "@ourworldindata/utils"
 import {
     resolveLegendMarkerStyle,
     resolveLegendTextStyle,
@@ -50,20 +55,37 @@ export function HorizontalCategoricalColorLegend(
                         }
                     )
 
-                    const fill = mark.bin.patternRef
-                        ? `url(#${mark.bin.patternRef})`
+                    const fill = mark.bin.fillPatternRef
+                        ? `url(#${mark.bin.fillPatternRef})`
                         : style.fill
 
+                    const geometry = {
+                        x: roundForSvg(x + mark.x),
+                        y: roundForSvg(y + mark.y),
+                        width: roundForSvg(mark.rectSize),
+                        height: roundForSvg(mark.rectSize),
+                    }
+
                     return (
-                        <rect
-                            id={makeFigmaId(mark.label.text)}
-                            key={`${mark.label}-${index}`}
-                            x={x + mark.x}
-                            y={y + mark.y}
-                            width={mark.rectSize}
-                            height={mark.rectSize}
-                            style={{ ...style, fill }}
-                        />
+                        <React.Fragment key={`${mark.label}-${index}`}>
+                            <rect
+                                id={makeFigmaId(mark.label.text)}
+                                {...geometry}
+                                style={{ ...style, fill }}
+                            />
+                            {mark.bin.overlayPatternRef && (
+                                <rect
+                                    id={makeFigmaId(
+                                        mark.label.text,
+                                        "projected-data-pattern"
+                                    )}
+                                    {...geometry}
+                                    fill={`url(#${mark.bin.overlayPatternRef})`}
+                                    opacity={style.opacity}
+                                    pointerEvents="none"
+                                />
+                            )}
+                        </React.Fragment>
                     )
                 })}
             </g>
@@ -77,8 +99,8 @@ export function HorizontalCategoricalColorLegend(
                     return (
                         <text
                             key={`${mark.label}-${index}`}
-                            x={x + mark.label.bounds.x}
-                            y={y + mark.label.bounds.y}
+                            x={roundForSvg(x + mark.label.bounds.x)}
+                            y={roundForSvg(y + mark.label.bounds.y)}
                             // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                             // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
                             // do with some rough positioning.
@@ -128,13 +150,17 @@ export function HorizontalCategoricalColorLegend(
                                 onPointerUp={pointerUp}
                             >
                                 <rect
-                                    x={x + mark.x}
-                                    y={y + mark.y - rectPadding / 2}
-                                    height={mark.rectSize + rectPadding}
-                                    width={
+                                    x={roundForSvg(x + mark.x)}
+                                    y={roundForSvg(
+                                        y + mark.y - rectPadding / 2
+                                    )}
+                                    height={roundForSvg(
+                                        mark.rectSize + rectPadding
+                                    )}
+                                    width={roundForSvg(
                                         mark.width +
-                                        SPACE_BETWEEN_CATEGORICAL_BINS
-                                    }
+                                            SPACE_BETWEEN_CATEGORICAL_BINS
+                                    )}
                                     fill="#fff"
                                     opacity={0}
                                 />

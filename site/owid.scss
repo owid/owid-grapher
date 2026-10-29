@@ -35,6 +35,12 @@
 @import "../packages/@ourworldindata/components/src/DownloadButton/DownloadButton.scss";
 @import "../packages/@ourworldindata/components/src/DownloadApiOptions/DownloadApiOptions.scss";
 @import "../packages/@ourworldindata/components/src/TextInput.scss";
+@import "../packages/@ourworldindata/components/src/MetadataBox/MetadataBoxExpander.scss";
+@import "../packages/@ourworldindata/components/src/MetadataBox/MetadataBoxCollapseButton.scss";
+@import "../packages/@ourworldindata/components/src/MetadataBox/MetadataBoxSection.scss";
+@import "../packages/@ourworldindata/components/src/MetadataBox/MetadataBoxKeyData.scss";
+@import "../packages/@ourworldindata/components/src/BespokeMetadata/BespokeMetadataHeading.scss";
+@import "../packages/@ourworldindata/components/src/BespokeMetadata/BespokeMetadataSections.scss";
 
 @import "../packages/@ourworldindata/explorer/src/Explorer.scss";
 @import "../packages/@ourworldindata/explorer/src/ExplorerControls.scss";
@@ -53,7 +59,10 @@
 @import "./latest/LatestHitMetadata.scss";
 @import "./latest/LatestArticleHit.scss";
 @import "./latest/LatestDataInsightHit.scss";
+@import "./latest/LatestDataInsightExpanded.scss";
+@import "./latest/LatestViewToggle.scss";
 @import "./latest/LatestAnnouncementHit.scss";
+@import "./latest/LatestDataUpdateHit.scss";
 @import "./latest/AnnouncementContent.scss";
 @import "./latest/LatestSearchSkeleton.scss";
 @import "./latest/ExpandableText.scss";
@@ -90,7 +99,6 @@
 @import "./search/SearchResultHeader.scss";
 @import "./search/SearchNoResults.scss";
 @import "./search/SearchClosestMatchesNotice.scss";
-@import "./search/SearchDetectedFilters.scss";
 @import "./search/skeletons.scss";
 @import "./search/SearchResultHeaderSkeleton.scss";
 @import "./search/SearchWritingResultsSkeleton.scss";
@@ -134,7 +142,9 @@
 @import "./gdocs/components/centered-article.scss";
 @import "./gdocs/components/topic-page.scss";
 @import "./gdocs/components/BespokeComponent.scss";
+@import "./gdocs/components/BespokeMetadataBox.scss";
 @import "./gdocs/components/Callout.scss";
+@import "./gdocs/components/Credits.scss";
 @import "./gdocs/components/CountryProfileSelector.scss";
 @import "./gdocs/components/ChartPreview.scss";
 @import "./gdocs/components/DataInsightDateline.scss";
@@ -143,9 +153,15 @@
 @import "./gdocs/components/ProminentLink.scss";
 @import "./gdocs/components/Image.scss";
 @import "./gdocs/components/StaticVizDownload.scss";
-@import "./gdocs/components/LatestDataInsights.scss";
+@import "./gdocs/components/LatestCarousel.scss";
+@import "./gdocs/components/LatestCarouselSection.scss";
+@import "./gdocs/components/LatestBreadcrumb.scss";
+@import "./gdocs/components/StandalonePostBody.scss";
+@import "./gdocs/components/RelatedTopicsList.scss";
+@import "./gdocs/components/CopyLinkButton.scss";
 @import "./gdocs/components/LatestDataInsightsBlock.scss";
 @import "./gdocs/components/LinkedAuthor.scss";
+@import "./gdocs/components/AvatarByline.scss";
 @import "./gdocs/components/SDGGrid.scss";
 @import "./gdocs/components/SDGTableOfContents.scss";
 @import "./gdocs/components/LTPTableOfContents.scss";
@@ -196,12 +212,11 @@
 @import "./MetadataSection.scss";
 @import "./TopicTags.scss";
 
-@import "./gdocs/pages/DataInsight.scss";
 @import "./gdocs/pages/Homepage.scss";
 @import "./gdocs/pages/Author.scss";
 @import "./gdocs/pages/AboutPage.scss";
-@import "./gdocs/pages/Announcement.scss";
 @import "./gdocs/pages/Profile.scss";
+@import "./gdocs/pages/FeaturedViz.scss";
 @import "./slideshows/SlideshowPage.scss";
 @import "./slideshows/SlideContent.scss";
 @import "./experiments.scss";
@@ -350,7 +365,7 @@ h6 {
             margin: 0 0.6rem 0.6rem 0;
         }
 
-        @media screen and (max-width: 640px) {
+        @media screen and (width <= 640px) {
             .column {
                 display: block;
             }

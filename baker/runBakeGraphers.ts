@@ -1,4 +1,6 @@
 #! /usr/bin/env node
+import "../serverUtils/instrument.js"
+import { runSentryScript } from "../serverUtils/sentryTracing.js"
 import { bakeAllChangedGrapherPagesAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import * as db from "../db/db.js"
 
@@ -17,4 +19,4 @@ const main = async (folder: string) => {
 }
 
 const dir = process.argv.slice(2).join(" ")
-void main(dir)
+void runSentryScript("bake-graphers", () => main(dir), { trace: false })

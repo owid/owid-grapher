@@ -34,3 +34,5 @@ document.documentElement?.classList.add("js-loaded")
 
 analytics.startClickTracking()
 analytics.startDetectingBrowserTranslation()
+analytics.startPrintTracking()
+analytics.startFindInPageTracking()

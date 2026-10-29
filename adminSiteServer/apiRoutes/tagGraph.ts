@@ -39,7 +39,7 @@ export async function handlePostTagGraph(
                 if (!R.isString(key) && isNaN(Number(key))) {
                     return false
                 }
-                if (!R.isArray(value)) {
+                if (!Array.isArray(value)) {
                     return false
                 }
                 for (const tag of value) {

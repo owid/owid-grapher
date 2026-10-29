@@ -3,6 +3,7 @@ import { observable, makeObservable } from "mobx"
 interface Variable {
     id: number
     name: string
+    slug?: string
 }
 
 export interface Dataset {
@@ -27,17 +28,48 @@ export interface NamespaceData {
     datasets: Dataset[]
 }
 
+export interface IndicatorCatalogData {
+    namespaces: Namespace[]
+    datasets: Dataset[]
+    /** Number of charts using a variable keyed by id */
+    usageCounts?: Map<number, number>
+}
+
 export class EditorDatabase {
     namespaces: Namespace[]
-    variableUsageCounts: Map<number, number> = new Map()
+    variableUsageCounts: Map<number, number> | undefined = undefined
     dataByNamespace: Map<string, NamespaceData> = new Map()
 
-    constructor(json: any) {
+    constructor(data: IndicatorCatalogData) {
         makeObservable(this, {
             namespaces: observable.ref,
             variableUsageCounts: observable.ref,
             dataByNamespace: observable,
         })
-        this.namespaces = json.namespaces
+        this.namespaces = data.namespaces
+        this.variableUsageCounts = data.usageCounts
+        for (const dataset of data.datasets) {
+            const entry = this.dataByNamespace.get(dataset.namespace)
+            if (entry) entry.datasets.push(dataset)
+            else
+                this.dataByNamespace.set(dataset.namespace, {
+                    datasets: [dataset],
+                })
+        }
+    }
+
+    usageCount(variableId: number): number | undefined {
+        return (
+            this.variableUsageCounts &&
+            (this.variableUsageCounts.get(variableId) ?? 0)
+        )
+    }
+
+    static empty(): EditorDatabase {
+        return new EditorDatabase({ namespaces: [], datasets: [] })
+    }
+
+    get isEmpty(): boolean {
+        return this.namespaces.length === 0
     }
 }

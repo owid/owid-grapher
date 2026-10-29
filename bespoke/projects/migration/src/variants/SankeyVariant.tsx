@@ -15,18 +15,25 @@ import {
     OTHER_KEY,
 } from "../../../../components/Sankey/SankeyHelpers.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
+import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 import {
     isUserLocationCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 
-import { SankeyVariantConfig } from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
+import type { MigrationConfig } from "../index.js"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import {
+    DEFAULT_COUNTRY,
     MigrationFlow,
     MigrationRow,
     MigrationView,
@@ -43,14 +50,15 @@ import {
 import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
 
-const DEFAULT_COUNTRY = "United States"
-const DEFAULT_VIEW: MigrationView = "both"
+/** Sentinel year that resolves to the latest year in the data */
+const LATEST_YEAR = -1
 
 const queryClient = new QueryClient()
 
 export function SankeyVariant({
     config,
-}: VariantProps<SankeyVariantConfig>): React.ReactElement {
+    urls,
+}: BespokeVariantProps<MigrationConfig>): React.ReactElement {
     const { width, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
@@ -64,7 +72,7 @@ export function SankeyVariant({
                             "migration-chart--narrow": isNarrow,
                         })}
                     >
-                        <FetchingSankeyVariant config={config} />
+                        <FetchingSankeyVariant config={config} urls={urls} />
                     </div>
                 </QueryClientProvider>
             </NuqsAdapter>
@@ -74,26 +82,31 @@ export function SankeyVariant({
 
 type Metadata = NonNullable<ReturnType<typeof useMigrationMetadata>["data"]>
 
-function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
-    const initialCountry =
-        !config.country || isUserLocationCountry(config.country)
-            ? DEFAULT_COUNTRY
-            : config.country
+function FetchingSankeyVariant({
+    config,
+    urls,
+}: {
+    config: MigrationConfig
+    urls: BespokeComponentDataUrls
+}) {
+    const initialCountry = isUserLocationCountry(config.country)
+        ? DEFAULT_COUNTRY
+        : config.country
 
-    const [country, setCountry] = useUrlState({
+    const [requestedCountry, setCountry] = useUrlState({
         key: "migrationCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
     })
-    const [year, setYear] = useUrlState({
+    const [requestedYear, setYear] = useUrlState({
         key: "migrationYear",
         parser: parseAsInteger,
-        defaultValue: config.year ?? 2024,
+        defaultValue: config.year ?? LATEST_YEAR,
     })
     const [sex, setSex] = useUrlState({
         key: "migrationSex",
         parser: parseAsStringEnum<Sex>(["both", "female", "male"]),
-        defaultValue: config.sex ?? "both",
+        defaultValue: config.sex,
     })
     const [_view, setView] = useUrlState({
         key: "migrationFlow",
@@ -102,10 +115,17 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
             "immigrants",
             "emigrants",
         ]),
-        defaultValue: config.flow ?? DEFAULT_VIEW,
+        defaultValue: config.flow,
     })
 
-    const { data: metadata, status: metadataStatus } = useMigrationMetadata()
+    const { data: metadata, status: metadataStatus } = useMigrationMetadata(
+        urls.metadataUrl
+    )
+
+    const year =
+        metadata && !metadata.times.includes(requestedYear)
+            ? (R.last(metadata.times) ?? requestedYear)
+            : requestedYear
 
     const availableCountryNames = useMemo(
         () =>
@@ -121,6 +141,12 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         setCountry,
     })
 
+    const country = useAvailableEntityName(
+        requestedCountry,
+        [config.country, DEFAULT_COUNTRY],
+        availableCountryNames && ((name) => availableCountryNames.has(name))
+    )
+
     const countryId = useMemo(() => {
         if (!metadata) return undefined
         return metadata.entities.find((e) => e.name === country)?.id
@@ -130,7 +156,7 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         data: migration,
         status: migrationStatus,
         isPlaceholderData,
-    } = useMigrationData(countryId, metadata)
+    } = useMigrationData(countryId, metadata, urls.dataUrl)
 
     // Dim the chart and show a spinner while a new country file loads,
     // keeping the previous country on screen until the new one arrives.
@@ -198,18 +224,14 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
           ? `No immigrants recorded in ${countryLabel} in ${year}.`
           : undefined
 
-    if (
-        metadataStatus === "pending" ||
-        migrationStatus === "pending" ||
-        !isCountryResolved
-    )
-        return <MigrationSkeleton />
+    if (metadataStatus === "pending")
+        return <ChartSkeleton className="migration-chart-box" />
     if (metadataStatus === "error" || !metadata)
-        return (
-            <MigrationChartError message="Failed to load migration metadata" />
-        )
+        return <ChartError className="migration-chart-box" />
+    if (migrationStatus === "pending" || !isCountryResolved)
+        return <ChartSkeleton className="migration-chart-box" />
     if (migrationStatus === "error" || !migration)
-        return <MigrationChartError message="Failed to load migration data" />
+        return <ChartError className="migration-chart-box" />
 
     return (
         <CaptionedSankeyVariant
@@ -255,7 +277,7 @@ function CaptionedSankeyVariant({
     setSex,
     setView,
 }: {
-    config: SankeyVariantConfig
+    config: MigrationConfig
     metadata: Metadata
     country: string
     displayedCountry: string
@@ -287,15 +309,18 @@ function CaptionedSankeyVariant({
         <>
             {!shouldHideChrome && (
                 <>
-                    <header className="migration-heading">
-                        <h1 className="migration-heading__title">
-                            Where do migrants live, and where were they born?
-                        </h1>
-                        <p className="migration-heading__description">
-                            Based on the total migrant population — not annual
-                            flows — by country of birth.
-                        </p>
-                    </header>
+                    {!config.hideHeading && (
+                        <header className="migration-heading">
+                            <h1 className="migration-heading__title">
+                                Where do migrants live, and where were they
+                                born?
+                            </h1>
+                            <p className="migration-heading__description">
+                                Based on the total migrant population — not
+                                annual flows — by country of birth.
+                            </p>
+                        </header>
+                    )}
                     <MigrationControls
                         metadata={metadata}
                         country={country}
@@ -352,7 +377,7 @@ function MigrationChartHeader({
     immigrantsTotal,
     emigrantsTotal,
 }: {
-    config: SankeyVariantConfig
+    config: MigrationConfig
     country: string
     year: number
     sex: Sex
@@ -401,12 +426,4 @@ function filterRows(
     return rows
         .filter((r) => r.year === year && r.sex === sex && r.value > 0)
         .map((r) => ({ partner: r.partner, value: r.value }))
-}
-
-function MigrationSkeleton() {
-    return <div className="migration-skeleton" />
-}
-
-function MigrationChartError({ message }: { message: string }) {
-    return <div className="migration-chart__error">{message}</div>
 }

@@ -229,6 +229,14 @@ export function TestIndexPage() {
                         </Link>
                     </li>
                 </ul>
+                <h2>Test Multi-Dims</h2>
+                <ul>
+                    <li>
+                        <Link native target="_blank" to="/test/multiDims">
+                            All multi-dims
+                        </Link>
+                    </li>
+                </ul>
             </main>
         </AdminLayout>
     )

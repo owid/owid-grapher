@@ -46,7 +46,7 @@ $grid-responsive: (lg, md, sm);
 @mixin breakpoint-max($bpmax) {
     $max: map.get($breakpoints, $bpmax);
     @if $max {
-        @media only screen and (max-width: $max) {
+        @media only screen and (width <= $max) {
             @content;
         }
     } @else {

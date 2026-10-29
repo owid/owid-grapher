@@ -22,6 +22,16 @@ const SUPERSCRIPT_NUMERALS = {
     "9": "\u2079",
 }
 
+/**
+ * Baseline shift that makes Figma's SVG importer start a new text node.
+ *
+ * Figma merges runs on the same baseline into one text node and applies some
+ * of its first run's styles, like the font family or a leading run's font
+ * weight, to the whole node. It also ignores `dx` on the merged runs. The
+ * shift is too small to be visible in browsers.
+ */
+export const FIGMA_TEXT_NODE_BREAK_DY = 0.01
+
 export interface IRFontParams {
     fontSize?: number
     fontWeight?: number
@@ -244,6 +254,18 @@ export class IRFragment extends IRElement {
         return this.inlineGap + getLineWidth(this.children)
     }
     /**
+     * Width of the space that opens the fragment's SVG run as part of its
+     * inline gap. Figma's SVG importer drops `dx` on runs it merges into one
+     * text node, so the gap can't be rendered by `dx` alone
+     */
+    @imemo private get leadingSpaceWidth(): number {
+        if (!this.inlineGap) return 0
+        return Math.min(
+            this.inlineGap,
+            Bounds.forText(" ", this.fontParams).width
+        )
+    }
+    /**
      * The inherited implementation operates on the children alone, but this
      * fragment's width includes the inline gap, so breakpoints need to be
      * shifted by the gap. The gap itself is a break opportunity (like the
@@ -347,16 +369,14 @@ export class IRFragment extends IRElement {
         return (
             <tspan
                 key={key}
-                dx={this.inlineGap || undefined}
-                style={{
-                    fontSize,
-                    fontWeight,
-                    fontFamily: fontFamily
-                        ? cssFontFamily(fontFamily)
-                        : undefined,
-                    fill: color,
-                }}
+                dx={this.inlineGap - this.leadingSpaceWidth || undefined}
+                xmlSpace={this.inlineGap ? "preserve" : undefined}
+                fontSize={fontSize}
+                fontWeight={fontWeight}
+                fontFamily={fontFamily ? cssFontFamily(fontFamily) : undefined}
+                fill={color}
             >
+                {this.inlineGap ? " " : null}
                 {children}
             </tspan>
         )

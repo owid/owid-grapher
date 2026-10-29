@@ -38,3 +38,8 @@
 /apple-touch-icon.png
     ! Cache-Control
     Cache-Control: public, max-age=604800
+
+/opensearch.xml
+    Content-Type: application/opensearchdescription+xml
+    ! Cache-Control
+    Cache-Control: public, max-age=86400

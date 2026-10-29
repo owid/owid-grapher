@@ -1,6 +1,6 @@
 import { TransactionCloseMode, knexReadonlyTransaction } from "../../db/db.js"
 import { getPostRawBySlug } from "../../db/model/Post.js"
-import { enrichedBlocksToMarkdown } from "../../db/model/Gdoc/enrichedToMarkdown.js"
+import { enrichedBlocksToMarkdown } from "@ourworldindata/gdoc-pipeline"
 
 import parseArgs from "minimist"
 import {

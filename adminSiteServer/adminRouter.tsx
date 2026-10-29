@@ -1,5 +1,5 @@
 // Misc non-SPA views
-import express, { Router } from "express"
+import express, { type Request, Router } from "express"
 import filenamify from "filenamify"
 import { Writable } from "stream"
 import { expectInt } from "../serverUtils/serverUtil.js"
@@ -32,6 +32,8 @@ import {
     SlideTemplate,
 } from "@ourworldindata/types"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
+import { stringParam } from "./queryParams.js"
+import type { PreviewQueryParam } from "./bespokeVizPreviewBlock.js"
 import {
     getMultiDimDataPageByCatalogPath,
     getMultiDimDataPageBySlug,
@@ -40,6 +42,12 @@ import { renderMultiDimDataPageFromConfig } from "../baker/MultiDimBaker.js"
 import { resolveSlideChartTypes } from "../baker/SlideshowBaker.js"
 import { getImageMetadataByFilenames } from "../db/db.js"
 import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
+import {
+    renderBespokeVizPreview,
+    renderGdocsReferenceComponentPreview,
+    renderGdocsReferenceDocumentPreview,
+    renderGdocsReferenceInstancePreview,
+} from "./gdocsReferencePreview.js"
 
 const adminRouter = Router()
 
@@ -227,6 +235,78 @@ getPlainRouteWithROTransaction(
         }
 
         throw new JsonError("No such chart", 404)
+    }
+)
+
+// Live previews for the writing reference page: registry examples rendered
+// through the real gdoc pipeline, embedded in iframes on /admin/gdocs-reference.
+getPlainRouteWithROTransaction(
+    adminRouter,
+    "/gdocs-reference/components/:id/preview",
+    async (req, res, trx) => {
+        res.send(
+            await renderGdocsReferenceComponentPreview(
+                req.params.id,
+                stringParam(req.query.example),
+                trx
+            )
+        )
+    }
+)
+
+function previewQueryParam(value: Request["query"][string]): PreviewQueryParam {
+    return { given: value !== undefined, value: stringParam(value) }
+}
+
+// One block of a bespoke viz bundle, from the registry: the default block of
+// a variant (?variant: the variant name) or a docs.md example (?example: its
+// index). Exactly one of the two; a repeated param counts as given but
+// invalid (stringParam reads an array as undefined), so it 404s.
+getPlainRouteWithROTransaction(
+    adminRouter,
+    "/gdocs-reference/bespoke-viz/:bundle/preview",
+    async (req, res, trx) => {
+        res.send(
+            await renderBespokeVizPreview(
+                req.params.bundle,
+                previewQueryParam(req.query.variant),
+                previewQueryParam(req.query.example),
+                trx
+            )
+        )
+    }
+)
+
+// A real component instance — the block at ?path in the published gdoc
+// ?gdocId — rendered with that document's real context (query params because
+// JSON paths contain dots and brackets).
+getPlainRouteWithROTransaction(
+    adminRouter,
+    "/gdocs-reference/instance/preview",
+    async (req, res, trx) => {
+        res.send(
+            await renderGdocsReferenceInstancePreview(
+                stringParam(req.query.gdocId),
+                stringParam(req.query.path),
+                trx
+            )
+        )
+    }
+)
+
+// A whole published document — a template's exemplar — rendered as the site
+// renders it (?entity: the entity slug a profile is instantiated for).
+getPlainRouteWithROTransaction(
+    adminRouter,
+    "/gdocs-reference/documents/:id/preview",
+    async (req, res, trx) => {
+        res.send(
+            await renderGdocsReferenceDocumentPreview(
+                req.params.id,
+                stringParam(req.query.entity),
+                trx
+            )
+        )
     }
 )
 

@@ -5,9 +5,14 @@ import { QueryClientProvider } from "@tanstack/react-query"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 
-import type { PopulationVariantConfig } from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
+import type { DemographyConfig } from "../index.js"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import type { CountryData, DemographyMetadata } from "../core/types.js"
 
 import { queryClient, useDemographyData } from "../core/fetch.js"
@@ -15,6 +20,7 @@ import {
     START_YEAR,
     END_YEAR,
     CHART_FOOTER_SOURCES,
+    DEFAULT_ENTITY_NAME,
 } from "../core/constants.js"
 import {
     useSimulation,
@@ -27,10 +33,8 @@ import {
     breakpointClass,
 } from "../core/useBreakpoint.js"
 
-import {
-    DemographyChartError,
-    DemographySkeleton,
-} from "../components/DemographyLoadAndError.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { PopulationChart } from "../components/PopulationChart.js"
 import { ParameterChartsDisclosure } from "../components/ParameterChartsDisclosure.js"
@@ -38,38 +42,54 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 
 export function PopulationVariant({
     config,
-}: VariantProps<PopulationVariantConfig>): React.ReactElement {
+    urls,
+}: BespokeVariantProps<DemographyConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <BreakpointProvider value={breakpoint}>
-                <div
-                    ref={rootRef}
-                    className={cx(
-                        "demography-chart demography-chart__population-variant",
-                        breakpointClass(breakpoint)
-                    )}
-                >
-                    <FetchingPopulationVariant config={config} />
-                </div>
-            </BreakpointProvider>
-        </QueryClientProvider>
+        <EmbedConfigProvider config={config}>
+            <QueryClientProvider client={queryClient}>
+                <BreakpointProvider value={breakpoint}>
+                    <div
+                        ref={rootRef}
+                        className={cx(
+                            "demography-chart demography-chart__population-variant",
+                            breakpointClass(breakpoint)
+                        )}
+                    >
+                        <FetchingPopulationVariant
+                            config={config}
+                            urls={urls}
+                        />
+                    </div>
+                </BreakpointProvider>
+            </QueryClientProvider>
+        </EmbedConfigProvider>
     )
 }
 
 function FetchingPopulationVariant({
     config,
+    urls,
 }: {
-    config: PopulationVariantConfig
+    config: DemographyConfig
+    urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(config.region)
+    const [requestedEntityName, setEntityName] = useInitialEntityName(
+        config.region,
+        urls.metadataUrl
+    )
 
-    const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName)
+    const { entityName, metadata, entityData, isLoadingEntityData, status } =
+        useDemographyData(requestedEntityName, urls, [
+            config.region,
+            DEFAULT_ENTITY_NAME,
+        ])
 
-    if (status === "pending") return <DemographySkeleton />
-    if (!metadata || !entityData) return <DemographyChartError />
+    if (status === "pending")
+        return <ChartSkeleton className="demography-chart-box" />
+    if (!metadata || !entityData)
+        return <ChartError className="demography-chart-box" />
 
     return (
         <CaptionedPopulationVariant
@@ -98,7 +118,7 @@ function CaptionedPopulationVariant({
     title: titleOverride,
     subtitle: subtitleOverride,
     hideEntitySelector,
-    showAssumptionCharts = false,
+    showAssumptionCharts,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
@@ -155,40 +175,42 @@ function CaptionedPopulationVariant({
         "Historical estimates and projections of total population."
 
     return (
-        <Frame className="demography-captioned-chart demography-population-variant">
-            <ChartHeader
-                className="demography-header"
-                title={title}
-                subtitle={subtitle}
-            />
+        <BespokeMetadataProvider metadata={metadata.provenance}>
+            <Frame className="demography-captioned-chart demography-population-variant">
+                <ChartHeader
+                    className="demography-header"
+                    title={title}
+                    subtitle={subtitle}
+                />
 
-            <div className="demography-population-variant__chart-area">
-                {isLoading && <Spinner />}
-                {simulation && (
-                    <PopulationChart
-                        simulation={simulation}
-                        showCustomProjection={hasCustomProjection}
-                    />
+                <div className="demography-population-variant__chart-area">
+                    {isLoading && <Spinner />}
+                    {simulation && (
+                        <PopulationChart
+                            simulation={simulation}
+                            showCustomProjection={hasCustomProjection}
+                        />
+                    )}
+                </div>
+
+                {showAssumptionCharts && simulation && (
+                    <ParameterChartsDisclosure simulation={simulation} />
                 )}
-            </div>
 
-            {showAssumptionCharts && simulation && (
-                <ParameterChartsDisclosure simulation={simulation} />
-            )}
-
-            <ChartFooter
-                className="demography-footer"
-                source={
-                    hasCustomProjection
-                        ? CHART_FOOTER_SOURCES
-                        : "Historical estimates and projections from the UN World Population Prospects"
-                }
-                note={
-                    hasCustomProjection
-                        ? "Projections are based on user inputs and do not necessarily reflect plausible scenarios or those assumed by expert demographers."
-                        : undefined
-                }
-            />
-        </Frame>
+                <ChartFooter
+                    className="demography-footer"
+                    source={
+                        hasCustomProjection
+                            ? CHART_FOOTER_SOURCES
+                            : "Historical estimates and projections from the UN World Population Prospects"
+                    }
+                    note={
+                        hasCustomProjection
+                            ? "Projections are based on user inputs and do not necessarily reflect plausible scenarios or those assumed by expert demographers."
+                            : undefined
+                    }
+                />
+            </Frame>
+        </BespokeMetadataProvider>
     )
 }

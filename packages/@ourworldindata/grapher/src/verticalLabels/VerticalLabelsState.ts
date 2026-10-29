@@ -5,15 +5,16 @@ import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import { computed } from "mobx"
 import { VerticalAxis } from "../axis/Axis.js"
 import { EntityName, SeriesName, VerticalAlign } from "@ourworldindata/types"
-import {
-    BASE_FONT_SIZE,
-    GRAPHER_FONT_SCALE_12,
-} from "../core/GrapherConstants.js"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import {
     findImportantSeriesThatFitIntoTheAvailableSpace,
     findSeriesThatFitIntoTheAvailableSpace,
+    findSeriesThatFitWithHighlights,
+    FilterAlgorithm,
 } from "./VerticalLabelsFilterAlgorithms.js"
+import { computeHeight } from "./VerticalLabelsHelpers.js"
 import {
     ANNOTATION_PADDING,
     DEFAULT_CONNECTOR_LINE_WIDTH,
@@ -33,7 +34,7 @@ export interface VerticalLabelsStateOptions {
     yAxis?: () => VerticalAxis // Passed as getter to avoid MobX dependency cycles
     yRange?: () => [number, number] // Passed as getter to avoid MobX dependency cycles
     maxWidth?: number
-    fontSize?: number
+    baseFontSize?: number
     fontWeight?: number
     verticalAlign?: VerticalAlign
     textAnchor?: "start" | "end"
@@ -50,7 +51,7 @@ export class VerticalLabelsState {
     private readonly initialOptions: VerticalLabelsStateOptions
 
     private readonly defaultOptions = {
-        fontSize: BASE_FONT_SIZE,
+        baseFontSize: BASE_FONT_SIZE,
         fontWeight: DEFAULT_FONT_WEIGHT,
         maxWidth: Infinity,
         verticalAlign: VerticalAlign.middle,
@@ -75,7 +76,7 @@ export class VerticalLabelsState {
     }
 
     @computed get fontSize(): number {
-        return Math.floor(GRAPHER_FONT_SCALE_12 * this.options.fontSize)
+        return scaleFontSize(12, this.options.baseFontSize)
     }
 
     @computed private get yAxis(): VerticalAxis {
@@ -92,7 +93,7 @@ export class VerticalLabelsState {
         return new TextWrap({
             text: series.annotation,
             maxWidth,
-            fontSize: this.fontSize * 0.9,
+            fontSize: roundFontSize(this.fontSize * 0.9),
             lineHeight: 1,
         })
     }
@@ -304,32 +305,31 @@ export class VerticalLabelsState {
         )
     }
 
-    private computeHeight(series: PlacedLabelSeries[]): number {
-        return (
-            _.sumBy(series, (series) => series.bounds.height) +
-            (series.length - 1) * LEGEND_ITEM_MIN_SPACING
-        )
+    @computed private get availableHeight(): number {
+        const [min, max] = this.legendY
+        return Math.abs(max - min)
+    }
+
+    @computed private get filterCandidates(): PlacedLabelSeries[] {
+        return this.seriesSortedByImportance ?? this.initialPlacedSeries
+    }
+
+    @computed private get filterAlgorithm(): FilterAlgorithm {
+        return this.options.seriesNamesSortedByImportance
+            ? findImportantSeriesThatFitIntoTheAvailableSpace
+            : findSeriesThatFitIntoTheAvailableSpace
     }
 
     @computed get visiblePlacedSeries(): PlacedLabelSeries[] {
-        const { initialPlacedSeries, seriesSortedByImportance, legendY } = this
-        const availableHeight = Math.abs(legendY[1] - legendY[0])
-        const totalHeight = this.computeHeight(initialPlacedSeries)
+        const { initialPlacedSeries, availableHeight } = this
 
-        // early return if filtering is not needed
+        // Early return if filtering is not needed
+        const totalHeight = computeHeight(initialPlacedSeries)
         if (totalHeight <= availableHeight) return initialPlacedSeries
 
-        // if a list of series sorted by importance is provided, use it
-        if (seriesSortedByImportance) {
-            return findImportantSeriesThatFitIntoTheAvailableSpace(
-                seriesSortedByImportance,
-                availableHeight
-            )
-        }
-
-        // otherwise use the default filtering
-        return findSeriesThatFitIntoTheAvailableSpace(
-            initialPlacedSeries,
+        return findSeriesThatFitWithHighlights(
+            this.filterCandidates,
+            this.filterAlgorithm,
             availableHeight
         )
     }
@@ -339,7 +339,7 @@ export class VerticalLabelsState {
     }
 
     @computed get visibleSeriesHeight(): number {
-        return this.computeHeight(this.visiblePlacedSeries)
+        return computeHeight(this.visiblePlacedSeries)
     }
 
     // Does this placement need line markers or is the position of the labels already clear?

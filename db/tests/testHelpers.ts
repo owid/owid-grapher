@@ -23,6 +23,8 @@ import {
     NarrativeChartsTableName,
     OriginsTableName,
     OriginsVariablesTableName,
+    PostsGdocsComponentsTableName,
+    PostsGdocsLinksTableName,
     PostsGdocsTableName,
     SourcesTableName,
     TagGraphTableName,
@@ -57,6 +59,8 @@ export const TABLES_IN_USE = [
     SourcesTableName,
     ChartConfigsTableName,
     DatasetsTableName,
+    PostsGdocsComponentsTableName, // Must come before PostsGdocsTableName due to foreign key
+    PostsGdocsLinksTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsTableName,
     AdminApiKeysTableName,
     UsersTableName,

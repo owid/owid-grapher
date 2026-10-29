@@ -8,6 +8,7 @@ import {
     SeriesName,
     guid,
     getRelativeMouse,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { SideWidths, Time } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -30,7 +31,6 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
 import { InteractionState } from "../interaction/InteractionState"
@@ -57,6 +57,7 @@ import { CategoricalBin } from "../color/ColorScaleBin.js"
 import {
     getHoverStateForSeries,
     isTargetOutsideElement,
+    scaleFontSize,
 } from "../chart/ChartUtils"
 import { TooltipState } from "../tooltip/Tooltip"
 import { LineChartTooltip } from "./LineChartTooltip"
@@ -69,6 +70,7 @@ export class LineChartThumbnail
 {
     private readonly base = React.createRef<SVGGElement>()
 
+    private readonly tooltipId = guid()
     private readonly tooltipState = new TooltipState<{ time: Time }>({
         fade: "immediate",
     })
@@ -249,7 +251,7 @@ export class LineChartThumbnail
 
     @computed private get labelFontSettings(): FontSettings {
         return {
-            fontSize: Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize),
+            fontSize: scaleFontSize(12, this.fontSize),
             fontWeight: 700,
             lineHeight: 1,
         }
@@ -666,14 +668,6 @@ export class LineChartThumbnail
         return tooltipTime !== undefined ? [tooltipTime] : []
     }
 
-    @computed private get renderUid(): number {
-        return guid()
-    }
-
-    @computed private get tooltipId(): number {
-        return this.renderUid
-    }
-
     @computed private get isTooltipActive(): boolean {
         return this.manager.tooltip?.get()?.id === this.tooltipId
     }
@@ -859,9 +853,9 @@ function Dot({
 }): React.ReactElement | null {
     return (
         <circle
-            cx={point.x}
-            cy={point.y}
-            r={radius}
+            cx={roundForSvg(point.x)}
+            cy={roundForSvg(point.y)}
+            r={roundForSvg(radius)}
             fill={point.color}
             opacity={LINE_STYLE[point.emphasis].opacity}
         />

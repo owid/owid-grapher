@@ -1,13 +1,14 @@
 import * as _ from "lodash-es"
 import React from "react"
 import {
-    exposeInstanceOnWindow,
-    Bounds,
-    Time,
-    HorizontalAlign,
     AxisAlign,
-    makeFigmaId,
+    Bounds,
+    HorizontalAlign,
+    Time,
     dyFromAlign,
+    exposeInstanceOnWindow,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -17,12 +18,12 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 import {
     BAR_SPACING_FACTOR,
     DISCRETE_BAR_STYLE,
@@ -112,9 +113,11 @@ export class DiscreteBarChart
     }
 
     @computed private get labelFontSize(): number {
-        return Math.min(
-            GRAPHER_FONT_SCALE_12 * this.fontSize,
-            1.1 * this.availableHeightPerSeries
+        return roundFontSize(
+            Math.min(
+                scaleFontSize(12, this.fontSize),
+                1.1 * this.availableHeightPerSeries
+            )
         )
     }
 
@@ -331,23 +334,49 @@ export class DiscreteBarChart
         series: RenderDiscreteBarSeries,
         y = 0
     ): React.ReactElement {
-        const barColor = series.isProjection
-            ? `url(#${makeProjectedDataPatternId(series.color)})`
-            : series.color
+        const barOpacity = DISCRETE_BAR_STYLE[series.emphasis].barOpacity
+        const barLeft = roundForSvg(series.barX)
+        const barTop = roundForSvg(y - this.barHeight / 2)
+        const geometry = {
+            x: 0,
+            y: 0,
+            transform: `translate(${barLeft}, ${barTop})`,
+            width: roundForSvg(series.barWidth),
+            height: roundForSvg(this.barHeight),
+        }
+        const style = { transition: "height 200ms ease" }
+
+        if (!series.isProjection)
+            return (
+                <rect
+                    key={`bar-${series.seriesName}`}
+                    id={makeFigmaId(series.seriesName)}
+                    {...geometry}
+                    fill={series.color}
+                    opacity={barOpacity}
+                    style={style}
+                />
+            )
 
         return (
-            <rect
-                key={`bar-${series.seriesName}`}
-                id={makeFigmaId(series.seriesName)}
-                x={0}
-                y={0}
-                transform={`translate(${series.barX}, ${y - this.barHeight / 2})`}
-                width={series.barWidth}
-                height={this.barHeight}
-                fill={barColor}
-                opacity={DISCRETE_BAR_STYLE[series.emphasis].barOpacity}
-                style={{ transition: "height 200ms ease" }}
-            />
+            <g key={`bar-${series.seriesName}`} opacity={barOpacity}>
+                <rect
+                    id={makeFigmaId(series.seriesName)}
+                    {...geometry}
+                    fill={series.color}
+                    style={style}
+                />
+                <rect
+                    id={makeFigmaId(
+                        series.seriesName,
+                        "projected-data-pattern"
+                    )}
+                    {...geometry}
+                    fill={`url(#${makeProjectedDataPatternId(this.manager.patternIdSuffix)})`}
+                    pointerEvents="none"
+                    style={style}
+                />
+            </g>
         )
     }
 
@@ -399,7 +428,9 @@ export class DiscreteBarChart
                 key={`value-label-${series.seriesName}`}
                 x={0}
                 y={0}
-                transform={`translate(${series.valueLabelX}, ${y})`}
+                transform={`translate(${roundForSvg(series.valueLabelX)}, ${roundForSvg(
+                    y
+                )})`}
                 fill={GRAPHER_DARK_TEXT}
                 dy={dyFromAlign(VerticalAlign.middle)}
                 textAnchor={series.value < 0 ? "end" : "start"}
@@ -463,27 +494,15 @@ export class DiscreteBarChart
     }
 
     private renderDefs(): React.ReactElement | null {
-        const projections = this.series.filter((series) => series.isProjection)
-        const uniqProjections = _.uniqBy(projections, (series) => series.color)
-        if (projections.length === 0) return null
+        if (!this.series.some((series) => series.isProjection)) return null
 
         return (
             <defs>
-                {/* passed to the legend as pattern for the projected data legend item */}
                 <StripedProjectedDataPattern
                     patternId={makeProjectedDataPatternId(
-                        this.projectedDataColorInLegend
+                        this.manager.patternIdSuffix
                     )}
-                    color={this.projectedDataColorInLegend}
                 />
-                {/* make a pattern for every series with a unique color */}
-                {uniqProjections.map((series) => (
-                    <StripedProjectedDataPattern
-                        key={series.color}
-                        patternId={makeProjectedDataPatternId(series.color)}
-                        color={series.color}
-                    />
-                ))}
             </defs>
         )
     }
@@ -605,8 +624,8 @@ export class DiscreteBarChart
                     label: "Projected data",
                     index: 0,
                     value: "projected",
-                    patternRef: makeProjectedDataPatternId(
-                        this.projectedDataColorInLegend
+                    overlayPatternRef: makeProjectedDataPatternId(
+                        this.manager.patternIdSuffix
                     ),
                 })
             )
@@ -645,7 +664,7 @@ export class DiscreteBarChart
         | undefined {
         if (!this.manager.showLegend) return undefined
         return new HorizontalNumericColorLegendState(this.numericLegendData, {
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             maxWidth: this.bounds.width,
             align: HorizontalAlign.center,
             title: this.legendTitle,
@@ -673,16 +692,14 @@ export class DiscreteBarChart
 
 function StripedProjectedDataPattern({
     patternId,
-    color,
     opacity = 0.5,
     size = 7,
-    strokeWidth = 10,
+    stripeWidth = 2,
 }: {
     patternId: string
-    color: string
     opacity?: number
     size?: number
-    strokeWidth?: number
+    stripeWidth?: number
 }): React.ReactElement {
     return (
         <pattern
@@ -692,17 +709,12 @@ function StripedProjectedDataPattern({
             height={size}
             patternTransform="rotate(45)"
         >
-            {/* semi-transparent background */}
-            <rect width={size} height={size} fill={color} opacity={opacity} />
-
-            {/* stripes */}
-            <line
-                x1="0"
-                y1="0"
-                x2="0"
-                y2={size}
-                stroke={color}
-                strokeWidth={strokeWidth}
+            <rect
+                x={size - stripeWidth}
+                width={stripeWidth}
+                height={size}
+                fill="#fff"
+                opacity={opacity}
             />
         </pattern>
     )

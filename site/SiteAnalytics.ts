@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
-import * as Sentry from "@sentry/react"
+import { tinykeys, type KeybindingsMap } from "tinykeys"
+import { setSentryTagsAndAttributes } from "./SentryUtils.js"
 import { GrapherAnalytics, splitPathForGA4 } from "@ourworldindata/grapher"
 import {
     EventCategory,
@@ -17,7 +18,21 @@ import {
     type UserSurveyRoleAnswer,
 } from "@ourworldindata/types"
 import { getFilterNamesOfType } from "./search/searchUtils.js"
-import { findDOMParent } from "@ourworldindata/utils"
+import {
+    EXPERIMENT_PREFIX,
+    LATEST_STICKY_FILTERS_EXPERIMENT_ID,
+    findDOMParent,
+    getExperimentState,
+} from "@ourworldindata/utils"
+
+/** The visitor's arm in the /latest sticky filters experiment, attached to
+ * the /latest events so they can be split by arm, and read by the feed for
+ * the one arm that needs JS. Undefined outside the experiment. */
+export function getLatestExperimentArm(): string | undefined {
+    return getExperimentState()[
+        `${EXPERIMENT_PREFIX}-${LATEST_STICKY_FILTERS_EXPERIMENT_ID}`
+    ]?.arm
+}
 
 export class SiteAnalytics extends GrapherAnalytics {
     logPageNotFoundError(url: string) {
@@ -49,11 +64,21 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logDodShown(id: string) {
+    /** Expand/collapse of a data page metadata toggle. `target` is a codified
+     * id, not the rendered label, so events survive page translation. */
+    logExpandableToggle(target: string, isOpen: boolean): void {
+        this.logSiteClick(
+            isOpen ? "expand_expandable_toggle" : "collapse_expandable_toggle",
+            target
+        )
+    }
+
+    logDodShown(id: string, location?: string) {
         this.logToGA({
             event: EventCategory.DetailOnDemand,
             eventAction: "show",
             eventTarget: id,
+            ...(location !== undefined && { eventContext: location }),
         })
     }
 
@@ -63,9 +88,11 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventAction: "filter",
             latestTopics: state.topics.join("~") || undefined,
             latestType: state.latestType ?? undefined,
+            experimentArm: getLatestExperimentArm(),
         })
     }
 
+    /** Tracks opening a feed preview's own content, not following links within it. */
     logLatestResultClick(hit: LatestPageChronologicalRecord, position: number) {
         this.logToGA({
             event: EventCategory.SiteLatestResultClick,
@@ -73,6 +100,7 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventTarget: hit.slug,
             latestPosition: position,
             latestType: hit.latestType,
+            experimentArm: getLatestExperimentArm(),
         })
     }
 
@@ -86,6 +114,7 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventTarget: hit.slug,
             latestPosition: position,
             latestType: hit.latestType,
+            experimentArm: getLatestExperimentArm(),
         })
     }
 
@@ -389,6 +418,62 @@ export class SiteAnalytics extends GrapherAnalytics {
         )
     }
 
+    startPrintTracking(): void {
+        window.addEventListener(
+            "beforeprint",
+            () =>
+                this.logToGA({
+                    event: EventCategory.SitePrint,
+                    eventAction: "beforeprint",
+                }),
+            { passive: true }
+        )
+    }
+
+    /**
+     * Track use of the browser's own find-in-page (Cmd/Ctrl+F or F3). The
+     * find bar itself is invisible to page scripts, so we log the shortcut
+     * reaching the page, at most once per page view. Misses find opened from
+     * the browser menu, which is how mobile users open it, so treat this as a
+     * desktop signal.
+     *
+     * Returns a function that removes the listener.
+     */
+    startFindInPageTracking(): () => void {
+        const logOpen = (eventContext: "mod+f" | "f3"): void => {
+            unsubscribe()
+            this.logToGA({
+                event: EventCategory.SiteFindInPage,
+                eventAction: "open",
+                eventContext,
+            })
+        }
+
+        // `$mod` is Cmd on Apple platforms and Ctrl elsewhere (on a Mac,
+        // Ctrl+F moves the cursor instead). Handlers must never call
+        // `preventDefault`, so that the find bar opens as usual.
+        const keybindings: KeybindingsMap = {
+            // Latin layouts: the shortcut follows the produced key (on
+            // Dvorak, the physical F key types "u", and Cmd+U isn't find)
+            "$mod+f": () => logOpen("mod+f"),
+            // Non-Latin layouts (e.g. Cyrillic) produce no Latin letter, and
+            // browsers fall back to the physical key there
+            "$mod+KeyF": (ev) => {
+                if (!/^[a-z]$/i.test(ev.key)) logOpen("mod+f")
+            },
+            // F3 is "find next"
+            "[Shift]+F3": () => logOpen("f3"),
+        }
+
+        const unsubscribe = tinykeys(document, keybindings, {
+            capture: true,
+            // Unlike the default, also count presses inside text fields: the
+            // find bar opens from there too
+            ignore: (ev) => ev.repeat || ev.isComposing,
+        })
+        return unsubscribe
+    }
+
     private logBrowserTranslationEvent(ctx: {
         from: string | null
         to: string | null
@@ -420,9 +505,9 @@ export class SiteAnalytics extends GrapherAnalytics {
             // Deliberately sticky for the rest of the pageview: readers toggle
             // translation back off again, but a page that was translated once
             // keeps hitting reconciliation errors afterwards.
-            Sentry.setTag("page_translated", "true")
+            setSentryTagsAndAttributes({ page_translated: "true" })
             if (newLang && newLang !== initialLang) {
-                Sentry.setTag("page_translated_to", newLang)
+                setSentryTagsAndAttributes({ page_translated_to: newLang })
             }
 
             this.logBrowserTranslationEvent(ctx)

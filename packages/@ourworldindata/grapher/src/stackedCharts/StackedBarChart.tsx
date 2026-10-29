@@ -5,11 +5,12 @@ import { observer } from "mobx-react"
 import {
     Bounds,
     Time,
-    getRelativeMouse,
     excludeUndefined,
-    makeFigmaId,
-    guid,
     exposeInstanceOnWindow,
+    getRelativeMouse,
+    guid,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
@@ -66,6 +67,8 @@ export class StackedBarChart
 {
     readonly minBarSpacing = 4
 
+    private readonly tooltipId = guid()
+
     constructor(props: StackedBarChartProps) {
         super(props)
 
@@ -99,10 +102,6 @@ export class StackedBarChart
 
     @computed private get isStatic(): boolean {
         return this.manager.isStatic ?? false
-    }
-
-    @computed private get renderUid(): number {
-        return guid()
     }
 
     @computed get fontSize(): number {
@@ -317,7 +316,7 @@ export class StackedBarChart
 
     @computed private get verticalColorLegendState(): VerticalColorLegendState {
         return new VerticalColorLegendState(this.categoricalLegendData, {
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             maxWidth: this.maxLegendWidth,
         })
     }
@@ -327,7 +326,7 @@ export class StackedBarChart
         return new HorizontalCategoricalColorLegendState(
             this.categoricalLegendData,
             {
-                fontSize: this.fontSize,
+                baseFontSize: this.fontSize,
                 width: this.bounds.width,
                 align: this.legendAlign,
             }
@@ -412,7 +411,7 @@ export class StackedBarChart
 
         return (
             <Tooltip
-                id={this.renderUid}
+                id={this.tooltipId}
                 tooltipManager={this.manager}
                 x={position.x}
                 y={position.y}
@@ -546,16 +545,12 @@ export class StackedBarChart
         const { bounds } = this
 
         return (
-            <g
-                width={bounds.width}
-                height={bounds.height}
-                onMouseMove={this.onMouseMove}
-            >
+            <g onMouseMove={this.onMouseMove}>
                 <rect
-                    x={bounds.left}
-                    y={bounds.top}
-                    width={bounds.width}
-                    height={bounds.height}
+                    x={roundForSvg(bounds.left)}
+                    y={roundForSvg(bounds.top)}
+                    width={roundForSvg(bounds.width)}
+                    height={roundForSvg(bounds.height)}
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
@@ -572,7 +567,7 @@ export class StackedBarChart
 
         if (this.chartState.errorInfo.reason)
             return (
-                <g width={bounds.width} height={bounds.height}>
+                <g>
                     {this.renderAxis()}
                     <NoDataMessage
                         manager={this.manager}

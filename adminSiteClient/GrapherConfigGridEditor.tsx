@@ -36,10 +36,15 @@ import {
 } from "mobx"
 import { match, P } from "ts-pattern"
 
-import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
+import {
+    HotColumn,
+    HotTable,
+    type HotTableProps,
+} from "@handsontable/react-wrapper"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 import Handsontable from "handsontable"
+import { classicTheme } from "handsontable/themes"
 import { GRAPHER_CHART_TYPES, GRAPHER_MAP_TYPE } from "@ourworldindata/types"
 import {
     fetchInputTableForConfig,
@@ -104,6 +109,7 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Operation } from "../adminShared/SqlFilterSExpression.js"
 import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.mjs"
 import { SortableList } from "./SortableList.js"
+import "react-querybuilder/dist/query-builder.css"
 
 type Disposer = () => void
 
@@ -126,47 +132,6 @@ function SearchableFieldSelector(
 function HotColorScaleRenderer() {
     return <div style={{ color: "gray" }}>Color scale</div>
 }
-/**
- * This cell editor component explicitly does nothing. It is used for color scale columns
- * where we don't want to make the cells read only so that copy/paste etc still work but
- * at the same time we don't want the user to be able to edit the cells directly (instead
- * they should use the sidebar editor)
- */
-class HotColorScaleEditor extends BaseEditorComponent<any> {
-    constructor(props: Record<string, never>) {
-        super(props)
-    }
-
-    override getValue() {
-        return undefined
-    }
-
-    override prepare(
-        row: any,
-        col: any,
-        prop: any,
-        td: any,
-        originalValue: any,
-        cellProperties: any
-    ) {
-        // We'll need to call the `prepare` method from
-        // the `BaseEditorComponent` class, as it provides
-        // the component with the information needed to use the editor
-        // (hotInstance, row, col, prop, TD, originalValue, cellProperties)
-        super.prepare(row, col, prop, td, originalValue, cellProperties)
-
-        // const tdPosition = td.getBoundingClientRect();
-
-        // As the `prepare` method is triggered after selecting
-        // any cell, we're updating the styles for the editor element,
-        // so it shows up in the correct position.
-    }
-
-    override render() {
-        return <div id="colorScaleEditorElement"></div>
-    }
-}
-
 @observer
 export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEditorProps> {
     static override contextType = AdminAppContext
@@ -723,30 +688,29 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const type = GrapherConfigGridEditor.decideHotType(desc)
         if (desc.editor === EditorOption.colorEditor) {
             return (
+                // Color scale cells aren't read-only, so copy/paste still work,
+                // but they have no cell editor: users should edit them via the
+                // sidebar editor instead
                 <HotColumn
                     key={desc.pointer}
-                    settings={{
-                        title: name,
-                        data: desc.pointer,
-                    }}
-                >
-                    <HotColorScaleRenderer hot-renderer />
-                    <HotColorScaleEditor hot-editor />
-                </HotColumn>
+                    title={name}
+                    data={desc.pointer}
+                    renderer={HotColorScaleRenderer}
+                    editor={false}
+                />
             )
         } else
             return (
                 <HotColumn
                     key={desc.pointer}
-                    settings={{
-                        title: name,
-                        readOnly:
-                            desc.editor === EditorOption.primitiveListEditor ||
-                            desc.editor === EditorOption.mappingEditor,
-                        type: type,
-                        source: desc.enumOptions,
-                        data: desc.pointer,
-                    }}
+                    title={name}
+                    readOnly={
+                        desc.editor === EditorOption.primitiveListEditor ||
+                        desc.editor === EditorOption.mappingEditor
+                    }
+                    type={type}
+                    source={desc.enumOptions}
+                    data={desc.pointer}
                 />
             )
     }
@@ -817,11 +781,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     (columnDataSource) => (
                         <HotColumn
                             key={columnDataSource.readOnlyColumn.key}
-                            settings={{
-                                title: columnDataSource.readOnlyColumn.label,
-                                readOnly: true,
-                                data: columnDataSource.readOnlyColumn.key,
-                            }}
+                            title={columnDataSource.readOnlyColumn.label}
+                            readOnly={true}
+                            data={columnDataSource.readOnlyColumn.key}
                         />
                     )
                 )
@@ -868,7 +830,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         )
         if (flattenedDataRows === undefined) return undefined
 
-        const hotSettings: Handsontable.GridSettings = {
+        const hotSettings: HotTableProps = {
             afterChange: (changes, source) =>
                 this.processChangedCells(changes, source),
             beforeChange: (changes, source) =>
@@ -1017,10 +979,10 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         >([columnDefinition.type, typeof firstNewValue])
             .with([FieldType.string, "string"], () => false)
             .with([FieldType.number, "string"], () =>
-                Number.isNaN(Number.parseFloat(firstNewValue))
+                Number.isNaN(Number.parseFloat(String(firstNewValue)))
             )
             .with([FieldType.integer, "string"], () =>
-                Number.isNaN(Number.parseInt(firstNewValue))
+                Number.isNaN(Number.parseInt(String(firstNewValue)))
             )
             .with([FieldType.boolean, "boolean"], () => false)
             .with([FieldType.complex, P._], () => false) // complex types, e.g. color scales, are handled specially, allow them here
@@ -1075,14 +1037,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             // If we have an array of both strings and number then the value we get here will always
             // be a string. Check if we can coerce it to number and do so if possible
             if (
-                _.isArray(fieldDesc?.type) &&
+                Array.isArray(fieldDesc?.type) &&
                 fieldDesc?.type.find(
                     (type) =>
                         type === FieldType.number || type === FieldType.integer
                 ) &&
-                !Number.isNaN(Number.parseFloat(newVal))
+                !Number.isNaN(Number.parseFloat(String(newVal)))
             )
-                newVal = Number.parseFloat(newVal)
+                newVal = Number.parseFloat(String(newVal))
 
             if (fieldDesc && fieldDesc.type === FieldType.complex) {
                 prevVal = fieldDesc.getter(
@@ -1292,8 +1254,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     </div>
                     <div className="editor-view">
                         <HotTable
-                            settings={this.hotSettings}
-                            //ref={this.hotTableComponent as any}
+                            {...this.hotSettings}
+                            theme={classicTheme}
+                            colorScheme="light"
                             licenseKey={"non-commercial-and-evaluation"}
                         >
                             {hotColumns}

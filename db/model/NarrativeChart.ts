@@ -5,8 +5,10 @@ import {
     DbPlainNarrativeChart,
     JsonString,
     ArchivedPageVersion,
+    ContentGraphLinkType,
 } from "@ourworldindata/types"
 import * as db from "../db.js"
+import { getPublishedLinksTo } from "./Link.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "./ArchivedChartVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "./ArchivedMultiDimVersion.js"
 import { ARCHIVE_BASE_URL } from "../../settings/serverSettings.js"
@@ -20,6 +22,27 @@ export async function narrativeChartExists(
         .where(data)
         .first()
     return Boolean(result)
+}
+
+/**
+ * Maps the name of each given narrative chart that is used in published content
+ * to the slugs of the published gdocs that use it.
+ */
+export async function getPublishedSlugsByNarrativeChartName(
+    knex: db.KnexReadonlyTransaction,
+    names: string[]
+): Promise<Map<string, string[]>> {
+    if (!names.length) return new Map()
+    const links = await getPublishedLinksTo(
+        knex,
+        names,
+        ContentGraphLinkType.NarrativeChart
+    )
+    return new Map(
+        Object.entries(_.groupBy(links, (link) => link.target)).map(
+            ([name, links]) => [name, _.uniq(links.map((link) => link.slug))]
+        )
+    )
 }
 
 export const getNarrativeChartsInfo = async (

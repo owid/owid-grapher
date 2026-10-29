@@ -16,6 +16,7 @@ import { LoadingIndicator, MarkdownTextWrap } from "@ourworldindata/components"
 import {
     HIDE_IF_JS_DISABLED_CLASSNAME,
     HIDE_IF_JS_ENABLED_CLASSNAME,
+    isIndicatorDimension,
     ArchiveContext,
 } from "@ourworldindata/types"
 import urljoin from "url-join"
@@ -103,7 +104,11 @@ const archiveContext = window._OWID_ARCHIVE_CONTEXT
 const isPreviewing = ${isPreviewing}
 window.renderSingleGrapherOnGrapherPage({ config: jsonConfig, dataApiUrl: "${DATA_API_URL}", catalogUrl: "${CATALOG_URL}", archiveContext, noCache: isPreviewing })`
 
-    const variableIds = _.uniq(grapher.dimensions!.map((d) => d.variableId))
+    const variableIds = _.uniq(
+        (grapher.dimensions ?? [])
+            .filter(isIndicatorDimension)
+            .map((d) => d.variableId)
+    )
 
     // Previews only: this is what switches the comments overlay on, so public
     // grapher pages ship no comment code or data at all.

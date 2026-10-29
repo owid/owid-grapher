@@ -5,6 +5,7 @@ import {
     Bounds,
     getRelativeMouse,
     makeFigmaId,
+    openLinkInNewTabAttrs,
     Url,
     Point,
 } from "@ourworldindata/utils"
@@ -34,6 +35,7 @@ import {
     GrapherModal,
 } from "../core/GrapherConstants"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 
 /*
 
@@ -248,14 +250,14 @@ abstract class AbstractFooter<
 
     @computed protected get fontSize(): number {
         if (this.useBaseFontSize) {
-            return (11 / BASE_FONT_SIZE) * this.baseFontSize
+            return scaleFontSize(11, this.baseFontSize)
         }
         return this.manager.isMedium ? 11 : 12
     }
 
     @computed protected get sourcesFontSize(): number {
         if (this.useBaseFontSize) {
-            return (12 / BASE_FONT_SIZE) * this.baseFontSize
+            return scaleFontSize(12, this.baseFontSize)
         }
         return this.manager.isSmall ? 12 : 13
     }
@@ -448,10 +450,7 @@ abstract class AbstractFooter<
                     <>
                         <a
                             href={this.finalUrl}
-                            {...(this.manager.isInIFrame && {
-                                target: "_blank",
-                                rel: "noopener",
-                            })}
+                            {...openLinkInNewTabAttrs(this.manager.isInIFrame)}
                         >
                             {this.finalUrlText}
                         </a>{" "}
@@ -462,10 +461,7 @@ abstract class AbstractFooter<
                     className={this.showsCcLicense ? "cclogo" : undefined}
                     href={this.licenseUrl}
                     style={{ textDecoration: "none" }}
-                    {...(this.manager.isInIFrame && {
-                        target: "_blank",
-                        rel: "noopener",
-                    })}
+                    {...openLinkInNewTabAttrs(this.manager.isInIFrame)}
                 >
                     {this.licenseText}
                 </a>
@@ -850,9 +846,7 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
 
     protected override get fontSize(): number {
         if (this.manager.isStaticAndSmall) return 14
-        return this.useBaseFontSize
-            ? Math.round((13 / BASE_FONT_SIZE) * this.baseFontSize)
-            : 13
+        return this.useBaseFontSize ? scaleFontSize(13, this.baseFontSize) : 13
     }
 
     protected override get sourcesFontSize(): number {

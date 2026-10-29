@@ -28,9 +28,11 @@ import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartManager } from "./ChartManager"
 import {
+    SVG_FONT_FAMILY,
     SVG_STYLE_PROPS,
     BASE_FONT_SIZE,
     Patterns,
+    makePatternId,
     GRAPHER_IMAGE_WIDTH_1X,
     GRAPHER_IMAGE_WIDTH_2X,
     FontSettings,
@@ -308,33 +310,19 @@ export function NoDataPattern({
     )
 }
 
-export function InapplicablePattern({
-    patternId = Patterns.inapplicablePattern,
+export function ChartPatternDefs({
     scale = 1,
+    idSuffix,
 }: {
-    patternId?: string
     scale?: number
+    idSuffix?: string
 }): React.ReactElement {
-    const roundedScale = R.round(scale, 3)
-    return (
-        <pattern
-            id={patternId}
-            patternUnits="userSpaceOnUse"
-            width="4"
-            height="4"
-            patternTransform={`rotate(-45 2 2) scale(${roundedScale})`}
-        >
-            <rect width="4" height="4" fill="#ccc" />
-            <path d="M -1,2 l 6,0" stroke="#fff" strokeWidth={0.7} />
-        </pattern>
-    )
-}
-
-export function ChartPatternDefs(): React.ReactElement {
     return (
         <defs>
-            <NoDataPattern />
-            <InapplicablePattern />
+            <NoDataPattern
+                patternId={makePatternId(Patterns.noDataPattern, idSuffix)}
+                scale={scale}
+            />
         </defs>
     )
 }
@@ -347,9 +335,10 @@ export function getChartSvgProps({
     return {
         xmlns: "http://www.w3.org/2000/svg",
         version: "1.1",
+        fontFamily: SVG_FONT_FAMILY,
+        fontSize: fontSize ?? BASE_FONT_SIZE,
         style: {
             ...SVG_STYLE_PROPS,
-            fontSize: fontSize ?? BASE_FONT_SIZE,
             // Needs to be set here or else pngs will have a black or
             // transparent background; resvg in the cloudflare functions
             // relies on it to paint the png background, too
@@ -399,6 +388,13 @@ export function textWidth(text: string, fontSettings: FontSettings): number {
 
 export function roundFontSize(fontSize: number): number {
     return Math.round(fontSize * 2) / 2
+}
+
+export function scaleFontSize(
+    sizeAtBase16: number,
+    baseFontSize: number
+): number {
+    return roundFontSize((sizeAtBase16 / BASE_FONT_SIZE) * baseFontSize)
 }
 
 /**

@@ -69,18 +69,6 @@ export const GRAPHER_AREA_OPACITY_HIGHLIGHTED = 1
 
 export const BASE_FONT_SIZE = 16
 
-export const GRAPHER_FONT_SCALE_9_6 = 9.6 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_10 = 10 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_10_5 = 10.5 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_11 = 11 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_11_2 = 11.2 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_12 = 12 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_12_8 = 12.8 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_13 = 13 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_14 = 14 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_15 = 15 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_18 = 18 / BASE_FONT_SIZE
-
 // keep in sync with $max-tooltip-width in Tooltip.scss
 export const GRAPHER_MAX_TOOLTIP_WIDTH = 400
 
@@ -155,9 +143,24 @@ export enum Patterns {
     projectedDataPatternForLegend = "projectedDataPatternForLegend",
 }
 
+/**
+ * SVG ids are resolved document-wide, so every grapher on a page needs its own
+ * pattern ids. Otherwise, `url(#id)` resolves to the pattern of the first
+ * grapher on the page, which doesn't render if that grapher is hidden (e.g.
+ * inside a collapsed accordion or an inactive tab).
+ */
+export function makePatternId(baseId: string, idSuffix?: string): string {
+    return idSuffix ? `${baseId}-${idSuffix}` : baseId
+}
+
+/**
+ * Set as the `font-family` attribute rather than inside `style`: otherwise,
+ * the font will not get picked up by Figma correctly.
+ */
+export const SVG_FONT_FAMILY =
+    "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif"
+
 export const SVG_STYLE_PROPS: React.CSSProperties = {
-    fontFamily:
-        "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif",
     fontFeatureSettings: '"liga", "kern", "calt", "lnum"', // keep in sync with typography.scss$default-font-features
     textRendering: "geometricPrecision",
     WebkitFontSmoothing: "antialiased",

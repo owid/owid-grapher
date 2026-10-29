@@ -714,9 +714,12 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 props.manager.baseUrl ??
                 `/grapher/${props.manager.displaySlug}`,
 
+            // BlankOwidTable is a factory function, not a component
+            /* oxlint-disable react/capitalized-calls */
             fullTable: props.manager.tableForDownload ?? BlankOwidTable(),
             filteredTable:
                 props.manager.filteredTableForDownload ?? BlankOwidTable(),
+            /* oxlint-enable react/capitalized-calls */
             inputColumnSlugs: props.manager.inputColumnSlugs,
         }
     }, [

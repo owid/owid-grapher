@@ -30,6 +30,8 @@ export {
     guid,
     TESTING_ONLY_disable_guid,
     pointsToPath,
+    roundForSvg,
+    SVG_PRECISION,
     sortedFindClosestIndex,
     sortedFindClosest,
     isMobile,
@@ -68,6 +70,7 @@ export {
     getClosestTimePairs,
     omitUndefinedValues,
     isInIFrame,
+    openLinkInNewTabAttrs,
     differenceObj,
     findDOMParent,
     textAnchorFromAlign,
@@ -92,6 +95,7 @@ export {
     imemo,
     recursivelyMapArticleContent,
     traverseEnrichedBlock,
+    getParseFindings,
     checkNodeIsSpan,
     generateToc,
     toSentenceCase,
@@ -112,8 +116,11 @@ export {
     copyToClipboard,
     checkIsGdocPost,
     checkIsGdocPostExcludingFragments,
+    checkIsAnnouncement,
+    deriveAnnouncementLatestType,
     checkIsDataInsight,
     checkIsAuthor,
+    checkIsFeaturedViz,
     checkIsChronologicalGdoc,
     checkIsLatestFeedGdoc,
     cartesian,
@@ -140,6 +147,7 @@ export {
     isSubYearly,
     findFinestCommonTimeInterval,
     snapToIntervalStart,
+    positiveModulo,
     logPerf,
     sleep,
     lowercaseObjectKeys,
@@ -161,6 +169,7 @@ export {
 export {
     getOriginAttributions,
     getAttributionFragmentsFromVariable,
+    getAttributionFragmentsFromBespokeMetadata,
     formatAttributions,
     formatAttributionsShortened,
     getETLPathComponents,
@@ -284,6 +293,7 @@ export { FontFamily, cssFontFamily } from "./fonts.js"
 
 export {
     type Persistable,
+    type PersistedObject,
     objectWithPersistablesToObject,
     updatePersistables,
     deleteRuntimeAndUnchangedProps,
@@ -295,12 +305,16 @@ export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 
 export {
     strToQueryParams,
+    safeDecodeURIComponent,
     queryParamsToStr,
+    multiDimDimensionsToViewQueryStr,
     getWindowQueryStr,
     setWindowQueryStr,
 } from "./urls/UrlUtils.js"
 
 export { Url, setWindowUrl, getWindowUrl } from "./urls/Url.js"
+
+export { getPrefixedGdocPath } from "./urls/gdocPaths.js"
 
 export { type UrlMigration, performUrlMigrations } from "./urls/UrlMigration.js"
 
@@ -362,11 +376,13 @@ export { isAndroid, isIOS } from "./BrowserUtils.js"
 export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
-} from "./grapherConfigUtils.js"
+    KEYS_EXCLUDED_FROM_INHERITANCE,
+} from "./grapherConfigInheritance.js"
 
 export {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
+    getMultiDimPageTitle,
     searchParamsToMultiDimView,
 } from "./MultiDimDataPageConfig.js"
 
@@ -382,7 +398,11 @@ export {
     parseArchivalDate,
 } from "./archival/archivalDate.js"
 
-export { experiments, isUrlInActiveExperiment } from "./experiments/config.js"
+export {
+    experiments,
+    isUrlInActiveExperiment,
+    isDataPageMetadataRedesignActive,
+} from "./experiments/config.js"
 export {
     Experiment,
     validateUniqueExperimentIds,
@@ -398,6 +418,8 @@ export {
     EXPERIMENT_PREFIX,
     DATA_PAGE_METADATA_EXPERIMENT_ID,
     DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM,
+    LATEST_STICKY_FILTERS_EXPERIMENT_ID,
+    LATEST_STICKY_FILTERS_ARMS,
 } from "./experiments/constants.js"
 
 export {
@@ -423,6 +445,11 @@ export {
     searchSingleForHitsWithClosestMatches,
 } from "./search/searchClosestMatches.js"
 
+export {
+    TOPIC_PAGE_TYPE_FILTER,
+    recommendTopicPages,
+} from "./search/searchTopicPages.js"
+
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
@@ -436,3 +463,5 @@ export {
     serializeDecisionTree,
     deserializeDecisionTree,
 } from "./QueryParamDecisionTree.js"
+
+export { SENTRY_DATA_COLLECTION } from "./sentry.js"

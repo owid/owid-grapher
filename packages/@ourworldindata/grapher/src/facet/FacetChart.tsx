@@ -21,7 +21,6 @@ import { action, computed, makeObservable, observable } from "mobx"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import {
     GRAPHER_CHART_TYPES,
@@ -82,8 +81,6 @@ type HorizontalColorLegend =
 const SHARED_X_AXIS_MAX_CELL_HEIGHT = 175
 const THUMBNAIL_MAX_CELL_LENGTH = 150
 const FACET_LABEL_FONT_WEIGHT = 700
-
-const facetBackgroundColor = "none" // we don't use color yet but may use it for background later
 
 const getContentBounds = (
     containerBounds: Bounds,
@@ -213,10 +210,10 @@ export class FacetChart
 
     @computed private get facetBaseFontSize(): number {
         // Facets scale internal font sizes like axis ticks and labels from
-        // this base size, with the largest of them using GRAPHER_FONT_SCALE_12.
+        // this base size, with the largest of them using size 12.
         // Dividing by that factor keeps the biggest internal font at the label
         // size; the extra 0.9 keeps it slightly smaller.
-        return (this.facetLabelFontSize / GRAPHER_FONT_SCALE_12) * 0.9
+        return ((this.facetLabelFontSize * BASE_FONT_SIZE) / 12) * 0.9
     }
 
     @computed private get yAxisConfig(): AxisConfig {
@@ -309,6 +306,7 @@ export class FacetChart
             missingDataStrategy,
             focusArray,
             isStatic,
+            patternIdSuffix,
             base,
             tooltip,
             shouldPinTooltipToBottom,
@@ -387,6 +385,7 @@ export class FacetChart
                 hideNoDataSection,
                 focusArray,
                 isStatic,
+                patternIdSuffix,
                 base,
                 tooltip,
                 shouldPinTooltipToBottom,
@@ -412,7 +411,6 @@ export class FacetChart
                 contentBounds: bounds,
                 manager,
                 seriesName: series.seriesName,
-                color: series.color,
             }
         })
     }
@@ -681,18 +679,13 @@ export class FacetChart
                 selection: [seriesName],
                 seriesStrategy: SeriesStrategy.column,
             }
-            return {
-                seriesName,
-                color: facetBackgroundColor,
-                manager,
-            }
+            return { seriesName, manager }
         })
     }
 
     @computed private get columnFacets(): FacetSeries[] {
         return this.yColumns.map((col) => ({
             seriesName: col.displayName,
-            color: facetBackgroundColor,
             // Only set overrides for this facet strategy.
             // Default properties are set elsewhere.
             manager: {
@@ -822,10 +815,14 @@ export class FacetChart
 
         // find colours of all currently focused series
         const activeColors = _.uniq(
-            this.intermediateChartInstances.flatMap((chartInstance) =>
-                chartInstance.chartState.series
-                    .filter((series) => this.focusArray.has(series.seriesName))
-                    .map((series) => series.color)
+            excludeUndefined(
+                this.intermediateChartInstances.flatMap((chartInstance) =>
+                    chartInstance.chartState.series
+                        .filter((series) =>
+                            this.focusArray.has(series.seriesName)
+                        )
+                        .map((series) => series.color)
+                )
             )
         )
 
@@ -872,7 +869,7 @@ export class FacetChart
             this.chartTypeName === GRAPHER_CHART_TYPES.StackedArea ||
             this.chartTypeName === GRAPHER_CHART_TYPES.StackedBar
         )
-            return _.reverse(uniqBins)
+            return uniqBins.reverse()
 
         return uniqBins
     }
@@ -933,7 +930,7 @@ export class FacetChart
                 state: new HorizontalNumericColorLegendState(
                     this.numericLegendData,
                     {
-                        fontSize: this.fontSize,
+                        baseFontSize: this.fontSize,
                         maxWidth: this.legendMaxWidth,
                         title: this.legendTitle,
                         align: this.legendAlign,
@@ -948,7 +945,7 @@ export class FacetChart
             state: new HorizontalCategoricalColorLegendState(
                 this.categoricalLegendData,
                 {
-                    fontSize: this.fontSize,
+                    baseFontSize: this.fontSize,
                     width: this.legendMaxWidth,
                     align: this.legendAlign,
                 }

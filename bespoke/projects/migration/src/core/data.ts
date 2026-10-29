@@ -10,22 +10,18 @@ import {
     RawSeries,
 } from "./types.js"
 import { sexFromId } from "./helpers.js"
-
-const BASE_URL = "https://owid-public.owid.io/data/migration"
-const METADATA_URL = `${BASE_URL}/migration-stock-flows.metadata.json`
-const countryUrl = (entityId: number) =>
-    `${BASE_URL}/migration-stock-flows.${entityId}.json`
+import { getBespokeSourceLine } from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 const queryKeys = {
     metadata: () => ["migration", "metadata"],
     country: (entityId: number) => ["migration", "country", entityId],
 }
 
-export const useMigrationMetadata = () =>
-    useQuery({
+export const useMigrationMetadata = (metadataUrl: string) => {
+    return useQuery({
         queryKey: queryKeys.metadata(),
         queryFn: async (): Promise<MigrationMetadata> => {
-            const res = await fetch(METADATA_URL)
+            const res = await fetch(metadataUrl)
             if (!res.ok)
                 throw new Error(
                     `Failed to fetch migration metadata: HTTP ${res.status}`
@@ -33,23 +29,26 @@ export const useMigrationMetadata = () =>
             const raw = (await res.json()) as RawMetadata
             return {
                 times: raw.years,
-                source: raw.source,
+                source: getBespokeSourceLine(raw),
                 entities: raw.dimensions.entities,
                 genders: raw.dimensions.genders,
             }
         },
         staleTime: Infinity,
     })
+}
 
 export const useMigrationData = (
     entityId: number | undefined,
-    metadata: MigrationMetadata | undefined
-) =>
-    useQuery({
+    metadata: MigrationMetadata | undefined,
+    dataUrl: string
+) => {
+    const url = `${dataUrl}/migration-stock-flows.${entityId}.json`
+    return useQuery({
         queryKey: queryKeys.country(entityId ?? -1),
         enabled: entityId !== undefined && metadata !== undefined,
         queryFn: async (): Promise<MigrationData> => {
-            const res = await fetch(countryUrl(entityId as number))
+            const res = await fetch(url)
             if (!res.ok)
                 throw new Error(
                     `Failed to fetch migration data for entity ${entityId}: HTTP ${res.status}`
@@ -68,6 +67,7 @@ export const useMigrationData = (
         // so country switches don't flash the skeleton.
         placeholderData: (previousData) => previousData,
     })
+}
 
 function decodeSeries(
     s: RawSeries,

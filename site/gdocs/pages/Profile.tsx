@@ -77,7 +77,10 @@ export function Profile({ content, publishedAt, slug, tags }: ProfileProps) {
                 )}
                 {content.authors.length > 0 && (
                     <p className="topic-page-header__byline col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
-                        <Byline names={content.authors} />
+                        <Byline
+                            authors={content.authors}
+                            authorRoles={content.authorRoles}
+                        />
                     </p>
                 )}
                 <div className="topic-page-header__cta-buttons col-start-11 span-cols-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">

@@ -9,22 +9,14 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useIntersectionObserver } from "usehooks-ts"
 import Image from "./Image.js"
 import { useImage } from "../utils.js"
-import { BESPOKE_COMPONENT_REGISTRY } from "../../bespokeComponentRegistry.js"
+import { BESPOKE_COMPONENT_REGISTRY } from "../../../bespoke/shared/bespokeComponentRegistry.js"
+import { isBespokeConfigError } from "../../../bespoke/shared/bespokeComponentTypes.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
-import { BESPOKE_BASE_URL } from "../../../settings/clientSettings.mjs"
-import urljoin from "url-join"
-
-// Use the `baseUrl` as a base for the URL constructor if set, and use just the URL (which might be host-relative) if not.
-// If `url` is already absolute, it will effectively just get passed through.
-const makeAbsoluteWithBaseUrl = (url: string, baseUrl: string | undefined) => {
-    baseUrl = baseUrl?.trim()
-    if (!baseUrl) return url
-
-    // url is already absolute, so just return it as is
-    if (url.startsWith("http://") || url.startsWith("https://")) return url
-
-    return urljoin(baseUrl, url)
-}
+import { resolveBespokeComponentUrls } from "../../../bespoke/shared/bespokeComponentUrls.js"
+import {
+    BESPOKE_BASE_URL,
+    BESPOKE_DATA_URL,
+} from "../../../settings/clientSettings.mjs"
 
 /**
  * Renders a bespoke component inside a Shadow DOM container.
@@ -54,7 +46,7 @@ export function BespokeComponent({
     const containerRef = useRef<HTMLDivElement>(null)
     const disposeRef = useRef<(() => void) | null>(null)
     const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+    const [loadError, setLoadError] = useState<string | null>(null)
 
     // Defer loading the component's JS until it approaches the viewport
     const { ref: intersectionRef, isIntersecting: hasBeenVisible } =
@@ -70,36 +62,44 @@ export function BespokeComponent({
 
     const fallbackImage = useImage(block.fallbackImageFilename)
 
-    const scriptUrl = useMemo(() => {
+    const urls = useMemo(() => {
         if (!definition || !BESPOKE_BASE_URL.trim()) return undefined
-        return makeAbsoluteWithBaseUrl(definition.scriptUrl, BESPOKE_BASE_URL)
+        return resolveBespokeComponentUrls(definition, {
+            scriptBaseUrl: BESPOKE_BASE_URL,
+            dataBaseUrl: BESPOKE_DATA_URL,
+        })
     }, [definition])
 
+    // Only surface config errors once the component approaches the viewport,
+    // like load errors, so the server-rendered markup stays the same
+    const configError = !hasBeenVisible
+        ? null
+        : !definition
+          ? `Unknown bespoke bundle: "${block.bundle}"`
+          : !urls
+            ? "This custom component cannot be displayed on this page."
+            : null
+    const error = configError ?? loadError
+
     useEffect(() => {
-        if (!hasBeenVisible) return
+        if (!hasBeenVisible || !definition || !urls) return
 
         const container = containerRef.current
         if (!container) return
 
-        if (!definition) {
-            setError(`Unknown bespoke bundle: "${block.bundle}"`)
-            return
-        }
-        if (!scriptUrl) {
-            setError("This custom component cannot be displayed on this page.")
-            return
-        }
-
         const abortController = new AbortController()
 
-        setError(null)
+        // Reset in case we're remounting after the bundle or config changed
+        setLoadError(null)
         setIsLoading(true)
 
         mountBespokeComponentInShadow({
             container,
-            scriptUrl,
+            scriptUrl: urls.scriptUrl,
             variant: block.variant,
             config: block.config,
+            dataUrl: urls.dataUrl,
+            metadataUrl: urls.metadataUrl,
             signal: abortController.signal,
         })
             .then(({ dispose }) => {
@@ -111,8 +111,10 @@ export function BespokeComponent({
                 if (abortController.signal.aborted) return
                 const message =
                     err instanceof Error ? err.message : "Unknown error"
-                setError(
-                    `Failed to load bespoke bundle "${block.bundle}": ${message}`
+                setLoadError(
+                    isBespokeConfigError(err)
+                        ? `Invalid config for bespoke bundle "${block.bundle}": ${message}`
+                        : `Failed to load bespoke bundle "${block.bundle}": ${message}`
                 )
                 console.error(
                     `Failed to hydrate bespoke bundle "${block.bundle}":`,
@@ -133,7 +135,7 @@ export function BespokeComponent({
         block.variant,
         block.config,
         definition,
-        scriptUrl,
+        urls,
         hasBeenVisible,
     ])
 

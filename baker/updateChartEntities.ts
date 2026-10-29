@@ -18,10 +18,12 @@ import {
     OwidVariableDataMetadataDimensions,
     DbRawChartConfig,
 } from "@ourworldindata/types"
+import { excludeUndefined } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import pMap from "p-map"
 import { mapEntityNamesToEntityIds } from "../db/model/Entity.js"
 import { getVariableData } from "../db/model/Variable.js"
+import { parseAndMigrateChartConfig } from "../db/model/ChartConfigs.js"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
@@ -94,7 +96,9 @@ const obtainAvailableEntitiesForGrapherConfig = async (
     })
 
     // Manually fetch data for grapher, so we can employ caching
-    const variableIds = _.uniq(grapher.dimensions.map((d) => d.variableId))
+    const variableIds = _.uniq(
+        excludeUndefined(grapher.dimensions.map((d) => d.variableId))
+    )
     const variableData: MultipleOwidVariableDataDimensionsMap = new Map(
         await pMap(variableIds, async (variableId) => [
             variableId,
@@ -104,7 +108,7 @@ const obtainAvailableEntitiesForGrapherConfig = async (
     // TODO: Daniel grapher state refactoring: check if this works as expected
     grapher.inputTable = legacyToOwidTableAndDimensions(
         variableData,
-        grapher.dimensions,
+        grapher.dimensionConfigs,
         grapher.selectedEntityColors
     )
 
@@ -163,7 +167,7 @@ export const obtainAvailableEntitiesForGraphers = async (
     await pMap(
         allPublishedGraphers,
         async (grapher) => {
-            const config = JSON.parse(grapher.config) as GrapherInterface
+            const config = parseAndMigrateChartConfig(grapher.config)
             const availableEntities =
                 await obtainAvailableEntitiesForGrapherConfig(config)
             const availableEntityIds = availableEntities.flatMap(

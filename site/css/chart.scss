@@ -38,13 +38,13 @@
 
     // At this point, the ratio-preserving sizing kicks in, so we want to mirror that in the CSS
     // to avoid using unnecessary space.
-    @media (min-width: $orientation-width) {
+    @media (width >= $orientation-width) {
         // We no longer use the full height
         max-height: #{math.div(1, $ideal-ratio) * 100}vw;
         min-height: $orientation-height; // overwrite the min-height set above
     }
 
-    @media (min-width: $max-width) {
+    @media (width >= $max-width) {
         max-width: $max-width;
         max-height: $max-height;
     }

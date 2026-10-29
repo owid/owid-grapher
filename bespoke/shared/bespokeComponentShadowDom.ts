@@ -1,4 +1,7 @@
-import type { BespokeComponentModule } from "./bespokeComponentTypes.ts"
+import type {
+    BespokeAuthoredConfig,
+    BespokeComponentModule,
+} from "./bespokeComponentTypes.ts"
 
 /**
  * Mount a bespoke component into a shadow DOM container.
@@ -14,12 +17,16 @@ export async function mountBespokeComponentInShadow({
     scriptUrl,
     variant,
     config,
+    dataUrl,
+    metadataUrl,
     signal,
 }: {
     container: HTMLDivElement
     scriptUrl: string
     variant?: string
-    config?: Record<string, string>
+    config?: BespokeAuthoredConfig
+    dataUrl?: string
+    metadataUrl?: string
     signal?: AbortSignal
 }): Promise<{ dispose?: () => void }> {
     let shadowRoot = container.shadowRoot
@@ -43,7 +50,12 @@ export async function mountBespokeComponentInShadow({
     mountContainer.className = "bespoke-container"
     shadowRoot.appendChild(mountContainer)
 
-    const result = await module.mount(mountContainer, { variant, config })
+    const result = await module.mount(mountContainer, {
+        variant,
+        config,
+        dataUrl,
+        metadataUrl,
+    })
     const dispose = typeof result === "function" ? result : undefined
 
     return { dispose }

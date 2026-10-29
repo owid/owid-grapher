@@ -101,8 +101,8 @@ import {
     checkHasMembers,
     sortNumeric,
     isMobile,
+    guid,
 } from "@ourworldindata/utils"
-import { get as getCookie } from "es-cookie"
 import * as _ from "lodash-es"
 import {
     computed,
@@ -111,6 +111,7 @@ import {
     observable,
     autorun,
     runInAction,
+    untracked,
 } from "mobx"
 import React from "react"
 import * as R from "remeda"
@@ -139,14 +140,24 @@ import { makeChartState } from "../chart/ChartTypeMap.js"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    scaleFontSize,
 } from "../chart/ChartUtils.js"
 import { DimensionSlot } from "../chart/DimensionSlot.js"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
 import {
     DataTableConfig,
+    DataTableSortState,
+    DataTableFilter,
+    DataTableFilterOption,
     DataTableManager,
 } from "../dataTable/DataTableConstants.js"
+import {
+    buildDataTableFilterOptions,
+    DataTableEntities,
+    getEntityNamesForDataTableFilter,
+    pickDefaultDataTableFilter,
+} from "../dataTable/DataTableHelpers.js"
 import {
     type EntitySelectorState,
     EntitySelector,
@@ -178,7 +189,6 @@ import {
     RegionGroup,
     groupEntitiesByRegionType,
     EntitiesByRegionGroup,
-    isEntityRegionGroupKey,
 } from "./RegionGroups.js"
 import {
     MinimalNarrativeChartInfo,
@@ -191,6 +201,7 @@ import {
     type EntitySelectorEvent,
     type GrapherImageDownloadEvent,
     type GrapherInteractionEvent,
+    type SelectedEntityColors,
 } from "@ourworldindata/types"
 import {
     latestGrapherConfigSchema,
@@ -200,7 +211,6 @@ import {
     GRAPHER_FRAME_PADDING_VERTICAL,
     DEFAULT_GRAPHER_BOUNDS,
     GrapherModal,
-    CookieKey,
     GRAPHER_PROD_URL,
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_WIDTH,
@@ -216,6 +226,7 @@ import {
 } from "./GrapherQueryParamParser.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { getErrorMessageRelatedQuestionUrl } from "./relatedQuestion.js"
+import { shouldShowStaffControls } from "./staffControls.js"
 import {
     buildSourcesLineFromColumns,
     pickColumnsForSourcesLine,
@@ -326,7 +337,7 @@ export class GrapherState
     inapplicableEntityNames: EntityName[] | undefined = undefined
 
     /** Colors for selected entities */
-    selectedEntityColors: { [entityName: string]: string | undefined } = {}
+    selectedEntityColors: SelectedEntityColors = {}
 
     /** Strategy for selecting peer countries for comparison */
     peerCountryStrategy: PeerCountryStrategy | undefined = undefined
@@ -521,6 +532,7 @@ export class GrapherState
     tableSlugs: ColumnSlugs | undefined = undefined
 
     bakedGrapherURL: string | undefined = undefined
+    canonicalUrlOverride: string | null | undefined = undefined
     adminBaseUrl: string | undefined = undefined
 
     isEmbeddedInAnOwidPage?: boolean = false
@@ -556,7 +568,8 @@ export class GrapherState
     selection: SelectionArray = new SelectionArray()
     focusArray = new FocusArray()
 
-    dataTableConfig: DataTableConfig = { filter: "all", search: "" }
+    dataTableConfig: DataTableConfig = { search: "" }
+    dataTableSort: DataTableSortState | undefined = undefined
 
     entitySelectorState: Partial<EntitySelectorState> = {}
 
@@ -600,6 +613,7 @@ export class GrapherState
     hideDownloadButton = false
     hideEntityControls = false
     hideShareButton = false
+    hideDonateButton = false
     hideExploreTheDataButton = true
     hideControlsRow = false
     hideRelatedQuestion = false
@@ -719,6 +733,7 @@ export class GrapherState
             comparisonLines: observable,
             relatedQuestions: observable,
             dataTableConfig: observable,
+            dataTableSort: observable,
             highlightedTimesInLineChart: observable.ref,
             hideFacetControl: observable.ref,
             selectedFacetStrategy: observable,
@@ -730,6 +745,7 @@ export class GrapherState
             windowInnerHeight: observable.ref,
             screenHeight: observable.ref,
             bakedGrapherURL: observable,
+            canonicalUrlOverride: observable,
             externalQueryParams: observable.ref,
             _inputTable: observable.ref,
             legacyConfigAsAuthored: observable.ref,
@@ -771,6 +787,7 @@ export class GrapherState
             forceHideAnnotationFieldsInTitle: observable,
             hasTableTab: observable,
             hideShareButton: observable,
+            hideDonateButton: observable,
             hideExploreTheDataButton: observable,
             useMinimalLabeling: observable,
         })
@@ -815,6 +832,7 @@ export class GrapherState
         updatePersistables(this, obj)
 
         this.bindUrlToWindow = obj.bindUrlToWindow ?? false
+        this.canonicalUrlOverride = obj.canonicalUrl
 
         // Update selection
         if (obj.selectedEntityNames)
@@ -945,29 +963,25 @@ export class GrapherState
     @computed get tableAfterColorAndSizeToleranceApplication(): OwidTable {
         let table = this.inputTable
 
-        if (this.hasScatter && this.inputSizeColumnSlug) {
-            const tolerance =
-                table.get(this.inputSizeColumnSlug)?.display?.tolerance ??
-                Infinity
-            table = table.interpolateColumnWithTolerance(
-                this.inputSizeColumnSlug,
-                {
-                    toleranceOverride: tolerance,
-                }
-            )
-        }
+        const slugs = excludeUndefined([
+            this.hasScatter ? this.inputSizeColumnSlug : undefined,
+            this.hasScatter || this.hasMarimekko
+                ? this.inputCategoricalColorColumnSlug
+                : undefined,
+        ])
 
-        if (
-            (this.hasScatter || this.hasMarimekko) &&
-            this.inputCategoricalColorColumnSlug
-        ) {
-            const tolerance =
-                table.get(this.inputCategoricalColorColumnSlug)?.display
-                    ?.tolerance ?? Infinity
-            table = table.interpolateColumnWithTolerance(
-                this.inputCategoricalColorColumnSlug,
-                { toleranceOverride: tolerance }
-            )
+        for (const slug of slugs) {
+            const tolerance = table.get(slug)?.display?.tolerance ?? Infinity
+            table = table
+                .interpolateColumnWithTolerance(slug, {
+                    toleranceOverride: tolerance,
+                })
+                // The data table re-applies each column's own tolerance
+                .updateDefs((def) =>
+                    def.slug === slug
+                        ? { ...def, display: { ...def.display, tolerance } }
+                        : def
+                )
         }
 
         return table
@@ -1018,7 +1032,7 @@ export class GrapherState
      */
     @computed get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
         const table = this.table
-        if (!this.isReady || !this.isOnChartOrMapTab) return table
+        if (!this.isReady) return table
 
         const startMark = performance.now()
 
@@ -1055,7 +1069,7 @@ export class GrapherState
         if (
             this.isOnDiscreteBarTab ||
             this.isOnMarimekkoTab ||
-            this.checkIsTwoColumnDumbbell(this.activeTab)
+            this.isOnTwoColumnDumbbellTab
         )
             return table.filterByTargetTimes([endTime])
 
@@ -1113,32 +1127,41 @@ export class GrapherState
         return table
     }
 
+    @computed private get dataTableEntities(): DataTableEntities {
+        return {
+            availableEntityNames:
+                this.tableForDisplayBeforeEntityFilter.availableEntityNames,
+            entitiesByRegionGroup: this.entitiesByRegionGroup,
+            selectedEntityNames: this.dataTableSelection.selectedEntityNames,
+        }
+    }
+
+    @computed get dataTableFilterOptions(): DataTableFilterOption[] {
+        return buildDataTableFilterOptions(this.dataTableEntities, {
+            canFilterBySelection:
+                !this.shouldShowSelectionOnlyInDataTable &&
+                this.dataTableSelection.hasSelection &&
+                this.canChangeAddOrHighlightEntities,
+        })
+    }
+
+    @computed get dataTableFilter(): DataTableFilter {
+        if (this.dataTableConfig.filter) return this.dataTableConfig.filter
+        if (this.dataTableConfig.search) return "all"
+        if (this.shouldShowSelectionOnlyInDataTable) return "all"
+        return pickDefaultDataTableFilter(this.dataTableFilterOptions)
+    }
+
     /** Table for display in the data table tab */
     @computed get tableForDisplay(): OwidTable {
-        let table = this.tableForDisplayBeforeEntityFilter
-        const { filter } = this.dataTableConfig
-
-        const availableEntities = table.availableEntityNames
-
-        // Determine which entities should be visible based on the filter
-        const visibleEntities = match(filter)
-            .with("all", () => availableEntities)
-            .with("selection", () =>
-                this.selection.hasSelection
-                    ? this.selection.selectedEntityNames
-                    : availableEntities
-            )
-            .when(isEntityRegionGroupKey, (filter) => {
-                const regionNames = this.entitiesByRegionGroup.get(filter)
-                return regionNames ?? availableEntities
-            })
-            .exhaustive()
-
-        // Apply entity filter if necessary
-        if (visibleEntities.length < availableEntities.length)
-            table = table.filterByEntityNames(visibleEntities)
-
-        return table
+        const table = this.tableForDisplayBeforeEntityFilter
+        const visibleEntities = getEntityNamesForDataTableFilter(
+            this.dataTableFilter,
+            this.dataTableEntities
+        )
+        return visibleEntities.length < table.availableEntityNames.length
+            ? table.filterByEntityNames(visibleEntities)
+            : table
     }
 
     /**
@@ -1385,8 +1408,7 @@ export class GrapherState
         if (parsed.tableFilter.status === "valid") {
             this.dataTableConfig.filter = parsed.tableFilter.value
         } else if (parsed.tableFilter.status === "invalid") {
-            // Reset to default if invalid value provided
-            this.dataTableConfig.filter = "all"
+            this.dataTableConfig.filter = undefined
         }
 
         // Table search
@@ -1583,9 +1605,12 @@ export class GrapherState
         })
     }
 
+    @computed private get activeChartTypeOrDefault(): GrapherChartType {
+        return this.activeChartType ?? this.defaultChartType
+    }
+
     @computed get chartStateExceptMap(): ChartState {
-        const chartType = this.activeChartType ?? this.defaultChartType
-        return makeChartState(chartType, this)
+        return makeChartState(this.activeChartTypeOrDefault, this)
     }
 
     @computed private get chartSeriesNames(): SeriesName[] {
@@ -1618,16 +1643,6 @@ export class GrapherState
 
     @computed get isStatic(): boolean {
         return this.isExportingToSvgOrPng
-    }
-
-    private get isStaging(): boolean {
-        if (typeof location === "undefined") return false
-        return location.host.includes("staging")
-    }
-
-    private get isLocalhost(): boolean {
-        if (typeof location === "undefined") return false
-        return location.host.includes("localhost")
     }
 
     @computed get editUrl(): string | undefined {
@@ -1684,32 +1699,19 @@ export class GrapherState
         return false
     }
 
-    @computed private get isUserLoggedInAsAdmin(): boolean {
-        // This cookie is set by visiting ourworldindata.org/identifyadmin on the static site.
-        // There is an iframe on owid.cloud to trigger a visit to that page.
-        try {
-            // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error
-            // see https://github.com/owid/owid-grapher/pull/2452
-            return !!getCookie(CookieKey.isAdmin)
-        } catch {
-            return false
-        }
-    }
-
     @computed get showAdminControls(): boolean {
         return (
-            this.isUserLoggedInAsAdmin ||
+            shouldShowStaffControls() ||
             this.isAdmin || // Useful for gdoc previews.
-            this.isDev ||
-            this.isLocalhost ||
-            this.isStaging
+            this.isDev
         )
     }
 
     // Exclusively used for the performance.measurement API, so that DevTools can show some context
     createPerformanceMeasurement(name: string, startMark: number): void {
         const endMark = performance.now()
-        const detail = {
+        // This runs inside computeds; keep performance metadata reads from becoming dependencies
+        const detail = untracked(() => ({
             devtools: {
                 track: "Grapher",
                 properties: [
@@ -1719,7 +1721,7 @@ export class GrapherState
                     ["tab", this.tab],
                 ],
             },
-        }
+        }))
 
         try {
             performance.measure(name, {
@@ -1807,13 +1809,15 @@ export class GrapherState
 
         const columnSlugs = this.isOnMapTab ? mapColumnSlugs : yColumnSlugs
 
-        // Generate the times only after the chart transform has been applied, so that we don't show
-        // times on the timeline for which data may not exist, e.g. when the selected entity
-        // doesn't contain data for all years in the table.
-        // -@danielgavrilov, 2020-10-22
-        return this.tableAfterAuthorTimelineAndActiveChartTransform.getTimesUniqSortedAscForColumns(
-            columnSlugs
-        )
+        // Generate the times only after the chart transform has been applied,
+        // so that we don't show times on the timeline for which data may not
+        // exist, e.g. when the selected entity doesn't contain data for all
+        // years in the table. The table tab is the exception: it uses the
+        // table it displays.
+        const table = this.isOnTableTab
+            ? this.tableForDisplayBeforeEntityFilter
+            : this.tableAfterAuthorTimelineAndActiveChartTransform
+        return table.getTimesUniqSortedAscForColumns(columnSlugs)
     }
 
     /** Plots time on the x-axis */
@@ -1985,18 +1989,26 @@ export class GrapherState
         )
     }
 
+    /** Whether the authored config selects a time range rather than a single time */
+    @computed private get isAuthoredTimeRange(): boolean {
+        const { minTime, maxTime } = this.authorsVersion
+        return (
+            minTimeBoundFromJSONOrNegativeInfinity(minTime) !==
+            maxTimeBoundFromJSONOrPositiveInfinity(maxTime)
+        )
+    }
+
     private readonly checkSingleTimeSelectionPreferred = (
         tabName: GrapherTabName
     ): boolean => {
-        // Scatter plots can show a time range, but a single time is preferred
-        // when the scatter is not the main chart, but a secondary tab.
-        // In relative mode, a scatter shows the average annual change, which
-        // requires a time range, so we don't collapse to a single time then.
-        return (
-            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
-            !this.isScatter &&
-            !this.isRelativeMode
-        )
+        if (tabName === GRAPHER_TAB_NAMES.Table) return true
+
+        if (tabName !== GRAPHER_TAB_NAMES.ScatterPlot) return false
+        if (this.isRelativeMode) return false
+
+        // A secondary scatter prefers a single time, a primary one follows its
+        // authored time mode
+        return !this.isScatter || !this.isAuthoredTimeRange
     }
 
     private readonly checkOnlyTimeRangeSelectionPossible = (
@@ -2014,13 +2026,12 @@ export class GrapherState
         tabName: GrapherTabName
     ): boolean => {
         // In relative mode, a scatter shows the average annual change, which
-        // requires a time range rather than a single time
-        if (
-            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
-            !this.isScatter &&
-            this.isRelativeMode
-        )
-            return true
+        // requires a time range
+        if (tabName === GRAPHER_TAB_NAMES.ScatterPlot)
+            return (
+                this.isRelativeMode ||
+                (this.isScatter && this.isAuthoredTimeRange)
+            )
 
         return [
             GRAPHER_TAB_NAMES.StackedArea,
@@ -2193,10 +2204,7 @@ export class GrapherState
             if (!slot.allowMultiple)
                 validDimensions = _.uniqWith(
                     validDimensions,
-                    (
-                        a: OwidChartDimensionInterface,
-                        b: OwidChartDimensionInterface
-                    ) =>
+                    (a: ChartDimension, b: ChartDimension) =>
                         a.property === slot.property &&
                         a.property === b.property
                 )
@@ -2279,6 +2287,10 @@ export class GrapherState
         return this.isReady ? this.dimensions : []
     }
 
+    @computed get dimensionConfigs(): OwidChartDimensionInterface[] {
+        return this.dimensions.map((dimension) => dimension.toObject())
+    }
+
     @action.bound addDimension(config: OwidChartDimensionInterface): void {
         this.dimensions.push(new ChartDimension(config, this))
     }
@@ -2358,13 +2370,16 @@ export class GrapherState
     @computed get detailRenderers(): MarkdownTextWrap[] {
         if (typeof window === "undefined") return []
         return this.detailsOrderedByReference.map((term, i) => {
-            let text = `**${i + 1}.** `
+            const referenceLabel = `${i + 1}.`
+            let text = `**${referenceLabel}** `
             const detail: EnrichedDetail | undefined = window.details?.[term]
             if (detail?.text) {
                 const lines = detail.text.split("\n")
-                const title = lines[0]
+                const title = lines[0].trim()
                 const description = lines.slice(2).join("\n")
-                text += `**${title}** ${description}`
+                text = title
+                    ? `**${referenceLabel} ${title}** ${description}`
+                    : `**${referenceLabel}** ${description}`
             }
 
             // We can't use the computed property here because Grapher might
@@ -2375,7 +2390,7 @@ export class GrapherState
 
             return new MarkdownTextWrap({
                 text,
-                fontSize: (11 / BASE_FONT_SIZE) * baseFontSize,
+                fontSize: scaleFontSize(11, baseFontSize),
                 // Leave room for padding on the left and right
                 maxWidth:
                     this.staticBounds.width -
@@ -3020,6 +3035,10 @@ export class GrapherState
         return this.activeChartType === GRAPHER_CHART_TYPES.Dumbbell
     }
 
+    @computed private get isOnTwoColumnDumbbellTab(): boolean {
+        return this.checkIsTwoColumnDumbbell(this.activeTab)
+    }
+
     @computed get hasLineChart(): boolean {
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.LineChart)
     }
@@ -3085,6 +3104,10 @@ export class GrapherState
 
     set xOverrideTime(value: number | undefined) {
         this.xDimension!.targetYear = value
+    }
+
+    @computed get canOverrideXTime(): boolean {
+        return this.xDimension?.variableId !== undefined
     }
 
     @computed get defaultBounds(): Bounds {
@@ -3756,6 +3779,23 @@ export class GrapherState
         return staticPixelCount < 0.66 * idealPixelCount
     }
 
+    @computed get patternScale(): number {
+        if (!this.isStatic) return 1
+        const { defaultBounds, staticBounds } = this
+        const sizeRatio = Math.min(
+            staticBounds.width / defaultBounds.width,
+            staticBounds.height / defaultBounds.height
+        )
+        return R.clamp(Math.sqrt(sizeRatio), { min: 0.75, max: 1 })
+    }
+
+    private readonly patternIdGuid = guid()
+
+    // Static exports are standalone SVGs, so they can keep plain pattern ids
+    @computed get patternIdSuffix(): string | undefined {
+        return this.isStatic ? undefined : String(this.patternIdGuid)
+    }
+
     @computed get isExportingForWikimedia(): boolean {
         return this.isExportingToSvgOrPng && this.isWikimediaExport
     }
@@ -3824,6 +3864,7 @@ export class GrapherState
         this.showNoDataArea = authorsVersion.showNoDataArea
         this.dataTableConfig.filter = authorsVersion.dataTableConfig.filter
         this.dataTableConfig.search = authorsVersion.dataTableConfig.search
+        this.dataTableSort = undefined
         this.mapConfig.globe.isActive = authorsVersion.mapConfig.globe.isActive
         this.clearSelection()
         this.clearFocus()
@@ -3847,6 +3888,7 @@ export class GrapherState
         this.colorSlug = grapherState.colorSlug
         this.sizeSlug = grapherState.sizeSlug
 
+        this.dataTableSort = undefined
         this.selection.clearSelection()
         this.focusArray.clear()
     }
@@ -3958,6 +4000,8 @@ export class GrapherState
      * e.g. https://ourworldindata.org/grapher/life-expectancy?tab=map
      */
     @computed get canonicalUrl(): string | undefined {
+        if (this.canonicalUrlOverride !== undefined)
+            return this.canonicalUrlOverride ?? undefined
         return (
             this.canonicalUrlIfIsNarrativeChart ??
             (this.baseUrl ? this.baseUrl + this.queryStr : undefined)
@@ -4327,7 +4371,7 @@ export class GrapherState
     }
 }
 
-export const defaultObject = objectWithPersistablesToObject(
+export const defaultObject: GrapherInterface = objectWithPersistablesToObject(
     new GrapherState({}),
     grapherKeysToSerialize
 )

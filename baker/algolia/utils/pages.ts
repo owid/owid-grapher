@@ -17,6 +17,8 @@ import {
     Span,
     getEntitiesForProfile,
     articulateEntity,
+    getPrefixedGdocPath,
+    getFeaturedImageFilename,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import {
@@ -39,8 +41,7 @@ import {
     getFirstBlockOfType,
     takeConsecutiveBlocksOfType,
 } from "../../../site/gdocs/utils.js"
-import { getPrefixedGdocPath } from "@ourworldindata/components"
-import { enrichedBlocksToIndexableText } from "../../../db/model/Gdoc/enrichedToIndexableText.js"
+import { enrichedBlocksToIndexableText } from "@ourworldindata/gdoc-pipeline"
 import {
     GdocProfile,
     instantiateProfileForEntity,
@@ -60,12 +61,11 @@ export const getThumbnailUrl = (
     gdoc: OwidGdoc,
     cloudflareImages: Record<string, DbEnrichedImage>
 ): string => {
-    if (gdoc.content.type === OwidGdocType.DataInsight) {
-        const firstImage = getFirstBlockOfType(
-            gdoc as OwidGdocDataInsightInterface,
-            "image"
-        )
-        const filename = firstImage?.smallFilename || firstImage?.filename
+    if (
+        gdoc.content.type === OwidGdocType.DataInsight ||
+        gdoc.content.type === OwidGdocType.Announcement
+    ) {
+        const filename = getFeaturedImageFilename(gdoc)
         return filename && cloudflareImages[filename]
             ? `${CLOUDFLARE_IMAGES_URL}/${cloudflareImages[filename].cloudflareId}/w=608`
             : `${BAKED_BASE_URL}/${DEFAULT_GDOC_FEATURED_IMAGE}`

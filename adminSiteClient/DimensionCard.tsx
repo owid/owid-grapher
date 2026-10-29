@@ -12,7 +12,6 @@ import {
     SelectField,
     CatalogPathField,
 } from "./Forms.js"
-import { Link } from "./Link.js"
 import {
     faChevronDown,
     faChevronUp,
@@ -21,12 +20,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { OwidTable } from "@ourworldindata/core-table"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { SortableList } from "./SortableList.js"
 
-interface DimensionCardProps<Editor> {
+interface DimensionCardProps {
     dimension: ChartDimension
-    editor: Editor
+    editor: ConfigEditor
     isDndEnabled?: boolean
     onChange: (dimension: ChartDimension) => void
     onEdit?: () => void
@@ -35,12 +34,10 @@ interface DimensionCardProps<Editor> {
 }
 
 @observer
-export class DimensionCard<
-    Editor extends AbstractChartEditor,
-> extends Component<DimensionCardProps<Editor>> {
+export class DimensionCard extends Component<DimensionCardProps> {
     isExpanded: boolean = false
 
-    constructor(props: DimensionCardProps<Editor>) {
+    constructor(props: DimensionCardProps) {
         super(props)
 
         makeObservable(this, {
@@ -83,7 +80,8 @@ export class DimensionCard<
     }
 
     private get tableDisplaySettings() {
-        const { tableDisplay = {} } = this.props.dimension.display
+        const { display } = this.props.dimension
+        const { tableDisplay = {} } = display
         return (
             <Fragment>
                 <hr className="ui divider" />
@@ -92,10 +90,8 @@ export class DimensionCard<
                     label="Hide absolute change column"
                     value={!!tableDisplay.hideAbsoluteChange}
                     onValue={(value) => {
-                        if (!this.props.dimension.display.tableDisplay) {
-                            this.props.dimension.display.tableDisplay = {}
-                        }
-                        tableDisplay.hideAbsoluteChange = value
+                        display.tableDisplay ??= {}
+                        display.tableDisplay.hideAbsoluteChange = value
                         this.onChange()
                     }}
                 />
@@ -103,10 +99,8 @@ export class DimensionCard<
                     label="Hide relative change column"
                     value={!!tableDisplay.hideRelativeChange}
                     onValue={(value) => {
-                        if (!this.props.dimension.display.tableDisplay) {
-                            this.props.dimension.display.tableDisplay = {}
-                        }
-                        tableDisplay.hideRelativeChange = value
+                        display.tableDisplay ??= {}
+                        display.tableDisplay.hideRelativeChange = value
                         this.onChange()
                     }}
                 />
@@ -122,6 +116,7 @@ export class DimensionCard<
     override render() {
         const { dimension, editor, isDndEnabled } = this.props
         const { grapherState } = editor
+        const indicatorUrl = editor.manager.indicatorUrl?.(dimension.toObject())
         const { column } = dimension
         const columnDef = column.def as OwidColumnDef
 
@@ -152,13 +147,18 @@ export class DimensionCard<
                             }
                         />
                     </div>
-                    <Link
-                        to={`/variables/${dimension.variableId}`}
-                        className="dimensionLink"
-                        target="_blank"
-                    >
-                        {column.name}
-                    </Link>
+                    {indicatorUrl ? (
+                        <a
+                            href={indicatorUrl}
+                            className="dimensionLink"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            {column.name}
+                        </a>
+                    ) : (
+                        <span>{column.name}</span>
+                    )}
                     <div>
                         {this.props.onEdit && (
                             <div

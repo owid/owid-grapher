@@ -101,6 +101,7 @@ export {
     PeerCountryStrategy,
     type PeerCountryStrategyQueryParam,
     VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS,
+    isValidPeerCountryStrategyQueryParam,
     type RelatedQuestionsConfig,
     FacetStrategy,
     type SeriesColorMap,
@@ -109,6 +110,7 @@ export {
     MissingDataStrategy,
     SeriesStrategy,
     type GrapherInterface,
+    type SelectedEntityColors,
     grapherKeysToSerialize,
     type GrapherQueryParams,
     type LegacyGrapherInterface,
@@ -179,6 +181,62 @@ export {
 export * from "./gdocTypes/ArchieMlComponents.js"
 
 export {
+    COMPONENT_CATEGORIES,
+    type ComponentCategory,
+    type ComponentReference,
+    type ComponentExample,
+    type ComponentProp,
+    type ComponentRegistry,
+    type PinnedExampleRef,
+    proseText,
+    type SidecarProse,
+    type SidecarExample,
+    type SidecarExampleFlavour,
+    type SidecarSectionKey,
+    type RelatedRef,
+    type RelatedRefKind,
+} from "./gdocTypes/ComponentReference.js"
+
+export type {
+    TemplateReference,
+    TemplateField,
+    TemplateSkeletonPart,
+} from "./gdocTypes/TemplateReference.js"
+
+export {
+    GUIDE_CATEGORIES,
+    type GuideCategory,
+    type GuideReference,
+} from "./gdocTypes/GuideReference.js"
+
+export type {
+    BespokeVizRegistry,
+    BundleReference,
+    BundleVariantReference,
+    BundleVariantSize,
+    BundleConfigField,
+    BundleConfigFieldType,
+} from "./gdocTypes/BespokeVizReference.js"
+
+export {
+    COMPONENT_USAGE_LABELS,
+    componentUsageLabel,
+    type ComponentUsageLabel,
+    type ComponentUsageByDocType,
+    type ComponentUsage,
+    type GdocsReferenceUsage,
+    type ComponentInstance,
+    type ComponentVariation,
+    type ComponentInstancesResponse,
+    type SyntheticExampleInfo,
+    type ExemplarOutline,
+    type TemplateExemplarsResponse,
+    type BespokeVizUsage,
+    type BundleUsage,
+    type BundleVariantUsage,
+} from "./gdocTypes/GdocsReferenceApi.js"
+
+export {
     ChartConfigType,
     OwidGdocPublicationContext,
     type OwidGdocErrorMessageProperty,
@@ -204,6 +262,8 @@ export {
     type OwidGdocProfileScope,
     type OwidGdocProfileContent,
     type OwidGdocProfileInterface,
+    type OwidGdocFeaturedVizContent,
+    type OwidGdocFeaturedVizInterface,
     type OwidGdocProfileEntitySummary,
     type OwidGdoc,
     type ChronologicalGdoc,
@@ -221,6 +281,7 @@ export {
     type EnrichedFaq,
     type DetailDictionary,
     GdocsContentSource,
+    type LatestAnnouncement,
     type LatestDataInsight,
     type LinkedAuthor,
     type LinkedChart,
@@ -237,7 +298,24 @@ export {
     type TopicPageOrphanReport,
     type NarrativeChartInfo,
     type OwidGdocDataInsightIndexItem,
+    type GdocContentKeyKind,
+    OWID_GDOC_POST_CONTENT_KEY_KINDS,
+    OWID_GDOC_DATA_INSIGHT_CONTENT_KEY_KINDS,
+    OWID_GDOC_ANNOUNCEMENT_CONTENT_KEY_KINDS,
+    OWID_GDOC_AUTHOR_CONTENT_KEY_KINDS,
+    OWID_GDOC_PROFILE_CONTENT_KEY_KINDS,
+    OWID_GDOC_ABOUT_CONTENT_KEY_KINDS,
+    OWID_GDOC_HOMEPAGE_CONTENT_KEY_KINDS,
+    GDOC_TEMPLATE_CONTENT_INTERFACES,
+    OWID_GDOC_ADMIN_MANAGED_KEYS,
 } from "./gdocTypes/Gdoc.js"
+
+export type {
+    GdocComponentPreviewStatus,
+    GdocComponentPreviewItem,
+    GdocComponentPreviewRefreshResult,
+    GdocComponentPreviewUpdateReason,
+} from "./gdocTypes/ComponentPreviews.js"
 
 export {
     type Distribution,
@@ -277,6 +355,8 @@ export {
     ALL_CHARTS_ID,
     LICENSE_ID,
     CITATION_ID,
+    PAST_VERSIONS_ID,
+    CREDITS_ID,
     ENDNOTES_ID,
     KEY_INSIGHTS_ID,
     RESEARCH_AND_WRITING_ID,
@@ -319,6 +399,12 @@ export type { OwidSource } from "./OwidSource.js"
 export type { OwidOrigin } from "./OwidOrigin.js"
 
 export {
+    type BespokeMetadata,
+    BespokeMetadataSchema,
+    shouldRenderBespokeMetadata,
+} from "./domainTypes/BespokeMetadata.js"
+
+export {
     type OwidVariableDisplayConfigInterface,
     type OwidVariableDataTableConfigInterface,
     OwidVariableRoundingMode,
@@ -327,7 +413,9 @@ export {
     TIME_INTERVALS,
     type SubYearlyTimeInterval,
     type OwidChartDimensionInterface,
-    type OwidChartDimensionInterfaceWithMandatorySlug,
+    type IndicatorDimensionInterface,
+    type SlugDimensionInterface,
+    isIndicatorDimension,
 } from "./OwidVariableDisplayConfigInterface.js"
 
 export {
@@ -380,6 +468,10 @@ export {
     AnalyticsGrapherViewsTableName,
 } from "./dbTypes/AnalyticsGrapherViews.js"
 export {
+    type DbPlainAnalyticsPopularity,
+    AnalyticsPopularityTableName,
+} from "./dbTypes/AnalyticsPopularity.js"
+export {
     type DbInsertArchivedChartVersion,
     type DbPlainArchivedChartVersion,
     type DbEnrichedArchivedChartVersion,
@@ -407,8 +499,6 @@ export {
     type DbInsertChartConfig,
     type DbRawChartConfig,
     type DbEnrichedChartConfig,
-    parseChartConfig,
-    serializeChartConfig,
     ChartConfigsTableName,
 } from "./dbTypes/ChartConfigs.js"
 export {
@@ -421,8 +511,6 @@ export {
     type DbRawChartRevision,
     type DbEnrichedChartRevision,
     ChartRevisionsTableName,
-    parseChartRevisionsRow,
-    serializeChartRevisionsRow,
 } from "./dbTypes/ChartRevisions.js"
 export {
     type DbInsertChart,
@@ -538,10 +626,6 @@ export {
     type DbEnrichedImageWithUserId,
     type DbEnrichedImageWithPageviews,
     type DbInsertImage,
-    parseImageRow,
-    parseImageUpdatedAt,
-    serializeImageRow,
-    serializeImageUpdatedAt,
     ImagesTableName,
 } from "./dbTypes/Images.js"
 export {
@@ -555,6 +639,7 @@ export {
 } from "./dbTypes/FeaturedMetrics.js"
 export {
     type DbEnrichedMultiDimDataPage,
+    type DbEnrichedPublishedMultiDimDataPage,
     type DbInsertMultiDimDataPage,
     type DbPlainMultiDimDataPage,
     MultiDimDataPagesTableName,
@@ -775,6 +860,7 @@ export {
 } from "./dbTypes/MultiDimViewDimensions.js"
 
 export { type Nominal, wrap, unwrap } from "./NominalType.js"
+export type { LiteralsOnly } from "./LiteralsOnly.js"
 
 export {
     type DbRawLatestWork,
@@ -801,6 +887,8 @@ export type {
     MultiDimDataPageConfigRaw,
     MultiDimDataPageInitialViewData,
     MultiDimDataPageProps,
+    MultiDimPageCompanion,
+    MultiDimPageCompanionView,
     FaqEntryKeyedByGdocIdAndFragmentId,
     Choice,
     ChoicesEnriched,
@@ -810,6 +898,7 @@ export type {
     View,
     ViewEnriched,
 } from "./siteTypes/MultiDimDataPage.js"
+export { MULTI_DIM_COMPANION_FILE_SUFFIX } from "./siteTypes/MultiDimDataPage.js"
 
 export {
     GRAPHER_PREVIEW_CLASS,
