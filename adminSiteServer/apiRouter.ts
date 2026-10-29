@@ -424,8 +424,8 @@ apiRouter.router.put(
     archieMlTextBody,
     apiRouter.wrap(putGdocArchieMl)
 )
-// Creates a doc of any type, in the `folderId` query parameter's folder and
-// shared with its `email`
+// Creates a doc of any type, in the `folderId` query parameter's folder (else
+// GDOCS_EDIT_GDOC_FOLDER_ID's) and shared with its `email`
 apiRouter.router.post(
     "/gdocs/archieml",
     archieMlTextBody,
