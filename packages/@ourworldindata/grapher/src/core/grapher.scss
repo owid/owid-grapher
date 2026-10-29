@@ -225,6 +225,8 @@
 }
 .tippy-box[data-theme="grapher-explanation"] {
     .tippy-content {
+        box-sizing: border-box;
+        max-width: min(350px, 100vw - 16px);
         padding: 15px;
     }
 }
