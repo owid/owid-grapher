@@ -1,7 +1,8 @@
 import {
     EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS,
     EMAIL_NOTIFICATIONS_FREQUENCY_LABELS,
-    EMAIL_NOTIFICATIONS_FROM_ADDRESS,
+    EMAIL_REPLY_TO_ADDRESS,
+    EMAIL_TRANSACTIONAL_FROM_ADDRESS,
     EmailNotificationsPreferences,
 } from "@ourworldindata/types"
 import { JsonError } from "@ourworldindata/utils"
@@ -126,7 +127,8 @@ export async function sendPostmarkEmail(
 ): Promise<void> {
     const client = getPostmarkClient(env)
     await client.sendEmail({
-        From: EMAIL_NOTIFICATIONS_FROM_ADDRESS,
+        From: EMAIL_TRANSACTIONAL_FROM_ADDRESS,
+        ReplyTo: EMAIL_REPLY_TO_ADDRESS,
         To: email.to,
         Subject: email.subject,
         HtmlBody: email.htmlBody,
