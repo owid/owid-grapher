@@ -1,6 +1,11 @@
 .md-controls {
     display: flex;
     flex-wrap: wrap;
+    // Span the whole row even inside a flex container, so its width is the
+    // space available to the controls (MultiDimControls measures it to decide
+    // whether a radio group fits).
+    width: 100%;
+    min-width: 0;
     // Controls are two rows tall (label + control); align the "Show more"
     // toggle with the control row.
     align-items: flex-end;

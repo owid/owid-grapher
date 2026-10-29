@@ -113,3 +113,25 @@ $plain-field: ":not([data-selected], :has([data-hovered]))";
     .md-settings__radio-label {
     opacity: 0.5;
 }
+
+// A hidden copy of a radio group's options at their natural width, measured
+// to decide whether the radio group fits the controls row (see
+// MeasuredDimensionRadioGroup). Fixed positioning keeps it out of the layout and out of
+// the page's scrollable area.
+.md-radio-measure.md-settings__radio-group-options {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: max-content;
+    visibility: hidden;
+    pointer-events: none;
+
+    // An intrinsic grid gives every mobile option the widest option's full
+    // width. Its total width is exactly what the equal-width control needs,
+    // so ResizeObserver can detect breakpoint changes without a JS query.
+    @media (width <= $toggle-full-width-breakpoint) {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+    }
+}
