@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import Tippy from "@tippyjs/react"
-import { hideAll } from "tippy.js"
+import { hideAll, Placement } from "tippy.js"
 import { getMinHitAreaSize } from "../core/GrapherConstants"
 import {
     GRAPHER_DARK_TEXT,
@@ -27,6 +27,14 @@ const defaultColors: Record<TextRole, string> = {
 }
 
 const UNDERLINE_OFFSET = 2
+
+const TOOLTIP_PLACEMENTS = {
+    start: { preferred: "top-start", fallback: "bottom-start" },
+    end: { preferred: "top-end", fallback: "bottom-end" },
+} as const satisfies Record<
+    "start" | "end",
+    { preferred: Placement; fallback: Placement }
+>
 
 export interface SeriesLabelProps {
     state: SeriesLabelState
@@ -120,6 +128,7 @@ export function SeriesLabel({
                             x={renderX}
                             y={renderY}
                             fragment={fragment}
+                            textAnchor={state.textAnchor}
                             fontSize={fontSize}
                             stroke={colors[fragment.role]}
                             annotations={isAnnotated ? state.annotations : []}
@@ -352,6 +361,7 @@ function TooltipTrigger({
     x,
     y,
     fragment,
+    textAnchor,
     fontSize,
     stroke,
     annotations,
@@ -363,6 +373,7 @@ function TooltipTrigger({
     x: number
     y: number
     fragment: PositionedTextFragment
+    textAnchor: "start" | "end"
     fontSize: number
     stroke: string
     annotations: SeriesLabelAnnotation[]
@@ -407,7 +418,7 @@ function TooltipTrigger({
             {/* Hit area for tooltip interaction */}
             <Tippy
                 theme="grapher-explanation"
-                placement="top-start"
+                placement={TOOLTIP_PLACEMENTS[textAnchor].preferred}
                 arrow={false}
                 offset={[0, 4]}
                 popperOptions={{
@@ -415,7 +426,9 @@ function TooltipTrigger({
                         {
                             name: "flip",
                             options: {
-                                fallbackPlacements: ["bottom-start"],
+                                fallbackPlacements: [
+                                    TOOLTIP_PLACEMENTS[textAnchor].fallback,
+                                ],
                                 padding: 8,
                             },
                         },
