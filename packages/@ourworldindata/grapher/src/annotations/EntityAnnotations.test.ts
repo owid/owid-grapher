@@ -4,8 +4,7 @@ import { OwidTable } from "@ourworldindata/core-table"
 import {
     PointAnnotation,
     RangeAnnotation,
-    selectEntityPointAnnotations,
-    selectEntityRangeAnnotations,
+    selectEntityAnnotations,
     toSeriesLabelAnnotations,
 } from "./EntityAnnotations"
 
@@ -31,11 +30,11 @@ it("keeps points that name the entity, alone or among others", () => {
         },
     ]
 
-    const selected = selectEntityPointAnnotations(
+    const { pointAnnotations: selected } = selectEntityAnnotations({
         annotations,
-        "Chad",
-        [1990, 2010]
-    )
+        entityName: "Chad",
+        timeRange: [1990, 2010],
+    })
 
     expect(selected.map((annotation) => annotation.text)).toEqual([
         "Chad only",
@@ -57,7 +56,11 @@ it("drops all-time, range and indicator-wide annotations", () => {
     ]
 
     expect(
-        selectEntityPointAnnotations(annotations, "Chad", [1990, 2010])
+        selectEntityAnnotations({
+            annotations,
+            entityName: "Chad",
+            timeRange: [1990, 2010],
+        }).pointAnnotations
     ).toEqual([])
 })
 
@@ -84,11 +87,11 @@ it("keeps points on the edges of the time range and drops points outside it", ()
         },
     ]
 
-    const selected = selectEntityPointAnnotations(
+    const { pointAnnotations: selected } = selectEntityAnnotations({
         annotations,
-        "Chad",
-        [2000, 2010]
-    )
+        entityName: "Chad",
+        timeRange: [2000, 2010],
+    })
 
     expect(selected.map((annotation) => annotation.text)).toEqual([
         "start",
@@ -113,11 +116,11 @@ it("returns points in ascending time order", () => {
         },
     ]
 
-    const selected = selectEntityPointAnnotations(
+    const { pointAnnotations: selected } = selectEntityAnnotations({
         annotations,
-        "Chad",
-        [2000, 2010]
-    )
+        entityName: "Chad",
+        timeRange: [2000, 2010],
+    })
 
     expect(selected.map((annotation) => annotation.text)).toEqual([
         "early",
@@ -148,11 +151,11 @@ it("compares day offsets, including negative ones, against a day-number time ran
         },
     ]
 
-    const selected = selectEntityPointAnnotations(
+    const { pointAnnotations: selected } = selectEntityAnnotations({
         annotations,
-        "Chad",
-        [-1500, 18000]
-    )
+        entityName: "Chad",
+        timeRange: [-1500, 18000],
+    })
 
     expect(selected.map((annotation) => annotation.text)).toEqual([
         "pre-epoch",
@@ -176,11 +179,11 @@ it("keeps ranges that name the entity, alone or among others", () => {
         rangeAnnotation("Chad and France", 2002, 2004, ["Chad", "France"]),
     ]
 
-    const selected = selectEntityRangeAnnotations(
+    const { rangeAnnotations: selected } = selectEntityAnnotations({
         annotations,
-        "Chad",
-        [1990, 2010]
-    )
+        entityName: "Chad",
+        timeRange: [1990, 2010],
+    })
 
     expect(selected.map((annotation) => annotation.text)).toEqual([
         "Chad only",
@@ -206,7 +209,11 @@ it("drops all-time, point and indicator-wide annotations when selecting ranges",
     ]
 
     expect(
-        selectEntityRangeAnnotations(annotations, "Chad", [1990, 2010])
+        selectEntityAnnotations({
+            annotations,
+            entityName: "Chad",
+            timeRange: [1990, 2010],
+        }).rangeAnnotations
     ).toEqual([])
 })
 
@@ -222,11 +229,11 @@ it("keeps ranges that overlap the time range, edges included, and returns them u
         rangeAnnotation("after", 2011, 2020),
     ]
 
-    const selected = selectEntityRangeAnnotations(
+    const { rangeAnnotations: selected } = selectEntityAnnotations({
         annotations,
-        "Chad",
-        [2000, 2010]
-    )
+        entityName: "Chad",
+        timeRange: [2000, 2010],
+    })
 
     expect(
         selected.map(({ text, startTime, endTime }) => [
@@ -251,11 +258,11 @@ it("returns ranges in ascending start time order", () => {
         rangeAnnotation("middle", 2005, 2006),
     ]
 
-    const selected = selectEntityRangeAnnotations(
+    const { rangeAnnotations: selected } = selectEntityAnnotations({
         annotations,
-        "Chad",
-        [2000, 2010]
-    )
+        entityName: "Chad",
+        timeRange: [2000, 2010],
+    })
 
     expect(selected.map((annotation) => annotation.text)).toEqual([
         "early",

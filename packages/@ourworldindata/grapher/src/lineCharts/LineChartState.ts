@@ -50,10 +50,7 @@ import {
     getSeriesName,
 } from "./LineChartHelpers"
 import { FocusArray } from "../focus/FocusArray"
-import {
-    selectEntityPointAnnotations,
-    selectEntityRangeAnnotations,
-} from "../annotations/EntityAnnotations"
+import { selectEntityAnnotations } from "../annotations/EntityAnnotations"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
@@ -352,17 +349,11 @@ export class LineChartState implements ChartState, ColorScaleManager {
             startTime ?? -Infinity,
             endTime ?? Infinity,
         ]
-        const pointAnnotations = selectEntityPointAnnotations(
-            column.def.annotations ?? [],
+        const { pointAnnotations, rangeAnnotations } = selectEntityAnnotations({
+            annotations: column.def.annotations ?? [],
             entityName,
-            timeRange
-        )
-
-        const rangeAnnotations = selectEntityRangeAnnotations(
-            column.def.annotations ?? [],
-            entityName,
-            timeRange
-        )
+            timeRange,
+        })
 
         return {
             points,
