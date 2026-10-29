@@ -10,11 +10,20 @@ export type {
 
 export const EMAIL_NOTIFICATIONS_FREQUENCIES = ["weekly", "daily"] as const
 
-// From address of all email notification emails, used both by the
-// subscribe Cloudflare Function (welcome email) and the send job
-// (baker/emailNotifications/).
-export const EMAIL_NOTIFICATIONS_FROM_ADDRESS =
+// Transactional emails (e.g. welcome, magic links) are sent from their own
+// subdomain, so bulk-mail reputation can't affect their delivery. The name
+// doesn't mention the email provider or a specific kind of email, so the
+// address survives switching providers and adding new emails.
+export const EMAIL_TRANSACTIONAL_FROM_ADDRESS =
+    "Our World in Data <hello@mail.ourworldindata.org>"
+// Broadcast emails (e.g. digests) are sent from the root domain, like the
+// newsletter, so they benefit from its established reputation. Moving the
+// newsletter to Postmark later then only changes the sending IPs.
+export const EMAIL_BROADCAST_FROM_ADDRESS =
     "Our World in Data <updates@ourworldindata.org>"
+// Replies to both kinds of email go to our inbox (the transactional subdomain
+// doesn't receive mail at all).
+export const EMAIL_REPLY_TO_ADDRESS = "info@ourworldindata.org"
 
 export type EmailNotificationsFrequency =
     (typeof EMAIL_NOTIFICATIONS_FREQUENCIES)[number]
