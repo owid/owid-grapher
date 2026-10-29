@@ -1013,4 +1013,150 @@ function MultiDimTestPage(props: MultiDimTestPageProps) {
     )
 }
 
+// DEBUG ONLY: charts with annotations mocked in debugAnnotationOverrides.ts
+interface AnnotatedChart {
+    label: string
+    path: string
+}
+
+const REAL_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "World: Great Leap Forward (point), COVID-19 (point)",
+        path: "grapher/life-expectancy?time=1870..latest&country=~OWID_WRL",
+    },
+    {
+        label: "Central African Republic: 2022 outlier (point)",
+        path: "grapher/life-expectancy-unwpp?tab=line&country=~CAF",
+    },
+    {
+        label: "Central African Republic: 2022 outlier, on a scatter plot",
+        path: "grapher/food-supply-vs-life-expectancy",
+    },
+    {
+        label: "Africa (FAO): jump from data coverage (point on two indicators)",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?country=~Africa+%28FAO%29",
+    },
+    {
+        label: "Forest in Scotland: pre-1600 data omitted (point, plus a legacy annotation)",
+        path: "grapher/forest-area-as-share-of-land-area?tab=line&time=earliest..latest&country=~Scotland",
+    },
+    {
+        label: "Chestnut production in Spain (range)",
+        path: "explorers/global-food?tab=line&country=~ESP&Food=Chestnut&Metric=Production&Per+capita=false",
+    },
+    {
+        label: "Obesity in France (range)",
+        path: "grapher/share-of-adults-defined-as-obese?tab=line&country=GBR~FRA",
+    },
+    {
+        label: "Chicken meat production in France (range)",
+        path: "grapher/chicken-meat-production?tab=line&country=~FRA",
+    },
+    {
+        label: "Maternal mortality in the US (range)",
+        path: "grapher/maternal-mortality?tab=line&time=1962..latest",
+    },
+    {
+        label: "GDP per capita in Tanzania (range)",
+        path: "grapher/gdp-per-capita-penn-world-table?tab=line&country=~TZA",
+    },
+    {
+        label: "CO₂ per capita in Sint Maarten (range)",
+        path: "grapher/co-emissions-per-capita?country=OWID_WRL~USA~GBR~OWID_EU27~IND~CHN~ZAF~CAN~KEN~BEL~SXM",
+    },
+]
+
+const MADE_UP_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Life expectancy by continent",
+        path: "grapher/life-expectancy",
+    },
+    {
+        label: "Life expectancy in China",
+        path: "grapher/life-expectancy?country=~CHN",
+    },
+    {
+        label: "DTP3 immunization, long entity names",
+        path: "grapher/share-of-children-immunized-dtp3?tab=line&country=Africa+%28WHO%29~Eastern+Mediterranean+%28WHO%29",
+    },
+    {
+        label: "Foreign aid, legacy annotation and long entity names",
+        path: "grapher/foreign-aid-given-net?tab=line&country=Non-DAC+countries~Global+Alliance+for+Vaccines+and+Immunization",
+    },
+    {
+        label: "Monthly temperature anomalies, daily time axis",
+        path: "grapher/monthly-temperature-anomalies?tab=line&country=~OWID_WRL",
+    },
+]
+
+function AnnotationsTestPage() {
+    const style = `
+        body {
+            margin: 0;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        h2 {
+            text-align: center;
+            margin: 30px 0 0;
+        }
+
+        h3 {
+            margin: 10px 0 0;
+        }
+
+        iframe {
+            border: 0;
+            height: 575px;
+            width: 100%;
+            max-width: 815px;
+            margin: 10px;
+        }
+    `
+    return (
+        <html>
+            <Head
+                canonicalUrl=""
+                pageTitle="Test Annotations"
+                baseUrl={BAKED_BASE_URL}
+            >
+                <style dangerouslySetInnerHTML={{ __html: style }} />
+            </Head>
+            <body>
+                <h2>Real examples from Figma</h2>
+                <AnnotatedChartList charts={REAL_ANNOTATED_CHARTS} />
+                <h2>Made-up examples</h2>
+                <AnnotatedChartList charts={MADE_UP_ANNOTATED_CHARTS} />
+            </body>
+        </html>
+    )
+}
+
+function AnnotatedChartList({ charts }: { charts: AnnotatedChart[] }) {
+    return (
+        <>
+            {charts.map(({ label, path }) => (
+                <div key={path} className="row">
+                    <h3>
+                        <a href={`${BAKED_BASE_URL}/${path}`}>{label}</a>
+                    </h3>
+                    <iframe src={`${BAKED_BASE_URL}/${path}`} loading="lazy" />
+                </div>
+            ))}
+        </>
+    )
+}
+
+testPageRouter.get("/annotations", (_req, res) => {
+    res.send(renderToHtmlPage(<AnnotationsTestPage />))
+})
+
 export { getSafeComparisonUrl, testPageRouter }
