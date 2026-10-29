@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest"
-import { AnnotationTooltipState, PlacedPoint } from "./LineChartConstants"
+import {
+    AnnotationTooltipState,
+    PlacedPoint,
+    RANGE_ANNOTATION_OUTLINE_WIDTH,
+    RANGE_ANNOTATION_TOOLTIP_MARGIN,
+    PlaceRangeAnnotationTooltipArgs,
+} from "./LineChartConstants"
 import {
     placeRangeAnnotation,
+    placeRangeAnnotationTooltip,
     toSeriesLabelAnnotations,
     transitionAnnotationTooltipState,
 } from "./LineChartHelpers"
@@ -10,6 +17,7 @@ import {
     RangeAnnotation,
 } from "../annotations/EntityAnnotations"
 import { OwidTable } from "@ourworldindata/core-table"
+import { Bounds, PointVector } from "@ourworldindata/utils"
 
 const markerOpen: AnnotationTooltipState = {
     kind: "markerOpen",
@@ -247,5 +255,73 @@ describe(placeRangeAnnotation, () => {
         expect(
             placeRangeAnnotation(range("after", 2040, 2050), placedPoints)
         ).toBeUndefined()
+    })
+})
+
+describe(placeRangeAnnotationTooltip, () => {
+    const minDistanceFromLine =
+        RANGE_ANNOTATION_OUTLINE_WIDTH / 2 + RANGE_ANNOTATION_TOOLTIP_MARGIN
+    const tooltipBounds = new Bounds(100, 0, 100, 40)
+    const containerBounds = new Bounds(0, 0, 400, 400)
+    const input = (
+        overrides: Partial<PlaceRangeAnnotationTooltipArgs>
+    ): PlaceRangeAnnotationTooltipArgs => ({
+        points: [new PointVector(0, 200), new PointVector(300, 200)],
+        clickPosition: new PointVector(150, 200),
+        tooltipBounds,
+        containerBounds,
+        ...overrides,
+    })
+
+    it("puts the tooltip above the highest point under it", () => {
+        const points = [new PointVector(100, 200), new PointVector(200, 150)]
+        const placed = placeRangeAnnotationTooltip(
+            input({ points, clickPosition: new PointVector(200, 150) })
+        )
+        expect(placed.bottom).toBe(150 - minDistanceFromLine)
+        expect(placed.x).toBe(tooltipBounds.x)
+    })
+
+    it("ignores points outside the tooltip's span", () => {
+        const points = [new PointVector(100, 200), new PointVector(400, 0)]
+        const placed = placeRangeAnnotationTooltip(
+            input({
+                points,
+                clickPosition: new PointVector(100, 200),
+                containerBounds: containerBounds.set({ height: 240 }),
+            })
+        )
+        const spanEnd = tooltipBounds.right + minDistanceFromLine
+        const yAtSpanEnd = 200 - (200 * (spanEnd - 100)) / 300
+        expect(placed.bottom).toBeCloseTo(yAtSpanEnd - minDistanceFromLine)
+    })
+
+    it("puts the tooltip below the lowest point when above overflows the container", () => {
+        const points = [new PointVector(100, 30), new PointVector(200, 60)]
+        const placed = placeRangeAnnotationTooltip(
+            input({ points, clickPosition: new PointVector(150, 45) })
+        )
+        expect(placed.top).toBe(60 + minDistanceFromLine)
+    })
+
+    it("puts the tooltip below when both fit and below is much closer to the click", () => {
+        const points = [new PointVector(100, 100), new PointVector(200, 300)]
+        const placed = placeRangeAnnotationTooltip(
+            input({ points, clickPosition: new PointVector(195, 290) })
+        )
+        expect(placed.top).toBe(300 + minDistanceFromLine)
+    })
+
+    it("picks the side that overflows less and clamps it to the container", () => {
+        const points = [new PointVector(100, 30), new PointVector(200, 50)]
+        const shortContainerBounds = containerBounds.set({ height: 90 })
+        const placed = placeRangeAnnotationTooltip(
+            input({
+                points,
+                clickPosition: new PointVector(150, 40),
+                containerBounds: shortContainerBounds,
+            })
+        )
+        expect(placed.bottom).toBe(shortContainerBounds.bottom)
     })
 })
