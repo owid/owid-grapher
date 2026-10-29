@@ -72,17 +72,19 @@ const axisDimensionsOf = (
     )
 }
 
+type AuxiliaryDimension = OwidChartDimensionInterface & { variableId: number }
+
 /** A scatter plot's size and colour dimensions, size first; [] otherwise. */
 export function getAuxiliaryDimensions(
     grapher: GrapherInterface
-): OwidChartDimensionInterface[] {
+): AuxiliaryDimension[] {
     if (!isScatterPlot(grapher)) return []
     const axisVariableIds = new Set(
         axisDimensionsOf(grapher).map((d) => d.variableId)
     )
     return _.sortBy(
         (grapher.dimensions ?? []).filter(
-            (d) =>
+            (d): d is AuxiliaryDimension =>
                 !!d.variableId &&
                 (d.property === DimensionProperty.size ||
                     d.property === DimensionProperty.color) &&
@@ -122,7 +124,7 @@ export function planIndicatorPanes(
     }
 ): IndicatorPanePlan {
     const auxDims = getAuxiliaryDimensions(grapher)
-    const isPane = (d: OwidChartDimensionInterface): boolean =>
+    const isPane = (d: AuxiliaryDimension): boolean =>
         auxiliaryMode === "panes" ||
         (auxiliaryMode === "mixed" && !auxiliaryLinks.get(d.variableId)?.slug)
     const auxPaneDims = auxDims.filter(isPane)

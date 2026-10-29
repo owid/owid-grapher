@@ -372,7 +372,7 @@ export async function renderDataPageV2(
         auxiliaryMode,
         auxiliaryLinks: await getAuxiliaryIndicatorLinks(
             knex,
-            _.compact(getAuxiliaryDimensions(grapher).map((d) => d.variableId))
+            getAuxiliaryDimensions(grapher).map((d) => d.variableId)
         ),
     })
     // Only a MULTI-indicator chart's panes need per-indicator titles; on a
