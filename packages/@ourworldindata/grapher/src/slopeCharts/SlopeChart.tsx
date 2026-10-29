@@ -106,14 +106,23 @@ export class SlopeChart
     }>({ fade: "immediate" })
 
     private hoveredSeriesName: string | undefined = undefined
+    private labelTooltipSeriesName: SeriesName | undefined = undefined
 
     constructor(props: SlopeChartProps) {
         super(props)
 
-        makeObservable<SlopeChart, "hoveredSeriesName" | "tooltipState">(this, {
+        makeObservable<
+            SlopeChart,
+            "hoveredSeriesName" | "labelTooltipSeriesName" | "tooltipState"
+        >(this, {
             hoveredSeriesName: observable,
+            labelTooltipSeriesName: observable,
             tooltipState: observable,
         })
+    }
+
+    @computed private get isLabelTooltipOpen(): boolean {
+        return this.labelTooltipSeriesName !== undefined
     }
 
     @computed get chartState(): SlopeChartState {
@@ -560,6 +569,9 @@ export class SlopeChart
         if (this.hoveredSeriesName)
             hoveredSeriesNames.push(this.hoveredSeriesName)
 
+        if (this.labelTooltipSeriesName)
+            hoveredSeriesNames.push(this.labelTooltipSeriesName)
+
         // hovered legend item in the external facet legend
         if (this.manager.externalLegendHoverBin) {
             hoveredSeriesNames.push(
@@ -711,7 +723,7 @@ export class SlopeChart
         this.chartState.focusArray.clear()
         clearTimeout(this.hoverTimer)
         this.hoveredSeriesName = series.seriesName
-        this.tooltipState.target = { series }
+        if (!this.isLabelTooltipOpen) this.tooltipState.target = { series }
     }
 
     @action.bound onVerticalLabelMouseEnter(seriesName: SeriesName): void {
@@ -736,6 +748,21 @@ export class SlopeChart
 
     @action.bound onVerticalLabelMouseLeave(): void {
         this.debouncedClearHoveredSeries()
+    }
+
+    @action.bound private onVerticalLabelTooltipShow(
+        seriesName: SeriesName
+    ): void {
+        this.chartState.focusArray.clear()
+        this.tooltipState.target = null
+        this.labelTooltipSeriesName = seriesName
+    }
+
+    @action.bound private onVerticalLabelTooltipHide(
+        seriesName: SeriesName
+    ): void {
+        if (this.labelTooltipSeriesName === seriesName)
+            this.labelTooltipSeriesName = undefined
     }
 
     mouseFrame?: number
@@ -1095,6 +1122,8 @@ export class SlopeChart
                 outline={true}
                 onMouseEnter={this.onVerticalLabelMouseEnter}
                 onMouseLeave={this.onVerticalLabelMouseLeave}
+                onTooltipShow={this.onVerticalLabelTooltipShow}
+                onTooltipHide={this.onVerticalLabelTooltipHide}
             />
         )
     }
@@ -1133,6 +1162,8 @@ export class SlopeChart
                 outline={true}
                 onMouseEnter={this.onVerticalLabelMouseEnter}
                 onMouseLeave={this.onVerticalLabelMouseLeave}
+                onTooltipShow={this.onVerticalLabelTooltipShow}
+                onTooltipHide={this.onVerticalLabelTooltipHide}
             />
         )
     }
