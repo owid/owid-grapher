@@ -47,7 +47,7 @@ export interface TextSpan {
 
 export type SpanLine = TextSpan[]
 
-interface RegionTooltipTarget {
+export interface RegionTooltipTarget {
     tooltipKey: TooltipKey
     regionName: EntityName
 }
@@ -55,7 +55,6 @@ interface RegionTooltipTarget {
 interface TextFragment extends TextSpan {
     type: "text"
     width: number
-    regionTooltip?: RegionTooltipTarget
 }
 
 interface SpaceFragment {
@@ -68,6 +67,20 @@ type ContentFragment = TextFragment | SpaceFragment
 type ContentLine = ContentFragment[]
 
 export type PositionedTextFragment = TextFragment & Point
+
+type TooltipTargetRole = Extract<TextRole, "name" | "regionPublisherSuffix">
+
+export interface SeriesLabelTooltipContent {
+    annotations?: SeriesLabelAnnotation[]
+    regionTooltip?: RegionTooltipTarget
+}
+
+export interface SeriesLabelTooltipTarget {
+    role: TooltipTargetRole
+    fragments: PositionedTextFragment[]
+    textBounds: Bounds
+    content: SeriesLabelTooltipContent
+}
 
 /**
  * Computes layout and positioning for a series label typically rendered
@@ -214,7 +227,6 @@ export class SeriesLabelState {
                 text,
                 width,
                 fontWeight: fontSettings.fontWeight,
-                regionTooltip: this.regionTooltipTarget,
             },
         ]
     }
@@ -296,10 +308,6 @@ export class SeriesLabelState {
             fontSettings: { fontWeight },
         } = this
 
-        const regionTooltip = this.parsedText.publisherKey
-            ? undefined
-            : this.regionTooltipTarget
-
         // Map each line of the name to a fragment
         const lines: ContentLine[] = nameWrap.lines.map((line) => [
             {
@@ -308,7 +316,6 @@ export class SeriesLabelState {
                 text: line.text,
                 width: line.width,
                 fontWeight: nameWrap.fontWeight ?? fontWeight,
-                regionTooltip,
             },
         ])
 
@@ -323,18 +330,6 @@ export class SeriesLabelState {
         }
 
         return lines
-    }
-
-    @computed get hasRegionTooltip(): boolean {
-        return this.regionTooltipTarget !== undefined
-    }
-
-    @computed get annotations(): SeriesLabelAnnotation[] {
-        return this.options.annotations
-    }
-
-    @computed get hasAnnotations(): boolean {
-        return this.annotations.length > 0
     }
 
     @computed get width(): number {
@@ -381,6 +376,64 @@ export class SeriesLabelState {
                 textAnchor: this.options.textAnchor,
             })
         )
+    }
+
+    @computed get tooltipTargets(): SeriesLabelTooltipTarget[] {
+        return excludeUndefined([
+            this.nameTooltipTarget,
+            this.suffixTooltipTarget,
+        ])
+    }
+
+    @computed private get nameTooltipTarget():
+        | SeriesLabelTooltipTarget
+        | undefined {
+        return this.makeTooltipTarget("name", {
+            annotations: this.options.annotations,
+            regionTooltip: this.parsedText.publisherKey
+                ? undefined
+                : this.regionTooltipTarget,
+        })
+    }
+
+    @computed private get suffixTooltipTarget():
+        | SeriesLabelTooltipTarget
+        | undefined {
+        if (!this.parsedText.publisherKey) return undefined
+        return this.makeTooltipTarget("regionPublisherSuffix", {
+            regionTooltip: this.regionTooltipTarget,
+        })
+    }
+
+    private makeTooltipTarget(
+        role: TooltipTargetRole,
+        { annotations, regionTooltip }: SeriesLabelTooltipContent
+    ): SeriesLabelTooltipTarget | undefined {
+        if (!annotations?.length && !regionTooltip) return undefined
+
+        const fragments = this.positionedFragments.filter(
+            (fragment) => fragment.role === role
+        )
+        if (fragments.length === 0) return undefined
+
+        const { fontSize } = this.fontSettings
+        const textBounds = Bounds.merge(
+            fragments.map(
+                (fragment) =>
+                    new Bounds(
+                        fragment.x,
+                        fragment.y - fontSize,
+                        fragment.width,
+                        fontSize
+                    )
+            )
+        )
+        return {
+            role,
+            fragments,
+            textBounds,
+            content: { annotations, regionTooltip },
+        }
     }
 }
 

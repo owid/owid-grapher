@@ -11,9 +11,9 @@ import {
     PositionedTextFragment,
     TextRole,
     SpanLine,
-    SeriesLabelAnnotation,
+    SeriesLabelTooltipTarget,
 } from "./SeriesLabelState.js"
-import { Bounds, isTouchDevice, roundForSvg } from "@ourworldindata/utils"
+import { isTouchDevice, roundForSvg } from "@ourworldindata/utils"
 import { FIGMA_TEXT_NODE_BREAK_DY, Halo } from "@ourworldindata/components"
 import { RegionTooltip } from "./RegionTooltip.js"
 import { SeriesLabelAnnotations } from "./SeriesLabelAnnotations.js"
@@ -94,7 +94,7 @@ export function SeriesLabel({
     }
 
     const label =
-        !state.hasRegionTooltip && !state.hasAnnotations ? (
+        state.tooltipTargets.length === 0 ? (
             withHalo(
                 <NativeAlignedLabelText
                     x={renderX}
@@ -118,27 +118,21 @@ export function SeriesLabel({
                         colors={colors}
                     />
                 )}
-                {state.positionedFragments.map((fragment, index) => {
-                    const isAnnotated =
-                        state.hasAnnotations && fragment.role === "name"
-                    if (!isAnnotated && !fragment.regionTooltip) return null
-                    return (
-                        <TooltipTrigger
-                            key={index}
-                            x={renderX}
-                            y={renderY}
-                            fragment={fragment}
-                            textAnchor={state.textAnchor}
-                            fontSize={fontSize}
-                            stroke={colors[fragment.role]}
-                            annotations={isAnnotated ? state.annotations : []}
-                            onTooltipShow={onTooltipShow}
-                            onTooltipHide={onTooltipHide}
-                            onMouseEnter={onMouseEnter}
-                            onMouseLeave={onMouseLeave}
-                        />
-                    )
-                })}
+                {state.tooltipTargets.map((target) => (
+                    <TooltipTrigger
+                        key={target.role}
+                        x={renderX}
+                        y={renderY}
+                        target={target}
+                        textAnchor={state.textAnchor}
+                        fontSize={fontSize}
+                        stroke={colors[target.role]}
+                        onTooltipShow={onTooltipShow}
+                        onTooltipHide={onTooltipHide}
+                        onMouseEnter={onMouseEnter}
+                        onMouseLeave={onMouseLeave}
+                    />
+                ))}
             </g>
         )
 
@@ -360,11 +354,10 @@ function TextSpanFragment({
 function TooltipTrigger({
     x,
     y,
-    fragment,
+    target,
     textAnchor,
     fontSize,
     stroke,
-    annotations,
     onTooltipShow,
     onTooltipHide,
     onMouseEnter,
@@ -372,11 +365,10 @@ function TooltipTrigger({
 }: {
     x: number
     y: number
-    fragment: PositionedTextFragment
+    target: SeriesLabelTooltipTarget
     textAnchor: "start" | "end"
     fontSize: number
     stroke: string
-    annotations: SeriesLabelAnnotation[]
     onTooltipShow?: () => void
     onTooltipHide?: () => void
     onMouseEnter?: React.MouseEventHandler<SVGElement>
@@ -385,35 +377,37 @@ function TooltipTrigger({
     // Used as react key to remount RegionTooltip with fresh state
     const [tooltipRemountKey, setTooltipRemountKey] = useState(false)
 
-    const { regionTooltip } = fragment
-    const hasAnnotations = annotations.length > 0
-
-    const left = x + fragment.x
-    const baseline = y + fragment.y
-    const underlineY = roundForSvg(baseline + UNDERLINE_OFFSET)
+    const { annotations, regionTooltip } = target.content
+    const hasAnnotations = annotations !== undefined && annotations.length > 0
 
     const minHitAreaHeight = getMinHitAreaSize()
     const verticalPadding = Math.ceil(
         Math.max(0, minHitAreaHeight - fontSize) / 2
     )
-    const hitAreaBounds = new Bounds(
-        left,
-        baseline - fontSize,
-        fragment.width,
-        fontSize
-    ).expand({ top: verticalPadding, bottom: verticalPadding })
+    const hitAreaBounds = target.textBounds
+        .set({ x: x + target.textBounds.x, y: y + target.textBounds.y })
+        .expand({ top: verticalPadding, bottom: verticalPadding })
 
     return (
         <g>
-            <line
-                x1={roundForSvg(left)}
-                x2={roundForSvg(left + fragment.width)}
-                y1={underlineY}
-                y2={underlineY}
-                stroke={stroke}
-                strokeWidth={1}
-                strokeDasharray={1}
-            />
+            {target.fragments.map((fragment) => {
+                const left = x + fragment.x
+                const underlineY = roundForSvg(
+                    y + fragment.y + UNDERLINE_OFFSET
+                )
+                return (
+                    <line
+                        key={`${fragment.x},${fragment.y}`}
+                        x1={roundForSvg(left)}
+                        x2={roundForSvg(left + fragment.width)}
+                        y1={underlineY}
+                        y2={underlineY}
+                        stroke={stroke}
+                        strokeWidth={1}
+                        strokeDasharray={1}
+                    />
+                )
+            })}
 
             {/* Hit area for tooltip interaction */}
             <Tippy
