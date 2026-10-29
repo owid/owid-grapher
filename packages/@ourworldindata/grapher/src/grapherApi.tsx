@@ -4,11 +4,13 @@ import { useIsomorphicLayoutEffect } from "usehooks-ts"
 import {
     OwidChartDimensionInterface,
     OwidColumnDef,
+    OwidTableSlugs,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { Grapher, GrapherProgrammaticInterface } from "./core/Grapher.js"
 import { GrapherState } from "./core/GrapherState.js"
 import { applyDimensionDisplayAndConversionFactor } from "./core/applyDisplayAndConversionFactor.js"
+import { appendSelectedEntityColors } from "./core/LegacyToOwidTable.js"
 import { fetchInputTableForConfig } from "./core/loadGrapherTableHelpers.js"
 import { migrateGrapherConfigToLatestVersion } from "./schema/migrations/migrate.js"
 import { useElementBounds } from "./hooks.js"
@@ -87,6 +89,22 @@ function deriveYSlugs(
 ): string | undefined {
     if (config.ySlugs || config.dimensions?.length) return config.ySlugs
     return table.numericColumnSlugs.join(" ") || undefined
+}
+
+// Prepares a caller-provided table the way the data API path prepares fetched
+// indicators: applies each dimension's display and conversion factor, and adds
+// the entity color column that `selectedEntityColors` relies on — unless the
+// table already brings its own.
+function prepareInputTable(
+    table: OwidTable,
+    config: GrapherProgrammaticInterface
+): OwidTable {
+    const prepared = applyDimensionDisplayAndConversionFactor(
+        table,
+        config.dimensions ?? []
+    )
+    if (prepared.has(OwidTableSlugs.EntityColor)) return prepared
+    return appendSelectedEntityColors(prepared, config.selectedEntityColors)
 }
 
 // --- Internal React component ------------------------------------------------
@@ -240,10 +258,7 @@ export class GrapherLoader {
             ...defaultGrapherConfigOverrides(),
             ...config,
             ySlugs: deriveYSlugs(config, data),
-            table: applyDimensionDisplayAndConversionFactor(
-                data,
-                config.dimensions ?? []
-            ),
+            table: prepareInputTable(data, config),
             isConfigReady: true,
             isDataReady: true,
         })
@@ -274,11 +289,7 @@ export class GrapherLoader {
         const ready = OwidTable.fromUrl(options.csvUrl, columnDefs).then(
             (table) => {
                 grapherState.ySlugs = deriveYSlugs(config, table)
-                grapherState.inputTable =
-                    applyDimensionDisplayAndConversionFactor(
-                        table,
-                        config.dimensions ?? []
-                    )
+                grapherState.inputTable = prepareInputTable(table, config)
                 grapherState.isDataReady = true
             }
         )
