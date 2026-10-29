@@ -1,0 +1,231 @@
+.DataPageContent .data-perspectives-prototype {
+    display: grid;
+    grid-column: 1 / -1;
+    // Grapher's entity selector panel takes up 3 of 12 columns of the chart,
+    // so a 1:4 split gives the sidebar the same width whenever it's shown
+    grid-template-columns: minmax(240px, 1fr) minmax(0, 4fr);
+    grid-template-areas: "perspectives chart";
+    align-items: stretch;
+    justify-self: center;
+    width: calc(100% - 48px);
+    max-width: 1800px;
+    margin: 24px 0 16px;
+    min-width: 0;
+
+    .GrapherWithFallback {
+        margin-bottom: 0;
+    }
+    .perspective {
+        font-family: $sans-serif-font-stack;
+        cursor: pointer;
+    }
+    .perspective:focus-visible {
+        outline: 3px solid $accent-electric-blue;
+        outline-offset: 3px;
+    }
+
+    @media (max-width: 960px) {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: "chart" "perspectives";
+    }
+
+    &.data-perspectives-prototype--horizontal {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: "perspectives" "chart";
+        margin-top: 12px;
+    }
+
+    // The tinted background spans the whole screen and starts right below
+    // the nav, while the content keeps the regular width.
+    &.data-perspectives-prototype--tinted {
+        width: 100%;
+        max-width: none;
+        margin-top: 0;
+        padding: 16px max(24px, calc((100% - 1800px) / 2));
+    }
+
+    @media (max-width: 600px) {
+        width: calc(100% - 16px);
+        margin-top: 16px;
+
+        &.data-perspectives-prototype--tinted {
+            width: 100%;
+            margin-top: 0;
+            padding: 8px;
+        }
+
+        .GrapherWithFallback.full-width-on-mobile {
+            width: 100%;
+            margin-left: 0;
+            margin-right: 0;
+        }
+    }
+}
+
+.data-perspectives-prototype__chart {
+    grid-area: chart;
+    min-width: 0;
+    scroll-margin-top: 24px;
+}
+
+.data-perspectives-variant-switcher {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 100;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    width: fit-content;
+    margin: 0 auto;
+    gap: 4px;
+    padding: 4px;
+    background: white;
+    border: 1px solid $gray-20;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    font-family: $sans-serif-font-stack;
+    font-size: 13px;
+}
+
+.data-perspectives-variant-switcher__group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    & + .data-perspectives-variant-switcher__group {
+        margin-left: 4px;
+        padding-left: 4px;
+        border-left: 1px solid $gray-20;
+    }
+}
+
+.data-perspectives-variant-switcher__label {
+    padding: 0 8px;
+    color: $gray-70;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.data-perspectives-variant-switcher__option {
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 2px;
+    background: transparent;
+    color: $gray-80;
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-10;
+    }
+    &[aria-pressed="true"] {
+        background: $blue-90;
+        color: white;
+    }
+    &:focus-visible {
+        outline: 3px solid $accent-electric-blue;
+        outline-offset: 2px;
+    }
+}
+
+// The metadata box pulls itself up into the bottom padding of the regular
+// chart wrapper, which the prototype replaces.
+.DataPageContent .data-perspectives-prototype ~ .indicator-metadata-box {
+    margin-top: 0;
+}
+
+// The sidebar runs down the page next to the chart and the content below it,
+// e.g. the metadata box, and scrolls with the page rather than on its own.
+.DataPageContent
+    .data-perspectives-prototype.data-perspectives-prototype--long-sidebar {
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+        "perspectives chart"
+        "perspectives below";
+    margin-bottom: 48px;
+
+    .perspectives {
+        grid-row: 1 / -1;
+        contain: none;
+        overflow: visible;
+        border-right: 1px solid $gray-10;
+    }
+    .perspectives__content {
+        overflow: visible;
+    }
+    // Tuck the chart's left border over the sidebar's right border
+    .data-perspectives-prototype__chart {
+        margin-left: -1px;
+    }
+
+    @media (max-width: 960px) {
+        grid-template-rows: none;
+        grid-template-areas: "chart" "perspectives" "below";
+
+        .perspectives {
+            grid-row: auto;
+        }
+        .data-perspectives-prototype__chart {
+            margin-left: 0;
+        }
+    }
+}
+
+// Vertical tinted layout: the related sections sit in a white box below the
+// tinted section, next to the content below the chart
+.DataPageContent
+    .data-perspectives-prototype.data-perspectives-prototype--related-below {
+    grid-template-areas: "perspectives below";
+    align-items: start;
+    // The tinted section above already leaves a 16px bottom margin
+    margin-top: 0;
+    margin-bottom: 48px;
+
+    // Line the metadata box up with the chart above, leaving the gap to its
+    // left on the related box's side
+    .perspectives {
+        contain: none;
+        overflow: visible;
+        margin-right: 16px;
+    }
+    .perspectives__content {
+        overflow: visible;
+    }
+    .data-perspectives-prototype__below .indicator-metadata-box {
+        margin: 0;
+    }
+
+    @media (max-width: 960px) {
+        grid-template-areas: "perspectives" "below";
+
+        .data-perspectives-prototype__below .indicator-metadata-box {
+            margin-top: 16px;
+        }
+
+        .perspectives {
+            max-height: none;
+            margin-right: 0;
+        }
+    }
+}
+
+.data-perspectives-prototype__below {
+    grid-area: below;
+    align-self: start;
+    min-width: 0;
+
+    .indicator-metadata-box {
+        margin: 16px 0 0 16px;
+    }
+
+    @media (max-width: 960px) {
+        .indicator-metadata-box {
+            margin: 16px 0 0;
+        }
+    }
+}

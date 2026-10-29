@@ -100,6 +100,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     variant?: GrapherVariant
     /** @internal */
     useMinimalLabeling?: boolean
+    hideAxesAndLabels?: boolean
 
     /** Hide the title. */
     hideTitle?: boolean

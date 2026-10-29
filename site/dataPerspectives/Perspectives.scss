@@ -1,0 +1,379 @@
+@use "../../packages/@ourworldindata/components/src/styles/colors" as colors;
+
+.data-perspectives-prototype {
+    .perspectives {
+        grid-area: perspectives;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        // Let the chart set the grid row height, regardless of the item count.
+        contain: size;
+        overflow: hidden;
+        background: white;
+        border: 1px solid colors.$gray-10;
+        border-right: 0;
+    }
+    .perspectives__heading {
+        flex-shrink: 0;
+        margin: 0;
+        padding: 16px;
+        color: colors.$gray-70;
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.3333;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .perspectives__content {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+    }
+    .perspectives__items {
+        display: grid;
+        grid-auto-rows: min-content;
+        align-content: start;
+    }
+    .perspectives__see-all {
+        display: block;
+        padding: 16px;
+        color: colors.$blue-90;
+        font-size: 13px;
+        line-height: 1.45;
+
+        svg {
+            margin-left: 8px;
+        }
+    }
+    .perspective {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 8px;
+        color: colors.$gray-80;
+        border: 0;
+        border-bottom: 1px solid colors.$gray-10;
+        text-align: left;
+        text-decoration: none;
+        background: white;
+        &:hover {
+            background: rgba(colors.$blue-20, 0.4);
+        }
+        &[aria-pressed="true"] {
+            background: colors.$blue-10;
+        }
+    }
+    .perspective--article {
+        .perspective__image img {
+            object-fit: cover;
+        }
+    }
+    .perspective__image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+        height: 56px;
+        background: white;
+        overflow: hidden;
+        flex-shrink: 0;
+        img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+    .perspective__fallback {
+        color: colors.$gray-80;
+    }
+    .perspective__title {
+        min-width: 0;
+        flex: 1;
+        font-size: 13px;
+        line-height: 1.45;
+        font-weight: 400;
+    }
+
+    @media (max-width: 960px) {
+        .perspectives {
+            contain: none;
+            max-height: min(680px, calc(100vh - 100px));
+            border-right: 1px solid colors.$gray-10;
+            border-top: 0;
+        }
+    }
+}
+
+.data-perspectives-prototype .perspectives-strip {
+    grid-area: perspectives;
+    min-width: 0;
+    background: white;
+
+    .perspectives-strip__items {
+        display: flex;
+        padding: 0 0 8px;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x proximity;
+    }
+    .perspectives-strip__group {
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+
+        & + .perspectives-strip__group {
+            margin-left: 16px;
+            padding-left: 16px;
+            border-left: 1px solid colors.$gray-10;
+        }
+    }
+    .perspectives-strip__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 26px;
+        padding: 0 0 6px;
+    }
+    .perspectives-strip__heading {
+        // Keep the group label visible while its cards scroll past.
+        position: sticky;
+        left: 0;
+
+        h2,
+        h3 {
+            margin: 0;
+            color: colors.$gray-70;
+            font-size: 12px;
+            font-weight: 900;
+            line-height: 1.3333;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+    }
+    .perspectives-strip__cards {
+        flex: 1;
+        display: flex;
+        gap: 8px;
+    }
+    .perspectives-strip__see-all {
+        flex: 0 0 120px;
+        // An explicit width keeps the unwrapped text from widening the group.
+        width: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px;
+        color: colors.$blue-90;
+        font-family: $sans-serif-font-stack;
+        font-size: 12px;
+        line-height: 1.35;
+        text-decoration: none;
+        scroll-snap-align: start;
+
+        &:hover span {
+            text-decoration: underline;
+        }
+        &:focus-visible {
+            outline: 3px solid colors.$accent-electric-blue;
+            outline-offset: -3px;
+        }
+    }
+    .perspective {
+        flex: 0 0 160px;
+        width: 160px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        padding: 6px;
+        border: 1px solid colors.$gray-10;
+        scroll-snap-align: start;
+
+        &[aria-pressed="true"] {
+            border-color: colors.$blue-50;
+        }
+    }
+    .perspective__image {
+        width: 96px;
+        height: auto;
+        aspect-ratio: 400 / 240;
+    }
+    .perspective__title {
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    @media (max-width: 600px) {
+        .perspective {
+            flex-basis: 144px;
+            width: 144px;
+        }
+    }
+}
+
+// Tinted background: only the chart stays white. The entity selector and the
+// perspectives recede into the section background, and the selected
+// perspective turns white, joined to the chart like a tab.
+.data-perspectives-prototype.data-perspectives-prototype--tinted {
+    $tint: colors.$gray-10;
+    // Hover and highlight colours, a step darker than usual to stand out
+    // against the tint
+    $hover: rgba(colors.$blue-30, 0.4);
+    $hover-strong: rgba(colors.$blue-30, 0.6);
+
+    background: $tint;
+
+    .GrapherComponent {
+        background: transparent;
+        border-color: transparent;
+    }
+    .side-panel {
+        border-left-color: transparent;
+    }
+    .entity-selector__content li {
+        background: transparent;
+    }
+    // The entity selector's colours are too close to the tint, so darken them
+    .entity-selector__content .selectable-entity {
+        border-color: colors.$gray-30;
+        &:hover {
+            background: $hover;
+        }
+        .bar {
+            background: colors.$blue-20;
+        }
+    }
+    .entity-selector__content .selectable-entity--with-bar:hover {
+        background: $hover-strong;
+    }
+    .entity-selector button.sort {
+        background: colors.$gray-30;
+        &:hover:not(:disabled) {
+            background: colors.$gray-50;
+        }
+    }
+
+    .perspective {
+        border: 0;
+        background: transparent;
+        &:hover {
+            background: $hover;
+        }
+        &[aria-pressed="true"] {
+            background: white;
+        }
+    }
+
+    .perspectives {
+        background: transparent;
+        border: 0;
+    }
+    .perspectives__heading {
+        padding-left: 8px;
+    }
+    .perspectives__see-all {
+        padding-left: 8px;
+    }
+    .perspectives .perspective {
+        border-radius: 4px 0 0 4px;
+    }
+
+    .perspectives-strip {
+        background: transparent;
+    }
+    .perspectives-strip__items {
+        // Let the cards reach down to the chart
+        padding-bottom: 0;
+    }
+    .perspectives-strip .perspective {
+        border: 0;
+        border-radius: 4px 4px 0 0;
+    }
+
+    // The chart's transparent border would leave a gap between the selected
+    // perspective and the white chart area, so tuck it under the perspectives
+    &.data-perspectives-prototype--sidebar .data-perspectives-prototype__chart {
+        margin-left: -1px;
+    }
+    &.data-perspectives-prototype--horizontal
+        .data-perspectives-prototype__chart {
+        margin-top: -1px;
+    }
+
+    @media (max-width: 960px) {
+        &.data-perspectives-prototype--sidebar {
+            .data-perspectives-prototype__chart {
+                margin-left: 0;
+            }
+            .perspectives {
+                margin-top: 8px;
+            }
+            .perspectives .perspective {
+                border-radius: 4px;
+            }
+        }
+    }
+}
+
+// The related box below the tinted section reads like a video site's "up
+// next" list: borderless rows with thumbnails and bold titles
+.data-perspectives-prototype.data-perspectives-prototype--related-below {
+    .perspectives {
+        border: 0;
+        background: transparent;
+    }
+    .perspectives__heading {
+        @include body-2-bold-tight;
+        padding: 4px 8px 8px;
+        color: colors.$blue-90;
+        text-transform: none;
+    }
+    section + section .perspectives__heading {
+        margin-top: 24px;
+    }
+    .perspectives__items {
+        gap: 4px;
+    }
+    .perspective {
+        align-items: flex-start;
+        gap: 10px;
+        padding: 8px;
+        border: 0;
+        background: transparent;
+        &:hover {
+            background: colors.$gray-5;
+        }
+    }
+    .perspective__image {
+        border: 1px solid colors.$gray-10;
+    }
+    .perspective--article .perspective__image {
+        border: 0;
+    }
+    .perspective__title {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        overflow: hidden;
+        color: colors.$blue-90;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.35;
+    }
+    .perspectives__see-all {
+        padding: 8px;
+        &:hover span {
+            text-decoration: underline;
+        }
+    }
+
+    @media (max-width: 960px) {
+        .perspectives {
+            border: 0;
+        }
+    }
+}
