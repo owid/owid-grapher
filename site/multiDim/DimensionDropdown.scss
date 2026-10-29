@@ -86,7 +86,6 @@ $selected-hover-fill: #bed2e7;
     box-shadow: 0px 4px 23px 4px #0000000f;
     z-index: $zindex-controls-popup;
     overflow-y: auto;
-    scrollbar-gutter: stable;
     overscroll-behavior: contain;
 
     // Always show scrollbar in webkit browsers. This makes it clear that there
