@@ -7,6 +7,7 @@ import {
 } from "@ourworldindata/utils"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { match } from "ts-pattern"
+import { scaleLinear } from "d3-scale"
 import {
     AxisAlign,
     AxisConfigInterface,
@@ -26,6 +27,10 @@ import {
     PlacedLineChartSeries,
     PlacedPoint,
     PlacedRangeAnnotation,
+    RANGE_ANNOTATION_TOOLTIP_BELOW_PREFERENCE_PX,
+    RANGE_ANNOTATION_OUTLINE_WIDTH,
+    RANGE_ANNOTATION_TOOLTIP_MARGIN,
+    PlaceRangeAnnotationTooltipArgs,
     RenderLineChartSeries,
 } from "./LineChartConstants"
 import { DualAxis, HorizontalAxis } from "../axis/Axis"
@@ -250,6 +255,77 @@ function placePointOnSegment(
         y: a.y + (b.y - a.y) * fraction,
         color: a.color,
     }
+}
+
+export function placeRangeAnnotationTooltip({
+    points,
+    clickPosition,
+    tooltipBounds,
+    containerBounds,
+}: PlaceRangeAnnotationTooltipArgs): Bounds {
+    const minDistanceFromLine =
+        RANGE_ANNOTATION_OUTLINE_WIDTH / 2 + RANGE_ANNOTATION_TOOLTIP_MARGIN
+    const [spanStart, spanEnd] = tooltipBounds
+        .expand({ left: minDistanceFromLine, right: minDistanceFromLine })
+        .xRange()
+    const ys = [
+        clickPosition.y,
+        ...findLineYsInXRange(points, spanStart, spanEnd),
+    ]
+
+    const lineTop = Math.min(...ys)
+    const lineBottom = Math.max(...ys)
+    const boundsAbove = tooltipBounds.set({
+        y: lineTop - minDistanceFromLine - tooltipBounds.height,
+    })
+    const boundsBelow = tooltipBounds.set({
+        y: lineBottom + minDistanceFromLine,
+    })
+
+    const aboveOverflow = containerBounds.top - boundsAbove.top
+    const belowOverflow = boundsBelow.bottom - containerBounds.bottom
+
+    if (aboveOverflow <= 0 && belowOverflow <= 0) {
+        const aboveDistance = clickPosition.y - boundsAbove.bottom
+        const belowDistance = boundsBelow.top - clickPosition.y
+        return belowDistance + RANGE_ANNOTATION_TOOLTIP_BELOW_PREFERENCE_PX <=
+            aboveDistance
+            ? boundsBelow
+            : boundsAbove
+    }
+
+    if (aboveOverflow <= 0) return boundsAbove
+    if (belowOverflow <= 0) return boundsBelow
+
+    const lessOverflowing =
+        aboveOverflow <= belowOverflow ? boundsAbove : boundsBelow
+    return lessOverflowing.set({
+        y: _.clamp(
+            lessOverflowing.top,
+            containerBounds.top,
+            containerBounds.bottom - tooltipBounds.height
+        ),
+    })
+}
+
+function findLineYsInXRange(
+    points: readonly PointVector[],
+    xStart: number,
+    xEnd: number
+): number[] {
+    if (points.length === 0) return []
+
+    const xs = points.map((point) => point.x)
+    const start = Math.max(xStart, xs[0])
+    const end = Math.min(xEnd, xs[xs.length - 1])
+    if (start >= end) return []
+
+    const lineYAtX = scaleLinear(
+        xs,
+        points.map((point) => point.y)
+    )
+    const xsInRange = xs.filter((x) => x > start && x < end)
+    return [start, ...xsInRange, end].map(lineYAtX)
 }
 
 /**
