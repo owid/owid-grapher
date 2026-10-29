@@ -63,7 +63,6 @@ playwright-report/
 
 # Claude
 .claude/settings.local.json
-/.worktrees/
 
 # Plans
 /plans/
@@ -89,8 +88,3 @@ packageDocs/docs/schema-reference/
 packageDocs/site/
 packageDocs/.venv/
 packageDocs/.cache/
-
-# BMAD
-/_bmad/
-# no trailing slash: worktrees symlink it to the main checkout's
-/_bmad-output
