@@ -1091,8 +1091,8 @@ const MADE_UP_ANNOTATED_CHARTS: AnnotatedChart[] = [
 
 const SLOPE_ANNOTATED_CHARTS: AnnotatedChart[] = [
     {
-        label: "Maternal mortality in the US (range)",
-        path: "grapher/maternal-mortality?tab=slope",
+        label: "Maternal mortality in the US (range, plus a legacy annotation)",
+        path: "grapher/maternal-mortality?tab=slope&time=1990..2020",
     },
     {
         label: "Maternal mortality in the US, range after the period (no annotation)",
@@ -1100,14 +1100,18 @@ const SLOPE_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
     {
         label: "CO₂ per capita in Sint Maarten (range)",
-        path: "grapher/co-emissions-per-capita?tab=slope&country=OWID_WRL~USA~GBR~OWID_EU27~IND~CHN~ZAF~CAN~KEN~BEL~SXM",
+        path: "grapher/co-emissions-per-capita?tab=slope&time=1950..latest&country=OWID_WRL~SXM",
+    },
+    {
+        label: "CO₂ per capita by continent (region popups, no annotations)",
+        path: "grapher/co-emissions-per-capita?tab=slope&time=1970..latest&country=Europe~Africa~Asia~OWID_WRL",
     },
     {
         label: "Foreign aid, points on long entity names and a legacy annotation",
-        path: "grapher/foreign-aid-given-net?tab=slope",
+        path: "grapher/foreign-aid-given-net?tab=slope&time=2007..2024",
     },
     {
-        label: "Africa (FAO): region popup and a point on two indicators",
+        label: "Africa (FAO): a point on two indicators",
         path: "grapher/change-in-food-supply-population-and-agricultural-land-use?tab=slope&country=~Africa+%28FAO%29",
     },
 ]
