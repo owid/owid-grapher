@@ -138,8 +138,6 @@ $selected-hover-fill: #bed2e7;
         flex-direction: column;
         padding-top: 4px;
         overflow: hidden;
-        // The list reserves its own scrollbar gutter.
-        scrollbar-gutter: auto;
 
         .md-menu__search {
             flex-shrink: 0;
