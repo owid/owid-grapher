@@ -23,7 +23,6 @@ export default function MultiDimEmbedSettingsPanel({
     const resolvedSettings = useResolvedSettings(settings, dimensions)
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const containerRef = useRef<HTMLDivElement>(null)
-    const dropdownsRef = useRef<HTMLDivElement>(null)
 
     const availableSettings = useMemo(() => {
         return config.filterToAvailableChoices(resolvedSettings)
@@ -44,8 +43,7 @@ export default function MultiDimEmbedSettingsPanel({
         }
 
         const container = containerRef.current
-        const dropdownsContainer = dropdownsRef.current
-        if (!container || !dropdownsContainer) return
+        if (!container) return
 
         const containerWidth = container.offsetWidth
         const containerPadding = 32 // 16px on each side
@@ -55,9 +53,7 @@ export default function MultiDimEmbedSettingsPanel({
         const toggleButtonWidth = 90
 
         const dropdowns = Array.from(
-            dropdownsContainer.querySelectorAll<HTMLDivElement>(
-                ".md-settings__control"
-            )
+            container.querySelectorAll<HTMLDivElement>(".md-settings__control")
         )
 
         // First, try to fit all dropdowns without toggle button
@@ -107,7 +103,6 @@ export default function MultiDimEmbedSettingsPanel({
     return (
         <div className={cx("md-embed-settings", className)} ref={containerRef}>
             <MultiDimControls
-                ref={dropdownsRef}
                 dimensions={dimensions}
                 availableSettings={availableSettings}
                 resolvedSettings={resolvedSettings}
