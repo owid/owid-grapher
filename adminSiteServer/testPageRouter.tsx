@@ -1089,6 +1089,29 @@ const MADE_UP_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
 ]
 
+const SLOPE_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Maternal mortality in the US (range)",
+        path: "grapher/maternal-mortality?tab=slope",
+    },
+    {
+        label: "Maternal mortality in the US, range after the period (no annotation)",
+        path: "grapher/maternal-mortality?tab=slope&time=1985..2000",
+    },
+    {
+        label: "CO₂ per capita in Sint Maarten (range)",
+        path: "grapher/co-emissions-per-capita?tab=slope&country=OWID_WRL~USA~GBR~OWID_EU27~IND~CHN~ZAF~CAN~KEN~BEL~SXM",
+    },
+    {
+        label: "Foreign aid, points on long entity names and a legacy annotation",
+        path: "grapher/foreign-aid-given-net?tab=slope",
+    },
+    {
+        label: "Africa (FAO): region popup and a point on two indicators",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?tab=slope&country=~Africa+%28FAO%29",
+    },
+]
+
 function AnnotationsTestPage() {
     const style = `
         body {
@@ -1135,6 +1158,8 @@ function AnnotationsTestPage() {
                 <AnnotatedChartList charts={REAL_ANNOTATED_CHARTS} />
                 <h2>Made-up examples</h2>
                 <AnnotatedChartList charts={MADE_UP_ANNOTATED_CHARTS} />
+                <h2>Slope charts</h2>
+                <AnnotatedChartList charts={SLOPE_ANNOTATED_CHARTS} />
             </body>
         </html>
     )
