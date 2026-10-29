@@ -7,7 +7,6 @@ export default defineConfig({
         exclude: [
             ...configDefaults.exclude,
             ".claude/worktrees/**", // local checkouts are separate test suites
-            ".worktrees/**", // same
             ".features-gen/**", // generated files from Playwright BDD tests
             "itsJustJavascript/**",
             "**/dist/**",
