@@ -5,6 +5,10 @@ import { CoreColumn } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import { InteractionState } from "../interaction/InteractionState"
 import { Emphasis } from "../interaction/Emphasis"
+import {
+    PointAnnotation,
+    RangeAnnotation,
+} from "../annotations/EntityAnnotations"
 
 export interface SlopeChartManager extends ChartManager {
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
@@ -21,6 +25,8 @@ export interface SlopeChartSeries extends ChartSeries {
     end: OwidVariableRow<number>
     annotation?: string
     focus: InteractionState
+    pointAnnotations: PointAnnotation[]
+    rangeAnnotations: RangeAnnotation[]
 }
 
 export type RawSlopeChartSeries = PartialBy<SlopeChartSeries, "start" | "end">

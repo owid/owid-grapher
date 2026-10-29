@@ -17,6 +17,7 @@ import {
     ScaleType,
     SeriesStrategy,
 } from "@ourworldindata/utils"
+import { IndicatorAnnotation } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { SlopeChartState } from "./SlopeChartState"
 
@@ -235,5 +236,96 @@ describe("colors", () => {
         expect(chart.series).toHaveLength(2)
         expect(chart.series[0].color).not.toEqual("green")
         expect(chart.series[1].color).not.toEqual("orange")
+    })
+})
+
+describe("annotations", () => {
+    const pointAnnotation = (
+        text: string,
+        time: number,
+        entityNames: [string, ...string[]] = ["usa"]
+    ): IndicatorAnnotation => ({
+        text,
+        entityNames,
+        timeScope: "point",
+        time,
+    })
+
+    const rangeAnnotation = (
+        text: string,
+        startTime: number,
+        endTime: number
+    ): IndicatorAnnotation => ({
+        text,
+        entityNames: ["usa"],
+        timeScope: "range",
+        startTime,
+        endTime,
+    })
+
+    const makeAnnotatedChartState = (
+        annotations: IndicatorAnnotation[],
+        entityNames: string[] = ["usa"]
+    ): SlopeChartState => {
+        const years = [2000, 2001, 2002, 2003, 2004]
+        const table = new OwidTable(
+            {
+                entityName: entityNames.flatMap((name) =>
+                    years.map(() => name)
+                ),
+                year: entityNames.flatMap(() => years),
+                gdp: entityNames.flatMap(() => [100, 200, 300, 400, 500]),
+            },
+            [{ slug: "gdp", type: ColumnTypeNames.Numeric, annotations }]
+        )
+        return makeSlopeChart(table, {
+            yColumnSlugs: ["gdp"],
+            selection: entityNames,
+        }).chartState
+    }
+
+    it("places a point annotation from the middle of the period on the series", () => {
+        const chartState = makeAnnotatedChartState([
+            pointAnnotation("middle", 2002),
+        ])
+        expect(
+            chartState.series[0].pointAnnotations.map((a) => a.text)
+        ).toEqual(["middle"])
+    })
+
+    it("includes point annotations on the start and end year and drops those outside the period", () => {
+        const chartState = makeAnnotatedChartState([
+            pointAnnotation("before", 1999),
+            pointAnnotation("start", 2000),
+            pointAnnotation("end", 2004),
+            pointAnnotation("after", 2005),
+        ])
+        expect(
+            chartState.series[0].pointAnnotations.map((a) => a.text)
+        ).toEqual(["start", "end"])
+    })
+
+    it("places a range annotation that overlaps the period and drops one outside it", () => {
+        const chartState = makeAnnotatedChartState([
+            rangeAnnotation("overlapping", 1990, 2002),
+            rangeAnnotation("outside", 1990, 1995),
+        ])
+        expect(
+            chartState.series[0].rangeAnnotations.map((a) => a.text)
+        ).toEqual(["overlapping"])
+    })
+
+    it("places annotations only on the series of the entity they name", () => {
+        const chartState = makeAnnotatedChartState(
+            [pointAnnotation("fra only", 2002, ["fra"])],
+            ["usa", "fra"]
+        )
+        const pointTextsByEntity = Object.fromEntries(
+            chartState.series.map((series) => [
+                series.entityName,
+                series.pointAnnotations.map((a) => a.text),
+            ])
+        )
+        expect(pointTextsByEntity).toEqual({ usa: [], fra: ["fra only"] })
     })
 })
