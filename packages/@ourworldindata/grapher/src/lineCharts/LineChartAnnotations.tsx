@@ -1,7 +1,14 @@
-import React, { useRef } from "react"
+import React, { useRef, useState } from "react"
 import Tippy from "@tippyjs/react"
+import { detectOverflow, Modifier } from "@popperjs/core"
 import { SeriesName } from "@ourworldindata/types"
-import { pointsToPath, roundForSvg } from "@ourworldindata/utils"
+import {
+    Bounds,
+    getRelativeMouse,
+    PointVector,
+    pointsToPath,
+    roundForSvg,
+} from "@ourworldindata/utils"
 import {
     LINE_STYLE,
     RANGE_ANNOTATION_OUTLINE_OPACITY,
@@ -9,6 +16,7 @@ import {
     RenderPointAnnotation,
     RenderRangeAnnotation,
 } from "./LineChartConstants"
+import { placeRangeAnnotationTooltip } from "./LineChartHelpers"
 import { AnnotationInfoIcon } from "../annotations/AnnotationInfoIcon"
 import { AnnotationMarker } from "../annotations/EntityAnnotations"
 import { SeriesLabelAnnotations } from "../seriesLabel/SeriesLabelAnnotations"
@@ -135,6 +143,7 @@ function RangeAnnotationHitArea({
 }: RangeAnnotationHitAreaProps): React.ReactElement {
     const pathRef = useRef<SVGPathElement>(null)
     const clickOffsetRef = useRef({ x: 0, y: 0 })
+    const [tooltipPlacement] = useState(createRangeAnnotationTooltipPlacement)
 
     const getReferenceClientRect = (): DOMRect => {
         const rect = pathRef.current?.getBoundingClientRect()
@@ -156,6 +165,12 @@ function RangeAnnotationHitArea({
             visible={isTooltipOpen}
             onClickOutside={onTooltipClose}
             getReferenceClientRect={getReferenceClientRect}
+            popperOptions={{
+                modifiers: [
+                    { name: "flip", enabled: false },
+                    tooltipPlacement.placementModifier,
+                ],
+            }}
             content={
                 <SeriesLabelAnnotations
                     annotations={[{ heading, text: annotation.text }]}
@@ -178,6 +193,16 @@ function RangeAnnotationHitArea({
                         x: event.clientX - rect.left,
                         y: event.clientY - rect.top,
                     }
+                    const click = getRelativeMouse(event.currentTarget, event)
+                    tooltipPlacement.storePointsRelativeToClick(
+                        points.map(
+                            (point) =>
+                                new PointVector(
+                                    point.x - click.x,
+                                    point.y - click.y
+                                )
+                        )
+                    )
                     onClick(seriesName, {
                         timeScope: "range",
                         startTime: annotation.startTime,
@@ -187,4 +212,66 @@ function RangeAnnotationHitArea({
             />
         </Tippy>
     )
+}
+
+type RangeAnnotationTooltipPlacementModifier = Modifier<
+    "rangeAnnotationTooltipPlacement",
+    object
+>
+
+interface RangeAnnotationTooltipPlacement {
+    placementModifier: RangeAnnotationTooltipPlacementModifier
+    storePointsRelativeToClick: (points: PointVector[]) => void
+}
+
+function createRangeAnnotationTooltipPlacement(): RangeAnnotationTooltipPlacement {
+    let pointsRelativeToClick: PointVector[] = []
+    const placementModifier: RangeAnnotationTooltipPlacementModifier = {
+        name: "rangeAnnotationTooltipPlacement",
+        enabled: true,
+        phase: "main",
+        requires: ["popperOffsets"],
+        requiresIfExists: ["preventOverflow"],
+        fn({ state }) {
+            const { popperOffsets } = state.modifiersData
+            if (!popperOffsets || pointsRelativeToClick.length === 0) return
+
+            const { reference, popper } = state.rects
+            const clickPosition = new PointVector(reference.x, reference.y)
+            const points = pointsRelativeToClick.map((point) =>
+                clickPosition.add(point)
+            )
+            const tooltipBounds = new Bounds(
+                popperOffsets.x,
+                popperOffsets.y,
+                popper.width,
+                popper.height
+            )
+
+            const overflow = detectOverflow(state)
+            const containerBounds = Bounds.fromCorners(
+                new PointVector(
+                    popperOffsets.x + overflow.left,
+                    popperOffsets.y + overflow.top
+                ),
+                new PointVector(
+                    popperOffsets.x + popper.width - overflow.right,
+                    popperOffsets.y + popper.height - overflow.bottom
+                )
+            )
+
+            popperOffsets.y = placeRangeAnnotationTooltip({
+                points,
+                clickPosition,
+                tooltipBounds,
+                containerBounds,
+            }).y
+        },
+    }
+    return {
+        placementModifier,
+        storePointsRelativeToClick: (points) => {
+            pointsRelativeToClick = points
+        },
+    }
 }
