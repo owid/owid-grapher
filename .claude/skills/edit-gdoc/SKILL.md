@@ -22,10 +22,10 @@ The doc id is the part of the URL after `/document/d/`.
 - Default: the local admin of the checkout you are in. Worktrees use their own port, so run this from the checkout root to take it from `.env`. Don't `Read` the `.env` itself, because it holds secrets.
 
     ```sh
-    jq -Rr 'select(startswith("ADMIN_SERVER_PORT=")) | ltrimstr("ADMIN_SERVER_PORT=")' .env
+    jq -Rr 'select(startswith("ADMIN_SERVER_PORT=")) | ltrimstr("ADMIN_SERVER_PORT=") | sub("\\s*(#.*)?$"; "")' .env
     ```
 
-    It prints the port, or nothing when the port is 3030. `HOST=http://localhost:<port>`.
+    It prints the port without any inline comment, or nothing when `.env` doesn't set it (the port is then 3030). `HOST=http://localhost:<port>`.
 
 - When the user names a branch: `HOST=http://staging-site-<branch>`, with slashes in the branch name turned into hyphens and the branch part truncated to 28 characters.
 - No auth headers. Localhost logs you in automatically; staging knows you through Tailscale.
