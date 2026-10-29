@@ -14,7 +14,7 @@ $topic-page-header-margin-bottom: 32px;
     --grid-gap: 24px;
     --viewport-height: 100vh;
 
-    @media (max-width: 768px) {
+    @media (width <= 768px) {
         --grid-gap: 16px;
     }
 }
@@ -77,55 +77,55 @@ $xlg: 1440px;
 $xxlg: 1536px;
 
 @mixin sm-only {
-    @media (max-width: $sm) {
+    @media (width <= $sm) {
         @content;
     }
 }
 
 @mixin sm-up {
-    @media (min-width: #{$sm + 1}) {
+    @media (width >= #{$sm + 1}) {
         @content;
     }
 }
 
 @mixin md-only {
-    @media (min-width: #{$sm + 1}) and (max-width: $md) {
+    @media (#{$sm + 1} <= width <= $md) {
         @content;
     }
 }
 
 @mixin md-down {
-    @media (max-width: $md) {
+    @media (width <= $md) {
         @content;
     }
 }
 
 @mixin md-up {
-    @media (min-width: #{$md + 1}) {
+    @media (width >= #{$md + 1}) {
         @content;
     }
 }
 
 @mixin lg-only {
-    @media (min-width: #{$md + 1}) and (max-width: $lg) {
+    @media (#{$md + 1} <= width <= $lg) {
         @content;
     }
 }
 
 @mixin lg-down {
-    @media (max-width: $lg) {
+    @media (width <= $lg) {
         @content;
     }
 }
 
 @mixin lg-up {
-    @media (min-width: #{$lg + 1}) {
+    @media (width >= #{$lg + 1}) {
         @content;
     }
 }
 
 @mixin xlg-only {
-    @media (min-width: #{$lg + 1}) and (max-width: $xlg) {
+    @media (#{$lg + 1} <= width <= $xlg) {
         @content;
     }
 }
@@ -133,21 +133,21 @@ $xxlg: 1536px;
 // Blocks are shown side-by-side from that breakpoint up (when applicable)
 
 @mixin xlg-up {
-    @media only screen and (min-width: #{$xlg + 1}) {
+    @media only screen and (width >= #{$xlg + 1}) {
         @content;
     }
 }
 
 // mixin duplicated in packages/@ourworldindata/grapher/src/core/grapher.scss
 @mixin xxlg-down {
-    @media only screen and (max-width: $xxlg) {
+    @media only screen and (width <= $xxlg) {
         @content;
     }
 }
 
 // The sidebar is shown from that breakpoint up
 @mixin xxlg-up {
-    @media only screen and (min-width: #{$xxlg + 1}) {
+    @media only screen and (width >= #{$xxlg + 1}) {
         @content;
     }
 }

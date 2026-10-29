@@ -21,7 +21,8 @@ export function getPrefixedGdocPath(
                         OwidGdocType.TopicPage,
                         OwidGdocType.LinearTopicPage,
                         OwidGdocType.AboutPage,
-                        OwidGdocType.Announcement
+                        OwidGdocType.Announcement,
+                        OwidGdocType.FeaturedViz
                     ),
                 },
             },
@@ -38,12 +39,6 @@ export function getPrefixedGdocPath(
                 content: { type: OwidGdocType.DataInsight },
             },
             () => `${prefix}/data-insights/${gdoc.slug}`
-        )
-        .with(
-            {
-                content: { type: OwidGdocType.FeaturedViz },
-            },
-            () => `${prefix}/featured-viz/${gdoc.slug}`
         )
         .with(
             {

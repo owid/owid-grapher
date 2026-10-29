@@ -26,6 +26,7 @@ import { ScatterSeries, SeriesPoint } from "./ScatterPlotChartConstants"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
 
 export interface ScatterPlotTooltipProps {
+    id: number
     chartState: ScatterPlotChartState
     tooltipState: TooltipState<{ series: ScatterSeries }>
 }
@@ -188,7 +189,7 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
 
         return (
             <Tooltip
-                id="scatterTooltip"
+                id={this.props.id}
                 tooltipManager={chartState.manager}
                 x={position.x}
                 y={position.y}

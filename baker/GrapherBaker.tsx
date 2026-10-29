@@ -58,6 +58,7 @@ import {
 import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 import { getDatapageDataV2 } from "../site/dataPage.js"
 import { getAllImages } from "../db/model/Image.js"
+import { parseAndMigrateChartConfig } from "../db/model/ChartConfigs.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
 import { deleteOldGraphers } from "./GrapherBakingUtils.js"
@@ -371,7 +372,7 @@ export async function renderDataPageV2(
         auxiliaryMode,
         auxiliaryLinks: await getAuxiliaryIndicatorLinks(
             knex,
-            getAuxiliaryDimensions(grapher).map((d) => d.variableId)
+            _.compact(getAuxiliaryDimensions(grapher).map((d) => d.variableId))
         ),
     })
     // Only a MULTI-indicator chart's panes need per-indicator titles; on a
@@ -679,7 +680,7 @@ export const bakeSingleGrapherChart = async (
     args: BakeSingleGrapherChartArguments,
     knex: db.KnexReadonlyTransaction
 ) => {
-    const grapher: GrapherInterface = JSON.parse(args.config)
+    const grapher = parseAndMigrateChartConfig(args.config)
     grapher.id = args.id
 
     // Avoid baking paths that have an Explorer redirect.

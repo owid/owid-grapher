@@ -4,6 +4,7 @@ import {
     getProcessingPhraseForAttribution,
     formatSourceDate,
     getDateRange,
+    openLinkInNewTabAttrs,
 } from "@ourworldindata/utils"
 import { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "../SharedDataPageConstants.js"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
@@ -17,10 +18,11 @@ export const makeSource = ({
     attribution?: string
     owidProcessingLevel?: OwidProcessingLevel
     isEmbeddedInADataPage?: boolean
-    processingId?: string
+    /** Where the processing phrase links to; `null` leaves it unlinked */
+    processingId?: string | null
 }): React.ReactNode => {
     if (!attribution) return null
-    const isEmbedded = isEmbeddedInADataPage ?? true
+    const isLinked = (isEmbeddedInADataPage ?? true) && processingId !== null
     const processingLevelPhrase = getProcessingPhraseForAttribution(
         attribution,
         owidProcessingLevel
@@ -31,7 +33,7 @@ export const makeSource = ({
             {processingLevelPhrase && (
                 <>
                     {" – "}
-                    {isEmbedded ? (
+                    {isLinked ? (
                         <a
                             href={`#${processingId}`}
                             data-track-note="data_processing_level"
@@ -94,9 +96,12 @@ const splitSourceTextIntoFragments = (text: string | undefined): string[] => {
 export const makeLinks = ({
     link,
     trackNote,
+    openLinksInNewTab,
 }: {
     link?: string
     trackNote?: string
+    /** Open links in a new tab, e.g. when rendered inside an iframe. */
+    openLinksInNewTab?: boolean
 }): React.ReactNode => {
     if (!link) return null
     const linkFragments = splitSourceTextIntoFragments(link)
@@ -106,13 +111,18 @@ export const makeLinks = ({
             <React.Fragment key={urlOrText}>
                 <span>
                     {isUrl ? (
-                        <a href={urlOrText} data-track-note={trackNote}>
+                        <a
+                            href={urlOrText}
+                            data-track-note={trackNote}
+                            {...openLinkInNewTabAttrs(openLinksInNewTab)}
+                        >
                             {urlOrText}
                         </a>
                     ) : (
                         <SimpleMarkdownText
                             text={urlOrText}
                             useParagraphs={false}
+                            openLinksInNewTab={openLinksInNewTab}
                         />
                     )}
                 </span>

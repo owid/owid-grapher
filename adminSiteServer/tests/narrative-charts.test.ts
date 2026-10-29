@@ -2,9 +2,13 @@ import { describe, it, expect } from "vitest"
 import { getAdminTestEnv } from "./testEnv.js"
 import {
     ChartConfigsTableName,
+    ChartsTableName,
+    ContentGraphLinkType,
     GrapherInterface,
     MultiDimXChartConfigsTableName,
     NarrativeChartsTableName,
+    PostsGdocsLinksTableName,
+    PostsGdocsTableName,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import {
@@ -16,6 +20,14 @@ import {
 import type { NarrativeChartResponse } from "../apiRoutes/narrativeCharts.js"
 
 const env = getAdminTestEnv()
+
+async function readStoredConfig(configId: string): Promise<GrapherInterface> {
+    const row = await env
+        .testKnex(ChartConfigsTableName)
+        .where({ id: configId })
+        .first()
+    return JSON.parse(row.config)
+}
 
 describe("Narrative charts API", { timeout: 20000 }, () => {
     const parentChartConfig: GrapherInterface = {
@@ -164,6 +176,46 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
         })
     })
 
+    it("migrates an outdated narrative chart config before storing it", async () => {
+        const { chartId } = await createParentChart()
+
+        const narrativeChartId = await createNarrativeChart(chartId, {
+            ...narrativeChartConfig,
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            hideLegend: true,
+        } as GrapherInterface)
+
+        const row = await env
+            .testKnex(NarrativeChartsTableName)
+            .where({ id: narrativeChartId })
+            .first()
+        for (const configId of [row.patchConfigId, row.chartConfigId]) {
+            const config = await readStoredConfig(configId)
+            expect(config.$schema).toBe(latestGrapherConfigSchema)
+            expect(config.hideSeriesLabels).toBe(true)
+            expect(config).not.toHaveProperty("hideLegend")
+        }
+    })
+
+    it("rejects a narrative chart config with an unknown key", async () => {
+        const { chartId } = await createParentChart()
+
+        const response = await env.request({
+            method: "POST",
+            path: "/narrative-charts",
+            body: JSON.stringify({
+                type: "chart",
+                name: "test-narrative-chart-invalid",
+                parentChartId: chartId,
+                config: { ...narrativeChartConfig, hideLegend: true },
+            }),
+            expectStatus: 400,
+        })
+        expect(response.error.message).toContain("/hideLegend")
+        expect(await env.getCount(NarrativeChartsTableName)).toBe(0)
+    })
+
     it("updates a narrative chart in place", async () => {
         const { chartId } = await createParentChart()
         const narrativeChartId = await createNarrativeChart(chartId)
@@ -181,6 +233,53 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
         expect(after.chartConfigId).toBe(before.chartConfigId)
         expect(after.configFull.title).toBe("Updated title")
         expect(await env.getCount(ChartConfigsTableName)).toBe(4)
+    })
+
+    it("rejects an update with an unknown key, changing nothing", async () => {
+        const { chartId } = await createParentChart()
+        const narrativeChartId = await createNarrativeChart(chartId)
+        const before = await getNarrativeChart(narrativeChartId)
+
+        const response = await env.request({
+            method: "PUT",
+            path: `/narrative-charts/${narrativeChartId}`,
+            body: JSON.stringify({
+                config: { ...narrativeChartConfig, hideLegend: true },
+            }),
+            expectStatus: 400,
+        })
+        expect(response.error.message).toContain("/hideLegend")
+
+        const after = await getNarrativeChart(narrativeChartId)
+        expect(after.configPatch).toEqual(before.configPatch)
+        expect(after.configFull).toEqual(before.configFull)
+    })
+
+    it("migrates an outdated update before storing it", async () => {
+        const { chartId } = await createParentChart()
+        const narrativeChartId = await createNarrativeChart(chartId)
+
+        await env.request({
+            method: "PUT",
+            path: `/narrative-charts/${narrativeChartId}`,
+            body: JSON.stringify({
+                config: {
+                    ...narrativeChartConfig,
+                    $schema:
+                        "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                    hideLegend: true,
+                },
+            }),
+        })
+
+        const row = await env
+            .testKnex(NarrativeChartsTableName)
+            .where({ id: narrativeChartId })
+            .first()
+        const config = await readStoredConfig(row.patchConfigId)
+        expect(config.$schema).toBe(latestGrapherConfigSchema)
+        expect(config.hideSeriesLabels).toBe(true)
+        expect(config).not.toHaveProperty("hideLegend")
     })
 
     it("does not re-merge a narrative chart when its parent chart changes", async () => {
@@ -216,5 +315,87 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
         expect(await env.getCount(NarrativeChartsTableName)).toBe(0)
         // Only the parent chart's two config rows are left
         expect(await env.getCount(ChartConfigsTableName)).toBe(2)
+    })
+
+    describe("deleting the parent chart", () => {
+        // A gdoc that embeds the narrative chart, as recorded at gdoc save time
+        async function seedGdocEmbeddingNarrativeChart(
+            published: boolean
+        ): Promise<void> {
+            const id = "gdoc-embedding-narrative-chart"
+            await env.testKnex(PostsGdocsTableName).insert({
+                id,
+                slug: "article-with-narrative-chart",
+                content: JSON.stringify({ title: "Article", type: "article" }),
+                published: published ? 1 : 0,
+                publishedAt: published ? new Date("2026-01-01") : null,
+                createdAt: new Date("2026-01-01"),
+            })
+            await env.testKnex(PostsGdocsLinksTableName).insert({
+                sourceId: id,
+                target: "test-narrative-chart",
+                linkType: ContentGraphLinkType.NarrativeChart,
+                componentType: "narrative-chart",
+                text: "",
+                queryString: "",
+                hash: "",
+            })
+        }
+
+        it("deletes narrative charts only used in unpublished content along with it", async () => {
+            const { chartId } = await createParentChart()
+            await createNarrativeChart(chartId)
+            await seedGdocEmbeddingNarrativeChart(false)
+
+            // The admin client only asks for confirmation in this case
+            const { references } = await env.fetchJson(
+                `/charts/${chartId}.references.json`
+            )
+            expect(references.narrativeCharts).toMatchObject([
+                {
+                    name: "test-narrative-chart",
+                    publishedIn: [],
+                },
+            ])
+
+            await env.request({
+                method: "DELETE",
+                path: `/charts/${chartId}`,
+            })
+
+            expect(await env.getCount(ChartsTableName)).toBe(0)
+            expect(await env.getCount(NarrativeChartsTableName)).toBe(0)
+            expect(await env.getCount(ChartConfigsTableName)).toBe(0)
+        })
+
+        it("deletes nothing when a narrative chart is used in published content", async () => {
+            const { chartId } = await createParentChart()
+            await createNarrativeChart(chartId)
+            await seedGdocEmbeddingNarrativeChart(true)
+
+            // The admin client refuses to delete the chart in this case
+            const { references } = await env.fetchJson(
+                `/charts/${chartId}.references.json`
+            )
+            expect(references.narrativeCharts).toMatchObject([
+                {
+                    name: "test-narrative-chart",
+                    publishedIn: ["article-with-narrative-chart"],
+                },
+            ])
+
+            const response = await env.request({
+                method: "DELETE",
+                path: `/charts/${chartId}`,
+                expectStatus: 400,
+            })
+
+            expect(response.error.message).toContain(
+                "article-with-narrative-chart"
+            )
+            expect(await env.getCount(ChartsTableName)).toBe(1)
+            expect(await env.getCount(NarrativeChartsTableName)).toBe(1)
+            expect(await env.getCount(ChartConfigsTableName)).toBe(4)
+        })
     })
 })

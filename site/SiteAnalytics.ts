@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import { tinykeys, type KeybindingsMap } from "tinykeys"
 import { setSentryTagsAndAttributes } from "./SentryUtils.js"
 import { GrapherAnalytics, splitPathForGA4 } from "@ourworldindata/grapher"
 import {
@@ -427,6 +428,50 @@ export class SiteAnalytics extends GrapherAnalytics {
                 }),
             { passive: true }
         )
+    }
+
+    /**
+     * Track use of the browser's own find-in-page (Cmd/Ctrl+F or F3). The
+     * find bar itself is invisible to page scripts, so we log the shortcut
+     * reaching the page, at most once per page view. Misses find opened from
+     * the browser menu, which is how mobile users open it, so treat this as a
+     * desktop signal.
+     *
+     * Returns a function that removes the listener.
+     */
+    startFindInPageTracking(): () => void {
+        const logOpen = (eventContext: "mod+f" | "f3"): void => {
+            unsubscribe()
+            this.logToGA({
+                event: EventCategory.SiteFindInPage,
+                eventAction: "open",
+                eventContext,
+            })
+        }
+
+        // `$mod` is Cmd on Apple platforms and Ctrl elsewhere (on a Mac,
+        // Ctrl+F moves the cursor instead). Handlers must never call
+        // `preventDefault`, so that the find bar opens as usual.
+        const keybindings: KeybindingsMap = {
+            // Latin layouts: the shortcut follows the produced key (on
+            // Dvorak, the physical F key types "u", and Cmd+U isn't find)
+            "$mod+f": () => logOpen("mod+f"),
+            // Non-Latin layouts (e.g. Cyrillic) produce no Latin letter, and
+            // browsers fall back to the physical key there
+            "$mod+KeyF": (ev) => {
+                if (!/^[a-z]$/i.test(ev.key)) logOpen("mod+f")
+            },
+            // F3 is "find next"
+            "[Shift]+F3": () => logOpen("f3"),
+        }
+
+        const unsubscribe = tinykeys(document, keybindings, {
+            capture: true,
+            // Unlike the default, also count presses inside text fields: the
+            // find bar opens from there too
+            ignore: (ev) => ev.repeat || ev.isComposing,
+        })
+        return unsubscribe
     }
 
     private logBrowserTranslationEvent(ctx: {

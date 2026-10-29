@@ -40,9 +40,7 @@ In one commit:
 
 Before merging:
 
-- Prepare a sibling PR in the etl repo, following the version-bump section of its
-  `/sync-grapher-schema` skill. It moves `DEFAULT_GRAPHER_SCHEMA` in `etl/config.py`, updates
-  the `$ref`s in the ETL's own schemas and re-vendors the schema.
+- Prepare a sibling PR in the etl repo that bumps `DEFAULT_GRAPHER_SCHEMA` in `etl/config.py`, the version ETL stamps on the configs it pushes (see its `docs/guides/schema-management.md`). ETL keeps no copy of the schema, so nothing else there changes, and in-place changes to the current version need no ETL PR at all.
 
 After merging:
 
@@ -53,6 +51,15 @@ After merging:
 - Once this repo has deployed, merge the sibling ETL PR. Never before, since the ETL pushes
   configs stamped with that version.
 
+## Writing a migration step
+
+- Only read the key you're migrating. Other keys may come from different config layers.
+- Don't use defaults for missing keys. Missing means inherit from a parent.
+- Don't remove a key just because it matches the default. It may override a parent.
+- Handle every possible value of the old key, not just the interesting ones.
+- Be careful when changing shapes. Objects deep-merge, while arrays replace the whole value, so shape changes can change inheritance behavior.
+- Test each migration with a before/after pair and a two-layer stack where parent and child conflict.
+
 ## Regenerating the generated files
 
 `yarn buildGrapherSchema` reads the newest `grapher-schema.NNN.yaml` and writes
@@ -61,7 +68,8 @@ changes. CI runs it on every push that touches this folder and commits the resul
 
 The JSON form of the schema is not committed anywhere. `--publish-dir <dir>` writes it to
 `<dir>`, and `--latest` adds a `.latest` alias there. The R2 upload builds into a scratch
-directory this way, with the alias on master only.
+directory this way, with the alias on master only. Server-side validation parses the
+YAML itself, in `db/grapherConfigValidation.ts`.
 
 ```bash
 yarn buildGrapherSchema

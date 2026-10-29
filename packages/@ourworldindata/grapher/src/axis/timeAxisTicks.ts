@@ -8,7 +8,7 @@ import {
     snapToIntervalStart,
     sortNumeric,
 } from "@ourworldindata/utils"
-import { TimeInterval } from "@ourworldindata/types"
+import { SubYearlyTimeInterval, TimeInterval } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
 // Calendar-nice step sizes in months
@@ -55,10 +55,7 @@ const WEEK_STEPS = [
     14, // 2 weeks
 ] as const
 
-export type CalendarTickInterval = Exclude<
-    TimeInterval,
-    TimeInterval.Year | TimeInterval.Decade
->
+const DECADE_STEPS = [10, 20, 50, 100, 200, 500, 1000] as const
 
 /** A time value plus derived calendar fields for evenly spaced ticks */
 interface CalendarValue {
@@ -170,13 +167,13 @@ function findGridForTarget({
 }
 
 /** Calendar-aware ticks for a time axis */
-export function buildTimeAxisTicks({
+export function buildSubYearlyAxisTicks({
     interval,
     domain,
     targetCount,
     bandValues,
 }: {
-    interval: CalendarTickInterval
+    interval: SubYearlyTimeInterval
     domain: [number, number]
     targetCount: number
     bandValues?: number[]
@@ -407,6 +404,28 @@ export function buildContinuousWeeklyAxisTicks({
     })
 }
 
+export function buildDecadeAxisTicks({
+    domain,
+    targetCount,
+}: {
+    domain: [number, number]
+    targetCount: number
+}): Tickmark[] | undefined {
+    const gridForStep = (step: number): number[] =>
+        _.range(
+            Math.ceil(domain[0] / step),
+            Math.floor(domain[1] / step) + 1
+        ).map((k) => k * step)
+
+    const grid =
+        DECADE_STEPS.map(gridForStep).find(
+            (candidate) => candidate.length <= targetCount
+        ) ?? gridForStep(DECADE_STEPS[DECADE_STEPS.length - 1])
+    if (!grid.length) return undefined
+
+    return grid.map((value) => ({ value, priority: 2 }))
+}
+
 /**
  * One tick per domain value. The ticks carry no label, so the axis falls back
  * to the column's own time format.
@@ -428,11 +447,11 @@ export function buildDiscreteTimeAxisTicks({
  * year, …). The axis shows the finest that fits; using one spacing per set
  * ensures the gaps remain uniform.
  */
-export function getDiscreteTimeTickOptions({
+export function getDiscreteSubYearlyTickOptions({
     interval,
     bandValues,
 }: {
-    interval: CalendarTickInterval
+    interval: SubYearlyTimeInterval
     bandValues: number[]
 }): Tickmark[][] {
     return match(interval)
@@ -502,7 +521,7 @@ function buildTickOptionsFromGrids(
     return tiers
 }
 
-/** See getDiscreteTimeTickOptions; steps every month, quarter, year, … */
+/** See getDiscreteSubYearlyTickOptions; steps every month, quarter, year, … */
 export function getDiscreteMonthlyTickOptions({
     bandValues,
 }: {
@@ -516,7 +535,7 @@ export function getDiscreteMonthlyTickOptions({
     )
 }
 
-/** See getDiscreteTimeTickOptions; steps every quarter, half-year, year, … */
+/** See getDiscreteSubYearlyTickOptions; steps every quarter, half-year, year, … */
 export function getDiscreteQuarterlyTickOptions({
     bandValues,
 }: {
@@ -531,7 +550,7 @@ export function getDiscreteQuarterlyTickOptions({
 }
 
 /**
- * See getDiscreteTimeTickOptions; steps weekly and biweekly (on Mondays),
+ * See getDiscreteSubYearlyTickOptions; steps weekly and biweekly (on Mondays),
  * then continues on the monthly grid restricted to each month's first week,
  * so ticks stay on actual week values.
  */
@@ -554,7 +573,7 @@ export function getDiscreteWeeklyTickOptions({
 }
 
 /**
- * See getDiscreteTimeTickOptions; steps every day, every other day,
+ * See getDiscreteSubYearlyTickOptions; steps every day, every other day,
  * weekly and biweekly (on Mondays), then continues on the monthly grid
  * restricted to first-of-month values.
  */

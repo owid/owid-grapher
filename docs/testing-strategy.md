@@ -194,13 +194,16 @@ so cleanup must prevent leakage. Keep logic that does not require MySQL in Vites
 
 Direct Playwright tests run in Chromium. Current scenarios cover search and
 Wikipedia-archive requests against a running baked site; they are not in the main
-GitHub Actions CI workflow.
+GitHub Actions CI workflow (`yarn testPlaywrightDevSite`).
 
-The chart editor has its own browser suite in `playwright/admin/` (`yarn
-testPlaywrightAdmin`, run in CI). It starts the admin against a test database with
-a few synthetic indicators, and each test seeds its own chart, drives one editor
-control and asserts on the config change that saving sends, so tests run in
-parallel without cleanup. See `playwright/admin/README.md`.
+The standalone browser suite in `playwright/standalone/` (`yarn
+testPlaywrightStandalone`, run in CI) brings its own stack: it starts the admin
+against a test database with a few synthetic indicators, and each test seeds its
+own chart, so tests run in parallel without cleanup. Most tests drive one chart
+editor control and assert on the config change that saving sends; others load
+the seeded chart's grapher page (e.g. in a sandboxed iframe). Prefer this suite
+for new browser tests that don't need real content. See
+`playwright/standalone/README.md`.
 
 Use browser tests for critical behavior involving real layout and events,
 navigation/history, accessibility interactions, network requests, or the baked

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react"
+import * as _ from "lodash-es"
+import { useSyncExternalStore } from "react"
 
 // Feature flag for which indicator-switcher UI to render on multi-indicator
 // data pages. Override per-request via the URL query string,
@@ -13,20 +14,24 @@ const ALL_SWITCHER_VARIANTS: readonly SwitcherVariant[] = [
     "h-pills",
 ]
 
-export const useSwitcherVariant = (): SwitcherVariant => {
-    const [variant, setVariant] = useState<SwitcherVariant>(
-        DEFAULT_SWITCHER_VARIANT
-    )
-    useEffect(() => {
-        if (typeof window === "undefined") return
-        const sp = new URLSearchParams(window.location.search)
-        const raw = sp.get("switcher")
-        // "v-pills" is what you'd guess from "h-pills", so accept it as an
-        // alias for the vertical variant (which is styled as tabs, not pills).
-        const v = raw === "v-pills" ? "v-tabs" : raw
-        if (v && ALL_SWITCHER_VARIANTS.includes(v as SwitcherVariant)) {
-            setVariant(v as SwitcherVariant)
-        }
-    }, [])
-    return variant
+const readSwitcherVariant = (): SwitcherVariant => {
+    const raw = new URLSearchParams(window.location.search).get("switcher")
+    // "v-pills" is what you'd guess from "h-pills", so accept it as an
+    // alias for the vertical variant (which is styled as tabs, not pills).
+    const v = raw === "v-pills" ? "v-tabs" : raw
+    return v && ALL_SWITCHER_VARIANTS.includes(v as SwitcherVariant)
+        ? (v as SwitcherVariant)
+        : DEFAULT_SWITCHER_VARIANT
 }
+
+// The query string doesn't change while the page is open, so there is
+// nothing to subscribe to. The server snapshot keeps the server render and
+// hydration on the default; React then re-renders with the URL's variant.
+const subscribe = (): (() => void) => _.noop
+
+export const useSwitcherVariant = (): SwitcherVariant =>
+    useSyncExternalStore(
+        subscribe,
+        readSwitcherVariant,
+        () => DEFAULT_SWITCHER_VARIANT
+    )

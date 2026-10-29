@@ -1,6 +1,12 @@
 import { useContext, useEffect, useState } from "react"
 import {
+    BespokeVizUsage,
+    BundleReference,
+    BundleUsage,
+    BundleVariantReference,
+    BundleVariantUsage,
     COMPONENT_USAGE_LABELS,
+    ComponentInstance,
     ComponentProp,
     ComponentReference,
     ComponentUsage,
@@ -160,6 +166,13 @@ export function liveUrl(instance: {
     return `${BAKED_BASE_URL}${path}${entitySegment}${instance.anchor ? `#${instance.anchor}` : ""}`
 }
 
+/** The admin path previewing a real published use of a component. */
+export function instancePreviewPath(instance: ComponentInstance): string {
+    return `/gdocs-reference/instance/preview?gdocId=${encodeURIComponent(
+        instance.gdocId
+    )}&path=${encodeURIComponent(instance.path)}`
+}
+
 /**
  * Share of docs using a component, as the whole-number percentage that backs
  * an adoption word in the where-it's-used sentence: "standard in articles
@@ -236,4 +249,96 @@ export function formDefiningParts(
             prop: byName.get(name),
         }
     })
+}
+
+// -----------------------------------------------------------------------------
+// Bespoke component page: the bundle index
+// -----------------------------------------------------------------------------
+
+/**
+ * Bundles for the index: most used first, ties (and unused bundles) by id.
+ * Without usage (the lookup failed) every bundle counts as 0, so the list
+ * falls back to id order — registry order is not id order.
+ */
+export function sortBundlesByUse(
+    bundles: BundleReference[],
+    usage: BespokeVizUsage | null
+): BundleReference[] {
+    const usesById = new Map(
+        (usage?.bundles ?? []).map((entry) => [entry.bundle, entry.uses])
+    )
+    return [...bundles].sort((a, b) => {
+        const usesA = usesById.get(a.id) ?? 0
+        const usesB = usesById.get(b.id) ?? 0
+        if (usesA !== usesB) return usesB - usesA
+        return a.id.localeCompare(b.id)
+    })
+}
+
+/** "12 uses in 4 docs", "1 use in 1 doc", or "not used yet". */
+export function bundleUsageLabel(
+    usage: Pick<BundleUsage, "uses" | "docs"> | undefined
+): string {
+    if (!usage || usage.uses === 0) return "not used yet"
+    const uses = `${usage.uses} use${usage.uses === 1 ? "" : "s"}`
+    const docs = `${usage.docs} doc${usage.docs === 1 ? "" : "s"}`
+    return `${uses} in ${docs}`
+}
+
+// -----------------------------------------------------------------------------
+// Bespoke component page: a bundle's variants
+// -----------------------------------------------------------------------------
+
+/** A registry variant, with its published usage when it has any. */
+export interface BundleVariantEntry {
+    variant: BundleVariantReference
+    usage?: BundleVariantUsage
+}
+
+export interface OrderedBundleVariants {
+    /** Variant cards shown open */
+    open: BundleVariantEntry[]
+    /** The "N variants not used yet" tail, in registry order */
+    collapsed: BundleVariantEntry[]
+}
+
+/**
+ * The order of a bundle's variant cards. `usage` is the bundle's entry in
+ * the usage response: undefined when the bundle has no published use, null
+ * when the usage lookup failed.
+ *
+ * - Used variants come first, most uses first (ties in registry order).
+ * - The rest wait in the collapsed tail, in registry order.
+ * - The first variant is open when nothing is used.
+ * - Without usage, only the first variant is open.
+ */
+export function orderBundleVariants(
+    bundle: BundleReference,
+    usage: BundleUsage | undefined | null
+): OrderedBundleVariants {
+    const entries: BundleVariantEntry[] = bundle.variants.map((variant) => ({
+        variant,
+    }))
+
+    if (usage === null)
+        return { open: entries.slice(0, 1), collapsed: entries.slice(1) }
+
+    const usageByName = new Map(
+        (usage?.variants ?? [])
+            .filter((entry) => entry.uses > 0)
+            .map((entry) => [entry.variant, entry])
+    )
+    for (const entry of entries) {
+        const variantUsage = usageByName.get(entry.variant.name)
+        if (variantUsage) entry.usage = variantUsage
+    }
+
+    // Array sort is stable, so ties keep registry order
+    const used = entries
+        .filter((entry) => entry.usage)
+        .sort((a, b) => (b.usage?.uses ?? 0) - (a.usage?.uses ?? 0))
+    const open = used.length > 0 ? used : entries.slice(0, 1)
+    const collapsed = entries.filter((entry) => !open.includes(entry))
+
+    return { open, collapsed }
 }

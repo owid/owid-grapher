@@ -742,6 +742,53 @@ export function getBestBreadcrumbs(
     return breadcrumbs
 }
 
+/**
+ * All topic tags under the areas that the given topic tags belong to: the
+ * pool for the topic-area fallback step.
+ */
+export const getTopicTagIdsInSameAreas = async (
+    knex: KnexReadonlyTransaction,
+    topicTagIds: number[]
+): Promise<number[]> => {
+    if (topicTagIds.length === 0) return []
+    const rows = await knexRaw<{ tagId: number }>(
+        knex,
+        `-- sql
+            WITH RECURSIVE ancestors AS (
+                SELECT tg.childId AS tagId, tg.parentId
+                FROM tag_graph tg
+                WHERE tg.childId IN (:topicTagIds)
+
+                UNION DISTINCT
+
+                SELECT tg.childId, tg.parentId
+                FROM tag_graph tg
+                JOIN ancestors a ON tg.childId = a.parentId
+            ),
+            areas AS (
+                SELECT DISTINCT a.tagId AS areaId
+                FROM ancestors a
+                JOIN tags root ON root.id = a.parentId
+                WHERE root.name = :rootName
+            ),
+            descendants AS (
+                SELECT tg.childId AS tagId
+                FROM tag_graph tg
+                WHERE tg.parentId IN (SELECT areaId FROM areas)
+
+                UNION DISTINCT
+
+                SELECT tg.childId
+                FROM tag_graph tg
+                JOIN descendants d ON tg.parentId = d.tagId
+            )
+            SELECT DISTINCT tagId FROM descendants
+        `,
+        { topicTagIds, rootName: TagGraphRootName }
+    )
+    return rows.map((r) => r.tagId)
+}
+
 export async function updateTagGraph(
     knex: KnexReadWriteTransaction,
     tagGraph: FlatTagGraph

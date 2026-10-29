@@ -9,7 +9,8 @@ import {
 interface BinProps {
     color: Color
     label?: string
-    patternRef?: string
+    fillPatternRef?: string
+    overlayPatternRef?: string
 }
 
 interface NumericBinProps extends BinProps {
@@ -40,8 +41,11 @@ abstract class AbstractColorScaleBin<T extends BinProps> {
     get color(): string {
         return this.props.color
     }
-    get patternRef(): string | undefined {
-        return this.props.patternRef
+    get fillPatternRef(): string | undefined {
+        return this.props.fillPatternRef
+    }
+    get overlayPatternRef(): string | undefined {
+        return this.props.overlayPatternRef
     }
     get label(): string | undefined {
         return this.props.label
@@ -143,6 +147,16 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
     }
 }
 
+/** Bins with the same key render identical legend swatches */
+function makeSwatchKey(bin: CategoricalBin): string {
+    return JSON.stringify([
+        bin.text,
+        bin.color,
+        bin.fillPatternRef,
+        bin.overlayPatternRef,
+    ])
+}
+
 /**
  * Merge categorical bins that share the same displayed label, color *and*
  * pattern into a single bin, preserving the order of first appearance. This
@@ -162,11 +176,7 @@ export function mergeCategoricalBinsByLabelAndColor(
 ): CategoricalBin[] {
     const binsByKey = new Map<string, CategoricalBin>()
     for (const bin of bins) {
-        // Key on the displayed label, color and pattern together, so a patterned
-        // bin (e.g. the hatched no-data bin) is never merged into a solid
-        // category that happens to share its label and color. JSON.stringify
-        // keeps the fields unambiguously separated.
-        const key = JSON.stringify([bin.text, bin.color, bin.patternRef])
+        const key = makeSwatchKey(bin)
         const existing = binsByKey.get(key)
         if (existing) {
             binsByKey.set(

@@ -1,14 +1,10 @@
-import { defineConfig, type UserConfig } from "tsdown"
-import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
+import { defineConfig } from "tsdown"
 // The build config is reaching outside of the package, which is okay here.
 import {
-    pluginSwcDecorators,
-    scssPreprocessorOptions,
-    // oxlint-disable-next-line import-x-js/no-relative-packages
-} from "../../../rolldown.config-common.mts"
-import {
     dtsBundleOptions,
-    packageBuildOptions,
+    packageCssOptions,
+    REACT_EXTERNALS,
+    reactPackageBuildOptions,
     // oxlint-disable-next-line import-x-js/no-relative-packages
 } from "../tsdown.config-common.mts"
 
@@ -24,36 +20,6 @@ import {
 //
 // They all write into dist/, so no two of them may emit the same filename.
 
-const REACT_EXTERNALS = [/^react($|\/)/, /^react-dom($|\/)/]
-
-// Options that apply to all three entries below.
-const shared = {
-    ...packageBuildOptions,
-    define: {
-        "process.env.NODE_ENV": JSON.stringify("production"),
-    },
-    // react-aria pulls in the CJS-only use-sync-external-store shim, whose
-    // `require("react")` rolldown can only turn into a runtime `__require`
-    // call that throws in ESM environments. React 19 (our peer-dependency
-    // floor) ships useSyncExternalStore natively, so resolve the shim to
-    // react itself instead.
-    alias: {
-        "use-sync-external-store/shim/index.js": "react",
-    },
-    plugins: [
-        pluginSwcDecorators(),
-        optimizeReactAriaLocales.rolldown({ locales: ["en-US"] }),
-    ],
-    deps: {
-        // Grapher's runtime dependencies (d3, mobx, lodash-es, ...) are meant to
-        // be part of the bundle, so opt out of tsdown's default of
-        // externalizing everything listed in package.json.
-        alwaysBundle: () => true,
-        // ... which means we don't want to be warned about it either.
-        onlyBundle: false,
-    },
-} satisfies UserConfig
-
 export default defineConfig([
     // The ES module build, published as the package's `./react` export. Meant
     // for React apps and bundler environments, so it's left unminified and
@@ -61,17 +27,15 @@ export default defineConfig([
     // it's the only one built from grapher.entry.ts, which imports
     // grapher.scss.
     {
-        ...shared,
+        ...reactPackageBuildOptions,
         name: "npm",
         entry: { "grapher.react": "./src/grapher.entry.ts" },
         // React is a peer dependency of the npm package.
-        deps: { ...shared.deps, neverBundle: REACT_EXTERNALS },
-        css: {
-            splitting: false,
-            fileName: "grapher.css",
-            minify: true,
-            preprocessorOptions: { scss: scssPreprocessorOptions },
+        deps: {
+            ...reactPackageBuildOptions.deps,
+            neverBundle: REACT_EXTERNALS,
         },
+        css: packageCssOptions("grapher.css"),
     },
     // The standalone bundle, published as the package's root export (and
     // `main`): minified, with React bundled in, so it can be dropped into a
@@ -79,7 +43,7 @@ export default defineConfig([
     // since the npm build above already emits dist/grapher.css - which is
     // where CDN consumers load the styles from too.
     {
-        ...shared,
+        ...reactPackageBuildOptions,
         name: "standalone",
         entry: {
             "grapher.standalone.min": "./src/grapher.standalone.entry.ts",
@@ -91,7 +55,7 @@ export default defineConfig([
     // declaration pass runs through tsgo, which has no idea what to do with an
     // `import "./core/grapher.scss"`.
     {
-        ...shared,
+        ...reactPackageBuildOptions,
         ...dtsBundleOptions,
         entry: { grapher: "./src/grapher.public.ts" },
     },

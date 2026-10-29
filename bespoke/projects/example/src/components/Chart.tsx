@@ -13,17 +13,19 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 
+import type { ExampleConfig } from "../index.js"
+
 import "./Chart.scss"
 import {
     MarkdownTextWrap,
     MarkdownTextWrapSvg,
 } from "@ourworldindata/components"
 
-export function Chart() {
+export function Chart({ config }: { config: ExampleConfig }) {
     return (
         <Frame className="example-chart">
             <ChartHeader
-                title="Example chart"
+                title={config.title}
                 subtitle="This is an example chart using @visx components."
             />
             <div className="example-chart__area">

@@ -366,7 +366,7 @@ h6 {
             margin: 0 0.6rem 0.6rem 0;
         }
 
-        @media screen and (max-width: 640px) {
+        @media screen and (width <= 640px) {
             .column {
                 display: block;
             }

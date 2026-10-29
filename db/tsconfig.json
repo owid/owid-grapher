@@ -12,6 +12,7 @@
         { "path": "../packages/@ourworldindata/types" },
         { "path": "../packages/@ourworldindata/utils" },
 
+        { "path": "../adminShared" },
         { "path": "../serverUtils" },
         { "path": "../settings" },
         { "path": "../site" }

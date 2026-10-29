@@ -14,6 +14,7 @@ interface SourcesDescriptionsProps {
     additionalInfo?: string
     hasFaqEntries: boolean
     isEmbeddedInADataPage?: boolean // true by default
+    openLinksInNewTab?: boolean
 }
 
 export const SourcesDescriptions = (props: SourcesDescriptionsProps) => {
@@ -28,6 +29,7 @@ export const SourcesDescriptions = (props: SourcesDescriptionsProps) => {
                     <div className="sources-description-key__content">
                         <SimpleMarkdownText
                             text={props.descriptionKey.trim()}
+                            openLinksInNewTab={props.openLinksInNewTab}
                         />
                     </div>
                     {isEmbeddedInADataPage && props.hasFaqEntries && (
@@ -52,6 +54,7 @@ export const SourcesDescriptions = (props: SourcesDescriptionsProps) => {
                         content={
                             <SimpleMarkdownText
                                 text={props.descriptionFromProducer.trim()}
+                                openLinksInNewTab={props.openLinksInNewTab}
                             />
                         }
                         isExpandedDefault={
@@ -65,6 +68,7 @@ export const SourcesDescriptions = (props: SourcesDescriptionsProps) => {
                         content={
                             <HtmlOrSimpleMarkdownText
                                 text={props.additionalInfo.trim()}
+                                openLinksInNewTab={props.openLinksInNewTab}
                             />
                         }
                     />

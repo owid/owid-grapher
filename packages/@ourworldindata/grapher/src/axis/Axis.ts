@@ -17,13 +17,14 @@ import {
     isSubYearly,
     excludeUndefined,
 } from "@ourworldindata/utils"
-import { ComparisonLineConfig } from "@ourworldindata/types"
+import { ComparisonLineConfig, TimeInterval } from "@ourworldindata/types"
 import { AxisConfig, AxisManager } from "./AxisConfig"
 import {
-    buildTimeAxisTicks,
-    getDiscreteTimeTickOptions,
-    type CalendarTickInterval,
+    buildDecadeAxisTicks,
+    buildSubYearlyAxisTicks,
+    getDiscreteSubYearlyTickOptions,
 } from "./timeAxisTicks.js"
+import { match, P } from "ts-pattern"
 import { MarkdownTextWrap, TextWrapGroup } from "@ourworldindata/components"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants.js"
@@ -334,34 +335,49 @@ abstract class AbstractAxis {
     }
 
     /**
-     * The time interval for which this axis shows calendar-aware ticks, or
-     * `undefined` if the axis uses the generic tick pipeline instead (because
-     * ticks are author-supplied, the column isn't a time column, or its
-     * interval has no calendar-aware handling).
+     * The time interval of a time axis, or `undefined` if the column isn't a
+     * time column or the ticks are author-supplied
      */
-    @computed protected get calendarTickInterval():
-        | CalendarTickInterval
-        | undefined {
+    @computed protected get timeTickInterval(): TimeInterval | undefined {
         const column = this.formatColumn
         if (this.config.ticks || !column?.isTimeColumn) return undefined
-        return isSubYearly(column.timeInterval)
-            ? column.timeInterval
-            : undefined
+        return column.timeInterval
     }
 
     /**
-     * Calendar-aware ticks (values + labels) for time axes that support them;
+     * Interval-aware ticks (values + labels) for time axes that support them;
      * `undefined` otherwise, so the axis falls through to the generic pipeline.
      */
     @computed protected get timeAxisTicks(): Tickmark[] | undefined {
-        if (this.calendarTickInterval === undefined) return undefined
+        const interval = this.timeTickInterval
+        if (interval === undefined) return undefined
 
-        return buildTimeAxisTicks({
-            interval: this.calendarTickInterval,
-            domain: this.domain,
-            targetCount: this.totalTicksTarget,
-            bandValues: this.config.bandValues,
-        })
+        const { domain, totalTicksTarget: targetCount } = this
+        const { bandValues } = this.config
+
+        return match(interval)
+            .with(TimeInterval.Year, () => undefined)
+            .with(TimeInterval.Decade, () =>
+                bandValues
+                    ? undefined
+                    : buildDecadeAxisTicks({ domain, targetCount })
+            )
+            .with(
+                P.union(
+                    TimeInterval.Day,
+                    TimeInterval.Week,
+                    TimeInterval.Month,
+                    TimeInterval.Quarter
+                ),
+                (interval) =>
+                    buildSubYearlyAxisTicks({
+                        interval,
+                        domain,
+                        targetCount,
+                        bandValues,
+                    })
+            )
+            .exhaustive()
     }
 
     /** One labelled tick per discrete band */
@@ -799,9 +815,10 @@ export class HorizontalAxis extends AbstractAxis {
      * whether there are labels don't pay for the layout computation.
      */
     @computed private get hasTickLabels(): boolean {
-        // A calendar-aware time axis picks its ticks before the generic
+        // A sub-yearly time axis picks its ticks before the generic
         // pipeline below gets a say
-        if (this.calendarTickInterval !== undefined) {
+        const interval = this.timeTickInterval
+        if (interval !== undefined && isSubYearly(interval)) {
             // A discrete axis labels its band values and nothing else: each
             // labeling option it chooses from labels at least one band, and if
             // none of them fit it falls back to one label per band
@@ -824,9 +841,13 @@ export class HorizontalAxis extends AbstractAxis {
     @computed get tickLabels(): TickLabelPlacement[] {
         // A discrete (band) time axis shows a single evenly-spaced labeling:
         // the finest one that fits (every day, then week, month, quarter, year, …)
-        const interval = this.calendarTickInterval
-        if (interval !== undefined && this.config.bandValues) {
-            const options = getDiscreteTimeTickOptions({
+        const interval = this.timeTickInterval
+        if (
+            interval !== undefined &&
+            isSubYearly(interval) &&
+            this.config.bandValues
+        ) {
+            const options = getDiscreteSubYearlyTickOptions({
                 interval,
                 bandValues: this.config.bandValues,
             })

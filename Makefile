@@ -37,7 +37,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.worktree setup.worktree wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s playwright playwright.ui check-not-prod
+.PHONY: help up up.headless up.worktree setup.worktree initiative wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s playwright playwright.ui playwright.standalone check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -47,6 +47,7 @@ help:
 	@echo '  make up.headless            start dev environment without tmux (AI agents, cloud sandboxes, CI)'
 	@echo '  make up.worktree            start this git worktree'"'"'s dev environment next to your main one'
 	@echo '  make setup.worktree         only write this checkout'"'"'s .env (random free ports, own tmux session)'
+	@echo '  make initiative [INITIATIVE=x]  create worktree .worktrees/x (branch x off master) for a BMad initiative, set it up and open it in VS Code; asks for x when INITIATIVE is missing'
 	@echo '  make down                   stop any services still running'
 	@echo '  make down.headless          stop services started by make up.headless'
 	@echo '  make down.worktree          stop services started by make up.worktree (leaves MySQL up)'
@@ -59,6 +60,7 @@ help:
 	@echo '  make playwright-browsers    install Playwright browsers'
 	@echo '  make playwright             (while up) start Playwright test environment'
 	@echo '  make playwright.ui          (while up) start Playwright test environment with UI'
+	@echo '  make playwright.standalone  run the standalone Playwright suite (own db and server)'
 	@echo '  make svgtest                run the SVG tests for graphers'
 	@echo '  make svgtest.full           run the SVG tests for all suites'
 	@echo '  make local-bake             do a full local site bake'
@@ -150,6 +152,9 @@ up.worktree: require.worktree setup.worktree wait.yarn-install node_modules
 setup.worktree:
 	@./devTools/docker/setup-worktree-env.sh
 
+initiative:
+	@./devTools/docker/create-initiative.sh "$(INITIATIVE)"
+
 # before `node_modules`, so a checkout mid-install (Orca's setup script) finishes
 # that install instead of make starting a second one next to it
 wait.yarn-install:
@@ -171,6 +176,7 @@ up.full: export TMUX_SESSION_NAME ?= grapher
 up.full: export ADMIN_SERVER_PORT ?= 3030
 up.full: export VITE_PORT ?= 8090
 up.full: export WRANGLER_PORT ?= 8788
+up.full: export BESPOKE_PORT ?= 8089
 
 up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env.full
@@ -187,15 +193,15 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
-			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) BESPOKE_PORT=$(BESPOKE_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
-		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
+		new-window -n vite 'VITE_PORT=$(VITE_PORT) BESPOKE_PORT=$(BESPOKE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
 		new-window -n functions 'WRANGLER_PORT=$(WRANGLER_PORT) yarn startLocalCloudflareFunctions' \; \
 			set remain-on-exit on \; \
-		new-window -n bespoke 'yarn startBespokeDevServer' \; \
+		new-window -n bespoke 'BESPOKE_PORT=$(BESPOKE_PORT) yarn startBespokeDevServer' \; \
 			set remain-on-exit on \; \
-		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) WRANGLER_PORT=$(WRANGLER_PORT) devTools/docker/banner.sh --full; exec $(LOGIN_SHELL)' \; \
+		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) WRANGLER_PORT=$(WRANGLER_PORT) BESPOKE_PORT=$(BESPOKE_PORT) devTools/docker/banner.sh --full; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
 		bind Q kill-server \; \
@@ -344,9 +350,9 @@ dbtest: node_modules
 	@echo '==> Running db test script'
 	./db/tests/run-db-tests.sh
 
-adminplaywright: node_modules playwright-browsers
-	@echo '==> Running admin Playwright tests'
-	yarn testPlaywrightAdmin
+playwright.standalone: node_modules playwright-browsers
+	@echo '==> Running standalone Playwright tests'
+	yarn testPlaywrightStandalone
 
 playwright-browsers:
 	@echo '==> Installing Playwright browser'
@@ -500,6 +506,10 @@ node_modules: package.json yarn.lock yarn.config.cjs
 update.chart-entities: node_modules
 	@echo '==> Updating chart entities table'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/updateChartEntities.js --all
+
+validate-chart-configs: node_modules
+	@echo '==> Validating every stored chart config against the grapher schema'
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/schema/checkChartConfigsAgainstSchema.js
 
 reindex: node_modules
 	@echo '==> Reindexing search in Algolia'

@@ -98,27 +98,44 @@ export function HorizontalNumericColorLegend(
     ): React.ReactElement => {
         const bin = positionedBin.bin
         const style = markerStyleFor(bin)
-        const fill = bin.patternRef ? `url(#${bin.patternRef})` : style.fill
+        const fill = bin.fillPatternRef
+            ? `url(#${bin.fillPatternRef})`
+            : style.fill
+
+        const geometry = {
+            x: x + positionedBin.x,
+            y: bottomY - binSize,
+            width: positionedBin.width,
+            height: binSize,
+            isOpenLeft: isNumericBin(bin) ? bin.props.isOpenLeft : false,
+            isOpenRight: isNumericBin(bin) ? bin.props.isOpenRight : false,
+        }
 
         return (
-            <NumericBinRect
+            <React.Fragment
                 key={
                     isHighlightOverlay
                         ? `highlight-${positionedBin.x}`
                         : positionedBin.x
                 }
-                x={x + positionedBin.x}
-                y={bottomY - binSize}
-                width={positionedBin.width}
-                height={binSize}
-                fill={isHighlightOverlay ? "none" : fill}
-                stroke={style.stroke}
-                strokeWidth={style.strokeWidth}
-                opacity={style.opacity}
-                isOpenLeft={isNumericBin(bin) ? bin.props.isOpenLeft : false}
-                isOpenRight={isNumericBin(bin) ? bin.props.isOpenRight : false}
-                pointerEvents={isHighlightOverlay ? "none" : undefined}
-            />
+            >
+                <NumericBinRect
+                    {...geometry}
+                    fill={isHighlightOverlay ? "none" : fill}
+                    stroke={style.stroke}
+                    strokeWidth={style.strokeWidth}
+                    opacity={style.opacity}
+                    pointerEvents={isHighlightOverlay ? "none" : undefined}
+                />
+                {bin.overlayPatternRef && !isHighlightOverlay && (
+                    <NumericBinRect
+                        {...geometry}
+                        fill={`url(#${bin.overlayPatternRef})`}
+                        opacity={style.opacity}
+                        pointerEvents="none"
+                    />
+                )}
+            </React.Fragment>
         )
     }
 

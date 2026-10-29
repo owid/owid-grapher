@@ -1,11 +1,13 @@
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { openLinkInNewTabAttrs } from "@ourworldindata/utils"
 
 export interface IndicatorProcessingProps {
     descriptionProcessing: string | undefined
     trackNote?: string
     dodTrackNote?: string
+    openLinksInNewTab?: boolean
 }
 
 export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
@@ -32,6 +34,7 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
                 href="https://docs.owid.io/projects/etl/"
                 className="indicator-processing__link"
                 data-track-note={props.trackNote}
+                {...openLinkInNewTabAttrs(props.openLinksInNewTab)}
             >
                 Read about our data pipeline
                 <FontAwesomeIcon icon={faArrowDown} />
@@ -46,6 +49,7 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
                             text={props.descriptionProcessing.trim()}
                             dataTrackNote={props.trackNote}
                             dodTrackNote={props.dodTrackNote}
+                            openLinksInNewTab={props.openLinksInNewTab}
                         />
                     </div>
                 </div>

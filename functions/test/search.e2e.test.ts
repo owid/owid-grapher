@@ -41,6 +41,23 @@ describe("search endpoint inside a real Workers runtime", () => {
         expect(body.nbHits).toBeGreaterThan(0)
     })
 
+    // This harness has no ASSETS binding, so this also proves that browsing
+    // topic pages without a query never needs /topicTagGraph.json.
+    it("browses topic pages without a query", async () => {
+        const response = await server.fetch(
+            "/api/search?type=topics&hitsPerPage=3"
+        )
+        expect(response.status).toBe(200)
+
+        const body = (await response.json()) as {
+            results: { type: string }[]
+            nbHits: number
+        }
+        expect(body.results.length).toBe(3)
+        for (const page of body.results)
+            expect(["topic-page", "linear-topic-page"]).toContain(page.type)
+    })
+
     it("returns a validation error for an unknown topic", async () => {
         const response = await server.fetch(
             "/api/search?type=charts&topics=NotARealTopic123"

@@ -4,10 +4,35 @@
 
 import { describe, expect, it } from "vitest"
 import { render } from "@testing-library/react"
+import { DisplaySource } from "@ourworldindata/utils"
 import { IndicatorSources } from "./IndicatorSources.js"
 
-// hideTeasers as in the metadata box (a teaser repeats the toggle's content).
+const source: DisplaySource = {
+    label: "World Bank",
+    retrievedFrom: "https://data.worldbank.org; https://example.org/more",
+}
+
 describe(IndicatorSources, () => {
+    it("opens 'Retrieved from' links in the same tab by default", () => {
+        const { container } = render(<IndicatorSources sources={[source]} />)
+        const links = container.querySelectorAll("a[href^='https://']")
+        expect(links).toHaveLength(2)
+        for (const link of links) expect(link.getAttribute("target")).toBeNull()
+    })
+
+    it("opens 'Retrieved from' links in a new tab when asked to (e.g. in an iframe)", () => {
+        const { container } = render(
+            <IndicatorSources sources={[source]} openLinksInNewTab />
+        )
+        const links = container.querySelectorAll("a[href^='https://']")
+        expect(links).toHaveLength(2)
+        for (const link of links) {
+            expect(link.getAttribute("target")).toBe("_blank")
+            expect(link.getAttribute("rel")).toBe("noopener")
+        }
+    })
+
+    // hideTeasers as in the metadata box (a teaser repeats the toggle's content).
     it("shows a shared source's per-indicator links and citations instead of its own", () => {
         const { container } = render(
             <IndicatorSources

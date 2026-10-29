@@ -204,6 +204,15 @@
         margin-bottom: 0;
     }
 
+    .indicator-processing .indicator-processing-callout {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .indicator-processing-callout__content :where(ul, ol) {
+        padding-left: 0;
+    }
+
     .citation__paragraph {
         font-size: var(--text-small);
         color: $light-text;

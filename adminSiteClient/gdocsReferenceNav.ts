@@ -52,3 +52,35 @@ export function sortGuides(guides: GuideReference[]): GuideReference[] {
             a.title.localeCompare(b.title)
     )
 }
+
+/** The reference page's route params: `/gdocs-reference/:kind?/:id?/:bundle?` */
+export type ReferenceRouteParams = {
+    kind?: string
+    id?: string
+    bundle?: string
+}
+
+export const BESPOKE_COMPONENT_ID = "bespoke-component"
+
+/** The page a reference URL points at */
+export interface Selection {
+    kind: "components" | "templates" | "guides"
+    id: string
+    /** A bundle of the bespoke component; unset on every other page */
+    bundle?: string
+}
+
+/** Route params → the page to show; undefined for the landing page. */
+export function selectionFromParams(
+    params: ReferenceRouteParams
+): Selection | undefined {
+    const { kind, id, bundle } = params
+    if (!id) return undefined
+    // Only the bespoke component has sub-pages (one per bundle); a third
+    // segment anywhere else is ignored.
+    if (kind === "components" && id === BESPOKE_COMPONENT_ID && bundle)
+        return { kind, id, bundle }
+    if (kind === "components" || kind === "templates" || kind === "guides")
+        return { kind, id }
+    return undefined
+}

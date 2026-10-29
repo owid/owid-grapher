@@ -63,7 +63,7 @@ $full-button-width-breakpoint: 400px;
         margin-top: 24px;
     }
 
-    @media (max-width: $full-button-width-breakpoint) {
+    @media (width <= $full-button-width-breakpoint) {
         flex-direction: column;
         margin-top: 16px;
     }
@@ -73,7 +73,7 @@ $full-button-width-breakpoint: 400px;
     @include note-12-medium;
     padding: 8px 16px;
 
-    @media (max-width: $full-button-width-breakpoint) {
+    @media (width <= $full-button-width-breakpoint) {
         height: 40px;
     }
 

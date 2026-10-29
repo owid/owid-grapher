@@ -424,7 +424,7 @@ describe("searchTopicPages with real Algolia", () => {
         const result = await searchTopicPages(
             algoliaConfig,
             { query: "gdp", filters: [], requireAllCountries: false },
-            await fetchTagGraph(),
+            fetchTagGraph,
             0,
             3
         )
@@ -454,7 +454,7 @@ describe("searchTopicPages with real Algolia", () => {
                 filters: [{ type: FilterType.TOPIC, name: "Health" }],
                 requireAllCountries: false,
             },
-            await fetchTagGraph(),
+            fetchTagGraph,
             0,
             5
         )
@@ -476,7 +476,7 @@ describe("searchTopicPages with real Algolia", () => {
                     ],
                     requireAllCountries: false,
                 },
-                await fetchTagGraph(),
+                fetchTagGraph,
                 0,
                 5
             )
@@ -484,19 +484,18 @@ describe("searchTopicPages with real Algolia", () => {
     })
 
     it("paginates the recommended topics", async () => {
-        const tagGraph = await fetchTagGraph()
         const state = { query: "co2", filters: [], requireAllCountries: false }
         const page1 = await searchTopicPages(
             algoliaConfig,
             state,
-            tagGraph,
+            fetchTagGraph,
             0,
             2
         )
         const page2 = await searchTopicPages(
             algoliaConfig,
             state,
-            tagGraph,
+            fetchTagGraph,
             2,
             2
         )

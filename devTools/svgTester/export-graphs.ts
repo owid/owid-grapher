@@ -5,11 +5,9 @@ import fs from "fs-extra"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import path from "path"
-import workerpool from "workerpool"
 
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
-import { MAX_WORKERS } from "./utils.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
     SVG_TESTER_SUITES,
@@ -95,57 +93,32 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
 
         utils.logRunStart(testSuite, "exporting", jobCount, manifestName)
 
-        let svgRecords: utils.SvgRecord[] = []
-        if (!isolate) {
-            const pool = workerpool.pool(__dirname + "/worker.ts", {
-                minWorkers: 2,
-                maxWorkers: MAX_WORKERS,
-                workerThreadOpts: {
-                    execArgv: ["--require", "tsx"],
-                },
-            })
-
-            const progress = utils.startProgress(testSuite, jobCount, pool)
-
-            // Parallelize the CPU heavy rendering jobs
-            try {
-                svgRecords = await Promise.all(
-                    jobDescriptions.map((job) =>
-                        pool
-                            .exec("renderSvgAndSave", [job])
-                            .then((svgRecord: utils.SvgRecord) => {
-                                progress.recordResult()
-                                return svgRecord
-                            })
-                    )
-                )
-            } finally {
-                progress.stop()
-            }
-        } else {
+        if (isolate)
             console.log(
                 `${testSuite}: isolate mode, one chart per process - slower, but heap readouts are accurate`
             )
-            // A fresh single-worker pool per chart, so one is busy by construction
-            const progress = utils.startProgress(testSuite, jobCount, {
-                stats: () => ({ busyWorkers: 1 }),
-            })
-            try {
-                for (const job of jobDescriptions) {
-                    const pool = workerpool.pool(__dirname + "/worker.ts", {
-                        maxWorkers: 1,
-                        workerThreadOpts: {
-                            execArgv: ["--require", "tsx"],
-                        },
-                    })
-                    const svgRecord = await pool.exec("renderSvgAndSave", [job])
-                    pool.terminate()
-                    svgRecords.push(svgRecord)
-                    progress.recordResult()
-                }
-            } finally {
-                progress.stop()
-            }
+        // In isolate mode, a single worker that is replaced after every chart
+        const pool = isolate
+            ? utils.createWorkerPool({ maxThreads: 1, isolateWorkers: true })
+            : utils.createWorkerPool()
+
+        const progress = utils.startProgress(testSuite, jobCount, pool)
+
+        // Parallelize the CPU heavy rendering jobs
+        let svgRecords: utils.SvgRecord[]
+        try {
+            svgRecords = await Promise.all(
+                jobDescriptions.map((job) =>
+                    pool
+                        .run(job, { name: "renderSvgAndSave" })
+                        .then((svgRecord: utils.SvgRecord) => {
+                            progress.recordResult()
+                            return svgRecord
+                        })
+                )
+            )
+        } finally {
+            progress.stop()
         }
 
         await utils.writeReferenceCsv(outDir, svgRecords)

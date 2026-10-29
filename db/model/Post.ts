@@ -325,7 +325,7 @@ export const getRelatedResearchAndWritingForVariables = async (
         SELECT
             p.content ->> '$.title' AS title,
             -- Profile excerpts are templates filled in per entity ($entityName)
-            IF(p.type = 'profile', NULL, p.content ->> '$.excerpt') AS excerpt,
+            IF(p.type = '${OwidGdocType.Profile}', NULL, p.content ->> '$.excerpt') AS excerpt,
             p.slug AS postSlug,
             p.authors,
             p.content ->> '$."featured-image"' AS thumbnail,

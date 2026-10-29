@@ -2,10 +2,12 @@ import * as _ from "lodash-es"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
     ArchiveContext,
+    isIndicatorDimension,
     OwidChartDimensionInterface,
     OwidVariableDataMetadataDimensions,
+    SelectedEntityColors,
 } from "@ourworldindata/utils"
-import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
 import {
     loadVariablesDataSite,
     loadVariableDataAndMetadata,
@@ -14,7 +16,7 @@ import { toJS } from "mobx"
 
 export type FetchInputTableForConfigFn = (args: {
     dimensions?: OwidChartDimensionInterface[]
-    selectedEntityColors?: { [entityName: string]: string | undefined }
+    selectedEntityColors?: SelectedEntityColors
     dataApiUrl: string
     archiveContext?: ArchiveContext
     noCache?: boolean
@@ -24,8 +26,11 @@ export type FetchInputTableForConfigFn = (args: {
 export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
     args
 ) => {
-    if (!args.dimensions || args.dimensions.length === 0) return undefined
-    const variables = args.dimensions.map((d) => d.variableId)
+    const indicatorDimensions = (args.dimensions ?? []).filter(
+        isIndicatorDimension
+    )
+    if (indicatorDimensions.length === 0) return undefined
+    const variables = indicatorDimensions.map((d) => d.variableId)
     const variablesDataMap = await loadVariablesDataSite(
         variables,
         args.dataApiUrl,
@@ -33,9 +38,9 @@ export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
         args.noCache,
         args.loadMetadataOnly
     )
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         variablesDataMap,
-        args.dimensions,
+        indicatorDimensions,
         args.selectedEntityColors
     )
 
@@ -49,23 +54,16 @@ export function getCachingInputTableFetcher(
     loadMetadataOnly?: boolean
 ): (
     dimensions: OwidChartDimensionInterface[],
-    selectedEntityColors:
-        | { [entityName: string]: string | undefined }
-        | undefined
+    selectedEntityColors: SelectedEntityColors | undefined
 ) => Promise<OwidTable | undefined> {
     const cache: Map<number, OwidVariableDataMetadataDimensions> = new Map()
     let previousDimensions: OwidChartDimensionInterface[] = []
-    let previousSelectedEntityColors:
-        | {
-              [entityName: string]: string | undefined
-          }
-        | undefined = undefined
+    let previousSelectedEntityColors: SelectedEntityColors | undefined =
+        undefined
 
     return async (
         dimensionsMobx: OwidChartDimensionInterface[],
-        selectedEntityColorsMobx:
-            | { [entityName: string]: string | undefined }
-            | undefined
+        selectedEntityColorsMobx: SelectedEntityColors | undefined
     ) => {
         // Check if dimensions have changed
         const dimensions = dimensionsMobx.map((x) => toJS(x)) // Convert MobX observable to plain object
@@ -80,9 +78,10 @@ export function getCachingInputTableFetcher(
         previousDimensions = dimensions
         previousSelectedEntityColors = selectedEntityColors
 
-        if (dimensions.length === 0) return undefined
+        const indicatorDimensions = dimensions.filter(isIndicatorDimension)
+        if (indicatorDimensions.length === 0) return undefined
 
-        const variables = dimensions.map((d) => d.variableId)
+        const variables = indicatorDimensions.map((d) => d.variableId)
         const variablesToFetch = variables.filter((v) => !cache.has(v))
 
         if (variablesToFetch.length > 0) {
@@ -105,9 +104,9 @@ export function getCachingInputTableFetcher(
             variables.map((v) => [v, cache.get(v)!])
         )
 
-        const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        const inputTable = legacyToOwidTableAndDimensions(
             variablesDataMap,
-            dimensions,
+            indicatorDimensions,
             selectedEntityColors
         )
 

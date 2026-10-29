@@ -16,6 +16,7 @@ import {
     SVGMouseEvent,
     GEO_FEATURES_CLASSNAME,
     ChoroplethMapManager,
+    ChoroplethSeries,
     ChoroplethSeriesByName,
     CHOROPLETH_MAP_CLASSNAME,
     ExternalAnnotation,
@@ -24,7 +25,6 @@ import {
     ANNOTATION_COLOR_LIGHT,
     ANNOTATION_COLOR_DARK,
     RenderFeature,
-    PROJECTED_DATA_LEGEND_COLOR,
     MapViewport,
     MAP_VIEWPORTS,
     MAP_REGION_LABELS,
@@ -34,12 +34,14 @@ import {
     BackgroundCountry,
     CountryWithData,
     CountryWithNoData,
+    ProjectedDataOverlay,
     ExternalValueAnnotation,
     InternalValueAnnotation,
-    NoDataPattern,
     ProjectedDataPattern,
+    ProjectedDataLegendPattern,
+    InapplicablePattern,
 } from "./MapComponents"
-import { InapplicablePattern } from "../chart/ChartUtils"
+import { NoDataPattern } from "../chart/ChartUtils"
 import { Patterns, makePatternId } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,
@@ -218,6 +220,20 @@ export class ChoroplethMap extends React.Component<{
             isSelected: (featureId) =>
                 this.manager.isSelected?.(featureId) ?? false,
         })
+    }
+
+    @computed
+    private get sortedFeaturesWithHistoricalData(): MapRenderFeature[] {
+        return this.sortedFeaturesWithData.filter(
+            (feature) => !this.choroplethData.get(feature.id)?.isProjection
+        )
+    }
+
+    @computed
+    private get sortedFeaturesWithProjectedData(): MapRenderFeature[] {
+        return this.sortedFeaturesWithData.filter(
+            (feature) => this.choroplethData.get(feature.id)?.isProjection
+        )
     }
 
     @computed private get featuresWithNoData(): MapRenderFeature[] {
@@ -512,10 +528,13 @@ export class ChoroplethMap extends React.Component<{
                         patternId={noDataPatternId}
                         scale={this.featurePatternScale}
                     />
-                    <InapplicablePattern
-                        patternId={inapplicablePatternId}
-                        scale={this.featurePatternScale}
-                    />
+                    {!!inapplicableEntityNamesSet?.size && (
+                        <InapplicablePattern
+                            patternId={inapplicablePatternId}
+                            color={this.manager.inapplicableColor}
+                            scale={this.featurePatternScale}
+                        />
+                    )}
                 </defs>
 
                 {featuresWithNoData.map((feature) => (
@@ -539,64 +558,86 @@ export class ChoroplethMap extends React.Component<{
         )
     }
 
+    renderProjectedDataPatterns(): React.ReactElement | undefined {
+        if (!this.manager.hasProjectedData) return
+
+        return (
+            <defs>
+                <ProjectedDataLegendPattern
+                    idSuffix={this.manager.patternIdSuffix}
+                    scale={this.manager.patternScale}
+                />
+
+                {this.binColors.map((color, index) => (
+                    <ProjectedDataPattern
+                        idSuffix={this.manager.patternIdSuffix}
+                        key={`${color}-${index}`}
+                        color={color}
+                        scale={this.featurePatternScale}
+                    />
+                ))}
+            </defs>
+        )
+    }
+
+    private renderCountryWithData(
+        feature: MapRenderFeature,
+        series: ChoroplethSeries
+    ): React.ReactElement {
+        return (
+            <CountryWithData
+                key={feature.id}
+                feature={feature}
+                series={series}
+                isSelected={this.manager.isSelected?.(feature.id)}
+                hover={this.manager.getHoverState?.(feature.id)}
+                strokeScale={this.viewportScaleSqrt}
+                onClick={this.onClickFeature}
+                onPointerEnter={this.onPointerEnter}
+                onPointerLeave={this.onPointerLeave}
+            />
+        )
+    }
+
     renderFeaturesWithData(): React.ReactElement | undefined {
-        if (this.sortedFeaturesWithData.length === 0) return
+        if (this.sortedFeaturesWithHistoricalData.length === 0) return
 
         return (
             <g id={makeFigmaId("countries-with-data")}>
-                {this.manager.hasProjectedData && (
-                    <defs>
-                        {/* Pattern used by the map legend for the projected data bin */}
-                        <ProjectedDataPattern
-                            idSuffix={this.manager.patternIdSuffix}
-                            key={PROJECTED_DATA_LEGEND_COLOR}
-                            color={PROJECTED_DATA_LEGEND_COLOR}
-                            scale={this.manager.patternScale}
-                            forLegend
-                        />
-                        {/* Patterns used by the map legend. The map legend can't re-use
-                            the features' patterns defined below because those also undo
-                            the map's viewport scale. */}
-                        {this.binColors.map((color, index) => (
-                            <ProjectedDataPattern
-                                idSuffix={this.manager.patternIdSuffix}
-                                key={`${color}-${index}`}
-                                color={color}
-                                scale={this.manager.patternScale}
-                                forLegend
-                            />
-                        ))}
-
-                        {/* Pattern used by features */}
-                        {this.binColors.map((color, index) => (
-                            <ProjectedDataPattern
-                                idSuffix={this.manager.patternIdSuffix}
-                                key={`${color}-${index}`}
-                                color={color}
-                                scale={this.featurePatternScale}
-                            />
-                        ))}
-                    </defs>
-                )}
-
-                {this.sortedFeaturesWithData.map((feature) => {
+                {this.sortedFeaturesWithHistoricalData.map((feature) => {
                     const series = this.choroplethData.get(feature.id)
                     if (!series) return null
-                    return (
-                        <CountryWithData
-                            patternIdSuffix={this.manager.patternIdSuffix}
-                            key={feature.id}
-                            feature={feature}
-                            series={series}
-                            isSelected={this.manager.isSelected?.(feature.id)}
-                            hover={this.manager.getHoverState?.(feature.id)}
-                            strokeScale={this.viewportScaleSqrt}
-                            onClick={this.onClickFeature}
-                            onPointerEnter={this.onPointerEnter}
-                            onPointerLeave={this.onPointerLeave}
-                        />
-                    )
+                    return this.renderCountryWithData(feature, series)
                 })}
+            </g>
+        )
+    }
+
+    renderFeaturesWithProjectedData(): React.ReactElement | undefined {
+        if (this.sortedFeaturesWithProjectedData.length === 0) return
+
+        return (
+            <g id={makeFigmaId("countries-with-projected-data")}>
+                {this.sortedFeaturesWithProjectedData.map((feature) => {
+                    const series = this.choroplethData.get(feature.id)
+                    if (!series) return null
+                    return this.renderCountryWithData(feature, series)
+                })}
+                <g id={makeFigmaId("projected-data-patterns")}>
+                    {this.sortedFeaturesWithProjectedData.map((feature) => {
+                        const series = this.choroplethData.get(feature.id)
+                        if (!series) return null
+                        return (
+                            <ProjectedDataOverlay
+                                key={feature.id}
+                                feature={feature}
+                                series={series}
+                                patternIdSuffix={this.manager.patternIdSuffix}
+                                hover={this.manager.getHoverState?.(feature.id)}
+                            />
+                        )
+                    })}
+                </g>
             </g>
         )
     }
@@ -604,9 +645,11 @@ export class ChoroplethMap extends React.Component<{
     renderStatic(): React.ReactElement {
         return (
             <g id={makeFigmaId("map")} transform={this.matrixTransform}>
+                {this.renderProjectedDataPatterns()}
                 {this.renderFeaturesInBackground()}
                 {this.renderFeaturesWithoutData()}
                 {this.renderFeaturesWithData()}
+                {this.renderFeaturesWithProjectedData()}
                 {this.renderInternalAnnotations()}
                 {this.renderExternalAnnotations()}
             </g>
@@ -664,9 +707,11 @@ export class ChoroplethMap extends React.Component<{
                     className={GEO_FEATURES_CLASSNAME}
                     transform={matrixTransform}
                 >
+                    {this.renderProjectedDataPatterns()}
                     {this.renderFeaturesInBackground()}
                     {this.renderFeaturesWithoutData()}
                     {this.renderFeaturesWithData()}
+                    {this.renderFeaturesWithProjectedData()}
                     {this.renderInternalAnnotations()}
                     {this.renderExternalAnnotations()}
                 </g>

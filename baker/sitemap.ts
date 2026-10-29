@@ -84,17 +84,10 @@ async function getPublishedGdocPosts(knex: db.KnexReadonlyTransaction) {
                 OwidGdocType.LinearTopicPage,
                 OwidGdocType.TopicPage,
                 OwidGdocType.AboutPage,
+                OwidGdocType.FeaturedViz,
             ],
         }
     )
-}
-
-const MDIM_INDEX_INDIVIDUAL_VIEWS: Record<
-    string,
-    boolean | Record<string, string>
-> = {
-    "vaccination-coverage-who-unicef": true,
-    "years-of-schooling": { sex: "both" }, // only index all views with sex=both
 }
 
 export const makeSitemap = async (
@@ -108,10 +101,6 @@ export const makeSitemap = async (
         .then((gdocs) => gdocs.map(gdocFromJSON))) as GdocProfile[]
 
     const publishedDataInsights = await db.getPublishedDataInsights(knex)
-
-    const featuredVizPages = await db.getPublishedGdocsWithTags(knex, [
-        OwidGdocType.FeaturedViz,
-    ])
 
     const charts = await db.knexRaw<
         Pick<DbPlainChart, "updatedAt"> & { slug: string }
@@ -172,12 +161,6 @@ export const makeSitemap = async (
             }))
         )
         .concat(
-            featuredVizPages.map((p) => ({
-                loc: urljoin(BAKED_BASE_URL, "featured-viz", p.slug),
-                lastmod: dayjs(p.updatedAt).format("YYYY-MM-DD"),
-            }))
-        )
-        .concat(
             charts.map((c) => ({
                 loc: urljoin(BAKED_GRAPHER_URL, c.slug),
                 lastmod: dayjs(c.updatedAt).format("YYYY-MM-DD"),
@@ -191,43 +174,18 @@ export const makeSitemap = async (
                 const { slug, config } = multiDim
                 if (!slug) return []
 
-                const indexIndividualViews = MDIM_INDEX_INDIVIDUAL_VIEWS[slug]
-
                 const mdimEntry: SitemapUrl = {
                     loc: urljoin(BAKED_GRAPHER_URL, slug),
                     lastmod,
                 }
-
-                if (!indexIndividualViews) {
-                    return [mdimEntry]
-                } else {
-                    const individualViews = config.views.flatMap((view) => {
-                        if (
-                            typeof indexIndividualViews === "object" &&
-                            Object.entries(indexIndividualViews).some(
-                                ([dimension, value]) =>
-                                    view.dimensions[dimension] !== value
-                            )
-                        ) {
-                            return []
-                        }
-
-                        const queryStr = multiDimDimensionsToViewQueryStr(
-                            view.dimensions
-                        )
-                        return [
-                            {
-                                loc: urljoin(
-                                    BAKED_GRAPHER_URL,
-                                    `${slug}?${queryStr}`
-                                ),
-                                lastmod,
-                            },
-                        ]
-                    })
-                    // Include the top-level entry in the sitemap in any case, too
-                    return [mdimEntry, ...individualViews]
-                }
+                const individualViews = config.views.map((view) => ({
+                    loc: urljoin(
+                        BAKED_GRAPHER_URL,
+                        `${slug}?${multiDimDimensionsToViewQueryStr(view.dimensions)}`
+                    ),
+                    lastmod,
+                }))
+                return [mdimEntry, ...individualViews]
             })
         )
         .concat(

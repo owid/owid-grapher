@@ -8,7 +8,6 @@ import {
     ExpandableToggle,
     CodeSnippet,
     makeSource,
-    IndicatorProcessing,
     INDICATOR_PROCESSING_SECTION_ID,
     MetadataBoxExpander,
     MetadataBoxToggleButton,
@@ -131,6 +130,44 @@ function groupFaqsByQuestion(
         }
     }
     return questions
+}
+
+function IndicatorDataDetails({
+    datapageData,
+}: {
+    datapageData: DataPageDataV2
+}): React.ReactElement | null {
+    const { unit, dateRange, lastUpdated, nextUpdate } = datapageData
+    if (!unit && !dateRange && !lastUpdated && !nextUpdate) return null
+    return (
+        <MetadataBoxSection
+            title="Data details"
+            className="indicator-metadata-box__data-details"
+        >
+            <MetadataBoxKeyData>
+                {unit && (
+                    <MetadataBoxKeyDataRow label="Unit">
+                        {unit}
+                    </MetadataBoxKeyDataRow>
+                )}
+                {dateRange && (
+                    <MetadataBoxKeyDataRow label="Date range">
+                        {makeDateRange({ dateRange })}
+                    </MetadataBoxKeyDataRow>
+                )}
+                {lastUpdated && (
+                    <MetadataBoxKeyDataRow label="Last updated">
+                        {makeLastUpdated({ lastUpdated })}
+                    </MetadataBoxKeyDataRow>
+                )}
+                {nextUpdate && (
+                    <MetadataBoxKeyDataRow label="Next expected update">
+                        {makeNextUpdate({ nextUpdate })}
+                    </MetadataBoxKeyDataRow>
+                )}
+            </MetadataBoxKeyData>
+        </MetadataBoxSection>
+    )
 }
 
 function IndicatorMetadataSections({
@@ -303,6 +340,7 @@ function IndicatorMetadataSections({
                     )}
                 </div>
             )}
+            <IndicatorDataDetails datapageData={datapageData} />
             <MetadataBoxSection
                 title="Frequently asked questions"
                 id={`faqs${idSuffix}`}
@@ -327,23 +365,27 @@ function IndicatorMetadataSections({
                         }
                     />
                 ))}
-                <ExpandableToggle
-                    label="How did Our World in Data process this data?"
-                    contentId={`${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`}
-                    content={
-                        <IndicatorProcessing
-                            descriptionProcessing={descriptionProcessing}
-                            trackNote="processing_link"
-                            dodTrackNote="processing"
-                        />
-                    }
-                    onToggle={(isOpen) =>
-                        analytics.logExpandableToggle(
-                            "how_owid_processed_data",
-                            isOpen
-                        )
-                    }
-                />
+                {descriptionProcessing && (
+                    <ExpandableToggle
+                        label="How did Our World in Data process this data?"
+                        contentId={`${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`}
+                        content={
+                            <div className="indicator-metadata-box__processing-notes">
+                                <SimpleMarkdownText
+                                    text={descriptionProcessing}
+                                    dataTrackNote="processing_link"
+                                    dodTrackNote="processing"
+                                />
+                            </div>
+                        }
+                        onToggle={(isOpen) =>
+                            analytics.logExpandableToggle(
+                                "how_owid_processed_data",
+                                isOpen
+                            )
+                        }
+                    />
+                )}
             </MetadataBoxSection>
             {producerDocEntries.length > 0 &&
                 !datapageData.descriptionFromProducer && (
@@ -507,6 +549,27 @@ function IndicatorMetadataSections({
                 </MetadataBoxSection>
             )}
             <MetadataBoxSection className="indicator-metadata-box__reuse-notice">
+                <p>
+                    All data and visualizations on Our World in Data rely on
+                    data sourced from one or several original data providers.
+                    Preparing this original data involves several processing
+                    steps. Depending on the data, this can include standardizing
+                    country names and world region definitions, converting
+                    units, calculating derived indicators such as per capita
+                    measures, as well as adding or adapting metadata such as the
+                    name or the description given to an indicator.
+                </p>
+                <p>
+                    At the link below you can find a detailed description of the
+                    structure of our data pipeline, including links to all the
+                    code used to prepare data across Our World in Data.{" "}
+                    <a
+                        href="https://docs.owid.io/projects/etl/"
+                        data-track-note="data_pipeline_link"
+                    >
+                        Read about our data pipeline
+                    </a>
+                </p>
                 <MetadataBoxReuseNotice>
                     <ChartLicenseNotice license={license} />
                 </MetadataBoxReuseNotice>
@@ -550,11 +613,15 @@ function IndicatorPane({
     // pane's datapageData.owners from its own indicator's dataset.
     const owners = datapageData.owners?.[0]?.owners ?? []
 
+    const descriptionProcessing = datapageData.descriptionProcessing?.trim()
     const attribution = formatAttributions(datapageData.attributions ?? [])
     const sourceString = makeSource({
         attribution,
         owidProcessingLevel: datapageData.owidProcessingLevel,
-        processingId: `${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`,
+        // Without processing notes there's nothing to link to
+        processingId: descriptionProcessing
+            ? `${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`
+            : null,
     })
 
     return (
@@ -586,44 +653,20 @@ function IndicatorPane({
                         />
                     </MetadataBoxKeyDataRow>
                 )}
-                {sourceString && (
-                    <MetadataBoxKeyDataRow
-                        label="Data source"
-                        labelClassName="metadata-box-key-data__key--source"
-                    >
-                        {sourceString}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.unit && (
-                    <MetadataBoxKeyDataRow label="Unit">
-                        {datapageData.unit}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.dateRange && (
-                    <MetadataBoxKeyDataRow label="Date range">
-                        {makeDateRange({ dateRange: datapageData.dateRange })}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.lastUpdated && (
-                    <MetadataBoxKeyDataRow label="Last updated">
-                        {makeLastUpdated({
-                            lastUpdated: datapageData.lastUpdated,
-                        })}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.nextUpdate && (
-                    <MetadataBoxKeyDataRow label="Next expected update">
-                        {makeNextUpdate({
-                            nextUpdate: datapageData.nextUpdate,
-                        })}
-                    </MetadataBoxKeyDataRow>
-                )}
                 {owners.length > 0 && (
                     <MetadataBoxKeyDataRow
                         label="Managed by"
                         className="indicator-metadata-box__managed-by"
                     >
                         <AvatarByline authors={owners} />
+                    </MetadataBoxKeyDataRow>
+                )}
+                {sourceString && (
+                    <MetadataBoxKeyDataRow
+                        label="Data source"
+                        labelClassName="metadata-box-key-data__key--source"
+                    >
+                        {sourceString}
                     </MetadataBoxKeyDataRow>
                 )}
             </MetadataBoxKeyData>
@@ -636,7 +679,7 @@ function IndicatorPane({
                 archiveContext={archiveContext}
                 primaryTopic={datapageData.primaryTopic}
                 title={datapageData.title}
-                descriptionProcessing={datapageData.descriptionProcessing}
+                descriptionProcessing={descriptionProcessing}
                 license={license}
                 idSuffix={idSuffix}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}

@@ -10,7 +10,7 @@ fields:
   componentType:
     description: Type of component containing the link (defaults to 'dod')
   linkType:
-    description: Type of link ('gdoc', 'url', 'grapher', 'explorer', 'chart-view', 'dod')
+    description: Type of link ('gdoc', 'url', 'grapher', 'explorer', 'narrative-chart', 'static-viz', 'dod', 'guided-chart')
   text:
     description: Link text as it appears in the DOD content
   queryString:

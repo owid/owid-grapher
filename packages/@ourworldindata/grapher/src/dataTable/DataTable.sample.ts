@@ -1,6 +1,7 @@
 import { DimensionProperty } from "@ourworldindata/utils"
 import { GrapherState } from "../core/GrapherState"
 import {
+    GRAPHER_CHART_TYPES,
     GRAPHER_TAB_CONFIG_OPTIONS,
     GrapherInterface,
 } from "@ourworldindata/types"
@@ -9,7 +10,7 @@ import {
     createOwidTestDataset,
     fakeEntities,
 } from "../testData/OwidTestData"
-import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "../core/LegacyToOwidTable.js"
+import { legacyToOwidTableAndDimensions } from "../core/LegacyToOwidTable.js"
 
 export const childMortalityGrapher = (
     props: Partial<GrapherInterface> = {}
@@ -52,12 +53,34 @@ export const childMortalityGrapher = (
         dimensions,
         ...props,
     })
-    state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    state.inputTable = legacyToOwidTableAndDimensions(
         owidDataset,
         dimensions,
         {}
     )
     return state
+}
+
+export const GrapherStartingAtZero = (): GrapherState => {
+    const indicatorId = 3513
+    const metadata = { id: indicatorId, shortUnit: "%" }
+    const data = [
+        { year: 2000, entity: fakeEntities.Iceland, value: 0 },
+        { year: 2010, entity: fakeEntities.Iceland, value: 5 },
+    ]
+    const dimensions = [
+        { variableId: indicatorId, property: DimensionProperty.y },
+    ]
+    return new GrapherState({
+        tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        selectedEntityNames: ["Iceland"],
+        dimensions,
+        table: legacyToOwidTableAndDimensions(
+            createOwidTestDataset([{ metadata, data }]),
+            dimensions,
+            {}
+        ),
+    })
 }
 
 export const GrapherWithIncompleteData = (
@@ -94,7 +117,7 @@ export const GrapherWithIncompleteData = (
             },
         },
     ]
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         createOwidTestDataset([{ metadata, data }]),
         dimensions,
         {}
@@ -140,7 +163,7 @@ export const GrapherWithAggregates = (
             property: DimensionProperty.y,
         },
     ]
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         createOwidTestDataset([
             { metadata: childMortalityMetadata, data: childMortalityData },
         ]),
@@ -189,7 +212,7 @@ export const GrapherWithMultipleVariablesAndMultipleYears = (
             { year: 2019, entity: fakeEntities.World, value: 10 },
         ],
     }
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         createOwidTestDataset([
             abovePovertyLineDataset,
             belowPovertyLineDataset,
@@ -203,4 +226,33 @@ export const GrapherWithMultipleVariablesAndMultipleYears = (
         ...props,
         table: inputTable,
     })
+}
+
+export const GrapherWithStaggeredSeries = (
+    props: Partial<GrapherInterface> = {}
+): GrapherState => {
+    const indicatorId = 104403
+    const data = [
+        { year: 1950, entity: fakeEntities.Afghanistan, value: 224 },
+        { year: 1980, entity: fakeEntities.Afghanistan, value: 295 },
+        { year: 2019, entity: fakeEntities.Afghanistan, value: 215 },
+        { year: 1990, entity: fakeEntities.Iceland, value: 333 },
+        { year: 2000, entity: fakeEntities.Iceland, value: 246 },
+        { year: 2010, entity: fakeEntities.Iceland, value: 226 },
+    ]
+    const dimensions = [
+        { variableId: indicatorId, property: DimensionProperty.y },
+    ]
+    const state = new GrapherState({
+        tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+        dimensions,
+        ...props,
+    })
+    state.inputTable = legacyToOwidTableAndDimensions(
+        createOwidTestDataset([{ metadata: { id: indicatorId }, data }]),
+        dimensions,
+        {}
+    )
+    return state
 }

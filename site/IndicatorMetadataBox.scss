@@ -1,10 +1,8 @@
 .indicator-metadata-box {
-    --indicator-processing-background: transparent;
-    --indicator-processing-title: #{$blue-90};
     --indicator-sources-key-data-title: #{$blue-50};
     --indicator-metadata-box-padding: 24px;
     padding: var(--indicator-metadata-box-padding);
-    background-color: $blue-5;
+    background-color: $gray-5;
     grid-template-columns: repeat(12, 1fr);
     grid-column-start: 2;
     grid-column-end: span 12;
@@ -29,16 +27,13 @@
     }
 }
 
-// The divider separates the key data from the "What you should know" preview,
-// so pages without one go straight to the summary
-.indicator-metadata-box
-    .metadata-box-expander:has(> .metadata-box-expander__preview) {
+.indicator-metadata-box .metadata-box-expander--has-preview {
     border-top: 1px solid $blue-20;
-    margin-top: 12px;
+    margin-top: 16px;
 }
 
 .indicator-metadata-box .metadata-box-expander__preview {
-    margin-top: 12px;
+    margin-top: 16px;
 }
 
 .indicator-metadata-box .metadata-box-expander__prose {
@@ -48,31 +43,26 @@
         @include body-3-regular;
     }
 
-    // The remainder's own margin spaces it from the preview, so bullets stay
-    // 8px apart across the split
+    // The remainder's margin spaces it from the preview
     li:last-child {
         margin-bottom: 0;
     }
-
-    // Nested lists sit with their item, like the items around them
-    li > ul,
-    li > ol {
-        margin: 8px 0 0;
-    }
 }
 
-// Sections sit 32px apart, including the first one, whether it follows "What
-// you should know" or the key data
 .indicator-metadata-box
     .metadata-box-section:first-of-type
     .metadata-box-section__title {
     margin-top: 32px;
 }
 
+.indicator-metadata-box .metadata-box-section__title {
+    margin-bottom: 8px;
+}
+
 .indicator-metadata-box .indicator-metadata-box__description-key-title {
     @include body-2-bold-tight;
     color: $blue-90;
-    margin: 0 0 12px;
+    margin: 0 0 8px;
 }
 
 .indicator-metadata-box .metadata-box-expander__summary {
@@ -80,7 +70,6 @@
     color: $blue-50;
     padding: 12px 0;
     margin-top: 12px;
-    // Sits in the box's bottom padding
     margin-bottom: calc(-1 * var(--indicator-metadata-box-padding));
 
     &:hover {
@@ -88,14 +77,23 @@
     }
 }
 
-// 8px from the label, counting the space before the icon
+// Nested lists sit 8px under their item, like the items around them
+.indicator-metadata-box .metadata-box-expander__prose,
+.indicator-metadata-box .indicator-metadata-box__producer-docs,
+.indicator-metadata-box .indicator-sources .source .description,
+.indicator-metadata-box .indicator-metadata-box__processing-notes {
+    li > ul,
+    li > ol {
+        margin: 8px 0 0;
+    }
+}
+
 .indicator-metadata-box .metadata-box-expander__chevron {
     font-size: 0.75rem;
     margin-left: 4px;
     top: 0;
 }
 
-// The title and the toggle share a row, on a common baseline
 .indicator-metadata-box__header {
     display: flex;
     justify-content: space-between;
@@ -115,11 +113,15 @@
     color: $blue-50;
 }
 
-// The key data flows as one line of label-value pairs, wrapping when it
-// doesn't fit
 .indicator-metadata-box .metadata-box-key-data {
-    margin-top: 4px;
+    margin-top: 8px;
     gap: 8px 24px;
+}
+
+.indicator-metadata-box
+    .indicator-metadata-box__data-details
+    .metadata-box-key-data {
+    margin-top: 0;
 }
 
 .indicator-metadata-box .metadata-box-key-data__key,
@@ -127,7 +129,6 @@
     @include body-3-regular;
 }
 
-// Data managers: photo, then name, in the key data's body text
 .indicator-metadata-box .avatar-byline {
     @include body-3-regular;
     gap: 4px 8px;
@@ -137,13 +138,12 @@
     gap: 6px;
 }
 
-// A description in several paragraphs keeps them apart
 .indicator-metadata-box .metadata-box-key-data__row--full-width p + p {
     margin-top: 8px;
 }
 
 // Above phone width, a long value wraps under its label rather than in a
-// column beside it. The description keeps its paragraphs.
+// column beside it
 @include sm-up {
     .indicator-metadata-box
         .metadata-box-key-data__row:not(
@@ -161,8 +161,8 @@
         }
     }
 
-    // The photos make the names' line 24px tall, so the label gets a line of
-    // the same height to stay centred on the first line of managers
+    // Centre the label on the first line of managers, which the 24px photos
+    // make 24px tall
     .indicator-metadata-box
         .metadata-box-key-data__row.indicator-metadata-box__managed-by {
         display: flex;
@@ -178,7 +178,6 @@
 
 .indicator-metadata-box .indicator-metadata-box__reuse-notice {
     margin-top: 32px;
-    // The summary below brings its own spacing
     margin-bottom: 0;
     @include note-13-medium;
     color: $blue-60;
@@ -193,8 +192,6 @@
     }
 }
 
-// Accordions: the title and icon darken once open, and the content starts
-// close under the title
 .indicator-metadata-box details.ExpandableToggle {
     > .ExpandableToggle__container .ExpandableToggle__button {
         --button: #{$blue-60};
@@ -207,7 +204,19 @@
     }
 
     &[open] > .ExpandableToggle__content {
-        padding: 12px 16px 24px;
+        padding: 8px 16px 24px;
+    }
+}
+
+// A line under each accordion only. The :has() variant outranks the shared
+// rule that drops the bottom border between neighbours.
+.indicator-metadata-box details.ExpandableToggle,
+.indicator-metadata-box .indicator-sources div.NonExpandable {
+    border-top: none;
+
+    &,
+    &:has(+ .ExpandableToggle, + .NonExpandable) {
+        border-bottom: 1px solid var(--border);
     }
 }
 
@@ -219,12 +228,11 @@
     text-wrap: balance;
 }
 
-// Retrieved on, Retrieved from and Citation: light labels, dark values
 .indicator-metadata-box .indicator-sources .source-key-data__content {
     color: $blue-90;
 }
 
-// Single sources have no toggle, so match the toggles' inset and titles
+// Single sources have no toggle; match the toggles' inset
 .indicator-metadata-box .indicator-sources div.NonExpandable {
     padding: 16px;
 
@@ -233,32 +241,11 @@
     }
 }
 
-// The processing notes read as part of the answer rather than as a callout
-.indicator-metadata-box
-    .metadata-box-section--faqs
-    .indicator-processing
-    .indicator-processing-callout {
-    margin: 24px 0 0;
-    padding: 0;
-
-    .indicator-processing-callout__title {
-        @include body-3-bold;
-        letter-spacing: normal;
-        text-transform: none;
-        margin: 0;
-    }
-}
-
-// Free-form text in "Documentation from data sources", the source
-// descriptions and the processing notes: paragraphs a blank line apart,
-// headings in bold body text right above their paragraph, and bullets 8px
-// apart
+// Free-form markdown: paragraphs a blank line (1.5em) apart, headings right
+// above their paragraph
 .indicator-metadata-box .indicator-metadata-box__producer-docs,
 .indicator-metadata-box .indicator-sources .source .description,
-.indicator-metadata-box
-    .indicator-processing
-    .indicator-processing-callout
-    .indicator-processing-callout__content {
+.indicator-metadata-box .indicator-metadata-box__processing-notes {
     // The content's first-child reset can't reach through this wrapper
     > :first-child {
         margin-top: 0;
@@ -269,7 +256,7 @@
     }
 
     p {
-        margin: 0 0 21px;
+        margin: 0 0 1.5em;
     }
 
     h1,
@@ -280,7 +267,7 @@
     h6 {
         @include body-3-bold;
         color: $blue-90;
-        margin: 21px 0 0;
+        margin: 1.5em 0 0;
     }
 
     // Restore list indentation lost to the global `ul, ol { padding: 0 }`
@@ -288,7 +275,7 @@
     ul,
     ol {
         padding-left: 1.5em;
-        margin: 0 0 21px;
+        margin: 0 0 1.5em;
     }
 
     li {
@@ -297,12 +284,6 @@
         &:last-child {
             margin-bottom: 0;
         }
-    }
-
-    // Nested lists sit with their item, like the items around them
-    li > ul,
-    li > ol {
-        margin: 8px 0 0;
     }
 
     // Loose markdown lists wrap each item in a paragraph

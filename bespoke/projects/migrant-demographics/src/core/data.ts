@@ -2,6 +2,7 @@ import { QueryClient, QueryStatus, useQuery } from "@tanstack/react-query"
 import * as R from "remeda"
 
 import { fetchJson } from "@ourworldindata/utils"
+import type { BespokeMetadata } from "@ourworldindata/types"
 
 import {
     PopulationTotals,
@@ -11,6 +12,10 @@ import {
     RawYearRecord,
     SexValues,
 } from "./types.js"
+import {
+    getBespokeSourceLine,
+    parseBespokeMetadata,
+} from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 export const queryClient = new QueryClient()
 
@@ -71,19 +76,22 @@ export class MigrantDemographicsMetadata {
     readonly source: string
     /** Stable array so consumers can use it as a memo dependency */
     readonly entityNames: string[]
+    readonly provenance: BespokeMetadata | undefined
     private readonly codesByEntityName: Map<string, number>
 
     constructor(raw: RawMigrantDemographicsMetadata) {
+        const source = getBespokeSourceLine(raw)
         // Without these the chart's geometry degenerates to NaN, so fail into
         // the error state rather than rendering a broken pyramid
-        if (!raw.ageBands?.length || !raw.years?.length || !raw.meta?.source)
+        if (!raw.ageBands?.length || !raw.years?.length || !source)
             throw new Error(
                 "[migrant-demographics] Data file is missing its age bands, years or source"
             )
 
         this.ageBands = raw.ageBands
         this.years = raw.years
-        this.source = raw.meta.source
+        this.source = source
+        this.provenance = parseBespokeMetadata(raw)
 
         this.codesByEntityName = new Map(
             raw.entities.map((entity) => [entity.name, entity.code])

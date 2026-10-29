@@ -70,7 +70,7 @@ export function ImageSelectorModal(props: {
                                     image.cloudflareId,
                                     THUMBNAIL_WIDTH
                                 )}
-                                alt={image.defaultAlt}
+                                alt={image.defaultAlt ?? undefined}
                                 className="ImageSelectorModal__thumbnail"
                                 loading="lazy"
                             />

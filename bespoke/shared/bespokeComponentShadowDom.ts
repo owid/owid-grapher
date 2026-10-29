@@ -1,4 +1,7 @@
-import type { BespokeComponentModule } from "./bespokeComponentTypes.ts"
+import type {
+    BespokeAuthoredConfig,
+    BespokeComponentModule,
+} from "./bespokeComponentTypes.ts"
 
 /**
  * Mount a bespoke component into a shadow DOM container.
@@ -21,7 +24,7 @@ export async function mountBespokeComponentInShadow({
     container: HTMLDivElement
     scriptUrl: string
     variant?: string
-    config?: Record<string, string>
+    config?: BespokeAuthoredConfig
     dataUrl?: string
     metadataUrl?: string
     signal?: AbortSignal
