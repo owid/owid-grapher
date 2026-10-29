@@ -134,6 +134,7 @@ export interface RenderPointAnnotation extends PlacedPointAnnotation {
     key: string
     seriesName: SeriesName
     emphasis: Emphasis
+    heading: string
     isTooltipOpen: boolean
 }
 

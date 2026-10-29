@@ -730,6 +730,7 @@ export class LineChart
                     key: `${getSeriesKey(series, index)}-${placedAnnotation.point.time}`,
                     seriesName: series.seriesName,
                     emphasis: series.emphasis,
+                    heading: `${series.displayName}, ${this.chartState.formatColumn.formatTime(placedAnnotation.point.time)}`,
                     isTooltipOpen: isTooltipOpenAt(placedAnnotation.point.time),
                 }))
         })
@@ -745,10 +746,7 @@ export class LineChart
                         key: `${getSeriesKey(series, index)}-${startTime}-${endTime}`,
                         seriesName: series.seriesName,
                         emphasis: series.emphasis,
-                        heading: this.chartState.formatColumn.formatTimeRange(
-                            startTime,
-                            endTime
-                        ),
+                        heading: `${series.displayName}, ${this.chartState.formatColumn.formatTimeRange(startTime, endTime)}`,
                         isTooltipOpen: isMarkerTooltipOpen(
                             this.annotationTooltipState,
                             series.seriesName,
