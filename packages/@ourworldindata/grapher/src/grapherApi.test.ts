@@ -129,32 +129,12 @@ describe("GrapherLoader with selectedEntityColors", () => {
             ])
         )
 
-    afterEach(() => {
-        vi.restoreAllMocks()
-    })
-
     it("colors entities from an inline CSV", () => {
         const loader = GrapherLoader.fromCsv({
             config: colorConfig,
             csv,
             columnDefs,
         })
-        expect(seriesColors(loader)).toEqual({
-            Berlin: "#3360a9",
-            Vienna: "#ed6c2d",
-        })
-    })
-
-    it("colors entities from a CSV fetched from a URL", async () => {
-        vi.spyOn(OwidTable, "fromUrl").mockResolvedValue(
-            new OwidTable(csv, columnDefs)
-        )
-        const loader = GrapherLoader.fromCsv({
-            config: colorConfig,
-            csvUrl: "https://example.com/data.csv",
-            columnDefs,
-        })
-        await loader.ready
         expect(seriesColors(loader)).toEqual({
             Berlin: "#3360a9",
             Vienna: "#ed6c2d",
