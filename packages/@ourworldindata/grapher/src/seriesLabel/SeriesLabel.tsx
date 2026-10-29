@@ -409,7 +409,19 @@ function TooltipTrigger({
                 theme="grapher-explanation"
                 placement="top-start"
                 arrow={false}
-                offset={[0, 0]}
+                offset={[0, 4]}
+                popperOptions={{
+                    modifiers: [
+                        {
+                            name: "flip",
+                            options: {
+                                fallbackPlacements: ["bottom-start"],
+                                padding: 8,
+                            },
+                        },
+                        { name: "preventOverflow", options: { padding: 8 } },
+                    ],
+                }}
                 interactive={hasAnnotations || !isTouchDevice()}
                 delay={[100, 200]}
                 appendTo={() => document.body}
