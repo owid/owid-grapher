@@ -1,0 +1,267 @@
+.search-ai-entry {
+    margin-bottom: 24px;
+}
+
+.search-ai-entry__button {
+    @include body-3-medium;
+    padding: 8px 14px;
+    border: 1px solid $blue-30;
+    border-radius: 4px;
+    background: $blue-5;
+    color: $blue-90;
+    cursor: pointer;
+
+    &:hover {
+        background: $blue-10;
+    }
+}
+
+.search-ai {
+    margin: 16px 0 48px;
+}
+
+.search-ai__header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid $blue-20;
+}
+
+.search-ai__label {
+    @include overline-black-caps;
+    flex: 1;
+    color: $blue-60;
+}
+
+.search-ai__badge {
+    margin-left: 8px;
+    color: $vermillion;
+}
+
+.search-ai__settings {
+    @include note-1-regular;
+    position: relative;
+    color: $blue-50;
+
+    summary {
+        cursor: pointer;
+    }
+}
+
+.search-ai__settings-body {
+    position: absolute;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid $blue-20;
+    white-space: nowrap;
+}
+
+.search-ai__close {
+    border: none;
+    background: none;
+    color: $blue-60;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.search-ai__status {
+    @include body-3-medium;
+    color: $blue-50;
+}
+
+.search-ai__error {
+    @include body-3-medium;
+    color: $accent-vermillion;
+}
+
+.search-ai__wide-chart,
+.search-ai__topic-page {
+    margin-bottom: 32px;
+}
+
+.search-ai__cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 32px var(--grid-gap);
+    margin-bottom: 32px;
+
+    @include md-down {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .search-stacked-article-hit {
+        max-width: none;
+    }
+
+    // Article and data insight images take the shape of chart thumbnails,
+    // so a row of mixed cards lines up
+    .search-stacked-article-hit__image {
+        height: auto;
+        aspect-ratio: calc(
+            $grapher-thumbnail-width / $grapher-thumbnail-height
+        );
+    }
+
+    .search-data-insight-hit__title {
+        font-family: $serif-font-stack;
+        font-size: 1rem;
+        line-height: 1.25;
+    }
+
+    .search-data-insight-hit__image-container {
+        padding-bottom: calc(
+            100% * $grapher-thumbnail-height / $grapher-thumbnail-width
+        );
+        margin-bottom: 12px;
+    }
+}
+
+.search-ai-chart-card {
+    display: block;
+    text-decoration: none;
+
+    .search-chart-hit-thumbnail {
+        border: 1px solid $blue-10;
+    }
+
+    &:hover .search-ai-chart-card__title {
+        text-decoration: underline;
+    }
+}
+
+.search-ai-chart-card__title {
+    font-family: $serif-font-stack;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: $blue-90;
+    margin: 12px 0 0;
+}
+
+.search-ai-chart-card__variant {
+    font-family: $sans-serif-font-stack;
+    font-weight: 400;
+    color: $blue-60;
+}
+
+.search-ai-group {
+    padding-top: 24px;
+    border-top: 1px solid $blue-20;
+}
+
+.search-ai-group__title {
+    @include subtitle-2-bold;
+    margin: 0 0 4px;
+    color: $blue-90;
+}
+
+.search-ai-group__blurb {
+    @include body-3-medium;
+    margin: 0 0 16px;
+    color: $blue-60;
+}
+
+.search-ai-forks {
+    margin-bottom: 40px;
+}
+
+.search-ai-forks__question {
+    @include subtitle-2-bold;
+    margin: 0 0 16px;
+    color: $blue-90;
+}
+
+.search-ai-forks__options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--grid-gap);
+}
+
+.search-ai-forks__option {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    border: none;
+    background: $blue-5;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background: $blue-10;
+
+        .search-ai-forks__label {
+            text-decoration: underline;
+        }
+    }
+}
+
+.search-ai-forks__label {
+    font-family: $serif-font-stack;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: $blue-90;
+}
+
+.search-ai-forks__query {
+    @include note-1-regular;
+    color: $blue-60;
+}
+
+.search-ai-related {
+    padding-top: 24px;
+    border-top: 1px solid $blue-20;
+}
+
+.search-ai-related__title {
+    @include overline-black-caps;
+    margin: 0 0 12px;
+    color: $blue-60;
+}
+
+.search-ai-related__queries {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.search-ai-related__query {
+    @include body-3-medium;
+    padding: 6px 14px;
+    border: 1px solid $blue-30;
+    border-radius: 16px;
+    background: none;
+    color: $blue-90;
+    cursor: pointer;
+
+    &:hover {
+        background: $blue-5;
+    }
+}
+
+.search-ai__debug {
+    @include note-1-regular;
+    margin-top: 24px;
+    color: $blue-50;
+
+    pre {
+        max-height: 400px;
+        overflow: auto;
+        white-space: pre-wrap;
+    }
+}
+
+.search-ai-all-results {
+    @include overline-black-caps;
+    margin: 0 0 24px;
+    padding-top: 24px;
+    border-top: 4px solid $blue-20;
+    color: $blue-60;
+}
