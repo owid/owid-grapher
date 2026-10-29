@@ -32,6 +32,7 @@ export interface Env {
     ALGOLIA_INDEX_PREFIX?: string
     CATALOG_URL: string
     USER_SURVEYS_R2?: R2Bucket
+    ANTHROPIC_API_KEY?: string
 }
 // We collect the possible extensions here so we can easily take them into account
 // when handling redirects

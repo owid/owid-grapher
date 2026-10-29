@@ -961,4 +961,5 @@ export {
 export * from "./analyticsTypes/analyticsTypes.js"
 export * from "./domainTypes/Latest.js"
 export * from "./domainTypes/Search.js"
+export * from "./domainTypes/AiSearch.js"
 export * from "./domainTypes/SvgTester.js"
