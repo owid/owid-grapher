@@ -9,6 +9,7 @@ import type {
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
+import { migrateLegacyUrlParams } from "../../../helpers/legacyUrlParams.js"
 import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
 import { EmbedOptionsProvider } from "../../../hooks/useEmbedOptions.js"
 
@@ -22,6 +23,7 @@ import {
     VariantName,
 } from "./core/types.js"
 import { parseControlPoints } from "./core/parsers.js"
+import { DEMOGRAPHY_LEGACY_URL_PARAM_NAMES } from "./core/urlState.js"
 
 import "./index.scss"
 
@@ -153,6 +155,10 @@ export const mount: BespokeComponentMountFn = (
 
     const authoredConfig = opts.config ?? {}
     const config = parseConfigFromSpec(CONFIG_SPEC, authoredConfig)
+
+    if (opts.embedOptions?.urlSync) {
+        migrateLegacyUrlParams(DEMOGRAPHY_LEGACY_URL_PARAM_NAMES)
+    }
 
     const root = createRoot(container)
     root.render(
