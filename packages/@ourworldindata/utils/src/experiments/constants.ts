@@ -3,17 +3,6 @@
 export const EXPERIMENT_ARM_SEPARATOR = "--"
 export const EXPERIMENT_PREFIX = "exp"
 
-// Raw id (without the `exp-` prefix) of the data page metadata box experiment.
-// Shared between the baker (to decide which charts get the extra per-indicator
-// metadata loaded) and the data page React component (to gate the dual-arm
-// markup), so the experiment's `paths` list is the single source of truth for
-// which graphers are enrolled.
-export const DATA_PAGE_METADATA_EXPERIMENT_ID = "data-page-metadata-v1"
-export const DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM = "treatment"
-
-// Randomised follow-up to v1 (disjoint page sets; v1's pages stay in v1).
-export const DATA_PAGE_METADATA_V2_EXPERIMENT_ID = "data-page-metadata-v2"
-
 // Raw id (without the `exp-` prefix) of the /latest sticky filters experiment.
 // Shared between the experiment config, the /latest React components (to
 // gate the reveal-on-scroll behaviour) and the analytics layer (to tag the

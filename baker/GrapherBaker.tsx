@@ -7,7 +7,6 @@ import {
     excludeUndefined,
     mergeGrapherConfigs,
     Url,
-    isDataPageMetadataRedesignActive,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import {
@@ -55,10 +54,7 @@ import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
 import { deleteOldGraphers } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
-import {
-    getRelatedChartsForVariable,
-    getRelatedChartsForChart,
-} from "../db/model/Chart.js"
+import { getRelatedChartCards } from "../db/model/RelatedChartCards.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
@@ -206,10 +202,6 @@ export async function renderDataPageV2(
     const distribution = await getVariableDistribution(knex, variableIds)
     const datapageData = getDatapageDataV2(variableMetadata, grapher)
 
-    const datapageMetadataExperimentActive = grapher.slug
-        ? isDataPageMetadataRedesignActive(`/grapher/${grapher.slug}`)
-        : false
-
     datapageData.primaryTopic = await getPrimaryTopic(
         knex,
         datapageData.topicTagsLinks
@@ -217,31 +209,26 @@ export async function renderDataPageV2(
 
     let imageMetadata: Record<string, ImageMetadata> = {}
 
-    if (datapageMetadataExperimentActive) {
-        // Only show owners for the y-plotted variable(s). The x-dimension is
-        // usually GDP per capita or population (scatterplots/Marimekkos), and
-        // since we only surface the first dataset's owners, including it risks
-        // showing the owners of the wrong dataset.
-        const ownerVariableIds = _.uniq(
-            _.compact(
-                grapher.dimensions
-                    .filter(({ property }) => property === DimensionProperty.y)
-                    .map(({ variableId }) => variableId)
-            )
+    // Only show owners for the y-plotted variable(s). The x-dimension is
+    // usually GDP per capita or population (scatterplots/Marimekkos), and
+    // since we only surface the first dataset's owners, including it risks
+    // showing the owners of the wrong dataset.
+    const ownerVariableIds = _.uniq(
+        _.compact(
+            grapher.dimensions
+                .filter(({ property }) => property === DimensionProperty.y)
+                .map(({ variableId }) => variableId)
         )
-        datapageData.owners = await getOwnersForVariables(
-            knex,
-            ownerVariableIds
-        )
+    )
+    datapageData.owners = await getOwnersForVariables(knex, ownerVariableIds)
 
-        const ownerNames = _.uniq(
-            (datapageData.owners ?? []).flatMap((dataset) => dataset.owners)
-        )
-        datapageData.linkedAuthors = await getMinimalAuthorsByNames(
-            knex,
-            ownerNames
-        )
-    }
+    const ownerNames = _.uniq(
+        (datapageData.owners ?? []).flatMap((dataset) => dataset.owners)
+    )
+    datapageData.linkedAuthors = await getMinimalAuthorsByNames(
+        knex,
+        ownerNames
+    )
 
     const archiveContext =
         grapher.id !== undefined
@@ -251,30 +238,16 @@ export async function renderDataPageV2(
     // If we're baking to an archival page, then we want to skip a bunch of sections
     // where the links would break
     if (archiveContext?.type !== "archive-page") {
-        // Get the charts this variable is being used in (aka "related charts")
-        // and exclude the current chart to avoid duplicates
-        const allCharts = await getRelatedChartsForVariable(
-            knex,
-            variableId,
-            grapher && "id" in grapher ? [grapher.id as number] : [],
-            true
-        )
-        datapageData.allCharts = allCharts.map((chart) => ({
-            ...chart,
-            archiveContext: archiveContextDictionary?.[chart.chartId],
-        }))
-
-        if (datapageMetadataExperimentActive && grapher.id !== undefined) {
-            const relatedChartsByCoview = await getRelatedChartsForChart(
+        if (grapher.id !== undefined) {
+            const relatedCharts = await getRelatedChartCards(
                 knex,
-                grapher.id
+                grapher.id,
+                datapageData.topicTagsLinks ?? []
             )
-            datapageData.relatedChartsByCoview = relatedChartsByCoview.map(
-                (chart) => ({
-                    ...chart,
-                    archiveContext: archiveContextDictionary?.[chart.chartId],
-                })
-            )
+            datapageData.relatedCharts = relatedCharts.map((chart) => ({
+                ...chart,
+                archiveContext: archiveContextDictionary?.[chart.chartId],
+            }))
         }
 
         datapageData.relatedResearch =
@@ -284,11 +257,17 @@ export async function renderDataPageV2(
             .map((r) => r.imageUrl)
             .filter((f): f is string => !!f)
 
+        // Photos of the data managers. Left out of archived pages, which have
+        // no image assets, so they show names only.
+        const linkedAuthorFilenames = (datapageData.linkedAuthors ?? [])
+            .map((author) => author.featuredImage)
+            .filter((f): f is string => !!f)
+
         imageMetadata = {
             ...imageMetadata,
             ..._.pick(
                 imageMetadataDictionary,
-                _.uniq(relatedResearchFilenames)
+                _.uniq([...relatedResearchFilenames, ...linkedAuthorFilenames])
             ),
         }
     }

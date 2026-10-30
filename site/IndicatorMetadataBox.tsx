@@ -1,4 +1,5 @@
 import cx from "clsx"
+import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons"
 import {
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     SimpleMarkdownText,
@@ -6,15 +7,17 @@ import {
     ExpandableToggle,
     CodeSnippet,
     makeSource,
-    IndicatorProcessing,
     INDICATOR_PROCESSING_SECTION_ID,
     MetadataBoxExpander,
-    MetadataBoxCollapseButton,
+    MetadataBoxToggleButton,
     MetadataBoxSection,
     MetadataBoxKeyData,
     MetadataBoxKeyDataRow,
     MetadataBoxReuseNotice,
     ChartLicenseNotice,
+    makeDateRange,
+    makeLastUpdated,
+    makeNextUpdate,
 } from "@ourworldindata/components"
 import {
     ArchiveContext,
@@ -32,7 +35,7 @@ import {
     getIndicatorCitations,
     spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
-import { Byline } from "./gdocs/components/Byline.js"
+import AvatarByline from "./gdocs/components/AvatarByline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
@@ -44,6 +47,7 @@ interface IndicatorMetadataSectionsProps {
     className?: string
     faqEntries: FaqEntryData | undefined
     detailsRef: React.RefObject<HTMLDetailsElement | null>
+    detailsId?: string
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
     primaryTopic?: PrimaryTopic
@@ -80,11 +84,50 @@ function groupFaqsByQuestion(
     return questions
 }
 
+function IndicatorDataDetails({
+    datapageData,
+}: {
+    datapageData: DataPageDataV2
+}): React.ReactElement | null {
+    const { unit, dateRange, lastUpdated, nextUpdate } = datapageData
+    if (!unit && !dateRange && !lastUpdated && !nextUpdate) return null
+    return (
+        <MetadataBoxSection
+            title="Data details"
+            className="indicator-metadata-box__data-details"
+        >
+            <MetadataBoxKeyData>
+                {unit && (
+                    <MetadataBoxKeyDataRow label="Unit">
+                        {unit}
+                    </MetadataBoxKeyDataRow>
+                )}
+                {dateRange && (
+                    <MetadataBoxKeyDataRow label="Date range">
+                        {makeDateRange({ dateRange })}
+                    </MetadataBoxKeyDataRow>
+                )}
+                {lastUpdated && (
+                    <MetadataBoxKeyDataRow label="Last updated">
+                        {makeLastUpdated({ lastUpdated })}
+                    </MetadataBoxKeyDataRow>
+                )}
+                {nextUpdate && (
+                    <MetadataBoxKeyDataRow label="Next expected update">
+                        {makeNextUpdate({ nextUpdate })}
+                    </MetadataBoxKeyDataRow>
+                )}
+            </MetadataBoxKeyData>
+        </MetadataBoxSection>
+    )
+}
+
 function IndicatorMetadataSections({
     datapageData,
     className,
     faqEntries,
     detailsRef,
+    detailsId,
     canonicalUrl,
     archiveContext,
     primaryTopic,
@@ -128,13 +171,21 @@ function IndicatorMetadataSections({
         <MetadataBoxExpander
             className={className}
             detailsRef={detailsRef}
+            detailsId={detailsId}
+            showMoreIcon={faCaretDown}
+            showLessIcon={faCaretUp}
             preview={
                 descriptionKeyPreview ? (
-                    <SimpleMarkdownText
-                        text={descriptionKeyPreview}
-                        dataTrackNote="wysk_link"
-                        dodTrackNote="wysk/preview"
-                    />
+                    <>
+                        <h2 className="indicator-metadata-box__description-key-title">
+                            What you should know about this data
+                        </h2>
+                        <SimpleMarkdownText
+                            text={descriptionKeyPreview}
+                            dataTrackNote="wysk_link"
+                            dodTrackNote="wysk/preview"
+                        />
+                    </>
                 ) : undefined
             }
             onToggle={(isOpen) =>
@@ -152,6 +203,7 @@ function IndicatorMetadataSections({
                     />
                 </div>
             )}
+            <IndicatorDataDetails datapageData={datapageData} />
             <MetadataBoxSection
                 title="Frequently asked questions"
                 id="faqs"
@@ -176,23 +228,27 @@ function IndicatorMetadataSections({
                         }
                     />
                 ))}
-                <ExpandableToggle
-                    label="How did Our World in Data process this data?"
-                    contentId={INDICATOR_PROCESSING_SECTION_ID}
-                    content={
-                        <IndicatorProcessing
-                            descriptionProcessing={descriptionProcessing}
-                            trackNote="processing_link"
-                            dodTrackNote="processing"
-                        />
-                    }
-                    onToggle={(isOpen) =>
-                        analytics.logExpandableToggle(
-                            "how_owid_processed_data",
-                            isOpen
-                        )
-                    }
-                />
+                {descriptionProcessing && (
+                    <ExpandableToggle
+                        label="How did Our World in Data process this data?"
+                        contentId={INDICATOR_PROCESSING_SECTION_ID}
+                        content={
+                            <div className="indicator-metadata-box__processing-notes">
+                                <SimpleMarkdownText
+                                    text={descriptionProcessing}
+                                    dataTrackNote="processing_link"
+                                    dodTrackNote="processing"
+                                />
+                            </div>
+                        }
+                        onToggle={(isOpen) =>
+                            analytics.logExpandableToggle(
+                                "how_owid_processed_data",
+                                isOpen
+                            )
+                        }
+                    />
+                )}
             </MetadataBoxSection>
             {datapageData.descriptionFromProducer && (
                 <MetadataBoxSection title="Documentation from data sources">
@@ -324,6 +380,27 @@ function IndicatorMetadataSections({
                 </MetadataBoxSection>
             )}
             <MetadataBoxSection className="indicator-metadata-box__reuse-notice">
+                <p>
+                    All data and visualizations on Our World in Data rely on
+                    data sourced from one or several original data providers.
+                    Preparing this original data involves several processing
+                    steps. Depending on the data, this can include standardizing
+                    country names and world region definitions, converting
+                    units, calculating derived indicators such as per capita
+                    measures, as well as adding or adapting metadata such as the
+                    name or the description given to an indicator.
+                </p>
+                <p>
+                    At the link below you can find a detailed description of the
+                    structure of our data pipeline, including links to all the
+                    code used to prepare data across Our World in Data.{" "}
+                    <a
+                        href="https://docs.owid.io/projects/etl/"
+                        data-track-note="data_pipeline_link"
+                    >
+                        Read about our data pipeline
+                    </a>
+                </p>
                 <MetadataBoxReuseNotice>
                     <ChartLicenseNotice license={license} />
                 </MetadataBoxReuseNotice>
@@ -354,27 +431,40 @@ export default function IndicatorMetadataBox({
     // expander per indicator, so we don't merge owners across datasets here.
     const owners = datapageData.owners?.[0]?.owners ?? []
 
+    const descriptionProcessing = datapageData.descriptionProcessing?.trim()
     const attribution = formatAttributions(datapageData.attributions ?? [])
     const sourceString = makeSource({
         attribution,
         owidProcessingLevel: datapageData.owidProcessingLevel,
-        processingId: INDICATOR_PROCESSING_SECTION_ID,
+        // Without processing notes there's nothing to link to
+        processingId: descriptionProcessing
+            ? INDICATOR_PROCESSING_SECTION_ID
+            : null,
     })
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
+    // Derived from the box's id rather than useId(): the server renders the
+    // whole page but the client hydrates only the data page content, so
+    // generated ids wouldn't match
+    const detailsId = id ? `${id}-details` : undefined
 
     return (
         <div
             className={cx("metadata-box indicator-metadata-box", className)}
             id={id}
         >
-            <MetadataBoxCollapseButton detailsRef={detailsRef} />
-            <h2 className="indicator-metadata-box__title body-2-bold-tight">
-                {datapageData.title.title}
-                <span className="indicator-metadata-box__title-variant">
-                    {datapageData.titleVariant}
-                </span>
-            </h2>
+            <div className="indicator-metadata-box__header">
+                <h2 className="indicator-metadata-box__title">
+                    {datapageData.title.title}
+                    <span className="indicator-metadata-box__title-variant">
+                        {datapageData.titleVariant}
+                    </span>
+                </h2>
+                <MetadataBoxToggleButton
+                    detailsRef={detailsRef}
+                    detailsId={detailsId}
+                />
+            </div>
             <MetadataBoxKeyData>
                 {datapageData.descriptionShort && (
                     <MetadataBoxKeyDataRow
@@ -388,38 +478,20 @@ export default function IndicatorMetadataBox({
                         />
                     </MetadataBoxKeyDataRow>
                 )}
+                {owners.length > 0 && (
+                    <MetadataBoxKeyDataRow
+                        label="Managed by"
+                        className="indicator-metadata-box__managed-by"
+                    >
+                        <AvatarByline authors={owners} />
+                    </MetadataBoxKeyDataRow>
+                )}
                 {sourceString && (
                     <MetadataBoxKeyDataRow
                         label="Data source"
-                        isFullWidth
                         labelClassName="metadata-box-key-data__key--source"
                     >
                         {sourceString}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.unit && (
-                    <MetadataBoxKeyDataRow label="Unit">
-                        {datapageData.unit}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.dateRange && (
-                    <MetadataBoxKeyDataRow label="Date range">
-                        {datapageData.dateRange}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.lastUpdated && (
-                    <MetadataBoxKeyDataRow label="Last updated">
-                        {datapageData.lastUpdated}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.nextUpdate && (
-                    <MetadataBoxKeyDataRow label="Next expected update">
-                        {datapageData.nextUpdate}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {owners.length > 0 && (
-                    <MetadataBoxKeyDataRow label="Managed by">
-                        <Byline authors={owners} prefix="" />
                     </MetadataBoxKeyDataRow>
                 )}
             </MetadataBoxKeyData>
@@ -427,11 +499,12 @@ export default function IndicatorMetadataBox({
                 datapageData={datapageData}
                 faqEntries={faqEntries}
                 detailsRef={detailsRef}
+                detailsId={detailsId}
                 canonicalUrl={canonicalUrl}
                 archiveContext={archiveContext}
                 primaryTopic={datapageData.primaryTopic}
                 title={datapageData.title}
-                descriptionProcessing={datapageData.descriptionProcessing}
+                descriptionProcessing={descriptionProcessing}
                 license={license}
             />
         </div>

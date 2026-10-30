@@ -1,0 +1,33 @@
+.metadata-box-toggle-button {
+    flex-shrink: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    white-space: nowrap;
+    @include body-3-medium;
+    color: $blue-50;
+
+    &:hover {
+        color: $blue-90;
+    }
+}
+
+.metadata-box-toggle-button__caret {
+    font-size: 0.75rem;
+    margin-left: 8px;
+}
+
+.metadata-box-toggle-button__show-less {
+    display: none;
+}
+
+.metadata-box:has(.metadata-box-expander__details[open]) {
+    .metadata-box-toggle-button__show-more {
+        display: none;
+    }
+
+    .metadata-box-toggle-button__show-less {
+        display: inline;
+    }
+}

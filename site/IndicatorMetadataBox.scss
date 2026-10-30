@@ -1,6 +1,8 @@
 .indicator-metadata-box {
-    padding: 24px;
-    background-color: $blue-5;
+    --indicator-sources-key-data-title: #{$blue-50};
+    --indicator-metadata-box-padding: 24px;
+    padding: var(--indicator-metadata-box-padding);
+    background-color: $gray-5;
     grid-template-columns: repeat(12, 1fr);
     grid-column-start: 2;
     grid-column-end: span 12;
@@ -13,6 +15,7 @@
         margin-right: -8px;
         margin-left: -8px;
         margin-bottom: 32px;
+        --indicator-metadata-box-padding: 16px;
     }
 }
 
@@ -24,7 +27,7 @@
     }
 }
 
-.indicator-metadata-box .metadata-box-expander {
+.indicator-metadata-box .metadata-box-expander--has-preview {
     border-top: 1px solid $blue-20;
     margin-top: 16px;
 }
@@ -33,62 +36,317 @@
     margin-top: 16px;
 }
 
-.indicator-metadata-box .metadata-box-expander__summary {
-    @include body-2-semibold;
-    margin-left: -24px;
-    margin-bottom: -24px;
-    width: calc(100% + 48px);
-    padding: 16px;
-    @include note-13-medium;
-    color: $blue-50;
-    text-align: center;
-    transition: background-color 0.15s;
+.indicator-metadata-box .metadata-box-expander__prose {
+    p,
+    ul,
+    ol {
+        @include body-3-regular;
+    }
 
-    &:hover {
-        background-color: $blue-20;
+    // The remainder's margin spaces it from the preview
+    li:last-child {
+        margin-bottom: 0;
     }
 }
 
+.indicator-metadata-box
+    .metadata-box-section:first-of-type
+    .metadata-box-section__title {
+    margin-top: 32px;
+}
+
+.indicator-metadata-box .metadata-box-section__title {
+    margin-bottom: 8px;
+}
+
+.indicator-metadata-box .indicator-metadata-box__description-key-title {
+    @include body-2-bold-tight;
+    color: $blue-90;
+    margin: 0 0 8px;
+}
+
+.indicator-metadata-box .metadata-box-expander__summary {
+    @include body-3-medium;
+    color: $blue-50;
+    padding: 12px 0;
+    margin-top: 12px;
+    margin-bottom: calc(-1 * var(--indicator-metadata-box-padding));
+
+    &:hover {
+        color: $blue-90;
+    }
+}
+
+// Nested lists sit 8px under their item, like the items around them
+.indicator-metadata-box .metadata-box-expander__prose,
+.indicator-metadata-box .indicator-metadata-box__producer-docs,
+.indicator-metadata-box .indicator-sources .source .description,
+.indicator-metadata-box .indicator-metadata-box__processing-notes {
+    li > ul,
+    li > ol {
+        margin: 8px 0 0;
+    }
+}
+
+.indicator-metadata-box .metadata-box-expander__chevron {
+    font-size: 0.75rem;
+    margin-left: 4px;
+    top: 0;
+}
+
+.indicator-metadata-box__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+}
+
 .indicator-metadata-box__title {
+    @include h3-bold;
     margin: 0;
     color: $blue-90;
-    max-width: calc(100% - 104px);
+
+    // On phones the variant stays beside the title when it fits, and
+    // otherwise moves under it whole, at its own tighter line height
+    @include sm-only {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        column-gap: 8px;
+    }
 }
 
 .indicator-metadata-box__title-variant {
-    @include note-13-medium;
+    @include body-3-regular;
     margin-left: 8px;
     color: $blue-50;
+
+    @include sm-only {
+        margin-left: 0;
+        line-height: 1.2;
+    }
 }
 
-.indicator-metadata-box__reuse-notice {
+// Phones toggle the box from the bottom only
+.indicator-metadata-box .metadata-box-toggle-button {
+    @include sm-only {
+        display: none;
+    }
+}
+
+// Phones show only the first item of "What you should know" until the box is
+// opened, so Show more is in view
+@include sm-only {
+    .indicator-metadata-box
+        .metadata-box-expander:has(
+            > .metadata-box-expander__details:not([open])
+        )
+        .metadata-box-expander__preview {
+        > .indicator-metadata-box__description-key-title + * ~ * {
+            display: none;
+        }
+
+        > .indicator-metadata-box__description-key-title + :is(ul, ol) > li {
+            &:nth-child(n + 2),
+            &:first-child > :is(ul, ol) {
+                display: none;
+            }
+
+            &:first-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+.indicator-metadata-box .metadata-box-key-data {
+    margin-top: 8px;
+    gap: 8px 24px;
+}
+
+.indicator-metadata-box
+    .indicator-metadata-box__data-details
+    .metadata-box-key-data {
+    margin-top: 0;
+}
+
+.indicator-metadata-box .metadata-box-key-data__key,
+.indicator-metadata-box .metadata-box-key-data__value {
+    @include body-3-regular;
+}
+
+.indicator-metadata-box .avatar-byline {
+    @include body-3-regular;
+    gap: 4px 8px;
+}
+
+.indicator-metadata-box .avatar-byline__author {
+    gap: 6px;
+}
+
+.indicator-metadata-box .metadata-box-key-data__row--full-width p + p {
+    margin-top: 8px;
+}
+
+// Above phone width, a long value wraps under its label rather than in a
+// column beside it
+@include sm-up {
+    .indicator-metadata-box
+        .metadata-box-key-data__row:not(
+            .metadata-box-key-data__row--full-width
+        ) {
+        display: block;
+
+        > .metadata-box-key-data__key {
+            display: inline;
+            margin-right: 4px;
+        }
+
+        > .metadata-box-key-data__value {
+            display: inline;
+        }
+    }
+
+    // Centre the label on the first line of managers, which the 24px photos
+    // make 24px tall
+    .indicator-metadata-box
+        .metadata-box-key-data__row.indicator-metadata-box__managed-by {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+
+        > .metadata-box-key-data__key {
+            margin-right: 0;
+            line-height: 24px;
+        }
+    }
+}
+
+.indicator-metadata-box .indicator-metadata-box__reuse-notice {
     margin-top: 32px;
+    margin-bottom: 0;
     @include note-13-medium;
+    color: $blue-60;
     a {
-        @include owid-link-90;
+        @include owid-link-60;
+    }
+    > p {
+        margin: 16px 0 0;
     }
     > p:first-child {
         margin-top: 0;
     }
-    > p:last-child {
-        margin-bottom: 16px;
+}
+
+.indicator-metadata-box details.ExpandableToggle {
+    > .ExpandableToggle__container .ExpandableToggle__button {
+        --button: #{$blue-60};
+    }
+
+    &[open] > .ExpandableToggle__container .ExpandableToggle__button {
+        --title: #{$blue-90};
+        --button: #{$blue-90};
+        padding-bottom: 0;
+    }
+
+    // A blank line under the title, as between paragraphs
+    &[open] > .ExpandableToggle__content {
+        padding: 1.5em 16px 24px;
     }
 }
 
-// Restore list indentation lost to the global `ul, ol { padding: 0 }` reset
-// (e.g. /grapher/co2-emissions-transport, "Documentation from data sources").
-.indicator-metadata-box__producer-docs {
+// A line under each accordion only. The :has() variant outranks the shared
+// rule that drops the bottom border between neighbours.
+.indicator-metadata-box details.ExpandableToggle,
+.indicator-metadata-box .indicator-sources div.NonExpandable {
+    border-top: none;
+
+    &,
+    &:has(+ .ExpandableToggle, + .NonExpandable) {
+        border-bottom: 1px solid var(--border);
+    }
+}
+
+.indicator-metadata-box
+    details.ExpandableToggle
+    .ExpandableToggle__button
+    .ExpandableToggle__title {
+    line-height: calc(22 / 16);
+    text-wrap: balance;
+}
+
+// Links take the colour of the text they're in
+.indicator-metadata-box .ExpandableToggle__content a {
+    @include owid-link-60;
+}
+
+.indicator-metadata-box .indicator-sources .source-key-data__content {
+    color: $blue-90;
+
+    a {
+        @include owid-link-90;
+        color: inherit;
+    }
+}
+
+// Single sources have no toggle; match the toggles' inset
+.indicator-metadata-box .indicator-sources div.NonExpandable {
+    padding: 16px;
+
+    // The same blank line under the title as in an open accordion
+    .NonExpandable__title {
+        margin-bottom: 21px;
+        text-wrap: balance;
+    }
+}
+
+// Free-form markdown: paragraphs a blank line (1.5em) apart, headings right
+// above their paragraph
+.indicator-metadata-box .indicator-metadata-box__producer-docs,
+.indicator-metadata-box .indicator-sources .source .description,
+.indicator-metadata-box .indicator-metadata-box__processing-notes {
+    // The content's first-child reset can't reach through this wrapper
+    > :first-child {
+        margin-top: 0;
+    }
+
+    > :last-child {
+        margin-bottom: 0;
+    }
+
+    p {
+        margin: 0 0 1.5em;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @include body-3-bold;
+        color: $blue-90;
+        margin: 1.5em 0 0;
+    }
+
+    // Restore list indentation lost to the global `ul, ol { padding: 0 }`
+    // reset (e.g. /grapher/co2-emissions-transport)
     ul,
     ol {
         padding-left: 1.5em;
-        margin: 1em 0;
+        margin: 0 0 1.5em;
+    }
 
-        li {
-            margin-bottom: 1em;
+    li {
+        margin: 0 0 8px;
 
-            &:last-child {
-                margin-bottom: 0;
-            }
+        &:last-child {
+            margin-bottom: 0;
         }
+    }
+
+    // Loose markdown lists wrap each item in a paragraph
+    li > p {
+        margin: 0;
     }
 }
