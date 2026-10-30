@@ -42,15 +42,10 @@ import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
-import {
-    AnnotationsMap,
-    getAnnotationsMap,
-    getColorKey,
-    getDisplayName,
-    getSeriesName,
-} from "./LineChartHelpers"
+import { getColorKey, getDisplayName, getSeriesName } from "./LineChartHelpers"
 import { FocusArray } from "../focus/FocusArray"
 import {
+    selectEntityAnnotation,
     selectEntityPointAnnotations,
     selectEntityRangeAnnotations,
 } from "../annotations/EntityAnnotations"
@@ -221,10 +216,6 @@ export class LineChartState implements ChartState, ColorScaleManager {
         return this.colorScale.getColor(value) ?? DEFAULT_LINE_COLOR
     }
 
-    @computed get annotationsMap(): AnnotationsMap | undefined {
-        return getAnnotationsMap(this.inputTable, this.yColumnSlugs[0])
-    }
-
     @computed get hasNoDataBin(): boolean {
         if (!this.hasColorScale) return false
         return this.colorColumn.valuesIncludingErrorValues.some(
@@ -363,6 +354,13 @@ export class LineChartState implements ChartState, ColorScaleManager {
             entityName,
             timeRange
         )
+        const entityAnnotation =
+            seriesStrategy === SeriesStrategy.entity
+                ? selectEntityAnnotation(
+                      this.yColumns[0].def.annotations ?? [],
+                      entityName
+                  )
+                : undefined
 
         return {
             points,
@@ -377,6 +375,7 @@ export class LineChartState implements ChartState, ColorScaleManager {
             focus: this.focusArray.state(seriesName),
             pointAnnotations,
             rangeAnnotations,
+            entityAnnotation,
         }
     }
 
