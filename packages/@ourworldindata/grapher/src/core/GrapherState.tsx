@@ -13,7 +13,6 @@ import {
     makeOriginalTimeSlugFromColumnSlug,
     ErrorValueTypes,
     isNotErrorValueOrEmptyCell,
-    makeAnnotationsSlug,
 } from "@ourworldindata/core-table"
 import {
     GrapherChartType,
@@ -1205,27 +1204,18 @@ export class GrapherState
         // Time column slug to include in the downloaded table
         const timeSlug = table.timeColumn.slug
 
-        // Original time column slugs to include
         const originalTimeSlugs = primarySlugs
             .map((ySlug) => makeOriginalTimeSlugFromColumnSlug(ySlug))
             .filter((slug) => table.has(slug))
 
-        // Annotation columns to include
-        const annotationSlugs = primarySlugs
-            .map((slug) => makeAnnotationsSlug(slug))
-            .filter((slug) => table.has(slug))
-
-        // Select only relevant columns (in the right order)
         table = table.select([
-            table.entityNameSlug, // Entity name column
-            table.entityCodeSlug, // Entity code column
-            timeSlug, // Time column
-            ...dataSlugs, // Data columns
-            ...originalTimeSlugs, // Original time columns
-            ...annotationSlugs, // Annotation columns
+            table.entityNameSlug,
+            table.entityCodeSlug,
+            timeSlug,
+            ...dataSlugs,
+            ...originalTimeSlugs,
         ])
 
-        // Drop rows without any primary values
         if (primarySlugs.length > 0) {
             table = table.dropRowsWithErrorValuesForAllColumns(primarySlugs)
         }
@@ -1248,17 +1238,10 @@ export class GrapherState
             )
         }
 
-        // Drop original time columns that are now completely empty
         table = table.dropColumns(
             originalTimeSlugs.filter((slug) => table.get(slug).numValues === 0)
         )
 
-        // Drop empty annotation columns
-        table = table.dropColumns(
-            annotationSlugs.filter((slug) => table.get(slug).numValues === 0)
-        )
-
-        // Fill in missing entity codes
         if (table.entityCodeColumn.numErrorValues > 0) {
             table = table.replaceCells(
                 [OwidTableSlugs.EntityCode],

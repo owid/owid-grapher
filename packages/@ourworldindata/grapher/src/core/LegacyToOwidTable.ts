@@ -24,7 +24,6 @@ import {
     OwidTable,
     ErrorValueTypes,
     makeKeyFn,
-    makeAnnotationsSlug,
 } from "@ourworldindata/core-table"
 import {
     diffDatesInDays,
@@ -112,12 +111,6 @@ export const legacyToOwidTableAndDimensions = (
             valueColumnDef.targetTime = dimension.targetYear
         columnDefs.set(valueColumnDef.slug, valueColumnDef)
 
-        // Annotations column
-        const [annotationMap, annotationColumnDef] =
-            annotationMapAndDefFromOwidVariable(variable.metadata)
-
-        // Column values
-
         const times = timeColumnValuesFromOwidVariable(
             variable.metadata,
             variable.data
@@ -140,14 +133,6 @@ export const legacyToOwidTableAndDimensions = (
             [timeColumnDef.slug]: times,
             [valueColumnDef.slug]: variable.data.values || [],
         }
-
-        if (annotationColumnDef) {
-            columnStore[annotationColumnDef.slug] = entityNames.map(
-                (entityName) => annotationMap!.get(entityName)
-            )
-            columnDefs.set(annotationColumnDef.slug, annotationColumnDef)
-        }
-        // Build the tables
 
         let variableTable = new OwidTable(
             columnStore,
@@ -797,29 +782,7 @@ const convertLegacyYears = (years: number[], zeroDay: string): number[] => {
     return years.map((y) => y + diff)
 }
 
-const annotationMapAndDefFromOwidVariable = (
-    variable: OwidVariableWithSourceAndDimension
-): [Map<string, string>, OwidColumnDef] | [] => {
-    if (variable.display?.entityAnnotationsMap) {
-        const slug = variable.id.toString()
-        const annotationsSlug = makeAnnotationsSlug(slug)
-        const annotationMap = annotationsToMap(
-            variable.display.entityAnnotationsMap
-        )
-        const columnDef: OwidColumnDef = {
-            slug: annotationsSlug,
-            type: ColumnTypeNames.SeriesAnnotation,
-            name: annotationsSlug,
-            display: { includeInTable: false },
-            derivedFrom: { columnSlug: slug, relationship: "annotations" },
-        }
-        return [annotationMap, columnDef]
-    }
-    return []
-}
-
 const annotationsToMap = (annotations: string): Map<string, string> => {
-    // Todo: let's delete this and switch to traditional columns
     const entityAnnotationsMap = new Map<string, string>()
     const delimiter = ":"
     annotations.split("\n").forEach((line) => {

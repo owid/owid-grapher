@@ -353,24 +353,12 @@ it("correctly identifies inputColumnSlugs", () => {
             "entityColor",
             "year",
             "gdp",
-            "gdp-annotations",
             "child_mortality",
             "population",
             "continent",
             "happiness",
         ],
-        [
-            "Belgium",
-            "BEL",
-            "#f6f",
-            2010,
-            80000,
-            "pretty damn high",
-            1.5,
-            9000000,
-            "Europe",
-            81.2,
-        ],
+        ["Belgium", "BEL", "#f6f", 2010, 80000, 1.5, 9000000, "Europe", 81.2],
     ])
     const grapher = new GrapherState({
         table,
@@ -1719,20 +1707,6 @@ describe("download", () => {
                 "population",
             ])
         )
-    })
-
-    it("includes annotation columns when present", () => {
-        const table = new OwidTable([
-            ["entityName", "entityCode", "year", "gdp", "gdp-annotations"],
-            ["France", "FRA", 2020, 2500, "preliminary"],
-            ["France", "FRA", 2021, 2600, ""],
-        ])
-
-        const grapher = makeGrapher(table)
-
-        const downloadTable = grapher.filteredTableForDownload
-
-        expect(downloadTable.columnSlugs).toContain("gdp-annotations")
     })
 
     it("drops rows without any x or y values", () => {
