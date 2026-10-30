@@ -53,22 +53,22 @@ function CausesOfDeathChart(props: {
 
     // State, synced to the URL when the embedding page asks for it
     const [ageGroup, setAgeGroup] = useUrlState({
-        key: "causesOfDeathAge",
+        key: "age",
         parser: parseAsString,
         defaultValue: config.ageGroup,
     })
     const [sex, setSex] = useUrlState({
-        key: "causesOfDeathSex",
+        key: "sex",
         parser: parseAsString,
         defaultValue: config.sex,
     })
     const [requestedEntityName, setEntityName] = useUrlState({
-        key: "causesOfDeathRegion",
+        key: "region",
         parser: parseAsString,
         defaultValue: config.region,
     })
     const [year, setYear] = useUrlState({
-        key: "causesOfDeathYear",
+        key: "year",
         parser: parseAsInteger,
         defaultValue: config.year ?? LATEST_YEAR,
     })
