@@ -256,7 +256,10 @@ export function enrichSeriesWithLabels<
     availableHeightPerSeries,
     minLabelWidth,
     maxLabelWidth,
-    labelColumn,
+    labelColumn = {
+        plotWidth: 0,
+        rowEnds: series.map(() => ({ fraction: 0, offset: 0 })),
+    },
     fontSettings,
     annotationFontSettings = {
         fontSize: 0.9 * fontSettings.fontSize,
@@ -334,25 +337,14 @@ export function enrichSeriesWithLabels<
 
 /** The width each label can take in a column sized for the narrow labels */
 function computeLabelWidthBudgets(
-    { plotWidth, rowEnds }: LabelColumn,
+    column: LabelColumn,
     narrowLabelWidths: readonly number[]
 ): number[] {
-    const columnWidth = computeLabelColumnWidth(
-        { plotWidth, rowEnds },
-        narrowLabelWidths
-    )
-    return rowEnds.map(
+    const columnWidth = computeLabelColumnWidth(column, narrowLabelWidths)
+    return column.rowEnds.map(
         ({ fraction, offset }) =>
-            columnWidth + fraction * (plotWidth - columnWidth) - offset
+            columnWidth + fraction * (column.plotWidth - columnWidth) - offset
     )
-}
-
-/** Every label gets the width of the widest narrow label */
-function computeSharedLabelWidthBudgets(
-    narrowLabelWidths: readonly number[]
-): readonly number[] {
-    const sharedWidth = _.max(narrowLabelWidths) ?? 0
-    return narrowLabelWidths.map(() => sharedWidth)
 }
 
 /** Widens each narrow label as far as it can go without widening the label column */
@@ -363,7 +355,7 @@ function widenLabels({
     labelOptions,
 }: {
     narrowWraps: readonly { textWrap: TextWrap; needsTruncation?: boolean }[]
-    labelColumn?: LabelColumn
+    labelColumn: LabelColumn
     maxLabelWidth: number
     labelOptions: LabelOptions
 }): FittedLabel[] {
@@ -374,16 +366,15 @@ function widenLabels({
     const narrowWidths = narrowWraps.map(({ needsTruncation }, index) =>
         needsTruncation ? 0 : narrowLabels[index].width
     )
-    const budgets = labelColumn
-        ? computeLabelWidthBudgets(labelColumn, narrowWidths)
-        : computeSharedLabelWidthBudgets(narrowWidths)
+    const budgets = computeLabelWidthBudgets(labelColumn, narrowWidths)
 
     return narrowWraps.map(({ textWrap, needsTruncation = false }, index) => {
         const narrowLabel = narrowLabels[index]
         const label = needsTruncation
             ? narrowLabel
             : widenLabel({
-                  narrow: { label: narrowLabel, textWrap },
+                  narrowLabel,
+                  narrowWrap: textWrap,
                   budget: budgets[index],
                   maxLabelWidth,
                   labelOptions,
@@ -394,33 +385,35 @@ function widenLabels({
 
 /** Re-wraps a label to fewer rendered lines if that fits within its budget */
 function widenLabel({
-    narrow,
+    narrowLabel,
+    narrowWrap,
     budget,
     maxLabelWidth,
     labelOptions,
 }: {
-    narrow: { label: SeriesLabelState; textWrap: TextWrap }
+    narrowLabel: SeriesLabelState
+    narrowWrap: TextWrap
     budget: number
     maxLabelWidth: number
     labelOptions: LabelOptions
 }): SeriesLabelState {
-    if (narrow.label.spanLines.length === 1) return narrow.label
+    if (narrowLabel.spanLines.length === 1) return narrowLabel
 
     const maxWidth = Math.min(budget, maxLabelWidth)
-    if (maxWidth <= narrow.textWrap.maxWidth) return narrow.label
+    if (maxWidth <= narrowWrap.maxWidth) return narrowLabel
 
     const textWrap = new TextWrap({
-        text: narrow.textWrap.text,
+        text: narrowWrap.text,
         maxWidth,
-        fontSize: narrow.textWrap.fontSize,
-        fontWeight: narrow.textWrap.fontWeight,
-        lineHeight: narrow.textWrap.lineHeight,
+        fontSize: narrowWrap.fontSize,
+        fontWeight: narrowWrap.fontWeight,
+        lineHeight: narrowWrap.lineHeight,
     })
     const label = SeriesLabelState.fromTextWrap(textWrap, labelOptions)
 
-    const hasFewerLines = label.spanLines.length < narrow.label.spanLines.length
-    const fitsBudget = label.width <= Math.max(budget, narrow.label.width)
-    return hasFewerLines && fitsBudget ? label : narrow.label
+    const hasFewerLines = label.spanLines.length < narrowLabel.spanLines.length
+    const fitsBudget = label.width <= budget
+    return hasFewerLines && fitsBudget ? label : narrowLabel
 }
 
 /** Wraps an annotation into the space left under its label, or returns undefined if not even one line fits */
