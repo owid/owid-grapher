@@ -21,6 +21,7 @@ import { LineChartTooltip } from "./LineChartTooltip"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { SeriesName, VerticalAlign, Time } from "@ourworldindata/types"
 import {
+    NARROW_CHART_WIDTH,
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
 } from "../core/GrapherConstants"
@@ -323,7 +324,7 @@ export class LineChart
 
     @computed private get verticalLabelsState(): VerticalLabelsState {
         return new VerticalLabelsState(this.verticalLabelsSeries, {
-            yAxis: () => this.yAxis,
+            yAxis: () => this.yAxisWithStableLabelsWidth,
             yRange: () => this.verticalLabelsYRange,
             maxWidth: this.maxVerticalLabelsWidth,
             baseFontSize: this.fontSize,
@@ -333,9 +334,26 @@ export class LineChart
         })
     }
 
+    @computed private get useCompactLayout(): boolean {
+        return (
+            !!this.manager.isSemiNarrow ||
+            this.bounds.width < NARROW_CHART_WIDTH
+        )
+    }
+
     @computed private get verticalLabelsWidth(): number {
         if (!this.manager.showSeriesLabels) return 0
-        return this.verticalLabelsState.stableWidth
+        return this.useCompactLayout
+            ? this.verticalLabelsState.width
+            : this.verticalLabelsState.stableWidth
+    }
+
+    @computed private get yAxisWithStableLabelsWidth(): VerticalAxis {
+        if (!this.useCompactLayout) return this.yAxis
+        const bounds = this.makeInnerBounds({
+            paddingRight: this.verticalLabelsState.stableWidth,
+        })
+        return this.makeDualAxis(bounds).verticalAxis
     }
 
     private renderDualAxis(): React.ReactElement {
@@ -617,11 +635,17 @@ export class LineChart
     }
 
     @computed private get innerBounds(): Bounds {
+        return this.makeInnerBounds({ paddingRight: this.verticalLabelsWidth })
+    }
+
+    private makeInnerBounds({
+        paddingRight,
+    }: {
+        paddingRight: number
+    }): Bounds {
         return (
             this.boundsWithoutColorLegend
-                .padRight(
-                    this.manager.showSeriesLabels ? this.verticalLabelsWidth : 1
-                )
+                .padRight(this.manager.showSeriesLabels ? paddingRight : 1)
                 // The top padding leaves room for tick labels.
                 // No padding is needed when plotted on a log axis because the
                 // log scale notice leaves enough space for tick labels.
@@ -632,8 +656,12 @@ export class LineChart
     }
 
     @computed get dualAxis(): DualAxis {
+        return this.makeDualAxis(this.innerBounds)
+    }
+
+    private makeDualAxis(bounds: Bounds): DualAxis {
         return new DualAxis({
-            bounds: this.innerBounds,
+            bounds,
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
             comparisonLines: this.manager.comparisonLines,
