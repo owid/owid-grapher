@@ -46,6 +46,8 @@ import { ChartError } from "../../../../components/ChartError/ChartError.js"
 
 const queryClient = new QueryClient()
 
+const COUNTRY_URL_PARAM = "country"
+
 export function SankeyVariant({
     config,
     urls,
@@ -81,17 +83,17 @@ function FetchingSankeyVariant({
     const initialView =
         !isUserLocation && isAllCountry(initialCountry) ? "both" : config.flow
     const [product, setProduct] = useUrlState({
-        key: "foodTradeProduct",
+        key: "product",
         parser: parseAsString,
         defaultValue: config.product,
     })
     const [requestedCountry, _setCountry] = useUrlState({
-        key: "foodTradeCountry",
+        key: COUNTRY_URL_PARAM,
         parser: parseAsString,
         defaultValue: initialCountry,
     })
     const [_view, setView] = useUrlState({
-        key: "foodTradeFlow",
+        key: "flow",
         parser: parseAsStringEnum<Flow>(["both", "import", "export"]),
         defaultValue: initialView,
     })
@@ -152,7 +154,7 @@ function FetchingSankeyVariant({
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlStateKey: "foodTradeCountry",
+        urlStateKey: COUNTRY_URL_PARAM,
         setCountry,
     })
 
