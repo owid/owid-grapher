@@ -11,6 +11,7 @@ import {
     type TopicPageHit,
     type DataInsightHit,
     type StackedArticleHit,
+    type FeaturedVizHit,
     FilterType,
     type LatestState,
     type LatestPageChronologicalRecord,
@@ -144,7 +145,8 @@ export class SiteAnalytics extends GrapherAnalytics {
             | ProfileHit
             | TopicPageHit
             | DataInsightHit
-            | StackedArticleHit,
+            | StackedArticleHit
+            | FeaturedVizHit,
         context: {
             position: number
             source: "ribbon" | "search" // "ribbons" are the per-area overview components present on the unparameterized browse pages for writing and data.
