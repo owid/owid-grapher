@@ -559,6 +559,13 @@ export function MultiDimDataPageContent({
             queryStr={location.search}
             archiveContext={archiveContext}
             isPreviewing={isPreviewing}
+            // In an iframe, the page is embedded on another site; mdims
+            // embedded in our own articles render MultiDim directly.
+            explorerTitle={
+                isMultiDimDataExplorer(config.config)
+                    ? config.config.title.title
+                    : undefined
+            }
         />
     ) : (
         <DataPageContent
