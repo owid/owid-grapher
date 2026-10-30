@@ -265,13 +265,26 @@ const PAGE_ATTRIBUTES = [
     "modifiedDate",
 ]
 
+// Must match the pages index's searchableAttributes in
+// baker/algolia/configureAlgolia.ts (not importable here: baker depends on the db).
+export const PAGE_SEARCHABLE_ATTRIBUTES = [
+    "title",
+    "excerpt",
+    "tags",
+    "authors",
+    "content",
+] as const
+export type PageSearchableAttribute =
+    (typeof PAGE_SEARCHABLE_ATTRIBUTES)[number]
+
 export async function searchPages(
     config: AlgoliaConfig,
     query: string,
     offset: number = 0,
     length: number = 10,
     pageTypes: string[] = ["article", "about-page"],
-    baseUrl: string = "https://ourworldindata.org"
+    baseUrl: string = "https://ourworldindata.org",
+    restrictSearchableAttributes: PageSearchableAttribute[] = []
 ): Promise<SearchPagesApiResponse> {
     const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
 
@@ -291,6 +304,9 @@ export async function searchPages(
             highlightPostTag: "</mark>",
             offset,
             length,
+            ...(restrictSearchableAttributes.length > 0 && {
+                restrictSearchableAttributes,
+            }),
         }
     )
 
