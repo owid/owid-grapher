@@ -108,6 +108,8 @@ async function anonymisedUsersSql(): Promise<string> {
         lastSeen: null,
         githubUsername: u.githubUsername, // needed for staging tailscale auth
         dataInsightFolderId: null,
+        // Identifies a person outside our systems, and this dump is public.
+        // Carried in the private sidecar instead (see exportPrivateData.ts).
         slackId: null,
     }))
 

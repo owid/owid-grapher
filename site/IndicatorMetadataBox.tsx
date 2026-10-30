@@ -130,11 +130,13 @@ function IndicatorMetadataSections({
             detailsRef={detailsRef}
             preview={
                 descriptionKeyPreview ? (
-                    <SimpleMarkdownText
-                        text={descriptionKeyPreview}
-                        dataTrackNote="wysk_link"
-                        dodTrackNote="wysk/preview"
-                    />
+                    <div data-comment-field="descriptionKey">
+                        <SimpleMarkdownText
+                            text={descriptionKeyPreview}
+                            dataTrackNote="wysk_link"
+                            dodTrackNote="wysk/preview"
+                        />
+                    </div>
                 ) : undefined
             }
             onToggle={(isOpen) =>
@@ -196,27 +198,33 @@ function IndicatorMetadataSections({
             </MetadataBoxSection>
             {datapageData.descriptionFromProducer && (
                 <MetadataBoxSection title="Documentation from data sources">
-                    <ExpandableToggle
-                        label={
-                            datapageData.attributionShort ||
-                            "Principal data source"
-                        }
-                        content={
-                            <div className="indicator-metadata-box__producer-docs">
-                                <SimpleMarkdownText
-                                    text={datapageData.descriptionFromProducer}
-                                    dataTrackNote="producer_link"
-                                    dodTrackNote="producer_documentation"
-                                />
-                            </div>
-                        }
-                        onToggle={(isOpen) =>
-                            analytics.logExpandableToggle(
-                                "producer_documentation",
-                                isOpen
-                            )
-                        }
-                    />
+                    {/* On the toggle, not its content, so the bubble shows
+                    while the toggle is still closed */}
+                    <div data-comment-field="descriptionFromProducer">
+                        <ExpandableToggle
+                            label={
+                                datapageData.attributionShort ||
+                                "Principal data source"
+                            }
+                            content={
+                                <div className="indicator-metadata-box__producer-docs">
+                                    <SimpleMarkdownText
+                                        text={
+                                            datapageData.descriptionFromProducer
+                                        }
+                                        dataTrackNote="producer_link"
+                                        dodTrackNote="producer_documentation"
+                                    />
+                                </div>
+                            }
+                            onToggle={(isOpen) =>
+                                analytics.logExpandableToggle(
+                                    "producer_documentation",
+                                    isOpen
+                                )
+                            }
+                        />
+                    </div>
                 </MetadataBoxSection>
             )}
             <MetadataBoxSection
@@ -382,10 +390,12 @@ export default function IndicatorMetadataBox({
                         isFullWidth
                         isLabelScreenReaderOnly
                     >
-                        <SimpleMarkdownText
-                            text={datapageData.descriptionShort}
-                            dodTrackNote="key_data"
-                        />
+                        <div data-comment-field="descriptionShort">
+                            <SimpleMarkdownText
+                                text={datapageData.descriptionShort}
+                                dodTrackNote="key_data"
+                            />
+                        </div>
                     </MetadataBoxKeyDataRow>
                 )}
                 {sourceString && (

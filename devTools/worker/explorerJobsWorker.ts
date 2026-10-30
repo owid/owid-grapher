@@ -5,7 +5,7 @@ import {
     processOneExplorerViewsJob,
 } from "../../jobQueue/explorerJobProcessor.js"
 import { claimNextQueuedJob, markJobFailed } from "../../db/model/Jobs.js"
-import { DbPlainJob } from "@ourworldindata/types"
+import { DbPlainJob, ExplorerRefreshJobPayload } from "@ourworldindata/types"
 import { knexReadWriteTransaction } from "../../db/db.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import yargs from "yargs"
@@ -18,11 +18,14 @@ async function sleep(ms: number): Promise<void> {
 }
 
 async function processJob(): Promise<boolean> {
-    let currentJob: DbPlainJob | null = null
+    let currentJob: DbPlainJob<ExplorerRefreshJobPayload> | null = null
 
     try {
         const job = await knexReadWriteTransaction(async (trx) => {
-            return await claimNextQueuedJob(trx, "refresh_explorer_views")
+            return await claimNextQueuedJob<ExplorerRefreshJobPayload>(
+                trx,
+                "refresh_explorer_views"
+            )
         })
 
         if (!job) {

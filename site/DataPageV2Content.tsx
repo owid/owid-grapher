@@ -32,6 +32,7 @@ import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
+import { AdminPreviewLink } from "./AdminPreviewLink.js"
 
 declare global {
     interface Window {
@@ -160,6 +161,10 @@ export const DataPageV2Content = ({
                     />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
+                    <AdminPreviewLink
+                        slug={grapherConfig.slug}
+                        isPreviewing={isPreviewing}
+                    />
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
                         <div
                             className="chart-key-info col-start-2 span-cols-12"
