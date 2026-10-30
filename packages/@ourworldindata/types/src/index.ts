@@ -395,6 +395,7 @@ export {
     joinTitleFragments,
     normalizeDescriptionKey,
     type OwidVariableType,
+    type OwidVariableAnnotation,
 } from "./OwidVariable.js"
 
 export type { OwidSource } from "./OwidSource.js"
@@ -440,6 +441,8 @@ export {
     type EntityId,
     type Entity,
     type OwidColumnDef,
+    type AnnotationTimeScope,
+    type IndicatorAnnotation,
     OwidEntityNameColumnDef,
     OwidEntityIdColumnDef,
     OwidEntityCodeColumnDef,

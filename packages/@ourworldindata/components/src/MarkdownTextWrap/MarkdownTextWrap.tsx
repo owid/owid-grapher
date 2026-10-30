@@ -382,19 +382,15 @@ export function toPlaintext(markdown: string): string {
 export function canAppendTextToLastLine({
     existingTextWrap,
     textToAppend,
-    reservedWidth = 0,
 }: {
     existingTextWrap: ITextWrap
     textToAppend: string
-    /** Width to reserve for non-text elements (e.g. icons) */
-    reservedWidth?: number
 }): boolean {
     const { maxWidth, lastLineWidth, fontSize, fontWeight, fontFamily } =
         existingTextWrap
 
     const spaceWidth = Bounds.forText(" ", { fontSize }).width
-    const availableWidthInLastLine =
-        maxWidth - lastLineWidth - spaceWidth - reservedWidth
+    const availableWidthInLastLine = maxWidth - lastLineWidth - spaceWidth
 
     if (availableWidthInLastLine <= 0) return false
 
