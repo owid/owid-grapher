@@ -14,6 +14,7 @@ import {
 } from "@ourworldindata/types"
 import {
     OwidTable,
+    OwidColumn,
     CoreColumn,
     ColumnTypeMap,
     TimeColumn,
@@ -45,11 +46,7 @@ import {
     SwimlaneSortKey,
     SwimlaneVisibleTimeRange,
 } from "./SwimlaneChartConstants"
-import {
-    AnnotationsMap,
-    getAnnotationsMap,
-    getAnnotationsForSeries,
-} from "../lineCharts/LineChartHelpers"
+import { selectEntityAnnotation } from "../annotations/EntityAnnotations"
 import {
     toRawSwimlaneSegments,
     toSwimlaneSegments,
@@ -103,7 +100,7 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         return this.yColumnSlugs[0]
     }
 
-    @computed get inputYColumn(): CoreColumn {
+    @computed get inputYColumn(): OwidColumn {
         return this.inputTable.get(this.yColumnSlug)
     }
 
@@ -185,10 +182,6 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         return [...SWIMLANE_SORT_KEYS]
     }
 
-    @computed private get annotationsMap(): AnnotationsMap | undefined {
-        return getAnnotationsMap(this.inputTable, this.inputYColumn.slug)
-    }
-
     @computed private get rawSegmentsByEntityName(): Map<
         EntityName,
         RawSwimlaneSegment[]
@@ -224,10 +217,11 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
             rawSegmentsByEntityName,
             visibleTimeRange,
             colorScale,
-            annotationsMap,
             timeColumn,
         } = this
         if (!visibleTimeRange || !timeColumn) return []
+
+        const annotations = this.inputYColumn.def.annotations ?? []
 
         return Array.from(rawSegmentsByEntityName).map(
             ([entityName, rawSegments]): SwimlaneSeries => {
@@ -242,10 +236,8 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
                     seriesName: entityName,
                     entityName,
                     shortEntityName: getShortNameForEntity(entityName),
-                    annotation: getAnnotationsForSeries(
-                        annotationsMap,
-                        entityName
-                    ),
+                    annotation: selectEntityAnnotation(annotations, entityName)
+                        ?.text,
                     segments,
                 }
             }

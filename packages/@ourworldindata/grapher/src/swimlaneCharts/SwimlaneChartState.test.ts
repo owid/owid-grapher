@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
     ColorSchemeName,
     ColumnTypeNames,
+    type IndicatorAnnotation,
     SortBy,
     SortOrder,
     Time,
@@ -485,46 +486,6 @@ describe("errorInfo", () => {
     })
 })
 
-describe("annotations", () => {
-    const table = new OwidTable(
-        [
-            {
-                entityName: "France",
-                time: 2000,
-                status: "X",
-                "status-annotations": "Fifth",
-            },
-            {
-                entityName: "France",
-                time: 2001,
-                status: "X",
-                "status-annotations": "Fifth",
-            },
-            {
-                entityName: "Germany",
-                time: 2000,
-                status: "X",
-                "status-annotations": "",
-            },
-        ],
-        [
-            { slug: "time", type: ColumnTypeNames.Year },
-            { slug: "status", type: ColumnTypeNames.String },
-            { slug: "status-annotations", type: ColumnTypeNames.String },
-        ]
-    )
-
-    it("attaches an entity's annotation to its row", () => {
-        const { series } = makeChartState(table)
-        expect(series.find((s) => s.entityName === "France")?.annotation).toBe(
-            "Fifth"
-        )
-        expect(
-            series.find((s) => s.entityName === "Germany")?.annotation
-        ).toBeFalsy()
-    })
-})
-
 describe("rows", () => {
     const table = makeCategoricalTable([
         { entityName: "France", time: 2000, status: "X" },
@@ -569,5 +530,41 @@ describe("rows", () => {
             "Germany",
             "Spain",
         ])
+    })
+})
+
+describe("entity annotations", () => {
+    it("attaches an entity's note to its lane and leaves other lanes without one", () => {
+        const annotation: IndicatorAnnotation = {
+            text: "Registry changed",
+            entityNames: ["France"],
+            timeScope: "all",
+        }
+        const table = new OwidTable(
+            [
+                { entityName: "France", time: 2000, status: "A" },
+                { entityName: "Spain", time: 2000, status: "A" },
+            ],
+            [
+                { slug: "time", type: ColumnTypeNames.Year },
+                {
+                    slug: "status",
+                    type: ColumnTypeNames.String,
+                    annotations: [annotation],
+                },
+            ]
+        )
+        const chartState = makeChartState(table)
+
+        const annotationByEntity = Object.fromEntries(
+            chartState.series.map((series) => [
+                series.entityName,
+                series.annotation,
+            ])
+        )
+        expect(annotationByEntity).toEqual({
+            France: "Registry changed",
+            Spain: undefined,
+        })
     })
 })
