@@ -1,7 +1,16 @@
 import * as _ from "lodash-es"
+import { match } from "ts-pattern"
 import { GrapherState } from "@ourworldindata/grapher"
-import { OwidTableSlugs } from "@ourworldindata/types"
 import {
+    type IndicatorAnnotation,
+    OwidTableSlugs,
+    type OwidVariableAnnotation,
+    type TimeInterval,
+} from "@ourworldindata/types"
+import {
+    formatDay,
+    getTimeInterval,
+    isSubYearly,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     getAttributionFragmentsFromVariable,
@@ -26,6 +35,7 @@ type MetadataColumn = {
     shortName?: string
     lastUpdated?: string
     nextUpdate?: string
+    annotations?: OwidVariableAnnotation[]
     citationShort: string
     citationLong: string
     fullMetadata: string
@@ -77,6 +87,10 @@ export function assembleMetadata(
         } = col.def
         const lastUpdated = getLastUpdatedFromVariable(col.def)
         const nextUpdate = getNextUpdateFromVariable(col.def)
+        const annotations = toMetadataAnnotations(
+            col.def.annotations,
+            getTimeInterval(col.display)
+        )
 
         const def = col.def
 
@@ -122,6 +136,7 @@ export function assembleMetadata(
                 shortName,
                 lastUpdated,
                 nextUpdate,
+                annotations,
                 citationShort,
                 citationLong,
                 fullMetadata: `https://api.ourworldindata.org/v1/indicators/${owidVariableId}.metadata.json`,
@@ -155,4 +170,34 @@ export function assembleMetadata(
     return _.cloneDeepWith(fullMetadata, (value) =>
         typeof value === "string" ? stripDetailOnDemandLinks(value) : undefined
     )
+}
+
+export function toMetadataAnnotations(
+    annotations: IndicatorAnnotation[] | undefined,
+    timeInterval: TimeInterval
+): OwidVariableAnnotation[] | undefined {
+    if (!annotations?.length) return undefined
+
+    const formatTime = (time: number): number | string =>
+        isSubYearly(timeInterval)
+            ? formatDay(time, { format: "YYYY-MM-DD" })
+            : time
+
+    return annotations.map((annotation) => {
+        const { text, entityNames: entities } = annotation
+        return match(annotation)
+            .with({ timeScope: "all" }, () => ({ text, entities }))
+            .with({ timeScope: "point" }, ({ time }) => ({
+                text,
+                entities,
+                time: formatTime(time),
+            }))
+            .with({ timeScope: "range" }, ({ startTime, endTime }) => ({
+                text,
+                entities,
+                time: formatTime(startTime),
+                timeEnd: formatTime(endTime),
+            }))
+            .exhaustive()
+    })
 }
