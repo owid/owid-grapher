@@ -42,7 +42,7 @@ import { domainExtent } from "@ourworldindata/utils"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { makeToleranceNotice } from "../chart/ToleranceNotice"
-import { selectEntityAnnotations } from "../annotations/EntityAnnotations"
+import { selectEntityTimeAnnotations } from "../annotations/EntityAnnotations"
 
 export class SlopeChartState implements ChartState {
     manager: SlopeChartManager
@@ -256,11 +256,12 @@ export class SlopeChartState implements ChartState {
 
         const focus = this.focusArray.state(seriesName)
 
-        const { pointAnnotations, rangeAnnotations } = selectEntityAnnotations({
-            annotations: column.def.annotations ?? [],
-            entityName,
-            timeRange: [startTime, endTime],
-        })
+        const { pointAnnotations, rangeAnnotations } =
+            selectEntityTimeAnnotations({
+                annotations: column.def.annotations ?? [],
+                entityName,
+                timeRange: [startTime, endTime],
+            })
 
         return {
             column,

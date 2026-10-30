@@ -4,7 +4,7 @@ import { OwidTable } from "@ourworldindata/core-table"
 import {
     PointAnnotation,
     RangeAnnotation,
-    selectEntityAnnotations,
+    selectEntityTimeAnnotations,
     toSeriesLabelAnnotations,
 } from "./EntityAnnotations"
 
@@ -30,7 +30,7 @@ it("keeps points that name the entity, alone or among others", () => {
         },
     ]
 
-    const { pointAnnotations: selected } = selectEntityAnnotations({
+    const { pointAnnotations: selected } = selectEntityTimeAnnotations({
         annotations,
         entityName: "Chad",
         timeRange: [1990, 2010],
@@ -56,7 +56,7 @@ it("drops all-time, range and indicator-wide annotations", () => {
     ]
 
     expect(
-        selectEntityAnnotations({
+        selectEntityTimeAnnotations({
             annotations,
             entityName: "Chad",
             timeRange: [1990, 2010],
@@ -87,7 +87,7 @@ it("keeps points on the edges of the time range and drops points outside it", ()
         },
     ]
 
-    const { pointAnnotations: selected } = selectEntityAnnotations({
+    const { pointAnnotations: selected } = selectEntityTimeAnnotations({
         annotations,
         entityName: "Chad",
         timeRange: [2000, 2010],
@@ -116,7 +116,7 @@ it("returns points in ascending time order", () => {
         },
     ]
 
-    const { pointAnnotations: selected } = selectEntityAnnotations({
+    const { pointAnnotations: selected } = selectEntityTimeAnnotations({
         annotations,
         entityName: "Chad",
         timeRange: [2000, 2010],
@@ -151,7 +151,7 @@ it("compares day offsets, including negative ones, against a day-number time ran
         },
     ]
 
-    const { pointAnnotations: selected } = selectEntityAnnotations({
+    const { pointAnnotations: selected } = selectEntityTimeAnnotations({
         annotations,
         entityName: "Chad",
         timeRange: [-1500, 18000],
@@ -179,7 +179,7 @@ it("keeps ranges that name the entity, alone or among others", () => {
         rangeAnnotation("Chad and France", 2002, 2004, ["Chad", "France"]),
     ]
 
-    const { rangeAnnotations: selected } = selectEntityAnnotations({
+    const { rangeAnnotations: selected } = selectEntityTimeAnnotations({
         annotations,
         entityName: "Chad",
         timeRange: [1990, 2010],
@@ -209,7 +209,7 @@ it("drops all-time, point and indicator-wide annotations when selecting ranges",
     ]
 
     expect(
-        selectEntityAnnotations({
+        selectEntityTimeAnnotations({
             annotations,
             entityName: "Chad",
             timeRange: [1990, 2010],
@@ -229,7 +229,7 @@ it("keeps ranges that overlap the time range, edges included, and returns them u
         rangeAnnotation("after", 2011, 2020),
     ]
 
-    const { rangeAnnotations: selected } = selectEntityAnnotations({
+    const { rangeAnnotations: selected } = selectEntityTimeAnnotations({
         annotations,
         entityName: "Chad",
         timeRange: [2000, 2010],
@@ -258,7 +258,7 @@ it("returns ranges in ascending start time order", () => {
         rangeAnnotation("middle", 2005, 2006),
     ]
 
-    const { rangeAnnotations: selected } = selectEntityAnnotations({
+    const { rangeAnnotations: selected } = selectEntityTimeAnnotations({
         annotations,
         entityName: "Chad",
         timeRange: [2000, 2010],

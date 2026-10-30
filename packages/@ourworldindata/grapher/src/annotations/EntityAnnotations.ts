@@ -18,7 +18,7 @@ export type RangeAnnotation = Extract<
     { timeScope: "range"; entityNames: EntityName[] }
 >
 
-export interface EntityAnnotations {
+export interface EntityTimeAnnotations {
     pointAnnotations: PointAnnotation[]
     rangeAnnotations: RangeAnnotation[]
 }
@@ -44,15 +44,15 @@ function isRangeAnnotation(
     )
 }
 
-interface SelectEntityAnnotationsArgs {
+interface SelectEntityTimeAnnotationsArgs {
     annotations: IndicatorAnnotation[]
     entityName: EntityName
     timeRange: TimeRange
 }
 
-export function selectEntityAnnotations(
-    args: SelectEntityAnnotationsArgs
-): EntityAnnotations {
+export function selectEntityTimeAnnotations(
+    args: SelectEntityTimeAnnotationsArgs
+): EntityTimeAnnotations {
     return {
         pointAnnotations: selectEntityPointAnnotations(args),
         rangeAnnotations: selectEntityRangeAnnotations(args),
@@ -63,7 +63,7 @@ function selectEntityPointAnnotations({
     annotations,
     entityName,
     timeRange,
-}: SelectEntityAnnotationsArgs): PointAnnotation[] {
+}: SelectEntityTimeAnnotationsArgs): PointAnnotation[] {
     const [startTime, endTime] = timeRange
     return annotations
         .filter(isPointAnnotation)
@@ -80,7 +80,7 @@ function selectEntityRangeAnnotations({
     annotations,
     entityName,
     timeRange,
-}: SelectEntityAnnotationsArgs): RangeAnnotation[] {
+}: SelectEntityTimeAnnotationsArgs): RangeAnnotation[] {
     const [windowStart, windowEnd] = timeRange
     return annotations
         .filter(isRangeAnnotation)
@@ -94,7 +94,7 @@ function selectEntityRangeAnnotations({
 }
 
 export function toSeriesLabelAnnotations(
-    annotations: EntityAnnotations,
+    annotations: EntityTimeAnnotations,
     timeColumn: CoreColumn
 ): SeriesLabelAnnotation[] {
     const entries = [
