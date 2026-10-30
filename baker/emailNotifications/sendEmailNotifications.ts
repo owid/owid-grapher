@@ -13,7 +13,8 @@ import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import {
     EMAIL_NOTIFICATIONS_FREQUENCIES,
-    EMAIL_NOTIFICATIONS_FROM_ADDRESS,
+    EMAIL_BROADCAST_FROM_ADDRESS,
+    EMAIL_REPLY_TO_ADDRESS,
     EmailNotificationsFrequency,
 } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
@@ -223,7 +224,8 @@ async function sendBulkViaPostmark(
     messages: PreparedMessage[]
 ): Promise<string> {
     const response = await client.sendBulkEmail({
-        From: EMAIL_NOTIFICATIONS_FROM_ADDRESS,
+        From: EMAIL_BROADCAST_FROM_ADDRESS,
+        ReplyTo: EMAIL_REPLY_TO_ADDRESS,
         Subject: template.subject,
         HtmlBody: template.html,
         // Text alternative for clients that don't render HTML, and one of
