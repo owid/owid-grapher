@@ -1,4 +1,15 @@
 {
-    "master": "",
-    "features": []
+    "master": "3bb5de06ec",
+    "features": [
+        {
+            "number": 7480,
+            "title": "Configure with AI prototype on staging data pages",
+            "author": "Marigold"
+        },
+        {
+            "number": 7609,
+            "title": "Configure with AI: point to other pages across the site",
+            "author": "Marigold"
+        }
+    ]
 }
