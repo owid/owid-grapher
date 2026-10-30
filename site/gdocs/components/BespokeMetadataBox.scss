@@ -23,14 +23,12 @@
     margin-top: 16px;
 }
 
-.bespoke-metadata-box .bespoke-metadata-heading__title {
+.bespoke-metadata-box__title {
+    @include body-2-bold-tight;
+    margin: 0;
     color: $blue-90;
     // Clears the collapse button
     max-width: calc(100% - 104px);
-}
-
-.bespoke-metadata-box .bespoke-metadata-heading__description {
-    color: $blue-90;
 }
 
 .bespoke-metadata-box .metadata-box-key-data {

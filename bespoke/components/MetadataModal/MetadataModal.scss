@@ -96,6 +96,11 @@
         --code-snippet-text: #{$light-text};
     }
 
+    .bespoke-metadata-heading__title {
+        @include grapher_h2-semibold;
+        color: $dark-text;
+    }
+
     .bespoke-metadata-heading__description {
         @include grapher_body-3-medium;
         margin-top: 8px;
