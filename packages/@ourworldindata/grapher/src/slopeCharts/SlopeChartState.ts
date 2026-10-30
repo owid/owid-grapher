@@ -31,9 +31,6 @@ import { ColorScheme } from "../color/ColorScheme"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import {
-    AnnotationsMap,
-    getAnnotationsForSeries,
-    getAnnotationsMap,
     getColorKey,
     getDisplayName,
     getSeriesName,
@@ -42,7 +39,10 @@ import { domainExtent } from "@ourworldindata/utils"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { makeToleranceNotice } from "../chart/ToleranceNotice"
-import { selectEntityTimeAnnotations } from "../annotations/EntityAnnotations"
+import {
+    selectEntityAnnotation,
+    selectEntityTimeAnnotations,
+} from "../annotations/EntityAnnotations"
 
 export class SlopeChartState implements ChartState {
     manager: SlopeChartManager
@@ -208,10 +208,6 @@ export class SlopeChartState implements ChartState {
         })
     }
 
-    @computed get annotationsMap(): AnnotationsMap | undefined {
-        return getAnnotationsMap(this.inputTable, this.yColumnSlugs[0])
-    }
-
     private constructSingleSeries(
         entityName: EntityName,
         column: OwidColumn
@@ -249,11 +245,6 @@ export class SlopeChartState implements ChartState {
         })
         const color = this.categoricalColorAssigner.assign(colorKey)
 
-        const annotation = getAnnotationsForSeries(
-            this.annotationsMap,
-            seriesName
-        )
-
         const focus = this.focusArray.state(seriesName)
 
         const { pointAnnotations, rangeAnnotations } =
@@ -262,6 +253,13 @@ export class SlopeChartState implements ChartState {
                 entityName,
                 timeRange: [startTime, endTime],
             })
+        const entityAnnotation =
+            seriesStrategy === SeriesStrategy.entity
+                ? selectEntityAnnotation(
+                      this.yColumns[0].def.annotations ?? [],
+                      entityName
+                  )
+                : undefined
 
         return {
             column,
@@ -271,7 +269,7 @@ export class SlopeChartState implements ChartState {
             color,
             start,
             end,
-            annotation,
+            entityAnnotation,
             focus,
             pointAnnotations,
             rangeAnnotations,
