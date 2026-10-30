@@ -54,6 +54,8 @@ const LATEST_YEAR = -1
 
 const queryClient = new QueryClient()
 
+const COUNTRY_URL_PARAM = "country"
+
 export function SankeyVariant({
     config,
     urls,
@@ -91,22 +93,22 @@ function FetchingSankeyVariant({
         : config.country
 
     const [requestedCountry, setCountry] = useUrlState({
-        key: "migrationCountry",
+        key: COUNTRY_URL_PARAM,
         parser: parseAsString,
         defaultValue: initialCountry,
     })
     const [requestedYear, setYear] = useUrlState({
-        key: "migrationYear",
+        key: "year",
         parser: parseAsInteger,
         defaultValue: config.year ?? LATEST_YEAR,
     })
     const [sex, setSex] = useUrlState({
-        key: "migrationSex",
+        key: "sex",
         parser: parseAsStringEnum<Sex>(["both", "female", "male"]),
         defaultValue: config.sex,
     })
     const [_view, setView] = useUrlState({
-        key: "migrationFlow",
+        key: "flow",
         parser: parseAsStringEnum<MigrationView>([
             "both",
             "immigrants",
@@ -134,7 +136,7 @@ function FetchingSankeyVariant({
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlStateKey: "migrationCountry",
+        urlStateKey: COUNTRY_URL_PARAM,
         setCountry,
     })
 
