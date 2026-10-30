@@ -266,18 +266,15 @@ describe("annotations", () => {
     const makeAnnotatedSlopeChart = ({
         annotations,
         entityNames = ["usa"],
-        legacyAnnotation = "",
         ...managerOptions
     }: {
         annotations: IndicatorAnnotation[]
         entityNames?: string[]
-        legacyAnnotation?: string
     } & Partial<SlopeChartManager>): {
         chartState: SlopeChartState
         chart: SlopeChart
     } => {
         const years = [2000, 2001, 2002, 2003, 2004]
-        const rowCount = entityNames.length * years.length
         const table = new OwidTable(
             {
                 entityName: entityNames.flatMap((name) =>
@@ -285,12 +282,8 @@ describe("annotations", () => {
                 ),
                 year: entityNames.flatMap(() => years),
                 gdp: entityNames.flatMap(() => [100, 200, 300, 400, 500]),
-                "gdp-annotations": _.times(rowCount, () => legacyAnnotation),
             },
-            [
-                { slug: "gdp", type: ColumnTypeNames.Numeric, annotations },
-                { slug: "gdp-annotations", type: ColumnTypeNames.String },
-            ]
+            [{ slug: "gdp", type: ColumnTypeNames.Numeric, annotations }]
         )
         return makeSlopeChart(table, {
             yColumnSlugs: ["gdp"],
@@ -353,6 +346,11 @@ describe("annotations", () => {
             pointAnnotation("point note", 2003),
             rangeAnnotation("range note", 2001, 2002),
         ]
+        const entityNote: IndicatorAnnotation = {
+            text: "entity note",
+            entityNames: ["usa"],
+            timeScope: "all",
+        }
 
         it("gives the right label the annotation list in time order", () => {
             const { chart } = makeAnnotatedSlopeChart({ annotations })
@@ -369,21 +367,34 @@ describe("annotations", () => {
 
         it("keeps the list but drops the inline text in compact layout", () => {
             const wide = makeAnnotatedSlopeChart({
-                annotations,
-                legacyAnnotation: "legacy note",
+                annotations: [...annotations, entityNote],
             }).chart
             const compact = makeAnnotatedSlopeChart({
-                annotations,
-                legacyAnnotation: "legacy note",
+                annotations: [...annotations, entityNote],
                 isSemiNarrow: true,
             }).chart
             expect(wide.rightLabelsSeries[0].inlineAnnotation).toBe(
-                "legacy note"
+                "entity note"
             )
             expect(
                 compact.rightLabelsSeries[0].inlineAnnotation
             ).toBeUndefined()
             expect(compact.rightLabelsSeries[0].annotations).toHaveLength(2)
+        })
+
+        it("attaches the entity note in entity strategy only", () => {
+            const { chartState: entityState } = makeAnnotatedSlopeChart({
+                annotations: [entityNote],
+                seriesStrategy: SeriesStrategy.entity,
+            })
+            const { chartState: columnState } = makeAnnotatedSlopeChart({
+                annotations: [entityNote],
+                seriesStrategy: SeriesStrategy.column,
+            })
+            expect(entityState.series[0].entityAnnotation?.text).toBe(
+                "entity note"
+            )
+            expect(columnState.series[0].entityAnnotation).toBeUndefined()
         })
     })
 })

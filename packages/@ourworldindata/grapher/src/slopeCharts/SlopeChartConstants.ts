@@ -6,6 +6,7 @@ import { ChartManager } from "../chart/ChartManager"
 import { InteractionState } from "../interaction/InteractionState"
 import { Emphasis } from "../interaction/Emphasis"
 import {
+    EntityAnnotation,
     PointAnnotation,
     RangeAnnotation,
 } from "../annotations/EntityAnnotations"
@@ -23,7 +24,7 @@ export interface SlopeChartSeries extends ChartSeries {
     displayName: string
     start: OwidVariableRow<number>
     end: OwidVariableRow<number>
-    annotation?: string
+    entityAnnotation?: EntityAnnotation
     focus: InteractionState
     pointAnnotations: PointAnnotation[]
     rangeAnnotations: RangeAnnotation[]

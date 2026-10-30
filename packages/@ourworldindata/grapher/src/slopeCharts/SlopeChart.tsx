@@ -600,13 +600,15 @@ export class SlopeChart
             showAnnotations?: boolean
         }
     ): LabelSeries {
-        const { seriesName, displayName, color, annotation } = series
+        const { seriesName, displayName, color, entityAnnotation } = series
         const value = getValue(series)
         const formattedValue = this.formatValue(value)
         return {
             color,
             seriesName,
-            inlineAnnotation: showInlineAnnotation ? annotation : undefined,
+            inlineAnnotation: showInlineAnnotation
+                ? entityAnnotation?.text
+                : undefined,
             annotations: showAnnotations
                 ? toSeriesLabelAnnotations(series, this.formatColumn)
                 : undefined,
@@ -821,7 +823,7 @@ export class SlopeChart
         const formatTime = (time: Time) => formatColumn.formatTime(time)
 
         const title = series.displayName
-        const titleAnnotation = series.annotation
+        const titleAnnotation = series.entityAnnotation?.text
 
         const actualStartTime = series.start.originalTime
         const actualEndTime = series.end.originalTime
