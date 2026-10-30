@@ -17,6 +17,7 @@ import {
     ScaleType,
     SeriesStrategy,
 } from "@ourworldindata/utils"
+import { IndicatorAnnotation } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { SlopeChartState } from "./SlopeChartState"
 
@@ -235,5 +236,44 @@ describe("colors", () => {
         expect(chart.series).toHaveLength(2)
         expect(chart.series[0].color).not.toEqual("green")
         expect(chart.series[1].color).not.toEqual("orange")
+    })
+})
+
+describe("entity annotations", () => {
+    const entityNote: IndicatorAnnotation = {
+        text: "entity note",
+        entityNames: ["usa"],
+        timeScope: "all",
+    }
+
+    const makeAnnotatedSlopeChart = (
+        seriesStrategy: SeriesStrategy
+    ): SlopeChartState => {
+        const table = new OwidTable(
+            {
+                entityName: ["usa", "usa"],
+                year: [2000, 2004],
+                gdp: [100, 500],
+            },
+            [
+                {
+                    slug: "gdp",
+                    type: ColumnTypeNames.Numeric,
+                    annotations: [entityNote],
+                },
+            ]
+        )
+        return makeSlopeChart(table, {
+            yColumnSlugs: ["gdp"],
+            selection: ["usa"],
+            seriesStrategy,
+        }).chartState
+    }
+
+    it("attaches the entity note in entity strategy only", () => {
+        const entityState = makeAnnotatedSlopeChart(SeriesStrategy.entity)
+        const columnState = makeAnnotatedSlopeChart(SeriesStrategy.column)
+        expect(entityState.series[0].entityAnnotation?.text).toBe("entity note")
+        expect(columnState.series[0].entityAnnotation).toBeUndefined()
     })
 })
