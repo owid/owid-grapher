@@ -832,13 +832,28 @@ const annotationsToMap = (annotations: string): Map<string, string> => {
 const parseIndicatorAnnotations = (
     variable: OwidVariableWithSourceAndDimension
 ): IndicatorAnnotation[] | undefined => {
-    if (!variable.annotations?.length) return undefined
+    const legacyAnnotations = parseLegacyEntityAnnotations(
+        variable.display?.entityAnnotationsMap
+    )
+    if (!variable.annotations?.length && !legacyAnnotations.length)
+        return undefined
 
-    return variable.annotations.flatMap((annotation) => {
+    const annotations = (variable.annotations ?? []).flatMap((annotation) => {
         const parsed = parseIndicatorAnnotation(annotation, variable)
         return parsed ? [parsed] : []
     })
+    return [...annotations, ...legacyAnnotations]
 }
+
+const parseLegacyEntityAnnotations = (
+    entityAnnotationsMap: string | undefined
+): IndicatorAnnotation[] =>
+    [...annotationsToMap(entityAnnotationsMap ?? "")].flatMap(
+        ([entityName, text]) =>
+            entityName && text
+                ? [{ text, entityNames: [entityName], timeScope: "all" }]
+                : []
+    )
 
 const parseIndicatorAnnotation = (
     annotation: OwidVariableAnnotation,
