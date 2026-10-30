@@ -75,6 +75,36 @@ sup {
     @include superscript;
 }
 
+// SpanElement adds these to superscripts/subscripts that contain a character
+// Lato has no "sups"/"subs" glyph for (e.g. the "." in "1.585"). The whole run
+// is then drawn with regular glyphs, scaled and shifted to match Lato's own
+// superscript/subscript glyphs: those are 50.9% size, with their baseline
+// 0.45em above / 0.113em below the regular one (`top` is relative to the
+// reduced font size, hence 0.45 / 0.509 ≈ 0.884), their stems as thick as
+// Bold's at that size, and slightly wider spacing.
+.span-superscript-fallback,
+.span-subscript-fallback {
+    position: relative;
+    font-size: 0.509em;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    // also stops Firefox from synthesizing the run itself
+    font-variant-position: normal;
+
+    strong &,
+    strong {
+        font-weight: 900;
+    }
+}
+
+.span-superscript-fallback {
+    top: -0.884em;
+}
+
+.span-subscript-fallback {
+    top: 0.222em;
+}
+
 /* ----------------------------------------------------------- */
 
 h6 {

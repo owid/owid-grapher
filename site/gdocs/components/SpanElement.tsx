@@ -11,6 +11,7 @@ import cx from "clsx"
 import { Footnote } from "../../Footnote.js"
 import { useCalloutValue } from "../utils.js"
 import { useHasHydrated } from "../../hooks.js"
+import { getScriptFallbackClassName } from "./scriptGlyphCoverage.js"
 
 function SpanCalloutElement({
     span,
@@ -138,7 +139,12 @@ export default function SpanElement({
             </u>
         ))
         .with({ spanType: "span-subscript" }, (span) => (
-            <sub>
+            <sub
+                className={getScriptFallbackClassName(
+                    span.children,
+                    "subscript"
+                )}
+            >
                 <SpanElements
                     spans={span.children}
                     shouldRenderLinks={shouldRenderLinks}
@@ -146,7 +152,12 @@ export default function SpanElement({
             </sub>
         ))
         .with({ spanType: "span-superscript" }, (span) => (
-            <sup>
+            <sup
+                className={getScriptFallbackClassName(
+                    span.children,
+                    "superscript"
+                )}
+            >
                 <SpanElements
                     spans={span.children}
                     shouldRenderLinks={shouldRenderLinks}
