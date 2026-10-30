@@ -325,6 +325,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             dataApiUrl:
                 this.context.admin.settings.DATA_API_FOR_ADMIN_UI ||
                 DATA_API_URL,
+            dataApiHeaders: {},
             noCache: true,
         })
         if (inputTable) this.grapherState.inputTable = inputTable

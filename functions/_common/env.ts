@@ -21,6 +21,8 @@ export interface Env {
     DATA_API_URL_COMPLETE?: string
     DATA_API_URL_PARTIAL_PREFIX?: string
     DATA_API_URL_PARTIAL_POSTFIX?: string
+    /** Lets us fetch non-redistributable indicators' data, see getDataApiHeaders */
+    DATA_API_INTERNAL_KEY?: string
     SENTRY_DSN: string
     SLACK_BOT_OAUTH_TOKEN?: string
     SLACK_ERROR_CHANNEL_ID?: string

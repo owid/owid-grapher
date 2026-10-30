@@ -120,7 +120,11 @@ class MultiEmbedder {
         const { fullUrl, queryStr } = Url.fromURL(explorerUrl)
 
         const html = await fetchText(fullUrl)
-        const props: ExplorerProps = await buildExplorerProps(html, queryStr)
+        const props: ExplorerProps = await buildExplorerProps(
+            html,
+            queryStr,
+            {}
+        )
 
         const root = createRoot(figure)
         root.render(<Explorer {...props} />)

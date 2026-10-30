@@ -206,6 +206,11 @@ export const GRAPHER_CONFIG_R2_BUCKET_PATH: string | undefined =
     serverSettings.GRAPHER_CONFIG_R2_BUCKET_PATH
 
 export const DATA_API_URL: string = clientSettings.DATA_API_URL
+// Lets our servers fetch non-redistributable indicators' data files from the
+// data API (see getDataApiInternalHeaders). Optional: without it, those
+// indicators' charts fail to render server-side once the API enforces the check.
+export const DATA_API_INTERNAL_KEY: string | undefined =
+    serverSettings.DATA_API_INTERNAL_KEY
 export const CATALOG_URL: string = clientSettings.CATALOG_URL
 
 export const FEATURE_FLAGS = clientSettings.FEATURE_FLAGS
