@@ -1,5 +1,5 @@
 import {
-    BESPOKE_METADATA_FALLBACK_TITLE,
+    BESPOKE_METADATA_TITLE,
     BespokeMetadataHeading,
     BespokeMetadataKeyData,
     BespokeMetadataSections,
@@ -36,13 +36,13 @@ export function MetadataModal({
                 <AriaModal className="metadata-modal__panel">
                     <Dialog
                         className="metadata-modal__dialog"
-                        aria-label={BESPOKE_METADATA_FALLBACK_TITLE}
+                        aria-label={BESPOKE_METADATA_TITLE}
                     >
                         {/* Restore the default portal container for nested
                             overlays such as dropdowns. */}
                         <UNSAFE_PortalProvider getContainer={null}>
                             <OverlayHeader
-                                title={BESPOKE_METADATA_FALLBACK_TITLE}
+                                title={BESPOKE_METADATA_TITLE}
                                 onDismiss={onDismiss}
                             />
                             <div className="metadata-modal__body">
