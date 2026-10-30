@@ -15,6 +15,11 @@ export type RangeAnnotation = Extract<
     { timeScope: "range"; entityNames: EntityName[] }
 >
 
+export type EntityAnnotation = Extract<
+    IndicatorAnnotation,
+    { timeScope: "all"; entityNames: EntityName[] }
+>
+
 export type AnnotationMarker = Extract<
     AnnotationTimeScope,
     { timeScope: "point" | "range" }
@@ -33,6 +38,14 @@ function isRangeAnnotation(
 ): annotation is RangeAnnotation {
     return (
         annotation.timeScope === "range" && annotation.entityNames !== undefined
+    )
+}
+
+function isEntityAnnotation(
+    annotation: IndicatorAnnotation
+): annotation is EntityAnnotation {
+    return (
+        annotation.timeScope === "all" && annotation.entityNames !== undefined
     )
 }
 
@@ -68,4 +81,13 @@ export function selectEntityRangeAnnotations(
                 annotation.endTime >= windowStart
         )
         .sort((a, b) => a.startTime - b.startTime)
+}
+
+export function selectEntityAnnotation(
+    annotations: IndicatorAnnotation[],
+    entityName: EntityName
+): EntityAnnotation | undefined {
+    return annotations
+        .filter(isEntityAnnotation)
+        .find((annotation) => annotation.entityNames.includes(entityName))
 }

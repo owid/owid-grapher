@@ -1,6 +1,7 @@
-import { expect, it } from "vitest"
+import { describe, expect, it } from "vitest"
 import { EntityName, IndicatorAnnotation } from "@ourworldindata/types"
 import {
+    selectEntityAnnotation,
     selectEntityPointAnnotations,
     selectEntityRangeAnnotations,
 } from "./EntityAnnotations"
@@ -258,4 +259,45 @@ it("returns ranges in ascending start time order", () => {
         "middle",
         "late",
     ])
+})
+
+describe(selectEntityAnnotation, () => {
+    it("returns the note for a listed entity and undefined for an unlisted one", () => {
+        const annotations: IndicatorAnnotation[] = [
+            { text: "Chad note", entityNames: ["Chad"], timeScope: "all" },
+        ]
+
+        expect(selectEntityAnnotation(annotations, "Chad")?.text).toBe(
+            "Chad note"
+        )
+        expect(selectEntityAnnotation(annotations, "France")).toBeUndefined()
+    })
+
+    it("ignores point, range and indicator-wide notes", () => {
+        const annotations: IndicatorAnnotation[] = [
+            {
+                text: "point",
+                entityNames: ["Chad"],
+                timeScope: "point",
+                time: 2000,
+            },
+            rangeAnnotation("range", 2000, 2005),
+            { text: "indicator-wide", timeScope: "all" },
+        ]
+
+        expect(selectEntityAnnotation(annotations, "Chad")).toBeUndefined()
+    })
+
+    it("takes the first note when an entity has several", () => {
+        const annotations: IndicatorAnnotation[] = [
+            { text: "first", entityNames: ["Chad"], timeScope: "all" },
+            {
+                text: "second",
+                entityNames: ["Chad", "France"],
+                timeScope: "all",
+            },
+        ]
+
+        expect(selectEntityAnnotation(annotations, "Chad")?.text).toBe("first")
+    })
 })
