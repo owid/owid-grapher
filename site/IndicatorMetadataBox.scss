@@ -105,6 +105,15 @@
     @include h3-bold;
     margin: 0;
     color: $blue-90;
+
+    // On phones the variant stays beside the title when it fits, and
+    // otherwise moves under it whole, at its own tighter line height
+    @include sm-only {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        column-gap: 8px;
+    }
 }
 
 .indicator-metadata-box__title-variant {
@@ -113,7 +122,6 @@
     color: $blue-50;
 
     @include sm-only {
-        display: block;
         margin-left: 0;
         line-height: 1.2;
     }
@@ -285,7 +293,9 @@
 .indicator-metadata-box .indicator-sources div.NonExpandable {
     padding: 16px;
 
+    // The same blank line under the title as in an open accordion
     .NonExpandable__title {
+        margin-bottom: 21px;
         text-wrap: balance;
     }
 }
