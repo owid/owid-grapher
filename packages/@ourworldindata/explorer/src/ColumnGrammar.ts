@@ -125,12 +125,6 @@ export const ColumnGrammar: Grammar<ColumnCellDef> = {
         keyword: "notes",
         description: "Any internal notes.",
     },
-    annotationsColumnSlug: {
-        ...StringCellDef,
-        keyword: "annotationsColumnSlug",
-        description:
-            "Column that contains the annotations for this column, if any.",
-    },
     sourceName: {
         ...StringCellDef,
         keyword: "sourceName",
