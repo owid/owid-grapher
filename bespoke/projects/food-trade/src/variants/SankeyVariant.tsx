@@ -33,7 +33,6 @@ import {
     BILATERAL_LOW_VOLUME_THRESHOLD,
 } from "../core/helpers.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
@@ -55,20 +54,18 @@ export function SankeyVariant({
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
     return (
-        <EmbedConfigProvider config={config}>
-            <NuqsAdapter>
-                <QueryClientProvider client={queryClient}>
-                    <div
-                        ref={ref}
-                        className={cx("food-trade-chart", {
-                            "food-trade-chart--narrow": isNarrow,
-                        })}
-                    >
-                        <FetchingSankeyVariant config={config} urls={urls} />
-                    </div>
-                </QueryClientProvider>
-            </NuqsAdapter>
-        </EmbedConfigProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <div
+                    ref={ref}
+                    className={cx("food-trade-chart", {
+                        "food-trade-chart--narrow": isNarrow,
+                    })}
+                >
+                    <FetchingSankeyVariant config={config} urls={urls} />
+                </div>
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 

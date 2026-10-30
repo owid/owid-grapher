@@ -11,7 +11,6 @@ import {
 } from "@ourworldindata/types"
 import { formatDate } from "@ourworldindata/utils"
 import { getCanonicalUrl } from "@ourworldindata/components"
-import { serializeEmbedConfig } from "../../../bespoke/shared/embedConfig.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
@@ -43,7 +42,7 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
         [content.body]
     )
     const heroEmbedOptions = useMemo(
-        () => ({ hideMetadataModal: !!bespokeMetadata }),
+        () => ({ urlSync: true, hideMetadataModal: !!bespokeMetadata }),
         [bespokeMetadata]
     )
 
@@ -185,17 +184,9 @@ function splitFeaturedVizBody(
     )
     if (heroIndex === -1) return { before: body, hero: undefined, after: [] }
 
-    const hero = body[heroIndex] as EnrichedBlockBespokeComponent
-
     return {
         before: body.slice(0, heroIndex),
-        hero: {
-            ...hero,
-            config: {
-                ...hero.config,
-                ...serializeEmbedConfig({ urlSync: true }),
-            },
-        },
+        hero: body[heroIndex] as EnrichedBlockBespokeComponent,
         after: body.slice(heroIndex + 1),
     }
 }

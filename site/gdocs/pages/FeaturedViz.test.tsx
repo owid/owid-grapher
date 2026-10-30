@@ -130,8 +130,11 @@ describe("FeaturedViz bespoke embeds", () => {
         await vi.waitFor(() => expect(getMountCalls()).toHaveLength(2))
 
         const [hero, later] = getMountCalls()
-        expect(hero.config).toStrictEqual({ product: "Beef", urlSync: "true" })
-        expect(hero.embedOptions).toStrictEqual({ hideMetadataModal: true })
+        expect(hero.config).toStrictEqual({ product: "Beef" })
+        expect(hero.embedOptions).toStrictEqual({
+            urlSync: true,
+            hideMetadataModal: true,
+        })
         expect(later.config).toStrictEqual({ product: "Soy" })
         expect(later.embedOptions).toBeUndefined()
     })
@@ -141,7 +144,10 @@ describe("FeaturedViz bespoke embeds", () => {
         await vi.waitFor(() => expect(getMountCalls()).toHaveLength(2))
 
         const [hero] = getMountCalls()
-        expect(hero.config).toStrictEqual({ product: "Beef", urlSync: "true" })
-        expect(hero.embedOptions).toStrictEqual({ hideMetadataModal: false })
+        expect(hero.config).toStrictEqual({ product: "Beef" })
+        expect(hero.embedOptions).toStrictEqual({
+            urlSync: true,
+            hideMetadataModal: false,
+        })
     })
 })

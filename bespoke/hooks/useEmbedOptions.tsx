@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react"
 
-import type { EmbedOptions } from "../shared/embedConfig.js"
+import type { EmbedOptions } from "../shared/bespokeComponentTypes.js"
 
 const EmbedOptionsContext = createContext<EmbedOptions>({})
 

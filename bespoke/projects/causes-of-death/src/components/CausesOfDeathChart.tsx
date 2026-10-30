@@ -25,7 +25,6 @@ import { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart.js"
 import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
 
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 
 // Sentinel year meaning "the latest available year"; the concrete default
@@ -38,16 +37,11 @@ export function CausesOfDeathChartWithProviders(
     props: BespokeVariantProps<CausesOfDeathConfig>
 ): React.ReactElement {
     return (
-        <EmbedConfigProvider config={props.config}>
-            <NuqsAdapter>
-                <QueryClientProvider client={queryClient}>
-                    <CausesOfDeathChart
-                        config={props.config}
-                        urls={props.urls}
-                    />
-                </QueryClientProvider>
-            </NuqsAdapter>
-        </EmbedConfigProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <CausesOfDeathChart config={props.config} urls={props.urls} />
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 

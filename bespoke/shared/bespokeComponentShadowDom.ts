@@ -1,8 +1,8 @@
 import type {
     BespokeAuthoredConfig,
     BespokeComponentModule,
+    EmbedOptions,
 } from "./bespokeComponentTypes.ts"
-import type { EmbedOptions } from "./embedConfig.ts"
 
 /**
  * Mount a bespoke component into a shadow DOM container.

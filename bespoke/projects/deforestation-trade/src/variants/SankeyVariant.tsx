@@ -15,7 +15,6 @@ import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
@@ -62,24 +61,22 @@ export function SankeyVariant({
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
     return (
-        <EmbedConfigProvider config={config}>
-            <NuqsAdapter>
-                <QueryClientProvider client={queryClient}>
-                    <div
-                        ref={ref}
-                        className={cx("deforestation-chart", {
-                            "deforestation-chart--narrow": isNarrow,
-                        })}
-                    >
-                        <FetchingSankeyVariant
-                            config={config}
-                            urls={urls}
-                            isNarrow={isNarrow}
-                        />
-                    </div>
-                </QueryClientProvider>
-            </NuqsAdapter>
-        </EmbedConfigProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <div
+                    ref={ref}
+                    className={cx("deforestation-chart", {
+                        "deforestation-chart--narrow": isNarrow,
+                    })}
+                >
+                    <FetchingSankeyVariant
+                        config={config}
+                        urls={urls}
+                        isNarrow={isNarrow}
+                    />
+                </div>
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 

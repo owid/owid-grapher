@@ -10,9 +10,11 @@ import { useIntersectionObserver } from "usehooks-ts"
 import Image from "./Image.js"
 import { useImage } from "../utils.js"
 import { BESPOKE_COMPONENT_REGISTRY } from "../../../bespoke/shared/bespokeComponentRegistry.js"
-import { isBespokeConfigError } from "../../../bespoke/shared/bespokeComponentTypes.js"
+import {
+    isBespokeConfigError,
+    type EmbedOptions,
+} from "../../../bespoke/shared/bespokeComponentTypes.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
-import type { EmbedOptions } from "../../../bespoke/shared/embedConfig.js"
 import { resolveBespokeComponentUrls } from "../../../bespoke/shared/bespokeComponentUrls.js"
 import {
     BESPOKE_BASE_URL,

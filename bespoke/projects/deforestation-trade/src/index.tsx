@@ -33,7 +33,7 @@ export const VARIANTS = [
         description:
             "Sankey of where one country's deforestation-linked commodities were consumed, or where the commodities it consumed were produced",
         component: SankeyVariant,
-        demoConfig: { urlSync: "true" },
+        demoEmbedOptions: { urlSync: true },
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
 

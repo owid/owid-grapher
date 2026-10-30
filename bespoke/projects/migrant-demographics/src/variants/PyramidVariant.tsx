@@ -17,7 +17,6 @@ import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleto
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import {
@@ -56,13 +55,11 @@ export function PyramidVariant({
     urls,
 }: BespokeVariantProps<MigrantDemographicsConfig>): React.ReactElement {
     return (
-        <EmbedConfigProvider config={config}>
-            <NuqsAdapter>
-                <QueryClientProvider client={queryClient}>
-                    <FetchingPyramidVariant config={config} urls={urls} />
-                </QueryClientProvider>
-            </NuqsAdapter>
-        </EmbedConfigProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <FetchingPyramidVariant config={config} urls={urls} />
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 
