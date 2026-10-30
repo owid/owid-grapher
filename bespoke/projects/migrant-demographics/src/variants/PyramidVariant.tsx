@@ -50,6 +50,8 @@ import { DEFAULT_COUNTRY, NARROW_BREAKPOINT } from "../core/constants.js"
 import { MigrantPyramid } from "../components/MigrantPyramid.js"
 import { PyramidControls } from "../components/PyramidControls.js"
 
+const COUNTRY_URL_PARAM = "country"
+
 export function PyramidVariant({
     config,
     urls,
@@ -75,22 +77,22 @@ function FetchingPyramidVariant({
         : config.country
 
     const [requestedCountry, setCountry] = useUrlState({
-        key: "migrantPyramidCountry",
+        key: COUNTRY_URL_PARAM,
         parser: parseAsString,
         defaultValue: initialCountry,
     })
     const [year, setYear] = useUrlState({
-        key: "migrantPyramidYear",
+        key: "year",
         parser: parseAsInteger,
         defaultValue: config.year ?? 0, // 0 = latest available year
     })
     const [show, setShow] = useUrlState({
-        key: "migrantPyramidShow",
+        key: "show",
         parser: parseAsStringEnum<ShowMode>(["number", "share"]),
         defaultValue: config.show,
     })
     const [compare, setCompare] = useUrlState({
-        key: "migrantPyramidCompare",
+        key: "compare",
         parser: parseAsBoolean,
         defaultValue: config.compare,
     })
@@ -120,7 +122,7 @@ function FetchingPyramidVariant({
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlStateKey: "migrantPyramidCountry",
+        urlStateKey: COUNTRY_URL_PARAM,
         setCountry,
     })
 
