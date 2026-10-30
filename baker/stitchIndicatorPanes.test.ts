@@ -111,6 +111,11 @@ describe(computeIndicatorPaneStitch, () => {
             pane({ title: { title: "Deaths" }, dateRange: "2024-2100" }),
         ])
         expect(r!.dateRange).toBe("1950-2100")
+        // each entry keeps its own range for the per-indicator details
+        expect(r!.list.map((e) => e.dateRange)).toEqual([
+            "1950-2023",
+            "2024-2100",
+        ])
         expect(
             computeIndicatorPaneStitch([
                 pane(),

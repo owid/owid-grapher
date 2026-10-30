@@ -54,6 +54,7 @@ import {
     IndicatorAboutLabel,
 } from "./IndicatorSwitcher.js"
 import { useSwitcherVariant } from "./useSwitcherVariant.js"
+import { useStitchedListPlacement } from "./useStitchedListPlacement.js"
 
 const analytics = new SiteAnalytics()
 
@@ -134,11 +135,25 @@ function groupFaqsByQuestion(
 
 function IndicatorDataDetails({
     datapageData,
+    stitchedList,
 }: {
     datapageData: DataPageDataV2
+    /** A stitched page's indicator list, when it renders here. */
+    stitchedList?: StitchedIndicatorListEntry[]
 }): React.ReactElement | null {
     const { unit, dateRange, lastUpdated, nextUpdate } = datapageData
-    if (!unit && !dateRange && !lastUpdated && !nextUpdate) return null
+    // When the entries carry their own date ranges, the shared row would
+    // only restate their union
+    const showDateRange =
+        !!dateRange && !stitchedList?.some((entry) => entry.dateRange)
+    if (
+        !unit &&
+        !showDateRange &&
+        !lastUpdated &&
+        !nextUpdate &&
+        !stitchedList?.length
+    )
+        return null
     return (
         <MetadataBoxSection
             title="Data details"
@@ -150,7 +165,7 @@ function IndicatorDataDetails({
                         {unit}
                     </MetadataBoxKeyDataRow>
                 )}
-                {dateRange && (
+                {showDateRange && (
                     <MetadataBoxKeyDataRow label="Date range">
                         {makeDateRange({ dateRange })}
                     </MetadataBoxKeyDataRow>
@@ -166,7 +181,102 @@ function IndicatorDataDetails({
                     </MetadataBoxKeyDataRow>
                 )}
             </MetadataBoxKeyData>
+            {!!stitchedList?.length && (
+                <IndicatorDetailsList
+                    entries={stitchedList}
+                    sharedVariant={datapageData.titleVariant?.trim()}
+                />
+            )}
         </MetadataBoxSection>
+    )
+}
+
+// A stitched page's indicators inside Data details: one entry per indicator
+// with what differs across them, in the key data's type. Long lists show
+// their first ten and a button for the rest; the whole block is already
+// behind the box's Show more.
+function IndicatorDetailsList({
+    entries,
+    sharedVariant,
+}: {
+    entries: StitchedIndicatorListEntry[]
+    /** A title variant every indicator shares, said once in the heading. */
+    sharedVariant?: string
+}) {
+    const SHOW_ALL_UP_TO = 12
+    const FOLD_AFTER = 10
+    const [showAll, setShowAll] = useState(false)
+    const expanded = showAll || entries.length <= SHOW_ALL_UP_TO
+    const blockClass = "indicator-metadata-box__details-list"
+    return (
+        <div className={blockClass}>
+            <h3 className={`${blockClass}-heading`}>
+                {entries.length} indicators
+                {sharedVariant && (
+                    <span className={`${blockClass}-variant`}>
+                        {" "}
+                        ({sharedVariant})
+                    </span>
+                )}
+            </h3>
+            <ul>
+                {entries.map((entry, i) => (
+                    <li key={i} hidden={!expanded && i >= FOLD_AFTER}>
+                        <span className={`${blockClass}-title`}>
+                            {entry.title}
+                        </span>
+                        {entry.short && (
+                            <span className={`${blockClass}-description`}>
+                                <SimpleMarkdownText
+                                    text={entry.short}
+                                    useParagraphs={false}
+                                />
+                            </span>
+                        )}
+                        {(entry.unit || entry.dateRange) && (
+                            <span className={`${blockClass}-facts`}>
+                                {entry.unit && (
+                                    <span>
+                                        <span className={`${blockClass}-key`}>
+                                            Unit
+                                        </span>{" "}
+                                        {entry.unit}
+                                    </span>
+                                )}
+                                {entry.dateRange && (
+                                    <span>
+                                        <span className={`${blockClass}-key`}>
+                                            Date range
+                                        </span>{" "}
+                                        {makeDateRange({
+                                            dateRange: entry.dateRange,
+                                        })}
+                                    </span>
+                                )}
+                            </span>
+                        )}
+                        {entry.note && (
+                            <span className={`${blockClass}-note`}>
+                                <SimpleMarkdownText
+                                    text={entry.note}
+                                    useParagraphs={false}
+                                />
+                            </span>
+                        )}
+                    </li>
+                ))}
+            </ul>
+            {!expanded && (
+                <button
+                    type="button"
+                    className="indicator-metadata-box__stitched-list-more-button"
+                    onClick={() => setShowAll(true)}
+                    data-track-note="metadata_box_indicator_list_toggle"
+                >
+                    +{entries.length - FOLD_AFTER} more indicators
+                </button>
+            )}
+        </div>
     )
 }
 
@@ -261,8 +371,16 @@ function IndicatorMetadataSections({
     const [expanderOpen, setExpanderOpen] = useState(false)
     const [listShowFolded, setListShowFolded] = useState(false)
 
-    const showStitchedList =
+    const listPlacement = useStitchedListPlacement()
+    const hasStitchedList =
         !!stitched && !stitched.hideList && stitched.list.length > 0
+    // By default the list sits in Data details; ?stitchedList=wysk puts it
+    // back in the preview, above the WYSK.
+    const showStitchedList = hasStitchedList && listPlacement === "wysk"
+    const detailsStitchedList =
+        hasStitchedList && listPlacement === "details"
+            ? stitched.list
+            : undefined
     // The size/colour line closes the WYSK: in the remainder when there is
     // one, otherwise in the preview.
     const auxInPreview = !!auxiliaryIndicators && !descriptionKeyRest
@@ -340,7 +458,10 @@ function IndicatorMetadataSections({
                     )}
                 </div>
             )}
-            <IndicatorDataDetails datapageData={datapageData} />
+            <IndicatorDataDetails
+                datapageData={datapageData}
+                stitchedList={detailsStitchedList}
+            />
             <MetadataBoxSection
                 title="Frequently asked questions"
                 id={`faqs${idSuffix}`}

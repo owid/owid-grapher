@@ -32,7 +32,8 @@ import {
  * - Processing LEVEL may differ when the processing text matches (e.g.
  *   seawater-ph: an annual average OWID computes is "major", the monthly
  *   series "minor"): the stitched pane shows the highest level.
- * - dateRange may differ: the stitched pane shows the min–max union. If any
+ * - dateRange may differ: the stitched pane shows the min–max union and the
+ *   list entries carry their own ranges. If any
  *   differing range doesn't parse as "<year>-<year>", the page stays
  *   unstitched rather than showing a wrong range.
  * - Dataset owners may differ (indicators spanning datasets): the stitched
@@ -179,6 +180,8 @@ export function computeIndicatorPaneStitch(
             short: shortsDiffer ? dd.descriptionShort || undefined : undefined,
             unit: unitsDiffer ? dd.unit || undefined : undefined,
             note: wyskDiffers && wysks[i] ? wysks[i] : undefined,
+            dateRange:
+                ranges.length > 1 ? dd.dateRange || undefined : undefined,
             producerDescription: producerDocsDiffer
                 ? dd.descriptionFromProducer || undefined
                 : undefined,

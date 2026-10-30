@@ -481,6 +481,75 @@
     }
 }
 
+// Stitched multi-indicator mode, default placement: the indicator list in
+// Data details, under the shared unit and dates, in the key data's type.
+.indicator-metadata-box__details-list {
+    margin-top: 16px;
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    li {
+        @include body-3-regular;
+        color: $blue-90;
+        margin-bottom: 12px;
+    }
+
+    p {
+        margin: 0;
+    }
+
+    a {
+        @include owid-link-90;
+    }
+
+    .indicator-metadata-box__stitched-list-more-button {
+        @include body-3-regular;
+        color: $blue-50;
+    }
+}
+
+.indicator-metadata-box__details-list-heading {
+    @include body-3-medium;
+    color: $blue-50;
+    margin: 0 0 8px;
+}
+
+.indicator-metadata-box__details-list-variant {
+    color: $blue-50;
+    font-weight: normal;
+}
+
+.indicator-metadata-box__details-list-title {
+    @include body-3-bold;
+    display: block;
+}
+
+.indicator-metadata-box__details-list-description,
+.indicator-metadata-box__details-list-facts,
+.indicator-metadata-box__details-list-note {
+    display: block;
+    margin-top: 2px;
+}
+
+.indicator-metadata-box__details-list-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 16px;
+}
+
+.indicator-metadata-box__details-list-key {
+    color: $blue-50;
+}
+
+.indicator-metadata-box__details-list-note {
+    color: $blue-60;
+    font-style: italic;
+}
+
 .indicator-metadata-box__stitched-list-title {
     font-weight: 700;
     display: block;

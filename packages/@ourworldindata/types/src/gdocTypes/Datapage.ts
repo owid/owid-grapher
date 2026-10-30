@@ -100,6 +100,12 @@ export interface StitchedIndicatorListEntry {
     short?: string
     unit?: string
     note?: string
+    /**
+     * This indicator's own date range, when ranges differ (the pane shows
+     * their min–max union) — e.g. 1950-2023 estimates next to 2024-2100
+     * projections.
+     */
+    dateRange?: string
     /** This indicator's producer documentation, when it differs across indicators. */
     producerDescription?: string
     /**
