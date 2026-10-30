@@ -86,3 +86,19 @@
         text-decoration: none;
     }
 }
+
+.md-disabled-tooltip {
+    display: block;
+    padding: 4px 8px;
+    color: $gray-90;
+}
+
+// A disabled control's info tooltip is switched off (see DimensionLabel), so
+// the icon doesn't react to hover either.
+.md-settings__control[data-disabled] .md-settings__control-label-icon {
+    cursor: default;
+
+    &:hover {
+        color: $gray-60;
+    }
+}

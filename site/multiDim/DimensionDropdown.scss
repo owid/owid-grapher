@@ -18,6 +18,8 @@ $selected-hover-fill: #bed2e7;
     padding: 4px 10px 4px 12px;
     height: $toggle-height;
     cursor: pointer;
+    // Fill the wrapper (see .md-settings__dropdown-toggle-wrapper).
+    flex: 1;
 
     svg {
         font-size: 12px;
@@ -40,11 +42,12 @@ $selected-hover-fill: #bed2e7;
         border-color: $open-stroke;
     }
 
+    // The disabled look is just the control's half opacity (see
+    // .md-settings__dropdown); the button keeps its normal white styling.
+    // Without pointer events, the hover reaches the wrapper and its
+    // disabled reason tooltip.
     &[data-disabled] {
-        color: $gray-70;
-        background: $gray-10;
-        border-color: $gray-10;
-        cursor: default;
+        pointer-events: none;
     }
 
     @media (width <= $toggle-full-width-breakpoint) {
@@ -52,8 +55,20 @@ $selected-hover-fill: #bed2e7;
     }
 }
 
+// Carries the disabled reason tooltip. Fills the control when its label is
+// wider than the current choice, so the button doesn't end short of the label
+// above it.
+.md-settings__dropdown-toggle-wrapper {
+    display: flex;
+    align-self: stretch;
+}
+
+.md-settings__dropdown[data-disabled] .md-settings__dropdown-toggle-wrapper {
+    cursor: not-allowed;
+}
+
 .md-settings__dropdown-current-choice {
-    max-width: 150px;
+    max-width: 300px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -66,13 +81,26 @@ $selected-hover-fill: #bed2e7;
 
 .md-settings__dropdown-caret {
     // Pushes the caret to the right edge when the button is wider than its
-    // content (mobile full-width layout).
+    // content (a wide label, or the mobile full-width layout).
     margin-left: auto;
+}
+
+// The caret points up while the menu is open.
+.md-settings__dropdown-toggle[aria-expanded="true"]
+    .md-settings__dropdown-caret
+    svg {
+    transform: scaleY(-1);
 }
 
 .md-settings__dropdown {
     @media (width <= $toggle-full-width-breakpoint) {
         width: 100%;
+    }
+
+    // A disabled control keeps its normal look at half opacity, label
+    // included.
+    &[data-disabled] {
+        opacity: 0.5;
     }
 }
 
@@ -105,34 +133,14 @@ $selected-hover-fill: #bed2e7;
     background: white;
     // No horizontal padding: menu items are full-bleed, so the hover and
     // selection fills span the menu's full width.
-    padding: 16px 0 8px;
+    padding: 4px 0 8px;
     border-radius: 4px;
     box-shadow: 0px 4px 23px 4px #0000000f;
     z-index: $zindex-controls-popup;
     @include md-menu-scroll-area;
 
-    .md-menu__overlay-header {
-        padding: 0 16px;
-        margin-bottom: 12px;
-    }
-
-    .md-menu__overlay-header-title {
-        color: $light-text;
-        margin-top: 0;
-        margin-bottom: 4px;
-    }
-
-    .md-menu__dimension-description {
-        color: $gray-70;
-        font-size: 13px;
-        line-height: normal;
-        margin-top: 0;
-        margin-bottom: 4px;
-    }
-
-    // The searchable menu shows the search field instead of the header with
-    // the dimension name and description. Only the options scroll, below the
-    // search field, so it stays in view.
+    // The searchable menu starts with a search field. Only the options
+    // scroll, below the search field, so it stays in view.
     &.md-menu--searchable {
         display: flex;
         flex-direction: column;
@@ -153,7 +161,7 @@ $selected-hover-fill: #bed2e7;
     .md-menu__search {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 8px;
         height: 32px;
         margin: 0 4px 4px;
         padding: 0 8px;
@@ -167,7 +175,7 @@ $selected-hover-fill: #bed2e7;
 
     .md-menu__search-icon {
         flex-shrink: 0;
-        font-size: 16px;
+        font-size: 12px;
         color: $gray-70;
     }
 
@@ -191,7 +199,7 @@ $selected-hover-fill: #bed2e7;
         }
 
         &::placeholder {
-            color: $gray-70;
+            color: $gray-60;
         }
 
         // Hide webkit's built-in clear button on search inputs.
@@ -205,6 +213,14 @@ $selected-hover-fill: #bed2e7;
         color: $gray-70;
     }
 
+    // The gap separates the groups: on top of a heading's top margin, it
+    // leaves a bit more room before each group after the first.
+    .md-menu__list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
     .md-menu__group {
         display: flex;
         flex-direction: column;
@@ -214,6 +230,12 @@ $selected-hover-fill: #bed2e7;
     .md-menu__group-label {
         color: $light-text;
         margin: 8px 16px;
+    }
+
+    // Options under a group label are indented past it, so the grouping is
+    // visible. The selection fill still spans the full menu width.
+    .md-menu__group--labeled .md-menu__item {
+        padding-left: 32px;
     }
 
     .md-menu__item {
@@ -240,7 +262,7 @@ $selected-hover-fill: #bed2e7;
             background: $blue-20;
 
             &[data-hovered],
-            &[data-focused] {
+            &[data-focus-visible] {
                 background: $selected-hover-fill;
             }
         }
@@ -269,5 +291,11 @@ $selected-hover-fill: #bed2e7;
 
     @include sm-only {
         width: 264px;
+    }
+
+    // Where the button spans the full width, the menu matches it.
+    // --trigger-width comes from react-aria on the popover.
+    @media (width <= $toggle-full-width-breakpoint) {
+        width: var(--trigger-width);
     }
 }
