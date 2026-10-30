@@ -10,6 +10,7 @@ import ProgressBar from "progress"
 import { stringify } from "safe-stable-stringify"
 import * as db from "../db/db.js"
 import { BASE_DIR } from "../settings/serverSettings.js"
+import { FEATURE_FLAGS, Features } from "../settings/clientSettings.mjs"
 
 import {
     renderFrontPage,
@@ -25,6 +26,7 @@ import {
     renderThankYouPage,
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
+    renderEmailNotificationsPreferencesPage,
     renderExplorerIndexPage,
     renderLatestPage,
     renderSubscribePage,
@@ -50,6 +52,7 @@ import {
     OwidGdocType,
     getEntitiesForProfile,
     LinkedStaticViz,
+    TOPIC_AREA_NAMES,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { getCloudflarePagesRedirects } from "./redirects.js"
@@ -821,6 +824,11 @@ export class SiteBaker {
                         )
                     }
 
+                    publishedGdoc.topicArea = db.getTopicAreaNameForTagNames(
+                        (publishedGdoc.tags ?? []).map((tag) => tag.name),
+                        tagHierarchiesByChildName
+                    )
+
                     // this is a no-op if the gdoc doesn't have an all-chart block
                     if ("loadRelatedCharts" in publishedGdoc) {
                         await publishedGdoc.loadRelatedCharts(
@@ -950,17 +958,24 @@ export class SiteBaker {
             `${this.bakedSiteDir}${SEARCH_BASE_PATH}.html`,
             () => renderSearchPage(knex)
         )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/explorers.html`,
-            await renderExplorerIndexPage(knex)
+        await this.bakeSpecialPage(`${this.bakedSiteDir}/explorers.html`, () =>
+            renderExplorerIndexPage(knex)
         )
-        await this.stageWrite(
+        await this.bakeSpecialPage(
             `${this.bakedSiteDir}/subscribe.html`,
-            await renderSubscribePage()
+            renderSubscribePage
         )
-        await this.stageWrite(
+        // The magic-link preferences page is only linked from emails the new
+        // notifications system sends, so it only exists behind the flag.
+        if (FEATURE_FLAGS.includes(Features.EmailNotifications)) {
+            await this.bakeSpecialPage(
+                `${this.bakedSiteDir}/preferences.html`,
+                renderEmailNotificationsPreferencesPage
+            )
+        }
+        await this.bakeSpecialPage(
             `${this.bakedSiteDir}/collection/custom.html`,
-            renderDynamicCollectionPage()
+            () => renderDynamicCollectionPage()
         )
         await this.bakeSpecialPage(
             `${this.bakedSiteDir}/collection/top-charts.html`,
@@ -1288,6 +1303,22 @@ export class SiteBaker {
                     .generateTopicTagGraph(trx)
                     .then((nav) => JSON.stringify(nav))
             )
+
+            // The subscribe form offers, and the API accepts, a hardcoded list
+            // of topic areas, while the sender matches subscriptions against
+            // the tag graph. Fail the bake rather than let a renamed area
+            // silently stop matching.
+            const topicAreaNames = await db.getTopicAreaNames(trx)
+            if (
+                !_.isEqual(
+                    [...topicAreaNames].sort(),
+                    [...TOPIC_AREA_NAMES].sort()
+                )
+            ) {
+                throw new Error(
+                    `The top-level topic areas in the database (${topicAreaNames.join(", ")}) differ from TOPIC_AREA_NAMES; update the constant in @ourworldindata/types`
+                )
+            }
 
             // The `assets-admin` folder is optional; don't fail if it doesn't exist
             await execWrapper(

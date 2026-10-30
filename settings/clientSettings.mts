@@ -94,6 +94,15 @@ export const CLOUDFLARE_IMAGES_URL: string =
 export const DONATE_API_URL: string =
     process.env.DONATE_API_URL ?? "http://localhost:8788/donation/donate"
 
+// The email notifications API (Cloudflare Functions) is served on the same
+// host as the site in every deployed environment, so a relative URL works —
+// except in local development, where the site and the functions dev server
+// run on different ports.
+export const EMAIL_NOTIFICATIONS_API_BASE_URL: string =
+    ENV === "development"
+        ? "http://localhost:8788/api/email-notifications"
+        : "/api/email-notifications"
+
 export const TURNSTILE_SITE_KEY: string =
     process.env.TURNSTILE_SITE_KEY ??
     (ENV === "development"
@@ -126,6 +135,7 @@ export const PUBLISHED_AT_FORMAT = "ddd, MMM D, YYYY HH:mm"
 /** A map of possible features which can be enabled or disabled. */
 export const Features = {
     ExampleFeature: "ExampleFeature",
+    EmailNotifications: "EmailNotifications",
 } as const
 
 type Feature = (typeof Features)[keyof typeof Features]
@@ -136,10 +146,8 @@ const featureFlagsRaw =
     (typeof process.env.FEATURE_FLAGS === "string" &&
         process.env.FEATURE_FLAGS.trim()?.split(",")) ||
     []
-export const FEATURE_FLAGS: Set<Feature> = new Set(
-    Object.values(Features).filter((feature) =>
-        featureFlagsRaw.includes(feature)
-    )
+export const FEATURE_FLAGS: Array<Feature> = Object.values(Features).filter(
+    (feature) => featureFlagsRaw.includes(feature)
 )
 
 export const SLACK_DI_PITCHES_CHANNEL_ID: string =

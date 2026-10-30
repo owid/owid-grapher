@@ -1,0 +1,76 @@
+/**
+ * Reset local test state for the email notifications send job, so
+ * `yarn sendEmailNotifications <frequency> --local` always has something to
+ * send without republishing content:
+ *
+ *   yarn resetEmailNotificationsTestState [slug]
+ *
+ * Deletes all sent messages in the LOCAL D1 database and resets every
+ * subscriber's window to their frequency, and, when
+ * a slug is given, bumps that post's publishedAt to now in the local MySQL
+ * database so it falls inside every subscriber's frequency window.
+ */
+import { LATEST_FEED_TYPE_VALUES } from "@ourworldindata/types"
+import * as db from "../db/db.js"
+import { createLocalD1Client } from "../baker/emailNotifications/emailNotificationsD1.js"
+
+// Must match the database_name in wrangler.jsonc and the send job's --local
+// database (see baker/emailNotifications/sendEmailNotifications.ts).
+const LOCAL_D1_DATABASE_NAME = "owid-email-notifications-staging"
+
+async function resetSentMessages(): Promise<void> {
+    const d1 = createLocalD1Client(LOCAL_D1_DATABASE_NAME)
+    await d1.batch([
+        { sql: "DELETE FROM messages" },
+        {
+            sql: `UPDATE notification_preferences
+                  SET lastSentAt = NULL,
+                      updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`,
+        },
+    ])
+    console.log("Deleted all sent messages in local D1")
+}
+
+async function bumpPublishedAt(slug: string): Promise<void> {
+    await db.knexReadWriteTransaction(async (trx) => {
+        const post = await db.knexRawFirst<{
+            id: string
+            type: string
+            published: number
+        }>(trx, "SELECT id, type, published FROM posts_gdocs WHERE slug = ?", [
+            slug,
+        ])
+        if (!post) throw new Error(`No gdoc found with slug "${slug}"`)
+        if (!post.published) throw new Error(`Gdoc "${slug}" is not published`)
+        if (!(LATEST_FEED_TYPE_VALUES as readonly string[]).includes(post.type))
+            throw new Error(
+                `Gdoc "${slug}" has type "${post.type}", but the send job only picks up: ${LATEST_FEED_TYPE_VALUES.join(", ")}`
+            )
+        await db.knexRaw(
+            trx,
+            "UPDATE posts_gdocs SET publishedAt = UTC_TIMESTAMP() WHERE id = ?",
+            [post.id]
+        )
+        console.log(
+            `Bumped publishedAt to now for "${slug}" (${post.type}) in local MySQL`
+        )
+    })
+}
+
+async function main(): Promise<void> {
+    const slug = process.argv[2]
+    await resetSentMessages()
+    if (slug) {
+        await bumpPublishedAt(slug)
+    } else {
+        console.log(
+            "No slug given, so no content was touched. Pass a slug to also make a post 'fresh' for the send job: yarn resetEmailNotificationsTestState my-test-article"
+        )
+    }
+    process.exit(0)
+}
+
+void main().catch((error) => {
+    console.error(error instanceof Error ? error.message : error)
+    process.exit(1)
+})

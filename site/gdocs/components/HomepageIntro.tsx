@@ -16,10 +16,7 @@ import { useDocumentContext } from "../DocumentContext.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import * as R from "remeda"
-import {
-    NewsletterSubscriptionForm,
-    NewsletterSubscriptionHeader,
-} from "../../NewsletterSubscription.js"
+import { NewsletterSignup } from "../../NewsletterSubscription.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
 import { AnnouncementsIcon } from "./AnnouncementsIcon.js"
@@ -229,6 +226,7 @@ function HomepageAnnouncements() {
                 href="/subscribe"
                 text="Subscribe to our newsletters"
                 theme="solid-vermillion"
+                dataTrackNote="homepage_intro_subscribe"
             />
         </div>
     )
@@ -294,15 +292,15 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
             <div className="grid grid-cols-2 span-cols-6 span-md-cols-14 col-md-start-1">
                 <HomepageAnnouncements />
                 <div className="span-cols-1 span-md-cols-2">
-                    <div className="homepage-intro__newsletter-signup">
-                        <NewsletterSubscriptionHeader showSubheading />
-                        <NewsletterSubscriptionForm
-                            context={NewsletterSubscriptionContext.Homepage}
-                        />
+                    <NewsletterSignup
+                        className="homepage-intro__newsletter-signup"
+                        context={NewsletterSubscriptionContext.Homepage}
+                        showSubheading
+                    >
                         <OwidSocials
                             context={NewsletterSubscriptionContext.Homepage}
                         />
-                    </div>
+                    </NewsletterSignup>
                     <DonationCta />
                 </div>
             </div>
