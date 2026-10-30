@@ -1,6 +1,7 @@
 import type {
     BespokeAuthoredConfig,
     BespokeComponentModule,
+    EmbedOptions,
 } from "./bespokeComponentTypes.ts"
 
 /**
@@ -17,6 +18,7 @@ export async function mountBespokeComponentInShadow({
     scriptUrl,
     variant,
     config,
+    embedOptions,
     dataUrl,
     metadataUrl,
     signal,
@@ -25,6 +27,7 @@ export async function mountBespokeComponentInShadow({
     scriptUrl: string
     variant?: string
     config?: BespokeAuthoredConfig
+    embedOptions?: EmbedOptions
     dataUrl?: string
     metadataUrl?: string
     signal?: AbortSignal
@@ -53,6 +56,7 @@ export async function mountBespokeComponentInShadow({
     const result = await module.mount(mountContainer, {
         variant,
         config,
+        embedOptions,
         dataUrl,
         metadataUrl,
     })

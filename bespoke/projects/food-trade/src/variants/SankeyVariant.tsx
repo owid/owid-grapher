@@ -33,7 +33,6 @@ import {
     BILATERAL_LOW_VOLUME_THRESHOLD,
 } from "../core/helpers.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
@@ -47,6 +46,8 @@ import { ChartError } from "../../../../components/ChartError/ChartError.js"
 
 const queryClient = new QueryClient()
 
+const COUNTRY_URL_PARAM = "country"
+
 export function SankeyVariant({
     config,
     urls,
@@ -55,20 +56,18 @@ export function SankeyVariant({
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
     return (
-        <EmbedConfigProvider config={config}>
-            <NuqsAdapter>
-                <QueryClientProvider client={queryClient}>
-                    <div
-                        ref={ref}
-                        className={cx("food-trade-chart", {
-                            "food-trade-chart--narrow": isNarrow,
-                        })}
-                    >
-                        <FetchingSankeyVariant config={config} urls={urls} />
-                    </div>
-                </QueryClientProvider>
-            </NuqsAdapter>
-        </EmbedConfigProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <div
+                    ref={ref}
+                    className={cx("food-trade-chart", {
+                        "food-trade-chart--narrow": isNarrow,
+                    })}
+                >
+                    <FetchingSankeyVariant config={config} urls={urls} />
+                </div>
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 
@@ -84,17 +83,17 @@ function FetchingSankeyVariant({
     const initialView =
         !isUserLocation && isAllCountry(initialCountry) ? "both" : config.flow
     const [product, setProduct] = useUrlState({
-        key: "foodTradeProduct",
+        key: "product",
         parser: parseAsString,
         defaultValue: config.product,
     })
     const [requestedCountry, _setCountry] = useUrlState({
-        key: "foodTradeCountry",
+        key: COUNTRY_URL_PARAM,
         parser: parseAsString,
         defaultValue: initialCountry,
     })
     const [_view, setView] = useUrlState({
-        key: "foodTradeFlow",
+        key: "flow",
         parser: parseAsStringEnum<Flow>(["both", "import", "export"]),
         defaultValue: initialView,
     })
@@ -155,7 +154,7 @@ function FetchingSankeyVariant({
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlStateKey: "foodTradeCountry",
+        urlStateKey: COUNTRY_URL_PARAM,
         setCountry,
     })
 

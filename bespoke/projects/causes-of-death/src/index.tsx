@@ -10,6 +10,11 @@ import type {
 import StylesTarget from "vite-plugin-css-position/react"
 
 import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
+import {
+    CurrentParamNameByLegacyName,
+    migrateLegacyUrlParams,
+} from "../../../helpers/legacyUrlParams.js"
+import { EmbedOptionsProvider } from "../../../hooks/useEmbedOptions.js"
 
 import { CausesOfDeathChartWithProviders } from "./components/CausesOfDeathChart.js"
 import {
@@ -23,6 +28,14 @@ import "./index.scss"
 // Enable react-aria's internal Shadow DOM handling paths.
 // Must be called before any react-aria components render.
 enableShadowDOM()
+
+const CAUSES_OF_DEATH_LEGACY_URL_PARAM_NAMES: CurrentParamNameByLegacyName =
+    new Map([
+        ["causesOfDeathAge", "age"],
+        ["causesOfDeathSex", "sex"],
+        ["causesOfDeathRegion", "region"],
+        ["causesOfDeathYear", "year"],
+    ])
 
 export const VARIANTS = [
     {
@@ -85,11 +98,17 @@ export const mount: BespokeComponentMountFn = (
     const authoredConfig = opts.config ?? {}
     const config = parseConfigFromSpec(CONFIG_SPEC, authoredConfig)
 
+    if (opts.embedOptions?.urlSync) {
+        migrateLegacyUrlParams(CAUSES_OF_DEATH_LEGACY_URL_PARAM_NAMES)
+    }
+
     const root = createRoot(container)
     root.render(
         <>
             <StylesTarget />
-            <variant.component config={config} urls={urls} />
+            <EmbedOptionsProvider options={opts.embedOptions}>
+                <variant.component config={config} urls={urls} />
+            </EmbedOptionsProvider>
         </>
     )
     return () => root.unmount()

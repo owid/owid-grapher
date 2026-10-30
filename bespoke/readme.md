@@ -43,6 +43,7 @@ export function mount(
     opts: {
         variant?: string
         config?: Record<string, string>
+        embedOptions?: { urlSync?: boolean; hideMetadataModal?: boolean }
         dataUrl?: string
         metadataUrl?: string
     }
@@ -52,11 +53,12 @@ export function mount(
 - **`container`** — A div inside the Shadow DOM into which you render your viz. The div is created for you.
 - **`opts.variant`** — Optional string to distinguish multiple instances of the same bundle within an article. Useful for embedding different views (e.g. a map and a chart) that share state.
 - **`opts.config`** — Key-value pairs passed from the ArchieML block.
+- **`opts.embedOptions`** — Flags the embedding page sets in code and an author never writes: `urlSync` and `hideMetadataModal`. Wrap the variant in `EmbedOptionsProvider` with them.
 - **`opts.dataUrl`** — URL of the folder this bundle's data files live in, resolved from its registry entry for the environment being served.
 - **`opts.metadataUrl`** — URL of the metadata file inside that folder, from the entry's `metadataFilename`.
 - **Return value** — Optionally return a cleanup/disposal function that will be called on unmount.
 
-A module may also export `VARIANTS`, a list of `{ name, description, demoConfig?, defaultSize? }` entries.
+A module may also export `VARIANTS`, a list of `{ name, description, demoConfig?, demoEmbedOptions?, defaultSize? }` entries.
 
 ### Declaring the config
 
@@ -66,7 +68,7 @@ Every project declares the config keys it reads in a `CONFIG_SPEC` export next t
 
 `VARIANTS` and `CONFIG_SPEC` power the bespoke docs pages in the admin. `yarn generateGdocsReferences` reads both exports from `src/index.tsx` without running any bundle code, and writes them to the committed `bespoke-viz.registry.generated.json`; CI fails when that file is stale. Their `description` fields are short phrases written for the authors browsing those pages. Values must be literals, or constants holding literals (a local `const`, or one imported by name from a relative module), so the generator can read them.
 
-A variant's `demoConfig` is used only by the dev demo page; the admin's copyable block never includes it. Variations worth explaining to authors go in `docs.md` as examples.
+A variant's `demoConfig` and `demoEmbedOptions` are used only by the dev demo page; the admin's copyable block never includes them. Variations worth explaining to authors go in `docs.md` as examples.
 
 A bundle can add an optional `docs.md` next to its `package.json`:
 
@@ -223,15 +225,15 @@ figure inside an article. Those are gdocs of type `featured-viz`, published at
   bespoke blocks on the page render as ordinary blocks.
 - **The featured viz drives the URL.** The page forces `urlSync` on for it, so
   the page URL is shareable at a particular view. Every bundle syncs without
-  code of its own, because `useUrlState` takes the flag from the embed config.
+  code of its own, because `useUrlState` takes the flag from `embedOptions`.
   There is no opt-out: a featured viz page whose URL doesn't track its viz is
   not worth publishing.
 - **The featured viz's metadata is already on the page.** The page renders the
   methods-and-sources box under the band, built from the same metadata file the
-  viz would show in its modal. So it forces `hideMetadataModal` on for the
-  featured viz, and `BespokeMetadataProvider` drops the footer's "Learn more
-  about this data" link along with the modal behind it. Later bespoke blocks
-  keep theirs.
+  viz would show in its modal. So it also passes `hideMetadataModal` in the
+  featured viz's `embedOptions`. `BespokeMetadataProvider` then drops the
+  footer's "Learn more about this data" link along with the modal behind it.
+  Later bespoke blocks keep theirs.
 
 Everything else on the page is authored as in a normal article, and any block an
 article supports works there.

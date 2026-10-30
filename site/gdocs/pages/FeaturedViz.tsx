@@ -11,7 +11,6 @@ import {
 } from "@ourworldindata/types"
 import { formatDate } from "@ourworldindata/utils"
 import { getCanonicalUrl } from "@ourworldindata/components"
-import { serializeEmbedConfig } from "../../../bespoke/shared/embedConfig.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
@@ -39,11 +38,12 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
     const { bespokeMetadata } = useContext(AttachmentsContext)
 
     const { before, hero, after } = useMemo(
-        () =>
-            splitFeaturedVizBody(content.body, {
-                hasMetadataBox: !!bespokeMetadata,
-            }),
-        [content.body, bespokeMetadata]
+        () => splitFeaturedVizBody(content.body),
+        [content.body]
+    )
+    const heroEmbedOptions = useMemo(
+        () => ({ urlSync: true, hideMetadataModal: !!bespokeMetadata }),
+        [bespokeMetadata]
     )
 
     const canonicalUrl = getCanonicalUrl(BAKED_BASE_URL, {
@@ -79,6 +79,7 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
                             getLayout(`bespoke-component--${hero.size}`)
                         )}
                         block={hero}
+                        embedOptions={heroEmbedOptions}
                     />
                     {bespokeMetadata && (
                         <BespokeMetadataBox
@@ -175,8 +176,7 @@ interface FeaturedVizBodySplit {
  * block on its own full-bleed band
  */
 function splitFeaturedVizBody(
-    body: OwidEnrichedGdocBlock[] = [],
-    { hasMetadataBox }: { hasMetadataBox: boolean }
+    body: OwidEnrichedGdocBlock[] = []
 ): FeaturedVizBodySplit {
     // Find the first bespoke-component block at the top level
     const heroIndex = body.findIndex(
@@ -184,20 +184,9 @@ function splitFeaturedVizBody(
     )
     if (heroIndex === -1) return { before: body, hero: undefined, after: [] }
 
-    const hero = body[heroIndex] as EnrichedBlockBespokeComponent
-
     return {
         before: body.slice(0, heroIndex),
-        hero: {
-            ...hero,
-            config: {
-                ...hero.config,
-                ...serializeEmbedConfig({
-                    urlSync: true,
-                    hideMetadataModal: hasMetadataBox,
-                }),
-            },
-        },
+        hero: body[heroIndex] as EnrichedBlockBespokeComponent,
         after: body.slice(heroIndex + 1),
     }
 }

@@ -15,7 +15,6 @@ import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
@@ -53,6 +52,7 @@ import { DeforestationChart } from "../components/DeforestationChart.js"
 import { DeforestationControls } from "../components/DeforestationControls.js"
 
 const queryClient = new QueryClient()
+const COUNTRY_URL_PARAM = "country"
 
 export function SankeyVariant({
     config,
@@ -62,24 +62,22 @@ export function SankeyVariant({
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
     return (
-        <EmbedConfigProvider config={config}>
-            <NuqsAdapter>
-                <QueryClientProvider client={queryClient}>
-                    <div
-                        ref={ref}
-                        className={cx("deforestation-chart", {
-                            "deforestation-chart--narrow": isNarrow,
-                        })}
-                    >
-                        <FetchingSankeyVariant
-                            config={config}
-                            urls={urls}
-                            isNarrow={isNarrow}
-                        />
-                    </div>
-                </QueryClientProvider>
-            </NuqsAdapter>
-        </EmbedConfigProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <div
+                    ref={ref}
+                    className={cx("deforestation-chart", {
+                        "deforestation-chart--narrow": isNarrow,
+                    })}
+                >
+                    <FetchingSankeyVariant
+                        config={config}
+                        urls={urls}
+                        isNarrow={isNarrow}
+                    />
+                </div>
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 
@@ -99,22 +97,22 @@ function FetchingSankeyVariant({
         : config.country
 
     const [country, setCountry] = useUrlState({
-        key: "deforestationCountry",
+        key: COUNTRY_URL_PARAM,
         parser: parseAsString,
         defaultValue: initialCountry,
     })
     const [year, setYear] = useUrlState({
-        key: "deforestationYear",
+        key: "year",
         parser: parseAsInteger,
         defaultValue: config.year,
     })
     const [period, setPeriod] = useUrlState({
-        key: "deforestationPeriod",
+        key: "period",
         parser: parseAsStringEnum<Period>([...PERIODS]),
         defaultValue: config.period,
     })
     const [storedView, setView] = useUrlState({
-        key: "deforestationFlow",
+        key: "flow",
         parser: parseAsStringEnum<View>([...VIEWS]),
         defaultValue: config.flow,
     })
@@ -133,7 +131,7 @@ function FetchingSankeyVariant({
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlStateKey: "deforestationCountry",
+        urlStateKey: COUNTRY_URL_PARAM,
         setCountry,
     })
 

@@ -5,13 +5,24 @@ import { CONTROL_YEARS, START_YEAR, END_YEAR } from "./constants.js"
 import { isValidParameterKey, type ParameterKey } from "./types.js"
 import { parameterConfigByKey } from "./parameterConfigs.js"
 import type { ScenarioParams } from "./model/scenarios.js"
+import type { CurrentParamNameByLegacyName } from "../../../../helpers/legacyUrlParams.js"
 
-export const DEMOGRAPHY_COUNTRY_PARAM = "demographyCountry"
-export const DEMOGRAPHY_FERTILITY_PARAM = "demographyFertility"
-export const DEMOGRAPHY_LIFE_EXPECTANCY_PARAM = "demographyLifeExpectancy"
-export const DEMOGRAPHY_NET_MIGRATION_PARAM = "demographyNetMigration"
-export const DEMOGRAPHY_TAB_PARAM = "demographyTab"
-export const DEMOGRAPHY_YEAR_PARAM = "demographyYear"
+export const DEMOGRAPHY_COUNTRY_PARAM = "country"
+export const DEMOGRAPHY_FERTILITY_PARAM = "fertility"
+export const DEMOGRAPHY_LIFE_EXPECTANCY_PARAM = "lifeExpectancy"
+export const DEMOGRAPHY_NET_MIGRATION_PARAM = "netMigration"
+export const DEMOGRAPHY_TAB_PARAM = "tab"
+export const DEMOGRAPHY_YEAR_PARAM = "year"
+
+export const DEMOGRAPHY_LEGACY_URL_PARAM_NAMES: CurrentParamNameByLegacyName =
+    new Map([
+        ["demographyCountry", DEMOGRAPHY_COUNTRY_PARAM],
+        ["demographyFertility", DEMOGRAPHY_FERTILITY_PARAM],
+        ["demographyLifeExpectancy", DEMOGRAPHY_LIFE_EXPECTANCY_PARAM],
+        ["demographyNetMigration", DEMOGRAPHY_NET_MIGRATION_PARAM],
+        ["demographyTab", DEMOGRAPHY_TAB_PARAM],
+        ["demographyYear", DEMOGRAPHY_YEAR_PARAM],
+    ])
 
 const DEMOGRAPHY_URL_PARAM_KEYS = [
     DEMOGRAPHY_COUNTRY_PARAM,
