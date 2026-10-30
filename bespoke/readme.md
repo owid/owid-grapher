@@ -355,3 +355,4 @@ The dev server will inject this stylesheet into the demo page's `<head>` (outsid
 2. Define `VARIANTS` and `CONFIG_SPEC` in `src/index.tsx`
 3. Register the bundle in [bespoke/shared/bespokeComponentRegistry.ts](./shared/bespokeComponentRegistry.ts)
 4. Add the `{.bespoke-component}` block in your Google Doc
+
