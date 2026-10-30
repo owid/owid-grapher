@@ -111,6 +111,44 @@
     @include body-3-regular;
     margin-left: 8px;
     color: $blue-50;
+
+    @include sm-only {
+        display: block;
+        margin-left: 0;
+        line-height: 1.2;
+    }
+}
+
+// Phones toggle the box from the bottom only
+.indicator-metadata-box .metadata-box-toggle-button {
+    @include sm-only {
+        display: none;
+    }
+}
+
+// Phones show only the first item of "What you should know" until the box is
+// opened, so Show more is in view
+@include sm-only {
+    .indicator-metadata-box
+        .metadata-box-expander:has(
+            > .metadata-box-expander__details:not([open])
+        )
+        .metadata-box-expander__preview {
+        > .indicator-metadata-box__description-key-title + * ~ * {
+            display: none;
+        }
+
+        > .indicator-metadata-box__description-key-title + :is(ul, ol) > li {
+            &:nth-child(n + 2),
+            &:first-child > :is(ul, ol) {
+                display: none;
+            }
+
+            &:first-child {
+                margin-bottom: 0;
+            }
+        }
+    }
 }
 
 .indicator-metadata-box .metadata-box-key-data {
@@ -203,8 +241,9 @@
         padding-bottom: 0;
     }
 
+    // A blank line under the title, as between paragraphs
     &[open] > .ExpandableToggle__content {
-        padding: 8px 16px 24px;
+        padding: 1.5em 16px 24px;
     }
 }
 
@@ -228,8 +267,18 @@
     text-wrap: balance;
 }
 
+// Links take the colour of the text they're in
+.indicator-metadata-box .ExpandableToggle__content a {
+    @include owid-link-60;
+}
+
 .indicator-metadata-box .indicator-sources .source-key-data__content {
     color: $blue-90;
+
+    a {
+        @include owid-link-90;
+        color: inherit;
+    }
 }
 
 // Single sources have no toggle; match the toggles' inset
