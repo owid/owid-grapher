@@ -28,16 +28,13 @@ import {
     getShortNameForEntity,
     makeSelectionArray,
 } from "../chart/ChartUtils"
-import {
-    AnnotationsMap,
-    getAnnotationsForSeries,
-    getAnnotationsMap,
-} from "../lineCharts/LineChartHelpers"
+import { selectEntityAnnotation } from "../annotations/EntityAnnotations"
 import {
     ChartErrorInfo,
     ColorScaleConfigInterface,
     ColorSchemeName,
     FacetStrategy,
+    IndicatorAnnotation,
     ProjectionColumnInfo,
     SeriesStrategy,
     SortBy,
@@ -209,13 +206,13 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
         return this.yColumns[0]
     }
 
-    @computed get annotationsMap(): AnnotationsMap | undefined {
+    @computed private get annotations(): IndicatorAnnotation[] {
         const yColumnSlug =
             this.yColumnMode.type === "combined"
                 ? this.yColumnMode.info.historicalSlug
                 : this.yColumnSlugs[0]
-        if (!yColumnSlug) return undefined
-        return getAnnotationsMap(this.inputTable, yColumnSlug)
+        if (!yColumnSlug) return []
+        return this.inputTable.get(yColumnSlug).def.annotations ?? []
     }
 
     @computed get hasProjectedData(): boolean {
@@ -415,10 +412,11 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
                 seriesName,
                 entityName: seriesName,
                 shortEntityName: getShortNameForEntity(seriesName),
-                annotation: getAnnotationsForSeries(
-                    this.annotationsMap,
-                    seriesName
-                ),
+                annotation:
+                    this.seriesStrategy === SeriesStrategy.entity
+                        ? selectEntityAnnotation(this.annotations, seriesName)
+                              ?.text
+                        : undefined,
                 // the error color should never be used but I prefer it here instead of throwing an exception if something goes wrong
                 color:
                     color ??
