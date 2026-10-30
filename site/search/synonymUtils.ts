@@ -152,7 +152,17 @@ export const synonyms = [
     ],
     ["demographic transition", "demographic transition model", "dtm"],
     ["population pyramid", "population by age"],
-    ["migration", "immigration", "emigration"],
+    [
+        "migration",
+        "immigration",
+        "emigration",
+        "migrant",
+        "migrants",
+        "immigrant",
+        "immigrants",
+        "emigrant",
+        "emigrants",
+    ],
     ["urbanization", "urbanisation", "urban"],
 
     // Health
