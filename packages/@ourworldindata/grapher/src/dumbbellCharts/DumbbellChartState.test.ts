@@ -1,15 +1,22 @@
 import { expect, it, describe } from "vitest"
 
 import { OwidTable } from "@ourworldindata/core-table"
-import { ColumnSlug, CoreMatrix } from "@ourworldindata/types"
+import {
+    ColumnSlug,
+    ColumnTypeNames,
+    OwidColumnDef,
+    CoreMatrix,
+    IndicatorAnnotation,
+} from "@ourworldindata/types"
 import { DumbbellChartState } from "./DumbbellChartState"
 import { DumbbellChartManager, DumbbellMode } from "./DumbbellChartConstants"
 
 const makeChartState = (
     rows: CoreMatrix,
-    yColumnSlugs: ColumnSlug[] = ["gdp"]
+    yColumnSlugs: ColumnSlug[] = ["gdp"],
+    columnDefs: OwidColumnDef[] = []
 ): DumbbellChartState => {
-    const table = new OwidTable(rows)
+    const table = new OwidTable(rows, columnDefs)
     const manager: DumbbellChartManager = {
         table,
         selection: table.availableEntityNames,
@@ -17,6 +24,12 @@ const makeChartState = (
     }
     return new DumbbellChartState({ manager })
 }
+
+const makeAnnotation = (entityName: string): IndicatorAnnotation => ({
+    text: `Note on ${entityName}`,
+    entityNames: [entityName],
+    timeScope: "all",
+})
 
 describe("entity strategy", () => {
     it("constructs dumbbell series across two time points", () => {
@@ -64,6 +77,31 @@ describe("entity strategy", () => {
         expect(chartState.series.length).toEqual(1)
         expect(chartState.series[0].entityName).toEqual("Complete")
     })
+
+    it("attaches an entity's annotation to its series only", () => {
+        const chartState = makeChartState(
+            [
+                ["gdp", "year", "entityName"],
+                [100, 2000, "USA"],
+                [150, 2010, "USA"],
+                [80, 2000, "UK"],
+                [60, 2010, "UK"],
+            ],
+            ["gdp"],
+            [
+                {
+                    slug: "gdp",
+                    type: ColumnTypeNames.Numeric,
+                    annotations: [makeAnnotation("USA")],
+                },
+            ]
+        )
+
+        const usa = chartState.series.find((s) => s.entityName === "USA")!
+        const uk = chartState.series.find((s) => s.entityName === "UK")!
+        expect(usa.annotation).toEqual("Note on USA")
+        expect(uk.annotation).toBeUndefined()
+    })
 })
 
 describe("column strategy", () => {
@@ -82,5 +120,28 @@ describe("column strategy", () => {
         const series = chartState.series[0]
         expect(series.start.value).toEqual(100)
         expect(series.end.value).toEqual(500)
+    })
+
+    it("attaches an entity's annotation to its series only", () => {
+        const chartState = makeChartState(
+            [
+                ["population", "gdp", "year", "entityName"],
+                [100, 500, 2010, "USA"],
+                [90, 400, 2010, "UK"],
+            ],
+            ["population", "gdp"],
+            [
+                {
+                    slug: "population",
+                    type: ColumnTypeNames.Numeric,
+                    annotations: [makeAnnotation("USA")],
+                },
+            ]
+        )
+
+        const usa = chartState.series.find((s) => s.entityName === "USA")!
+        const uk = chartState.series.find((s) => s.entityName === "UK")!
+        expect(usa.annotation).toEqual("Note on USA")
+        expect(uk.annotation).toBeUndefined()
     })
 })
