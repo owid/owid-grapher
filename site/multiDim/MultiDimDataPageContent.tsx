@@ -18,6 +18,7 @@ import {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
     isInIFrame,
+    isMultiDimDataExplorer,
 } from "@ourworldindata/utils"
 import {
     ArchiveContext,
@@ -446,7 +447,11 @@ export function DataPageContent({
                 <div className="bg-blue-10 span-cols-14">
                     <div className="header__wrapper grid grid-cols-12-full-width">
                         <div className="header__left col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
-                            <div className="header__supertitle">Data</div>
+                            <div className="header__supertitle">
+                                {isMultiDimDataExplorer(config.config)
+                                    ? "Data explorer"
+                                    : "Data"}
+                            </div>
                             <h1 className="header__title">
                                 {config.config.title.title}
                             </h1>
