@@ -261,8 +261,7 @@ export function enrichSeriesWithLabels<
         const narrowLabel = narrowLabels[index]
         const { labelWrap, label } = narrowLabel
             ? widenLabel({
-                  narrowLabelWrap,
-                  narrowLabel,
+                  narrow: { labelWrap: narrowLabelWrap, label: narrowLabel },
                   budget: labelWidthBudgets[index],
                   maxLabelWidth,
                   fontSettings,
@@ -329,12 +328,7 @@ export function enrichSeriesWithLabels<
     if (!needsTruncation)
         return series.map((series, index) => ({
             ...series,
-            label:
-                wrappedLabels[index].label ??
-                SeriesLabelState.fromTextWrap(
-                    wrappedLabels[index].labelWrap,
-                    labelOptions
-                ),
+            label: wrappedLabels[index].label!,
             annotationTextWrap: wrappedLabels[index].annotationWrap,
         }))
 
@@ -410,15 +404,13 @@ function computeSharedLabelWidthBudgets(
 
 /** Re-wraps a label to fewer rendered lines if that fits within its budget */
 function widenLabel({
-    narrowLabelWrap,
-    narrowLabel,
+    narrow,
     budget,
     maxLabelWidth,
     fontSettings,
     labelOptions,
 }: {
-    narrowLabelWrap: TextWrap
-    narrowLabel: SeriesLabelState
+    narrow: { labelWrap: TextWrap; label: SeriesLabelState }
     budget: number
     maxLabelWidth: number
     fontSettings: FontSettings
@@ -427,7 +419,7 @@ function widenLabel({
         "showRegionTooltip" | "textAnchor"
     >
 }): { labelWrap: TextWrap; label: SeriesLabelState } {
-    const narrow = { labelWrap: narrowLabelWrap, label: narrowLabel }
+    const { labelWrap: narrowLabelWrap, label: narrowLabel } = narrow
     if (narrowLabel.spanLines.length === 1) return narrow
 
     const maxWidth = Math.min(budget, maxLabelWidth)

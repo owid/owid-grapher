@@ -217,32 +217,31 @@ export class DiscreteBarChart
         return this.makeXAxis([0, 1])
     }
 
-    /** Where a row's label must end, as a fraction of the plot width, and the space it shares with the value label */
-    private getLabelAnchor(series: DiscreteBarSeries): {
+    /** Where each row's label must end, as a fraction of the plot width, and the space it shares with the value label */
+    @computed private get labelAnchors(): {
         fraction: number
         extraWidth: number
-    } {
-        const isNegative = series.value < 0
-        const anchor = isNegative ? series.value : this.x0
-        return {
-            fraction: this.unitXAxis.place(anchor),
-            extraWidth: isNegative
-                ? this.formatValue(series).width +
-                  GAP__ENTITY_LABEL__VALUE_LABEL
-                : 0,
-        }
+    }[] {
+        return this.series.map((series) => {
+            const isNegative = series.value < 0
+            const anchor = isNegative ? series.value : this.x0
+            return {
+                fraction: this.unitXAxis.place(anchor),
+                extraWidth: isNegative
+                    ? this.formatValue(series).width +
+                      GAP__ENTITY_LABEL__VALUE_LABEL
+                    : 0,
+            }
+        })
     }
 
-    private get plotWidth(): number {
+    @computed private get plotWidth(): number {
         return this.bounds.width - this.rightValueLabelsWidth
     }
 
-    /** The left padding at which a label of the given width still fits left of its bar */
-    private getRequiredPadding(
-        series: DiscreteBarSeries,
-        labelWidth: number
-    ): number {
-        const { fraction, extraWidth } = this.getLabelAnchor(series)
+    /** The left padding at which a label of the given width still fits left of the given row's bar */
+    private getRequiredPadding(rowIndex: number, labelWidth: number): number {
+        const { fraction, extraWidth } = this.labelAnchors[rowIndex]
         if (fraction >= 1) return 0
         return Math.max(
             0,
@@ -257,26 +256,24 @@ export class DiscreteBarChart
     ): number[] {
         const narrowPadding =
             _.max(
-                this.series.map((series, index) =>
-                    this.getRequiredPadding(series, narrowLabelWidths[index])
+                narrowLabelWidths.map((width, index) =>
+                    this.getRequiredPadding(index, width)
                 )
             ) ?? 0
 
-        return this.series.map((series, index) => {
-            const { fraction, extraWidth } = this.getLabelAnchor(series)
-            const budget =
+        return this.labelAnchors.map(
+            ({ fraction, extraWidth }) =>
                 narrowPadding +
                 fraction * (this.plotWidth - narrowPadding) -
                 extraWidth
-            return Math.max(narrowLabelWidths[index], budget)
-        })
+        )
     }
 
     /** The left padding at which every entity label still fits left of its bar */
     @computed private get leftLabelsWidth(): number {
-        const requiredPaddings = this.sizedSeries.map((series) =>
+        const requiredPaddings = this.sizedSeries.map((series, index) =>
             this.getRequiredPadding(
-                series,
+                index,
                 Math.max(
                     series.label?.width ?? 0,
                     series.annotationTextWrap?.width ?? 0
