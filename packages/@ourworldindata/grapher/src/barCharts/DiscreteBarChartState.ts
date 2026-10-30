@@ -28,11 +28,7 @@ import {
     getShortNameForEntity,
     makeSelectionArray,
 } from "../chart/ChartUtils"
-import {
-    AnnotationsMap,
-    getAnnotationsForSeries,
-    getAnnotationsMap,
-} from "../lineCharts/LineChartHelpers"
+import { selectEntityAnnotation } from "../annotations/EntityAnnotations"
 import {
     ChartErrorInfo,
     ColorScaleConfigInterface,
@@ -207,15 +203,6 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
 
     @computed get formatColumn(): CoreColumn {
         return this.yColumns[0]
-    }
-
-    @computed get annotationsMap(): AnnotationsMap | undefined {
-        const yColumnSlug =
-            this.yColumnMode.type === "combined"
-                ? this.yColumnMode.info.historicalSlug
-                : this.yColumnSlugs[0]
-        if (!yColumnSlug) return undefined
-        return getAnnotationsMap(this.inputTable, yColumnSlug)
     }
 
     @computed get hasProjectedData(): boolean {
@@ -397,6 +384,14 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get series(): DiscreteBarSeries[] {
+        const annotationSlug =
+            this.yColumnMode.type === "combined"
+                ? this.yColumnMode.info.historicalSlug
+                : this.yColumnSlugs[0]
+        const annotations = annotationSlug
+            ? (this.inputTable.get(annotationSlug).def.annotations ?? [])
+            : []
+
         const series = this.sortedRawSeries.map((rawSeries) => {
             const {
                 value,
@@ -415,10 +410,10 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
                 seriesName,
                 entityName: seriesName,
                 shortEntityName: getShortNameForEntity(seriesName),
-                annotation: getAnnotationsForSeries(
-                    this.annotationsMap,
-                    seriesName
-                ),
+                annotation:
+                    this.seriesStrategy === SeriesStrategy.entity
+                        ? selectEntityAnnotation(annotations, seriesName)?.text
+                        : undefined,
                 // the error color should never be used but I prefer it here instead of throwing an exception if something goes wrong
                 color:
                     color ??
