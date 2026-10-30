@@ -13,6 +13,7 @@ import type {
 import StylesTarget from "vite-plugin-css-position/react"
 
 import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
+import { EmbedOptionsProvider } from "../../../hooks/useEmbedOptions.js"
 
 import "./index.scss"
 
@@ -25,7 +26,7 @@ export const VARIANTS = [
         description:
             "Waterfall of how much food a country produces and where it goes",
         component: WaterfallVariant,
-        demoConfig: { urlSync: "true" },
+        demoEmbedOptions: { urlSync: true },
         defaultSize: "widest",
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
@@ -76,7 +77,9 @@ export const mount: BespokeComponentMountFn = (
     root.render(
         <>
             <StylesTarget />
-            <variant.component config={config} urls={urls} />
+            <EmbedOptionsProvider options={opts.embedOptions}>
+                <variant.component config={config} urls={urls} />
+            </EmbedOptionsProvider>
         </>
     )
     return () => root.unmount()

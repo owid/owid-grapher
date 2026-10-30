@@ -14,7 +14,6 @@ import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleto
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import {
     findInitialCountry,
@@ -55,13 +54,11 @@ export function WaterfallVariant({
     urls,
 }: BespokeVariantProps<FoodSupplyChainConfig>): React.ReactElement {
     return (
-        <EmbedConfigProvider config={config}>
-            <NuqsAdapter>
-                <QueryClientProvider client={queryClient}>
-                    <FetchingWaterfallVariant config={config} urls={urls} />
-                </QueryClientProvider>
-            </NuqsAdapter>
-        </EmbedConfigProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <FetchingWaterfallVariant config={config} urls={urls} />
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 
