@@ -50,8 +50,12 @@ const MultiDimControls = forwardRef<
                         [dim.slug]: value,
                     })
                 }
-                return resolveDimensionPresentationType(fullDimension) ===
-                    "radio" ? (
+                const presentationType = resolveDimensionPresentationType({
+                    dimension: fullDimension,
+                    // `dim` holds just the choices available right now
+                    availableChoiceCount: dim.choices.length,
+                })
+                return presentationType === "radio" ? (
                     <DimensionRadioGroup
                         key={dim.slug}
                         className={controlClassName}
@@ -71,6 +75,7 @@ const MultiDimControls = forwardRef<
                         value={resolvedSettings[dim.slug]}
                         onChange={handleChange}
                         readOnly={readOnly}
+                        showSearch={presentationType === "dropdown-with-search"}
                     />
                 )
             })}

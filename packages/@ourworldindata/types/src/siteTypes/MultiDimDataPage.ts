@@ -59,11 +59,15 @@ export type MultiDimDataPageConfigEnriched = Omit<
     views: ViewEnriched[]
 }
 
-export type DimensionPresentationType = "dropdown" | "radio"
+export type DimensionPresentationType =
+    | "dropdown"
+    | "dropdown-with-search"
+    | "radio"
 
 export interface DimensionPresentation {
-    // When omitted, the control type is resolved heuristically: "radio" for
-    // dimensions with at most two ungrouped choices, "dropdown" otherwise.
+    // When omitted, resolveDimensionPresentationType picks the control type
+    // automatically, based on the number of choices and whether they are
+    // grouped.
     type?: DimensionPresentationType
 }
 
