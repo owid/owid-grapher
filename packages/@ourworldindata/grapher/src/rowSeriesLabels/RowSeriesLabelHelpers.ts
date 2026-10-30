@@ -198,6 +198,34 @@ function findMaxFontSizeForHeight({
     return minFontSize
 }
 
+/** Where a row's label must end: `fraction` of the way across the plot, `offset` px further left */
+export interface RowLabelEnd {
+    fraction: number
+    offset: number
+}
+
+/** A label column whose right edge can differ by row and move with the column's width */
+export interface LabelColumn {
+    plotWidth: number
+    rowEnds: readonly RowLabelEnd[]
+}
+
+/** The narrowest column in which every label ends where its row needs it to */
+export function computeLabelColumnWidth(
+    column: LabelColumn,
+    labelWidths: readonly number[]
+): number {
+    const requiredWidths = labelWidths.map((labelWidth, index) => {
+        const { fraction, offset } = column.rowEnds[index]
+        if (fraction >= 1) return 0
+        return Math.max(
+            0,
+            (labelWidth + offset - fraction * column.plotWidth) / (1 - fraction)
+        )
+    })
+    return _.max(requiredWidths) ?? 0
+}
+
 type LabelOptions = Pick<
     SeriesLabelStateOptions,
     "showRegionTooltip" | "textAnchor"
@@ -228,7 +256,7 @@ export function enrichSeriesWithLabels<
     availableHeightPerSeries,
     minLabelWidth,
     maxLabelWidth,
-    computeLabelWidthBudgets = computeSharedLabelWidthBudgets,
+    labelColumn,
     fontSettings,
     annotationFontSettings = {
         fontSize: 0.9 * fontSettings.fontSize,
@@ -241,10 +269,8 @@ export function enrichSeriesWithLabels<
     availableHeightPerSeries: number
     minLabelWidth: number
     maxLabelWidth: number
-    /** Width available to each label, given the rendered widths of the narrow labels (0 for labels that get truncated) */
-    computeLabelWidthBudgets?: (
-        narrowLabelWidths: readonly number[]
-    ) => readonly number[]
+    /** Defaults to a fixed column that ends where the widest label does */
+    labelColumn?: LabelColumn
     fontSettings: FontSettings
     annotationFontSettings?: FontSettings
     showRegionTooltip?: boolean
@@ -263,7 +289,7 @@ export function enrichSeriesWithLabels<
 
     const labels = widenLabels({
         narrowWraps,
-        computeLabelWidthBudgets,
+        labelColumn,
         maxLabelWidth,
         labelOptions,
     })
@@ -306,6 +332,21 @@ export function enrichSeriesWithLabels<
     })
 }
 
+/** The width each label can take in a column sized for the narrow labels */
+function computeLabelWidthBudgets(
+    { plotWidth, rowEnds }: LabelColumn,
+    narrowLabelWidths: readonly number[]
+): number[] {
+    const columnWidth = computeLabelColumnWidth(
+        { plotWidth, rowEnds },
+        narrowLabelWidths
+    )
+    return rowEnds.map(
+        ({ fraction, offset }) =>
+            columnWidth + fraction * (plotWidth - columnWidth) - offset
+    )
+}
+
 /** Every label gets the width of the widest narrow label */
 function computeSharedLabelWidthBudgets(
     narrowLabelWidths: readonly number[]
@@ -314,17 +355,15 @@ function computeSharedLabelWidthBudgets(
     return narrowLabelWidths.map(() => sharedWidth)
 }
 
-/** Widens each narrow label as far as its row's budget allows */
+/** Widens each narrow label as far as it can go without widening the label column */
 function widenLabels({
     narrowWraps,
-    computeLabelWidthBudgets,
+    labelColumn,
     maxLabelWidth,
     labelOptions,
 }: {
     narrowWraps: readonly { textWrap: TextWrap; needsTruncation?: boolean }[]
-    computeLabelWidthBudgets: (
-        narrowLabelWidths: readonly number[]
-    ) => readonly number[]
+    labelColumn?: LabelColumn
     maxLabelWidth: number
     labelOptions: LabelOptions
 }): FittedLabel[] {
@@ -332,11 +371,12 @@ function widenLabels({
         SeriesLabelState.fromTextWrap(textWrap, labelOptions)
     )
 
-    const budgets = computeLabelWidthBudgets(
-        narrowWraps.map(({ needsTruncation }, index) =>
-            needsTruncation ? 0 : narrowLabels[index].width
-        )
+    const narrowWidths = narrowWraps.map(({ needsTruncation }, index) =>
+        needsTruncation ? 0 : narrowLabels[index].width
     )
+    const budgets = labelColumn
+        ? computeLabelWidthBudgets(labelColumn, narrowWidths)
+        : computeSharedLabelWidthBudgets(narrowWidths)
 
     return narrowWraps.map(({ textWrap, needsTruncation = false }, index) => {
         const narrowLabel = narrowLabels[index]

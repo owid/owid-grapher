@@ -42,6 +42,8 @@ import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { makeProjectedDataPatternId } from "./DiscreteBarChartHelpers"
 import {
     enrichSeriesWithLabels,
+    computeLabelColumnWidth,
+    LabelColumn,
     computeCenteredLabelYPositions,
 } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
@@ -131,8 +133,7 @@ export class DiscreteBarChart
             availableHeightPerSeries: this.availableHeightPerSeries,
             minLabelWidth: 0.3 * this.bounds.width,
             maxLabelWidth: 0.66 * this.bounds.width,
-            computeLabelWidthBudgets: (narrowLabelWidths) =>
-                this.computeLabelWidthBudgets(narrowLabelWidths),
+            labelColumn: this.labelColumn,
             fontSettings: this.entityLabelStyle,
             showRegionTooltip: !this.manager.isStatic,
         })
@@ -217,70 +218,35 @@ export class DiscreteBarChart
         return this.makeXAxis([0, 1])
     }
 
-    /** Where each row's label must end, as a fraction of the plot width, and the space it shares with the value label */
-    @computed private get labelAnchors(): {
-        fraction: number
-        extraWidth: number
-    }[] {
-        return this.series.map((series) => {
-            const isNegative = series.value < 0
-            const anchor = isNegative ? series.value : this.x0
-            return {
-                fraction: this.unitXAxis.place(anchor),
-                extraWidth: isNegative
-                    ? this.formatValue(series).width +
-                      GAP__ENTITY_LABEL__VALUE_LABEL
-                    : 0,
-            }
-        })
-    }
-
-    @computed private get plotWidth(): number {
-        return this.bounds.width - this.rightValueLabelsWidth
-    }
-
-    /** The left padding at which a label of the given width still fits left of the given row's bar */
-    private getRequiredPadding(rowIndex: number, labelWidth: number): number {
-        const { fraction, extraWidth } = this.labelAnchors[rowIndex]
-        if (fraction >= 1) return 0
-        return Math.max(
-            0,
-            (labelWidth + extraWidth - fraction * this.plotWidth) /
-                (1 - fraction)
-        )
-    }
-
-    /** The width each label may take without increasing the padding its narrow wrap needs */
-    private computeLabelWidthBudgets(
-        narrowLabelWidths: readonly number[]
-    ): number[] {
-        const narrowPadding =
-            _.max(
-                narrowLabelWidths.map((width, index) =>
-                    this.getRequiredPadding(index, width)
-                )
-            ) ?? 0
-
-        return this.labelAnchors.map(
-            ({ fraction, extraWidth }) =>
-                narrowPadding +
-                fraction * (this.plotWidth - narrowPadding) -
-                extraWidth
-        )
+    /** Entity labels end at their bar's left edge, minus the value label for negative bars */
+    @computed private get labelColumn(): LabelColumn {
+        return {
+            plotWidth: this.bounds.width - this.rightValueLabelsWidth,
+            rowEnds: this.series.map((series) => {
+                const isNegative = series.value < 0
+                const barLeftEdge = isNegative ? series.value : this.x0
+                return {
+                    fraction: this.unitXAxis.place(barLeftEdge),
+                    offset: isNegative
+                        ? this.formatValue(series).width +
+                          GAP__ENTITY_LABEL__VALUE_LABEL
+                        : 0,
+                }
+            }),
+        }
     }
 
     /** The left padding at which every entity label still fits left of its bar */
     @computed private get leftLabelsWidth(): number {
-        const requiredPaddings = this.sizedSeries.map((series, index) =>
-            this.getRequiredPadding(
-                index,
+        return computeLabelColumnWidth(
+            this.labelColumn,
+            this.sizedSeries.map((series) =>
                 Math.max(
                     series.label?.width ?? 0,
                     series.annotationTextWrap?.width ?? 0
                 )
             )
         )
-        return _.max(requiredPaddings) ?? 0
     }
 
     @computed private get innerBounds(): Bounds {
