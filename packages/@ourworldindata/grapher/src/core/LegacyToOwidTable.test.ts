@@ -212,6 +212,32 @@ describe(legacyToOwidTableAndDimensions, () => {
             expect(annotations).toEqual([{ text: "Note", timeScope: "all" }])
         })
 
+        it("turns each legacy entityAnnotationsMap line into an all-time note for one entity", () => {
+            const annotations = getAnnotations({
+                display: {
+                    entityAnnotationsMap: "France: Note A\nSpain: Note B",
+                },
+            })
+
+            expect(annotations).toEqual([
+                { text: "Note A", entityNames: ["France"], timeScope: "all" },
+                { text: "Note B", entityNames: ["Spain"], timeScope: "all" },
+            ])
+        })
+
+        it("keeps the last legacy line for a repeated entity and skips lines with an empty entity or text", () => {
+            const annotations = getAnnotations({
+                display: {
+                    entityAnnotationsMap:
+                        "France: First\nFrance: Second\nSpain\n: No entity\nItaly:",
+                },
+            })
+
+            expect(annotations).toEqual([
+                { text: "Second", entityNames: ["France"], timeScope: "all" },
+            ])
+        })
+
         it("ignores a lone timeEnd, turns equal-end ranges into points and drops backwards ranges", () => {
             const warn = vi.spyOn(console, "warn").mockReturnValue()
 
