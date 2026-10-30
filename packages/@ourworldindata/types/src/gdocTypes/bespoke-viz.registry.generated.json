@@ -248,6 +248,44 @@
       ]
     },
     {
+      "id": "food-supply-chain",
+      "entryFile": "bespoke/projects/food-supply-chain/src/index.tsx",
+      "prose": {
+        "intro": ""
+      },
+      "examples": [],
+      "variants": [
+        {
+          "name": "waterfall",
+          "description": "Waterfall of how much food a country produces and where it goes",
+          "defaultSize": "widest",
+          "archie": "{.bespoke-component}\nbundle: food-supply-chain\nvariant: waterfall\nsize: widest\n{}\n"
+        }
+      ],
+      "config": [
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Chart title, replacing the generated one"
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "description": "Chart subtitle, replacing the generated one"
+        },
+        {
+          "name": "country",
+          "type": "string",
+          "description": "Country or region shown first, World if unset. `userLocation` picks the reader's country"
+        },
+        {
+          "name": "hideControls",
+          "type": "boolean",
+          "description": "Hide the country, measure and year controls"
+        }
+      ]
+    },
+    {
       "id": "food-trade",
       "entryFile": "bespoke/projects/food-trade/src/index.tsx",
       "prose": {

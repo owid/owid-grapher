@@ -407,6 +407,7 @@ const regionsWithArticles = new Set([
     "Channel Islands",
     "Dominican Republic",
     "Western Sahara",
+    "European Union",
     "Falkland Islands",
     "Faroe Islands",
     "United Kingdom",

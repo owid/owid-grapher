@@ -22,7 +22,7 @@ import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 import {
-    isUserLocationCountry,
+    findInitialCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 
@@ -88,9 +88,7 @@ function FetchingSankeyVariant({
     config: MigrationConfig
     urls: BespokeComponentDataUrls
 }) {
-    const initialCountry = isUserLocationCountry(config.country)
-        ? DEFAULT_COUNTRY
-        : config.country
+    const initialCountry = findInitialCountry(config.country, DEFAULT_COUNTRY)
 
     const [requestedCountry, setCountry] = useUrlState({
         key: COUNTRY_URL_PARAM,
