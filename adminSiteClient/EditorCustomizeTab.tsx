@@ -11,6 +11,7 @@ import {
     FacetAxisDomain,
     FacetStrategy,
     GRAPHER_CHART_TYPES,
+    SwimlaneSegmentLabelMode,
 } from "@ourworldindata/types"
 import {
     GrapherState,
@@ -250,7 +251,7 @@ class SortOrderSection extends React.Component<{ editor: ConfigEditor }> {
     }
 
     @computed get sortConfig(): SortConfig {
-        return this.grapherState._sortConfig
+        return this.grapherState.supportedSortConfig
     }
 
     @computed get grapherState() {
@@ -309,11 +310,14 @@ class SortOrderSection extends React.Component<{ editor: ConfigEditor }> {
             (opt) => opt.value === selectedKey
         )
         if (!selected) return
+        const { sortOrder } = this.sortConfig
         this.grapherState.sortBy = selected.dataValue.sortBy
         this.grapherState.sortColumnSlug = selected.dataValue.sortColumnSlug
+        this.grapherState.sortOrder = sortOrder
     }
 
     @action.bound onSortOrderChange(sortOrder: string) {
+        this.grapherState.sortBy = this.sortConfig.sortBy
         this.grapherState.sortOrder = sortOrder as SortOrder
     }
 
@@ -743,6 +747,31 @@ class TrendColorField extends React.Component<{
 }
 
 @observer
+class SwimlaneSection extends React.Component<{ editor: ConfigEditor }> {
+    override render(): React.ReactElement {
+        const { swimlane } = this.props.editor.grapherState
+        return (
+            <Section name="Timeline chart">
+                <FieldsRow>
+                    <Toggle
+                        label="Hide segment labels"
+                        value={
+                            swimlane.segmentLabelMode ===
+                            SwimlaneSegmentLabelMode.None
+                        }
+                        onValue={action((value: boolean) => {
+                            swimlane.segmentLabelMode = value
+                                ? SwimlaneSegmentLabelMode.None
+                                : SwimlaneSegmentLabelMode.CategoryAndTimeRange
+                        })}
+                    />
+                </FieldsRow>
+            </Section>
+        )
+    }
+}
+
+@observer
 class DumbbellSection extends React.Component<{ editor: ConfigEditor }> {
     constructor(props: { editor: ConfigEditor }) {
         super(props)
@@ -1013,7 +1042,9 @@ export class EditorCustomizeTab extends React.Component<EditorCustomizeTabProps>
                     </Section>
                 )}
                 <TimelineSection editor={this.props.editor} />
-                <FacetSection editor={this.props.editor} />
+                {features.canFacet && (
+                    <FacetSection editor={this.props.editor} />
+                )}
                 <Section name="Color scheme">
                     <ColorSchemeSelector
                         grapherState={grapherState}
@@ -1109,6 +1140,9 @@ export class EditorCustomizeTab extends React.Component<EditorCustomizeTabProps>
                 )}
                 {features.canConfigureDumbbell && (
                     <DumbbellSection editor={this.props.editor} />
+                )}
+                {features.canConfigureSwimlane && (
+                    <SwimlaneSection editor={this.props.editor} />
                 )}
             </div>
         )

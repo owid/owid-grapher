@@ -298,6 +298,7 @@ properties:
         - StackedBar
         - Marimekko
         - Dumbbell
+        - Swimlane
   hasMapTab:
     type: boolean
     default: false
@@ -319,6 +320,7 @@ properties:
       - stacked-bar
       - stacked-discrete-bar
       - dumbbell
+      - swimlane
   xAxis:
     $ref: "#/$defs/axis"
   yAxis:
@@ -457,6 +459,22 @@ properties:
             type: string
             description: Color for dumbbells whose value decreased over time
         additionalProperties: false
+    additionalProperties: false
+
+  swimlane:
+    type: object
+    description: Configuration of the swimlane chart
+    properties:
+      segmentLabelMode:
+        type: string
+        default: categoryAndTimeRange
+        description: |
+          What a segment's label shows:
+          - categoryAndTimeRange: the category name and the time range
+          - none: no segment labels
+        enum:
+          - categoryAndTimeRange
+          - none
     additionalProperties: false
 
   baseColorScheme:
@@ -621,7 +639,7 @@ properties:
   sortBy:
     type: string
     description: |
-      Sort criterion (used by discrete bar, stacked discrete bar, and dumbbell charts).
+      Sort criterion (used by discrete bar, stacked discrete bar, dumbbell and swimlane charts).
       - column: sort by the value of a specific column, identified by sortColumnSlug
       - total: sort by the total across all columns
       - entityName: sort alphabetically by entity name

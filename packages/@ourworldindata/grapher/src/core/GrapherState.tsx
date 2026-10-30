@@ -172,6 +172,7 @@ import {
 } from "../mapCharts/MapChartConstants.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
 import { DumbbellChartConfig } from "../dumbbellCharts/DumbbellChartConfig.js"
+import { SwimlaneChartConfig } from "../swimlaneCharts/SwimlaneChartConfig.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
 import {
     DownloadModalManager,
@@ -212,7 +213,6 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GrapherModal,
     GRAPHER_PROD_URL,
-    BASE_FONT_SIZE,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     STATIC_EXPORT_DETAIL_SPACING,
@@ -388,6 +388,9 @@ export class GrapherState
 
     /** Configuration of the dumbbell chart */
     dumbbell = new DumbbellChartConfig()
+
+    /** Configuration of the swimlane chart */
+    swimlane = new SwimlaneChartConfig()
 
     /** One of the predefined base color schemes. If not provided, a default is automatically chosen based on the chart type. */
     baseColorScheme: ColorSchemeName | undefined = undefined
@@ -634,9 +637,6 @@ export class GrapherState
     isWikimediaExport = false
     shouldIncludeDetailsInStaticExport = true
 
-    /** Base font size for responsive scaling of chart elements */
-    _baseFontSize = BASE_FONT_SIZE
-
     _isInFullScreenMode = false
     windowInnerWidth: number | undefined = undefined
     windowInnerHeight: number | undefined = undefined
@@ -718,6 +718,7 @@ export class GrapherState
             colorScale: observable,
             map: observable,
             dumbbell: observable,
+            swimlane: observable,
             dimensions: observable.ref,
             ySlugs: observable,
             xSlug: observable,
@@ -772,7 +773,6 @@ export class GrapherState
             shouldIncludeDetailsInStaticExport: observable,
             _externalBounds: observable,
             slideShow: observable,
-            _baseFontSize: observable,
             isShareMenuActive: observable,
             isCommandPaletteOpen: observable,
             hideTitle: observable,
@@ -1822,7 +1822,12 @@ export class GrapherState
 
     /** Plots time on the x-axis */
     @computed private get hasTimeDimension(): boolean {
-        return this.isStackedBar || this.isStackedArea || this.isLineChart
+        return (
+            this.isStackedBar ||
+            this.isStackedArea ||
+            this.isLineChart ||
+            this.isSwimlane
+        )
     }
 
     @computed private get hasTimeDimensionButTimelineIsHidden(): boolean {
@@ -2017,6 +2022,7 @@ export class GrapherState
         return (
             tabName === GRAPHER_TAB_NAMES.LineChart ||
             tabName === GRAPHER_TAB_NAMES.SlopeChart ||
+            tabName === GRAPHER_TAB_NAMES.Swimlane ||
             (tabName === GRAPHER_TAB_NAMES.Dumbbell &&
                 !this.checkIsTwoColumnDumbbell(tabName))
         )
@@ -2900,10 +2906,6 @@ export class GrapherState
         this.selectedFacetStrategy = facet
     }
 
-    set baseFontSize(val: number) {
-        this._baseFontSize = val
-    }
-
     @computed private get defaultSourcesLine(): string {
         const columnSlugs = pickColumnsForSourcesLine({
             table: this.inputTable,
@@ -2999,6 +3001,10 @@ export class GrapherState
         return this.chartType === GRAPHER_CHART_TYPES.Dumbbell
     }
 
+    @computed get isSwimlane(): boolean {
+        return this.chartType === GRAPHER_CHART_TYPES.Swimlane
+    }
+
     @computed get isOnLineChartTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.LineChart
     }
@@ -3029,6 +3035,10 @@ export class GrapherState
 
     @computed get isOnStackedDiscreteBarTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
+    }
+
+    @computed get isOnSwimlaneTab(): boolean {
+        return this.activeChartType === GRAPHER_CHART_TYPES.Swimlane
     }
 
     @computed get isOnDumbbellTab(): boolean {
@@ -3077,8 +3087,12 @@ export class GrapherState
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Dumbbell)
     }
 
+    @computed get hasSwimlane(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Swimlane)
+    }
+
     @computed get supportsMultipleYColumns(): boolean {
-        return !this.isScatter && !this.isMarimekko
+        return !this.isScatter && !this.isMarimekko && !this.isSwimlane
     }
 
     /** Time scatters plot time on the x-axis */
@@ -3631,6 +3645,7 @@ export class GrapherState
 
         if (
             !this.isOnDumbbellTab &&
+            !this.isOnSwimlaneTab &&
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
             this.selection.selectedEntityNames.length > 1
         ) {
@@ -3656,6 +3671,18 @@ export class GrapherState
             this.isFaceted &&
             this.selection.numSelectedEntities > 1 &&
             this.yColumnSlugs.length > 1
+        )
+    }
+
+    @computed get supportedSortConfig(): SortConfig {
+        const { sortBy } = this._sortConfig
+        if (sortBy && this.availableSortKeysAcrossChartTypes.includes(sortBy))
+            return this._sortConfig
+        return (
+            this.chartStateExceptMap.defaultSortConfig ?? {
+                sortBy: SortBy.total,
+                sortOrder: SortOrder.desc,
+            }
         )
     }
 
@@ -3714,7 +3741,7 @@ export class GrapherState
             return this.computeBaseFontSizeFromHeight(this.staticBounds)
         }
         if (this.isStatic) return 18
-        return this._baseFontSize
+        return this.computeBaseFontSizeFromWidth(this.captionedChartBounds)
     }
 
     // The header and footer don't rely on the base font size unless explicitly specified
@@ -3728,7 +3755,7 @@ export class GrapherState
         return Math.max(10, bounds.height / factor)
     }
 
-    computeBaseFontSizeFromWidth(bounds: Bounds): number {
+    private computeBaseFontSizeFromWidth(bounds: Bounds): number {
         if (bounds.width <= 400) return 14
         else if (bounds.width < 1080) return 16
         else if (bounds.width >= 1080) return 18
@@ -4218,7 +4245,7 @@ export class GrapherState
         if (this.numSelectableEntityNames < 2) return false
         if (
             this.addCountryMode === EntitySelectionMode.MultipleEntities ||
-            (this.isOnDumbbellTab &&
+            ((this.isOnDumbbellTab || this.isOnSwimlaneTab) &&
                 this.addCountryMode === EntitySelectionMode.SingleEntity)
         )
             return true
@@ -4255,7 +4282,8 @@ export class GrapherState
                 this.isOnStackedBarTab ||
                 this.isOnDiscreteBarTab ||
                 this.isOnStackedDiscreteBarTab ||
-                this.isOnDumbbellTab)
+                this.isOnDumbbellTab ||
+                this.isOnSwimlaneTab)
         )
     }
 

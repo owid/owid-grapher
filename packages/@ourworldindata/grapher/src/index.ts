@@ -176,6 +176,7 @@ export type { StackedDiscreteBarChartState } from "./stackedCharts/StackedDiscre
 export type { ScatterPlotChartState } from "./scatterCharts/ScatterPlotChartState"
 export type { MarimekkoChartState } from "./marimekko/MarimekkoChartState"
 export type { DumbbellChartState } from "./dumbbellCharts/DumbbellChartState"
+export type { SwimlaneChartState } from "./swimlaneCharts/SwimlaneChartState"
 
 export {
     selectPeerCountriesForGrapher,

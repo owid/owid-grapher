@@ -12,6 +12,7 @@ import {
     omitUndefinedValues,
     isPresent,
     dayjs,
+    Dayjs,
     OwidSource,
     formatValue,
     checkIsVeryShortUnit,
@@ -933,10 +934,14 @@ export abstract class TimeColumn<
 > extends AbstractCoreColumn<number, TABLE_TYPE, DEF_TYPE> {
     jsType = JsTypes.number
 
+    /** The word placed before a formatted time, e.g. "in" or "on" */
     abstract preposition: string
 
-    // Human-readable name of the time interval (e.g. "Year", "Month")
+    /** Human-readable name of the time interval, e.g. "Year" or "Month" */
     abstract intervalName: string
+
+    /** The length of one period, in the column's unit of time */
+    protected periodLength = 1
 
     @imemo override get displayName(): string {
         return _.capitalize(this.name)
@@ -957,6 +962,23 @@ export abstract class TimeColumn<
      */
     getUniformlySpacedTimes(sortedTimes: number[]): number[] {
         return withUniformSpacing(sortedTimes)
+    }
+
+    /** The time `count` periods after `time` */
+    addPeriods(time: Time, count: number): Time {
+        return time + count * this.periodLength
+    }
+
+    /** The number of periods from `startTime` to `endTime`, both included */
+    countPeriods(startTime: Time, endTime: Time): number {
+        return Math.floor((endTime - startTime) / this.periodLength) + 1
+    }
+
+    /** Every time from `startTime` to `endTime`, one period apart */
+    getConsecutiveTimes(startTime: Time, endTime: Time): Time[] {
+        return R.range(0, this.countPeriods(startTime, endTime)).map((index) =>
+            this.addPeriods(startTime, index)
+        )
     }
 }
 
@@ -1043,15 +1065,70 @@ class DateColumn<
     }
 }
 
-// A sub-yearly month column. Like all sub-yearly columns it stores
-// days-since-epoch internally (a representative day per month)
-// and only differs from DayColumn in how it formats those values.
-class MonthColumn<
+type CalendarUnit = "month" | "quarter"
+
+/**
+ * A sub-yearly column whose periods vary in length (months, quarters), so it
+ * steps through the calendar instead of by a fixed `periodLength`.
+ */
+abstract class CalendarPeriodColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
 > extends DayColumn<TABLE_TYPE, DEF_TYPE> {
+    protected abstract calendarUnit: CalendarUnit
+
+    private static readonly epochPeriodStarts: Record<CalendarUnit, Dayjs> = {
+        month: dayjs.utc(EPOCH_DATE).startOf("month"),
+        quarter: dayjs.utc(EPOCH_DATE).startOf("quarter"),
+    }
+
+    private periodsSinceEpoch(time: Time): number {
+        return convertDaysSinceEpochToDate(time)
+            .startOf(this.calendarUnit)
+            .diff(
+                CalendarPeriodColumn.epochPeriodStarts[this.calendarUnit],
+                this.calendarUnit
+            )
+    }
+
+    private startOfPeriod(periodsSinceEpoch: number): Time {
+        return convertDateToDaysSinceEpoch(
+            CalendarPeriodColumn.epochPeriodStarts[this.calendarUnit].add(
+                periodsSinceEpoch,
+                this.calendarUnit
+            )
+        )
+    }
+
+    override addPeriods(time: Time, count: number): Time {
+        return this.startOfPeriod(this.periodsSinceEpoch(time) + count)
+    }
+
+    override countPeriods(startTime: Time, endTime: Time): number {
+        return (
+            this.periodsSinceEpoch(endTime) -
+            this.periodsSinceEpoch(startTime) +
+            1
+        )
+    }
+
+    override getUniformlySpacedTimes(sortedTimes: Time[]): Time[] {
+        const periods = new Set(
+            sortedTimes.map((time) => this.periodsSinceEpoch(time))
+        )
+        return withUniformSpacing([...periods]).map((period) =>
+            this.startOfPeriod(period)
+        )
+    }
+}
+
+class MonthColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends CalendarPeriodColumn<TABLE_TYPE, DEF_TYPE> {
     override intervalName = "Month"
     override preposition = "in"
+    protected calendarUnit: CalendarUnit = "month"
 
     override get timeInterval(): TimeInterval {
         return TimeInterval.Month
@@ -1064,39 +1141,6 @@ class MonthColumn<
     override formatForCsv(value: number): string {
         return memoFormatMonthCsv(value) // "2023-01"
     }
-
-    // The first of the epoch's month, used as the anchor for counting months.
-    private static readonly epochMonthStart = dayjs
-        .utc(EPOCH_DATE)
-        .startOf("month")
-
-    // Whole calendar months between the given day's month and the epoch's month.
-    private static monthsSinceEpoch(daysSinceEpoch: number): number {
-        return convertDaysSinceEpochToDate(daysSinceEpoch)
-            .startOf("month")
-            .diff(MonthColumn.epochMonthStart, "month")
-    }
-
-    // Inverse of monthsSinceEpoch: days-since-epoch for the first of that month.
-    private static daysAtStartOfMonth(monthsSinceEpoch: number): number {
-        const firstOfMonth = MonthColumn.epochMonthStart.add(
-            monthsSinceEpoch,
-            "month"
-        )
-        return convertDateToDaysSinceEpoch(firstOfMonth)
-    }
-
-    // Fill gaps one month at a time. We space in month-space (not the raw
-    // days-since-epoch of the base class) because months are 28–31 days apart,
-    // which would make the base GCD collapse to a daily grid. This also lets the
-    // GCD respect the cadence, so e.g. bi-monthly data isn't force-filled.
-    override getUniformlySpacedTimes(sortedTimes: number[]): number[] {
-        const months = new Set(
-            new Set(sortedTimes).values().map(MonthColumn.monthsSinceEpoch)
-        )
-        const spacedMonths = withUniformSpacing([...months])
-        return spacedMonths.map(MonthColumn.daysAtStartOfMonth)
-    }
 }
 
 // A sub-yearly week column, storing days-since-epoch
@@ -1107,6 +1151,7 @@ class WeekColumn<
 > extends DayColumn<TABLE_TYPE, DEF_TYPE> {
     override intervalName = "Week"
     override preposition = "in"
+    protected override periodLength = 7
 
     override get timeInterval(): TimeInterval {
         return TimeInterval.Week
@@ -1144,9 +1189,10 @@ class WeekColumn<
 class QuarterColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
-> extends DayColumn<TABLE_TYPE, DEF_TYPE> {
+> extends CalendarPeriodColumn<TABLE_TYPE, DEF_TYPE> {
     override intervalName = "Quarter"
     override preposition = "in"
+    protected calendarUnit: CalendarUnit = "quarter"
 
     override get timeInterval(): TimeInterval {
         return TimeInterval.Quarter
@@ -1179,39 +1225,6 @@ class QuarterColumn<
     override formatTimeRange(startTime: number, endTime: number): string {
         return `${this.formatTimeShort(startTime)} to ${this.formatTimeShortEnd(endTime)}`
     }
-
-    // The first of the epoch's quarter, used as the anchor for counting quarters.
-    private static readonly epochQuarterStart = dayjs
-        .utc(EPOCH_DATE)
-        .startOf("quarter")
-
-    // Whole calendar quarters between the given day's quarter and the epoch's.
-    private static quartersSinceEpoch(daysSinceEpoch: number): number {
-        return convertDaysSinceEpochToDate(daysSinceEpoch)
-            .startOf("quarter")
-            .diff(QuarterColumn.epochQuarterStart, "quarter")
-    }
-
-    // Inverse of quartersSinceEpoch: days-since-epoch for the first of that quarter.
-    private static daysAtStartOfQuarter(quartersSinceEpoch: number): number {
-        const firstOfQuarter = QuarterColumn.epochQuarterStart.add(
-            quartersSinceEpoch,
-            "quarter"
-        )
-        return convertDateToDaysSinceEpoch(firstOfQuarter)
-    }
-
-    // Fill gaps one quarter at a time. We space in quarter-space (not the raw
-    // days-since-epoch of the base class) because quarters are 90–92 days apart,
-    // which would make the base GCD collapse to a daily grid. This also lets the
-    // GCD respect the cadence, so e.g. semiannual data isn't force-filled.
-    override getUniformlySpacedTimes(sortedTimes: number[]): number[] {
-        const quarters = new Set(
-            new Set(sortedTimes).values().map(QuarterColumn.quartersSinceEpoch)
-        )
-        const spacedQuarters = withUniformSpacing([...quarters])
-        return spacedQuarters.map(QuarterColumn.daysAtStartOfQuarter)
-    }
 }
 
 // A decade column, storing literal years (a representative year per decade)
@@ -1221,6 +1234,7 @@ class DecadeColumn<
 > extends YearColumn<TABLE_TYPE, DEF_TYPE> {
     override intervalName = "Decade"
     override preposition = "in the" // "in the 2020s"
+    protected override periodLength = 10
 
     override get timeInterval(): TimeInterval {
         return TimeInterval.Decade

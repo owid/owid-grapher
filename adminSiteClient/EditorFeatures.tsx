@@ -29,7 +29,8 @@ export class EditorFeatures {
             this.grapherState.hasScatter ||
             this.grapherState.hasMarimekko ||
             this.grapherState.hasStackedArea ||
-            this.grapherState.hasStackedBar
+            this.grapherState.hasStackedBar ||
+            this.grapherState.hasSwimlane
         )
     }
 
@@ -57,7 +58,8 @@ export class EditorFeatures {
             this.grapherState.hasStackedArea ||
             this.grapherState.hasScatter ||
             (this.grapherState.hasDumbbellChart &&
-                this.grapherState.yColumnSlugs.length <= 1)
+                this.grapherState.yColumnSlugs.length <= 1) ||
+            this.grapherState.hasSwimlane
         )
     }
 
@@ -112,6 +114,17 @@ export class EditorFeatures {
         )
     }
 
+    @computed get canFacet() {
+        return (
+            this.grapherState.hasLineChart ||
+            this.grapherState.hasSlopeChart ||
+            this.grapherState.hasDiscreteBar ||
+            this.grapherState.hasStackedArea ||
+            this.grapherState.hasStackedBar ||
+            this.grapherState.hasStackedDiscreteBar
+        )
+    }
+
     @computed get canSpecifySortOrder() {
         return this.grapherState.availableSortKeysAcrossChartTypes.length > 0
     }
@@ -124,6 +137,10 @@ export class EditorFeatures {
 
     @computed get canHideTotalValueLabel() {
         return this.grapherState.hasStackedDiscreteBar
+    }
+
+    @computed get canConfigureSwimlane() {
+        return this.grapherState.hasSwimlane
     }
 
     @computed get canConfigureDumbbell() {
