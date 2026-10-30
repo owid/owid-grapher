@@ -294,7 +294,7 @@ export const getRelatedResearchAndWritingForVariables = async (
                 JOIN chart_configs cc ON cc.id = c.configId
             WHERE
                 cd.variableId IN (?)
-                AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
+                AND cd.property IN ('x', 'y', 'map') -- ignore cases where the indicator is size or color
                 AND (
                     cc.config ->> '$.isPublished' = 'true'
                     OR NOT EXISTS (
@@ -311,7 +311,7 @@ export const getRelatedResearchAndWritingForVariables = async (
                 JOIN chart_slug_redirects csr ON csr.chart_id = cd.chartId
             WHERE
                 cd.variableId IN (?)
-                AND cd.property IN ('x', 'y')
+                AND cd.property IN ('x', 'y', 'map')
                 AND NOT EXISTS (
                     SELECT 1
                     FROM chart_configs cc

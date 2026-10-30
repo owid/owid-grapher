@@ -109,6 +109,7 @@ export enum DimensionProperty {
     size = "size",
     color = "color",
     table = "table",
+    map = "map",
 }
 
 // see CoreTableConstants.ts
