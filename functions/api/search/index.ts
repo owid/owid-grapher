@@ -5,6 +5,8 @@ import {
     searchCharts,
     searchPages,
     searchTopicPages,
+    PAGE_SEARCHABLE_ATTRIBUTES,
+    PageSearchableAttribute,
     SearchApiResponse,
     SearchPagesApiResponse,
     SearchState,
@@ -43,6 +45,7 @@ const KNOWN_PARAMS = new Set<string>([
     SearchUrlParam.TOPIC,
     SearchUrlParam.REQUIRE_ALL_COUNTRIES,
     "pageTypes",
+    "restrictSearchableAttributes",
     "page",
     "hitsPerPage",
 ])
@@ -56,6 +59,7 @@ const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
     [SearchUrlParam.TOPIC, ["charts", "topics"]],
     [SearchUrlParam.REQUIRE_ALL_COUNTRIES, ["charts", "topics"]],
     ["pageTypes", ["pages"]],
+    ["restrictSearchableAttributes", ["pages"]],
 ])
 
 // type=topics filters by country only when charts match a query, so never
@@ -67,6 +71,11 @@ const CHART_ONLY_PARAMS = new Set<string>([
 
 const isSearchType = (value: string): value is SearchType =>
     (SEARCH_TYPES as readonly string[]).includes(value)
+
+const isPageSearchableAttribute = (
+    value: string
+): value is PageSearchableAttribute =>
+    (PAGE_SEARCHABLE_ATTRIBUTES as readonly string[]).includes(value)
 
 // Hints for parameters people carry over from the search page's URL.
 const PARAM_HINTS = new Map<string, string>([
@@ -206,6 +215,36 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             }
         }
 
+        const restrictParam =
+            searchType === "pages"
+                ? url.searchParams.get("restrictSearchableAttributes")
+                : null
+        const restrictValues = (restrictParam ?? "")
+            .split(",")
+            .map((attribute) => attribute.trim())
+            .filter(Boolean)
+        const invalidAttributes = restrictValues.filter(
+            (attribute) => !isPageSearchableAttribute(attribute)
+        )
+        if (invalidAttributes.length > 0) {
+            return new Response(
+                JSON.stringify({
+                    error: "Invalid restrictSearchableAttributes parameter",
+                    details: `Unknown attribute(s): "${invalidAttributes.join('", "')}". Valid attributes: ${PAGE_SEARCHABLE_ATTRIBUTES.join(", ")}`,
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                }
+            )
+        }
+        const restrictSearchableAttributes = restrictValues.filter(
+            isPageSearchableAttribute
+        )
+
         // Parse pagination parameters
         const page = parseInt(url.searchParams.get("page") || "0")
         const hitsPerPage = parseInt(
@@ -307,7 +346,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                         page * hitsPerPage, // Convert page to offset
                         hitsPerPage,
                         pageTypes, // undefined -> searchPages()'s own default
-                        baseUrl
+                        baseUrl,
+                        restrictSearchableAttributes
                     )
                 case "topics":
                     return searchTopicPages(

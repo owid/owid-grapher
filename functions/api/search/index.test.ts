@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach, assert } from "vitest"
+import { describe, it, expect, vi, beforeEach, afterEach, assert } from "vitest"
 import { onRequestGet } from "./index.js"
 import * as searchApi from "./searchApi.js"
+import * as algoliaClient from "./algoliaClient.js"
 import type { Env } from "../../_common/env.js"
 
 // Mock the searchApi module
@@ -12,6 +13,11 @@ vi.mock(import("./searchApi.js"), async (importOriginal) => {
         searchPages: vi.fn(),
         searchTopicPages: vi.fn(),
     }
+})
+
+vi.mock(import("./algoliaClient.js"), async (importOriginal) => {
+    const actual = await importOriginal()
+    return { ...actual, createSearchClient: vi.fn() }
 })
 
 describe("Search API endpoint", () => {
@@ -121,7 +127,8 @@ describe("Search API endpoint", () => {
                 20, // page 2 * hitsPerPage 10 = offset 20
                 10,
                 undefined,
-                "http://localhost"
+                "http://localhost",
+                []
             )
         })
 
@@ -147,7 +154,8 @@ describe("Search API endpoint", () => {
                 0, // default page 0
                 20, // default hitsPerPage 20
                 undefined,
-                "http://localhost"
+                "http://localhost",
+                []
             )
         })
     })
@@ -175,7 +183,8 @@ describe("Search API endpoint", () => {
                 0,
                 20,
                 ["data-insight"],
-                "http://localhost"
+                "http://localhost",
+                []
             )
         })
 
@@ -201,7 +210,8 @@ describe("Search API endpoint", () => {
                 0,
                 20,
                 ["article", "about-page"],
-                "http://localhost"
+                "http://localhost",
+                []
             )
         })
 
@@ -221,6 +231,125 @@ describe("Search API endpoint", () => {
             assert(typeof body === "object" && body !== null && "error" in body)
             expect(body.error).toContain("bogus-type")
             expect(mockSearchPages).not.toHaveBeenCalled()
+        })
+    })
+
+    describe("restrictSearchableAttributes parameter", () => {
+        afterEach(() => {
+            vi.mocked(searchApi.searchPages).mockReset()
+            vi.mocked(algoliaClient.createSearchClient).mockReset()
+        })
+
+        // Runs the real searchPages against a fake Algolia client that
+        // finds nothing, so both the main request and the closest-matches
+        // fallback request are recorded.
+        const algoliaRequestsFor = async (
+            qs: string
+        ): Promise<Record<string, unknown>[]> => {
+            const actual =
+                await vi.importActual<typeof searchApi>("./searchApi.js")
+            vi.mocked(searchApi.searchPages).mockImplementation(
+                actual.searchPages
+            )
+            const searchForHits = vi.fn().mockResolvedValue({
+                results: [{ hits: [], nbHits: 0 }],
+            })
+            vi.mocked(algoliaClient.createSearchClient).mockReturnValue({
+                searchForHits,
+            } as any)
+
+            const request = new Request(`http://localhost/api/search?${qs}`)
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+            expect(response.status).toBe(200)
+            return searchForHits.mock.calls.map(([requests]) => requests[0])
+        }
+
+        it("restricts both the main and the closest-matches request", async () => {
+            const requests = await algoliaRequestsFor(
+                "q=malaria&type=pages&pageTypes=featured-viz&restrictSearchableAttributes=title,%20excerpt"
+            )
+
+            expect(requests).toHaveLength(2)
+            expect(requests[1]).toHaveProperty(
+                "removeWordsIfNoResults",
+                "allOptional"
+            )
+            for (const algoliaRequest of requests)
+                expect(algoliaRequest).toHaveProperty(
+                    "restrictSearchableAttributes",
+                    ["title", "excerpt"]
+                )
+        })
+
+        it("sends no restriction when the parameter is absent or empty", async () => {
+            for (const qs of [
+                "q=malaria&type=pages",
+                "q=malaria&type=pages&restrictSearchableAttributes=",
+            ]) {
+                const requests = await algoliaRequestsFor(qs)
+                expect(requests).toHaveLength(2)
+                for (const algoliaRequest of requests)
+                    expect(algoliaRequest).not.toHaveProperty(
+                        "restrictSearchableAttributes"
+                    )
+            }
+        })
+
+        it("rejects an unknown attribute without calling searchPages", async () => {
+            const mockSearchPages = vi.spyOn(searchApi, "searchPages")
+
+            const request = new Request(
+                "http://localhost/api/search?q=malaria&type=pages&restrictSearchableAttributes=title,slug"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(400)
+            const body = await response.json()
+            assert(
+                typeof body === "object" &&
+                    body !== null &&
+                    "error" in body &&
+                    "details" in body
+            )
+            expect(body.error).toBe(
+                "Invalid restrictSearchableAttributes parameter"
+            )
+            expect(body.details).toContain('"slug"')
+            expect(mockSearchPages).not.toHaveBeenCalled()
+        })
+
+        it("warns when sent to type=charts, without validating it", async () => {
+            vi.spyOn(searchApi, "searchCharts").mockResolvedValue({
+                query: "malaria",
+                results: [],
+                nbHits: 0,
+                page: 0,
+                nbPages: 0,
+                hitsPerPage: 20,
+            })
+
+            const request = new Request(
+                "http://localhost/api/search?q=malaria&type=charts&restrictSearchableAttributes=bogus"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(200)
+            const body = await response.json()
+            assert(
+                typeof body === "object" && body !== null && "warnings" in body
+            )
+            expect(body.warnings).toEqual([
+                'Ignored parameter "restrictSearchableAttributes": it applies only to type=pages.',
+            ])
         })
     })
 
@@ -499,7 +628,8 @@ describe("Search API endpoint", () => {
                 0,
                 20,
                 ["topic-page"],
-                "http://localhost"
+                "http://localhost",
+                []
             )
             expect(mockSearchTopicPages).not.toHaveBeenCalled()
         })
