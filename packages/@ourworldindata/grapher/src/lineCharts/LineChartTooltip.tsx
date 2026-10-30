@@ -6,7 +6,6 @@ import { Time } from "@ourworldindata/types"
 import { extent } from "d3-array"
 import { RenderLineChartSeries } from "./LineChartConstants"
 import { LineChartState } from "./LineChartState.js"
-import { getAnnotationsForSeries } from "./LineChartHelpers"
 import {
     Tooltip,
     TooltipState,
@@ -155,11 +154,8 @@ export class LineChartTooltip extends React.Component<LineChartTooltipProps> {
     ): TooltipTableProps["rows"][number] {
         const { target } = this
 
-        const { seriesName, displayName, isProjection: striped } = series
-        const annotation = getAnnotationsForSeries(
-            this.chartState.annotationsMap,
-            seriesName
-        )
+        const { displayName, isProjection: striped } = series
+        const annotation = series.entityAnnotation?.text
 
         const point = series.points.find((point) => point.x === target!.time)
 

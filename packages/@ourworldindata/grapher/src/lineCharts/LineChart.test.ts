@@ -618,3 +618,92 @@ describe("point annotations", () => {
         })
     })
 })
+
+describe("entity annotations", () => {
+    const entityAnnotation = (
+        text: string,
+        entityName: string
+    ): IndicatorAnnotation => ({
+        text,
+        entityNames: [entityName],
+        timeScope: "all",
+    })
+
+    const makeEntityAnnotatedChart = ({
+        secondColumnDef,
+        ...managerOptions
+    }: {
+        secondColumnDef?: { display: { isProjection: boolean } }
+    } & Partial<LineChartManager>): { chart: LineChart } => {
+        const table = new OwidTable(
+            {
+                entityName: ["usa", "usa", "fra", "fra"],
+                year: [2000, 2001, 2000, 2001],
+                gdp: [100, 200, 300, 400],
+                gdpProjected: [
+                    ErrorValueTypes.MissingValuePlaceholder,
+                    250,
+                    ErrorValueTypes.MissingValuePlaceholder,
+                    450,
+                ],
+            },
+            [
+                {
+                    slug: "gdp",
+                    type: ColumnTypeNames.Numeric,
+                    annotations: [entityAnnotation("usa note", "usa")],
+                },
+                {
+                    slug: "gdpProjected",
+                    type: ColumnTypeNames.Numeric,
+                    ...secondColumnDef,
+                },
+            ]
+        )
+        return makeLineChart({
+            table,
+            selection: ["usa", "fra"],
+            ...managerOptions,
+        })
+    }
+
+    it("gives the series of an annotated entity its note in entity strategy", () => {
+        const { chart } = makeEntityAnnotatedChart({
+            yColumnSlugs: ["gdp"],
+            seriesStrategy: SeriesStrategy.entity,
+        })
+
+        const textsByEntity = Object.fromEntries(
+            chart.series.map((series) => [
+                series.entityName,
+                series.entityAnnotation?.text,
+            ])
+        )
+        expect(textsByEntity).toEqual({ usa: "usa note", fra: undefined })
+    })
+
+    it("gives no series a note in column strategy", () => {
+        const { chart } = makeEntityAnnotatedChart({
+            yColumnSlugs: ["gdp", "gdpProjected"],
+            seriesStrategy: SeriesStrategy.column,
+        })
+
+        expect(chart.series).toHaveLength(4)
+        expect(chart.series.every((series) => !series.entityAnnotation)).toBe(
+            true
+        )
+    })
+
+    it("gives a projection series the note of the first column", () => {
+        const { chart } = makeEntityAnnotatedChart({
+            yColumnSlugs: ["gdp", "gdpProjected"],
+            seriesStrategy: SeriesStrategy.entity,
+            secondColumnDef: { display: { isProjection: true } },
+        })
+
+        const projectionUsa = chart.series.find(
+            (series) => series.isProjection && series.entityName === "usa"
+        )
+        expect(projectionUsa?.entityAnnotation?.text).toBe("usa note")
+    })
+})

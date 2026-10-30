@@ -13,6 +13,7 @@ import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants"
 import {
     AnnotationMarker,
+    EntityAnnotation,
     PointAnnotation,
     RangeAnnotation,
 } from "../annotations/EntityAnnotations"
@@ -117,6 +118,7 @@ export interface LineChartSeries extends ChartSeries {
     focus: InteractionState
     pointAnnotations: PointAnnotation[]
     rangeAnnotations: RangeAnnotation[]
+    entityAnnotation?: EntityAnnotation
 }
 
 export interface PlacedPointAnnotation {
