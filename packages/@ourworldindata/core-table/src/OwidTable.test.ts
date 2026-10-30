@@ -656,14 +656,14 @@ it("assigns originalTime as 'originalTime' in owidRows", () => {
 
 it("handles tsv column definitions", () => {
     const rows: CoreMatrix = [
-        ["gdp", "annotation", "year", "entityName", "entityId", "entityCode"],
-        [1000, "low", 2019, "USA", null, null],
-        [1001, "high", 2020, "UK", null, null],
+        ["gdp", "year", "entityName", "entityId", "entityCode"],
+        [1000, 2019, "USA", null, null],
+        [1001, 2020, "UK", null, null],
     ]
-    const defTsv = `slug	annotationsColumnSlug
-gdp	annotation`
+    const defTsv = `slug	unit
+gdp	international-$`
     const table = new OwidTable(rows, defTsv)
-    expect(table.get("gdp").def.annotationsColumnSlug).toEqual("annotation")
+    expect(table.get("gdp").def.unit).toEqual("international-$")
 })
 
 describe("printing", () => {
