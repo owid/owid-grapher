@@ -5,15 +5,13 @@ import {
     isMobile,
     PointVector,
 } from "@ourworldindata/utils"
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import { CoreColumn } from "@ourworldindata/core-table"
 import { match } from "ts-pattern"
 import { scaleLinear } from "d3-scale"
 import {
     AxisAlign,
     AxisConfigInterface,
-    ColumnSlug,
     EntityName,
-    PrimitiveType,
     ScaleType,
     SeriesName,
     SeriesStrategy,
@@ -45,8 +43,6 @@ import {
     RangeAnnotation,
 } from "../annotations/EntityAnnotations"
 import { SeriesLabelAnnotation } from "../seriesLabel/SeriesLabelState"
-
-export type AnnotationsMap = Map<PrimitiveType, Set<PrimitiveType>>
 
 export interface GetSeriesNameArgs {
     entityName: EntityName
@@ -110,26 +106,6 @@ export function getColorKey({
     return hasMultipleEntitiesSelected
         ? `${entityName} - ${columnName}`
         : columnName
-}
-
-export function getAnnotationsMap(
-    table: OwidTable,
-    slug: ColumnSlug
-): AnnotationsMap | undefined {
-    return table
-        .getAnnotationColumnForColumn(slug)
-        ?.getUniqueValuesGroupedBy(table.entityNameSlug)
-}
-
-export function getAnnotationsForSeries(
-    annotationsMap: AnnotationsMap | undefined,
-    seriesName: SeriesName
-): string | undefined {
-    const annotations = annotationsMap?.get(seriesName)
-    if (!annotations) return undefined
-    return Array.from(annotations.values())
-        .filter((anno) => anno)
-        .join(" & ")
 }
 
 export function getYAxisConfigDefaults(
