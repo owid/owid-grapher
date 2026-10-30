@@ -15,6 +15,7 @@ import type {
 import StylesTarget from "vite-plugin-css-position/react"
 
 import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
+import { EmbedOptionsProvider } from "../../../hooks/useEmbedOptions.js"
 
 import "./index.scss"
 
@@ -70,7 +71,9 @@ export const mount: BespokeComponentMountFn = (
         <>
             {/* This is where Vite-injected styles will be placed - make sure to add this to your code so that the styles are correctly injected into the Shadow DOM. */}
             <StylesTarget />
-            <variant.component config={config} />
+            <EmbedOptionsProvider options={opts.embedOptions}>
+                <variant.component config={config} />
+            </EmbedOptionsProvider>
         </>
     )
     return () => root.unmount()
