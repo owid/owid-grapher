@@ -15,6 +15,7 @@ import { SeriesName, SeriesStrategy, Time } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
+    NARROW_CHART_WIDTH,
 } from "../core/GrapherConstants"
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "../axis/AxisViews"
@@ -110,9 +111,17 @@ export class StackedAreaChart
     }
 
     @computed private get innerBounds(): Bounds {
+        return this.makeInnerBounds({ paddingRight: this.verticalLabelsWidth })
+    }
+
+    private makeInnerBounds({
+        paddingRight,
+    }: {
+        paddingRight: number
+    }): Bounds {
         return (
             this.bounds
-                .padRight(this.paddingForLegendRight)
+                .padRight(paddingRight)
                 // top padding leaves room for tick labels
                 .padTop(6)
                 // bottom padding avoids axis labels to be cut off at some resolutions
@@ -121,9 +130,13 @@ export class StackedAreaChart
     }
 
     @computed private get dualAxis(): DualAxis {
+        return this.makeDualAxis(this.innerBounds)
+    }
+
+    private makeDualAxis(bounds: Bounds): DualAxis {
         const { horizontalAxisPart, verticalAxisPart } = this
         return new DualAxis({
-            bounds: this.innerBounds,
+            bounds,
             horizontalAxis: horizontalAxisPart,
             verticalAxis: verticalAxisPart,
             comparisonLines: this.manager.comparisonLines,
@@ -202,16 +215,33 @@ export class StackedAreaChart
         return new VerticalLabelsState(this.verticalLabelsSeries, {
             maxWidth: this.maxVerticalLabelsWidth,
             baseFontSize: this.fontSize,
-            yAxis: () => this.yAxis,
+            yAxis: () => this.yAxisWithStableLabelsWidth,
             yRange: () => this.verticalLabelsYRange,
             seriesNamesSortedByImportance: this.seriesSortedByImportance,
             showRegionTooltip: !this.isStatic,
         })
     }
 
+    @computed private get useCompactLayout(): boolean {
+        return (
+            !!this.manager.isSemiNarrow ||
+            this.bounds.width < NARROW_CHART_WIDTH
+        )
+    }
+
     @computed private get verticalLabelsWidth(): number {
         if (!this.showLegend) return 0
-        return this.verticalLabelsState.stableWidth
+        return this.useCompactLayout
+            ? this.verticalLabelsState.width
+            : this.verticalLabelsState.stableWidth
+    }
+
+    @computed private get yAxisWithStableLabelsWidth(): VerticalAxis {
+        if (!this.useCompactLayout) return this.yAxis
+        const bounds = this.makeInnerBounds({
+            paddingRight: this.verticalLabelsState.stableWidth,
+        })
+        return this.makeDualAxis(bounds).verticalAxis
     }
 
     @action.bound private onAreaMouseEnter(seriesName: SeriesName): void {
@@ -228,10 +258,6 @@ export class StackedAreaChart
 
     @action.bound private onAreaMouseLeave(): void {
         _.extend(this.tooltipState.target, { series: undefined })
-    }
-
-    @computed private get paddingForLegendRight(): number {
-        return this.verticalLabelsWidth
     }
 
     @computed get externalLegend(): ExternalColorLegendData | undefined {
