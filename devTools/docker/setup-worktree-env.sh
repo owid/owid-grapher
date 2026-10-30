@@ -125,14 +125,17 @@ for setting in \
 done
 
 # copy credentials from the main checkout's .env if present: search-only
-# Algolia keys, and a Cloudflare API token that wrangler reads from .env and
-# prefers over its machine-wide `wrangler login` (which may be another account)
+# Algolia keys, a Cloudflare API token that wrangler reads from .env and
+# prefers over its machine-wide `wrangler login` (which may be another account),
+# and the Google Docs keys the admin needs to preview and publish gdocs
 MAIN_WORKTREE="$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -n 1)"
 if [ -n "$MAIN_WORKTREE" ] && [ -e "$MAIN_WORKTREE/.env" ]; then
     for var in ALGOLIA_ID ALGOLIA_SEARCH_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
         line="$(grep -E "^[[:space:]]*${var}=" "$MAIN_WORKTREE/.env" | tail -n 1 || true)"
         [ -n "$line" ] && echo "$line" >> .env
     done
+    # all of them, as there are several (service account, template and folder ids)
+    grep -E "^[[:space:]]*GDOCS_[A-Z_]+=" "$MAIN_WORKTREE/.env" >> .env || true
 fi
 
 echo "==> Wrote .env for this checkout:"
