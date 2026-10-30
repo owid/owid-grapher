@@ -57,6 +57,7 @@ import { generateEmbedSnippet } from "../site/viteUtils.js"
 import {
     renderPreviewDataPageOrGrapherPage,
     renderDataPageV2,
+    parseDatapageQaParams,
 } from "../baker/GrapherBaker.js"
 import { getTombstoneBySlug } from "../db/model/GdocTombstone.js"
 import * as db from "../db/db.js"
@@ -324,7 +325,8 @@ getPlainRouteWithROTransaction(
                 await renderPreviewDataPageOrGrapherPage(
                     chartRow.config,
                     chartRow.id,
-                    trx
+                    trx,
+                    parseDatapageQaParams(req.query)
                 )
             res.send(previewDataPageOrGrapherPage)
             return

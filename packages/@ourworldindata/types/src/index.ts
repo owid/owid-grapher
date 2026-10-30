@@ -319,6 +319,12 @@ export type {
 } from "./gdocTypes/ComponentPreviews.js"
 
 export {
+    type AdditionalIndicator,
+    type StitchedIndicatorListEntry,
+    type AuxiliaryIndicator,
+    type AuxiliaryIndicatorMode,
+    AUXILIARY_INDICATOR_MODES,
+    DEFAULT_AUXILIARY_INDICATOR_MODE,
     type Distribution,
     type DataPageV2ContentFields,
     type DataPageDataV2,
@@ -795,6 +801,8 @@ export {
     parseVariableDisplayConfig,
     serializeVariableDisplayConfig,
     parseVariableDimensions,
+    type VariableDisplayDimension,
+    type VariableSliceDimensions,
     serializeVariableDimensions,
     parseVariablesRow,
     serializeVariablesRow,
