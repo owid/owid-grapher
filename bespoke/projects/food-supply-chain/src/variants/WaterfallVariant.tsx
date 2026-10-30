@@ -20,8 +20,10 @@ import {
     findInitialCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 
 import { FoodSupplyChainControls } from "../components/FoodSupplyChainControls.js"
 import {
@@ -29,7 +31,7 @@ import {
     FoodSupplyChainWaterfall,
 } from "../components/FoodSupplyChainWaterfall.js"
 import { FoodSupplyChainWaterfallHorizontal } from "../components/FoodSupplyChainWaterfallHorizontal.js"
-import { FoodSupplyChainConfig } from "../core/config.js"
+import type { FoodSupplyChainConfig } from "../index.js"
 import { VERTICAL_CHART_HEIGHT } from "../core/constants.js"
 import {
     queryClient,
@@ -51,7 +53,7 @@ const LATEST_YEAR = Infinity
 export function WaterfallVariant({
     config,
     urls,
-}: VariantProps<FoodSupplyChainConfig>): React.ReactElement {
+}: BespokeVariantProps<FoodSupplyChainConfig>): React.ReactElement {
     return (
         <EmbedConfigProvider config={config}>
             <NuqsAdapter>
