@@ -39,7 +39,6 @@ import {
     makeOriginalStartTimeSlugFromColumnSlug,
     timeColumnSlugFromColumnDef,
     toPercentageColumnDef,
-    makeAnnotationsSlug,
 } from "./OwidTableUtil.js"
 import {
     linearInterpolation,
@@ -137,21 +136,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.rowIndex([this.entityNameSlug])
     }
 
-    getAnnotationColumnSlug(columnDef: OwidColumnDef): string | undefined {
-        return _.isEmpty(columnDef?.annotationsColumnSlug)
-            ? makeAnnotationsSlug(columnDef.slug)
-            : columnDef.annotationsColumnSlug
-    }
-
-    // todo: instead of this we should probably make annotations another property on charts—something like "annotationsColumnSlugs"
-    getAnnotationColumnForColumn(columnSlug: ColumnSlug): OwidColumn {
-        const def = this.get(columnSlug).def
-        const slug = this.getAnnotationColumnSlug(def)
-        return this.get(slug)
-    }
-
     getTimesUniqSortedAscForColumns(columnSlugs: ColumnSlug[]): number[] {
-        // todo: should be easy to speed up if necessary.
         return sortNumeric(
             _.uniq(
                 this.getColumns(columnSlugs)
@@ -782,15 +767,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
             if (def.display?.isProjection)
                 label += useShortNames ? "__projected" : " (Projected)"
-
-            if (col.def.derivedFrom?.relationship === "annotations") {
-                const dataSlug = col.def.derivedFrom.columnSlug
-                const dataColumn = this.get(dataSlug)
-                const suffix = useShortNames
-                    ? "__annotations"
-                    : " (Annotations)"
-                label = `${getLabelForColumn(dataColumn)}${suffix}`
-            }
 
             return label
         }
