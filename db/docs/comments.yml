@@ -1,0 +1,69 @@
+metadata:
+  description: |
+    Internal comments that OWID staff attach to content in the admin, used to flag
+    and discuss data/metadata issues in context (e.g. a typo on a data page, a
+    broken multi-dim view). A comment targets a chart or a multi-dim data page -
+    never an indicator, so that metadata feedback is recorded against the chart or
+    view that shows it rather than spreading to every other chart using the same
+    indicator; working out that a value comes from an indicator is left to whoever
+    triages the comment. Comments can optionally be anchored to a specific
+    metadata field and/or multi-dim view, support one level of threading
+    (replies), and have a resolve workflow similar to review comments on GitHub.
+  incoming_foreign_keys:
+    - table: comments
+      column: parentId
+fields:
+  id:
+    description: Unique identifier for the comment
+  targetType:
+    description: Type of entity the comment is attached to - 'chart' or 'multiDim'. Indicators are deliberately not commentable.
+  targetId:
+    description: ID of the target entity. References charts.id or multi_dim_data_pages.id depending on targetType. No database foreign key is possible on a polymorphic column, so existence is validated by the admin API.
+  targetKey:
+    description: The target's identity outside this database, resolved when the comment is written - a chart's chart_configs.id (UUID), or a multi-dim's catalogPath. Auto-increment ids only identify a row within the database that issued them, and staging is a clone of production that then diverges, so this is what makes a comment safe to move between environments. NULL when the target has no such key.
+  anchor:
+    description: |
+      Optional identifier of the part of the target the comment is anchored to,
+      e.g. a metadata field shown on the page like 'descriptionShort' or
+      'source'. Indicator metadata fields appear here too - the anchor names the
+      field as the chart presents it, while the comment still belongs to the
+      chart. NULL for comments on the target as a whole.
+
+      The anchor names what the commenter saw, not necessarily where the text is
+      edited. Whoever triages a comment resolves that, and it is decidable from
+      the comment alone - look up targetType/targetId (for a multiDim, the view
+      named by viewState) and check whether its config authors the field:
+
+        - 'title': authored on the chart if its config sets `title`. Otherwise
+          grapher derived it from the indicator titles (titlePublic or display
+          name), so that is what the comment concerns.
+        - 'subtitle': authored on the chart if its config sets `subtitle`.
+          Otherwise grapher fell back to the single y indicator's
+          descriptionShort - so a comment anchored to 'subtitle' on such a chart
+          is about descriptionShort. Note the reverse case is a distinct field:
+          a comment anchored to 'descriptionShort' came from the indicator
+          metadata shown in the page body, not from the chart header.
+        - 'note': always authored on the chart, except that grapher may append
+          (or supply outright) an automatic tolerance notice, which is generated
+          and not editable anywhere.
+
+      This is grapher's own resolution order (GrapherState.effectiveSubtitle,
+      defaultTitle, effectiveNote); it is deliberately not denormalised into a
+      column, since evaluating it against the current config also answers the
+      more useful question of where the text should be fixed *now*.
+  viewState:
+    description: 'For multi-dim targets, JSON object with the dimension choices identifying the view the comment was made on, e.g. {"metric": "cases"}. NULL otherwise.'
+  parentId:
+    description: For replies, the id of the root comment of the thread. NULL for root comments. Deleting a root comment cascades to its replies.
+  content:
+    description: The comment text
+  userId:
+    description: ID of the user who wrote the comment
+  resolvedAt:
+    description: Timestamp when the thread was resolved. Only set on root comments. NULL while unresolved.
+  resolvedByUserId:
+    description: ID of the user who resolved the thread. NULL while unresolved.
+  createdAt:
+    description: Timestamp when the comment was created
+  updatedAt:
+    description: Timestamp when the comment was last updated

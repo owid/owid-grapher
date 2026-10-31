@@ -1,0 +1,13 @@
+// Staff-only link from a live page to its admin preview. Follows the gdoc admin
+// bar's placement and muted styling so the two read as the same kind of thing.
+.admin-preview-link {
+    position: absolute;
+    right: 8px;
+    margin-top: 8px;
+    z-index: $zindex-adminbar;
+    opacity: 0.7;
+
+    a {
+        color: $blue-30;
+    }
+}

@@ -55,6 +55,7 @@ import {
     ADMIN_BASE_URL,
     CATALOG_URL,
 } from "../../settings/clientSettings.mjs"
+import { AdminPreviewLink } from "../AdminPreviewLink.js"
 
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 const isIframe = isInIFrame()
@@ -443,6 +444,7 @@ export function DataPageContent({
             }}
         >
             <div className="DataPageContent MultiDimDataPageContent grid grid-cols-12-full-width">
+                <AdminPreviewLink slug={slug} isPreviewing={isPreviewing} />
                 <div className="bg-blue-10 span-cols-14">
                     <div className="header__wrapper grid grid-cols-12-full-width">
                         <div className="header__left col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">

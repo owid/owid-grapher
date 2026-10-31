@@ -14,6 +14,7 @@ import {
 } from "@ourworldindata/utils"
 import { MultiDimDataPageProps } from "@ourworldindata/types"
 import { DebugProvider } from "../gdocs/DebugProvider.js"
+import { buildCommentPageContext } from "../comments/commentContext.js"
 import { Html } from "../Html.js"
 import {
     MultiDimDataPageContent,
@@ -36,6 +37,7 @@ export function MultiDimDataPage({
     isPreviewing,
     archiveContext,
     canonicalUrl,
+    multiDimId,
 }: MultiDimDataPageProps) {
     if (!slug && !isPreviewing) {
         throw new Error("Missing slug for multidimensional data page")
@@ -55,6 +57,28 @@ export function MultiDimDataPage({
         tagToSlugMap,
         isPreviewing,
     }
+    // Previews only. Dimension slugs let the overlay read the current view out
+    // of the URL, so a comment records which view it was left on.
+    const commentPageContext =
+        isPreviewing && multiDimId !== undefined
+            ? buildCommentPageContext({
+                  multiDim: {
+                      id: multiDimId,
+                      // Names as well as slugs: the overlay uses them to say
+                      // which view a comment on another view was left on.
+                      dimensions: configObj.dimensions.map((d) => ({
+                          slug: d.slug,
+                          name: d.name,
+                          choices: d.choices.map((c) => ({
+                              slug: c.slug,
+                              name: c.name,
+                          })),
+                      })),
+                      defaultView: initialViewDimensions,
+                  },
+                  datapageData: initialViewData,
+              })
+            : undefined
     const imageUrl: string = urljoin(
         baseUrl || "/",
         "default-grapher-thumbnail.png"
@@ -121,6 +145,15 @@ export function MultiDimDataPage({
                             )}`,
                         }}
                     />
+                    {commentPageContext && (
+                        <script
+                            dangerouslySetInnerHTML={{
+                                __html: `window._OWID_COMMENT_CONTEXT = ${serializeJSONForHTML(
+                                    commentPageContext
+                                )}`,
+                            }}
+                        />
+                    )}
                     <div id={OWID_DATAPAGE_CONTENT_ROOT_ID}>
                         <DebugProvider debug={isPreviewing}>
                             {/* Location is mandatory, but we don't really need it. */}

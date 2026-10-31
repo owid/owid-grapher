@@ -15,7 +15,7 @@ import {
 import { triggerStaticBuild } from "../baker/GrapherBakingUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import pMap from "p-map"
-import { DbPlainJob } from "@ourworldindata/types"
+import { DbPlainJob, ExplorerRefreshJobPayload } from "@ourworldindata/types"
 
 export const MAX_ATTEMPTS = 3
 const CONCURRENCY = 20
@@ -39,11 +39,13 @@ export interface ProcessExplorerJobOptions {
     sleep?: (ms: number) => Promise<void>
     now?: () => Date
     maxAttempts?: number
-    onAfterPhase1?: (job: DbPlainJob) => Promise<void>
+    onAfterPhase1?: (
+        job: DbPlainJob<ExplorerRefreshJobPayload>
+    ) => Promise<void>
 }
 
 export async function processExplorerViewsJob(
-    job: DbPlainJob,
+    job: DbPlainJob<ExplorerRefreshJobPayload>,
     opts: ProcessExplorerJobOptions = {}
 ): Promise<JobResult> {
     const { slug, explorerUpdatedAt } = job.payload
@@ -286,7 +288,10 @@ export async function processExplorerViewsJob(
 export async function processOneExplorerViewsJob(): Promise<boolean> {
     try {
         const job = await knexReadWriteTransaction(async (trx) => {
-            return await claimNextQueuedJob(trx, "refresh_explorer_views")
+            return await claimNextQueuedJob<ExplorerRefreshJobPayload>(
+                trx,
+                "refresh_explorer_views"
+            )
         })
 
         if (!job) {
