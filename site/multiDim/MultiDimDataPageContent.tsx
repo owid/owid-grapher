@@ -18,6 +18,7 @@ import {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
     isInIFrame,
+    isInSameOriginIFrame,
     isMultiDimDataExplorer,
 } from "@ourworldindata/utils"
 import {
@@ -58,6 +59,7 @@ import {
 
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 const isIframe = isInIFrame()
+const isInOwnPage = isInSameOriginIFrame()
 
 const useTitleFragments = (config: MultiDimDataPageConfig) => {
     const title = config.config.title
@@ -559,6 +561,15 @@ export function MultiDimDataPageContent({
             queryStr={location.search}
             archiveContext={archiveContext}
             isPreviewing={isPreviewing}
+            // Only on other sites, where nothing around the embed says which
+            // explorer it is. Our own pages either render MultiDim directly
+            // (live articles) or iframe it from the same origin (archived
+            // articles embedding archived pages).
+            explorerTitle={
+                isMultiDimDataExplorer(config.config) && !isInOwnPage
+                    ? config.config.title.title
+                    : undefined
+            }
         />
     ) : (
         <DataPageContent
