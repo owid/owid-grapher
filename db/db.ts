@@ -49,6 +49,7 @@ import {
     TagGraphTableName,
     ExplorersTableName,
     MultiDimDataPagesTableName,
+    MultiDimDataPageType,
     OwidGdocMinimalAnnouncementInterface,
     DbRawPostGdoc,
 } from "@ourworldindata/types"
@@ -570,6 +571,23 @@ export const getNonGrapherExplorerViewCount = (
             AND type = "graphers"
             AND grapherId IS NULL`
     ).then((res) => res?.count ?? 0)
+}
+
+/** Published multi-dim pages that present themselves as data explorers. */
+export const getMultiDimDataExplorerCount = (
+    knex: KnexReadonlyTransaction
+): Promise<number> => {
+    const pageType: MultiDimDataPageType = "data-explorer"
+    return knexRawFirst<{ count: number }>(
+        knex,
+        `-- sql
+        SELECT
+            COUNT(*) AS count
+        FROM ${MultiDimDataPagesTableName}
+        WHERE published = TRUE
+            AND config ->> "$.presentation.pageType" = ?`,
+        [pageType]
+    ).then((res) => Number(res?.count ?? 0))
 }
 
 export const getMultiDimViewCount = (
