@@ -266,10 +266,12 @@ describe("annotations", () => {
     const makeAnnotatedSlopeChart = ({
         annotations,
         entityNames = ["usa"],
+        secondColumnAnnotations,
         ...managerOptions
     }: {
         annotations: IndicatorAnnotation[]
         entityNames?: string[]
+        secondColumnAnnotations?: IndicatorAnnotation[]
     } & Partial<SlopeChartManager>): {
         chartState: SlopeChartState
         chart: SlopeChart
@@ -282,8 +284,16 @@ describe("annotations", () => {
                 ),
                 year: entityNames.flatMap(() => years),
                 gdp: entityNames.flatMap(() => [100, 200, 300, 400, 500]),
+                pop: entityNames.flatMap(() => [1, 2, 3, 4, 5]),
             },
-            [{ slug: "gdp", type: ColumnTypeNames.Numeric, annotations }]
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric, annotations },
+                {
+                    slug: "pop",
+                    type: ColumnTypeNames.Numeric,
+                    annotations: secondColumnAnnotations,
+                },
+            ]
         )
         return makeSlopeChart(table, {
             yColumnSlugs: ["gdp"],
@@ -346,7 +356,7 @@ describe("annotations", () => {
             pointAnnotation("point note", 2003),
             rangeAnnotation("range note", 2001, 2002),
         ]
-        const entityNote: IndicatorAnnotation = {
+        const entityAnnotation: IndicatorAnnotation = {
             text: "entity note",
             entityNames: ["usa"],
             timeScope: "all",
@@ -371,10 +381,10 @@ describe("annotations", () => {
 
         it("keeps the list but drops the inline text in compact layout", () => {
             const wide = makeAnnotatedSlopeChart({
-                annotations: [...annotations, entityNote],
+                annotations: [...annotations, entityAnnotation],
             }).chart
             const compact = makeAnnotatedSlopeChart({
-                annotations: [...annotations, entityNote],
+                annotations: [...annotations, entityAnnotation],
                 isSemiNarrow: true,
             }).chart
             expect(wide.rightLabelsSeries[0].inlineAnnotation).toBe(
@@ -386,19 +396,35 @@ describe("annotations", () => {
             expect(compact.rightLabelsSeries[0].annotations).toHaveLength(2)
         })
 
-        it("attaches the entity note in entity strategy only", () => {
-            const { chartState: entityState } = makeAnnotatedSlopeChart({
-                annotations: [entityNote],
+        it("attaches the entity annotation in entity strategy", () => {
+            const { chartState } = makeAnnotatedSlopeChart({
+                annotations: [entityAnnotation],
                 seriesStrategy: SeriesStrategy.entity,
             })
-            const { chartState: columnState } = makeAnnotatedSlopeChart({
-                annotations: [entityNote],
-                seriesStrategy: SeriesStrategy.column,
-            })
-            expect(entityState.series[0].entityAnnotation?.text).toBe(
+            expect(chartState.series[0].entityAnnotation?.text).toBe(
                 "entity note"
             )
-            expect(columnState.series[0].entityAnnotation).toBeUndefined()
+        })
+
+        it("gives each series its own column's entity annotation in column strategy", () => {
+            const { chartState } = makeAnnotatedSlopeChart({
+                annotations: [entityAnnotation],
+                secondColumnAnnotations: [
+                    { ...entityAnnotation, text: "pop annotation" },
+                ],
+                yColumnSlugs: ["gdp", "pop"],
+                seriesStrategy: SeriesStrategy.column,
+            })
+            const textsBySeries = Object.fromEntries(
+                chartState.series.map((series) => [
+                    `${series.entityName}/${series.column.slug}`,
+                    series.entityAnnotation?.text,
+                ])
+            )
+            expect(textsBySeries).toEqual({
+                "usa/gdp": "entity note",
+                "usa/pop": "pop annotation",
+            })
         })
     })
 })
