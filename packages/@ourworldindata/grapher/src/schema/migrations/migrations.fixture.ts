@@ -323,19 +323,6 @@ export const MIGRATION_FIXTURES: {
             logo: "owid",
         },
     },
-    {
-        name: "keeps other logos",
-        before: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.011.json",
-            logo: "core+owid",
-        },
-        after: {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.012.json",
-            logo: "core+owid",
-        },
-    },
 ]
 
 /**
