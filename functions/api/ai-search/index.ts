@@ -96,6 +96,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     return new Response(readable, {
         headers: {
             "Content-Type": "application/x-ndjson; charset=utf-8",
+            // The local site calls the local functions server on another
+            // port, as for /api/search
+            "Access-Control-Allow-Origin": "*",
             "Cache-Control": "no-store",
             // Stops proxies from buffering the stream
             "X-Accel-Buffering": "no",
@@ -279,5 +282,8 @@ const errorEvent = (error: unknown): AiSearchEvent => ({
 const jsonError = (status: number, error: string): Response =>
     new Response(JSON.stringify({ error }), {
         status,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+        },
     })

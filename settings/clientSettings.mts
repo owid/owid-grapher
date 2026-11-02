@@ -49,6 +49,14 @@ export const EXPLORER_DYNAMIC_THUMBNAIL_URL: string =
         ? "https://ourworldindata.org/explorers"
         : `${BAKED_BASE_URL}/explorers`)
 
+// The AI search prototype is a Cloudflare function too, so in development it
+// comes from the local functions server
+export const AI_SEARCH_API_URL: string =
+    process.env.AI_SEARCH_API_URL ??
+    (ENV === "development"
+        ? `http://localhost:${parseIntOrUndefined(process.env.WRANGLER_PORT) ?? 8788}/api/ai-search`
+        : `${BAKED_BASE_URL}/api/ai-search`)
+
 export const GRAPHER_DYNAMIC_CONFIG_URL: string =
     process.env.GRAPHER_DYNAMIC_CONFIG_URL ?? `${BAKED_GRAPHER_URL}`
 

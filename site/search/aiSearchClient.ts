@@ -5,8 +5,7 @@ import {
     DEFAULT_AI_SEARCH_SETTINGS,
 } from "@ourworldindata/types"
 import { createLineSplitter } from "@ourworldindata/utils"
-
-const AI_SEARCH_API_URL = "/api/ai-search"
+import { AI_SEARCH_API_URL } from "../../settings/clientSettings.mjs"
 
 export function useAiSearchSettings(): [
     AiSearchSettings,
