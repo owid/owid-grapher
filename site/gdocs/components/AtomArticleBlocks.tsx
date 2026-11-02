@@ -109,7 +109,7 @@ function Image({
     return (
         <img
             src={`${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/w=${LARGEST_IMAGE_WIDTH}`}
-            alt={alt ?? image.defaultAlt}
+            alt={alt ?? image.defaultAlt ?? undefined}
             width={LARGEST_IMAGE_WIDTH}
             height={height}
         />

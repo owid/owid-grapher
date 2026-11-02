@@ -48,7 +48,7 @@ import { NotificationInstance } from "antd/es/notification/interface.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 import { makeSearchFilter, SearchField } from "../adminShared/searchFilter.js"
 import { useSearchQueryParam } from "./variableSearchQuery.js"
-import { SearchHelp } from "./AdminTable.js"
+import { SearchFieldsHelp } from "./AdminTable.js"
 
 type ImageMap = Record<string, DbEnrichedImageWithPageviews>
 
@@ -909,7 +909,7 @@ export function ImageIndexPage() {
                                 }
                                 style={{ width: 300, marginBottom: 20 }}
                             />
-                            <SearchHelp fields={SEARCH_FIELDS} />
+                            <SearchFieldsHelp fields={SEARCH_FIELDS} />
                             <Select
                                 value={imageTypeFilter}
                                 onChange={setImageTypeFilter}

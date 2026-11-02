@@ -84,6 +84,7 @@ export interface RenderPoint extends PlacedPoint {
 }
 
 export interface LineChartSeries extends ChartSeries {
+    color: Color
     displayName: string
     isProjection?: boolean
     plotMarkersOnly?: boolean

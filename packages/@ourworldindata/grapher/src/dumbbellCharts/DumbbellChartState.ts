@@ -5,7 +5,6 @@ import {
     DumbbellConnectorStyle,
     DumbbellValueLabelMode,
     ScaleType,
-    FacetStrategy,
     ChartErrorInfo,
     SortBy,
     SortConfig,
@@ -27,6 +26,7 @@ import {
     NO_CHANGE_COLOR,
     START_COLUMN_COLOR,
 } from "./DumbbellChartConstants"
+import { DUMBBELL_CHART_CONFIG_DEFAULTS } from "./DumbbellChartConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import { FocusArray } from "../focus/FocusArray"
 import {
@@ -145,19 +145,15 @@ export class DumbbellChartState implements ChartState {
     @computed get connectorStyle(): DumbbellConnectorStyle {
         return (
             this.manager.dumbbell?.connectorStyle ??
-            DumbbellConnectorStyle.Arrow
+            DUMBBELL_CHART_CONFIG_DEFAULTS.connectorStyle
         )
     }
 
     @computed get valueLabelMode(): DumbbellValueLabelMode {
         return (
             this.manager.dumbbell?.valueLabelMode ??
-            DumbbellValueLabelMode.Absolute
+            DUMBBELL_CHART_CONFIG_DEFAULTS.valueLabelMode
         )
-    }
-
-    @computed get availableFacetStrategies(): FacetStrategy[] {
-        return [FacetStrategy.none]
     }
 
     @computed private get annotationsMap(): AnnotationsMap | undefined {
@@ -341,7 +337,7 @@ export class DumbbellChartState implements ChartState {
     }
 
     @computed get availableSortKeys(): DumbbellSortKey[] {
-        const excluded =
+        const excluded: DumbbellSortKey[] =
             this.mode === DumbbellMode.TwoColumn
                 ? [SortBy.startValue, SortBy.endValue]
                 : [SortBy.column]

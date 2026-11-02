@@ -14,7 +14,7 @@ import { GdocsAdd } from "./GdocsAdd.js"
 import { GdocsList } from "./GdocsList.js"
 import { Link } from "./Link.js"
 import { useGdocs } from "./gdocsQueries.js"
-import { SearchHelp } from "./AdminTable.js"
+import { SearchFieldsHelp } from "./AdminTable.js"
 
 enum GdocPublishStatus {
     All = "all",
@@ -80,7 +80,7 @@ function GdocsIndexPageSearch({
                 onValue={onSearchValueChange}
                 autofocus
             />
-            <SearchHelp fields={SEARCH_FIELDS} />
+            <SearchFieldsHelp fields={SEARCH_FIELDS} />
             <div className="gdoc-index-filters">
                 <p>
                     <strong>Filter results by type</strong>

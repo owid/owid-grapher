@@ -4,7 +4,6 @@ import {
     type BespokeConfigField,
     type BespokeConfigSpec,
 } from "../shared/bespokeComponentTypes.js"
-import { EMBED_CONFIG_SPEC, type EmbedConfig } from "../shared/embedConfig.js"
 
 export type ConfigFromSpec<Spec extends BespokeConfigSpec> = {
     [Key in keyof Spec]: Spec[Key] extends { default: string }
@@ -28,16 +27,6 @@ type FieldValue<Field> = Field extends { type: "string" }
             : never
 
 export function parseConfigFromSpec<Spec extends BespokeConfigSpec>(
-    spec: Spec,
-    authoredConfig: BespokeAuthoredConfig
-): ConfigFromSpec<Spec> & EmbedConfig {
-    return {
-        ...parseFields(spec, authoredConfig),
-        ...parseFields(EMBED_CONFIG_SPEC, authoredConfig),
-    }
-}
-
-function parseFields<Spec extends BespokeConfigSpec>(
     spec: Spec,
     authoredConfig: BespokeAuthoredConfig
 ): ConfigFromSpec<Spec> {

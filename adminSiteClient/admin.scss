@@ -46,6 +46,8 @@ $admin-section: "section:not(:where(.GrapherComponent *))";
 @import "./SvgTesterSuitePage.scss";
 @import "./VariableList.scss";
 @import "./ChartList.scss";
+@import "./ChartSearchToolbar.scss";
+@import "./SearchHelp.scss";
 @import "./ChartSourceBadge.scss";
 
 html {
@@ -97,7 +99,7 @@ $nav-height: 45px;
     }
 
     // overriding bootstrap defaults that break the navbar buttons
-    @media screen and (max-width: 992px) {
+    @media screen and (width <= 992px) {
         .navbar.navbar-expand-lg {
             flex-wrap: nowrap;
 
@@ -1623,7 +1625,7 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
 }
 
 .ImageIndexPage {
-    @media (max-width: 1300px) {
+    @media (width <= 1300px) {
         padding-left: 0 !important;
         padding-right: 0 !important;
         .ant-table-cell {

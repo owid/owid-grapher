@@ -36,7 +36,7 @@ import { Timeago } from "./Forms.js"
 import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { SearchField } from "../adminShared/searchFilter.js"
 import { useListSearch } from "./adminTableHelpers.js"
-import { SearchHelp } from "./AdminTable.js"
+import { SearchFieldsHelp } from "./AdminTable.js"
 import { Admin } from "./Admin.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
@@ -599,7 +599,7 @@ export function DataInsightIndexPage() {
                                 }}
                                 style={{ width: 350 }}
                             />
-                            <SearchHelp fields={SEARCH_FIELDS} />
+                            <SearchFieldsHelp fields={SEARCH_FIELDS} />
                             <Select
                                 value={topicTagFilter}
                                 placeholder="Select a topic tag..."

@@ -611,18 +611,21 @@ it("canChangeEntity reflects all available entities before transforms", () => {
     expect(grapher.canChangeEntity).toBe(true)
 })
 
-it("dumbbell charts force multi-entity selection when mode is single-entity", () => {
-    const table = SynthesizeGDPTable()
-    const grapher = new GrapherState({
-        chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
-        addCountryMode: EntitySelectionMode.SingleEntity,
-        table,
-        selectedEntityNames: table.sampleEntityName(1),
-    })
+it.each([GRAPHER_CHART_TYPES.Dumbbell, GRAPHER_CHART_TYPES.Swimlane])(
+    "%s charts force multi-entity selection when mode is single-entity",
+    (chartType) => {
+        const table = SynthesizeGDPTable()
+        const grapher = new GrapherState({
+            chartTypes: [chartType],
+            addCountryMode: EntitySelectionMode.SingleEntity,
+            table,
+            selectedEntityNames: table.sampleEntityName(1),
+        })
 
-    expect(grapher.canSelectMultipleEntities).toBe(true)
-    expect(grapher.canChangeEntity).toBe(false)
-})
+        expect(grapher.canSelectMultipleEntities).toBe(true)
+        expect(grapher.canChangeEntity).toBe(false)
+    }
+)
 
 describe("syncing entity selection between the chart and map tab", () => {
     const chartSelection = ["Spain", "Italy"]

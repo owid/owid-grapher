@@ -310,6 +310,19 @@ export const MIGRATION_FIXTURES: {
             ],
         },
     },
+    {
+        name: "replaces the gv+owid logo with the OWID logo",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.011.json",
+            logo: "gv+owid",
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.012.json",
+            logo: "owid",
+        },
+    },
 ]
 
 /**
@@ -515,6 +528,21 @@ export const PATCH_STACK_FIXTURES: {
                         display: { yearIsDay: false },
                     },
                 ],
+            },
+        ],
+    },
+    {
+        name: "a child overriding a parent's logo with gv+owid",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.011.json",
+                logo: "core+owid",
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.011.json",
+                logo: "gv+owid",
             },
         ],
     },

@@ -35,6 +35,7 @@ export interface ScatterPlotManager extends ChartManager {
 }
 
 export interface ScatterSeries extends ChartSeries {
+    color: Color
     label: string
     points: SeriesPoint[]
     isScaleColor?: boolean
@@ -86,6 +87,7 @@ export const SCATTER_LABEL_DEFAULT_FONT_SIZE: number = 10.5
 export const SCATTER_LABEL_FONT_SIZE_WHEN_HIDDEN_LINES: number = 12
 
 export interface ScatterRenderSeries extends ChartSeries {
+    color: Color
     displayKey: string
     size: number
     fontSize: number
