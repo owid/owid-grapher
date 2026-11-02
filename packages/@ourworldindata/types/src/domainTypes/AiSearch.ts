@@ -47,8 +47,14 @@ export interface AiSearchChartBlock {
     country?: string
 }
 
+// Our pages index has an image and authors for topic pages too
+export type AiSearchTopicPageHit = TopicPageHit & {
+    thumbnailUrl?: string
+    authors?: string[]
+}
+
 export type AiSearchPageBlock =
-    | { type: "topicPage"; hit: TopicPageHit }
+    | { type: "topicPage"; hit: AiSearchTopicPageHit }
     | { type: "article"; hit: FlatArticleHit }
     | { type: "dataInsight"; hit: DataInsightHit }
 
@@ -81,6 +87,26 @@ export interface AiSearchRelatedBlock {
 export type AiSearchBlock =
     | AiSearchContentBlock
     | AiSearchGroupBlock
+    | AiSearchForksBlock
+    | AiSearchRelatedBlock
+
+/**
+ * A content block with its hit reduced to what identifies it, as the
+ * endpoint sends it with compact=1 (for scripts comparing runs)
+ */
+export interface AiSearchCompactContentBlock {
+    type: AiSearchContentBlock["type"]
+    slug: string
+    title: string
+    size?: AiSearchChartSize
+    country?: string
+}
+
+export type AiSearchCompactBlock =
+    | AiSearchCompactContentBlock
+    | (Omit<AiSearchGroupBlock, "blocks"> & {
+          blocks: AiSearchCompactContentBlock[]
+      })
     | AiSearchForksBlock
     | AiSearchRelatedBlock
 

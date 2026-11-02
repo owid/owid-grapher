@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk"
 import * as Sentry from "@sentry/cloudflare"
 import { AiSearchEvent, AiSearchSettings } from "@ourworldindata/types"
-import { createLineSplitter } from "@ourworldindata/utils"
+import { compactAiSearchBlock, createLineSplitter } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "../search/algoliaClient.js"
 import {
@@ -28,6 +28,10 @@ import { searchKeywords } from "./retrieval.js"
  * streams back as newline-delimited JSON (AiSearchEvent), one block per line,
  * with each block's ids already replaced by the full search hits.
  *
+ * Parameters: q, model (one of AI_SEARCH_MODELS), debug=1 (adds the prompt
+ * and the raw model output), compact=1 (blocks carry each hit's slug and
+ * title instead of the full hit, for scripts comparing runs).
+ *
  * Every request costs model calls, so the endpoint only runs under `wrangler
  * pages dev` (ENV=development: staging servers and local dev) with an
  * ANTHROPIC_API_KEY, not in production or on public Cloudflare previews.
@@ -46,6 +50,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         )
 
     const settings = parseAiSearchSettings(url.searchParams)
+    const compact = url.searchParams.get("compact") === "1"
     const { readable, writable } = new TransformStream<Uint8Array>()
     const writer = writable.getWriter()
     const encoder = new TextEncoder()
@@ -53,9 +58,13 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     request.signal?.addEventListener("abort", () => controller.abort())
 
     const emit = (event: AiSearchEvent): void => {
+        const sent =
+            compact && event.type === "block"
+                ? { ...event, block: compactAiSearchBlock(event.block) }
+                : event
         // A failed write means the reader went away, so stop the model too
         writer
-            .write(encoder.encode(JSON.stringify(event) + "\n"))
+            .write(encoder.encode(JSON.stringify(sent) + "\n"))
             .catch(() => controller.abort())
     }
 
