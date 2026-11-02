@@ -50,13 +50,13 @@ const STANDARD_HITS = 10
 
 async function main(): Promise<void> {
     const argv = await yargs(hideBin(process.argv))
-        .usage("$0 [queries..]")
+        .command("$0 [queries..]", "Compare AI search with standard search")
         .option("host", {
             type: "string",
             description:
                 "Server to query (default: this branch's staging server)",
         })
-        .option("queries", {
+        .option("queries-file", {
             type: "string",
             default: path.join(import.meta.dirname, "queries.txt"),
             description: "File with one query per line",
@@ -72,9 +72,9 @@ async function main(): Promise<void> {
         .parse()
 
     const host = argv.host ?? stagingHost()
-    const queries = argv._.length
-        ? argv._.map(String)
-        : (await readFile(argv.queries, "utf8"))
+    const queries = argv.queries?.length
+        ? argv.queries.map(String)
+        : (await readFile(argv.queriesFile, "utf8"))
               .split("\n")
               .map((line) => line.trim())
               .filter(Boolean)
