@@ -670,6 +670,9 @@ function* rawBlockAllChartsToArchieMLString(
         }
         yield "[]"
     }
+    if (block.value.suggested) {
+        yield* listToArchieMLString(block.value.suggested, "suggested")
+    }
     yield "{}"
 }
 
