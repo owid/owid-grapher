@@ -60,17 +60,6 @@
         }
     }
 
-    .header__right {
-        margin-bottom: 16px;
-        padding-left: 24px;
-        border-left: 1px solid $blue-20;
-        align-self: start;
-
-        @include sm-only {
-            display: none;
-        }
-    }
-
     .sticky-nav-container {
         @include sm-only {
             border-top: 1px solid $blue-20;
