@@ -212,7 +212,7 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
                 ? this.yColumnMode.info.historicalSlug
                 : this.yColumnSlugs[0]
         if (!yColumnSlug) return []
-        return this.inputTable.get(yColumnSlug).def.annotations ?? []
+        return this.inputTable.get(yColumnSlug).annotations
     }
 
     @computed get hasProjectedData(): boolean {

@@ -247,7 +247,7 @@ export class SlopeChartState implements ChartState {
         const entityAnnotation =
             seriesStrategy === SeriesStrategy.entity
                 ? selectEntityAnnotation(
-                      this.yColumns[0].def.annotations ?? [],
+                      this.yColumns[0].annotations,
                       entityName
                   )
                 : undefined

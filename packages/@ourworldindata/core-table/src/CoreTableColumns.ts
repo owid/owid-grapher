@@ -34,6 +34,7 @@ import {
     CoreColumnDef,
     OwidColumnDef,
     EntityName,
+    IndicatorAnnotation,
     OwidVariableRow,
     ErrorValue,
     OwidVariableRoundingMode,
@@ -107,6 +108,11 @@ export abstract class AbstractCoreColumn<
 
     @imemo get display(): OwidVariableDisplayConfigInterface | undefined {
         return this.def.display
+    }
+
+    @imemo get annotations(): IndicatorAnnotation[] {
+        if (!this.isOwidColumn()) return []
+        return this.def.annotations ?? []
     }
 
     @imemo get timeInterval(): TimeInterval {

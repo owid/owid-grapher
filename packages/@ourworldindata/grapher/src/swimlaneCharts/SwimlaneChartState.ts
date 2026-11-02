@@ -221,7 +221,7 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         } = this
         if (!visibleTimeRange || !timeColumn) return []
 
-        const annotations = this.inputYColumn.def.annotations ?? []
+        const annotations = this.inputYColumn.annotations
 
         return Array.from(rawSegmentsByEntityName).map(
             ([entityName, rawSegments]): SwimlaneSeries => {
