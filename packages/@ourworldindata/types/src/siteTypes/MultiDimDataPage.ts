@@ -80,7 +80,8 @@ export type DimensionPresentationType =
 
 export interface DimensionPresentation {
     // When omitted, resolveDimensionPresentationType picks the control type
-    // automatically, based on the number of choices.
+    // automatically, based on the number of choices and whether they are
+    // grouped.
     type?: DimensionPresentationType
 }
 
