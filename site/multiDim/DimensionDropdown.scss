@@ -1,12 +1,23 @@
 $toggle-height: 32px;
 $toggle-full-width-breakpoint: 520px;
 
+// The design uses a lighter blue for the open-state stroke and the
+// selected-hover fill than the palette's $blue-30 (Figma "Accent/Blue 30").
+$open-stroke: #bed2e7;
+$selected-hover-fill: #bed2e7;
+
+// The group label's vertical metrics, so that keyboard navigation can keep a
+// label in view (see .md-menu__group--labeled below).
+$group-label-margin: 8px;
+$group-label-line-height: 16px;
+$group-gap: 4px;
+
 .md-settings__dropdown-toggle {
     display: flex;
     align-items: center;
-    color: $secondary-text;
+    color: $gray-80;
     background: white;
-    border: 1px solid $light-stroke;
+    border: 1px solid $gray-10;
     font: $medium 13px/16px $lato;
     letter-spacing: 0.01em;
     border-radius: 4px;
@@ -23,38 +34,33 @@ $toggle-full-width-breakpoint: 520px;
     }
 
     &:focus-visible {
-        // Override global focus-visible style.
+        // Override global focus-visible style, which would also show when
+        // focus returns to the button after closing the menu with the mouse.
         outline: none !important;
     }
 
-    &:hover:not([data-disabled]),
-    &:focus:not([data-disabled]) {
-        border-color: $blue-30;
+    // Keyboard focus only (as tracked by React Aria), in the site's focus
+    // ring style.
+    &[data-focus-visible] {
+        outline: 2px solid $blue-60 !important;
+        outline-offset: 2px;
     }
 
-    &:hover {
-        background: $gray-5;
+    &:hover:not([data-disabled]):not([aria-expanded="true"]),
+    &:focus:not([data-disabled]):not([aria-expanded="true"]) {
+        background: $gray-10;
+        border-color: $gray-30;
     }
 
-    &[data-pressed],
-    &:active {
-        background: $active-fill;
-        border: 1px solid $active-fill;
+    &[aria-expanded="true"] {
+        background: white;
+        border-color: $open-stroke;
     }
 
-    &[data-pressed] {
-        cursor: default;
-        color: $active-text;
-    }
-
+    // The disabled look is just the control's half opacity (see
+    // .md-settings__dropdown); the button keeps its normal white styling.
     &[data-disabled] {
-        color: $gray-60;
         cursor: default;
-        background: $gray-5;
-
-        .md-settings__dropdown-current-choice {
-            color: $gray-70;
-        }
     }
 
     @media (width <= $toggle-full-width-breakpoint) {
@@ -63,8 +69,7 @@ $toggle-full-width-breakpoint: 520px;
 }
 
 .md-settings__dropdown-current-choice {
-    color: $primary-text;
-    max-width: 150px;
+    max-width: 300px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -81,27 +86,36 @@ $toggle-full-width-breakpoint: 520px;
     margin-left: auto;
 }
 
+// The caret points up while the menu is open.
+.md-settings__dropdown-toggle[aria-expanded="true"]
+    .md-settings__dropdown-caret
+    svg {
+    transform: scaleY(-1);
+}
+
 .md-settings__dropdown {
     @media (width <= $toggle-full-width-breakpoint) {
         width: 100%;
+    }
+
+    // A disabled control keeps its normal look at half opacity, label
+    // included.
+    &[data-disabled] {
+        opacity: 0.5;
     }
 }
 
 .md-menu {
     width: 400px;
     background: white;
-    padding: 16px 16px 8px;
+    // No horizontal padding: menu items are full-bleed, so the hover and
+    // selection fills span the menu's full width.
+    padding: 4px 0;
     border-radius: 4px;
     box-shadow: 0px 4px 23px 4px #0000000f;
     z-index: $zindex-controls-popup;
     overflow-y: auto;
-    scrollbar-gutter: stable;
     overscroll-behavior: contain;
-
-    // Reduce right padding in webkit browsers to accommodate scrollbar
-    @supports selector(::-webkit-scrollbar) {
-        padding-right: 6px;
-    }
 
     // Always show scrollbar in webkit browsers. This makes it clear that there
     // are more options to scroll through.
@@ -120,79 +134,106 @@ $toggle-full-width-breakpoint: 520px;
         border: 3px solid transparent;
     }
 
-    .md-menu__overlay-header {
+    // The gap separates the groups: on top of a heading's top margin, it
+    // leaves a bit more room before each group after the first.
+    .md-menu__list {
         display: flex;
-        justify-content: space-between;
-        margin-bottom: 12px;
-    }
-
-    .md-menu__overlay-header-title {
-        @include h5-black-caps;
-        color: $light-text;
-
-        // Align with the close button. We don't use align-items: center,
-        // because the children below the title can have arbitrary height.
-        margin-top: 9px;
-        margin-bottom: 4px;
-    }
-
-    .md-menu__overlay-header-close-button {
-        margin-left: 8px;
-    }
-
-    .md-menu__dimension-description {
-        color: $gray-70;
-        font-size: 13px;
-        line-height: normal;
-        margin-top: 0;
-        margin-bottom: 4px;
-    }
-
-    .md-label {
-        @include label-2-regular;
-        display: block;
-    }
-
-    .md-description {
-        @include note-2-regular;
-        display: block;
-        color: $gray-70;
-        margin-top: 4px;
+        flex-direction: column;
+        gap: 16px;
     }
 
     .md-menu__group {
-        margin-bottom: 16px;
-
-        &:last-child {
-            margin-bottom: 0;
-        }
+        display: flex;
+        flex-direction: column;
+        gap: $group-gap;
     }
 
     .md-menu__group-label {
-        @include label-2-bold;
         color: $light-text;
-        margin: 16px 0;
+        margin: $group-label-margin 16px;
+        line-height: $group-label-line-height;
     }
 
-    .md-menu__radio-button {
-        padding: 16px 0;
-        border-bottom: 1px solid $gray-20;
+    // Options under a group label are indented past it, so the grouping is
+    // visible. The selection fill still spans the full menu width.
+    .md-menu__group--labeled .md-menu__item {
+        padding-left: 32px;
+    }
+
+    // Keyboard navigation scrolls the focused option into view, honouring
+    // scroll-margin. On a group's first option, the margin covers the group
+    // label above it, so moving up into a group also reveals its label.
+    .md-menu__group--labeled .md-menu__item:first-of-type {
+        scroll-margin-top: 2 * $group-label-margin + $group-label-line-height +
+            $group-gap;
+    }
+
+    .md-menu__item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        min-height: 32px;
+        padding: 8px 16px;
+        color: $gray-80;
         cursor: pointer;
 
         &:focus-visible {
             outline: none !important;
         }
 
-        &:first-of-type {
-            padding-top: 0;
+        &[data-hovered],
+        &[data-focused] {
+            background: $gray-10;
         }
 
-        &:last-of-type {
-            border-bottom: none;
+        // The hover fill alone is too faint to track keyboard focus, so
+        // keyboard focus also gets an inset ring.
+        &[data-focus-visible] {
+            outline: 2px solid $blue-60;
+            outline-offset: -2px;
         }
+
+        &[data-selected] {
+            color: $blue-90;
+            background: $blue-20;
+
+            &[data-hovered],
+            &[data-focus-visible] {
+                background: $selected-hover-fill;
+            }
+        }
+    }
+
+    .md-menu__item-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .md-menu__item-description {
+        color: $gray-70;
+    }
+
+    .md-menu__item[data-selected] .md-menu__item-description {
+        // Darker than the design's "Accent/Blue 50" (#6e87a2), which is too
+        // low-contrast on the selected and selected-hover fills.
+        color: $blue-70;
+    }
+
+    .md-menu__item-check {
+        flex-shrink: 0;
+        font-size: 12px;
     }
 
     @include sm-only {
         width: 264px;
+    }
+
+    // Where the button spans the full width, the menu matches it.
+    // --trigger-width comes from react-aria on the popover.
+    @media (width <= $toggle-full-width-breakpoint) {
+        width: var(--trigger-width);
     }
 }
