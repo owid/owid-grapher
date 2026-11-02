@@ -50,7 +50,7 @@ const STANDARD_HITS = 10
 
 async function main(): Promise<void> {
     const argv = await yargs(hideBin(process.argv))
-        .command("$0 [queries..]", "Compare AI search with standard search")
+        .usage("$0 [queries..]")
         .option("host", {
             type: "string",
             description:
@@ -68,12 +68,13 @@ async function main(): Promise<void> {
         })
         .option("out", { type: "string", default: "tmp/ai-search-runs" })
         .option("concurrency", { type: "number", default: 3 })
-        .strict()
+        // Unknown options are mistakes; other arguments are queries
+        .strictOptions()
         .parse()
 
     const host = argv.host ?? stagingHost()
-    const queries = argv.queries?.length
-        ? argv.queries.map(String)
+    const queries: string[] = argv._.length
+        ? argv._.map(String)
         : (await readFile(argv.queriesFile, "utf8"))
               .split("\n")
               .map((line) => line.trim())
