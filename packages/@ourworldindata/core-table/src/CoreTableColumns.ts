@@ -34,6 +34,7 @@ import {
     CoreColumnDef,
     OwidColumnDef,
     EntityName,
+    IndicatorAnnotation,
     OwidVariableRow,
     ErrorValue,
     OwidVariableRoundingMode,
@@ -483,6 +484,11 @@ export abstract class AbstractCoreColumn<
 
     @imemo get uniqEntityNames(): EntityName[] {
         return _.uniq(this.allEntityNames)
+    }
+
+    @imemo get annotations(): IndicatorAnnotation[] {
+        if (!this.isOwidColumn()) return []
+        return this.def.annotations ?? []
     }
 
     @imemo private get allEntityNames(): EntityName[] {

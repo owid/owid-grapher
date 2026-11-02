@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { EntityName, IndicatorAnnotation } from "@ourworldindata/types"
-import { OwidTable } from "@ourworldindata/core-table"
+import {
+    ColumnTypeNames,
+    EntityName,
+    IndicatorAnnotation,
+} from "@ourworldindata/types"
+import { OwidColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     PointAnnotation,
     RangeAnnotation,
@@ -32,7 +36,7 @@ it("keeps points that name the entity, alone or among others", () => {
     ]
 
     const { pointAnnotations: selected } = selectEntityTimeAnnotations({
-        annotations,
+        column: makeColumnWithAnnotations(annotations),
         entityName: "Chad",
         timeRange: [1990, 2010],
     })
@@ -58,7 +62,7 @@ it("drops all-time, range and indicator-wide annotations", () => {
 
     expect(
         selectEntityTimeAnnotations({
-            annotations,
+            column: makeColumnWithAnnotations(annotations),
             entityName: "Chad",
             timeRange: [1990, 2010],
         }).pointAnnotations
@@ -89,7 +93,7 @@ it("keeps points on the edges of the time range and drops points outside it", ()
     ]
 
     const { pointAnnotations: selected } = selectEntityTimeAnnotations({
-        annotations,
+        column: makeColumnWithAnnotations(annotations),
         entityName: "Chad",
         timeRange: [2000, 2010],
     })
@@ -118,7 +122,7 @@ it("returns points in ascending time order", () => {
     ]
 
     const { pointAnnotations: selected } = selectEntityTimeAnnotations({
-        annotations,
+        column: makeColumnWithAnnotations(annotations),
         entityName: "Chad",
         timeRange: [2000, 2010],
     })
@@ -153,7 +157,7 @@ it("compares day offsets, including negative ones, against a day-number time ran
     ]
 
     const { pointAnnotations: selected } = selectEntityTimeAnnotations({
-        annotations,
+        column: makeColumnWithAnnotations(annotations),
         entityName: "Chad",
         timeRange: [-1500, 18000],
     })
@@ -181,7 +185,7 @@ it("keeps ranges that name the entity, alone or among others", () => {
     ]
 
     const { rangeAnnotations: selected } = selectEntityTimeAnnotations({
-        annotations,
+        column: makeColumnWithAnnotations(annotations),
         entityName: "Chad",
         timeRange: [1990, 2010],
     })
@@ -211,7 +215,7 @@ it("drops all-time, point and indicator-wide annotations when selecting ranges",
 
     expect(
         selectEntityTimeAnnotations({
-            annotations,
+            column: makeColumnWithAnnotations(annotations),
             entityName: "Chad",
             timeRange: [1990, 2010],
         }).rangeAnnotations
@@ -231,7 +235,7 @@ it("keeps ranges that overlap the time range, edges included, and returns them u
     ]
 
     const { rangeAnnotations: selected } = selectEntityTimeAnnotations({
-        annotations,
+        column: makeColumnWithAnnotations(annotations),
         entityName: "Chad",
         timeRange: [2000, 2010],
     })
@@ -260,7 +264,7 @@ it("returns ranges in ascending start time order", () => {
     ]
 
     const { rangeAnnotations: selected } = selectEntityTimeAnnotations({
-        annotations,
+        column: makeColumnWithAnnotations(annotations),
         entityName: "Chad",
         timeRange: [2000, 2010],
     })
@@ -278,10 +282,18 @@ describe(selectEntityAnnotation, () => {
             { text: "Chad note", entityNames: ["Chad"], timeScope: "all" },
         ]
 
-        expect(selectEntityAnnotation(annotations, "Chad")?.text).toBe(
-            "Chad note"
-        )
-        expect(selectEntityAnnotation(annotations, "France")).toBeUndefined()
+        expect(
+            selectEntityAnnotation(
+                makeColumnWithAnnotations(annotations),
+                "Chad"
+            )?.text
+        ).toBe("Chad note")
+        expect(
+            selectEntityAnnotation(
+                makeColumnWithAnnotations(annotations),
+                "France"
+            )
+        ).toBeUndefined()
     })
 
     it("ignores point, range and indicator-wide notes", () => {
@@ -296,7 +308,12 @@ describe(selectEntityAnnotation, () => {
             { text: "indicator-wide", timeScope: "all" },
         ]
 
-        expect(selectEntityAnnotation(annotations, "Chad")).toBeUndefined()
+        expect(
+            selectEntityAnnotation(
+                makeColumnWithAnnotations(annotations),
+                "Chad"
+            )
+        ).toBeUndefined()
     })
 
     it("takes the first note when an entity has several", () => {
@@ -309,7 +326,12 @@ describe(selectEntityAnnotation, () => {
             },
         ]
 
-        expect(selectEntityAnnotation(annotations, "Chad")?.text).toBe("first")
+        expect(
+            selectEntityAnnotation(
+                makeColumnWithAnnotations(annotations),
+                "Chad"
+            )?.text
+        ).toBe("first")
     })
 })
 
@@ -355,3 +377,11 @@ describe(toSeriesLabelAnnotations, () => {
         ])
     })
 })
+
+function makeColumnWithAnnotations(
+    annotations: IndicatorAnnotation[]
+): OwidColumn {
+    return new OwidTable({ entityName: ["Chad"], year: [2000], value: [1] }, [
+        { slug: "value", type: ColumnTypeNames.Numeric, annotations },
+    ]).get("value")
+}

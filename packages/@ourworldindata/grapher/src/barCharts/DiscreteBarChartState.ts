@@ -388,9 +388,9 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
             this.yColumnMode.type === "combined"
                 ? this.yColumnMode.info.historicalSlug
                 : this.yColumnSlugs[0]
-        const annotations = annotationSlug
-            ? (this.inputTable.get(annotationSlug).def.annotations ?? [])
-            : []
+        const annotationColumn = annotationSlug
+            ? this.inputTable.get(annotationSlug)
+            : undefined
 
         const series = this.sortedRawSeries.map((rawSeries) => {
             const {
@@ -411,8 +411,10 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
                 entityName: seriesName,
                 shortEntityName: getShortNameForEntity(seriesName),
                 annotation:
-                    this.seriesStrategy === SeriesStrategy.entity
-                        ? selectEntityAnnotation(annotations, seriesName)?.text
+                    this.seriesStrategy === SeriesStrategy.entity &&
+                    annotationColumn
+                        ? selectEntityAnnotation(annotationColumn, seriesName)
+                              ?.text
                         : undefined,
                 // the error color should never be used but I prefer it here instead of throwing an exception if something goes wrong
                 color:

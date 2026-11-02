@@ -344,16 +344,13 @@ export class LineChartState implements ChartState, ColorScaleManager {
         ]
         const { pointAnnotations, rangeAnnotations } =
             selectEntityTimeAnnotations({
-                annotations: column.def.annotations ?? [],
+                column,
                 entityName,
                 timeRange,
             })
         const entityAnnotation =
             seriesStrategy === SeriesStrategy.entity
-                ? selectEntityAnnotation(
-                      this.yColumns[0].def.annotations ?? [],
-                      entityName
-                  )
+                ? selectEntityAnnotation(this.yColumns[0], entityName)
                 : undefined
 
         return {

@@ -5,7 +5,7 @@ import {
     IndicatorAnnotation,
     TimeRange,
 } from "@ourworldindata/types"
-import { CoreColumn } from "@ourworldindata/core-table"
+import { CoreColumn, OwidColumn } from "@ourworldindata/core-table"
 import { SeriesLabelAnnotation } from "../seriesLabel/SeriesLabelState"
 
 export type PointAnnotation = Extract<
@@ -58,7 +58,7 @@ function isEntityAnnotation(
 }
 
 interface SelectEntityTimeAnnotationsArgs {
-    annotations: IndicatorAnnotation[]
+    column: OwidColumn
     entityName: EntityName
     timeRange: TimeRange
 }
@@ -73,12 +73,12 @@ export function selectEntityTimeAnnotations(
 }
 
 function selectEntityPointAnnotations({
-    annotations,
+    column,
     entityName,
     timeRange,
 }: SelectEntityTimeAnnotationsArgs): PointAnnotation[] {
     const [startTime, endTime] = timeRange
-    return annotations
+    return column.annotations
         .filter(isPointAnnotation)
         .filter(
             (annotation) =>
@@ -90,12 +90,12 @@ function selectEntityPointAnnotations({
 }
 
 function selectEntityRangeAnnotations({
-    annotations,
+    column,
     entityName,
     timeRange,
 }: SelectEntityTimeAnnotationsArgs): RangeAnnotation[] {
     const [windowStart, windowEnd] = timeRange
-    return annotations
+    return column.annotations
         .filter(isRangeAnnotation)
         .filter(
             (annotation) =>
@@ -107,10 +107,10 @@ function selectEntityRangeAnnotations({
 }
 
 export function selectEntityAnnotation(
-    annotations: IndicatorAnnotation[],
+    column: OwidColumn,
     entityName: EntityName
 ): EntityAnnotation | undefined {
-    return annotations
+    return column.annotations
         .filter(isEntityAnnotation)
         .find((annotation) => annotation.entityNames.includes(entityName))
 }

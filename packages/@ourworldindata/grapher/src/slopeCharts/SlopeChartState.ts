@@ -249,16 +249,13 @@ export class SlopeChartState implements ChartState {
 
         const { pointAnnotations, rangeAnnotations } =
             selectEntityTimeAnnotations({
-                annotations: column.def.annotations ?? [],
+                column,
                 entityName,
                 timeRange: [startTime, endTime],
             })
         const entityAnnotation =
             seriesStrategy === SeriesStrategy.entity
-                ? selectEntityAnnotation(
-                      this.yColumns[0].def.annotations ?? [],
-                      entityName
-                  )
+                ? selectEntityAnnotation(this.yColumns[0], entityName)
                 : undefined
 
         return {

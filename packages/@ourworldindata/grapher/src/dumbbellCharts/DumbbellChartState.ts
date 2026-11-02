@@ -175,7 +175,6 @@ export class DumbbellChartState implements ChartState {
             focusArray,
             directionColors: colors,
         } = this
-        const annotations = yColumn.def.annotations ?? []
 
         return this.selectionArray.selectedEntityNames
             .map((entityName): DumbbellSeries | undefined => {
@@ -225,7 +224,7 @@ export class DumbbellChartState implements ChartState {
                 const displayName = shortEntityName ?? entityName
 
                 const annotation = selectEntityAnnotation(
-                    annotations,
+                    yColumn,
                     entityName
                 )?.text
 
@@ -250,8 +249,6 @@ export class DumbbellChartState implements ChartState {
         const [startColumn, endColumn] = this.yColumns
 
         if (!startColumn || !endColumn) return []
-
-        const annotations = startColumn.def.annotations ?? []
 
         return this.selectionArray.selectedEntityNames
             .map((entityName): DumbbellSeries | undefined => {
@@ -284,7 +281,7 @@ export class DumbbellChartState implements ChartState {
                 const displayName = shortEntityName ?? entityName
 
                 const annotation = selectEntityAnnotation(
-                    annotations,
+                    startColumn,
                     entityName
                 )?.text
 
