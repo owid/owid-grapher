@@ -30,7 +30,12 @@ import {
     GrapherChartOrMapType,
 } from "@ourworldindata/types"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
+import {
+    ExplorerChartCreationMode,
+    EXPLORER_EMBEDDED_FIGURE_SELECTOR,
+} from "@ourworldindata/explorer"
+import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "@ourworldindata/grapher"
+import { viteAssetsForSite } from "../site/viteUtils.js"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 
@@ -1141,8 +1146,7 @@ function AnnotationsTestPage() {
             margin: 10px 0 0;
         }
 
-        iframe {
-            border: 0;
+        figure {
             height: 575px;
             width: 100%;
             max-width: 815px;
@@ -1165,6 +1169,13 @@ function AnnotationsTestPage() {
                 <AnnotatedChartList charts={MADE_UP_ANNOTATED_CHARTS} />
                 <h2>Slope charts</h2>
                 <AnnotatedChartList charts={SLOPE_ANNOTATED_CHARTS} />
+                {viteAssetsForSite().forFooter}
+                <script
+                    type="module"
+                    dangerouslySetInnerHTML={{
+                        __html: "window.MultiEmbedderSingleton.embedAll()",
+                    }}
+                />
             </body>
         </html>
     )
@@ -1178,7 +1189,14 @@ function AnnotatedChartList({ charts }: { charts: AnnotatedChart[] }) {
                     <h3>
                         <a href={`${BAKED_BASE_URL}/${path}`}>{label}</a>
                     </h3>
-                    <iframe src={`${BAKED_BASE_URL}/${path}`} loading="lazy" />
+                    <figure
+                        {...{
+                            [path.startsWith("explorers/")
+                                ? EXPLORER_EMBEDDED_FIGURE_SELECTOR
+                                : GRAPHER_EMBEDDED_FIGURE_ATTR]:
+                                `${BAKED_BASE_URL}/${path}`,
+                        }}
+                    />
                 </div>
             ))}
         </>
