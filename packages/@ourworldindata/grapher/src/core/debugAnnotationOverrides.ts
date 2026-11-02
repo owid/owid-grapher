@@ -95,20 +95,80 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             timeEnd: 2005,
         },
     ],
-    // food-supply-vs-life-expectancy (a scatter plot), life-expectancy-un
+    // food-supply-vs-life-expectancy (a scatter plot), life-expectancy-un,
+    // and the historical half of life-expectancy-at-birth-including-the-un-projections
     950927: [
         {
             text: "A life expectancy of 19 years is far below every other year for the Central African Republic and is most likely a data error.",
             entities: ["Central African Republic"],
             time: 2022,
         },
+        // Entity annotations: historical only, both different, both the same
+        {
+            text: "Estimates before 1950 rely on incomplete death registration.",
+            entities: ["Japan"],
+        },
+        {
+            text: "Historical estimates rest on the Sample Registration System.",
+            entities: ["India"],
+        },
+        {
+            text: "UN World Population Prospects 2024 revision.",
+            entities: ["World"],
+        },
+    ],
+    // the projection half of life-expectancy-at-birth-including-the-un-projections
+    950931: [
+        // Entity annotations: projection only, both different, both the same
+        {
+            text: "Projections assume a recovery from the Zika and COVID-19 shocks.",
+            entities: ["Brazil"],
+        },
+        {
+            text: "Projections follow the UN medium fertility variant.",
+            entities: ["India"],
+        },
+        {
+            text: "UN World Population Prospects 2024 revision.",
+            entities: ["World"],
+        },
+    ],
+    // births-and-deaths-projected-to-2100: deaths (estimates), deaths
+    // (projection), births (estimates); births (projection) stays unannotated
+    950690: [
+        {
+            text: "Death counts for the 1980s and 1990s are modelled from few surveys.",
+            entities: ["Afghanistan"],
+        },
+    ],
+    950692: [
+        {
+            text: "Projected deaths assume no return to large-scale conflict.",
+            entities: ["Afghanistan"],
+        },
+    ],
+    950616: [
+        {
+            text: "Birth counts are modelled from few surveys.",
+            entities: ["Afghanistan"],
+        },
     ],
     // change-in-food-supply-population-and-agricultural-land-use?country=~Africa+(FAO)
+    // Entity annotations: World differs per indicator, Africa (FAO) repeats one
+    // text on two indicators, land use (1205675) stays unannotated
     1205676: [
         {
             text: "The jump comes from a change in which countries the FAO has data for, not a real rise in food supply.",
             entities: ["Africa (FAO)"],
             time: 2010,
+        },
+        {
+            text: "Food supply measures food available for consumption, not food eaten.",
+            entities: ["World"],
+        },
+        {
+            text: "The countries in this FAO region change over time.",
+            entities: ["Africa (FAO)"],
         },
     ],
     1205674: [
@@ -116,6 +176,14 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             text: "The jump comes from a change in which countries the FAO has data for, not a real rise in population.",
             entities: ["Africa (FAO)"],
             time: 2010,
+        },
+        {
+            text: "Population follows the UN World Population Prospects.",
+            entities: ["World"],
+        },
+        {
+            text: "The countries in this FAO region change over time.",
+            entities: ["Africa (FAO)"],
         },
     ],
     // global-food explorer, Food=Chestnut, Metric=Production, country=~ESP
@@ -170,6 +238,15 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             entities: ["Sint Maarten (Dutch part)"],
             time: 1950,
             timeEnd: 1985,
+        },
+        // Entity annotations: a short one, and a long one that wraps
+        {
+            text: "Includes emissions from Hong Kong and Macao.",
+            entities: ["China"],
+        },
+        {
+            text: "Emissions are territorial: they count fossil fuels burned within India's borders and leave out the emissions embedded in goods India imports from other countries.",
+            entities: ["India"],
         },
     ],
     // forest-area-as-share-of-land-area?tab=line&country=~Scotland, which has a legacy annotation

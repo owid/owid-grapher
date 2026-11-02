@@ -1157,6 +1157,59 @@ const SLOPE_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
 ]
 
+const ENTITY_STRATEGY_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "One indicator: China short, India long, the US and UK none",
+        path: "grapher/co-emissions-per-capita?tab=line&country=CHN~IND~USA~GBR",
+    },
+    {
+        label: "One indicator, one annotated entity",
+        path: "grapher/co-emissions-per-capita?tab=line&country=~CHN",
+    },
+    {
+        label: "Legacy annotations (maternal mortality)",
+        path: "grapher/maternal-mortality?tab=line&time=1962..latest",
+    },
+]
+
+const PROJECTION_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Japan historical only, Brazil projection only, India a different annotation on each, World the same on both, Sweden none. Hover a historical year, the overlap year and a projected year",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?tab=line",
+    },
+    {
+        label: "India alone: a different annotation on the historical and projection indicators",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?tab=line&country=~IND",
+    },
+    {
+        label: "Japan alone: annotated on the historical indicator only",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?tab=line&country=~JPN",
+    },
+]
+
+const COLUMN_STRATEGY_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "World: a different annotation on food supply and population, none on land use",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?country=~OWID_WRL",
+    },
+    {
+        label: "Africa (FAO): the same text on food supply and population, shown on both labels",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?country=~Africa+%28FAO%29",
+    },
+    {
+        label: "World and Africa (FAO) together",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?country=OWID_WRL~Africa+%28FAO%29",
+    },
+    {
+        label: "With projections, Afghanistan: deaths annotated on both halves, births on the historical half only. Paired by color, so each projection label shows its historical annotation too",
+        path: "grapher/births-and-deaths-projected-to-2100?tab=line&country=~AFG",
+    },
+    {
+        label: "With projections, Afghanistan and World",
+        path: "grapher/births-and-deaths-projected-to-2100?tab=line&country=AFG~OWID_WRL",
+    },
+]
+
 function AnnotationsTestPage() {
     const style = `
         body {
@@ -1198,6 +1251,18 @@ function AnnotationsTestPage() {
                 <style dangerouslySetInnerHTML={{ __html: style }} />
             </Head>
             <body>
+                <h2>Entity annotations: entity strategy</h2>
+                <AnnotatedChartList
+                    charts={ENTITY_STRATEGY_ENTITY_ANNOTATED_CHARTS}
+                />
+                <h2>Entity annotations: historical and projected data</h2>
+                <AnnotatedChartList
+                    charts={PROJECTION_ENTITY_ANNOTATED_CHARTS}
+                />
+                <h2>Entity annotations: column strategy</h2>
+                <AnnotatedChartList
+                    charts={COLUMN_STRATEGY_ENTITY_ANNOTATED_CHARTS}
+                />
                 <h2>Real examples from Figma</h2>
                 <AnnotatedChartList charts={REAL_ANNOTATED_CHARTS} />
                 <h2>Made-up examples</h2>
