@@ -70,6 +70,7 @@ export {
     getClosestTimePairs,
     omitUndefinedValues,
     isInIFrame,
+    isInSameOriginIFrame,
     openLinkInNewTabAttrs,
     differenceObj,
     findDOMParent,

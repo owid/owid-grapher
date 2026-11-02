@@ -1227,6 +1227,25 @@ export const isInIFrame = (): boolean => {
 }
 
 /**
+ * Whether the page is in an iframe whose parent page is on the same origin,
+ * i.e. embedded in one of our own pages (such as an archived article
+ * embedding an archived chart) rather than on another site.
+ *
+ * Browsers only let a frame read its parent's location when both share an
+ * origin; for a cross-origin parent the access throws.
+ */
+export const isInSameOriginIFrame = (): boolean => {
+    try {
+        return (
+            window.self !== window.parent &&
+            window.parent.location.origin === window.location.origin
+        )
+    } catch {
+        return false
+    }
+}
+
+/**
  * Attributes that make a link open in a new tab, to spread onto an `<a>`.
  * Only puts them when `openInNewTab` is truthy.
  *
