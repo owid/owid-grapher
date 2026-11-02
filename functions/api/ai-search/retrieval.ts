@@ -56,15 +56,6 @@ function withoutHighlights<T>(hit: Record<string, unknown>): T {
 }
 
 /**
- * Keeps the content snippet, which SearchFlatArticleHit shows for an article
- * without an excerpt
- */
-function withContentSnippet<T>(hit: Record<string, unknown>): T {
-    const { _highlightResult, ...rest } = hit
-    return rest as T
-}
-
-/**
  * Runs keyword searches for the original query and its expansions in a single
  * Algolia round trip, with the site's ranking. The original query gets the
  * deeper lists, since it supplies more hits per rank to the pool.
@@ -103,9 +94,7 @@ export async function searchKeywords(
                 query,
                 attributesToRetrieve: PAGE_ATTRIBUTES,
                 attributesToHighlight: [],
-                attributesToSnippet: ["content:20"],
-                highlightPreTag: "<mark>",
-                highlightPostTag: "</mark>",
+                attributesToSnippet: [],
                 hitsPerPage: Math.ceil(pages * share),
                 filters: pageFilters,
             },
@@ -121,7 +110,7 @@ export async function searchKeywords(
             .map((hit) => withoutHighlights<ChartCandidate>(hit))
             .filter((hit) => Object.values(ChartRecordType).includes(hit.type)),
         pages: (results[2 * i + 1]?.hits ?? []).map((hit) =>
-            withContentSnippet<PageCandidate>(hit)
+            withoutHighlights<PageCandidate>(hit)
         ),
     }))
 }

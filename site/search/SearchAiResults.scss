@@ -80,11 +80,11 @@
     color: $accent-vermillion;
 }
 
-.search-ai__wide-chart,
-.search-ai__topic-page {
+.search-ai__wide-chart {
     margin-bottom: 32px;
 }
 
+// A row has four slots; topic pages and articles take two
 .search-ai__cards {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -94,60 +94,95 @@
     @include md-down {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-
-    .search-stacked-article-hit {
-        max-width: none;
-    }
-
-    // Article and data insight images take the shape of chart thumbnails,
-    // so a row of mixed cards lines up
-    .search-stacked-article-hit__image {
-        height: auto;
-        aspect-ratio: calc(
-            $grapher-thumbnail-width / $grapher-thumbnail-height
-        );
-    }
-
-    .search-data-insight-hit__title {
-        font-family: $serif-font-stack;
-        font-size: 1rem;
-        line-height: 1.25;
-    }
-
-    .search-data-insight-hit__image-container {
-        padding-bottom: calc(
-            100% * $grapher-thumbnail-height / $grapher-thumbnail-width
-        );
-        margin-bottom: 12px;
-    }
 }
 
-.search-ai-chart-card {
-    display: block;
+.search-ai-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
     text-decoration: none;
 
-    .search-chart-hit-thumbnail {
-        border: 1px solid $blue-10;
-    }
-
-    &:hover .search-ai-chart-card__title {
+    &:hover .search-ai-card__title {
         text-decoration: underline;
     }
 }
 
-.search-ai-chart-card__title {
+// Blue means data, as in the rich chart cards
+.search-ai-chart-card {
+    padding: 12px;
+    background: $blue-5;
+}
+
+.search-ai-card__image {
+    width: 100%;
+    aspect-ratio: calc($grapher-thumbnail-width / $grapher-thumbnail-height);
+    object-fit: cover;
+}
+
+.search-ai-card__label {
+    @include h6-black-caps;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 12px 0 4px;
+    color: $blue-60;
+}
+
+.search-ai-card__title {
     font-family: $serif-font-stack;
     font-size: 1rem;
     font-weight: 700;
     line-height: 1.25;
     color: $blue-90;
-    margin: 12px 0 0;
+    margin: 0;
 }
 
-.search-ai-chart-card__variant {
+.search-ai-card__variant {
     font-family: $sans-serif-font-stack;
     font-weight: 400;
     color: $blue-60;
+}
+
+.search-ai-page-card {
+    grid-column: span 2;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 16px;
+
+    @include sm-only {
+        flex-direction: column;
+    }
+}
+
+.search-ai-page-card__image {
+    width: 50%;
+    flex-shrink: 0;
+    aspect-ratio: calc($grapher-thumbnail-width / $grapher-thumbnail-height);
+    object-fit: cover;
+
+    @include sm-only {
+        width: 100%;
+    }
+}
+
+.search-ai-page-card__text .search-ai-card__label {
+    margin-top: 0;
+}
+
+.search-ai-page-card__title {
+    font-size: 1.25rem;
+}
+
+.search-ai-page-card__excerpt {
+    @include body-3-regular;
+    margin: 6px 0 0;
+    color: $blue-60;
+}
+
+.search-ai-page-card__byline {
+    @include note-1-regular;
+    margin: 8px 0 0;
+    color: $blue-50;
 }
 
 .search-ai-group {

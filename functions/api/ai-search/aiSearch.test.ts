@@ -151,6 +151,31 @@ describe(createBlockParser, () => {
         expect(parse('{"type":"chart","id":5}')).not.toBeNull()
     })
 
+    it("counts an article as two of the row's four slots", () => {
+        const parse = createBlockParser(
+            pool(
+                [1, 2, 3].map((id) => [id, chart(`c${id}`)]),
+                [
+                    [10, article("a")],
+                    [11, article("b")],
+                ]
+            )
+        )
+        // The second article doesn't fit after the first one and a chart,
+        // but the chart after it does
+        const group = parse(
+            '{"type":"group","title":"Row","blocks":[{"type":"page","id":10},{"type":"chart","id":1},{"type":"page","id":11},{"type":"chart","id":2},{"type":"chart","id":3}]}'
+        )
+        expect(group).toMatchObject({
+            blocks: [
+                { type: "article" },
+                { hit: { slug: "c1" } },
+                { hit: { slug: "c2" } },
+            ],
+        })
+        expect(parse('{"type":"page","id":11}')).not.toBeNull()
+    })
+
     it("allows two wide cards on the page", () => {
         const parse = createBlockParser(candidates)
         const sizeOf = (id: number): unknown =>

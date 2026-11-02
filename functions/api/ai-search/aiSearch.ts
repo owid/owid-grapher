@@ -11,7 +11,7 @@ import {
     GrapherTabName,
     OwidGdocType,
     SearchChartHit,
-    TopicPageHit,
+    AiSearchTopicPageHit,
 } from "@ourworldindata/types"
 
 export const MAX_QUERY_LENGTH = 200
@@ -42,7 +42,10 @@ export type ChartCandidate = SearchChartHit & {
     numRelatedArticles?: number
 }
 
-export type PageCandidate = TopicPageHit | FlatArticleHit | DataInsightHit
+export type PageCandidate =
+    | AiSearchTopicPageHit
+    | FlatArticleHit
+    | DataInsightHit
 
 export interface RankedHits {
     charts: ChartCandidate[]
@@ -187,12 +190,12 @@ function chartLine(id: number, chart: ChartCandidate): string {
 }
 
 function pageLine(id: number, page: PageCandidate): string {
-    const byline =
-        "authors" in page
-            ? [page.authors?.slice(0, 2).join(", "), page.date?.slice(0, 4)]
-                  .filter(Boolean)
-                  .join(" ")
-            : ""
+    const byline = [
+        "authors" in page && page.authors?.slice(0, 2).join(", "),
+        "date" in page && page.date?.slice(0, 4),
+    ]
+        .filter(Boolean)
+        .join(" ")
     const excerpt = "excerpt" in page ? (page.excerpt ?? "") : ""
     return `${id} | ${PAGE_KIND_LABELS[page.type]} | ${page.title} | ${byline} | ${excerpt.slice(0, 150)}`
 }
@@ -208,9 +211,9 @@ Blocks:
 - {"type":"chart","id":12,"size":"large","country":"Nigeria"}
   A chart. "large" is a big interactive-looking card with the chart and a data table: the page's headline, for the one chart that best answers the search. "medium" is a wide card with the chart, a table, a map and a headline number. Both take a whole screen row and load real data, so the page has at most two of them, usually a single large one at the top. "small" is a thumbnail with the chart's title; consecutive small charts sit side by side, four to a row. When the search names a country or region, add "country" (its exact name) to every chart where it applies, since that place is what the reader asked about; the chart then shows that place's data. Leave it out otherwise.
 - {"type":"page","id":34}
-  A topic page, article or data insight card.
+  A card for a topic page, article or data insight. Topic pages and articles are wide cards with their image, summary and authors; a data insight is a card the size of a chart thumbnail.
 - {"type":"group","title":"...","blurb":"...","blocks":[...]}
-  A titled section that shows its chart and page blocks as a single row of four cards (charts as thumbnails, whatever size you give them), so give it 3 or 4 blocks in total; cards past the fourth are dropped. Order the cards by how well they answer the group's question: a topic page or article that explains the subject is often the most useful card and can lead the row. Title: plain language, sentence case, at most 6 words. Blurb: one short sentence saying what the section shows.
+  A titled section that shows its chart and page blocks as a single row of four slots: a chart (as a thumbnail, whatever size you give it) or a data insight takes one slot, a topic page or article takes two. Fill the row, for example with a page and two charts, or four charts; blocks that don't fit are dropped. Order the cards by how well they answer the group's question: a topic page or article that explains the subject is often the most useful card and can lead the row. Title: plain language, sentence case, at most 6 words. Blurb: one short sentence saying what the section shows.
 - {"type":"forks","question":"...","options":[{"label":"...","query":"..."}]}
   For a search that could mean distinct things: 2 to 4 options. Picking one runs a new search for its query, so make each query specific (2 to 5 words). Put this block first, then add a few charts that help whichever meaning the reader had.
 - {"type":"related","queries":["..."]}
@@ -234,8 +237,12 @@ ${[
 
 const CHART_SIZES: readonly AiSearchChartSize[] = ["large", "medium", "small"]
 
-// The cards in a row on the page, and so in a group
-const GROUP_SIZE = 4
+// The slots in a row of cards on the page, and so in a group. Topic pages
+// and articles are wide cards that take two.
+const GROUP_SLOTS = 4
+
+const slotsOf = (page: PageCandidate | undefined): number =>
+    page && page.type !== OwidGdocType.DataInsight ? 2 : 1
 
 const str = (value: unknown): string =>
     typeof value === "string" ? value.trim() : ""
@@ -314,19 +321,28 @@ export function createBlockParser(
                 // Checked first, so a rejected group doesn't use up its ids
                 const title = str(obj.title)
                 if (!title) return null
-                // A group is one row of cards. Children past the row are left
-                // unresolved, so their ids stay free for later blocks.
+                // A group is one row of cards. Children that don't fit in the
+                // row are left unresolved, so their ids stay free for later
+                // blocks.
                 const blocks: AiSearchContentBlock[] = []
+                let slots = 0
                 for (const child of Array.isArray(obj.blocks)
                     ? obj.blocks
                     : []) {
-                    if (blocks.length === GROUP_SIZE) break
+                    if (slots === GROUP_SLOTS) break
                     if (typeof child !== "object" || child === null) continue
+                    const width =
+                        child.type === "page"
+                            ? slotsOf(pool.pages.get(Number(child.id)))
+                            : 1
+                    if (slots + width > GROUP_SLOTS) continue
                     const block = resolveContent(child, {
                         defaultSize: "small",
                         inGroup: true,
                     })
-                    if (block) blocks.push(block)
+                    if (!block) continue
+                    blocks.push(block)
+                    slots += width
                 }
                 if (!blocks.length) return null
                 return { type: "group", title, blurb: str(obj.blurb), blocks }

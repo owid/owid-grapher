@@ -1,6 +1,14 @@
 import { useEffect, useReducer } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowRight, faXmark } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowRight,
+    faBookOpen,
+    faChartLine,
+    faFileLines,
+    faLightbulb,
+    faXmark,
+    IconDefinition,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     AI_SEARCH_MODELS,
     AiSearchBlock,
@@ -9,7 +17,11 @@ import {
     AiSearchErrorCode,
     AiSearchEvent,
     AiSearchModel,
+    AiSearchPageBlock,
+    OwidGdocType,
 } from "@ourworldindata/types"
+import { compactAiSearchBlock, formatAuthors } from "@ourworldindata/utils"
+import { getCanonicalPath } from "@ourworldindata/components"
 import { streamAiSearch, useAiSearchSettings } from "./aiSearchClient.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail.js"
@@ -20,9 +32,6 @@ import {
     toGrapherQueryParams,
 } from "./searchUtils.js"
 import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
-import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
-import { SearchStackedArticleHit } from "./SearchStackedArticleHit.js"
-import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
 
 interface AiSearchState {
     status?: string
@@ -200,7 +209,7 @@ export function SearchAiResults({
                             <summary>Resolved blocks</summary>
                             <pre>
                                 {JSON.stringify(
-                                    state.blocks.map(summarizeBlock),
+                                    state.blocks.map(compactAiSearchBlock),
                                     null,
                                     2
                                 )}
@@ -216,26 +225,24 @@ export function SearchAiResults({
 type LayoutItem =
     | Exclude<AiSearchBlock, AiSearchContentBlock>
     | AiSearchChartBlock
-    | { type: "topicPage"; block: AiSearchContentBlock }
     | { type: "cards"; blocks: AiSearchContentBlock[] }
 
 /**
- * Turns the block list into what the page shows: large and medium charts and
- * topic pages get a row of their own, and runs of other content (small
- * charts, articles, data insights) become rows of cards
+ * Turns the block list into what the page shows: large and medium charts get
+ * a row of their own, and runs of other content (small charts and pages)
+ * become rows of cards
  */
 function toLayoutItems(blocks: AiSearchBlock[]): LayoutItem[] {
     const items: LayoutItem[] = []
     for (const block of blocks) {
         const isCard =
-            (block.type === "chart" && block.size === "small") ||
+            block.type === "topicPage" ||
             block.type === "article" ||
-            block.type === "dataInsight"
+            block.type === "dataInsight" ||
+            (block.type === "chart" && block.size === "small")
         const last = items.at(-1)
         if (isCard && last?.type === "cards") last.blocks.push(block)
         else if (isCard) items.push({ type: "cards", blocks: [block] })
-        else if (block.type === "topicPage")
-            items.push({ type: "topicPage", block })
         else items.push(block)
     }
     return items
@@ -260,12 +267,6 @@ function AiLayoutItem({
                         }
                         onClick={noop}
                     />
-                </div>
-            )
-        case "topicPage":
-            return (
-                <div className="search-ai__topic-page">
-                    <AiCard block={item.block} />
                 </div>
             )
         case "cards":
@@ -344,25 +345,107 @@ function AiCards({ blocks }: { blocks: AiSearchContentBlock[] }) {
 // Clicks aren't tracked yet
 const noop = (): void => undefined
 
+/**
+ * Cards say what they are: charts sit on a blue tile like the rich chart
+ * cards, writing sits on white, and every card has a type label
+ */
 function AiCard({ block }: { block: AiSearchContentBlock }) {
     switch (block.type) {
         case "chart":
             return <AiChartCard block={block} />
         case "topicPage":
-            return <SearchTopicPageHit hit={block.hit} onClick={noop} />
         case "article":
-            return (
-                <SearchStackedArticleHit
-                    hit={{ ...block.hit, excerpt: block.hit.excerpt ?? "" }}
-                    onClick={noop}
-                />
-            )
+            return <AiPageCard block={block} />
         case "dataInsight":
-            return <SearchDataInsightHit hit={block.hit} onClick={noop} />
+            return <AiDataInsightCard block={block} />
     }
 }
 
-/** A chart thumbnail with its title, for rows of cards */
+const CARD_LABELS: Record<
+    AiSearchContentBlock["type"],
+    { text: string; icon: IconDefinition }
+> = {
+    chart: { text: "Chart", icon: faChartLine },
+    topicPage: { text: "Topic page", icon: faBookOpen },
+    article: { text: "Article", icon: faFileLines },
+    dataInsight: { text: "Data insight", icon: faLightbulb },
+}
+
+function AiCardLabel({ type }: { type: AiSearchContentBlock["type"] }) {
+    const { text, icon } = CARD_LABELS[type]
+    return (
+        <span className="search-ai-card__label">
+            <FontAwesomeIcon icon={icon} />
+            {text}
+        </span>
+    )
+}
+
+/** A wide card for a topic page or article, with its image and authors */
+function AiPageCard({
+    block,
+}: {
+    block: Extract<AiSearchPageBlock, { type: "topicPage" | "article" }>
+}) {
+    const { hit } = block
+    const authors = hit.authors ?? []
+    return (
+        <a
+            className="search-ai-card search-ai-page-card"
+            href={getCanonicalPath(hit.slug, hit.type)}
+        >
+            {hit.thumbnailUrl && (
+                <img
+                    className="search-ai-page-card__image"
+                    src={hit.thumbnailUrl}
+                    alt=""
+                />
+            )}
+            <div className="search-ai-page-card__text">
+                <AiCardLabel type={block.type} />
+                <h4 className="search-ai-card__title search-ai-page-card__title">
+                    {hit.title}
+                </h4>
+                {hit.excerpt && (
+                    <p className="search-ai-page-card__excerpt">
+                        {hit.excerpt}
+                    </p>
+                )}
+                {authors.length > 0 && (
+                    <p className="search-ai-page-card__byline">
+                        {formatAuthors(authors)}
+                    </p>
+                )}
+            </div>
+        </a>
+    )
+}
+
+function AiDataInsightCard({
+    block,
+}: {
+    block: Extract<AiSearchPageBlock, { type: "dataInsight" }>
+}) {
+    const { hit } = block
+    return (
+        <a
+            className="search-ai-card"
+            href={getCanonicalPath(hit.slug, OwidGdocType.DataInsight)}
+        >
+            {hit.thumbnailUrl && (
+                <img
+                    className="search-ai-card__image"
+                    src={hit.thumbnailUrl}
+                    alt=""
+                />
+            )}
+            <AiCardLabel type="dataInsight" />
+            <h4 className="search-ai-card__title">{hit.title}</h4>
+        </a>
+    )
+}
+
+/** A chart thumbnail with its title on a blue tile, for rows of cards */
 function AiChartCard({ block }: { block: AiSearchChartBlock }) {
     const { hit, country } = block
     // The chart's default view, which its authors picked
@@ -377,17 +460,18 @@ function AiChartCard({ block }: { block: AiSearchChartBlock }) {
     })
     return (
         <a
-            className="search-chart-hit-captioned-link search-ai-chart-card"
+            className="search-chart-hit-captioned-link search-ai-card search-ai-chart-card"
             href={chartUrl}
         >
             <SearchChartHitThumbnail
                 previewUrl={previewUrl}
                 hoverOverlayText="Explore the data"
             />
-            <h4 className="search-ai-chart-card__title">
+            <AiCardLabel type="chart" />
+            <h4 className="search-ai-card__title">
                 {hit.title}
                 {hit.variantName && (
-                    <span className="search-ai-chart-card__variant">
+                    <span className="search-ai-card__variant">
                         {" "}
                         {hit.variantName}
                     </span>
@@ -395,12 +479,4 @@ function AiChartCard({ block }: { block: AiSearchChartBlock }) {
             </h4>
         </a>
     )
-}
-
-/** A block with hits reduced to their slugs, for the debug output */
-function summarizeBlock(block: AiSearchBlock): unknown {
-    if (block.type === "group")
-        return { ...block, blocks: block.blocks.map(summarizeBlock) }
-    if ("hit" in block) return { ...block, hit: block.hit.slug }
-    return block
 }
