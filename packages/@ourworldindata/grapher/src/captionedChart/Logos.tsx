@@ -2,7 +2,6 @@ import * as React from "react"
 import {
     OWID_LOGO_SVG,
     CORE_LOGO_SVG,
-    GV_LOGO_SVG,
     SMALL_OWID_LOGO_SVG,
     OWID_WORDMARK_SVG,
 } from "./LogosSVG"
@@ -37,12 +36,6 @@ const logos: Record<LogoOption, LogoAttributes> = {
         width: 102,
         height: 37,
         targetHeight: 36,
-    },
-    "gv+owid": {
-        svg: GV_LOGO_SVG,
-        width: 420,
-        height: 350,
-        targetHeight: 52,
     },
 }
 

@@ -421,7 +421,6 @@ export interface VerticalComparisonLineLabelPlacement {
 export enum LogoOption {
     owid = "owid",
     "core+owid" = "core+owid",
-    "gv+owid" = "gv+owid",
     wordmark = "wordmark",
 }
 

@@ -13,7 +13,7 @@ import {
 } from "./grapherConfigInheritance.js"
 
 const SCHEMA_URL =
-    "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
+    "https://files.ourworldindata.org/schemas/grapher-schema.012.json"
 const OUTDATED_SCHEMA_URL =
     "https://files.ourworldindata.org/schemas/grapher-schema.010.json"
 
