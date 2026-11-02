@@ -26,3 +26,57 @@ html.IsInIframe {
         max-height: none;
     }
 }
+
+// The controls of an embedded mdim, and for a data explorer embedded on
+// another site, its title next to them.
+.multi-dim-embed-header {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+
+    .md-embed-settings {
+        flex: 1;
+        min-width: 0;
+        margin-bottom: 0;
+    }
+
+    // On small screens, the title stacks above the controls.
+    @include sm-only {
+        flex-direction: column;
+        gap: 0;
+        margin-bottom: 0;
+    }
+}
+
+.multi-dim-embed-header__explorer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    flex-shrink: 0;
+    max-width: 240px;
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid $gray-10;
+
+    @include sm-only {
+        max-width: none;
+        // The controls box below has its own top border.
+        border-bottom: 0;
+    }
+}
+
+.multi-dim-embed-header__eyebrow {
+    color: $blue-60;
+}
+
+.multi-dim-embed-header__title {
+    color: $blue-90;
+    line-height: 24px;
+    text-decoration: none;
+
+    // A link to the full page, when there is one.
+    &:is(a):hover {
+        text-decoration: underline;
+    }
+}
