@@ -379,21 +379,15 @@ describe("annotations", () => {
             expect(chart.leftLabelsSeries[0].annotations).toBeUndefined()
         })
 
-        it("keeps the list but drops the inline text in compact layout", () => {
-            const wide = makeAnnotatedSlopeChart({
-                annotations: [...annotations, entityAnnotation],
-            }).chart
-            const compact = makeAnnotatedSlopeChart({
+        it("shows the entity annotation inline in compact layout", () => {
+            const { chart } = makeAnnotatedSlopeChart({
                 annotations: [...annotations, entityAnnotation],
                 isSemiNarrow: true,
-            }).chart
-            expect(wide.rightLabelsSeries[0].inlineAnnotation).toBe(
+            })
+            expect(chart.rightLabelsSeries[0].inlineAnnotation).toBe(
                 "entity note"
             )
-            expect(
-                compact.rightLabelsSeries[0].inlineAnnotation
-            ).toBeUndefined()
-            expect(compact.rightLabelsSeries[0].annotations).toHaveLength(2)
+            expect(chart.rightLabelsSeries[0].annotations).toHaveLength(2)
         })
 
         it("attaches the entity annotation in entity strategy", () => {

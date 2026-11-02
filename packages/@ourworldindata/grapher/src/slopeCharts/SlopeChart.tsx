@@ -628,7 +628,7 @@ export class SlopeChart
                 (series) => series.end.value,
                 {
                     showSeriesName: this.manager.showSeriesLabels,
-                    showInlineAnnotation: !this.useCompactLayout,
+                    showInlineAnnotation: true,
                     showAnnotations: true,
                 }
             )
