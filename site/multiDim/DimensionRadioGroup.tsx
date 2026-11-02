@@ -1,0 +1,80 @@
+import cx from "clsx"
+import {
+    RadioButton,
+    RadioField,
+    RadioGroup,
+    Text,
+} from "react-aria-components"
+
+import { DimensionEnriched } from "@ourworldindata/types"
+import DimensionLabel from "./DimensionLabel.js"
+
+export default function DimensionRadioGroup({
+    className,
+    dimension,
+    availableChoiceSlugs,
+    value,
+    onChange,
+    readOnly,
+}: {
+    className?: string
+    dimension: DimensionEnriched
+    availableChoiceSlugs: Set<string>
+    value: string
+    onChange: (value: string) => void
+    readOnly?: boolean
+}) {
+    const availableCount = dimension.choices.filter((choice) =>
+        availableChoiceSlugs.has(choice.slug)
+    ).length
+    return (
+        <RadioGroup
+            className={cx(
+                "md-settings__control",
+                "md-settings__radio-group",
+                className
+            )}
+            orientation="horizontal"
+            value={value}
+            onChange={onChange}
+            // With at most one selectable option there's nothing to switch
+            // between, so disable the whole control.
+            isDisabled={availableCount <= 1}
+            // While a view is loading, block changes with readOnly rather than
+            // disabled: disabling would make the focused radio unfocusable and
+            // drop keyboard focus.
+            isReadOnly={readOnly}
+        >
+            <DimensionLabel dimension={dimension} showChoiceDescriptions />
+            <div className="md-settings__radio-group-options">
+                {dimension.choices.map((choice) => (
+                    <RadioField
+                        key={choice.slug}
+                        className="md-settings__radio-field"
+                        value={choice.slug}
+                        isDisabled={!availableChoiceSlugs.has(choice.slug)}
+                    >
+                        <RadioButton
+                            className="md-settings__radio"
+                            data-track-note="multi-dim-choice-radio"
+                        >
+                            <span
+                                className="md-settings__radio-label"
+                                title={choice.name}
+                            >
+                                {choice.name}
+                            </span>
+                        </RadioButton>
+                        {/* Sighted users find choice descriptions in the label's
+                            info tooltip; screen readers read them with the option. */}
+                        {choice.description && (
+                            <Text slot="description" className="sr-only">
+                                {choice.description}
+                            </Text>
+                        )}
+                    </RadioField>
+                ))}
+            </div>
+        </RadioGroup>
+    )
+}

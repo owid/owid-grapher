@@ -143,6 +143,9 @@ describe(resolveDimensionPresentationType, () => {
 
     it("respects an explicit presentation type", () => {
         expect(
+            resolveWith(makeDimension(5, { presentation: { type: "radio" } }))
+        ).toBe("radio")
+        expect(
             resolveWith(
                 makeDimension(3, {
                     presentation: { type: "dropdown-with-search" },
