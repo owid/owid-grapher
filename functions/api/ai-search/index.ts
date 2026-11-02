@@ -9,6 +9,7 @@ import {
     CHART_POOL_SIZE,
     composerPrompt,
     createBlockParser,
+    MAX_COUNTRIES,
     MAX_QUERY_LENGTH,
     PAGE_POOL_SIZE,
     parseAiSearchSettings,
@@ -28,7 +29,8 @@ import { searchKeywords } from "./retrieval.js"
  * streams back as newline-delimited JSON (AiSearchEvent), one block per line,
  * with each block's ids already replaced by the full search hits.
  *
- * Parameters: q, model (one of AI_SEARCH_MODELS), debug=1 (adds the prompt
+ * Parameters: q, countries (the country filter, tilde-separated as in
+ * standard search), model (one of AI_SEARCH_MODELS), debug=1 (adds the prompt
  * and the raw model output), compact=1 (blocks carry each hit's slug and
  * title instead of the full hit, for scripts comparing runs).
  *
@@ -51,6 +53,12 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
     const settings = parseAiSearchSettings(url.searchParams)
     const compact = url.searchParams.get("compact") === "1"
+    // Tilde-separated, as in standard search
+    const countries = (url.searchParams.get("countries") ?? "")
+        .split("~")
+        .map((name) => name.trim().slice(0, MAX_QUERY_LENGTH))
+        .filter(Boolean)
+        .slice(0, MAX_COUNTRIES)
     const { readable, writable } = new TransformStream<Uint8Array>()
     const writer = writable.getWriter()
     const encoder = new TextEncoder()
@@ -71,6 +79,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     const run = runAiSearch({
         env,
         query,
+        countries,
         settings,
         emit,
         signal: controller.signal,
@@ -97,12 +106,15 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 async function runAiSearch({
     env,
     query,
+    countries,
     settings,
     emit,
     signal,
 }: {
     env: Env
     query: string
+    // The reader's country filter
+    countries: string[]
     settings: AiSearchSettings
     emit: (event: AiSearchEvent) => void
     signal: AbortSignal
@@ -121,7 +133,7 @@ async function runAiSearch({
     emit({ type: "status", text: "Searching our charts and articles…" })
     const [base] = await time(
         "keyword search",
-        searchKeywords(algolia, [query], depth)
+        searchKeywords(algolia, [query], depth, countries)
     )
 
     // Also runs when the search found nothing: keyword search needs every
@@ -173,7 +185,7 @@ async function runAiSearch({
     const expanded = expansions.length
         ? await time(
               "expansion searches",
-              searchKeywords(algolia, expansions, depth)
+              searchKeywords(algolia, expansions, depth, countries)
           )
         : []
     const pool = buildCandidatePool([base, ...expanded])
@@ -183,7 +195,7 @@ async function runAiSearch({
     }
 
     emit({ type: "status", text: "Laying out the results…" })
-    const prompt = composerPrompt(query, pool)
+    const prompt = composerPrompt(query, pool, countries)
     if (settings.debug)
         emit({
             type: "debug",
@@ -193,7 +205,7 @@ async function runAiSearch({
 
     let blockCount = 0
     let rawOutput = ""
-    const parseLine = createBlockParser(pool)
+    const parseLine = createBlockParser(pool, countries)
     const splitter = createLineSplitter((line) => {
         const block = parseLine(line)
         if (!block) return

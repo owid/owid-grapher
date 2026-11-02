@@ -83,10 +83,13 @@ const ERROR_MESSAGES: Record<AiSearchErrorCode, string> = {
  */
 export function SearchAiResults({
     query,
+    countries,
     onSearch,
     onClose,
 }: {
     query: string
+    // The country filter of standard search
+    countries: string[]
     // Runs AI search for a fork option or a related search
     onSearch: (query: string) => void
     onClose: () => void
@@ -94,12 +97,15 @@ export function SearchAiResults({
     const [settings, updateSettings] = useAiSearchSettings()
     const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
     const { model, debug } = settings
+    // A string, so the effect reruns only when the filter really changes
+    const countriesKey = countries.join("~")
 
     useEffect(() => {
         const controller = new AbortController()
         dispatch({ type: "reset" })
         streamAiSearch({
             query,
+            countries: countriesKey ? countriesKey.split("~") : [],
             settings: { model, debug },
             signal: controller.signal,
             onEvent: dispatch,
@@ -108,7 +114,7 @@ export function SearchAiResults({
                 dispatch({ type: "error", code: "failed" })
         })
         return () => controller.abort()
-    }, [query, model, debug])
+    }, [query, countriesKey, model, debug])
 
     const isStreaming = !state.done && !state.error
     const items = toLayoutItems(state.blocks)

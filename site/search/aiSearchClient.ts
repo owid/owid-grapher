@@ -23,11 +23,14 @@ export function useAiSearchSettings(): [
 /** Streams the events of an AI search to `onEvent` as they arrive */
 export async function streamAiSearch({
     query,
+    countries,
     settings,
     signal,
     onEvent,
 }: {
     query: string
+    // The country filter of standard search
+    countries: string[]
     settings: AiSearchSettings
     signal: AbortSignal
     onEvent: (event: AiSearchEvent) => void
@@ -37,6 +40,7 @@ export async function streamAiSearch({
         model: settings.model,
         debug: settings.debug ? "1" : "0",
     })
+    if (countries.length) params.set("countries", countries.join("~"))
     const response = await fetch(`${AI_SEARCH_API_URL}?${params}`, { signal })
     if (!response.ok || !response.body) {
         onEvent({

@@ -1,5 +1,6 @@
 import {
     ChartRecordType,
+    FilterType,
     OwidGdocType,
     SearchIndexName,
 } from "@ourworldindata/types"
@@ -58,14 +59,21 @@ function withoutHighlights<T>(hit: Record<string, unknown>): T {
 /**
  * Runs keyword searches for the original query and its expansions in a single
  * Algolia round trip, with the site's ranking. The original query gets the
- * deeper lists, since it supplies more hits per rank to the pool.
+ * deeper lists, since it supplies more hits per rank to the pool. Like
+ * standard search, a country filter keeps the charts that have data for any
+ * of the countries.
  */
 export async function searchKeywords(
     config: AlgoliaConfig,
     queries: string[],
-    { charts, pages }: { charts: number; pages: number }
+    { charts, pages }: { charts: number; pages: number },
+    countries: string[]
 ): Promise<RankedHits[]> {
     const client = createSearchClient(config)
+    const filters = countries.map((name) => ({
+        type: FilterType.COUNTRY,
+        name,
+    }))
     const chartsIndex = getIndexName(
         SearchIndexName.ExplorerViewsMdimViewsAndCharts,
         config.indexPrefix
@@ -85,7 +93,7 @@ export async function searchKeywords(
                 hitsPerPage: Math.ceil(charts * share),
                 facetFilters: buildChartsFacetFilters({
                     query,
-                    filters: [],
+                    filters,
                     requireAllCountries: false,
                 }),
             },

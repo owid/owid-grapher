@@ -217,6 +217,23 @@ describe(createBlockParser, () => {
         ).not.toHaveProperty("country")
     })
 
+    it("shows the reader's country filter on charts that have data for it", () => {
+        const filter = ["Czechia", "nigeria"]
+        // Life expectancy has Nigeria, not Czechia
+        const parse = createBlockParser(candidates, filter)
+        expect(parse('{"type":"chart","id":1}')).toMatchObject({
+            country: "Nigeria",
+        })
+        expect(parse('{"type":"chart","id":2}')).not.toHaveProperty("country")
+        // The model's own pick wins
+        expect(
+            createBlockParser(
+                candidates,
+                filter
+            )('{"type":"chart","id":1,"country":"World"}')
+        ).toMatchObject({ country: "World" })
+    })
+
     it("needs at least two complete fork options", () => {
         const parse = createBlockParser(candidates)
         expect(

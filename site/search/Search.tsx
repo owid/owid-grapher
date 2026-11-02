@@ -149,6 +149,12 @@ export const Search = ({
                     <SearchAiResults
                         key={aiQuery}
                         query={aiQuery}
+                        countries={[
+                            ...getFilterNamesOfType(
+                                state.filters,
+                                FilterType.COUNTRY
+                            ),
+                        ]}
                         onSearch={startAiSearch}
                         onClose={() => setAiQuery(null)}
                     />
