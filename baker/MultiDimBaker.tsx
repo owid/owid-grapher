@@ -40,7 +40,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
+import { deleteOldGraphers } from "./GrapherBakingUtils.js"
 import {
     getVariableMetadata,
     getVariableTitleMetadataByIds,
@@ -252,18 +252,12 @@ export async function renderMultiDimDataPageFromConfig({
     // PRIMARY TOPIC
     const primaryTopic = await getPrimaryTopic(knex, config.topicTags)
 
-    let tagToSlugMap: Record<string, string> = {}
     let relatedResearchCandidates: DataPageRelatedResearch[] = []
     let imageMetadata: Record<string, ImageMetadata> = {}
 
     // If we're baking to an archival page, then we want to skip a bunch of sections
     // where the links would break
     if (archiveContext?.type !== "archive-page") {
-        // TAGS
-        const fullTagToSlugMap = await getTagToSlugMap(knex)
-        // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
-        tagToSlugMap = _.pick(fullTagToSlugMap, config.topicTags ?? [])
-
         // Related research
         relatedResearchCandidates =
             indicatorIds.size > 0
@@ -304,7 +298,6 @@ export async function renderMultiDimDataPageFromConfig({
         configObj: pageConfig.config,
         initialViewData,
         initialViewDimensions,
-        tagToSlugMap,
         faqEntries,
         primaryTopic,
         relatedResearchCandidates,
