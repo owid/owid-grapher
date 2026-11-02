@@ -1095,6 +1095,41 @@ const MADE_UP_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
 ]
 
+const REGION_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Africa (WHO): a point and a range on a name with a provider suffix",
+        path: "grapher/share-of-children-immunized-dtp3?tab=line&country=~Africa+%28WHO%29",
+    },
+    {
+        label: "Eastern Mediterranean (WHO): a point on a long name with a provider suffix",
+        path: "grapher/share-of-children-immunized-dtp3?tab=line&country=~Eastern+Mediterranean+%28WHO%29",
+    },
+    {
+        label: "WHO regions: points and a range on several suffixed names",
+        path: "grapher/share-of-children-immunized-dtp3?tab=line&country=Africa+%28WHO%29~Eastern+Mediterranean+%28WHO%29~Europe+%28WHO%29",
+    },
+    {
+        label: "Oceania and Europe (WHO): a continent and a suffixed name without annotations",
+        path: "grapher/share-of-children-immunized-dtp3?tab=line&country=Oceania~Europe+%28WHO%29",
+    },
+    {
+        label: "Africa: a range on a continent",
+        path: "grapher/life-expectancy?country=~Africa",
+    },
+    {
+        label: "Europe: points and a range on a continent",
+        path: "grapher/life-expectancy?country=~Europe",
+    },
+    {
+        label: "Income groups: a point and a range",
+        path: "grapher/life-expectancy?country=High-income+countries~Low-income+countries",
+    },
+    {
+        label: "Continents and income groups together",
+        path: "grapher/life-expectancy?country=High-income+countries~Low-income+countries~Africa~Europe",
+    },
+]
+
 const SLOPE_ANNOTATED_CHARTS: AnnotatedChart[] = [
     {
         label: "Maternal mortality in the US (range, plus a legacy annotation)",
@@ -1167,6 +1202,8 @@ function AnnotationsTestPage() {
                 <AnnotatedChartList charts={REAL_ANNOTATED_CHARTS} />
                 <h2>Made-up examples</h2>
                 <AnnotatedChartList charts={MADE_UP_ANNOTATED_CHARTS} />
+                <h2>Region names</h2>
+                <AnnotatedChartList charts={REGION_ANNOTATED_CHARTS} />
                 <h2>Slope charts</h2>
                 <AnnotatedChartList charts={SLOPE_ANNOTATED_CHARTS} />
                 {viteAssetsForSite().forFooter}

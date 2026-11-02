@@ -82,6 +82,18 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             entities: ["World"],
             time: 2021,
         },
+        // Income groups, whose whole name opens a region tooltip
+        {
+            text: "Life expectancy fell in high-income countries during the COVID-19 pandemic.",
+            entities: ["High-income countries"],
+            time: 2020,
+        },
+        {
+            text: "The countries in this group change over time as the World Bank reclassifies them.",
+            entities: ["Low-income countries"],
+            time: 1990,
+            timeEnd: 2005,
+        },
     ],
     // food-supply-vs-life-expectancy (a scatter plot), life-expectancy-un
     950927: [
@@ -169,7 +181,7 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
         },
     ],
     // share-of-children-immunized-dtp3
-    1077436: [
+    1325479: [
         {
             text: "Routine immunization was disrupted during the COVID-19 pandemic.",
             entities: ["Africa (WHO)"],
@@ -180,6 +192,12 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             text: "Conflict in several countries held back coverage.",
             entities: ["Eastern Mediterranean (WHO)"],
             time: 2020,
+        },
+        {
+            text: "Coverage estimates for these years rest on few country surveys.",
+            entities: ["Africa (WHO)"],
+            time: 1990,
+            timeEnd: 2000,
         },
     ],
     // foreign-aid-given-net, where "Non-DAC countries" has a legacy annotation
