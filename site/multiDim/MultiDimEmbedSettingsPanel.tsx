@@ -103,6 +103,7 @@ export default function MultiDimEmbedSettingsPanel({
     return (
         <div className={cx("md-embed-settings", className)} ref={containerRef}>
             <MultiDimControls
+                dimensions={dimensions}
                 availableSettings={availableSettings}
                 resolvedSettings={resolvedSettings}
                 onChange={onChange}
