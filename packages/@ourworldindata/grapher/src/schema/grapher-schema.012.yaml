@@ -1,5 +1,5 @@
 $schema: "http://json-schema.org/draft-07/schema#"
-$id: &schemaUrl "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
+$id: &schemaUrl "https://files.ourworldindata.org/schemas/grapher-schema.012.json"
 required:
   - $schema
 type: object
@@ -490,7 +490,6 @@ properties:
     enum:
       - owid
       - core+owid
-      - gv+owid
   hideSeriesLabels:
     type: boolean
     default: false
