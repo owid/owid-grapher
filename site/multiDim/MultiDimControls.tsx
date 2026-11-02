@@ -14,13 +14,13 @@ export default function MultiDimControls({
     resolvedSettings,
     onChange,
     collapsedCount,
-    disabled,
+    readOnly,
 }: {
     availableSettings: Record<string, DimensionEnriched>
     resolvedSettings: MultiDimDimensionChoices
     onChange: (settings: MultiDimDimensionChoices) => void
     collapsedCount: number
-    disabled?: boolean
+    readOnly?: boolean
 }) {
     const [isExpanded, setIsExpanded] = useState(false)
     const dimensionsArray = Object.values(availableSettings)
@@ -43,7 +43,7 @@ export default function MultiDimControls({
                             [dim.slug]: value,
                         })
                     }}
-                    disabled={disabled}
+                    readOnly={readOnly}
                 />
             ))}
             {needsToggle && (
