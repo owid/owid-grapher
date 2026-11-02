@@ -77,7 +77,8 @@
     }
 }
 
-// Nested lists sit 8px under their item, like the items around them
+// Nested lists sit 8px under their item, like the items around them, with
+// the same filled bullets
 .indicator-metadata-box .metadata-box-expander__prose,
 .indicator-metadata-box .indicator-metadata-box__producer-docs,
 .indicator-metadata-box .indicator-sources .source .description,
@@ -86,10 +87,16 @@
     li > ol {
         margin: 8px 0 0;
     }
+
+    li > ul {
+        list-style-type: disc;
+    }
 }
 
 .indicator-metadata-box .metadata-box-expander__chevron {
     font-size: 0.75rem;
+    // Centred in a 12px box, like the top toggle's caret
+    width: 12px;
     margin-left: 4px;
     top: 0;
 }
@@ -287,6 +294,12 @@
         @include owid-link-90;
         color: inherit;
     }
+}
+
+// 24px from a source's description to its details, as between other blocks
+// in an accordion
+.indicator-metadata-box .indicator-sources .source .description {
+    margin-bottom: 24px;
 }
 
 // Single sources have no toggle; match the toggles' inset
