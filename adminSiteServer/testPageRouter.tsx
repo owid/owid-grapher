@@ -1023,6 +1023,7 @@ function MultiDimTestPage(props: MultiDimTestPageProps) {
 interface AnnotatedChart {
     label: string
     path: string
+    widthPx?: number
 }
 
 const REAL_ANNOTATED_CHARTS: AnnotatedChart[] = [
@@ -1210,7 +1211,87 @@ const COLUMN_STRATEGY_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
 ]
 
-function AnnotationsTestPage() {
+const SLOPE_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Entity strategy: China short, India long, the US and UK none",
+        path: "grapher/co-emissions-per-capita?tab=slope&time=1990..latest&country=CHN~IND~USA~GBR",
+    },
+    {
+        label: "Entity strategy at 500px (compact layout)",
+        path: "grapher/co-emissions-per-capita?tab=slope&time=1990..latest&country=CHN~IND~USA~GBR",
+        widthPx: 500,
+    },
+    {
+        label: "Legacy annotations (maternal mortality)",
+        path: "grapher/maternal-mortality?tab=slope&time=1990..2020",
+    },
+    {
+        label: "Legacy annotations (maternal mortality) at 500px (compact layout)",
+        path: "grapher/maternal-mortality?tab=slope&time=1990..2020",
+        widthPx: 500,
+    },
+    {
+        label: "Column strategy, World: a different annotation on food supply and population, none on land use",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?tab=slope&country=~OWID_WRL",
+    },
+    {
+        label: "Column strategy, Africa (FAO): the same text on food supply and population, shown on both labels",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?tab=slope&country=~Africa+%28FAO%29",
+    },
+    {
+        label: "Column strategy, World at 500px (compact layout)",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?tab=slope&country=~OWID_WRL",
+        widthPx: 500,
+    },
+]
+
+const ANNOTATION_TEST_SUITES: {
+    slug: string
+    title: string
+    charts: AnnotatedChart[]
+}[] = [
+    {
+        slug: "entity-strategy",
+        title: "Entity annotations: entity strategy",
+        charts: ENTITY_STRATEGY_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "projections",
+        title: "Entity annotations: historical and projected data",
+        charts: PROJECTION_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "column-strategy",
+        title: "Entity annotations: column strategy",
+        charts: COLUMN_STRATEGY_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "slope-entity",
+        title: "Entity annotations: slope charts",
+        charts: SLOPE_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "real",
+        title: "Real examples from Figma",
+        charts: REAL_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "made-up",
+        title: "Made-up examples",
+        charts: MADE_UP_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "regions",
+        title: "Region names",
+        charts: REGION_ANNOTATED_CHARTS,
+    },
+    { slug: "slope", title: "Slope charts", charts: SLOPE_ANNOTATED_CHARTS },
+]
+
+function AnnotationsTestPage({ suiteSlug }: { suiteSlug?: string }) {
+    const suites = ANNOTATION_TEST_SUITES.filter(
+        (suite) => !suiteSlug || suite.slug === suiteSlug
+    )
     const style = `
         body {
             margin: 0;
@@ -1240,6 +1321,12 @@ function AnnotationsTestPage() {
             max-width: 815px;
             margin: 10px;
         }
+
+        .suite-picker {
+            display: flex;
+            justify-content: center;
+            padding: 20px 10px 0;
+        }
     `
     return (
         <html>
@@ -1251,26 +1338,27 @@ function AnnotationsTestPage() {
                 <style dangerouslySetInnerHTML={{ __html: style }} />
             </Head>
             <body>
-                <h2>Entity annotations: entity strategy</h2>
-                <AnnotatedChartList
-                    charts={ENTITY_STRATEGY_ENTITY_ANNOTATED_CHARTS}
+                <form className="suite-picker" method="get">
+                    <select name="suite" defaultValue={suiteSlug ?? ""}>
+                        <option value="">All suites</option>
+                        {ANNOTATION_TEST_SUITES.map((suite) => (
+                            <option key={suite.slug} value={suite.slug}>
+                                {suite.title}
+                            </option>
+                        ))}
+                    </select>
+                </form>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `document.querySelector(".suite-picker select").addEventListener("change", (event) => event.target.form.submit())`,
+                    }}
                 />
-                <h2>Entity annotations: historical and projected data</h2>
-                <AnnotatedChartList
-                    charts={PROJECTION_ENTITY_ANNOTATED_CHARTS}
-                />
-                <h2>Entity annotations: column strategy</h2>
-                <AnnotatedChartList
-                    charts={COLUMN_STRATEGY_ENTITY_ANNOTATED_CHARTS}
-                />
-                <h2>Real examples from Figma</h2>
-                <AnnotatedChartList charts={REAL_ANNOTATED_CHARTS} />
-                <h2>Made-up examples</h2>
-                <AnnotatedChartList charts={MADE_UP_ANNOTATED_CHARTS} />
-                <h2>Region names</h2>
-                <AnnotatedChartList charts={REGION_ANNOTATED_CHARTS} />
-                <h2>Slope charts</h2>
-                <AnnotatedChartList charts={SLOPE_ANNOTATED_CHARTS} />
+                {suites.map((suite) => (
+                    <div key={suite.slug}>
+                        <h2>{suite.title}</h2>
+                        <AnnotatedChartList charts={suite.charts} />
+                    </div>
+                ))}
                 {viteAssetsForSite().forFooter}
                 <script
                     type="module"
@@ -1286,12 +1374,13 @@ function AnnotationsTestPage() {
 function AnnotatedChartList({ charts }: { charts: AnnotatedChart[] }) {
     return (
         <>
-            {charts.map(({ label, path }) => (
-                <div key={path} className="row">
+            {charts.map(({ label, path, widthPx }) => (
+                <div key={`${path}-${widthPx}`} className="row">
                     <h3>
                         <a href={`${BAKED_BASE_URL}/${path}`}>{label}</a>
                     </h3>
                     <figure
+                        style={widthPx ? { maxWidth: widthPx } : undefined}
                         {...{
                             [path.startsWith("explorers/")
                                 ? EXPLORER_EMBEDDED_FIGURE_SELECTOR
@@ -1305,8 +1394,12 @@ function AnnotatedChartList({ charts }: { charts: AnnotatedChart[] }) {
     )
 }
 
-testPageRouter.get("/annotations", (_req, res) => {
-    res.send(renderToHtmlPage(<AnnotationsTestPage />))
+testPageRouter.get("/annotations", (req, res) => {
+    const suiteSlug =
+        typeof req.query.suite === "string" && req.query.suite
+            ? req.query.suite
+            : undefined
+    res.send(renderToHtmlPage(<AnnotationsTestPage suiteSlug={suiteSlug} />))
 })
 
 export { getSafeComparisonUrl, testPageRouter }
