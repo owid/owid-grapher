@@ -6,6 +6,7 @@ import {
     PointVector,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
+import { extent } from "d3-array"
 import { scaleLinear } from "d3-scale"
 import {
     AxisAlign,
@@ -427,4 +428,39 @@ function isSameMarker(a: AnnotationMarker, b: AnnotationMarker): boolean {
         a.startTime === b.startTime &&
         a.endTime === b.endTime
     )
+}
+
+export function joinDistinctEntityAnnotationTexts(
+    series: Pick<LineChartSeries, "entityAnnotation">[]
+): string | undefined {
+    const texts = new Set(
+        excludeUndefined(series.map((s) => s.entityAnnotation?.text))
+    )
+    if (texts.size === 0) return undefined
+    return [...texts].join("; ")
+}
+
+export function findSeriesAtTime<T extends Pick<LineChartSeries, "points">>(
+    series: T[],
+    time: Time
+): T | undefined {
+    return (
+        series.find((s) => hasPointAtTime(s, time)) ??
+        series.find((s): boolean => {
+            const [startX, endX] = extent(s.points, ({ x }) => x)
+            return (
+                _.isNumber(startX) &&
+                _.isNumber(endX) &&
+                startX < time &&
+                time < endX
+            )
+        })
+    )
+}
+
+export function hasPointAtTime(
+    series: Pick<LineChartSeries, "points">,
+    time: Time
+): boolean {
+    return series.points.some((point) => point.x === time)
 }

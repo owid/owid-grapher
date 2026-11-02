@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest"
 import {
     AnnotationTooltipState,
+    LineChartSeries,
     PlacedPoint,
     RANGE_ANNOTATION_TOOLTIP_MARGIN,
     PlaceRangeAnnotationTooltipArgs,
 } from "./LineChartConstants"
 import {
+    joinDistinctEntityAnnotationTexts,
+    findSeriesAtTime,
     placeRangeAnnotation,
     placeRangeAnnotationTooltip,
     transitionAnnotationTooltipState,
@@ -301,5 +304,71 @@ describe(placeRangeAnnotationTooltip, () => {
             })
         )
         expect(placed.bottom).toBe(shortContainerBounds.bottom)
+    })
+})
+
+describe(findSeriesAtTime, () => {
+    const historical = {
+        points: [
+            { x: 2000, y: 1 },
+            { x: 2002, y: 2 },
+        ],
+    }
+    const projection = {
+        points: [
+            { x: 2002, y: 2 },
+            { x: 2005, y: 3 },
+        ],
+    }
+    const segments = [historical, projection]
+
+    it("picks the first segment with a point at the time", () => {
+        expect(findSeriesAtTime(segments, 2002)).toBe(historical)
+    })
+
+    it("falls back to the segment whose span contains the time", () => {
+        expect(findSeriesAtTime(segments, 2001)).toBe(historical)
+        expect(findSeriesAtTime(segments, 2003)).toBe(projection)
+    })
+
+    it("picks no segment outside every span", () => {
+        expect(findSeriesAtTime(segments, 2010)).toBeUndefined()
+    })
+})
+
+describe(joinDistinctEntityAnnotationTexts, () => {
+    const withAnnotation = (
+        text?: string
+    ): Pick<LineChartSeries, "entityAnnotation"> => ({
+        entityAnnotation: text
+            ? { text, entityNames: ["usa"], timeScope: "all" }
+            : undefined,
+    })
+
+    it("joins distinct annotations in series order with a semicolon", () => {
+        expect(
+            joinDistinctEntityAnnotationTexts([
+                withAnnotation("historical note"),
+                withAnnotation("projection note"),
+            ])
+        ).toBe("historical note; projection note")
+    })
+
+    it("shows an annotation shared by both series once", () => {
+        expect(
+            joinDistinctEntityAnnotationTexts([
+                withAnnotation("shared note"),
+                withAnnotation("shared note"),
+            ])
+        ).toBe("shared note")
+    })
+
+    it("returns undefined when no series has an annotation", () => {
+        expect(
+            joinDistinctEntityAnnotationTexts([
+                withAnnotation(),
+                withAnnotation(),
+            ])
+        ).toBeUndefined()
     })
 })

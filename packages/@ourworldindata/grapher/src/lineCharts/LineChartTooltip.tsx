@@ -3,9 +3,13 @@ import React from "react"
 import { observer } from "mobx-react"
 import { excludeUndefined } from "@ourworldindata/utils"
 import { Time } from "@ourworldindata/types"
-import { extent } from "d3-array"
 import { RenderLineChartSeries } from "./LineChartConstants"
 import { LineChartState } from "./LineChartState.js"
+import {
+    findSeriesAtTime,
+    hasPointAtTime,
+    joinDistinctEntityAnnotationTexts,
+} from "./LineChartHelpers"
 import {
     Tooltip,
     TooltipState,
@@ -33,6 +37,11 @@ export interface LineChartTooltipProps {
     dismissTooltip: () => void
 }
 
+interface TooltipRow {
+    series: RenderLineChartSeries
+    annotation: string | undefined
+}
+
 @observer
 export class LineChartTooltip extends React.Component<LineChartTooltipProps> {
     private get chartState(): LineChartState {
@@ -43,7 +52,7 @@ export class LineChartTooltip extends React.Component<LineChartTooltipProps> {
         return this.props.tooltipState.target ?? undefined
     }
 
-    private get series(): RenderLineChartSeries[] {
+    private get rows(): TooltipRow[] {
         const { target } = this
         if (!target) return []
 
@@ -52,40 +61,29 @@ export class LineChartTooltip extends React.Component<LineChartTooltipProps> {
 
         return grouped
             .values()
-            .map(
-                (segments) =>
-                    // Ideally pick series with a defined value at the target time
-                    segments.find((series) =>
-                        series.points.find((point) => point.x === target.time)
-                    ) ??
-                    // Otherwise pick the series whose start & end contains the target time
-                    // and display a "No data" notice.
-                    segments.find((series): boolean | void => {
-                        const [startX, endX] = extent(
-                            series.points,
-                            ({ x }) => x
-                        )
-                        return (
-                            _.isNumber(startX) &&
-                            _.isNumber(endX) &&
-                            startX < target.time &&
-                            target.time < endX
-                        )
-                    })
-            )
-            .filter((series) => series !== undefined)
+            .map((seriesGroup): TooltipRow | undefined => {
+                const series = findSeriesAtTime(seriesGroup, target.time)
+                if (!series) return undefined
+                const seriesWithAnnotation = seriesGroup.filter(
+                    (s) => s === series || hasPointAtTime(s, target.time)
+                )
+                const annotation =
+                    joinDistinctEntityAnnotationTexts(seriesWithAnnotation)
+                return { series, annotation }
+            })
+            .filter((row) => row !== undefined)
             .toArray()
     }
 
     private get hasProjectedSeries(): boolean {
-        return this.series.some((series) => series.isProjection)
+        return this.rows.some(({ series }) => series.isProjection)
     }
 
-    private get sortedSeries(): RenderLineChartSeries[] {
-        const { target, series } = this
+    private get sortedRows(): TooltipRow[] {
+        const { target, rows } = this
         if (!target) return []
 
-        return _.sortBy(series, (series) => {
+        return _.sortBy(rows, ({ series }) => {
             const value = series.points.find((point) => point.x === target.time)
             return value !== undefined ? -value.y : Infinity
         })
@@ -149,13 +147,13 @@ export class LineChartTooltip extends React.Component<LineChartTooltipProps> {
         return columns
     }
 
-    private toTooltipTableRow(
-        series: RenderLineChartSeries
-    ): TooltipTableProps["rows"][number] {
+    private toTooltipTableRow({
+        series,
+        annotation,
+    }: TooltipRow): TooltipTableProps["rows"][number] {
         const { target } = this
 
         const { displayName, isProjection: striped } = series
-        const annotation = series.entityAnnotation?.text
 
         const point = series.points.find((point) => point.x === target!.time)
 
@@ -211,8 +209,8 @@ export class LineChartTooltip extends React.Component<LineChartTooltipProps> {
             >
                 <TooltipTable
                     columns={toTooltipTableColumns(this.columns)}
-                    rows={this.sortedSeries.map((series) =>
-                        this.toTooltipTableRow(series)
+                    rows={this.sortedRows.map((row) =>
+                        this.toTooltipTableRow(row)
                     )}
                 />
             </Tooltip>

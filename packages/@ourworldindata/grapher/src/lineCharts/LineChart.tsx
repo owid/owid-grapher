@@ -73,6 +73,7 @@ import {
     findClosestTimeAtMouse,
     getYAxisConfigDefaults,
     isMarkerTooltipOpen,
+    joinDistinctEntityAnnotationTexts,
     toPlacedLineChartSeries,
     toRenderLineChartSeries,
     transitionAnnotationTooltipState,
@@ -855,7 +856,9 @@ export class LineChart
                 color,
                 seriesName,
                 label: !this.manager.showSeriesLabels ? "" : displayName,
-                inlineAnnotation: series.entityAnnotation?.text,
+                inlineAnnotation: joinDistinctEntityAnnotationTexts(
+                    this.findSeriesForLabel(series)
+                ),
                 annotations: toSeriesLabelAnnotations(
                     {
                         pointAnnotations: seriesForLabel.flatMap(

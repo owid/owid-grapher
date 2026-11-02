@@ -22,6 +22,7 @@ import { LineChartManager } from "./LineChartConstants"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { LineChart } from "./LineChart"
 import { LineChartState } from "./LineChartState"
+import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
 
 function makeLineChart(manager: LineChartManager): {
     chartState: LineChartState
@@ -633,7 +634,10 @@ describe("entity annotations", () => {
         secondColumnDef,
         ...managerOptions
     }: {
-        secondColumnDef?: { display: { isProjection: boolean } }
+        secondColumnDef?: {
+            display?: { isProjection: boolean }
+            annotations?: IndicatorAnnotation[]
+        }
     } & Partial<LineChartManager>): { chart: LineChart } => {
         const table = new OwidTable(
             {
@@ -667,44 +671,126 @@ describe("entity annotations", () => {
         })
     }
 
-    it("gives the series of an annotated entity its note in entity strategy", () => {
+    const annotationTextsBySeries = (
+        chart: LineChart
+    ): Record<string, string | undefined> =>
+        Object.fromEntries(
+            chart.series.map((series) => [
+                `${series.entityName}/${series.columnName}`,
+                series.entityAnnotation?.text,
+            ])
+        )
+
+    it("gives the series of an annotated entity its annotation in entity strategy", () => {
         const { chart } = makeEntityAnnotatedChart({
             yColumnSlugs: ["gdp"],
             seriesStrategy: SeriesStrategy.entity,
         })
 
-        const textsByEntity = Object.fromEntries(
-            chart.series.map((series) => [
-                series.entityName,
-                series.entityAnnotation?.text,
-            ])
-        )
-        expect(textsByEntity).toEqual({ usa: "usa note", fra: undefined })
+        expect(annotationTextsBySeries(chart)).toEqual({
+            "usa/gdp": "usa note",
+            "fra/gdp": undefined,
+        })
     })
 
-    it("gives no series a note in column strategy", () => {
+    it("gives each series its own column's annotation in column strategy", () => {
         const { chart } = makeEntityAnnotatedChart({
             yColumnSlugs: ["gdp", "gdpProjected"],
             seriesStrategy: SeriesStrategy.column,
+            secondColumnDef: {
+                annotations: [entityAnnotation("usa projected note", "usa")],
+            },
         })
 
-        expect(chart.series).toHaveLength(4)
-        expect(chart.series.every((series) => !series.entityAnnotation)).toBe(
-            true
-        )
+        expect(annotationTextsBySeries(chart)).toEqual({
+            "usa/gdp": "usa note",
+            "usa/gdpProjected": "usa projected note",
+            "fra/gdp": undefined,
+            "fra/gdpProjected": undefined,
+        })
     })
 
-    it("gives a projection series the note of the first column", () => {
+    it("gives a projection series its own column's annotation, not the historical column's", () => {
         const { chart } = makeEntityAnnotatedChart({
             yColumnSlugs: ["gdp", "gdpProjected"],
             seriesStrategy: SeriesStrategy.entity,
             secondColumnDef: { display: { isProjection: true } },
         })
 
-        const projectionUsa = chart.series.find(
-            (series) => series.isProjection && series.entityName === "usa"
-        )
-        expect(projectionUsa?.entityAnnotation?.text).toBe("usa note")
+        expect(annotationTextsBySeries(chart)).toEqual({
+            "usa/gdp": "usa note",
+            "usa/gdpProjected": undefined,
+            "fra/gdp": undefined,
+            "fra/gdpProjected": undefined,
+        })
+    })
+
+    describe("series labels", () => {
+        const findLabel = (chart: LineChart, seriesName: string): LabelSeries =>
+            chart["verticalLabelsSeries"].find(
+                (label) => label.seriesName === seriesName
+            )!
+
+        it("shows the historical column's annotation on a projection label", () => {
+            const { chart } = makeEntityAnnotatedChart({
+                yColumnSlugs: ["gdp", "gdpProjected"],
+                seriesStrategy: SeriesStrategy.entity,
+                secondColumnDef: { display: { isProjection: true } },
+            })
+
+            expect(findLabel(chart, "usa").inlineAnnotation).toBe("usa note")
+        })
+
+        it("shows the paired historical column's annotation on a projection label in column strategy", () => {
+            const { chart } = makeEntityAnnotatedChart({
+                yColumnSlugs: ["gdp", "gdpProjected"],
+                seriesStrategy: SeriesStrategy.column,
+                secondColumnDef: { display: { isProjection: true } },
+                projectionColumnInfoBySlug: new Map([
+                    [
+                        "gdpProjected",
+                        {
+                            projectedSlug: "gdpProjected",
+                            historicalSlug: "gdp",
+                            combinedSlug: "gdpProjected-gdp",
+                            slugForIsProjectionColumn:
+                                "gdpProjected-gdp-isProjection",
+                        },
+                    ],
+                ]),
+            })
+
+            expect(
+                findLabel(chart, "usa - gdpProjected").inlineAnnotation
+            ).toBe("usa note")
+            expect(
+                findLabel(chart, "fra - gdpProjected").inlineAnnotation
+            ).toBeUndefined()
+        })
+
+        it("shows the same annotation on each label whose indicator carries it", () => {
+            const { chart } = makeEntityAnnotatedChart({
+                yColumnSlugs: ["gdp", "gdpProjected"],
+                seriesStrategy: SeriesStrategy.column,
+                secondColumnDef: {
+                    annotations: [entityAnnotation("usa note", "usa")],
+                },
+            })
+
+            expect(
+                Object.fromEntries(
+                    chart["verticalLabelsSeries"].map((label) => [
+                        label.seriesName,
+                        label.inlineAnnotation,
+                    ])
+                )
+            ).toEqual({
+                "usa - gdp": "usa note",
+                "usa - gdpProjected": "usa note",
+                "fra - gdp": undefined,
+                "fra - gdpProjected": undefined,
+            })
+        })
     })
 })
 
