@@ -1,8 +1,7 @@
 import * as React from "react"
 import { useState } from "react"
-import { Button, Flex, Input, Popover, Space, Table, TableProps } from "antd"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons"
+import { Flex, Input, Space, Table, TableProps } from "antd"
+import { SearchHelp, SearchHelpTable } from "./SearchHelp.js"
 import type { SearchFieldHelp } from "../adminShared/searchFilter.js"
 
 const ADMIN_TABLE_PAGE_SIZE = 50
@@ -29,45 +28,33 @@ const OPERATOR_HINT: Record<SearchFieldHelp["type"], string> = {
  * The `?` next to a search box, listing its `field:value` terms. Exported for
  * the lists that keep their own search box rather than `AdminTable`'s.
  */
-export function SearchHelp({
+export function SearchFieldsHelp({
     fields,
 }: {
     fields: readonly SearchFieldHelp[]
 }): React.ReactElement {
     return (
-        <Popover
-            title="Search syntax"
-            placement="bottomLeft"
-            content={
-                <div className="AdminTable__search-help">
-                    <p>
-                        Terms are combined with AND. Use <code>"a phrase"</code>{" "}
-                        to match words together and <code>-term</code> to
-                        exclude. The search is kept in the page URL, so a
-                        filtered list can be shared.
-                    </p>
-                    <table>
-                        <tbody>
-                            {fields.map((field) => (
-                                <tr key={field.name}>
-                                    <td>
-                                        <code>{field.name}:</code>
-                                    </td>
-                                    <td>{field.description}</td>
-                                    <td>{OPERATOR_HINT[field.type]}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            }
-        >
-            <Button
-                type="text"
-                aria-label="Search syntax"
-                icon={<FontAwesomeIcon icon={faCircleQuestion} />}
+        <SearchHelp>
+            <p>
+                Terms are combined with AND. Use <code>"a phrase"</code> to
+                match words together and <code>-term</code> to exclude. The
+                search is kept in the page URL, so a filtered list can be
+                shared.
+            </p>
+            <SearchHelpTable
+                rows={fields.map((field) => ({
+                    example: `${field.name}:`,
+                    meaning: (
+                        <>
+                            {field.description}{" "}
+                            <span className="AdminTable__search-hint">
+                                ({OPERATOR_HINT[field.type]})
+                            </span>
+                        </>
+                    ),
+                }))}
             />
-        </Popover>
+        </SearchHelp>
     )
 }
 
@@ -107,7 +94,7 @@ function AdminTableToolbar({
                     />
                 )}
                 {search?.fields?.length ? (
-                    <SearchHelp fields={search.fields} />
+                    <SearchFieldsHelp fields={search.fields} />
                 ) : null}
                 {filters}
             </Space>

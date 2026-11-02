@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" clip-rule="evenodd" viewBox="0 0 640 480">
   <g transform="scale(.9375)">
-    <clipPath id="_clip1">
+    <clipPath id="a">
       <path d="M0 0h682.7v512H0z"/>
     </clipPath>
-    <g clip-path="url(#_clip1)">
+    <g clip-path="url(#a)">
       <path fill="#007168" d="M0 0h768v160H0z"/>
       <path fill="#fff" d="M0 160h768v16H0z"/>
       <path fill="#000001" d="M0 176h768v160H0z"/>

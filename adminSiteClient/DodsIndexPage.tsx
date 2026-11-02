@@ -614,7 +614,10 @@ export function DodsIndexPage() {
                 name: "by",
                 type: "string",
                 description: "Who last updated it",
-                get: (dod) => users?.[dod.lastUpdatedUserId]?.fullName,
+                get: (dod) =>
+                    dod.lastUpdatedUserId === null
+                        ? undefined
+                        : users?.[dod.lastUpdatedUserId]?.fullName,
             },
             {
                 name: "updated",

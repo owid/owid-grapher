@@ -6,7 +6,7 @@ export interface DbInsertChartRevision {
     chartId?: number | null
     config?: JsonString | null
     createdAt?: Date
-    id?: string
+    id?: number
     updatedAt?: Date
     userId?: number | null
 }

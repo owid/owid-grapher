@@ -1,5 +1,5 @@
 import { PartialBy, PointVector } from "@ourworldindata/utils"
-import { EntityName, OwidVariableRow } from "@ourworldindata/types"
+import { Color, EntityName, OwidVariableRow } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
@@ -13,6 +13,7 @@ export interface SlopeChartManager extends ChartManager {
 }
 
 export interface SlopeChartSeries extends ChartSeries {
+    color: Color
     column: CoreColumn
     entityName: EntityName
     displayName: string

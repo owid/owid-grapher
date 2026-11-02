@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { getAdminTestEnv } from "./testEnv.js"
 import {
+    ChartSlugRedirectsTableName,
     MultiDimDataPagesTableName,
     MultiDimRedirectsTableName,
 } from "@ourworldindata/types"
@@ -13,61 +14,61 @@ import {
 
 const env = getAdminTestEnv()
 
+const catalogPath = "test/catalog#path"
+
+const testMultiDimConfig = {
+    grapherConfigSchema: latestGrapherConfigSchema,
+    title: { title: "Energy use", titleVariant: "by energy source" },
+    views: [
+        {
+            config: { title: "Total energy use" },
+            dimensions: { source: "all", metric: "total" },
+            indicators: { y: variableId },
+        },
+        {
+            dimensions: { source: "all", metric: "per_capita" },
+            indicators: { y: otherVariableId },
+        },
+    ],
+    dimensions: [
+        {
+            name: "Energy source",
+            slug: "source",
+            choices: [{ name: "All sources", slug: "all" }],
+        },
+        {
+            name: "Metric",
+            slug: "metric",
+            choices: [
+                { name: "Total consumption", slug: "total" },
+                { name: "Consumption per capita", slug: "per_capita" },
+            ],
+        },
+    ],
+}
+
+// Publishes the test multi-dim under a slug and returns its DB row.
+async function createPublishedMultiDim(): Promise<{
+    id: number
+    config: any
+}> {
+    await env.request({
+        method: "PUT",
+        path: `/multi-dims/${encodeURIComponent(catalogPath)}`,
+        body: JSON.stringify({ config: testMultiDimConfig }),
+    })
+    await env
+        .testKnex(MultiDimDataPagesTableName)
+        .where("catalogPath", catalogPath)
+        .update({ slug: "energy-use", published: true })
+    const multiDim = await env
+        .testKnex(MultiDimDataPagesTableName)
+        .where("catalogPath", catalogPath)
+        .first()
+    return { id: multiDim.id, config: JSON.parse(multiDim.config) }
+}
+
 describe("Bulk multi-dim redirects API", { timeout: 30000 }, () => {
-    const catalogPath = "test/catalog#path"
-
-    const testMultiDimConfig = {
-        grapherConfigSchema: latestGrapherConfigSchema,
-        title: { title: "Energy use", titleVariant: "by energy source" },
-        views: [
-            {
-                config: { title: "Total energy use" },
-                dimensions: { source: "all", metric: "total" },
-                indicators: { y: variableId },
-            },
-            {
-                dimensions: { source: "all", metric: "per_capita" },
-                indicators: { y: otherVariableId },
-            },
-        ],
-        dimensions: [
-            {
-                name: "Energy source",
-                slug: "source",
-                choices: [{ name: "All sources", slug: "all" }],
-            },
-            {
-                name: "Metric",
-                slug: "metric",
-                choices: [
-                    { name: "Total consumption", slug: "total" },
-                    { name: "Consumption per capita", slug: "per_capita" },
-                ],
-            },
-        ],
-    }
-
-    // Publishes the test multi-dim under a slug and returns its DB row.
-    async function createPublishedMultiDim(): Promise<{
-        id: number
-        config: any
-    }> {
-        await env.request({
-            method: "PUT",
-            path: `/multi-dims/${encodeURIComponent(catalogPath)}`,
-            body: JSON.stringify({ config: testMultiDimConfig }),
-        })
-        await env
-            .testKnex(MultiDimDataPagesTableName)
-            .where("catalogPath", catalogPath)
-            .update({ slug: "energy-use", published: true })
-        const multiDim = await env
-            .testKnex(MultiDimDataPagesTableName)
-            .where("catalogPath", catalogPath)
-            .first()
-        return { id: multiDim.id, config: JSON.parse(multiDim.config) }
-    }
-
     beforeEach(async () => {
         await seedDatasetAndVariables(env)
     })
@@ -290,3 +291,131 @@ describe("Bulk multi-dim redirects API", { timeout: 30000 }, () => {
         }
     })
 })
+
+describe(
+    "Multi-dim redirect from a redirect target",
+    { timeout: 30000 },
+    () => {
+        beforeEach(async () => {
+            await seedDatasetAndVariables(env)
+        })
+
+        // Creates a published chart at `slug` that used to be at `oldSlug`, so
+        // `/grapher/${oldSlug}` is a chart slug redirect to `/grapher/${slug}`.
+        async function createRenamedChart(
+            oldSlug: string,
+            slug: string
+        ): Promise<number> {
+            const config = {
+                $schema: latestGrapherConfigSchema,
+                slug: oldSlug,
+                title: "Energy chart",
+                chartTypes: ["LineChart"],
+                isPublished: true,
+            }
+            const { chartId } = await env.request({
+                method: "POST",
+                path: "/charts",
+                body: JSON.stringify(config),
+            })
+            await env.request({
+                method: "PUT",
+                path: `/charts/${chartId}`,
+                body: JSON.stringify({ ...config, slug }),
+            })
+            return chartId
+        }
+
+        it("repoints the redirects to the source only when asked to", async () => {
+            const { id: multiDimId, config } = await createPublishedMultiDim()
+            const totalView = config.views.find(
+                (v: any) => v.dimensions.metric === "total"
+            )
+            const chartId = await createRenamedChart(
+                "old-energy",
+                "energy-chart"
+            )
+            await env.testKnex("redirects").insert({
+                source: "/energy-chart-launch",
+                target: "/grapher/energy-chart",
+            })
+            const body = {
+                source: "/grapher/energy-chart",
+                viewConfigId: totalView.fullConfigId,
+            }
+
+            const { redirects } = await env.fetchJson(
+                "/multi-dim-redirects/redirects-to?path=/grapher/energy-chart"
+            )
+            expect(redirects).toEqual([
+                { kind: "site", source: "/energy-chart-launch" },
+                { kind: "chartSlug", source: "/grapher/old-energy" },
+            ])
+
+            const rejected = await env.request({
+                method: "POST",
+                path: `/multi-dims/${multiDimId}/redirects`,
+                body: JSON.stringify(body),
+                expectStatus: 400,
+            })
+            expect(rejected.error.message).toMatch(
+                /would form a redirect chain/
+            )
+
+            await env.request({
+                method: "POST",
+                path: `/multi-dims/${multiDimId}/redirects`,
+                body: JSON.stringify({
+                    ...body,
+                    repointRedirectsToSource: true,
+                }),
+            })
+
+            // Every old address now takes a single hop to the multi-dim view
+            const multiDimRedirects = await env
+                .testKnex(MultiDimRedirectsTableName)
+                .where("multiDimId", multiDimId)
+                .orderBy("source")
+            expect(
+                multiDimRedirects.map((r) => [r.source, r.viewConfigId])
+            ).toEqual([
+                ["/grapher/energy-chart", totalView.fullConfigId],
+                ["/grapher/old-energy", totalView.fullConfigId],
+            ])
+            const siteRedirect = await env
+                .testKnex("redirects")
+                .where("source", "/energy-chart-launch")
+                .first()
+            expect(siteRedirect.target).toBe(
+                "/grapher/energy-use?metric=total&source=all"
+            )
+            const chartSlugRedirects = await env
+                .testKnex(ChartSlugRedirectsTableName)
+                .where("chart_id", chartId)
+            expect(chartSlugRedirects).toEqual([])
+        })
+
+        it("refuses to repoint for a redirect with source query params", async () => {
+            const { id: multiDimId } = await createPublishedMultiDim()
+            await env.testKnex("redirects").insert({
+                source: "/energy-explorer-launch",
+                target: "/explorers/energy",
+            })
+            await env.request({
+                method: "POST",
+                path: `/multi-dims/${multiDimId}/redirects`,
+                body: JSON.stringify({
+                    source: "/explorers/energy",
+                    sourceQueryParams: { Metric: "Total consumption" },
+                    repointRedirectsToSource: true,
+                }),
+                expectStatus: 400,
+            })
+            const siteRedirect = await env
+                .testKnex("redirects")
+                .where("source", "/energy-explorer-launch")
+                .first()
+            expect(siteRedirect.target).toBe("/explorers/energy")
+        })
+    }
+)

@@ -8,7 +8,9 @@ export interface DbInsertPostGdocComponent {
     path: string // VARCHAR(1024)
 }
 
-export type DbRawPostGdocComponent = Required<DbInsertPostGdocComponent>
+export type DbRawPostGdocComponent = Required<DbInsertPostGdocComponent> & {
+    type: string | null // generated from config.type
+}
 
 export interface DbEnrichedPostGdocComponent extends Omit<
     DbRawPostGdocComponent,

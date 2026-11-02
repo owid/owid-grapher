@@ -153,9 +153,14 @@ export function makePatternId(baseId: string, idSuffix?: string): string {
     return idSuffix ? `${baseId}-${idSuffix}` : baseId
 }
 
+/**
+ * Set as the `font-family` attribute rather than inside `style`: otherwise,
+ * the font will not get picked up by Figma correctly.
+ */
+export const SVG_FONT_FAMILY =
+    "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif"
+
 export const SVG_STYLE_PROPS: React.CSSProperties = {
-    fontFamily:
-        "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif",
     fontFeatureSettings: '"liga", "kern", "calt", "lnum"', // keep in sync with typography.scss$default-font-features
     textRendering: "geometricPrecision",
     WebkitFontSmoothing: "antialiased",
