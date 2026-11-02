@@ -17,7 +17,6 @@ import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleto
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import {
@@ -51,18 +50,18 @@ import { DEFAULT_COUNTRY, NARROW_BREAKPOINT } from "../core/constants.js"
 import { MigrantPyramid } from "../components/MigrantPyramid.js"
 import { PyramidControls } from "../components/PyramidControls.js"
 
+const COUNTRY_URL_PARAM = "country"
+
 export function PyramidVariant({
     config,
     urls,
 }: BespokeVariantProps<MigrantDemographicsConfig>): React.ReactElement {
     return (
-        <EmbedConfigProvider config={config}>
-            <NuqsAdapter>
-                <QueryClientProvider client={queryClient}>
-                    <FetchingPyramidVariant config={config} urls={urls} />
-                </QueryClientProvider>
-            </NuqsAdapter>
-        </EmbedConfigProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <FetchingPyramidVariant config={config} urls={urls} />
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 
@@ -78,22 +77,22 @@ function FetchingPyramidVariant({
         : config.country
 
     const [requestedCountry, setCountry] = useUrlState({
-        key: "migrantPyramidCountry",
+        key: COUNTRY_URL_PARAM,
         parser: parseAsString,
         defaultValue: initialCountry,
     })
     const [year, setYear] = useUrlState({
-        key: "migrantPyramidYear",
+        key: "year",
         parser: parseAsInteger,
         defaultValue: config.year ?? 0, // 0 = latest available year
     })
     const [show, setShow] = useUrlState({
-        key: "migrantPyramidShow",
+        key: "show",
         parser: parseAsStringEnum<ShowMode>(["number", "share"]),
         defaultValue: config.show,
     })
     const [compare, setCompare] = useUrlState({
-        key: "migrantPyramidCompare",
+        key: "compare",
         parser: parseAsBoolean,
         defaultValue: config.compare,
     })
@@ -123,7 +122,7 @@ function FetchingPyramidVariant({
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlStateKey: "migrantPyramidCountry",
+        urlStateKey: COUNTRY_URL_PARAM,
         setCountry,
     })
 

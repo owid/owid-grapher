@@ -64,6 +64,7 @@ export interface TooltipValueProps {
     showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
     labelVariant?: "label+unit" | "unit-only"
     noDataLabel?: string
+    detail?: string // secondary line under the value
 }
 
 export interface TooltipValueRangeProps {
@@ -110,6 +111,7 @@ export interface TooltipVariableProps {
     isProjection?: boolean
     originalTimes?: (string | undefined)[]
     labelVariant?: "label+unit" | "unit-only"
+    detail?: string
     children?: React.ReactNode
 }
 

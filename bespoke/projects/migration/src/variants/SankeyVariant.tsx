@@ -18,7 +18,6 @@ import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
@@ -55,6 +54,8 @@ const LATEST_YEAR = -1
 
 const queryClient = new QueryClient()
 
+const COUNTRY_URL_PARAM = "country"
+
 export function SankeyVariant({
     config,
     urls,
@@ -63,20 +64,18 @@ export function SankeyVariant({
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
     return (
-        <EmbedConfigProvider config={config}>
-            <NuqsAdapter>
-                <QueryClientProvider client={queryClient}>
-                    <div
-                        ref={ref}
-                        className={cx("migration-chart", {
-                            "migration-chart--narrow": isNarrow,
-                        })}
-                    >
-                        <FetchingSankeyVariant config={config} urls={urls} />
-                    </div>
-                </QueryClientProvider>
-            </NuqsAdapter>
-        </EmbedConfigProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <div
+                    ref={ref}
+                    className={cx("migration-chart", {
+                        "migration-chart--narrow": isNarrow,
+                    })}
+                >
+                    <FetchingSankeyVariant config={config} urls={urls} />
+                </div>
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 
@@ -94,22 +93,22 @@ function FetchingSankeyVariant({
         : config.country
 
     const [requestedCountry, setCountry] = useUrlState({
-        key: "migrationCountry",
+        key: COUNTRY_URL_PARAM,
         parser: parseAsString,
         defaultValue: initialCountry,
     })
     const [requestedYear, setYear] = useUrlState({
-        key: "migrationYear",
+        key: "year",
         parser: parseAsInteger,
         defaultValue: config.year ?? LATEST_YEAR,
     })
     const [sex, setSex] = useUrlState({
-        key: "migrationSex",
+        key: "sex",
         parser: parseAsStringEnum<Sex>(["both", "female", "male"]),
         defaultValue: config.sex,
     })
     const [_view, setView] = useUrlState({
-        key: "migrationFlow",
+        key: "flow",
         parser: parseAsStringEnum<MigrationView>([
             "both",
             "immigrants",
@@ -137,7 +136,7 @@ function FetchingSankeyVariant({
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlStateKey: "migrationCountry",
+        urlStateKey: COUNTRY_URL_PARAM,
         setCountry,
     })
 

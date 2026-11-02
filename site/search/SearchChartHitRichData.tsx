@@ -531,6 +531,8 @@ function constructPreviewUrlForTab({
         GRAPHER_TAB_NAMES.WorldMap,
         GRAPHER_TAB_NAMES.DiscreteBar,
         GRAPHER_TAB_NAMES.StackedDiscreteBar,
+        GRAPHER_TAB_NAMES.Swimlane,
+        GRAPHER_TAB_NAMES.Dumbbell,
     ]
     const fontSize =
         previewType.variant === PreviewVariant.Thumbnail &&

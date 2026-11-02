@@ -28,12 +28,12 @@
         "zod": "^4.6.7"
     },
     "devDependencies": {
-        "@cloudflare/workers-types": "^5.20261003.1",
+        "@cloudflare/workers-types": "^5.20261026.1",
         "@types/lodash-es": "^4.17.12",
         "@types/react": "^19.3.0",
         "@types/react-dom": "^19.3.0",
         "cheerio": "^1.2.0",
         "vitest": "^5.0.5",
-        "wrangler": "^4.149.0"
+        "wrangler": "^4.153.0"
     }
 }

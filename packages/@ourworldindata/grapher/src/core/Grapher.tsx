@@ -716,13 +716,6 @@ export class Grapher extends React.Component<GrapherProps> {
         }
     }
 
-    @action.bound private setBaseFontSize(): void {
-        this.grapherState.baseFontSize =
-            this.grapherState.computeBaseFontSizeFromWidth(
-                this.grapherState.captionedChartBounds
-            )
-    }
-
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
     private bindToWindow(): void {
@@ -802,7 +795,6 @@ export class Grapher extends React.Component<GrapherProps> {
     override componentDidMount(): void {
         exposeInstanceOnWindow(this, "grapher")
 
-        this.setBaseFontSize()
         this.setUpIntersectionObserver()
         this.setUpWindowResizeEventHandler()
 
@@ -845,10 +837,6 @@ export class Grapher extends React.Component<GrapherProps> {
     override componentWillUnmount(): void {
         this.unbindKeyboardShortcuts()
         this.dispose()
-    }
-
-    override componentDidUpdate(): void {
-        this.setBaseFontSize()
     }
 
     override componentDidCatch(error: Error): void {

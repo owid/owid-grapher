@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-om" viewBox="0 0 640 480">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
   <defs>
-    <clipPath id="om-a">
+    <clipPath id="a">
       <path fill-opacity=".7" d="M0 0h640v480H0z"/>
     </clipPath>
   </defs>
-  <g clip-path="url(#om-a)">
+  <g clip-path="url(#a)">
     <path fill="#ef2d29" fill-rule="evenodd" d="M-3.3-21.6H699v553H-3.3z"/>
     <path fill="#009025" fill-rule="evenodd" d="M174.6 317.3h535.7V525H174.6z"/>
     <path fill="#fff" fill-rule="evenodd" d="M174.6-35.4h564.9v190h-565z"/>
@@ -36,9 +36,9 @@
       <g fill-rule="evenodd" stroke-width="1.3" transform="matrix(-.19848 0 0 .17744 145.3 -13.4)">
         <path fill="#fff" d="M531.5 359.6c0-165.2 8-299.4 17.7-299.4 9.8 0 17.7 134.2 17.7 299.4z" transform="matrix(1.4216 -.73423 .46161 .89375 -716.8 541)"/>
         <path fill="#fff" d="M531.5 359.6c0-165.2 8-299.4 17.7-299.4 9.8 0 17.7 134.2 17.7 299.4" transform="matrix(1.1373 -.58739 .44532 .86221 -554.8 471.8)"/>
-        <path fill="#fff" d="M563.4 301.2c.2 18.9 0 40.2 0 60.2H535c0-20-.2-41.3 0-60.2z" transform="matrix(1.4216 -.73423 .45889 .88849 -716.7 541.4)"/>
-        <path fill="#fff" d="M559.8 304.7c.2 19 0 33.1 0 53.2h-21.2c0-20-.2-34.3 0-53.2z" transform="matrix(1.4216 -.73423 .45889 .88849 -716.7 541.4)"/>
-        <path fill="#fff" d="M542.1 311.8h14.2v39h-14.2zm0 0 14.2 39m-14.2 0 14.2-39m-14.2-198.4h14.2" transform="matrix(1.4216 -.73423 .45889 .88849 -716.7 541.4)"/>
+        <path fill="#fff" d="M563.4 301.2c.2 18.9 0 40.2 0 60.2H535c0-20-.2-41.3 0-60.2z" transform="rotate(-27.316 755.675 1745.435)scale(1.60001 1)"/>
+        <path fill="#fff" d="M559.8 304.7c.2 19 0 33.1 0 53.2h-21.2c0-20-.2-34.3 0-53.2z" transform="rotate(-27.316 755.675 1745.435)scale(1.60001 1)"/>
+        <path fill="#fff" d="M542.1 311.8h14.2v39h-14.2zm0 0 14.2 39m-14.2 0 14.2-39m-14.2-198.4h14.2" transform="rotate(-27.316 755.675 1745.435)scale(1.60001 1)"/>
         <circle cx="545.7" cy="92.1" r="3.5" fill="#ef0000" transform="matrix(1.6046 .45375 -.36215 1.5787 -734.9 -170.8)"/>
       </g>
       <path fill="#fff" fill-rule="evenodd" stroke-width="1.3" d="M538.6 531.5c1.7 166.6 24.8 202 3.5 202s-31.9-92.1-31.9-205.5 14.2-205.5 35.5-205.5-9 31.9-7.1 209z" transform="matrix(.32136 -.12684 .20158 .20221 -181.5 60.8)"/>
@@ -54,9 +54,9 @@
       <g fill-rule="evenodd" stroke-width="1.3" transform="matrix(.19848 0 0 .17744 19.1 -14)">
         <path fill="#fff" d="M531.5 359.6c0-165.2 8-299.4 17.7-299.4 9.8 0 17.7 134.2 17.7 299.4z" transform="matrix(1.4216 -.73423 .46161 .89375 -716.8 541)"/>
         <path fill="#fff" d="M531.5 359.6c0-165.2 8-299.4 17.7-299.4 9.8 0 17.7 134.2 17.7 299.4" transform="matrix(1.1373 -.58739 .44532 .86221 -554.8 471.8)"/>
-        <path fill="#fff" d="M563.4 301.2c.2 18.9 0 40.2 0 60.2H535c0-20-.2-41.3 0-60.2z" transform="matrix(1.4216 -.73423 .45889 .88849 -716.7 541.4)"/>
-        <path fill="#fff" d="M559.8 304.7c.2 19 0 33.1 0 53.2h-21.2c0-20-.2-34.3 0-53.2z" transform="matrix(1.4216 -.73423 .45889 .88849 -716.7 541.4)"/>
-        <path fill="#fff" d="M542.1 311.8h14.2v39h-14.2zm0 0 14.2 39m-14.2 0 14.2-39m-14.2-198.4h14.2" transform="matrix(1.4216 -.73423 .45889 .88849 -716.7 541.4)"/>
+        <path fill="#fff" d="M563.4 301.2c.2 18.9 0 40.2 0 60.2H535c0-20-.2-41.3 0-60.2z" transform="rotate(-27.316 755.675 1745.435)scale(1.60001 1)"/>
+        <path fill="#fff" d="M559.8 304.7c.2 19 0 33.1 0 53.2h-21.2c0-20-.2-34.3 0-53.2z" transform="rotate(-27.316 755.675 1745.435)scale(1.60001 1)"/>
+        <path fill="#fff" d="M542.1 311.8h14.2v39h-14.2zm0 0 14.2 39m-14.2 0 14.2-39m-14.2-198.4h14.2" transform="rotate(-27.316 755.675 1745.435)scale(1.60001 1)"/>
         <circle cx="545.7" cy="92.1" r="3.5" fill="#ef0000" transform="matrix(1.6046 .45375 -.36215 1.5787 -734.9 -170.8)"/>
       </g>
       <g fill="#fff" fill-rule="evenodd" transform="matrix(.19848 0 0 .17744 19.1 -14)">

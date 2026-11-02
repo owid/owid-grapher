@@ -253,6 +253,21 @@ export function convertDateToDaysSinceEpoch(date: dayjs.Dayjs): number {
     return diffDatesInDays(date, epochDate())
 }
 
+/**
+ * Like Date.UTC, but without its legacy quirk of mapping years 0–99 to
+ * 1900–1999: plainUtcTimestamp(50, 2, 1) is 1 March of year 50, not of 1950.
+ * Out-of-range months and days roll over, as with Date.UTC.
+ */
+export function plainUtcTimestamp(
+    year: number,
+    monthIndex: number, // 0-based
+    day = 1
+): number {
+    const date = new Date(0)
+    date.setUTCFullYear(year, monthIndex, day)
+    return date.getTime()
+}
+
 export function formatDay(
     dayAsYear: number,
     options?: { format?: string }

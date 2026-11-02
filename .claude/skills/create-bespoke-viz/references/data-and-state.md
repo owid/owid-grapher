@@ -12,5 +12,5 @@ Bespoke data is fetched at runtime, never bundled. Every project's `src/core/dat
 ## Choosing where state lives
 
 - **Plain `useState`** — the default for anything not shareable.
-- **`useUrlState` (nuqs)** — for state that should be deep-linkable (selected country, year, view). Namespace the query keys with a project prefix (`causesOfDeathRegion`, `migrationYear`), since multiple components share one article URL. The hook takes the `urlSync` flag from the embed config and falls back to `useState` when it's off, so there's nothing to gate at the call site. Requires `<NuqsAdapter>` at the top of the variant tree.
+- **`useUrlState` (nuqs)** — for state that should be deep-linkable (selected country, year, view). Namespace the query keys with a project prefix (`causesOfDeathRegion`, `migrationYear`), since multiple components share one article URL. The hook takes the `urlSync` flag from the embed options and falls back to `useState` when it's off, so there's nothing to gate at the call site. Requires `<NuqsAdapter>` at the top of the variant tree.
 - **jotai module-scope atoms** — only for cross-variant shared state, which the readme covers. Not for a single-variant project.

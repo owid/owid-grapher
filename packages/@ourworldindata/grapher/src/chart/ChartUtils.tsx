@@ -23,6 +23,7 @@ import {
     SortConfig,
     SortOrder,
     OwidVariableRow,
+    TimeInterval,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -416,4 +417,8 @@ export function isToleranceDistanceValid(args: {
 
     const minRequiredGap = Math.min(tolerance, end.time - start.time)
     return end.originalTime - start.originalTime >= minRequiredGap
+}
+
+export function formatTimeSpan(count: number, interval: TimeInterval): string {
+    return count === 1 ? `a ${interval}` : `${count} ${interval}s`
 }

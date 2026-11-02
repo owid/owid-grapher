@@ -45,6 +45,7 @@ import {
     diffDatesInDays,
     convertDateToDaysSinceEpoch,
     convertDaysSinceEpochToDate,
+    plainUtcTimestamp,
     toStartOfDayUtc,
     epochDate,
     sentenceCaseIfNotTopicPage,
@@ -672,6 +673,34 @@ describe(diffDatesInDays, () => {
         expect(
             diffDatesInDays(dayjs.utc("2020-01-22T12:00:00Z"), epoch)
         ).toEqual(1)
+    })
+})
+
+describe(plainUtcTimestamp, () => {
+    it.each([
+        { year: 2020, monthIndex: 1, day: 29, iso: "2020-02-29" },
+        { year: 1600, monthIndex: 0, day: 1, iso: "1600-01-01" },
+        // Date.UTC would map these to 1900 and 1950
+        { year: 0, monthIndex: 0, day: 1, iso: "0000-01-01" },
+        { year: 50, monthIndex: 2, day: 1, iso: "0050-03-01" },
+        { year: 99, monthIndex: 11, day: 31, iso: "0099-12-31" },
+        { year: -44, monthIndex: 2, day: 15, iso: "-000044-03-15" },
+    ])(
+        "returns midnight UTC on $iso for ($year, $monthIndex, $day)",
+        ({ year, monthIndex, day, iso }) => {
+            expect(plainUtcTimestamp(year, monthIndex, day)).toEqual(
+                Date.parse(iso)
+            )
+        }
+    )
+
+    it("matches Date.UTC from year 100 on", () => {
+        expect(plainUtcTimestamp(100, 0, 1)).toEqual(Date.UTC(100, 0, 1))
+        expect(plainUtcTimestamp(2024, 6, 15)).toEqual(Date.UTC(2024, 6, 15))
+    })
+
+    it("defaults to the first of the month", () => {
+        expect(plainUtcTimestamp(2020, 4)).toEqual(Date.parse("2020-05-01"))
     })
 })
 

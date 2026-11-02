@@ -235,4 +235,15 @@ export function isInapplicableBin(bin: ColorScaleBin): bin is CategoricalBin {
     return isCategoricalBin(bin) && bin.value === INAPPLICABLE_LABEL
 }
 
+export function addPatternRefToBin<Bin extends ColorScaleBin>(
+    bin: Bin,
+    fillPatternRef: string
+): Bin {
+    return (
+        isCategoricalBin(bin)
+            ? new CategoricalBin({ ...bin.props, fillPatternRef })
+            : new NumericBin({ ...bin.props, fillPatternRef })
+    ) as Bin
+}
+
 export type ColorScaleBin = CategoricalBin | NumericBin

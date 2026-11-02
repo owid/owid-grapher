@@ -44,7 +44,7 @@ function LifeExpectancyChart() {
         const loader = GrapherLoader.fromApi({
             config: {
                 $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.011.json",
+                    "https://files.ourworldindata.org/schemas/grapher-schema.012.json",
                 title: "Life expectancy",
                 selectedEntityNames: ["World", "Africa", "Europe"],
                 dimensions: [

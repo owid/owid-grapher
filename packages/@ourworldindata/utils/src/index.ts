@@ -142,6 +142,7 @@ export {
     getUserNavigatorLanguagesNonEnglish,
     convertDaysSinceEpochToDate,
     convertDateToDaysSinceEpoch,
+    plainUtcTimestamp,
     epochDate,
     getTimeInterval,
     isSubYearly,
