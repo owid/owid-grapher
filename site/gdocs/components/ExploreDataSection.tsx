@@ -44,7 +44,7 @@ export const ExploreDataSection = ({
 }
 
 const icon = (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none">
+    <svg width="24" height="24" fill="none">
         <path
             fill="#ce261e"
             d="M5.283 10.788h2.264v6.659H5.283zm3.774-3.996h2.264v11.321H9.057zm3.773 2.664h2.264v7.991H12.83z"

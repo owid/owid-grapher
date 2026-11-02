@@ -1,6 +1,6 @@
 export function AnnouncementsIcon() {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 56 56">
+        <svg fill="none" viewBox="0 0 56 56">
             <circle cx="28.002" cy="28.002" r="28.002" fill="#dbe5f0" />
             <mask
                 id="a"

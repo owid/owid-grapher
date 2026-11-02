@@ -1,7 +1,6 @@
 export default function NotFoundPageIcon() {
     return (
         <svg
-            xmlns="http://www.w3.org/2000/svg"
             width="194"
             height="194"
             fill="none"

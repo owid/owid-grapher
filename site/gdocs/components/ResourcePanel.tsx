@@ -41,11 +41,7 @@ function ResourcePanelIcon({
     const iconMap: Record<TResourcePanelIcon, React.ReactElement> = {
         chart: (
             // Different from the FontAwesome linechart that we have
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 32 32"
-            >
+            <svg fill="none" viewBox="0 0 32 32">
                 <g clipPath="url(#a)">
                     <path
                         fill="#ce261e"
