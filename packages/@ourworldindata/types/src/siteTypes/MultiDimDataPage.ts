@@ -73,12 +73,20 @@ export type MultiDimDataPageConfigEnriched = Omit<
     views: ViewEnriched[]
 }
 
+export type DimensionPresentationType = "dropdown" | "dropdown-with-search"
+
+export interface DimensionPresentation {
+    // When omitted, resolveDimensionPresentationType picks the control type
+    // automatically, based on the number of choices.
+    type?: DimensionPresentationType
+}
+
 export interface Dimension {
     slug: string
     name: string
     group?: string
     description?: string
-    // multi_select?: boolean
+    presentation?: DimensionPresentation
     choices: Choice[]
 }
 
@@ -93,8 +101,8 @@ export type DimensionEnriched = Dimension & ChoicesEnriched
 export interface Choice {
     slug: string
     name: string
+    group?: string
     description?: string
-    // multi_select?: boolean
 }
 
 export interface IndicatorsBeforePreProcessing {
