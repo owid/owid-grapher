@@ -2439,9 +2439,20 @@ export class GrapherState
 
             // Try to find a historical column with the same display name
             const displayName = table.get(projectedSlug).displayName
-            return nonProjectionSlugs.find(
+            const slugWithSameDisplayName = nonProjectionSlugs.find(
                 (slug) => table.get(slug).displayName === displayName
             )
+            if (slugWithSameDisplayName) return slugWithSameDisplayName
+
+            // Otherwise, the only historical column drawn in the same color
+            const color = table.get(projectedSlug).def.color
+            if (!color) return undefined
+            const slugsWithSameColor = nonProjectionSlugs.filter(
+                (slug) => table.get(slug).def.color === color
+            )
+            return slugsWithSameColor.length === 1
+                ? slugsWithSameColor[0]
+                : undefined
         }
 
         for (const projectedSlug of projectionSlugs) {
