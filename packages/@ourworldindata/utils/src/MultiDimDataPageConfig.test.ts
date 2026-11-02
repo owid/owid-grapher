@@ -2,8 +2,14 @@ import { expect, it, describe } from "vitest"
 
 import { v7 as uuidv7 } from "uuid"
 
-import { MultiDimDataPageConfigEnriched } from "@ourworldindata/types"
-import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
+import {
+    Dimension,
+    MultiDimDataPageConfigEnriched,
+} from "@ourworldindata/types"
+import {
+    MultiDimDataPageConfig,
+    resolveDimensionPresentationType,
+} from "./MultiDimDataPageConfig.js"
 
 it("fromObject", () => {
     const config = MultiDimDataPageConfig.fromObject({ title: "Test" } as any)
@@ -91,5 +97,62 @@ describe("methods", () => {
             view: "stunting",
         })
         expect(view).toBeDefined()
+    })
+})
+
+describe(resolveDimensionPresentationType, () => {
+    const makeDimension = (
+        choiceCount: number,
+        overrides: Partial<Dimension> = {}
+    ): Dimension => ({
+        slug: "dim",
+        name: "Dimension",
+        choices: Array.from({ length: choiceCount }, (_, i) => ({
+            slug: `choice-${i}`,
+            name: `Choice ${i}`,
+        })),
+        ...overrides,
+    })
+
+    // Unless a test says otherwise, all of a dimension's choices are
+    // available.
+    const resolveWith = (
+        dimension: Dimension,
+        availableChoiceCount = dimension.choices.length
+    ): string =>
+        resolveDimensionPresentationType({
+            dimension,
+            availableChoiceCount,
+        })
+
+    it("defaults to dropdown", () => {
+        expect(resolveWith(makeDimension(2))).toBe("dropdown")
+    })
+
+    it("adds a search field when at least ten choices are available", () => {
+        expect(resolveWith(makeDimension(9))).toBe("dropdown")
+        expect(resolveWith(makeDimension(10))).toBe("dropdown-with-search")
+    })
+
+    // The search field depends on how many options the menu lists right
+    // now, not on how many the dimension has in total.
+    it("skips the search field when few choices are available", () => {
+        expect(resolveWith(makeDimension(30), 5)).toBe("dropdown")
+        expect(resolveWith(makeDimension(30), 10)).toBe("dropdown-with-search")
+    })
+
+    it("respects an explicit presentation type", () => {
+        expect(
+            resolveWith(
+                makeDimension(3, {
+                    presentation: { type: "dropdown-with-search" },
+                })
+            )
+        ).toBe("dropdown-with-search")
+        expect(
+            resolveWith(
+                makeDimension(30, { presentation: { type: "dropdown" } })
+            )
+        ).toBe("dropdown")
     })
 })

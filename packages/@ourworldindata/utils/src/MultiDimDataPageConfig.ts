@@ -1,7 +1,9 @@
 import {
     Choice,
     ChoicesEnriched,
+    Dimension,
     DimensionEnriched,
+    DimensionPresentationType,
     IndicatorsAfterPreProcessing,
     IndicatorTitleWithFragments,
     joinTitleFragments,
@@ -244,6 +246,29 @@ export function getMultiDimPageTitle(
         title.titleVariant
     )
     return fragments ? `${title.title} - ${fragments}` : title.title
+}
+
+/**
+ * Which control a dimension should be rendered as. An explicit
+ * `presentation.type` in the config always wins; otherwise dropdowns offering
+ * at least ten choices get a search field, and everything else is a plain
+ * dropdown.
+ *
+ * The search field is decided on the number of choices currently available
+ * (`availableChoiceCount`): what matters is how many options the menu
+ * actually lists, and at worst the field comes and goes within the same
+ * dropdown. A dimension the heuristic gets wrong can always set
+ * `presentation.type` explicitly.
+ */
+export function resolveDimensionPresentationType({
+    dimension,
+    availableChoiceCount,
+}: {
+    dimension: Dimension
+    availableChoiceCount: number
+}): DimensionPresentationType {
+    if (dimension.presentation?.type) return dimension.presentation.type
+    return availableChoiceCount >= 10 ? "dropdown-with-search" : "dropdown"
 }
 
 export function isMultiDimDataExplorer<
