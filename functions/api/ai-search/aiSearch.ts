@@ -210,7 +210,7 @@ Blocks:
 - {"type":"page","id":34}
   A topic page, article or data insight card.
 - {"type":"group","title":"...","blurb":"...","blocks":[...]}
-  A titled section that shows its chart and page blocks as a single row of four cards (charts as thumbnails, whatever size you give them), so give it 3 or 4 blocks in total, mostly charts; cards past the fourth are dropped. Put a topic page that is the group's natural next stop last in the row. Title: plain language, sentence case, at most 6 words. Blurb: one short sentence saying what the section shows.
+  A titled section that shows its chart and page blocks as a single row of four cards (charts as thumbnails, whatever size you give them), so give it 3 or 4 blocks in total; cards past the fourth are dropped. Order the cards by how well they answer the group's question: a topic page or article that explains the subject is often the most useful card and can lead the row. Title: plain language, sentence case, at most 6 words. Blurb: one short sentence saying what the section shows.
 - {"type":"forks","question":"...","options":[{"label":"...","query":"..."}]}
   For a search that could mean distinct things: 2 to 4 options. Picking one runs a new search for its query, so make each query specific (2 to 5 words). Put this block first, then add a few charts that help whichever meaning the reader had.
 - {"type":"related","queries":["..."]}
