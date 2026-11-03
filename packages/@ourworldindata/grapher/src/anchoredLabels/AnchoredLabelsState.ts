@@ -52,6 +52,9 @@ interface AnchoredLabelsOptions {
     /** Maximum distance in pixels an edge label may move from its anchor (defaults to the font size) */
     maxShift?: number
 
+    /** Maximum distance in pixels an in-chart label may move from its anchor (defaults to the font size) */
+    maxNudge?: number
+
     compare?: (
         a: InitialAnchoredLabelSeries,
         b: InitialAnchoredLabelSeries
@@ -59,6 +62,7 @@ interface AnchoredLabelsOptions {
 }
 
 const EDGE_TOLERANCE_PX = 1
+const NUDGE_STEP_PX = 0.5
 
 /**
  * Anchored labels are tied to a specific (x, y) position on the chart.
@@ -192,6 +196,10 @@ export class AnchoredLabelsState {
         return this.options.maxShift ?? this.options.fontSize
     }
 
+    @computed private get maxNudge(): number {
+        return this.options.maxNudge ?? this.options.fontSize
+    }
+
     @computed private get verticalRange(): VerticalRange {
         const { yRange } = this.options
         return yRange
@@ -241,22 +249,7 @@ export class AnchoredLabelsState {
             const placement = placements.get(series.seriesName)
             if (placement?.kind !== "placed") return []
 
-            const shiftY = placement.y - series.position.y
-            return [
-                {
-                    ...series,
-                    textPosition: {
-                        x: series.textPosition.x,
-                        y: series.textPosition.y + shiftY,
-                    },
-                    bounds: new Bounds(
-                        series.bounds.x,
-                        series.bounds.y + shiftY,
-                        series.bounds.width,
-                        series.bounds.height
-                    ),
-                },
-            ]
+            return [shiftSeries(series, placement.y - series.position.y)]
         })
     }
 
@@ -309,11 +302,13 @@ export class AnchoredLabelsState {
         const placed: PlacedAnchoredLabelSeries[] = []
         for (const series of this.seriesByPriority) {
             if (this.edgeSeriesNames.has(series.seriesName)) continue
-            if (!isFree(series, series.bounds)) continue
 
-            placed.push(series)
+            const nudged = nudgeUntilFree(series, this.maxNudge, isFree)
+            if (!nudged) continue
+
+            placed.push(nudged)
             placedCollisionBounds.push(
-                series.bounds.expand(this.collisionPadding)
+                nudged.bounds.expand(this.collisionPadding)
             )
         }
         return placed
@@ -337,6 +332,41 @@ export class AnchoredLabelsState {
         const maxLabelWidth = R.firstBy(labelWidths, [R.identity(), "desc"])
         return maxLabelWidth ?? 0
     }
+}
+
+function shiftSeries<T extends SizedAnchoredLabelSeries>(
+    series: T,
+    dy: number
+): T {
+    return {
+        ...series,
+        textPosition: {
+            x: series.textPosition.x,
+            y: series.textPosition.y + dy,
+        },
+        bounds: new Bounds(
+            series.bounds.x,
+            series.bounds.y + dy,
+            series.bounds.width,
+            series.bounds.height
+        ),
+    }
+}
+
+function nudgeUntilFree(
+    series: SizedAnchoredLabelSeries,
+    maxNudge: number,
+    isFree: (series: SizedAnchoredLabelSeries, bounds: Bounds) => boolean
+): SizedAnchoredLabelSeries | undefined {
+    for (let k = 0; k * NUDGE_STEP_PX <= maxNudge + 1e-9; k++) {
+        const offset = k * NUDGE_STEP_PX
+        const offsets = k === 0 ? [0] : [-offset, offset]
+        for (const dy of offsets) {
+            const shifted = shiftSeries(series, dy)
+            if (isFree(series, shifted.bounds)) return shifted
+        }
+    }
+    return undefined
 }
 
 function emphasisRank(series: InitialAnchoredLabelSeries): number {

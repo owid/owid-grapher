@@ -33,7 +33,11 @@ const makeState = (
 
 const visibleNames = (
     series: InitialAnchoredLabelSeries[],
-    options: { compare?: Compare; yRange?: [number, number] } = {}
+    options: {
+        compare?: Compare
+        yRange?: [number, number]
+        maxNudge?: number
+    } = {}
 ): string[] => makeState(series, options).series.map((s) => s.seriesName)
 
 const labelHeight = makeState([makeSeries("A")]).series[0].bounds.height
@@ -96,7 +100,7 @@ describe(AnchoredLabelsState, () => {
             y: 50,
         })
         const clear = makeSeries("Clear", undefined, { x: 98, y: 200 })
-        const state = makeState([edge, overlapping, clear])
+        const state = makeState([edge, overlapping, clear], { maxNudge: 0 })
 
         expect(state.series.map((s) => s.seriesName)).toEqual(["Edge", "Clear"])
 
@@ -129,7 +133,7 @@ describe(AnchoredLabelsState, () => {
     it("hides an in-chart label covering another series' dot unless it is more emphasized", () => {
         const far = makeSeries("Far", undefined, { x: 200, y: 300 })
         const dotOwner = makeSeries("DotOwner", undefined, { x: 60, y: 50 })
-        const options = { anchorCollisionRadius: 3 }
+        const options = { anchorCollisionRadius: 3, maxNudge: 0 }
 
         const covering = makeSeries("Covering", undefined, { x: 50, y: 50 })
         expect(
@@ -162,5 +166,83 @@ describe(AnchoredLabelsState, () => {
         expect(state.series.map((s) => s.seriesName)).toEqual(["A"])
         expect(state.width).toBe(makeState([short]).width)
         expect(state.width).toBeLessThan(makeState([long]).width)
+    })
+
+    describe("nudging in-chart labels", () => {
+        const edge = makeSeries("Edge", undefined, { x: 100, y: 0 })
+        const blocker = makeSeries("Blocker", Emphasis.Highlighted, {
+            x: 0,
+            y: 100,
+        })
+        const anchorY = 100 + labelHeight / 2
+        const mover = makeSeries("Mover", undefined, { x: 0, y: anchorY })
+
+        it("moves an in-chart label that collides at its anchor to a free spot within maxNudge", () => {
+            const maxNudge = labelHeight
+            const placed = makeState([edge, blocker, mover], {
+                maxNudge,
+            }).series.find((s) => s.seriesName === "Mover")!
+
+            expect(placed).toBeDefined()
+            const distance = Math.abs(placed.textPosition.y - anchorY)
+            expect(distance).toBeGreaterThan(0)
+            expect(distance).toBeLessThanOrEqual(maxNudge)
+            expect(placed.bounds.y).toBeCloseTo(
+                makeState([mover]).series[0].bounds.y +
+                    (placed.textPosition.y - anchorY)
+            )
+        })
+
+        it("nudges by up to the font size by default", () => {
+            expect(visibleNames([edge, blocker, mover])).toContain("Mover")
+        })
+
+        it("tries above before below when both are free", () => {
+            const centered = makeSeries("Mover", undefined, { x: 0, y: 100 })
+            const placed = makeState([edge, blocker, centered], {
+                maxNudge: 2 * labelHeight,
+            }).series.find((s) => s.seriesName === "Mover")!
+            expect(placed.textPosition.y).toBeLessThan(100)
+        })
+
+        it("keeps later labels clear of a label at its nudged position", () => {
+            const nextAnchorY = anchorY + labelHeight + VERTICAL_GAP
+            const next = makeSeries("Next", undefined, { x: 0, y: nextAnchorY })
+            const state = makeState([edge, blocker, mover, next], {
+                maxNudge: 2 * labelHeight,
+            })
+            const [placedMover, placedNext] = ["Mover", "Next"].map((name) =>
+                state.series.find((s) => s.seriesName === name)!
+            )
+            expect(
+                Math.abs(placedNext.textPosition.y - placedMover.textPosition.y)
+            ).toBeGreaterThanOrEqual(labelHeight + VERTICAL_GAP - 0.01)
+        })
+
+        it("hides the colliding label when maxNudge is 0", () => {
+            expect(
+                visibleNames([edge, blocker, mover], { maxNudge: 0 })
+            ).toEqual(["Edge", "Blocker"])
+        })
+
+        it("keeps the higher-ranked label at its anchor when two compete for one free spot", () => {
+            const first = makeSeries("First", undefined, { x: 0, y: 100 })
+            const second = makeSeries("Second", undefined, { x: 0, y: 100 })
+            const state = makeState([edge, first, second], {
+                yRange: [
+                    100 + labelHeight / 2 + 0.5,
+                    100 - labelHeight / 2 - 0.5,
+                ],
+                maxNudge: labelHeight,
+            })
+
+            const placedFirst = state.series.find(
+                (s) => s.seriesName === "First"
+            )!
+            expect(placedFirst.textPosition.y).toBe(100)
+            expect(state.series.some((s) => s.seriesName === "Second")).toBe(
+                false
+            )
+        })
     })
 })
