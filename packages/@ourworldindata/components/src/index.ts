@@ -20,6 +20,7 @@ export {
     MarkdownTextWrapSvg,
     MarkdownTextWrapHtml,
 } from "./MarkdownTextWrap/MarkdownTextWrapComponents.js"
+export { FIGMA_TEXT_NODE_BREAK_DY } from "./MarkdownTextWrap/IRTokens.js"
 
 export {
     SimpleMarkdownText,
@@ -67,7 +68,7 @@ export { ChartLicenseNotice } from "./ChartLicenseNotice/ChartLicenseNotice.js"
 
 export {
     BespokeMetadataHeading,
-    BESPOKE_METADATA_FALLBACK_TITLE,
+    BESPOKE_METADATA_TITLE,
 } from "./BespokeMetadata/BespokeMetadataHeading.js"
 export { BespokeMetadataKeyData } from "./BespokeMetadata/BespokeMetadataKeyData.js"
 export { getBespokeKeyDataRows } from "./BespokeMetadata/bespokeKeyDataRows.js"

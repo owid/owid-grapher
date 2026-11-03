@@ -176,6 +176,14 @@
                         }
                     }
 
+                    .detail {
+                        color: $grey;
+                        font-size: 12px;
+                        line-height: 15px;
+                        letter-spacing: 0.01em;
+                        font-weight: $medium;
+                    }
+
                     // Hide the variable name and use just the unit (if present) as a label
                     &.variable--no-name .definition {
                         .name {
@@ -471,7 +479,7 @@
         }
 
         // adapt to smaller display areas
-        @container grapher (max-width:900px) {
+        @container grapher (width <= 900px) {
             .Tooltip {
                 .content {
                     padding: 4px 12px;

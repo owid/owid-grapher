@@ -1,8 +1,9 @@
 import { match } from "ts-pattern"
 
-import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
+import { OwidEnrichedGdocBlock, SpanLink } from "@ourworldindata/types"
 import { normalizeBlockType, useImage } from "../utils.js"
 import ArticleBlock from "./ArticleBlock.js"
+import LinkedA from "./LinkedA.js"
 import { Container, getLayout } from "./layout.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { LARGEST_IMAGE_WIDTH } from "@ourworldindata/utils"
@@ -61,9 +62,28 @@ function AtomArticleBlock({
                 />
             )
         })
+        .with({ type: "cta" }, (block) => (
+            <Cta url={block.url} text={block.text} />
+        ))
         .otherwise(() => (
             <ArticleBlock b={block} containerType={containerType} />
         ))
+}
+
+// Email clients like Gmail strip the inline SVG arrow of the site's CTA, so our
+// RSS-based newsletters would lose it; use a text arrow instead
+function Cta({ url, text }: { url: string; text: string }) {
+    const span: SpanLink = {
+        url,
+        children: [{ spanType: "span-simple-text", text }],
+        spanType: "span-link",
+    }
+    return (
+        <p className="cta">
+            <LinkedA span={span} />
+            &nbsp;→
+        </p>
+    )
 }
 
 function Image({
@@ -89,7 +109,7 @@ function Image({
     return (
         <img
             src={`${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/w=${LARGEST_IMAGE_WIDTH}`}
-            alt={alt ?? image.defaultAlt}
+            alt={alt ?? image.defaultAlt ?? undefined}
             width={LARGEST_IMAGE_WIDTH}
             height={height}
         />

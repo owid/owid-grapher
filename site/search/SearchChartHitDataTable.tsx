@@ -11,10 +11,11 @@ export function SearchChartHitDataTable({
     numRowsPerColumn?: number
 }): React.ReactElement {
     // Show the time in the title if all items refer to the same time
-    const times = rows.map((row) => row.time).filter((time) => time)
-    const mainTime = times[0]
+    const timedRows = rows.filter((row) => row.time)
+    const mainTime = timedRows[0]?.time
     const shouldShowTimeInTitle =
-        mainTime !== undefined && times.every((time) => time === mainTime)
+        mainTime !== undefined &&
+        timedRows.every((row) => row.time === mainTime)
 
     // Hide the time in each row if it's shown in the title
     const displayRows = shouldShowTimeInTitle
@@ -32,7 +33,7 @@ export function SearchChartHitDataTable({
             <Header
                 title={title}
                 time={shouldShowTimeInTitle ? mainTime : undefined}
-                timePreposition={rows[0]?.timePreposition}
+                timePreposition={timedRows[0]?.timePreposition}
             />
             {displayRows.map((row) => (
                 <Row

@@ -8,7 +8,7 @@ import { OwidGdocPostInterface } from "../gdocTypes/Gdoc.js"
 
 export const PostsTableName = "posts"
 export interface DbInsertPost {
-    id: number
+    id?: number
     title: string
     slug: string
     type: WP_PostType
@@ -19,8 +19,8 @@ export interface DbInsertPost {
     updated_at_in_wordpress?: Date | null
     excerpt?: string | null
     created_at_in_wordpress?: Date | null
-    featured_image: string
-    markdown: string
+    featured_image?: string
+    markdown?: string | null
     authors?: string | null
     formattingOptions?: string | null
     archieml?: string | null

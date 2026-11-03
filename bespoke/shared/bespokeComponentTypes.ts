@@ -1,5 +1,3 @@
-import type { EmbedConfig } from "./embedConfig.ts"
-
 type BespokeComponentReturnType = void | undefined | (() => void)
 
 export interface BespokeComponentDataUrls {
@@ -10,13 +8,20 @@ export interface BespokeComponentDataUrls {
 export type BespokeAuthoredConfig = Record<string, string>
 
 export interface BespokeVariantProps<Config> {
-    config: Config & EmbedConfig
+    config: Config
     urls: BespokeComponentDataUrls
+}
+
+/** Set in code by the page embedding a bespoke component, never authored */
+export interface EmbedOptions {
+    urlSync?: boolean
+    hideMetadataModal?: boolean
 }
 
 export interface BespokeComponentMountOpts extends Partial<BespokeComponentDataUrls> {
     variant?: string
     config?: BespokeAuthoredConfig
+    embedOptions?: EmbedOptions
 }
 
 export type BespokeComponentMountFn = (
@@ -50,6 +55,7 @@ export interface BespokeComponentVariantsEntry<
     name: VariantName
     description: string
     demoConfig?: BespokeAuthoredConfig
+    demoEmbedOptions?: EmbedOptions
     defaultSize?: "narrow" | "wide" | "widest"
 }
 

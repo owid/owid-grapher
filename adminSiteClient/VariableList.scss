@@ -93,23 +93,6 @@
     margin-left: 6px;
 }
 
-.variable-list__search-help {
-    max-width: 520px;
-
-    p {
-        margin-bottom: 8px;
-    }
-
-    table {
-        border-collapse: collapse;
-    }
-
-    td {
-        padding: 2px 12px 2px 0;
-        vertical-align: top;
-    }
-}
-
 // The table centers its empty state, which suits the message but not a hint
 // that reads as a sentence
 .variable-list__empty-hint {

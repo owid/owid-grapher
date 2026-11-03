@@ -40,9 +40,12 @@ import {
     stripOuterParentheses,
     groupTocIntoSections,
     snapToIntervalStart,
+    positiveModulo,
     findFinestCommonTimeInterval,
     diffDatesInDays,
     convertDateToDaysSinceEpoch,
+    convertDaysSinceEpochToDate,
+    plainUtcTimestamp,
     toStartOfDayUtc,
     epochDate,
     sentenceCaseIfNotTopicPage,
@@ -673,6 +676,34 @@ describe(diffDatesInDays, () => {
     })
 })
 
+describe(plainUtcTimestamp, () => {
+    it.each([
+        { year: 2020, monthIndex: 1, day: 29, iso: "2020-02-29" },
+        { year: 1600, monthIndex: 0, day: 1, iso: "1600-01-01" },
+        // Date.UTC would map these to 1900 and 1950
+        { year: 0, monthIndex: 0, day: 1, iso: "0000-01-01" },
+        { year: 50, monthIndex: 2, day: 1, iso: "0050-03-01" },
+        { year: 99, monthIndex: 11, day: 31, iso: "0099-12-31" },
+        { year: -44, monthIndex: 2, day: 15, iso: "-000044-03-15" },
+    ])(
+        "returns midnight UTC on $iso for ($year, $monthIndex, $day)",
+        ({ year, monthIndex, day, iso }) => {
+            expect(plainUtcTimestamp(year, monthIndex, day)).toEqual(
+                Date.parse(iso)
+            )
+        }
+    )
+
+    it("matches Date.UTC from year 100 on", () => {
+        expect(plainUtcTimestamp(100, 0, 1)).toEqual(Date.UTC(100, 0, 1))
+        expect(plainUtcTimestamp(2024, 6, 15)).toEqual(Date.UTC(2024, 6, 15))
+    })
+
+    it("defaults to the first of the month", () => {
+        expect(plainUtcTimestamp(2020, 4)).toEqual(Date.parse("2020-05-01"))
+    })
+})
+
 describe(convertDateToDaysSinceEpoch, () => {
     it("converts dayjs objects with time components to days since epoch preserving calendar day", () => {
         // 2020-01-20T12:00:00Z -> day -1 (Jan 20, 2020)
@@ -687,6 +718,40 @@ describe(convertDateToDaysSinceEpoch, () => {
         expect(
             convertDateToDaysSinceEpoch(dayjs.utc("2020-01-22T12:00:00Z"))
         ).toEqual(1)
+    })
+})
+
+describe(convertDaysSinceEpochToDate, () => {
+    it.each([
+        { days: 0, date: "2020-01-21" },
+        { days: 39, date: "2020-02-29" }, // leap day
+        { days: -21, date: "2019-12-31" },
+        { days: -153363, date: "1600-02-29" }, // leap day of a leap century
+    ])("converts day $days to UTC midnight on $date", ({ days, date }) => {
+        const result = convertDaysSinceEpochToDate(days)
+        expect(result.isUTC()).toBe(true)
+        expect(result.toISOString()).toEqual(`${date}T00:00:00.000Z`)
+        expect(convertDateToDaysSinceEpoch(result)).toEqual(days)
+    })
+
+    it("rounds fractional days to the nearest day", () => {
+        expect(convertDaysSinceEpochToDate(0.4).toISOString()).toEqual(
+            "2020-01-21T00:00:00.000Z"
+        )
+        expect(convertDaysSinceEpochToDate(0.6).toISOString()).toEqual(
+            "2020-01-22T00:00:00.000Z"
+        )
+        expect(convertDaysSinceEpochToDate(-0.6).toISOString()).toEqual(
+            "2020-01-20T00:00:00.000Z"
+        )
+    })
+
+    it("returns UTC midnight whatever the local timezone", () => {
+        timezoneMock.register("US/Pacific")
+        expect(
+            convertDaysSinceEpochToDate(1).format("YYYY-MM-DD HH:mm")
+        ).toEqual("2020-01-22 00:00")
+        timezoneMock.unregister()
     })
 })
 
@@ -735,12 +800,63 @@ describe(snapToIntervalStart, () => {
         ).toEqual(day("2021-01-01"))
     })
 
-    it("leaves day, year and decade values unchanged", () => {
+    it("snaps dates before the epoch", () => {
+        // 2019-12-29 is a Sunday; its ISO week starts Monday 2019-12-23
+        expect(
+            snapToIntervalStart(day("2019-12-29"), TimeInterval.Week)
+        ).toEqual(day("2019-12-23"))
+        // 1850-06-15 is a Saturday; its ISO week starts Monday 1850-06-10
+        expect(
+            snapToIntervalStart(day("1850-06-15"), TimeInterval.Week)
+        ).toEqual(day("1850-06-10"))
+        expect(
+            snapToIntervalStart(day("1850-06-15"), TimeInterval.Month)
+        ).toEqual(day("1850-06-01"))
+        expect(
+            snapToIntervalStart(day("1850-06-15"), TimeInterval.Quarter)
+        ).toEqual(day("1850-04-01"))
+    })
+
+    it("leaves dates already at the start of their interval unchanged", () => {
+        expect(
+            snapToIntervalStart(day("2021-01-11"), TimeInterval.Week)
+        ).toEqual(day("2021-01-11"))
+        expect(
+            snapToIntervalStart(day("2019-12-30"), TimeInterval.Week)
+        ).toEqual(day("2019-12-30"))
+        expect(
+            snapToIntervalStart(day("2021-03-01"), TimeInterval.Month)
+        ).toEqual(day("2021-03-01"))
+        expect(
+            snapToIntervalStart(day("2021-07-01"), TimeInterval.Quarter)
+        ).toEqual(day("2021-07-01"))
+    })
+
+    it("leaves day and year values unchanged", () => {
         expect(
             snapToIntervalStart(day("2021-03-15"), TimeInterval.Day)
         ).toEqual(day("2021-03-15"))
         expect(snapToIntervalStart(2021, TimeInterval.Year)).toEqual(2021)
-        expect(snapToIntervalStart(2025, TimeInterval.Decade)).toEqual(2025)
+    })
+
+    it("snaps decade values to the start of the decade", () => {
+        expect(snapToIntervalStart(2025, TimeInterval.Decade)).toEqual(2020)
+        expect(snapToIntervalStart(2029, TimeInterval.Decade)).toEqual(2020)
+        expect(snapToIntervalStart(2020, TimeInterval.Decade)).toEqual(2020)
+        expect(snapToIntervalStart(0, TimeInterval.Decade)).toEqual(0)
+        // Negative years (BCE) snap down too, e.g. -5 is in the -10s decade
+        expect(snapToIntervalStart(-5, TimeInterval.Decade)).toEqual(-10)
+        expect(snapToIntervalStart(-10, TimeInterval.Decade)).toEqual(-10)
+    })
+})
+
+describe(positiveModulo, () => {
+    it("wraps negative numbers into [0, m)", () => {
+        expect(positiveModulo(5, 7)).toEqual(5)
+        expect(positiveModulo(7, 7)).toEqual(0)
+        expect(positiveModulo(-2, 7)).toEqual(5)
+        expect(positiveModulo(-7, 7)).toEqual(0)
+        expect(positiveModulo(-15, 7)).toEqual(6)
     })
 })
 
