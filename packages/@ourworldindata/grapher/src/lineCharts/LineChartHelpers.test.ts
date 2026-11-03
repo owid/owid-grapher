@@ -43,14 +43,20 @@ describe(transitionAnnotationTooltipState, () => {
             transitionAnnotationTooltipState(markerOpen, {
                 type: "labelTooltipShow",
                 seriesName: "Spain",
+                hasAnnotations: true,
             })
-        ).toEqual({ kind: "labelOpen", seriesName: "Spain" })
+        ).toEqual({
+            kind: "labelOpen",
+            seriesName: "Spain",
+            hasAnnotations: true,
+        })
     })
 
     it("ignores hide and close events that do not match the open tooltip", () => {
         const labelOpen: AnnotationTooltipState = {
             kind: "labelOpen",
             seriesName: "France",
+            hasAnnotations: true,
         }
         expect(
             transitionAnnotationTooltipState(labelOpen, {

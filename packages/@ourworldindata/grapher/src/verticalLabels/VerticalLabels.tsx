@@ -2,7 +2,7 @@ import * as React from "react"
 import { TextWrapSvg } from "@ourworldindata/components"
 import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { SeriesName } from "@ourworldindata/types"
-import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
+import { SeriesLabel, SeriesLabelTooltip } from "../seriesLabel/SeriesLabel.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
 import {
     INLINE_ANNOTATION_PADDING,
@@ -29,7 +29,10 @@ export function VerticalLabels({
     outline?: boolean
     onMouseEnter?: (key: SeriesName) => void
     onMouseLeave?: () => void
-    onTooltipShow?: (seriesName: SeriesName) => void
+    onTooltipShow?: (
+        seriesName: SeriesName,
+        tooltip: SeriesLabelTooltip
+    ) => void
     onTooltipHide?: (seriesName: SeriesName) => void
     seriesNamesWithInfoIcon?: ReadonlySet<SeriesName>
 }): React.ReactElement {
@@ -83,7 +86,7 @@ function Labels({
     outline: boolean
     onMouseEnter?: (key: SeriesName) => void
     onMouseLeave?: (key: SeriesName) => void
-    onTooltipShow?: (key: SeriesName) => void
+    onTooltipShow?: (key: SeriesName, tooltip: SeriesLabelTooltip) => void
     onTooltipHide?: (key: SeriesName) => void
     seriesNamesWithInfoIcon?: ReadonlySet<SeriesName>
 }): React.ReactElement {
@@ -107,7 +110,9 @@ function Labels({
                         )}
                         onMouseEnter={() => onMouseEnter?.(series.seriesName)}
                         onMouseLeave={() => onMouseLeave?.(series.seriesName)}
-                        onTooltipShow={() => onTooltipShow?.(series.seriesName)}
+                        onTooltipShow={(tooltip) =>
+                            onTooltipShow?.(series.seriesName, tooltip)
+                        }
                         onTooltipHide={() => onTooltipHide?.(series.seriesName)}
                     />
                 )
