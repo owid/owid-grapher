@@ -192,6 +192,17 @@ describe(getProducerDocsLabel, () => {
         ).toEqual("Transparency International")
     })
 
+    it("uses the producer's name when its sources' short names differ", () => {
+        expect(
+            getProducerDocsLabel({
+                origins: [
+                    { producer: "United Nations", attributionShort: "UN WPP" },
+                    { producer: "United Nations", attributionShort: "UN SDG" },
+                ],
+            })
+        ).toEqual("United Nations")
+    })
+
     it("stays generic with several producers, or none", () => {
         expect(
             getProducerDocsLabel({

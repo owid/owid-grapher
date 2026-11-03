@@ -157,6 +157,8 @@ export function getProducerDocsLabel(
     const origins = datapageData.origins.filter((origin) => origin.producer)
     const producers = new Set(origins.map((origin) => origin.producer))
     if (producers.size !== 1) return "Principal data source"
-    const [origin] = origins
-    return origin.attributionShort || origin.producer!
+    // the sources' short name, if they agree on one, else the producer's name
+    const shortNames = new Set(origins.map((origin) => origin.attributionShort))
+    const [shortName] = shortNames
+    return (shortNames.size === 1 && shortName) || origins[0].producer!
 }
