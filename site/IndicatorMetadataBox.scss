@@ -195,23 +195,36 @@
     margin-top: 8px;
 }
 
-// Above phone width, a long value wraps under its label rather than in a
-// column beside it
+// A label and its value run on as one line, and a long value wraps back to
+// the start of the line rather than in a column beside the label
+@mixin key-data-row-inline {
+    display: block;
+
+    > .metadata-box-key-data__key {
+        display: inline;
+        margin-right: 4px;
+    }
+
+    > .metadata-box-key-data__value {
+        display: inline;
+    }
+}
+
+// On phones, only Data details: one pair per line
+@include sm-only {
+    .indicator-metadata-box
+        .indicator-metadata-box__data-details
+        .metadata-box-key-data__row {
+        @include key-data-row-inline;
+    }
+}
+
 @include sm-up {
     .indicator-metadata-box
         .metadata-box-key-data__row:not(
             .metadata-box-key-data__row--full-width
         ) {
-        display: block;
-
-        > .metadata-box-key-data__key {
-            display: inline;
-            margin-right: 4px;
-        }
-
-        > .metadata-box-key-data__value {
-            display: inline;
-        }
+        @include key-data-row-inline;
     }
 
     // Centre the label on the first line of managers, which the 24px photos
