@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
 
-import { ColumnLabel, packColumn } from "./AnchoredLabelsPacking"
+import {
+    ColumnLabel,
+    ColumnPlacement,
+    packColumn,
+    placeColumn,
+} from "./AnchoredLabelsPacking"
 
 const range = { top: 0, bottom: 200 }
 
@@ -94,5 +99,115 @@ describe(packColumn, () => {
         expect(bottom.get("a")).toBeCloseTo(171)
         expect(bottom.get("b")).toBeCloseTo(183)
         expect(bottom.get("c")).toBeCloseTo(195)
+    })
+})
+
+describe(placeColumn, () => {
+    const placed = (y: number): { kind: "placed"; y: number } => ({
+        kind: "placed",
+        y,
+    })
+    const hidden = (
+        reason: "budget" | "too-far"
+    ): { kind: "hidden"; reason: "budget" | "too-far" } => ({
+        kind: "hidden",
+        reason,
+    })
+
+    it("hides the lowest-priority labels that exceed the height budget", () => {
+        const placements = placeColumn(
+            [label("a", 5), label("b", 17), label("c", 29)],
+            { range: { top: 0, bottom: 30 }, gap: 2, maxShift: Infinity }
+        )
+        expect(placements).toEqual(
+            new Map<string, ColumnPlacement>([
+                ["a", placed(5)],
+                ["b", placed(17)],
+                ["c", hidden("budget")],
+            ])
+        )
+    })
+
+    it("drops the lowest-priority label in the group of the worst violator", () => {
+        // Packed together they sit at 92, 104, 116, so only x moves more than 6
+        const placements = placeColumn(
+            [label("x", 100), label("y", 100), label("z", 112)],
+            { range, gap: 2, maxShift: 6 }
+        )
+        expect(placements).toEqual(
+            new Map<string, ColumnPlacement>([
+                ["x", placed(94)],
+                ["y", placed(106)],
+                ["z", hidden("too-far")],
+            ])
+        )
+    })
+
+    it("keeps a column that fills the height budget exactly", () => {
+        const placements = placeColumn(
+            [label("a", 5), label("b", 17), label("c", 29)],
+            { range: { top: 0, bottom: 34 }, gap: 2, maxShift: Infinity }
+        )
+        expect(placements).toEqual(
+            new Map<string, ColumnPlacement>([
+                ["a", placed(5)],
+                ["b", placed(17)],
+                ["c", placed(29)],
+            ])
+        )
+    })
+
+    it("looks above the worst violator for the label to drop", () => {
+        // Packed together they sit at 84, 96, 108, so only y, at the bottom, moves more than 6
+        const placements = placeColumn(
+            [label("x", 100), label("y", 100), label("z", 88)],
+            { range, gap: 2, maxShift: 6 }
+        )
+        expect(placements).toEqual(
+            new Map<string, ColumnPlacement>([
+                ["x", placed(94)],
+                ["y", placed(106)],
+                ["z", hidden("too-far")],
+            ])
+        )
+    })
+
+    it("leaves no placed label further from its anchor than the cap", () => {
+        const labels = [100, 101, 102, 103, 104, 105].map((anchorY, i) =>
+            label(`l${i}`, anchorY)
+        )
+        const maxShift = 15
+        const placements = placeColumn(labels, { range, gap: 2, maxShift })
+
+        const placedLabels = labels.filter(
+            (l) => placements.get(l.id)!.kind === "placed"
+        )
+        expect(placedLabels.length).toBeGreaterThan(0)
+        expect(placedLabels.length).toBeLessThan(labels.length)
+        for (const l of placedLabels) {
+            const placement = placements.get(l.id)!
+            if (placement.kind !== "placed") throw new Error("unreachable")
+            expect(Math.abs(placement.y - l.anchorY)).toBeLessThanOrEqual(
+                maxShift + 0.01
+            )
+        }
+    })
+
+    it("equals fitting the budget and packing when the cap is infinite", () => {
+        const labels = [label("a", 10), label("b", 12), label("c", 14)]
+        const smallRange = { top: 0, bottom: 30 }
+        const placements = placeColumn(labels, {
+            range: smallRange,
+            gap: 2,
+            maxShift: Infinity,
+        })
+        const packed = packColumn(labels.slice(0, 2), smallRange, 2)
+        expect(placements).toEqual(
+            new Map<string, ColumnPlacement>([
+                ["a", placed(packed.get("a")!)],
+                ["b", placed(packed.get("b")!)],
+                ["c", hidden("budget")],
+            ])
+        )
     })
 })
