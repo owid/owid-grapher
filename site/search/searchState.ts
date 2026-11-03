@@ -272,10 +272,17 @@ export function useSearchParamsState(
     const aiSearch = useMemo<AiSearchParam>(
         () => ({
             isOn: isAiSearchOn && state.query.length > 0,
+            // The AI overview mixes charts and writing, so the results below
+            // it show both too
             start: (query: string) =>
-                updateParams((s) => ({ ...s, query: query.trim() }), {
-                    aiSearch: true,
-                }),
+                updateParams(
+                    (s) => ({
+                        ...s,
+                        query: query.trim(),
+                        resultType: SearchResultType.ALL,
+                    }),
+                    { aiSearch: true }
+                ),
             stop: () => updateParams((s) => s, { aiSearch: false }),
         }),
         [isAiSearchOn, state.query, updateParams]
