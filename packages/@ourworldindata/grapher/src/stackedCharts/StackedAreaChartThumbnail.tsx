@@ -123,7 +123,7 @@ export class StackedAreaChartThumbnail
     }
 
     @computed private get labelsMaxWidth(): number {
-        return 0.25 * this.bounds.width
+        return 0.3 * this.bounds.width
     }
 
     @computed private get labelsSeries(): Omit<
