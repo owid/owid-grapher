@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" clip-rule="evenodd" viewBox="0 0 640 480">
-  <clipPath id="_clip1">
+  <clipPath id="a">
     <path d="M0 0h640v480H0z"/>
   </clipPath>
-  <g clip-path="url(#_clip1)">
+  <g clip-path="url(#a)">
     <path fill="#fff" d="M0 0h640v480H0z"/>
     <path fill="#002f6c" d="m-26.4.2.8 345.6L512.5 0z"/>
     <path fill="#009a44" d="M666.4 479.6 665 120.3 122.3 479.8l544-.2z"/>

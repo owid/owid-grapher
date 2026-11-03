@@ -180,13 +180,13 @@ test.describe("Tabs", () => {
         const editor = await openEditor(
             await seedChart(lineChart(indicators.lifeExpectancy))
         )
-        await expect(chartTypeTag(editor, "Line Chart")).toBeChecked()
-        await expect(chartTypeTag(editor, "Slope Chart")).not.toBeChecked()
+        await expect(chartTypeTag(editor, "Line chart")).toBeChecked()
+        await expect(chartTypeTag(editor, "Slope chart")).not.toBeChecked()
 
-        await chartTypeTag(editor, "Slope Chart").click()
+        await chartTypeTag(editor, "Slope chart").click()
 
-        await expect(chartTypeTag(editor, "Line Chart")).toBeChecked()
-        await expect(chartTypeTag(editor, "Slope Chart")).toBeChecked()
+        await expect(chartTypeTag(editor, "Line chart")).toBeChecked()
+        await expect(chartTypeTag(editor, "Slope chart")).toBeChecked()
         expect(await editor.saveChanges()).toEqual({
             chartTypes: ["LineChart", "SlopeChart"],
         })
@@ -203,11 +203,11 @@ test.describe("Tabs", () => {
             })
         )
 
-        await chartTypeTag(editor, "Stacked Area").click()
+        await chartTypeTag(editor, "Area chart").click()
 
-        await expect(chartTypeTag(editor, "Stacked Area")).toBeChecked()
-        await expect(chartTypeTag(editor, "Line Chart")).not.toBeChecked()
-        await expect(chartTypeTag(editor, "Discrete Bar")).not.toBeChecked()
+        await expect(chartTypeTag(editor, "Area chart")).toBeChecked()
+        await expect(chartTypeTag(editor, "Line chart")).not.toBeChecked()
+        await expect(chartTypeTag(editor, "Bar chart")).not.toBeChecked()
         expect(await editor.saveChanges()).toEqual({
             chartTypes: ["StackedArea"],
         })
@@ -224,9 +224,9 @@ test.describe("Tabs", () => {
             })
         )
 
-        await chartTypeTag(editor, "Line Chart").click()
+        await chartTypeTag(editor, "Line chart").click()
 
-        await expect(chartTypeTag(editor, "Line Chart")).not.toBeChecked()
+        await expect(chartTypeTag(editor, "Line chart")).not.toBeChecked()
         expect(await editor.saveChanges()).toEqual({
             chartTypes: ["DiscreteBar"],
         })
@@ -243,7 +243,7 @@ test.describe("Tabs", () => {
             })
         )
 
-        await chartTypeTag(editor, "Line Chart").click()
+        await chartTypeTag(editor, "Line chart").click()
 
         expect(await editor.saveChanges()).toEqual({ chartTypes: [] })
     })
@@ -256,7 +256,7 @@ test.describe("Tabs", () => {
             await seedChart(stackedAreaChart(indicators.lifeExpectancy))
         )
 
-        await chartTypeTag(editor, "Scatter Plot").click()
+        await chartTypeTag(editor, "Scatter plot").click()
 
         await expect(slotIndicators(editor, "X axis")).toHaveText([
             indicators.gdpPerCapita.name,
@@ -293,7 +293,7 @@ test.describe("Tabs", () => {
             )
         )
 
-        await chartTypeTag(editor, "Scatter Plot").click()
+        await chartTypeTag(editor, "Scatter plot").click()
 
         expect(await editor.saveChanges()).toEqual({
             chartTypes: ["Marimekko", "ScatterPlot"],
@@ -314,7 +314,7 @@ test.describe("Tabs", () => {
             await seedChart(stackedAreaChart(indicators.lifeExpectancy))
         )
 
-        await chartTypeTag(editor, "Marimekko").click()
+        await chartTypeTag(editor, "Marimekko chart").click()
 
         expect(await editor.saveChanges()).toEqual({
             chartTypes: ["Marimekko"],
@@ -341,7 +341,7 @@ test.describe("Tabs", () => {
             })
         )
 
-        await chartTypeTag(editor, "Line Chart").click()
+        await chartTypeTag(editor, "Line chart").click()
 
         expect(await editor.saveChanges()).toEqual({
             chartTypes: ["LineChart"],
@@ -367,7 +367,7 @@ test.describe("Tabs", () => {
             })
         )
 
-        await chartTypeTag(editor, "Line Chart").click()
+        await chartTypeTag(editor, "Line chart").click()
 
         expect(await editor.saveChanges()).toEqual({
             chartTypes: ["LineChart"],
@@ -387,7 +387,7 @@ test.describe("Tabs", () => {
             })
         )
 
-        await chartTypeTag(editor, "Stacked Area").click()
+        await chartTypeTag(editor, "Area chart").click()
 
         expect(await editor.saveChanges()).toEqual({
             chartTypes: ["StackedArea"],

@@ -3,6 +3,7 @@ import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState"
 import { Emphasis } from "../interaction/Emphasis"
 import {
+    Color,
     DumbbellTrendColorMap,
     EntityName,
     SortBy,
@@ -54,6 +55,7 @@ export enum DumbbellMode {
 export type DumbbellChartManager = ChartManager
 
 export interface DumbbellSeries extends ChartSeries {
+    color: Color
     entityName: EntityName
     displayName: string
     shortEntityName?: string

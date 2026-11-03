@@ -22,7 +22,6 @@ import { InputChartPanel } from "../components/SimulationContent.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import {
@@ -39,24 +38,19 @@ export function ParametersVariant({
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
-        <EmbedConfigProvider config={config}>
-            <QueryClientProvider client={queryClient}>
-                <BreakpointProvider value={breakpoint}>
-                    <div
-                        ref={rootRef}
-                        className={cx(
-                            "demography-chart demography-chart__parameters-variant",
-                            breakpointClass(breakpoint)
-                        )}
-                    >
-                        <FetchingParametersVariant
-                            config={config}
-                            urls={urls}
-                        />
-                    </div>
-                </BreakpointProvider>
-            </QueryClientProvider>
-        </EmbedConfigProvider>
+        <QueryClientProvider client={queryClient}>
+            <BreakpointProvider value={breakpoint}>
+                <div
+                    ref={rootRef}
+                    className={cx(
+                        "demography-chart demography-chart__parameters-variant",
+                        breakpointClass(breakpoint)
+                    )}
+                >
+                    <FetchingParametersVariant config={config} urls={urls} />
+                </div>
+            </BreakpointProvider>
+        </QueryClientProvider>
     )
 }
 

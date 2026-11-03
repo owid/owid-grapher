@@ -1,6 +1,30 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import type { docs_v1 } from "@googleapis/docs"
-import { archieMlTextToRequests } from "./archieToGdoc.js"
+import {
+    archieMlTextToRequests,
+    NoEditAccessError,
+    replaceGdocContentWithArchieMlText,
+    StaleRevisionError,
+} from "./archieToGdoc.js"
+
+// The document Google returns to replaceGdocContentWithArchieMlText
+const googleDocument = vi.hoisted(() => ({
+    current: {} as docs_v1.Schema$Document,
+}))
+vi.mock(import("@googleapis/docs"), async (importOriginal) => {
+    const originalModule = await importOriginal()
+    const docs = (() => ({
+        documents: {
+            get: async (): Promise<{ data: docs_v1.Schema$Document }> => ({
+                data: googleDocument.current,
+            }),
+            batchUpdate: async (): Promise<never> => {
+                throw new Error("batchUpdate should not be called")
+            },
+        },
+    })) as unknown as typeof originalModule.docs
+    return { ...originalModule, docs }
+})
 
 // The formatting overrides, in execution order: text-style requests other
 // than the base and fragment ones.
@@ -42,5 +66,26 @@ describe(archieMlTextToRequests, () => {
             "foregroundColor,fontSize",
             "foregroundColor,backgroundColor",
         ])
+    })
+})
+
+describe(replaceGdocContentWithArchieMlText, () => {
+    it("refuses a doc the service account can only view before writing", async () => {
+        // Google leaves out revisionId without edit access
+        googleDocument.current = {}
+
+        await expect(
+            replaceGdocContentWithArchieMlText("view-only-doc", "title: Hi\n")
+        ).rejects.toBeInstanceOf(NoEditAccessError)
+    })
+
+    it("refuses a stale revision before writing", async () => {
+        googleDocument.current = { revisionId: "rev-2" }
+
+        await expect(
+            replaceGdocContentWithArchieMlText("editable-doc", "title: Hi\n", {
+                requiredRevisionId: "rev-1",
+            })
+        ).rejects.toBeInstanceOf(StaleRevisionError)
     })
 })

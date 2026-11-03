@@ -7,8 +7,8 @@ export interface DbInsertDodLink {
     sourceId: number
     target: string
     linkType: ContentGraphLinkType
-    componentType: string
-    text: string
+    componentType?: string
+    text?: string
     queryString?: string
     hash?: string
 }

@@ -19,10 +19,7 @@ import {
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
-import {
-    EmbedConfigProvider,
-    useEmbedConfig,
-} from "../../../../hooks/useEmbedConfig.js"
+import { useEmbedOptions } from "../../../../hooks/useEmbedOptions.js"
 import { CountryData, DemographyMetadata, ParameterKey } from "../core/types.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
@@ -44,24 +41,19 @@ export function SimulationVariant({
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
-        <EmbedConfigProvider config={config}>
-            <QueryClientProvider client={queryClient}>
-                <BreakpointProvider value={breakpoint}>
-                    <div
-                        ref={rootRef}
-                        className={cx(
-                            "demography-chart demography-chart__simulation-variant",
-                            breakpointClass(breakpoint)
-                        )}
-                    >
-                        <FetchingSimulationVariant
-                            config={config}
-                            urls={urls}
-                        />
-                    </div>
-                </BreakpointProvider>
-            </QueryClientProvider>
-        </EmbedConfigProvider>
+        <QueryClientProvider client={queryClient}>
+            <BreakpointProvider value={breakpoint}>
+                <div
+                    ref={rootRef}
+                    className={cx(
+                        "demography-chart demography-chart__simulation-variant",
+                        breakpointClass(breakpoint)
+                    )}
+                >
+                    <FetchingSimulationVariant config={config} urls={urls} />
+                </div>
+            </BreakpointProvider>
+        </QueryClientProvider>
     )
 }
 
@@ -72,7 +64,7 @@ function FetchingSimulationVariant({
     config: DemographyConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const { urlSync } = useEmbedConfig()
+    const { urlSync = false } = useEmbedOptions()
 
     const urlState = useMemo(
         () => (urlSync ? parseSimulationUrlState() : {}),
