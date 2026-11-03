@@ -1,4 +1,5 @@
 import {
+    AiSearchInput,
     TagGraphRoot,
     FilterType,
     TemplateConfig,
@@ -104,18 +105,30 @@ export const Search = ({
             reset: closingAi(urlActions.reset),
         }
     }, [urlActions])
+    // AI search reads the search box as it is once the query is set, after
+    // country and topic names in the text have become filters. Changing the
+    // filters closes it, so they stay as they were when it started.
+    const aiCountries = [
+        ...getFilterNamesOfType(state.filters, FilterType.COUNTRY),
+    ]
+    const aiTopics = [...getFilterNamesOfType(state.filters, FilterType.TOPIC)]
+    const aiInput: AiSearchInput | null =
+        aiQuery === null
+            ? null
+            : { query: state.query, countries: aiCountries, topics: aiTopics }
+    const hasAiFilters = aiCountries.length > 0 || aiTopics.length > 0
     const aiSearch = useMemo<AiSearchControls>(
         () => ({
             query: aiQuery,
             start: (query: string) => {
                 const trimmed = query.trim()
-                if (!trimmed) return
+                if (!trimmed && !hasAiFilters) return
                 setAiQuery(trimmed)
-                urlActions.setQuery(trimmed)
+                if (trimmed !== state.query) urlActions.setQuery(trimmed)
             },
             close: () => setAiQuery(null),
         }),
-        [aiQuery, urlActions]
+        [aiQuery, urlActions, hasAiFilters, state.query]
     )
 
     // Handle analytics tracking (skips initial page load)
@@ -186,10 +199,20 @@ export const Search = ({
                 <SearchTopicsRefinementList topicType={topicType} />
                 <SearchResultTypeToggle />
             </div>
-            {aiQuery ? (
-                <SearchAiResults key={aiQuery} query={aiQuery} />
+            {aiInput ? (
+                <SearchAiResults
+                    key={JSON.stringify(aiInput)}
+                    input={aiInput}
+                />
             ) : (
-                state.query && <SearchAiTeaser query={state.query} />
+                (state.query || hasAiFilters) && (
+                    <SearchAiTeaser
+                        query={state.query}
+                        label={[state.query, ...aiCountries, ...aiTopics]
+                            .filter(Boolean)
+                            .join(" · ")}
+                    />
+                )
             )}
             <div
                 id="search-template-results"

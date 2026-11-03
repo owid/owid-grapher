@@ -1,6 +1,7 @@
 import { useLocalStorage } from "usehooks-ts"
 import {
     AiSearchEvent,
+    AiSearchInput,
     AiSearchSettings,
     DEFAULT_AI_SEARCH_SETTINGS,
 } from "@ourworldindata/types"
@@ -35,15 +36,20 @@ export function useAiSearchSettings(): [
 const CACHE_TTL_MS = 5 * 60 * 1000
 const answerCache = new Map<string, { at: number; events: AiSearchEvent[] }>()
 
-function buildAiSearchUrl(query: string, settings: AiSearchSettings): string {
+function buildAiSearchUrl(
+    input: AiSearchInput,
+    settings: AiSearchSettings
+): string {
     const params = new URLSearchParams({
-        q: query,
+        q: input.query,
         model: settings.model,
         effort: settings.effort,
         expand: settings.expand ? "1" : "0",
         pool: String(settings.pool),
         debug: settings.debug ? "1" : "0",
     })
+    input.countries.forEach((country) => params.append("country", country))
+    input.topics.forEach((topic) => params.append("topic", topic))
     return `${AI_SEARCH_API_URL}?${params}`
 }
 
@@ -53,19 +59,19 @@ function buildAiSearchUrl(query: string, settings: AiSearchSettings): string {
  * from the last five minutes is replayed instead.
  */
 export async function streamAiSearch({
-    query,
+    input,
     settings,
     useCache,
     signal,
     onEvent,
 }: {
-    query: string
+    input: AiSearchInput
     settings: AiSearchSettings
     useCache: boolean
     signal: AbortSignal
     onEvent: (event: AiSearchEvent) => void
 }): Promise<void> {
-    const url = buildAiSearchUrl(query, settings)
+    const url = buildAiSearchUrl(input, settings)
     const cached = answerCache.get(url)
     if (useCache && cached && Date.now() - cached.at < CACHE_TTL_MS) {
         cached.events.forEach(onEvent)

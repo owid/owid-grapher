@@ -271,7 +271,7 @@ export const constructSearchResultUrl = ({
     hit,
     params,
 }: {
-    hit: SearchChartHit
+    hit: ChartHitUrlFields
     params: {
         version: number
         variant: RichDataComponentVariant

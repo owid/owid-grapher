@@ -2,32 +2,55 @@ import Anthropic from "@anthropic-ai/sdk"
 import * as Sentry from "@sentry/cloudflare"
 import {
     AiSearchEvent,
+    AiSearchInput,
     AiSearchSettings,
     getAiSearchPagePoolSize,
 } from "@ourworldindata/types"
-import { createLineSplitter } from "@ourworldindata/utils"
+import { createLineSplitter, listedRegionsNames } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "../search/algoliaClient.js"
 import {
     buildCandidatePool,
+    buildCurated,
+    curatedTopicsFor,
+    CandidatePool,
     composerPrompt,
     createComposerLineParser,
+    keywordQueryFor,
+    LAYOUT_SCHEMA,
+    layoutPrompt,
     MAX_QUERY_LENGTH,
     parseAiSearchSettings,
+    parseLayoutAnswer,
     parsePlannerAnswer,
     PLANNER_SCHEMA,
     plannerPrompt,
 } from "./aiSearch.js"
-import { searchKeywords } from "./retrieval.js"
+import {
+    CORE_COUNTRY_TOPICS,
+    CuratedHits,
+    searchCurated,
+    searchKeywords,
+} from "./retrieval.js"
+
+// Curated charts and pages get ids from here, clear of the candidate pool's
+const CURATED_FIRST_ID = 100_000
 
 /**
- * GET /api/ai-search?q=…: the AI-assisted search prototype.
+ * GET /api/ai-search?q=…&country=…&topic=…: the AI-assisted search prototype.
  *
  * Finds candidate charts and articles with the site's keyword search
  * (optionally widened by a quick Haiku call that suggests extra searches),
  * then asks Claude to organise them into themed groups. The answer streams
  * back as newline-delimited JSON (AiSearchEvent), so groups render as soon as
  * the model writes them.
+ *
+ * Alongside the grouping, a quick Haiku call reads the search (text plus the
+ * country and topic filters) and picks a layout: a lead chart for a measure,
+ * a measure for a place, one specific indicator, a country and a topic, or a
+ * broad topic. It also picks which of three result shapes to open with:
+ * targeted (the lead chart), explore (the themes) or curated (OWID's
+ * featured metrics and profiles, fetched alongside the keyword search).
  *
  * Every request costs a model call, so the endpoint only runs under `wrangler
  * pages dev` (ENV=development: staging servers and local dev) with an
@@ -36,10 +59,22 @@ import { searchKeywords } from "./retrieval.js"
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     const url = new URL(request.url)
     const query = (url.searchParams.get("q") ?? "").trim()
+    const listParam = (name: string): string[] =>
+        url.searchParams
+            .getAll(name)
+            .map((value) => value.trim())
+            .filter(Boolean)
+            .slice(0, 5)
+    const input: AiSearchInput = {
+        query,
+        countries: listParam("country"),
+        topics: listParam("topic"),
+    }
 
     if (env.ENV !== "development" || !env.ANTHROPIC_API_KEY)
         return jsonError(404, "AI search isn't available here.")
-    if (!query) return jsonError(400, "Missing q parameter.")
+    if (!query && !input.countries.length && !input.topics.length)
+        return jsonError(400, "Missing q parameter.")
     if (query.length > MAX_QUERY_LENGTH)
         return jsonError(
             400,
@@ -62,7 +97,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
     const run = runAiSearch({
         env,
-        query,
+        input,
         settings,
         emit,
         signal: controller.signal,
@@ -88,13 +123,13 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
 async function runAiSearch({
     env,
-    query,
+    input,
     settings,
     emit,
     signal,
 }: {
     env: Env
-    query: string
+    input: AiSearchInput
     settings: AiSearchSettings
     emit: (event: AiSearchEvent) => void
     signal: AbortSignal
@@ -110,12 +145,41 @@ async function runAiSearch({
     const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
     const chartPool = settings.pool
     const pagePool = getAiSearchPagePoolSize(chartPool)
+    // What the keyword search runs with, and how the prompts name the search
+    const query = keywordQueryFor(input)
+    const label = [input.query, ...input.countries, ...input.topics]
+        .filter(Boolean)
+        .join(" · ")
+    const filters = { countries: input.countries, topics: input.topics }
 
     emit({ type: "status", text: "Searching our charts and articles…" })
     const [base] = await time(
         "keyword search",
-        searchKeywords(algolia, [query], { charts: chartPool, pages: pagePool })
+        searchKeywords(
+            algolia,
+            [query],
+            { charts: chartPool, pages: pagePool },
+            filters
+        )
     )
+
+    // OWID's own picks, fetched while the planner works
+    const curatedTopics = curatedTopicsFor(
+        input,
+        base.charts,
+        CORE_COUNTRY_TOPICS
+    )
+    const curated: Promise<CuratedHits | undefined> = curatedTopics.length
+        ? time(
+              "curated",
+              searchCurated(algolia, {
+                  topics: curatedTopics,
+                  countries: input.countries,
+                  perTopic: input.topics.length || input.query ? 6 : 2,
+                  withTopicPages: !!input.query || input.topics.length > 0,
+              })
+          ).catch(() => undefined)
+        : Promise.resolve(undefined)
 
     let expansions: string[] = []
     // Also runs when the search found nothing: keyword search needs every
@@ -147,7 +211,7 @@ async function runAiSearch({
                         messages: [
                             {
                                 role: "user",
-                                content: plannerPrompt(query, topTitles),
+                                content: plannerPrompt(label, topTitles),
                             },
                         ],
                     },
@@ -171,10 +235,12 @@ async function runAiSearch({
     const expanded = expansions.length
         ? await time(
               "expansion searches",
-              searchKeywords(algolia, expansions, {
-                  charts: chartPool,
-                  pages: pagePool,
-              })
+              searchKeywords(
+                  algolia,
+                  expansions,
+                  { charts: chartPool, pages: pagePool },
+                  filters
+              )
           )
         : []
     const pool = buildCandidatePool([base, ...expanded], {
@@ -187,15 +253,36 @@ async function runAiSearch({
     }
     emit({
         type: "candidates",
-        charts: pool.charts,
+        // Entity lists are long and only needed here, to check the layout
+        charts: pool.charts.map(
+            ({ availableEntities: _entities, ...chart }) => chart
+        ),
         pages: pool.pages.map(({ excerpt: _excerpt, ...page }) => page),
     })
+
+    const curatedHits = await curated
+    if (curatedHits?.topics.length || curatedHits?.pages.length) {
+        const curatedEvent = buildCurated(curatedHits, CURATED_FIRST_ID)
+        emit({
+            type: "curated",
+            ...curatedEvent,
+            charts: curatedEvent.charts.map(
+                ({ availableEntities: _entities, ...chart }) => chart
+            ),
+        })
+    }
+
+    // Runs while the composer streams its groups
+    const layout = time(
+        "layout",
+        pickLayout({ client, input, pool, settings, emit, signal })
+    )
 
     emit({
         type: "status",
         text: `Grouping ${pool.charts.length} charts and ${pool.pages.length} articles by theme…`,
     })
-    const prompt = composerPrompt(query, pool)
+    const prompt = composerPrompt(label, pool)
     if (settings.debug)
         emit({
             type: "debug",
@@ -255,6 +342,7 @@ async function runAiSearch({
     }
     const message = await stream.finalMessage()
     splitter.flush()
+    await layout
     timings["grouping"] = Date.now() - composerStart
     timings["end to end"] = Date.now() - started
 
@@ -268,6 +356,71 @@ async function runAiSearch({
         return
     }
     emit({ type: "done", model: message.model, timings })
+}
+
+/**
+ * Asks Haiku which layout fits the search and emits it. A failure leaves the
+ * grouped layout in place, so it is only reported in debug mode.
+ */
+async function pickLayout({
+    client,
+    input,
+    pool,
+    settings,
+    emit,
+    signal,
+}: {
+    client: Anthropic
+    input: AiSearchInput
+    pool: CandidatePool
+    settings: AiSearchSettings
+    emit: (event: AiSearchEvent) => void
+    signal: AbortSignal
+}): Promise<void> {
+    const prompt = layoutPrompt(input, pool)
+    try {
+        const answer = await client.messages.create(
+            {
+                model: "claude-haiku-5-5",
+                max_tokens: 1024,
+                thinking: { type: "disabled" },
+                output_config: {
+                    format: { type: "json_schema", schema: LAYOUT_SCHEMA },
+                },
+                messages: [{ role: "user", content: prompt }],
+            },
+            { signal }
+        )
+        const text = textOf(answer.content)
+        const layout = parseLayoutAnswer(
+            text,
+            input,
+            pool,
+            listedRegionsNames()
+        )
+        emit({ type: "layout", ...layout })
+        if (settings.debug)
+            emit({
+                type: "debug",
+                title: `Layout: ${layout.intent}`,
+                text: `${prompt}\n\n--- answer ---\n${text}`,
+            })
+    } catch (error) {
+        if (signal.aborted) return
+        emit({
+            type: "layout",
+            intent: "other",
+            mode: "explore",
+            versions: [],
+            topicPages: [],
+        })
+        if (settings.debug)
+            emit({
+                type: "debug",
+                title: "Layout failed (keeping the grouped layout)",
+                text: String(error),
+            })
+    }
 }
 
 const textOf = (content: Anthropic.ContentBlock[]): string =>

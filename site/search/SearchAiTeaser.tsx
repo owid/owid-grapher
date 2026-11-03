@@ -61,7 +61,13 @@ export const SearchAutocompleteAiItem = ({
 )
 
 /** Offers AI search above the standard results (a prototype setting). */
-export const SearchAiTeaser = ({ query }: { query: string }) => {
+export const SearchAiTeaser = ({
+    query,
+    label,
+}: {
+    query: string
+    label: string
+}) => {
     const { aiSearch } = useSearchContext()
     const [settings] = useAiSearchSettings()
     if (!settings.teaser) return null
@@ -70,7 +76,7 @@ export const SearchAiTeaser = ({ query }: { query: string }) => {
         <div className="search-ai-teaser col-start-2 span-cols-12">
             <SearchAiIcon />
             <span>
-                See our work on <strong>“{query}”</strong> grouped by theme
+                See our work on <strong>“{label}”</strong>, laid out by AI
             </span>
             <SearchAiBetaBadge />
             <button
