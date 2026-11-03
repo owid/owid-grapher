@@ -48,11 +48,10 @@ interface AnchoredLabelsOptions {
      */
     anchorCollisionRadius?: number
 
-    /** Function to resolve collisions between two overlapping labels by choosing which one to keep */
-    resolveCollision?: (
-        s1: InitialAnchoredLabelSeries,
-        s2: InitialAnchoredLabelSeries
-    ) => InitialAnchoredLabelSeries
+    compare?: (
+        a: InitialAnchoredLabelSeries,
+        b: InitialAnchoredLabelSeries
+    ) => number
 }
 
 /**
@@ -169,8 +168,18 @@ export class AnchoredLabelsState {
         })
     }
 
+    private comparePriority(
+        a: InitialAnchoredLabelSeries,
+        b: InitialAnchoredLabelSeries
+    ): number {
+        return (
+            emphasisRank(b) - emphasisRank(a) ||
+            (this.options.compare?.(a, b) ?? 0)
+        )
+    }
+
     @computed get series(): PlacedAnchoredLabelSeries[] {
-        const { resolveCollision, yRange } = this.options
+        const { yRange } = this.options
 
         const series = this.sizedSeries.map((series) => ({
             ...series,
@@ -195,18 +204,6 @@ export class AnchoredLabelsState {
                 if (s1.bounds.top < yRange[1] || s1.bounds.bottom > yRange[0]) {
                     s1.isHidden = true
                 }
-            }
-        }
-
-        // Higher-emphasis labels are preferred when collisions are resolved
-        const emphasisRank = (s: InitialAnchoredLabelSeries): number => {
-            switch (s.emphasis) {
-                case Emphasis.Highlighted:
-                    return 2
-                case Emphasis.Muted:
-                    return 0
-                default:
-                    return 1
             }
         }
 
@@ -236,17 +233,7 @@ export class AnchoredLabelsState {
                 if (s2.isHidden) continue
 
                 if (s1.collisionBounds.intersects(s2.collisionBounds)) {
-                    const rank1 = emphasisRank(s1)
-                    const rank2 = emphasisRank(s2)
-
-                    // Prefer the more emphasized label; fall back to the
-                    // caller-provided resolver when emphasis is equal
-                    const picked =
-                        rank1 > rank2
-                            ? s1
-                            : rank2 > rank1
-                              ? s2
-                              : (resolveCollision?.(s1, s2) ?? s1)
+                    const picked = this.comparePriority(s1, s2) <= 0 ? s1 : s2
 
                     if (picked === s1) s2.isHidden = true
                     else s1.isHidden = true
@@ -265,5 +252,16 @@ export class AnchoredLabelsState {
         const labelWidths = this.series.map((series) => series.textWrap.width)
         const maxLabelWidth = R.firstBy(labelWidths, [R.identity(), "desc"])
         return maxLabelWidth ?? 0
+    }
+}
+
+function emphasisRank(series: InitialAnchoredLabelSeries): number {
+    switch (series.emphasis) {
+        case Emphasis.Highlighted:
+            return 2
+        case Emphasis.Muted:
+            return 0
+        default:
+            return 1
     }
 }
