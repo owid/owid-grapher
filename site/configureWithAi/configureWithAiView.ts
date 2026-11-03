@@ -8,6 +8,7 @@ import {
     MultiDimDimensionChoices,
     SortOrder,
 } from "@ourworldindata/types"
+import type { SitePage } from "./configureWithAiStore.js"
 
 /** Mirrors ViewfinderView in functions/api/configure-with-ai/viewfinder.ts */
 export interface ConfigureWithAiView {
@@ -131,6 +132,24 @@ export function dataTableSortToViewSort(
               ? "relativeChange"
               : "value"
     return { column, order }
+}
+
+/**
+ * A thumbnail for a page the model pointed to: the chart from the thumbnail
+ * service with the link's settings, an article's own image, or null (explorer
+ * views and tables, which the service can't draw as linked)
+ */
+export function pageThumbnailUrl(
+    grapherBaseUrl: string,
+    page: SitePage
+): string | null {
+    if (page.kind === "article" || page.kind === "topic")
+        return page.thumbnailUrl
+    const url = new URL(page.url, "https://ourworldindata.org")
+    const slug = url.pathname.match(/^\/grapher\/([^/]+)$/)?.[1]
+    if (page.kind !== "chart" || !slug || page.tab === "table") return null
+    url.searchParams.set("imType", "thumbnail")
+    return `${grapherBaseUrl}/${slug}.png${url.search}`
 }
 
 /**
