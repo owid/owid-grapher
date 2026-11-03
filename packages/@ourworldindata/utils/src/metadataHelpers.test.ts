@@ -5,6 +5,7 @@ import {
     getAttributionFragmentsFromVariable,
     getIndicatorCitations,
     getDateRange,
+    isSingleYearTimespan,
     getETLPathComponents,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
@@ -931,5 +932,18 @@ describe(getDateRange, () => {
 
     it("returns null for an empty string", () => {
         expect(getDateRange("")).toBeNull()
+    })
+})
+
+describe(isSingleYearTimespan, () => {
+    it("is true when both ends are the same year", () => {
+        expect(isSingleYearTimespan("2023-2023")).toBe(true)
+        expect(isSingleYearTimespan("-500--500")).toBe(true)
+    })
+
+    it("is false for a range or anything that isn't a timespan", () => {
+        expect(isSingleYearTimespan("1990-2020")).toBe(false)
+        expect(isSingleYearTimespan("2023")).toBe(false)
+        expect(isSingleYearTimespan("")).toBe(false)
     })
 })

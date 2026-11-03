@@ -4,6 +4,7 @@ import {
     getProcessingPhraseForAttribution,
     formatSourceDate,
     getDateRange,
+    isSingleYearTimespan,
     openLinkInNewTabAttrs,
 } from "@ourworldindata/utils"
 import { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "../SharedDataPageConstants.js"
@@ -74,6 +75,14 @@ export const makeDateRange = ({
     if (!dateRange) return null
     return getDateRange(dateRange)
 }
+
+/** "Year" when the timespan covers a single year, otherwise "Date range" */
+export const makeDateRangeLabel = ({
+    dateRange,
+}: {
+    dateRange?: string
+}): string =>
+    dateRange && isSingleYearTimespan(dateRange) ? "Year" : "Date range"
 
 export const makeUnit = ({ unit }: { unit?: string }): React.ReactNode => {
     if (!unit) return null

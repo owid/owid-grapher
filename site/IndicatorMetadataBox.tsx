@@ -16,6 +16,7 @@ import {
     MetadataBoxReuseNotice,
     ChartLicenseNotice,
     makeDateRange,
+    makeDateRangeLabel,
     makeLastUpdated,
     makeNextUpdate,
 } from "@ourworldindata/components"
@@ -103,7 +104,9 @@ function IndicatorDataDetails({
                     </MetadataBoxKeyDataRow>
                 )}
                 {dateRange && (
-                    <MetadataBoxKeyDataRow label="Date range">
+                    <MetadataBoxKeyDataRow
+                        label={makeDateRangeLabel({ dateRange })}
+                    >
                         {makeDateRange({ dateRange })}
                     </MetadataBoxKeyDataRow>
                 )}

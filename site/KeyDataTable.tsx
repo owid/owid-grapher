@@ -4,6 +4,7 @@ import {
     makeLastUpdated,
     makeNextUpdate,
     makeDateRange,
+    makeDateRangeLabel,
     makeUnit,
     makeUnitConversionFactor,
     makeLinks,
@@ -73,7 +74,9 @@ export default function KeyDataTable({
             )}
             {dateRange && (
                 <div className="key-data span-cols-2 span-sm-cols-6">
-                    <div className="key-data__title">Date range</div>
+                    <div className="key-data__title">
+                        {makeDateRangeLabel(datapageData)}
+                    </div>
                     <div>{dateRange}</div>
                 </div>
             )}

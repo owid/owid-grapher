@@ -48,6 +48,7 @@ export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"
 export {
     makeSource,
     makeDateRange,
+    makeDateRangeLabel,
     makeLastUpdated,
     makeNextUpdate,
     makeUnit,

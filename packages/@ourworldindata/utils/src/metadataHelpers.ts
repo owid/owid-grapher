@@ -396,7 +396,10 @@ export const formatSourceDate = (
     return parsedDate.format(format)
 }
 
-export const getDateRange = (timespan: string): string | null => {
+/** The first and last year of a timespan like "1990-2020", or null if it isn't one */
+const parseTimespan = (
+    timespan: string
+): { firstYear: number; lastYear: number } | null => {
     // This regex matches:
     //   Beginning of string
     //   Ignore whitespace
@@ -413,33 +416,43 @@ export const getDateRange = (timespan: string): string | null => {
     //   End of string
     const timespanRegex = /^\s*(?<start>(-)?\d+)\s*(-|–)\s*(?<end>(-)?\d+)\s*$/
     const match = timespan.match(timespanRegex)
-    if (match) {
-        const firstYearString = match.groups?.start
-        const lastYearString = match.groups?.end
-        if (!firstYearString || !lastYearString) return null
-
-        const firstYear = parseInt(firstYearString, 10)
-        const lastYear = parseInt(lastYearString, 10)
-
-        // data for a single year reads as that year, not "2023–2023"
-        if (firstYear === lastYear)
-            return firstYear < 0 ? `${Math.abs(firstYear)} BCE` : `${firstYear}`
-
-        let formattedFirstYear
-
-        // if start year is before year 0, add BCE to the end
-        if (firstYear < 0) formattedFirstYear = `${Math.abs(firstYear)} BCE`
-        else formattedFirstYear = firstYear
-
-        // if end year is before year 0, add BCE to the end or, if start year is after year 0, add CE to the end
-        let formattedLastYear
-        if (lastYear < 0) formattedLastYear = `${Math.abs(lastYear)} BCE`
-        else if (firstYear < 0) formattedLastYear = `${lastYear} CE`
-        else formattedLastYear = lastYear
-
-        if (lastYear < 0 || firstYear < 0)
-            return `${formattedFirstYear} – ${formattedLastYear}`
-        else return `${formattedFirstYear}–${formattedLastYear}`
+    const firstYearString = match?.groups?.start
+    const lastYearString = match?.groups?.end
+    if (!firstYearString || !lastYearString) return null
+    return {
+        firstYear: parseInt(firstYearString, 10),
+        lastYear: parseInt(lastYearString, 10),
     }
-    return null
+}
+
+/** Whether a timespan covers a single year, e.g. "2023-2023" */
+export const isSingleYearTimespan = (timespan: string): boolean => {
+    const years = parseTimespan(timespan)
+    return !!years && years.firstYear === years.lastYear
+}
+
+export const getDateRange = (timespan: string): string | null => {
+    const years = parseTimespan(timespan)
+    if (!years) return null
+    const { firstYear, lastYear } = years
+
+    // data for a single year reads as that year, not "2023–2023"
+    if (firstYear === lastYear)
+        return firstYear < 0 ? `${Math.abs(firstYear)} BCE` : `${firstYear}`
+
+    let formattedFirstYear
+
+    // if start year is before year 0, add BCE to the end
+    if (firstYear < 0) formattedFirstYear = `${Math.abs(firstYear)} BCE`
+    else formattedFirstYear = firstYear
+
+    // if end year is before year 0, add BCE to the end or, if start year is after year 0, add CE to the end
+    let formattedLastYear
+    if (lastYear < 0) formattedLastYear = `${Math.abs(lastYear)} BCE`
+    else if (firstYear < 0) formattedLastYear = `${lastYear} CE`
+    else formattedLastYear = lastYear
+
+    if (lastYear < 0 || firstYear < 0)
+        return `${formattedFirstYear} – ${formattedLastYear}`
+    else return `${formattedFirstYear}–${formattedLastYear}`
 }
