@@ -196,9 +196,9 @@ function IndicatorDataDetails({
 }
 
 // A stitched page's indicators inside Data details: one entry per indicator
-// with what differs across them, in the key data's type. Long lists show
-// their first ten and a button for the rest; the whole block is already
-// behind the box's Show more.
+// with what differs across them, in the key data's type. Up to five show in
+// full; a longer list shows its first three and a button for the rest (the
+// whole block is already behind the box's Show more).
 function IndicatorDetailsList({
     entries,
     sharedVariant,
@@ -207,8 +207,8 @@ function IndicatorDetailsList({
     /** A title variant every indicator shares, said once in the heading. */
     sharedVariant?: string
 }) {
-    const SHOW_ALL_UP_TO = 12
-    const FOLD_AFTER = 10
+    const SHOW_ALL_UP_TO = 5
+    const FOLD_AFTER = 3
     const [showAll, setShowAll] = useState(false)
     const expanded = showAll || entries.length <= SHOW_ALL_UP_TO
     const blockClass = "indicator-metadata-box__details-list"
