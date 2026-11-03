@@ -17,6 +17,7 @@ import { createRoot } from "react-dom/client"
 import { runNotFoundPage } from "./NotFoundPageMain.js"
 import { runFeedbackPage } from "./FeedbackPageMain.js"
 import { runDonateForm } from "./runDonateForm.js"
+import { runLabsSwitch } from "./labsSwitch/runLabsSwitch.js"
 import { Explorer } from "@ourworldindata/explorer"
 import { ENV } from "../settings/clientSettings.mjs"
 import {
@@ -48,6 +49,7 @@ window.MultiEmbedderSingleton = MultiEmbedderSingleton
 window.runSiteFooterScripts = runSiteFooterScripts
 
 runMonkeyPatchForGoogleTranslate()
+runLabsSwitch()
 
 const analytics = new SiteAnalytics(ENV)
 
