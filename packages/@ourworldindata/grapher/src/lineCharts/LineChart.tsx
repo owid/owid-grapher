@@ -323,8 +323,22 @@ export class LineChart
     }
 
     @computed private get verticalLabelsState(): VerticalLabelsState {
+        return this.makeVerticalLabelsState(() => this.yAxis)
+    }
+
+    /** Label placement that decides the labels' width in compact layouts */
+    @computed
+    private get verticalLabelsStateOnStableAxis(): VerticalLabelsState {
+        return this.makeVerticalLabelsState(
+            () => this.yAxisWithStableLabelsWidth
+        )
+    }
+
+    private makeVerticalLabelsState(
+        yAxis: () => VerticalAxis
+    ): VerticalLabelsState {
         return new VerticalLabelsState(this.verticalLabelsSeries, {
-            yAxis: () => this.yAxisWithStableLabelsWidth,
+            yAxis,
             yRange: () => this.verticalLabelsYRange,
             maxWidth: this.maxVerticalLabelsWidth,
             baseFontSize: this.fontSize,
@@ -344,7 +358,7 @@ export class LineChart
     @computed private get verticalLabelsWidth(): number {
         if (!this.manager.showSeriesLabels) return 0
         return this.useCompactLayout
-            ? this.verticalLabelsState.width
+            ? this.verticalLabelsStateOnStableAxis.width
             : this.verticalLabelsState.stableWidth
     }
 

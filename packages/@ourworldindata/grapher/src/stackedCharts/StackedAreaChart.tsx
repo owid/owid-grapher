@@ -212,10 +212,24 @@ export class StackedAreaChart
     }
 
     @computed private get verticalLabelsState(): VerticalLabelsState {
+        return this.makeVerticalLabelsState(() => this.yAxis)
+    }
+
+    /** Label placement that decides the labels' width in compact layouts */
+    @computed
+    private get verticalLabelsStateOnStableAxis(): VerticalLabelsState {
+        return this.makeVerticalLabelsState(
+            () => this.yAxisWithStableLabelsWidth
+        )
+    }
+
+    private makeVerticalLabelsState(
+        yAxis: () => VerticalAxis
+    ): VerticalLabelsState {
         return new VerticalLabelsState(this.verticalLabelsSeries, {
             maxWidth: this.maxVerticalLabelsWidth,
             baseFontSize: this.fontSize,
-            yAxis: () => this.yAxisWithStableLabelsWidth,
+            yAxis,
             yRange: () => this.verticalLabelsYRange,
             seriesNamesSortedByImportance: this.seriesSortedByImportance,
             showRegionTooltip: !this.isStatic,
@@ -232,7 +246,7 @@ export class StackedAreaChart
     @computed private get verticalLabelsWidth(): number {
         if (!this.showLegend) return 0
         return this.useCompactLayout
-            ? this.verticalLabelsState.width
+            ? this.verticalLabelsStateOnStableAxis.width
             : this.verticalLabelsState.stableWidth
     }
 
