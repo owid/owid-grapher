@@ -13,6 +13,7 @@ import {
     PlacedAnchoredLabelSeries,
 } from "./AnchoredLabelsTypes.js"
 import { Emphasis } from "../interaction/Emphasis.js"
+import { placeColumn, VerticalRange } from "./AnchoredLabelsPacking.js"
 
 interface AnchoredLabelsOptions {
     /** Font size for the labels */
@@ -48,16 +49,21 @@ interface AnchoredLabelsOptions {
      */
     anchorCollisionRadius?: number
 
+    /** Maximum distance in pixels an edge label may move from its anchor (defaults to the font size) */
+    maxShift?: number
+
     compare?: (
         a: InitialAnchoredLabelSeries,
         b: InitialAnchoredLabelSeries
     ) => number
 }
 
+const EDGE_TOLERANCE_PX = 1
+
 /**
  * Anchored labels are tied to a specific (x, y) position on the chart.
- * AnchoredLabelsState resolves collisions by hiding overlapping labels and
- * computes the final position for each label.
+ * AnchoredLabelsState moves colliding edge labels apart, hides labels that don't
+ * fit, and computes the final position for each label.
  */
 export class AnchoredLabelsState {
     private readonly initialSeries: InitialAnchoredLabelSeries[]
@@ -178,74 +184,152 @@ export class AnchoredLabelsState {
         )
     }
 
-    @computed get series(): PlacedAnchoredLabelSeries[] {
+    @computed private get seriesByPriority(): SizedAnchoredLabelSeries[] {
+        return [...this.sizedSeries].sort((a, b) => this.comparePriority(a, b))
+    }
+
+    @computed private get maxShift(): number {
+        return this.options.maxShift ?? this.options.fontSize
+    }
+
+    @computed private get verticalRange(): VerticalRange {
         const { yRange } = this.options
+        return yRange
+            ? { top: yRange[1], bottom: yRange[0] }
+            : { top: -Infinity, bottom: Infinity }
+    }
 
-        const series = this.sizedSeries.map((series) => ({
-            ...series,
-            // Bounds used to detect collisions. They're a bit larger than the
-            // text bounds to account for the minimum spacing between labels.
-            collisionBounds: series.bounds.expand(this.collisionPadding),
-            // Bounds used to detect collisions with the anchor element
-            anchorBounds: Bounds.forDot(
-                series.position.x,
-                series.position.y,
-                this.options.anchorCollisionRadius
-            ),
-            // None of the series are initially hidden
-            isHidden: false,
-        }))
+    @computed private get edgeSeriesNames(): Set<string> {
+        const xs = this.sizedSeries.map((series) => series.position.x)
+        if (xs.length === 0) return new Set()
 
-        // Hide labels that are outside of the specified y-value range
-        if (yRange) {
-            for (const s1 of series) {
-                if (s1.isHidden) continue
+        const edgeX =
+            this.options.textAnchor === "start"
+                ? Math.max(...xs)
+                : Math.min(...xs)
 
-                if (s1.bounds.top < yRange[1] || s1.bounds.bottom > yRange[0]) {
-                    s1.isHidden = true
-                }
+        return new Set(
+            this.sizedSeries
+                .filter(
+                    (series) =>
+                        Math.abs(series.position.x - edgeX) < EDGE_TOLERANCE_PX
+                )
+                .map((series) => series.seriesName)
+        )
+    }
+
+    @computed private get placedEdgeSeries(): PlacedAnchoredLabelSeries[] {
+        const edgeSeries = this.seriesByPriority.filter((series) =>
+            this.edgeSeriesNames.has(series.seriesName)
+        )
+
+        const placements = placeColumn(
+            edgeSeries.map((series) => ({
+                id: series.seriesName,
+                anchorY: series.position.y,
+                height: series.bounds.height,
+                weight: 1,
+            })),
+            {
+                range: this.verticalRange,
+                gap: this.options.minSpacing.vertical,
+                maxShift: this.maxShift,
             }
-        }
+        )
 
-        // Hide labels that are overlapping with an anchor element
-        if (this.options.anchorCollisionRadius) {
-            for (const s1 of series) {
-                for (const s2 of series) {
-                    if (s1.seriesName === s2.seriesName) continue
-                    if (s1.collisionBounds.intersects(s2.anchorBounds)) {
-                        // Keep s1 if it's more emphasized than the series that
-                        // owns the anchor, tolerating the overlap
-                        if (emphasisRank(s1) > emphasisRank(s2)) continue
-                        s1.isHidden = true
-                        break
-                    }
-                }
-            }
-        }
+        return edgeSeries.flatMap((series) => {
+            const placement = placements.get(series.seriesName)
+            if (placement?.kind !== "placed") return []
 
-        // Hide labels that are overlapping or too close to each other
-        for (let i = 0; i < series.length; i++) {
-            const s1 = series[i]
-            if (s1.isHidden) continue
+            const shiftY = placement.y - series.position.y
+            return [
+                {
+                    ...series,
+                    textPosition: {
+                        x: series.textPosition.x,
+                        y: series.textPosition.y + shiftY,
+                    },
+                    bounds: new Bounds(
+                        series.bounds.x,
+                        series.bounds.y + shiftY,
+                        series.bounds.width,
+                        series.bounds.height
+                    ),
+                },
+            ]
+        })
+    }
 
-            for (let j = i + 1; j < series.length; j++) {
-                const s2 = series[j]
-                if (s2.isHidden) continue
+    @computed private get placedInChartSeries(): PlacedAnchoredLabelSeries[] {
+        const { yRange, anchorCollisionRadius } = this.options
 
-                if (s1.collisionBounds.intersects(s2.collisionBounds)) {
-                    const picked = this.comparePriority(s1, s2) <= 0 ? s1 : s2
+        const anchorBounds = new Map(
+            this.sizedSeries.map((series) => [
+                series.seriesName,
+                Bounds.forDot(
+                    series.position.x,
+                    series.position.y,
+                    anchorCollisionRadius
+                ),
+            ])
+        )
 
-                    if (picked === s1) s2.isHidden = true
-                    else s1.isHidden = true
-                }
-            }
-        }
+        const placedCollisionBounds = this.placedEdgeSeries.map((series) =>
+            series.bounds.expand(this.collisionPadding)
+        )
 
-        return series
-            .filter((series) => !series.isHidden)
-            .map((series) =>
-                R.omit(series, ["isHidden", "collisionBounds", "anchorBounds"])
+        const isFree = (
+            series: SizedAnchoredLabelSeries,
+            bounds: Bounds
+        ): boolean => {
+            if (yRange && (bounds.top < yRange[1] || bounds.bottom > yRange[0]))
+                return false
+
+            const collisionBounds = bounds.expand(this.collisionPadding)
+
+            if (
+                placedCollisionBounds.some((placed) =>
+                    placed.intersects(collisionBounds)
+                )
             )
+                return false
+
+            if (anchorCollisionRadius === 0) return true
+
+            return !this.sizedSeries.some(
+                (other) =>
+                    other.seriesName !== series.seriesName &&
+                    collisionBounds.intersects(
+                        anchorBounds.get(other.seriesName)!
+                    ) &&
+                    !isMoreEmphasized(series, other)
+            )
+        }
+
+        const placed: PlacedAnchoredLabelSeries[] = []
+        for (const series of this.seriesByPriority) {
+            if (this.edgeSeriesNames.has(series.seriesName)) continue
+            if (!isFree(series, series.bounds)) continue
+
+            placed.push(series)
+            placedCollisionBounds.push(
+                series.bounds.expand(this.collisionPadding)
+            )
+        }
+        return placed
+    }
+
+    @computed get series(): PlacedAnchoredLabelSeries[] {
+        const placedByName = new Map(
+            [...this.placedEdgeSeries, ...this.placedInChartSeries].map(
+                (series) => [series.seriesName, series]
+            )
+        )
+
+        return this.sizedSeries.flatMap((series) => {
+            const placed = placedByName.get(series.seriesName)
+            return placed ? [placed] : []
+        })
     }
 
     @computed get width(): number {
@@ -264,4 +348,11 @@ function emphasisRank(series: InitialAnchoredLabelSeries): number {
         default:
             return 1
     }
+}
+
+function isMoreEmphasized(
+    a: InitialAnchoredLabelSeries,
+    b: InitialAnchoredLabelSeries
+): boolean {
+    return emphasisRank(a) > emphasisRank(b)
 }
