@@ -97,6 +97,9 @@ export type AiSearchBlock =
 export interface AiSearchCompactContentBlock {
     type: AiSearchContentBlock["type"]
     slug: string
+    // The view's query string, for one of several views of an explorer or
+    // multi-dimensional chart, which share a slug
+    view?: string
     title: string
     size?: AiSearchChartSize
     country?: string

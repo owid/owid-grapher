@@ -234,6 +234,13 @@ describe(createBlockParser, () => {
         ).toMatchObject({ country: "World" })
     })
 
+    it("ends the page at the related searches", () => {
+        const parse = createBlockParser(candidates)
+        expect(parse('{"type":"related","queries":["a","b"]}')).not.toBeNull()
+        // A second copy of the page, as when the model corrects itself
+        expect(parse('{"type":"chart","id":1,"size":"large"}')).toBeNull()
+    })
+
     it("needs at least two complete fork options", () => {
         const parse = createBlockParser(candidates)
         expect(

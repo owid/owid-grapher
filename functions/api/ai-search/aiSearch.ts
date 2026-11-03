@@ -219,7 +219,7 @@ Blocks:
 - {"type":"chart","id":12,"size":"large","country":"Nigeria"}
   A chart. "large" is a big interactive-looking card with the chart and a data table: the page's headline, for the one chart that best answers the search. "medium" is a wide card with the chart, a table, a map and a headline number. Both take a whole screen row and load real data, so the page has at most two of them, usually a single large one at the top. "small" is a thumbnail with the chart's title; consecutive small charts sit side by side, four to a row. When the search names a country or region, add "country" (its exact name) to every chart where it applies, since that place is what the reader asked about; the chart then shows that place's data. Leave it out otherwise.
 - {"type":"page","id":34}
-  A card for a topic page, article or data insight. Topic pages and articles are wide cards with their image, summary and authors; a data insight is a card the size of a chart thumbnail.
+  A card for a topic page, article or data insight: "page" is the type for all three, whatever their kind in the content list. Topic pages and articles are wide cards with their image, summary and authors; a data insight is a card the size of a chart thumbnail.
 - {"type":"group","title":"...","blurb":"...","blocks":[...]}
   A titled section that shows its chart and page blocks as a single row of four slots: a chart (as a thumbnail, whatever size you give it) or a data insight takes one slot, a topic page or article takes two. Fill the row, for example with a page and two charts, or four charts; blocks that don't fit are dropped. Order the cards by how well they answer the group's question: a topic page or article that explains the subject is often the most useful card and can lead the row. Title: plain language, sentence case, at most 6 words. Blurb: one short sentence saying what the section shows.
 - {"type":"forks","question":"...","options":[{"label":"...","query":"..."}]}
@@ -277,6 +277,10 @@ export function createBlockParser(
     // one large card and two such cards in all
     let hasLargeChart = false
     let wideChartCount = 0
+    // Related searches end the page. The model sometimes starts over after
+    // them (e.g. to correct its own format), and a second copy of the page
+    // would only add the leftovers of blocks whose ids are already used.
+    let hasEnded = false
 
     const resolveContent = (
         obj: Record<string, unknown>,
@@ -321,6 +325,7 @@ export function createBlockParser(
     }
 
     return (rawLine) => {
+        if (hasEnded) return null
         const obj = parseJsonLine(rawLine)
         if (!obj) return null
 
@@ -376,7 +381,9 @@ export function createBlockParser(
                 const queries = strings(obj.queries)
                     .map((query) => query.slice(0, MAX_QUERY_LENGTH))
                     .slice(0, 5)
-                return queries.length ? { type: "related", queries } : null
+                if (!queries.length) return null
+                hasEnded = true
+                return { type: "related", queries }
             }
         }
         return null

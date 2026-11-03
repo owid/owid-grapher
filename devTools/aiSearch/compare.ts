@@ -23,9 +23,15 @@ import {
 
 interface SearchHitSummary {
     slug: string
+    // Set for one of several views sharing a slug, as in AI search's output
+    view?: string
     title: string
     type: string
 }
+
+/** Tells apart the views of an explorer or multi-dimensional chart */
+const idOf = ({ slug, view }: { slug: string; view?: string }): string =>
+    slug + (view ?? "")
 
 interface QueryRun {
     query: string
@@ -176,9 +182,14 @@ async function runStandardSearch(
     })
     if (!response.ok) return []
     const { results } = (await response.json()) as {
-        results: SearchHitSummary[]
+        results: (SearchHitSummary & { queryParams?: string })[]
     }
-    return results.map(({ slug, title, type }) => ({ slug, title, type }))
+    return results.map(({ slug, queryParams, title, type }) => ({
+        slug,
+        ...(queryParams && { view: queryParams }),
+        title,
+        type,
+    }))
 }
 
 function describeOutcome({ ai }: QueryRun): string {
@@ -196,10 +207,12 @@ const contentOf = (
         block.type === "group" ? block.blocks : "slug" in block ? [block] : []
     )
 
-const headlineOf = (blocks: AiSearchCompactBlock[]): string | undefined =>
-    contentOf(blocks).find(
+const headlineOf = (blocks: AiSearchCompactBlock[]): string | undefined => {
+    const headline = contentOf(blocks).find(
         (block) => block.type === "chart" && block.size !== "small"
-    )?.slug
+    )
+    return headline && idOf(headline)
+}
 
 const isWriting = (block: AiSearchCompactContentBlock): boolean =>
     block.type !== "chart"
@@ -221,10 +234,10 @@ function overlap(a: string[], b: string[]): number {
 }
 
 const slugsOf = (blocks: AiSearchCompactBlock[]): string[] =>
-    contentOf(blocks).map((block) => block.slug)
+    contentOf(blocks).map(idOf)
 
 const standardSlugsOf = ({ standard }: QueryRun): string[] =>
-    [...standard.charts, ...standard.pages].map((hit) => hit.slug)
+    [...standard.charts, ...standard.pages].map(idOf)
 
 const percent = (share: number): string => `${Math.round(share * 100)}%`
 
@@ -298,7 +311,7 @@ function renderStandard({ standard }: QueryRun, aiSlugs: Set<string>): string {
         hits
             .map(
                 (hit, i) =>
-                    `<li class="${aiSlugs.has(hit.slug) ? "shared" : ""}"><span class="kind">${i + 1}</span> ${escape(hit.title)}</li>`
+                    `<li class="${aiSlugs.has(idOf(hit)) ? "shared" : ""}"><span class="kind">${i + 1}</span> ${escape(hit.title)}</li>`
             )
             .join("")
     return `<h4>Charts</h4><ol>${list(standard.charts)}</ol><h4>Pages</h4><ol>${list(standard.pages)}</ol>`

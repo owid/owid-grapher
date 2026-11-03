@@ -27,5 +27,11 @@ function compactContent(
     block: AiSearchContentBlock
 ): AiSearchCompactContentBlock {
     const { hit, ...rest } = block
-    return { ...rest, slug: hit.slug, title: hit.title }
+    const view = "queryParams" in hit ? hit.queryParams : undefined
+    return {
+        ...rest,
+        slug: hit.slug,
+        ...(view && { view }),
+        title: hit.title,
+    }
 }
