@@ -10,8 +10,11 @@ import {
     AiSearchEvent,
     AiSearchInput,
     AiSearchIntent,
+    AiSearchCurated,
     AiSearchLayout,
+    AiSearchMode,
     AI_SEARCH_INTENTS,
+    AI_SEARCH_MODES,
     DEFAULT_AI_SEARCH_SETTINGS,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
@@ -374,32 +377,36 @@ export function layoutPrompt(
             page.type === OwidGdocType.TopicPage ||
             page.type === OwidGdocType.LinearTopicPage
     )
-    return `You are choosing the results layout for a search on Our World in Data (OWID).
+    return `You are choosing how to lay out the results of a search on Our World in Data (OWID).
 
 The reader searched for: ${describeSearch(input)}
 (Our search box turns country names into a country filter and autocomplete picks into a topic filter.)
 
-Pick the intent that fits best:
-- "family": names a measure or narrow subject that comes in several versions (total vs per person, different sources or spans), with no country. E.g. "gdp", "co2", "population", "life expectancy", "poverty", a specific topic filter like "Life expectancy".
-- "place": a measure for a specific country or region, e.g. "gdp" with country filter United States, "population of japan", "co2 emissions china".
-- "exact": names one specific, unambiguous indicator, no country. E.g. "crude birth rate", "infant mortality rate", "gni per capita", "share of the population with tertiary education".
-- "topic": a broad area that covers many measures, e.g. "education", "energy", "health", topic filter "Energy and environment".
-- "country_topic": no text, a country filter and a topic filter, e.g. United States with topic Life expectancy.
-- "other": anything else: rankings, relationships between two measures, breakdowns, history, explanations, a country on its own, things OWID doesn't cover.
+The results page can take three shapes, and the reader can switch between them. Pick the one that fits this search best as "mode":
+- "targeted": the reader is after one specific thing. We put our best guess up front, with close alternatives next to it. Fits a named measure ("gdp", "life expectancy"), a specific indicator ("crude birth rate"), a measure for a place ("gdp" + United States), a ranking, a relationship between two measures.
+- "explore": the reader is browsing a subject. We show the range of what we have, organised to show the different ways in. Fits broad areas ("education", "health", topic Energy and environment), vague words, explanations of a concept.
+- "curated": the reader would be best served by what OWID recommends: the key metrics our researchers picked and our profile pages. Fits a country on its own, and a country with a broad topic.
 
-Then, for family, place, exact and country_topic:
-- lead: the id of the single chart that best answers the search. Prefer KEY CHARTs and the headline version (e.g. for "gdp", total GDP adjusted for inflation; for "population", the long-run population chart). Use only chart ids from the list.
+Also pick the "intent":
+- "family": a measure or narrow subject that comes in several versions (total vs per person, sources, spans), no country.
+- "place": a measure for a specific country or region.
+- "exact": one specific, unambiguous indicator, no country.
+- "topic": a broad area that covers many measures.
+- "country_topic": no text, a country filter and a topic filter.
+- "country": a country filter on its own.
+- "other": anything else.
+
+Then, whenever one chart could be a good best guess (whatever the mode):
+- lead: the id of that chart. Prefer KEY CHARTs and the headline version (e.g. for "gdp", total GDP adjusted for inflation; for "population", the long-run population chart). Use only chart ids from the list.
 - view: "line", "map", "bar" or "default", from the views the lead chart lists. Use "line" when entities are selected.
 - entities: what to select on the lead chart.
-  - family: "World" and the continents "Africa", "Asia", "Europe", "North America", "South America", "Oceania".
-  - exact: "World" and 4 countries that show the range (e.g. a high, a low and two large countries).
+  - family or topic: "World" and the continents "Africa", "Asia", "Europe", "North America", "South America", "Oceania".
+  - exact or other: "World" and 4 countries that show the range (e.g. a high, a low and two large countries).
   - place: the country first, then 2 or 3 meaningful comparisons (its region, "World", or peer countries).
-  - country_topic: the country first, then 2 or 3 peers the topic is usually discussed against (e.g. other high-income countries for US life expectancy), then "World".
-- versions: up to 4 other chart ids. For family and place: other versions of the same measure (per capita, growth, long-run, another source). For exact and country_topic: the indicators most often looked up alongside it.
-- country: the country the search is about, for place and country_topic. Otherwise "".
-- note: one short plain sentence for the reader, at most 20 words, saying how the search was read, e.g. "“GDP” usually means total economic output. Other versions are below." For country_topic, say why these comparison countries. No numbers.
-
-For topic:
+  - country_topic or country: the country first, then 2 or 3 peers it is usually discussed against (e.g. other high-income countries for the US), then "World".
+- versions: up to 4 other chart ids: other versions of the same measure (per capita, growth, long-run, another source), or the indicators most often looked up alongside it.
+- country: the country the search is about, if any. Otherwise "".
+- note: one short plain sentence for the reader, at most 20 words, saying how the search was read, e.g. "“GDP” usually means total economic output. Other versions are below." No numbers.
 - topic_pages: up to 3 topic page ids from the list, most central first.
 
 Charts (id | title | views | details):
@@ -415,6 +422,7 @@ ${topicPages
 export const LAYOUT_SCHEMA = {
     type: "object",
     properties: {
+        mode: { type: "string", enum: [...AI_SEARCH_MODES] },
         intent: { type: "string", enum: [...AI_SEARCH_INTENTS] },
         lead: { type: "integer" },
         view: { type: "string", enum: ["line", "map", "bar", "default"] },
@@ -424,24 +432,21 @@ export const LAYOUT_SCHEMA = {
         note: { type: "string" },
         topic_pages: { type: "array", items: { type: "integer" } },
     },
-    required: ["intent"],
+    required: ["mode", "intent"],
     additionalProperties: false,
 } as const
 
-const LEAD_INTENTS: AiSearchIntent[] = [
-    "family",
-    "place",
-    "exact",
-    "country_topic",
-]
+const isTopicPage = (page: AiSearchPageCandidate): boolean =>
+    page.type === OwidGdocType.TopicPage ||
+    page.type === OwidGdocType.LinearTopicPage
 
 /**
  * Turns the layout model's answer into a layout the page can render, keeping
- * only charts from the pool and entities the lead chart has data for. Falls
- * back to "other" (the grouped layout) whenever the answer can't be used.
- * The filters decide some intents outright: a country filter turns a
- * measure into "place", and a country plus a topic with no text is
- * "country_topic".
+ * only charts and pages from the pool and entities the lead chart has data
+ * for. The filters decide some cases outright: a country on its own opens on
+ * OWID's recommendations, a country plus a topic with no text is
+ * "country_topic", and a country filter turns a measure into "place". A
+ * targeted layout needs a lead chart, so without one it opens on exploring.
  */
 export function parseLayoutAnswer(
     text: string,
@@ -449,16 +454,12 @@ export function parseLayoutAnswer(
     pool: CandidatePool,
     knownRegions: string[]
 ): AiSearchLayout {
-    const fallback: AiSearchLayout = {
-        intent: "other",
-        versions: [],
-        topicPages: [],
-    }
-    let obj: Record<string, unknown>
+    let obj: Record<string, unknown> = {}
     try {
-        obj = JSON.parse(text)
+        const parsed = JSON.parse(text)
+        if (parsed && typeof parsed === "object") obj = parsed
     } catch {
-        return fallback
+        // An unreadable answer still gets a layout, from the filters alone
     }
 
     let intent: AiSearchIntent = AI_SEARCH_INTENTS.includes(
@@ -466,44 +467,50 @@ export function parseLayoutAnswer(
     )
         ? (obj.intent as AiSearchIntent)
         : "other"
+    let mode: AiSearchMode = AI_SEARCH_MODES.includes(obj.mode as AiSearchMode)
+        ? (obj.mode as AiSearchMode)
+        : "explore"
+
     const filterCountry = input.countries[0]
-    if (!input.query && input.countries.length && input.topics.length)
+    const noText = !input.query
+    if (noText && input.countries.length && !input.topics.length) {
+        intent = "country"
+        mode = "curated"
+    } else if (noText && input.countries.length && input.topics.length)
         intent = "country_topic"
     else if (
         filterCountry &&
-        (intent === "family" ||
-            intent === "exact" ||
-            intent === "country_topic")
+        (intent === "family" || intent === "exact" || intent === "country")
     )
         intent = "place"
-    // A country on its own isn't one of the new layouts
-    if (!input.query && !input.topics.length) intent = "other"
 
-    if (intent === "other") return fallback
-
-    if (intent === "topic") {
-        const topicPages = (
-            Array.isArray(obj.topic_pages) ? obj.topic_pages : []
-        )
-            .map(Number)
-            .filter((id) => {
-                const page = pool.pages.find((p) => p.id === id)
-                return (
-                    page &&
-                    (page.type === OwidGdocType.TopicPage ||
-                        page.type === OwidGdocType.LinearTopicPage)
-                )
-            })
-        return {
-            intent,
-            note: typeof obj.note === "string" ? obj.note : undefined,
-            versions: [],
-            topicPages: [...new Set(topicPages)].slice(0, 3),
-        }
-    }
+    const topicPages = [
+        ...new Set(
+            (Array.isArray(obj.topic_pages) ? obj.topic_pages : [])
+                .map(Number)
+                .filter((id) => {
+                    const page = pool.pages.find((p) => p.id === id)
+                    return page && isTopicPage(page)
+                })
+        ),
+    ].slice(0, 3)
+    const note =
+        typeof obj.note === "string" && obj.note.trim()
+            ? obj.note.trim()
+            : undefined
 
     const lead = pool.charts.find((chart) => chart.id === Number(obj.lead))
-    if (!lead || !LEAD_INTENTS.includes(intent)) return fallback
+    if (!lead) {
+        if (intent === "place" || intent === "country_topic") intent = "other"
+        return {
+            intent,
+            mode: mode === "targeted" ? "explore" : mode,
+            note: mode === "targeted" ? undefined : note,
+            versions: [],
+            country: filterCountry,
+            topicPages,
+        }
+    }
 
     // Entity names as the lead chart spells them
     const available = lead.availableEntities?.length
@@ -515,13 +522,10 @@ export function parseLayoutAnswer(
             ? byLowerName.get(name.trim().toLowerCase())
             : undefined
 
-    const country =
-        intent === "place" || intent === "country_topic"
-            ? (resolve(filterCountry) ?? resolve(obj.country))
-            : undefined
-    // A place layout without a place the chart knows isn't one
+    const country = resolve(filterCountry) ?? resolve(obj.country)
+    // A place layout without a place the chart knows is just the indicator
     if ((intent === "place" || intent === "country_topic") && !country)
-        return fallback
+        intent = "exact"
 
     const entities = [
         ...new Set(
@@ -548,13 +552,58 @@ export function parseLayoutAnswer(
 
     return {
         intent,
-        note:
-            typeof obj.note === "string" && obj.note.trim()
-                ? obj.note.trim()
-                : undefined,
+        mode,
+        note,
         lead: { id: lead.id, tab, entities },
         versions,
         country,
-        topicPages: [],
+        topicPages,
     }
+}
+
+/**
+ * The topics to recommend featured metrics from: the topic filters if any,
+ * the core country topics for a country on its own, and otherwise the
+ * topics the top keyword hits are key charts for.
+ */
+export function curatedTopicsFor(
+    input: AiSearchInput,
+    topCharts: ChartHitWithoutId[],
+    coreCountryTopics: string[]
+): string[] {
+    if (input.topics.length) return input.topics
+    if (!input.query && input.countries.length) return coreCountryTopics
+    const counts = new Map<string, number>()
+    for (const chart of topCharts.slice(0, 15))
+        for (const tag of chart.keyChartForTags ?? [])
+            counts.set(tag, (counts.get(tag) ?? 0) + 1)
+    return [...counts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 2)
+        .map(([tag]) => tag)
+}
+
+/** Gives the curated hits ids that don't clash with the candidate pool. */
+export function buildCurated(
+    hits: {
+        topics: { name: string; charts: ChartHitWithoutId[] }[]
+        pages: PageHitWithoutId[]
+    },
+    firstId: number
+): AiSearchCurated {
+    let nextId = firstId
+    const charts: AiSearchChartCandidate[] = []
+    const topics = hits.topics.map(({ name, charts: topicCharts }) => ({
+        name,
+        charts: topicCharts.map((chart) => {
+            const id = nextId++
+            charts.push({ ...chart, id })
+            return id
+        }),
+    }))
+    const pages = hits.pages.map(({ excerpt: _excerpt, ...page }) => ({
+        ...page,
+        id: nextId++,
+    }))
+    return { topics, charts, pages }
 }

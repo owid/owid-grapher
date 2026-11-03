@@ -11,6 +11,7 @@ import {
     PageHitWithoutId,
     parseAiSearchSettings,
     createComposerLineParser,
+    curatedTopicsFor,
     parseLayoutAnswer,
     parsePlannerAnswer,
 } from "./aiSearch.js"
@@ -232,22 +233,20 @@ describe(parseLayoutAnswer, () => {
         query: string,
         countries: string[] = [],
         topics: string[] = []
-    ) => ({
-        query,
-        countries,
-        topics,
-    })
+    ) => ({ query, countries, topics })
     const answer = (obj: Record<string, unknown>): string => JSON.stringify(obj)
 
-    it("keeps the lead chart, its tab and the entities the chart has data for", () => {
+    it("keeps the mode, the lead chart, its tab and the entities the chart has data for", () => {
         const layout = parseLayoutAnswer(
             answer({
+                mode: "targeted",
                 intent: "family",
                 lead: gdp.id,
                 view: "line",
                 entities: ["World", "africa", "Atlantis"],
                 versions: [gdpPerCapita.id, gdp.id, 9999],
                 note: "  GDP usually means total output.  ",
+                topic_pages: [topicPage.id, gdp.id],
             }),
             search("gdp"),
             pool,
@@ -255,6 +254,7 @@ describe(parseLayoutAnswer, () => {
         )
         expect(layout).toEqual({
             intent: "family",
+            mode: "targeted",
             note: "GDP usually means total output.",
             lead: {
                 id: gdp.id,
@@ -263,13 +263,18 @@ describe(parseLayoutAnswer, () => {
             },
             versions: [gdpPerCapita.id],
             country: undefined,
-            topicPages: [],
+            topicPages: [topicPage.id],
         })
     })
 
     it("turns a measure into a measure for a place when a country filter is set", () => {
         const layout = parseLayoutAnswer(
-            answer({ intent: "family", lead: gdp.id, entities: ["World"] }),
+            answer({
+                mode: "targeted",
+                intent: "family",
+                lead: gdp.id,
+                entities: ["World"],
+            }),
             search("gdp", ["United States"]),
             pool,
             regions
@@ -280,60 +285,105 @@ describe(parseLayoutAnswer, () => {
         expect(layout.lead?.entities).toEqual(["United States", "World"])
     })
 
-    it("reads a country and a topic with no text as country_topic", () => {
+    it("opens a country on its own on OWID's recommendations", () => {
         const layout = parseLayoutAnswer(
-            answer({ intent: "topic", lead: gdp.id }),
-            search("", ["United States"], ["Economic growth"]),
-            pool,
-            regions
-        )
-        expect(layout.intent).toBe("country_topic")
-        expect(layout.country).toBe("United States")
-    })
-
-    it("keeps the grouped layout for a country on its own", () => {
-        const layout = parseLayoutAnswer(
-            answer({ intent: "place", lead: gdp.id, country: "France" }),
-            search("", ["France"]),
-            pool,
-            regions
-        )
-        expect(layout.intent).toBe("other")
-    })
-
-    it("keeps the grouped layout when the lead isn't in the pool or the place has no data", () => {
-        expect(
-            parseLayoutAnswer(
-                answer({ intent: "exact", lead: 9999 }),
-                search("crude birth rate"),
-                pool,
-                regions
-            ).intent
-        ).toBe("other")
-        // gdp has no data for France
-        expect(
-            parseLayoutAnswer(
-                answer({ intent: "place", lead: gdp.id, country: "France" }),
-                search("gdp of france"),
-                pool,
-                regions
-            ).intent
-        ).toBe("other")
-        expect(
-            parseLayoutAnswer("not json", search("gdp"), pool, regions).intent
-        ).toBe("other")
-    })
-
-    it("keeps only topic pages for a broad topic", () => {
-        const layout = parseLayoutAnswer(
-            answer({ intent: "topic", topic_pages: [topicPage.id, gdp.id] }),
-            search("economy"),
+            answer({ mode: "targeted", intent: "place", lead: gdp.id }),
+            search("", ["United States"]),
             pool,
             regions
         )
         expect(layout).toMatchObject({
-            intent: "topic",
-            topicPages: [topicPage.id],
+            intent: "country",
+            mode: "curated",
+            country: "United States",
         })
+    })
+
+    it("reads a country and a topic with no text as country_topic", () => {
+        const layout = parseLayoutAnswer(
+            answer({ mode: "curated", intent: "topic", lead: gdp.id }),
+            search("", ["United States"], ["Economic Growth"]),
+            pool,
+            regions
+        )
+        expect(layout).toMatchObject({
+            intent: "country_topic",
+            mode: "curated",
+            country: "United States",
+        })
+    })
+
+    it("opens on exploring when a targeted answer has no usable lead chart", () => {
+        const layout = parseLayoutAnswer(
+            answer({ mode: "targeted", intent: "exact", lead: 9999 }),
+            search("crude birth rate"),
+            pool,
+            regions
+        )
+        expect(layout.mode).toBe("explore")
+        expect(layout.lead).toBeUndefined()
+        expect(
+            parseLayoutAnswer("not json", search("gdp"), pool, regions)
+        ).toMatchObject({ intent: "other", mode: "explore" })
+    })
+
+    it("keeps the lead but drops the place when the chart has no data for it", () => {
+        const layout = parseLayoutAnswer(
+            answer({
+                mode: "targeted",
+                intent: "place",
+                lead: gdp.id,
+                country: "France",
+            }),
+            search("gdp of france"),
+            pool,
+            regions
+        )
+        expect(layout.intent).toBe("exact")
+        expect(layout.country).toBeUndefined()
+        expect(layout.lead?.id).toBe(gdp.id)
+    })
+})
+
+describe(curatedTopicsFor, () => {
+    const core = ["Population Growth", "Life Expectancy"]
+    const keyChart = (slug: string, tags: string[]): ChartHitWithoutId => ({
+        ...chart(slug),
+        keyChartForTags: tags,
+    })
+
+    it("uses the topic filters when there are any", () => {
+        expect(
+            curatedTopicsFor(
+                { query: "gdp", countries: [], topics: ["Poverty"] },
+                [],
+                core
+            )
+        ).toEqual(["Poverty"])
+    })
+
+    it("uses the core country topics for a country on its own", () => {
+        expect(
+            curatedTopicsFor(
+                { query: "", countries: ["Nigeria"], topics: [] },
+                [],
+                core
+            )
+        ).toEqual(core)
+    })
+
+    it("otherwise uses the topics the top hits are most often key charts for", () => {
+        expect(
+            curatedTopicsFor(
+                { query: "gdp", countries: [], topics: [] },
+                [
+                    keyChart("a", ["Economic Growth"]),
+                    keyChart("b", ["Economic Growth", "Poverty"]),
+                    keyChart("c", ["Trade"]),
+                    chart("d"),
+                ],
+                core
+            )
+        ).toEqual(["Economic Growth", "Poverty"])
     })
 })

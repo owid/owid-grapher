@@ -8,8 +8,10 @@ import {
     AiSearchErrorCode,
     AiSearchEvent,
     AiSearchGroup,
+    AiSearchCurated,
     AiSearchInput,
     AiSearchLayout,
+    AiSearchMode,
     AiSearchPageCandidate,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
@@ -27,7 +29,9 @@ import {
     toGrapherQueryParams,
 } from "./searchUtils.js"
 import {
+    SearchAiCurated,
     SearchAiLead,
+    SearchAiModeBar,
     SearchAiReadLink,
     SearchAiTopicPages,
 } from "./SearchAiLayouts.js"
@@ -41,6 +45,7 @@ interface AiSearchView {
     pages: Map<number, AiSearchPageCandidate>
     groups: AiSearchGroup[]
     layout?: AiSearchLayout
+    curated?: AiSearchCurated
     related: string[]
     expansions: string[]
     debug: { title: string; text: string }[]
@@ -96,6 +101,10 @@ function reduceAiSearch(
             const { type: _type, ...layout } = action
             return { ...view, layout }
         }
+        case "curated": {
+            const { type: _type, ...curated } = action
+            return { ...view, curated }
+        }
         case "related":
             return { ...view, related: action.queries }
         case "debug":
@@ -120,7 +129,7 @@ function reduceAiSearch(
 
 /** An error, unless some results already arrived: those are kept. */
 const failed = (view: AiSearchView, code: AiSearchErrorCode): AiSearchView =>
-    view.groups.length || view.layout?.lead
+    view.groups.length || view.layout?.lead || view.curated
         ? { ...view, status: "done" }
         : { ...view, status: "error", error: code }
 
@@ -152,6 +161,8 @@ export const SearchAiResults = ({ input }: { input: AiSearchInput }) => {
     const [settings] = useAiSearchSettings()
     const [view, dispatch] = useReducer(reduceAiSearch, undefined, initialView)
     const [attempt, setAttempt] = useState(0)
+    // The results shape the reader switched to, if any
+    const [pickedMode, setPickedMode] = useState<AiSearchMode | undefined>()
     const controllerRef = useRef<AbortController | null>(null)
     const inputRef = useRef(input)
     const sectionRef = useRef<HTMLElement>(null)
@@ -197,10 +208,26 @@ export const SearchAiResults = ({ input }: { input: AiSearchInput }) => {
     const layout = view.layout
     const isLayoutPending = !layout && isRunning
     const hasLead = !!layout?.lead && !!view.charts.get(layout.lead.id)
-    const isTopicMap = layout?.intent === "topic"
-    // Charts and pages the lead or topic layout already shows
+    const curated = view.curated
+    const available: Record<AiSearchMode, boolean> = {
+        targeted: hasLead,
+        explore: isRunning || view.groups.length > 0,
+        curated: !!curated && curated.topics.length + curated.pages.length > 0,
+    }
+    const bestMode = layout?.mode
+    const mode: AiSearchMode =
+        pickedMode && available[pickedMode]
+            ? pickedMode
+            : bestMode && available[bestMode]
+              ? bestMode
+              : hasLead
+                ? "targeted"
+                : "explore"
+    const isTopicMap = mode === "explore"
+    const showsGroups = mode !== "curated"
+    // Charts and pages already shown above the groups
     const shownIds = new Set<number>(
-        hasLead && layout?.lead
+        mode === "targeted" && layout?.lead
             ? [layout.lead.id, ...layout.versions]
             : (layout?.topicPages ?? [])
     )
@@ -253,13 +280,24 @@ export const SearchAiResults = ({ input }: { input: AiSearchInput }) => {
                 </div>
             )}
 
-            {hasLead && layout && (
+            {layout && (
+                <SearchAiModeBar
+                    mode={mode}
+                    bestMode={bestMode}
+                    available={available}
+                    onPick={setPickedMode}
+                />
+            )}
+            {mode === "targeted" && layout && (
                 <SearchAiLead layout={layout} charts={view.charts} />
             )}
-            {isTopicMap && (
-                <SearchAiTopicPages note={layout?.note} pages={topicPages} />
+            {mode === "curated" && curated && (
+                <SearchAiCurated curated={curated} country={layout?.country} />
             )}
-            {hasLead && view.groups.length > 0 && (
+            {mode === "explore" && !isLayoutPending && (
+                <SearchAiTopicPages pages={topicPages} />
+            )}
+            {mode === "targeted" && view.groups.length > 0 && (
                 <h3 className="search-ai-results__more">More on “{query}”</h3>
             )}
 
@@ -269,6 +307,7 @@ export const SearchAiResults = ({ input }: { input: AiSearchInput }) => {
                 })}
             >
                 {!isLayoutPending &&
+                    showsGroups &&
                     view.groups.map((group, i) => (
                         <SearchAiGroup
                             key={i}
@@ -282,6 +321,7 @@ export const SearchAiResults = ({ input }: { input: AiSearchInput }) => {
                         />
                     ))}
                 {isRunning &&
+                    showsGroups &&
                     Array.from(
                         {
                             length:

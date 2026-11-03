@@ -51,7 +51,8 @@ export const DEFAULT_AI_SEARCH_SETTINGS: AiSearchSettings = {
  * - exact: one unambiguous indicator ("crude birth rate")
  * - topic: a broad area ("education", "Energy and environment")
  * - country_topic: a country filter and a topic tag, no text
- * - other: anything else, which keeps the grouped-by-theme layout
+ * - country: a country filter on its own
+ * - other: anything else
  */
 export const AI_SEARCH_INTENTS = [
     "family",
@@ -59,9 +60,21 @@ export const AI_SEARCH_INTENTS = [
     "exact",
     "topic",
     "country_topic",
+    "country",
     "other",
 ] as const
 export type AiSearchIntent = (typeof AI_SEARCH_INTENTS)[number]
+
+/**
+ * The three shapes of results the reader can switch between. The model picks
+ * the one that fits the search best; the others stay a click away.
+ * - targeted: our best guess at the one thing they're looking for, with
+ *   close alternatives
+ * - explore: the range of what we have, organised to show the ways in
+ * - curated: what OWID recommends looking at (featured metrics, profiles)
+ */
+export const AI_SEARCH_MODES = ["targeted", "explore", "curated"] as const
+export type AiSearchMode = (typeof AI_SEARCH_MODES)[number]
 
 /** What the search box held when AI search started. */
 export interface AiSearchInput {
@@ -72,6 +85,8 @@ export interface AiSearchInput {
 
 export interface AiSearchLayout {
     intent: AiSearchIntent
+    // The results shape to open with
+    mode: AiSearchMode
     // One sentence shown above the lead chart, e.g. what "GDP" was taken to mean
     note?: string
     // The chart that answers the search, with the entities to select
@@ -80,8 +95,17 @@ export interface AiSearchLayout {
     versions: number[]
     // The country the layout is about (place, country_topic)
     country?: string
-    // Topic pages to show first (topic)
+    // Topic pages to show first when exploring
     topicPages: number[]
+}
+
+/** OWID's own picks for the search: featured metrics and profile pages. */
+export interface AiSearchCurated {
+    // The topics the featured metrics come from, in order
+    topics: { name: string; charts: number[] }[]
+    charts: AiSearchChartCandidate[]
+    // Country profiles and topic pages
+    pages: AiSearchPageCandidate[]
 }
 
 export type AiSearchAngle =
@@ -145,6 +169,7 @@ export type AiSearchEvent =
           pages: AiSearchPageCandidate[]
       }
     | ({ type: "layout" } & AiSearchLayout)
+    | ({ type: "curated" } & AiSearchCurated)
     | ({ type: "group" } & AiSearchGroup)
     | { type: "related"; queries: string[] }
     | { type: "debug"; title: string; text: string }

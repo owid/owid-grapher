@@ -11,6 +11,8 @@ import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "../search/algoliaClient.js"
 import {
     buildCandidatePool,
+    buildCurated,
+    curatedTopicsFor,
     CandidatePool,
     composerPrompt,
     createComposerLineParser,
@@ -24,7 +26,15 @@ import {
     PLANNER_SCHEMA,
     plannerPrompt,
 } from "./aiSearch.js"
-import { searchKeywords } from "./retrieval.js"
+import {
+    CORE_COUNTRY_TOPICS,
+    CuratedHits,
+    searchCurated,
+    searchKeywords,
+} from "./retrieval.js"
+
+// Curated charts and pages get ids from here, clear of the candidate pool's
+const CURATED_FIRST_ID = 100_000
 
 /**
  * GET /api/ai-search?q=…&country=…&topic=…: the AI-assisted search prototype.
@@ -38,7 +48,9 @@ import { searchKeywords } from "./retrieval.js"
  * Alongside the grouping, a quick Haiku call reads the search (text plus the
  * country and topic filters) and picks a layout: a lead chart for a measure,
  * a measure for a place, one specific indicator, a country and a topic, or a
- * broad topic. Anything else keeps the grouped layout.
+ * broad topic. It also picks which of three result shapes to open with:
+ * targeted (the lead chart), explore (the themes) or curated (OWID's
+ * featured metrics and profiles, fetched alongside the keyword search).
  *
  * Every request costs a model call, so the endpoint only runs under `wrangler
  * pages dev` (ENV=development: staging servers and local dev) with an
@@ -151,6 +163,24 @@ async function runAiSearch({
         )
     )
 
+    // OWID's own picks, fetched while the planner works
+    const curatedTopics = curatedTopicsFor(
+        input,
+        base.charts,
+        CORE_COUNTRY_TOPICS
+    )
+    const curated: Promise<CuratedHits | undefined> = curatedTopics.length
+        ? time(
+              "curated",
+              searchCurated(algolia, {
+                  topics: curatedTopics,
+                  countries: input.countries,
+                  perTopic: input.topics.length || input.query ? 6 : 2,
+                  withTopicPages: !!input.query || input.topics.length > 0,
+              })
+          ).catch(() => undefined)
+        : Promise.resolve(undefined)
+
     let expansions: string[] = []
     // Also runs when the search found nothing: keyword search needs every
     // word to match, so a question phrased as a sentence often finds nothing
@@ -229,6 +259,18 @@ async function runAiSearch({
         ),
         pages: pool.pages.map(({ excerpt: _excerpt, ...page }) => page),
     })
+
+    const curatedHits = await curated
+    if (curatedHits?.topics.length || curatedHits?.pages.length) {
+        const curatedEvent = buildCurated(curatedHits, CURATED_FIRST_ID)
+        emit({
+            type: "curated",
+            ...curatedEvent,
+            charts: curatedEvent.charts.map(
+                ({ availableEntities: _entities, ...chart }) => chart
+            ),
+        })
+    }
 
     // Runs while the composer streams its groups
     const layout = time(
@@ -365,7 +407,13 @@ async function pickLayout({
             })
     } catch (error) {
         if (signal.aborted) return
-        emit({ type: "layout", intent: "other", versions: [], topicPages: [] })
+        emit({
+            type: "layout",
+            intent: "other",
+            mode: "explore",
+            versions: [],
+            topicPages: [],
+        })
         if (settings.debug)
             emit({
                 type: "debug",

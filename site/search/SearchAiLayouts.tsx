@@ -1,10 +1,19 @@
 import { useState } from "react"
 import cx from "clsx"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+    faArrowsSplitUpAndLeft,
+    faAward,
+    faBullseye,
+    IconDefinition,
+} from "@fortawesome/free-solid-svg-icons"
 import { useQuery } from "@tanstack/react-query"
 import {
     AiSearchChartCandidate,
+    AiSearchCurated,
     AiSearchIntent,
     AiSearchLayout,
+    AiSearchMode,
     AiSearchPageCandidate,
     ChartRecordType,
     EntityName,
@@ -87,10 +96,7 @@ export const SearchAiLead = ({
 
     return (
         <section
-            className={cx(
-                "search-ai-lead",
-                `search-ai-lead--${layout.intent}`
-            )}
+            className={cx("search-ai-lead", `search-ai-lead--${layout.intent}`)}
         >
             {layout.note && (
                 <p className="search-ai-lead__note">
@@ -100,7 +106,11 @@ export const SearchAiLead = ({
             )}
             <div className="search-ai-lead__main">
                 <div className="search-ai-lead__chart">
-                    <SearchAiLiveChart hit={active} tab={tab} entities={entities} />
+                    <SearchAiLiveChart
+                        hit={active}
+                        tab={tab}
+                        entities={entities}
+                    />
                 </div>
                 <aside className="search-ai-lead__side">
                     <SearchAiValues
@@ -147,40 +157,194 @@ export const SearchAiLead = ({
                     </span>
                     <div className="search-ai-lead__version-list">
                         {versions.map((hit) => (
-                            <button
+                            <SearchAiChartChoice
                                 key={hit.id}
-                                type="button"
-                                className="search-ai-version"
-                                aria-pressed={hit.id === active.id}
-                                onClick={() => setActiveId(hit.id)}
-                            >
-                                <img
-                                    alt=""
-                                    loading="lazy"
-                                    width={GRAPHER_THUMBNAIL_WIDTH}
-                                    height={GRAPHER_THUMBNAIL_HEIGHT}
-                                    src={constructPreviewUrl({
-                                        hit,
-                                        grapherParams: toGrapherQueryParams({
-                                            entities,
-                                        }),
-                                        variant: PreviewVariant.Thumbnail,
-                                    })}
-                                />
-                                <span className="search-ai-version__title">
-                                    {hit.title}
-                                    {hit.variantName && (
-                                        <span className="search-ai-version__variant">
-                                            {" "}
-                                            {hit.variantName}
-                                        </span>
-                                    )}
-                                </span>
-                            </button>
+                                hit={hit}
+                                entities={entities}
+                                isActive={hit.id === active.id}
+                                onPick={() => setActiveId(hit.id)}
+                            />
                         ))}
                     </div>
                 </div>
             )}
+        </section>
+    )
+}
+
+/** A chart to switch the live chart to. */
+const SearchAiChartChoice = ({
+    hit,
+    entities,
+    isActive,
+    onPick,
+}: {
+    hit: AiSearchChartCandidate
+    entities: EntityName[]
+    isActive: boolean
+    onPick: () => void
+}) => (
+    <button
+        type="button"
+        className="search-ai-version"
+        aria-pressed={isActive}
+        onClick={onPick}
+    >
+        <img
+            alt=""
+            loading="lazy"
+            width={GRAPHER_THUMBNAIL_WIDTH}
+            height={GRAPHER_THUMBNAIL_HEIGHT}
+            src={constructPreviewUrl({
+                hit,
+                grapherParams: toGrapherQueryParams({ entities }),
+                variant: PreviewVariant.Thumbnail,
+            })}
+        />
+        <span className="search-ai-version__title">
+            {hit.title}
+            {hit.variantName && (
+                <span className="search-ai-version__variant">
+                    {" "}
+                    {hit.variantName}
+                </span>
+            )}
+        </span>
+    </button>
+)
+
+const MODES: {
+    mode: AiSearchMode
+    label: string
+    hint: string
+    icon: IconDefinition
+}[] = [
+    {
+        mode: "targeted",
+        label: "Targeted",
+        hint: "Our best guess, with close alternatives",
+        icon: faBullseye,
+    },
+    {
+        mode: "explore",
+        label: "Explore",
+        hint: "The range of what we have",
+        icon: faArrowsSplitUpAndLeft,
+    },
+    {
+        mode: "curated",
+        label: "OWID recommends",
+        hint: "What our researchers suggest looking at",
+        icon: faAward,
+    },
+]
+
+/**
+ * Switches between the three shapes of results. The model's pick is marked,
+ * and shapes with nothing to show are left out.
+ */
+export const SearchAiModeBar = ({
+    mode,
+    bestMode,
+    available,
+    onPick,
+}: {
+    mode: AiSearchMode
+    bestMode?: AiSearchMode
+    available: Record<AiSearchMode, boolean>
+    onPick: (mode: AiSearchMode) => void
+}) => (
+    <div
+        className="search-ai-modes"
+        role="radiogroup"
+        aria-label="Shape of the results"
+    >
+        {MODES.filter((m) => available[m.mode]).map((m) => (
+            <button
+                key={m.mode}
+                type="button"
+                role="radio"
+                aria-checked={m.mode === mode}
+                className="search-ai-mode"
+                title={m.hint}
+                onClick={() => onPick(m.mode)}
+            >
+                <FontAwesomeIcon
+                    icon={m.icon}
+                    className="search-ai-mode__icon"
+                />
+                <span className="search-ai-mode__text">
+                    <span className="search-ai-mode__label">{m.label}</span>
+                    <span className="search-ai-mode__hint">{m.hint}</span>
+                </span>
+                {m.mode === bestMode && (
+                    <span className="search-ai-mode__best">Best match</span>
+                )}
+            </button>
+        ))}
+    </div>
+)
+
+/**
+ * What OWID recommends for the search: the featured metrics our researchers
+ * picked for each topic, as a live chart to switch between, and the
+ * country's profile pages and the topic pages.
+ */
+export const SearchAiCurated = ({
+    curated,
+    country,
+}: {
+    curated: AiSearchCurated
+    country?: string
+}) => {
+    const first = curated.topics[0]?.charts[0]
+    const [activeId, setActiveId] = useState(first)
+    const charts = new Map(curated.charts.map((chart) => [chart.id, chart]))
+    const active = activeId !== undefined ? charts.get(activeId) : undefined
+    const entities: EntityName[] = country ? [country, "World"] : []
+    const topicNames = curated.topics.map((topic) => topic.name)
+
+    return (
+        <section className="search-ai-lead search-ai-curated">
+            <p className="search-ai-lead__note">
+                <FontAwesomeIcon icon={faAward} className="search-ai-icon" />
+                {country
+                    ? `The key metrics our researchers recommend for understanding ${country}.`
+                    : `The key metrics our researchers recommend on ${topicNames.join(" and ")}.`}
+            </p>
+            {curated.pages.length > 0 && (
+                <div className="search-ai-topic-pages__list search-ai-curated__pages">
+                    {curated.pages.map((page) => (
+                        <SearchAiReadLink key={page.id} page={page} />
+                    ))}
+                </div>
+            )}
+            {active && (
+                <div className="search-ai-curated__chart search-ai-lead__chart">
+                    <SearchAiLiveChart hit={active} entities={entities} />
+                </div>
+            )}
+            {curated.topics.map((topic) => (
+                <div key={topic.name} className="search-ai-lead__versions">
+                    <span className="search-ai-lead__label">{topic.name}</span>
+                    <div className="search-ai-lead__version-list">
+                        {topic.charts.flatMap((id) => {
+                            const hit = charts.get(id)
+                            return hit
+                                ? [
+                                      <SearchAiChartChoice
+                                          key={id}
+                                          hit={hit}
+                                          entities={entities}
+                                          isActive={id === activeId}
+                                          onPick={() => setActiveId(id)}
+                                      />,
+                                  ]
+                                : []
+                        })}
+                    </div>
+                </div>
+            ))}
         </section>
     )
 }
