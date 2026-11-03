@@ -116,8 +116,14 @@ $ai-meta-line: #d9a400;
     background: none;
     color: $blue-60;
     cursor: pointer;
-    text-decoration: underline;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     @include note-1-regular;
+}
+
+.search-ai-results__close-label {
+    text-decoration: underline;
 }
 
 .search-ai-results__status {

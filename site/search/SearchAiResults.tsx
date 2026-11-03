@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react"
 import cx from "clsx"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"
 import {
     AiSearchAngle,
     AiSearchChartCandidate,
@@ -195,7 +197,10 @@ export const SearchAiResults = ({ query }: { query: string }) => {
                     className="search-ai-results__close"
                     onClick={aiSearch.close}
                 >
-                    Back to standard results
+                    <FontAwesomeIcon icon={faArrowLeft} />
+                    <span className="search-ai-results__close-label">
+                        Back to standard results
+                    </span>
                 </button>
             </header>
 
