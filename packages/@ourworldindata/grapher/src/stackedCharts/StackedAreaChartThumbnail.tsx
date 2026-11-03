@@ -163,6 +163,7 @@ export class StackedAreaChartThumbnail
             maxWidth: this.labelsMaxWidth,
             labelPadding: LEGEND_PADDING,
             yRange: this.labelsRangeFor(dualAxis),
+            maxShift: 3 * this.labelFontSettings.fontSize,
             compare: (
                 a: InitialAnchoredLabelSeries,
                 b: InitialAnchoredLabelSeries
