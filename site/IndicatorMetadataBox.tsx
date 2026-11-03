@@ -38,7 +38,7 @@ import {
 } from "@ourworldindata/utils"
 import AvatarByline from "./gdocs/components/AvatarByline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
-import { splitDescriptionKey } from "./datapageUtils.js"
+import { getProducerDocsLabel, splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
@@ -256,10 +256,7 @@ function IndicatorMetadataSections({
             {datapageData.descriptionFromProducer && (
                 <MetadataBoxSection title="Documentation from data sources">
                     <ExpandableToggle
-                        label={
-                            datapageData.attributionShort ||
-                            "Principal data source"
-                        }
+                        label={getProducerDocsLabel(datapageData)}
                         content={
                             <div className="indicator-metadata-box__producer-docs">
                                 <SimpleMarkdownText

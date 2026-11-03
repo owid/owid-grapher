@@ -1,6 +1,6 @@
 import { expect, it, describe } from "vitest"
 
-import { splitDescriptionKey } from "./datapageUtils.js"
+import { getProducerDocsLabel, splitDescriptionKey } from "./datapageUtils.js"
 
 describe(splitDescriptionKey, () => {
     it("returns empty strings for empty input", () => {
@@ -158,5 +158,48 @@ describe(splitDescriptionKey, () => {
             preview: long,
             remainder: "",
         })
+    })
+})
+
+describe(getProducerDocsLabel, () => {
+    it("uses the indicator's short attribution when it has one", () => {
+        expect(
+            getProducerDocsLabel({
+                attributionShort: "V-Dem",
+                origins: [{ producer: "Varieties of Democracy" }],
+            })
+        ).toEqual("V-Dem")
+    })
+
+    it("names the one producer, by its short name if it has one", () => {
+        expect(
+            getProducerDocsLabel({
+                origins: [
+                    {
+                        producer: "World Health Organization",
+                        attributionShort: "WHO",
+                    },
+                ],
+            })
+        ).toEqual("WHO")
+        expect(
+            getProducerDocsLabel({
+                origins: [
+                    { producer: "Transparency International" },
+                    { producer: "Transparency International" },
+                ],
+            })
+        ).toEqual("Transparency International")
+    })
+
+    it("stays generic with several producers, or none", () => {
+        expect(
+            getProducerDocsLabel({
+                origins: [{ producer: "Geyer et al." }, { producer: "OECD" }],
+            })
+        ).toEqual("Principal data source")
+        expect(getProducerDocsLabel({ origins: [] })).toEqual(
+            "Principal data source"
+        )
     })
 })
