@@ -55,21 +55,13 @@ export class ScatterPlotChartThumbnail
 
     @computed private get xAxisConfig(): AxisConfig {
         const { xAxisConfig } = this.manager
-        const custom = {
-            labelPadding: 2,
-            hideLabelUnit: true,
-            hideLabelLogNotice: true,
-        }
+        const custom = { labelPadding: 2, hideLabelLogNotice: true }
         return new AxisConfig({ ...custom, ...xAxisConfig }, this)
     }
 
     @computed private get yAxisConfig(): AxisConfig {
         const { yAxisConfig } = this.manager
-        const custom = {
-            labelPadding: 8,
-            hideLabelUnit: true,
-            hideLabelLogNotice: true,
-        }
+        const custom = { labelPadding: 8, hideLabelLogNotice: true }
         return new AxisConfig({ ...custom, ...yAxisConfig }, this)
     }
 
