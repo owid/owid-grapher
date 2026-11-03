@@ -11,13 +11,15 @@ import {
 } from "@ourworldindata/utils"
 import {
     LINE_STYLE,
-    RANGE_ANNOTATION_OUTLINE_OPACITY,
-    RANGE_ANNOTATION_OUTLINE_WIDTH,
     RenderPointAnnotation,
     RenderRangeAnnotation,
 } from "./LineChartConstants"
 import { placeRangeAnnotationTooltip } from "./LineChartHelpers"
 import { AnnotationInfoIcon } from "../annotations/AnnotationInfoIcon"
+import {
+    RANGE_ANNOTATION_OUTLINE_OPACITY,
+    RANGE_ANNOTATION_OUTLINE_WIDTH,
+} from "../annotations/AnnotationConstants"
 import { AnnotationMarker } from "../annotations/EntityAnnotations"
 import { SeriesLabelAnnotations } from "../seriesLabel/SeriesLabelAnnotations"
 
@@ -61,8 +63,13 @@ export function LineChartPointAnnotations({
                         content={
                             <SeriesLabelAnnotations
                                 annotations={[
-                                    { heading, text: annotation.text },
+                                    {
+                                        heading,
+                                        text: annotation.text,
+                                        timeScope: "point",
+                                    },
                                 ]}
+                                color={point.color}
                             />
                         }
                     >
@@ -180,7 +187,10 @@ function RangeAnnotationHitArea({
             }}
             content={
                 <SeriesLabelAnnotations
-                    annotations={[{ heading, text: annotation.text }]}
+                    annotations={[
+                        { heading, text: annotation.text, timeScope: "range" },
+                    ]}
+                    color={points[0].color}
                 />
             }
         >

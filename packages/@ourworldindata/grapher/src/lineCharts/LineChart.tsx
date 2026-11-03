@@ -455,6 +455,7 @@ export class LineChart
             verticalAlign: VerticalAlign.top,
             isInteractive: !this.isStatic,
             canShowInfoIcons: true,
+            hasAnnotationMarkers: true,
         })
     }
 

@@ -28,12 +28,12 @@ import {
     PlacedPoint,
     PlacedRangeAnnotation,
     RANGE_ANNOTATION_TOOLTIP_BELOW_PREFERENCE_PX,
-    RANGE_ANNOTATION_OUTLINE_WIDTH,
     RANGE_ANNOTATION_TOOLTIP_MARGIN,
     PlaceRangeAnnotationTooltipArgs,
     RenderLineChartSeries,
 } from "./LineChartConstants"
 import { DualAxis, HorizontalAxis } from "../axis/Axis"
+import { RANGE_ANNOTATION_OUTLINE_WIDTH } from "../annotations/AnnotationConstants"
 import { LineChartState } from "./LineChartState"
 import { darkenColorForLine } from "../color/ColorUtils"
 import {
@@ -410,17 +410,19 @@ export function toSeriesLabelAnnotations(
     const entries = [
         ...series.pointAnnotations.map(({ time, text }) => ({
             startTime: time,
+            timeScope: "point" as const,
             heading: timeColumn.formatTime(time),
             text,
         })),
         ...series.rangeAnnotations.map(({ startTime, endTime, text }) => ({
             startTime,
+            timeScope: "range" as const,
             heading: timeColumn.formatTimeRange(startTime, endTime),
             text,
         })),
     ]
     return _.sortBy(entries, (entry) => entry.startTime).map(
-        ({ heading, text }) => ({ heading, text })
+        ({ heading, text, timeScope }) => ({ heading, text, timeScope })
     )
 }
 

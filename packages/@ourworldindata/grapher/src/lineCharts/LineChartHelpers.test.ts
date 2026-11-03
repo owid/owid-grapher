@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest"
+import { RANGE_ANNOTATION_OUTLINE_WIDTH } from "../annotations/AnnotationConstants"
 import {
     AnnotationTooltipState,
     PlacedPoint,
-    RANGE_ANNOTATION_OUTLINE_WIDTH,
     RANGE_ANNOTATION_TOOLTIP_MARGIN,
     PlaceRangeAnnotationTooltipArgs,
 } from "./LineChartConstants"
@@ -158,10 +158,10 @@ describe(toSeriesLabelAnnotations, () => {
         )
 
         expect(entries).toEqual([
-            { heading: "1985 to 2005", text: "range 1985" },
-            { heading: "1990", text: "point 1990" },
-            { heading: "2000", text: "point 2000" },
-            { heading: "2000 to 2005", text: "range 2000" },
+            { heading: "1985 to 2005", text: "range 1985", timeScope: "range" },
+            { heading: "1990", text: "point 1990", timeScope: "point" },
+            { heading: "2000", text: "point 2000", timeScope: "point" },
+            { heading: "2000 to 2005", text: "range 2000", timeScope: "range" },
         ])
     })
 })
