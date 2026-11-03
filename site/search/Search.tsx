@@ -69,8 +69,15 @@ export const Search = ({
     )
 
     // The AI search prototype shows for the query it was started with, so it
-    // closes when the reader searches for something else
-    const [aiQuery, setAiQuery] = useState<string | null>(null)
+    // closes when the reader searches for something else. A link with ai=1
+    // opens it right away.
+    const [aiQuery, setAiQuery] = useState<string | null>(() =>
+        typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get("ai") === "1" &&
+        state.query
+            ? state.query
+            : null
+    )
     const isAiSearchOpen = aiQuery !== null && aiQuery === state.query
     const startAiSearch = (query: string): void => {
         setAiQuery(query)
