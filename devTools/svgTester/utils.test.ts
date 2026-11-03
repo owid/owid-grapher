@@ -1,6 +1,10 @@
 import { expect, it, describe } from "vitest"
 
-import { grapherSlugToExportFileKey, numberBoundsClipPaths } from "./utils.js"
+import {
+    breakSvgTagsOntoLines,
+    grapherSlugToExportFileKey,
+    numberBoundsClipPaths,
+} from "./utils.js"
 
 describe(grapherSlugToExportFileKey, () => {
     it("can handle empty query string", () => {
@@ -61,5 +65,34 @@ describe(numberBoundsClipPaths, () => {
             `<clipPath id="scatterBounds-1"></clipPath>` +
             `<g clip-path="url(#scatterBounds-1)"></g>`
         expect(numberBoundsClipPaths(svg + svg)).toEqual(svg + svg)
+    })
+})
+
+describe(breakSvgTagsOntoLines, () => {
+    it("puts each tag on its own line", () => {
+        expect(
+            breakSvgTagsOntoLines(`<svg><g id="a"><rect></rect></g></svg>`)
+        ).toEqual(`<svg>\n<g id="a">\n<rect>\n</rect>\n</g>\n</svg>`)
+    })
+
+    it("keeps each text element on one line, since a line break in it renders as a space", () => {
+        const sourceLine =
+            `<text x="16"><tspan x="16"><tspan font-weight="700">Data source:</tspan>` +
+            `<tspan dy="0.01" xml:space="preserve"> UN WPP</tspan></tspan></text>`
+        const title = `<text x="16"><tspan>Life expectancy</tspan></text>`
+
+        expect(breakSvgTagsOntoLines(`<g>${sourceLine}${title}</g>`)).toEqual(
+            `<g>\n${sourceLine}\n${title}\n</g>`
+        )
+    })
+
+    it("keeps a text element with several textPaths on one line", () => {
+        const label =
+            `<text><textPath href="#path-1">y = x</textPath>` +
+            `<textPath href="#path-1">y = x</textPath></text>`
+
+        expect(breakSvgTagsOntoLines(`<g>${label}</g>`)).toEqual(
+            `<g>\n${label}\n</g>`
+        )
     })
 })

@@ -127,13 +127,6 @@ function findPreviewEnd(blocks: MarkdownBlock[]): number {
     return previewEnd
 }
 
-function findEndOfFirstContentBlock(blocks: MarkdownBlock[]): number {
-    const firstContentIndex = blocks.findIndex(
-        (block) => block.type !== "heading"
-    )
-    return firstContentIndex === -1 ? blocks.length : firstContentIndex + 1
-}
-
 function splitBlocksAt(
     blocks: MarkdownBlock[],
     previewEnd: number
@@ -148,12 +141,4 @@ function splitBlocksAt(
 export function splitDescriptionKey(markdown: string): DescriptionKeySplit {
     const blocks = parseMarkdownBlocks(markdown)
     return splitBlocksAt(blocks, findPreviewEnd(blocks))
-}
-
-/** Split a descriptionKey markdown string after its first block */
-export function splitDescriptionKeyAfterFirstBlock(
-    markdown: string
-): DescriptionKeySplit {
-    const blocks = parseMarkdownBlocks(markdown)
-    return splitBlocksAt(blocks, findEndOfFirstContentBlock(blocks))
 }

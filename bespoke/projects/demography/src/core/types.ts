@@ -1,4 +1,5 @@
 import { Bounds } from "@ourworldindata/utils"
+import { BespokeMetadata } from "@ourworldindata/types"
 
 type CountryName = string
 type CountrySlug = string
@@ -6,9 +7,13 @@ type CountrySlug = string
 type Year = string
 type AgeGroup = string
 
-export interface DemographyMetadata {
+export interface DemographyMetadataJson {
     countries: CountryName[]
     slugs: Record<CountryName, CountrySlug>
+}
+
+export interface DemographyMetadata extends DemographyMetadataJson {
+    provenance: BespokeMetadata | undefined
 }
 
 type ByYearAndAgeGroup = Record<Year, Record<AgeGroup, number>>

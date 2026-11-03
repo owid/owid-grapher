@@ -16,7 +16,7 @@ import { Readable } from "node:stream"
 import { init as initEsModuleLexer, parse } from "es-module-lexer/minimal"
 import { publint, type Message } from "publint"
 import { formatMessage } from "publint/utils"
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 
 const repoRoot = path.resolve(import.meta.dirname, "../..")
 const tscBin = path.join(repoRoot, "node_modules/.bin/tsc")
@@ -86,8 +86,12 @@ export function testPublint(
         const tarball = Readable.toWeb(fs.createReadStream(tarballPath))
         const { messages, pkg } = await publint({ pack: { tarball } })
 
+        // USE_ENGINES_NODE asks for an `engines.node` floor, which doesn't
+        // apply to packages meant for the browser.
         const unexpected = messages.filter(
-            (message) => !knownFalsePositive?.matches(message)
+            (message) =>
+                message.code !== "USE_ENGINES_NODE" &&
+                !knownFalsePositive?.matches(message)
         )
         expect(
             unexpected.map(
@@ -367,4 +371,35 @@ export function describePackedPackage(options: PackedPackageOptions): void {
             runTsc("tsconfig.dtscheck.json")
         })
     })
+}
+
+// Grapher renders lazily once scrolled into view. happy-dom does no layout,
+// so its IntersectionObserver never fires — replace it with one that reports
+// the chart visible immediately.
+export function stubImmediateIntersectionObserver(): void {
+    vi.stubGlobal(
+        "IntersectionObserver",
+        class {
+            constructor(
+                private readonly callback: IntersectionObserverCallback
+            ) {}
+            observe(target: Element): void {
+                this.callback(
+                    [
+                        {
+                            isIntersecting: true,
+                            target,
+                        } as IntersectionObserverEntry,
+                    ],
+                    this as unknown as IntersectionObserver
+                )
+            }
+            unobserve(): void {
+                // noop
+            }
+            disconnect(): void {
+                // noop
+            }
+        }
+    )
 }

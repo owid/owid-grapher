@@ -120,6 +120,13 @@ const migrateFrom010To011 = (config: MigratableConfig): void => {
     }
 }
 
+const migrateFrom011To012 = (config: MigratableConfig): void => {
+    // The Gates Ventures logo option was removed; fall back to the OWID logo.
+    // Set it explicitly rather than deleting the key, so a child that overrode
+    // its parent's logo keeps overriding it
+    if (config.logo === "gv+owid") config.logo = "owid"
+}
+
 const MIGRATION_STEPS: Record<OutdatedSchemaVersion, MigrationStep> = {
     "001": migrateFrom001To002,
     "002": migrateFrom002To003,
@@ -131,6 +138,7 @@ const MIGRATION_STEPS: Record<OutdatedSchemaVersion, MigrationStep> = {
     "008": migrateFrom008To009,
     "009": migrateFrom009To010,
     "010": migrateFrom010To011,
+    "011": migrateFrom011To012,
 }
 
 /** Applies the step for `version`, restamps `$schema` and returns the new version */

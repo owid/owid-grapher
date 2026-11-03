@@ -224,8 +224,6 @@ export class FacetMap
     @computed get series(): MapFacetSeries[] {
         return this.targetTimes.map((time) => ({
             seriesName: this.table.timeColumn.formatTime(time),
-            // Required for a ChartSeries, but isn't meaningful for facets
-            color: "none",
             // Only set overrides for this facet. Default properties are set elsewhere.
             manager: { targetTime: time },
         }))
@@ -314,7 +312,6 @@ export class FacetMap
                 bounds,
                 manager,
                 seriesName: series.seriesName,
-                color: series.color,
             }
         })
     }
