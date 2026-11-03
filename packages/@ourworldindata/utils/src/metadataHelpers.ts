@@ -420,6 +420,11 @@ export const getDateRange = (timespan: string): string | null => {
 
         const firstYear = parseInt(firstYearString, 10)
         const lastYear = parseInt(lastYearString, 10)
+
+        // data for a single year reads as that year, not "2023–2023"
+        if (firstYear === lastYear)
+            return firstYear < 0 ? `${Math.abs(firstYear)} BCE` : `${firstYear}`
+
         let formattedFirstYear
 
         // if start year is before year 0, add BCE to the end

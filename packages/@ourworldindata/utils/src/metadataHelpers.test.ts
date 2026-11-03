@@ -908,6 +908,11 @@ describe(getDateRange, () => {
         expect(getDateRange("-5000-2020")).toEqual("5000 BCE – 2020 CE")
     })
 
+    it("shows a range within a single year as that year", () => {
+        expect(getDateRange("2023-2023")).toEqual("2023")
+        expect(getDateRange("-500--500")).toEqual("500 BCE")
+    })
+
     it("returns null for a single year", () => {
         expect(getDateRange("1990")).toBeNull()
     })
