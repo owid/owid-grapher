@@ -61,3 +61,77 @@ describe(LinkedAuthor, () => {
         expect(html).not.toContain('href="/team#our-world-in-data-team"')
     })
 })
+
+describe("LinkedAuthor avatars", () => {
+    const withPhoto: Attachments = {
+        ...attachments,
+        linkedAuthors: [
+            {
+                name: "Fiona Spooner",
+                slug: "fiona-spooner",
+                featuredImage: "fiona.jpg",
+                updatedAt: new Date("2026-01-01"),
+            },
+        ],
+    }
+    const photoMetadata: Attachments["imageMetadata"] = {
+        "fiona.jpg": {
+            filename: "fiona.jpg",
+            cloudflareId: "abc",
+            originalWidth: 100,
+            originalHeight: 100,
+            defaultAlt: "",
+            updatedAt: null,
+        },
+    }
+
+    const render = (
+        name: string,
+        value: Attachments,
+        props: { includeImage?: boolean; includeInitials?: boolean }
+    ): string =>
+        renderToStaticMarkup(
+            <AttachmentsContext.Provider value={value}>
+                <LinkedAuthor name={name} {...props} />
+            </AttachmentsContext.Provider>
+        )
+
+    it("shows initials in place of a missing photo when asked to", () => {
+        const html = render("Lars Yencken", attachments, {
+            includeImage: true,
+            includeInitials: true,
+        })
+
+        expect(html).toContain("linked-author-initials")
+        expect(html).toContain(">LY<")
+    })
+
+    it("shows the photo, not initials, when the photo can render", () => {
+        const html = render(
+            "Fiona Spooner",
+            { ...withPhoto, imageMetadata: photoMetadata },
+            { includeImage: true, includeInitials: true }
+        )
+
+        expect(html).toContain("linked-author-image")
+        expect(html).not.toContain("linked-author-initials")
+    })
+
+    it("falls back to initials when the photo has no image metadata, as on archived pages", () => {
+        const html = render("Fiona Spooner", withPhoto, {
+            includeImage: true,
+            includeInitials: true,
+        })
+
+        expect(html).not.toContain("linked-author-image")
+        expect(html).toContain(">FS<")
+    })
+
+    it("shows no initials unless asked to", () => {
+        const html = render("Lars Yencken", attachments, {
+            includeImage: true,
+        })
+
+        expect(html).not.toContain("linked-author-initials")
+    })
+})

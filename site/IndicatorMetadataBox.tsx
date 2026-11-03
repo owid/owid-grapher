@@ -477,7 +477,10 @@ export default function IndicatorMetadataBox({
                         label="Managed by"
                         className="indicator-metadata-box__managed-by"
                     >
-                        <AvatarByline authors={owners} />
+                        <AvatarByline
+                            authors={owners}
+                            showInitialsWithoutPhoto
+                        />
                     </MetadataBoxKeyDataRow>
                 )}
                 {sourceString && (

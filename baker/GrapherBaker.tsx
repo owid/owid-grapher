@@ -42,11 +42,15 @@ import {
     getOwnersForVariables,
 } from "../db/model/Variable.js"
 import {
+    addTeamPagePhotos,
     fetchAndParseFaqs,
     getPrimaryTopic,
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
-import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
+import {
+    getMinimalAuthorsByNames,
+    getTeamPagePhotos,
+} from "../db/model/Gdoc/GdocBase.js"
 import { getDatapageDataV2 } from "../site/dataPage.js"
 import { getAllImages } from "../db/model/Image.js"
 import { parseAndMigrateChartConfig } from "../db/model/ChartConfigs.js"
@@ -225,10 +229,18 @@ export async function renderDataPageV2(
     const ownerNames = _.uniq(
         (datapageData.owners ?? []).flatMap((dataset) => dataset.owners)
     )
-    datapageData.linkedAuthors = await getMinimalAuthorsByNames(
-        knex,
-        ownerNames
+    const authors = await getMinimalAuthorsByNames(knex, ownerNames)
+    // Data managers without an author page photo fall back to their team
+    // page photo, which is only worth fetching when someone needs it
+    const someoneLacksPhoto = ownerNames.some(
+        (name) =>
+            !authors.some(
+                (author) => author.name === name && author.featuredImage
+            )
     )
+    datapageData.linkedAuthors = someoneLacksPhoto
+        ? addTeamPagePhotos(authors, ownerNames, await getTeamPagePhotos(knex))
+        : authors
 
     const archiveContext =
         grapher.id !== undefined
@@ -258,7 +270,7 @@ export async function renderDataPageV2(
             .filter((f): f is string => !!f)
 
         // Photos of the data managers. Left out of archived pages, which have
-        // no image assets, so they show names only.
+        // no image assets, so they show initials instead.
         const linkedAuthorFilenames = (datapageData.linkedAuthors ?? [])
             .map((author) => author.featuredImage)
             .filter((f): f is string => !!f)
