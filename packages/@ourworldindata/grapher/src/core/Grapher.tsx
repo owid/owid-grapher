@@ -21,6 +21,7 @@ import {
     strToQueryParams,
     queryParamsToStr,
     setWindowQueryStr,
+    registerKeyboardShortcuts,
 } from "@ourworldindata/utils"
 import { BodyPortal } from "@ourworldindata/components"
 import {
@@ -48,7 +49,6 @@ import { observer } from "mobx-react"
 import { SourcesModal } from "../modal/SourcesModal"
 import { Command, CommandPalette } from "../controls/CommandPalette"
 import { EmbedModal } from "../modal/EmbedModal"
-import { tinykeys } from "tinykeys"
 import { SelectionArray } from "../selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import classnames from "clsx"
@@ -826,7 +826,10 @@ export class Grapher extends React.Component<GrapherProps> {
                 },
             ])
         )
-        this.unbindKeyboardShortcutsFn = tinykeys(window, keybindings)
+        this.unbindKeyboardShortcutsFn = registerKeyboardShortcuts(
+            window,
+            keybindings
+        )
     }
 
     private unbindKeyboardShortcuts(): void {
