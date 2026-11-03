@@ -135,13 +135,13 @@ export class StackedAreaChartThumbnail
 
         return excludeUndefined(
             this.chartState.series.map((series, seriesIndex) => {
-                const { seriesName, color, focus } = series
+                const { seriesName, shortEntityName, color, focus } = series
 
                 // Don't label background series
                 if (focus?.background) return undefined
 
                 const value = this.chartState.midpoints[seriesIndex]
-                const label = seriesName
+                const label = shortEntityName ?? seriesName
 
                 return { seriesName, value, label, color }
             })
