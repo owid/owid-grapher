@@ -32,7 +32,13 @@ import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
-import { ArchiveContext, Distribution } from "@ourworldindata/types"
+import {
+    AdditionalIndicator,
+    StitchedIndicatorListEntry,
+    AuxiliaryIndicator,
+    ArchiveContext,
+    Distribution,
+} from "@ourworldindata/types"
 import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
 import { makeJsonLdGrapherImageUrl } from "./jsonLdHelpers.js"
 import { JsonLdDataPage } from "./jsonLd.js"
@@ -40,6 +46,10 @@ import { JsonLdDataPage } from "./jsonLd.js"
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
     datapageData: DataPageDataV2
+    additionalIndicators?: AdditionalIndicator[]
+    stitchedIndicatorList?: StitchedIndicatorListEntry[]
+    hideStitchedIndicatorList?: boolean
+    auxiliaryIndicators?: AuxiliaryIndicator[]
     baseUrl: string
     canonicalUrl: string
     isPreviewing: boolean
@@ -52,6 +62,10 @@ export const DataPageV2 = (props: {
     const {
         grapher,
         datapageData,
+        additionalIndicators,
+        stitchedIndicatorList,
+        hideStitchedIndicatorList,
+        auxiliaryIndicators,
         baseUrl,
         canonicalUrl,
         isPreviewing,
@@ -167,6 +181,10 @@ export const DataPageV2 = (props: {
                             __html: `window._OWID_DATAPAGEV2_PROPS = ${serializeJSONForInlineScript(
                                 {
                                     datapageData,
+                                    additionalIndicators,
+                                    stitchedIndicatorList,
+                                    hideStitchedIndicatorList,
+                                    auxiliaryIndicators,
                                     faqEntries,
                                     canonicalUrl,
                                     imageMetadata,
@@ -179,6 +197,12 @@ export const DataPageV2 = (props: {
                         <DebugProvider debug={isPreviewing}>
                             <DataPageV2Content
                                 datapageData={datapageData}
+                                additionalIndicators={additionalIndicators}
+                                stitchedIndicatorList={stitchedIndicatorList}
+                                hideStitchedIndicatorList={
+                                    hideStitchedIndicatorList
+                                }
+                                auxiliaryIndicators={auxiliaryIndicators}
                                 grapherConfig={grapherConfig}
                                 imageMetadata={imageMetadata}
                                 isPreviewing={isPreviewing}

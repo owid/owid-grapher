@@ -31,6 +31,19 @@ export interface DatasetOwners {
 export interface DataPageDataV2 {
     status: "published" | "draft"
     title: IndicatorTitleWithFragments
+    /**
+     * The chart dimension's display.name for this indicator, when the chart
+     * author set one. The indicator SWITCHER prefers it for pill labels so
+     * they match the chart's own series labels; titles/citations/lists keep
+     * the self-contained titlePublic.
+     */
+    chartDimensionName?: string
+    /**
+     * Set on a scatter plot's bubble-size or colour pane (when that indicator
+     * is shown as a pane rather than in the size/colour line): the switcher
+     * prefixes the pill label with "Size: " / "Color: ".
+     */
+    auxiliaryRole?: AuxiliaryIndicator["role"]
     titleVariant?: string
     attributionShort?: string
     topicTagsLinks?: string[]
@@ -75,8 +88,95 @@ export type Distribution =
     | { allowed: true }
     | { allowed: false; sourceLinks: string[] }
 
+/**
+ * One row of the stitched metadata box's indicator list. When every pane of a
+ * multi-indicator chart shares the same substantive metadata, the baker
+ * stitches the panes into a single pane plus this list; `short`, `unit`
+ * and `note` are only set when that field differs across the indicators (the
+ * shared value renders once in the pane instead).
+ */
+export interface StitchedIndicatorListEntry {
+    title: string
+    short?: string
+    unit?: string
+    note?: string
+    /**
+     * This indicator's own date range, when ranges differ (the pane shows
+     * their min–max union) — e.g. 1950-2023 estimates next to 2024-2100
+     * projections.
+     */
+    dateRange?: string
+    /** This indicator's producer documentation, when it differs across indicators. */
+    producerDescription?: string
+    /**
+     * Per-indicator content of a data source the indicators share (same
+     * producer/title/version/description/access date) but whose link or
+     * citation text differs per indicator — e.g. one WDI source with a
+     * different landing URL per indicator. Keyed by the source's identity.
+     */
+    sources?: { key: string; urlMain?: string; citationFull?: string }[]
+}
+
+/**
+ * A scatter plot's bubble-size or colour indicator, when it is documented in
+ * the one-line link rather than as a pane — see AuxiliaryIndicatorMode.
+ */
+export interface AuxiliaryIndicator {
+    role: "size" | "color"
+    title: string
+    /** Slug of the indicator's own data page, when it has one. */
+    slug?: string
+}
+
+/**
+ * How a scatter plot's size and colour indicators are documented (QA param
+ * `?auxiliary=` on the preview routes):
+ * - "panes" (default): all of them as panes in the switcher, after the axis
+ *   panes, labelled with a muted "Size" / "Color" prefix.
+ * - "mixed": those with a data page go in a one-line link; those without
+ *   one get a pane of their own, so their sources stay inspectable.
+ * - "line": all of them in the one-line link (plain text when no page).
+ */
+export type AuxiliaryIndicatorMode = "mixed" | "line" | "panes"
+export const AUXILIARY_INDICATOR_MODES: AuxiliaryIndicatorMode[] = [
+    "mixed",
+    "line",
+    "panes",
+]
+export const DEFAULT_AUXILIARY_INDICATOR_MODE: AuxiliaryIndicatorMode = "panes"
+
+export interface AdditionalIndicator {
+    datapageData: DataPageDataV2
+    faqEntries?: FaqEntryData
+    /** Set by the baker; lets bake-time steps look the indicator up again. */
+    variableId?: number
+}
+
 export interface DataPageV2ContentFields {
     datapageData: DataPageDataV2
+    /**
+     * Per-indicator metadata for the non-primary Y-indicators of a chart.
+     * Populated at bake time only for charts enrolled in the data page metadata
+     * experiment (see DATA_PAGE_METADATA_EXPERIMENT_ID); left undefined for
+     * ordinary single-indicator data pages. The metadata box renders an
+     * indicator switcher over `[primary, ...additionalIndicators]` when this is
+     * non-empty.
+     */
+    additionalIndicators?: AdditionalIndicator[]
+    /**
+     * Set instead of `additionalIndicators` when the panes were stitched — see
+     * StitchedIndicatorListEntry. The metadata box renders one pane plus this
+     * templated indicator list, and no switcher.
+     */
+    stitchedIndicatorList?: StitchedIndicatorListEntry[]
+    /**
+     * The stitched list adds nothing beyond the chart legend (titles only, or
+     * one measure sliced by age/sex/year): it is kept in the props but not
+     * rendered — see baker/indicatorSliceDimension.ts.
+     */
+    hideStitchedIndicatorList?: boolean
+    /** Scatter plots: the bubble-size and colour indicators. */
+    auxiliaryIndicators?: AuxiliaryIndicator[]
     faqEntries: FaqEntryData | undefined
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean
@@ -93,6 +193,12 @@ export interface DisplaySource {
     retrievedOn?: string
     retrievedFrom?: string
     citation?: string
+    /**
+     * Per-indicator link/citation of this source on a stitched multi-indicator
+     * page; when present the Sources UI renders these instead of the single
+     * retrievedFrom/citation.
+     */
+    variants?: { label: string; retrievedFrom?: string; citation?: string }[]
     // Only the data-download readme reads these; the Sources UIs render the
     // fields above. They are here so both start from one shape.
     producer?: string

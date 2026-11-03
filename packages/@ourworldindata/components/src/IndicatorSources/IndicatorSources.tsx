@@ -51,7 +51,9 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                     />
                 )
                 const useExpandableToggle =
-                    source.description || source.citation
+                    source.description ||
+                    source.citation ||
+                    source.variants?.length
                 return useExpandableToggle ? (
                     <ExpandableToggle
                         key={source.label}
@@ -101,11 +103,13 @@ const SourceContent = (props: {
 }) => {
     const { source } = props
     const retrievedOn = formatSourceDate(source.retrievedOn, "MMMM D, YYYY")
+    const variants = source.variants?.length ? source.variants : undefined
     const showKeyInfo =
         source.dataPublishedBy ||
         retrievedOn ||
         (source.retrievedFrom && source.retrievedFrom.length > 0) ||
-        source.citation
+        source.citation ||
+        variants
     return (
         <div className="source">
             {source.description && (
@@ -139,6 +143,7 @@ const SourceContent = (props: {
                         <div
                             className={cx("source-key-data", {
                                 "source-key-data--span-2":
+                                    !!variants ||
                                     !source.retrievedFrom ||
                                     source.retrievedFrom.length === 0,
                             })}
@@ -151,7 +156,36 @@ const SourceContent = (props: {
                             </div>
                         </div>
                     )}
-                    {source.retrievedFrom &&
+                    {variants &&
+                        variants.map((v, i) => (
+                            <div
+                                key={`${i}-${v.label}`}
+                                className="source-key-data source-key-data--span-2 source-key-data--variant"
+                            >
+                                <div className="source-key-data__title">
+                                    {v.label}
+                                </div>
+                                <div className="source-key-data__content">
+                                    {v.retrievedFrom && (
+                                        <div className="source-key-data__variant-row">
+                                            Retrieved from{" "}
+                                            {makeLinks({
+                                                link: v.retrievedFrom,
+                                            })}
+                                        </div>
+                                    )}
+                                    {v.citation && (
+                                        <CodeSnippet
+                                            code={v.citation.trim()}
+                                            theme="light"
+                                            useMarkdown={true}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    {!variants &&
+                        source.retrievedFrom &&
                         source.retrievedFrom.length > 0 && (
                             <div
                                 className={cx("source-key-data", {
@@ -171,7 +205,7 @@ const SourceContent = (props: {
                                 </div>
                             </div>
                         )}
-                    {source.citation && (
+                    {!variants && source.citation && (
                         <div className="source-key-data source-key-data-citation source-key-data--span-2">
                             <div className="source-key-data__title">
                                 Citation
