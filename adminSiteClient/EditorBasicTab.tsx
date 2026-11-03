@@ -15,8 +15,6 @@ import {
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_NAMES,
     GrapherChartType,
-    DbChartTagJoin,
-    TaggableType,
     EntityName,
     PeerCountryStrategy,
     ALL_GRAPHER_CHART_TYPES,
@@ -27,6 +25,7 @@ import {
     DimensionSlot,
     WORLD_ENTITY_NAME,
     findPotentialChartTypeSiblings,
+    makeLabelForGrapherTab,
     ChartDimension,
     SelectionArray,
     selectPeerCountries,
@@ -49,8 +48,6 @@ import { DimensionCard } from "./DimensionCard.js"
 import { ConfigEditor } from "./ConfigEditor.js"
 import { EditorDatabase } from "./EditorDatabase.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
-import { EditableTags } from "./EditableTags.js"
-import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 import * as R from "remeda"
 import { SortableList } from "./SortableList.js"
 import { GrapherTabIcon } from "@ourworldindata/components"
@@ -511,44 +508,6 @@ class VariablesSection extends React.Component<VariablesSectionProps> {
     }
 }
 
-export const TagsSection = (props: {
-    chartId: number | undefined
-    tags: DbChartTagJoin[] | undefined
-    availableTags: MinimalTagWithMetadata[] | undefined
-    onSaveTags: (tags: DbChartTagJoin[]) => Promise<void>
-}) => {
-    const { chartId, tags, availableTags } = props
-    const canTag = !!chartId && tags && availableTags
-    return (
-        <Section name="Tags">
-            {canTag ? (
-                <>
-                    <EditableTags
-                        onSave={props.onSaveTags}
-                        tags={tags}
-                        suggestions={availableTags}
-                        hasKeyChartSupport
-                        hasSuggestionsSupport
-                        taggable={{
-                            type: TaggableType.Charts,
-                            id: props.chartId,
-                        }}
-                    />
-                    <small className="form-text text-muted">
-                        Changes to tags will be applied instantly, without the
-                        need to save the chart.
-                    </small>
-                </>
-            ) : (
-                <p>
-                    Can't tag this chart
-                    {!chartId && <>, because it hasn't been saved yet</>}.
-                </p>
-            )}
-        </Section>
-    )
-}
-
 interface EditorBasicTabProps {
     editor: ConfigEditor
     database: EditorDatabase
@@ -576,6 +535,9 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
             const isStackedGroup = chartTypes.includes(
                 GRAPHER_CHART_TYPES.StackedArea
             )
+            const isCategoricalGroup = chartTypes.includes(
+                GRAPHER_CHART_TYPES.Swimlane
+            )
 
             if (isSingleYIndicatorGroup) {
                 const label = "Single y-indicator charts"
@@ -583,7 +545,10 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
             } else if (isStackedGroup) {
                 const label = "Stacked charts"
                 groups.push({ label, chartTypes })
-            } else {
+            } else if (isCategoricalGroup) {
+                const label = "Categorical charts"
+                groups.push({ label, chartTypes })
+            } else if (chartTypes.length > 1) {
                 const label = chartTypes.join(", ")
                 groups.push({ label, chartTypes })
             }
@@ -735,7 +700,7 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
                                         }
                                     >
                                         <GrapherTabIcon tab={chartType} />{" "}
-                                        {_.startCase(chartType)}
+                                        {makeEditorLabelForChartType(chartType)}
                                     </Tag.CheckableTag>
                                 ))}
                             </div>
@@ -770,4 +735,11 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
             </div>
         )
     }
+}
+
+function makeEditorLabelForChartType(chartType: GrapherChartType): string {
+    // The long label is "Bar chart" for both DiscreteBar and StackedDiscreteBar
+    if (chartType === GRAPHER_CHART_TYPES.StackedDiscreteBar)
+        return "Stacked bar chart"
+    return makeLabelForGrapherTab(chartType, { format: "long" })
 }

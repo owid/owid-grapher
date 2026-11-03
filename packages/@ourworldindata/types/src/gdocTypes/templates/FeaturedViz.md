@@ -21,8 +21,7 @@ skeleton:
 ---
 
 A page built around one custom, interactive data visualization: a bespoke
-component on a full-bleed hero band, with prose above and below it. Published
-under `/featured-viz/{slug}`.
+component on a full-bleed hero band, with prose above and below it.
 
 ## When to use
 

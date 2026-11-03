@@ -23,12 +23,16 @@ export class TooltipCard extends React.Component<
     private tooltipWidth: number = 0
     private tooltipHeight: number = 0
 
+    /** Re-renders before paint when the size changed, since the position depends on it */
     private updateDimensions(): void {
-        if (this.base.current) {
-            const el = this.base.current
-            this.tooltipWidth = el.scrollWidth + 2 * el.clientLeft // account for left/right border
-            this.tooltipHeight = el.scrollHeight + 2 * el.clientTop // account for top/bottom border
-        }
+        if (!this.base.current) return
+        const el = this.base.current
+        const width = el.scrollWidth + 2 * el.clientLeft // account for left/right border
+        const height = el.scrollHeight + 2 * el.clientTop // account for top/bottom border
+        if (width === this.tooltipWidth && height === this.tooltipHeight) return
+        this.tooltipWidth = width
+        this.tooltipHeight = height
+        this.forceUpdate()
     }
 
     private get tooltipStyle(): React.CSSProperties {

@@ -13,6 +13,7 @@ import {
     MarimekkoChartState,
     DumbbellChartState,
     DumbbellMode,
+    SwimlaneChartState,
     MapChartState,
     ChartState,
     makeChartState,
@@ -111,6 +112,12 @@ export function constructSearchResultDataTableContent(
             buildDataTableContentForDumbbellChart({
                 ...props,
                 chartState: chartState as DumbbellChartState,
+            })
+        )
+        .with(GRAPHER_TAB_NAMES.Swimlane, () =>
+            buildDataTableContentForSwimlaneChart({
+                ...props,
+                chartState: chartState as SwimlaneChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.WorldMap, () =>
@@ -372,6 +379,52 @@ function buildDataTableContentForDumbbellChart({
             return { rows, title }
         })
         .exhaustive()
+}
+
+function buildDataTableContentForSwimlaneChart({
+    grapherState,
+    chartState,
+    maxRows,
+}: Args<SwimlaneChartState>): SearchChartHitDataTableProps {
+    const { timeColumn } = chartState.inputTable
+    const timePreposition = OwidTable.getPreposition(timeColumn)
+
+    let rows = chartState.series.map((series) => {
+        const segment = R.findLast(
+            series.segments,
+            (segment) => segment.kind === "category"
+        )
+
+        return {
+            seriesName: series.seriesName,
+            label: series.shortEntityName ?? series.entityName,
+            muted: chartState.focusArray.state(series.entityName).background,
+            ...(segment
+                ? {
+                      color: segment.color,
+                      value: segment.categoryLabel,
+                      time: timeColumn.formatTime(segment.visibleEndTime),
+                      timePreposition,
+                  }
+                : {
+                      color: chartState.colorScale.noDataColor,
+                      value: chartState.colorScale.noDataLabel,
+                      striped: "no-data" as const,
+                  }),
+        }
+    })
+
+    // Take the first X rows if maxRows is specified
+    if (maxRows && maxRows > 0) rows = R.take(rows, maxRows)
+
+    return {
+        rows,
+        title: makeTableTitle(
+            grapherState,
+            chartState,
+            chartState.formatColumn
+        ),
+    }
 }
 
 function buildDataTableContentForStackedDiscreteBarChart({

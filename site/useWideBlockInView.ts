@@ -42,9 +42,7 @@ export function useWideBlockInView(): boolean {
     // collapsed on the server and on the first client render and only opens
     // once the client has measured that nothing overlaps.
     const [inView, setInView] = useState(true)
-    const canWideColCoexist = useMediaQuery(
-        `(min-width: ${COEXIST_MIN_WIDTH}px)`
-    )
+    const canWideColCoexist = useMediaQuery(`(width >= ${COEXIST_MIN_WIDTH}px)`)
     useEffect(() => {
         if (!("IntersectionObserver" in window)) return
 

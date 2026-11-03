@@ -12,7 +12,7 @@ import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { LoadingBlocker, Section } from "./Forms.js"
-import { GrapherEditor } from "./GrapherEditor.js"
+import { AdminGrapherEditor } from "./AdminGrapherEditor.js"
 import {
     ConfigEditor,
     EditorExtraTab,
@@ -22,14 +22,9 @@ import { EditorReferencesTabForNarrativeChart } from "./EditorReferencesTab.js"
 import { NarrativeChartSaveButtons } from "./NarrativeChartSaveButtons.js"
 import { getFullReferencesCount, References } from "./adminChartApi.js"
 import {
-    adminDetailsProvider,
-    adminIndicatorCatalog,
     adminOriginUrlSuggestions,
     adminScatterDefaults,
-    defaultEditorEnvironment,
-    DetailsProvider,
-} from "./editorProviders.js"
-import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
+} from "./adminEditorProviders.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 
 interface NarrativeChartEditorPageProps {
@@ -87,17 +82,6 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
 
     @computed get admin(): Admin {
         return this.context.admin
-    }
-
-    @computed get store(): IndicatorStore {
-        return dataApiIndicatorStore({
-            dataApiUrl: defaultEditorEnvironment.dataApiUrl,
-            catalog: adminIndicatorCatalog(this.admin),
-        })
-    }
-
-    @computed get details(): DetailsProvider {
-        return adminDetailsProvider(this.admin)
     }
 
     @computed get scatterDefaults(): OwidChartDimensionInterface[] {
@@ -206,12 +190,10 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
 
     private renderEditor(): React.ReactElement {
         return (
-            <GrapherEditor
+            <AdminGrapherEditor
                 key={this.props.narrativeChartId}
                 config={this.patchConfig}
                 baseConfig={this.parentConfig}
-                store={this.store}
-                details={this.details}
                 scatterDefaults={this.scatterDefaults}
                 onSave={this.onSave}
                 extraTabs={this.extraTabs}

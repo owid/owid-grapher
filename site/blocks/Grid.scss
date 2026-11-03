@@ -4,7 +4,7 @@
     grid-template-columns: repeat(1, 1fr);
     margin: $vertical-spacing 0;
 
-    @media (min-width: 30rem) {
+    @media (width >= 30rem) {
         gap: $padding-x-sm;
         grid-template-columns: repeat(2, 1fr);
     }

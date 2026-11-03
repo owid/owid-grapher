@@ -22,7 +22,7 @@
 
 // needed for .global-entity-control-container
 @mixin xxlg-down {
-    @media only screen and (max-width: $xxlg) {
+    @media only screen and (width <= $xxlg) {
         @content;
     }
 }

@@ -92,7 +92,10 @@ export {
 export { GrapherState } from "./core/GrapherState"
 export { GrapherAnalytics, splitPathForGA4 } from "./core/GrapherAnalytics"
 export { legacyToCurrentGrapherUrl } from "./core/GrapherUrlMigrations"
-export { legacyToOwidTableAndDimensions } from "./core/LegacyToOwidTable"
+export {
+    appendSelectedEntityColors,
+    legacyToOwidTableAndDimensions,
+} from "./core/LegacyToOwidTable"
 export { getErrorMessageRelatedQuestionUrl } from "./core/relatedQuestion"
 export { MapChartState } from "./mapCharts/MapChartState"
 export { MapConfig } from "./mapCharts/MapConfig"
@@ -173,6 +176,7 @@ export type { StackedDiscreteBarChartState } from "./stackedCharts/StackedDiscre
 export type { ScatterPlotChartState } from "./scatterCharts/ScatterPlotChartState"
 export type { MarimekkoChartState } from "./marimekko/MarimekkoChartState"
 export type { DumbbellChartState } from "./dumbbellCharts/DumbbellChartState"
+export type { SwimlaneChartState } from "./swimlaneCharts/SwimlaneChartState"
 
 export {
     selectPeerCountriesForGrapher,

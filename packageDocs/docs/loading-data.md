@@ -82,6 +82,26 @@ Here the chart labels the column "Life expectancy at birth", in years, with one 
 
 `slug` dimensions only work with your own data. With `fromApi`, a dimension names an OWID indicator by `variableId` instead (see below). A dimension can't have both, and `targetYear` is only supported on `variableId` dimensions.
 
+## Entity colors
+
+To give entities fixed colors, set `selectedEntityColors` in the config. It works with all three factories:
+
+```js
+GrapherLoader.fromCsv({
+    config: {
+        title: "GDP per capita",
+        selectedEntityNames: ["France", "Japan"],
+        selectedEntityColors: { France: "#3360a9", Japan: "#ed6c2d" },
+    },
+    csvUrl: "./data.csv",
+    columnDefs: [
+        { slug: "gdpPerCapita", type: "Numeric", name: "GDP per capita" },
+    ],
+}).mount(container)
+```
+
+With `fromCsv` and `fromTable` you can instead supply the colors as data: an `entityColor` column holding a CSS color per row. If your data has an `entityColor` column, it takes precedence and `selectedEntityColors` is ignored.
+
 ## `fromApi`: OWID's data API
 
 For `fromApi`, the config's `dimensions` array says which indicators to fetch; indicator IDs can be found via the [OWID data catalog](https://docs.owid.io/projects/etl/api/). Data loading starts at construction time, so the chart shows a loading state until the data arrives:

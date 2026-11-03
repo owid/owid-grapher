@@ -599,9 +599,10 @@ export function DodsIndexPage() {
             dods
                 ? Object.values(dods).filter(
                       (dod) =>
-                          users?.[dod.lastUpdatedUserId]?.fullName
-                              .toLowerCase()
-                              .includes(dodSearchValue.toLowerCase()) ||
+                          (dod.lastUpdatedUserId !== null &&
+                              users?.[dod.lastUpdatedUserId]?.fullName
+                                  .toLowerCase()
+                                  .includes(dodSearchValue.toLowerCase())) ||
                           dod.name
                               .toLowerCase()
                               .includes(dodSearchValue.toLowerCase()) ||
