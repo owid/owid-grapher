@@ -132,11 +132,15 @@ export interface LineChartManager extends ChartManager {
 
 export type AnnotationTooltipState =
     | { kind: "idle" }
-    | { kind: "labelOpen"; seriesName: SeriesName }
+    | { kind: "labelOpen"; seriesName: SeriesName; hasAnnotations: boolean }
     | { kind: "markerOpen"; seriesName: SeriesName; time: Time }
 
 export type AnnotationTooltipEvent =
-    | { type: "labelTooltipShow"; seriesName: SeriesName }
+    | {
+          type: "labelTooltipShow"
+          seriesName: SeriesName
+          hasAnnotations: boolean
+      }
     | { type: "labelTooltipHide"; seriesName: SeriesName }
     | { type: "markerClick"; seriesName: SeriesName; time: Time }
     | { type: "markerTooltipClose" }

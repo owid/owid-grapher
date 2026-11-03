@@ -15,6 +15,7 @@ import { observer } from "mobx-react"
 
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
+import { SeriesLabelTooltip } from "../seriesLabel/SeriesLabel"
 import { VerticalLabels } from "../verticalLabels/VerticalLabels"
 import { VerticalLabelsState } from "../verticalLabels/VerticalLabelsState"
 import { TooltipState } from "../tooltip/Tooltip"
@@ -265,13 +266,15 @@ export class LineChart
     }
 
     @action.bound private onVerticalLabelTooltipShow(
-        seriesName: SeriesName
+        seriesName: SeriesName,
+        { hasAnnotations }: SeriesLabelTooltip
     ): void {
         this.chartState.focusArray.clear()
         this.dismissTooltip()
         this.dispatchAnnotationTooltipEvent({
             type: "labelTooltipShow",
             seriesName,
+            hasAnnotations,
         })
     }
 
@@ -320,18 +323,23 @@ export class LineChart
         return kind === "labelOpen" || kind === "markerOpen"
     }
 
-    @computed private get verticalLabelTooltipSeriesName():
-        | SeriesName
+    @computed private get visibleLabelTooltip():
+        | Extract<AnnotationTooltipState, { kind: "labelOpen" }>
         | undefined {
         const state = this.annotationTooltipState
-        return state.kind === "labelOpen" ? state.seriesName : undefined
+        return state.kind === "labelOpen" ? state : undefined
+    }
+
+    private isLabelTooltipShowingAnnotations(seriesName: SeriesName): boolean {
+        const tooltip = this.visibleLabelTooltip
+        return !!tooltip?.hasAnnotations && tooltip.seriesName === seriesName
     }
 
     @computed private get hoveredSeriesNames(): string[] {
         const { externalLegendHoverBin } = this.manager
         const hoveredSeriesNames = excludeUndefined([
             this.hoveredLabelSeriesName,
-            this.verticalLabelTooltipSeriesName,
+            this.visibleLabelTooltip?.seriesName,
         ])
         if (externalLegendHoverBin) {
             hoveredSeriesNames.push(
@@ -720,8 +728,9 @@ export class LineChart
                     ({ point }) =>
                         isTooltipOpenAt(point.time) ||
                         (!series.hover.background &&
-                            (series.seriesName ===
-                                this.verticalLabelTooltipSeriesName ||
+                            (this.isLabelTooltipShowingAnnotations(
+                                series.seriesName
+                            ) ||
                                 this.isAtHoveredTime(point.time)))
                 )
                 .map((placedAnnotation) => ({

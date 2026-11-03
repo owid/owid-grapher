@@ -263,10 +263,14 @@ export function transitionAnnotationTooltipState(
     event: AnnotationTooltipEvent
 ): AnnotationTooltipState {
     return match<AnnotationTooltipEvent, AnnotationTooltipState>(event)
-        .with({ type: "labelTooltipShow" }, ({ seriesName }) => ({
-            kind: "labelOpen",
-            seriesName,
-        }))
+        .with(
+            { type: "labelTooltipShow" },
+            ({ seriesName, hasAnnotations }) => ({
+                kind: "labelOpen",
+                seriesName,
+                hasAnnotations,
+            })
+        )
         .with({ type: "labelTooltipHide" }, ({ seriesName }) =>
             state.kind === "labelOpen" && state.seriesName === seriesName
                 ? { kind: "idle" }

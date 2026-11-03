@@ -49,8 +49,12 @@ export interface SeriesLabelProps {
     showInfoIcon?: boolean
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
-    onTooltipShow?: () => void
+    onTooltipShow?: (tooltip: SeriesLabelTooltip) => void
     onTooltipHide?: () => void
+}
+
+export interface SeriesLabelTooltip {
+    hasAnnotations: boolean
 }
 
 /**
@@ -371,7 +375,7 @@ function TooltipTrigger({
     textAnchor: "start" | "end"
     fontSize: number
     stroke: string
-    onTooltipShow?: () => void
+    onTooltipShow?: (tooltip: SeriesLabelTooltip) => void
     onTooltipHide?: () => void
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
@@ -447,7 +451,7 @@ function TooltipTrigger({
                     // Hide any other open tooltips
                     hideAll({ exclude: instance })
 
-                    onTooltipShow?.()
+                    onTooltipShow?.({ hasAnnotations })
                 }}
                 onHide={() => onTooltipHide?.()}
                 // Changing the key forces RegionTooltip to remount on the
