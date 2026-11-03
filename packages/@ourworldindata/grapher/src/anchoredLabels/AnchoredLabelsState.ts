@@ -295,7 +295,7 @@ export class AnchoredLabelsState {
                     collisionBounds.intersects(
                         anchorBounds.get(other.seriesName)!
                     ) &&
-                    !isMoreEmphasized(series, other)
+                    emphasisRank(series) <= emphasisRank(other)
             )
         }
 
@@ -344,12 +344,7 @@ function shiftSeries<T extends SizedAnchoredLabelSeries>(
             x: series.textPosition.x,
             y: series.textPosition.y + dy,
         },
-        bounds: new Bounds(
-            series.bounds.x,
-            series.bounds.y + dy,
-            series.bounds.width,
-            series.bounds.height
-        ),
+        bounds: series.bounds.set({ y: series.bounds.y + dy }),
     }
 }
 
@@ -378,11 +373,4 @@ function emphasisRank(series: InitialAnchoredLabelSeries): number {
         default:
             return 1
     }
-}
-
-function isMoreEmphasized(
-    a: InitialAnchoredLabelSeries,
-    b: InitialAnchoredLabelSeries
-): boolean {
-    return emphasisRank(a) > emphasisRank(b)
 }
