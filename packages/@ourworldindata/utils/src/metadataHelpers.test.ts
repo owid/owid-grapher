@@ -914,8 +914,8 @@ describe(getDateRange, () => {
         expect(getDateRange("-500--500")).toEqual("500 BCE")
     })
 
-    it("returns null for a single year", () => {
-        expect(getDateRange("1990")).toBeNull()
+    it("shows a single year as that year", () => {
+        expect(getDateRange("1990")).toEqual("1990")
     })
 
     it("returns null for an unrecognised separator", () => {
@@ -941,9 +941,12 @@ describe(isSingleYearTimespan, () => {
         expect(isSingleYearTimespan("-500--500")).toBe(true)
     })
 
+    it("is true for a single year written on its own", () => {
+        expect(isSingleYearTimespan("2023")).toBe(true)
+    })
+
     it("is false for a range or anything that isn't a timespan", () => {
         expect(isSingleYearTimespan("1990-2020")).toBe(false)
-        expect(isSingleYearTimespan("2023")).toBe(false)
         expect(isSingleYearTimespan("")).toBe(false)
     })
 })

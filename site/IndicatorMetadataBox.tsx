@@ -91,7 +91,8 @@ function IndicatorDataDetails({
     datapageData: DataPageDataV2
 }): React.ReactElement | null {
     const { unit, dateRange, lastUpdated, nextUpdate } = datapageData
-    if (!unit && !dateRange && !lastUpdated && !nextUpdate) return null
+    const formattedDateRange = makeDateRange({ dateRange })
+    if (!unit && !formattedDateRange && !lastUpdated && !nextUpdate) return null
     return (
         <MetadataBoxSection
             title="Data details"
@@ -103,11 +104,11 @@ function IndicatorDataDetails({
                         {unit}
                     </MetadataBoxKeyDataRow>
                 )}
-                {dateRange && (
+                {formattedDateRange && (
                     <MetadataBoxKeyDataRow
                         label={makeDateRangeLabel({ dateRange })}
                     >
-                        {makeDateRange({ dateRange })}
+                        {formattedDateRange}
                     </MetadataBoxKeyDataRow>
                 )}
                 {lastUpdated && (
