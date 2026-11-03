@@ -112,11 +112,8 @@ export function useSearchParamsState(
                 eligibleRegionNames,
                 synonymMap
             )
-            // AI search stays on while the reader changes filters, and goes
-            // off when they search for something else
-            const aiSearch =
-                options?.aiSearch ??
-                (isAiSearchOn && stateWithAutoFilters.query === state.query)
+            // AI search stays on for new searches until the reader turns it off
+            const aiSearch = options?.aiSearch ?? isAiSearchOn
             setSearchParams(
                 withAiSearchParam(
                     stateToSearchParams(stateWithAutoFilters),
