@@ -25,6 +25,7 @@ import {
     DimensionSlot,
     WORLD_ENTITY_NAME,
     findPotentialChartTypeSiblings,
+    makeLabelForGrapherTab,
     ChartDimension,
     SelectionArray,
     selectPeerCountries,
@@ -534,6 +535,9 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
             const isStackedGroup = chartTypes.includes(
                 GRAPHER_CHART_TYPES.StackedArea
             )
+            const isCategoricalGroup = chartTypes.includes(
+                GRAPHER_CHART_TYPES.Swimlane
+            )
 
             if (isSingleYIndicatorGroup) {
                 const label = "Single y-indicator charts"
@@ -541,7 +545,10 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
             } else if (isStackedGroup) {
                 const label = "Stacked charts"
                 groups.push({ label, chartTypes })
-            } else {
+            } else if (isCategoricalGroup) {
+                const label = "Categorical charts"
+                groups.push({ label, chartTypes })
+            } else if (chartTypes.length > 1) {
                 const label = chartTypes.join(", ")
                 groups.push({ label, chartTypes })
             }
@@ -693,7 +700,7 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
                                         }
                                     >
                                         <GrapherTabIcon tab={chartType} />{" "}
-                                        {_.startCase(chartType)}
+                                        {makeEditorLabelForChartType(chartType)}
                                     </Tag.CheckableTag>
                                 ))}
                             </div>
@@ -728,4 +735,11 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
             </div>
         )
     }
+}
+
+function makeEditorLabelForChartType(chartType: GrapherChartType): string {
+    // The long label is "Bar chart" for both DiscreteBar and StackedDiscreteBar
+    if (chartType === GRAPHER_CHART_TYPES.StackedDiscreteBar)
+        return "Stacked bar chart"
+    return makeLabelForGrapherTab(chartType, { format: "long" })
 }

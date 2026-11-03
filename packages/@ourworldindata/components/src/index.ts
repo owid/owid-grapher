@@ -48,6 +48,7 @@ export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"
 export {
     makeSource,
     makeDateRange,
+    makeDateRangeLabel,
     makeLastUpdated,
     makeNextUpdate,
     makeUnit,
@@ -69,7 +70,7 @@ export { ChartLicenseNotice } from "./ChartLicenseNotice/ChartLicenseNotice.js"
 
 export {
     BespokeMetadataHeading,
-    BESPOKE_METADATA_FALLBACK_TITLE,
+    BESPOKE_METADATA_TITLE,
 } from "./BespokeMetadata/BespokeMetadataHeading.js"
 export { BespokeMetadataKeyData } from "./BespokeMetadata/BespokeMetadataKeyData.js"
 export { getBespokeKeyDataRows } from "./BespokeMetadata/bespokeKeyDataRows.js"

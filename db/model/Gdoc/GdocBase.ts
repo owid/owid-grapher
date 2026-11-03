@@ -1516,6 +1516,51 @@ export async function getMinimalAuthorsByNames(
     )
 }
 
+/** A photo on the team page, for people who may have no author page */
+export interface TeamPagePhoto {
+    name: string
+    image: string
+    /** When the team page was last updated */
+    updatedAt: Date
+}
+
+/**
+ * The photos in the published team page's person blocks. Data managers who
+ * don't write articles often have no author page, but do have a photo here.
+ */
+export async function getTeamPagePhotos(
+    knex: db.KnexReadonlyTransaction
+): Promise<TeamPagePhoto[]> {
+    const teamPage = await db.knexRawFirst<{
+        body: string | null
+        updatedAt: Date
+    }>(
+        knex,
+        `-- sql
+            SELECT
+                content->'$.body' AS body,
+                COALESCE(NULLIF(updatedAt, '1970-01-01'), createdAt) updatedAt
+            FROM posts_gdocs
+            WHERE type = :type AND slug = 'team' AND published = 1`,
+        { type: OwidGdocType.AboutPage }
+    )
+    if (!teamPage?.body) return []
+
+    const photos: TeamPagePhoto[] = []
+    const body: OwidEnrichedGdocBlock[] = JSON.parse(teamPage.body)
+    for (const block of body) {
+        traverseEnrichedBlock(block, (node) => {
+            if (node.type === "person" && node.image)
+                photos.push({
+                    name: node.name,
+                    image: node.image,
+                    updatedAt: teamPage.updatedAt,
+                })
+        })
+    }
+    return photos
+}
+
 export async function makeGrapherLinkedChart(
     knex: db.KnexReadonlyTransaction,
     config: GrapherInterface,

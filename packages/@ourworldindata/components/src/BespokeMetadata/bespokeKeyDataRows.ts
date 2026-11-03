@@ -6,6 +6,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     makeDateRange,
+    makeDateRangeLabel,
     makeLastUpdated,
     makeNextUpdate,
     makeSource,
@@ -22,8 +23,6 @@ export interface BespokeMetadataKeyDataRow {
 export function getBespokeKeyDataRows(
     metadata: BespokeMetadata
 ): BespokeMetadataKeyDataRow[] {
-    if (!metadata.title) return []
-
     const attributions = getAttributionFragmentsFromBespokeMetadata(metadata)
 
     const lastUpdated = getLastUpdatedFromVariable(metadata)
@@ -46,7 +45,7 @@ export function getBespokeKeyDataRows(
             value: makeUnit({ unit: metadata.unit }),
         },
         {
-            label: "Date range",
+            label: makeDateRangeLabel({ dateRange: metadata.timespan }),
             // A timespan that isn't a year range prints as authored
             value:
                 makeDateRange({ dateRange: metadata.timespan }) ??

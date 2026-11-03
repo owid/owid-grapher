@@ -194,7 +194,6 @@
         "@types/express": "^5.0.6",
         "@types/fs-extra": "^11.0.4",
         "@types/geojson": "^7946.0.16",
-        "@types/history": "^4.7.11",
         "@types/ini": "^4.1.1",
         "@types/json-schema": "^7.0.15",
         "@types/lodash-es": "^4.17.12",
@@ -237,7 +236,7 @@
         "typescript": "^7.0.2",
         "vite": "^8.3.4",
         "vitest": "^5.0.5",
-        "wrangler": "^4.149.0"
+        "wrangler": "^4.153.0"
     },
     "resolutions": {
         "preact@npm:^10.13.2": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch",

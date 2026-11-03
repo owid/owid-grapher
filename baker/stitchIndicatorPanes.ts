@@ -34,7 +34,7 @@ import {
  *   series "minor"): the stitched pane shows the highest level.
  * - dateRange may differ: the stitched pane shows the min–max union and the
  *   list entries carry their own ranges. If any
- *   differing range doesn't parse as "<year>-<year>", the page stays
+ *   differing range doesn't parse as "<year>-<year>" or a bare year, the page stays
  *   unstitched rather than showing a wrong range.
  * - Dataset owners may differ (indicators spanning datasets): the stitched
  *   pane shows the union. lastUpdated shows the latest, nextUpdate the
@@ -85,7 +85,8 @@ const originsKey = (origins: OwidOrigin[] | undefined): string =>
 const originContent = (o: OwidOrigin): string =>
     canon({ urlMain: o.urlMain ?? null, citationFull: o.citationFull ?? null })
 
-const TIMESPAN_REGEX = /^\s*(-?\d+)-(-?\d+)\s*$/
+// "<year>-<year>", or a bare year (a single-year timespan, as in getDateRange)
+const TIMESPAN_REGEX = /^\s*(-?\d+)(?:-(-?\d+))?\s*$/
 
 // List entries use the self-contained pane title (titlePublic first), not
 // the chart dimension name the pills use.
@@ -131,7 +132,7 @@ export function computeIndicatorPaneStitch(
         const parsed = ranges.map((r) => TIMESPAN_REGEX.exec(r))
         if (parsed.some((m) => !m)) return undefined
         const starts = parsed.map((m) => parseInt(m![1], 10))
-        const ends = parsed.map((m) => parseInt(m![2], 10))
+        const ends = parsed.map((m) => parseInt(m![2] ?? m![1], 10))
         dateRange = `${Math.min(...starts)}-${Math.max(...ends)}`
     }
 

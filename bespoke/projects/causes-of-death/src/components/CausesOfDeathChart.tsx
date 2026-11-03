@@ -25,7 +25,6 @@ import { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart.js"
 import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
 
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 
 // Sentinel year meaning "the latest available year"; the concrete default
@@ -38,16 +37,11 @@ export function CausesOfDeathChartWithProviders(
     props: BespokeVariantProps<CausesOfDeathConfig>
 ): React.ReactElement {
     return (
-        <EmbedConfigProvider config={props.config}>
-            <NuqsAdapter>
-                <QueryClientProvider client={queryClient}>
-                    <CausesOfDeathChart
-                        config={props.config}
-                        urls={props.urls}
-                    />
-                </QueryClientProvider>
-            </NuqsAdapter>
-        </EmbedConfigProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <CausesOfDeathChart config={props.config} urls={props.urls} />
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 
@@ -59,22 +53,22 @@ function CausesOfDeathChart(props: {
 
     // State, synced to the URL when the embedding page asks for it
     const [ageGroup, setAgeGroup] = useUrlState({
-        key: "causesOfDeathAge",
+        key: "age",
         parser: parseAsString,
         defaultValue: config.ageGroup,
     })
     const [sex, setSex] = useUrlState({
-        key: "causesOfDeathSex",
+        key: "sex",
         parser: parseAsString,
         defaultValue: config.sex,
     })
     const [requestedEntityName, setEntityName] = useUrlState({
-        key: "causesOfDeathRegion",
+        key: "region",
         parser: parseAsString,
         defaultValue: config.region,
     })
     const [year, setYear] = useUrlState({
-        key: "causesOfDeathYear",
+        key: "year",
         parser: parseAsInteger,
         defaultValue: config.year ?? LATEST_YEAR,
     })

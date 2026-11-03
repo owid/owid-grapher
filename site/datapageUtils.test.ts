@@ -1,9 +1,6 @@
 import { expect, it, describe } from "vitest"
 
-import {
-    splitDescriptionKey,
-    splitDescriptionKeyAfterFirstBlock,
-} from "./datapageUtils.js"
+import { getProducerDocsLabel, splitDescriptionKey } from "./datapageUtils.js"
 
 describe(splitDescriptionKey, () => {
     it("returns empty strings for empty input", () => {
@@ -164,63 +161,56 @@ describe(splitDescriptionKey, () => {
     })
 })
 
-describe(splitDescriptionKeyAfterFirstBlock, () => {
-    it("shows only the first bullet of a list", () => {
-        const text = ["- one", "- two", "- three", "- four", "- five"].join(
-            "\n"
+describe(getProducerDocsLabel, () => {
+    it("uses the indicator's short attribution when it has one", () => {
+        expect(
+            getProducerDocsLabel({
+                attributionShort: "V-Dem",
+                origins: [{ producer: "Varieties of Democracy" }],
+            })
+        ).toEqual("V-Dem")
+    })
+
+    it("names the one producer, by its short name if it has one", () => {
+        expect(
+            getProducerDocsLabel({
+                origins: [
+                    {
+                        producer: "World Health Organization",
+                        attributionShort: "WHO",
+                    },
+                ],
+            })
+        ).toEqual("WHO")
+        expect(
+            getProducerDocsLabel({
+                origins: [
+                    { producer: "Transparency International" },
+                    { producer: "Transparency International" },
+                ],
+            })
+        ).toEqual("Transparency International")
+    })
+
+    it("uses the producer's name when its sources' short names differ", () => {
+        expect(
+            getProducerDocsLabel({
+                origins: [
+                    { producer: "United Nations", attributionShort: "UN WPP" },
+                    { producer: "United Nations", attributionShort: "UN SDG" },
+                ],
+            })
+        ).toEqual("United Nations")
+    })
+
+    it("stays generic with several producers, or none", () => {
+        expect(
+            getProducerDocsLabel({
+                origins: [{ producer: "Geyer et al." }, { producer: "OECD" }],
+            })
+        ).toEqual("Principal data source")
+        expect(getProducerDocsLabel({ origins: [] })).toEqual(
+            "Principal data source"
         )
-        expect(splitDescriptionKeyAfterFirstBlock(text)).toEqual({
-            preview: "- one",
-            remainder: "- two\n- three\n- four\n- five",
-        })
-    })
-
-    it("shows only the intro paragraph of a list with one", () => {
-        const text = ["Some intro.", "", "- one", "- two", "- three"].join("\n")
-        expect(splitDescriptionKeyAfterFirstBlock(text)).toEqual({
-            preview: "Some intro.",
-            remainder: "- one\n- two\n- three",
-        })
-    })
-
-    it("shows only the first paragraph of plain paragraphs", () => {
-        const text = ["First paragraph.", "", "Second one.", "", "Third."].join(
-            "\n"
-        )
-        expect(splitDescriptionKeyAfterFirstBlock(text)).toEqual({
-            preview: "First paragraph.",
-            remainder: "Second one.\n\nThird.",
-        })
-    })
-
-    it("shows the heading plus the block under it", () => {
-        const text = [
-            "# What it measures",
-            "Some explanation.",
-            "",
-            "More of it.",
-            "",
-            "# Caveats",
-            "A caveat.",
-        ].join("\n")
-        expect(splitDescriptionKeyAfterFirstBlock(text)).toEqual({
-            preview: "# What it measures\n\nSome explanation.",
-            remainder: "More of it.\n\n# Caveats\n\nA caveat.",
-        })
-    })
-
-    it("keeps a text that is nothing but headings whole", () => {
-        const text = "# One\n\n# Two"
-        expect(splitDescriptionKeyAfterFirstBlock(text)).toEqual({
-            preview: text,
-            remainder: "",
-        })
-    })
-
-    it("returns empty strings for empty input", () => {
-        expect(splitDescriptionKeyAfterFirstBlock("")).toEqual({
-            preview: "",
-            remainder: "",
-        })
     })
 })

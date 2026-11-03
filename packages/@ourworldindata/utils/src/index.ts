@@ -142,6 +142,7 @@ export {
     getUserNavigatorLanguagesNonEnglish,
     convertDaysSinceEpochToDate,
     convertDateToDaysSinceEpoch,
+    plainUtcTimestamp,
     epochDate,
     getTimeInterval,
     isSubYearly,
@@ -182,6 +183,7 @@ export {
     getOriginIdentityKey,
     formatSourceDate,
     getDateRange,
+    isSingleYearTimespan,
     getIndicatorCitations,
 } from "./metadataHelpers.js"
 

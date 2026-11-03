@@ -17,6 +17,7 @@ import {
     MetadataBoxReuseNotice,
     ChartLicenseNotice,
     makeDateRange,
+    makeDateRangeLabel,
     makeLastUpdated,
     makeNextUpdate,
 } from "@ourworldindata/components"
@@ -44,7 +45,7 @@ import {
 } from "@ourworldindata/utils"
 import AvatarByline from "./gdocs/components/AvatarByline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
-import { splitDescriptionKey } from "./datapageUtils.js"
+import { getProducerDocsLabel, splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import {
     IndicatorDropdown,
@@ -142,10 +143,11 @@ function IndicatorDataDetails({
     stitchedList?: StitchedIndicatorListEntry[]
 }): React.ReactElement | null {
     const { unit, dateRange, lastUpdated, nextUpdate } = datapageData
+    const formattedDateRange = makeDateRange({ dateRange })
     // When the entries carry their own date ranges, the shared row would
     // only restate their union
     const showDateRange =
-        !!dateRange && !stitchedList?.some((entry) => entry.dateRange)
+        !!formattedDateRange && !stitchedList?.some((entry) => entry.dateRange)
     if (
         !unit &&
         !showDateRange &&
@@ -166,8 +168,10 @@ function IndicatorDataDetails({
                     </MetadataBoxKeyDataRow>
                 )}
                 {showDateRange && (
-                    <MetadataBoxKeyDataRow label="Date range">
-                        {makeDateRange({ dateRange })}
+                    <MetadataBoxKeyDataRow
+                        label={makeDateRangeLabel({ dateRange })}
+                    >
+                        {formattedDateRange}
                     </MetadataBoxKeyDataRow>
                 )}
                 {lastUpdated && (
@@ -246,7 +250,9 @@ function IndicatorDetailsList({
                                 {entry.dateRange && (
                                     <span>
                                         <span className={`${blockClass}-key`}>
-                                            Date range
+                                            {makeDateRangeLabel({
+                                                dateRange: entry.dateRange,
+                                            })}
                                         </span>{" "}
                                         {makeDateRange({
                                             dateRange: entry.dateRange,
@@ -540,10 +546,7 @@ function IndicatorMetadataSections({
             {datapageData.descriptionFromProducer && (
                 <MetadataBoxSection title="Documentation from data sources">
                     <ExpandableToggle
-                        label={
-                            datapageData.attributionShort ||
-                            "Principal data source"
-                        }
+                        label={getProducerDocsLabel(datapageData)}
                         content={
                             <div className="indicator-metadata-box__producer-docs">
                                 <SimpleMarkdownText
@@ -672,24 +675,18 @@ function IndicatorMetadataSections({
             <MetadataBoxSection className="indicator-metadata-box__reuse-notice">
                 <p>
                     All data and visualizations on Our World in Data rely on
-                    data sourced from one or several original data providers.
-                    Preparing this original data involves several processing
-                    steps. Depending on the data, this can include standardizing
-                    country names and world region definitions, converting
-                    units, calculating derived indicators such as per capita
-                    measures, as well as adding or adapting metadata such as the
-                    name or the description given to an indicator.
-                </p>
-                <p>
-                    At the link below you can find a detailed description of the
-                    structure of our data pipeline, including links to all the
-                    code used to prepare data across Our World in Data.{" "}
+                    original data providers. We process this data, for example
+                    by standardizing country names and world region definitions,
+                    converting units, calculating derived indicators such as per
+                    capita measures, as well as adding or adapting indicator
+                    metadata. You can{" "}
                     <a
                         href="https://docs.owid.io/projects/etl/"
                         data-track-note="data_pipeline_link"
                     >
-                        Read about our data pipeline
+                        read about our data pipeline
                     </a>
+                    , which includes all the code we use to process the data.
                 </p>
                 <MetadataBoxReuseNotice>
                     <ChartLicenseNotice license={license} />
@@ -779,7 +776,10 @@ function IndicatorPane({
                         label="Managed by"
                         className="indicator-metadata-box__managed-by"
                     >
-                        <AvatarByline authors={owners} />
+                        <AvatarByline
+                            authors={owners}
+                            showInitialsWithoutPhoto
+                        />
                     </MetadataBoxKeyDataRow>
                 )}
                 {sourceString && (

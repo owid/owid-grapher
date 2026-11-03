@@ -77,7 +77,8 @@
     }
 }
 
-// Nested lists sit 8px under their item, like the items around them
+// Nested lists sit 8px under their item, like the items around them, with
+// the same filled bullets
 .indicator-metadata-box .metadata-box-expander__prose,
 .indicator-metadata-box .indicator-metadata-box__producer-docs,
 .indicator-metadata-box .indicator-sources .source .description,
@@ -86,10 +87,16 @@
     li > ol {
         margin: 8px 0 0;
     }
+
+    li > ul {
+        list-style-type: disc;
+    }
 }
 
 .indicator-metadata-box .metadata-box-expander__chevron {
     font-size: 0.75rem;
+    // Centred in a 12px box, like the top toggle's caret
+    width: 12px;
     margin-left: 4px;
     top: 0;
 }
@@ -188,23 +195,36 @@
     margin-top: 8px;
 }
 
-// Above phone width, a long value wraps under its label rather than in a
-// column beside it
+// A label and its value run on as one line, and a long value wraps back to
+// the start of the line rather than in a column beside the label
+@mixin key-data-row-inline {
+    display: block;
+
+    > .metadata-box-key-data__key {
+        display: inline;
+        margin-right: 4px;
+    }
+
+    > .metadata-box-key-data__value {
+        display: inline;
+    }
+}
+
+// On phones, only Data details: one pair per line
+@include sm-only {
+    .indicator-metadata-box
+        .indicator-metadata-box__data-details
+        .metadata-box-key-data__row {
+        @include key-data-row-inline;
+    }
+}
+
 @include sm-up {
     .indicator-metadata-box
         .metadata-box-key-data__row:not(
             .metadata-box-key-data__row--full-width
         ) {
-        display: block;
-
-        > .metadata-box-key-data__key {
-            display: inline;
-            margin-right: 4px;
-        }
-
-        > .metadata-box-key-data__value {
-            display: inline;
-        }
+        @include key-data-row-inline;
     }
 
     // Centre the label on the first line of managers, which the 24px photos
@@ -287,6 +307,12 @@
         @include owid-link-90;
         color: inherit;
     }
+}
+
+// 24px from a source's description to its details, as between other blocks
+// in an accordion
+.indicator-metadata-box .indicator-sources .source .description {
+    margin-bottom: 24px;
 }
 
 // Single sources have no toggle; match the toggles' inset

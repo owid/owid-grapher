@@ -116,6 +116,13 @@ describe(computeIndicatorPaneStitch, () => {
             "1950-2023",
             "2024-2100",
         ])
+        // a bare year is a single-year timespan
+        expect(
+            computeIndicatorPaneStitch([
+                pane(),
+                pane({ title: { title: "Deaths" }, dateRange: "2030" }),
+            ])!.dateRange
+        ).toBe("1950-2030")
         expect(
             computeIndicatorPaneStitch([
                 pane(),

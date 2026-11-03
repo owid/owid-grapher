@@ -13,8 +13,10 @@
     }
 }
 
-.metadata-box-toggle-button__caret {
+.metadata-box-toggle-button .metadata-box-toggle-button__caret {
     font-size: 0.75rem;
+    // The glyph sits centred in a 12px box, 8px after the label
+    width: 12px;
     margin-left: 8px;
 }
 
