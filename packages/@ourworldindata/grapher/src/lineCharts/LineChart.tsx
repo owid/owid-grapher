@@ -435,6 +435,7 @@ export class LineChart
             fontWeight: this.fontWeight,
             verticalAlign: VerticalAlign.top,
             isInteractive: !this.isStatic,
+            canShowInfoIcons: true,
         })
     }
 

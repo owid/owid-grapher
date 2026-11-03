@@ -35,6 +35,7 @@ export interface SeriesLabelStateOptions {
     placeFormattedValueInNewLine?: boolean
     showRegionTooltip?: boolean
     annotations?: SeriesLabelAnnotation[]
+    canShowInfoIcon?: boolean
 }
 
 export type TextRole = "name" | "value" | "suffix"
@@ -100,6 +101,7 @@ export class SeriesLabelState {
         placeFormattedValueInNewLine: false,
         showRegionTooltip: false,
         annotations: [],
+        canShowInfoIcon: false,
         textAnchor: "start",
     } as const satisfies Partial<SeriesLabelStateOptions>
 
@@ -333,6 +335,12 @@ export class SeriesLabelState {
     }
 
     @computed get width(): number {
+        if (!this.options.canShowInfoIcon) return this.textWidth
+        const infoIconRight = this.infoIconCenterOffset.x + this.infoIconRadius
+        return Math.max(this.textWidth, infoIconRight)
+    }
+
+    @computed private get textWidth(): number {
         const lineWidths = this.contentLines.map((line) =>
             _.sumBy(line, (fragment) => fragment.width)
         )
