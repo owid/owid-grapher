@@ -232,12 +232,10 @@ export class SlopeChartThumbnail
             manager: { chartAreaPadding = 0 },
         } = this
 
-        return this.bounds
-            .expand({
-                top: chartAreaPadding,
-                bottom: chartAreaPadding + xMarksHeight,
-            })
-            .yRange()
+        return [
+            this.bounds.bottom - xMarksHeight,
+            this.bounds.top - chartAreaPadding,
+        ]
     }
 
     @computed private get endLabelsSeries(): Omit<
