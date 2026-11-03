@@ -397,6 +397,12 @@ export interface AxisConfigInterface {
      * no tick. Defaults to false.
      */
     isDomainEndExclusive?: boolean
+
+    /** Omit the unit that is appended to the axis label in parentheses */
+    hideLabelUnit?: boolean
+
+    /** Omit the log-scale notice that is appended to the axis label in parentheses */
+    hideLabelLogNotice?: boolean
 }
 
 export interface VerticalComparisonLineConfig {
