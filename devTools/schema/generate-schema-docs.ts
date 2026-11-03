@@ -109,6 +109,10 @@ const SECTIONS: readonly SectionSpec[] = [
         properties: ["dumbbell"],
     },
     {
+        title: "Swimlane charts",
+        properties: ["swimlane"],
+    },
+    {
         title: "Sorting, stacking and faceting",
         properties: [
             "sortBy",

@@ -4,8 +4,8 @@ export interface DbInsertUser {
     email: string
     fullName: string
     id?: number
-    isActive?: number
-    isSuperuser?: number
+    isActive?: boolean
+    isSuperuser?: boolean
     lastLogin?: Date | null
     lastSeen?: Date | null
     updatedAt?: Date

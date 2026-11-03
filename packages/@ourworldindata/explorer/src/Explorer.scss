@@ -57,11 +57,11 @@ html.IsInIframe #ExplorerContainer {
 
 .explorerContentContainer {
     // liberale approximation of ExplorerShell._isMobile()
-    @media (max-width: 849px) {
+    @media (width <= 849px) {
         @include wrapper-x-spacing;
     }
 
-    @media (min-width: 850px) {
+    @media (width >= 850px) {
         max-width: $max-width-data-explorer;
         margin: 0 auto;
         display: grid;

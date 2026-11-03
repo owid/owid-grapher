@@ -23,11 +23,13 @@ import {
     SortConfig,
     SortOrder,
     OwidVariableRow,
+    TimeInterval,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartManager } from "./ChartManager"
 import {
+    SVG_FONT_FAMILY,
     SVG_STYLE_PROPS,
     BASE_FONT_SIZE,
     Patterns,
@@ -334,9 +336,10 @@ export function getChartSvgProps({
     return {
         xmlns: "http://www.w3.org/2000/svg",
         version: "1.1",
+        fontFamily: SVG_FONT_FAMILY,
+        fontSize: fontSize ?? BASE_FONT_SIZE,
         style: {
             ...SVG_STYLE_PROPS,
-            fontSize: fontSize ?? BASE_FONT_SIZE,
             // Needs to be set here or else pngs will have a black or
             // transparent background; resvg in the cloudflare functions
             // relies on it to paint the png background, too
@@ -414,4 +417,8 @@ export function isToleranceDistanceValid(args: {
 
     const minRequiredGap = Math.min(tolerance, end.time - start.time)
     return end.originalTime - start.originalTime >= minRequiredGap
+}
+
+export function formatTimeSpan(count: number, interval: TimeInterval): string {
+    return count === 1 ? `a ${interval}` : `${count} ${interval}s`
 }

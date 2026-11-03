@@ -49,7 +49,10 @@ import {
     getChartConfigByUuid,
     parseAndMigrateChartConfig,
 } from "../../db/model/ChartConfigs.js"
-import { narrativeChartExists } from "../../db/model/NarrativeChart.js"
+import {
+    getPublishedSlugsByNarrativeChartName,
+    narrativeChartExists,
+} from "../../db/model/NarrativeChart.js"
 import {
     assertValidGrapherConfig,
     ingestGrapherConfig,
@@ -603,30 +606,44 @@ export async function deleteNarrativeChart(
     if (!narrativeChart) {
         throw new JsonError(`No narrative chart found for id ${id}`, 404)
     }
-    const { name, chartConfigId, patchConfigId } = narrativeChart
+    await deleteNarrativeCharts(trx, [{ id, ...narrativeChart }])
 
-    const references = await getPublishedLinksTo(
+    return { success: true }
+}
+
+/**
+ * Deletes the given narrative charts together with their configs. Refuses
+ * (deleting nothing) if any of them is used in published content, since
+ * deleting it would break that content.
+ */
+export async function deleteNarrativeCharts(
+    trx: db.KnexReadWriteTransaction,
+    narrativeCharts: Pick<
+        DbPlainNarrativeChart,
+        "id" | "name" | "chartConfigId" | "patchConfigId"
+    >[]
+): Promise<void> {
+    const publishedSlugsByName = await getPublishedSlugsByNarrativeChartName(
         trx,
-        [name],
-        ContentGraphLinkType.NarrativeChart
+        narrativeCharts.map((nc) => nc.name)
     )
-
-    if (references.length) {
+    if (publishedSlugsByName.size) {
+        const descriptions = [...publishedSlugsByName].map(
+            ([name, slugs]) => `"${name}" (used in ${slugs.join(", ")})`
+        )
         throw new JsonError(
-            `Cannot delete narrative chart "${name}" because it is referenced by the following posts: ${references
-                .map((r) => r.slug)
-                .join(", ")}`,
+            `Cannot delete narrative charts used in published content: ${descriptions.join("; ")}`,
             400
         )
     }
 
-    await trx.table(NarrativeChartsTableName).where({ id }).delete()
-    await deleteChartConfigPairFromDbAndR2(trx, {
-        configId: chartConfigId,
-        patchConfigId,
-    })
-
-    return { success: true }
+    for (const { id, chartConfigId, patchConfigId } of narrativeCharts) {
+        await trx(NarrativeChartsTableName).where({ id }).delete()
+        await deleteChartConfigPairFromDbAndR2(trx, {
+            configId: chartConfigId,
+            patchConfigId,
+        })
+    }
 }
 
 export async function getNarrativeChartReferences(

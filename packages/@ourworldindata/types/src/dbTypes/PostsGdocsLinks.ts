@@ -6,7 +6,7 @@ export interface DbInsertPostGdocLink {
     id?: number
     sourceId: string
     target: string
-    linkType?: ContentGraphLinkType | null
+    linkType: ContentGraphLinkType
     componentType: string
     text: string
     queryString: string

@@ -4,9 +4,7 @@ import fs from "fs-extra"
 import * as d3 from "d3-dsv"
 import * as db from "../db/db.js"
 import {
-    ChartSlugRedirectsTableName,
     DbPlainMultiDimDataPage,
-    DbPlainRedirect,
     DbPlainUser,
     MultiDimDataPagesTableName,
     MultiDimRedirectsTableName,
@@ -17,11 +15,14 @@ import {
     MultiDimDataPageConfig,
     Url,
 } from "@ourworldindata/utils"
-import { redirectWithSourceExists } from "../db/model/Redirect.js"
 import { buildQueryStrFromConfig } from "../db/model/MultiDimRedirects.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { getUserById } from "../db/model/User.js"
 import { saveGrapher } from "../adminSiteServer/apiRoutes/charts.js"
+import {
+    repointRedirectsToPath,
+    validatePathIsNotRedirectSource,
+} from "../adminSiteServer/apiRoutes/mdims.js"
 
 const sourcePattern = /^\/(grapher|explorers)\/.*[^/]$/
 
@@ -163,186 +164,6 @@ function getViewConfigId(
         }
         throw error
     }
-}
-
-async function validatePathIsNotRedirectSource(
-    trx: db.KnexReadonlyTransaction,
-    path: string
-): Promise<void> {
-    if (await redirectWithSourceExists(trx, path)) {
-        throw new Error(
-            `'${path}' is already a source of an existing site redirect`
-        )
-    }
-    const existingMultiDimRedirect = await trx<{ id: number }>(
-        MultiDimRedirectsTableName
-    )
-        .select("id")
-        .where("source", path)
-        .first()
-    if (existingMultiDimRedirect) {
-        throw new Error(
-            `'${path}' is already a source of an existing multi-dim redirect`
-        )
-    }
-    const slug = Url.fromURL(path).slug
-    if (!slug) return
-    const existingChartSlugRedirect = await trx<{ id: number }>(
-        ChartSlugRedirectsTableName
-    )
-        .select("id")
-        .where("slug", slug)
-        .first()
-    if (existingChartSlugRedirect) {
-        throw new Error(
-            `'${path}' is already a source of an existing chart slug redirect`
-        )
-    }
-}
-
-async function replaceSiteRedirects(
-    trx: db.KnexReadWriteTransaction,
-    source: string,
-    targetFullPath: string
-): Promise<void> {
-    const siteRedirects = await trx<DbPlainRedirect>("redirects")
-        .select("id", "source", "target", "ttl")
-        .where("target", source)
-
-    for (const redirect of siteRedirects) {
-        if (redirect.source === targetFullPath) {
-            console.log(
-                `Deleting self-referential site redirect ${redirect.source} -> ${redirect.target}`
-            )
-            await trx("redirects").where({ id: redirect.id }).delete()
-            continue
-        }
-        console.log(
-            `Replacing site redirect ${redirect.source} -> ${redirect.target} with ${targetFullPath}`
-        )
-        await trx("redirects").where({ id: redirect.id }).delete()
-        await trx("redirects").insert({
-            source: redirect.source,
-            target: targetFullPath,
-            ttl: redirect.ttl ?? null,
-        })
-    }
-}
-
-async function replaceMultiDimRedirects(
-    trx: db.KnexReadWriteTransaction,
-    source: string,
-    target: MultiDimTarget
-): Promise<void> {
-    if (!source.startsWith("/grapher/")) return
-    const sourceSlug = Url.fromURL(source).slug
-    if (!sourceSlug) return
-    const redirects = await db.knexRaw<{ id: number; source: string }>(
-        trx,
-        `-- sql
-        SELECT mdr.id, mdr.source
-        FROM ${MultiDimRedirectsTableName} mdr
-        JOIN ${MultiDimDataPagesTableName} mdp ON mdr.multiDimId = mdp.id
-        WHERE mdp.slug = ?`,
-        [sourceSlug]
-    )
-
-    for (const redirect of redirects) {
-        if (redirect.source === target.targetBasePath) {
-            console.log(
-                `Deleting multi-dim redirect ${redirect.source} because it matches the target base path`
-            )
-            await trx(MultiDimRedirectsTableName)
-                .where({ id: redirect.id })
-                .delete()
-            continue
-        }
-        if (redirect.source === target.targetFullPath) {
-            console.log(
-                `Deleting self-referential multi-dim redirect ${redirect.source}`
-            )
-            await trx(MultiDimRedirectsTableName)
-                .where({ id: redirect.id })
-                .delete()
-            continue
-        }
-        console.log(
-            `Replacing multi-dim redirect ${redirect.source} with ${target.targetFullPath}`
-        )
-        await trx(MultiDimRedirectsTableName)
-            .where({ id: redirect.id })
-            .delete()
-        await validatePathIsNotRedirectSource(trx, redirect.source)
-        await trx(MultiDimRedirectsTableName).insert({
-            source: redirect.source,
-            multiDimId: target.multiDimId,
-            viewConfigId: target.viewConfigId,
-        })
-    }
-}
-
-async function replaceChartSlugRedirects(
-    trx: db.KnexReadWriteTransaction,
-    source: string,
-    target: MultiDimTarget
-): Promise<void> {
-    if (!source.startsWith("/grapher/")) return
-    const sourceSlug = Url.fromURL(source).slug
-    if (!sourceSlug) return
-    const redirects = await db.knexRaw<{ id: number; slug: string }>(
-        trx,
-        `-- sql
-        SELECT csr.id, csr.slug
-        FROM ${ChartSlugRedirectsTableName} csr
-        JOIN charts c ON csr.chart_id = c.id
-        JOIN chart_configs cc ON c.configId = cc.id
-        WHERE cc.slug = ?`,
-        [sourceSlug]
-    )
-
-    for (const redirect of redirects) {
-        const redirectSource = `/grapher/${redirect.slug}`
-        if (redirectSource === target.targetBasePath) {
-            console.log(
-                `Deleting chart slug redirect ${redirectSource} because it matches the target base path`
-            )
-            await trx(ChartSlugRedirectsTableName)
-                .where({ id: redirect.id })
-                .delete()
-            continue
-        }
-        if (redirectSource === target.targetFullPath) {
-            console.log(
-                `Deleting self-referential chart slug redirect ${redirectSource}`
-            )
-            await trx(ChartSlugRedirectsTableName)
-                .where({ id: redirect.id })
-                .delete()
-            continue
-        }
-        console.log(
-            `Replacing chart slug redirect ${redirectSource} with ${target.targetFullPath}`
-        )
-        await trx(ChartSlugRedirectsTableName)
-            .where({ id: redirect.id })
-            .delete()
-        await validatePathIsNotRedirectSource(trx, redirectSource)
-        await trx(MultiDimRedirectsTableName).insert({
-            source: redirectSource,
-            multiDimId: target.multiDimId,
-            viewConfigId: target.viewConfigId,
-        })
-    }
-}
-
-async function replaceChainedRedirects(
-    trx: db.KnexReadWriteTransaction,
-    source: string,
-    target: MultiDimTarget
-): Promise<void> {
-    await replaceSiteRedirects(trx, source, target.targetFullPath)
-    await replaceMultiDimRedirects(trx, source, target)
-    await replaceChartSlugRedirects(trx, source, target)
 }
 
 async function loadMultiDims(
@@ -547,7 +368,20 @@ async function main(): Promise<void> {
                     target.targetBasePath
                 )
 
-                await replaceChainedRedirects(trx, entry.source, target)
+                const repointed = await repointRedirectsToPath(
+                    trx,
+                    entry.source,
+                    {
+                        multiDimId: target.multiDimId,
+                        viewConfigId: target.viewConfigId,
+                        targetFullPath: target.targetFullPath,
+                    }
+                )
+                for (const redirect of repointed) {
+                    console.log(
+                        `Repointed ${redirect.kind} redirect ${redirect.source} to ${target.targetFullPath}`
+                    )
+                }
 
                 console.log(
                     `Creating multi-dim redirect ${entry.source} -> ${target.targetFullPath}`

@@ -1,0 +1,17 @@
+{
+    // grapher-editor's declaration build. At the repo root because tsdown's
+    // dts plugin roots at this file and the sources span two trees.
+    "extends": "./packages/@ourworldindata/grapher/tsconfig.json",
+    "include": [
+        "packages/@ourworldindata/grapher-editor/src/**/*",
+        "packages/@ourworldindata/grapher/src/**/*",
+        "packages/@ourworldindata/types/src/**/*",
+        "packages/@ourworldindata/utils/src/**/*",
+        "packages/@ourworldindata/core-table/src/**/*",
+        "packages/@ourworldindata/components/src/**/*",
+        "packages/@ourworldindata/gdoc-pipeline/src/**/*",
+        "adminShared/**/*",
+        "adminSiteClient/**/*"
+    ],
+    "exclude": ["**/*.test.*"]
+}
