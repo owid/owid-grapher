@@ -111,18 +111,9 @@ export class StackedAreaChartThumbnail
         }
     }
 
-    @computed private get labelsRange(): [number, number] {
-        const {
-            horizontalAxisPart,
-            manager: { chartAreaPadding = 0 },
-        } = this
-
-        return this.bounds
-            .expand({
-                top: chartAreaPadding,
-                bottom: chartAreaPadding + horizontalAxisPart.height,
-            })
-            .yRange()
+    private labelsRangeFor(dualAxis: DualAxis): [number, number] {
+        const { chartAreaPadding = 0 } = this.manager
+        return [dualAxis.innerBounds.bottom, this.bounds.top - chartAreaPadding]
     }
 
     @computed private get labelsMaxWidth(): number {
@@ -171,7 +162,7 @@ export class StackedAreaChartThumbnail
             ...this.labelFontSettings,
             maxWidth: this.labelsMaxWidth,
             labelPadding: LEGEND_PADDING,
-            yRange: this.labelsRange,
+            yRange: this.labelsRangeFor(dualAxis),
             compare: (
                 a: InitialAnchoredLabelSeries,
                 b: InitialAnchoredLabelSeries

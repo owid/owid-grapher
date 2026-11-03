@@ -267,18 +267,9 @@ export class LineChartThumbnail
         return this.chartState.series.some((series) => !!series.isProjection)
     }
 
-    @computed private get labelsRange(): [number, number] {
-        const {
-            horizontalAxisPart,
-            manager: { chartAreaPadding = 0 },
-        } = this
-
-        return this.bounds
-            .expand({
-                top: chartAreaPadding,
-                bottom: chartAreaPadding + horizontalAxisPart.height,
-            })
-            .yRange()
+    private labelsRangeFor(dualAxis: DualAxis): [number, number] {
+        const { chartAreaPadding = 0 } = this.manager
+        return [dualAxis.innerBounds.bottom, this.bounds.top - chartAreaPadding]
     }
 
     @computed
@@ -368,7 +359,7 @@ export class LineChartThumbnail
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
             textAnchor: "start",
-            yRange: this.labelsRange,
+            yRange: this.labelsRangeFor(dualAxis),
             labelPadding: this.labelPadding,
             anchorCollisionRadius: this.dotRadius,
             compare: (
@@ -504,7 +495,7 @@ export class LineChartThumbnail
             textAnchor: "end",
             labelPadding: this.labelPadding,
             anchorCollisionRadius: this.dotRadius,
-            yRange: this.labelsRange,
+            yRange: this.labelsRangeFor(dualAxis),
             compare: (
                 a: InitialAnchoredLabelSeries,
                 b: InitialAnchoredLabelSeries
