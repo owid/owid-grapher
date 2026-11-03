@@ -121,14 +121,14 @@ OWID's keyword search only matches words in titles and descriptions, and only re
     if (!topTitles.length)
         return `${intro} This search found nothing, usually because it is phrased as a question or sentence.
 
-Suggest up to ${MAX_EXPANSION_QUERIES} short keyword searches (2 to 4 words each, using words likely to appear in OWID chart or article titles) that would find content to answer it. Start with the searches that capture what the reader is asking about most directly, then cover other main angles of the topic: ${angles}.`
+Suggest up to ${MAX_EXPANSION_QUERIES} short keyword searches (2 to 4 words each, using words likely to appear in OWID chart or article titles) that would find content to answer it, including the articles that explain it when it asks what something is, how it's measured or why it happens. Start with the searches that capture what the reader is asking about most directly, then cover other main angles of the topic: ${angles}.`
 
     return `${intro}
 
 Our keyword search found these as the top matches:
 ${topTitles.map((title) => "- " + title).join("\n")}
 
-Suggest up to ${MAX_EXPANSION_QUERIES} additional short keyword searches (2 to 4 words each, using words likely to appear in OWID chart or article titles) that would find content covering the other main angles of this topic: ${angles}. If the search could mean several distinct things, cover each of them. Don't repeat the original search. If the search is already very specific, suggest fewer.`
+Suggest up to ${MAX_EXPANSION_QUERIES} additional short keyword searches (2 to 4 words each, using words likely to appear in OWID chart or article titles) that would find content covering the other main angles of this topic: ${angles}. If the search could mean several distinct things, cover each of them. If it asks what something is, how it's measured or why it happens, include searches that would find the articles explaining it (for "how is gdp measured": "what is economic growth"). Don't repeat the original search. If the search is already very specific, suggest fewer.`
 }
 
 export const PLANNER_SCHEMA = {
@@ -219,7 +219,7 @@ export function composerPrompt(
 
 A reader searched for: "${query}"
 ${countryFilter}${resultTypeFilter}
-Below is the OWID content our keyword search found. Work out what the reader most likely wants, then lay out a page that serves it, from the blocks described below. The shape of the page should follow the intent. Someone looking up one thing ("life expectancy nigeria") is best served by one prominent chart and a few close neighbours. A broad topic ("obesity") calls for its topic page and a few groups covering the main questions people have about it. A short word that can mean quite different things ("food") calls for asking which one they mean. A question about how two things relate calls for the chart that shows the relationship. A big question ("is the world getting better", "why are some countries rich") is answered by our writing more than by any one chart, so lead with the articles that answer it. These are illustrations, not templates: combine blocks however serves the reader best.
+Below is the OWID content our keyword search found. Work out what the reader most likely wants, then lay out a page that serves it, from the blocks described below. The shape of the page should follow the intent. Someone looking up one thing ("life expectancy nigeria") is best served by one prominent chart and a few close neighbours. A broad topic ("obesity") calls for its topic page and a few groups covering the main questions people have about it. A short word that can mean quite different things ("food") calls for asking which one they mean. A question about how two things relate calls for the chart that shows the relationship. A big question ("is the world getting better", "why are some countries rich") or a question about what something is or how it's measured ("how is gdp measured") is answered by our writing more than by any one chart, so lead with the articles that answer it. These are illustrations, not templates: combine blocks however serves the reader best.
 
 Blocks:
 - {"type":"chart","id":12,"size":"large","country":"Nigeria"}
