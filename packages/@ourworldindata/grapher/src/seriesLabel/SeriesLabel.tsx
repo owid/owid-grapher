@@ -28,6 +28,8 @@ const defaultColors: Record<TextRole, string> = {
 
 const UNDERLINE_OFFSET = 2
 
+const ANNOTATIONS_TITLE = "Notes on this data"
+
 const TOOLTIP_PLACEMENTS = {
     start: { preferred: "top-start", fallback: "bottom-start" },
     end: { preferred: "top-end", fallback: "bottom-end" },
@@ -453,9 +455,6 @@ function TooltipTrigger({
                 onHidden={() => setTooltipRemountKey((k) => !k)}
                 content={
                     <>
-                        {hasAnnotations && (
-                            <SeriesLabelAnnotations annotations={annotations} />
-                        )}
                         {regionTooltip && (
                             <RegionTooltip
                                 key={tooltipRemountKey.toString()}
@@ -467,6 +466,16 @@ function TooltipTrigger({
                                 )}
                                 initiallyHighlightedRegion={
                                     regionTooltip.regionName
+                                }
+                            />
+                        )}
+                        {hasAnnotations && (
+                            <SeriesLabelAnnotations
+                                annotations={annotations}
+                                title={
+                                    regionTooltip
+                                        ? ANNOTATIONS_TITLE
+                                        : undefined
                                 }
                             />
                         )}
