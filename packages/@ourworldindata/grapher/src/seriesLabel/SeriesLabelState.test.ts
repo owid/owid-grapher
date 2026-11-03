@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { SeriesLabelState } from "./SeriesLabelState"
+import { SeriesLabelState, SeriesLabelStateOptions } from "./SeriesLabelState"
 
 const FONT_SIZE = 14
 
@@ -399,6 +399,43 @@ describe(SeriesLabelState, () => {
             )
             expect(target.textBounds.left).toBe(widestLineLeft)
             expect(target.textBounds.left).toBe(-label.width)
+        })
+    })
+
+    describe("width with an info icon", () => {
+        const withAndWithoutInfoIcon = (
+            options: Omit<SeriesLabelStateOptions, "canShowInfoIcon">
+        ): [SeriesLabelState, SeriesLabelState] => [
+            new SeriesLabelState({ ...options, canShowInfoIcon: true }),
+            new SeriesLabelState({ ...options, canShowInfoIcon: false }),
+        ]
+
+        it("extends to the icon's right edge when the last line is the widest", () => {
+            const [label, textOnly] = withAndWithoutInfoIcon({
+                text: "United States",
+                maxWidth: Infinity,
+                fontSize: FONT_SIZE,
+            })
+
+            expect(label.width).toBe(
+                textOnly.width + 4 + 2 * label.infoIconRadius
+            )
+        })
+
+        it("stays at the widest line when the icon fits beside a shorter last line", () => {
+            const [label, textOnly] = withAndWithoutInfoIcon({
+                text: "Latin America and the Caribbean",
+                maxWidth: 140,
+                fontSize: FONT_SIZE,
+            })
+
+            const lastFragment = label.positionedFragments.at(-1)!
+            const lastLineWidth = lastFragment.x + lastFragment.width
+            expect(lastLineWidth + 4 + 2 * label.infoIconRadius).toBeLessThan(
+                textOnly.width
+            )
+
+            expect(label.width).toBe(textOnly.width)
         })
     })
 
