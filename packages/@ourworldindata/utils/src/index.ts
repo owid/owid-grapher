@@ -374,6 +374,8 @@ export {
 
 export { isAndroid, isIOS } from "./BrowserUtils.js"
 
+export { registerKeyboardShortcuts } from "./keyboardShortcuts.js"
+
 export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
