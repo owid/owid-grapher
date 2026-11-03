@@ -44,6 +44,46 @@ export const DEFAULT_AI_SEARCH_SETTINGS: AiSearchSettings = {
     debug: false,
 }
 
+/**
+ * The layout the results page uses, picked from what the search is after.
+ * - family: a measure with several versions ("gdp", "co2", "life expectancy")
+ * - place: a measure for a country ("gdp" + United States)
+ * - exact: one unambiguous indicator ("crude birth rate")
+ * - topic: a broad area ("education", "Energy and environment")
+ * - country_topic: a country filter and a topic tag, no text
+ * - other: anything else, which keeps the grouped-by-theme layout
+ */
+export const AI_SEARCH_INTENTS = [
+    "family",
+    "place",
+    "exact",
+    "topic",
+    "country_topic",
+    "other",
+] as const
+export type AiSearchIntent = (typeof AI_SEARCH_INTENTS)[number]
+
+/** What the search box held when AI search started. */
+export interface AiSearchInput {
+    query: string
+    countries: string[]
+    topics: string[]
+}
+
+export interface AiSearchLayout {
+    intent: AiSearchIntent
+    // One sentence shown above the lead chart, e.g. what "GDP" was taken to mean
+    note?: string
+    // The chart that answers the search, with the entities to select
+    lead?: { id: number; tab?: GrapherTabName; entities: string[] }
+    // Other versions of the lead measure, or indicators looked up alongside it
+    versions: number[]
+    // The country the layout is about (place, country_topic)
+    country?: string
+    // Topic pages to show first (topic)
+    topicPages: number[]
+}
+
 export type AiSearchAngle =
     | "today"
     | "history"
@@ -65,6 +105,8 @@ export type AiSearchChartCandidate = Pick<
             // Ranking hints for the model
             | "keyChartForTags"
             | "numRelatedArticles"
+            // Server-side only: used to check the entities the model picks
+            | "availableEntities"
         >
     > & { id: number }
 
@@ -102,6 +144,7 @@ export type AiSearchEvent =
           charts: AiSearchChartCandidate[]
           pages: AiSearchPageCandidate[]
       }
+    | ({ type: "layout" } & AiSearchLayout)
     | ({ type: "group" } & AiSearchGroup)
     | { type: "related"; queries: string[] }
     | { type: "debug"; title: string; text: string }

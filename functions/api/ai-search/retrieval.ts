@@ -1,5 +1,7 @@
 import {
     ChartRecordType,
+    Filter,
+    FilterType,
     OwidGdocType,
     SearchIndexName,
 } from "@ourworldindata/types"
@@ -22,6 +24,7 @@ const CHART_ATTRIBUTES = [
     "availableTabs",
     "keyChartForTags",
     "numRelatedArticles",
+    "availableEntities",
 ]
 
 const PAGE_ATTRIBUTES = [
@@ -50,13 +53,23 @@ function withoutAlgoliaAttributes<T>(hit: Record<string, unknown>): T {
 /**
  * Runs keyword searches for the original query and its expansions in a single
  * Algolia round trip, with the site's ranking. The original query gets the
- * deeper lists, since it supplies three hits per rank to the pool.
+ * deeper lists, since it supplies three hits per rank to the pool. Country
+ * and topic filters from the search box apply to the chart searches, as on
+ * the standard results.
  */
 export async function searchKeywords(
     config: AlgoliaConfig,
     queries: string[],
-    { charts, pages }: { charts: number; pages: number }
+    { charts, pages }: { charts: number; pages: number },
+    {
+        countries = [],
+        topics = [],
+    }: { countries?: string[]; topics?: string[] } = {}
 ): Promise<RankedHits[]> {
+    const filters: Filter[] = [
+        ...countries.map((name) => ({ type: FilterType.COUNTRY, name })),
+        ...topics.map((name) => ({ type: FilterType.TOPIC, name })),
+    ]
     const client = createSearchClient(config)
     const chartsIndex = getIndexName(
         SearchIndexName.ExplorerViewsMdimViewsAndCharts,
@@ -77,7 +90,7 @@ export async function searchKeywords(
                 hitsPerPage: Math.ceil(charts * share),
                 facetFilters: buildChartsFacetFilters({
                     query,
-                    filters: [],
+                    filters,
                     requireAllCountries: false,
                 }),
             },

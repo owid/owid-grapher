@@ -11,6 +11,7 @@ import {
     PageHitWithoutId,
     parseAiSearchSettings,
     createComposerLineParser,
+    parseLayoutAnswer,
     parsePlannerAnswer,
 } from "./aiSearch.js"
 
@@ -199,6 +200,140 @@ describe(parseAiSearchSettings, () => {
             expand: false,
             pool: 140,
             debug: true,
+        })
+    })
+})
+
+describe(parseLayoutAnswer, () => {
+    // A small pool: GDP (two versions) with data for a few places, and a
+    // topic page
+    const pool = buildCandidatePool(
+        [
+            {
+                charts: [
+                    {
+                        ...chart("gdp", [
+                            GRAPHER_TAB_NAMES.LineChart,
+                            GRAPHER_TAB_NAMES.WorldMap,
+                        ]),
+                        availableEntities: ["World", "Africa", "United States"],
+                    },
+                    chart("gdp-per-capita"),
+                ],
+                pages: [page("economic-growth", OwidGdocType.TopicPage)],
+            },
+        ],
+        { charts: 80, pages: 22 }
+    )
+    const [gdp, gdpPerCapita] = pool.charts
+    const topicPage = pool.pages[0]
+    const regions = ["World", "Africa", "United States", "France"]
+    const search = (
+        query: string,
+        countries: string[] = [],
+        topics: string[] = []
+    ) => ({
+        query,
+        countries,
+        topics,
+    })
+    const answer = (obj: Record<string, unknown>): string => JSON.stringify(obj)
+
+    it("keeps the lead chart, its tab and the entities the chart has data for", () => {
+        const layout = parseLayoutAnswer(
+            answer({
+                intent: "family",
+                lead: gdp.id,
+                view: "line",
+                entities: ["World", "africa", "Atlantis"],
+                versions: [gdpPerCapita.id, gdp.id, 9999],
+                note: "  GDP usually means total output.  ",
+            }),
+            search("gdp"),
+            pool,
+            regions
+        )
+        expect(layout).toEqual({
+            intent: "family",
+            note: "GDP usually means total output.",
+            lead: {
+                id: gdp.id,
+                tab: GRAPHER_TAB_NAMES.LineChart,
+                entities: ["World", "Africa"],
+            },
+            versions: [gdpPerCapita.id],
+            country: undefined,
+            topicPages: [],
+        })
+    })
+
+    it("turns a measure into a measure for a place when a country filter is set", () => {
+        const layout = parseLayoutAnswer(
+            answer({ intent: "family", lead: gdp.id, entities: ["World"] }),
+            search("gdp", ["United States"]),
+            pool,
+            regions
+        )
+        expect(layout.intent).toBe("place")
+        expect(layout.country).toBe("United States")
+        // The place comes first in the selection
+        expect(layout.lead?.entities).toEqual(["United States", "World"])
+    })
+
+    it("reads a country and a topic with no text as country_topic", () => {
+        const layout = parseLayoutAnswer(
+            answer({ intent: "topic", lead: gdp.id }),
+            search("", ["United States"], ["Economic growth"]),
+            pool,
+            regions
+        )
+        expect(layout.intent).toBe("country_topic")
+        expect(layout.country).toBe("United States")
+    })
+
+    it("keeps the grouped layout for a country on its own", () => {
+        const layout = parseLayoutAnswer(
+            answer({ intent: "place", lead: gdp.id, country: "France" }),
+            search("", ["France"]),
+            pool,
+            regions
+        )
+        expect(layout.intent).toBe("other")
+    })
+
+    it("keeps the grouped layout when the lead isn't in the pool or the place has no data", () => {
+        expect(
+            parseLayoutAnswer(
+                answer({ intent: "exact", lead: 9999 }),
+                search("crude birth rate"),
+                pool,
+                regions
+            ).intent
+        ).toBe("other")
+        // gdp has no data for France
+        expect(
+            parseLayoutAnswer(
+                answer({ intent: "place", lead: gdp.id, country: "France" }),
+                search("gdp of france"),
+                pool,
+                regions
+            ).intent
+        ).toBe("other")
+        expect(
+            parseLayoutAnswer("not json", search("gdp"), pool, regions).intent
+        ).toBe("other")
+    })
+
+    it("keeps only topic pages for a broad topic", () => {
+        const layout = parseLayoutAnswer(
+            answer({ intent: "topic", topic_pages: [topicPage.id, gdp.id] }),
+            search("economy"),
+            pool,
+            regions
+        )
+        expect(layout).toMatchObject({
+            intent: "topic",
+            topicPages: [topicPage.id],
         })
     })
 })

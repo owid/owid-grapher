@@ -8,12 +8,12 @@ import {
     AiSearchErrorCode,
     AiSearchEvent,
     AiSearchGroup,
+    AiSearchInput,
+    AiSearchLayout,
     AiSearchPageCandidate,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
-    OwidGdocType,
 } from "@ourworldindata/types"
-import { getCanonicalPath } from "@ourworldindata/components"
 import { listedRegionsNames } from "@ourworldindata/utils"
 import {
     GRAPHER_THUMBNAIL_HEIGHT,
@@ -24,9 +24,13 @@ import { streamAiSearch, useAiSearchSettings } from "./aiSearchClient.js"
 import {
     constructChartUrl,
     constructPreviewUrl,
-    getPageTypeNameAndIcon,
     toGrapherQueryParams,
 } from "./searchUtils.js"
+import {
+    SearchAiLead,
+    SearchAiReadLink,
+    SearchAiTopicPages,
+} from "./SearchAiLayouts.js"
 import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
 import { SearchAiBetaBadge, SearchAiIcon } from "./SearchAiTeaser.js"
 
@@ -36,6 +40,7 @@ interface AiSearchView {
     charts: Map<number, AiSearchChartCandidate>
     pages: Map<number, AiSearchPageCandidate>
     groups: AiSearchGroup[]
+    layout?: AiSearchLayout
     related: string[]
     expansions: string[]
     debug: { title: string; text: string }[]
@@ -87,6 +92,10 @@ function reduceAiSearch(
                 statusText: "Grouping the results…",
             }
         }
+        case "layout": {
+            const { type: _type, ...layout } = action
+            return { ...view, layout }
+        }
         case "related":
             return { ...view, related: action.queries }
         case "debug":
@@ -109,9 +118,9 @@ function reduceAiSearch(
     }
 }
 
-/** An error, unless some groups already arrived: those are kept. */
+/** An error, unless some results already arrived: those are kept. */
 const failed = (view: AiSearchView, code: AiSearchErrorCode): AiSearchView =>
-    view.groups.length
+    view.groups.length || view.layout?.lead
         ? { ...view, status: "done" }
         : { ...view, status: "error", error: code }
 
@@ -135,12 +144,16 @@ const FINAL_ERRORS: AiSearchErrorCode[] = ["unavailable", "no_candidates"]
  * grouped by theme by Claude (see functions/api/ai-search). Shown above the
  * standard results, which stay below for the same query.
  */
-export const SearchAiResults = ({ query }: { query: string }) => {
+export const SearchAiResults = ({ input }: { input: AiSearchInput }) => {
+    const query = [input.query, ...input.countries, ...input.topics]
+        .filter(Boolean)
+        .join(" · ")
     const { aiSearch } = useSearchContext()
     const [settings] = useAiSearchSettings()
     const [view, dispatch] = useReducer(reduceAiSearch, undefined, initialView)
     const [attempt, setAttempt] = useState(0)
     const controllerRef = useRef<AbortController | null>(null)
+    const inputRef = useRef(input)
     const sectionRef = useRef<HTMLElement>(null)
 
     // Asks again whenever a setting changes
@@ -150,7 +163,8 @@ export const SearchAiResults = ({ query }: { query: string }) => {
         controllerRef.current = controller
         dispatch({ type: "reset" })
         streamAiSearch({
-            query,
+            // The component is keyed by the input, so it never changes
+            input: inputRef.current,
             settings: { model, effort, expand, pool, debug },
             // A retry asks again rather than replaying a cached answer
             useCache: cache && attempt === 0,
@@ -162,7 +176,7 @@ export const SearchAiResults = ({ query }: { query: string }) => {
                 if (!controller.signal.aborted) dispatch({ type: "finished" })
             })
         return () => controller.abort()
-    }, [query, model, effort, expand, pool, debug, cache, attempt])
+    }, [model, effort, expand, pool, debug, cache, attempt])
 
     useEffect(() => {
         sectionRef.current?.scrollIntoView({
@@ -177,6 +191,27 @@ export const SearchAiResults = ({ query }: { query: string }) => {
     }
     const retry = (): void => setAttempt((n) => n + 1)
     const isRunning = view.status === "running"
+
+    // Hold the groups back until the layout is known, so the lead chart
+    // doesn't push them down once they're on screen
+    const layout = view.layout
+    const isLayoutPending = !layout && isRunning
+    const hasLead = !!layout?.lead && !!view.charts.get(layout.lead.id)
+    const isTopicMap = layout?.intent === "topic"
+    // Charts and pages the lead or topic layout already shows
+    const shownIds = new Set<number>(
+        hasLead && layout?.lead
+            ? [layout.lead.id, ...layout.versions]
+            : (layout?.topicPages ?? [])
+    )
+    const groupCountry =
+        layout?.intent === "place" || layout?.intent === "country_topic"
+            ? layout.country
+            : undefined
+    const topicPages = (layout?.topicPages ?? []).flatMap((id) => {
+        const page = view.pages.get(id)
+        return page ? [page] : []
+    })
 
     return (
         <section
@@ -218,19 +253,40 @@ export const SearchAiResults = ({ query }: { query: string }) => {
                 </div>
             )}
 
-            <div className="search-ai-results__groups">
-                {view.groups.map((group, i) => (
-                    <SearchAiGroup
-                        key={i}
-                        group={group}
-                        isLead={i === 0}
-                        charts={view.charts}
-                        pages={view.pages}
-                    />
-                ))}
+            {hasLead && layout && (
+                <SearchAiLead layout={layout} charts={view.charts} />
+            )}
+            {isTopicMap && (
+                <SearchAiTopicPages note={layout?.note} pages={topicPages} />
+            )}
+            {hasLead && view.groups.length > 0 && (
+                <h3 className="search-ai-results__more">More on “{query}”</h3>
+            )}
+
+            <div
+                className={cx("search-ai-results__groups", {
+                    "search-ai-results__groups--map": isTopicMap,
+                })}
+            >
+                {!isLayoutPending &&
+                    view.groups.map((group, i) => (
+                        <SearchAiGroup
+                            key={i}
+                            group={group}
+                            isLead={i === 0 && !hasLead && !isTopicMap}
+                            isCompact={isTopicMap}
+                            charts={view.charts}
+                            pages={view.pages}
+                            hiddenIds={shownIds}
+                            initialCountry={groupCountry}
+                        />
+                    ))}
                 {isRunning &&
                     Array.from(
-                        { length: view.groups.length ? 1 : 3 },
+                        {
+                            length:
+                                view.groups.length && !isLayoutPending ? 1 : 3,
+                        },
                         (_, i) => <SearchAiGroupSkeleton key={i} />
                     )}
                 {view.status === "stopped" && !view.groups.length && (
@@ -295,28 +351,48 @@ const COUNTRY_ANGLES: AiSearchAngle[] = ["today", "history", "breakdown"]
 const SearchAiGroup = ({
     group,
     isLead,
+    isCompact,
     charts,
     pages,
+    hiddenIds,
+    initialCountry,
 }: {
     group: AiSearchGroup
     isLead: boolean
+    // In the topic map, groups sit side by side with fewer charts each
+    isCompact: boolean
     charts: Map<number, AiSearchChartCandidate>
     pages: Map<number, AiSearchPageCandidate>
+    // Shown above already, by the lead or topic layout
+    hiddenIds: Set<number>
+    initialCountry?: string
 }) => {
-    const [country, setCountry] = useState<string | undefined>()
-    const groupCharts = group.charts.flatMap(({ id, tab }) => {
-        const hit = charts.get(id)
-        return hit ? [{ hit, tab }] : []
-    })
-    const reads = [...group.articles, ...group.insights].flatMap((id) => {
-        const page = pages.get(id)
-        return page ? [page] : []
-    })
-    const canAddCountry =
-        groupCharts.length > 0 && COUNTRY_ANGLES.includes(group.angle)
+    const canAddCountry = COUNTRY_ANGLES.includes(group.angle)
+    const [country, setCountry] = useState<string | undefined>(
+        canAddCountry ? initialCountry : undefined
+    )
+    const groupCharts = group.charts
+        .filter(({ id }) => !hiddenIds.has(id))
+        .flatMap(({ id, tab }) => {
+            const hit = charts.get(id)
+            return hit ? [{ hit, tab }] : []
+        })
+        .slice(0, isCompact ? 3 : undefined)
+    const reads = [...group.articles, ...group.insights]
+        .filter((id) => !hiddenIds.has(id))
+        .flatMap((id) => {
+            const page = pages.get(id)
+            return page ? [page] : []
+        })
+        .slice(0, isCompact ? 1 : undefined)
+    if (!groupCharts.length && !reads.length) return null
 
     return (
-        <article className="search-ai-group">
+        <article
+            className={cx("search-ai-group", {
+                "search-ai-group--compact": isCompact,
+            })}
+        >
             <div className="search-ai-group__text">
                 {ANGLE_LABELS[group.angle] && (
                     <div className="search-ai-group__angle">
@@ -332,7 +408,7 @@ const SearchAiGroup = ({
                         ))}
                     </div>
                 )}
-                {canAddCountry && (
+                {canAddCountry && groupCharts.length > 0 && !isCompact && (
                     <SearchAiCountryPicker
                         country={country}
                         setCountry={setCountry}
@@ -406,37 +482,6 @@ const SearchAiChartCard = ({
                         · with {country}
                     </span>
                 )}
-            </span>
-        </a>
-    )
-}
-
-const SearchAiReadLink = ({ page }: { page: AiSearchPageCandidate }) => {
-    const isTopicPage =
-        page.type === OwidGdocType.TopicPage ||
-        page.type === OwidGdocType.LinearTopicPage
-    const author = !isTopicPage ? page.authors?.[0] : undefined
-    return (
-        <a
-            className="search-ai-read"
-            href={getCanonicalPath(page.slug, page.type)}
-        >
-            {page.thumbnailUrl ? (
-                <img
-                    className="search-ai-read__image"
-                    src={page.thumbnailUrl}
-                    alt=""
-                    loading="lazy"
-                />
-            ) : (
-                <span className="search-ai-read__image" />
-            )}
-            <span>
-                <span className="search-ai-read__kind">
-                    {getPageTypeNameAndIcon(page.type).name}
-                    {author && ` · ${author}`}
-                </span>
-                <span className="search-ai-read__title">{page.title}</span>
             </span>
         </a>
     )

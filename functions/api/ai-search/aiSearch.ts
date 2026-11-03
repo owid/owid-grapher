@@ -8,6 +8,10 @@ import {
     AiSearchPageCandidate,
     AiSearchSettings,
     AiSearchEvent,
+    AiSearchInput,
+    AiSearchIntent,
+    AiSearchLayout,
+    AI_SEARCH_INTENTS,
     DEFAULT_AI_SEARCH_SETTINGS,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
@@ -49,7 +53,7 @@ export interface RankedHits {
     pages: PageHitWithoutId[]
 }
 
-interface CandidatePool {
+export interface CandidatePool {
     charts: AiSearchChartCandidate[]
     pages: (AiSearchPageCandidate & { excerpt?: string })[]
 }
@@ -339,5 +343,218 @@ function parseComposerLine(
         charts,
         articles,
         insights,
+    }
+}
+
+/** The search as the model should read it: the text plus any filters. */
+export function describeSearch(input: AiSearchInput): string {
+    const parts = [
+        input.query ? `"${input.query}"` : "",
+        input.countries.length
+            ? `country filter: ${input.countries.join(", ")}`
+            : "",
+        input.topics.length ? `topic filter: ${input.topics.join(", ")}` : "",
+    ].filter(Boolean)
+    return parts.join(" with ")
+}
+
+/** The words to run the keyword search with when there is no text. */
+export const keywordQueryFor = (input: AiSearchInput): string =>
+    input.query || input.topics.join(" ") || input.countries.join(" ")
+
+const LAYOUT_CHARTS = 40
+const LAYOUT_PAGES = 20
+
+export function layoutPrompt(
+    input: AiSearchInput,
+    pool: CandidatePool
+): string {
+    const topicPages = pool.pages.filter(
+        (page) =>
+            page.type === OwidGdocType.TopicPage ||
+            page.type === OwidGdocType.LinearTopicPage
+    )
+    return `You are choosing the results layout for a search on Our World in Data (OWID).
+
+The reader searched for: ${describeSearch(input)}
+(Our search box turns country names into a country filter and autocomplete picks into a topic filter.)
+
+Pick the intent that fits best:
+- "family": names a measure or narrow subject that comes in several versions (total vs per person, different sources or spans), with no country. E.g. "gdp", "co2", "population", "life expectancy", "poverty", a specific topic filter like "Life expectancy".
+- "place": a measure for a specific country or region, e.g. "gdp" with country filter United States, "population of japan", "co2 emissions china".
+- "exact": names one specific, unambiguous indicator, no country. E.g. "crude birth rate", "infant mortality rate", "gni per capita", "share of the population with tertiary education".
+- "topic": a broad area that covers many measures, e.g. "education", "energy", "health", topic filter "Energy and environment".
+- "country_topic": no text, a country filter and a topic filter, e.g. United States with topic Life expectancy.
+- "other": anything else: rankings, relationships between two measures, breakdowns, history, explanations, a country on its own, things OWID doesn't cover.
+
+Then, for family, place, exact and country_topic:
+- lead: the id of the single chart that best answers the search. Prefer KEY CHARTs and the headline version (e.g. for "gdp", total GDP adjusted for inflation; for "population", the long-run population chart). Use only chart ids from the list.
+- view: "line", "map", "bar" or "default", from the views the lead chart lists. Use "line" when entities are selected.
+- entities: what to select on the lead chart.
+  - family: "World" and the continents "Africa", "Asia", "Europe", "North America", "South America", "Oceania".
+  - exact: "World" and 4 countries that show the range (e.g. a high, a low and two large countries).
+  - place: the country first, then 2 or 3 meaningful comparisons (its region, "World", or peer countries).
+  - country_topic: the country first, then 2 or 3 peers the topic is usually discussed against (e.g. other high-income countries for US life expectancy), then "World".
+- versions: up to 4 other chart ids. For family and place: other versions of the same measure (per capita, growth, long-run, another source). For exact and country_topic: the indicators most often looked up alongside it.
+- country: the country the search is about, for place and country_topic. Otherwise "".
+- note: one short plain sentence for the reader, at most 20 words, saying how the search was read, e.g. "“GDP” usually means total economic output. Other versions are below." For country_topic, say why these comparison countries. No numbers.
+
+For topic:
+- topic_pages: up to 3 topic page ids from the list, most central first.
+
+Charts (id | title | views | details):
+${pool.charts.slice(0, LAYOUT_CHARTS).map(chartLine).join("\n")}
+
+Topic pages (id | title):
+${topicPages
+    .slice(0, LAYOUT_PAGES)
+    .map((page) => `${page.id} | ${page.title}`)
+    .join("\n")}`
+}
+
+export const LAYOUT_SCHEMA = {
+    type: "object",
+    properties: {
+        intent: { type: "string", enum: [...AI_SEARCH_INTENTS] },
+        lead: { type: "integer" },
+        view: { type: "string", enum: ["line", "map", "bar", "default"] },
+        entities: { type: "array", items: { type: "string" } },
+        versions: { type: "array", items: { type: "integer" } },
+        country: { type: "string" },
+        note: { type: "string" },
+        topic_pages: { type: "array", items: { type: "integer" } },
+    },
+    required: ["intent"],
+    additionalProperties: false,
+} as const
+
+const LEAD_INTENTS: AiSearchIntent[] = [
+    "family",
+    "place",
+    "exact",
+    "country_topic",
+]
+
+/**
+ * Turns the layout model's answer into a layout the page can render, keeping
+ * only charts from the pool and entities the lead chart has data for. Falls
+ * back to "other" (the grouped layout) whenever the answer can't be used.
+ * The filters decide some intents outright: a country filter turns a
+ * measure into "place", and a country plus a topic with no text is
+ * "country_topic".
+ */
+export function parseLayoutAnswer(
+    text: string,
+    input: AiSearchInput,
+    pool: CandidatePool,
+    knownRegions: string[]
+): AiSearchLayout {
+    const fallback: AiSearchLayout = {
+        intent: "other",
+        versions: [],
+        topicPages: [],
+    }
+    let obj: Record<string, unknown>
+    try {
+        obj = JSON.parse(text)
+    } catch {
+        return fallback
+    }
+
+    let intent: AiSearchIntent = AI_SEARCH_INTENTS.includes(
+        obj.intent as AiSearchIntent
+    )
+        ? (obj.intent as AiSearchIntent)
+        : "other"
+    const filterCountry = input.countries[0]
+    if (!input.query && input.countries.length && input.topics.length)
+        intent = "country_topic"
+    else if (
+        filterCountry &&
+        (intent === "family" ||
+            intent === "exact" ||
+            intent === "country_topic")
+    )
+        intent = "place"
+    // A country on its own isn't one of the new layouts
+    if (!input.query && !input.topics.length) intent = "other"
+
+    if (intent === "other") return fallback
+
+    if (intent === "topic") {
+        const topicPages = (
+            Array.isArray(obj.topic_pages) ? obj.topic_pages : []
+        )
+            .map(Number)
+            .filter((id) => {
+                const page = pool.pages.find((p) => p.id === id)
+                return (
+                    page &&
+                    (page.type === OwidGdocType.TopicPage ||
+                        page.type === OwidGdocType.LinearTopicPage)
+                )
+            })
+        return {
+            intent,
+            note: typeof obj.note === "string" ? obj.note : undefined,
+            versions: [],
+            topicPages: [...new Set(topicPages)].slice(0, 3),
+        }
+    }
+
+    const lead = pool.charts.find((chart) => chart.id === Number(obj.lead))
+    if (!lead || !LEAD_INTENTS.includes(intent)) return fallback
+
+    // Entity names as the lead chart spells them
+    const available = lead.availableEntities?.length
+        ? lead.availableEntities
+        : knownRegions
+    const byLowerName = new Map(available.map((n) => [n.toLowerCase(), n]))
+    const resolve = (name: unknown): string | undefined =>
+        typeof name === "string"
+            ? byLowerName.get(name.trim().toLowerCase())
+            : undefined
+
+    const country =
+        intent === "place" || intent === "country_topic"
+            ? (resolve(filterCountry) ?? resolve(obj.country))
+            : undefined
+    // A place layout without a place the chart knows isn't one
+    if ((intent === "place" || intent === "country_topic") && !country)
+        return fallback
+
+    const entities = [
+        ...new Set(
+            [country, ...(Array.isArray(obj.entities) ? obj.entities : [])]
+                .map(resolve)
+                .filter((name): name is string => !!name)
+        ),
+    ].slice(0, 7)
+
+    const view = String(obj.view)
+    const tab = VIEW_TABS[view]?.find((t) => lead.availableTabs.includes(t))
+
+    const versions = [
+        ...new Set(
+            (Array.isArray(obj.versions) ? obj.versions : [])
+                .map(Number)
+                .filter(
+                    (id) =>
+                        id !== lead.id &&
+                        pool.charts.some((chart) => chart.id === id)
+                )
+        ),
+    ].slice(0, 4)
+
+    return {
+        intent,
+        note:
+            typeof obj.note === "string" && obj.note.trim()
+                ? obj.note.trim()
+                : undefined,
+        lead: { id: lead.id, tab, entities },
+        versions,
+        country,
+        topicPages: [],
     }
 }
