@@ -1,18 +1,130 @@
-.search-ai-entry {
+// The offer to try AI search above the standard results, in the design
+// variants under comparison (see SearchAiTeaser)
+.search-ai-teaser {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
     margin-bottom: 24px;
+    @include body-3-medium;
+    color: $blue-90;
 }
 
-.search-ai-entry__button {
-    @include body-3-medium;
-    padding: 8px 14px;
-    border: 1px solid $blue-30;
-    border-radius: 4px;
-    background: $blue-5;
-    color: $blue-90;
+.search-ai-teaser__icon {
+    color: $accent-electric-blue;
+}
+
+.search-ai-teaser__beta {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 900;
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: $amber;
+    color: $blue-100;
+    padding: 2px 6px;
+    border-radius: 3px;
+    vertical-align: middle;
+}
+
+.search-ai-teaser__button {
+    margin-left: auto;
+    border: 0;
+    background: $blue-100;
+    color: $white;
+    padding: 6px 14px;
+    font-weight: 700;
     cursor: pointer;
 
     &:hover {
-        background: $blue-10;
+        background: $blue-90;
+    }
+}
+
+.search-ai-teaser--banner,
+.search-ai-teaser--explained {
+    background: #eef3fb;
+    border: 1px solid #e2ebf7;
+    padding: 10px 14px;
+}
+
+.search-ai-teaser--inline {
+    gap: 8px;
+}
+
+.search-ai-teaser__link {
+    border: 0;
+    background: none;
+    padding: 0;
+    color: $accent-electric-blue;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+
+    svg {
+        margin-left: 2px;
+        font-size: 0.75em;
+    }
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.search-ai-teaser--explained {
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: 14px;
+    padding: 14px 16px;
+
+    .search-ai-teaser__icon {
+        margin-top: 4px;
+    }
+
+    .search-ai-teaser__button {
+        align-self: center;
+        flex-shrink: 0;
+    }
+
+    @include sm-only {
+        flex-wrap: wrap;
+
+        .search-ai-teaser__icon {
+            display: none;
+        }
+    }
+}
+
+.search-ai-teaser__text {
+    flex: 1 1 0;
+}
+
+.search-ai-teaser__title {
+    margin: 0;
+}
+
+.search-ai-teaser__note {
+    @include body-3-medium;
+    margin: 2px 0 0;
+    color: $blue-60;
+}
+
+.search-ai-teaser--accent {
+    background: $white;
+    border: 1px solid $blue-10;
+    border-left: 3px solid $accent-electric-blue;
+    padding: 10px 14px;
+
+    .search-ai-teaser__button {
+        background: $white;
+        color: $accent-electric-blue;
+        box-shadow: inset 0 0 0 1px $accent-electric-blue;
+
+        &:hover {
+            background: $accent-electric-blue;
+            color: $white;
+        }
     }
 }
 

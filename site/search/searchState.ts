@@ -35,6 +35,24 @@ export const DEFAULT_SEARCH_STATE: SearchState = {
     resultType: SearchResultType.DATA,
 }
 
+// The AI search prototype, on for the current query: ai=1 in the URL
+const AI_SEARCH_PARAM = "ai"
+
+interface AiSearchParam {
+    isOn: boolean
+    // Searches for the query with AI search on
+    start: (query: string) => void
+    stop: () => void
+}
+
+function withAiSearchParam(
+    params: URLSearchParams,
+    isOn: boolean
+): URLSearchParams {
+    if (isOn) params.set(AI_SEARCH_PARAM, "1")
+    return params
+}
+
 /**
  * Hook that manages search state via URL search params.
  *
@@ -49,8 +67,10 @@ export function useSearchParamsState(
 ): {
     state: SearchState
     actions: SearchActions
+    aiSearch: AiSearchParam
 } {
     const [searchParams, setSearchParams] = useSearchParams()
+    const isAiSearchOn = searchParams.get(AI_SEARCH_PARAM) === "1"
 
     // Derive state from URL, applying automatic filters as part of derivation.
     // This ensures state consistency when URLs are manually edited.
@@ -68,16 +88,20 @@ export function useSearchParamsState(
     // - query params are invalid (e.g. "countryes=France")
     // - query params contain invalid values (e.g. "countries=Franc")
     useEffect(() => {
-        if (urlNeedsSanitization(searchParams, state)) {
+        const sanitizedParams = withAiSearchParam(
+            stateToSearchParams(state),
+            isAiSearchOn
+        )
+        if (searchParams.toString() !== sanitizedParams.toString()) {
             // replace current entry in browser history to keep it clean.
-            setSearchParams(stateToSearchParams(state), { replace: true })
+            setSearchParams(sanitizedParams, { replace: true })
         }
-    }, [searchParams, state, setSearchParams])
+    }, [searchParams, state, isAiSearchOn, setSearchParams])
 
     const updateParams = useCallback(
         (
             updater: (current: SearchState) => SearchState,
-            options?: { replace?: boolean }
+            options?: { replace?: boolean; aiSearch?: boolean }
         ) => {
             const newState = updater(state)
             // Update URL atomically by applying auto-filters before setting search
@@ -88,9 +112,20 @@ export function useSearchParamsState(
                 eligibleRegionNames,
                 synonymMap
             )
-            setSearchParams(stateToSearchParams(stateWithAutoFilters), options)
+            // AI search stays on while the reader changes filters, and goes
+            // off when they search for something else
+            const aiSearch =
+                options?.aiSearch ??
+                (isAiSearchOn && stateWithAutoFilters.query === state.query)
+            setSearchParams(
+                withAiSearchParam(
+                    stateToSearchParams(stateWithAutoFilters),
+                    aiSearch
+                ),
+                options
+            )
         },
-        [setSearchParams, state, eligibleRegionNames, synonymMap]
+        [setSearchParams, state, isAiSearchOn, eligibleRegionNames, synonymMap]
     )
 
     const actions = useMemo<SearchActions>(
@@ -237,7 +272,19 @@ export function useSearchParamsState(
         [updateParams, setSearchParams]
     )
 
-    return { state, actions }
+    const aiSearch = useMemo<AiSearchParam>(
+        () => ({
+            isOn: isAiSearchOn && state.query.length > 0,
+            start: (query: string) =>
+                updateParams((s) => ({ ...s, query: query.trim() }), {
+                    aiSearch: true,
+                }),
+            stop: () => updateParams((s) => s, { aiSearch: false }),
+        }),
+        [isAiSearchOn, state.query, updateParams]
+    )
+
+    return { state, actions, aiSearch }
 }
 
 /**
@@ -393,18 +440,6 @@ export function buildSearchHrefForCard(
     }
     const params = stateToSearchParams(searchState)
     return `${SEARCH_BASE_PATH}?${params.toString()}`
-}
-
-/**
- * Checks if URL params need sanitization (i.e., contain invalid values that
- * were filtered out during parsing).
- */
-export function urlNeedsSanitization(
-    searchParams: URLSearchParams,
-    state: SearchState
-): boolean {
-    const sanitizedParams = stateToSearchParams(state)
-    return searchParams.toString() !== sanitizedParams.toString()
 }
 
 /**

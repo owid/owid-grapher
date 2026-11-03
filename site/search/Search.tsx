@@ -35,6 +35,7 @@ import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 import { SearchAiResults } from "./SearchAiResults.js"
+import { SearchAiTeaser } from "./SearchAiTeaser.js"
 import { buildSynonymMap } from "./synonymUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { PoweredBy } from "react-instantsearch"
@@ -62,27 +63,11 @@ export const Search = ({
     const synonymMap = useMemo(() => buildSynonymMap(), [])
 
     // State derived from URL - single source of truth (includes automatic filter detection)
-    const { state, actions } = useSearchParamsState(
+    const { state, actions, aiSearch } = useSearchParamsState(
         eligibleRegionNames,
         eligibleTopicsAndAreas,
         synonymMap
     )
-
-    // The AI search prototype shows for the query it was started with, so it
-    // closes when the reader searches for something else. A link with ai=1
-    // opens it right away.
-    const [aiQuery, setAiQuery] = useState<string | null>(() =>
-        typeof window !== "undefined" &&
-        new URLSearchParams(window.location.search).get("ai") === "1" &&
-        state.query
-            ? state.query
-            : null
-    )
-    const isAiSearchOpen = aiQuery !== null && aiQuery === state.query
-    const startAiSearch = (query: string): void => {
-        setAiQuery(query)
-        if (query !== state.query) actions.setQuery(query)
-    }
 
     // Handle analytics tracking (skips initial page load)
     useSearchAnalytics(state, analytics)
@@ -151,35 +136,30 @@ export const Search = ({
                 <SearchTopicsRefinementList topicType={topicType} />
                 <SearchResultTypeToggle />
             </div>
-            {isAiSearchOpen ? (
+            {aiSearch.isOn ? (
                 <>
                     <SearchAiResults
-                        key={aiQuery}
-                        query={aiQuery}
+                        key={state.query}
+                        query={state.query}
                         countries={[
                             ...getFilterNamesOfType(
                                 state.filters,
                                 FilterType.COUNTRY
                             ),
                         ]}
-                        onSearch={startAiSearch}
-                        onClose={() => setAiQuery(null)}
+                        onSearch={aiSearch.start}
+                        onClose={aiSearch.stop}
                     />
                     <h2 className="search-ai-all-results col-start-2 span-cols-12">
-                        All results for “{aiQuery}”
+                        All results for “{state.query}”
                     </h2>
                 </>
             ) : (
                 state.query && (
-                    <div className="search-ai-entry col-start-2 span-cols-12">
-                        <button
-                            type="button"
-                            className="search-ai-entry__button"
-                            onClick={() => startAiSearch(state.query)}
-                        >
-                            ✨ Try AI search for “{state.query}”
-                        </button>
-                    </div>
+                    <SearchAiTeaser
+                        query={state.query}
+                        onStart={() => aiSearch.start(state.query)}
+                    />
                 )
             )}
             <div className="search-template-results col-start-2 span-cols-12">
