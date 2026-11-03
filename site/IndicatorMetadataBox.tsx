@@ -213,25 +213,6 @@ function IndicatorMetadataSections({
                 id="faqs"
                 className="metadata-box-section--faqs"
             >
-                {faqQuestions.map((faq) => (
-                    <ExpandableToggle
-                        key={faq.question}
-                        label={faq.question}
-                        content={
-                            <ArticleBlocks
-                                blocks={faq.answer}
-                                containerType="datapage"
-                            />
-                        }
-                        onToggle={(isOpen) =>
-                            analytics.logExpandableToggle(
-                                // untranslated source text
-                                faq.question.slice(0, 100),
-                                isOpen
-                            )
-                        }
-                    />
-                ))}
                 {descriptionProcessing && (
                     <ExpandableToggle
                         label="How did Our World in Data process this data?"
@@ -253,6 +234,25 @@ function IndicatorMetadataSections({
                         }
                     />
                 )}
+                {faqQuestions.map((faq) => (
+                    <ExpandableToggle
+                        key={faq.question}
+                        label={faq.question}
+                        content={
+                            <ArticleBlocks
+                                blocks={faq.answer}
+                                containerType="datapage"
+                            />
+                        }
+                        onToggle={(isOpen) =>
+                            analytics.logExpandableToggle(
+                                // untranslated source text
+                                faq.question.slice(0, 100),
+                                isOpen
+                            )
+                        }
+                    />
+                ))}
             </MetadataBoxSection>
             {datapageData.descriptionFromProducer && (
                 <MetadataBoxSection title="Documentation from data sources">
