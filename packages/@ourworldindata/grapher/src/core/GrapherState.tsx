@@ -564,6 +564,15 @@ export class GrapherState
      */
     useMinimalLabeling = false
 
+    /** Label lines by name only, at their end and without values */
+    useNameLabelsOnly = false
+
+    /** Hide the label of the area that marks entities without data */
+    hideNoDataLabel = false
+
+    /** Space in pixels between the lines and the top and bottom of a line thumbnail */
+    verticalPlotPadding = 0
+
     // Bounds
     staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
     _externalBounds: Bounds | undefined = undefined
@@ -790,6 +799,9 @@ export class GrapherState
             hideDonateButton: observable,
             hideExploreTheDataButton: observable,
             useMinimalLabeling: observable,
+            useNameLabelsOnly: observable,
+            hideNoDataLabel: observable,
+            verticalPlotPadding: observable,
         })
 
         this.updateFromObject(options)
