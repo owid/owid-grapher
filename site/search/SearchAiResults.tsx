@@ -18,6 +18,7 @@ import {
     AiSearchModel,
     AiSearchPageBlock,
     OwidGdocType,
+    SearchResultType,
 } from "@ourworldindata/types"
 import { compactAiSearchBlock, formatAuthors } from "@ourworldindata/utils"
 import { getCanonicalPath } from "@ourworldindata/components"
@@ -83,11 +84,14 @@ const ERROR_MESSAGES: Record<AiSearchErrorCode, string> = {
 export function SearchAiResults({
     query,
     countries,
+    resultType,
     onSearch,
 }: {
     query: string
     // The country filter of standard search
     countries: string[]
+    // All, data or writing, as picked for the standard results
+    resultType: SearchResultType
     // Runs AI search for a fork option or a related search
     onSearch: (query: string) => void
 }) {
@@ -103,6 +107,7 @@ export function SearchAiResults({
         streamAiSearch({
             query,
             countries: countriesKey ? countriesKey.split("~") : [],
+            resultType,
             settings: { model, debug },
             signal: controller.signal,
             onEvent: dispatch,
@@ -111,7 +116,7 @@ export function SearchAiResults({
                 dispatch({ type: "error", code: "failed" })
         })
         return () => controller.abort()
-    }, [query, countriesKey, model, debug])
+    }, [query, countriesKey, resultType, model, debug])
 
     const isStreaming = !state.done && !state.error
     const items = toLayoutItems(state.blocks)

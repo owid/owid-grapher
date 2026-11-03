@@ -148,6 +148,7 @@ export const Search = ({
                                 FilterType.COUNTRY
                             ),
                         ]}
+                        resultType={templateConfig.resultType}
                         onSearch={aiSearch.start}
                     />
                     <h2 className="search-ai-all-results col-start-2 span-cols-12">

@@ -12,6 +12,7 @@ import {
     OwidGdocType,
     SearchChartHit,
     AiSearchTopicPageHit,
+    SearchResultType,
 } from "@ourworldindata/types"
 
 export const MAX_QUERY_LENGTH = 200
@@ -204,15 +205,20 @@ function pageLine(id: number, page: PageCandidate): string {
 export function composerPrompt(
     query: string,
     pool: CandidatePool,
-    countries: string[] = []
+    countries: string[] = [],
+    resultType: SearchResultType = SearchResultType.ALL
 ): string {
     const countryFilter = countries.length
         ? `\nThey also picked a country filter: ${countries.join(", ")}. Treat it as part of the search, so add "country" to every chart where it applies.\n`
         : ""
+    const resultTypeFilter =
+        resultType === SearchResultType.ALL
+            ? ""
+            : `\nThey chose to see only ${resultType === SearchResultType.DATA ? "charts" : "articles, topic pages and data insights"}, so the content list holds nothing else.\n`
     return `You are laying out the search results page for Our World in Data (OWID), which publishes research and data on the world's largest problems.
 
 A reader searched for: "${query}"
-${countryFilter}
+${countryFilter}${resultTypeFilter}
 Below is the OWID content our keyword search found. Work out what the reader most likely wants, then lay out a page that serves it, from the blocks described below. The shape of the page should follow the intent. Someone looking up one thing ("life expectancy nigeria") is best served by one prominent chart and a few close neighbours. A broad topic ("obesity") calls for its topic page and a few groups covering the main questions people have about it. A short word that can mean quite different things ("food") calls for asking which one they mean. A question about how two things relate calls for the chart that shows the relationship. A big question ("is the world getting better", "why are some countries rich") is answered by our writing more than by any one chart, so lead with the articles that answer it. These are illustrations, not templates: combine blocks however serves the reader best.
 
 Blocks:

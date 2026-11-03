@@ -1,6 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk"
 import * as Sentry from "@sentry/cloudflare"
-import { AiSearchEvent, AiSearchSettings } from "@ourworldindata/types"
+import {
+    AiSearchEvent,
+    AiSearchSettings,
+    SearchResultType,
+} from "@ourworldindata/types"
 import { compactAiSearchBlock, createLineSplitter } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "../search/algoliaClient.js"
@@ -30,7 +34,9 @@ import { searchKeywords } from "./retrieval.js"
  * with each block's ids already replaced by the full search hits.
  *
  * Parameters: q, countries (the country filter, tilde-separated as in
- * standard search), model (one of AI_SEARCH_MODELS), debug=1 (adds the prompt
+ * standard search), resultType (all, data or writing, as in standard search:
+ * the page then shows only charts or only pages), model (one of
+ * AI_SEARCH_MODELS), debug=1 (adds the prompt
  * and the raw model output), compact=1 (blocks carry each hit's slug and
  * title instead of the full hit, for scripts comparing runs).
  *
@@ -59,6 +65,11 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         .map((name) => name.trim().slice(0, MAX_QUERY_LENGTH))
         .filter(Boolean)
         .slice(0, MAX_COUNTRIES)
+    const resultTypeParam = url.searchParams.get("resultType")
+    const resultType =
+        Object.values(SearchResultType).find(
+            (type) => type === resultTypeParam
+        ) ?? SearchResultType.ALL
     const { readable, writable } = new TransformStream<Uint8Array>()
     const writer = writable.getWriter()
     const encoder = new TextEncoder()
@@ -80,6 +91,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         env,
         query,
         countries,
+        resultType,
         settings,
         emit,
         signal: controller.signal,
@@ -110,6 +122,7 @@ async function runAiSearch({
     env,
     query,
     countries,
+    resultType,
     settings,
     emit,
     signal,
@@ -118,6 +131,7 @@ async function runAiSearch({
     query: string
     // The reader's country filter
     countries: string[]
+    resultType: SearchResultType
     settings: AiSearchSettings
     emit: (event: AiSearchEvent) => void
     signal: AbortSignal
@@ -131,7 +145,11 @@ async function runAiSearch({
 
     const algolia = getAlgoliaConfig(env)
     const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
-    const depth = { charts: CHART_POOL_SIZE, pages: PAGE_POOL_SIZE }
+    // Only charts for "data", only pages for "writing"
+    const depth = {
+        charts: resultType === SearchResultType.WRITING ? 0 : CHART_POOL_SIZE,
+        pages: resultType === SearchResultType.DATA ? 0 : PAGE_POOL_SIZE,
+    }
 
     emit({ type: "status", text: "Searching our charts and articles…" })
     const [base] = await time(
@@ -198,7 +216,7 @@ async function runAiSearch({
     }
 
     emit({ type: "status", text: "Laying out the results…" })
-    const prompt = composerPrompt(query, pool, countries)
+    const prompt = composerPrompt(query, pool, countries, resultType)
     if (settings.debug)
         emit({
             type: "debug",

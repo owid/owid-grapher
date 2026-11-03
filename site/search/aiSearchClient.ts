@@ -3,6 +3,7 @@ import {
     AiSearchEvent,
     AiSearchSettings,
     DEFAULT_AI_SEARCH_SETTINGS,
+    SearchResultType,
 } from "@ourworldindata/types"
 import { createLineSplitter } from "@ourworldindata/utils"
 import { AI_SEARCH_API_URL } from "../../settings/clientSettings.mjs"
@@ -23,19 +24,22 @@ export function useAiSearchSettings(): [
 export async function streamAiSearch({
     query,
     countries,
+    resultType,
     settings,
     signal,
     onEvent,
 }: {
     query: string
-    // The country filter of standard search
+    // The country filter and result type of standard search
     countries: string[]
+    resultType: SearchResultType
     settings: AiSearchSettings
     signal: AbortSignal
     onEvent: (event: AiSearchEvent) => void
 }): Promise<void> {
     const params = new URLSearchParams({
         q: query,
+        resultType,
         model: settings.model,
         debug: settings.debug ? "1" : "0",
     })
