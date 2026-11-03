@@ -20,6 +20,7 @@ import { hasTooltipData, TooltipKey } from "./RegionTooltipData.js"
 export interface SeriesLabelAnnotation {
     heading?: string
     text: string
+    timeScope: "point" | "range"
 }
 
 export interface SeriesLabelStateOptions {
@@ -33,6 +34,7 @@ export interface SeriesLabelStateOptions {
     placeFormattedValueInNewLine?: boolean
     showRegionTooltip?: boolean
     annotations?: SeriesLabelAnnotation[]
+    hasAnnotationMarkers?: boolean
 }
 
 export type TextRole = "name" | "value" | "suffix"
@@ -98,6 +100,7 @@ export class SeriesLabelState {
         placeFormattedValueInNewLine: false,
         showRegionTooltip: false,
         annotations: [],
+        hasAnnotationMarkers: false,
         textAnchor: "start",
     } as const satisfies Partial<SeriesLabelStateOptions>
 
@@ -335,6 +338,10 @@ export class SeriesLabelState {
             _.sumBy(line, (fragment) => fragment.width)
         )
         return lineWidths.length > 0 ? Math.max(...lineWidths) : 0
+    }
+
+    @computed get hasAnnotationMarkers(): boolean {
+        return this.options.hasAnnotationMarkers
     }
 
     @computed get height(): number {
