@@ -398,9 +398,6 @@ export interface AxisConfigInterface {
      */
     isDomainEndExclusive?: boolean
 
-    /** Omit the unit that is appended to the axis label in parentheses */
-    hideLabelUnit?: boolean
-
     /** Omit the log-scale notice that is appended to the axis label in parentheses */
     hideLabelLogNotice?: boolean
 }

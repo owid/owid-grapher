@@ -50,7 +50,6 @@ class AxisConfigDefaults implements AxisConfigInterface {
     shouldOffsetTickLabelAtStart: boolean | undefined = undefined
     shouldOffsetTickLabelAtEnd: boolean | undefined = undefined
     isDomainEndExclusive: boolean | undefined = undefined
-    hideLabelUnit: boolean | undefined = undefined
     hideLabelLogNotice: boolean | undefined = undefined
 
     constructor() {
@@ -78,7 +77,6 @@ class AxisConfigDefaults implements AxisConfigInterface {
             shouldOffsetTickLabelAtStart: observable.ref,
             shouldOffsetTickLabelAtEnd: observable.ref,
             isDomainEndExclusive: observable.ref,
-            hideLabelUnit: observable.ref,
             hideLabelLogNotice: observable.ref,
         })
     }

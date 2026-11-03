@@ -675,14 +675,13 @@ abstract class AbstractAxis {
 
         const logScaleNotice = "plotted on a logarithmic axis"
 
-        const unit = this.config.hideLabelUnit ? undefined : axisLabel.unit
         const shouldAppendLogNotice =
             this.isLogScale && !this.config.hideLabelLogNotice
 
-        if (unit) {
+        if (axisLabel.unit) {
             const secondaryText = shouldAppendLogNotice
-                ? `(${unit}; ${logScaleNotice})`
-                : `(${unit})`
+                ? `(${axisLabel.unit}; ${logScaleNotice})`
+                : `(${axisLabel.unit})`
             return new TextWrapGroup({
                 fragments: [mainLabelFragment, { text: secondaryText }],
                 ...textWrapProps,
