@@ -41,6 +41,14 @@
     }
 }
 
+.search-filter-pill--ai {
+    background-color: #e2ebf7;
+
+    .icon {
+        color: $accent-electric-blue;
+    }
+}
+
 .search-filter-pill--interactive {
     &:hover {
         background-color: $blue-20;

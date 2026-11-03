@@ -6,7 +6,6 @@ import {
     faChartLine,
     faFileLines,
     faLightbulb,
-    faXmark,
     IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -85,14 +84,12 @@ export function SearchAiResults({
     query,
     countries,
     onSearch,
-    onClose,
 }: {
     query: string
     // The country filter of standard search
     countries: string[]
     // Runs AI search for a fork option or a related search
     onSearch: (query: string) => void
-    onClose: () => void
 }) {
     const [settings, updateSettings] = useAiSearchSettings()
     const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
@@ -156,14 +153,6 @@ export function SearchAiResults({
                         </label>
                     </div>
                 </details>
-                <button
-                    type="button"
-                    className="search-ai__close"
-                    aria-label="Close AI overview"
-                    onClick={onClose}
-                >
-                    <FontAwesomeIcon icon={faXmark} />
-                </button>
             </header>
 
             {items.map((item, index) => (

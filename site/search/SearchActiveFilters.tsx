@@ -1,4 +1,6 @@
 import { match } from "ts-pattern"
+import { faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { FilterType } from "@ourworldindata/types"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import {
@@ -12,9 +14,30 @@ export const SearchActiveFilters = () => {
     const {
         state: { filters },
         actions: { removeCountry, removeTopic, removeFilter },
+        aiSearch,
     } = useSearchContext()
     return (
         <>
+            {aiSearch.isOn && (
+                <button
+                    type="button"
+                    aria-label="Turn off AI search"
+                    onClick={aiSearch.stop}
+                    className="search-active-filter-button"
+                >
+                    <SearchFilterPill
+                        name="AI search"
+                        icon={
+                            <FontAwesomeIcon
+                                className="icon"
+                                icon={faWandMagicSparkles}
+                            />
+                        }
+                        className="search-filter-pill--ai"
+                        selected
+                    />
+                </button>
+            )}
             {filters.map((filter) =>
                 match(filter)
                     .with({ type: FilterType.COUNTRY }, (filter) => (

@@ -114,6 +114,7 @@ export const Search = ({
                 topicTagGraph,
                 synonymMap,
                 analytics,
+                aiSearch,
             }}
         >
             <div className="search-controls-container span-cols-12 col-start-2">
@@ -148,7 +149,6 @@ export const Search = ({
                             ),
                         ]}
                         onSearch={aiSearch.start}
-                        onClose={aiSearch.stop}
                     />
                     <h2 className="search-ai-all-results col-start-2 span-cols-12">
                         All results for “{state.query}”

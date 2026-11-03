@@ -8,6 +8,7 @@ import {
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import { AiSearchParam } from "./searchState.js"
 
 interface SearchContextType {
     state: SearchState
@@ -17,6 +18,7 @@ interface SearchContextType {
     topicTagGraph: TagGraphRoot
     synonymMap: SynonymMap
     analytics: SiteAnalytics
+    aiSearch: AiSearchParam
 }
 
 export const SearchContext = createContext<SearchContextType | null>(null)

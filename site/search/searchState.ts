@@ -38,7 +38,7 @@ export const DEFAULT_SEARCH_STATE: SearchState = {
 // The AI search prototype, on for the current query: ai=1 in the URL
 const AI_SEARCH_PARAM = "ai"
 
-interface AiSearchParam {
+export interface AiSearchParam {
     isOn: boolean
     // Searches for the query with AI search on
     start: (query: string) => void

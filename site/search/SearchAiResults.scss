@@ -113,14 +113,6 @@
     white-space: nowrap;
 }
 
-.search-ai__close {
-    border: none;
-    background: none;
-    color: $blue-60;
-    font-size: 18px;
-    cursor: pointer;
-}
-
 .search-ai__status {
     @include body-3-medium;
     color: $blue-50;
