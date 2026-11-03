@@ -5,6 +5,10 @@
     color: $gray-100;
     font-size: 0.875rem;
 
+    @include sm-only {
+        font-size: 13px;
+    }
+
     a {
         @include owid-link-90;
         color: inherit;
