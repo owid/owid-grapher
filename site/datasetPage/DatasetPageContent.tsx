@@ -65,6 +65,10 @@ const PROTOTYPE_VERSIONS = [
         id: "inner-scroll",
         label: "Version 3: Indicators and sources in scroll boxes",
     },
+    {
+        id: "cards",
+        label: "Version 4: Indicators and sources in cards",
+    },
 ] as const
 type PrototypeVersion = (typeof PROTOTYPE_VERSIONS)[number]["id"]
 const DEFAULT_PROTOTYPE_VERSION: PrototypeVersion = "v1"
@@ -244,8 +248,9 @@ function ExpandableRow({
  * - "truncate": the first few items, faded out, with a "Show all" button
  * - "scroll": all items in a fixed-height box with an inner scroll, like the
  *   chart list
+ * - "card": like "scroll", but inside a white card (on a gray background)
  */
-type LongListMode = "truncate" | "scroll"
+type LongListMode = "truncate" | "scroll" | "card"
 const LongListModeContext = createContext<LongListMode>("truncate")
 
 /**
@@ -259,6 +264,7 @@ function FadedList({
     onExpand,
     showAllLabel,
     className,
+    cardTitle,
 }: {
     items: ReactNode[]
     initialCount: number
@@ -266,8 +272,30 @@ function FadedList({
     onExpand: () => void
     showAllLabel: string
     className?: string
+    /** In "card" mode, shown inside the card above a scrollable list */
+    cardTitle?: ReactNode
 }) {
     const mode = useContext(LongListModeContext)
+    if (mode === "card") {
+        const isScrollable = items.length > initialCount
+        return (
+            <div
+                className={cx(
+                    "dataset-page__faded-list dataset-page__card",
+                    className
+                )}
+            >
+                {isScrollable && cardTitle}
+                <div
+                    className={cx({
+                        "dataset-page__scroll-box": isScrollable,
+                    })}
+                >
+                    <ul className="dataset-page__rows">{items}</ul>
+                </div>
+            </div>
+        )
+    }
     if (mode === "scroll") {
         const isScrollable = items.length > initialCount
         return (
@@ -551,6 +579,7 @@ function IndicatorGroup({
     onSeeCharts?: (indicator: DatasetIndicator) => void
 }) {
     const [isExpanded, setIsExpanded] = useState(false)
+    const listMode = useContext(LongListModeContext)
     const indicators = group.indicators.filter((indicator) =>
         matchesQuery(
             query,
@@ -563,10 +592,16 @@ function IndicatorGroup({
     )
     if (indicators.length === 0) return null
 
+    // In the card layout, a scrollable group has its title inside the card
+    const isTitleInCard =
+        listMode === "card" && indicators.length > INITIAL_VISIBLE_INDICATORS
+    const title = <h3 className="dataset-page__group-title">{group.title}</h3>
+
     return (
         <div className="dataset-page__indicator-group">
-            <h3 className="dataset-page__group-title">{group.title}</h3>
+            {!isTitleInCard && title}
             <FadedList
+                cardTitle={title}
                 initialCount={INITIAL_VISIBLE_INDICATORS}
                 // While searching, show every match
                 isExpanded={isExpanded || query.trim() !== ""}
@@ -1361,7 +1396,13 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
 
     return (
         <LongListModeContext.Provider
-            value={version === "inner-scroll" ? "scroll" : "truncate"}
+            value={
+                version === "inner-scroll"
+                    ? "scroll"
+                    : version === "cards"
+                      ? "card"
+                      : "truncate"
+            }
         >
             <div className="dataset-page">
                 <PrototypeVersionSwitcher
@@ -1385,16 +1426,28 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
                             />
                         ))}
                     </section>
-                    <hr className="dataset-page__divider col-start-2 span-cols-12" />
-                    <IndicatorsSection
-                        dataset={dataset}
-                        onSourceClick={revealSource}
-                        onSeeCharts={
-                            version === "see-charts"
-                                ? seeChartsForIndicator
-                                : undefined
-                        }
-                    />
+                    {version === "cards" ? (
+                        // Full-width gray band behind the indicator cards
+                        <div className="dataset-page__indicators-band span-cols-14 grid grid-cols-12-full-width">
+                            <IndicatorsSection
+                                dataset={dataset}
+                                onSourceClick={revealSource}
+                            />
+                        </div>
+                    ) : (
+                        <>
+                            <hr className="dataset-page__divider col-start-2 span-cols-12" />
+                            <IndicatorsSection
+                                dataset={dataset}
+                                onSourceClick={revealSource}
+                                onSeeCharts={
+                                    version === "see-charts"
+                                        ? seeChartsForIndicator
+                                        : undefined
+                                }
+                            />
+                        </>
+                    )}
                     <ChartsSection
                         key={chartIndicatorFilter?.shortName ?? "all"}
                         dataset={dataset}
