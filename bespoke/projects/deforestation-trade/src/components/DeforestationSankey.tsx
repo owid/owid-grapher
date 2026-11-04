@@ -44,6 +44,7 @@ import {
     getGroupColor,
     getGroupDescription,
     getGroupLabel,
+    getGroupHighlightedLabelColor,
     getGroupLabelColor,
     getGroupSentenceLabel,
     GROUP_ICON_SIZE,
@@ -195,11 +196,12 @@ function DeforestationSankeyContent({
                     : {
                           ...node,
                           labelColor,
-                          icon: renderGroupIcon(
-                              group,
-                              labelColor ?? getGroupColor(group),
-                              { glyphSize: GROUP_ICON_SIZE }
-                          ),
+                          highlightedLabelColor:
+                              getGroupHighlightedLabelColor(group),
+                          // Drawn in the label's colour, whichever it is
+                          icon: renderGroupIcon(group, "currentColor", {
+                              glyphSize: GROUP_ICON_SIZE,
+                          }),
                           iconStyle: "inline",
                       }
             }),

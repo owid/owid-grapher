@@ -35,6 +35,9 @@ export const COMMODITY_GROUPS: Record<
          *  the group's ribbon: dark enough to pass WCAG AA (4.5:1) against
          *  the ribbon's translucent fill, so it needs no white halo */
         labelColor: string
+        /** The label's colour while the group's ribbon is highlighted, and
+         *  so opaque: white, unless that doesn't pass 4.5:1 against `color` */
+        highlightedLabelColor?: string
         icon: IconDefinition
     }
 > = {
@@ -45,6 +48,7 @@ export const COMMODITY_GROUPS: Record<
             "Forest cleared to grow grain crops, mainly rice and corn, but also barley, wheat, sorghum and millet.",
         color: OwidDistinctColors.Camel,
         labelColor: "#6f4414",
+        highlightedLabelColor: "#492700",
         icon: faWheatAwn,
     },
     "Edible roots and tubers with high starch or inulin content": {
@@ -117,6 +121,7 @@ export const COMMODITY_GROUPS: Record<
             "Forest cleared to grow vegetables, such as okra, onions and tomatoes, but also peppers, sweet corn and pumpkins.",
         color: OwidDistinctColors.Lime,
         labelColor: "#004e00",
+        highlightedLabelColor: "#002200",
         icon: faCarrot,
     },
 }
@@ -144,6 +149,10 @@ export function getGroupColor(name: string): string {
 
 export function getGroupLabelColor(name: string): string | undefined {
     return COMMODITY_GROUPS[name]?.labelColor
+}
+
+export function getGroupHighlightedLabelColor(name: string): string {
+    return COMMODITY_GROUPS[name]?.highlightedLabelColor ?? "#fff"
 }
 
 export function getGroupIcon(name: string): IconDefinition {

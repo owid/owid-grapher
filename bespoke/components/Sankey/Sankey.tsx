@@ -167,6 +167,9 @@ export type SankeyNode = {
     /** Colour of the label and value text. A coloured middle-column label
      *  drops the white halo: its colour is meant to read against the ribbon. */
     labelColor?: string
+    /** Colour of the label while all of the node's ribbons are highlighted,
+     *  and so drawn opaque; defaults to `labelColor` */
+    highlightedLabelColor?: string
 }
 
 export type SankeyLink = {
@@ -196,6 +199,7 @@ type PlacedSankeyLabel = {
     icon?: React.ReactNode
     iconStyle?: SankeyIconStyle
     labelColor?: string
+    highlightedLabelColor?: string
     /** Hidden icons still reserve horizontal space to keep labels aligned. */
     isIconVisible: boolean
 }
@@ -700,6 +704,9 @@ export function Sankey({
                             label={label}
                             isHovered={hoveredNodeId === label.nodeId}
                             isActive={activeNodeIds.has(label.nodeId)}
+                            isFullyHighlighted={highlightedBandNodeIds.has(
+                                label.nodeId
+                            )}
                             isAnchored={label.nodeId === anchorNodeId}
                             nodeColor={getLabelNodeColor(label.nodeId)}
                         />
@@ -905,12 +912,15 @@ function SankeyLabel({
     label,
     isHovered,
     isActive,
+    isFullyHighlighted,
     isAnchored,
     nodeColor = GRAPHER_DENIM,
 }: {
     label: PlacedSankeyLabel
     isHovered?: boolean
     isActive?: boolean
+    /** All of the node's ribbons are highlighted */
+    isFullyHighlighted?: boolean
     isAnchored?: boolean
     /** The node band's colour, which an annotation and its arrow take on */
     nodeColor?: string
@@ -922,6 +932,10 @@ function SankeyLabel({
         "sankey__label--active": isActive,
         "sankey__label--anchored": isAnchored,
     })
+
+    const labelColor = isFullyHighlighted
+        ? (label.highlightedLabelColor ?? label.labelColor)
+        : label.labelColor
 
     // A badge sits nearest the node's band, with the text after it; an
     // inline icon leads the text from its far side
@@ -968,12 +982,12 @@ function SankeyLabel({
 
     // The label's lines stack, centred as a block on the node
     const lines = [
-        { textWrap: label.label, fill: label.labelColor ?? GRAPHER_DARK_TEXT },
+        { textWrap: label.label, fill: labelColor ?? GRAPHER_DARK_TEXT },
         ...(label.valueLabel
             ? [
                   {
                       textWrap: label.valueLabel,
-                      fill: label.labelColor ?? GRAPHER_LIGHT_TEXT,
+                      fill: labelColor ?? GRAPHER_LIGHT_TEXT,
                   },
               ]
             : []),
@@ -992,7 +1006,8 @@ function SankeyLabel({
     const directionToBand = -directionAway
 
     return (
-        <g className={className}>
+        // An icon drawn in `currentColor` follows the label's colour
+        <g className={className} color={labelColor}>
             {icon}
             {lines.map(({ textWrap, fill, className }, i) => {
                 if (textWrap === label.annotation)
@@ -1089,8 +1104,15 @@ function placeSankeyLabels({
     if (!layout) return []
 
     return layout.nodes.flatMap((node) => {
-        const { label, valueLabel, annotation, icon, iconStyle, labelColor } =
-            node
+        const {
+            label,
+            valueLabel,
+            annotation,
+            icon,
+            iconStyle,
+            labelColor,
+            highlightedLabelColor,
+        } = node
 
         const x0 = node.x0 ?? 0
         const x1 = node.x1 ?? 0
@@ -1173,6 +1195,7 @@ function placeSankeyLabels({
                     icon,
                     iconStyle,
                     labelColor,
+                    highlightedLabelColor,
                     isIconVisible,
                 },
             ]
@@ -1188,6 +1211,7 @@ function placeSankeyLabels({
                     icon,
                     iconStyle,
                     labelColor,
+                    highlightedLabelColor,
                     isIconVisible,
                 },
             ]
@@ -1269,6 +1293,7 @@ function toNodeData(node: LaidOutNode): SankeyNode {
         icon: node.icon,
         iconStyle: node.iconStyle,
         labelColor: node.labelColor,
+        highlightedLabelColor: node.highlightedLabelColor,
     }
 }
 
