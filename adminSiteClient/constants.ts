@@ -2,7 +2,8 @@
 // Errors are already shown in the settings drawer, so we don't show those either
 export const GDOC_DIFF_OMITTABLE_PROPERTIES = [
     "errors",
-    // These are derived from the body text, so changes to them are already captured there
+    // These are attachments loaded from what the gdoc references (its content, or its tags
+    // for relatedCharts), so changes to them already show up as changes to those fields
     // and we don't need to show these objects in the diff also
     "imageMetadata",
     "linkedCharts",
