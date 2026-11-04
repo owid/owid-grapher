@@ -62,6 +62,12 @@ export const pluginSwcDecorators = (): Plugin =>
                     // This setting we need to override from @rollup/plugin-swc's default, otherwise it will not put optional properties on classes (e.g. `class A { optionalProp?: string }`), thereby breaking mobx decorators
                     loose: false,
                     target: "esnext",
+                    // Import the decorator helper from @swc/helpers instead of
+                    // inlining a ~3 KB copy into every file with decorators,
+                    // so the bundle contains it only once. Needs a direct
+                    // @swc/helpers dependency that has `_apply_decs_2311`
+                    // (>= 0.5.23); the published packages bundle it in.
+                    externalHelpers: true,
                 },
             },
         }),

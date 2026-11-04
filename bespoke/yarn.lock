@@ -1106,7 +1106,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/helpers@npm:^0.5.0":
+"@swc/helpers@npm:^0.5.0, @swc/helpers@npm:^0.5.23":
   version: 0.5.23
   resolution: "@swc/helpers@npm:0.5.23"
   dependencies:
@@ -3046,6 +3046,7 @@ __metadata:
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
     "@rollup/plugin-swc": "npm:^0.4.1"
+    "@swc/helpers": "npm:^0.5.23"
     "@vitejs/plugin-react": "npm:^6.1.2"
     vite: "npm:^8.3.4"
     vitest: "npm:^5.0.3"
