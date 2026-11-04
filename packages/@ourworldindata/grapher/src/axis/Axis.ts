@@ -677,6 +677,13 @@ abstract class AbstractAxis {
             ? "log axis"
             : "plotted on a logarithmic axis"
 
+        if (this.config.hideLabelUnit)
+            return new MarkdownTextWrap({
+                text: axisLabel.mainLabel,
+                fontWeight: 700,
+                ...textWrapProps,
+            })
+
         if (axisLabel.unit) {
             const secondaryText = this.isLogScale
                 ? `(${axisLabel.unit}; ${logScaleNotice})`
@@ -744,9 +751,10 @@ export class HorizontalAxis extends AbstractAxis {
 
         if (hideAxis) return 0
 
-        const paddedTickHeight = this.hasTickLabels
-            ? this.tickFontSize + tickPadding
-            : 0
+        const paddedTickHeight =
+            this.hasTickLabels && !this.config.hideTickLabels
+                ? this.tickFontSize + tickPadding
+                : 0
 
         return Math.max(paddedTickHeight + labelOffset, minSize)
     }
@@ -967,6 +975,8 @@ export class VerticalAxis extends AbstractAxis {
         } = this
 
         if (hideAxis) return 0
+
+        if (this.config.hideTickLabels) return minSize
 
         const maxTickWidth = _.max(this.tickLabels.map((tick) => tick.width))
         const paddedTickWidth = maxTickWidth ? maxTickWidth + tickPadding : 0

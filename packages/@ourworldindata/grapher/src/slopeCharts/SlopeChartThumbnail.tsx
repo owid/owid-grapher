@@ -104,11 +104,15 @@ export class SlopeChartThumbnail
             left > 0 ? left + LABEL_PADDING : 0, // start labels plus padding
             0.5 * this.xStartMarkWidth // half the width of the start time label (since it's centered)
         )
+        const sidePadding = Math.max(leftPadding, rightPadding)
 
+        // Name-only labels center the slopes between equal side paddings
         return this.bounds
             .padBottom(this.xMarksHeight)
-            .padRight(rightPadding)
-            .padLeft(leftPadding)
+            .padRight(
+                this.manager.useNameLabelsOnly ? sidePadding : rightPadding
+            )
+            .padLeft(this.manager.useNameLabelsOnly ? sidePadding : leftPadding)
     }
 
     /**
@@ -245,12 +249,14 @@ export class SlopeChartThumbnail
         if (!this.manager.showSeriesLabels) return []
 
         return this.labelCandidateSeries.map((series) => {
-            const { seriesName, color } = series
+            const { seriesName, displayName, color } = series
 
             const lastPoint = series.end
             const value = lastPoint?.value ?? 0
 
-            const label = this.formatLabel(value)
+            const label = this.manager.useNameLabelsOnly
+                ? displayName
+                : this.formatLabel(value)
 
             return { seriesName, value, label, color }
         })
@@ -276,9 +282,16 @@ export class SlopeChartThumbnail
 
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
+            maxWidth: this.endLabelsMaxWidth,
             labelPadding: LABEL_PADDING,
             yRange: this.labelsRange,
         })
+    }
+
+    @computed private get endLabelsMaxWidth(): number | undefined {
+        return this.manager.useNameLabelsOnly
+            ? 0.3 * this.bounds.width
+            : undefined
     }
 
     @computed private get endLabelsState(): AnchoredLabelsState | undefined {
@@ -323,6 +336,7 @@ export class SlopeChartThumbnail
         visibleEndLabels: Set<SeriesName>
     }): AnchoredLabelsState | undefined {
         if (!this.manager.showSeriesLabels) return undefined
+        if (this.manager.useNameLabelsOnly) return undefined
 
         const series = this.startLabelsSeries.map((series) => {
             const position = {
