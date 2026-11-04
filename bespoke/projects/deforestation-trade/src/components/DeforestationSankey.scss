@@ -91,8 +91,8 @@
 }
 
 .deforestation-sankey__share-table .deforestation-sankey__share-table-name {
+    width: 100%;
     color: $dark-text;
-    padding-right: 12px;
 }
 
 .deforestation-sankey__share-table .deforestation-sankey__share-table-value {
@@ -100,6 +100,22 @@
     text-align: right;
     font-variant-numeric: tabular-nums;
     padding-right: 12px;
+}
+
+// A name and the dotted leader that fills the rest of its cell, guiding the
+// eye to the row's value
+.deforestation-sankey__leader-row {
+    display: flex;
+    align-items: baseline;
+}
+
+.deforestation-sankey__leader {
+    flex: 1 1 auto;
+    min-width: 8px;
+    height: 1px;
+    margin: 0 4px;
+    background: radial-gradient(circle, #c6c6c6 0.6px, transparent 0.9px) left
+        center / 4px 1px repeat-x;
 }
 
 .deforestation-sankey__share-table .deforestation-sankey__share-table-share {
@@ -120,6 +136,7 @@
 }
 
 .deforestation-sankey__commodity-table {
+    width: 100%;
     border-collapse: collapse;
     margin-top: 6px;
     font-size: 12px;
@@ -141,8 +158,8 @@
 
 .deforestation-sankey__commodity-table
     .deforestation-sankey__commodity-table-name {
+    width: 100%;
     color: $dark-text;
-    padding-right: 16px;
     white-space: nowrap;
 }
 

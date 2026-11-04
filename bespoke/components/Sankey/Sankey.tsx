@@ -113,6 +113,8 @@ interface SankeyProps {
      */
     middleBand?: MiddleBand
     fontSettings?: FontSettings
+    /** Widest a tooltip may grow, in px */
+    tooltipMaxWidth?: number
     /** Side of a middle node's band to place labels over the ribbons; defaults to right. */
     middleLabelSide?: "left" | "right"
     getNodeTooltip?: (args: NodeTooltipArgs) => SankeyTooltip | undefined
@@ -229,6 +231,7 @@ export function Sankey({
     bandFlowGap = 3,
     middleBand,
     fontSettings = DEFAULT_FONT_SETTINGS,
+    tooltipMaxWidth = 340,
     middleLabelSide = "right",
     getLinkTooltip,
     getRelatedLinks,
@@ -710,7 +713,7 @@ export function Sankey({
                     y={hover.position.y}
                     offsetX={8}
                     offsetY={8}
-                    style={{ maxWidth: "340px" }}
+                    style={{ maxWidth: `${tooltipMaxWidth}px` }}
                     title={tooltip.title}
                     subtitle={tooltip.subtitle}
                     headerAside={tooltip.headerAside}

@@ -70,6 +70,10 @@ const LABEL_NO_GROUPS = Infinity
 /** The note under the domestic production node's label */
 const DOMESTIC_ANNOTATION = "produced & consumed\ndomestically"
 
+/** Tooltips are kept narrow, so the eye travels less from a row's name to its
+ *  value */
+const TOOLTIP_MAX_WIDTH = 280
+
 /** The commodity badge in a commodity tooltip's header */
 const TOOLTIP_BADGE_SIZE = 30
 const TOOLTIP_BADGE_GLYPH_SIZE = 16
@@ -372,6 +376,7 @@ function DeforestationSankeyContent({
                 totalFlowVolume={graph.total}
                 linkLowVolumeThreshold={LINK_LOW_VOLUME_THRESHOLD}
                 nodePadding={SANKEY_NODE_PADDING}
+                tooltipMaxWidth={TOOLTIP_MAX_WIDTH}
                 fontSettings={
                     isNarrow ? MOBILE_FONT_SETTINGS : DEFAULT_FONT_SETTINGS
                 }
@@ -595,10 +600,12 @@ function CommodityBreakdownTable({
                                 <GroupIcon group={row.group} size={14} />
                             </td>
                             <td className="deforestation-sankey__commodity-table-name">
-                                {getGroupLabel(row.group)}
+                                <NameWithLeader
+                                    name={getGroupLabel(row.group)}
+                                />
                             </td>
                             <td className="deforestation-sankey__commodity-table-value">
-                                {formatHectares(row.value)}
+                                {formatHectares(row.value, { short: true })}
                             </td>
                         </tr>
                     ))}
@@ -636,7 +643,7 @@ function PartnerShareTable({
                     {visible.map((row) => (
                         <tr key={row.name}>
                             <td className="deforestation-sankey__share-table-name">
-                                {row.name}
+                                <NameWithLeader name={row.name} />
                             </td>
                             <td className="deforestation-sankey__share-table-value">
                                 {formatHectares(row.value, { short: true })}
@@ -657,6 +664,16 @@ function PartnerShareTable({
                 </div>
             )}
         </>
+    )
+}
+
+/** A row's name followed by a dotted leader that runs to its value */
+function NameWithLeader({ name }: { name: string }): React.ReactElement {
+    return (
+        <span className="deforestation-sankey__leader-row">
+            <span>{name}</span>
+            <span className="deforestation-sankey__leader" aria-hidden />
+        </span>
     )
 }
 
