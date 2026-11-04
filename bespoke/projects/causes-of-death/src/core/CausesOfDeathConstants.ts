@@ -1,3 +1,4 @@
+import type { HierarchyNode, HierarchyRectangularNode } from "d3-hierarchy"
 import { BespokeMetadata, EntityName, Time } from "@ourworldindata/types"
 
 type NumericId = number
@@ -99,9 +100,7 @@ export interface EnrichedDataItem {
     share?: number
 }
 
-export type TreeNode = d3.HierarchyRectangularNode<
-    d3.HierarchyNode<EnrichedDataItem>
->
+export type TreeNode = HierarchyRectangularNode<HierarchyNode<EnrichedDataItem>>
 
 export interface TooltipTarget {
     nodeId: string

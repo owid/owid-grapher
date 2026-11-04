@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import * as d3 from "d3"
+import { hierarchy, treemap, type HierarchyRectangularNode } from "d3-hierarchy"
 import * as R from "remeda"
 
 import { stackedSliceDiceTiling } from "./stackedSliceDiceTiling.js"
@@ -1003,7 +1003,7 @@ describe(stackedSliceDiceTiling, () => {
 function createTreemap<T>(
     data: T,
     tiler: (
-        node: d3.HierarchyRectangularNode<any>,
+        node: HierarchyRectangularNode<any>,
         x0: number,
         y0: number,
         x1: number,
@@ -1011,11 +1011,10 @@ function createTreemap<T>(
     ) => void,
     width = 100,
     height = 100
-): d3.HierarchyRectangularNode<T> {
-    const root = d3.hierarchy(data).sum((d: any) => d.value || 0)
+): HierarchyRectangularNode<T> {
+    const root = hierarchy(data).sum((d: any) => d.value || 0)
 
-    return d3
-        .treemap<T>()
+    return treemap<T>()
         .size([width, height])
         .tile(tiler as any)
         .padding(0)
@@ -1024,7 +1023,7 @@ function createTreemap<T>(
 
 /** Check if a child's area is proportional to its value */
 function expectProportionalArea(
-    child: d3.HierarchyRectangularNode<any>,
+    child: HierarchyRectangularNode<any>,
     totalValue: number,
     totalArea: number
 ): void {
@@ -1037,7 +1036,7 @@ function expectProportionalArea(
 
 /** Check if all children of a parent node have proportional areas */
 function expectChildrenToHaveProportionalAreas(
-    parent: d3.HierarchyRectangularNode<any>
+    parent: HierarchyRectangularNode<any>
 ): void {
     const children = parent.children!
     const totalArea = calculateArea(parent)
@@ -1050,6 +1049,6 @@ function expectChildrenToHaveProportionalAreas(
 }
 
 /** Calculate the area of a node */
-function calculateArea(node: d3.HierarchyRectangularNode<any>): number {
+function calculateArea(node: HierarchyRectangularNode<any>): number {
     return (node.x1 - node.x0) * (node.y1 - node.y0)
 }
