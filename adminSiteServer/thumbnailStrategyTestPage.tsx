@@ -32,8 +32,6 @@ import { CATALOG_URL, DATA_API_URL } from "../settings/serverSettings.js"
 import { THUMBNAIL_STRATEGY_CHARTS } from "./thumbnailStrategyCharts.js"
 import { ThumbnailMetrics, measureThumbnail } from "./thumbnailMetrics.js"
 import {
-    LATEST_VALUE_COVERAGE,
-    MAX_LATEST_VALUE_WINDOW_YEARS,
     STRATEGIES,
     StrategyId,
     findSlopeStartTime,
@@ -186,28 +184,6 @@ function ThumbnailStrategyTestPage({
             <body>
                 <header>
                     <h1>Thumbnail entity strategies</h1>
-                    <p className="note">
-                        Per topic, the 5 most viewed charts and 5 more that add
-                        other chart types, maps and configurations. Every column
-                        picks entities a different way, from the countries with
-                        a recent enough value. How recent is the indicator's own
-                        tolerance if it sets one, otherwise the shortest window
-                        before the chart's end that includes{" "}
-                        {LATEST_VALUE_COVERAGE * 100}% of the countries with
-                        data in the chart, at most{" "}
-                        {MAX_LATEST_VALUE_WINDOW_YEARS} years. The second
-                        caption line shows the window. Budget: 4 lines or
-                        slopes, 6 bars or dumbbell rows. Charts where picking
-                        doesn't apply (maps, scatter plots, stacked areas,
-                        faceted charts, charts that plot several indicators or
-                        one entity at a time) show only the first column. On
-                        line charts, a pick whose past values would make the
-                        y-axis more than twice as tall as its latest value
-                        would, such as Kuwait's 1991 spike in CO₂ per capita, is
-                        swapped for a similar country without one, except in the
-                        columns that keep their picks as they are (As
-                        configured, trimmed; Continents; dataRange today).
-                    </p>
                     <form method="get">
                         <label>
                             Topic{" "}
@@ -736,7 +712,6 @@ const PAGE_CSS = `
 body { margin: 0; background: #f7f7f5; color: #1d2733; font: 14px/1.4 Lato, system-ui, sans-serif; }
 header { position: sticky; top: 0; z-index: 2; background: #f7f7f5; border-bottom: 1px solid #dde2e8; padding: 12px 16px 0; width: max-content; min-width: 100%; }
 h1 { font-size: 18px; margin: 0 0 8px; }
-.note { color: #5b6878; margin: 0 0 10px; max-width: 900px; }
 form { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-bottom: 10px; }
 .count { color: #5b6878; }
 form label { color: #5b6878; }

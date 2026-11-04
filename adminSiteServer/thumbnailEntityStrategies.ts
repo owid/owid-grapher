@@ -112,13 +112,13 @@ export const STRATEGIES: {
 ]
 
 /** Longest window, in years, that an entity's latest value may come from */
-export const MAX_LATEST_VALUE_WINDOW_YEARS = 10
+const MAX_LATEST_VALUE_WINDOW_YEARS = 10
 
 /** Fewest countries with data for coverage to be measured over countries alone */
 const MIN_COUNTRIES_FOR_COVERAGE = 10
 
 /** Share of countries whose latest value the coverage-based window must include */
-export const LATEST_VALUE_COVERAGE = 0.8
+const LATEST_VALUE_COVERAGE = 0.8
 
 export interface LatestValueWindow {
     /** How far before the chart's end time a latest value may come from, in the chart's time unit */
