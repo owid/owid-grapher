@@ -194,7 +194,12 @@ export class ChoroplethGlobe extends React.Component<{
         event: PointerEvent,
         maxDistance = MAP_HOVER_TARGET_RANGE
     ): GlobeRenderFeature | undefined {
-        if (this.hoverEnterFeature || !this.base.current) return
+        if (
+            this.isPanningOrZooming ||
+            this.hoverEnterFeature ||
+            !this.base.current
+        )
+            return
 
         const nearbyFeature = detectNearbyFeature({
             quadtree: this.quadtree,
@@ -447,6 +452,7 @@ export class ChoroplethGlobe extends React.Component<{
     @action.bound private setHoverEnterFeature(
         feature: GlobeRenderFeature
     ): void {
+        if (this.isPanningOrZooming) return
         if (this.hoverEnterFeature?.id === feature.id) return
 
         this.hoverEnterFeature = feature
@@ -811,9 +817,7 @@ export class ChoroplethGlobe extends React.Component<{
                 }}
                 style={{
                     cursor: this.hoverFeature ? "pointer" : undefined,
-                    // Touch gestures on the globe pan and zoom it instead of
-                    // scrolling or zooming the page. This also removes the
-                    // 300ms click delay on touch devices.
+                    // Reserve touch gestures for the globe and remove the tap delay.
                     touchAction: "none",
                 }}
             >
