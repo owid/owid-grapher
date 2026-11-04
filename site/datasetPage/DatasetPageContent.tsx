@@ -1,11 +1,4 @@
-import {
-    createContext,
-    ReactNode,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-} from "react"
+import { ReactNode, useEffect, useMemo, useState } from "react"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -18,7 +11,6 @@ import {
     faMagnifyingGlass,
     faMinus,
     faPlus,
-    faXmark,
 } from "@fortawesome/free-solid-svg-icons"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import {
@@ -54,32 +46,8 @@ const SECTION_IDS = {
     citation: "citation",
 } as const
 
-/**
- * Design variants of the prototype, switchable from a dropdown at the top of
- * the page and kept in the URL as `?version=<id>`.
- */
-const PROTOTYPE_VERSIONS = [
-    { id: "v1", label: "Version 1" },
-    { id: "see-charts", label: "Version 2: “See charts” on indicators" },
-    {
-        id: "inner-scroll",
-        label: "Version 3: Indicators and sources in scroll boxes",
-    },
-    {
-        id: "cards",
-        label: "Version 4: Indicators and sources in cards",
-    },
-] as const
-type PrototypeVersion = (typeof PROTOTYPE_VERSIONS)[number]["id"]
-const DEFAULT_PROTOTYPE_VERSION: PrototypeVersion = "v1"
-const VERSION_QUERY_PARAM = "version"
-
-function isPrototypeVersion(value: string | null): value is PrototypeVersion {
-    return PROTOTYPE_VERSIONS.some((v) => v.id === value)
-}
-
-const INITIAL_VISIBLE_INDICATORS = 10
-const INITIAL_VISIBLE_SOURCES = 10
+/** Lists longer than this scroll inside their card */
+const MAX_UNSCROLLED_ITEMS = 10
 
 declare global {
     interface Window {
@@ -178,7 +146,6 @@ function ExpandableRow({
     subtitle,
     isOpen: isOpenControlled,
     onToggle,
-    headerAction,
     children,
 }: {
     id?: string
@@ -190,8 +157,6 @@ function ExpandableRow({
     /** Pass together with `onToggle` to control the row from outside */
     isOpen?: boolean
     onToggle?: (isOpen: boolean) => void
-    /** Shown over the right side of the header while it's hovered/focused */
-    headerAction?: ReactNode
     children: ReactNode
 }) {
     const [isOpenInternal, setIsOpenInternal] = useState(false)
@@ -228,11 +193,6 @@ function ExpandableRow({
                         icon={isOpen ? faMinus : faPlus}
                     />
                 </button>
-                {headerAction && (
-                    <div className="dataset-page__row-header-action">
-                        {headerAction}
-                    </div>
-                )}
             </div>
             {isOpen && (
                 <div id={contentId} className="dataset-page__row-content">
@@ -244,91 +204,30 @@ function ExpandableRow({
 }
 
 /**
- * How long lists (indicators, sources) are shown:
- * - "truncate": the first few items, faded out, with a "Show all" button
- * - "scroll": all items in a fixed-height box with an inner scroll, like the
- *   chart list
- * - "card": like "scroll", but inside a white card (on a gray background)
+ * A list in a white card. Long lists scroll inside the card, with the title
+ * (if any) inside the card above them.
  */
-type LongListMode = "truncate" | "scroll" | "card"
-const LongListModeContext = createContext<LongListMode>("truncate")
-
-/**
- * A list that, while collapsed, only shows its first few items and fades them
- * out towards the bottom, with a button to reveal the rest.
- */
-function FadedList({
+function CardList({
     items,
-    initialCount,
-    isExpanded,
-    onExpand,
-    showAllLabel,
     className,
-    cardTitle,
+    title,
 }: {
     items: ReactNode[]
-    initialCount: number
-    isExpanded: boolean
-    onExpand: () => void
-    showAllLabel: string
     className?: string
-    /** In "card" mode, shown inside the card above a scrollable list */
-    cardTitle?: ReactNode
+    /** Only shown when the list is long enough to scroll */
+    title?: ReactNode
 }) {
-    const mode = useContext(LongListModeContext)
-    if (mode === "card") {
-        const isScrollable = items.length > initialCount
-        return (
+    const isScrollable = items.length > MAX_UNSCROLLED_ITEMS
+    return (
+        <div className={cx("dataset-page__card", className)}>
+            {isScrollable && title}
             <div
-                className={cx(
-                    "dataset-page__faded-list dataset-page__card",
-                    className
-                )}
-            >
-                {isScrollable && cardTitle}
-                <div
-                    className={cx({
-                        "dataset-page__scroll-box": isScrollable,
-                    })}
-                >
-                    <ul className="dataset-page__rows">{items}</ul>
-                </div>
-            </div>
-        )
-    }
-    if (mode === "scroll") {
-        const isScrollable = items.length > initialCount
-        return (
-            <div
-                className={cx("dataset-page__faded-list", className, {
+                className={cx({
                     "dataset-page__scroll-box": isScrollable,
                 })}
             >
                 <ul className="dataset-page__rows">{items}</ul>
             </div>
-        )
-    }
-
-    const isTruncated = !isExpanded && items.length > initialCount
-    return (
-        <div className={cx("dataset-page__faded-list", className)}>
-            <ul
-                className={cx("dataset-page__rows", {
-                    "dataset-page__rows--faded": isTruncated,
-                })}
-            >
-                {isTruncated ? items.slice(0, initialCount) : items}
-            </ul>
-            {isTruncated && (
-                <button
-                    type="button"
-                    className="dataset-page__show-all"
-                    onClick={onExpand}
-                >
-                    {showAllLabel}
-                    <FontAwesomeIcon icon={faPlus} />
-                </button>
-            )}
         </div>
     )
 }
@@ -370,11 +269,9 @@ function SectionWithSideHeading({
 function DatasetHeader({
     dataset,
     numIndicators,
-    onShowAllSources,
 }: {
     dataset: DatasetPageData
     numIndicators: number
-    onShowAllSources: () => void
 }) {
     const producers = [...new Set(dataset.sources.map((s) => s.producer))]
     const highlightedProducers = ["Ember", "Smil"].filter((p) =>
@@ -408,7 +305,6 @@ function DatasetHeader({
                         href={`#${SECTION_IDS.sources}`}
                         onClick={(e) => {
                             e.preventDefault()
-                            onShowAllSources()
                             scrollToSection(SECTION_IDS.sources)
                         }}
                     >
@@ -566,20 +462,12 @@ function IndicatorGroup({
     query,
     sourceIndexByTitle,
     onSourceClick,
-    indicatorsWithCharts,
-    onSeeCharts,
 }: {
     group: DatasetIndicatorGroup
     query: string
     sourceIndexByTitle: Map<string, number>
     onSourceClick: (sourceIndex: number) => void
-    /** Indicators that are used in at least one chart */
-    indicatorsWithCharts: ReadonlySet<string>
-    /** Only set in the "see charts" version of the prototype */
-    onSeeCharts?: (indicator: DatasetIndicator) => void
 }) {
-    const [isExpanded, setIsExpanded] = useState(false)
-    const listMode = useContext(LongListModeContext)
     const indicators = group.indicators.filter((indicator) =>
         matchesQuery(
             query,
@@ -592,40 +480,21 @@ function IndicatorGroup({
     )
     if (indicators.length === 0) return null
 
-    // In the card layout, a scrollable group has its title inside the card
-    const isTitleInCard =
-        listMode === "card" && indicators.length > INITIAL_VISIBLE_INDICATORS
+    // A scrollable group has its title inside the card
+    const isTitleInCard = indicators.length > MAX_UNSCROLLED_ITEMS
     const title = <h3 className="dataset-page__group-title">{group.title}</h3>
 
     return (
         <div className="dataset-page__indicator-group">
             {!isTitleInCard && title}
-            <FadedList
-                cardTitle={title}
-                initialCount={INITIAL_VISIBLE_INDICATORS}
-                // While searching, show every match
-                isExpanded={isExpanded || query.trim() !== ""}
-                onExpand={() => setIsExpanded(true)}
-                showAllLabel={`Show all ${indicators.length} ${group.title.toLowerCase()}`}
+            <CardList
+                title={title}
                 items={indicators.map((indicator) => (
                     <ExpandableRow
                         key={indicator.shortName}
                         contentId={`indicator-${indicator.shortName}`}
                         title={indicator.title}
                         subtitle={indicator.description}
-                        headerAction={
-                            onSeeCharts &&
-                            indicatorsWithCharts.has(indicator.shortName) ? (
-                                <button
-                                    type="button"
-                                    className="dataset-page__see-charts"
-                                    data-track-note="dataset_page_see_charts"
-                                    onClick={() => onSeeCharts(indicator)}
-                                >
-                                    See charts
-                                </button>
-                            ) : undefined
-                        }
                     >
                         <IndicatorDetails
                             indicator={indicator}
@@ -642,19 +511,10 @@ function IndicatorGroup({
 function IndicatorsSection({
     dataset,
     onSourceClick,
-    onSeeCharts,
 }: {
     dataset: DatasetPageData
     onSourceClick: (sourceIndex: number) => void
-    onSeeCharts?: (indicator: DatasetIndicator) => void
 }) {
-    const indicatorsWithCharts = useMemo(
-        () =>
-            new Set(
-                dataset.charts.flatMap((chart) => chart.indicatorShortNames)
-            ),
-        [dataset.charts]
-    )
     const [query, setQuery] = useState("")
     const sourceIndexByTitle = useMemo(
         () => new Map(dataset.sources.map((source, i) => [source.title, i])),
@@ -692,8 +552,6 @@ function IndicatorsSection({
                     query={query}
                     sourceIndexByTitle={sourceIndexByTitle}
                     onSourceClick={onSourceClick}
-                    indicatorsWithCharts={indicatorsWithCharts}
-                    onSeeCharts={onSeeCharts}
                 />
             ))}
             {!hasResults && (
@@ -773,48 +631,21 @@ function ChartListItem({
     )
 }
 
-function chartUsesIndicator(
-    chart: DatasetChart,
-    indicator: DatasetIndicator | undefined
-): boolean {
-    return !indicator || chart.indicatorShortNames.includes(indicator.shortName)
-}
-
-/**
- * Remount (via `key`) when `indicatorFilter` changes, so that the selection
- * starts at the first matching chart.
- */
-function ChartsSection({
-    dataset,
-    indicatorFilter,
-    onClearIndicatorFilter,
-}: {
-    dataset: DatasetPageData
-    /** Only show charts that use this indicator */
-    indicatorFilter?: DatasetIndicator
-    onClearIndicatorFilter: () => void
-}) {
+function ChartsSection({ dataset }: { dataset: DatasetPageData }) {
     const [query, setQuery] = useState("")
-    const [selection, setSelection] = useState<ChartSelection>(() => ({
-        chartIndex: Math.max(
-            0,
-            dataset.charts.findIndex((chart) =>
-                chartUsesIndicator(chart, indicatorFilter)
-            )
-        ),
+    const [selection, setSelection] = useState<ChartSelection>({
+        chartIndex: 0,
         viewIndex: 0,
-    }))
+    })
 
     const filteredCharts = useMemo(
         () =>
             dataset.charts
                 .map((chart, index) => ({ chart, index }))
-                .filter(
-                    ({ chart }) =>
-                        chartUsesIndicator(chart, indicatorFilter) &&
-                        matchesQuery(query, chart.title, chart.sourceText)
+                .filter(({ chart }) =>
+                    matchesQuery(query, chart.title, chart.sourceText)
                 ),
-        [dataset.charts, query, indicatorFilter]
+        [dataset.charts, query]
     )
 
     const selectedChart = dataset.charts[selection.chartIndex]
@@ -837,25 +668,6 @@ function ChartsSection({
                 onChange={setQuery}
                 placeholder="Search charts by name, keyword, or source…"
             />
-            {indicatorFilter && (
-                <div className="dataset-page__chart-filter">
-                    <span>
-                        Showing {filteredCharts.length}{" "}
-                        {filteredCharts.length === 1
-                            ? "chart that uses"
-                            : "charts that use"}{" "}
-                        <strong>{indicatorFilter.title}</strong>
-                    </span>
-                    <button
-                        type="button"
-                        className="dataset-page__chart-filter-clear"
-                        onClick={onClearIndicatorFilter}
-                    >
-                        Show all charts
-                        <FontAwesomeIcon icon={faXmark} />
-                    </button>
-                </div>
-            )}
             <div className="dataset-page__charts grid span-cols-12">
                 <div className="dataset-page__chart-list-wrapper span-cols-5 span-md-cols-12">
                     {filteredCharts.length > 0 ? (
@@ -987,14 +799,10 @@ function SourceDetails({ source }: { source: DatasetSource }) {
 
 function SourcesAndProcessingSection({
     dataset,
-    showAllSources,
-    onShowAllSources,
     openSources,
     onToggleSource,
 }: {
     dataset: DatasetPageData
-    showAllSources: boolean
-    onShowAllSources: () => void
     openSources: ReadonlySet<number>
     onToggleSource: (sourceIndex: number, isOpen: boolean) => void
 }) {
@@ -1007,12 +815,8 @@ function SourcesAndProcessingSection({
                 Sources and Processing
             </h2>
             <SectionWithSideHeading heading="This dataset is based on the following sources">
-                <FadedList
+                <CardList
                     className="dataset-page__sources"
-                    initialCount={INITIAL_VISIBLE_SOURCES}
-                    isExpanded={showAllSources}
-                    onExpand={onShowAllSources}
-                    showAllLabel={`Show all ${dataset.sources.length} sources`}
                     items={dataset.sources.map((source, index) => (
                         <ExpandableRow
                             key={source.title}
@@ -1292,43 +1096,7 @@ function ReuseSection({ dataset }: { dataset: DatasetPageData }) {
 
 // ---------------------------------------------------------------------------
 
-function PrototypeVersionSwitcher({
-    version,
-    onChange,
-}: {
-    version: PrototypeVersion
-    onChange: (version: PrototypeVersion) => void
-}) {
-    return (
-        <div className="dataset-page__version-bar">
-            <label className="dataset-page__version-switcher">
-                <span>Prototype:</span>
-                <select
-                    value={version}
-                    onChange={(e) => {
-                        if (isPrototypeVersion(e.target.value))
-                            onChange(e.target.value)
-                    }}
-                >
-                    {PROTOTYPE_VERSIONS.map((v) => (
-                        <option key={v.id} value={v.id}>
-                            {v.label}
-                        </option>
-                    ))}
-                </select>
-            </label>
-        </div>
-    )
-}
-
 export function DatasetPageContent({ dataset }: DatasetPageProps) {
-    const [version, setVersion] = useState<PrototypeVersion>(
-        DEFAULT_PROTOTYPE_VERSION
-    )
-    const [chartIndicatorFilter, setChartIndicatorFilter] = useState<
-        DatasetIndicator | undefined
-    >()
-    const [showAllSources, setShowAllSources] = useState(false)
     const [openSources, setOpenSources] = useState<ReadonlySet<number>>(
         () => new Set()
     )
@@ -1345,7 +1113,6 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
     }
 
     const revealSource = (sourceIndex: number): void => {
-        setShowAllSources(true)
         toggleSource(sourceIndex, true)
         setScrollTarget(sourceAnchorId(sourceIndex))
         window.history.replaceState(null, "", `#${sourceAnchorId(sourceIndex)}`)
@@ -1356,29 +1123,6 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
         scrollToSection(scrollTarget)
         setScrollTarget(undefined)
     }, [scrollTarget])
-
-    const changeVersion = (next: PrototypeVersion): void => {
-        setVersion(next)
-        setChartIndicatorFilter(undefined)
-        const url = new URL(window.location.href)
-        if (next === DEFAULT_PROTOTYPE_VERSION)
-            url.searchParams.delete(VERSION_QUERY_PARAM)
-        else url.searchParams.set(VERSION_QUERY_PARAM, next)
-        window.history.replaceState(null, "", url)
-    }
-
-    const seeChartsForIndicator = (indicator: DatasetIndicator): void => {
-        setChartIndicatorFilter(indicator)
-        setScrollTarget(SECTION_IDS.charts)
-    }
-
-    // The version is read after hydration, since the server doesn't know it
-    useEffect(() => {
-        const param = new URLSearchParams(window.location.search).get(
-            VERSION_QUERY_PARAM
-        )
-        if (isPrototypeVersion(param)) setVersion(param)
-    }, [])
 
     // Support linking directly to a source, e.g. /datasets/energy#source-3
     useEffect(() => {
@@ -1395,81 +1139,36 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
     )
 
     return (
-        <LongListModeContext.Provider
-            value={
-                version === "inner-scroll"
-                    ? "scroll"
-                    : version === "cards"
-                      ? "card"
-                      : "truncate"
-            }
-        >
-            <div className="dataset-page">
-                <PrototypeVersionSwitcher
-                    version={version}
-                    onChange={changeVersion}
-                />
-                <DatasetHeader
-                    dataset={dataset}
-                    numIndicators={numIndicators}
-                    onShowAllSources={() => setShowAllSources(true)}
-                />
-                <div className="grid grid-cols-12-full-width">
-                    <section
-                        className="dataset-page__about col-start-2 span-cols-8 span-md-cols-12"
-                        id={SECTION_IDS.about}
-                    >
-                        {dataset.about.map((paragraph) => (
-                            <SimpleMarkdownText
-                                key={paragraph}
-                                text={paragraph}
-                            />
-                        ))}
-                    </section>
-                    {version === "cards" ? (
-                        // Full-width gray band behind the indicator cards
-                        <div className="dataset-page__indicators-band span-cols-14 grid grid-cols-12-full-width">
-                            <IndicatorsSection
-                                dataset={dataset}
-                                onSourceClick={revealSource}
-                            />
-                        </div>
-                    ) : (
-                        <>
-                            <hr className="dataset-page__divider col-start-2 span-cols-12" />
-                            <IndicatorsSection
-                                dataset={dataset}
-                                onSourceClick={revealSource}
-                                onSeeCharts={
-                                    version === "see-charts"
-                                        ? seeChartsForIndicator
-                                        : undefined
-                                }
-                            />
-                        </>
-                    )}
-                    <ChartsSection
-                        key={chartIndicatorFilter?.shortName ?? "all"}
+        <div className="dataset-page">
+            <DatasetHeader dataset={dataset} numIndicators={numIndicators} />
+            <div className="grid grid-cols-12-full-width">
+                <section
+                    className="dataset-page__about col-start-2 span-cols-8 span-md-cols-12"
+                    id={SECTION_IDS.about}
+                >
+                    {dataset.about.map((paragraph) => (
+                        <SimpleMarkdownText key={paragraph} text={paragraph} />
+                    ))}
+                </section>
+                {/* Full-width gray band behind the indicator cards */}
+                <div className="dataset-page__indicators-band span-cols-14 grid grid-cols-12-full-width">
+                    <IndicatorsSection
                         dataset={dataset}
-                        indicatorFilter={chartIndicatorFilter}
-                        onClearIndicatorFilter={() =>
-                            setChartIndicatorFilter(undefined)
-                        }
+                        onSourceClick={revealSource}
                     />
-                    <RelatedResearchSection dataset={dataset} />
                 </div>
-                <div className="dataset-page__band grid grid-cols-12-full-width">
-                    <SourcesAndProcessingSection
-                        dataset={dataset}
-                        showAllSources={showAllSources}
-                        onShowAllSources={() => setShowAllSources(true)}
-                        openSources={openSources}
-                        onToggleSource={toggleSource}
-                    />
-                    <ChangelogSection dataset={dataset} />
-                    <ReuseSection dataset={dataset} />
-                </div>
+                <ChartsSection dataset={dataset} />
+                <RelatedResearchSection dataset={dataset} />
             </div>
-        </LongListModeContext.Provider>
+            <div className="dataset-page__band grid grid-cols-12-full-width">
+                <SourcesAndProcessingSection
+                    dataset={dataset}
+                    openSources={openSources}
+                    onToggleSource={toggleSource}
+                />
+                <ChangelogSection dataset={dataset} />
+                <ReuseSection dataset={dataset} />
+            </div>
+        </div>
     )
 }

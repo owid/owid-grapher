@@ -193,12 +193,6 @@ $dataset-page-fade-mask: linear-gradient(
     }
 }
 
-.dataset-page__divider {
-    border: none;
-    border-top: 1px solid $blue-20;
-    margin: 16px 0 0;
-}
-
 .dataset-page__section {
     padding: 48px 0;
 }
@@ -336,11 +330,6 @@ $dataset-page-fade-mask: linear-gradient(
     padding: 0;
 }
 
-.dataset-page__rows--faded {
-    mask-image: $dataset-page-fade-mask;
-    -webkit-mask-image: $dataset-page-fade-mask;
-}
-
 .dataset-page__scroll-box {
     max-height: 600px;
     overflow-y: auto;
@@ -402,44 +391,6 @@ $dataset-page-fade-mask: linear-gradient(
 
     &:hover .dataset-page__row-header {
         background: $blue-20;
-    }
-}
-
-.dataset-page__row-header-action {
-    position: absolute;
-    top: 50%;
-    right: 48px;
-    transform: translateY(-50%);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 150ms ease;
-
-    .dataset-page__row-header-wrapper:hover &,
-    .dataset-page__row-header-wrapper:focus-within & {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    // Touch devices can't hover, so always show the action there
-    @media (hover: none) {
-        opacity: 1;
-        pointer-events: auto;
-    }
-}
-
-.dataset-page__see-charts {
-    @include body-3-medium;
-    & {
-        padding: 6px 12px;
-        background: $blue-10;
-        border: none;
-        color: $blue-90;
-        cursor: pointer;
-        white-space: nowrap;
-    }
-
-    &:hover {
-        background: $white;
     }
 }
 
@@ -622,66 +573,6 @@ $dataset-page-fade-mask: linear-gradient(
 }
 
 // Charts
-
-.dataset-page__chart-filter {
-    @include body-3-medium;
-    & {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 8px 16px;
-        margin: -8px 0 24px;
-        padding: 12px 16px;
-        background: $blue-10;
-    }
-}
-
-.dataset-page__chart-filter-clear {
-    @include body-3-medium;
-    & {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 4px 12px;
-        background: $white;
-        border: 1px solid $blue-20;
-        color: $blue-90;
-        cursor: pointer;
-    }
-
-    &:hover {
-        border-color: $blue-60;
-    }
-}
-
-// Prototype version switcher
-
-.dataset-page__version-bar {
-    display: flex;
-    justify-content: flex-end;
-    padding: 8px 16px;
-    background: $amber-10;
-    border-bottom: 1px solid $gray-20;
-}
-
-.dataset-page__version-switcher {
-    @include body-3-medium;
-    & {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: $blue-90;
-    }
-
-    select {
-        font: inherit;
-        padding: 4px 8px;
-        border: 1px solid $blue-20;
-        background: $white;
-        color: $blue-90;
-    }
-}
 
 .dataset-page__charts {
     align-items: start;
