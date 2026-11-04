@@ -35,14 +35,19 @@ $featured-viz-label-color: #8a5d00;
 
 .search-featured-viz-hit__content {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
 
-    // Stack the thumbnail above the text, like the home page's featured tiles
     @include sm-only {
+        gap: 12px;
+    }
+
+    // Stack the thumbnail above the text, like the home page's featured
+    // tiles. Only on narrow phones: above 400px, a full-width thumbnail is
+    // huge.
+    @media (width <= 400px) {
         flex-direction: column;
         align-items: stretch;
-        gap: 12px;
     }
 }
 
@@ -53,7 +58,7 @@ $featured-viz-label-color: #8a5d00;
     object-fit: cover;
     background-color: $white;
 
-    @include sm-only {
+    @media (width <= 400px) {
         width: 100%;
         height: auto;
     }
