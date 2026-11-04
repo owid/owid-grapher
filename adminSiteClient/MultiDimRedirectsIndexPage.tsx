@@ -432,7 +432,7 @@ export default function MultiDimRedirectsIndexPage() {
                                 autoFocus
                             />
                             <Typography.Text>
-                                Showing {filteredRedirects?.length ?? 0} of{" "}
+                                Showing {filteredRedirects.length} of{" "}
                                 {redirects?.length ?? 0} redirects across{" "}
                                 {groupedRedirects.length} multi-dims
                             </Typography.Text>

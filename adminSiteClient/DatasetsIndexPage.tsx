@@ -37,7 +37,7 @@ export function DatasetsIndexPage() {
             <main className="DatasetsIndexPage">
                 <FieldsRow>
                     <span>
-                        Showing {datasetsToShow.length} of {datasets.length}{" "}
+                        Showing {datasetsToShow.length} of {filtered.length}{" "}
                         datasets
                     </span>
                     <TextField
@@ -51,7 +51,7 @@ export function DatasetsIndexPage() {
                     datasets={datasetsToShow}
                     searchHighlight={highlight}
                 />
-                {!searchValue && (
+                {filtered.length > maxVisibleRows && (
                     <button
                         className="btn btn-secondary"
                         onClick={() => setMaxVisibleRows((rows) => rows + 100)}

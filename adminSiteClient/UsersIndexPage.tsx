@@ -102,10 +102,7 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
     }
 }
 
-const searchedText = (user: UserIndexMetaWithLastSeen) => [
-    user.fullName,
-    user.name,
-]
+const searchedText = (user: UserIndexMetaWithLastSeen) => [user.fullName]
 
 export function UsersIndexPage() {
     const { admin } = React.useContext(AdminAppContext)
