@@ -417,7 +417,7 @@ const indicatorGroups: DatasetIndicatorGroup[] = [
     { id: "main", title: "Main Indicators", indicators: mainIndicators },
     {
         id: "auxiliary",
-        title: "IDs and Auxiliary Indicators",
+        title: "Index Indicators",
         indicators: auxiliaryIndicators,
     },
 ]

@@ -43,7 +43,6 @@ const SECTION_IDS = {
     reuse: "reuse",
     download: "download",
     advancedDownload: "advanced-download",
-    citation: "citation",
 } as const
 
 /** Lists longer than this scroll inside their card */
@@ -203,24 +202,21 @@ function ExpandableRow({
     )
 }
 
-/**
- * A list in a white card. Long lists scroll inside the card, with the title
- * (if any) inside the card above them.
- */
+/** A list in a white card. Long lists scroll inside the card. */
 function CardList({
     items,
     className,
-    title,
 }: {
     items: ReactNode[]
     className?: string
-    /** Only shown when the list is long enough to scroll */
-    title?: ReactNode
 }) {
     const isScrollable = items.length > MAX_UNSCROLLED_ITEMS
     return (
-        <div className={cx("dataset-page__card", className)}>
-            {isScrollable && title}
+        <div
+            className={cx("dataset-page__card", className, {
+                "dataset-page__card--scrollable": isScrollable,
+            })}
+        >
             <div
                 className={cx({
                     "dataset-page__scroll-box": isScrollable,
@@ -236,11 +232,14 @@ function SectionWithSideHeading({
     heading,
     headingLevel = 3,
     id,
+    isWide = false,
     children,
 }: {
     heading: string
     headingLevel?: 2 | 3
     id?: string
+    /** Lets the body take up two more columns, e.g. for a list of cards */
+    isWide?: boolean
     children: ReactNode
 }) {
     const Heading = headingLevel === 2 ? "h2" : "h3"
@@ -256,7 +255,12 @@ function SectionWithSideHeading({
             >
                 {heading}
             </Heading>
-            <div className="dataset-page__side-body col-start-4 span-cols-7 col-md-start-1 span-md-cols-12">
+            <div
+                className={cx(
+                    "dataset-page__side-body col-start-4 col-md-start-1 span-md-cols-12",
+                    isWide ? "span-cols-8" : "span-cols-6"
+                )}
+            >
                 {children}
             </div>
         </div>
@@ -278,6 +282,10 @@ function DatasetHeader({
         producers.includes(p)
     )
     const numOtherSources = dataset.sources.length - highlightedProducers.length
+    // Parquet is only offered further down, with the other download options
+    const quickDownloads = dataset.downloads.filter(
+        (file) => file.format !== "parquet"
+    )
 
     return (
         <header className="dataset-page__header grid grid-cols-12-full-width">
@@ -348,7 +356,7 @@ function DatasetHeader({
                     indicator as a column.
                 </p>
                 <div className="dataset-page__quick-download-buttons">
-                    {dataset.downloads.map((file) => (
+                    {quickDownloads.map((file) => (
                         <a
                             key={file.format}
                             className="dataset-page__quick-download-button"
@@ -373,7 +381,7 @@ function DatasetHeader({
                     <a href={`#${SECTION_IDS.advancedDownload}`}>
                         Advanced download
                     </a>
-                    <a href={`#${SECTION_IDS.citation}`}>How to cite</a>
+                    <a href={`#${SECTION_IDS.reuse}`}>How to cite</a>
                     <a href={dataset.license.url}>{dataset.license.name}</a>
                 </div>
             </aside>
@@ -480,15 +488,10 @@ function IndicatorGroup({
     )
     if (indicators.length === 0) return null
 
-    // A scrollable group has its title inside the card
-    const isTitleInCard = indicators.length > MAX_UNSCROLLED_ITEMS
-    const title = <h3 className="dataset-page__group-title">{group.title}</h3>
-
     return (
         <div className="dataset-page__indicator-group">
-            {!isTitleInCard && title}
+            <h3 className="dataset-page__group-title">{group.title}</h3>
             <CardList
-                title={title}
                 items={indicators.map((indicator) => (
                     <ExpandableRow
                         key={indicator.shortName}
@@ -656,7 +659,7 @@ function ChartsSection({ dataset }: { dataset: DatasetPageData }) {
 
     return (
         <section
-            className="dataset-page__section dataset-page__section--bordered col-start-2 span-cols-12"
+            className="dataset-page__section col-start-2 span-cols-12"
             id={SECTION_IDS.charts}
         >
             <h2 className="dataset-page__section-title">
@@ -714,7 +717,7 @@ function ChartsSection({ dataset }: { dataset: DatasetPageData }) {
 function RelatedResearchSection({ dataset }: { dataset: DatasetPageData }) {
     if (dataset.relatedResearch.length === 0) return null
     return (
-        <section className="dataset-page__section dataset-page__section--bordered col-start-2 span-cols-12">
+        <section className="dataset-page__section dataset-page__section--research dataset-page__section--bordered col-start-2 span-cols-12">
             <h2 className="dataset-page__section-title">
                 Related research and writing
             </h2>
@@ -808,13 +811,16 @@ function SourcesAndProcessingSection({
 }) {
     return (
         <section
-            className="dataset-page__section col-start-2 span-cols-12"
+            className="dataset-page__section dataset-page__section--sources col-start-2 span-cols-12"
             id={SECTION_IDS.sources}
         >
             <h2 className="dataset-page__section-title">
                 Sources and Processing
             </h2>
-            <SectionWithSideHeading heading="This dataset is based on the following sources">
+            <SectionWithSideHeading
+                heading="This dataset is based on the following sources"
+                isWide
+            >
                 <CardList
                     className="dataset-page__sources"
                     items={dataset.sources.map((source, index) => (
@@ -849,23 +855,14 @@ function SourcesAndProcessingSection({
 }
 
 function ChangelogSection({ dataset }: { dataset: DatasetPageData }) {
-    const [isExpanded, setIsExpanded] = useState(false)
-    const visibleEntries = isExpanded
-        ? dataset.changelog
-        : dataset.changelog.slice(0, 4)
-    const isTruncated = visibleEntries.length < dataset.changelog.length
     return (
         <section
-            className="dataset-page__section dataset-page__section--bordered col-start-2 span-cols-12"
+            className="dataset-page__section dataset-page__section--changelog dataset-page__section--bordered col-start-2 span-cols-12"
             id={SECTION_IDS.changelog}
         >
             <SectionWithSideHeading heading="Changelog" headingLevel={2}>
-                <div
-                    className={cx("dataset-page__changelog", {
-                        "dataset-page__changelog--faded": isTruncated,
-                    })}
-                >
-                    {visibleEntries.map((entry) => (
+                <div className="dataset-page__changelog">
+                    {dataset.changelog.map((entry) => (
                         <div
                             key={entry.date}
                             className="dataset-page__changelog-entry"
@@ -886,16 +883,6 @@ function ChangelogSection({ dataset }: { dataset: DatasetPageData }) {
                         </div>
                     ))}
                 </div>
-                {isTruncated && (
-                    <button
-                        type="button"
-                        className="dataset-page__show-all"
-                        onClick={() => setIsExpanded(true)}
-                    >
-                        Show full changelog
-                        <FontAwesomeIcon icon={faPlus} />
-                    </button>
-                )}
             </SectionWithSideHeading>
         </section>
     )
@@ -1052,20 +1039,13 @@ function DownloadSection({ dataset }: { dataset: DatasetPageData }) {
 }
 
 function ReuseSection({ dataset }: { dataset: DatasetPageData }) {
-    const citation = `${dataset.sources
-        .map((s) => s.producer)
-        .filter((p, i, all) => all.indexOf(p) === i)
-        .slice(0, 3)
-        .join(
-            "; "
-        )} and other sources – with major processing by Our World in Data. “${dataset.title}” [dataset]. Version ${dataset.version}. Retrieved from https://ourworldindata.org/datasets/${dataset.slug}`
     return (
         <section
             className="dataset-page__section dataset-page__section--bordered col-start-2 span-cols-12"
             id={SECTION_IDS.reuse}
         >
             <SectionWithSideHeading heading="Reuse this work" headingLevel={2}>
-                <p className="dataset-page__body-text">
+                <p className="dataset-page__body-text dataset-page__reuse-text">
                     Our World in Data collects and republishes this data; it is
                     not the original producer. The licenses of the original
                     sources still apply; each source above links to the
@@ -1079,16 +1059,6 @@ function ReuseSection({ dataset }: { dataset: DatasetPageData }) {
                 id={SECTION_IDS.download}
             >
                 <DownloadSection dataset={dataset} />
-            </SectionWithSideHeading>
-            <SectionWithSideHeading
-                heading="How to cite"
-                id={SECTION_IDS.citation}
-            >
-                <p className="dataset-page__body-text">
-                    If you use this dataset, please cite both the original
-                    sources and Our World in Data:
-                </p>
-                <CodeSnippet code={citation} theme="light" />
             </SectionWithSideHeading>
         </section>
     )

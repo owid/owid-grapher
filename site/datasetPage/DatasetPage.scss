@@ -1,12 +1,6 @@
 // Dataset page prototype
 
 $dataset-page-row-border: $blue-20;
-$dataset-page-fade-mask: linear-gradient(
-    to bottom,
-    black 0%,
-    black 55%,
-    transparent 100%
-);
 
 .dataset-page {
     color: $blue-90;
@@ -20,14 +14,14 @@ $dataset-page-fade-mask: linear-gradient(
 
 .dataset-page__header {
     background: $blue-5;
-    padding: 32px 0 24px;
+    padding: 24px 0;
     row-gap: 24px;
 }
 
 .dataset-page__title {
     @include display-2-semibold;
     & {
-        margin: 0 0 16px;
+        margin: 0 0 8px;
     }
 }
 
@@ -35,7 +29,7 @@ $dataset-page-fade-mask: linear-gradient(
     @include body-1-regular;
     & {
         color: $blue-60;
-        margin: 0 0 24px;
+        margin: 0 0 8px;
         max-width: 640px;
     }
 }
@@ -47,13 +41,13 @@ $dataset-page-fade-mask: linear-gradient(
         align-items: center;
         flex-wrap: wrap;
         gap: 4px;
-        margin: 0 0 16px;
+        margin: 0 0 8px;
         color: $blue-90;
     }
 }
 
 .dataset-page__byline-label {
-    color: $blue-60;
+    color: $blue-50;
     margin-right: 4px;
 }
 
@@ -75,7 +69,7 @@ $dataset-page-fade-mask: linear-gradient(
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    margin: 48px 0 0;
+    margin: 24px 0 0;
     padding-top: 24px;
     border-top: 1px solid $blue-20;
 
@@ -86,8 +80,8 @@ $dataset-page-fade-mask: linear-gradient(
     dt {
         @include body-3-medium;
         & {
-            color: $blue-60;
-            margin-bottom: 4px;
+            color: $blue-50;
+            margin-bottom: 2px;
         }
     }
 
@@ -108,15 +102,25 @@ $dataset-page-fade-mask: linear-gradient(
 .dataset-page__overline {
     @include overline-black-caps;
     & {
+        font-size: 0.6875rem;
         color: $blue-90;
-        margin: 0 0 8px;
+        margin: 0 0 4px;
+    }
+}
+
+.dataset-page__quick-download .dataset-page__overline {
+    @include h6-black-caps;
+    & {
+        color: $blue-60;
+        margin: 0;
     }
 }
 
 .dataset-page__quick-download-title {
     @include h2-bold;
     & {
-        margin: 0 0 8px;
+        line-height: 1.2;
+        margin: 0 0 4px;
     }
 }
 
@@ -140,7 +144,7 @@ $dataset-page-fade-mask: linear-gradient(
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 12px 16px;
+    padding: 11px 16px;
     background: $blue-10;
     color: $blue-90;
     text-decoration: none;
@@ -183,9 +187,9 @@ $dataset-page-fade-mask: linear-gradient(
 // Generic sections
 
 .dataset-page__about {
-    @include body-1-regular;
+    @include body-2-regular;
     & {
-        padding-top: 32px;
+        padding: 80px 0 8px;
     }
 
     p {
@@ -194,7 +198,7 @@ $dataset-page-fade-mask: linear-gradient(
 }
 
 .dataset-page__section {
-    padding: 48px 0;
+    padding: 32px 0;
 }
 
 .dataset-page__section--bordered {
@@ -204,19 +208,21 @@ $dataset-page-fade-mask: linear-gradient(
 .dataset-page__section-title {
     @include h1-semibold;
     & {
-        margin: 0 0 24px;
+        font-size: 1.5rem;
+        margin: 0 0 16px;
     }
 }
 
 .dataset-page__body-text {
-    @include body-2-regular;
+    @include body-3-regular;
     & {
+        color: $blue-60;
         margin: 0 0 16px;
     }
 }
 
 .dataset-page__body-text--tight {
-    margin-bottom: 8px;
+    margin-bottom: 0;
 }
 
 .dataset-page__no-results {
@@ -227,7 +233,7 @@ $dataset-page-fade-mask: linear-gradient(
 }
 
 .dataset-page__arrow-link {
-    @include body-2-regular;
+    @include body-3-regular;
 
     svg {
         font-size: 0.75em;
@@ -237,6 +243,7 @@ $dataset-page-fade-mask: linear-gradient(
 
 .dataset-page__band {
     background: $gray-5;
+    padding-bottom: 16px;
 
     // The first section in the band doesn't need a divider
     .dataset-page__section:first-child {
@@ -248,8 +255,16 @@ $dataset-page-fade-mask: linear-gradient(
     row-gap: 16px;
 
     + .dataset-page__side-section {
-        margin-top: 48px;
+        margin-top: 32px;
     }
+}
+
+.dataset-page__side-body > :last-child {
+    margin-bottom: 0;
+}
+
+.dataset-page__side-body > .dataset-page__reuse-text {
+    margin-bottom: 8px;
 }
 
 .dataset-page__side-heading {
@@ -262,6 +277,7 @@ $dataset-page-fade-mask: linear-gradient(
 .dataset-page__side-heading--large {
     @include h1-semibold;
     & {
+        font-size: 1.5rem;
         margin: 0;
     }
 }
@@ -289,7 +305,7 @@ $dataset-page-fade-mask: linear-gradient(
 }
 
 .dataset-page__search-icon {
-    color: $blue-60;
+    color: $blue-50;
 }
 
 .dataset-page__search-input {
@@ -304,7 +320,7 @@ $dataset-page-fade-mask: linear-gradient(
     }
 
     &::placeholder {
-        color: $blue-60;
+        color: $blue-50;
     }
 
     // The wrapping label shows focus instead
@@ -320,8 +336,12 @@ $dataset-page-fade-mask: linear-gradient(
     @include h3-bold;
     & {
         color: $blue-60;
-        margin: 32px 0 8px;
+        margin: 0 0 16px;
     }
+}
+
+.dataset-page__indicator-group + .dataset-page__indicator-group {
+    margin-top: 32px;
 }
 
 .dataset-page__rows {
@@ -331,7 +351,8 @@ $dataset-page-fade-mask: linear-gradient(
 }
 
 .dataset-page__scroll-box {
-    max-height: 600px;
+    // Ten rows
+    max-height: 630px;
     overflow-y: auto;
     mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
@@ -346,29 +367,31 @@ $dataset-page-fade-mask: linear-gradient(
     }
 }
 
-// Version 4: lists in white cards
+// Lists in white cards
 
 .dataset-page__indicators-band {
     background: $gray-5;
-    margin-top: 32px;
 }
 
 .dataset-page__card {
     background: $white;
     border: 1px solid $blue-10;
-    padding: 8px 24px;
-
-    .dataset-page__group-title {
-        margin: 24px 0 8px;
-    }
+    // The rows add the side padding themselves, so that their hover
+    // background can span the whole card without overflowing a scroll box
+    padding: 8px 0;
 }
 
-.dataset-page__indicators-band .dataset-page__group-title {
-    margin-bottom: 16px;
+.dataset-page__card--scrollable {
+    padding-bottom: 0;
 }
 
 .dataset-page__row {
+    margin: 0 24px;
     border-bottom: 1px solid $dataset-page-row-border;
+
+    &:last-child {
+        border-bottom: none;
+    }
 }
 
 .dataset-page__row-header {
@@ -377,7 +400,7 @@ $dataset-page-fade-mask: linear-gradient(
     justify-content: space-between;
     gap: 16px;
     width: 100%;
-    padding: 12px 16px;
+    padding: 12px 0;
     background: none;
     border: none;
     text-align: left;
@@ -389,6 +412,14 @@ $dataset-page-fade-mask: linear-gradient(
 .dataset-page__row-header-wrapper {
     position: relative;
 
+    // Bleed the hover background into the card's padding
+    margin: 0 -24px;
+
+    .dataset-page__row-header {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
     &:hover .dataset-page__row-header {
         background: $blue-20;
     }
@@ -397,36 +428,34 @@ $dataset-page-fade-mask: linear-gradient(
 .dataset-page__row-text {
     display: flex;
     flex-direction: column;
-    gap: 2px;
     min-width: 0;
 }
 
 .dataset-page__row-title {
     @include body-2-semibold;
     & {
+        line-height: 22px;
         color: $blue-90;
     }
 }
 
 .dataset-page__row-subtitle {
-    @include body-3-medium;
+    @include label-2-medium;
     & {
-        color: $blue-60;
+        line-height: 16px;
+        color: $blue-50;
     }
 }
 
 .dataset-page__row-icon {
     flex-shrink: 0;
-    margin-top: 4px;
+    font-size: 0.75rem;
+    margin-top: 5px;
     color: $blue-90;
 }
 
-.dataset-page__row--open {
-    background: $blue-5;
-}
-
 .dataset-page__row-content {
-    padding: 0 16px 16px;
+    padding: 0 0 16px;
 }
 
 .dataset-page__details {
@@ -620,7 +649,7 @@ $dataset-page-fade-mask: linear-gradient(
 .dataset-page__chart-item-header {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
     width: 100%;
     padding: 0;
     background: none;
@@ -633,6 +662,8 @@ $dataset-page-fade-mask: linear-gradient(
 .dataset-page__chart-item-title {
     @include h3-bold;
     & {
+        font-size: 1rem;
+        line-height: 1.25;
         margin: 0;
     }
 }
@@ -751,15 +782,22 @@ $dataset-page-fade-mask: linear-gradient(
 // Changelog
 
 .dataset-page__changelog {
-    @include body-2-regular;
+    @include body-3-regular;
+    & {
+        color: $blue-60;
+    }
 
     ul {
-        margin: 0 0 16px;
-        padding-left: 20px;
+        margin: 0 0 28px;
+        padding-left: 21px;
     }
 
     li {
-        margin-bottom: 8px;
+        margin-bottom: 4px;
+    }
+
+    .dataset-page__changelog-entry:last-child ul {
+        margin-bottom: 0;
     }
 
     code {
@@ -767,15 +805,11 @@ $dataset-page-fade-mask: linear-gradient(
     }
 }
 
-.dataset-page__changelog--faded {
-    mask-image: $dataset-page-fade-mask;
-    -webkit-mask-image: $dataset-page-fade-mask;
-}
-
 .dataset-page__changelog-date {
-    @include body-2-semibold;
+    @include body-3-bold;
     & {
-        margin: 0 0 16px;
+        color: $blue-90;
+        margin: 0 0 6px;
     }
 }
 
@@ -794,11 +828,12 @@ $dataset-page-fade-mask: linear-gradient(
     display: flex;
     flex-direction: column;
     gap: 2px;
-    margin-top: 16px;
+    margin-top: 18px;
 }
 
 .dataset-page .dataset-page__download-button {
-    padding: 16px;
+    gap: 12px;
+    padding: 14px 16px;
 }
 
 .dataset-page__download-button-format {
@@ -809,6 +844,10 @@ $dataset-page-fade-mask: linear-gradient(
     font-size: 1.5rem;
 }
 
+.dataset-page__download-button > svg:last-child {
+    margin-right: 6px;
+}
+
 .dataset-page__download-button-text {
     display: flex;
     flex-direction: column;
@@ -816,7 +855,7 @@ $dataset-page-fade-mask: linear-gradient(
 }
 
 .dataset-page__download-button-title {
-    @include body-1-regular;
+    @include body-2-regular;
 }
 
 .dataset-page__download-button-meta {
@@ -827,7 +866,11 @@ $dataset-page-fade-mask: linear-gradient(
 }
 
 .dataset-page__radio {
-    margin: 16px 0 12px;
+    margin: 16px 0 8px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
 
     .label {
         @include body-3-medium;
@@ -848,9 +891,9 @@ $dataset-page-fade-mask: linear-gradient(
         grid-template-columns: repeat(2, 1fr);
         grid-template-rows: repeat(3, auto);
         grid-auto-flow: column;
-        gap: 12px 24px;
+        gap: 11px 24px;
         list-style: none;
-        margin: 0 0 16px;
+        margin: 0 0 15px;
         padding-left: 24px;
     }
 
@@ -866,6 +909,7 @@ $dataset-page-fade-mask: linear-gradient(
 }
 
 .dataset-page__api-urls {
+    margin-top: 8px;
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -873,11 +917,32 @@ $dataset-page-fade-mask: linear-gradient(
 
 .dataset-page .wp-code-snippet {
     margin-bottom: 0;
+
+    code {
+        font-size: 0.75rem;
+        line-height: 16px;
+    }
 }
 
 .dataset-page__code-label {
-    @include body-2-regular;
+    @include body-3-regular;
     & {
         margin: 0 0 8px;
+    }
+}
+
+.dataset-page__section--sources {
+    padding-top: 40px;
+}
+
+.dataset-page__section--changelog {
+    padding-top: 40px;
+}
+
+.dataset-page__section--research {
+    padding: 32px 0 48px;
+
+    .dataset-page__section-title {
+        margin-bottom: 8px;
     }
 }
