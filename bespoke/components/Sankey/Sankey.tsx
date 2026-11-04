@@ -565,6 +565,25 @@ export function Sankey({
         return ids
     }, [hover, activeLinks])
 
+    // A middle node's band spans all of its ribbons, so when only some of
+    // them are lit it would stand out against the faded rest, crossing the
+    // lit ribbons; it's only highlighted when all of its links are
+    const highlightedBandNodeIds = useMemo(() => {
+        const ids = new Set<string>()
+        for (const node of layout?.nodes ?? []) {
+            if (!activeNodeIds.has(node.id)) continue
+            const isFullyLit =
+                getNodeSide(node) !== "middle" ||
+                node.id === hoveredNodeIdOf(hover) ||
+                [
+                    ...(node.sourceLinks ?? []),
+                    ...(node.targetLinks ?? []),
+                ].every((l) => activeLinks.has(l))
+            if (isFullyLit) ids.add(node.id)
+        }
+        return ids
+    }, [layout, activeNodeIds, activeLinks, hover])
+
     // Paint active links last so they appear above inactive ribbons.
     const linksInRenderOrder = useMemo<LaidOutLink[]>(() => {
         if (!layout) return []
@@ -664,7 +683,7 @@ export function Sankey({
                             middleBand={middleBand}
                             nodeColor={nodeColor}
                             isHovered={hoveredNodeId === node.id}
-                            isActive={activeNodeIds.has(node.id)}
+                            isActive={highlightedBandNodeIds.has(node.id)}
                             isAnchored={node.id === anchorNodeId}
                         />
                     ))}
@@ -1179,6 +1198,10 @@ function shiftNodeVertically(node: LaidOutNode, dy: number): void {
     for (const link of node.sourceLinks ?? []) {
         if (link.y0 !== undefined) link.y0 += dy
     }
+}
+
+function hoveredNodeIdOf(hover: HoverState | null): string | undefined {
+    return hover?.kind === "node" ? hover.node.id : undefined
 }
 
 /** Classify nodes by their upstream depth and downstream height. */
