@@ -131,7 +131,10 @@ const FALSY = new Set(["false", "no", "0"])
  * nothing rather than comparing as text
  */
 function normalizeDateQuery(value: string): string | undefined {
-    const match = /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2}))?)?$/.exec(value)
+    // `2024-` and `2024-0` are a month still being typed, not a filter that
+    // should blank the list until it's finished
+    const typed = value.replace(/-0?$/, "")
+    const match = /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2}))?)?$/.exec(typed)
     if (!match) return undefined
     const [, year, month, day] = match
     return [year, month, day]
