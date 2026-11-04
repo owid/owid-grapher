@@ -165,3 +165,12 @@
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
 }
+
+// On hover, fade the rest of the chart rather than greying it out, as the
+// migration Sankey does, so the ribbons keep their commodity's colour
+.deforestation-sankey
+    .sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__link:not(.sankey__link--hovered):not(.sankey__link--active) {
+    fill-opacity: 0.2;
+    filter: none;
+}
