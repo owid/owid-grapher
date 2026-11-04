@@ -42,11 +42,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { match as tsMatch, P } from "ts-pattern"
 
-import {
-    useCountryProfileSelection,
-    useGdocsChanged,
-    useLightningUpdate,
-} from "./gdocsHooks.js"
+import { useCountryProfileSelection, useGdocsChanged } from "./gdocsHooks.js"
 import { getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { deleteGdoc, updateGdoc } from "./gdocsApi.js"
@@ -222,12 +218,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         }
     }, [admin, acceptSuggestions, fetchGdoc, handleError])
     /* oxlint-enable react/immutability */
-
-    const isLightningUpdate = useLightningUpdate(
-        originalGdoc,
-        currentGdoc,
-        hasChanges
-    )
 
     // Errors and validation status
     const errors = useMemo(
@@ -409,7 +399,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 hasErrors={hasErrors}
                                 hasWarnings={hasWarnings}
                                 hasChanges={hasChanges}
-                                isLightningUpdate={isLightningUpdate}
                                 setDiffOpen={setDiffOpen}
                                 doPublish={doPublish}
                                 saveDraft={saveDraft}
