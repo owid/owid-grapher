@@ -58,11 +58,12 @@ describe("parallel link rendering", () => {
 })
 
 /**
- * With `fitMiddleLabelsToRibbons`, a middle column's label is only drawn where
- * it lies entirely on the node's own ribbons on its side. Where it doesn't,
- * the label falls back to its name without the value line, then to its icon
- * alone, by the band, whichever fits first; where not even the icon fits, the
- * node goes unlabelled.
+ * A node's label variants are tried in order, and the first that fits is
+ * drawn. With `fitMiddleLabelsToRibbons`, a middle column's label only fits
+ * where it lies entirely on the node's own ribbons on its side; where no
+ * variant does, the node goes unlabelled. The variants here are the full
+ * label, then the name without the value line, then the icon alone, by the
+ * band.
  *
  * The rendering tests use four middle nodes: a thick ribbon with room for a
  * two-line label; two ribbons about 20px thick, with room for one line but
@@ -73,8 +74,11 @@ const ICON = createElement("rect", { width: 16, height: 16 })
 
 function renderLabels({
     fitMiddleLabelsToRibbons,
+    isIconFirst = false,
 }: {
     fitMiddleLabelsToRibbons: boolean
+    /** Try the icon alone before the variants with text */
+    isIconFirst?: boolean
 }): { texts: string[]; iconCount: number } {
     const middle: [id: string, value: number, label: string][] = [
         ["wide", 200, "wide"],
@@ -84,14 +88,21 @@ function renderLabels({
     ]
     const nodes: SankeyNode[] = [
         { id: "from", label: "" },
-        ...middle.map(([id, , label]) => ({
-            id,
-            label,
-            valueLabel: "1 ha",
-            icon: ICON,
-            iconStyle: "inline" as const,
-            labelColor: "#333",
-        })),
+        ...middle.map(([id, , label]) => {
+            const icon = { icon: ICON, iconStyle: "inline" as const }
+            const withText = [
+                { label, valueLabel: "1 ha", ...icon },
+                { label, ...icon },
+            ]
+            return {
+                id,
+                label,
+                labelColor: "#333",
+                labelVariants: isIconFirst
+                    ? [icon, ...withText]
+                    : [...withText, icon],
+            }
+        }),
         { id: "to", label: "" },
     ]
     const links = middle.flatMap(([id, value]) => [
@@ -141,5 +152,16 @@ describe("fitting middle labels to their ribbons", () => {
             "narrow",
         ])
         expect(iconCount).toEqual(4)
+    })
+
+    it("tries the variants in the order given", () => {
+        const { texts, iconCount } = renderLabels({
+            fitMiddleLabelsToRibbons: true,
+            isIconFirst: true,
+        })
+        // Every node whose ribbon fits the icon shows it alone; on the narrow
+        // node's ribbon nothing fits
+        expect(texts).toEqual([])
+        expect(iconCount).toEqual(3)
     })
 })

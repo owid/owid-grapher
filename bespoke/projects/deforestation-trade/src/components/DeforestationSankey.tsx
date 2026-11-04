@@ -170,9 +170,10 @@ function DeforestationSankeyContent({
     )
 
     // Labelled commodity nodes carry their group's glyph, inline with the
-    // label and in its colour, so it reads as part of the text. On narrow
-    // screens the glyph stands alone, as a badge on a white disc that invites
-    // a tap; the Sankey drops it on nodes too short to fit it.
+    // label and in its colour, so it reads as part of the text. Where the
+    // label doesn't fit on its ribbon, the name goes alone, then the glyph.
+    // On narrow screens the glyph stands alone, as a badge on a white disc
+    // that invites a tap, where the node is tall enough for it.
     const nodes = useMemo<SankeyNode[]>(
         () =>
             graph.nodes.map((node) => {
@@ -189,23 +190,41 @@ function DeforestationSankeyContent({
                 const labelColor = getGroupLabelColor(group)
                 if (node.label === "" && !isNarrow)
                     return { ...node, labelColor }
-                return isNarrow
-                    ? {
-                          ...node,
-                          labelColor,
-                          icon: renderGroupIcon(group, getGroupColor(group)),
-                          iconStyle: "badge",
-                      }
-                    : {
-                          ...node,
-                          labelColor,
-                          highlightedLabelColor: HIGHLIGHTED_LABEL_COLOR,
-                          // Drawn in the label's colour, whichever it is
-                          icon: renderGroupIcon(group, "currentColor", {
-                              glyphSize: GROUP_ICON_SIZE,
-                          }),
-                          iconStyle: "inline",
-                      }
+                if (isNarrow)
+                    return {
+                        ...node,
+                        labelColor,
+                        labelVariants: [
+                            {
+                                icon: renderGroupIcon(
+                                    group,
+                                    getGroupColor(group)
+                                ),
+                                iconStyle: "badge",
+                            },
+                        ],
+                    }
+                const inlineIcon = {
+                    // Drawn in the label's colour, whichever it is
+                    icon: renderGroupIcon(group, "currentColor", {
+                        glyphSize: GROUP_ICON_SIZE,
+                    }),
+                    iconStyle: "inline",
+                } as const
+                return {
+                    ...node,
+                    labelColor,
+                    highlightedLabelColor: HIGHLIGHTED_LABEL_COLOR,
+                    labelVariants: [
+                        {
+                            label: node.label,
+                            valueLabel: node.valueLabel,
+                            ...inlineIcon,
+                        },
+                        { label: node.label, ...inlineIcon },
+                        inlineIcon,
+                    ],
+                }
             }),
         [graph.nodes, isNarrow]
     )

@@ -165,14 +165,13 @@ export type SankeyNode = {
     /** Note below the value with an arrow to the band; hidden unless all three lines fit. */
     annotation?: string
     annotationFontSize?: number
-    /** SVG content for a `0 0 16 16` viewBox. */
-    icon?: React.ReactNode
     /**
-     * How the icon goes with the label, between the band and the text: as a
-     * badge on a white disc centred on the label (the default), or inline, as
-     * a small glyph beside the label's first line.
+     * The ways to label the node, best first: the Sankey draws the first one
+     * that fits (see `placeSankeyLabels`), and no label if none does.
+     * Defaults to the node's `label`, `valueLabel` and `annotation`, then
+     * the same without the annotation, then without the value.
      */
-    iconStyle?: SankeyIconStyle
+    labelVariants?: SankeyLabelVariant[]
     /** Colour of the label and value text. Outer labels default to dark
      *  text with a lighter value line. Middle-column labels lie over the
      *  ribbons, so they must set a colour picked to read against them. */
@@ -194,6 +193,23 @@ export type LinkSide = "source" | "target"
 
 export type SankeyIconStyle = "badge" | "inline"
 
+/** One way to label a node */
+export type SankeyLabelVariant = {
+    /** Omit, or leave empty, for a variant that is just the icon */
+    label?: string
+    valueLabel?: string
+    annotation?: string
+    /** SVG content for a `0 0 16 16` viewBox */
+    icon?: React.ReactNode
+    /**
+     * How the icon goes with the label, between the band and the text: as a
+     * badge on a white disc centred on the label (the default), or inline, as
+     * a small glyph beside the label's first line. Either way an icon
+     * without text sits by the band, centred on the node.
+     */
+    iconStyle?: SankeyIconStyle
+}
+
 /** A node's position relative to the outer columns. */
 export type SankeyNodeSide = "left" | "right" | "middle"
 
@@ -212,7 +228,7 @@ type PlacedSankeyLabel = {
     highlightedLabelColor?: string
     /** Hidden icons still reserve horizontal space to keep labels aligned. */
     isIconVisible: boolean
-    /** Only the icon is shown, by the band, because the text doesn't fit */
+    /** The variant is just the icon, shown by the band */
     isIconOnly?: boolean
 }
 
@@ -1150,6 +1166,14 @@ function getLabelTextHeight(label: {
     )
 }
 
+/**
+ * Place each node's label: the first of its variants that fits, or none.
+ *
+ * A variant fits when it fits the node's height (padding included): a
+ * single line of text always does, more lines must stack within it, and an
+ * icon alone must be no taller. With `fitMiddleLabelsToRibbons`, a middle
+ * label must also lie entirely on the node's own ribbons on its side.
+ */
 function placeSankeyLabels({
     layout,
     nodePadding,
@@ -1166,168 +1190,155 @@ function placeSankeyLabels({
     if (!layout) return []
 
     return layout.nodes.flatMap((node) => {
-        const placed = placeSankeyLabel({
-            node,
-            nodePadding,
-            fontSettings,
-            middleLabelSide,
-        })
+        const variants = getLabelVariants(node)
+        const side = getNodeSide(node)
         if (
-            !fitMiddleLabelsToRibbons ||
-            placed.side !== "middle" ||
-            placed.label.text === ""
+            side === "middle" &&
+            node.labelColor === undefined &&
+            variants.some((v) => v.label)
         )
-            return [placed]
+            console.warn(
+                `Sankey: middle-column node "${node.id}" has a label but no labelColor; middle labels lie over the ribbons and need a colour that reads against them`
+            )
+
+        const nodeHeightWithPadding =
+            (node.y1 ?? 0) - (node.y0 ?? 0) + nodePadding
+        const anchor = getLabelAnchor(node, side, middleLabelSide)
 
         // A middle label lies over the node's ribbons on its side
-        const ribbons = (
-            placed.textAnchor === "end" ? node.targetLinks : node.sourceLinks
-        )?.flatMap((link) => toRibbonGeometry(link) ?? [])
-        if (!ribbons) return []
-        if (isBoxCoveredByRibbons(getLabelBounds(placed), ribbons))
+        const ribbons =
+            fitMiddleLabelsToRibbons && side === "middle"
+                ? ((anchor.textAnchor === "end"
+                      ? node.targetLinks
+                      : node.sourceLinks
+                  )?.flatMap((link) => toRibbonGeometry(link) ?? []) ?? [])
+                : undefined
+
+        for (const variant of variants) {
+            const placed = placeLabelVariant({
+                node,
+                variant,
+                anchor,
+                nodeHeightWithPadding,
+                fontSettings,
+            })
+            // An empty label has nothing to fit
+            if (placed.label.text === "" && !placed.isIconOnly) return [placed]
+            if (!fitsNodeHeight(placed, nodeHeightWithPadding)) continue
+            if (
+                ribbons &&
+                !isBoxCoveredByRibbons(getLabelBounds(placed), ribbons)
+            )
+                continue
             return [placed]
-
-        // Next best: the name without its value
-        const nameOnly: PlacedSankeyLabel = {
-            ...placed,
-            valueLabel: undefined,
-            annotation: undefined,
         }
-        if (
-            (placed.valueLabel || placed.annotation) &&
-            isBoxCoveredByRibbons(getLabelBounds(nameOnly), ribbons)
-        )
-            return [nameOnly]
-
-        const iconOnly: PlacedSankeyLabel = {
-            ...placed,
-            valueLabel: undefined,
-            annotation: undefined,
-            isIconOnly: true,
-            isIconVisible: true,
-        }
-        if (
-            placed.icon &&
-            isBoxCoveredByRibbons(getLabelBounds(iconOnly), ribbons)
-        )
-            return [iconOnly]
-
         return []
     })
 }
 
-function placeSankeyLabel({
-    node,
-    nodePadding,
-    fontSettings,
-    middleLabelSide,
-}: {
-    node: LaidOutNode
-    nodePadding: number
-    fontSettings: FontSettings
+/** A node's label variants, best first */
+function getLabelVariants(node: SankeyNode): SankeyLabelVariant[] {
+    if (node.labelVariants) return node.labelVariants
+    const { label, valueLabel, annotation } = node
+    return [
+        { label, valueLabel, annotation },
+        ...(annotation ? [{ label, valueLabel }] : []),
+        ...(valueLabel || annotation ? [{ label }] : []),
+    ]
+}
+
+type LabelAnchor = Pick<
+    PlacedSankeyLabel,
+    "nodeId" | "x" | "y" | "textAnchor" | "side"
+>
+
+/** Where a node's label starts: by its band, centred on it */
+function getLabelAnchor(
+    node: LaidOutNode,
+    side: SankeyNodeSide,
     middleLabelSide: "left" | "right"
-}): PlacedSankeyLabel {
-    const {
-        label,
-        valueLabel,
-        annotation,
-        icon,
-        iconStyle,
-        labelColor,
-        highlightedLabelColor,
-    } = node
-
-    const x0 = node.x0 ?? 0
-    const x1 = node.x1 ?? 0
-    const y0 = node.y0 ?? 0
-    const y1 = node.y1 ?? 0
-    const nodeHeight = y1 - y0
-
+): LabelAnchor {
     // Outer labels sit in the outer margins; middle-column labels lie over
     // the ribbons on whichever side the caller prefers
-    const side = getNodeSide(node)
     const labelSide = side === "middle" ? middleLabelSide : side
-    if (side === "middle" && label !== "" && labelColor === undefined)
-        console.warn(
-            `Sankey: middle-column node "${node.id}" has a label but no labelColor; middle labels lie over the ribbons and need a colour that reads against them`
-        )
-    const x = labelSide === "left" ? x0 - BAND_LABEL_GAP : x1 + BAND_LABEL_GAP
-    const y = (y0 + y1) / 2
-    const textAnchor = labelSide === "left" ? "end" : "start"
+    return {
+        nodeId: node.id,
+        x:
+            labelSide === "left"
+                ? (node.x0 ?? 0) - BAND_LABEL_GAP
+                : (node.x1 ?? 0) + BAND_LABEL_GAP,
+        y: ((node.y0 ?? 0) + (node.y1 ?? 0)) / 2,
+        textAnchor: labelSide === "left" ? "end" : "start",
+        side,
+    }
+}
+
+function placeLabelVariant({
+    node,
+    variant,
+    anchor,
+    nodeHeightWithPadding,
+    fontSettings,
+}: {
+    node: LaidOutNode
+    variant: SankeyLabelVariant
+    anchor: LabelAnchor
+    nodeHeightWithPadding: number
+    fontSettings: FontSettings
+}): PlacedSankeyLabel {
+    const { label = "", valueLabel, annotation, icon, iconStyle } = variant
+    const isIconOnly = label === "" && icon !== undefined
 
     // Hide badges that would overlap adjacent labels, but preserve their
     // text offset. An inline icon sits on the label's first line, so it
-    // goes wherever the label does.
-    const nodeHeightWithPadding = nodeHeight + nodePadding
+    // goes wherever the label does; an icon alone is the whole label.
     const isIconVisible =
-        iconStyle === "inline" || nodeHeightWithPadding >= SANKEY_ICON_SIZE
+        isIconOnly ||
+        iconStyle === "inline" ||
+        nodeHeightWithPadding >= SANKEY_ICON_SIZE
 
-    const labelTextWrap = new TextWrap({
-        ...fontSettings,
-        text: label,
-        maxWidth: Infinity,
-        verticalAlign: VerticalAlign.middle,
-        fontWeight: 700,
-    })
-
-    if (valueLabel) {
-        const valueLabelTextWrap = new TextWrap({
+    const makeTextWrap = (
+        text: string,
+        overrides?: Partial<FontSettings>
+    ): TextWrap =>
+        new TextWrap({
             ...fontSettings,
-            text: valueLabel,
+            ...overrides,
+            text,
             maxWidth: Infinity,
             verticalAlign: VerticalAlign.middle,
         })
 
-        const totalLabelHeight =
-            labelTextWrap.height + valueLabelTextWrap.height + VALUE_LABEL_GAP
-
-        const shouldShowValueLabel = nodeHeightWithPadding >= totalLabelHeight
-
-        const annotationTextWrap = annotation
-            ? new TextWrap({
-                  ...fontSettings,
-                  fontSize: node.annotationFontSize ?? fontSettings.fontSize,
-                  text: annotation,
-                  maxWidth: Infinity,
-                  verticalAlign: VerticalAlign.middle,
-              })
-            : undefined
-        const shouldShowAnnotation =
-            shouldShowValueLabel &&
-            annotationTextWrap !== undefined &&
-            nodeHeightWithPadding >=
-                totalLabelHeight + ANNOTATION_GAP + annotationTextWrap.height
-
-        return {
-            nodeId: node.id,
-            x,
-            y,
-            textAnchor,
-            side,
-            label: labelTextWrap,
-            valueLabel: shouldShowValueLabel ? valueLabelTextWrap : undefined,
-            annotation: shouldShowAnnotation ? annotationTextWrap : undefined,
-            icon,
-            iconStyle,
-            labelColor,
-            highlightedLabelColor,
-            isIconVisible,
-        }
-    } else {
-        return {
-            nodeId: node.id,
-            x,
-            y,
-            textAnchor,
-            side,
-            label: labelTextWrap,
-            icon,
-            iconStyle,
-            labelColor,
-            highlightedLabelColor,
-            isIconVisible,
-        }
+    return {
+        ...anchor,
+        label: makeTextWrap(label, { fontWeight: 700 }),
+        valueLabel:
+            valueLabel && !isIconOnly ? makeTextWrap(valueLabel) : undefined,
+        annotation:
+            annotation && !isIconOnly
+                ? makeTextWrap(annotation, {
+                      fontSize:
+                          node.annotationFontSize ?? fontSettings.fontSize,
+                  })
+                : undefined,
+        icon,
+        iconStyle,
+        labelColor: node.labelColor,
+        highlightedLabelColor: node.highlightedLabelColor,
+        isIconVisible,
+        isIconOnly,
     }
+}
+
+/** Whether a placed label fits its node's height, padding included */
+function fitsNodeHeight(
+    label: PlacedSankeyLabel,
+    nodeHeightWithPadding: number
+): boolean {
+    if (label.isIconOnly) return getIconSize(label) <= nodeHeightWithPadding
+    // A single line always fits, so every node can be named
+    if (!label.valueLabel && !label.annotation) return true
+    return getLabelTextHeight(label) <= nodeHeightWithPadding
 }
 
 function shiftNodeVertically(node: LaidOutNode, dy: number): void {
@@ -1401,8 +1412,7 @@ function toNodeData(node: LaidOutNode): SankeyNode {
         valueLabel: node.valueLabel,
         annotation: node.annotation,
         annotationFontSize: node.annotationFontSize,
-        icon: node.icon,
-        iconStyle: node.iconStyle,
+        labelVariants: node.labelVariants,
         labelColor: node.labelColor,
         highlightedLabelColor: node.highlightedLabelColor,
     }
@@ -1421,18 +1431,26 @@ export function measureMaxLabelWidthForNode(
     node: SankeyNode,
     fontSettings: FontSettings
 ): number {
-    return (
-        Math.max(
-            textWidth(node.label, fontSettings),
-            node.valueLabel ? textWidth(node.valueLabel, fontSettings) : 0,
-            node.annotation
-                ? textWidth(node.annotation, {
-                      ...fontSettings,
-                      fontSize:
-                          node.annotationFontSize ?? fontSettings.fontSize,
-                  })
-                : 0
-        ) + getIconWidth(node)
+    // Any of the variants may be drawn, so make room for the widest
+    return Math.max(
+        0,
+        ...getLabelVariants(node).map(
+            (variant) =>
+                Math.max(
+                    textWidth(variant.label ?? "", fontSettings),
+                    variant.valueLabel
+                        ? textWidth(variant.valueLabel, fontSettings)
+                        : 0,
+                    variant.annotation
+                        ? textWidth(variant.annotation, {
+                              ...fontSettings,
+                              fontSize:
+                                  node.annotationFontSize ??
+                                  fontSettings.fontSize,
+                          })
+                        : 0
+                ) + getIconWidth(variant)
+        )
     )
 }
 
