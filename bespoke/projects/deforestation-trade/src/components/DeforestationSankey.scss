@@ -52,6 +52,7 @@
 .deforestation-sankey__tooltip-headline {
     display: flex;
     flex-direction: column;
+    padding-top: 12px;
 }
 
 .deforestation-sankey__tooltip-headline-value {
@@ -114,22 +115,8 @@
     padding: 4px 0 0;
 }
 
-.deforestation-sankey__tooltip-group {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding-top: 6px;
-    font-size: 13px;
-}
-
-// The value line inside a group tooltip is a TooltipValue block; keep it on
-// the icon's baseline rather than in a block of its own
-.deforestation-sankey__tooltip-group .variable {
-    margin: 0;
-}
-
-.deforestation-sankey__tooltip-group-icon {
-    flex: 0 0 auto;
+.deforestation-sankey__tooltip-badge {
+    display: block;
 }
 
 .deforestation-sankey__commodity-table {

@@ -70,8 +70,9 @@ const LABEL_NO_GROUPS = Infinity
 /** The note under the domestic production node's label */
 const DOMESTIC_ANNOTATION = "produced & consumed\ndomestically"
 
-/** Group icons in tooltips are bigger than the ones beside the chart's labels */
-const TOOLTIP_GROUP_ICON_SIZE = 28
+/** The commodity badge in a commodity tooltip's header */
+const TOOLTIP_BADGE_SIZE = 30
+const TOOLTIP_BADGE_GLYPH_SIZE = 16
 
 /** The commodity column's bands are as thin as the outer ones, with a sliver
  *  of white on either side to keep them light */
@@ -455,6 +456,7 @@ function makeNodeTooltip({
         return {
             title: getGroupLabel(group),
             subtitle,
+            headerAside: <GroupBadge group={group} />,
             content: (
                 <>
                     {description && (
@@ -462,16 +464,14 @@ function makeNodeTooltip({
                             {description}
                         </p>
                     )}
-                    <GroupLine group={group}>
-                        <div className="deforestation-sankey__tooltip-headline">
-                            <span className="deforestation-sankey__tooltip-headline-value">
-                                {formatHectares(value)}
-                            </span>
-                            <span className="deforestation-sankey__tooltip-headline-description">
-                                {headlineDescription}
-                            </span>
-                        </div>
-                    </GroupLine>
+                    <div className="deforestation-sankey__tooltip-headline">
+                        <span className="deforestation-sankey__tooltip-headline-value">
+                            {formatHectares(value)}
+                        </span>
+                        <span className="deforestation-sankey__tooltip-headline-description">
+                            {headlineDescription}
+                        </span>
+                    </div>
                     <PartnerShareTable
                         heading={
                             isPartnerSideIncoming
@@ -547,24 +547,32 @@ function makeNodeTooltip({
     }
 }
 
-/** A commodity group's icon beside the value line — the tooltip card's title
- *  is plain text, so this is where the icon goes */
-function GroupLine({
-    group,
-    children,
-}: {
-    group: string
-    children?: React.ReactNode
-}): React.ReactElement {
+/** A commodity group's glyph in white on a disc of the group's colour, for
+ *  the header of the group's tooltip */
+function GroupBadge({ group }: { group: string }): React.ReactElement {
+    const r = 0.5 * TOOLTIP_BADGE_SIZE
+    const glyphOffset = 0.5 * (TOOLTIP_BADGE_SIZE - TOOLTIP_BADGE_GLYPH_SIZE)
     return (
-        <div className="deforestation-sankey__tooltip-group">
-            <GroupIcon
-                group={group}
-                size={TOOLTIP_GROUP_ICON_SIZE}
-                className="deforestation-sankey__tooltip-group-icon"
-            />
-            {children}
-        </div>
+        <svg
+            className="deforestation-sankey__tooltip-badge"
+            width={TOOLTIP_BADGE_SIZE}
+            height={TOOLTIP_BADGE_SIZE}
+            viewBox={`0 0 ${TOOLTIP_BADGE_SIZE} ${TOOLTIP_BADGE_SIZE}`}
+            aria-hidden
+        >
+            <circle cx={r} cy={r} r={r} fill={getGroupColor(group)} />
+            <svg
+                x={glyphOffset}
+                y={glyphOffset}
+                width={TOOLTIP_BADGE_GLYPH_SIZE}
+                height={TOOLTIP_BADGE_GLYPH_SIZE}
+                viewBox={`0 0 ${GROUP_ICON_SIZE} ${GROUP_ICON_SIZE}`}
+            >
+                {renderGroupIcon(group, "#fff", {
+                    glyphSize: GROUP_ICON_SIZE,
+                })}
+            </svg>
+        </svg>
     )
 }
 

@@ -141,6 +141,8 @@ export type LinkTooltipArgs = {
 export type SankeyTooltip = {
     title: string
     subtitle?: string
+    /** Shown at the right of the tooltip's header, e.g. an icon */
+    headerAside?: React.ReactNode
     content: React.ReactNode
 }
 
@@ -711,6 +713,7 @@ export function Sankey({
                     style={{ maxWidth: "340px" }}
                     title={tooltip.title}
                     subtitle={tooltip.subtitle}
+                    headerAside={tooltip.headerAside}
                     anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
                     containerBounds={isPinned ? undefined : tooltipBounds}
                 >

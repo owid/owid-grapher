@@ -58,6 +58,12 @@
                 color: black;
                 padding: 8px 12px;
                 border-radius: 3px 3px 0 0;
+                display: flow-root; // contain the floated aside
+
+                .frontmatter-aside {
+                    float: right;
+                    margin-left: 8px;
+                }
 
                 .title,
                 .subtitle {
