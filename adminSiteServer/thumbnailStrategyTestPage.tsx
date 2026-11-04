@@ -72,15 +72,31 @@ const GRID_STYLE: React.CSSProperties = {
     ].join(" "),
 }
 
-/** Chart types in the list, most common first */
-const CHART_TYPES: string[] = R.pipe(
-    THUMBNAIL_STRATEGY_CHARTS.flatMap((t) => t.charts),
-    R.uniqueBy((c) => c.slug),
-    R.groupBy((c) => c.chartType),
-    R.entries(),
-    R.sortBy(([, charts]) => -charts.length),
-    R.map(([chartType]) => chartType)
-)
+/** Chart types in the list, grouped by chart family */
+const CHART_TYPE_GROUPS: { label: string; chartTypes: string[] }[] = [
+    {
+        label: "Change over time",
+        chartTypes: [
+            "Line chart",
+            "Slope chart",
+            "Stacked area",
+            "Stacked bar",
+        ],
+    },
+    {
+        label: "Comparison across entities",
+        chartTypes: [
+            "Discrete bar",
+            "Stacked discrete bar",
+            "Dumbbell",
+            "Marimekko",
+        ],
+    },
+    { label: "Relationship", chartTypes: ["Scatter plot"] },
+    { label: "Geography", chartTypes: ["Map"] },
+]
+
+const CHART_TYPES: string[] = CHART_TYPE_GROUPS.flatMap((g) => g.chartTypes)
 
 const ENTITY_BUDGET: Partial<Record<string, number>> = {
     [GRAPHER_TAB_NAMES.LineChart]: 4,
@@ -214,10 +230,17 @@ function ThumbnailStrategyTestPage({
                             Chart type{" "}
                             <select name="type" defaultValue={chartType ?? ""}>
                                 <option value="">All chart types</option>
-                                {CHART_TYPES.map((t) => (
-                                    <option key={t} value={t}>
-                                        {t}
-                                    </option>
+                                {CHART_TYPE_GROUPS.map((group) => (
+                                    <optgroup
+                                        key={group.label}
+                                        label={group.label}
+                                    >
+                                        {group.chartTypes.map((t) => (
+                                            <option key={t} value={t}>
+                                                {t}
+                                            </option>
+                                        ))}
+                                    </optgroup>
                                 ))}
                             </select>
                         </label>
@@ -413,6 +436,14 @@ async function renderThumbnailWithStrategy({
                 max: AxisMinMaxValueStr.auto,
             })
         })
+    if (grapherState.activeTab === GRAPHER_TAB_NAMES.ScatterPlot) {
+        runInAction(() => {
+            for (const axis of [grapherState.xAxis, grapherState.yAxis]) {
+                axis.hideGridlines = true
+                axis.hideTickLabels = true
+            }
+        })
+    }
     removeFacets(grapherState)
 
     const budget = findEntityBudget(grapherState)
@@ -559,17 +590,11 @@ function hide(cell) {
 }
 function showMetrics(cell, metrics) {
     const caption = cell.parentElement.querySelector(".metrics")
-    const scoreLine =
-        "L " + format(metrics.legibility) + " · R " + format(metrics.representativeness) +
-        " · F " + format(metrics.familiarity) + " → " + format(metrics.score)
     const windowLine = metrics.latestValueWindow === undefined ? "" :
         "values ≤ " + metrics.latestValueWindow + " " +
         (metrics.latestValueWindow === 1 ? metrics.latestValueWindowUnit.slice(0, -1) : metrics.latestValueWindowUnit) + " old (" +
         metrics.latestValueWindowSource + ", " + Math.round(100 * metrics.latestValueCoverage) + "% of countries)"
-    caption.replaceChildren(scoreLine, document.createElement("br"), windowLine)
-    caption.title = Object.entries(metrics)
-        .map(([key, value]) => key + ": " + (typeof value !== "number" || Number.isInteger(value) ? value : value.toFixed(3)))
-        .join("\\n")
+    caption.replaceChildren(windowLine)
 }
 function loadCell(cell) {
     return fetch(cell.dataset.src)
@@ -657,8 +682,8 @@ main { padding: 12px 16px 48px; width: max-content; }
 .grid { display: grid; gap: 8px 12px; }
 .slot--set-apart, .column-head--set-apart { margin-left: ${SET_APART_GAP_PX}px; }
 .slot--hidden { visibility: hidden; }
-.metrics { color: #5b6878; font-size: 11px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
-.summary { padding: 12px 16px 0; }
+.metrics { color: #5b6878; font-size: 11px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.summary { display: none; }
 .summary h2 { font-size: 15px; margin: 0 0 4px; }
 .summary table { border-collapse: collapse; font-size: 13px; margin-bottom: 8px; }
 .summary .set-apart { color: #8a96a3; }
