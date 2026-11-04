@@ -400,6 +400,9 @@ export interface AxisConfigInterface {
 
     /** Shorten the log-scale notice in the axis label to "log axis" */
     shortenLabelLogNotice?: boolean
+
+    /** Drop the unit and log-scale notice from the axis label */
+    hideLabelUnit?: boolean
 }
 
 export interface VerticalComparisonLineConfig {
