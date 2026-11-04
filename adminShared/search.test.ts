@@ -27,6 +27,9 @@ describe("the admin list search", () => {
 
     it("keeps a quoted phrase together", () => {
         expect(search('"health spending"')).toEqual(["Global health spending"])
+        expect(search('" health spending "')).toEqual([
+            "Global health spending",
+        ])
     })
 
     it("drops rows matching an excluded word or phrase", () => {

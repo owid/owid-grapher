@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from "react"
+import { observable } from "mobx"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { TextField, FieldsRow } from "./Forms.js"
@@ -15,10 +16,12 @@ const searchedText = (dataset: DatasetListItem) => [
     dataset.description,
 ]
 
+const PAGE_SIZE = 50
+
 export function DatasetsIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [datasets, setDatasets] = useState<DatasetListItem[]>([])
-    const [maxVisibleRows, setMaxVisibleRows] = useState(50)
+    const [maxVisibleRows, setMaxVisibleRows] = useState(PAGE_SIZE)
     const { searchValue, setSearchValue, filtered, highlight } = useListSearch(
         datasets,
         searchedText
@@ -27,7 +30,9 @@ export function DatasetsIndexPage() {
     useEffect(() => {
         void admin
             .getJSON<{ datasets: DatasetListItem[] }>("/api/datasets.json")
-            .then((json) => setDatasets(json.datasets))
+            // Observable, because a row saves its tags by setting
+            // `dataset.tags`, and its observer has to see that to re-render
+            .then((json) => setDatasets(observable(json.datasets)))
     }, [admin])
 
     const datasetsToShow = filtered.slice(0, maxVisibleRows)
@@ -43,7 +48,10 @@ export function DatasetsIndexPage() {
                     <TextField
                         placeholder="Search all datasets..."
                         value={searchValue}
-                        onValue={setSearchValue}
+                        onValue={(value) => {
+                            setSearchValue(value)
+                            setMaxVisibleRows(PAGE_SIZE)
+                        }}
                         autofocus
                     />
                 </FieldsRow>

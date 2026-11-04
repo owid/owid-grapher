@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { sortNumeric } from "@ourworldindata/utils"
-import { splitSearchTerms } from "./variableSearch.js"
+import { parseSearchQuery, SearchTerm } from "./variableSearch.js"
 
 export interface SearchWord {
     regex: RegExp
@@ -39,22 +39,28 @@ export function buildRegexFromSearchWord(str: string): RegExp {
 }
 
 /**
- * The words of a search, split by the same grammar as the indicator and
- * charts searches (`adminShared/variableSearch.ts`): space-separated,
- * `"phrases"` kept together, and a leading `-` excluding a word.
+ * A term searched as plain text: all of it, `field:` included, without the
+ * `-` that excludes it
+ */
+export function textSearchWords(term: SearchTerm): SearchWord[] {
+    const word = term.negate ? term.raw.slice(1) : term.raw
+    // A lone `-` is an exclusion still being typed, not one of everything
+    if (!word) return []
+    return [
+        { regex: buildRegexFromSearchWord(word), word, exclude: term.negate },
+    ]
+}
+
+/**
+ * The words of a search, split by the grammar of the indicator search
+ * (`adminShared/variableSearch.ts`): space-separated, `"phrases"` kept
+ * together, and a leading `-` excluding a word.
  */
 export const buildSearchWordsFromSearchString = (
     searchInput: string | undefined
 ): SearchWord[] => {
     if (!searchInput) return []
-
-    return splitSearchTerms(searchInput).flatMap((term) => {
-        const exclude = term.startsWith("-")
-        const word = exclude ? term.slice(1) : term
-        // A lone `-` is an exclusion still being typed, not one of everything
-        if (!word) return []
-        return [{ regex: buildRegexFromSearchWord(word), word, exclude }]
-    })
+    return parseSearchQuery(searchInput).flatMap(textSearchWords)
 }
 
 /** Given a list of SearchWords constructed with buildSearchWordsFromSearchString

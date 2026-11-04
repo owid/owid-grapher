@@ -9,7 +9,7 @@ import {
     useSearchQueryParam,
 } from "./variableSearchQuery.js"
 
-export interface ListSearch<T> {
+interface ListSearch<T> {
     searchValue: string
     setSearchValue: (value: string) => void
     /** The rows every word of the search matches. */
