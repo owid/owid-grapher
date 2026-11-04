@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { select } from "d3-selection"
 import cx from "clsx"
 import { match } from "ts-pattern"
 import {
@@ -228,15 +227,15 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         // Immediately hide the hover time handle
         this.hoverTime = undefined
 
-        const targetEl = select(event.target as Element)
+        const targetClassList = (event.target as Element).classList
 
         const inputTime = this.getInputTimeFromMouse(event)
         if (inputTime === undefined) return
 
         this.manager.timelineDragTarget = this.getDragTarget(
             inputTime,
-            targetEl.classed(MarkerType.Start),
-            targetEl.classed(MarkerType.End)
+            targetClassList.contains(MarkerType.Start),
+            targetClassList.contains(MarkerType.End)
         )
 
         if (this.dragTarget === "both")
