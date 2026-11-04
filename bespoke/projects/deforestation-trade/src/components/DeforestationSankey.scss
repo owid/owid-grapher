@@ -118,8 +118,11 @@
         center / 4px 1px repeat-x;
 }
 
+// A thin rule sets the shares apart from the hectares
 .deforestation-sankey__share-table .deforestation-sankey__share-table-share {
     width: 40px;
+    padding-left: 8px;
+    border-left: 1px solid #dadada;
     color: $light-text;
     text-align: right;
     font-variant-numeric: tabular-nums;
