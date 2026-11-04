@@ -31,8 +31,9 @@
     position: relative;
 }
 
-// Use regular weight for every line, as in Grapher's legends.
-.deforestation-sankey .sankey__label text {
+// Use regular weight for the countries' labels, as in Grapher's legends;
+// the commodities' (coloured) names stay bold, set apart from the countries
+.deforestation-sankey .sankey__label:not(.sankey__label--colored) text {
     font-weight: 400;
 }
 
