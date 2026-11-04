@@ -33,16 +33,6 @@
     pointer-events: none;
 }
 
-// Labels of middle-column nodes sit on top of the ribbons, so give them a
-// white halo to keep them readable — unless they come in a colour picked to
-// read against the ribbon
-.sankey__label--inner:not(.sankey__label--colored) text {
-    paint-order: stroke;
-    stroke: #fff;
-    stroke-width: 3px;
-    stroke-linejoin: round;
-}
-
 // A note under a label reads as an aside, not as part of the name
 .sankey__label-annotation text {
     font-style: italic;

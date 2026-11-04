@@ -173,11 +173,12 @@ export type SankeyNode = {
      * a small glyph beside the label's first line.
      */
     iconStyle?: SankeyIconStyle
-    /** Colour of the label and value text. A coloured middle-column label
-     *  drops the white halo: its colour is meant to read against the ribbon. */
+    /** Colour of the label and value text. Outer labels default to dark
+     *  text with a lighter value line. Middle-column labels lie over the
+     *  ribbons, so they must set a colour picked to read against them. */
     labelColor?: string
-    /** Colour of the label while the ribbons under it are highlighted, and
-     *  so drawn opaque; defaults to `labelColor` */
+    /** Colour of the label while any of the ribbons under it is
+     *  highlighted, and so drawn opaque; defaults to `labelColor` */
     highlightedLabelColor?: string
 }
 
@@ -616,7 +617,12 @@ export function Sankey({
     const linksUnderLabel = useMemo(() => {
         const map = new Map<string, LaidOutLink[]>()
         for (const label of labels) {
-            if (label.side !== "middle") continue
+            // Only labels that change colour on highlight need their ribbons
+            if (
+                label.side !== "middle" ||
+                label.highlightedLabelColor === undefined
+            )
+                continue
             const node = nodesById.get(label.nodeId)
             const sideLinks =
                 label.textAnchor === "end"
@@ -630,13 +636,14 @@ export function Sankey({
         return map
     }, [labels, nodesById])
 
-    // A label whose ribbons are all lit sits on opaque colour
+    // A label with any lit ribbon under it sits at least partly on opaque
+    // colour, where its regular colour wouldn't read, so it takes the
+    // highlighted colour even over the faded rest
     const labelIdsOnHighlightedRibbons = useMemo(() => {
         const ids = new Set<string>()
         if (activeLinks.size === 0) return ids
         for (const [nodeId, links] of linksUnderLabel)
-            if (links.length > 0 && links.every((l) => activeLinks.has(l)))
-                ids.add(nodeId)
+            if (links.some((l) => activeLinks.has(l))) ids.add(nodeId)
         return ids
     }, [linksUnderLabel, activeLinks])
 
@@ -967,7 +974,7 @@ function SankeyLabel({
     label: PlacedSankeyLabel
     isHovered?: boolean
     isActive?: boolean
-    /** All of the ribbons under the label are highlighted */
+    /** Any of the ribbons under the label is highlighted */
     isOnHighlightedRibbons?: boolean
     isAnchored?: boolean
     /** The node band's colour, which an annotation and its arrow take on */
@@ -988,7 +995,7 @@ function SankeyLabel({
     // The icon sits nearest the node's band, with the text after it
     const isTextAnchoredAtEnd = label.textAnchor === "end"
     const directionAway = isTextAnchoredAtEnd ? -1 : 1
-    const textOffset = getIconLabelOffset(label)
+    const textOffset = getIconWidth(label)
     const textX = label.x + directionAway * textOffset
 
     // An inline icon lines up with the label's first line, or, shown without
@@ -1240,6 +1247,10 @@ function placeSankeyLabel({
     // the ribbons on whichever side the caller prefers
     const side = getNodeSide(node)
     const labelSide = side === "middle" ? middleLabelSide : side
+    if (side === "middle" && label !== "" && labelColor === undefined)
+        console.warn(
+            `Sankey: middle-column node "${node.id}" has a label but no labelColor; middle labels lie over the ribbons and need a colour that reads against them`
+        )
     const x = labelSide === "left" ? x0 - BAND_LABEL_GAP : x1 + BAND_LABEL_GAP
     const y = (y0 + y1) / 2
     const textAnchor = labelSide === "left" ? "end" : "start"
@@ -1426,11 +1437,6 @@ export function measureMaxLabelWidthForNode(
 }
 
 type IconOwner = { icon?: React.ReactNode; iconStyle?: SankeyIconStyle }
-
-/** Horizontal space an icon takes up between the band and the label text */
-function getIconLabelOffset(node: IconOwner): number {
-    return getIconWidth(node)
-}
 
 /** Horizontal space an icon adds to its label, gap included */
 function getIconWidth(node: IconOwner): number {

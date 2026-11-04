@@ -90,6 +90,7 @@ function renderLabels({
             valueLabel: "1 ha",
             icon: ICON,
             iconStyle: "inline" as const,
+            labelColor: "#333",
         })),
         { id: "to", label: "" },
     ]
