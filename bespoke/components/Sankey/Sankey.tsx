@@ -106,6 +106,12 @@ interface SankeyProps {
     bandWidth?: number
     /** Whitespace between a node's band and the flow path */
     bandFlowGap?: number
+    /**
+     * By default a middle node's band spans the node's full width and the
+     * ribbons on both sides run into it. When set, the band is drawn at this
+     * width, centred, with the ribbons stopping `gap` px short of it.
+     */
+    middleBand?: MiddleBand
     fontSettings?: FontSettings
     /** Side of a middle node's band to place labels over the ribbons; defaults to right. */
     middleLabelSide?: "left" | "right"
@@ -192,6 +198,8 @@ type PlacedSankeyLabel = {
 
 type Margin = { top: number; right: number; bottom: number; left: number }
 
+type MiddleBand = { width: number; gap: number }
+
 type LaidOutGraph = SankeyGraph<SankeyNode, SankeyLink>
 type LaidOutNode = D3SankeyNode<SankeyNode, SankeyLink>
 type LaidOutLink = D3SankeyLink<SankeyNode, SankeyLink>
@@ -217,6 +225,7 @@ export function Sankey({
     nodePadding = 12,
     bandWidth = 4,
     bandFlowGap = 3,
+    middleBand,
     fontSettings = DEFAULT_FONT_SETTINGS,
     middleLabelSide = "right",
     getLinkTooltip,
@@ -628,6 +637,7 @@ export function Sankey({
                         <SankeyLinkView
                             key={makeLinkKey(toLinkData(bundle[0]))}
                             links={bundle}
+                            middleBand={middleBand}
                             linkColor={linkColor}
                             isHovered={
                                 hoveredLink !== undefined &&
@@ -651,6 +661,7 @@ export function Sankey({
                             key={node.id}
                             node={node}
                             bandWidth={bandWidth}
+                            middleBand={middleBand}
                             nodeColor={nodeColor}
                             isHovered={hoveredNodeId === node.id}
                             isActive={activeNodeIds.has(node.id)}
@@ -718,6 +729,7 @@ function bundleParallelLinks(
 /** One ribbon for one link, or for a bundle of parallel ones */
 function SankeyLinkView({
     links,
+    middleBand,
     linkColor,
     isHovered,
     isActive,
@@ -725,13 +737,14 @@ function SankeyLinkView({
     linkLowVolumeThreshold,
 }: {
     links: LaidOutLink[]
+    middleBand?: MiddleBand
     linkColor?: (link: SankeyLink) => string
     isHovered?: boolean
     isActive?: boolean
     totalFlowVolume?: number
     linkLowVolumeThreshold?: number
 }): React.ReactElement | null {
-    const path = makeSankeyRibbonPath(links)
+    const path = makeSankeyRibbonPath(links, middleBand)
     if (!path) return null
 
     const color = linkColor?.(toLinkData(links[0])) ?? GRAPHER_DENIM
@@ -753,18 +766,27 @@ function SankeyLinkView({
 
 // Filled ribbons avoid the overlaps that thick centerline strokes create on
 // sharp bends. A bundle spans the outer edges of all its parallel links.
-function makeSankeyRibbonPath(links: LaidOutLink[]): string | null {
+function makeSankeyRibbonPath(
+    links: LaidOutLink[],
+    middleBand?: MiddleBand
+): string | null {
     const sourceNode = links[0].source as LaidOutNode
     const targetNode = links[0].target as LaidOutNode
 
     if (sourceNode.x1 === undefined || targetNode.x0 === undefined) return null
-    // Overlap middle-node bands slightly to hide anti-aliasing seams.
-    const x0 =
-        sourceNode.x1 -
-        (getNodeSide(sourceNode) === "middle" ? RIBBON_NODE_OVERLAP : 0)
-    const x1 =
-        targetNode.x0 +
-        (getNodeSide(targetNode) === "middle" ? RIBBON_NODE_OVERLAP : 0)
+    // Overlap full-width middle-node bands slightly to hide anti-aliasing
+    // seams; stop short of narrow ones by their gap
+    const getMiddleInset = (node: LaidOutNode): number => {
+        if (getNodeSide(node) !== "middle") return 0
+        if (!middleBand) return -RIBBON_NODE_OVERLAP
+        const nodeWidth = (node.x1 ?? 0) - (node.x0 ?? 0)
+        return Math.max(
+            0,
+            0.5 * (nodeWidth - middleBand.width) - middleBand.gap
+        )
+    }
+    const x0 = sourceNode.x1 - getMiddleInset(sourceNode)
+    const x1 = targetNode.x0 + getMiddleInset(targetNode)
 
     let y0Top = Infinity
     let y0Bottom = -Infinity
@@ -796,6 +818,7 @@ function makeSankeyRibbonPath(links: LaidOutLink[]): string | null {
 function SankeyNodeView({
     node,
     bandWidth,
+    middleBand,
     nodeColor,
     isHovered,
     isActive,
@@ -803,6 +826,7 @@ function SankeyNodeView({
 }: {
     node: LaidOutNode
     bandWidth: number
+    middleBand?: MiddleBand
     nodeColor?: (node: SankeyNode) => string
     isHovered?: boolean
     isActive?: boolean
@@ -816,10 +840,21 @@ function SankeyNodeView({
     const h = Math.max(MIN_NODE_DRAWN_HEIGHT, y1 - y0)
     const y = (y0 + y1 - h) / 2
 
-    // Middle-node bands span the full width to connect ribbons on both sides.
+    // Middle-node bands span the full width to connect ribbons on both
+    // sides, unless they're drawn narrower and centred
     const side = getNodeSide(node)
-    const x = side === "right" ? x1 - bandWidth : x0
-    const w = side === "middle" ? Math.max(0, x1 - x0) : bandWidth
+    const w =
+        side !== "middle"
+            ? bandWidth
+            : middleBand
+              ? Math.min(middleBand.width, x1 - x0)
+              : Math.max(0, x1 - x0)
+    const x =
+        side === "right"
+            ? x1 - bandWidth
+            : side === "middle"
+              ? (x0 + x1 - w) / 2
+              : x0
 
     const fill = nodeColor?.(node) ?? GRAPHER_DENIM
 

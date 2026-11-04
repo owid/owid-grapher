@@ -73,6 +73,10 @@ const DOMESTIC_ANNOTATION = "produced & consumed\ndomestically"
 /** Group icons in tooltips are bigger than the ones beside the chart's labels */
 const TOOLTIP_GROUP_ICON_SIZE = 28
 
+/** The commodity column's bands are as thin as the outer ones, with a sliver
+ *  of white on either side to keep them light */
+const COMMODITY_BAND = { width: 4, gap: 1 }
+
 /** Links below this share of the chart's total are drawn extra faint */
 const LINK_LOW_VOLUME_THRESHOLD = 0.005
 
@@ -357,6 +361,7 @@ function DeforestationSankeyContent({
                 nodes={nodes}
                 links={graph.links}
                 mergeParallelLinks
+                middleBand={COMMODITY_BAND}
                 width={width}
                 height={height}
                 // In production view the wide, simple ribbons are on the left
