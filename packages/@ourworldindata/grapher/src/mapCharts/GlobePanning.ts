@@ -3,13 +3,12 @@ import { GeoProjection } from "d3-geo"
 import versor from "versor"
 import type { Position } from "./PanAndZoomGesture"
 
-/** A rotation in d3's projection.rotate() format, i.e. [-lon, -lat] */
+/** D3 projection rotation: [-longitude, -latitude] */
 export type GlobeRotation = [lambda: number, phi: number]
 
 type Cartesian = [number, number, number]
 type Quaternion = [number, number, number, number]
 
-/** What we need to remember about where a drag started */
 export interface GlobeDrag {
     startCartesian: Cartesian
     startRotation: [number, number, number]
@@ -22,7 +21,7 @@ interface Circle {
     radius: number
 }
 
-// How many degrees the globe rotates per pixel when dragging outside of it
+// Degrees per pixel when dragging outside the globe.
 const OUTSIDE_DRAG_SENSITIVITY = 0.8
 
 export function startGlobeDrag(
@@ -39,13 +38,10 @@ export function startGlobeDrag(
 }
 
 /**
- * Computes the globe's new rotation when the pointer has been dragged to
- * `position`, and the updated drag state to use for the next move.
- *
- * Dragging on the globe keeps the geographic point that was grabbed under the
- * cursor where possible (adapted from https://observablehq.com/d/569d101dd5bd332b,
- * see https://www.jasondavies.com/maps/rotate/ for details). Dragging outside
- * of the globe rotates it proportionally to the cursor's movement instead.
+ * Return the rotation and next drag state. On-globe drags anchor the grabbed
+ * geographic point; off-globe drags rotate proportionally to pointer movement.
+ * Adapted from https://observablehq.com/d/569d101dd5bd332b;
+ * see https://www.jasondavies.com/maps/rotate/ for the geometry.
  */
 export function dragGlobe(
     projection: GeoProjection,
@@ -56,8 +52,7 @@ export function dragGlobe(
     const nextDrag = { ...drag, previousPosition: position }
 
     if (isPointInCircle(position, globe)) {
-        // Project the cursor with the rotation the drag started with, so that
-        // the rotation is relative to the grabbed point
+        // Use the initial rotation to keep movement relative to the grabbed point.
         const currentRotation = projection.rotate()
         const currentCartesian = versor.cartesian(
             projection.rotate(drag.startRotation).invert!(position)
@@ -68,10 +63,8 @@ export function dragGlobe(
         const quaternion = versor.multiply(drag.startQuaternion, delta)
         const rotation = versor.rotation(quaternion)
 
-        // Ignore the gamma channel for more intuitive rotation, see
-        // https://observablehq.com/@d3/three-axis-rotation for a visual
-        // explanation of three-axis rotation. As a side effect, rotation
-        // around the poles feels off.
+        // Ignore roll for intuitive dragging, at the cost of accuracy near the poles.
+        // See https://observablehq.com/@d3/three-axis-rotation.
         return { rotation: [rotation[0], rotation[1]], drag: nextDrag }
     }
 

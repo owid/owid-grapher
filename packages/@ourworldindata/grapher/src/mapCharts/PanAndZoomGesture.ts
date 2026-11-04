@@ -4,41 +4,23 @@ import { calculateDistance } from "./MapHelpers"
 export type Position = [x: number, y: number]
 
 export interface PanAndZoomGestureHandlers {
-    /** A pan begins at the given position (relative to the element) */
+    /** Start position relative to the element */
     onPanStart: (position: Position) => void
-    /** The pointer moved to the given position during a pan */
+    /** Current pan position relative to the element */
     onPan: (position: Position) => void
-    /**
-     * Zoom in (positive) or out (negative), either by scrolling (the wheel's
-     * delta) or by pinching (the change in distance between both fingers)
-     */
+    /** Negated wheel delta or change in pinch distance; positive zooms in */
     onZoom: (delta: number) => void
-    /** The gesture is over */
     onEnd: () => void
 }
 
-// A wheel gesture is considered over after this many ms without wheel events
+// End wheel gestures after 150 ms of inactivity
 const WHEEL_IDLE_DELAY = 150
 
 /**
- * Turns pointer and wheel events on an element into pan and zoom callbacks:
- * - dragging with the mouse, a pen or one finger pans
- * - scrolling or pinching with two fingers zooms
- *
- * Once a gesture has pinched, it doesn't pan anymore until all pointers are
- * lifted, since lifting one finger would otherwise make the pan jump.
- *
- * It also
- * - keeps tracking a drag when the pointer leaves the element
- * - prevents text selection and native dragging during a drag
- * - suppresses the click that follows a drag
- * - prevents page scrolling while wheeling on the element
- * - ignores ctrl+click and non-primary mouse buttons
- *
- * The element needs `touch-action: none` so that the browser doesn't scroll
- * or zoom the page when a touch gesture starts on it.
- *
- * Returns a cleanup function that removes all listeners.
+ * Pan by dragging; zoom by wheel or pinch. After pinching, panning stays disabled
+ * until all pointers lift to avoid jumps. Suppresses native dragging, selection,
+ * wheel scrolling and clicks after drags; ignores ctrl+click and secondary buttons.
+ * Requires `touch-action: none`. Returns listener cleanup.
  */
 export function attachPanAndZoomGesture(
     element: Element,
@@ -58,8 +40,6 @@ export function attachPanAndZoomGesture(
         event.stopImmediatePropagation()
     }
 
-    // Wheel
-
     let wheelTimeout: ReturnType<typeof setTimeout> | undefined
 
     const onWheel = (event: WheelEvent): void => {
@@ -68,13 +48,11 @@ export function attachPanAndZoomGesture(
         onZoom(-event.deltaY)
         wheelTimeout = setTimeout(() => {
             wheelTimeout = undefined
-            onEnd()
+            if (pointers.size === 0) onEnd()
         }, WHEEL_IDLE_DELAY)
     }
 
-    // Pointers
-
-    // Client coordinates of all pointers that are currently down
+    // Active pointers in client coordinates
     const pointers = new Map<number, Position>()
     let moved = false
     let hasPinched = false
@@ -114,8 +92,7 @@ export function attachPanAndZoomGesture(
             return
         pointers.set(event.pointerId, [event.clientX, event.clientY])
 
-        // Only capture the pointer once it moves, since capturing it on
-        // pointerdown would retarget the click on a country to this element
+        // Defer capture until movement to preserve country click targets.
         if (!moved) {
             moved = true
             element.setPointerCapture(event.pointerId)
@@ -135,19 +112,18 @@ export function attachPanAndZoomGesture(
         if (!pointers.delete(event.pointerId)) return
         if (pointers.size < 2) pinchDistance = undefined
 
-        // The gesture is over once the last pointer is lifted
         if (pointers.size > 0) return
 
         blockSelectionAndDragging(false)
 
-        // Swallow the click that the browser fires after a drag
+        // Suppress the click following a drag.
         if (moved && event.type === "pointerup") {
             window.addEventListener("click", swallow, true)
             setTimeout(() => window.removeEventListener("click", swallow, true))
         }
 
         hasPinched = false
-        onEnd()
+        if (wheelTimeout === undefined) onEnd()
     }
 
     const el = element as HTMLElement
