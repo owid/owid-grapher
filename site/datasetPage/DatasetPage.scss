@@ -376,13 +376,25 @@ $dataset-page-row-border: $blue-20;
 .dataset-page__card {
     background: $white;
     border: 1px solid $blue-10;
-    // The rows add the side padding themselves, so that their hover
-    // background can span the whole card without overflowing a scroll box
-    padding: 8px 0;
+    // The rows add the card's padding themselves, so that their hover
+    // background fills it and it scrolls along with the list
 }
 
-.dataset-page__card--scrollable {
-    padding-bottom: 0;
+// The card's 8px top and bottom padding, added to the first and last rows
+.dataset-page__card .dataset-page__row:first-child .dataset-page__row-header {
+    padding-top: 20px;
+}
+
+.dataset-page__card:not(.dataset-page__card--scrollable)
+    .dataset-page__row:last-child:not(.dataset-page__row--open)
+    .dataset-page__row-header {
+    padding-bottom: 20px;
+}
+
+.dataset-page__card:not(.dataset-page__card--scrollable)
+    .dataset-page__row:last-child
+    .dataset-page__row-content {
+    padding-bottom: 24px;
 }
 
 .dataset-page__row {

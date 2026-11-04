@@ -476,6 +476,8 @@ function IndicatorGroup({
     sourceIndexByTitle: Map<string, number>
     onSourceClick: (sourceIndex: number) => void
 }) {
+    // Only one indicator per group is open at a time
+    const [openIndicator, setOpenIndicator] = useState<string | undefined>()
     const indicators = group.indicators.filter((indicator) =>
         matchesQuery(
             query,
@@ -496,6 +498,12 @@ function IndicatorGroup({
                     <ExpandableRow
                         key={indicator.shortName}
                         contentId={`indicator-${indicator.shortName}`}
+                        isOpen={openIndicator === indicator.shortName}
+                        onToggle={(isOpen) =>
+                            setOpenIndicator(
+                                isOpen ? indicator.shortName : undefined
+                            )
+                        }
                         title={indicator.title}
                         subtitle={indicator.description}
                     >
@@ -802,11 +810,11 @@ function SourceDetails({ source }: { source: DatasetSource }) {
 
 function SourcesAndProcessingSection({
     dataset,
-    openSources,
+    openSource,
     onToggleSource,
 }: {
     dataset: DatasetPageData
-    openSources: ReadonlySet<number>
+    openSource: number | undefined
     onToggleSource: (sourceIndex: number, isOpen: boolean) => void
 }) {
     return (
@@ -828,7 +836,7 @@ function SourcesAndProcessingSection({
                             key={source.title}
                             id={sourceAnchorId(index)}
                             contentId={`${sourceAnchorId(index)}-content`}
-                            isOpen={openSources.has(index)}
+                            isOpen={openSource === index}
                             onToggle={(isOpen) => onToggleSource(index, isOpen)}
                             title={source.title}
                             subtitle={`${source.producer}, ${source.year}`}
@@ -1067,19 +1075,13 @@ function ReuseSection({ dataset }: { dataset: DatasetPageData }) {
 // ---------------------------------------------------------------------------
 
 export function DatasetPageContent({ dataset }: DatasetPageProps) {
-    const [openSources, setOpenSources] = useState<ReadonlySet<number>>(
-        () => new Set()
-    )
+    // Only one source is open at a time
+    const [openSource, setOpenSource] = useState<number | undefined>()
     // Set when a source link is clicked; we scroll once the row has rendered
     const [scrollTarget, setScrollTarget] = useState<string | undefined>()
 
     const toggleSource = (sourceIndex: number, isOpen: boolean): void => {
-        setOpenSources((prev) => {
-            const next = new Set(prev)
-            if (isOpen) next.add(sourceIndex)
-            else next.delete(sourceIndex)
-            return next
-        })
+        setOpenSource(isOpen ? sourceIndex : undefined)
     }
 
     const revealSource = (sourceIndex: number): void => {
@@ -1133,7 +1135,7 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
             <div className="dataset-page__band grid grid-cols-12-full-width">
                 <SourcesAndProcessingSection
                     dataset={dataset}
-                    openSources={openSources}
+                    openSource={openSource}
                     onToggleSource={toggleSource}
                 />
                 <ChangelogSection dataset={dataset} />
