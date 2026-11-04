@@ -153,6 +153,12 @@ describe(makeSearchFilter, () => {
         ])
     })
 
+    it("reads a month still being typed as the year so far", () => {
+        expect(search("updated:2024-")).toEqual(["Measles cases"])
+        expect(search("updated:2024-0")).toEqual(["Measles cases"])
+        expect(search("updated:2024-3-")).toEqual(["Measles cases"])
+    })
+
     it("matches nothing for a date it can't read", () => {
         expect(search("updated:<lastweek")).toEqual([])
         expect(search("updated:2024/03")).toEqual([])
