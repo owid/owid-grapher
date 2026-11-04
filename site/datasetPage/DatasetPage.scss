@@ -357,6 +357,11 @@ $dataset-page-fade-mask: linear-gradient(
     text-align: left;
     color: inherit;
     cursor: pointer;
+    transition: background-color 150ms ease;
+
+    &:hover {
+        background: $blue-20;
+    }
 }
 
 .dataset-page__row-text {
