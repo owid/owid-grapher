@@ -1,4 +1,11 @@
-import { ReactNode, useEffect, useMemo, useState } from "react"
+import {
+    createContext,
+    ReactNode,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -54,6 +61,10 @@ const SECTION_IDS = {
 const PROTOTYPE_VERSIONS = [
     { id: "v1", label: "Version 1" },
     { id: "see-charts", label: "Version 2: “See charts” on indicators" },
+    {
+        id: "inner-scroll",
+        label: "Version 3: Indicators and sources in scroll boxes",
+    },
 ] as const
 type PrototypeVersion = (typeof PROTOTYPE_VERSIONS)[number]["id"]
 const DEFAULT_PROTOTYPE_VERSION: PrototypeVersion = "v1"
@@ -229,6 +240,15 @@ function ExpandableRow({
 }
 
 /**
+ * How long lists (indicators, sources) are shown:
+ * - "truncate": the first few items, faded out, with a "Show all" button
+ * - "scroll": all items in a fixed-height box with an inner scroll, like the
+ *   chart list
+ */
+type LongListMode = "truncate" | "scroll"
+const LongListModeContext = createContext<LongListMode>("truncate")
+
+/**
  * A list that, while collapsed, only shows its first few items and fades them
  * out towards the bottom, with a button to reveal the rest.
  */
@@ -247,6 +267,20 @@ function FadedList({
     showAllLabel: string
     className?: string
 }) {
+    const mode = useContext(LongListModeContext)
+    if (mode === "scroll") {
+        const isScrollable = items.length > initialCount
+        return (
+            <div
+                className={cx("dataset-page__faded-list", className, {
+                    "dataset-page__scroll-box": isScrollable,
+                })}
+            >
+                <ul className="dataset-page__rows">{items}</ul>
+            </div>
+        )
+    }
+
     const isTruncated = !isExpanded && items.length > initialCount
     return (
         <div className={cx("dataset-page__faded-list", className)}>
@@ -1326,56 +1360,63 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
     )
 
     return (
-        <div className="dataset-page">
-            <PrototypeVersionSwitcher
-                version={version}
-                onChange={changeVersion}
-            />
-            <DatasetHeader
-                dataset={dataset}
-                numIndicators={numIndicators}
-                onShowAllSources={() => setShowAllSources(true)}
-            />
-            <div className="grid grid-cols-12-full-width">
-                <section
-                    className="dataset-page__about col-start-2 span-cols-8 span-md-cols-12"
-                    id={SECTION_IDS.about}
-                >
-                    {dataset.about.map((paragraph) => (
-                        <SimpleMarkdownText key={paragraph} text={paragraph} />
-                    ))}
-                </section>
-                <hr className="dataset-page__divider col-start-2 span-cols-12" />
-                <IndicatorsSection
-                    dataset={dataset}
-                    onSourceClick={revealSource}
-                    onSeeCharts={
-                        version === "see-charts"
-                            ? seeChartsForIndicator
-                            : undefined
-                    }
+        <LongListModeContext.Provider
+            value={version === "inner-scroll" ? "scroll" : "truncate"}
+        >
+            <div className="dataset-page">
+                <PrototypeVersionSwitcher
+                    version={version}
+                    onChange={changeVersion}
                 />
-                <ChartsSection
-                    key={chartIndicatorFilter?.shortName ?? "all"}
+                <DatasetHeader
                     dataset={dataset}
-                    indicatorFilter={chartIndicatorFilter}
-                    onClearIndicatorFilter={() =>
-                        setChartIndicatorFilter(undefined)
-                    }
-                />
-                <RelatedResearchSection dataset={dataset} />
-            </div>
-            <div className="dataset-page__band grid grid-cols-12-full-width">
-                <SourcesAndProcessingSection
-                    dataset={dataset}
-                    showAllSources={showAllSources}
+                    numIndicators={numIndicators}
                     onShowAllSources={() => setShowAllSources(true)}
-                    openSources={openSources}
-                    onToggleSource={toggleSource}
                 />
-                <ChangelogSection dataset={dataset} />
-                <ReuseSection dataset={dataset} />
+                <div className="grid grid-cols-12-full-width">
+                    <section
+                        className="dataset-page__about col-start-2 span-cols-8 span-md-cols-12"
+                        id={SECTION_IDS.about}
+                    >
+                        {dataset.about.map((paragraph) => (
+                            <SimpleMarkdownText
+                                key={paragraph}
+                                text={paragraph}
+                            />
+                        ))}
+                    </section>
+                    <hr className="dataset-page__divider col-start-2 span-cols-12" />
+                    <IndicatorsSection
+                        dataset={dataset}
+                        onSourceClick={revealSource}
+                        onSeeCharts={
+                            version === "see-charts"
+                                ? seeChartsForIndicator
+                                : undefined
+                        }
+                    />
+                    <ChartsSection
+                        key={chartIndicatorFilter?.shortName ?? "all"}
+                        dataset={dataset}
+                        indicatorFilter={chartIndicatorFilter}
+                        onClearIndicatorFilter={() =>
+                            setChartIndicatorFilter(undefined)
+                        }
+                    />
+                    <RelatedResearchSection dataset={dataset} />
+                </div>
+                <div className="dataset-page__band grid grid-cols-12-full-width">
+                    <SourcesAndProcessingSection
+                        dataset={dataset}
+                        showAllSources={showAllSources}
+                        onShowAllSources={() => setShowAllSources(true)}
+                        openSources={openSources}
+                        onToggleSource={toggleSource}
+                    />
+                    <ChangelogSection dataset={dataset} />
+                    <ReuseSection dataset={dataset} />
+                </div>
             </div>
-        </div>
+        </LongListModeContext.Provider>
     )
 }

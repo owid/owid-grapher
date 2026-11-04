@@ -341,6 +341,22 @@ $dataset-page-fade-mask: linear-gradient(
     -webkit-mask-image: $dataset-page-fade-mask;
 }
 
+.dataset-page__scroll-box {
+    max-height: 600px;
+    overflow-y: auto;
+    mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+
+    @include md-down {
+        max-height: 420px;
+    }
+
+    // Room to scroll the last rows out of the fade
+    .dataset-page__rows {
+        padding-bottom: 64px;
+    }
+}
+
 .dataset-page__row {
     border-bottom: 1px solid $dataset-page-row-border;
 }
