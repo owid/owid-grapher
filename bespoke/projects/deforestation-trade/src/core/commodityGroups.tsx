@@ -42,7 +42,7 @@ export const COMMODITY_GROUPS: Record<
         shortLabel: "Cereals (rice, corn, …)",
         sentenceLabel: "cereals",
         description:
-            "Cereals are grain crops, mainly rice and corn, but also barley, wheat, sorghum and millet.",
+            "Cereals are grain crops, mainly rice and corn, but also sorghum, wheat, millet and barley.",
         color: OwidDistinctColors.Camel,
         labelColor: "#6f4414",
         icon: faWheatAwn,
@@ -51,7 +51,7 @@ export const COMMODITY_GROUPS: Record<
         shortLabel: "Roots & tubers",
         sentenceLabel: "roots and tubers",
         description:
-            "Roots and tubers are starchy crops, mostly cassava, but also yams, potatoes, sweet potatoes and taro.",
+            "Roots and tubers are starchy crops, mainly cassava, but also yams, potatoes, sweet potatoes and taro.",
         color: OwidDistinctColors.Copper,
         labelColor: "#6e2900",
         icon: faLeaf,
@@ -60,7 +60,7 @@ export const COMMODITY_GROUPS: Record<
         shortLabel: "Fiber crops (rubber, cotton, …)",
         sentenceLabel: "fiber crops",
         description:
-            "Fiber crops are used as materials rather than food, mostly rubber trees and cotton, but also tobacco, sisal and jute.",
+            "Fiber crops are non-food crops, mainly rubber and cotton, but also tobacco, sisal and jute.",
         color: OwidDistinctColors.Teal,
         labelColor: "#004642",
         icon: faShirt,
@@ -69,7 +69,7 @@ export const COMMODITY_GROUPS: Record<
         shortLabel: "Fruit & nuts",
         sentenceLabel: "fruit and nuts",
         description:
-            "Fruit and nuts include plantains, cashews and bananas, but also guavas, mangoes and avocados.",
+            "Fruit and nuts are mainly cashews, plantains and bananas, but also mangoes, guavas and avocados.",
         color: OwidDistinctColors.OliveGreen,
         labelColor: "#0e2e00",
         icon: faAppleWhole,
@@ -78,7 +78,7 @@ export const COMMODITY_GROUPS: Record<
         shortLabel: "Oilseeds (soy, palm, …)",
         sentenceLabel: "oilseeds",
         description:
-            "Oilseeds are grown for vegetable oil and animal feed, mainly soybeans and oil palms, but also sunflowers, peanuts, rapeseed and coconuts.",
+            "Oilseeds are mainly soybeans and oil palm, but also peanuts, sunflowers, rapeseed and coconuts; they go into vegetable oil, animal feed, foods such as tofu and peanut butter, and biofuels.",
         color: OwidDistinctColors.RustyOrange,
         labelColor: "#5d1900",
         icon: faBottleDroplet,
@@ -87,7 +87,7 @@ export const COMMODITY_GROUPS: Record<
         shortLabel: "Beef (pasture)",
         sentenceLabel: "beef",
         description:
-            "Pasture is land cleared for grazing cattle, raised for beef.",
+            "Pasture is grazing land for cattle; its deforestation is attributed mainly to beef, with a small share to leather.",
         color: OwidDistinctColors.Maroon,
         labelColor: "#560c14",
         icon: faCow,
@@ -96,7 +96,7 @@ export const COMMODITY_GROUPS: Record<
         shortLabel: "Dry beans & legumes",
         sentenceLabel: "dry beans and legumes",
         description:
-            "Dry beans and legumes are sold dried, mainly common beans and cowpeas, but also chickpeas, pigeon peas and lentils.",
+            "Dry beans and legumes are pulses harvested as dry grain, mainly common beans and cowpeas, but also chickpeas, pigeon peas and lentils.",
         color: OwidDistinctColors.DarkOliveGreen,
         labelColor: "#002a00",
         icon: faBowlRice,
@@ -105,7 +105,7 @@ export const COMMODITY_GROUPS: Record<
         shortLabel: "Stimulants (cocoa, coffee, …)",
         sentenceLabel: "stimulants, spice and aromatic crops",
         description:
-            "Stimulants are mainly cocoa and coffee, but also tea, maté, and spices such as nutmeg, cardamom and cinnamon.",
+            "Stimulants are mainly cocoa and coffee, but also tea, maté and spices such as cinnamon, nutmeg and cardamom.",
         color: OwidDistinctColors.Purple,
         labelColor: "#431766",
         icon: faMugHot,
@@ -114,7 +114,7 @@ export const COMMODITY_GROUPS: Record<
         shortLabel: "Vegetables",
         sentenceLabel: "vegetables",
         description:
-            "Vegetables include okra, onions and tomatoes, but also peppers, sweet corn and pumpkins.",
+            "Vegetables are mainly okra, tomatoes and onions, but also peppers, sweet corn and pumpkins.",
         color: OwidDistinctColors.Lime,
         labelColor: "#004e00",
         icon: faCarrot,
