@@ -129,7 +129,10 @@ export class StackedBarChartThumbnail
         InitialAnchoredLabelSeries,
         "position"
     >[] {
-        if (!this.manager.showLegend) return []
+        // The legend is hidden on stacked bar charts with a single entity,
+        // but a thumbnail still needs that entity's name
+        if (!this.manager.showLegend && !this.manager.useNameLabelsOnly)
+            return []
 
         return excludeUndefined(
             this.chartState.series.map((series, seriesIndex) => {

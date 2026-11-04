@@ -139,6 +139,10 @@ export class DiscreteBarChart
         })
     }
 
+    @computed private get showValueLabels(): boolean {
+        return !this.manager.useNameLabelsOnly
+    }
+
     @computed private get valueLabelStyle(): FontSettings {
         return { fontSize: this.labelFontSize, fontWeight: 400, lineHeight: 1 }
     }
@@ -153,7 +157,7 @@ export class DiscreteBarChart
 
     // The amount of space we need to allocate for bar end labels on the right
     @computed private get rightValueLabelsWidth(): number {
-        if (!this.hasPositive) return 0
+        if (!this.showValueLabels || !this.hasPositive) return 0
 
         const labelsWidths = this.series
             .filter((series) => series.value >= 0)
@@ -227,10 +231,11 @@ export class DiscreteBarChart
                 const barLeftEdge = isNegative ? series.value : this.x0
                 return {
                     fraction: this.unitXAxis.place(barLeftEdge),
-                    offset: isNegative
-                        ? this.formatValue(series).width +
-                          GAP__ENTITY_LABEL__VALUE_LABEL
-                        : 0,
+                    offset:
+                        isNegative && this.showValueLabels
+                            ? this.formatValue(series).width +
+                              GAP__ENTITY_LABEL__VALUE_LABEL
+                            : 0,
                 }
             }),
         }
@@ -288,9 +293,10 @@ export class DiscreteBarChart
                 : this.yAxis.place(series.value) - barX
             const label = this.formatValue(series)
 
-            const entityLabelX = isNegative
-                ? barX - label.width - GAP__ENTITY_LABEL__VALUE_LABEL
-                : barX - GAP__ENTITY_LABEL__BAR
+            const entityLabelX =
+                isNegative && this.showValueLabels
+                    ? barX - label.width - GAP__ENTITY_LABEL__VALUE_LABEL
+                    : barX - GAP__ENTITY_LABEL__BAR
             const valueLabelX =
                 this.yAxis.place(series.value) +
                 (isNegative ? -GAP__ENTITY_LABEL__BAR : GAP__ENTITY_LABEL__BAR)
@@ -442,7 +448,8 @@ export class DiscreteBarChart
     private renderValueLabel(
         series: RenderDiscreteBarSeries,
         y = 0
-    ): React.ReactElement {
+    ): React.ReactElement | null {
+        if (!this.showValueLabels) return null
         const label = this.formatValue(series)
         return (
             <text

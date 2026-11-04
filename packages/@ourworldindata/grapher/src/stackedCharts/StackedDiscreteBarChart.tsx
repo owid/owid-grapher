@@ -330,8 +330,12 @@ export class StackedDiscreteBarChart
         return !this.manager.isRelativeMode && !this.manager.hideTotalValueLabel
     }
 
+    @computed private get showSegmentValueLabels(): boolean {
+        return !this.manager.useNameLabelsOnly
+    }
+
     @computed private get showHorizontalAxis(): boolean {
-        return !this.showTotalValueLabel
+        return !this.showTotalValueLabel && !this.yAxisConfig.hideAxis
     }
 
     // The amount of space we need to allocate for total value labels on the right
@@ -683,6 +687,7 @@ export class StackedDiscreteBarChart
                             barHeight={this.barHeight}
                             labelFontSize={this.labelFontSize}
                             showTotalValueLabel={this.showTotalValueLabel}
+                            showSegmentValueLabels={this.showSegmentValueLabels}
                             formatValueForLabel={this.formatValueForLabel}
                             onEntityMouseEnter={this.onEntityMouseEnter}
                             onEntityMouseLeave={this.onEntityMouseLeave}
@@ -722,6 +727,7 @@ export class StackedDiscreteBarChart
                             labelFontSize={this.labelFontSize}
                             yAxis={this.yAxis}
                             showTotalValueLabel={this.showTotalValueLabel}
+                            showSegmentValueLabels={this.showSegmentValueLabels}
                             formatValueForLabel={this.formatValueForLabel}
                             onEntityMouseEnter={this.onEntityMouseEnter}
                             onEntityMouseLeave={this.onEntityMouseLeave}

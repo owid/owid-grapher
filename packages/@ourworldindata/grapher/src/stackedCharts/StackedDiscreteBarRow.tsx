@@ -26,6 +26,7 @@ export function StackedDiscreteBarRow({
     labelFontSize,
     yAxis,
     showTotalValueLabel,
+    showSegmentValueLabels,
     formatValueForLabel,
     onEntityMouseEnter,
     onEntityMouseLeave,
@@ -37,6 +38,7 @@ export function StackedDiscreteBarRow({
     labelFontSize: number
     yAxis: HorizontalAxis
     showTotalValueLabel: boolean
+    showSegmentValueLabels: boolean
     formatValueForLabel: (value: number) => string
     onEntityMouseEnter: (entityName: string, seriesName?: string) => void
     onEntityMouseLeave: () => void
@@ -45,7 +47,7 @@ export function StackedDiscreteBarRow({
     const { entityName, label, segments, totalValue, emphasis } = row
 
     const totalLabel = formatValueForLabel(totalValue)
-    const showLabelInsideBar = segments.length > 1
+    const showLabelInsideBar = showSegmentValueLabels && segments.length > 1
 
     const labelStyle = LABEL_STYLE[emphasis]
 

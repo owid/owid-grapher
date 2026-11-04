@@ -777,12 +777,16 @@ function DumbbellChartAxis({
 }): React.ReactElement {
     return (
         <>
-            <HorizontalAxisComponent
-                bounds={bounds}
-                axis={axis}
-                tickColor={GRAPHER_LIGHT_TEXT}
-            />
-            <HorizontalAxisGridLines bounds={dataBounds} axis={axis} />
+            {!axis.hideAxis && (
+                <>
+                    <HorizontalAxisComponent
+                        bounds={bounds}
+                        axis={axis}
+                        tickColor={GRAPHER_LIGHT_TEXT}
+                    />
+                    <HorizontalAxisGridLines bounds={dataBounds} axis={axis} />
+                </>
+            )}
             {axis.contains(0) && (
                 <HorizontalAxisZeroLine
                     bounds={dataBounds}
