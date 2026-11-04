@@ -44,7 +44,7 @@ import { expectChartById } from "./charts.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
-import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
+import { enqueueDeployChange } from "../../baker/DeployUtils.js"
 import {
     getChartConfigByUuid,
     parseAndMigrateChartConfig,
@@ -580,7 +580,8 @@ export async function updateNarrativeChart(
         ContentGraphLinkType.NarrativeChart
     )
     if (references.length > 0) {
-        await triggerStaticBuild(
+        enqueueDeployChange(
+            trx,
             user,
             `Updating narrative chart ${existingRow.name}`
         )

@@ -2,10 +2,10 @@
 
 This folder contains code for baking and deploying the live site.
 
-## Queue
+## Deploys
 
-Currently we use pm2 to run the queue process. This process creates a deploy queue when an author makes a change.
+Admin edits don't bake anything themselves. A route that changes something the site shows calls `enqueueDeployChange(trx, user, message)` (`DeployUtils.ts`). Once the route's transaction commits, all its changes go out as one Buildkite build of the content deploy pipeline (`BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG`, for `BUILDKITE_BRANCH`), requested and not waited for; a rolled-back edit requests nothing. Every build is a full bake. The build carries `DEPLOY_REQUESTED_AT`, so the ops scripts can skip its bake when a full bake that started after it has already gone out, which keeps a burst of edits to about two bakes. A failed request goes to Sentry and the edit goes out with the next deploy.
 
-It used to be embedded as part of `adminSiteServer` and a deploy process was spawned every time there was a deploy. The issue at the time was that we'd have multiple processes deploying simultaneously and very rarely it would lead to broken content (e.g. js deployed while webpack is generating it). The other issue was that these processes, for some unknown reason, sometimes didn't exit cleanly, and would hang around as zombies.
+Nothing is requested unless `BAKE_ON_CHANGE` is set, which it isn't in local dev: the dev server renders pages on demand, and `make local-bake` bakes the whole site.
 
-The current single-process-deploy provides some simplicity when dealing with queues – e.g. no simultaneous deploys; a new deploy automatically starts if there are items in the queue at the end of a deploy. Also no TS compilation needs to happen (pretty minor but saves 10-15 seconds each deploy). It's also much easier to shut down, e.g. when we run a code deploy, we can easily kill the process to ensure multiple deploys aren't running.
+The admin's `/deploys` page lists the pipeline's recent builds and has a button to request one.

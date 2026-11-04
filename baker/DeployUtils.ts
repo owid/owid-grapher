@@ -1,52 +1,81 @@
 import * as _ from "lodash-es"
-import fs from "fs-extra"
 import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
-import { DeployQueueServer } from "./DeployQueueServer.js"
 import {
-    BAKED_SITE_DIR,
-    BAKED_BASE_URL,
+    BAKE_ON_CHANGE,
     BUILDKITE_API_ACCESS_TOKEN,
     SLACK_BOT_OAUTH_TOKEN,
     ENV,
 } from "../settings/serverSettings.js"
-import { SiteBaker } from "../baker/SiteBaker.js"
 import { WebAPIPlatformError, WebClient } from "@slack/web-api"
-import { DeployChange, DeployMetadata } from "@ourworldindata/utils"
-import { KnexReadonlyTransaction } from "../db/db.js"
+import { DbPlainUser, DeployChange } from "@ourworldindata/utils"
+import { KnexReadWriteTransaction, runAfterCommit } from "../db/db.js"
 
-const deployQueueServer = new DeployQueueServer()
+type DeployAuthor = Pick<DbPlainUser, "fullName" | "email">
 
-export const defaultCommitMessage = async (): Promise<string> => {
-    let message = "Automated update"
-
-    // In the deploy.sh script, we write the current git rev to 'public/head.txt'
-    // and want to include it in the deploy commit message
-    try {
-        const sha = await fs.readFile("public/head.txt", "utf8")
-        message += `\nowid/owid-grapher@${sha}`
-    } catch (err) {
-        console.warn(err)
-    }
-
-    return message
-}
+const changesByTransaction = new WeakMap<
+    KnexReadWriteTransaction,
+    DeployChange[]
+>()
 
 /**
- * Initiate a deploy, without any checks. Throws error on failure.
+ * Deploy this edit once `trx` commits. All the changes a transaction enqueues
+ * go out as one Buildkite build: the edit's caller waits for the build
+ * request (with a timeout), never for the build. A rolled-back transaction
+ * requests nothing. A failed request is logged to Sentry and doesn't fail
+ * the edit, which then goes out with the next deploy.
+ *
+ * Does nothing unless BAKE_ON_CHANGE is set (it isn't in local dev).
  */
-
-const triggerBakeAndDeploy = async (
-    deployMetadata: DeployMetadata,
-    knex: KnexReadonlyTransaction
-) => {
-    // deploy to Buildkite if we're on master and BUILDKITE_API_ACCESS_TOKEN is set
-    if (BUILDKITE_API_ACCESS_TOKEN) {
-        await new BuildkiteTrigger().runFullBuild(deployMetadata)
-    } else {
-        // otherwise, bake locally. This is used for local development or staging servers
-        const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
-        await baker.bakeAll(knex)
+export const enqueueDeployChange = (
+    trx: KnexReadWriteTransaction,
+    user: DeployAuthor,
+    message: string
+): void => {
+    if (!BAKE_ON_CHANGE) {
+        console.log(`Not deploying "${message}": BAKE_ON_CHANGE is false`)
+        return
     }
+
+    const change = toDeployChange(user, message)
+    const changes = changesByTransaction.get(trx)
+    if (changes) {
+        changes.push(change)
+        return
+    }
+    // The first change registers the one request; later ones join its list
+    const newChanges = [change]
+    changesByTransaction.set(trx, newChanges)
+    runAfterCommit(trx, async () => {
+        await requestContentDeploy(newChanges)
+    })
+}
+
+export const toDeployChange = (
+    user: DeployAuthor,
+    message: string
+): DeployChange => ({
+    timeISOString: new Date().toISOString(),
+    authorName: user.fullName,
+    authorEmail: user.email,
+    message,
+})
+
+/** Request one content deploy for `changes`. Throws if the request fails. */
+export const requestContentDeploy = async (
+    changes: DeployChange[]
+): Promise<number> => {
+    if (!BUILDKITE_API_ACCESS_TOKEN)
+        throw new Error(
+            "BAKE_ON_CHANGE is set but BUILDKITE_API_ACCESS_TOKEN isn't, so this server can't request deploys"
+        )
+
+    const changesAuthorNames = getChangesAuthorNames(changes)
+    console.log(`Requesting a deploy for:\n${changesAuthorNames.join("\n")}`)
+    const changesSlackMentions = await getChangesSlackMentions(changes)
+    return new BuildkiteTrigger().requestContentBuild(
+        { title: changesAuthorNames[0], changesSlackMentions },
+        new Date()
+    )
 }
 
 const getChangesAuthorNames = (queueItems: DeployChange[]): string[] => {
@@ -139,43 +168,3 @@ const getSlackMentionByEmail = _.memoize(
         }
     }
 )
-
-/**
- * Initiate deploy if no other deploy is currently pending, and there are changes
- * in the queue.
- * If there is a deploy pending, another one will be automatically triggered at
- * the end of the current one, as long as there are changes in the queue.
- * If there are no changes in the queue, a deploy won't be initiated.
- */
-export const deployIfQueueIsNotEmpty = async (
-    knex: KnexReadonlyTransaction
-) => {
-    if (!(await deployQueueServer.queueIsEmpty())) {
-        const deployContent =
-            await deployQueueServer.readQueuedAndPendingFiles()
-        // Truncate file immediately. Ideally this would be an atomic action, otherwise it's
-        // possible that another process writes to this file in the meantime...
-        await deployQueueServer.clearQueueFile()
-        // Write to `.pending` file to be able to recover the deploy message
-        // in case of failure.
-        await deployQueueServer.writePendingFile(deployContent)
-
-        const parsedQueue = deployQueueServer.parseQueueContent(deployContent)
-
-        // Log the changes that are about to be deployed in a text format.
-        const dateStr: string = new Date().toISOString()
-        const changesAuthorNames = getChangesAuthorNames(parsedQueue)
-        console.log(
-            `Deploying site...\n---\n📆 ${dateStr}\n\n${changesAuthorNames.join(
-                "\n"
-            )}\n---`
-        )
-
-        const changesSlackMentions = await getChangesSlackMentions(parsedQueue)
-        await triggerBakeAndDeploy(
-            { title: changesAuthorNames[0], changesSlackMentions },
-            knex
-        )
-        await deployQueueServer.deletePendingFile()
-    }
-}

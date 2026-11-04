@@ -9,7 +9,7 @@ import {
     updateSlideshow,
     deleteSlideshow,
 } from "./apiRoutes/slideshows.js"
-import { DeployQueueServer } from "../baker/DeployQueueServer.js"
+import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
 import {
     getChartBulkUpdate,
     updateBulkChartConfigs,
@@ -101,7 +101,8 @@ import {
     handlePostNewChartRedirect,
     handleDeleteChartRedirect,
 } from "./apiRoutes/redirects.js"
-import { triggerStaticBuild } from "../baker/GrapherBakingUtils.js"
+import { requestContentDeploy, toDeployChange } from "../baker/DeployUtils.js"
+import { BUILDKITE_API_ACCESS_TOKEN } from "../settings/serverSettings.js"
 import {
     suggestTopics,
     suggestAltTextForCloudflareImage,
@@ -751,11 +752,17 @@ getRouteWithROTransaction(
 
 // Deploy helpers
 apiRouter.get("/deploys.json", async () => ({
-    deploys: await new DeployQueueServer().getDeploys(),
+    // Local dev has no token, and so no deploys to list
+    builds: BUILDKITE_API_ACCESS_TOKEN
+        ? await new BuildkiteTrigger().listRecentBuilds()
+        : [],
 }))
 
 apiRouter.put("/deploy", async (req, res) => {
-    return triggerStaticBuild(res.locals.user, "Manually triggered deploy")
+    const buildNumber = await requestContentDeploy([
+        toDeployChange(res.locals.user, "Manually triggered deploy"),
+    ])
+    return { success: true, buildNumber }
 })
 
 export { apiRouter }

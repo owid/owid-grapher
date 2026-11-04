@@ -47,9 +47,8 @@ export {
 } from "./domainTypes/Toc.js"
 
 export {
-    type Deploy,
+    type DeployBuild,
     type DeployChange,
-    DeployStatus,
     type DeployMetadata,
 } from "./domainTypes/DeployStatus.js"
 

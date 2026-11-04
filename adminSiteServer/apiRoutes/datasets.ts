@@ -18,7 +18,7 @@ import {
 } from "../../db/model/Dataset.js"
 import { attachVariableUsages } from "../../db/model/Variable.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
+import { enqueueDeployChange } from "../../baker/DeployUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
 import { Request } from "express"
@@ -449,7 +449,8 @@ export async function republishCharts(
         )
     }
 
-    await triggerStaticBuild(
+    enqueueDeployChange(
+        trx,
         _res.locals.user,
         `Republishing all charts in dataset ${dataset.name} (${dataset.id})`
     )

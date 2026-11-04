@@ -68,7 +68,7 @@ import {
     type AnyGdoc,
 } from "../../db/model/Gdoc/GdocFactory.js"
 import { refreshGdocComponentPreviews } from "../../db/model/Gdoc/componentPreviews/refreshGdocComponentPreviews.js"
-import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
+import { enqueueDeployChange } from "../../baker/DeployUtils.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
@@ -356,7 +356,7 @@ async function indexAndBakeGdocIfNeccesary(
             if (isChronologicalPost) {
                 await indexIndividualGdocInChronological(nextJson, trx)
             }
-            await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
+            enqueueDeployChange(trx, user, `${action} ${nextJson.slug}`)
         })
         .with(GdocPublishingAction.Updating, async () => {
             if (shouldIndexInPages) {
@@ -368,7 +368,7 @@ async function indexAndBakeGdocIfNeccesary(
             if (isChronologicalPost) {
                 await indexIndividualGdocInChronological(nextJson, trx)
             }
-            await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
+            enqueueDeployChange(trx, user, `${action} ${nextJson.slug}`)
         })
         .with(GdocPublishingAction.Unpublishing, async () => {
             if (wasIndexedInPages) {
@@ -380,7 +380,7 @@ async function indexAndBakeGdocIfNeccesary(
             if (wasChronologicalPost) {
                 await removeIndividualGdocFromChronological(prevJson.id)
             }
-            await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
+            enqueueDeployChange(trx, user, `${action} ${nextJson.slug}`)
         })
         .exhaustive()
 }
@@ -593,7 +593,7 @@ export async function deleteGdoc(
                 [source, "/"]
             )
         }
-        await triggerStaticBuild(res.locals.user, `Deleting ${gdocSlug}`)
+        enqueueDeployChange(trx, res.locals.user, `Deleting ${gdocSlug}`)
     }
     return {}
 }
