@@ -7,7 +7,7 @@ import { Link } from "./Link.js"
 import { Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { AdminTable, AdminTableSearch } from "./AdminTable.js"
-import { SearchHighlighter } from "./adminTableHelpers.js"
+import type { SearchHighlighter } from "./variableSearchQuery.js"
 import { getTagGraphRolesById } from "./TagGraphMetadata.js"
 import { useTags } from "./tagQueries.js"
 import { DatasetListItem, useSetDatasetTags } from "./datasetQueries.js"
@@ -84,7 +84,7 @@ function createColumns({
             key: "numCharts",
             width: 80,
             align: "right",
-            sorter: (a, b) => a.numCharts - b.numCharts,
+            sorter: (a, b) => (a.numCharts ?? 0) - (b.numCharts ?? 0),
         },
         {
             title: "Uploaded",

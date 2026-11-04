@@ -7,7 +7,9 @@ import { tagKeys } from "./tagQueries.js"
 export interface DatasetListItem {
     id: number
     name: string
-    shortName: string
+    // The tag page's datasets come without these three, and a dataset no
+    // chart uses has no chart count
+    shortName?: string | null
     namespace: string
     description: string
     dataEditedAt: Date
@@ -17,8 +19,8 @@ export interface DatasetListItem {
     tags: DbChartTagJoin[]
     isPrivate: boolean
     nonRedistributable: boolean
-    version: string
-    numCharts: number
+    version?: string | null
+    numCharts?: number | null
 }
 
 export const datasetKeys = {
