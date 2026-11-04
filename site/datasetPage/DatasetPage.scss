@@ -189,7 +189,7 @@ $dataset-page-row-border: $blue-20;
 .dataset-page__about {
     @include body-2-regular;
     & {
-        padding: 80px 0 8px;
+        padding: 24px 0 8px;
     }
 
     p {
