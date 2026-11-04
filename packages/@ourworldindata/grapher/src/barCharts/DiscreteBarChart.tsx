@@ -139,6 +139,10 @@ export class DiscreteBarChart
         })
     }
 
+    @computed private get showValueLabels(): boolean {
+        return !this.manager.useNameLabelsOnly
+    }
+
     @computed private get valueLabelStyle(): FontSettings {
         return { fontSize: this.labelFontSize, fontWeight: 400, lineHeight: 1 }
     }
@@ -153,7 +157,7 @@ export class DiscreteBarChart
 
     // The amount of space we need to allocate for bar end labels on the right
     @computed private get rightValueLabelsWidth(): number {
-        if (!this.hasPositive) return 0
+        if (!this.showValueLabels || !this.hasPositive) return 0
 
         const labelsWidths = this.series
             .filter((series) => series.value >= 0)
@@ -217,12 +221,13 @@ export class DiscreteBarChart
         series: DiscreteBarSeries,
         axis: HorizontalAxis
     ): number {
-        if (series.value >= 0) return axis.place(this.x0) - BAR_LABEL_GAP
-        return (
-            axis.place(series.value) -
-            this.formatValue(series).width -
-            ENTITY_VALUE_LABEL_GAP
-        )
+        const isNegative = series.value < 0
+        const barX = axis.place(isNegative ? series.value : this.x0)
+        if (isNegative && this.showValueLabels)
+            return (
+                barX - this.formatValue(series).width - ENTITY_VALUE_LABEL_GAP
+            )
+        return barX - BAR_LABEL_GAP
     }
 
     /** Each row's entity label right edge as a line in the left labels width */
@@ -457,7 +462,8 @@ export class DiscreteBarChart
     private renderValueLabel(
         series: RenderDiscreteBarSeries,
         y = 0
-    ): React.ReactElement {
+    ): React.ReactElement | null {
+        if (!this.showValueLabels) return null
         const label = this.formatValue(series)
         return (
             <text
