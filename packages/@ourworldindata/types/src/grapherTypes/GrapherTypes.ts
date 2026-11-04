@@ -398,8 +398,8 @@ export interface AxisConfigInterface {
      */
     isDomainEndExclusive?: boolean
 
-    /** Omit the log-scale notice that is appended to the axis label in parentheses */
-    hideLabelLogNotice?: boolean
+    /** Shorten the log-scale notice in the axis label to "log axis" */
+    shortenLabelLogNotice?: boolean
 }
 
 export interface VerticalComparisonLineConfig {
