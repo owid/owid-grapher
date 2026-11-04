@@ -2,7 +2,7 @@ import * as React from "react"
 import { useState } from "react"
 import { Flex, Input, Space, Table, TableProps } from "antd"
 import { SearchHelp, SearchHelpTable } from "./SearchHelp.js"
-import type { SearchFieldHelp } from "../adminShared/searchFilter.js"
+import type { SearchFieldHelp } from "../adminShared/variableSearch.js"
 
 const ADMIN_TABLE_PAGE_SIZE = 50
 
@@ -11,8 +11,6 @@ export interface AdminTableSearch {
     onChange: (value: string) => void
     placeholder?: string
     autoFocus?: boolean
-    /** Width of the search input. Defaults to 500px. */
-    width?: number | string
     /** `field:value` terms the page understands, listed in a help popover. */
     fields?: readonly SearchFieldHelp[]
 }
@@ -88,7 +86,7 @@ function AdminTableToolbar({
                         placeholder={search.placeholder ?? "Search..."}
                         value={search.value}
                         onChange={(e) => search.onChange(e.target.value)}
-                        style={{ width: search.width ?? 500 }}
+                        style={{ width: 500 }}
                         autoFocus={search.autoFocus}
                         allowClear
                     />

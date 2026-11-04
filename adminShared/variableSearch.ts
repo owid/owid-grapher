@@ -54,7 +54,7 @@ export function parseSearchQuery(query: string): SearchTerm[] {
 export interface SearchFieldHelp {
     name: string
     /** Only string fields have their value highlighted in the results. */
-    type: "string" | "number" | "date"
+    type: "string" | "number" | "boolean" | "date"
     description: string
 }
 

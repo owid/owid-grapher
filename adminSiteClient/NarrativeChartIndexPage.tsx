@@ -8,7 +8,8 @@ import { ApiNarrativeChartOverview } from "../adminShared/AdminTypes.js"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
 import { Link } from "./Link.js"
 import { AdminTable } from "./AdminTable.js"
-import { useListSearch, SearchHighlighter } from "./adminTableHelpers.js"
+import { useListSearch } from "./adminTableHelpers.js"
+import type { SearchHighlighter } from "./variableSearchQuery.js"
 import { SearchField } from "../adminShared/searchFilter.js"
 
 function createColumns(ctx: {

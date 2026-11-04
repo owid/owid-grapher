@@ -180,8 +180,9 @@ const SEARCH_FIELDS: SearchField<OwidGdocIndexItem>[] = [
     {
         name: "published",
         type: "boolean",
-        description: "Published",
-        get: (gdoc) => gdoc.published,
+        // as the status filter counts it: a scheduled doc isn't live yet
+        description: "Published and live, not scheduled",
+        get: (gdoc) => gdoc.published && !isGdocScheduled(gdoc, Date.now()),
     },
 ]
 

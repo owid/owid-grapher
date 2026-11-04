@@ -1,5 +1,9 @@
 import { buildRegexFromSearchWord, SearchWord } from "./search.js"
-import { parseSearchTerm, splitSearchTerms } from "./variableSearch.js"
+import {
+    parseSearchTerm,
+    SearchFieldHelp,
+    splitSearchTerms,
+} from "./variableSearch.js"
 
 /**
  * A fielded search over a list of items, shared by the admin's list pages.
@@ -18,7 +22,7 @@ import { parseSearchTerm, splitSearchTerms } from "./variableSearch.js"
  * a URL or a catalog path into the box searches for it rather than erroring.
  */
 
-export type SearchFieldType = "string" | "number" | "boolean" | "date"
+export type SearchFieldType = SearchFieldHelp["type"]
 
 export type SearchFieldValue =
     | string
@@ -29,12 +33,7 @@ export type SearchFieldValue =
     | undefined
     | readonly (string | number | null | undefined)[]
 
-export interface SearchField<T> {
-    /** How the field is written in a query, e.g. `tag` in `tag:Energy`. */
-    name: string
-    type: SearchFieldType
-    /** Shown in the search help popover. */
-    description: string
+export interface SearchField<T> extends SearchFieldHelp {
     get: (item: T) => SearchFieldValue
     /**
      * Whether a bare word searches this field. Defaults to true for string
@@ -62,7 +61,7 @@ const OPERATOR = /^(>=|<=|>|<|=)(.+)$/s
  * uses too (`adminShared/variableSearch.ts`), plus the comparisons that only
  * these in-browser lists understand.
  */
-export function parseSearchQuery(query: string | undefined): SearchToken[] {
+export function parseSearchTokens(query: string | undefined): SearchToken[] {
     if (!query?.trim()) return []
 
     return (
@@ -126,6 +125,21 @@ function regexFor(token: SearchToken): RegExp {
 const TRUTHY = new Set(["true", "yes", "1"])
 const FALSY = new Set(["false", "no", "0"])
 
+/**
+ * `2024`, `2024-3` or `2024-03-07` as the zero-padded ISO prefix the dates
+ * are compared against, or undefined for anything else, which then matches
+ * nothing rather than comparing as text
+ */
+function normalizeDateQuery(value: string): string | undefined {
+    const match = /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2}))?)?$/.exec(value)
+    if (!match) return undefined
+    const [, year, month, day] = match
+    return [year, month, day]
+        .filter((part) => part !== undefined)
+        .map((part) => part.padStart(2, "0"))
+        .join("-")
+}
+
 function matchesValue(
     value: SearchFieldValue,
     type: SearchFieldType,
@@ -157,16 +171,14 @@ function matchesValue(
                       new Date(
                           typeof value === "number" ? value : String(value)
                       )
-            if (Number.isNaN(date.getTime())) return false
+            const query = normalizeDateQuery(token.value)
+            if (query === undefined || Number.isNaN(date.getTime()))
+                return false
             const iso = date.toISOString()
             // Without a comparison, a date matches by prefix, so `2024-03`
             // means "some time in March 2024".
-            if (!token.operator) return iso.startsWith(token.value)
-            return compare(
-                iso.slice(0, token.value.length),
-                token.value,
-                token.operator
-            )
+            if (!token.operator) return iso.startsWith(query)
+            return compare(iso.slice(0, query.length), query, token.operator)
         }
     }
 }
@@ -195,7 +207,7 @@ function resolveTokens(
     query: string | undefined,
     fieldNames: ReadonlySet<string>
 ): SearchToken[] {
-    return parseSearchQuery(query).flatMap((token): SearchToken[] => {
+    return parseSearchTokens(query).flatMap((token): SearchToken[] => {
         if (token.field === undefined) return [token]
         // `charts:>` hasn't got its number yet either
         if (fieldNames.has(token.field))
@@ -264,32 +276,40 @@ export function searchWordsToHighlight(
         }))
 }
 
-/** What a search box's help popover shows of a field. */
-export type SearchFieldHelp = Pick<
-    SearchField<never>,
-    "name" | "type" | "description"
->
+function isTruthy(value: string): boolean {
+    return TRUTHY.has(value.toLowerCase())
+}
 
 /**
- * Whether `term` (e.g. `published:true`) is one of the query's terms.
+ * Whether the query asks for `field` to be true (`published:true`, or
+ * `Published:yes`).
  *
- * Together with `toggleSearchTerm` this lets a checkbox drive the search
+ * Together with `withBooleanTerm` this lets a checkbox drive the search
  * string, so a filter set by clicking is still in the URL and still visible
  * in the search box.
  */
-export function hasSearchTerm(
-    query: string | undefined,
-    term: string
-): boolean {
-    return (query ?? "").split(/\s+/).includes(term)
+export function hasTrueTerm(query: string | undefined, field: string): boolean {
+    return parseSearchTokens(query).some(
+        (token) =>
+            token.field === field && !token.exclude && isTruthy(token.value)
+    )
 }
 
-export function toggleSearchTerm(
+/**
+ * The query with every term of `field` replaced by `field:true`, or just
+ * removed when `on` is false, so the box never holds `published:false`
+ * next to `published:true`. A trailing space lets typing carry on from the
+ * end of the box without running into the term.
+ */
+export function withBooleanTerm(
     query: string | undefined,
-    term: string,
+    field: string,
     on: boolean
 ): string {
-    const terms = (query ?? "").split(/\s+/).filter((t) => t && t !== term)
-    if (on) terms.push(term)
-    return terms.join(" ")
+    const kept = splitSearchTerms(query ?? "")
+        .filter((term) => parseSearchTerm(term).field !== field)
+        // a phrase has to go back in quotes to stay one term
+        .map((term) => (/\s/.test(term) ? `"${term}"` : term))
+    if (on) kept.push(`${field}:true`)
+    return on ? `${kept.join(" ")} ` : kept.join(" ")
 }

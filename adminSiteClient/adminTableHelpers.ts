@@ -1,4 +1,3 @@
-import type * as React from "react"
 import { useMemo } from "react"
 import { highlightFunctionForSearchWords } from "../adminShared/search.js"
 import {
@@ -7,11 +6,10 @@ import {
     searchWordsToHighlight,
 } from "../adminShared/searchFilter.js"
 import type { AdminTableSearch } from "./AdminTable.js"
-import { useSearchQueryParam } from "./variableSearchQuery.js"
-
-export type SearchHighlighter = (
-    text: string | null | undefined
-) => React.ReactElement | string
+import {
+    SearchHighlighter,
+    useSearchQueryParam,
+} from "./variableSearchQuery.js"
 
 /**
  * Everything a list page needs for its search box: the query (kept in the URL),
