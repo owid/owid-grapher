@@ -88,7 +88,7 @@
         {
           "name": "country",
           "type": "string",
-          "description": "Country shown first. `userLocation` picks the reader's country",
+          "description": "Country shown first. `userLocation` picks the user's country",
           "default": "Brazil"
         },
         {
@@ -140,7 +140,7 @@
       "variants": [
         {
           "name": "simulation",
-          "description": "Population projection for one country where readers set the fertility, life expectancy and migration assumptions",
+          "description": "Population projection for one country where users set the fertility, life expectancy and migration assumptions",
           "defaultSize": "widest",
           "archie": "{.bespoke-component}\nbundle: demography\nvariant: simulation\nsize: widest\n{}\n"
         },
@@ -177,7 +177,7 @@
         {
           "name": "region",
           "type": "string",
-          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
+          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the user's country",
           "default": "userLocation"
         },
         {
@@ -282,7 +282,7 @@
         {
           "name": "country",
           "type": "string",
-          "description": "Country shown first, or All countries if the data doesn't have it. `userLocation` picks the reader's country",
+          "description": "Country shown first, or All countries if the data doesn't have it. `userLocation` picks the user's country",
           "default": "All countries"
         },
         {
@@ -342,7 +342,7 @@
         {
           "name": "country",
           "type": "string",
-          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
+          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the user's country",
           "default": "United States"
         },
         {
@@ -418,7 +418,7 @@
         {
           "name": "country",
           "type": "string",
-          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
+          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the user's country",
           "default": "United States"
         },
         {
