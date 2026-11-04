@@ -43,17 +43,9 @@
     padding: 4px 0 0;
 }
 
-.deforestation-sankey__tooltip-description {
-    margin: 0 0 10px;
-    color: $light-text;
-    font-size: 13px;
-    line-height: 1.4;
-}
-
 .deforestation-sankey__tooltip-headline {
     display: flex;
     flex-direction: column;
-    padding-top: 12px;
 }
 
 .deforestation-sankey__tooltip-headline-value {

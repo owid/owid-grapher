@@ -20,6 +20,7 @@ import {
     type FontSettings,
 } from "@ourworldindata/grapher"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
+import type { FooterItem } from "@ourworldindata/grapher/src/tooltip/TooltipProps.js"
 import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import cx from "clsx"
 import { usePinnedTooltip } from "../../hooks/usePinnedTooltip.js"
@@ -153,6 +154,8 @@ export type SankeyTooltip = {
     /** Shown at the right of the tooltip's header, e.g. an icon */
     headerAside?: React.ReactNode
     content: React.ReactNode
+    /** Small print under the content, such as a definition */
+    footer?: FooterItem[]
 }
 
 export type SankeyNode = {
@@ -768,6 +771,7 @@ export function Sankey({
                     title={tooltip.title}
                     subtitle={tooltip.subtitle}
                     headerAside={tooltip.headerAside}
+                    footer={tooltip.footer}
                     anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
                     containerBounds={isPinned ? undefined : tooltipBounds}
                 >

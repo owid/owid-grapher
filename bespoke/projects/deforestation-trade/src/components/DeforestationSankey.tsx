@@ -7,6 +7,7 @@ import {
     TooltipTable,
     TooltipValue,
 } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
+import { TooltipFooterIcon } from "@ourworldindata/grapher/src/tooltip/TooltipProps.js"
 
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import {
@@ -468,13 +469,13 @@ function makeNodeTooltip({
             title: getGroupLabel(group),
             subtitle,
             headerAside: <GroupBadge group={group} />,
+            // What the commodity covers is a definition, so it goes in the
+            // small print, after the numbers
+            footer: description
+                ? [{ icon: TooltipFooterIcon.None, text: description }]
+                : undefined,
             content: (
                 <>
-                    {description && (
-                        <p className="deforestation-sankey__tooltip-description">
-                            {description}
-                        </p>
-                    )}
                     <div className="deforestation-sankey__tooltip-headline">
                         <span className="deforestation-sankey__tooltip-headline-value">
                             {formatHectares(value)}
