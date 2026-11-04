@@ -38,7 +38,10 @@ $featured-viz-label-color: #916c00;
     align-items: center;
     gap: 16px;
 
+    // Stack the thumbnail above the text, like the home page's featured tiles
     @include sm-only {
+        flex-direction: column;
+        align-items: stretch;
         gap: 12px;
     }
 }
@@ -52,8 +55,8 @@ $featured-viz-label-color: #916c00;
     background-color: $white;
 
     @include sm-only {
-        width: 56px;
-        height: 56px;
+        width: 100%;
+        height: auto;
     }
 }
 
