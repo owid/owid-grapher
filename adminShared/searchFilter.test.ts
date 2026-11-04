@@ -1,12 +1,12 @@
 import { expect, it, describe } from "vitest"
 
 import {
-    hasSearchTerm,
+    hasTrueTerm,
     makeSearchFilter,
-    parseSearchQuery,
+    parseSearchTokens,
     SearchField,
     searchWordsToHighlight,
-    toggleSearchTerm,
+    withBooleanTerm,
 } from "./searchFilter.js"
 
 interface Dataset {
@@ -88,16 +88,16 @@ function search(query: string): string[] {
     return DATASETS.filter(makeSearchFilter(query, FIELDS)).map((d) => d.name)
 }
 
-describe(parseSearchQuery, () => {
+describe(parseSearchTokens, () => {
     it("returns nothing for an empty query", () => {
-        expect(parseSearchQuery("")).toEqual([])
-        expect(parseSearchQuery(undefined)).toEqual([])
-        expect(parseSearchQuery("   ")).toEqual([])
+        expect(parseSearchTokens("")).toEqual([])
+        expect(parseSearchTokens(undefined)).toEqual([])
+        expect(parseSearchTokens("   ")).toEqual([])
     })
 
     it("parses words, phrases, fields, exclusions and operators", () => {
         expect(
-            parseSearchQuery(
+            parseSearchTokens(
                 'measles "life expectancy" -energy tag:Health charts:>5'
             )
         ).toEqual([
@@ -125,7 +125,7 @@ describe(parseSearchQuery, () => {
     })
 
     it("keeps a quoted field value together", () => {
-        expect(parseSearchQuery('tag:"Global Health"')).toEqual([
+        expect(parseSearchTokens('tag:"Global Health"')).toEqual([
             {
                 field: "tag",
                 value: "Global Health",
@@ -139,6 +139,23 @@ describe(parseSearchQuery, () => {
 describe(makeSearchFilter, () => {
     it("matches everything when the query is empty", () => {
         expect(search("")).toHaveLength(3)
+    })
+
+    it("pads a month or day typed without its zero", () => {
+        expect(search("updated:2024-3")).toEqual(["Measles cases"])
+        expect(search("updated:>=2024-3")).toEqual([
+            "Measles cases",
+            "Life expectancy",
+        ])
+        expect(search("updated:<2024-3-16")).toEqual([
+            "Measles cases",
+            "Energy mix",
+        ])
+    })
+
+    it("matches nothing for a date it can't read", () => {
+        expect(search("updated:<lastweek")).toEqual([])
+        expect(search("updated:2024/03")).toEqual([])
     })
 
     it("ignores terms still being typed", () => {
@@ -270,30 +287,31 @@ describe(searchWordsToHighlight, () => {
     })
 })
 
-describe(toggleSearchTerm, () => {
-    it("adds and removes a term without disturbing the rest", () => {
-        expect(toggleSearchTerm("", "published:true", true)).toBe(
-            "published:true"
-        )
-        expect(toggleSearchTerm("measles", "published:true", true)).toBe(
-            "measles published:true"
-        )
+describe(withBooleanTerm, () => {
+    it("sets the field to true, replacing any other term of it", () => {
+        expect(withBooleanTerm("", "published", true)).toBe("published:true ")
         expect(
-            toggleSearchTerm("measles published:true", "published:true", false)
+            withBooleanTerm("measles published:false", "published", true)
+        ).toBe("measles published:true ")
+        expect(
+            withBooleanTerm("-Published:yes measles", "published", false)
         ).toBe("measles")
     })
 
-    it("leaves quoted phrases intact", () => {
-        expect(
-            toggleSearchTerm('tag:"Global Health"', "published:true", true)
-        ).toBe('tag:"Global Health" published:true')
-    })
-
-    it("reports whether the term is set", () => {
-        expect(hasSearchTerm("measles published:true", "published:true")).toBe(
-            true
+    it("keeps a phrase together, spaces and all", () => {
+        expect(withBooleanTerm('"global  health" x', "published", true)).toBe(
+            '"global  health" x published:true '
         )
-        expect(hasSearchTerm("measles", "published:true")).toBe(false)
-        expect(hasSearchTerm(undefined, "published:true")).toBe(false)
+    })
+})
+
+describe(hasTrueTerm, () => {
+    it("reads any spelling of true", () => {
+        expect(hasTrueTerm("measles published:true", "published")).toBe(true)
+        expect(hasTrueTerm("PUBLISHED:Yes", "published")).toBe(true)
+        expect(hasTrueTerm("published:false", "published")).toBe(false)
+        expect(hasTrueTerm("-published:true", "published")).toBe(false)
+        expect(hasTrueTerm('"note published:true"', "published")).toBe(false)
+        expect(hasTrueTerm(undefined, "published")).toBe(false)
     })
 })

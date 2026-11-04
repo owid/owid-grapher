@@ -128,8 +128,9 @@ const SEARCH_FIELDS: SearchField<OwidGdocDataInsightIndexItem>[] = [
     {
         name: "published",
         type: "boolean",
-        description: "Published",
-        get: (d) => d.published,
+        // as the status filter counts it: a scheduled one isn't live yet
+        description: "Published and live, not scheduled",
+        get: (d) => d.published && dayjs(d.publishedAt).isBefore(dayjs()),
     },
 ]
 

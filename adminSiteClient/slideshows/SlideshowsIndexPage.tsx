@@ -1,7 +1,8 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { Button, Modal, Space, TableColumnsType } from "antd"
 import { AdminTable } from "../AdminTable.js"
-import { useListSearch, SearchHighlighter } from "../adminTableHelpers.js"
+import { useListSearch } from "../adminTableHelpers.js"
+import type { SearchHighlighter } from "../variableSearchQuery.js"
 import { SearchField } from "../../adminShared/searchFilter.js"
 
 import { AdminLayout } from "../AdminLayout.js"

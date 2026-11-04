@@ -17,9 +17,9 @@ import {
 import { AdminTable } from "./AdminTable.js"
 import { useListSearch } from "./adminTableHelpers.js"
 import {
-    hasSearchTerm,
+    hasTrueTerm,
     SearchField,
-    toggleSearchTerm,
+    withBooleanTerm,
 } from "../adminShared/searchFilter.js"
 import { Admin } from "./Admin.js"
 import { AdminLayout } from "./AdminLayout.js"
@@ -46,16 +46,6 @@ type ApiMultiDim = {
 
 type MultiDim = Omit<ApiMultiDim, "updatedAt"> & {
     updatedAt: Date
-}
-
-/** The checkbox writes this into the search box, so the filter is in the URL. */
-const PUBLISHED_TERM = "published:true"
-
-function withoutPublishedTerms(query: string): string {
-    return query
-        .split(/\s+/)
-        .filter((term) => term && !/^-?published:/i.test(term))
-        .join(" ")
 }
 
 const SEARCH_FIELDS: SearchField<MultiDim>[] = [
@@ -404,18 +394,12 @@ export function MultiDimIndexPage() {
                     search={search}
                     filters={
                         <Checkbox
-                            checked={hasSearchTerm(
-                                search.value,
-                                PUBLISHED_TERM
-                            )}
+                            checked={hasTrueTerm(search.value, "published")}
                             onChange={(e) =>
                                 search.onChange(
-                                    toggleSearchTerm(
-                                        // a typed `published:false` would
-                                        // otherwise sit next to it and match
-                                        // nothing
-                                        withoutPublishedTerms(search.value),
-                                        PUBLISHED_TERM,
+                                    withBooleanTerm(
+                                        search.value,
+                                        "published",
                                         e.target.checked
                                     )
                                 )
