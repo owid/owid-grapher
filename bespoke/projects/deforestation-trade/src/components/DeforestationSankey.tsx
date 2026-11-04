@@ -607,10 +607,11 @@ function CommodityBreakdownTable({
                             <td className="deforestation-sankey__commodity-table-name">
                                 <NameWithLeader
                                     name={getGroupLabel(row.group)}
+                                    value={formatHectares(row.value, {
+                                        short: true,
+                                    })}
+                                    valueClassName="deforestation-sankey__commodity-table-value"
                                 />
-                            </td>
-                            <td className="deforestation-sankey__commodity-table-value">
-                                {formatHectares(row.value, { short: true })}
                             </td>
                         </tr>
                     ))}
@@ -648,10 +649,13 @@ function PartnerShareTable({
                     {visible.map((row) => (
                         <tr key={row.name}>
                             <td className="deforestation-sankey__share-table-name">
-                                <NameWithLeader name={row.name} />
-                            </td>
-                            <td className="deforestation-sankey__share-table-value">
-                                {formatHectares(row.value, { short: true })}
+                                <NameWithLeader
+                                    name={row.name}
+                                    value={formatHectares(row.value, {
+                                        short: true,
+                                    })}
+                                    valueClassName="deforestation-sankey__share-table-value"
+                                />
                             </td>
                             <td className="deforestation-sankey__share-table-share">
                                 {total > 0
@@ -672,12 +676,23 @@ function PartnerShareTable({
     )
 }
 
-/** A row's name followed by a dotted leader that runs to its value */
-function NameWithLeader({ name }: { name: string }): React.ReactElement {
+/** A row's name and its value, joined by a dotted leader that fills the
+ *  space between them. They share a cell so the leader runs right up to
+ *  the value, which still lines up on the right with the other rows'. */
+function NameWithLeader({
+    name,
+    value,
+    valueClassName,
+}: {
+    name: string
+    value: string
+    valueClassName: string
+}): React.ReactElement {
     return (
         <span className="deforestation-sankey__leader-row">
             <span>{name}</span>
             <span className="deforestation-sankey__leader" aria-hidden />
+            <span className={valueClassName}>{value}</span>
         </span>
     )
 }
