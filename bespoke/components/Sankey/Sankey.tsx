@@ -165,10 +165,9 @@ export type SankeyNode = {
     /** SVG content for a `0 0 16 16` viewBox. */
     icon?: React.ReactNode
     /**
-     * How the icon goes with the label: as a badge on a white disc between
-     * the band and the label (the default), or inline, as a small glyph
-     * leading the label's first line, so the text itself stays aligned on
-     * the band's side.
+     * How the icon goes with the label, between the band and the text: as a
+     * badge on a white disc centred on the label (the default), or inline, as
+     * a small glyph beside the label's first line.
      */
     iconStyle?: SankeyIconStyle
     /** Colour of the label and value text. A coloured middle-column label
@@ -954,24 +953,19 @@ function SankeyLabel({
         ? (label.highlightedLabelColor ?? label.labelColor)
         : label.labelColor
 
-    // A badge sits nearest the node's band, with the text after it; an
-    // inline icon leads the text from its far side
+    // The icon sits nearest the node's band, with the text after it
     const isTextAnchoredAtEnd = label.textAnchor === "end"
     const directionAway = isTextAnchoredAtEnd ? -1 : 1
     const textOffset = getIconLabelOffset(label)
     const textX = label.x + directionAway * textOffset
 
-    // An inline icon shown without its text moves up to the band
+    // An inline icon lines up with the label's first line, or, shown without
+    // its text, with the node; either way it's in the same column by the band
     const isInlineIcon = label.iconStyle === "inline"
     const iconSize = getIconSize(label)
     const firstLineCenterY =
         label.y - 0.5 * getLabelTextHeight(label) + 0.5 * label.label.height
-    // Position of the icon's band-side edge
-    const iconNearX =
-        isInlineIcon && !label.isIconOnly
-            ? textX + directionAway * (label.label.width + INLINE_ICON_TEXT_GAP)
-            : label.x
-    const iconX = isTextAnchoredAtEnd ? iconNearX - iconSize : iconNearX
+    const iconX = isTextAnchoredAtEnd ? label.x - iconSize : label.x
     const iconCenterY =
         isInlineIcon && !label.isIconOnly ? firstLineCenterY : label.y
     const icon =
@@ -1389,10 +1383,9 @@ export function measureMaxLabelWidthForNode(
 
 type IconOwner = { icon?: React.ReactNode; iconStyle?: SankeyIconStyle }
 
-/** Horizontal space a badge takes up between the band and the label text;
- *  an inline icon goes on the text's far side, so it takes up none */
+/** Horizontal space an icon takes up between the band and the label text */
 function getIconLabelOffset(node: IconOwner): number {
-    return node.icon && node.iconStyle !== "inline" ? getIconWidth(node) : 0
+    return getIconWidth(node)
 }
 
 /** Horizontal space an icon adds to its label, gap included */
