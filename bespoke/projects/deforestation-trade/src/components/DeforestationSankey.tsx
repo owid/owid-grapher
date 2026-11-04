@@ -458,13 +458,11 @@ function makeNodeTooltip({
         const country = countryLabel
             ? articulateEntity(countryLabel)
             : undefined
-        const productionPurpose =
-            group === "Pasture"
-                ? "create pasture for cattle raised for beef"
-                : `produce ${commodity}`
+        // "Attributed to", as the source's model attributes the clearing to
+        // the commodities later produced on the land rather than observing it
         const headlineDescription = isPartnerSideIncoming
-            ? `of forest cleared worldwide to ${productionPurpose}${country ? `${group === "Pasture" ? " that's" : ""} consumed in ${country}` : ""}`
-            : `of forest cleared${country ? ` in ${country}` : ""} to ${productionPurpose}`
+            ? `of forest cleared, attributed to ${commodity}${country ? ` consumed in ${country}` : ""}`
+            : `of forest cleared${country ? ` in ${country}` : ""}, attributed to ${commodity}`
         return {
             title: getGroupLabel(group),
             subtitle,

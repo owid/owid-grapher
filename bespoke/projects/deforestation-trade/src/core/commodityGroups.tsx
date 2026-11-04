@@ -87,14 +87,14 @@ export const COMMODITY_GROUPS: Record<
         shortLabel: "Beef (pasture)",
         sentenceLabel: "beef",
         description:
-            "Pasture is grazing land for cattle; its deforestation is attributed mainly to beef, with a small share to leather.",
+            "Pasture is grazing land for cattle; its deforestation is attributed to beef.",
         color: OwidDistinctColors.Maroon,
         labelColor: "#560c14",
         icon: faCow,
     },
     "Pulses (dried leguminous vegetables)": {
         shortLabel: "Dry beans & legumes",
-        sentenceLabel: "dry beans and legumes",
+        sentenceLabel: "pulses",
         description:
             "Dry beans and legumes are pulses harvested as dry grain, mainly common beans and cowpeas, but also chickpeas, pigeon peas and lentils.",
         color: OwidDistinctColors.DarkOliveGreen,
@@ -103,7 +103,7 @@ export const COMMODITY_GROUPS: Record<
     },
     "Stimulant, spice and aromatic crops": {
         shortLabel: "Stimulants (cocoa, coffee, …)",
-        sentenceLabel: "stimulants, spice and aromatic crops",
+        sentenceLabel: "stimulants",
         description:
             "Stimulants are mainly cocoa and coffee, but also tea, maté and spices such as cinnamon, nutmeg and cardamom.",
         color: OwidDistinctColors.Purple,
