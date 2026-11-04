@@ -29,6 +29,7 @@ import {
 } from "../settings/clientSettings.mjs"
 import { dayjs, Json } from "@ourworldindata/utils"
 import { Link } from "./Link.js"
+import { useListSearch } from "./useListSearch.js"
 
 type ApiMultiDim = {
     id: number
@@ -299,11 +300,12 @@ async function patchMultiDim(admin: Admin, id: number, data: Json) {
     return deserializeMultiDim(multiDim)
 }
 
+const searchedText = (mdim: MultiDim) => [mdim.title, mdim.slug]
+
 export function MultiDimIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [notificationApi, notificationContextHolder] =
         notification.useNotification()
-    const [search, setSearch] = useState("")
     const queryClient = useQueryClient()
 
     const { data } = useQuery({
@@ -341,15 +343,17 @@ export function MultiDimIndexPage() {
 
     const [showOnlyPublished, setShowOnlyPublished] = useState(false)
 
-    const filteredMdims = useMemo(() => {
-        const query = search.trim().toLowerCase()
-        return data?.filter((mdim) => {
-            if (showOnlyPublished && !mdim.published) return false
-            return [mdim.title, mdim.slug ?? ""].some((field) =>
-                field.toLowerCase().includes(query)
-            )
-        })
-    }, [data, search, showOnlyPublished])
+    const { searchValue, setSearchValue, filtered } = useListSearch(
+        data,
+        searchedText
+    )
+    const filteredMdims = useMemo(
+        () =>
+            showOnlyPublished
+                ? filtered.filter((mdim) => mdim.published)
+                : filtered,
+        [filtered, showOnlyPublished]
+    )
 
     const columns = createColumns(slugMutation, publishMutation)
 
@@ -362,8 +366,8 @@ export function MultiDimIndexPage() {
                         <Space size="middle">
                             <Input
                                 placeholder="Search by title or slug"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
                                 style={{ width: 500 }}
                                 autoFocus
                             />

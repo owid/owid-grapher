@@ -1,129 +1,65 @@
-import { Component } from "react"
-import { observer } from "mobx-react"
-import { observable, computed, action, runInAction, makeObservable } from "mobx"
-import * as lodash from "lodash-es"
+import { useContext, useEffect, useState } from "react"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { TextField, FieldsRow } from "./Forms.js"
 import { DatasetList, DatasetListItem } from "./DatasetList.js"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-    SearchWord,
-} from "../adminShared/search.js"
+import { AdminAppContext } from "./AdminAppContext.js"
+import { useListSearch } from "./useListSearch.js"
 
-@observer
-export class DatasetsIndexPage extends Component {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
+const searchedText = (dataset: DatasetListItem) => [
+    dataset.name,
+    dataset.shortName,
+    ...dataset.tags.map((t) => t.name),
+    dataset.namespace,
+    dataset.dataEditedByUserName,
+    dataset.description,
+]
 
-    datasets: DatasetListItem[] = []
-    maxVisibleRows = 50
-    searchInput: string | undefined = undefined
+export function DatasetsIndexPage() {
+    const { admin } = useContext(AdminAppContext)
+    const [datasets, setDatasets] = useState<DatasetListItem[]>([])
+    const [maxVisibleRows, setMaxVisibleRows] = useState(50)
+    const { searchValue, setSearchValue, filtered, highlight } = useListSearch(
+        datasets,
+        searchedText
+    )
 
-    constructor(props: Record<string, never>) {
-        super(props)
+    useEffect(() => {
+        void admin
+            .getJSON<{ datasets: DatasetListItem[] }>("/api/datasets.json")
+            .then((json) => setDatasets(json.datasets))
+    }, [admin])
 
-        makeObservable(this, {
-            datasets: observable,
-            maxVisibleRows: observable,
-            searchInput: observable,
-        })
-    }
+    const datasetsToShow = filtered.slice(0, maxVisibleRows)
 
-    @computed get searchWords(): SearchWord[] {
-        const { searchInput } = this
-        return buildSearchWordsFromSearchString(searchInput)
-    }
-
-    @computed get allDatasetsToShow(): DatasetListItem[] {
-        const { searchWords, datasets, maxVisibleRows } = this
-        if (searchWords.length > 0) {
-            const filterFn = filterFunctionForSearchWords(
-                searchWords,
-                (dataset: DatasetListItem) => [
-                    dataset.name,
-                    dataset.shortName,
-                    ...dataset.tags.map((t) => t.name),
-                    dataset.namespace,
-                    dataset.dataEditedByUserName,
-                    dataset.description,
-                ]
-            )
-            return datasets.filter(filterFn)
-        } else {
-            return this.datasets.slice(0, maxVisibleRows)
-        }
-    }
-
-    @computed get datasetsToShow(): DatasetListItem[] {
-        return this.allDatasetsToShow.slice(0, this.maxVisibleRows)
-    }
-
-    @computed get namespaces() {
-        return lodash.uniq(this.datasets.map((d) => d.namespace))
-    }
-
-    @computed get numTotalRows(): number {
-        return this.datasets.length
-    }
-
-    @action.bound onSearchInput(input: string) {
-        this.searchInput = input
-    }
-
-    @action.bound onShowMore() {
-        this.maxVisibleRows += 100
-    }
-
-    override render() {
-        const { datasetsToShow, searchInput, numTotalRows } = this
-
-        const highlight = highlightFunctionForSearchWords(this.searchWords)
-
-        return (
-            <AdminLayout title="Datasets">
-                <main className="DatasetsIndexPage">
-                    <FieldsRow>
-                        <span>
-                            Showing {datasetsToShow.length} of {numTotalRows}{" "}
-                            datasets
-                        </span>
-                        <TextField
-                            placeholder="Search all datasets..."
-                            value={searchInput}
-                            onValue={this.onSearchInput}
-                            autofocus
-                        />
-                    </FieldsRow>
-                    <DatasetList
-                        datasets={datasetsToShow}
-                        searchHighlight={highlight}
+    return (
+        <AdminLayout title="Datasets">
+            <main className="DatasetsIndexPage">
+                <FieldsRow>
+                    <span>
+                        Showing {datasetsToShow.length} of {datasets.length}{" "}
+                        datasets
+                    </span>
+                    <TextField
+                        placeholder="Search all datasets..."
+                        value={searchValue}
+                        onValue={setSearchValue}
+                        autofocus
                     />
-                    {!searchInput && (
-                        <button
-                            className="btn btn-secondary"
-                            onClick={this.onShowMore}
-                        >
-                            Show more datasets...
-                        </button>
-                    )}
-                </main>
-            </AdminLayout>
-        )
-    }
-
-    async getData() {
-        const { admin } = this.context
-        const json = await admin.getJSON("/api/datasets.json")
-        runInAction(() => {
-            this.datasets = json.datasets
-        })
-    }
-
-    override componentDidMount() {
-        void this.getData()
-    }
+                </FieldsRow>
+                <DatasetList
+                    datasets={datasetsToShow}
+                    searchHighlight={highlight}
+                />
+                {!searchValue && (
+                    <button
+                        className="btn btn-secondary"
+                        onClick={() => setMaxVisibleRows((rows) => rows + 100)}
+                    >
+                        Show more datasets...
+                    </button>
+                )}
+            </main>
+        </AdminLayout>
+    )
 }

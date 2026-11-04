@@ -23,6 +23,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 import { Admin } from "./Admin.js"
 import { formatSourceQueryParams } from "./multiDimRedirectHelpers.js"
+import { useListSearch } from "./useListSearch.js"
 
 type MultiDimRedirect = {
     id: number
@@ -217,12 +218,17 @@ function createParentColumns(): TableColumnsType<GroupedRedirects> {
     ]
 }
 
+const searchedText = (redirect: MultiDimRedirect) => [
+    redirect.source,
+    redirect.multiDimSlug,
+    redirect.multiDimTitle,
+]
+
 export default function MultiDimRedirectsIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [notificationApi, notificationContextHolder] =
         notification.useNotification()
     const queryClient = useQueryClient()
-    const [search, setSearch] = useState("")
     const [bulkModalOpen, setBulkModalOpen] = useState(false)
     const [bulkJson, setBulkJson] = useState("")
     const [bulkResult, setBulkResult] =
@@ -287,18 +293,14 @@ export default function MultiDimRedirectsIndexPage() {
         bulkMutation.mutate(payload)
     }
 
-    const filteredRedirects = useMemo(() => {
-        const query = search.trim().toLowerCase()
-        return redirects?.filter(
-            (redirect) =>
-                redirect.source.toLowerCase().includes(query) ||
-                redirect.multiDimSlug.toLowerCase().includes(query) ||
-                redirect.multiDimTitle.toLowerCase().includes(query)
-        )
-    }, [redirects, search])
+    const {
+        searchValue,
+        setSearchValue,
+        filtered: filteredRedirects,
+    } = useListSearch(redirects, searchedText)
 
     const groupedRedirects = useMemo(
-        () => groupRedirectsByMultiDim(filteredRedirects ?? []),
+        () => groupRedirectsByMultiDim(filteredRedirects),
         [filteredRedirects]
     )
 
@@ -424,8 +426,8 @@ export default function MultiDimRedirectsIndexPage() {
                         <Flex align="center" justify="space-between" gap={24}>
                             <Input
                                 placeholder="Search by source, target slug, or title"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
                                 style={{ width: 400 }}
                                 autoFocus
                             />
