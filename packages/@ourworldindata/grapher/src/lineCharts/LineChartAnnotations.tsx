@@ -52,6 +52,10 @@ export function LineChartPointAnnotations({
                             className="line-chart-point-annotations__marker"
                             transform={`translate(${roundForSvg(point.x)}, ${roundForSvg(point.y)})`}
                             opacity={LINE_STYLE[emphasis].opacity}
+                            // The chart would move its hovered time to the
+                            // nearest point and unmount this marker mid-click
+                            onTouchStart={(event) => event.stopPropagation()}
+                            onMouseMove={(event) => event.stopPropagation()}
                             onClick={() => onClick(seriesName, point.time)}
                         >
                             <circle r={hitRadius} fill="transparent" />
