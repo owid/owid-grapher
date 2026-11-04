@@ -108,8 +108,7 @@
                 {
                     "binding": "EMAIL_NOTIFICATIONS_DB",
                     "database_name": "owid-email-notifications",
-                    // TODO: create the database and fill in the real id.
-                    "database_id": "00000000-0000-0000-0000-000000000000",
+                    "database_id": "e96738dd-27f5-4a8a-825d-1194b8633caf",
                     "migrations_dir": "d1/email-notifications/migrations"
                 }
             ],
