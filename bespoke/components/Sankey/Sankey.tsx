@@ -117,6 +117,13 @@ interface SankeyProps {
     tooltipMaxWidth?: number
     /** Side of a middle node's band to place labels over the ribbons; defaults to right. */
     middleLabelSide?: "left" | "right"
+    /**
+     * Only show a middle node's label where it fits on the node's own ribbons
+     * on its side; where it doesn't, fall back to showing just its icon, if
+     * that fits, or nothing. For labels drawn in a colour that only reads
+     * against their ribbon.
+     */
+    fitMiddleLabelsToRibbons?: boolean
     getNodeTooltip?: (args: NodeTooltipArgs) => SankeyTooltip | undefined
     getLinkTooltip?: (args: LinkTooltipArgs) => SankeyTooltip | undefined
     onNodeClick?: (node: SankeyNode) => void
@@ -202,6 +209,8 @@ type PlacedSankeyLabel = {
     highlightedLabelColor?: string
     /** Hidden icons still reserve horizontal space to keep labels aligned. */
     isIconVisible: boolean
+    /** Only the icon is shown, by the band, because the text doesn't fit */
+    isIconOnly?: boolean
 }
 
 type Margin = { top: number; right: number; bottom: number; left: number }
@@ -237,6 +246,7 @@ export function Sankey({
     fontSettings = DEFAULT_FONT_SETTINGS,
     tooltipMaxWidth = 340,
     middleLabelSide = "right",
+    fitMiddleLabelsToRibbons = false,
     getLinkTooltip,
     getRelatedLinks,
     getRelatedLinksForNode,
@@ -366,8 +376,15 @@ export function Sankey({
                 nodePadding,
                 fontSettings,
                 middleLabelSide,
+                fitMiddleLabelsToRibbons,
             }),
-        [layout, nodePadding, fontSettings, middleLabelSide]
+        [
+            layout,
+            nodePadding,
+            fontSettings,
+            middleLabelSide,
+            fitMiddleLabelsToRibbons,
+        ]
     )
 
     const nodesById = useMemo(
@@ -944,16 +961,19 @@ function SankeyLabel({
     const textOffset = getIconLabelOffset(label)
     const textX = label.x + directionAway * textOffset
 
+    // An inline icon shown without its text moves up to the band
     const isInlineIcon = label.iconStyle === "inline"
-    const iconSize = isInlineIcon ? INLINE_ICON_SIZE : SANKEY_ICON_SIZE
+    const iconSize = getIconSize(label)
     const firstLineCenterY =
         label.y - 0.5 * getLabelTextHeight(label) + 0.5 * label.label.height
     // Position of the icon's band-side edge
-    const iconNearX = isInlineIcon
-        ? textX + directionAway * (label.label.width + INLINE_ICON_TEXT_GAP)
-        : label.x
+    const iconNearX =
+        isInlineIcon && !label.isIconOnly
+            ? textX + directionAway * (label.label.width + INLINE_ICON_TEXT_GAP)
+            : label.x
     const iconX = isTextAnchoredAtEnd ? iconNearX - iconSize : iconNearX
-    const iconCenterY = isInlineIcon ? firstLineCenterY : label.y
+    const iconCenterY =
+        isInlineIcon && !label.isIconOnly ? firstLineCenterY : label.y
     const icon =
         label.icon && label.isIconVisible ? (
             <>
@@ -979,6 +999,13 @@ function SankeyLabel({
                 </svg>
             </>
         ) : null
+
+    if (label.isIconOnly)
+        return (
+            <g className={className} color={labelColor}>
+                {icon}
+            </g>
+        )
 
     // The label's lines stack, centred as a block on the node
     const lines = [
@@ -1095,128 +1122,163 @@ function placeSankeyLabels({
     nodePadding,
     fontSettings,
     middleLabelSide,
+    fitMiddleLabelsToRibbons,
 }: {
     layout: LaidOutGraph | null
     nodePadding: number
     fontSettings: FontSettings
     middleLabelSide: "left" | "right"
+    fitMiddleLabelsToRibbons: boolean
 }): PlacedSankeyLabel[] {
     if (!layout) return []
 
     return layout.nodes.flatMap((node) => {
-        const {
-            label,
-            valueLabel,
-            annotation,
+        const placed = placeSankeyLabel({
+            node,
+            nodePadding,
+            fontSettings,
+            middleLabelSide,
+        })
+        if (
+            !fitMiddleLabelsToRibbons ||
+            placed.side !== "middle" ||
+            placed.label.text === ""
+        )
+            return [placed]
+
+        // A middle label lies over the node's ribbons on its side
+        const ribbons = (
+            placed.textAnchor === "end" ? node.targetLinks : node.sourceLinks
+        )?.flatMap((link) => toRibbonGeometry(link) ?? [])
+        if (!ribbons) return []
+        if (isBoxCoveredByRibbons(getLabelBounds(placed), ribbons))
+            return [placed]
+
+        const iconOnly: PlacedSankeyLabel = {
+            ...placed,
+            valueLabel: undefined,
+            annotation: undefined,
+            isIconOnly: true,
+            isIconVisible: true,
+        }
+        if (
+            placed.icon &&
+            isBoxCoveredByRibbons(getLabelBounds(iconOnly), ribbons)
+        )
+            return [iconOnly]
+
+        return []
+    })
+}
+
+function placeSankeyLabel({
+    node,
+    nodePadding,
+    fontSettings,
+    middleLabelSide,
+}: {
+    node: LaidOutNode
+    nodePadding: number
+    fontSettings: FontSettings
+    middleLabelSide: "left" | "right"
+}): PlacedSankeyLabel {
+    const {
+        label,
+        valueLabel,
+        annotation,
+        icon,
+        iconStyle,
+        labelColor,
+        highlightedLabelColor,
+    } = node
+
+    const x0 = node.x0 ?? 0
+    const x1 = node.x1 ?? 0
+    const y0 = node.y0 ?? 0
+    const y1 = node.y1 ?? 0
+    const nodeHeight = y1 - y0
+
+    // Outer labels sit in the outer margins; middle-column labels lie over
+    // the ribbons on whichever side the caller prefers
+    const side = getNodeSide(node)
+    const labelSide = side === "middle" ? middleLabelSide : side
+    const x = labelSide === "left" ? x0 - BAND_LABEL_GAP : x1 + BAND_LABEL_GAP
+    const y = (y0 + y1) / 2
+    const textAnchor = labelSide === "left" ? "end" : "start"
+
+    // Hide badges that would overlap adjacent labels, but preserve their
+    // text offset. An inline icon sits on the label's first line, so it
+    // goes wherever the label does.
+    const nodeHeightWithPadding = nodeHeight + nodePadding
+    const isIconVisible =
+        iconStyle === "inline" || nodeHeightWithPadding >= SANKEY_ICON_SIZE
+
+    const labelTextWrap = new TextWrap({
+        ...fontSettings,
+        text: label,
+        maxWidth: Infinity,
+        verticalAlign: VerticalAlign.middle,
+        fontWeight: 700,
+    })
+
+    if (valueLabel) {
+        const valueLabelTextWrap = new TextWrap({
+            ...fontSettings,
+            text: valueLabel,
+            maxWidth: Infinity,
+            verticalAlign: VerticalAlign.middle,
+        })
+
+        const totalLabelHeight =
+            labelTextWrap.height + valueLabelTextWrap.height + VALUE_LABEL_GAP
+
+        const shouldShowValueLabel = nodeHeightWithPadding >= totalLabelHeight
+
+        const annotationTextWrap = annotation
+            ? new TextWrap({
+                  ...fontSettings,
+                  fontSize: node.annotationFontSize ?? fontSettings.fontSize,
+                  text: annotation,
+                  maxWidth: Infinity,
+                  verticalAlign: VerticalAlign.middle,
+              })
+            : undefined
+        const shouldShowAnnotation =
+            shouldShowValueLabel &&
+            annotationTextWrap !== undefined &&
+            nodeHeightWithPadding >=
+                totalLabelHeight + ANNOTATION_GAP + annotationTextWrap.height
+
+        return {
+            nodeId: node.id,
+            x,
+            y,
+            textAnchor,
+            side,
+            label: labelTextWrap,
+            valueLabel: shouldShowValueLabel ? valueLabelTextWrap : undefined,
+            annotation: shouldShowAnnotation ? annotationTextWrap : undefined,
             icon,
             iconStyle,
             labelColor,
             highlightedLabelColor,
-        } = node
-
-        const x0 = node.x0 ?? 0
-        const x1 = node.x1 ?? 0
-        const y0 = node.y0 ?? 0
-        const y1 = node.y1 ?? 0
-        const nodeHeight = y1 - y0
-
-        // Outer labels sit in the outer margins; middle-column labels lie over
-        // the ribbons on whichever side the caller prefers
-        const side = getNodeSide(node)
-        const labelSide = side === "middle" ? middleLabelSide : side
-        const x =
-            labelSide === "left" ? x0 - BAND_LABEL_GAP : x1 + BAND_LABEL_GAP
-        const y = (y0 + y1) / 2
-        const textAnchor = labelSide === "left" ? "end" : "start"
-
-        // Hide badges that would overlap adjacent labels, but preserve their
-        // text offset. An inline icon sits on the label's first line, so it
-        // goes wherever the label does.
-        const nodeHeightWithPadding = nodeHeight + nodePadding
-        const isIconVisible =
-            iconStyle === "inline" || nodeHeightWithPadding >= SANKEY_ICON_SIZE
-
-        const labelTextWrap = new TextWrap({
-            ...fontSettings,
-            text: label,
-            maxWidth: Infinity,
-            verticalAlign: VerticalAlign.middle,
-            fontWeight: 700,
-        })
-
-        if (valueLabel) {
-            const valueLabelTextWrap = new TextWrap({
-                ...fontSettings,
-                text: valueLabel,
-                maxWidth: Infinity,
-                verticalAlign: VerticalAlign.middle,
-            })
-
-            const totalLabelHeight =
-                labelTextWrap.height +
-                valueLabelTextWrap.height +
-                VALUE_LABEL_GAP
-
-            const shouldShowValueLabel =
-                nodeHeightWithPadding >= totalLabelHeight
-
-            const annotationTextWrap = annotation
-                ? new TextWrap({
-                      ...fontSettings,
-                      fontSize:
-                          node.annotationFontSize ?? fontSettings.fontSize,
-                      text: annotation,
-                      maxWidth: Infinity,
-                      verticalAlign: VerticalAlign.middle,
-                  })
-                : undefined
-            const shouldShowAnnotation =
-                shouldShowValueLabel &&
-                annotationTextWrap !== undefined &&
-                nodeHeightWithPadding >=
-                    totalLabelHeight +
-                        ANNOTATION_GAP +
-                        annotationTextWrap.height
-
-            return [
-                {
-                    nodeId: node.id,
-                    x,
-                    y,
-                    textAnchor,
-                    side,
-                    label: labelTextWrap,
-                    valueLabel: shouldShowValueLabel
-                        ? valueLabelTextWrap
-                        : undefined,
-                    annotation: shouldShowAnnotation
-                        ? annotationTextWrap
-                        : undefined,
-                    icon,
-                    iconStyle,
-                    labelColor,
-                    highlightedLabelColor,
-                    isIconVisible,
-                },
-            ]
-        } else {
-            return [
-                {
-                    nodeId: node.id,
-                    x,
-                    y,
-                    textAnchor,
-                    side,
-                    label: labelTextWrap,
-                    icon,
-                    iconStyle,
-                    labelColor,
-                    highlightedLabelColor,
-                    isIconVisible,
-                },
-            ]
+            isIconVisible,
         }
-    })
+    } else {
+        return {
+            nodeId: node.id,
+            x,
+            y,
+            textAnchor,
+            side,
+            label: labelTextWrap,
+            icon,
+            iconStyle,
+            labelColor,
+            highlightedLabelColor,
+            isIconVisible,
+        }
+    }
 }
 
 function shiftNodeVertically(node: LaidOutNode, dy: number): void {
@@ -1393,6 +1455,16 @@ function calculateNodeHitBounds(
         new PointVector(node.x1 ?? 0, node.y1 ?? 0)
     )
     if (!label) return bandBounds
+    return Bounds.merge([bandBounds, getLabelBounds(label)])
+}
+
+/** The box a placed label's text and icon take up */
+function getLabelBounds(label: PlacedSankeyLabel): Bounds {
+    if (label.isIconOnly) {
+        const size = getIconSize(label)
+        const iconX = label.textAnchor === "end" ? label.x - size : label.x
+        return new Bounds(iconX, label.y - size / 2, size, size)
+    }
 
     const width =
         Math.max(
@@ -1407,9 +1479,88 @@ function calculateNodeHitBounds(
             : textHeight
 
     const labelX = label.textAnchor === "end" ? label.x - width : label.x
-    const labelBounds = new Bounds(labelX, label.y - height / 2, width, height)
+    return new Bounds(labelX, label.y - height / 2, width, height)
+}
 
-    return Bounds.merge([bandBounds, labelBounds])
+function getIconSize(node: IconOwner): number {
+    return node.iconStyle === "inline" ? INLINE_ICON_SIZE : SANKEY_ICON_SIZE
+}
+
+/** A ribbon's ends: its horizontal extent and its centre line's height and
+ *  thickness there */
+export type RibbonGeometry = {
+    x0: number
+    x1: number
+    y0: number
+    y1: number
+    width: number
+}
+
+function toRibbonGeometry(link: LaidOutLink): RibbonGeometry | undefined {
+    const source = link.source as LaidOutNode
+    const target = link.target as LaidOutNode
+    if (
+        source.x1 === undefined ||
+        target.x0 === undefined ||
+        link.y0 === undefined ||
+        link.y1 === undefined
+    )
+        return undefined
+    return {
+        x0: source.x1,
+        x1: target.x0,
+        y0: link.y0,
+        y1: link.y1,
+        width: link.width ?? 0,
+    }
+}
+
+/** Space a label keeps from its ribbons' edges */
+const LABEL_RIBBON_PADDING = 1
+
+/** Ribbons this close count as one, across anti-aliasing seams */
+const RIBBON_SEAM_TOLERANCE = 0.5
+
+/** Horizontal step at which a box's coverage is checked */
+const COVERAGE_SAMPLE_STEP = 4
+
+/**
+ * Whether a box lies entirely on the given ribbons: at every x across it, its
+ * whole height is inside the ribbons' combined thickness, with a little
+ * padding. Adjacent ribbons combine; a gap between them, or the ribbons
+ * ending, leaves the box uncovered there.
+ */
+export function isBoxCoveredByRibbons(
+    box: Bounds,
+    ribbons: RibbonGeometry[]
+): boolean {
+    const top = box.top - LABEL_RIBBON_PADDING
+    const bottom = box.bottom + LABEL_RIBBON_PADDING
+    const sampleCount = Math.max(1, Math.ceil(box.width / COVERAGE_SAMPLE_STEP))
+    for (let i = 0; i <= sampleCount; i++) {
+        const x = box.left + (i / sampleCount) * box.width
+        const spans = ribbons
+            .flatMap((ribbon) => {
+                const centerY = calculateRibbonCenterY(ribbon, x)
+                if (centerY === null || ribbon.width <= 0) return []
+                const halfWidth = ribbon.width / 2
+                return [[centerY - halfWidth, centerY + halfWidth]]
+            })
+            .sort((a, b) => a[0] - b[0])
+        let isCovered = false
+        let spanTop = -Infinity
+        let spanBottom = -Infinity
+        for (const [start, end] of spans) {
+            if (start > spanBottom + RIBBON_SEAM_TOLERANCE) spanTop = start
+            spanBottom = Math.max(spanBottom, end)
+            if (spanTop <= top && spanBottom >= bottom) {
+                isCovered = true
+                break
+            }
+        }
+        if (!isCovered) return false
+    }
+    return true
 }
 
 /**
@@ -1459,12 +1610,23 @@ function calculateLinkCenterY(
 ): number | null {
     const sourceNode = link.source as LaidOutNode
     const targetNode = link.target as LaidOutNode
-    const x0 = sourceNode.x1 ?? 0 // right edge of source node = link start
-    const x1 = targetNode.x0 ?? 0 // left edge of target node  = link end
-    if (mouseX < x0 || mouseX > x1) return null
+    return calculateRibbonCenterY(
+        {
+            x0: sourceNode.x1 ?? 0, // right edge of source node = link start
+            x1: targetNode.x0 ?? 0, // left edge of target node  = link end
+            y0: link.y0 ?? 0,
+            y1: link.y1 ?? 0,
+            width: link.width ?? 0,
+        },
+        mouseX
+    )
+}
 
-    const y0 = link.y0 ?? 0
-    const y1 = link.y1 ?? 0
+function calculateRibbonCenterY(
+    { x0, x1, y0, y1 }: RibbonGeometry,
+    mouseX: number
+): number | null {
+    if (mouseX < x0 || mouseX > x1) return null
     if (x1 === x0) return (y0 + y1) / 2
 
     const xi = (x0 + x1) / 2

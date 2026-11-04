@@ -375,6 +375,9 @@ function DeforestationSankeyContent({
                 // of the commodity bar; in consumption view on the right —
                 // put the labels over those
                 middleLabelSide={view === "production" ? "left" : "right"}
+                // Commodity labels come in a shade that only reads against
+                // their own ribbon
+                fitMiddleLabelsToRibbons={!isNarrow}
                 totalFlowVolume={graph.total}
                 linkLowVolumeThreshold={LINK_LOW_VOLUME_THRESHOLD}
                 nodePadding={SANKEY_NODE_PADDING}
