@@ -1,7 +1,8 @@
-import { ReactNode, useMemo, useState } from "react"
+import { ReactNode, useEffect, useMemo, useState } from "react"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
+    faArrowDown,
     faArrowRight,
     faDownload,
     faFileCsv,
@@ -91,6 +92,11 @@ function matchesQuery(
     return terms.every((term) => haystack.includes(term))
 }
 
+/** Anchor id of a source's row in the "Sources and Processing" section */
+function sourceAnchorId(sourceIndex: number): string {
+    return `source-${sourceIndex}`
+}
+
 function scrollToSection(id: string): void {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
 }
@@ -134,21 +140,34 @@ function SearchInput({
 }
 
 function ExpandableRow({
+    id,
     contentId,
     title,
     subtitle,
+    isOpen: isOpenControlled,
+    onToggle,
     children,
 }: {
+    id?: string
     /** Must be stable between server and client render (not `useId`, since the
      * server renders the page shell around this tree but the client doesn't) */
     contentId: string
     title: ReactNode
     subtitle?: ReactNode
+    /** Pass together with `onToggle` to control the row from outside */
+    isOpen?: boolean
+    onToggle?: (isOpen: boolean) => void
     children: ReactNode
 }) {
-    const [isOpen, setIsOpen] = useState(false)
+    const [isOpenInternal, setIsOpenInternal] = useState(false)
+    const isOpen = isOpenControlled ?? isOpenInternal
+    const setIsOpen = (open: boolean): void => {
+        if (onToggle) onToggle(open)
+        else setIsOpenInternal(open)
+    }
     return (
         <li
+            id={id}
             className={cx("dataset-page__row", {
                 "dataset-page__row--open": isOpen,
             })}
@@ -380,17 +399,26 @@ function DatasetHeader({
 // ---------------------------------------------------------------------------
 // Indicators
 
-function IndicatorDetails({ indicator }: { indicator: DatasetIndicator }) {
+function IndicatorDetails({
+    indicator,
+    sourceIndexByTitle,
+    onSourceClick,
+}: {
+    indicator: DatasetIndicator
+    sourceIndexByTitle: Map<string, number>
+    onSourceClick: (sourceIndex: number) => void
+}) {
+    const sourceNames = indicator.sourceNames ?? []
     return (
         <div className="dataset-page__details">
             {indicator.descriptionLong && (
-                <p className="dataset-page__details-text">
-                    {indicator.descriptionLong}
-                </p>
+                <div className="dataset-page__details-text">
+                    <SimpleMarkdownText text={indicator.descriptionLong} />
+                </div>
             )}
-            <dl>
+            <dl className="dataset-page__details-meta">
                 <div>
-                    <dt>Column name</dt>
+                    <dt>Name</dt>
                     <dd>
                         <code>{indicator.shortName}</code>
                     </dd>
@@ -401,13 +429,45 @@ function IndicatorDetails({ indicator }: { indicator: DatasetIndicator }) {
                         <dd>{indicator.unit}</dd>
                     </div>
                 )}
-                {indicator.sourceNames && indicator.sourceNames.length > 0 && (
+                {indicator.dateRange && (
                     <div>
-                        <dt>Sources</dt>
-                        <dd>{indicator.sourceNames.join("; ")}</dd>
+                        <dt>Date range</dt>
+                        <dd>{indicator.dateRange}</dd>
                     </div>
                 )}
             </dl>
+            {sourceNames.length > 0 && (
+                <>
+                    <h4 className="dataset-page__details-heading">
+                        This data is based on the following sources:
+                    </h4>
+                    <ul className="dataset-page__details-sources">
+                        {sourceNames.map((name) => {
+                            const sourceIndex = sourceIndexByTitle.get(name)
+                            return (
+                                <li key={name}>
+                                    {sourceIndex === undefined ? (
+                                        name
+                                    ) : (
+                                        <a
+                                            href={`#${sourceAnchorId(sourceIndex)}`}
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                onSourceClick(sourceIndex)
+                                            }}
+                                        >
+                                            {name}
+                                            <FontAwesomeIcon
+                                                icon={faArrowDown}
+                                            />
+                                        </a>
+                                    )}
+                                </li>
+                            )
+                        })}
+                    </ul>
+                </>
+            )}
         </div>
     )
 }
@@ -415,9 +475,13 @@ function IndicatorDetails({ indicator }: { indicator: DatasetIndicator }) {
 function IndicatorGroup({
     group,
     query,
+    sourceIndexByTitle,
+    onSourceClick,
 }: {
     group: DatasetIndicatorGroup
     query: string
+    sourceIndexByTitle: Map<string, number>
+    onSourceClick: (sourceIndex: number) => void
 }) {
     const [isExpanded, setIsExpanded] = useState(false)
     const indicators = group.indicators.filter((indicator) =>
@@ -448,7 +512,11 @@ function IndicatorGroup({
                         title={indicator.title}
                         subtitle={indicator.description}
                     >
-                        <IndicatorDetails indicator={indicator} />
+                        <IndicatorDetails
+                            indicator={indicator}
+                            sourceIndexByTitle={sourceIndexByTitle}
+                            onSourceClick={onSourceClick}
+                        />
                     </ExpandableRow>
                 ))}
             />
@@ -456,8 +524,18 @@ function IndicatorGroup({
     )
 }
 
-function IndicatorsSection({ dataset }: { dataset: DatasetPageData }) {
+function IndicatorsSection({
+    dataset,
+    onSourceClick,
+}: {
+    dataset: DatasetPageData
+    onSourceClick: (sourceIndex: number) => void
+}) {
     const [query, setQuery] = useState("")
+    const sourceIndexByTitle = useMemo(
+        () => new Map(dataset.sources.map((source, i) => [source.title, i])),
+        [dataset.sources]
+    )
     const hasResults = dataset.indicatorGroups.some((group) =>
         group.indicators.some((indicator) =>
             matchesQuery(
@@ -484,7 +562,13 @@ function IndicatorsSection({ dataset }: { dataset: DatasetPageData }) {
                 placeholder="Search for an indicator name, title, unit, source, or producer…"
             />
             {dataset.indicatorGroups.map((group) => (
-                <IndicatorGroup key={group.id} group={group} query={query} />
+                <IndicatorGroup
+                    key={group.id}
+                    group={group}
+                    query={query}
+                    sourceIndexByTitle={sourceIndexByTitle}
+                    onSourceClick={onSourceClick}
+                />
             ))}
             {!hasResults && (
                 <p className="dataset-page__no-results">
@@ -680,7 +764,7 @@ function SourceDetails({ source }: { source: DatasetSource }) {
     return (
         <div className="dataset-page__details">
             <p className="dataset-page__details-text">{source.description}</p>
-            <dl>
+            <dl className="dataset-page__details-grid">
                 {source.dateAccessed && (
                     <div>
                         <dt>Retrieved on</dt>
@@ -706,10 +790,14 @@ function SourcesAndProcessingSection({
     dataset,
     showAllSources,
     onShowAllSources,
+    openSources,
+    onToggleSource,
 }: {
     dataset: DatasetPageData
     showAllSources: boolean
     onShowAllSources: () => void
+    openSources: ReadonlySet<number>
+    onToggleSource: (sourceIndex: number, isOpen: boolean) => void
 }) {
     return (
         <section
@@ -729,7 +817,10 @@ function SourcesAndProcessingSection({
                     items={dataset.sources.map((source, index) => (
                         <ExpandableRow
                             key={source.title}
-                            contentId={`source-${index}`}
+                            id={sourceAnchorId(index)}
+                            contentId={`${sourceAnchorId(index)}-content`}
+                            isOpen={openSources.has(index)}
+                            onToggle={(isOpen) => onToggleSource(index, isOpen)}
                             title={source.title}
                             subtitle={`${source.producer}, ${source.year}`}
                         >
@@ -1004,6 +1095,43 @@ function ReuseSection({ dataset }: { dataset: DatasetPageData }) {
 
 export function DatasetPageContent({ dataset }: DatasetPageProps) {
     const [showAllSources, setShowAllSources] = useState(false)
+    const [openSources, setOpenSources] = useState<ReadonlySet<number>>(
+        () => new Set()
+    )
+    // Set when a source link is clicked; we scroll once the row has rendered
+    const [scrollTarget, setScrollTarget] = useState<string | undefined>()
+
+    const toggleSource = (sourceIndex: number, isOpen: boolean): void => {
+        setOpenSources((prev) => {
+            const next = new Set(prev)
+            if (isOpen) next.add(sourceIndex)
+            else next.delete(sourceIndex)
+            return next
+        })
+    }
+
+    const revealSource = (sourceIndex: number): void => {
+        setShowAllSources(true)
+        toggleSource(sourceIndex, true)
+        setScrollTarget(sourceAnchorId(sourceIndex))
+        window.history.replaceState(null, "", `#${sourceAnchorId(sourceIndex)}`)
+    }
+
+    useEffect(() => {
+        if (!scrollTarget) return
+        scrollToSection(scrollTarget)
+        setScrollTarget(undefined)
+    }, [scrollTarget])
+
+    // Support linking directly to a source, e.g. /datasets/energy#source-3
+    useEffect(() => {
+        const match = window.location.hash.match(/^#source-(\d+)$/)
+        if (!match) return
+        const sourceIndex = Number(match[1])
+        if (sourceIndex < dataset.sources.length) revealSource(sourceIndex)
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- only on mount
+    }, [])
+
     const numIndicators = dataset.indicatorGroups.reduce(
         (sum, group) => sum + group.indicators.length,
         0
@@ -1026,7 +1154,10 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
                     ))}
                 </section>
                 <hr className="dataset-page__divider col-start-2 span-cols-12" />
-                <IndicatorsSection dataset={dataset} />
+                <IndicatorsSection
+                    dataset={dataset}
+                    onSourceClick={revealSource}
+                />
                 <ChartsSection dataset={dataset} />
                 <RelatedResearchSection dataset={dataset} />
             </div>
@@ -1035,6 +1166,8 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
                     dataset={dataset}
                     showAllSources={showAllSources}
                     onShowAllSources={() => setShowAllSources(true)}
+                    openSources={openSources}
+                    onToggleSource={toggleSource}
                 />
                 <ChangelogSection dataset={dataset} />
                 <ReuseSection dataset={dataset} />

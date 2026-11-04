@@ -10,7 +10,9 @@ export interface DatasetIndicator {
     /** One-line description shown under the title */
     description: string
     unit?: string
-    /** Longer description shown when the row is expanded */
+    /** e.g. "1900–2025" */
+    dateRange?: string
+    /** Longer description (simple markdown) shown when the row is expanded */
     descriptionLong?: string
     sourceNames?: string[]
 }

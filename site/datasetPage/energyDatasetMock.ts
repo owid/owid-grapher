@@ -17,9 +17,10 @@ const SMIL =
 const EIA =
     "U.S. Energy Information Administration – International Energy Data (2026)"
 const POPULATION = "Population based on various sources (2024)"
+const PINTO = "Pinto et al. – Global historical electricity (2023)"
 const MADDISON = "Bolt and van Zanden – Maddison Project Database (2023)"
 
-const ELECTRICITY_SOURCES = [EI, EMBER, EMBER_EUROPE]
+const ELECTRICITY_SOURCES = [EI, EMBER, EMBER_EUROPE, PINTO]
 const ENERGY_SOURCES = [EI, SMIL, EIA]
 
 interface EnergySource {
@@ -66,8 +67,7 @@ function makeSourceIndicators(s: EnergySource): DatasetIndicator[] {
             title: `Electricity generation from ${s.elecLabel} per person`,
             description: "Measured in kilowatt-hours per person.",
             unit: "kilowatt-hours per person",
-            descriptionLong: `Electricity generated from ${s.elecLabel} in a given year, divided by the population of the country or region.`,
-            sourceNames: [...ELECTRICITY_SOURCES, POPULATION],
+            sourceNames: [EMBER_EUROPE, EMBER, PINTO, POPULATION],
         },
         {
             shortName: `${s.key}_share_elec`,
@@ -292,10 +292,33 @@ const TOTAL_INDICATORS: DatasetIndicator[] = [
     },
 ]
 
+const PER_CAPITA_NOTE =
+    "Per capita figures are calculated by dividing total values by the population of the country or region. Population data is constructed by Our World in Data, based on [various sources](https://ourworldindata.org/population-sources)."
+
+/** Fills in fields that follow from an indicator's sources */
+function withDerivedFields(indicator: DatasetIndicator): DatasetIndicator {
+    const sourceNames = indicator.sourceNames ?? []
+    const dateRange = sourceNames.includes(SMIL)
+        ? "1800–2025"
+        : sourceNames.includes(EMBER)
+          ? "1900–2025"
+          : "1965–2025"
+    const isPerCapita = sourceNames.includes(POPULATION)
+    return {
+        ...indicator,
+        dateRange: indicator.dateRange ?? dateRange,
+        descriptionLong: isPerCapita
+            ? [indicator.descriptionLong, PER_CAPITA_NOTE]
+                  .filter(Boolean)
+                  .join(" ")
+            : indicator.descriptionLong,
+    }
+}
+
 const mainIndicators: DatasetIndicator[] = [
     ...ENERGY_SOURCE_TYPES.flatMap(makeSourceIndicators),
     ...TOTAL_INDICATORS,
-]
+].map(withDerivedFields)
 
 const auxiliaryIndicators: DatasetIndicator[] = [
     {
@@ -385,7 +408,7 @@ const sources: DatasetSource[] = [
             "Vaclav Smil (2017). Energy Transitions: Global and National Perspectives. 2nd edition. Praeger.",
     },
     {
-        title: "Pinto et al. – Global historical electricity (2023)",
+        title: PINTO,
         producer: "Pinto et al.",
         year: 2023,
         url: "https://doi.org/10.1016/j.esr.2023.101152",
