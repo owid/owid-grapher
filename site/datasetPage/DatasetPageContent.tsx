@@ -11,6 +11,7 @@ import {
     faMagnifyingGlass,
     faMinus,
     faPlus,
+    faXmark,
 } from "@fortawesome/free-solid-svg-icons"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import {
@@ -45,6 +46,22 @@ const SECTION_IDS = {
     advancedDownload: "advanced-download",
     citation: "citation",
 } as const
+
+/**
+ * Design variants of the prototype, switchable from a dropdown at the top of
+ * the page and kept in the URL as `?version=<id>`.
+ */
+const PROTOTYPE_VERSIONS = [
+    { id: "v1", label: "Version 1" },
+    { id: "see-charts", label: "Version 2: “See charts” on indicators" },
+] as const
+type PrototypeVersion = (typeof PROTOTYPE_VERSIONS)[number]["id"]
+const DEFAULT_PROTOTYPE_VERSION: PrototypeVersion = "v1"
+const VERSION_QUERY_PARAM = "version"
+
+function isPrototypeVersion(value: string | null): value is PrototypeVersion {
+    return PROTOTYPE_VERSIONS.some((v) => v.id === value)
+}
 
 const INITIAL_VISIBLE_INDICATORS = 10
 const INITIAL_VISIBLE_SOURCES = 10
@@ -146,6 +163,7 @@ function ExpandableRow({
     subtitle,
     isOpen: isOpenControlled,
     onToggle,
+    headerAction,
     children,
 }: {
     id?: string
@@ -157,6 +175,8 @@ function ExpandableRow({
     /** Pass together with `onToggle` to control the row from outside */
     isOpen?: boolean
     onToggle?: (isOpen: boolean) => void
+    /** Shown over the right side of the header while it's hovered/focused */
+    headerAction?: ReactNode
     children: ReactNode
 }) {
     const [isOpenInternal, setIsOpenInternal] = useState(false)
@@ -172,26 +192,33 @@ function ExpandableRow({
                 "dataset-page__row--open": isOpen,
             })}
         >
-            <button
-                type="button"
-                className="dataset-page__row-header"
-                aria-expanded={isOpen}
-                aria-controls={contentId}
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                <span className="dataset-page__row-text">
-                    <span className="dataset-page__row-title">{title}</span>
-                    {subtitle && (
-                        <span className="dataset-page__row-subtitle">
-                            {subtitle}
-                        </span>
-                    )}
-                </span>
-                <FontAwesomeIcon
-                    className="dataset-page__row-icon"
-                    icon={isOpen ? faMinus : faPlus}
-                />
-            </button>
+            <div className="dataset-page__row-header-wrapper">
+                <button
+                    type="button"
+                    className="dataset-page__row-header"
+                    aria-expanded={isOpen}
+                    aria-controls={contentId}
+                    onClick={() => setIsOpen(!isOpen)}
+                >
+                    <span className="dataset-page__row-text">
+                        <span className="dataset-page__row-title">{title}</span>
+                        {subtitle && (
+                            <span className="dataset-page__row-subtitle">
+                                {subtitle}
+                            </span>
+                        )}
+                    </span>
+                    <FontAwesomeIcon
+                        className="dataset-page__row-icon"
+                        icon={isOpen ? faMinus : faPlus}
+                    />
+                </button>
+                {headerAction && (
+                    <div className="dataset-page__row-header-action">
+                        {headerAction}
+                    </div>
+                )}
+            </div>
             {isOpen && (
                 <div id={contentId} className="dataset-page__row-content">
                     {children}
@@ -477,11 +504,17 @@ function IndicatorGroup({
     query,
     sourceIndexByTitle,
     onSourceClick,
+    indicatorsWithCharts,
+    onSeeCharts,
 }: {
     group: DatasetIndicatorGroup
     query: string
     sourceIndexByTitle: Map<string, number>
     onSourceClick: (sourceIndex: number) => void
+    /** Indicators that are used in at least one chart */
+    indicatorsWithCharts: ReadonlySet<string>
+    /** Only set in the "see charts" version of the prototype */
+    onSeeCharts?: (indicator: DatasetIndicator) => void
 }) {
     const [isExpanded, setIsExpanded] = useState(false)
     const indicators = group.indicators.filter((indicator) =>
@@ -511,6 +544,19 @@ function IndicatorGroup({
                         contentId={`indicator-${indicator.shortName}`}
                         title={indicator.title}
                         subtitle={indicator.description}
+                        headerAction={
+                            onSeeCharts &&
+                            indicatorsWithCharts.has(indicator.shortName) ? (
+                                <button
+                                    type="button"
+                                    className="dataset-page__see-charts"
+                                    data-track-note="dataset_page_see_charts"
+                                    onClick={() => onSeeCharts(indicator)}
+                                >
+                                    See charts
+                                </button>
+                            ) : undefined
+                        }
                     >
                         <IndicatorDetails
                             indicator={indicator}
@@ -527,10 +573,19 @@ function IndicatorGroup({
 function IndicatorsSection({
     dataset,
     onSourceClick,
+    onSeeCharts,
 }: {
     dataset: DatasetPageData
     onSourceClick: (sourceIndex: number) => void
+    onSeeCharts?: (indicator: DatasetIndicator) => void
 }) {
+    const indicatorsWithCharts = useMemo(
+        () =>
+            new Set(
+                dataset.charts.flatMap((chart) => chart.indicatorShortNames)
+            ),
+        [dataset.charts]
+    )
     const [query, setQuery] = useState("")
     const sourceIndexByTitle = useMemo(
         () => new Map(dataset.sources.map((source, i) => [source.title, i])),
@@ -568,6 +623,8 @@ function IndicatorsSection({
                     query={query}
                     sourceIndexByTitle={sourceIndexByTitle}
                     onSourceClick={onSourceClick}
+                    indicatorsWithCharts={indicatorsWithCharts}
+                    onSeeCharts={onSeeCharts}
                 />
             ))}
             {!hasResults && (
@@ -647,21 +704,48 @@ function ChartListItem({
     )
 }
 
-function ChartsSection({ dataset }: { dataset: DatasetPageData }) {
+function chartUsesIndicator(
+    chart: DatasetChart,
+    indicator: DatasetIndicator | undefined
+): boolean {
+    return !indicator || chart.indicatorShortNames.includes(indicator.shortName)
+}
+
+/**
+ * Remount (via `key`) when `indicatorFilter` changes, so that the selection
+ * starts at the first matching chart.
+ */
+function ChartsSection({
+    dataset,
+    indicatorFilter,
+    onClearIndicatorFilter,
+}: {
+    dataset: DatasetPageData
+    /** Only show charts that use this indicator */
+    indicatorFilter?: DatasetIndicator
+    onClearIndicatorFilter: () => void
+}) {
     const [query, setQuery] = useState("")
-    const [selection, setSelection] = useState<ChartSelection>({
-        chartIndex: 0,
+    const [selection, setSelection] = useState<ChartSelection>(() => ({
+        chartIndex: Math.max(
+            0,
+            dataset.charts.findIndex((chart) =>
+                chartUsesIndicator(chart, indicatorFilter)
+            )
+        ),
         viewIndex: 0,
-    })
+    }))
 
     const filteredCharts = useMemo(
         () =>
             dataset.charts
                 .map((chart, index) => ({ chart, index }))
-                .filter(({ chart }) =>
-                    matchesQuery(query, chart.title, chart.sourceText)
+                .filter(
+                    ({ chart }) =>
+                        chartUsesIndicator(chart, indicatorFilter) &&
+                        matchesQuery(query, chart.title, chart.sourceText)
                 ),
-        [dataset.charts, query]
+        [dataset.charts, query, indicatorFilter]
     )
 
     const selectedChart = dataset.charts[selection.chartIndex]
@@ -684,6 +768,25 @@ function ChartsSection({ dataset }: { dataset: DatasetPageData }) {
                 onChange={setQuery}
                 placeholder="Search charts by name, keyword, or source…"
             />
+            {indicatorFilter && (
+                <div className="dataset-page__chart-filter">
+                    <span>
+                        Showing {filteredCharts.length}{" "}
+                        {filteredCharts.length === 1
+                            ? "chart that uses"
+                            : "charts that use"}{" "}
+                        <strong>{indicatorFilter.title}</strong>
+                    </span>
+                    <button
+                        type="button"
+                        className="dataset-page__chart-filter-clear"
+                        onClick={onClearIndicatorFilter}
+                    >
+                        Show all charts
+                        <FontAwesomeIcon icon={faXmark} />
+                    </button>
+                </div>
+            )}
             <div className="dataset-page__charts grid span-cols-12">
                 <div className="dataset-page__chart-list-wrapper span-cols-5 span-md-cols-12">
                     {filteredCharts.length > 0 ? (
@@ -1120,7 +1223,42 @@ function ReuseSection({ dataset }: { dataset: DatasetPageData }) {
 
 // ---------------------------------------------------------------------------
 
+function PrototypeVersionSwitcher({
+    version,
+    onChange,
+}: {
+    version: PrototypeVersion
+    onChange: (version: PrototypeVersion) => void
+}) {
+    return (
+        <div className="dataset-page__version-bar">
+            <label className="dataset-page__version-switcher">
+                <span>Prototype:</span>
+                <select
+                    value={version}
+                    onChange={(e) => {
+                        if (isPrototypeVersion(e.target.value))
+                            onChange(e.target.value)
+                    }}
+                >
+                    {PROTOTYPE_VERSIONS.map((v) => (
+                        <option key={v.id} value={v.id}>
+                            {v.label}
+                        </option>
+                    ))}
+                </select>
+            </label>
+        </div>
+    )
+}
+
 export function DatasetPageContent({ dataset }: DatasetPageProps) {
+    const [version, setVersion] = useState<PrototypeVersion>(
+        DEFAULT_PROTOTYPE_VERSION
+    )
+    const [chartIndicatorFilter, setChartIndicatorFilter] = useState<
+        DatasetIndicator | undefined
+    >()
     const [showAllSources, setShowAllSources] = useState(false)
     const [openSources, setOpenSources] = useState<ReadonlySet<number>>(
         () => new Set()
@@ -1150,6 +1288,29 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
         setScrollTarget(undefined)
     }, [scrollTarget])
 
+    const changeVersion = (next: PrototypeVersion): void => {
+        setVersion(next)
+        setChartIndicatorFilter(undefined)
+        const url = new URL(window.location.href)
+        if (next === DEFAULT_PROTOTYPE_VERSION)
+            url.searchParams.delete(VERSION_QUERY_PARAM)
+        else url.searchParams.set(VERSION_QUERY_PARAM, next)
+        window.history.replaceState(null, "", url)
+    }
+
+    const seeChartsForIndicator = (indicator: DatasetIndicator): void => {
+        setChartIndicatorFilter(indicator)
+        setScrollTarget(SECTION_IDS.charts)
+    }
+
+    // The version is read after hydration, since the server doesn't know it
+    useEffect(() => {
+        const param = new URLSearchParams(window.location.search).get(
+            VERSION_QUERY_PARAM
+        )
+        if (isPrototypeVersion(param)) setVersion(param)
+    }, [])
+
     // Support linking directly to a source, e.g. /datasets/energy#source-3
     useEffect(() => {
         const match = window.location.hash.match(/^#source-(\d+)$/)
@@ -1166,6 +1327,10 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
 
     return (
         <div className="dataset-page">
+            <PrototypeVersionSwitcher
+                version={version}
+                onChange={changeVersion}
+            />
             <DatasetHeader
                 dataset={dataset}
                 numIndicators={numIndicators}
@@ -1184,8 +1349,20 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
                 <IndicatorsSection
                     dataset={dataset}
                     onSourceClick={revealSource}
+                    onSeeCharts={
+                        version === "see-charts"
+                            ? seeChartsForIndicator
+                            : undefined
+                    }
                 />
-                <ChartsSection dataset={dataset} />
+                <ChartsSection
+                    key={chartIndicatorFilter?.shortName ?? "all"}
+                    dataset={dataset}
+                    indicatorFilter={chartIndicatorFilter}
+                    onClearIndicatorFilter={() =>
+                        setChartIndicatorFilter(undefined)
+                    }
+                />
                 <RelatedResearchSection dataset={dataset} />
             </div>
             <div className="dataset-page__band grid grid-cols-12-full-width">

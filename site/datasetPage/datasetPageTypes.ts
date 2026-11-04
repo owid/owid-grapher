@@ -36,6 +36,8 @@ export interface DatasetChart {
     isMultiDim?: boolean
     sourceText: string
     views: DatasetChartView[]
+    /** Short names of the dataset's indicators that this chart uses */
+    indicatorShortNames: string[]
 }
 
 export interface DatasetSource {

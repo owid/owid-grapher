@@ -315,6 +315,63 @@ function withDerivedFields(indicator: DatasetIndicator): DatasetIndicator {
     }
 }
 
+const SOURCE_KEYS = ENERGY_SOURCE_TYPES.map((s) => s.key)
+const FOSSIL_KEYS = ["coal", "gas", "oil", "fossil"]
+/** e.g. sourceColumns("_consumption") -> ["biofuel_consumption", …] */
+const sourceColumns = (
+    suffix: string,
+    keys: string[] = SOURCE_KEYS
+): string[] => keys.map((key) => `${key}${suffix}`)
+
+/** Which indicators each chart uses, keyed by the chart's grapher path */
+const CHART_INDICATORS = {
+    energyMix: [
+        "primary_energy_consumption",
+        "energy_per_capita",
+        "energy_cons_change_pct",
+        "energy_cons_change_twh",
+        ...sourceColumns("_consumption"),
+        ...sourceColumns("_share_energy"),
+        ...sourceColumns("_energy_per_capita"),
+        ...sourceColumns("_cons_change_pct"),
+        ...sourceColumns("_cons_change_twh"),
+    ],
+    globalBySource: [
+        "primary_energy_consumption",
+        ...sourceColumns("_consumption"),
+    ],
+    electricityBySource: [
+        "electricity_generation",
+        "per_capita_electricity",
+        "other_renewable_exc_biofuel_electricity",
+        ...sourceColumns("_electricity"),
+        ...sourceColumns("_share_elec"),
+        ...sourceColumns("_elec_per_capita"),
+    ],
+    fossilFuels: [
+        ...sourceColumns("_consumption", FOSSIL_KEYS),
+        ...sourceColumns("_energy_per_capita", FOSSIL_KEYS),
+        ...sourceColumns("_share_energy", FOSSIL_KEYS),
+        ...["coal", "gas", "oil"].flatMap((fuel) => [
+            `${fuel}_production`,
+            `${fuel}_prod_per_capita`,
+        ]),
+    ],
+    energyPerPerson: [
+        "energy_per_capita",
+        ...sourceColumns("_energy_per_capita"),
+    ],
+    renewablesShareElec: [
+        "renewables_share_elec",
+        "renewables_electricity",
+        "low_carbon_share_elec",
+        "solar_share_elec",
+        "wind_share_elec",
+        "hydro_share_elec",
+    ],
+    carbonIntensity: ["carbon_intensity_elec", "greenhouse_gas_emissions"],
+} satisfies Record<string, string[]>
+
 const mainIndicators: DatasetIndicator[] = [
     ...ENERGY_SOURCE_TYPES.flatMap(makeSourceIndicators),
     ...TOTAL_INDICATORS,
@@ -537,6 +594,7 @@ export const energyDatasetMock: DatasetPageData = {
         {
             title: "Energy mix",
             grapherPath: "energy-mix?metric=total&source=total",
+            indicatorShortNames: CHART_INDICATORS.energyMix,
             isMultiDim: true,
             sourceText: `${EI}; ${SMIL}; ${EIA}`,
             views: [
@@ -548,6 +606,7 @@ export const energyDatasetMock: DatasetPageData = {
         {
             title: "Global primary energy use by source",
             grapherPath: "global-primary-energy-by-source",
+            indicatorShortNames: CHART_INDICATORS.globalBySource,
             sourceText: `${EI}; ${SMIL}`,
             views: [{ tab: "chart", label: "Stacked area chart" }],
         },
@@ -555,6 +614,7 @@ export const energyDatasetMock: DatasetPageData = {
             title: "Electricity production by source",
             grapherPath:
                 "electricity-mix?frequency=annual&metric=by_source&source=total",
+            indicatorShortNames: CHART_INDICATORS.electricityBySource,
             isMultiDim: true,
             sourceText: "Ember (2026) and other sources",
             views: [{ tab: "chart", label: "Stacked area chart" }],
@@ -563,6 +623,7 @@ export const energyDatasetMock: DatasetPageData = {
             title: "Fossil fuel consumption",
             grapherPath:
                 "fossil-fuels?fuel=total&metric=consumption&per_capita=total",
+            indicatorShortNames: CHART_INDICATORS.fossilFuels,
             isMultiDim: true,
             sourceText: EI,
             views: [
@@ -573,6 +634,7 @@ export const energyDatasetMock: DatasetPageData = {
         {
             title: "Energy use per person",
             grapherPath: "energy-mix?metric=per_capita&source=total",
+            indicatorShortNames: CHART_INDICATORS.energyPerPerson,
             isMultiDim: true,
             sourceText: `${EI}; ${EIA}; ${POPULATION}`,
             views: [
@@ -584,6 +646,7 @@ export const energyDatasetMock: DatasetPageData = {
             title: "Share of electricity from renewables",
             grapherPath:
                 "electricity-mix?frequency=annual&metric=share_of_generation&source=renewables",
+            indicatorShortNames: CHART_INDICATORS.renewablesShareElec,
             isMultiDim: true,
             sourceText: "Ember (2026) and other sources",
             views: [
@@ -595,6 +658,7 @@ export const energyDatasetMock: DatasetPageData = {
             title: "Carbon intensity of electricity generation",
             grapherPath:
                 "electricity-mix?frequency=annual&metric=carbon_intensity&source=total",
+            indicatorShortNames: CHART_INDICATORS.carbonIntensity,
             isMultiDim: true,
             sourceText: "Ember (2026) and other sources",
             views: [
