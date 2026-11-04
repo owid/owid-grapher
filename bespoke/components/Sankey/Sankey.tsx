@@ -1107,11 +1107,12 @@ function placeSankeyLabels({
         const y = (y0 + y1) / 2
         const textAnchor = labelSide === "left" ? "end" : "start"
 
-        // Hide icons that would overlap adjacent labels, but preserve their text offset.
+        // Hide badges that would overlap adjacent labels, but preserve their
+        // text offset. An inline icon sits on the label's first line, so it
+        // goes wherever the label does.
         const nodeHeightWithPadding = nodeHeight + nodePadding
         const isIconVisible =
-            nodeHeightWithPadding >=
-            (iconStyle === "inline" ? INLINE_ICON_SIZE : SANKEY_ICON_SIZE)
+            iconStyle === "inline" || nodeHeightWithPadding >= SANKEY_ICON_SIZE
 
         const labelTextWrap = new TextWrap({
             ...fontSettings,
