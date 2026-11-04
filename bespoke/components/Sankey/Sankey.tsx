@@ -173,8 +173,8 @@ export type SankeyNode = {
     /** Colour of the label and value text. A coloured middle-column label
      *  drops the white halo: its colour is meant to read against the ribbon. */
     labelColor?: string
-    /** Colour of the label while all of the node's ribbons are highlighted,
-     *  and so drawn opaque; defaults to `labelColor` */
+    /** Colour of the label while the ribbons under it are highlighted, and
+     *  so drawn opaque; defaults to `labelColor` */
     highlightedLabelColor?: string
 }
 
@@ -609,6 +609,34 @@ export function Sankey({
         return ids
     }, [layout, activeNodeIds, activeLinks, hover])
 
+    // The ribbons each middle label lies over, which decide its colour
+    const linksUnderLabel = useMemo(() => {
+        const map = new Map<string, LaidOutLink[]>()
+        for (const label of labels) {
+            if (label.side !== "middle") continue
+            const node = nodesById.get(label.nodeId)
+            const sideLinks =
+                label.textAnchor === "end"
+                    ? node?.targetLinks
+                    : node?.sourceLinks
+            map.set(
+                label.nodeId,
+                findLinksUnderBox(getLabelBounds(label), sideLinks ?? [])
+            )
+        }
+        return map
+    }, [labels, nodesById])
+
+    // A label whose ribbons are all lit sits on opaque colour
+    const labelIdsOnHighlightedRibbons = useMemo(() => {
+        const ids = new Set<string>()
+        if (activeLinks.size === 0) return ids
+        for (const [nodeId, links] of linksUnderLabel)
+            if (links.length > 0 && links.every((l) => activeLinks.has(l)))
+                ids.add(nodeId)
+        return ids
+    }, [linksUnderLabel, activeLinks])
+
     // Paint active links last so they appear above inactive ribbons.
     const linksInRenderOrder = useMemo<LaidOutLink[]>(() => {
         if (!layout) return []
@@ -720,7 +748,7 @@ export function Sankey({
                             label={label}
                             isHovered={hoveredNodeId === label.nodeId}
                             isActive={activeNodeIds.has(label.nodeId)}
-                            isFullyHighlighted={highlightedBandNodeIds.has(
+                            isOnHighlightedRibbons={labelIdsOnHighlightedRibbons.has(
                                 label.nodeId
                             )}
                             isAnchored={label.nodeId === anchorNodeId}
@@ -928,15 +956,15 @@ function SankeyLabel({
     label,
     isHovered,
     isActive,
-    isFullyHighlighted,
+    isOnHighlightedRibbons,
     isAnchored,
     nodeColor = GRAPHER_DENIM,
 }: {
     label: PlacedSankeyLabel
     isHovered?: boolean
     isActive?: boolean
-    /** All of the node's ribbons are highlighted */
-    isFullyHighlighted?: boolean
+    /** All of the ribbons under the label are highlighted */
+    isOnHighlightedRibbons?: boolean
     isAnchored?: boolean
     /** The node band's colour, which an annotation and its arrow take on */
     nodeColor?: string
@@ -949,7 +977,7 @@ function SankeyLabel({
         "sankey__label--anchored": isAnchored,
     })
 
-    const labelColor = isFullyHighlighted
+    const labelColor = isOnHighlightedRibbons
         ? (label.highlightedLabelColor ?? label.labelColor)
         : label.labelColor
 
@@ -1565,6 +1593,27 @@ export function isBoxCoveredByRibbons(
         if (!isCovered) return false
     }
     return true
+}
+
+/** The links whose ribbons pass under any part of a box */
+function findLinksUnderBox(box: Bounds, links: LaidOutLink[]): LaidOutLink[] {
+    const sampleCount = Math.max(1, Math.ceil(box.width / COVERAGE_SAMPLE_STEP))
+    return links.filter((link) => {
+        const ribbon = toRibbonGeometry(link)
+        if (!ribbon || ribbon.width <= 0) return false
+        for (let i = 0; i <= sampleCount; i++) {
+            const x = box.left + (i / sampleCount) * box.width
+            const centerY = calculateRibbonCenterY(ribbon, x)
+            if (centerY === null) continue
+            const halfWidth = ribbon.width / 2
+            if (
+                centerY + halfWidth > box.top &&
+                centerY - halfWidth < box.bottom
+            )
+                return true
+        }
+        return false
+    })
 }
 
 /**
