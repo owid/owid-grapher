@@ -113,9 +113,12 @@ export class StackedBarChartThumbnail
         }
     }
 
-    private labelsRangeFor(dualAxis: DualAxis): [number, number] {
+    @computed private get labelsRange(): [number, number] {
         const { chartAreaPadding = 0 } = this.manager
-        return [dualAxis.innerBounds.bottom, this.bounds.top - chartAreaPadding]
+        return [
+            this.bounds.bottom + chartAreaPadding,
+            this.bounds.top - chartAreaPadding,
+        ]
     }
 
     @computed private get labelsMaxWidth(): number {
@@ -163,7 +166,7 @@ export class StackedBarChartThumbnail
             ...this.labelFontSettings,
             maxWidth: this.labelsMaxWidth,
             labelPadding: LEGEND_PADDING,
-            yRange: this.labelsRangeFor(dualAxis),
+            yRange: this.labelsRange,
             maxShift: 3 * this.labelFontSettings.fontSize,
             compare: (
                 a: InitialAnchoredLabelSeries,
