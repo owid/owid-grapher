@@ -27,6 +27,12 @@ import {
 
 const CHARTS_PER_TOPIC = 4
 
+/** Charts too atypical for their chart type to stand in for it */
+const EXCLUDED_FROM_EVERY_CHART_TYPE = new Set([
+    // A scatter plot with time on the x-axis
+    "computation-used-to-train-notable-artificial-intelligence-systems",
+])
+
 const THUMBNAIL_CELL_WIDTH_PX = 160
 
 interface TabsChart {
@@ -149,11 +155,16 @@ async function findTopicCharts(
     return [
         {
             topic: "Every chart type",
-            charts: pickChartsWithVariedTabs(allCharts, {
-                maxCharts: Infinity,
-                isDoneWhenNothingNew: true,
-                firstSlug: "co-emissions-per-capita",
-            }),
+            charts: pickChartsWithVariedTabs(
+                allCharts.filter(
+                    (chart) => !EXCLUDED_FROM_EVERY_CHART_TYPE.has(chart.slug)
+                ),
+                {
+                    maxCharts: Infinity,
+                    isDoneWhenNothingNew: true,
+                    firstSlug: "co-emissions-per-capita",
+                }
+            ),
         },
         ...THUMBNAIL_STRATEGY_CHARTS.map((t) => ({
             topic: t.topic,
