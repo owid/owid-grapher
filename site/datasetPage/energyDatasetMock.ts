@@ -583,6 +583,7 @@ export const energyDatasetMock: DatasetPageData = {
     managedBy: {
         name: "Pablo Rosado",
         url: "https://ourworldindata.org/team/pablo-rosado",
+        imageUrl: "/images/dataset-page/pablo-rosado.png",
     },
     dateRange: "1800 – 2025",
     lastUpdated: "September 10, 2026",

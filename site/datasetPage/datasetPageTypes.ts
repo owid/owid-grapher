@@ -90,7 +90,12 @@ export interface DatasetPageData {
     description: string
     /** Paragraphs of simple markdown */
     about: string[]
-    managedBy: { name: string; url: string }
+    managedBy: {
+        name: string
+        url: string
+        /** Square photo, shown as a round avatar */
+        imageUrl?: string
+    }
     dateRange: string
     lastUpdated: string
     nextUpdate: string
