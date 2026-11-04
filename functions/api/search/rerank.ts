@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/cloudflare"
 import { ChartRecordType } from "@ourworldindata/types"
-import type { EnrichedSearchChartHit, SearchApiResponse } from "./searchApi.js"
+import type { SearchApiResponse } from "./searchApi.js"
 
 /**
  * Experimental: reorder a charts search with a "decision model" — one that
@@ -8,7 +8,8 @@ import type { EnrichedSearchChartHit, SearchApiResponse } from "./searchApi.js"
  * generating text, which makes an LLM relevance judgment cheap and fast
  * enough for a live search request. Opt-in via `/api/search?rerank=jev`, so
  * the search-demand evaluator in owid/analytics can compare it against the
- * same deployment without the parameter.
+ * same deployment without the parameter, and via the search page's
+ * `?rerank=jev`, which sends its charts search to rerank-charts.ts.
  *
  * One call per search, with two questions about the same state (the query and
  * the top RERANK_POOL_SIZE Algolia hits):
@@ -61,7 +62,7 @@ export interface RerankInfo {
 const candidateId = (index: number): string =>
     `r${String(index + 1).padStart(2, "0")}`
 
-function buildState(query: string, hits: EnrichedSearchChartHit[]): string {
+function buildState(query: string, hits: RerankableHit[]): string {
     const listing = hits
         .map((hit, i) => {
             const kind =
@@ -102,20 +103,27 @@ function parseAnswers(response: Record<string, unknown>): ParsedAnswers {
     return { probabilities, refused: false, anyRelevant: anyRelevantP }
 }
 
-export async function rerankCharts(
+/** A hit as the rerank prompt reads it: Algolia's and /api/search's alike. */
+export interface RerankableHit {
+    title: string
+    subtitle?: string
+    type: ChartRecordType
+}
+
+/**
+ * Reorders `hits` (in Algolia's order) by the model's choice probabilities.
+ * Returns every hit, so callers cut pages from the reordered list.
+ */
+export async function rerankHits<T extends RerankableHit>(
     ai: Ai,
     model: RerankModel,
-    pool: SearchApiResponse,
-    hitsPerPage: number
-): Promise<SearchApiResponse & { rerank: RerankInfo }> {
-    const hits = pool.results
+    query: string,
+    hits: T[]
+): Promise<{ hits: T[]; rerank: RerankInfo }> {
     const keepOrder = (
         info: Omit<RerankInfo, "model" | "poolSize">
-    ): SearchApiResponse & { rerank: RerankInfo } => ({
-        ...pool,
-        results: hits.slice(0, hitsPerPage),
-        hitsPerPage,
-        nbPages: 1,
+    ): { hits: T[]; rerank: RerankInfo } => ({
+        hits,
         rerank: { model, poolSize: hits.length, ...info },
     })
 
@@ -127,7 +135,7 @@ export async function rerankCharts(
     let parsed: ParsedAnswers
     try {
         const response = await ai.run(RERANK_MODELS[model], {
-            state: buildState(pool.query, hits),
+            state: buildState(query, hits),
             questions: {
                 best_result: {
                     type: "choice",
@@ -164,15 +172,34 @@ export async function rerankCharts(
         .map((hit, i) => ({ hit, i, p: probabilities[ids[i]] ?? 0 }))
         .sort((a, b) => b.p - a.p || a.i - b.i)
     return {
-        ...pool,
-        results: order.slice(0, hitsPerPage).map(({ hit }) => hit),
-        hitsPerPage,
-        nbPages: 1,
+        hits: order.map(({ hit }) => hit),
         rerank: {
             model,
             poolSize: hits.length,
             latencyMs,
             anyRelevant: parsed.anyRelevant,
         },
+    }
+}
+
+/** /api/search's reranked charts: one page, cut from the reordered pool. */
+export async function rerankCharts(
+    ai: Ai,
+    model: RerankModel,
+    pool: SearchApiResponse,
+    hitsPerPage: number
+): Promise<SearchApiResponse & { rerank: RerankInfo }> {
+    const { hits, rerank } = await rerankHits(
+        ai,
+        model,
+        pool.query,
+        pool.results
+    )
+    return {
+        ...pool,
+        results: hits.slice(0, hitsPerPage),
+        hitsPerPage,
+        nbPages: 1,
+        rerank,
     }
 }

@@ -31,7 +31,7 @@ CLOUDFLARE_ACCOUNT_ID=078fcdfed9955087315dd86792e71a7e
 
 `make setup.worktree` copies both into new worktrees' `.env` from the main checkout.
 
-The experimental `/api/search?rerank=jev` also calls Workers AI through the same token, so it needs **Workers AI (Read)** on top. Without it everything else works and the parameter falls back to the unreranked order, with the error in the response's `rerank.error`.
+The experimental reranking (`/api/search?rerank=jev` and `/api/search/rerank-charts`) also calls Workers AI through the same token, so it needs **Workers AI (Read)** on top. Without it everything else works and reranked searches fall back to the unreranked order, with the error in the response's `rerank.error`.
 
 Note: the compatibility date is defined in [`wrangler.jsonc`](../wrangler.jsonc) at the repo root, which is the authoritative source for local development, previews and production alike (not the Cloudflare dashboard). The e2e tests carry their own copy in [`test/wrangler.e2e.jsonc`](./test/wrangler.e2e.jsonc) — keep the two in sync.
 
@@ -163,6 +163,10 @@ For detailed API documentation, including all parameters, response schemas, and 
 ## `/api/search/cached-queries`
 
 A caching proxy for empty-query Algolia searches. The site routes Algolia multi-query requests where every query string is empty — the "browse" requests issued by default states like the search landing page or the empty autocomplete panel — to this endpoint (see `site/search/searchClients.ts`), which forwards them to Algolia and caches the response for a day — except for payloads touching the chronological pages index (which backs /latest and sorts by date), cached for only 15 minutes so newly published articles show up quickly. Requests containing a non-empty query are rejected with a 400 and should go to Algolia directly; the client falls back to a direct Algolia request whenever this endpoint fails or rejects.
+
+## `/api/search/rerank-charts`
+
+Experimental: the search page's charts section, reranked by a decision model (see `functions/api/search/rerank.ts`). The site calls it only when the page was loaded with `?rerank=jev` (e.g. `/search?q=malaria&rerank=jev`) and `SEARCH_RERANK_URL` is set, which it is by default outside development. It takes the exact Algolia search request the site would send and returns Algolia's response shape, with the first three pages reranked as one pool and a `rerank` field describing the call. Later pages, and any failed request, go to Algolia directly. Like `/api/search?rerank=`, it needs the `AI` binding, which only `wrangler pages dev` (local dev and staging) has; elsewhere it returns a 400 and the site falls back.
 
 ## `/deleted/:slug`
 

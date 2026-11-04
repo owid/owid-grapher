@@ -37,6 +37,7 @@ import {
     MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
+import { searchChartsReranked, shouldRerankCharts } from "./rerank.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
@@ -171,10 +172,11 @@ export async function queryCharts(
         page,
     }
 
-    return searchSingleForHitsWithClosestMatches<SearchChartHit>(
-        liteSearchClient,
-        searchParams
-    )
+    const search = shouldRerankCharts(state.query, page)
+        ? searchChartsReranked
+        : searchSingleForHitsWithClosestMatches
+
+    return search<SearchChartHit>(liteSearchClient, searchParams)
 }
 
 export async function queryDataInsights(
