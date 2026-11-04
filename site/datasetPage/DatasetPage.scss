@@ -445,11 +445,15 @@ $dataset-page-row-border: $blue-20;
 }
 
 .dataset-page__row-title {
-    @include body-2-semibold;
+    @include body-2-regular;
     & {
         line-height: 22px;
         color: $blue-90;
     }
+}
+
+.dataset-page__row--open .dataset-page__row-title {
+    font-weight: 700;
 }
 
 .dataset-page__row-subtitle {
