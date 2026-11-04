@@ -14,12 +14,14 @@ import {
 } from "@ourworldindata/grapher"
 import {
     AxisMinMaxValueStr,
+    DumbbellValueLabelMode,
     EntityName,
     EntitySelectionMode,
     FacetStrategy,
     GrapherInterface,
     GrapherVariant,
     GRAPHER_TAB_NAMES,
+    type GrapherTabName,
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { Bounds, escapeJSONStringForInlineScript } from "@ourworldindata/utils"
@@ -34,6 +36,7 @@ import {
     MAX_LATEST_VALUE_WINDOW_YEARS,
     STRATEGIES,
     StrategyId,
+    findSlopeStartTime,
     pickEntities,
 } from "./thumbnailEntityStrategies.js"
 
@@ -382,18 +385,22 @@ function ChartRow({
 }
 
 /** A chart's thumbnail, without an SVG if the strategy doesn't apply to it */
-async function renderThumbnailWithStrategy({
+export async function renderThumbnailWithStrategy({
     config,
     strategy,
     readerCountry,
+    tab,
 }: {
     config: GrapherInterface
     strategy: StrategyId
     readerCountry?: EntityName
+    /** The tab to render instead of the chart's default */
+    tab?: GrapherTabName
 }): Promise<{
     svg?: string
     canPickEntities: boolean
     metrics?: ThumbnailMetrics
+    sourcesLine?: string
 }> {
     const bounds = new Bounds(
         0,
@@ -423,10 +430,36 @@ async function renderThumbnailWithStrategy({
         dataApiUrl: DATA_API_URL,
     })
     if (inputTable) grapherState.inputTable = inputTable
+    if (tab !== undefined && tab !== grapherState.activeTab) {
+        const defaultTab = grapherState.activeTab
+        runInAction(() => {
+            grapherState.setTab(tab)
+            grapherState.onTabChange(defaultTab, tab)
+        })
+    }
     if (grapherState.activeTab === GRAPHER_TAB_NAMES.Table)
         grapherState.resetToDefaultTab()
-    if (grapherState.activeTab === GRAPHER_TAB_NAMES.WorldMap)
+    if (
+        grapherState.activeTab === GRAPHER_TAB_NAMES.WorldMap ||
+        grapherState.activeTab === GRAPHER_TAB_NAMES.DiscreteBar
+    )
         runInAction(() => (grapherState.hideLegend = true))
+    if (grapherState.activeTab === GRAPHER_TAB_NAMES.Dumbbell)
+        runInAction(() => {
+            grapherState.dumbbell.valueLabelMode = DumbbellValueLabelMode.None
+            grapherState.hideLegend = true
+            grapherState.yAxis.hideAxis = true
+        })
+    if (grapherState.activeTab === GRAPHER_TAB_NAMES.StackedDiscreteBar)
+        runInAction(() => {
+            grapherState.hideTotalValueLabel = true
+            grapherState.yAxis.hideAxis = true
+        })
+    if (
+        grapherState.activeTab === GRAPHER_TAB_NAMES.StackedArea ||
+        grapherState.activeTab === GRAPHER_TAB_NAMES.StackedBar
+    )
+        runInAction(() => (grapherState.xAxis.hideAxis = true))
     if (grapherState.activeTab === GRAPHER_TAB_NAMES.LineChart)
         runInAction(() => {
             grapherState.xAxis.hideAxis = true
@@ -444,6 +477,11 @@ async function renderThumbnailWithStrategy({
             }
         })
     }
+    if (
+        grapherState.activeTab === GRAPHER_TAB_NAMES.SlopeChart &&
+        config.minTime === undefined
+    )
+        moveSlopeStart(grapherState)
     removeFacets(grapherState)
 
     const budget = findEntityBudget(grapherState)
@@ -468,13 +506,15 @@ async function renderThumbnailWithStrategy({
     const svg = await grapher.grapherState.generateStaticSvg(
         ReactDOMServer.renderToStaticMarkup
     )
-    if (budget === undefined) return { svg, canPickEntities: false }
+    const { sourcesLine } = grapherState
+    if (budget === undefined)
+        return { svg, canPickEntities: false, sourcesLine }
     const metrics = await measureThumbnail({
         grapherState,
         bounds: grapherState.chartAreaBounds,
         budget,
     })
-    return { svg, canPickEntities: true, metrics }
+    return { svg, canPickEntities: true, metrics, sourcesLine }
 }
 
 /** Fewest lines a line thumbnail keeps when dropping unlabelled ones */
@@ -545,18 +585,39 @@ function removeFacets(grapherState: GrapherState): void {
     })
 }
 
+/** Starts a slope at the time most countries have data by, if that's later */
+function moveSlopeStart(grapherState: GrapherState): void {
+    const slopeStartTime = findSlopeStartTime(grapherState)
+    const { startTime } = grapherState
+    if (
+        slopeStartTime === undefined ||
+        startTime === undefined ||
+        slopeStartTime <= startTime
+    )
+        return
+    runInAction(() => {
+        grapherState.timelineHandleTimeBounds = [
+            slopeStartTime,
+            grapherState.timelineHandleTimeBounds[1],
+        ]
+    })
+}
+
 /** How many entities to pick, or undefined if picking doesn't apply */
 function findEntityBudget(grapherState: GrapherState): number | undefined {
+    // Dumbbells draw a row per entity even when the author lets readers
+    // pick only one country, as two-indicator dumbbells do
     const canPickEntities =
         !grapherState.isFaceted &&
         (grapherState.chartState.seriesStrategy ?? SeriesStrategy.entity) ===
             SeriesStrategy.entity &&
-        grapherState.addCountryMode === EntitySelectionMode.MultipleEntities
+        (grapherState.addCountryMode === EntitySelectionMode.MultipleEntities ||
+            grapherState.activeTab === GRAPHER_TAB_NAMES.Dumbbell)
     return canPickEntities ? ENTITY_BUDGET[grapherState.activeTab] : undefined
 }
 
 /** Inlined SVGs share one document, so their ids must not collide */
-function prefixSvgIds(svg: string, prefix: string): string {
+export function prefixSvgIds(svg: string, prefix: string): string {
     return svg
         .replace(/\bid="/g, `id="${prefix}-`)
         .replace(/url\(#/g, `url(#${prefix}-`)
@@ -591,6 +652,8 @@ function hide(cell) {
 function showMetrics(cell, metrics) {
     const caption = cell.parentElement.querySelector(".metrics")
     const windowLine = metrics.latestValueWindow === undefined ? "" :
+        metrics.latestValueWindowSource === "plotted time" ?
+        "values from the plotted time only (" + Math.round(100 * metrics.latestValueCoverage) + "% of countries)" :
         "values ≤ " + metrics.latestValueWindow + " " +
         (metrics.latestValueWindow === 1 ? metrics.latestValueWindowUnit.slice(0, -1) : metrics.latestValueWindowUnit) + " old (" +
         metrics.latestValueWindowSource + ", " + Math.round(100 * metrics.latestValueCoverage) + "% of countries)"

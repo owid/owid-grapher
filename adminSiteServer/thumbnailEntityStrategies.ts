@@ -124,7 +124,7 @@ export interface LatestValueWindow {
     /** How far before the chart's end time a latest value may come from, in the chart's time unit */
     window: number
     unit: "years" | "days"
-    source: "indicator tolerance" | "coverage" | "cap"
+    source: "indicator tolerance" | "coverage" | "cap" | "plotted time"
     /** Share of countries with data in the chart that have a value within the window */
     coverage: number
 }
@@ -132,9 +132,10 @@ export interface LatestValueWindow {
 const latestValueWindows = new WeakMap<GrapherState, LatestValueWindow>()
 
 /**
- * The indicator's own tolerance if it sets one, otherwise the shortest
- * window that includes LATEST_VALUE_COVERAGE of the countries with data in
- * the chart; at most MAX_LATEST_VALUE_WINDOW_YEARS either way
+ * None for discrete bars and dumbbells, which only consider the plotted
+ * time. Otherwise the indicator's own tolerance if it sets one, or else the
+ * shortest window that includes LATEST_VALUE_COVERAGE of the countries with
+ * data in the chart; at most MAX_LATEST_VALUE_WINDOW_YEARS either way
  */
 export function findLatestValueWindow(
     grapherState: GrapherState
@@ -180,7 +181,17 @@ export function findLatestValueWindow(
     const indicatorTolerance =
         column?.display?.tolerance ?? column?.def.tolerance
     let result: LatestValueWindow
-    if (indicatorTolerance !== undefined) {
+    if (
+        grapherState.activeTab === GRAPHER_TAB_NAMES.DiscreteBar ||
+        grapherState.activeTab === GRAPHER_TAB_NAMES.Dumbbell
+    ) {
+        result = {
+            window: 0,
+            unit,
+            source: "plotted time",
+            coverage: coverageOf(0),
+        }
+    } else if (indicatorTolerance !== undefined) {
         const window = Math.min(indicatorTolerance, maxWindow)
         result = {
             window,
@@ -562,6 +573,38 @@ function pickFromMap(
     )
 }
 
+/** Share of countries whose data must have started by a slope thumbnail's start time */
+const SLOPE_START_COVERAGE = 0.8
+
+/**
+ * The earliest time by which SLOPE_START_COVERAGE of the countries with data
+ * up to the chart's end time have their first value
+ */
+export function findSlopeStartTime(
+    grapherState: GrapherState
+): number | undefined {
+    const slug = grapherState.yColumnSlug
+    if (!slug) return undefined
+    const column = grapherState.table.get(slug)
+    const endTime = findLatestValueEndTime(grapherState)
+    const firstTimes = grapherState.availableEntityNames.flatMap(
+        (entityName) => {
+            const region = getRegionByName(entityName)
+            if (!region || !checkIsCountry(region)) return []
+            const firstRow = column.owidRowsByEntityName
+                .get(entityName)
+                ?.find(
+                    (row) =>
+                        typeof row.value === "number" &&
+                        row.originalTime <= endTime
+                )
+            return firstRow ? [firstRow.originalTime] : []
+        }
+    )
+    const sortedTimes = R.sortBy(firstTimes, (time) => time)
+    return sortedTimes[Math.ceil(SLOPE_START_COVERAGE * sortedTimes.length) - 1]
+}
+
 /**
  * The chart's end time, or the indicator's last time if the chart ends
  * later, as it can with projections
@@ -573,10 +616,15 @@ function findLatestValueEndTime(grapherState: GrapherState): number {
     return maxTime !== undefined ? Math.min(endTime, maxTime) : endTime
 }
 
-/** Each entity's latest value within the window up to the chart's end time */
+/**
+ * Each entity's latest value within the window up to the chart's end time,
+ * or for dumbbells the difference between its two dots
+ */
 export function findValuesAtEnd(
     grapherState: GrapherState
 ): Map<EntityName, number> {
+    if (grapherState.activeTab === GRAPHER_TAB_NAMES.Dumbbell)
+        return findDumbbellDifferences(grapherState)
     const endTime = findLatestValueEndTime(grapherState)
     const { window } = findLatestValueWindow(grapherState)
     return findValuesNear(grapherState, (rows) =>
@@ -588,6 +636,42 @@ export function findValuesAtEnd(
             )
             .at(-1)
     )
+}
+
+/**
+ * Each entity's end dot minus its start dot, from values at exactly the
+ * plotted times: the second indicator minus the first at the end time, or
+ * with one indicator, the end time minus the start time
+ */
+function findDumbbellDifferences(
+    grapherState: GrapherState
+): Map<EntityName, number> {
+    const differences = new Map<EntityName, number>()
+    const [firstSlug, secondSlug] = grapherState.yColumnSlugs
+    if (!firstSlug) return differences
+    const endTime = findLatestValueEndTime(grapherState)
+    const findValue = (
+        slug: string,
+        entityName: EntityName,
+        time: number
+    ): number | undefined => {
+        const value = grapherState.table
+            .get(slug)
+            .owidRowsByEntityName.get(entityName)
+            ?.find((row) => row.originalTime === time)?.value
+        return typeof value === "number" ? value : undefined
+    }
+    for (const entityName of prepareEntitiesForPeerSelection(grapherState)) {
+        const start = secondSlug
+            ? findValue(firstSlug, entityName, endTime)
+            : grapherState.startTime !== undefined
+              ? findValue(firstSlug, entityName, grapherState.startTime)
+              : undefined
+        const end = findValue(secondSlug ?? firstSlug, entityName, endTime)
+        if (start !== undefined && end !== undefined)
+            differences.set(entityName, end - start)
+    }
+    return differences
 }
 
 /**
