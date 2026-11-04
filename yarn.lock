@@ -4490,7 +4490,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/helpers@npm:0.5.18, @swc/helpers@npm:^0.5.0":
+"@swc/helpers@npm:0.5.18":
   version: 0.5.18
   resolution: "@swc/helpers@npm:0.5.18"
   dependencies:
@@ -4499,7 +4499,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/helpers@npm:^0.5.23":
+"@swc/helpers@npm:^0.5.0, @swc/helpers@npm:^0.5.23":
   version: 0.5.23
   resolution: "@swc/helpers@npm:0.5.23"
   dependencies:
