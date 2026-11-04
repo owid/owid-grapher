@@ -1744,257 +1744,161 @@ export function traverseEnrichedBlock(
     callback: (x: OwidEnrichedGdocBlock) => void,
     spanCallback?: (x: Span) => void
 ): void {
-    match(node)
-        .with(
-            { type: P.union("sticky-right", "sticky-left", "side-by-side") },
-            (container) => {
-                callback(container)
-                container.left.forEach((leftNode) =>
-                    traverseEnrichedBlock(leftNode, callback, spanCallback)
-                )
-                container.right.forEach((rightNode) =>
-                    traverseEnrichedBlock(rightNode, callback, spanCallback)
-                )
-            }
-        )
-        .with({ type: "gray-section" }, (graySection) => {
-            callback(graySection)
-            graySection.items.forEach((node) =>
-                traverseEnrichedBlock(node, callback, spanCallback)
-            )
-        })
-        .with({ type: "explore-data-section" }, (exploreDataSection) => {
-            callback(exploreDataSection)
-            exploreDataSection.content.forEach((node) =>
-                traverseEnrichedBlock(node, callback, spanCallback)
-            )
-        })
-        .with({ type: "conditional-section" }, (conditional) => {
-            callback(conditional)
-            conditional.content.forEach((node) =>
-                traverseEnrichedBlock(node, callback, spanCallback)
-            )
-        })
-        .with({ type: "key-insights" }, (keyInsights) => {
-            callback(keyInsights)
-            keyInsights.insights.forEach((insight) => {
-                insight.asset?.forEach((node) =>
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                )
-                insight.content.forEach((node) =>
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                )
+    // A plain switch rather than ts-pattern's `match`: this runs for every
+    // block of every gdoc, several times per bake, and `match` builds all of
+    // its branch patterns and closures on each call.
+    const recurse = (child: OwidEnrichedGdocBlock): void =>
+        traverseEnrichedBlock(child, callback, spanCallback)
+
+    switch (node.type) {
+        case "sticky-right":
+        case "sticky-left":
+        case "side-by-side":
+            callback(node)
+            node.left.forEach(recurse)
+            node.right.forEach(recurse)
+            return
+        case "gray-section":
+            callback(node)
+            node.items.forEach(recurse)
+            return
+        case "explore-data-section":
+        case "conditional-section":
+        case "expander":
+        case "guided-chart":
+        case "align":
+        case "data-callout":
+        case "data-callout-group":
+        case "pull-chart":
+            callback(node)
+            node.content.forEach(recurse)
+            return
+        case "key-insights":
+            callback(node)
+            node.insights.forEach((insight) => {
+                insight.asset?.forEach(recurse)
+                insight.content.forEach(recurse)
             })
-        })
-        .with({ type: "expander" }, (expander) => {
-            callback(expander)
-            expander.content.forEach((block) =>
-                traverseEnrichedBlock(block, callback, spanCallback)
-            )
-        })
-        .with({ type: "callout" }, (callout) => {
-            callback(callout)
-            if (spanCallback) {
-                callout.text.forEach((textBlock) =>
-                    traverseEnrichedBlock(textBlock, callback, spanCallback)
-                )
-            }
-        })
-        .with({ type: "aside" }, (aside) => {
-            callback(aside)
-            if (spanCallback) {
-                aside.caption.forEach((span) =>
+            return
+        case "callout":
+            callback(node)
+            if (spanCallback) node.text.forEach(recurse)
+            return
+        case "aside":
+            callback(node)
+            if (spanCallback)
+                node.caption.forEach((span) =>
                     traverseEnrichedSpan(span, spanCallback)
                 )
-            }
-        })
-        .with({ type: "list" }, (list) => {
-            callback(list)
-            if (spanCallback) {
-                list.items.forEach((textBlock) =>
-                    traverseEnrichedBlock(textBlock, callback, spanCallback)
-                )
-            }
-        })
-        .with({ type: "numbered-list" }, (numberedList) => {
-            callback(numberedList)
-            if (spanCallback) {
-                numberedList.items.forEach((textBlock) =>
-                    traverseEnrichedBlock(textBlock, callback, spanCallback)
-                )
-            }
-        })
-        .with({ type: "text" }, (textNode) => {
-            callback(textNode)
-            if (spanCallback) {
-                textNode.value.forEach((span) => {
+            return
+        case "list":
+        case "numbered-list":
+            callback(node)
+            if (spanCallback) node.items.forEach(recurse)
+            return
+        case "text":
+            callback(node)
+            if (spanCallback)
+                node.value.forEach((span) =>
                     traverseEnrichedSpan(span, spanCallback)
-                })
-            }
-        })
-        .with({ type: "simple-text" }, (simpleTextNode) => {
-            if (spanCallback) {
-                spanCallback(simpleTextNode.value)
-            }
-        })
-        .with({ type: "additional-charts" }, (additionalCharts) => {
-            callback(additionalCharts)
-            if (spanCallback) {
-                additionalCharts.items.forEach((spans) => {
+                )
+            return
+        case "simple-text":
+            if (spanCallback) spanCallback(node.value)
+            return
+        case "additional-charts":
+            callback(node)
+            if (spanCallback)
+                node.items.forEach((spans) =>
                     spans.forEach((span) =>
                         traverseEnrichedSpan(span, spanCallback)
                     )
-                })
-            }
-        })
-        .with({ type: "heading" }, (heading) => {
-            callback(heading)
-            if (spanCallback) {
-                heading.text.forEach((span) => {
-                    traverseEnrichedSpan(span, spanCallback)
-                })
-            }
-        })
-        .with({ type: "expandable-paragraph" }, (expandableParagraph) => {
-            callback(expandableParagraph)
-            expandableParagraph.items.forEach((textBlock) => {
-                traverseEnrichedBlock(textBlock, callback, spanCallback)
-            })
-        })
-        .with({ type: "guided-chart" }, (guidedChart) => {
-            callback(guidedChart)
-            guidedChart.content.forEach((block) => {
-                traverseEnrichedBlock(block, callback, spanCallback)
-            })
-        })
-        .with({ type: "align" }, (align) => {
-            callback(align)
-            align.content.forEach((node) => {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            })
-        })
-        .with({ type: "table" }, (table) => {
-            callback(table)
-            table.rows.forEach((row) => {
-                row.cells.forEach((cell) => {
-                    cell.content.forEach((node) => {
-                        traverseEnrichedBlock(node, callback, spanCallback)
-                    })
-                })
-            })
-        })
-        .with({ type: "blockquote" }, (blockquote) => {
-            callback(blockquote)
-            blockquote.text.forEach((node) => {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            })
-        })
-        .with(
-            {
-                type: "key-indicator",
-            },
-            (keyIndicator) => {
-                callback(keyIndicator)
-                keyIndicator.text.forEach((node) => {
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                })
-            }
-        )
-        .with(
-            { type: "key-indicator-collection" },
-            (keyIndicatorCollection) => {
-                callback(keyIndicatorCollection)
-                keyIndicatorCollection.blocks.forEach((node) =>
-                    traverseEnrichedBlock(node, callback, spanCallback)
                 )
-            }
-        )
-        .with({ type: "people" }, (people) => {
-            callback(people)
-            for (const item of people.items) {
-                traverseEnrichedBlock(item, callback, spanCallback)
-            }
-        })
-        .with({ type: "people-rows" }, (peopleRows) => {
-            callback(peopleRows)
-            for (const person of peopleRows.people) {
-                traverseEnrichedBlock(person, callback, spanCallback)
-            }
-        })
-        .with({ type: "person" }, (person) => {
-            callback(person)
-            for (const node of person.text) {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            }
-        })
-        .with({ type: "data-callout" }, (dataCallout) => {
-            callback(dataCallout)
-            for (const node of dataCallout.content) {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            }
-        })
-        .with({ type: "data-callout-group" }, (dataCalloutGroup) => {
-            callback(dataCalloutGroup)
-            for (const node of dataCalloutGroup.content) {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            }
-        })
-        .with({ type: "chart-rows" }, (block) => {
-            callback(block)
-            for (const row of block.rows) {
-                for (const node of row.content) {
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                }
-            }
-        })
-        .with({ type: "pull-chart" }, (block) => {
-            callback(block)
-            for (const node of block.content) {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            }
-        })
-        .with(
-            {
-                type: P.union(
-                    "chart-story",
-                    "chart",
-                    "narrative-chart",
-                    "code",
-                    "cookie-notice",
-                    "cta",
-                    "donors",
-                    "horizontal-rule",
-                    "html",
-                    "image",
-                    "video",
-                    "missing-data",
-                    "prominent-link",
-                    "pull-quote",
-                    "recirc",
-                    "subscribe-banner",
-                    "resource-panel",
-                    "research-and-writing",
-                    "sdg-grid",
-                    "sdg-toc",
-                    "ltp-toc",
-                    "topic-page-intro",
-                    "all-charts",
-                    "explorer-tiles",
-                    "pill-row",
-                    "homepage-search",
-                    "homepage-intro",
-                    "featured-metrics",
-                    "featured-data-insights",
-                    "latest-data-insights",
-                    "socials",
-                    "static-viz",
-                    "country-profile-selector",
-                    "bespoke-component"
-                ),
-            },
-            callback
-        )
-        .exhaustive()
+            return
+        case "heading":
+            callback(node)
+            if (spanCallback)
+                node.text.forEach((span) =>
+                    traverseEnrichedSpan(span, spanCallback)
+                )
+            return
+        case "expandable-paragraph":
+            callback(node)
+            node.items.forEach(recurse)
+            return
+        case "table":
+            callback(node)
+            node.rows.forEach((row) =>
+                row.cells.forEach((cell) => cell.content.forEach(recurse))
+            )
+            return
+        case "blockquote":
+        case "key-indicator":
+        case "person":
+            callback(node)
+            node.text.forEach(recurse)
+            return
+        case "key-indicator-collection":
+            callback(node)
+            node.blocks.forEach(recurse)
+            return
+        case "people":
+            callback(node)
+            node.items.forEach(recurse)
+            return
+        case "people-rows":
+            callback(node)
+            node.people.forEach(recurse)
+            return
+        case "chart-rows":
+            callback(node)
+            node.rows.forEach((row) => row.content.forEach(recurse))
+            return
+        case "chart-story":
+        case "chart":
+        case "narrative-chart":
+        case "code":
+        case "cookie-notice":
+        case "cta":
+        case "donors":
+        case "horizontal-rule":
+        case "html":
+        case "image":
+        case "video":
+        case "missing-data":
+        case "prominent-link":
+        case "pull-quote":
+        case "recirc":
+        case "subscribe-banner":
+        case "resource-panel":
+        case "research-and-writing":
+        case "sdg-grid":
+        case "sdg-toc":
+        case "ltp-toc":
+        case "topic-page-intro":
+        case "all-charts":
+        case "explorer-tiles":
+        case "pill-row":
+        case "homepage-search":
+        case "homepage-intro":
+        case "featured-metrics":
+        case "featured-data-insights":
+        case "latest-data-insights":
+        case "socials":
+        case "static-viz":
+        case "country-profile-selector":
+        case "bespoke-component":
+            callback(node)
+            return
+        default: {
+            // Compile-time exhaustiveness; at runtime an unknown block type
+            // throws, as ts-pattern's `.exhaustive()` did.
+            const unknownNode: never = node
+            throw new Error(
+                `Unknown enriched block type: ${(unknownNode as { type?: string }).type}`
+            )
+        }
+    }
 }
 
 /**
