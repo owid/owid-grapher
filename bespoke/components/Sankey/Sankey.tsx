@@ -1417,7 +1417,12 @@ export function getSankeyVerticalLabelPadding(
     return 0.5 * fontSettings.fontSize * fontSettings.lineHeight
 }
 
-/** Find the nearest hoverable node within tolerance of its combined band and label bounds. */
+/**
+ * Find the nearest hoverable node within tolerance of its combined band and
+ * label bounds. A middle node's label lies over the ribbons, though, where
+ * the tolerance would steal hovers from the ribbons around it, so it only
+ * counts when the pointer is right on it.
+ */
 function findNodeAtPoint({
     nodes,
     labels,
@@ -1437,8 +1442,14 @@ function findNodeAtPoint({
     let closest: { node: LaidOutNode; dist: number } | null = null
     for (const node of nodes) {
         if (isHoverable && !isHoverable(node)) continue
-        const bounds = calculateNodeHitBounds(node, labelByNodeId.get(node.id))
-        const dist = bounds.distanceToPoint(mouse)
+        const label = labelByNodeId.get(node.id)
+        const dist =
+            label?.side === "middle"
+                ? Math.min(
+                      calculateNodeHitBounds(node).distanceToPoint(mouse),
+                      getLabelBounds(label).contains(mouse) ? 0 : Infinity
+                  )
+                : calculateNodeHitBounds(node, label).distanceToPoint(mouse)
         if (dist > NODE_HIT_TOLERANCE) continue
         if (!closest || dist < closest.dist) closest = { node, dist }
     }
