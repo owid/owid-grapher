@@ -46,6 +46,7 @@ import {
     getGroupLabel,
     getGroupLabelColor,
     getGroupSentenceLabel,
+    GROUP_ICON_SIZE,
     GroupIcon,
     renderGroupIcon,
 } from "../core/commodityGroups.js"
@@ -155,9 +156,10 @@ function DeforestationSankeyContent({
         [view, country, importRows, exportRows, formatValue, isNarrow]
     )
 
-    // Labelled commodity nodes carry their group's glyph next to the label.
-    // On narrow screens the glyph stands alone; the Sankey drops it on nodes
-    // too short to fit it.
+    // Labelled commodity nodes carry their group's glyph, inline with the
+    // label and in its colour, so it reads as part of the text. On narrow
+    // screens the glyph stands alone, as a badge on a white disc that invites
+    // a tap; the Sankey drops it on nodes too short to fit it.
     const nodes = useMemo<SankeyNode[]>(
         () =>
             graph.nodes.map((node) => {
@@ -174,11 +176,23 @@ function DeforestationSankeyContent({
                 const labelColor = getGroupLabelColor(group)
                 if (node.label === "" && !isNarrow)
                     return { ...node, labelColor }
-                return {
-                    ...node,
-                    labelColor,
-                    icon: renderGroupIcon(group, getGroupColor(group)),
-                }
+                return isNarrow
+                    ? {
+                          ...node,
+                          labelColor,
+                          icon: renderGroupIcon(group, getGroupColor(group)),
+                          iconStyle: "badge",
+                      }
+                    : {
+                          ...node,
+                          labelColor,
+                          icon: renderGroupIcon(
+                              group,
+                              labelColor ?? getGroupColor(group),
+                              { glyphSize: GROUP_ICON_SIZE }
+                          ),
+                          iconStyle: "inline",
+                      }
             }),
         [graph.nodes, isNarrow]
     )

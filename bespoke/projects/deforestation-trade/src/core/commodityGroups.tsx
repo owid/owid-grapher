@@ -159,16 +159,22 @@ const GROUP_GLYPH_SIZE = 11
 
 /**
  * A group's FontAwesome glyph as a bare `<path>`, scaled uniformly from the
- * icon's own viewBox into a `0 0 16 16` box and centred in it. Returning a
+ * icon's own viewBox into a `0 0 16 16` box and centred in it — by default
+ * smaller than the box, with room for a disc behind it; `glyphSize` of
+ * `GROUP_ICON_SIZE` fills the box. Returning a
  * path rather than `<FontAwesomeIcon>` lets the caller place it anywhere in an
  * SVG it is already drawing, such as a Sankey node.
  */
-export function renderGroupIcon(name: string, fill: string): React.ReactNode {
+export function renderGroupIcon(
+    name: string,
+    fill: string,
+    { glyphSize = GROUP_GLYPH_SIZE }: { glyphSize?: number } = {}
+): React.ReactNode {
     const icon = getGroupIcon(name)
     const [width, height, , , pathData] = icon.icon
     const d = Array.isArray(pathData) ? pathData.join(" ") : pathData
 
-    const scale = GROUP_GLYPH_SIZE / Math.max(width, height)
+    const scale = glyphSize / Math.max(width, height)
     const x = (GROUP_ICON_SIZE - width * scale) / 2
     const y = (GROUP_ICON_SIZE - height * scale) / 2
 

@@ -34,6 +34,12 @@ export const SANKEY_ICON_SIZE = 16
 /** Horizontal gap between a node's icon and its label text */
 export const SANKEY_ICON_TEXT_GAP = 8
 
+/** Size of an inline icon, which reads as part of the label's first line */
+const INLINE_ICON_SIZE = 14
+
+/** Horizontal gap between an inline icon and the label text it leads */
+const INLINE_ICON_TEXT_GAP = 6
+
 /** How far the white disc behind an icon extends past the icon's box */
 const ICON_BACKING_PADDING = 2
 
@@ -139,8 +145,15 @@ export type SankeyNode = {
     /** Note below the value with an arrow to the band; hidden unless all three lines fit. */
     annotation?: string
     annotationFontSize?: number
-    /** SVG content for a `0 0 16 16` viewBox, placed between the band and label. */
+    /** SVG content for a `0 0 16 16` viewBox. */
     icon?: React.ReactNode
+    /**
+     * How the icon goes with the label: as a badge on a white disc between
+     * the band and the label (the default), or inline, as a small glyph
+     * leading the label's first line, so the text itself stays aligned on
+     * the band's side.
+     */
+    iconStyle?: SankeyIconStyle
     /** Colour of the label and value text. A coloured middle-column label
      *  drops the white halo: its colour is meant to read against the ribbon. */
     labelColor?: string
@@ -156,6 +169,8 @@ export type SankeyLink = {
 
 export type LinkSide = "source" | "target"
 
+export type SankeyIconStyle = "badge" | "inline"
+
 /** A node's position relative to the outer columns. */
 export type SankeyNodeSide = "left" | "right" | "middle"
 
@@ -169,6 +184,7 @@ type PlacedSankeyLabel = {
     valueLabel?: TextWrap
     annotation?: TextWrap
     icon?: React.ReactNode
+    iconStyle?: SankeyIconStyle
     labelColor?: string
     /** Hidden icons still reserve horizontal space to keep labels aligned. */
     isIconVisible: boolean
@@ -847,31 +863,42 @@ function SankeyLabel({
         "sankey__label--anchored": isAnchored,
     })
 
-    // The icon always sits nearest the node's band, with the text after it
+    // A badge sits nearest the node's band, with the text after it; an
+    // inline icon leads the text from its far side
     const isTextAnchoredAtEnd = label.textAnchor === "end"
+    const directionAway = isTextAnchoredAtEnd ? -1 : 1
     const textOffset = getIconLabelOffset(label)
-    const textX = isTextAnchoredAtEnd
-        ? label.x - textOffset
-        : label.x + textOffset
+    const textX = label.x + directionAway * textOffset
 
-    // The icon sits on a white disc so it stays legible over the ribbons
-    const iconX = isTextAnchoredAtEnd ? label.x - SANKEY_ICON_SIZE : label.x
-    const iconY = label.y - 0.5 * SANKEY_ICON_SIZE
+    const isInlineIcon = label.iconStyle === "inline"
+    const iconSize = isInlineIcon ? INLINE_ICON_SIZE : SANKEY_ICON_SIZE
+    const firstLineCenterY =
+        label.y - 0.5 * getLabelTextHeight(label) + 0.5 * label.label.height
+    // Position of the icon's band-side edge
+    const iconNearX = isInlineIcon
+        ? textX + directionAway * (label.label.width + INLINE_ICON_TEXT_GAP)
+        : label.x
+    const iconX = isTextAnchoredAtEnd ? iconNearX - iconSize : iconNearX
+    const iconCenterY = isInlineIcon ? firstLineCenterY : label.y
     const icon =
         label.icon && label.isIconVisible ? (
             <>
-                <circle
-                    className="sankey__label-icon-backing"
-                    cx={iconX + 0.5 * SANKEY_ICON_SIZE}
-                    cy={label.y}
-                    r={0.5 * SANKEY_ICON_SIZE + ICON_BACKING_PADDING}
-                />
+                {/* A badge sits on a white disc so it stays legible over
+                    the ribbons */}
+                {!isInlineIcon && (
+                    <circle
+                        className="sankey__label-icon-backing"
+                        cx={iconX + 0.5 * iconSize}
+                        cy={iconCenterY}
+                        r={0.5 * iconSize + ICON_BACKING_PADDING}
+                    />
+                )}
                 <svg
                     className="sankey__label-icon"
                     x={iconX}
-                    y={iconY}
-                    width={SANKEY_ICON_SIZE}
-                    height={SANKEY_ICON_SIZE}
+                    y={iconCenterY - 0.5 * iconSize}
+                    width={iconSize}
+                    height={iconSize}
                     viewBox={`0 0 ${SANKEY_ICON_SIZE} ${SANKEY_ICON_SIZE}`}
                 >
                     {label.icon}
@@ -902,7 +929,7 @@ function SankeyLabel({
     ]
     let lineTop = label.y - 0.5 * getLabelTextHeight(label)
 
-    const directionToBand = isTextAnchoredAtEnd ? 1 : -1
+    const directionToBand = -directionAway
 
     return (
         <g className={className}>
@@ -1002,7 +1029,8 @@ function placeSankeyLabels({
     if (!layout) return []
 
     return layout.nodes.flatMap((node) => {
-        const { label, valueLabel, annotation, icon, labelColor } = node
+        const { label, valueLabel, annotation, icon, iconStyle, labelColor } =
+            node
 
         const x0 = node.x0 ?? 0
         const x1 = node.x1 ?? 0
@@ -1021,7 +1049,9 @@ function placeSankeyLabels({
 
         // Hide icons that would overlap adjacent labels, but preserve their text offset.
         const nodeHeightWithPadding = nodeHeight + nodePadding
-        const isIconVisible = nodeHeightWithPadding >= SANKEY_ICON_SIZE
+        const isIconVisible =
+            nodeHeightWithPadding >=
+            (iconStyle === "inline" ? INLINE_ICON_SIZE : SANKEY_ICON_SIZE)
 
         const labelTextWrap = new TextWrap({
             ...fontSettings,
@@ -1080,6 +1110,7 @@ function placeSankeyLabels({
                         ? annotationTextWrap
                         : undefined,
                     icon,
+                    iconStyle,
                     labelColor,
                     isIconVisible,
                 },
@@ -1094,6 +1125,7 @@ function placeSankeyLabels({
                     side,
                     label: labelTextWrap,
                     icon,
+                    iconStyle,
                     labelColor,
                     isIconVisible,
                 },
@@ -1170,6 +1202,7 @@ function toNodeData(node: LaidOutNode): SankeyNode {
         annotation: node.annotation,
         annotationFontSize: node.annotationFontSize,
         icon: node.icon,
+        iconStyle: node.iconStyle,
         labelColor: node.labelColor,
     }
 }
@@ -1198,13 +1231,24 @@ export function measureMaxLabelWidthForNode(
                           node.annotationFontSize ?? fontSettings.fontSize,
                   })
                 : 0
-        ) + getIconLabelOffset(node)
+        ) + getIconWidth(node)
     )
 }
 
-/** Horizontal space an icon takes up ahead of its label text, if any */
-function getIconLabelOffset(node: { icon?: React.ReactNode }): number {
-    return node.icon ? SANKEY_ICON_SIZE + SANKEY_ICON_TEXT_GAP : 0
+type IconOwner = { icon?: React.ReactNode; iconStyle?: SankeyIconStyle }
+
+/** Horizontal space a badge takes up between the band and the label text;
+ *  an inline icon goes on the text's far side, so it takes up none */
+function getIconLabelOffset(node: IconOwner): number {
+    return node.icon && node.iconStyle !== "inline" ? getIconWidth(node) : 0
+}
+
+/** Horizontal space an icon adds to its label, gap included */
+function getIconWidth(node: IconOwner): number {
+    if (!node.icon) return 0
+    return node.iconStyle === "inline"
+        ? INLINE_ICON_SIZE + INLINE_ICON_TEXT_GAP
+        : SANKEY_ICON_SIZE + SANKEY_ICON_TEXT_GAP
 }
 
 function textWidth(text: string, fontSettings: FontSettings): number {
@@ -1265,10 +1309,10 @@ function calculateNodeHitBounds(
             label.label.width,
             label.valueLabel?.width ?? 0,
             label.annotation?.width ?? 0
-        ) + getIconLabelOffset(label)
+        ) + getIconWidth(label)
     const textHeight = getLabelTextHeight(label)
     const height =
-        label.icon && label.isIconVisible
+        label.icon && label.isIconVisible && label.iconStyle !== "inline"
             ? Math.max(textHeight, SANKEY_ICON_SIZE)
             : textHeight
 
