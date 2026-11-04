@@ -397,6 +397,9 @@ export interface AxisConfigInterface {
      * no tick. Defaults to false.
      */
     isDomainEndExclusive?: boolean
+
+    /** Shorten the log-scale notice in the axis label to "log axis" */
+    shortenLabelLogNotice?: boolean
 }
 
 export interface VerticalComparisonLineConfig {

@@ -673,7 +673,9 @@ abstract class AbstractAxis {
             markdown: true,
         }
 
-        const logScaleNotice = "plotted on a logarithmic axis"
+        const logScaleNotice = this.config.shortenLabelLogNotice
+            ? "log axis"
+            : "plotted on a logarithmic axis"
 
         if (axisLabel.unit) {
             const secondaryText = this.isLogScale
