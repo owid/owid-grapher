@@ -31,7 +31,7 @@ export type StrategyId =
     | "rankPercentiles"
     | "naturalBreaksClosest"
     | "naturalBreaksPopulous"
-    | "movers"
+    | "largestChange"
     | "dataRange"
 
 export const STRATEGIES: {
@@ -103,8 +103,8 @@ export const STRATEGIES: {
         isSetApart: true,
     },
     {
-        id: "movers",
-        name: "Biggest movers",
+        id: "largestChange",
+        name: "Largest change",
         description:
             "Largest and smallest change since the year by which half the countries have data, from countries with at least 1 million people",
         isSetApart: true,
@@ -459,8 +459,8 @@ async function pickWithStrategy({
                         ? "closestToMean"
                         : "mostPopulous",
             })
-        case "movers":
-            return findBiggestMovers({
+        case "largestChange":
+            return findLargestChanges({
                 changes: dropSmallCountries(
                     findCandidateValues(findChanges(grapherState), budget),
                     population
@@ -860,7 +860,7 @@ function findRankPercentilePeers({
 }
 
 /** Half the budget for the largest changes, half for the smallest */
-function findBiggestMovers({
+function findLargestChanges({
     changes,
     budget,
 }: {

@@ -99,6 +99,9 @@ const CHART_TYPE_GROUPS: { label: string; chartTypes: string[] }[] = [
 
 const CHART_TYPES: string[] = CHART_TYPE_GROUPS.flatMap((g) => g.chartTypes)
 
+/** The strategy the key-charts block thumbnails use */
+const CHOSEN_STRATEGY: StrategyId = "evenPopulous"
+
 const ENTITY_BUDGET: Partial<Record<string, number>> = {
     [GRAPHER_TAB_NAMES.LineChart]: 4,
     [GRAPHER_TAB_NAMES.SlopeChart]: 4,
@@ -248,6 +251,9 @@ function ThumbnailStrategyTestPage({
                             >
                                 <strong>{s.name}</strong>
                                 <small>{s.description}</small>
+                                {s.id === CHOSEN_STRATEGY && (
+                                    <span className="chosen-badge">Chosen</span>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -727,6 +733,7 @@ main { padding: 12px 16px 48px; width: max-content; }
 .summary .set-apart { color: #8a96a3; }
 .summary th, .summary td { padding: 3px 12px 3px 0; text-align: left; border-bottom: 1px solid #dde2e8; }
 .column-head { padding: 6px 0 10px; }
+.chosen-badge { display: inline-block; margin-top: 4px; padding: 1px 6px; border-radius: 3px; background: #002147; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
 .column-head strong { display: block; }
 .column-head small, .row-label small { display: block; color: #5b6878; font-size: 12px; }
 .row-label a { color: #1d3d63; font-weight: 700; word-break: break-word; text-decoration: none; }
