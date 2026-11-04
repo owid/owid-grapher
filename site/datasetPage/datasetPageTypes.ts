@@ -43,9 +43,14 @@ export interface DatasetSource {
     producer: string
     year: number
     url: string
+    /** Simple markdown */
     description: string
     citation: string
+    /** ISO dates, e.g. "2026-04-21" */
+    datePublished?: string
     dateAccessed?: string
+    /** Link to download the source's original data, if available */
+    downloadUrl?: string
 }
 
 export interface DatasetChangelogEntry {

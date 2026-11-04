@@ -760,15 +760,32 @@ function RelatedResearchSection({ dataset }: { dataset: DatasetPageData }) {
 // ---------------------------------------------------------------------------
 // Sources, processing, changelog
 
+/** "2026-04-21" -> "2026/04/21", as in the design */
+function formatSourceDate(isoDate: string): string {
+    return isoDate.replaceAll("-", "/")
+}
+
 function SourceDetails({ source }: { source: DatasetSource }) {
     return (
         <div className="dataset-page__details">
-            <p className="dataset-page__details-text">{source.description}</p>
-            <dl className="dataset-page__details-grid">
+            <div className="dataset-page__details-text">
+                <SimpleMarkdownText text={source.description} />
+            </div>
+            <dl className="dataset-page__source-grid">
+                <div>
+                    <dt>Producer</dt>
+                    <dd>{source.producer}</dd>
+                </div>
+                {source.datePublished && (
+                    <div>
+                        <dt>Published</dt>
+                        <dd>{formatSourceDate(source.datePublished)}</dd>
+                    </div>
+                )}
                 {source.dateAccessed && (
                     <div>
                         <dt>Retrieved on</dt>
-                        <dd>{source.dateAccessed}</dd>
+                        <dd>{formatSourceDate(source.dateAccessed)}</dd>
                     </div>
                 )}
                 <div>
@@ -777,11 +794,21 @@ function SourceDetails({ source }: { source: DatasetSource }) {
                         <a href={source.url}>{source.url}</a>
                     </dd>
                 </div>
-                <div>
+                <div className="dataset-page__source-grid-full">
                     <dt>Citation</dt>
                     <dd>{source.citation}</dd>
                 </div>
             </dl>
+            {source.downloadUrl && (
+                <a
+                    className="dataset-page__source-download"
+                    href={source.downloadUrl}
+                    data-track-note="dataset_page_source_download"
+                >
+                    <FontAwesomeIcon icon={faDownload} />
+                    Download
+                </a>
+            )}
         </div>
     )
 }

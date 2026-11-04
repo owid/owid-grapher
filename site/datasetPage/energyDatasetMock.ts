@@ -375,17 +375,23 @@ const sources: DatasetSource[] = [
             "The Energy Institute Statistical Review of World Energy analyses data on world energy markets from the prior year. It provides data on primary energy, fossil fuel production, and electricity generation for most countries since 1965.",
         citation:
             "Energy Institute - Statistical Review of World Energy (2026).",
+        datePublished: "2026-06-25",
         dateAccessed: "2026-06-26",
+        downloadUrl:
+            "https://www.energyinst.org/statistical-review/resources-and-data-downloads",
     },
     {
         title: EMBER_EUROPE,
         producer: "Ember",
         year: 2026,
-        url: "https://ember-energy.org/data/european-electricity-data/",
+        url: "https://ember-energy.org/data/yearly-electricity-data/",
         description:
-            "Ember's European electricity data includes monthly and yearly generation, demand, and emissions data for European countries.",
-        citation: "Ember - European Electricity Review (2026).",
-        dateAccessed: "2026-01-12",
+            "This dataset contains yearly electricity generation, capacity, emissions, imports and demand data for European countries.  \nYou can find more about Ember's methodology in [this document](https://ember-energy.org/app/uploads/2022/07/GER-Methodology.pdf).",
+        citation:
+            "Ember – Yearly Electricity Data Europe (2026). Most of the data is taken from the European Commission's Eurostat annual data.",
+        datePublished: "2026-04-21",
+        dateAccessed: "2026-04-24",
+        downloadUrl: "https://ember-energy.org/data/european-electricity-data/",
     },
     {
         title: EMBER,
@@ -395,7 +401,9 @@ const sources: DatasetSource[] = [
         description:
             "Ember's yearly electricity data covers electricity generation, capacity, demand, imports, and emissions for over 200 geographies.",
         citation: "Ember - Yearly Electricity Data (2026).",
+        datePublished: "2026-04-10",
         dateAccessed: "2026-04-15",
+        downloadUrl: "https://ember-energy.org/data/yearly-electricity-data/",
     },
     {
         title: SMIL,
@@ -446,7 +454,9 @@ const sources: DatasetSource[] = [
             "International energy statistics covering production, consumption, imports, and exports for all countries.",
         citation:
             "U.S. Energy Information Administration (2026). International Energy Data.",
+        datePublished: "2026-02-20",
         dateAccessed: "2026-03-02",
+        downloadUrl: "https://www.eia.gov/international/data/world",
     },
     {
         title: "Etemad & Luciani – World Energy Production 1800–1985 (1991)",
