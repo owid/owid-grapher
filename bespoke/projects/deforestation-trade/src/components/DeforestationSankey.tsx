@@ -44,6 +44,7 @@ import {
     getGroupColor,
     getGroupDescription,
     getGroupLabel,
+    getGroupLabelColor,
     getGroupSentenceLabel,
     GroupIcon,
     renderGroupIcon,
@@ -170,9 +171,12 @@ function DeforestationSankeyContent({
                     }
                 const group = getGroupFromNodeId(node.id)
                 if (group === undefined) return node
-                if (node.label === "" && !isNarrow) return node
+                const labelColor = getGroupLabelColor(group)
+                if (node.label === "" && !isNarrow)
+                    return { ...node, labelColor }
                 return {
                     ...node,
+                    labelColor,
                     icon: renderGroupIcon(group, getGroupColor(group)),
                 }
             }),

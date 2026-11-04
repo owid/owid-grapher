@@ -141,6 +141,9 @@ export type SankeyNode = {
     annotationFontSize?: number
     /** SVG content for a `0 0 16 16` viewBox, placed between the band and label. */
     icon?: React.ReactNode
+    /** Colour of the label and value text. A coloured middle-column label
+     *  drops the white halo: its colour is meant to read against the ribbon. */
+    labelColor?: string
 }
 
 export type SankeyLink = {
@@ -166,6 +169,7 @@ type PlacedSankeyLabel = {
     valueLabel?: TextWrap
     annotation?: TextWrap
     icon?: React.ReactNode
+    labelColor?: string
     /** Hidden icons still reserve horizontal space to keep labels aligned. */
     isIconVisible: boolean
 }
@@ -837,6 +841,7 @@ function SankeyLabel({
 }): React.ReactElement {
     const className = cx("sankey__label", {
         "sankey__label--inner": label.side === "middle",
+        "sankey__label--colored": label.labelColor !== undefined,
         "sankey__label--hovered": isHovered,
         "sankey__label--active": isActive,
         "sankey__label--anchored": isAnchored,
@@ -876,9 +881,14 @@ function SankeyLabel({
 
     // The label's lines stack, centred as a block on the node
     const lines = [
-        { textWrap: label.label, fill: GRAPHER_DARK_TEXT },
+        { textWrap: label.label, fill: label.labelColor ?? GRAPHER_DARK_TEXT },
         ...(label.valueLabel
-            ? [{ textWrap: label.valueLabel, fill: GRAPHER_LIGHT_TEXT }]
+            ? [
+                  {
+                      textWrap: label.valueLabel,
+                      fill: label.labelColor ?? GRAPHER_LIGHT_TEXT,
+                  },
+              ]
             : []),
         ...(label.annotation
             ? [
@@ -992,7 +1002,7 @@ function placeSankeyLabels({
     if (!layout) return []
 
     return layout.nodes.flatMap((node) => {
-        const { label, valueLabel, annotation, icon } = node
+        const { label, valueLabel, annotation, icon, labelColor } = node
 
         const x0 = node.x0 ?? 0
         const x1 = node.x1 ?? 0
@@ -1070,6 +1080,7 @@ function placeSankeyLabels({
                         ? annotationTextWrap
                         : undefined,
                     icon,
+                    labelColor,
                     isIconVisible,
                 },
             ]
@@ -1083,6 +1094,7 @@ function placeSankeyLabels({
                     side,
                     label: labelTextWrap,
                     icon,
+                    labelColor,
                     isIconVisible,
                 },
             ]
@@ -1158,6 +1170,7 @@ function toNodeData(node: LaidOutNode): SankeyNode {
         annotation: node.annotation,
         annotationFontSize: node.annotationFontSize,
         icon: node.icon,
+        labelColor: node.labelColor,
     }
 }
 

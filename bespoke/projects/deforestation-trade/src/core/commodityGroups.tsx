@@ -31,6 +31,10 @@ export const COMMODITY_GROUPS: Record<
          *  first (worldwide, 2023); shown in the group's tooltip */
         description: string
         color: string
+        /** A dark shade of `color` for the group's label, which sits on
+         *  the group's ribbon: dark enough to pass WCAG AA (4.5:1) against
+         *  the ribbon's translucent fill, so it needs no white halo */
+        labelColor: string
         icon: IconDefinition
     }
 > = {
@@ -40,6 +44,7 @@ export const COMMODITY_GROUPS: Record<
         description:
             "Forest cleared to grow grain crops, mainly rice and corn, but also barley, wheat, sorghum and millet.",
         color: OwidDistinctColors.Camel,
+        labelColor: "#6f4414",
         icon: faWheatAwn,
     },
     "Edible roots and tubers with high starch or inulin content": {
@@ -48,6 +53,7 @@ export const COMMODITY_GROUPS: Record<
         description:
             "Forest cleared to grow starchy root crops, mostly cassava, but also yams, potatoes, sweet potatoes and taro.",
         color: OwidDistinctColors.Copper,
+        labelColor: "#6e2900",
         icon: faLeaf,
     },
     "Fibre crops": {
@@ -56,6 +62,7 @@ export const COMMODITY_GROUPS: Record<
         description:
             "Forest cleared to grow crops used as materials rather than food, mostly rubber trees and cotton, but also tobacco, sisal and jute.",
         color: OwidDistinctColors.Teal,
+        labelColor: "#004642",
         icon: faShirt,
     },
     "Fruit and nuts": {
@@ -64,6 +71,7 @@ export const COMMODITY_GROUPS: Record<
         description:
             "Forest cleared to grow fruit and nut trees, such as plantains, cashews and bananas, but also guavas, mangoes and avocados.",
         color: OwidDistinctColors.OliveGreen,
+        labelColor: "#0e2e00",
         icon: faAppleWhole,
     },
     "Oilseeds and oleaginous fruits": {
@@ -72,6 +80,7 @@ export const COMMODITY_GROUPS: Record<
         description:
             "Forest cleared to grow crops for vegetable oil and animal feed, mainly soybeans and oil palms, but also sunflowers, peanuts, rapeseed and coconuts.",
         color: OwidDistinctColors.RustyOrange,
+        labelColor: "#5d1900",
         icon: faBottleDroplet,
     },
     Pasture: {
@@ -80,6 +89,7 @@ export const COMMODITY_GROUPS: Record<
         description:
             "Forest cleared to create pasture for grazing cattle, raised for beef.",
         color: OwidDistinctColors.Maroon,
+        labelColor: "#560c14",
         icon: faCow,
     },
     "Pulses (dried leguminous vegetables)": {
@@ -88,6 +98,7 @@ export const COMMODITY_GROUPS: Record<
         description:
             "Forest cleared to grow beans and other legumes that are sold dried, mainly common beans and cowpeas, but also chickpeas, pigeon peas and lentils.",
         color: OwidDistinctColors.DarkOliveGreen,
+        labelColor: "#002a00",
         icon: faBowlRice,
     },
     "Stimulant, spice and aromatic crops": {
@@ -96,6 +107,7 @@ export const COMMODITY_GROUPS: Record<
         description:
             "Forest cleared to grow cocoa and coffee, but also tea, maté, and spices such as nutmeg, cardamom and cinnamon.",
         color: OwidDistinctColors.Purple,
+        labelColor: "#431766",
         icon: faMugHot,
     },
     Vegetables: {
@@ -104,6 +116,7 @@ export const COMMODITY_GROUPS: Record<
         description:
             "Forest cleared to grow vegetables, such as okra, onions and tomatoes, but also peppers, sweet corn and pumpkins.",
         color: OwidDistinctColors.Lime,
+        labelColor: "#004e00",
         icon: faCarrot,
     },
 }
@@ -127,6 +140,10 @@ export function getGroupSentenceLabel(name: string): string {
 
 export function getGroupColor(name: string): string {
     return COMMODITY_GROUPS[name]?.color ?? FALLBACK_COLOR
+}
+
+export function getGroupLabelColor(name: string): string | undefined {
+    return COMMODITY_GROUPS[name]?.labelColor
 }
 
 export function getGroupIcon(name: string): IconDefinition {
