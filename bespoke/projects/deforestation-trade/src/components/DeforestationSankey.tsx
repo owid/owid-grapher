@@ -44,7 +44,6 @@ import {
     getGroupColor,
     getGroupDescription,
     getGroupLabel,
-    getGroupHighlightedLabelColor,
     getGroupLabelColor,
     getGroupSentenceLabel,
     GROUP_ICON_SIZE,
@@ -82,6 +81,9 @@ const TOOLTIP_BADGE_GLYPH_SIZE = 16
 /** The commodity column's bands are as thin as the outer ones, with a sliver
  *  of white on either side to keep them light */
 const COMMODITY_BAND = { width: 4, gap: 1 }
+
+/** A commodity's label while its ribbon is highlighted, and so opaque */
+const HIGHLIGHTED_LABEL_COLOR = "#fff"
 
 /** Links below this share of the chart's total are drawn extra faint */
 const LINK_LOW_VOLUME_THRESHOLD = 0.005
@@ -196,8 +198,7 @@ function DeforestationSankeyContent({
                     : {
                           ...node,
                           labelColor,
-                          highlightedLabelColor:
-                              getGroupHighlightedLabelColor(group),
+                          highlightedLabelColor: HIGHLIGHTED_LABEL_COLOR,
                           // Drawn in the label's colour, whichever it is
                           icon: renderGroupIcon(group, "currentColor", {
                               glyphSize: GROUP_ICON_SIZE,
