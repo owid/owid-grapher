@@ -119,8 +119,8 @@ interface SankeyProps {
     middleLabelSide?: "left" | "right"
     /**
      * Only show a middle node's label where it fits on the node's own ribbons
-     * on its side; where it doesn't, fall back to showing just its icon, if
-     * that fits, or nothing. For labels drawn in a colour that only reads
+     * on its side; where it doesn't, fall back to its name without the value
+     * line, then to just its icon, then to nothing, whichever fits first. For labels drawn in a colour that only reads
      * against their ribbon.
      */
     fitMiddleLabelsToRibbons?: boolean
@@ -1176,6 +1176,18 @@ function placeSankeyLabels({
         if (isBoxCoveredByRibbons(getLabelBounds(placed), ribbons))
             return [placed]
 
+        // Next best: the name without its value
+        const nameOnly: PlacedSankeyLabel = {
+            ...placed,
+            valueLabel: undefined,
+            annotation: undefined,
+        }
+        if (
+            (placed.valueLabel || placed.annotation) &&
+            isBoxCoveredByRibbons(getLabelBounds(nameOnly), ribbons)
+        )
+            return [nameOnly]
+
         const iconOnly: PlacedSankeyLabel = {
             ...placed,
             valueLabel: undefined,
@@ -1505,10 +1517,14 @@ function getLabelBounds(label: PlacedSankeyLabel): Bounds {
             label.annotation?.width ?? 0
         ) + getIconWidth(label)
     const textHeight = getLabelTextHeight(label)
-    const height =
-        label.icon && label.isIconVisible && label.iconStyle !== "inline"
-            ? Math.max(textHeight, SANKEY_ICON_SIZE)
-            : textHeight
+    const hasIcon = label.icon && label.isIconVisible
+    // A badge is centred on the label; an inline icon on its first line,
+    // past whose top and bottom it may reach
+    const height = !hasIcon
+        ? textHeight
+        : label.iconStyle === "inline"
+          ? textHeight + Math.max(0, INLINE_ICON_SIZE - label.label.height)
+          : Math.max(textHeight, SANKEY_ICON_SIZE)
 
     const labelX = label.textAnchor === "end" ? label.x - width : label.x
     return new Bounds(labelX, label.y - height / 2, width, height)
