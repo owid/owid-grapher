@@ -10,19 +10,11 @@ import {
     GeoPermissibleObjects,
 } from "d3-geo"
 import { Quadtree, quadtree } from "d3-quadtree"
-import { select } from "d3-selection"
-import { zoom } from "d3-zoom"
-// @ts-expect-error no types available
-import versor from "versor"
 import {
     Bounds,
     EntityName,
     MapRegionName,
-    PointVector,
-    checkIsTouchEvent,
     excludeUndefined,
-    getRelativeMouse,
-    isTouchDevice,
     makeFigmaId,
     roundForSvg,
 } from "@ourworldindata/utils"
@@ -48,6 +40,13 @@ import {
     SVGMouseEvent,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
+import { attachPanAndZoomGesture, Position } from "./PanAndZoomGesture"
+import {
+    dragGlobe,
+    GlobeDrag,
+    GlobeRotation,
+    startGlobeDrag,
+} from "./GlobePanning"
 import { getGeoFeaturesForGlobe } from "./GeoFeatures"
 import {
     BackgroundCountry,
@@ -61,7 +60,6 @@ import {
 } from "./MapComponents"
 import { Patterns, makePatternId } from "../core/GrapherConstants"
 import {
-    calculateDistance,
     detectNearbyFeature,
     isPointPlacedOnVisibleHemisphere,
     sortFeaturesByInteractionStateAndSize,
@@ -90,6 +88,7 @@ export class ChoroplethGlobe extends React.Component<{
     private hoverNearbyFeature: GlobeRenderFeature | undefined = undefined
 
     private isPanningOrZooming = false
+    private detachPanAndZoomGesture: (() => void) | undefined = undefined
 
     constructor(props: { manager: ChoroplethMapManager }) {
         super(props)
@@ -101,10 +100,6 @@ export class ChoroplethGlobe extends React.Component<{
             hoverEnterFeature: observable,
             hoverNearbyFeature: observable,
         })
-    }
-
-    @computed private get isTouchDevice(): boolean {
-        return isTouchDevice()
     }
 
     @computed private get manager(): ChoroplethMapManager {
@@ -235,14 +230,6 @@ export class ChoroplethGlobe extends React.Component<{
 
     private computeProjectionScale(zoomScale: number): number {
         return zoomScale * DEFAULT_SCALE * (this.globeSize / DEFAULT_GLOBE_SIZE)
-    }
-
-    @computed private get minScale(): number {
-        return this.computeProjectionScale(GLOBE_MIN_ZOOM)
-    }
-
-    @computed private get maxScale(): number {
-        return this.computeProjectionScale(GLOBE_MAX_ZOOM)
     }
 
     @computed private get globeScale(): number {
@@ -401,13 +388,13 @@ export class ChoroplethGlobe extends React.Component<{
         })
     }
 
-    @action.bound private rotateGlobe(targetCoords: [number, number]): void {
+    @action.bound private rotateGlobe(rotation: GlobeRotation): void {
         this.mapConfig.globe.rotation = [
-            -targetCoords[0],
+            -rotation[0],
             // Clamping the latitude to [-90, 90] would allow rotation up to the poles.
             // However, the panning strategy used doesn't work well around the poles.
             // That's why we clamp the latitude to a narrower range.
-            -R.clamp(targetCoords[1], {
+            -R.clamp(rotation[1], {
                 min: GLOBE_LATITUDE_MIN,
                 max: GLOBE_LATITUDE_MAX,
             }),
@@ -514,171 +501,38 @@ export class ChoroplethGlobe extends React.Component<{
         const base = this.base.current
         if (!base) return
 
-        // Possible interaction types are
-        // - zoom-scroll: zooming by scrolling via the wheel event
-        // - zoom-pinch: zooming by pinching using two fingers on touch devices
-        // - pan: panning by dragging the mouse or using a finger on touch devices
-        type InteractionType = "zoom-scroll" | "zoom-pinch" | "pan"
+        let drag: GlobeDrag | undefined
 
-        // Panning and zooming are powered by D3.
-        //
-        // Panning is adapted from https://observablehq.com/d/569d101dd5bd332b.
-        // The strategy ensures the geographic start point remains under the cursor
-        // where possible. See https://www.jasondavies.com/maps/rotate/ for more
-        // details.
-        //
-        // We could rely on D3's event.transform.k for zooming, but the
-        // transform value might be out of sync with the actual zoom level if
-        // the zoom level was changed elsewhere (e.g. by automatically zooming
-        // in on a country). That's why we compute the target zoom level ourselves.
-
-        const panAndZoom = (): any => {
-            let previousType: InteractionType | undefined
-
-            // for panning
-            let startCoords: [number, number, number],
-                startQuat: [number, number, number, number],
-                startRot: [number, number, number],
-                previousPos: [number, number]
-
-            // for zooming
-            let startDistance: number | undefined
-
-            const getInteractionType = (event: any): InteractionType => {
-                if (event.sourceEvent.type === "wheel") return "zoom-scroll"
-                if (isMultiTouchEvent(event.sourceEvent)) return "zoom-pinch"
-                return "pan"
-            }
-
-            const panningOrZoomingStart = (event: any): void => {
-                const type = getInteractionType(event)
-
-                const startPinching = (): void => {
-                    startDistance = calculatePinchDistance(event.sourceEvent)
-                }
-
-                const startPanning = (): void => {
-                    const posVector = getRelativeMouse(base, event.sourceEvent)
-                    const pos: [number, number] = [posVector.x, posVector.y]
-
-                    startCoords = versor.cartesian(this.projection.invert(pos))
-                    startRot = this.projection.rotate()
-                    startQuat = versor(startRot)
-                    previousPos = pos
-                }
-
-                if (type === "zoom-pinch") startPinching()
-                else if (type === "pan") startPanning()
-
-                previousType = type
-            }
-
-            const panningOrZooming = action((event: any): void => {
-                this.isPanningOrZooming = true
-
-                this.clearHover() // dismiss the tooltip
-                this.mapConfig.region = MapRegionName.World // reset region
-
-                const wheeling = (): void => {
-                    this.zoomGlobe(-event.sourceEvent.deltaY)
-                }
-
-                const pinching = (): void => {
-                    const distance = calculatePinchDistance(event.sourceEvent)
-
-                    if (!startDistance) {
-                        startDistance = distance
-                        return
-                    }
-
-                    const delta = distance - startDistance
-
-                    // We sometimes get two events for the same pinch gesture,
-                    // with one of the events having a delta of 0. We simply
-                    // ignore the delta-0 events. This fixes a bug where the
-                    // rendered SVG country paths would interfere with the
-                    // pinch-to-zoom gesture.
-                    if (delta === 0) return
-
-                    this.zoomGlobe(delta)
-                    startDistance = distance
-                }
-
-                const panning = (): void => {
-                    const posVector = getRelativeMouse(base, event.sourceEvent)
-                    const pos: [number, number] = [posVector.x, posVector.y]
-
-                    // True if the cursor is currently over the globe
-                    const isDraggingGlobe = isPointInCircle(posVector, {
-                        cx: this.globeCenter[0],
-                        cy: this.globeCenter[1],
-                        r: this.globeRadius,
-                    })
-
-                    if (isDraggingGlobe) {
-                        // If the user is dragging the globe, then use a
-                        // rotation strategy that ensures the geographic start
-                        // point remains under the cursor where possible
-
-                        const currCoords = versor.cartesian(
-                            this.projection.rotate(startRot).invert(pos)
-                        )
-                        const delta = versor.delta(startCoords, currCoords)
-                        const quat = versor.multiply(startQuat, delta)
-                        const rotation = versor.rotation(quat)
-
-                        // Ignore the gamma channel for more intuitive rotation
-                        // see https://observablehq.com/@d3/three-axis-rotation
-                        // for a visual explanation of three-axis rotation.
-                        // As a side effect, rotation around the poles feels off.
-                        this.rotateGlobe([rotation[0], rotation[1]])
-                    } else {
-                        // If the user's cursor is outside of the globe, then
-                        // adjust the globe's rotation based on the cursor's
-                        // movement, applying a sensitivity factor to control
-                        // the speed of rotation
-
-                        const sensitivity = 0.8
-                        const r = this.globeRotation
-                        const dx = pos[0] - previousPos[0]
-                        const dy = pos[1] - previousPos[1]
-                        this.rotateGlobe([
-                            r[0] + sensitivity * dx,
-                            r[1] - sensitivity * dy,
-                        ])
-                    }
-
-                    previousPos = pos
-                }
-
-                const type = getInteractionType(event)
-
-                // bail if a zoom-pinch gesture turned into a pan
-                // because this might lead to erratic jumps
-                if (previousType === "zoom-pinch" && type === "pan") return
-
-                if (type === "zoom-scroll") wheeling()
-                else if (type === "zoom-pinch") pinching()
-                else if (type === "pan") panning()
-
-                previousType = type
-            })
-
-            const panningOrZoomingEnd = (): void => {
-                this.isPanningOrZooming = false
-                startDistance = undefined
-                previousType = undefined
-            }
-
-            return zoom()
-                .scaleExtent([this.minScale, this.maxScale])
-                .touchable(() => this.isTouchDevice)
-                .on("start", panningOrZoomingStart)
-                .on("zoom", panningOrZooming)
-                .on("end", panningOrZoomingEnd)
+        const onInteraction = (): void => {
+            this.isPanningOrZooming = true
+            this.clearHover() // dismiss the tooltip
+            this.mapConfig.region = MapRegionName.World // reset region
         }
 
-        select(base).call(panAndZoom())
+        this.detachPanAndZoomGesture?.()
+        this.detachPanAndZoomGesture = attachPanAndZoomGesture(base, {
+            onPanStart: (position) => {
+                drag = startGlobeDrag(this.projection, position)
+            },
+            onPan: action((position: Position) => {
+                onInteraction()
+                if (!drag) return
+                const result = dragGlobe(this.projection, drag, position, {
+                    center: this.globeCenter,
+                    radius: this.globeRadius,
+                })
+                drag = result.drag
+                this.rotateGlobe(result.rotation)
+            }),
+            onZoom: action((delta: number) => {
+                onInteraction()
+                this.zoomGlobe(delta)
+            }),
+            onEnd: () => {
+                this.isPanningOrZooming = false
+                drag = undefined
+            },
+        })
     }
 
     override componentDidMount(): void {
@@ -696,6 +550,7 @@ export class ChoroplethGlobe extends React.Component<{
 
     override componentWillUnmount(): void {
         document.removeEventListener("pointerdown", this.onDocumentPointerDown)
+        this.detachPanAndZoomGesture?.()
     }
 
     renderGlobeOutline(): React.ReactElement {
@@ -956,8 +811,10 @@ export class ChoroplethGlobe extends React.Component<{
                 }}
                 style={{
                     cursor: this.hoverFeature ? "pointer" : undefined,
-                    // Remove the 300ms delay on click events and double-tap-to-zoom for touch devices
-                    touchAction: "manipulation",
+                    // Touch gestures on the globe pan and zoom it instead of
+                    // scrolling or zooming the page. This also removes the
+                    // 300ms click delay on touch devices.
+                    touchAction: "none",
                 }}
             >
                 {this.renderGlobeOutline()}
@@ -979,31 +836,4 @@ export class ChoroplethGlobe extends React.Component<{
             ? this.renderStatic()
             : this.renderInteractive()
     }
-}
-
-const isMultiTouchEvent = (
-    event: MouseEvent | TouchEvent
-): event is TouchEvent => {
-    return checkIsTouchEvent(event) && event.touches.length >= 2
-}
-
-const calculatePinchDistance = (event: TouchEvent): number => {
-    const { touches } = event
-    return calculateDistance(
-        [touches[0].clientX, touches[0].clientY],
-        [touches[1].clientX, touches[1].clientY]
-    )
-}
-
-function isPointInCircle(
-    point: PointVector,
-    circle: { cx: number; cy: number; r: number }
-): boolean {
-    const { x, y } = point
-    const { cx, cy, r } = circle
-
-    const distanceSquared = (x - cx) ** 2 + (y - cy) ** 2
-    const radiusSquared = r ** 2
-
-    return distanceSquared <= radiusSquared
 }
