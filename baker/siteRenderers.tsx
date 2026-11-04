@@ -9,6 +9,8 @@ import { DonatePage } from "../site/DonatePage.js"
 import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
 import { SubscribePage } from "../site/SubscribePage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
+import { DatasetPage } from "../site/datasetPage/DatasetPage.js"
+import { MOCK_DATASETS } from "../site/datasetPage/energyDatasetMock.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import ReactDOMServer from "react-dom/server"
@@ -534,6 +536,18 @@ export const renderExplorerIndexPage = async (
 
     return renderToHtmlPage(
         <ExplorerIndexPage baseUrl={BAKED_BASE_URL} explorers={explorers} />
+    )
+}
+
+/**
+ * Prototype: renders a dataset page from mock data. Returns undefined if
+ * there's no mock dataset with that slug.
+ */
+export const renderDatasetPage = (slug: string): string | undefined => {
+    const dataset = MOCK_DATASETS[slug]
+    if (!dataset) return undefined
+    return renderToHtmlPage(
+        <DatasetPage dataset={dataset} baseUrl={BAKED_BASE_URL} />
     )
 }
 
