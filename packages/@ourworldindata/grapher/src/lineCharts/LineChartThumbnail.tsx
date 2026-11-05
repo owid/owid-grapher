@@ -47,7 +47,10 @@ import {
     HorizontalAxisDomainLine,
     VerticalAxisZeroLine,
 } from "../axis/AxisViews"
-import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsTypes"
+import {
+    InitialAnchoredLabelSeries,
+    PlacedAnchoredLabelSeries,
+} from "../anchoredLabels/AnchoredLabelsTypes"
 import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
 import { darkenColorForLine } from "../color/ColorUtils.js"
@@ -94,9 +97,16 @@ export class LineChartThumbnail
         return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
+    @computed private get verticallyPaddedBounds(): Bounds {
+        const { verticalPlotPadding = 0 } = this.manager
+        return this.bounds
+            .padTop(verticalPlotPadding)
+            .padBottom(verticalPlotPadding)
+    }
+
     @computed private get innerBounds(): Bounds {
         const { left, right } = this.effectiveLabelWidths
-        return this.bounds
+        return this.verticallyPaddedBounds
             .padRight(right > 0 ? right + this.labelPadding : 0)
             .padLeft(left > 0 ? left + this.labelPadding : 0)
     }
@@ -320,7 +330,9 @@ export class LineChartThumbnail
                 if (!endPoint) return undefined
 
                 const value = endPoint.y
-                const label = this.formatLabel(value)
+                const label = this.manager.useNameLabelsOnly
+                    ? series.displayName
+                    : this.formatLabel(value)
 
                 const color = this.chartState.hasColorScale
                     ? darkenColorForLine(
@@ -361,6 +373,7 @@ export class LineChartThumbnail
 
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
+            maxWidth: this.endLabelsMaxWidth,
             textAnchor: "start",
             yRange: this.labelsRange,
             labelPadding: this.labelPadding,
@@ -376,6 +389,11 @@ export class LineChartThumbnail
                 return xB - xA
             },
         })
+    }
+
+    /** End labels that survive layout, each with the point it labels */
+    @computed get placedEndLabels(): PlacedAnchoredLabelSeries[] {
+        return this.endLabelsState?.series ?? []
     }
 
     @computed private get endLabelsState(): AnchoredLabelsState | undefined {
@@ -417,6 +435,12 @@ export class LineChartThumbnail
 
     @computed private get shouldShowValueLabelsOnly(): boolean {
         return !!this.manager.useMinimalLabeling
+    }
+
+    @computed private get endLabelsMaxWidth(): number | undefined {
+        return this.manager.useNameLabelsOnly
+            ? 0.3 * this.bounds.width
+            : undefined
     }
 
     @computed private get startLabelsMaxWidth(): number | undefined {
@@ -470,7 +494,11 @@ export class LineChartThumbnail
         dualAxis: DualAxis
         visibleEndLabels: Set<SeriesName>
     }): AnchoredLabelsState | undefined {
-        if (!this.manager.showSeriesLabels || this.manager.hideStartValueLabel)
+        if (
+            !this.manager.showSeriesLabels ||
+            this.manager.hideStartValueLabel ||
+            this.manager.useNameLabelsOnly
+        )
             return undefined
 
         // In relative mode, the start label is trivially 0%,
@@ -539,7 +567,7 @@ export class LineChartThumbnail
      */
     @computed private get estimatedLabelWidths(): SideWidths {
         const approximateDualAxis = new DualAxis({
-            bounds: this.bounds,
+            bounds: this.verticallyPaddedBounds,
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
         })
@@ -716,27 +744,29 @@ export class LineChartThumbnail
     private renderChartElements(): React.ReactElement {
         return (
             <>
-                {this.shouldShowZeroLine ? (
-                    <VerticalAxisZeroLine
-                        axis={this.dualAxis.verticalAxis}
-                        bounds={this.dualAxis.innerBounds}
-                        strokeWidth={0.5}
-                    />
-                ) : (
-                    // The domain line is the baseline at the bottom of the plot.
-                    // When the zero line is shown it already serves as a baseline,
-                    // so we only draw the domain line in its absence
-                    <HorizontalAxisDomainLine
-                        bounds={this.dualAxis.innerBounds}
-                        strokeWidth={0.5}
-                    />
-                )}
                 {!this.dualAxis.horizontalAxis.hideAxis && (
-                    <HorizontalAxisComponent
-                        axis={this.dualAxis.horizontalAxis}
-                        bounds={this.dualAxis.bounds}
-                        showEndpointsOnly
-                    />
+                    <>
+                        {this.shouldShowZeroLine ? (
+                            <VerticalAxisZeroLine
+                                axis={this.dualAxis.verticalAxis}
+                                bounds={this.dualAxis.innerBounds}
+                                strokeWidth={0.5}
+                            />
+                        ) : (
+                            // The domain line is the baseline at the bottom of the plot.
+                            // When the zero line is shown it already serves as a baseline,
+                            // so we only draw the domain line in its absence
+                            <HorizontalAxisDomainLine
+                                bounds={this.dualAxis.innerBounds}
+                                strokeWidth={0.5}
+                            />
+                        )}
+                        <HorizontalAxisComponent
+                            axis={this.dualAxis.horizontalAxis}
+                            bounds={this.dualAxis.bounds}
+                            showEndpointsOnly
+                        />
+                    </>
                 )}
                 <Lines
                     series={this.renderSeries}

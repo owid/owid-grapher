@@ -37,6 +37,9 @@ export interface ChartManager {
     variant?: GrapherVariant
     useMinimalLabeling?: boolean
     hideStartValueLabel?: boolean // Only used in LineChartThumbnail
+    useNameLabelsOnly?: boolean // Only used in thumbnails
+    verticalPlotPadding?: number // Only used in LineChartThumbnail
+    hideNoDataLabel?: boolean // Only used in MarimekkoChartThumbnail
     chartAreaPadding?: number
 
     isExportingToSvgOrPng?: boolean

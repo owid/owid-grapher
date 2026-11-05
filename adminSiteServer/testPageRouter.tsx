@@ -33,6 +33,8 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
+import { addThumbnailStrategyRoutes } from "./thumbnailStrategyTestPage.js"
+import { addKeyChartsThumbnailsRoutes } from "./keyChartsThumbnailsTestPage.js"
 
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
 
@@ -42,6 +44,9 @@ const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"
 const explorerAdminServer = new ExplorerAdminServer()
 
 const testPageRouter = Router()
+
+addThumbnailStrategyRoutes(testPageRouter)
+addKeyChartsThumbnailsRoutes(testPageRouter)
 
 interface ChartItem {
     id: number
