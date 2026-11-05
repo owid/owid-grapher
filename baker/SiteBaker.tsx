@@ -304,9 +304,9 @@ export class SiteBaker {
 
     /**
      * Renders the pages of the given profiles, or of all of them, and takes
-     * the entities the others have a page for from the previous bake. Like a
-     * full bake, it leaves the pages of unpublished profiles, and of entities
-     * that lost their page, in place.
+     * the entities the others have a page for from the previous bake. Then
+     * removes the pages of unpublished profiles, and those a re-rendered
+     * profile no longer has.
      */
     private async bakeCountryProfilePages(
         knex: db.KnexReadonlyTransaction,
@@ -328,6 +328,8 @@ export class SiteBaker {
         )
 
         const state = await this.getBakeState()
+        const pagesToKeep = new Set<string>()
+        const skippedProfileDirs = new Set<string>()
         for (const profileTemplate of profileTemplates) {
             const previousCodes =
                 state.renderedProfileEntityCodes?.[profileTemplate.id]
@@ -339,6 +341,11 @@ export class SiteBaker {
                 this._renderedProfileEntityCodes.set(
                     profileTemplate.id,
                     previousCodes
+                )
+                skippedProfileDirs.add(
+                    path.resolve(
+                        getBakePath(this.bakedSiteDir, profileTemplate)
+                    )
                 )
                 continue
             }
@@ -417,6 +424,7 @@ export class SiteBaker {
                         const html = renderGdoc(instantiatedProfile)
                         const outPath = `${getBakePath(this.bakedSiteDir, instantiatedProfile)}.html`
                         await this.stageWrite(outPath, html)
+                        pagesToKeep.add(path.resolve(outPath))
                     },
                     { "page.slug": `${profileTemplate.slug}/${entity.code}` }
                 )
@@ -431,6 +439,19 @@ export class SiteBaker {
         state.renderedProfileEntityCodes = Object.fromEntries(
             this._renderedProfileEntityCodes
         )
+
+        for (const page of fs.globSync(
+            `${this.bakedSiteDir}/profile/*/*.html`
+        )) {
+            const pagePath = path.resolve(page)
+            if (
+                pagesToKeep.has(pagePath) ||
+                skippedProfileDirs.has(path.dirname(pagePath))
+            )
+                continue
+            await fs.unlink(pagePath)
+            this.stage(pagePath, `DELETING ${pagePath}`)
+        }
     }
 
     // Bake an individual post/page
@@ -480,6 +501,9 @@ export class SiteBaker {
                     !path.startsWith("latest") &&
                     !path.startsWith("explore") &&
                     !path.startsWith("slideshows") &&
+                    // The profiles step removes its own pages, since an
+                    // incremental bake doesn't re-render all of them
+                    !path.startsWith("profile/") &&
                     path !== "donate" &&
                     path !== "feedback" &&
                     path !== "charts" &&
