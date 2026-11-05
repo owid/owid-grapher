@@ -80,6 +80,11 @@ import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import { GdocProfile } from "../../db/model/Gdoc/GdocProfile.js"
+import {
+    GdocFeaturedViz,
+    describePinnedSearchClash,
+    getPinnedSearchClashes,
+} from "../../db/model/Gdoc/GdocFeaturedViz.js"
 
 export async function getAllGdocIndexItems(
     req: Request,
@@ -425,6 +430,20 @@ async function validateSlugCollisionsIfPublishing(
     }
 }
 
+async function validatePinnedSearchesIfPublishing(
+    trx: db.KnexReadonlyTransaction,
+    gdoc: AnyGdoc
+): Promise<void> {
+    if (!gdoc.published || !(gdoc instanceof GdocFeaturedViz)) return
+
+    const clashes = await getPinnedSearchClashes(trx, gdoc)
+    if (clashes.length > 0) {
+        throw new JsonError(
+            `You are attempting to publish a featured viz pinned for searches that another published featured viz is already pinned for. ${clashes.map(describePinnedSearchClash).join(" ")}`
+        )
+    }
+}
+
 /**
  * Creates a redirect from the old slug to the new slug when a published gdoc's slug changes.
  * Also updates any existing redirects that point to the old slug to point to the new slug instead
@@ -509,6 +528,7 @@ export async function createOrUpdateGdoc(
     await nextGdoc.loadState(trx)
 
     await validateSlugCollisionsIfPublishing(trx, nextGdoc)
+    await validatePinnedSearchesIfPublishing(trx, nextGdoc)
 
     // Create redirect if slug changed on a published gdoc
     await createRedirectForSlugChangeIfNeeded(trx, prevGdoc, nextGdoc)
