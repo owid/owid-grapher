@@ -89,6 +89,7 @@ export const configureAlgolia = async () => {
             attributeForDistinct: "path",
             attributesForFaceting: [
                 "filterOnly(path)",
+                "filterOnly(pinnedForSearches)",
                 "afterDistinct(type)",
                 "afterDistinct(searchable(tags))",
                 "afterDistinct(searchable(authors))",
