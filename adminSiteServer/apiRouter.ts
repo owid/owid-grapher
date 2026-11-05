@@ -762,7 +762,8 @@ apiRouter.get("/deploys.json", async () => ({
 }))
 
 apiRouter.put("/deploy", async (req, res) => {
-    if (!BAKE_ON_CHANGE) return { success: false, error: "Deploys are off" }
+    // Not `error`: the admin client treats that key as a failed request
+    if (!BAKE_ON_CHANGE) return { success: false, message: "Deploys are off" }
     const buildNumber = await requestManualDeploy(res.locals.user)
     return { success: true, buildNumber }
 })

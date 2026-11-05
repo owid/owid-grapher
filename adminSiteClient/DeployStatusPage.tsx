@@ -152,12 +152,12 @@ export class DeployStatusPage extends Component {
         // A failed request shows requestJSON's error modal
         const json = await admin.requestJSON<{
             success: boolean
-            error?: string
+            message?: string
         }>("/api/deploy", {}, "PUT")
         if (!json.success)
             admin.setErrorMessage({
                 title: "No deploy requested",
-                content: json.error ?? "Unknown error",
+                content: json.message ?? "Unknown error",
             })
     }
 
