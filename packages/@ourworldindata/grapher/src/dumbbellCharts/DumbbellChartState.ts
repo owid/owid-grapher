@@ -34,12 +34,16 @@ import {
     getDefaultFailMessage,
     getShortNameForEntity,
     isToleranceDistanceValid,
+    joinEntityAnnotationTexts,
     makeSelectionArray,
     sortByConfig,
     SortKeyFn,
     sortByColumnValue,
 } from "../chart/ChartUtils"
-import { selectEntityAnnotation } from "../annotations/EntityAnnotations"
+import {
+    selectEntityAnnotation,
+    selectEntityAnnotationsForColumns,
+} from "../annotations/EntityAnnotations"
 
 export class DumbbellChartState implements ChartState {
     manager: DumbbellChartManager
@@ -280,10 +284,12 @@ export class DumbbellChartState implements ChartState {
                 const shortEntityName = getShortNameForEntity(entityName)
                 const displayName = shortEntityName ?? entityName
 
-                const annotation = selectEntityAnnotation(
-                    startColumn,
-                    entityName
-                )?.text
+                const annotation = joinEntityAnnotationTexts(
+                    selectEntityAnnotationsForColumns(
+                        [startColumn, endColumn],
+                        entityName
+                    ).values()
+                )
 
                 return {
                     seriesName: entityName,
