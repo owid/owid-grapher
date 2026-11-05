@@ -1369,6 +1369,30 @@ const STACKED_AREA_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
 ]
 
+const STACKED_BAR_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Column strategy, World: the forests and savannas legend items show their own annotations, the other land types none. Hover a bar for them on the tooltip rows",
+        path: "grapher/area-burned-wildfires-by-type?facet=none",
+    },
+    {
+        label: "Entity strategy: World and Indonesia show their annotations in the legend, the other countries none",
+        path: "grapher/annual-carbon-dioxide-emissions?facet=none",
+    },
+    {
+        label: "Column strategy, DAC countries: each indicator's legend item shows its own annotation",
+        path: "grapher/government-vs-private-aid-by-donor",
+    },
+    {
+        label: "At 500px the legend is horizontal and shows no annotations. Hover a bar and the tooltip rows still show them",
+        path: "grapher/government-vs-private-aid-by-donor",
+        widthPx: 500,
+    },
+    {
+        label: "Tall: Brazil's seven long annotations all show and the legend grows past the bottom of the chart",
+        path: "grapher/tree-cover-loss-by-dominant-driver?country=~BRA",
+    },
+]
+
 const ANNOTATION_TEST_SUITES: {
     slug: string
     title: string
@@ -1413,6 +1437,11 @@ const ANNOTATION_TEST_SUITES: {
         slug: "stacked-area-entity",
         title: "Entity annotations: stacked area charts",
         charts: STACKED_AREA_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "stacked-bar-entity",
+        title: "Entity annotations: stacked bar charts",
+        charts: STACKED_BAR_ENTITY_ANNOTATED_CHARTS,
     },
     {
         slug: "real",

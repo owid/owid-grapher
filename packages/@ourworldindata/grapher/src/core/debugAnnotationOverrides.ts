@@ -502,6 +502,89 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             entities: ["Brazil"],
         },
     ],
+    // area-burned-wildfires-by-type (a stacked bar, column strategy): forests
+    1324979: [
+        {
+            text: "Includes plantation forests.",
+            entities: ["World"],
+        },
+    ],
+    // savannas
+    1324980: [
+        {
+            text: "Savanna fires are mostly set on purpose to clear land for grazing.",
+            entities: ["World"],
+        },
+    ],
+    // annual-carbon-dioxide-emissions (a stacked bar, entity strategy with facet=none)
+    1325228: [
+        {
+            text: "Estimates for 2024 are preliminary.",
+            entities: ["World"],
+        },
+        {
+            text: "Includes emissions from peatland fires, which smoulder for months.",
+            entities: ["Indonesia"],
+        },
+    ],
+    // government-vs-private-aid-by-donor (a stacked bar, column strategy): ODA
+    1293345: [
+        {
+            text: "Members of the OECD Development Assistance Committee.",
+            entities: ["DAC countries"],
+        },
+    ],
+    // private grants
+    1293376: [
+        {
+            text: "Grants from foundations, NGOs and private donors.",
+            entities: ["DAC countries"],
+        },
+    ],
+    // tree-cover-loss-by-dominant-driver (a stacked bar with seven columns).
+    // Brazil's long annotations together don't fit the sidebar legend
+    1104656: [
+        {
+            text: "Mining concessions are mapped from national cadastres, which are incomplete for informal and illegal mining in the Amazon. Estimates for the latest year are revised as new satellite imagery is processed.",
+            entities: ["Brazil"],
+        },
+    ],
+    1104657: [
+        {
+            text: "Logging includes selective logging inside managed forests, which satellites detect less reliably than clear-cutting. Estimates for the latest year are revised as new satellite imagery is processed.",
+            entities: ["Brazil"],
+        },
+    ],
+    1104658: [
+        {
+            text: "Other natural disturbances include storms, landslides, floods and droughts that kill trees without fire. Estimates for the latest year are revised as new satellite imagery is processed.",
+            entities: ["Brazil"],
+        },
+    ],
+    1104659: [
+        {
+            text: "Settlements and infrastructure include roads, which open up surrounding forest to further clearing. Estimates for the latest year are revised as new satellite imagery is processed.",
+            entities: ["Brazil"],
+        },
+    ],
+    1104660: [
+        {
+            text: "Permanent agriculture is mostly cattle pasture and soy, and accounts for most of the loss in the Amazon and the Cerrado. Estimates for the latest year are revised as new satellite imagery is processed.",
+            entities: ["Brazil"],
+        },
+    ],
+    1104661: [
+        {
+            text: "Shifting cultivation is rare in Brazil compared to Central Africa, where it is the largest driver of loss. Estimates for the latest year are revised as new satellite imagery is processed.",
+            entities: ["Brazil"],
+        },
+    ],
+    1104662: [
+        {
+            text: "Wildfire loss spikes in drought years such as 2016 and 2024, when fires set to clear land escaped into standing forest. Estimates for the latest year are revised as new satellite imagery is processed.",
+            entities: ["Brazil"],
+        },
+    ],
 }
 
 export function applyDebugAnnotationOverride(
