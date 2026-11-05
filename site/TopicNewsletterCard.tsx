@@ -49,8 +49,8 @@ export default function TopicNewsletterCard({
             </div>
             <p className="topic-newsletter-card__p body-3-medium">
                 {variant === "narrow"
-                    ? "Get email updates on all our work about"
-                    : "Subscribe to get email updates on all our work about"}{" "}
+                    ? "Get email updates on"
+                    : "Subscribe to get email updates on"}{" "}
                 <strong>{topicArea}</strong>.
             </p>
             <Button
