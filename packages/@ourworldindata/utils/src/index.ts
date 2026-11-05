@@ -271,6 +271,7 @@ export {
     getSiblingRegions,
     getContinentForCountry,
     articulateEntity,
+    checkHasDefiniteArticle,
 } from "./regions/index.js"
 export {
     instantiateProfile,
