@@ -1,5 +1,5 @@
 import fs from "fs-extra"
-import { DeployBuild, DeployMetadata } from "@ourworldindata/utils"
+import { DeployBuild } from "@ourworldindata/utils"
 import {
     BUILDKITE_API_ACCESS_TOKEN,
     BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG,
@@ -25,6 +25,11 @@ const defaultCommitMessage = async (): Promise<string> => {
     return message
 }
 
+interface DeployMetadata {
+    title: string
+    changesSlackMentions: string[]
+}
+
 interface BuildkiteBuildResponse {
     number: number
     state: string
@@ -33,6 +38,7 @@ interface BuildkiteBuildResponse {
     created_at: string
     started_at: string | null
     finished_at: string | null
+    meta_data?: Record<string, string> | null
 }
 
 export class BuildkiteTrigger {
@@ -148,6 +154,8 @@ export class BuildkiteTrigger {
             createdAt: build.created_at,
             startedAt: build.started_at ?? undefined,
             finishedAt: build.finished_at ?? undefined,
+            // Set by owid/ops' deploy-content.sh
+            covered: build.meta_data?.["deploy-covered"] === "true",
         }))
     }
 }

@@ -101,8 +101,11 @@ import {
     handlePostNewChartRedirect,
     handleDeleteChartRedirect,
 } from "./apiRoutes/redirects.js"
-import { requestContentDeploy, toDeployChange } from "../baker/DeployUtils.js"
-import { BUILDKITE_API_ACCESS_TOKEN } from "../settings/serverSettings.js"
+import { requestManualDeploy } from "../baker/DeployUtils.js"
+import {
+    BAKE_ON_CHANGE,
+    BUILDKITE_API_ACCESS_TOKEN,
+} from "../settings/serverSettings.js"
 import {
     suggestTopics,
     suggestAltTextForCloudflareImage,
@@ -759,9 +762,8 @@ apiRouter.get("/deploys.json", async () => ({
 }))
 
 apiRouter.put("/deploy", async (req, res) => {
-    const buildNumber = await requestContentDeploy([
-        toDeployChange(res.locals.user, "Manually triggered deploy"),
-    ])
+    if (!BAKE_ON_CHANGE) return { success: false, error: "Deploys are off" }
+    const buildNumber = await requestManualDeploy(res.locals.user)
     return { success: true, buildNumber }
 })
 

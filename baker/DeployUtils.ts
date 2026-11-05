@@ -2,15 +2,20 @@ import * as _ from "lodash-es"
 import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
 import {
     BAKE_ON_CHANGE,
-    BUILDKITE_API_ACCESS_TOKEN,
     SLACK_BOT_OAUTH_TOKEN,
     ENV,
 } from "../settings/serverSettings.js"
 import { WebAPIPlatformError, WebClient } from "@slack/web-api"
-import { DbPlainUser, DeployChange } from "@ourworldindata/utils"
+import { DbPlainUser } from "@ourworldindata/utils"
 import { KnexReadWriteTransaction, runAfterCommit } from "../db/db.js"
 
 type DeployAuthor = Pick<DbPlainUser, "fullName" | "email">
+
+interface DeployChange {
+    authorName: string
+    authorEmail: string
+    message: string
+}
 
 const changesByTransaction = new WeakMap<
     KnexReadWriteTransaction,
@@ -22,7 +27,8 @@ const changesByTransaction = new WeakMap<
  * go out as one Buildkite build: the edit's caller waits for the build
  * request (with a timeout), never for the build. A rolled-back transaction
  * requests nothing. A failed request is logged to Sentry and doesn't fail
- * the edit, which then goes out with the next deploy.
+ * the edit, which then goes out with the next deploy. (Changes enqueued in a
+ * savepoint wait for the outermost commit, as a request of their own.)
  *
  * Does nothing unless BAKE_ON_CHANGE is set (it isn't in local dev).
  */
@@ -50,25 +56,22 @@ export const enqueueDeployChange = (
     })
 }
 
-export const toDeployChange = (
-    user: DeployAuthor,
-    message: string
-): DeployChange => ({
-    timeISOString: new Date().toISOString(),
+/** The admin's "Deploy now" button. Throws if the request fails. */
+export const requestManualDeploy = async (
+    user: DeployAuthor
+): Promise<number> =>
+    requestContentDeploy([toDeployChange(user, "Manually triggered deploy")])
+
+const toDeployChange = (user: DeployAuthor, message: string): DeployChange => ({
     authorName: user.fullName,
     authorEmail: user.email,
     message,
 })
 
 /** Request one content deploy for `changes`. Throws if the request fails. */
-export const requestContentDeploy = async (
+const requestContentDeploy = async (
     changes: DeployChange[]
 ): Promise<number> => {
-    if (!BUILDKITE_API_ACCESS_TOKEN)
-        throw new Error(
-            "BAKE_ON_CHANGE is set but BUILDKITE_API_ACCESS_TOKEN isn't, so this server can't request deploys"
-        )
-
     const changesAuthorNames = getChangesAuthorNames(changes)
     console.log(`Requesting a deploy for:\n${changesAuthorNames.join("\n")}`)
     const changesSlackMentions = await getChangesSlackMentions(changes)
@@ -80,9 +83,7 @@ export const requestContentDeploy = async (
 
 const getChangesAuthorNames = (queueItems: DeployChange[]): string[] => {
     // Do not remove duplicates here, because we want to show the history of changes within a deploy
-    return queueItems
-        .map((item) => `${item.message} (by ${item.authorName})`)
-        .filter(Boolean)
+    return queueItems.map((item) => `${item.message} (by ${item.authorName})`)
 }
 
 const getChangesSlackMentions = async (
@@ -94,10 +95,7 @@ const getChangesSlackMentions = async (
     return queueItems.map(
         (item) =>
             `${item.message} (by ${
-                !item.authorEmail
-                    ? item.authorName
-                    : (emailSlackMentionMap.get(item.authorEmail) ??
-                      item.authorName)
+                emailSlackMentionMap.get(item.authorEmail) ?? item.authorName
             })`
     )
 }
@@ -107,7 +105,14 @@ const getEmailSlackMentionsMap = async (
 ): Promise<Map<string, string>> => {
     if (ENV === "staging" || !SLACK_BOT_OAUTH_TOKEN) return new Map()
 
-    const slackClient = new WebClient(SLACK_BOT_OAUTH_TOKEN)
+    // An admin save waits for these lookups, so fail fast instead of the
+    // client's default of retrying for minutes; a failed lookup just shows
+    // the author's name instead of a mention
+    const slackClient = new WebClient(SLACK_BOT_OAUTH_TOKEN, {
+        timeout: 5_000,
+        retryConfig: { retries: 0 },
+        rejectRateLimitedCalls: true,
+    })
 
     // Get unique author emails
     const uniqueAuthorEmails = [
