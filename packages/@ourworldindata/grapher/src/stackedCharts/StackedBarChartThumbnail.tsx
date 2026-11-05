@@ -21,7 +21,7 @@ import {
 } from "./StackedConstants"
 import {
     getXAxisConfigDefaultsForStackedBar,
-    resolveCollision,
+    compareStackedSeriesByImportance,
     toPlacedStackedBarSeries,
 } from "./StackedUtils"
 import {
@@ -114,17 +114,11 @@ export class StackedBarChartThumbnail
     }
 
     @computed private get labelsRange(): [number, number] {
-        const {
-            horizontalAxisPart,
-            manager: { chartAreaPadding = 0 },
-        } = this
-
-        return this.bounds
-            .expand({
-                top: chartAreaPadding,
-                bottom: chartAreaPadding + horizontalAxisPart.height,
-            })
-            .yRange()
+        const { chartAreaPadding = 0 } = this.manager
+        return [
+            this.bounds.bottom + chartAreaPadding,
+            this.bounds.top - chartAreaPadding,
+        ]
     }
 
     @computed private get labelsMaxWidth(): number {
@@ -173,20 +167,15 @@ export class StackedBarChartThumbnail
             maxWidth: this.labelsMaxWidth,
             labelPadding: LEGEND_PADDING,
             yRange: this.labelsRange,
-            resolveCollision: (
-                s1: InitialAnchoredLabelSeries,
-                s2: InitialAnchoredLabelSeries
-            ): InitialAnchoredLabelSeries => {
-                const series1 = this.chartState.seriesByName.get(s1.seriesName)
-                const series2 = this.chartState.seriesByName.get(s2.seriesName)
-
-                if (!series1 || !series2) return s1 // no preference
-
-                const picked = resolveCollision(series1, series2)
-                if (picked?.seriesName === s1.seriesName) return s1
-                if (picked?.seriesName === s2.seriesName) return s2
-
-                return s1 // no preference
+            maxShift: this.labelFontSettings.fontSize,
+            compare: (
+                a: InitialAnchoredLabelSeries,
+                b: InitialAnchoredLabelSeries
+            ): number => {
+                const seriesA = this.chartState.seriesByName.get(a.seriesName)
+                const seriesB = this.chartState.seriesByName.get(b.seriesName)
+                if (!seriesA || !seriesB) return 0
+                return compareStackedSeriesByImportance(seriesA, seriesB)
             },
         })
     }

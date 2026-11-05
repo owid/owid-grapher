@@ -268,17 +268,11 @@ export class LineChartThumbnail
     }
 
     @computed private get labelsRange(): [number, number] {
-        const {
-            horizontalAxisPart,
-            manager: { chartAreaPadding = 0 },
-        } = this
-
-        return this.bounds
-            .expand({
-                top: chartAreaPadding,
-                bottom: chartAreaPadding + horizontalAxisPart.height,
-            })
-            .yRange()
+        const { chartAreaPadding = 0 } = this.manager
+        return [
+            this.bounds.bottom + chartAreaPadding,
+            this.bounds.top - chartAreaPadding,
+        ]
     }
 
     @computed
@@ -371,21 +365,15 @@ export class LineChartThumbnail
             yRange: this.labelsRange,
             labelPadding: this.labelPadding,
             anchorCollisionRadius: this.dotRadius,
-            resolveCollision: (
-                s1: InitialAnchoredLabelSeries,
-                s2: InitialAnchoredLabelSeries
-            ): InitialAnchoredLabelSeries => {
-                const endPoint1 = this.endPointBySeriesName.get(s1.seriesName)
-                const endPoint2 = this.endPointBySeriesName.get(s2.seriesName)
-
-                const x1 = endPoint1?.x ?? 0
-                const x2 = endPoint2?.x ?? 0
+            compare: (
+                a: InitialAnchoredLabelSeries,
+                b: InitialAnchoredLabelSeries
+            ): number => {
+                const xA = this.endPointBySeriesName.get(a.seriesName)?.x ?? 0
+                const xB = this.endPointBySeriesName.get(b.seriesName)?.x ?? 0
 
                 // Prefer the series with the larger x value
-                if (x1 > x2) return s1
-                if (x2 > x1) return s2
-
-                return s1 // no preference
+                return xB - xA
             },
         })
     }
@@ -511,29 +499,22 @@ export class LineChartThumbnail
             labelPadding: this.labelPadding,
             anchorCollisionRadius: this.dotRadius,
             yRange: this.labelsRange,
-            resolveCollision: (
-                s1: InitialAnchoredLabelSeries,
-                s2: InitialAnchoredLabelSeries
-            ): InitialAnchoredLabelSeries => {
+            compare: (
+                a: InitialAnchoredLabelSeries,
+                b: InitialAnchoredLabelSeries
+            ): number => {
                 // Prefer to label series that have an end label
-                if (visibleEndLabels.has(s1.seriesName)) return s1
-                if (visibleEndLabels.has(s2.seriesName)) return s2
+                const hasEndLabelA = visibleEndLabels.has(a.seriesName)
+                const hasEndLabelB = visibleEndLabels.has(b.seriesName)
+                if (hasEndLabelA && hasEndLabelB) return 0
+                if (hasEndLabelA) return -1
+                if (hasEndLabelB) return 1
 
-                const startPoint1 = this.startPointBySeriesName.get(
-                    s1.seriesName
-                )
-                const startPoint2 = this.startPointBySeriesName.get(
-                    s2.seriesName
-                )
-
-                const x1 = startPoint1?.x ?? 0
-                const x2 = startPoint2?.x ?? 0
+                const xA = this.startPointBySeriesName.get(a.seriesName)?.x ?? 0
+                const xB = this.startPointBySeriesName.get(b.seriesName)?.x ?? 0
 
                 // Prefer the series with the larger x value
-                if (x1 > x2) return s1
-                if (x2 > x1) return s2
-
-                return s1 // No preference
+                return xB - xA
             },
         })
     }
