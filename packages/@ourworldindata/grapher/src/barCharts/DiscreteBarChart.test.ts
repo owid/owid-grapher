@@ -227,7 +227,8 @@ describe("entity annotations", () => {
     const makeChartState = (
         columnDefs: OwidColumnDef[],
         row: (number | string)[][],
-        selectedEntityNames: string[]
+        selectedEntityNames: string[],
+        maxTime?: number
     ): DiscreteBarChartState => {
         const slugs = columnDefs.map((def) => def.slug)
         const grapherState = new GrapherState({
@@ -241,11 +242,12 @@ describe("entity annotations", () => {
             })),
             chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
             selectedEntityNames,
+            maxTime,
         })
         return grapherState.chartState as DiscreteBarChartState
     }
 
-    it("attaches an entity's note to its bar when bars are entities", () => {
+    it("attaches an entity's annotation to its bar when bars are entities", () => {
         const chartState = makeChartState(
             [
                 {
@@ -273,41 +275,97 @@ describe("entity annotations", () => {
         })
     })
 
-    it("takes the note from the historical column when historical and projected columns are combined", () => {
-        const chartState = makeChartState(
-            [
+    describe("when historical and projected columns are combined", () => {
+        const makeCombinedChartState = (
+            maxTime: number,
+            historicalTolerance = 0
+        ): DiscreteBarChartState => {
+            const columnDefs: OwidColumnDef[] = [
                 {
                     slug: "population",
                     type: ColumnTypeNames.Numeric,
-                    annotations,
+                    display: { tolerance: historicalTolerance },
+                    annotations: [
+                        {
+                            text: "Estimate",
+                            entityNames: ["France"],
+                            timeScope: "all",
+                        },
+                    ],
                 },
                 {
                     slug: "population_projection",
                     type: ColumnTypeNames.Numeric,
                     display: { isProjection: true },
+                    annotations: [
+                        {
+                            text: "Medium scenario",
+                            entityNames: ["France"],
+                            timeScope: "all",
+                        },
+                    ],
                 },
-            ],
-            [
-                ["France", 2000, 100, ""],
-                ["Germany", 2000, 200, ""],
-            ],
-            ["France", "Germany"]
-        )
+            ]
+            return makeChartState(
+                columnDefs,
+                [
+                    ["France", 2000, 100, ""],
+                    ["France", 2010, "", 150],
+                    ["France", 2020, 120, 130],
+                    ["Germany", 2000, 200, ""],
+                    ["Germany", 2010, "", 250],
+                    ["Germany", 2020, 220, 230],
+                ],
+                ["France", "Germany"],
+                maxTime
+            )
+        }
 
-        expect(chartState.yColumnMode.type).toEqual("combined")
-        const annotationByEntity = Object.fromEntries(
-            chartState.series.map((series) => [
-                series.seriesName,
-                series.annotation,
-            ])
-        )
-        expect(annotationByEntity).toEqual({
-            France: "Estimate",
-            Germany: undefined,
+        const annotationByEntity = (
+            chartState: DiscreteBarChartState
+        ): Record<string, string | undefined> =>
+            Object.fromEntries(
+                chartState.series.map((series) => [
+                    series.seriesName,
+                    series.annotation,
+                ])
+            )
+
+        it("takes the historical annotation for a historical year", () => {
+            const chartState = makeCombinedChartState(2000)
+            expect(chartState.yColumnMode.type).toEqual("combined")
+            expect(annotationByEntity(chartState)).toEqual({
+                France: "Estimate",
+                Germany: undefined,
+            })
+        })
+
+        it("takes the projected annotation for a projected year", () => {
+            const chartState = makeCombinedChartState(2010)
+            expect(annotationByEntity(chartState)).toEqual({
+                France: "Medium scenario",
+                Germany: undefined,
+            })
+        })
+
+        it("ignores a historical value carried into a projected year by tolerance", () => {
+            const chartState = makeCombinedChartState(2010, 10)
+            expect(annotationByEntity(chartState)).toEqual({
+                France: "Medium scenario",
+                Germany: undefined,
+            })
+        })
+
+        it("joins both annotations for a year with both a historical and a projected value", () => {
+            const chartState = makeCombinedChartState(2020)
+            expect(annotationByEntity(chartState)).toEqual({
+                France: "Estimate; Medium scenario",
+                Germany: undefined,
+            })
         })
     })
 
-    it("attaches no notes when bars are columns", () => {
+    it("attaches each column's annotation to its bar when bars are columns", () => {
         const chartState = makeChartState(
             [
                 {
@@ -315,18 +373,31 @@ describe("entity annotations", () => {
                     type: ColumnTypeNames.Numeric,
                     annotations,
                 },
-                { slug: "area", type: ColumnTypeNames.Numeric, annotations },
+                {
+                    slug: "area",
+                    type: ColumnTypeNames.Numeric,
+                    annotations: [
+                        {
+                            text: "Surveyed",
+                            entityNames: ["France"],
+                            timeScope: "all",
+                        },
+                    ],
+                },
             ],
             [["France", 2000, 100, 50]],
             ["France"]
         )
 
         expect(chartState.seriesStrategy).toEqual(SeriesStrategy.column)
-        expect(chartState.series).toHaveLength(2)
-        expect(chartState.series.map((series) => series.annotation)).toEqual([
-            undefined,
-            undefined,
-        ])
+        expect(
+            Object.fromEntries(
+                chartState.series.map((series) => [
+                    series.yColumn.slug,
+                    series.annotation,
+                ])
+            )
+        ).toEqual({ population: "Estimate", area: "Surveyed" })
     })
 })
 

@@ -29,6 +29,7 @@ import {
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { selectEntityAnnotation } from "../annotations/EntityAnnotations"
+import { joinDistinctEntityAnnotationTexts } from "../lineCharts/LineChartHelpers"
 import {
     ChartErrorInfo,
     ColorScaleConfigInterface,
@@ -38,6 +39,7 @@ import {
     SeriesStrategy,
     SortBy,
     SortConfig,
+    Time,
 } from "@ourworldindata/types"
 import { OWID_ERROR_COLOR, OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { ColorScheme } from "../color/ColorScheme"
@@ -290,6 +292,7 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
             hasColorScale,
             isProjectionColumn,
         } = this
+
         const values = col.valuesIncludingErrorValues
         const originalTimes = col.originalTimeColumn.valuesIncludingErrorValues
         const entityNames =
@@ -297,12 +300,16 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
         const colorValues = colorColumn.valuesIncludingErrorValues
         const isProjectionValues =
             isProjectionColumn?.valuesIncludingErrorValues
+
         return indexes.map((index): DiscreteBarItem => {
+            const entityName = entityNames[index] as string
+            const value = values[index] as number
+            const time = originalTimes[index] as Time
+
             const isColumnStrategy =
                 this.seriesStrategy === SeriesStrategy.column
-            const seriesName = isColumnStrategy
-                ? col.displayName
-                : (entityNames[index] as string)
+            const seriesName = isColumnStrategy ? col.displayName : entityName
+
             const colorValue = isNotErrorValue(colorValues[index])
                 ? colorValues[index]
                 : undefined
@@ -310,22 +317,62 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
                 ? this.colorScale.getColor(colorValue)
                 : isColumnStrategy
                   ? col.def.color
-                  : transformedTable.getColorForEntityName(
-                        entityNames[index] as string
-                    )
+                  : transformedTable.getColorForEntityName(entityName)
+
             const isProjection = isProjectionValues
                 ? (isProjectionValues[index] as boolean)
                 : col.isProjection
+
+            const annotation = match(this.yColumnMode)
+                .with({ type: "independent" }, () =>
+                    this.selectAnnotationForIndependentBar(col, entityName)
+                )
+                .with({ type: "combined" }, ({ info }) =>
+                    this.selectAnnotationForCombinedBar(info, entityName, time)
+                )
+                .exhaustive()
+
             return {
                 yColumn: col,
                 seriesName,
-                value: values[index] as number,
-                time: originalTimes[index] as number,
+                value,
+                time,
                 colorValue,
                 color,
                 isProjection,
+                annotation,
             }
         })
+    }
+
+    private selectAnnotationForIndependentBar(
+        col: CoreColumn,
+        entityName: string
+    ): string | undefined {
+        return selectEntityAnnotation(
+            this.transformedTable.get(col.slug),
+            entityName
+        )?.text
+    }
+
+    private selectAnnotationForCombinedBar(
+        info: ProjectionColumnInfo,
+        entityName: string,
+        time: Time
+    ): string | undefined {
+        const { historicalSlug, projectedSlug } = info
+        const columnsWithValueAtTime = [historicalSlug, projectedSlug]
+            .map((slug) => this.transformedTable.get(slug))
+            .filter((column) =>
+                column.valueByEntityNameAndOriginalTime
+                    .get(entityName)
+                    ?.has(time)
+            )
+        return joinDistinctEntityAnnotationTexts(
+            columnsWithValueAtTime.map((column) => ({
+                entityAnnotation: selectEntityAnnotation(column, entityName),
+            }))
+        )
     }
 
     @computed get columnsAsSeries(): DiscreteBarItem[] {
@@ -384,14 +431,6 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get series(): DiscreteBarSeries[] {
-        const annotationSlug =
-            this.yColumnMode.type === "combined"
-                ? this.yColumnMode.info.historicalSlug
-                : this.yColumnSlugs[0]
-        const annotationColumn = annotationSlug
-            ? this.inputTable.get(annotationSlug)
-            : undefined
-
         const series = this.sortedRawSeries.map((rawSeries) => {
             const {
                 value,
@@ -401,6 +440,7 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
                 color,
                 yColumn,
                 isProjection,
+                annotation,
             } = rawSeries
             const series: DiscreteBarSeries = {
                 yColumn,
@@ -410,12 +450,7 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
                 seriesName,
                 entityName: seriesName,
                 shortEntityName: getShortNameForEntity(seriesName),
-                annotation:
-                    this.seriesStrategy === SeriesStrategy.entity &&
-                    annotationColumn
-                        ? selectEntityAnnotation(annotationColumn, seriesName)
-                              ?.text
-                        : undefined,
+                annotation,
                 // the error color should never be used but I prefer it here instead of throwing an exception if something goes wrong
                 color:
                     color ??
