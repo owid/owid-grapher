@@ -14,6 +14,7 @@ The SVG tester supports multiple test suites:
 - **grapher-views**: All possible chart configurations for each grapher (different tabs, etc.)
 - **mdims**: Multi-dimensional data pages with multiple views
 - **thumbnails**: Thumbnail versions of the most viewed graphers. For each chart, all available tabs are tested.
+- **mobile**: The most viewed graphers as they look on a phone. For each chart, all available tabs are tested.
 
 ## Make a reference set of SVGs
 
@@ -30,7 +31,7 @@ The data itself goes into `{SVG_TESTER_REPO_PATH}/variables/`, shared by every t
 - `{variableId}.data.json` - Data file for the variable
 - `{variableId}.metadata.json` - Metadata file for the variable
 
-**Careful with partial refreshes:** because the directory is shared, dumping a single suite rewrites variable files that the other suites also read, which can shift their reference SVGs even though you never touched them. `refresh.sh` dumps all four suites, so the normal path is safe; if you dump one suite by hand and see diffs somewhere unexpected, re-run the full refresh.
+**Careful with partial refreshes:** because the directory is shared, dumping a single suite rewrites variable files that the other suites also read, which can shift their reference SVGs even though you never touched them. `refresh.sh` dumps every suite, so the normal path is safe; if you dump one suite by hand and see diffs somewhere unexpected, re-run the full refresh.
 
 #### Grapher-views
 
@@ -53,6 +54,16 @@ yarn tsx devTools/svgTester/dump-data.ts mdims
 For the most-viewed graphers, creates a manifest file listing which charts to test. The actual data is read from the graphers suite. During SVG generation, all available tabs for each chart are rendered as thumbnails.
 
 **Important:** For the thumbnails test suite, the manifest is **required by default**. When you run export or verify without `--viewIds`, the scripts automatically load `top.manifest.json`. This prevents accidentally processing all ~4,000 charts.
+
+#### Mobile
+
+Uses the same most-viewed graphers as thumbnails, through its own `top.manifest.json`, and reads its data from the graphers suite. Every available tab is rendered at 343x575, the size of an article chart on a 375px-wide phone (16px gutters, 575px chart height).
+
+A static export normally switches off grapher's narrow-screen breakpoints and sizes its fonts from the export bounds. This suite sets `isStaticLayoutResponsive`, so the SVG gets the breakpoints and 14px base font a phone gets.
+
+The SVG still can't show everything a phone shows. It has no HTML controls (tabs, timeline, entity selector), no tooltips, and the static footer instead of the live one. The chart area is also taller than on a phone, because the static layout doesn't reserve room for the controls row and the timeline.
+
+The manifest is required, as for thumbnails.
 
 ### 2. Generate reference SVGs
 
@@ -127,7 +138,7 @@ make svgtest.full
 This command:
 
 1. Resets `../owid-grapher-svgs` to `origin/master`
-2. Runs `verify-graphs.ts` for all test suites (graphers, grapher-views, mdims, thumbnails)
+2. Runs `verify-graphs.ts` for all test suites (graphers, grapher-views, mdims, thumbnails, mobile)
 3. Reports how many views differed per suite; inspect them at `/admin/svgtester/<suite>` in the admin
 
 ### Resync the reference md5 index
@@ -140,7 +151,7 @@ make svgtest.md5s
 fast path: equal hash means no difference, skip reading the file. If reference SVGs
 are ever replaced without the CSV being rewritten, the index describes the previous
 references and the fast path stops working. This recomputes the column from the
-files on disk for all four suites; re-running it is a no-op. CI does this
+files on disk for every suite; re-running it is a no-op. CI does this
 automatically whenever it commits new references.
 
 ## Refreshing Reference Data
@@ -158,7 +169,7 @@ make refresh.full    # Refresh the database and analytics from production
 The `refresh.sh` script will:
 
 1. Reset `../owid-grapher-svgs` to `origin/master`
-2. For each test suite (graphers, grapher-views, mdims, thumbnails):
+2. For each test suite (graphers, grapher-views, mdims, thumbnails, mobile):
     - Dump configs and data using `dump-data.ts`
     - Commit the configs and data
     - Generate reference SVGs using `export-graphs.ts`
