@@ -1393,6 +1393,21 @@ const STACKED_BAR_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
 ]
 
+const SCATTER_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Hover Argentina: its annotation sits under the tests value. Brazil's x and y share a text, which sits next to the title. Chile's differ, each under its own value. The continent color column has no row and doesn't count",
+        path: "grapher/covid-19-daily-tests-vs-daily-new-confirmed-cases",
+    },
+    {
+        label: "Hover China: the CO₂ and population annotations differ, each under its own value",
+        path: "grapher/co2-emissions-vs-gdp",
+    },
+    {
+        label: "Time scatter colored by launch vehicle class. Hover Falcon 9: its annotation sits under the cost value. Space Shuttle's cost and class share a text, which sits next to the title",
+        path: "grapher/cost-space-launches-low-earth-orbit",
+    },
+]
+
 const ANNOTATION_TEST_SUITES: {
     slug: string
     title: string
@@ -1442,6 +1457,11 @@ const ANNOTATION_TEST_SUITES: {
         slug: "stacked-bar-entity",
         title: "Entity annotations: stacked bar charts",
         charts: STACKED_BAR_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "scatter-entity",
+        title: "Entity annotations: scatter plots",
+        charts: SCATTER_ENTITY_ANNOTATED_CHARTS,
     },
     {
         slug: "real",

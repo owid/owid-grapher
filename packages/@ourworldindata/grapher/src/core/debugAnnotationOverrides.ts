@@ -585,6 +585,57 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             entities: ["Brazil"],
         },
     ],
+    // covid-19-daily-tests-vs-daily-new-confirmed-cases (a scatter plot): cases on x
+    954548: [
+        {
+            text: "Reporting was irregular during 2020.",
+            entities: ["Brazil"],
+        },
+        {
+            text: "Includes probable cases.",
+            entities: ["Chile"],
+        },
+    ],
+    // tests on y
+    984183: [
+        {
+            text: "Counts tests performed, not people tested.",
+            entities: ["Argentina"],
+        },
+        {
+            text: "Reporting was irregular during 2020.",
+            entities: ["Brazil"],
+        },
+        {
+            text: "Includes antigen tests.",
+            entities: ["Chile"],
+        },
+    ],
+    // Population (historical), the size of co2-emissions-vs-gdp and other scatter plots
+    953903: [
+        {
+            text: "Excludes Hong Kong and Macao.",
+            entities: ["China"],
+        },
+    ],
+    // cost-space-launches-low-earth-orbit (a time scatter colored by launch vehicle class): cost on y
+    1014833: [
+        {
+            text: "Prices are list prices for a new booster.",
+            entities: ["Falcon 9"],
+        },
+        {
+            text: "Retired in 2011.",
+            entities: ["Space Shuttle"],
+        },
+    ],
+    // launch vehicle class
+    1014832: [
+        {
+            text: "Retired in 2011.",
+            entities: ["Space Shuttle"],
+        },
+    ],
 }
 
 export function applyDebugAnnotationOverride(
