@@ -278,6 +278,7 @@ export class StackedBarChart
                         value: series.seriesName,
                         label: series.seriesName,
                         color: series.color,
+                        annotation: series.entityAnnotation?.text,
                     })
             )
             .toReversed() // Vertical legend orders things in the opposite direction we want

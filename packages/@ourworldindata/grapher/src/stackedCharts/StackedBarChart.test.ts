@@ -11,7 +11,9 @@ import {
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import { SelectionArray } from "../selection/SelectionArray"
+import { StackedBarChart } from "./StackedBarChart"
 import { StackedBarChartState } from "./StackedBarChartState.js"
+import { ColumnTypeNames } from "@ourworldindata/types"
 
 function makeStackedBarChart(
     table: OwidTable,
@@ -136,4 +138,40 @@ it("should not mark any values as interpolated by default", () => {
         [2004, false],
         [2005, false],
     ])
+})
+
+describe("entity annotations", () => {
+    const table = new OwidTable(
+        {
+            entityName: ["usa", "usa", "fra", "fra"],
+            year: [2000, 2001, 2000, 2001],
+            gdp: [100, 200, 300, 400],
+        },
+        [
+            {
+                slug: "gdp",
+                type: ColumnTypeNames.Numeric,
+                annotations: [
+                    {
+                        text: "usa annotation",
+                        entityNames: ["usa"],
+                        timeScope: "all",
+                    },
+                ],
+            },
+        ]
+    )
+    const chartState = makeStackedBarChart(table, {
+        yColumnSlugs: ["gdp"],
+        selection: ["usa", "fra"],
+        showLegend: true,
+    })
+    const chart = new StackedBarChart({ chartState })
+
+    it("passes the annotations of the series to the vertical legend", () => {
+        const annotated = chart["verticalColorLegendState"].series.filter(
+            (item) => item.annotationTextWrap
+        )
+        expect(annotated.map((item) => item.textWrap.text)).toEqual(["usa"])
+    })
 })
