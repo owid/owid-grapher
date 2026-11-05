@@ -1,6 +1,6 @@
 import { expect, describe, it } from "vitest"
 import { TextWrapGroup } from "@ourworldindata/components"
-import { Header } from "./Header"
+import { Header, StaticHeader } from "./Header"
 import { HeaderManager } from "./HeaderManager"
 
 const TITLE_ANNOTATION = "United Kingdom, 1990 to 2023"
@@ -81,5 +81,54 @@ describe("title", () => {
         expect(
             makeTitle("Lung cancer death rates", 540, manager).fontSize
         ).toEqual(23.5)
+    })
+})
+
+interface LineHeights {
+    title: number
+    subtitle: number
+}
+
+function readLineHeights(header: Header): LineHeights {
+    return {
+        title: header.titleLineHeight,
+        subtitle: header.subtitleLineHeight,
+    }
+}
+
+describe("live header line heights", () => {
+    it.each<[string, HeaderManager, LineHeights]>([
+        ["wide", {}, { title: 1.2, subtitle: 1.28571 }],
+        ["medium", { isMedium: true }, { title: 1.2, subtitle: 1.2 }],
+        [
+            "small",
+            { isMedium: true, isSmall: true },
+            { title: 1.1, subtitle: 1.2 },
+        ],
+    ])("%s", (_, manager, expected) => {
+        expect(readLineHeights(new Header({ manager }))).toEqual(expected)
+    })
+})
+
+describe("static header line heights", () => {
+    it.each<[string, HeaderManager, LineHeights]>([
+        [
+            "fixed layout",
+            { isLayoutFixed: true },
+            { title: 1.2, subtitle: 1.2 },
+        ],
+        [
+            "fixed small layout",
+            { isLayoutFixed: true, isStaticAndSmall: true },
+            { title: 1.1, subtitle: 1.2 },
+        ],
+        [
+            "responsive layout",
+            { isMedium: true, isSmall: true },
+            { title: 1.1, subtitle: 1.2 },
+        ],
+    ])("%s", (_, manager, expected) => {
+        const header = new StaticHeader({ manager, targetX: 0, targetY: 0 })
+        expect(readLineHeights(header)).toEqual(expected)
     })
 })

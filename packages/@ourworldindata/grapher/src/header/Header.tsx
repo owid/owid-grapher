@@ -115,7 +115,7 @@ abstract class AbstractHeader<
     }
 
     @computed get titleLineHeight(): number {
-        return this.manager.isSmall ? 1.1 : 1.2
+        return this.manager.isSmall || this.manager.isStaticAndSmall ? 1.1 : 1.2
     }
 
     @computed private get initialTitleFontSize(): number {
@@ -286,7 +286,9 @@ abstract class AbstractHeader<
     }
 
     @computed get subtitleLineHeight(): number {
-        return this.manager.isMedium ? 1.2 : 1.28571
+        return this.manager.isMedium || this.manager.isLayoutFixed
+            ? 1.2
+            : 1.28571
     }
 
     @computed get subtitle(): MarkdownTextWrap {
@@ -423,16 +425,6 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
         super(props)
 
         makeObservable(this)
-    }
-
-    override get titleLineHeight(): number {
-        if (this.manager.isLayoutResponsive) return super.titleLineHeight
-        return this.manager.isStaticAndSmall ? 1.1 : 1.2
-    }
-
-    override get subtitleLineHeight(): number {
-        if (this.manager.isLayoutResponsive) return super.subtitleLineHeight
-        return 1.2
     }
 
     override render(): React.ReactElement | null {

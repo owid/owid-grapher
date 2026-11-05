@@ -249,6 +249,12 @@ abstract class AbstractFooter<
     }
 
     @computed protected get fontSize(): number {
+        if (this.manager.isStaticAndSmall) return 14
+        if (this.manager.isLayoutFixed) {
+            return this.useBaseFontSize
+                ? scaleFontSize(13, this.baseFontSize)
+                : 13
+        }
         if (this.useBaseFontSize) {
             return scaleFontSize(11, this.baseFontSize)
         }
@@ -256,6 +262,7 @@ abstract class AbstractFooter<
     }
 
     @computed protected get sourcesFontSize(): number {
+        if (this.manager.isLayoutFixed) return this.fontSize
         if (this.useBaseFontSize) {
             return scaleFontSize(12, this.baseFontSize)
         }
@@ -838,17 +845,6 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
 
     protected override get sourcesText(): string {
         return `**Data source:** ${this.sourcesLine}`
-    }
-
-    protected override get fontSize(): number {
-        if (this.manager.isLayoutResponsive) return super.fontSize
-        if (this.manager.isStaticAndSmall) return 14
-        return this.useBaseFontSize ? scaleFontSize(13, this.baseFontSize) : 13
-    }
-
-    protected override get sourcesFontSize(): number {
-        if (this.manager.isLayoutResponsive) return super.sourcesFontSize
-        return this.fontSize
     }
 
     protected override get sourcesMaxWidth(): number {
