@@ -10,7 +10,11 @@ import {
     Time,
     RequiredBy,
 } from "@ourworldindata/utils"
-import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
+import {
+    ColumnTypeMap,
+    CoreColumn,
+    OwidColumn,
+} from "@ourworldindata/core-table"
 import { OwidColumnDef } from "@ourworldindata/types"
 import {
     Tooltip,
@@ -24,6 +28,11 @@ import {
 import { FooterItem, TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import { ScatterSeries, SeriesPoint } from "./ScatterPlotChartConstants"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
+import {
+    placeEntityAnnotationsInTooltip,
+    selectEntityAnnotationsForColumns,
+    TooltipAnnotationPlacement,
+} from "../annotations/EntityAnnotations"
 
 export interface ScatterPlotTooltipProps {
     id: number
@@ -37,6 +46,7 @@ interface TooltipValueRangeProps {
     values: SeriesPoint[]
     showSignificanceSuperscriptIfApplicable?: boolean
     showOriginalTimes?: boolean
+    detail?: string
 }
 
 @observer
@@ -150,6 +160,31 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
         return this.roundingNotice?.icon === TooltipFooterIcon.Significance
     }
 
+    @computed private get rowColumns(): OwidColumn[] {
+        const { xColumn, yColumn, sizeColumn, colorColumn } = this.chartState
+        return [xColumn, yColumn, sizeColumn, colorColumn].filter(
+            (column) =>
+                !column.isMissing &&
+                !column.isTimeColumn &&
+                !(column instanceof ColumnTypeMap.Continent)
+        )
+    }
+
+    @computed private get annotationPlacement():
+        | TooltipAnnotationPlacement
+        | undefined {
+        const { target } = this.props.tooltipState
+        if (!target) return undefined
+        const { rowColumns } = this
+        return placeEntityAnnotationsInTooltip(
+            selectEntityAnnotationsForColumns(
+                rowColumns,
+                target.series.seriesName
+            ),
+            rowColumns.map((column) => column.slug)
+        )
+    }
+
     @computed private get footer(): FooterItem[] {
         return excludeUndefined([this.toleranceNotice, this.roundingNotice])
     }
@@ -178,8 +213,14 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
         return timeLabel + (isRelativeMode ? " (avg. annual change)" : "")
     }
 
+    private getColumnAnnotation(column: CoreColumn): string | undefined {
+        return this.annotationPlacement?.kind === "perColumn"
+            ? this.annotationPlacement.textBySlug.get(column.slug)
+            : undefined
+    }
+
     override render(): React.ReactElement | null {
-        const { showSignificanceSuperscriptIfApplicable } = this
+        const { showSignificanceSuperscriptIfApplicable, rowColumns } = this
         const { chartState, tooltipState } = this.props
 
         const { target, position, fading } = tooltipState
@@ -197,40 +238,59 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
                 offsetY={-16}
                 style={{ maxWidth: "250px" }}
                 title={target.series.label}
+                titleAnnotation={
+                    this.annotationPlacement?.kind === "shared"
+                        ? this.annotationPlacement.text
+                        : undefined
+                }
                 subtitle={this.subtitle}
                 dissolve={fading}
                 footer={this.footer}
                 dismiss={() => (tooltipState.target = null)}
             >
-                <TooltipValueRangeX
-                    chartState={chartState}
-                    points={this.points}
-                    values={this.values}
-                    showSignificanceSuperscriptIfApplicable={
-                        showSignificanceSuperscriptIfApplicable
-                    }
-                    showOriginalTimes={hasToleranceNotice}
-                />
-                <TooltipValueRangeY
-                    chartState={chartState}
-                    points={this.points}
-                    values={this.values}
-                    showSignificanceSuperscriptIfApplicable={
-                        showSignificanceSuperscriptIfApplicable
-                    }
-                    showOriginalTimes={hasToleranceNotice}
-                />
-                <TooltipValueRangeSize
-                    chartState={chartState}
-                    values={this.values}
-                    showSignificanceSuperscriptIfApplicable={
-                        showSignificanceSuperscriptIfApplicable
-                    }
-                />
-                <TooltipValueColor
-                    chartState={chartState}
-                    values={this.values}
-                />
+                {rowColumns.includes(chartState.xColumn) && (
+                    <TooltipValueRangeX
+                        chartState={chartState}
+                        points={this.points}
+                        values={this.values}
+                        showSignificanceSuperscriptIfApplicable={
+                            showSignificanceSuperscriptIfApplicable
+                        }
+                        showOriginalTimes={hasToleranceNotice}
+                        detail={this.getColumnAnnotation(chartState.xColumn)}
+                    />
+                )}
+                {rowColumns.includes(chartState.yColumn) && (
+                    <TooltipValueRangeY
+                        chartState={chartState}
+                        points={this.points}
+                        values={this.values}
+                        showSignificanceSuperscriptIfApplicable={
+                            showSignificanceSuperscriptIfApplicable
+                        }
+                        showOriginalTimes={hasToleranceNotice}
+                        detail={this.getColumnAnnotation(chartState.yColumn)}
+                    />
+                )}
+                {rowColumns.includes(chartState.sizeColumn) && (
+                    <TooltipValueRangeSize
+                        chartState={chartState}
+                        values={this.values}
+                        showSignificanceSuperscriptIfApplicable={
+                            showSignificanceSuperscriptIfApplicable
+                        }
+                        detail={this.getColumnAnnotation(chartState.sizeColumn)}
+                    />
+                )}
+                {rowColumns.includes(chartState.colorColumn) && (
+                    <TooltipValueColor
+                        chartState={chartState}
+                        values={this.values}
+                        detail={this.getColumnAnnotation(
+                            chartState.colorColumn
+                        )}
+                    />
+                )}
             </Tooltip>
         )
     }
@@ -242,10 +302,9 @@ function TooltipValueRangeX({
     values,
     showSignificanceSuperscriptIfApplicable,
     showOriginalTimes,
-}: RequiredBy<TooltipValueRangeProps, "points">): React.ReactElement | null {
+    detail,
+}: RequiredBy<TooltipValueRangeProps, "points">): React.ReactElement {
     const { xColumn } = chartState
-
-    if (xColumn.isMissing || xColumn.isTimeColumn) return null
 
     const { values: xValues, originalTimes = [] } = getXValuesWithTimes(
         chartState,
@@ -270,6 +329,7 @@ function TooltipValueRangeX({
                 showSignificanceSuperscriptIfApplicable &&
                 xColumn.roundsToSignificantFigures
             }
+            detail={detail}
         />
     )
 }
@@ -280,10 +340,9 @@ function TooltipValueRangeY({
     values,
     showSignificanceSuperscriptIfApplicable,
     showOriginalTimes,
-}: RequiredBy<TooltipValueRangeProps, "points">): React.ReactElement | null {
+    detail,
+}: RequiredBy<TooltipValueRangeProps, "points">): React.ReactElement {
     const { yColumn } = chartState
-
-    if (yColumn.isMissing) return null
 
     const { values: yValues, originalTimes = [] } = getYValuesWithTimes(
         chartState,
@@ -312,6 +371,7 @@ function TooltipValueRangeY({
                 showSignificanceSuperscriptIfApplicable &&
                 yColumn.roundsToSignificantFigures
             }
+            detail={detail}
         />
     )
 }
@@ -320,10 +380,9 @@ function TooltipValueRangeSize({
     chartState,
     values,
     showSignificanceSuperscriptIfApplicable,
-}: TooltipValueRangeProps): React.ReactElement | null {
+    detail,
+}: TooltipValueRangeProps): React.ReactElement {
     const { sizeColumn } = chartState
-
-    if (sizeColumn.isMissing) return null
 
     const sizeValues = excludeNullish(values.map((v) => v.size))
 
@@ -345,6 +404,7 @@ function TooltipValueRangeSize({
                 showSignificanceSuperscriptIfApplicable &&
                 sizeColumn.roundsToSignificantFigures
             }
+            detail={detail}
         />
     )
 }
@@ -352,11 +412,9 @@ function TooltipValueRangeSize({
 function TooltipValueColor({
     chartState,
     values,
+    detail,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const { colorColumn, colorScale } = chartState
-
-    if (colorColumn.isMissing || colorColumn instanceof ColumnTypeMap.Continent)
-        return null
 
     const value = values.at(-1)
     const colorValue = value?.color
@@ -370,6 +428,7 @@ function TooltipValueColor({
         <TooltipValue
             label={colorScale.legendDescription ?? colorColumn.displayName}
             value={displayValue}
+            detail={detail}
         />
     )
 }

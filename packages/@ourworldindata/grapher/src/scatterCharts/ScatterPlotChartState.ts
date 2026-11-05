@@ -4,6 +4,7 @@ import {
     CoreColumn,
     defaultIfErrorValue,
     isNotErrorValue,
+    OwidColumn,
     OwidTable,
 } from "@ourworldindata/core-table"
 import { ChartState } from "../chart/ChartInterface"
@@ -221,7 +222,7 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         return autoDetectYColumnSlugs(this.manager)[0]
     }
 
-    @computed get yColumn(): CoreColumn {
+    @computed get yColumn(): OwidColumn {
         return this.transformedTable.get(this.yColumnSlug)
     }
 
@@ -234,7 +235,7 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         return this.manager.xColumnSlug === undefined
     }
 
-    @computed get xColumn(): CoreColumn {
+    @computed get xColumn(): OwidColumn {
         return this.transformedTable.get(this.xColumnSlug)
     }
 
@@ -242,7 +243,7 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         return this.manager.sizeColumnSlug
     }
 
-    @computed get sizeColumn(): CoreColumn {
+    @computed get sizeColumn(): OwidColumn {
         return this.transformedTable.get(this.sizeColumnSlug)
     }
 
@@ -250,7 +251,7 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         return this.manager.colorColumnSlug
     }
 
-    @computed get colorColumn(): CoreColumn {
+    @computed get colorColumn(): OwidColumn {
         return this.transformedTable.get(this.colorColumnSlug)
     }
 
