@@ -154,11 +154,7 @@ const NewsletterSignupFormInner = ({
             <NewsletterOption
                 id={`newsletter-signup-topics-${context}`}
                 title={FOLLOW_TOPICS_TITLE}
-                cadence={
-                    followTopics
-                        ? "Choose topics in next step"
-                        : FOLLOW_TOPICS_CADENCE
-                }
+                cadence={FOLLOW_TOPICS_CADENCE}
                 description={FOLLOW_TOPICS_DESCRIPTION}
                 checked={followTopics}
                 disabled={subscribe.isPending}
@@ -206,7 +202,7 @@ const NewsletterSignupFormInner = ({
                     }
                     text={
                         followTopics
-                            ? "See subscription options"
+                            ? "Pick your topics"
                             : subscribe.isPending
                               ? "Subscribing…"
                               : "Subscribe"
