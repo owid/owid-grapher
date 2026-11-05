@@ -95,7 +95,6 @@
 
     @include md-up {
         grid-template-columns: 1fr 1fr;
-        gap: 16px;
     }
 }
 
@@ -103,6 +102,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    gap: 2px;
     width: 100%;
     padding: 12px;
     border: 1px solid $blue-20;
@@ -117,7 +117,6 @@
 
 .newsletter-preference-fields__card--selected {
     background-color: $accent-pale-blue;
-    border-color: $accent-pale-blue;
 
     &:hover {
         background-color: $accent-pale-blue;
@@ -128,40 +127,49 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
     width: 100%;
-    color: $blue-60;
-    font-size: 0.75rem;
-}
-
-.newsletter-preference-fields__checkbox {
-    border: 1px solid $blue-20;
-    border-radius: 3px;
-    background: #fff;
-    width: 16px;
-    height: 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.newsletter-preference-fields__checkbox--selected {
-    border-color: $blue-60;
-    background: $blue-60;
-    svg {
-        color: #fff;
-    }
 }
 
 .newsletter-preference-fields__card-title {
     @include body-3-medium;
-    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
     color: $blue-90;
+
+    svg {
+        width: 16px;
+        font-size: 0.75rem;
+        color: $blue-60;
+    }
+}
+
+.newsletter-preference-fields__checkbox {
+    display: flex;
+    flex-shrink: 0;
+    justify-content: center;
+    align-items: center;
+    width: 16px;
+    height: 16px;
+    border: 1px solid $blue-20;
+    border-radius: 2px;
+    background: #fff;
+}
+
+.newsletter-preference-fields__checkbox--selected {
+    border-color: $blue-70;
+    background: $blue-70;
+
+    svg {
+        font-size: 0.625rem;
+        color: #fff;
+    }
 }
 
 .newsletter-preference-fields__card-description {
-    @include body-3-medium;
+    @include note-12-medium;
     color: $blue-60;
-    margin-top: 2px;
 }
 
 .newsletter-preference-fields__frequency-options {
