@@ -171,43 +171,45 @@ const NewsletterSignupFormInner = ({
                     {getErrorMessage(subscribe.error)}
                 </div>
             )}
-            <TextInput
-                className="newsletter-signup-form__email sentry-mask"
-                type="email"
-                autoComplete="email"
-                placeholder="Your email address"
-                required={true}
-                value={email}
-                disabled={subscribe.isPending}
-                onChange={(event) => {
-                    setHasEditedEmail(true)
-                    setEmail(event.target.value)
-                }}
-            />
-            {showCaptcha && (
-                <NewsletterSpamProtection
-                    ref={captchaRef}
-                    onToken={setCaptchaToken}
+            <div className="newsletter-signup-form__email-submit">
+                <TextInput
+                    className="newsletter-signup-form__email sentry-mask"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Your email address"
+                    required={true}
+                    value={email}
+                    disabled={subscribe.isPending}
+                    onChange={(event) => {
+                        setHasEditedEmail(true)
+                        setEmail(event.target.value)
+                    }}
                 />
-            )}
-            <Button
-                className="newsletter-signup-form__submit"
-                type="submit"
-                theme="solid-vermillion"
-                icon={null}
-                disabled={
-                    !isSubmittable ||
-                    subscribe.isPending ||
-                    (!followTopics && !captchaToken)
-                }
-                text={
-                    followTopics
-                        ? "See subscription options"
-                        : subscribe.isPending
-                          ? "Subscribing…"
-                          : "Subscribe"
-                }
-            />
+                {showCaptcha && (
+                    <NewsletterSpamProtection
+                        ref={captchaRef}
+                        onToken={setCaptchaToken}
+                    />
+                )}
+                <Button
+                    className="newsletter-signup-form__submit"
+                    type="submit"
+                    theme="solid-vermillion"
+                    icon={null}
+                    disabled={
+                        !isSubmittable ||
+                        subscribe.isPending ||
+                        (!followTopics && !captchaToken)
+                    }
+                    text={
+                        followTopics
+                            ? "See subscription options"
+                            : subscribe.isPending
+                              ? "Subscribing…"
+                              : "Subscribe"
+                    }
+                />
+            </div>
             <PrivacyNotice className="newsletter-signup-form__privacy-notice" />
         </form>
     )
