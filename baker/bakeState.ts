@@ -11,6 +11,7 @@ export const incrementalBakeSteps = [
     "multiDimPages",
     "explorers",
     "gdocPosts",
+    "countryProfiles",
 ] as const
 
 export type IncrementalBakeStep = (typeof incrementalBakeSteps)[number]
@@ -36,6 +37,13 @@ export interface BakeState {
     /** The id in the baked directory's id file when the state was written */
     bakedSiteId?: string
     steps: Partial<Record<IncrementalBakeStep, PageFingerprints>>
+    /**
+     * By profile gdoc id, the entity codes that got a page when the profile
+     * was last rendered. Gdoc posts validate their links to a profile's
+     * countries against them, so a profile that isn't re-rendered takes them
+     * from here.
+     */
+    renderedProfileEntityCodes?: Record<string, string[]>
 }
 
 // Bump when fingerprints change shape, so that the next incremental bake

@@ -118,6 +118,7 @@ import {
 } from "./bakeState.js"
 import {
     getChartPageFingerprints,
+    getCountryProfileFingerprints,
     getExplorerPageFingerprints,
     getGdocPostFingerprints,
     getMultiDimPageFingerprints,
@@ -280,6 +281,37 @@ export class SiteBaker {
         if (!this.bakeSteps.has("countryProfiles")) return
         this.progressBar.tick({ name: "Baking profile pages" })
 
+        await this.bakeChangedPages(
+            knex,
+            "countryProfiles",
+            (inputs) => getCountryProfileFingerprints(knex, inputs),
+            (profileIdsToBake) =>
+                this.bakeCountryProfilePages(knex, profileIdsToBake)
+        )
+
+        // Update prefetched linkedDocuments cache with filtered entity codes
+        if (this._prefetchedAttachmentsCache) {
+            for (const [gdocId, renderedCodes] of this
+                ._renderedProfileEntityCodes) {
+                const linkedDoc =
+                    this._prefetchedAttachmentsCache.linkedDocuments[gdocId]
+                if (linkedDoc) {
+                    linkedDoc.availableEntityCodes = renderedCodes
+                }
+            }
+        }
+    }
+
+    /**
+     * Renders the pages of the given profiles, or of all of them, and takes
+     * the entities the others have a page for from the previous bake. Like a
+     * full bake, it leaves the pages of unpublished profiles, and of entities
+     * that lost their page, in place.
+     */
+    private async bakeCountryProfilePages(
+        knex: db.KnexReadonlyTransaction,
+        profileIdsToBake: Set<string> | undefined
+    ) {
         const { profileTemplates } = await traceJob(
             "load-country-profiles",
             async () => {
@@ -295,9 +327,22 @@ export class SiteBaker {
             }
         )
 
-        if (profileTemplates.length === 0) return
-
+        const state = await this.getBakeState()
         for (const profileTemplate of profileTemplates) {
+            const previousCodes =
+                state.renderedProfileEntityCodes?.[profileTemplate.id]
+            if (
+                profileIdsToBake &&
+                !profileIdsToBake.has(profileTemplate.id) &&
+                previousCodes
+            ) {
+                this._renderedProfileEntityCodes.set(
+                    profileTemplate.id,
+                    previousCodes
+                )
+                continue
+            }
+
             const { preparedTables, entities } = await traceJob(
                 "prepare-country-profile",
                 async () => {
@@ -383,17 +428,9 @@ export class SiteBaker {
             )
         }
 
-        // Update prefetched linkedDocuments cache with filtered entity codes
-        if (this._prefetchedAttachmentsCache) {
-            for (const [gdocId, renderedCodes] of this
-                ._renderedProfileEntityCodes) {
-                const linkedDoc =
-                    this._prefetchedAttachmentsCache.linkedDocuments[gdocId]
-                if (linkedDoc) {
-                    linkedDoc.availableEntityCodes = renderedCodes
-                }
-            }
-        }
+        state.renderedProfileEntityCodes = Object.fromEntries(
+            this._renderedProfileEntityCodes
+        )
     }
 
     // Bake an individual post/page

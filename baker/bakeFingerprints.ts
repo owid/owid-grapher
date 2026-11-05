@@ -8,16 +8,15 @@ import { PageFingerprints } from "./bakeState.js"
 // Fingerprints of what each kind of page reads from the database when it is
 // rendered. They cover the inputs that change between two full bakes: a
 // page's own config or content, the metadata of the indicators it shows, the
-// charts it lists ("related charts", the all-charts block) and what it links
-// to or embeds. Inputs that aren't covered are refreshed by the next full
-// bake. They change rarely: a data page's
-// "related research" (ordered by pageviews) and primary topic, what the data
-// page redesign experiment adds (related charts by coview, dataset owners),
-// the authors of an article, the tag hierarchy, replaced images behind
-// featured images and static visualizations, donors, and the archive. Two
-// inputs no page in these steps reads today, and that would need covering
-// once one does: data-callout values (data, not metadata; only profiles use
-// them) and the legacy WordPress blocks some explorers embed (frozen).
+// data values its data callouts quote, the charts it lists ("related charts",
+// the all-charts block) and what it links to or embeds. Inputs that aren't
+// covered are refreshed by the next full bake. They change rarely: a data
+// page's "related research" (ordered by pageviews) and primary topic, what the
+// data page redesign experiment adds (related charts by coview, dataset
+// owners), the authors of an article, the tag hierarchy, replaced images
+// behind featured images and static visualizations, donors, and the archive.
+// One input no page in these steps reads today, and that would need covering
+// once one does: the legacy WordPress blocks some explorers embed (frozen).
 
 const fingerprint = (parts: unknown[]): string => hashMd5(JSON.stringify(parts))
 
@@ -39,13 +38,28 @@ export interface FingerprintInputs {
     variableVersions: Map<number, Version>
     /** Published charts, one row per tag; untagged charts aren't listed */
     chartListings: ChartListing[]
+    /** By gdoc id, for gdocs with data callouts */
+    calloutDataVersions: Map<string, Version>
 }
 
 export const getFingerprintInputs = async (
     knex: db.KnexReadonlyTransaction
-): Promise<FingerprintInputs> => ({
-    variableVersions: await getVariableVersions(knex),
-    chartListings: await db.knexRaw<ChartListing>(
+): Promise<FingerprintInputs> => {
+    const variableVersions = await getVariableVersions(knex)
+    return {
+        variableVersions,
+        chartListings: await getChartListings(knex),
+        calloutDataVersions: await getCalloutDataVersions(
+            knex,
+            variableVersions
+        ),
+    }
+}
+
+const getChartListings = (
+    knex: db.KnexReadonlyTransaction
+): Promise<ChartListing[]> =>
+    db.knexRaw<ChartListing>(
         knex,
         `-- sql
             SELECT
@@ -62,8 +76,7 @@ export const getFingerprintInputs = async (
             JOIN tags t ON t.id = ct.tagId
             WHERE cc.config ->> "$.isPublished" = "true"
             ORDER BY c.id, ct.tagId`
-    ),
-})
+    )
 
 /**
  * The version of everything a page reads about an indicator. ETL's
@@ -137,6 +150,116 @@ const versionsOf = (
         id,
         variableVersions.get(id),
     ])
+
+/**
+ * By gdoc id, the version of what its data callouts quote: the data values
+ * and metadata of every indicator of the chart, multi-dim or explorer each
+ * callout reads from. dataChecksum is ETL's checksum of an indicator's
+ * values; indicators that ETL didn't write fall back to updatedAt.
+ */
+const getCalloutDataVersions = async (
+    knex: db.KnexReadonlyTransaction,
+    variableVersions: Map<number, Version>
+): Promise<Map<string, Version>> => {
+    const callouts = await db.knexRaw<{
+        sourceId: string
+        linkType: string
+        target: string
+    }>(
+        knex,
+        `-- sql
+            SELECT DISTINCT sourceId, linkType, target
+            FROM posts_gdocs_links
+            WHERE componentType = 'data-callout'
+            ORDER BY sourceId, linkType, target`
+    )
+    if (callouts.length === 0) return new Map()
+
+    // The indicators behind each callout target, keyed as links name it: a
+    // chart by its current slug or one that redirects to it, a multi-dim (all
+    // of its views) or an explorer (its indicators and the charts it embeds)
+    const targetVariables = await db.knexRaw<{
+        linkType: string
+        target: string
+        variableId: number
+    }>(
+        knex,
+        `-- sql
+            SELECT 'grapher' AS linkType, cc.slug AS target, cd.variableId
+            FROM charts c
+            JOIN chart_configs cc ON cc.id = c.configId
+            JOIN chart_dimensions cd ON cd.chartId = c.id
+            UNION
+            SELECT 'grapher', csr.slug, cd.variableId
+            FROM chart_slug_redirects csr
+            JOIN chart_dimensions cd ON cd.chartId = csr.chart_id
+            UNION
+            SELECT 'grapher', md.slug, mx.variableId
+            FROM multi_dim_data_pages md
+            JOIN multi_dim_x_chart_configs mx ON mx.multiDimId = md.id
+            WHERE md.slug IS NOT NULL
+            UNION
+            SELECT 'explorer', explorerSlug, variableId
+            FROM explorer_variables
+            UNION
+            SELECT 'explorer', ec.explorerSlug, cd.variableId
+            FROM explorer_charts ec
+            JOIN chart_dimensions cd ON cd.chartId = ec.chartId`
+    )
+    const calloutTargets = new Set(
+        callouts.map((c) => `${c.linkType}:${c.target}`)
+    )
+    const variableIdsByTarget = _.mapValues(
+        _.groupBy(
+            targetVariables.filter((v) =>
+                calloutTargets.has(`${v.linkType}:${v.target}`)
+            ),
+            (v) => `${v.linkType}:${v.target}`
+        ),
+        (rows) => rows.map((row) => row.variableId)
+    )
+    const variableIds = _.uniq(Object.values(variableIdsByTarget).flat())
+    const dataVersions = new Map(
+        variableIds.length === 0
+            ? []
+            : (
+                  await db.knexRaw<{
+                      id: number
+                      dataChecksum: string | null
+                      updatedAt: Date | null
+                  }>(
+                      knex,
+                      `SELECT id, dataChecksum, updatedAt FROM variables WHERE id IN (?)`,
+                      [variableIds]
+                  )
+              ).map((v) => [v.id, v.dataChecksum ?? v.updatedAt])
+    )
+
+    return new Map(
+        Object.entries(_.groupBy(callouts, (c) => c.sourceId)).map(
+            ([gdocId, gdocCallouts]) => [
+                gdocId,
+                fingerprint(
+                    gdocCallouts.map((c) => {
+                        const ids =
+                            variableIdsByTarget[`${c.linkType}:${c.target}`]
+                        return [
+                            c.linkType,
+                            c.target,
+                            versionsOf(ids ?? [], variableVersions).map(
+                                ([id, version]) => [
+                                    id,
+                                    version,
+                                    dataVersions.get(id),
+                                ]
+                            ),
+                        ]
+                    })
+                ),
+            ]
+        )
+    )
+}
 
 /**
  * Keyed by chart id. Besides the chart's own config and indicators, a chart
@@ -376,18 +499,46 @@ export const getExplorerPageFingerprints = async (
     )
 }
 
-/**
- * Keyed by slug. Covers the gdoc itself, its tags (breadcrumbs), its images,
- * the version of everything it links to or embeds: other gdocs (their title,
- * excerpt and thumbnail appear in link previews), charts, multi-dims,
- * explorers, narrative charts and static visualizations; for gdocs with an
- * all-charts block, the charts tagged with the gdoc's tags; and for
- * announcements, the other announcements (their carousel).
- */
+/** Keyed by slug */
 export const getGdocPostFingerprints = async (
     knex: db.KnexReadonlyTransaction,
-    { chartListings }: FingerprintInputs
-): Promise<PageFingerprints> => {
+    inputs: FingerprintInputs
+): Promise<PageFingerprints> =>
+    Object.fromEntries(
+        (await getGdocFingerprints(knex, inputs, db.GDOC_POST_BAKE_TYPES)).map(
+            (gdoc) => [gdoc.slug, gdoc.fingerprint]
+        )
+    )
+
+/**
+ * Keyed by gdoc id. One fingerprint covers all of a profile's pages, since
+ * they are rendered from the same template and data; the data its callouts
+ * quote also decides which entities get a page.
+ */
+export const getCountryProfileFingerprints = async (
+    knex: db.KnexReadonlyTransaction,
+    inputs: FingerprintInputs
+): Promise<PageFingerprints> =>
+    Object.fromEntries(
+        (await getGdocFingerprints(knex, inputs, [OwidGdocType.Profile])).map(
+            (gdoc) => [gdoc.id, gdoc.fingerprint]
+        )
+    )
+
+/**
+ * Covers the gdoc itself, its tags (breadcrumbs), its images, the data its
+ * data callouts quote, the version of everything it links to or embeds: other
+ * gdocs (their title, excerpt and thumbnail appear in link previews, and for
+ * a profile, the entities it has a page for), charts, multi-dims, explorers,
+ * narrative charts and static visualizations; for gdocs with an all-charts
+ * block, the charts tagged with the gdoc's tags; and for announcements, the
+ * other announcements (their carousel).
+ */
+const getGdocFingerprints = async (
+    knex: db.KnexReadonlyTransaction,
+    { chartListings, calloutDataVersions }: FingerprintInputs,
+    gdocTypes: OwidGdocType[]
+): Promise<{ id: string; slug: string; fingerprint: Version }[]> => {
     // Same selection as getPublishedGdocsWithTags. contentMd5 catches a
     // second edit within the same second, which updatedAt can't tell apart.
     const gdocs = await db.knexRaw<{
@@ -406,7 +557,7 @@ export const getGdocPostFingerprints = async (
                 AND type IN (?)
                 AND publishedAt <= NOW()
             ORDER BY publishedAt DESC, id`,
-        [db.GDOC_POST_BAKE_TYPES]
+        [gdocTypes]
     )
     // Announcement pages show the latest announcements of their kind; any
     // change to an announcement re-renders all of them, which is few pages
@@ -463,36 +614,41 @@ export const getGdocPostFingerprints = async (
     const linksByGdocId = _.groupBy(links, (link) => link.sourceId)
     const listingsByTagId = _.groupBy(chartListings, (l) => l.tagId)
 
-    return Object.fromEntries(
-        gdocs.map((gdoc) => {
-            const tagIds = (tagsByGdocId[gdoc.id] ?? []).map((t) => t.tagId)
-            return [
-                gdoc.slug,
-                fingerprint([
-                    gdoc.id,
-                    gdoc.updatedAt,
-                    gdoc.contentMd5,
-                    gdoc.publishedAt,
-                    gdoc.type === OwidGdocType.Announcement
-                        ? announcementsVersion
-                        : null,
-                    tagIds,
-                    (imagesByGdocId[gdoc.id] ?? []).map((image) => [
-                        image.imageId,
-                        image.updatedAt,
-                    ]),
-                    (linksByGdocId[gdoc.id] ?? []).map((link) => [
-                        link.linkType,
-                        link.target,
-                        linkTargetVersions[link.linkType]?.get(link.target),
-                    ]),
-                    gdocIdsWithAllChartsBlock.has(gdoc.id)
-                        ? tagIds.map((tagId) => listingsByTagId[tagId] ?? [])
+    return gdocs.map((gdoc) => {
+        const tagIds = (tagsByGdocId[gdoc.id] ?? []).map((t) => t.tagId)
+        return {
+            id: gdoc.id,
+            slug: gdoc.slug,
+            fingerprint: fingerprint([
+                gdoc.id,
+                gdoc.updatedAt,
+                gdoc.contentMd5,
+                gdoc.publishedAt,
+                gdoc.type === OwidGdocType.Announcement
+                    ? announcementsVersion
+                    : null,
+                tagIds,
+                (imagesByGdocId[gdoc.id] ?? []).map((image) => [
+                    image.imageId,
+                    image.updatedAt,
+                ]),
+                calloutDataVersions.get(gdoc.id) ?? null,
+                (linksByGdocId[gdoc.id] ?? []).map((link) => [
+                    link.linkType,
+                    link.target,
+                    linkTargetVersions[link.linkType]?.get(link.target),
+                    // Which entities a linked profile has a page for depends
+                    // on the data its callouts quote
+                    link.linkType === "gdoc"
+                        ? (calloutDataVersions.get(link.target) ?? null)
                         : null,
                 ]),
-            ]
-        })
-    )
+                gdocIdsWithAllChartsBlock.has(gdoc.id)
+                    ? tagIds.map((tagId) => listingsByTagId[tagId] ?? [])
+                    : null,
+            ]),
+        }
+    })
 }
 
 /** By link type, the version of each link target, keyed as links name it */
