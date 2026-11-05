@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import { TextWrap, shortenWithEllipsis } from "@ourworldindata/components"
 import { EntityName } from "@ourworldindata/types"
-import { excludeUndefined } from "@ourworldindata/utils"
 import { FontSettings } from "../core/GrapherConstants.js"
 import {
     SeriesLabelState,
@@ -10,6 +9,8 @@ import {
 
 /** Vertical padding between the label and the annotation underneath it */
 const ANNOTATION_PADDING = 2
+
+const NARROW_ANNOTATION_WIDTH = 150
 
 /**
  * Where each row's label must end, in px from the chart's left edge, when the
@@ -26,12 +27,6 @@ type LabelOptions = Pick<
 /** A row's label, and whether it overflows its row */
 interface FittedLabel {
     label: SeriesLabelState
-    needsTruncation: boolean
-}
-
-/** A row's annotation, and whether it overflows the space under its label */
-interface FittedAnnotation {
-    textWrap: TextWrap
     needsTruncation: boolean
 }
 
@@ -288,29 +283,31 @@ export function enrichSeriesWithLabels<
         labelOptions,
     })
 
-    const annotations = series.map((series, index) => {
-        if (!series.annotation) return undefined
-        const isTruncated = labels[index].needsTruncation
-        return fitAnnotation({
-            text: series.annotation,
-            labelHeight: isTruncated
-                ? fontSettings.fontSize * fontSettings.lineHeight
-                : labels[index].label.height,
-            // 80px extra to give annotations more room than labels
-            firstTryWidth: isTruncated
-                ? minLabelWidth
-                : narrowWraps[index].textWrap.width + 80,
-            availableHeight: availableHeightPerSeries,
-            maxWidth: maxLabelWidth,
-            fontSettings: annotationFontSettings,
-        })
-    })
+    const fittedAnnotations = series.map((series, index) =>
+        series.annotation
+            ? fitAnnotation({
+                  text: series.annotation,
+                  labelHeight: labels[index].needsTruncation
+                      ? fontSettings.fontSize * fontSettings.lineHeight
+                      : labels[index].label.height,
+                  availableHeight: availableHeightPerSeries,
+                  maxWidth: maxLabelWidth,
+                  fontSettings: annotationFontSettings,
+              })
+            : undefined
+    )
+
+    const isAnyAnnotationDropped = series.some(
+        ({ annotation }, index) => annotation && !fittedAnnotations[index]
+    )
+    const annotations = isAnyAnnotationDropped
+        ? series.map(() => undefined)
+        : fittedAnnotations
 
     const truncationWidth = computeTruncationWidth(narrowWraps, annotations)
 
     return series.map((series, index) => {
         const { label, needsTruncation } = labels[index]
-        const annotation = annotations[index]
         return {
             ...series,
             label: needsTruncation
@@ -319,13 +316,7 @@ export function enrichSeriesWithLabels<
                       labelOptions
                   )
                 : label,
-            annotationTextWrap: annotation?.needsTruncation
-                ? truncateText(
-                      annotation.textWrap.text,
-                      truncationWidth,
-                      annotationFontSettings
-                  )
-                : annotation?.textWrap,
+            annotationTextWrap: annotations[index],
         }
     })
 }
@@ -399,53 +390,46 @@ function widenLabel({
     return hasFewerLines && fitsBudget ? label : narrowLabel
 }
 
-/** Wraps an annotation into the space left under its label, or returns undefined if not even one line fits */
 function fitAnnotation({
     text,
     labelHeight,
-    firstTryWidth,
     availableHeight,
     maxWidth,
     fontSettings,
 }: {
     text: string
     labelHeight: number
-    firstTryWidth: number
     availableHeight: number
     maxWidth: number
     fontSettings: FontSettings
-}): FittedAnnotation | undefined {
+}): TextWrap | undefined {
     // 4px extra padding to avoid crowding
     const heightLeft = availableHeight - labelHeight - ANNOTATION_PADDING - 4
     if (heightLeft < fontSettings.fontSize * fontSettings.lineHeight) return
 
     const textWrap = new TextWrap({
         text,
-        maxWidth: Math.min(maxWidth, firstTryWidth),
+        maxWidth: Math.min(maxWidth, NARROW_ANNOTATION_WIDTH),
         ...fontSettings,
     })
-    if (textWrap.height <= heightLeft)
-        return { textWrap, needsTruncation: false }
+    if (textWrap.height <= heightLeft) return textWrap
 
     const wideTextWrap = new TextWrap({ text, maxWidth, ...fontSettings })
-    return {
-        textWrap: wideTextWrap,
-        needsTruncation: wideTextWrap.height > heightLeft,
-    }
+    return wideTextWrap.height <= heightLeft ? wideTextWrap : undefined
 }
 
 /** The width of the widest narrow label or annotation that fits its row */
 function computeTruncationWidth(
     narrowWraps: readonly ReturnType<typeof wrapLabelForHeight>[],
-    annotations: (FittedAnnotation | undefined)[]
+    annotations: readonly (TextWrap | undefined)[]
 ): number {
     const fittingWidths = [
         ...narrowWraps
             .filter(({ needsTruncation }) => !needsTruncation)
             .map(({ textWrap }) => textWrap.width),
-        ...excludeUndefined(annotations)
-            .filter((annotation) => !annotation.needsTruncation)
-            .map(({ textWrap }) => textWrap.width),
+        ...annotations.flatMap((textWrap) =>
+            textWrap ? [textWrap.width] : []
+        ),
     ]
     return _.max(fittingWidths) ?? 0
 }

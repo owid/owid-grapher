@@ -71,27 +71,86 @@ describe(enrichSeriesWithLabels, () => {
         ])
     })
 
-    it("draws the annotation of a truncated row without widening the truncation width", () => {
-        const minLabelWidth = 120
+    it("shows the full annotation of a truncated row", () => {
+        const annotation = "Estimate based on partial survey data"
         const [truncated] = enrichSeriesWithLabels({
             series: [
                 {
                     entityName: TOO_LONG_TO_FIT + " " + TOO_LONG_TO_FIT,
-                    annotation: "Estimate based on partial survey data",
+                    annotation,
                 },
                 { entityName: "France" },
             ],
             availableHeightPerSeries: 40,
-            minLabelWidth,
+            minLabelWidth: 120,
             maxLabelWidth: 264,
             fontSettings,
         })
 
         expect(getLineTexts(truncated.label)).toHaveLength(1)
         expect(truncated.label.text.endsWith("…")).toBe(true)
-        expect(truncated.annotationTextWrap?.lines).toHaveLength(2)
-        expect(truncated.annotationTextWrap!.width).toBeLessThanOrEqual(
-            minLabelWidth
-        )
+        expect(truncated.annotationTextWrap?.text).toEqual(annotation)
+        expect(truncated.annotationTextWrap!.width).toBeLessThanOrEqual(150)
+    })
+
+    describe("annotations", () => {
+        const roomyRows = {
+            ...twoLineRows,
+            availableHeightPerSeries: 40,
+        }
+
+        it("keeps every annotation in full when all rows have room", () => {
+            const annotated = enrichSeriesWithLabels({
+                ...roomyRows,
+                series: [
+                    { entityName: "France", annotation: "Estimate" },
+                    { entityName: "Chad", annotation: "Survey data" },
+                ],
+            })
+
+            expect(
+                annotated.map((row) => row.annotationTextWrap?.text)
+            ).toEqual(["Estimate", "Survey data"])
+        })
+
+        it("drops every annotation when one row has no room for its own", () => {
+            const annotated = enrichSeriesWithLabels({
+                ...twoLineRows,
+                series: [
+                    { entityName: "France", annotation: "Estimate" },
+                    { entityName: "Chad", annotation: "Survey data" },
+                    {
+                        entityName: "Lower-middle-income countries",
+                        annotation: "Estimate",
+                    },
+                ],
+            })
+
+            expect(annotated.map((row) => row.annotationTextWrap)).toEqual([
+                undefined,
+                undefined,
+                undefined,
+            ])
+            expect(annotated.map((row) => row.annotation)).toEqual([
+                "Estimate",
+                "Survey data",
+                "Estimate",
+            ])
+        })
+
+        it("treats an annotation too long for the full label width as not fitting", () => {
+            const annotated = enrichSeriesWithLabels({
+                ...roomyRows,
+                series: [
+                    { entityName: "France", annotation: TOO_LONG_TO_FIT },
+                    { entityName: "Chad", annotation: "Survey data" },
+                ],
+            })
+
+            expect(annotated.map((row) => row.annotationTextWrap)).toEqual([
+                undefined,
+                undefined,
+            ])
+        })
     })
 })
