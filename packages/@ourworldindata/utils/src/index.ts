@@ -37,7 +37,6 @@ export {
     isMobile,
     isTouchDevice,
     type Json,
-    csvEscape,
     trimObject,
     fetchText,
     fetchJson,
@@ -142,11 +141,13 @@ export {
     getUserNavigatorLanguagesNonEnglish,
     convertDaysSinceEpochToDate,
     convertDateToDaysSinceEpoch,
+    plainUtcTimestamp,
     epochDate,
     getTimeInterval,
     isSubYearly,
     findFinestCommonTimeInterval,
     snapToIntervalStart,
+    positiveModulo,
     logPerf,
     sleep,
     lowercaseObjectKeys,
@@ -269,6 +270,7 @@ export {
     getSiblingRegions,
     getContinentForCountry,
     articulateEntity,
+    checkHasDefiniteArticle,
 } from "./regions/index.js"
 export {
     instantiateProfile,
@@ -304,6 +306,7 @@ export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 
 export {
     strToQueryParams,
+    safeDecodeURIComponent,
     queryParamsToStr,
     multiDimDimensionsToViewQueryStr,
     getWindowQueryStr,
@@ -370,6 +373,8 @@ export {
 } from "./DonateUtils.js"
 
 export { isAndroid, isIOS } from "./BrowserUtils.js"
+
+export { registerKeyboardShortcuts } from "./keyboardShortcuts.js"
 
 export {
     diffGrapherConfigs,

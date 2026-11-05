@@ -82,7 +82,7 @@ test.describe("displayed elements", () => {
         )
         await editor.openTab("Export")
         expect(await titleText(editor, await downloadSvg(editor))).toBe(
-            "Test chart2020"
+            "Test chart 2020"
         )
 
         await editor.checkbox("Title suffix: automatic time").uncheck()

@@ -7,6 +7,7 @@ import {
     ChartErrorInfo,
     SideWidths,
     SortBy,
+    SortConfig,
 } from "@ourworldindata/types"
 import { ColorScale } from "../color/ColorScale"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -20,7 +21,7 @@ import { FocusArray } from "../focus/FocusArray"
 
 export interface ChartSeries {
     seriesName: SeriesName
-    color: Color
+    color?: Color
 }
 
 export type ChartTableTransformer = (inputTable: OwidTable) => OwidTable
@@ -65,6 +66,9 @@ export interface ChartState {
 
     /** Sort keys this chart type supports */
     availableSortKeys?: SortBy[]
+
+    /** Sort config this chart type uses by default */
+    defaultSortConfig?: SortConfig
 
     /**
      * Explains that some of the values aren't from the time the chart is

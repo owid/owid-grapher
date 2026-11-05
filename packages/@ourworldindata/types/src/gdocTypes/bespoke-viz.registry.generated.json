@@ -17,6 +17,16 @@
       ],
       "config": [
         {
+          "name": "title",
+          "type": "string",
+          "description": "Chart title, replacing the generated one. Also hides the controls"
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "description": "Chart subtitle, replacing the generated one. Also hides the controls"
+        },
+        {
           "name": "region",
           "type": "string",
           "description": "Country or region shown first, such as `Nigeria` or `High-income countries`, or World if the data doesn't have it",
@@ -88,7 +98,7 @@
         {
           "name": "country",
           "type": "string",
-          "description": "Country shown first. `userLocation` picks the reader's country",
+          "description": "Country shown first. `userLocation` picks the user's country",
           "default": "Brazil"
         },
         {
@@ -140,7 +150,7 @@
       "variants": [
         {
           "name": "simulation",
-          "description": "Population projection for one country where readers set the fertility, life expectancy and migration assumptions",
+          "description": "Population projection for one country where users set the fertility, life expectancy and migration assumptions",
           "defaultSize": "widest",
           "archie": "{.bespoke-component}\nbundle: demography\nvariant: simulation\nsize: widest\n{}\n"
         },
@@ -177,7 +187,7 @@
         {
           "name": "region",
           "type": "string",
-          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
+          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the user's country",
           "default": "userLocation"
         },
         {
@@ -248,6 +258,59 @@
       ]
     },
     {
+      "id": "food-supply-chain",
+      "entryFile": "bespoke/projects/food-supply-chain/src/index.tsx",
+      "prose": {
+        "intro": ""
+      },
+      "examples": [],
+      "variants": [
+        {
+          "name": "waterfall",
+          "description": "Waterfall of how much food a country produces and where it goes",
+          "defaultSize": "widest",
+          "archie": "{.bespoke-component}\nbundle: food-supply-chain\nvariant: waterfall\nsize: widest\n{}\n"
+        }
+      ],
+      "config": [
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Chart title, replacing the generated one. Also hides the controls"
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "description": "Chart subtitle, replacing the generated one. Also hides the controls"
+        },
+        {
+          "name": "country",
+          "type": "string",
+          "description": "Country or region shown first, World if unset. `userLocation` picks the user's country"
+        },
+        {
+          "name": "measure",
+          "type": "enum",
+          "values": [
+            "calories",
+            "protein"
+          ],
+          "description": "Measure shown first: calories or protein",
+          "default": "calories"
+        },
+        {
+          "name": "year",
+          "type": "integer",
+          "description": "Year shown first, the latest if unset. If it is unavailable, uses the closest year in the data"
+        },
+        {
+          "name": "hideControls",
+          "type": "boolean",
+          "description": "Hide the country, measure and year controls"
+        }
+      ]
+    },
+    {
       "id": "food-trade",
       "entryFile": "bespoke/projects/food-trade/src/index.tsx",
       "prose": {
@@ -282,7 +345,7 @@
         {
           "name": "country",
           "type": "string",
-          "description": "Country shown first, or All countries if the data doesn't have it. `userLocation` picks the reader's country",
+          "description": "Country shown first, or All countries if the data doesn't have it. `userLocation` picks the user's country",
           "default": "All countries"
         },
         {
@@ -342,7 +405,7 @@
         {
           "name": "country",
           "type": "string",
-          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
+          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the user's country",
           "default": "United States"
         },
         {
@@ -408,17 +471,17 @@
         {
           "name": "title",
           "type": "string",
-          "description": "Chart title, replacing the generated one"
+          "description": "Chart title, replacing the generated one. Also hides the controls"
         },
         {
           "name": "subtitle",
           "type": "string",
-          "description": "Chart subtitle, replacing the generated one"
+          "description": "Chart subtitle, replacing the generated one. Also hides the controls"
         },
         {
           "name": "country",
           "type": "string",
-          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
+          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the user's country",
           "default": "United States"
         },
         {

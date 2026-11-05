@@ -1,5 +1,6 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
+import express from "express"
 import { TaggableType } from "@ourworldindata/types"
 import {
     getSlideshows,
@@ -51,6 +52,11 @@ import {
     getResearchAndWritingOrphans,
 } from "./apiRoutes/gdocs.js"
 import {
+    createGdocArchieMl,
+    getGdocArchieMl,
+    putGdocArchieMl,
+} from "./apiRoutes/gdocArchieMl.js"
+import {
     getImagesHandler,
     postImageHandler,
     putImageHandler,
@@ -75,6 +81,7 @@ import {
     handleGetMultiDims,
     handlePatchMultiDim,
     handleGetMultiDimRedirects,
+    handleGetRedirectsToPath,
     handlePostMultiDimRedirect,
     handleBulkCreateMultiDimRedirects,
     handleDeleteMultiDimRedirect,
@@ -405,6 +412,25 @@ getRouteWithROTransaction(
     "/gdocs/:id/coverage",
     getGdocCalloutCoverage
 )
+// ArchieML read and write for agents. GET reads any registered doc; writes
+// need unpublished docs the service account can edit
+getRouteWithROTransaction(apiRouter, "/gdocs/:id/archieml", getGdocArchieMl)
+// The writes' body is plain text, which FunctionalRouter's parsers don't
+// cover. They open their own short transactions, rather than holding one
+// across the Google API calls
+const archieMlTextBody = express.text({ type: "text/plain", limit: "50mb" })
+apiRouter.router.put(
+    "/gdocs/:id/archieml",
+    archieMlTextBody,
+    apiRouter.wrap(putGdocArchieMl)
+)
+// Creates a doc of any type, in the `folderId` query parameter's folder (else
+// GDOCS_EDIT_GDOC_FOLDER_ID's) and shared with its `email`
+apiRouter.router.post(
+    "/gdocs/archieml",
+    archieMlTextBody,
+    apiRouter.wrap(createGdocArchieMl)
+)
 getRouteWithROTransaction(
     apiRouter,
     "/callout-functions",
@@ -478,6 +504,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/multi-dims/:id/redirects",
     handleGetMultiDimRedirects
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/multi-dim-redirects/redirects-to",
+    handleGetRedirectsToPath
 )
 postRouteWithRWTransaction(
     apiRouter,

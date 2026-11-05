@@ -8,6 +8,7 @@ import * as R from "remeda"
 import { articulateEntity } from "@ourworldindata/utils"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import {
@@ -18,12 +19,11 @@ import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 import {
-    isUserLocationCountry,
+    findInitialCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 
@@ -55,6 +55,8 @@ const LATEST_YEAR = -1
 
 const queryClient = new QueryClient()
 
+const COUNTRY_URL_PARAM = "country"
+
 export function SankeyVariant({
     config,
     urls,
@@ -63,20 +65,18 @@ export function SankeyVariant({
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
     return (
-        <EmbedConfigProvider config={config}>
-            <NuqsAdapter>
-                <QueryClientProvider client={queryClient}>
-                    <div
-                        ref={ref}
-                        className={cx("migration-chart", {
-                            "migration-chart--narrow": isNarrow,
-                        })}
-                    >
-                        <FetchingSankeyVariant config={config} urls={urls} />
-                    </div>
-                </QueryClientProvider>
-            </NuqsAdapter>
-        </EmbedConfigProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <div
+                    ref={ref}
+                    className={cx("migration-chart", {
+                        "migration-chart--narrow": isNarrow,
+                    })}
+                >
+                    <FetchingSankeyVariant config={config} urls={urls} />
+                </div>
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 
@@ -89,27 +89,25 @@ function FetchingSankeyVariant({
     config: MigrationConfig
     urls: BespokeComponentDataUrls
 }) {
-    const initialCountry = isUserLocationCountry(config.country)
-        ? DEFAULT_COUNTRY
-        : config.country
+    const initialCountry = findInitialCountry(config.country, DEFAULT_COUNTRY)
 
     const [requestedCountry, setCountry] = useUrlState({
-        key: "migrationCountry",
+        key: COUNTRY_URL_PARAM,
         parser: parseAsString,
         defaultValue: initialCountry,
     })
     const [requestedYear, setYear] = useUrlState({
-        key: "migrationYear",
+        key: "year",
         parser: parseAsInteger,
         defaultValue: config.year ?? LATEST_YEAR,
     })
     const [sex, setSex] = useUrlState({
-        key: "migrationSex",
+        key: "sex",
         parser: parseAsStringEnum<Sex>(["both", "female", "male"]),
         defaultValue: config.sex,
     })
     const [_view, setView] = useUrlState({
-        key: "migrationFlow",
+        key: "flow",
         parser: parseAsStringEnum<MigrationView>([
             "both",
             "immigrants",
@@ -137,7 +135,7 @@ function FetchingSankeyVariant({
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlStateKey: "migrationCountry",
+        urlStateKey: COUNTRY_URL_PARAM,
         setCountry,
     })
 
@@ -336,34 +334,36 @@ function CaptionedSankeyVariant({
                     />
                 </>
             )}
-            <Frame className="migration-captioned-chart">
-                <MigrationChartHeader
-                    config={config}
-                    country={displayedCountry}
-                    year={year}
-                    sex={sex}
-                    view={view}
-                    immigrantsTotal={immigrantsTotal}
-                    emigrantsTotal={emigrantsTotal}
-                />
-                <MigrationChart
-                    immigrants={immigrants}
-                    emigrants={emigrants}
-                    country={displayedCountry}
-                    year={year}
-                    sex={sex}
-                    immigrantsTotal={immigrantsTotal}
-                    emigrantsTotal={emigrantsTotal}
-                    population={population}
-                    view={view}
-                    setView={setView}
-                    setCountry={setCountry}
-                    colorMap={colorMap}
-                    isLoading={isLoading}
-                    entitiesToSortLast={entitiesToSortLast}
-                />
-                <MigrationChartFooter source={metadata.source} />
-            </Frame>
+            <BespokeMetadataProvider metadata={metadata.provenance}>
+                <Frame className="migration-captioned-chart">
+                    <MigrationChartHeader
+                        config={config}
+                        country={displayedCountry}
+                        year={year}
+                        sex={sex}
+                        view={view}
+                        immigrantsTotal={immigrantsTotal}
+                        emigrantsTotal={emigrantsTotal}
+                    />
+                    <MigrationChart
+                        immigrants={immigrants}
+                        emigrants={emigrants}
+                        country={displayedCountry}
+                        year={year}
+                        sex={sex}
+                        immigrantsTotal={immigrantsTotal}
+                        emigrantsTotal={emigrantsTotal}
+                        population={population}
+                        view={view}
+                        setView={setView}
+                        setCountry={setCountry}
+                        colorMap={colorMap}
+                        isLoading={isLoading}
+                        entitiesToSortLast={entitiesToSortLast}
+                    />
+                    <MigrationChartFooter source={metadata.source} />
+                </Frame>
+            </BespokeMetadataProvider>
         </>
     )
 }

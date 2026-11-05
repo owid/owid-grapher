@@ -9,7 +9,6 @@ import {
 } from "@ourworldindata/types"
 import { EntitiesByRegionGroup, RegionGroupKey } from "../core/RegionGroups"
 import { SelectionArray } from "../selection/SelectionArray"
-import { TimelineDragTarget } from "../timeline/TimelineController"
 
 // Grapher's rendered data table is organized into groups, where
 // each group corresponds to an indicator from the core table.
@@ -29,11 +28,10 @@ export interface DataTableManager {
     dataTableSlugs?: ColumnSlug[]
     isNarrow?: boolean
     dataTableConfig: DataTableConfig
-    /** Kept on the manager so the sort survives remounts and can be set programmatically */
-    dataTableSort: DataTableSortState
+    /** Kept on the manager so the sort survives remounts and can be set programmatically; unset means the default sort by latest value */
+    dataTableSort?: DataTableSortState
     dataTableSelection?: SelectionArray | EntityName[]
     entitiesByRegionGroup?: EntitiesByRegionGroup
-    timelineDragTarget?: TimelineDragTarget
     closestTimelineMinTime?: Time
     closestTimelineMaxTime?: Time
 }
@@ -163,8 +161,13 @@ export type CommonDataTableFilter = (typeof COMMON_DATA_TABLE_FILTERS)[number]
 
 export type DataTableFilter = CommonDataTableFilter | RegionGroupKey
 
+export interface DataTableFilterOption {
+    value: DataTableFilter
+    count: number
+}
+
 export interface DataTableConfig {
-    filter: DataTableFilter
+    filter?: DataTableFilter
     search: string
 }
 
@@ -176,16 +179,10 @@ export interface DataTableSortState {
 
 export const ENTITY_SORT_INDEX = -1
 
-export const DEFAULT_DATA_TABLE_SORT: DataTableSortState = {
+export const ENTITY_DATA_TABLE_SORT: DataTableSortState = {
     dimIndex: ENTITY_SORT_INDEX,
     columnKey: undefined,
     order: SortOrder.asc,
 }
 
 export type DimensionSortIndex = number
-
-export interface SparklineHighlight {
-    time: Time
-    value?: number
-    showMarker?: boolean
-}

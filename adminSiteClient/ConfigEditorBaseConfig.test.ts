@@ -30,6 +30,7 @@ function makeEditor({
     const manager = observable<ConfigEditorManager>({
         patchConfig: savedPatch,
         baseConfig: initialBaseConfig ?? undefined,
+        store: { loadTable: async () => undefined },
         onSave: () => undefined,
     })
     const editor = new ConfigEditor({ manager })

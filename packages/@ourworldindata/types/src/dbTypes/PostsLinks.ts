@@ -5,7 +5,12 @@ export interface DbInsertPostLink {
     componentType: string
     hash: string
     id?: number
-    linkType?: ContentGraphLinkType | null
+    linkType?:
+        | ContentGraphLinkType.Url
+        | ContentGraphLinkType.Grapher
+        | ContentGraphLinkType.Explorer
+        | ContentGraphLinkType.Gdoc
+        | null
     queryString: string
     sourceId: number
     target: string

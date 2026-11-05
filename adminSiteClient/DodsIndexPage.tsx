@@ -4,7 +4,7 @@ import {
     useQuery,
     useQueryClient,
 } from "@tanstack/react-query"
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import cx from "clsx"
 import tippy, { type ReferenceElement } from "tippy.js"
 import { Button, Flex, Form, Input, Modal, Popconfirm, Table } from "antd"
@@ -31,6 +31,7 @@ import TextArea from "antd/es/input/TextArea.js"
 import { match } from "ts-pattern"
 import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import { extractDetailsFromSyntax } from "@ourworldindata/utils"
+import { useListSearch } from "./useListSearch.js"
 
 type ValidPhrasingContent = Extract<
     PhrasingContent,
@@ -538,7 +539,6 @@ function DodUsageModal({
 
 export function DodsIndexPage() {
     const { admin } = useContext(AdminAppContext)
-    const [dodSearchValue, setDodSearchValue] = useState("")
     const [isCreateDodModalOpen, setIsCreateDodModalOpen] = useState(false)
     const [activeDodForUsageModal, setActiveDodForUsageModal] = useState<
         string | null
@@ -594,24 +594,22 @@ export function DodsIndexPage() {
         })
     }, [dods])
 
-    const filteredDods = useMemo(
-        () =>
-            dods
-                ? Object.values(dods).filter(
-                      (dod) =>
-                          users?.[dod.lastUpdatedUserId]?.fullName
-                              .toLowerCase()
-                              .includes(dodSearchValue.toLowerCase()) ||
-                          dod.name
-                              .toLowerCase()
-                              .includes(dodSearchValue.toLowerCase()) ||
-                          dod.content
-                              .toLowerCase()
-                              .includes(dodSearchValue.toLowerCase())
-                  )
-                : [],
-        [dods, dodSearchValue, users]
+    const dodList = useMemo(() => (dods ? Object.values(dods) : []), [dods])
+    const searchedText = useCallback(
+        (dod: DbPlainDod) => [
+            dod.name,
+            dod.content,
+            dod.lastUpdatedUserId !== null
+                ? users?.[dod.lastUpdatedUserId]?.fullName
+                : undefined,
+        ],
+        [users]
     )
+    const {
+        searchValue,
+        setSearchValue,
+        filtered: filteredDods,
+    } = useListSearch(dodList, searchedText)
 
     const columns = useMemo(
         () =>
@@ -639,8 +637,8 @@ export function DodsIndexPage() {
                 <Flex justify="space-between">
                     <Input
                         placeholder="Search by content, id, or most recent user"
-                        value={dodSearchValue}
-                        onChange={(e) => setDodSearchValue(e.target.value)}
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
                         style={{ width: 500, marginBottom: 20 }}
                     />
                     <Button

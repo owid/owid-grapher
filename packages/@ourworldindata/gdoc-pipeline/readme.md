@@ -87,7 +87,7 @@ yarn build
 yarn testPackage
 ```
 
-`yarn testPackage` packs the package to `dist-package/gdoc-pipeline.tgz` (a `yarn pack`, which applies `publishConfig`) and then runs the smoke tests in `packageTest/`: they import the built bundle and run the pipeline end-to-end, assert the bundle is fully self-contained, typecheck a simulated external consumer against the tarball's bundled type declarations — with `moduleResolution: bundler` and `nodenext`, plus a full check of the declaration bundle itself — and run [publint](https://publint.dev) and [`@arethetypeswrong/cli`](https://github.com/arethetypeswrong/arethetypeswrong.github.io) passes over the tarball. These tests are intentionally not part of the repo-wide `yarn test` since they depend on `dist/` and the packed tarball.
+`yarn testPackage` packs the package to `dist-package/gdoc-pipeline.tgz` (a `yarn pack`, which applies `publishConfig`) and then runs the smoke tests in `packageTest/`: they import the built bundle and run the pipeline end-to-end, assert the bundle is fully self-contained, typecheck a simulated external consumer against the tarball's bundled type declarations — with `moduleResolution: bundler` and `nodenext`, plus a full check of the declaration bundle itself. Then the [publint](https://publint.dev) CLI (`yarn testPackage:publint`, `--strict` so warnings fail too) and [`@arethetypeswrong/cli`](https://github.com/arethetypeswrong/arethetypeswrong.github.io) (`yarn testPackage:attw`) check the tarball's packaging metadata and types wiring. These tests are intentionally not part of the repo-wide `yarn test` since they depend on `dist/` and the packed tarball.
 
 ### Publishing a release
 

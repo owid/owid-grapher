@@ -148,9 +148,16 @@ import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
 import {
     DataTableConfig,
     DataTableSortState,
+    DataTableFilter,
+    DataTableFilterOption,
     DataTableManager,
-    DEFAULT_DATA_TABLE_SORT,
 } from "../dataTable/DataTableConstants.js"
+import {
+    buildDataTableFilterOptions,
+    DataTableEntities,
+    getEntityNamesForDataTableFilter,
+    pickDefaultDataTableFilter,
+} from "../dataTable/DataTableHelpers.js"
 import {
     type EntitySelectorState,
     EntitySelector,
@@ -165,6 +172,7 @@ import {
 } from "../mapCharts/MapChartConstants.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
 import { DumbbellChartConfig } from "../dumbbellCharts/DumbbellChartConfig.js"
+import { SwimlaneChartConfig } from "../swimlaneCharts/SwimlaneChartConfig.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
 import {
     DownloadModalManager,
@@ -182,7 +190,6 @@ import {
     RegionGroup,
     groupEntitiesByRegionType,
     EntitiesByRegionGroup,
-    isEntityRegionGroupKey,
 } from "./RegionGroups.js"
 import {
     MinimalNarrativeChartInfo,
@@ -206,7 +213,6 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GrapherModal,
     GRAPHER_PROD_URL,
-    BASE_FONT_SIZE,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     STATIC_EXPORT_DETAIL_SPACING,
@@ -382,6 +388,9 @@ export class GrapherState
 
     /** Configuration of the dumbbell chart */
     dumbbell = new DumbbellChartConfig()
+
+    /** Configuration of the swimlane chart */
+    swimlane = new SwimlaneChartConfig()
 
     /** One of the predefined base color schemes. If not provided, a default is automatically chosen based on the chart type. */
     baseColorScheme: ColorSchemeName | undefined = undefined
@@ -562,8 +571,8 @@ export class GrapherState
     selection: SelectionArray = new SelectionArray()
     focusArray = new FocusArray()
 
-    dataTableConfig: DataTableConfig = { filter: "all", search: "" }
-    dataTableSort: DataTableSortState = DEFAULT_DATA_TABLE_SORT
+    dataTableConfig: DataTableConfig = { search: "" }
+    dataTableSort: DataTableSortState | undefined = undefined
 
     entitySelectorState: Partial<EntitySelectorState> = {}
 
@@ -627,9 +636,6 @@ export class GrapherState
     isExportingToSvgOrPng = false
     isWikimediaExport = false
     shouldIncludeDetailsInStaticExport = true
-
-    /** Base font size for responsive scaling of chart elements */
-    _baseFontSize = BASE_FONT_SIZE
 
     _isInFullScreenMode = false
     windowInnerWidth: number | undefined = undefined
@@ -712,6 +718,7 @@ export class GrapherState
             colorScale: observable,
             map: observable,
             dumbbell: observable,
+            swimlane: observable,
             dimensions: observable.ref,
             ySlugs: observable,
             xSlug: observable,
@@ -766,7 +773,6 @@ export class GrapherState
             shouldIncludeDetailsInStaticExport: observable,
             _externalBounds: observable,
             slideShow: observable,
-            _baseFontSize: observable,
             isShareMenuActive: observable,
             isCommandPaletteOpen: observable,
             hideTitle: observable,
@@ -957,29 +963,25 @@ export class GrapherState
     @computed get tableAfterColorAndSizeToleranceApplication(): OwidTable {
         let table = this.inputTable
 
-        if (this.hasScatter && this.inputSizeColumnSlug) {
-            const tolerance =
-                table.get(this.inputSizeColumnSlug)?.display?.tolerance ??
-                Infinity
-            table = table.interpolateColumnWithTolerance(
-                this.inputSizeColumnSlug,
-                {
-                    toleranceOverride: tolerance,
-                }
-            )
-        }
+        const slugs = excludeUndefined([
+            this.hasScatter ? this.inputSizeColumnSlug : undefined,
+            this.hasScatter || this.hasMarimekko
+                ? this.inputCategoricalColorColumnSlug
+                : undefined,
+        ])
 
-        if (
-            (this.hasScatter || this.hasMarimekko) &&
-            this.inputCategoricalColorColumnSlug
-        ) {
-            const tolerance =
-                table.get(this.inputCategoricalColorColumnSlug)?.display
-                    ?.tolerance ?? Infinity
-            table = table.interpolateColumnWithTolerance(
-                this.inputCategoricalColorColumnSlug,
-                { toleranceOverride: tolerance }
-            )
+        for (const slug of slugs) {
+            const tolerance = table.get(slug)?.display?.tolerance ?? Infinity
+            table = table
+                .interpolateColumnWithTolerance(slug, {
+                    toleranceOverride: tolerance,
+                })
+                // The data table re-applies each column's own tolerance
+                .updateDefs((def) =>
+                    def.slug === slug
+                        ? { ...def, display: { ...def.display, tolerance } }
+                        : def
+                )
         }
 
         return table
@@ -1125,32 +1127,41 @@ export class GrapherState
         return table
     }
 
+    @computed private get dataTableEntities(): DataTableEntities {
+        return {
+            availableEntityNames:
+                this.tableForDisplayBeforeEntityFilter.availableEntityNames,
+            entitiesByRegionGroup: this.entitiesByRegionGroup,
+            selectedEntityNames: this.dataTableSelection.selectedEntityNames,
+        }
+    }
+
+    @computed get dataTableFilterOptions(): DataTableFilterOption[] {
+        return buildDataTableFilterOptions(this.dataTableEntities, {
+            canFilterBySelection:
+                !this.shouldShowSelectionOnlyInDataTable &&
+                this.dataTableSelection.hasSelection &&
+                this.canChangeAddOrHighlightEntities,
+        })
+    }
+
+    @computed get dataTableFilter(): DataTableFilter {
+        if (this.dataTableConfig.filter) return this.dataTableConfig.filter
+        if (this.dataTableConfig.search) return "all"
+        if (this.shouldShowSelectionOnlyInDataTable) return "all"
+        return pickDefaultDataTableFilter(this.dataTableFilterOptions)
+    }
+
     /** Table for display in the data table tab */
     @computed get tableForDisplay(): OwidTable {
-        let table = this.tableForDisplayBeforeEntityFilter
-        const { filter } = this.dataTableConfig
-
-        const availableEntities = table.availableEntityNames
-
-        // Determine which entities should be visible based on the filter
-        const visibleEntities = match(filter)
-            .with("all", () => availableEntities)
-            .with("selection", () =>
-                this.selection.hasSelection
-                    ? this.selection.selectedEntityNames
-                    : availableEntities
-            )
-            .when(isEntityRegionGroupKey, (filter) => {
-                const regionNames = this.entitiesByRegionGroup.get(filter)
-                return regionNames ?? availableEntities
-            })
-            .exhaustive()
-
-        // Apply entity filter if necessary
-        if (visibleEntities.length < availableEntities.length)
-            table = table.filterByEntityNames(visibleEntities)
-
-        return table
+        const table = this.tableForDisplayBeforeEntityFilter
+        const visibleEntities = getEntityNamesForDataTableFilter(
+            this.dataTableFilter,
+            this.dataTableEntities
+        )
+        return visibleEntities.length < table.availableEntityNames.length
+            ? table.filterByEntityNames(visibleEntities)
+            : table
     }
 
     /**
@@ -1397,8 +1408,7 @@ export class GrapherState
         if (parsed.tableFilter.status === "valid") {
             this.dataTableConfig.filter = parsed.tableFilter.value
         } else if (parsed.tableFilter.status === "invalid") {
-            // Reset to default if invalid value provided
-            this.dataTableConfig.filter = "all"
+            this.dataTableConfig.filter = undefined
         }
 
         // Table search
@@ -1803,17 +1813,21 @@ export class GrapherState
         // so that we don't show times on the timeline for which data may not
         // exist, e.g. when the selected entity doesn't contain data for all
         // years in the table. The table tab is the exception: it uses the
-        // untransformed table so that the timeline includes all data available
-        // in the table.
+        // table it displays.
         const table = this.isOnTableTab
-            ? this.table
+            ? this.tableForDisplayBeforeEntityFilter
             : this.tableAfterAuthorTimelineAndActiveChartTransform
         return table.getTimesUniqSortedAscForColumns(columnSlugs)
     }
 
     /** Plots time on the x-axis */
     @computed private get hasTimeDimension(): boolean {
-        return this.isStackedBar || this.isStackedArea || this.isLineChart
+        return (
+            this.isStackedBar ||
+            this.isStackedArea ||
+            this.isLineChart ||
+            this.isSwimlane
+        )
     }
 
     @computed private get hasTimeDimensionButTimelineIsHidden(): boolean {
@@ -1980,18 +1994,26 @@ export class GrapherState
         )
     }
 
+    /** Whether the authored config selects a time range rather than a single time */
+    @computed private get isAuthoredTimeRange(): boolean {
+        const { minTime, maxTime } = this.authorsVersion
+        return (
+            minTimeBoundFromJSONOrNegativeInfinity(minTime) !==
+            maxTimeBoundFromJSONOrPositiveInfinity(maxTime)
+        )
+    }
+
     private readonly checkSingleTimeSelectionPreferred = (
         tabName: GrapherTabName
     ): boolean => {
-        // Scatter plots can show a time range, but a single time is preferred
-        // when the scatter is not the main chart, but a secondary tab.
-        // In relative mode, a scatter shows the average annual change, which
-        // requires a time range, so we don't collapse to a single time then.
-        return (
-            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
-            !this.isScatter &&
-            !this.isRelativeMode
-        )
+        if (tabName === GRAPHER_TAB_NAMES.Table) return true
+
+        if (tabName !== GRAPHER_TAB_NAMES.ScatterPlot) return false
+        if (this.isRelativeMode) return false
+
+        // A secondary scatter prefers a single time, a primary one follows its
+        // authored time mode
+        return !this.isScatter || !this.isAuthoredTimeRange
     }
 
     private readonly checkOnlyTimeRangeSelectionPossible = (
@@ -2000,6 +2022,7 @@ export class GrapherState
         return (
             tabName === GRAPHER_TAB_NAMES.LineChart ||
             tabName === GRAPHER_TAB_NAMES.SlopeChart ||
+            tabName === GRAPHER_TAB_NAMES.Swimlane ||
             (tabName === GRAPHER_TAB_NAMES.Dumbbell &&
                 !this.checkIsTwoColumnDumbbell(tabName))
         )
@@ -2009,13 +2032,12 @@ export class GrapherState
         tabName: GrapherTabName
     ): boolean => {
         // In relative mode, a scatter shows the average annual change, which
-        // requires a time range rather than a single time
-        if (
-            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
-            !this.isScatter &&
-            this.isRelativeMode
-        )
-            return true
+        // requires a time range
+        if (tabName === GRAPHER_TAB_NAMES.ScatterPlot)
+            return (
+                this.isRelativeMode ||
+                (this.isScatter && this.isAuthoredTimeRange)
+            )
 
         return [
             GRAPHER_TAB_NAMES.StackedArea,
@@ -2354,13 +2376,16 @@ export class GrapherState
     @computed get detailRenderers(): MarkdownTextWrap[] {
         if (typeof window === "undefined") return []
         return this.detailsOrderedByReference.map((term, i) => {
-            let text = `**${i + 1}.** `
+            const referenceLabel = `${i + 1}.`
+            let text = `**${referenceLabel}** `
             const detail: EnrichedDetail | undefined = window.details?.[term]
             if (detail?.text) {
                 const lines = detail.text.split("\n")
-                const title = lines[0]
+                const title = lines[0].trim()
                 const description = lines.slice(2).join("\n")
-                text += `**${title}** ${description}`
+                text = title
+                    ? `**${referenceLabel} ${title}** ${description}`
+                    : `**${referenceLabel}** ${description}`
             }
 
             // We can't use the computed property here because Grapher might
@@ -2674,7 +2699,16 @@ export class GrapherState
                 return !this.hideTimeline
 
             // Use the chart-level `hideTimeline` option
-            default:
+            case GRAPHER_CHART_TYPES.LineChart:
+            case GRAPHER_CHART_TYPES.ScatterPlot:
+            case GRAPHER_CHART_TYPES.StackedArea:
+            case GRAPHER_CHART_TYPES.DiscreteBar:
+            case GRAPHER_CHART_TYPES.StackedDiscreteBar:
+            case GRAPHER_CHART_TYPES.SlopeChart:
+            case GRAPHER_CHART_TYPES.StackedBar:
+            case GRAPHER_CHART_TYPES.Marimekko:
+            case GRAPHER_CHART_TYPES.Dumbbell:
+            case GRAPHER_CHART_TYPES.Swimlane:
                 return !this.hideTimeline
         }
     }
@@ -2881,10 +2915,6 @@ export class GrapherState
         this.selectedFacetStrategy = facet
     }
 
-    set baseFontSize(val: number) {
-        this._baseFontSize = val
-    }
-
     @computed private get defaultSourcesLine(): string {
         const columnSlugs = pickColumnsForSourcesLine({
             table: this.inputTable,
@@ -2980,6 +3010,10 @@ export class GrapherState
         return this.chartType === GRAPHER_CHART_TYPES.Dumbbell
     }
 
+    @computed get isSwimlane(): boolean {
+        return this.chartType === GRAPHER_CHART_TYPES.Swimlane
+    }
+
     @computed get isOnLineChartTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.LineChart
     }
@@ -3010,6 +3044,10 @@ export class GrapherState
 
     @computed get isOnStackedDiscreteBarTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
+    }
+
+    @computed get isOnSwimlaneTab(): boolean {
+        return this.activeChartType === GRAPHER_CHART_TYPES.Swimlane
     }
 
     @computed get isOnDumbbellTab(): boolean {
@@ -3058,8 +3096,12 @@ export class GrapherState
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Dumbbell)
     }
 
+    @computed get hasSwimlane(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Swimlane)
+    }
+
     @computed get supportsMultipleYColumns(): boolean {
-        return !this.isScatter && !this.isMarimekko
+        return !this.isScatter && !this.isMarimekko && !this.isSwimlane
     }
 
     /** Time scatters plot time on the x-axis */
@@ -3612,6 +3654,7 @@ export class GrapherState
 
         if (
             !this.isOnDumbbellTab &&
+            !this.isOnSwimlaneTab &&
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
             this.selection.selectedEntityNames.length > 1
         ) {
@@ -3637,6 +3680,18 @@ export class GrapherState
             this.isFaceted &&
             this.selection.numSelectedEntities > 1 &&
             this.yColumnSlugs.length > 1
+        )
+    }
+
+    @computed get supportedSortConfig(): SortConfig {
+        const { sortBy } = this._sortConfig
+        if (sortBy && this.availableSortKeysAcrossChartTypes.includes(sortBy))
+            return this._sortConfig
+        return (
+            this.chartStateExceptMap.defaultSortConfig ?? {
+                sortBy: SortBy.total,
+                sortOrder: SortOrder.desc,
+            }
         )
     }
 
@@ -3695,7 +3750,7 @@ export class GrapherState
             return this.computeBaseFontSizeFromHeight(this.staticBounds)
         }
         if (this.isStatic) return 18
-        return this._baseFontSize
+        return this.computeBaseFontSizeFromWidth(this.captionedChartBounds)
     }
 
     // The header and footer don't rely on the base font size unless explicitly specified
@@ -3709,7 +3764,7 @@ export class GrapherState
         return Math.max(10, bounds.height / factor)
     }
 
-    computeBaseFontSizeFromWidth(bounds: Bounds): number {
+    private computeBaseFontSizeFromWidth(bounds: Bounds): number {
         if (bounds.width <= 400) return 14
         else if (bounds.width < 1080) return 16
         else if (bounds.width >= 1080) return 18
@@ -3845,7 +3900,7 @@ export class GrapherState
         this.showNoDataArea = authorsVersion.showNoDataArea
         this.dataTableConfig.filter = authorsVersion.dataTableConfig.filter
         this.dataTableConfig.search = authorsVersion.dataTableConfig.search
-        this.dataTableSort = DEFAULT_DATA_TABLE_SORT
+        this.dataTableSort = undefined
         this.mapConfig.globe.isActive = authorsVersion.mapConfig.globe.isActive
         this.clearSelection()
         this.clearFocus()
@@ -3869,7 +3924,7 @@ export class GrapherState
         this.colorSlug = grapherState.colorSlug
         this.sizeSlug = grapherState.sizeSlug
 
-        this.dataTableSort = DEFAULT_DATA_TABLE_SORT
+        this.dataTableSort = undefined
         this.selection.clearSelection()
         this.focusArray.clear()
     }
@@ -4199,7 +4254,7 @@ export class GrapherState
         if (this.numSelectableEntityNames < 2) return false
         if (
             this.addCountryMode === EntitySelectionMode.MultipleEntities ||
-            (this.isOnDumbbellTab &&
+            ((this.isOnDumbbellTab || this.isOnSwimlaneTab) &&
                 this.addCountryMode === EntitySelectionMode.SingleEntity)
         )
             return true
@@ -4236,7 +4291,8 @@ export class GrapherState
                 this.isOnStackedBarTab ||
                 this.isOnDiscreteBarTab ||
                 this.isOnStackedDiscreteBarTab ||
-                this.isOnDumbbellTab)
+                this.isOnDumbbellTab ||
+                this.isOnSwimlaneTab)
         )
     }
 
@@ -4325,7 +4381,16 @@ export class GrapherState
                 return GRAPHER_TAB_CONFIG_OPTIONS.table
             case GRAPHER_TAB_NAMES.WorldMap:
                 return GRAPHER_TAB_CONFIG_OPTIONS.map
-            default:
+            case GRAPHER_CHART_TYPES.LineChart:
+            case GRAPHER_CHART_TYPES.ScatterPlot:
+            case GRAPHER_CHART_TYPES.StackedArea:
+            case GRAPHER_CHART_TYPES.DiscreteBar:
+            case GRAPHER_CHART_TYPES.StackedDiscreteBar:
+            case GRAPHER_CHART_TYPES.SlopeChart:
+            case GRAPHER_CHART_TYPES.StackedBar:
+            case GRAPHER_CHART_TYPES.Marimekko:
+            case GRAPHER_CHART_TYPES.Dumbbell:
+            case GRAPHER_CHART_TYPES.Swimlane:
                 return this.hasMultipleChartTypes
                     ? mapChartTypeNameToTabConfigOption(tabName)
                     : GRAPHER_TAB_CONFIG_OPTIONS.chart

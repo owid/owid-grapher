@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useQueryState, type SingleParserBuilder } from "nuqs"
 
-import { useEmbedConfig } from "./useEmbedConfig.js"
+import { useEmbedOptions } from "./useEmbedOptions.js"
 
 export function useUrlState<T extends NonNullable<unknown>>({
     key,
@@ -12,7 +12,7 @@ export function useUrlState<T extends NonNullable<unknown>>({
     parser: SingleParserBuilder<T>
     defaultValue: T
 }): [T, (next: T) => void] {
-    const { urlSync } = useEmbedConfig()
+    const { urlSync } = useEmbedOptions()
     const local = useState<T>(defaultValue)
     const [urlValue, setUrl] = useQueryState(
         key,

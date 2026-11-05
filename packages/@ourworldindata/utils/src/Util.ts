@@ -236,17 +236,36 @@ export function makeFigmaId(...unsafeKeys: (string | undefined)[]): string {
 
 export const epochDate = lazy(() => dayjs.utc(EPOCH_DATE))
 
+// The epoch as milliseconds since the Unix epoch, for plain date arithmetic
+const epochTimestamp = lazy(() => epochDate().valueOf())
+
 const MS_PER_DAY = 86_400_000
 export const toStartOfDayUtc = (date: dayjs.Dayjs): dayjs.Dayjs =>
     date.valueOf() % MS_PER_DAY === 0 ? date : date.utc().startOf("day")
 
 export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {
-    return epochDate().add(dayAsYear, "days")
+    // Same as epochDate().add(dayAsYear, "days"), but faster!
+    return dayjs.utc(epochTimestamp() + Math.round(dayAsYear) * MS_PER_DAY)
 }
 
 // Inverse of convertDaysSinceEpochToDate.
 export function convertDateToDaysSinceEpoch(date: dayjs.Dayjs): number {
     return diffDatesInDays(date, epochDate())
+}
+
+/**
+ * Like Date.UTC, but without its legacy quirk of mapping years 0–99 to
+ * 1900–1999: plainUtcTimestamp(50, 2, 1) is 1 March of year 50, not of 1950.
+ * Out-of-range months and days roll over, as with Date.UTC.
+ */
+export function plainUtcTimestamp(
+    year: number,
+    monthIndex: number, // 0-based
+    day = 1
+): number {
+    const date = new Date(0)
+    date.setUTCFullYear(year, monthIndex, day)
+    return date.getTime()
 }
 
 export function formatDay(
@@ -302,22 +321,49 @@ export function findFinestCommonTimeInterval(
 /**
  * Snap a time to the start of its interval, so indicators that pick different
  * representative days for the same period still align: month → first of the
- * month, quarter → first of the quarter, week → the ISO-week Monday. Day and
- * year are returned unchanged.
+ * month, quarter → first of the quarter, week → the ISO-week Monday, decade →
+ * the decade's first year. Day and year are returned unchanged.
  */
 export function snapToIntervalStart(
     time: number,
     interval: TimeInterval
 ): number {
     if (!Number.isFinite(time)) return time
-    const date = convertDaysSinceEpochToDate(time)
-    let start: dayjs.Dayjs
-    if (interval === TimeInterval.Month) start = date.startOf("month")
-    else if (interval === TimeInterval.Quarter) start = date.startOf("quarter")
-    else if (interval === TimeInterval.Week) start = date.startOf("isoWeek")
-    else return time
-    return convertDateToDaysSinceEpoch(start)
+    // Plain arithmetic and a native Date instead of dayjs, since this runs
+    // once per data point
+    const day = Math.round(time)
+    switch (interval) {
+        case TimeInterval.Day:
+        case TimeInterval.Year:
+            return time
+        case TimeInterval.Week: {
+            // Our epoch is a Tuesday, i.e. one day after an ISO-week Monday.
+            // We need the +1 below to align the epoch with the ISO-week Monday.
+            const daysSinceMonday = positiveModulo(day + 1, 7)
+            return day - daysSinceMonday
+        }
+        case TimeInterval.Month:
+        case TimeInterval.Quarter: {
+            const date = new Date(epochTimestamp() + day * MS_PER_DAY)
+            // Set the day before the month so the month change can't overflow
+            date.setUTCDate(1)
+            if (interval === TimeInterval.Quarter) {
+                const month = date.getUTCMonth()
+                date.setUTCMonth(month - (month % 3))
+            }
+            return Math.round((date.getTime() - epochTimestamp()) / MS_PER_DAY)
+        }
+        case TimeInterval.Decade:
+            return time - positiveModulo(time, 10)
+    }
 }
+
+/**
+ * Like `n % m`, but always in the range [0, m) for positive `m`, whereas
+ * JavaScript's `%` takes the sign of `n` (e.g. `-2 % 7` is `-2`, not `5`)
+ */
+export const positiveModulo = (n: number, m: number): number =>
+    ((n % m) + m) % m
 
 export const formatYear = (year: number): string => {
     if (isNaN(year)) {
@@ -573,14 +619,6 @@ export const isTouchDevice = (): boolean =>
 // General type representing arbitrary json data; basically a non-nullable 'any'
 export interface Json {
     [x: string]: any
-}
-
-// Escape a function for storage in a csv cell
-export const csvEscape = (value: unknown): string => {
-    const valueStr = _.toString(value)
-    return valueStr.includes(",")
-        ? `"${valueStr.replace(/"/g, '""')}"`
-        : valueStr
 }
 
 // Removes all undefineds from an object.
@@ -1698,257 +1736,150 @@ export function traverseEnrichedBlock(
     callback: (x: OwidEnrichedGdocBlock) => void,
     spanCallback?: (x: Span) => void
 ): void {
-    match(node)
-        .with(
-            { type: P.union("sticky-right", "sticky-left", "side-by-side") },
-            (container) => {
-                callback(container)
-                container.left.forEach((leftNode) =>
-                    traverseEnrichedBlock(leftNode, callback, spanCallback)
-                )
-                container.right.forEach((rightNode) =>
-                    traverseEnrichedBlock(rightNode, callback, spanCallback)
-                )
-            }
-        )
-        .with({ type: "gray-section" }, (graySection) => {
-            callback(graySection)
-            graySection.items.forEach((node) =>
-                traverseEnrichedBlock(node, callback, spanCallback)
+    // A plain switch rather than ts-pattern's `match`: this runs for every
+    // block of every gdoc, several times per bake, and `match` builds all of
+    // its branch patterns and closures on each call.
+    const recurse = (child: OwidEnrichedGdocBlock): void =>
+        traverseEnrichedBlock(child, callback, spanCallback)
+    // Without a span callback there's nothing to do for spans, so skip
+    // walking them altogether.
+    const traverseSpan = spanCallback
+        ? (span: Span): void => traverseEnrichedSpan(span, spanCallback)
+        : (): void => undefined
+
+    switch (node.type) {
+        case "sticky-right":
+        case "sticky-left":
+        case "side-by-side":
+            callback(node)
+            node.left.forEach(recurse)
+            node.right.forEach(recurse)
+            return
+        case "gray-section":
+            callback(node)
+            node.items.forEach(recurse)
+            return
+        case "explore-data-section":
+        case "conditional-section":
+        case "expander":
+        case "guided-chart":
+        case "align":
+        case "data-callout":
+        case "data-callout-group":
+        case "pull-chart":
+            callback(node)
+            node.content.forEach(recurse)
+            return
+        case "key-insights":
+            callback(node)
+            node.insights.forEach((insight) => {
+                insight.asset?.forEach(recurse)
+                insight.content.forEach(recurse)
+            })
+            return
+        case "callout":
+            callback(node)
+            if (spanCallback) node.text.forEach(recurse)
+            return
+        case "aside":
+            callback(node)
+            node.caption.forEach(traverseSpan)
+            return
+        case "list":
+        case "numbered-list":
+            callback(node)
+            if (spanCallback) node.items.forEach(recurse)
+            return
+        case "text":
+            callback(node)
+            node.value.forEach(traverseSpan)
+            return
+        case "simple-text":
+            if (spanCallback) spanCallback(node.value)
+            return
+        case "additional-charts":
+            callback(node)
+            node.items.forEach((spans) => spans.forEach(traverseSpan))
+            return
+        case "heading":
+            callback(node)
+            node.text.forEach(traverseSpan)
+            return
+        case "expandable-paragraph":
+            callback(node)
+            node.items.forEach(recurse)
+            return
+        case "table":
+            callback(node)
+            node.rows.forEach((row) =>
+                row.cells.forEach((cell) => cell.content.forEach(recurse))
             )
-        })
-        .with({ type: "explore-data-section" }, (exploreDataSection) => {
-            callback(exploreDataSection)
-            exploreDataSection.content.forEach((node) =>
-                traverseEnrichedBlock(node, callback, spanCallback)
-            )
-        })
-        .with({ type: "conditional-section" }, (conditional) => {
-            callback(conditional)
-            conditional.content.forEach((node) =>
-                traverseEnrichedBlock(node, callback, spanCallback)
-            )
-        })
-        .with({ type: "key-insights" }, (keyInsights) => {
-            callback(keyInsights)
-            keyInsights.insights.forEach((insight) => {
-                insight.asset?.forEach((node) =>
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                )
-                insight.content.forEach((node) =>
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                )
-            })
-        })
-        .with({ type: "expander" }, (expander) => {
-            callback(expander)
-            expander.content.forEach((block) =>
-                traverseEnrichedBlock(block, callback, spanCallback)
-            )
-        })
-        .with({ type: "callout" }, (callout) => {
-            callback(callout)
-            if (spanCallback) {
-                callout.text.forEach((textBlock) =>
-                    traverseEnrichedBlock(textBlock, callback, spanCallback)
-                )
-            }
-        })
-        .with({ type: "aside" }, (aside) => {
-            callback(aside)
-            if (spanCallback) {
-                aside.caption.forEach((span) =>
-                    traverseEnrichedSpan(span, spanCallback)
-                )
-            }
-        })
-        .with({ type: "list" }, (list) => {
-            callback(list)
-            if (spanCallback) {
-                list.items.forEach((textBlock) =>
-                    traverseEnrichedBlock(textBlock, callback, spanCallback)
-                )
-            }
-        })
-        .with({ type: "numbered-list" }, (numberedList) => {
-            callback(numberedList)
-            if (spanCallback) {
-                numberedList.items.forEach((textBlock) =>
-                    traverseEnrichedBlock(textBlock, callback, spanCallback)
-                )
-            }
-        })
-        .with({ type: "text" }, (textNode) => {
-            callback(textNode)
-            if (spanCallback) {
-                textNode.value.forEach((span) => {
-                    traverseEnrichedSpan(span, spanCallback)
-                })
-            }
-        })
-        .with({ type: "simple-text" }, (simpleTextNode) => {
-            if (spanCallback) {
-                spanCallback(simpleTextNode.value)
-            }
-        })
-        .with({ type: "additional-charts" }, (additionalCharts) => {
-            callback(additionalCharts)
-            if (spanCallback) {
-                additionalCharts.items.forEach((spans) => {
-                    spans.forEach((span) =>
-                        traverseEnrichedSpan(span, spanCallback)
-                    )
-                })
-            }
-        })
-        .with({ type: "heading" }, (heading) => {
-            callback(heading)
-            if (spanCallback) {
-                heading.text.forEach((span) => {
-                    traverseEnrichedSpan(span, spanCallback)
-                })
-            }
-        })
-        .with({ type: "expandable-paragraph" }, (expandableParagraph) => {
-            callback(expandableParagraph)
-            expandableParagraph.items.forEach((textBlock) => {
-                traverseEnrichedBlock(textBlock, callback, spanCallback)
-            })
-        })
-        .with({ type: "guided-chart" }, (guidedChart) => {
-            callback(guidedChart)
-            guidedChart.content.forEach((block) => {
-                traverseEnrichedBlock(block, callback, spanCallback)
-            })
-        })
-        .with({ type: "align" }, (align) => {
-            callback(align)
-            align.content.forEach((node) => {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            })
-        })
-        .with({ type: "table" }, (table) => {
-            callback(table)
-            table.rows.forEach((row) => {
-                row.cells.forEach((cell) => {
-                    cell.content.forEach((node) => {
-                        traverseEnrichedBlock(node, callback, spanCallback)
-                    })
-                })
-            })
-        })
-        .with({ type: "blockquote" }, (blockquote) => {
-            callback(blockquote)
-            blockquote.text.forEach((node) => {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            })
-        })
-        .with(
-            {
-                type: "key-indicator",
-            },
-            (keyIndicator) => {
-                callback(keyIndicator)
-                keyIndicator.text.forEach((node) => {
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                })
-            }
-        )
-        .with(
-            { type: "key-indicator-collection" },
-            (keyIndicatorCollection) => {
-                callback(keyIndicatorCollection)
-                keyIndicatorCollection.blocks.forEach((node) =>
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                )
-            }
-        )
-        .with({ type: "people" }, (people) => {
-            callback(people)
-            for (const item of people.items) {
-                traverseEnrichedBlock(item, callback, spanCallback)
-            }
-        })
-        .with({ type: "people-rows" }, (peopleRows) => {
-            callback(peopleRows)
-            for (const person of peopleRows.people) {
-                traverseEnrichedBlock(person, callback, spanCallback)
-            }
-        })
-        .with({ type: "person" }, (person) => {
-            callback(person)
-            for (const node of person.text) {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            }
-        })
-        .with({ type: "data-callout" }, (dataCallout) => {
-            callback(dataCallout)
-            for (const node of dataCallout.content) {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            }
-        })
-        .with({ type: "data-callout-group" }, (dataCalloutGroup) => {
-            callback(dataCalloutGroup)
-            for (const node of dataCalloutGroup.content) {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            }
-        })
-        .with({ type: "chart-rows" }, (block) => {
-            callback(block)
-            for (const row of block.rows) {
-                for (const node of row.content) {
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                }
-            }
-        })
-        .with({ type: "pull-chart" }, (block) => {
-            callback(block)
-            for (const node of block.content) {
-                traverseEnrichedBlock(node, callback, spanCallback)
-            }
-        })
-        .with(
-            {
-                type: P.union(
-                    "chart-story",
-                    "chart",
-                    "narrative-chart",
-                    "code",
-                    "cookie-notice",
-                    "cta",
-                    "donors",
-                    "horizontal-rule",
-                    "html",
-                    "image",
-                    "video",
-                    "missing-data",
-                    "prominent-link",
-                    "pull-quote",
-                    "recirc",
-                    "subscribe-banner",
-                    "resource-panel",
-                    "research-and-writing",
-                    "sdg-grid",
-                    "sdg-toc",
-                    "ltp-toc",
-                    "topic-page-intro",
-                    "all-charts",
-                    "explorer-tiles",
-                    "pill-row",
-                    "homepage-search",
-                    "homepage-intro",
-                    "featured-metrics",
-                    "featured-data-insights",
-                    "latest-data-insights",
-                    "socials",
-                    "static-viz",
-                    "country-profile-selector",
-                    "bespoke-component"
-                ),
-            },
-            callback
-        )
-        .exhaustive()
+            return
+        case "blockquote":
+        case "key-indicator":
+        case "person":
+            callback(node)
+            node.text.forEach(recurse)
+            return
+        case "key-indicator-collection":
+            callback(node)
+            node.blocks.forEach(recurse)
+            return
+        case "people":
+            callback(node)
+            node.items.forEach(recurse)
+            return
+        case "people-rows":
+            callback(node)
+            node.people.forEach(recurse)
+            return
+        case "chart-rows":
+            callback(node)
+            node.rows.forEach((row) => row.content.forEach(recurse))
+            return
+        case "chart-story":
+        case "chart":
+        case "narrative-chart":
+        case "code":
+        case "cookie-notice":
+        case "cta":
+        case "donors":
+        case "horizontal-rule":
+        case "html":
+        case "image":
+        case "video":
+        case "missing-data":
+        case "prominent-link":
+        case "pull-quote":
+        case "recirc":
+        case "subscribe-banner":
+        case "resource-panel":
+        case "research-and-writing":
+        case "sdg-grid":
+        case "sdg-toc":
+        case "ltp-toc":
+        case "topic-page-intro":
+        case "all-charts":
+        case "explorer-tiles":
+        case "pill-row":
+        case "homepage-search":
+        case "homepage-intro":
+        case "featured-metrics":
+        case "featured-data-insights":
+        case "latest-data-insights":
+        case "socials":
+        case "static-viz":
+        case "country-profile-selector":
+        case "bespoke-component":
+            callback(node)
+            return
+    }
+    // Every case returns, so this is reached only for a block type the switch
+    // doesn't handle: a type error at compile time, a throw at runtime.
+    const unknownBlock: never = node
+    throw new Error(
+        `Unknown enriched block type: ${(unknownBlock as { type?: string }).type}`
+    )
 }
 
 /**
