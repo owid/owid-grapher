@@ -1,4 +1,5 @@
 import { Ref, useState } from "react"
+import cx from "clsx"
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile"
 import { TURNSTILE_SITE_KEY } from "../../settings/clientSettings.mjs"
 import { NEWSLETTER_HONEYPOT_FIELD } from "./useNewsletterSpamProtection.js"
@@ -14,6 +15,9 @@ export function NewsletterSpamProtection({
     onToken: (token: string) => void
 }) {
     const [error, setError] = useState<string | null>(null)
+    // With "interaction-only", the widget stays invisible unless Cloudflare
+    // asks the visitor to solve a challenge.
+    const [isInteractive, setIsInteractive] = useState(false)
 
     function onError() {
         onToken("")
@@ -38,30 +42,38 @@ export function NewsletterSpamProtection({
                     />
                 </label>
             </div>
-            <Turnstile
-                ref={ref}
-                className="newsletter-form__turnstile"
-                siteKey={TURNSTILE_SITE_KEY}
-                options={{
-                    action,
-                    appearance: "interaction-only",
-                    size: "flexible",
-                }}
-                onSuccess={(token) => {
-                    onToken(token)
-                    setError(null)
-                }}
-                onExpire={() => onToken("")}
-                onTimeout={() => onToken("")}
-                onError={onError}
-                onUnsupported={onError}
-                scriptOptions={{ onError }}
-            />
-            {error && (
-                <p className="newsletter-form__alert" role="alert">
-                    {error}
-                </p>
-            )}
+            <div
+                className={cx("newsletter-form__verification", {
+                    "newsletter-form__verification--visible":
+                        isInteractive || !!error,
+                })}
+            >
+                <Turnstile
+                    ref={ref}
+                    siteKey={TURNSTILE_SITE_KEY}
+                    options={{
+                        action,
+                        appearance: "interaction-only",
+                        size: "flexible",
+                    }}
+                    onSuccess={(token) => {
+                        onToken(token)
+                        setError(null)
+                    }}
+                    onBeforeInteractive={() => setIsInteractive(true)}
+                    onAfterInteractive={() => setIsInteractive(false)}
+                    onExpire={() => onToken("")}
+                    onTimeout={() => onToken("")}
+                    onError={onError}
+                    onUnsupported={onError}
+                    scriptOptions={{ onError }}
+                />
+                {error && (
+                    <p className="newsletter-form__alert" role="alert">
+                        {error}
+                    </p>
+                )}
+            </div>
         </>
     )
 }
