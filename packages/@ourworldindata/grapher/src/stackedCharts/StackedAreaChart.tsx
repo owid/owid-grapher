@@ -557,6 +557,7 @@ export class StackedAreaChart
 
                         return {
                             name,
+                            annotation: series.entityAnnotation?.text,
                             swatch,
                             focused,
                             values,
