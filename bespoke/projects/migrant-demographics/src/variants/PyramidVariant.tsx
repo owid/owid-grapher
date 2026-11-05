@@ -215,6 +215,8 @@ function CaptionedPyramidVariant({
     // the subtitle read "the 0 people", so it gets its own message
     const total = pyramidData?.migrantsTotal.total ?? 0
 
+    const shouldHideControls =
+        config.hideControls || !!config.title || !!config.subtitle
     const title = config.title ?? chartTitle(country, year)
     const subtitle =
         config.subtitle ??
@@ -222,7 +224,7 @@ function CaptionedPyramidVariant({
 
     // The outline only appears once the comparison is switched on
     const isShowingNatives = !!view?.natives
-    const canToggleNatives = !config.hideControls
+    const canToggleNatives = !shouldHideControls
     const hasLegendRow = isShowingNatives || canToggleNatives
 
     return (
@@ -232,7 +234,7 @@ function CaptionedPyramidVariant({
                 "migrant-pyramid--narrow": isNarrow,
             })}
         >
-            {!config.hideControls && (
+            {!shouldHideControls && (
                 <PyramidControls
                     metadata={metadata}
                     country={country}

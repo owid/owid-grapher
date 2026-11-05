@@ -46,6 +46,16 @@ export const VARIANTS = [
 ] satisfies BespokeComponentVariantsList
 
 export const CONFIG_SPEC = {
+    title: {
+        type: "string",
+        description:
+            "Chart title, replacing the generated one. Also hides the controls",
+    },
+    subtitle: {
+        type: "string",
+        description:
+            "Chart subtitle, replacing the generated one. Also hides the controls",
+    },
     region: {
         type: "string",
         default: DEFAULT_REGION,

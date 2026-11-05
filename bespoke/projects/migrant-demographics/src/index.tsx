@@ -33,11 +33,13 @@ export const VARIANTS = [
 export const CONFIG_SPEC = {
     title: {
         type: "string",
-        description: "Chart title, replacing the generated one",
+        description:
+            "Chart title, replacing the generated one. Also hides the controls",
     },
     subtitle: {
         type: "string",
-        description: "Chart subtitle, replacing the generated one",
+        description:
+            "Chart subtitle, replacing the generated one. Also hides the controls",
     },
     country: {
         type: "string",

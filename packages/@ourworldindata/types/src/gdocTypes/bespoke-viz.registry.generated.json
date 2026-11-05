@@ -17,6 +17,16 @@
       ],
       "config": [
         {
+          "name": "title",
+          "type": "string",
+          "description": "Chart title, replacing the generated one. Also hides the controls"
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "description": "Chart subtitle, replacing the generated one. Also hides the controls"
+        },
+        {
           "name": "region",
           "type": "string",
           "description": "Country or region shown first, such as `Nigeria` or `High-income countries`, or World if the data doesn't have it",
@@ -408,12 +418,12 @@
         {
           "name": "title",
           "type": "string",
-          "description": "Chart title, replacing the generated one"
+          "description": "Chart title, replacing the generated one. Also hides the controls"
         },
         {
           "name": "subtitle",
           "type": "string",
-          "description": "Chart subtitle, replacing the generated one"
+          "description": "Chart subtitle, replacing the generated one. Also hides the controls"
         },
         {
           "name": "country",
