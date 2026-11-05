@@ -42,6 +42,8 @@ import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { makeProjectedDataPatternId } from "./DiscreteBarChartHelpers"
 import {
     enrichSeriesWithLabels,
+    computeLabelColumnWidth,
+    LabelColumn,
     computeCenteredLabelYPositions,
 } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
@@ -131,6 +133,7 @@ export class DiscreteBarChart
             availableHeightPerSeries: this.availableHeightPerSeries,
             minLabelWidth: 0.3 * this.bounds.width,
             maxLabelWidth: 0.66 * this.bounds.width,
+            labelColumn: this.labelColumn,
             fontSettings: this.entityLabelStyle,
             showRegionTooltip: !this.manager.isStatic,
         })
@@ -194,38 +197,56 @@ export class DiscreteBarChart
         )
     }
 
-    @computed get yAxis(): HorizontalAxis {
+    private makeXAxis(range: [number, number]): HorizontalAxis {
         // NB: We use the user's YAxis options here to make the XAxis
         const axis = this.yAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
         axis.scaleType = ScaleType.linear
         axis.formatColumn = this.chartState.formatColumn
-        axis.range = this.xRange
+        axis.range = range
         axis.label = ""
         return axis
     }
 
-    /**
-     * The maximum width needed for labels positioned on the left side of the chart.
-     *
-     * For positive values, returns the width of entity labels and annotations.
-     * For negative values, returns the entity label width, annotation width, value label width
-     * and the padding between them.
-     */
+    @computed get yAxis(): HorizontalAxis {
+        return this.makeXAxis(this.xRange)
+    }
+
+    /** The horizontal axis placing values on [0, 1] */
+    @computed private get unitXAxis(): HorizontalAxis {
+        return this.makeXAxis([0, 1])
+    }
+
+    /** Entity labels end at their bar's left edge, minus the value label for negative bars */
+    @computed private get labelColumn(): LabelColumn {
+        return {
+            plotWidth: this.bounds.width - this.rightValueLabelsWidth,
+            rowEnds: this.series.map((series) => {
+                const isNegative = series.value < 0
+                const barLeftEdge = isNegative ? series.value : this.x0
+                return {
+                    fraction: this.unitXAxis.place(barLeftEdge),
+                    offset: isNegative
+                        ? this.formatValue(series).width +
+                          GAP__ENTITY_LABEL__VALUE_LABEL
+                        : 0,
+                }
+            }),
+        }
+    }
+
+    /** The left padding at which every entity label still fits left of its bar */
     @computed private get leftLabelsWidth(): number {
-        const labelWidths = this.sizedSeries.map((series) => {
-            const textWidth = Math.max(
-                series.label?.width ?? 0,
-                series.annotationTextWrap?.width ?? 0
+        return computeLabelColumnWidth(
+            this.labelColumn,
+            this.sizedSeries.map((series) =>
+                Math.max(
+                    series.label?.width ?? 0,
+                    series.annotationTextWrap?.width ?? 0
+                )
             )
-            if (series.value < 0) {
-                const valueWidth = this.formatValue(series).width
-                return textWidth + valueWidth + GAP__ENTITY_LABEL__VALUE_LABEL
-            }
-            return textWidth
-        })
-        return _.max(labelWidths) ?? 0
+        )
     }
 
     @computed private get innerBounds(): Bounds {
@@ -253,7 +274,7 @@ export class DiscreteBarChart
         return (this.innerBounds.height - totalWhiteSpace) / this.barCount
     }
 
-    @computed private get placedSeries(): PlacedDiscreteBarSeries[] {
+    @computed get placedSeries(): PlacedDiscreteBarSeries[] {
         const yOffset =
             this.innerBounds.top + this.barHeight / 2 + this.barSpacing / 2
         return this.sizedSeries.map((series, index) => {
