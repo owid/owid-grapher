@@ -41,10 +41,13 @@
     }
 }
 
+.newsletter-signup-form__email-submit {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .newsletter-signup-form .newsletter-signup-form__submit {
-    // Directly under the email field, with the same 8px gap the design uses
-    // between the two.
-    margin-top: -8px;
     width: 100%;
     height: 40px;
 }
