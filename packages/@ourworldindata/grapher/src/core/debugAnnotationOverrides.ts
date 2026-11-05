@@ -432,6 +432,65 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             entities: ["Mozambique"],
         },
     ],
+    // population-by-income-level (a stacked area, entity strategy).
+    // Low-income and lower-middle-income share one text
+    1294926: [
+        {
+            text: "Income groups follow the World Bank's 2024 classification.",
+            entities: ["Low-income countries", "Lower-middle-income countries"],
+        },
+        {
+            text: "Includes high-income territories without population estimates before 1990.",
+            entities: ["High-income countries"],
+        },
+    ],
+    // population-regions-with-projections (a stacked area with six regions)
+    953899: [
+        {
+            text: "Includes Australia, New Zealand and the Pacific island states.",
+            entities: ["Oceania"],
+        },
+        {
+            text: "Russia is counted entirely in Europe, including its Asian territory.",
+            entities: ["Europe"],
+        },
+    ],
+    // co2-by-source (a stacked area, column strategy): coal
+    1119887: [
+        {
+            text: "Coal estimates for recent years are preliminary.",
+            entities: ["World"],
+        },
+        {
+            text: "Coal use is reported by provincial statistics bureaus.",
+            entities: ["China"],
+        },
+    ],
+    // oil
+    1119902: [
+        {
+            text: "Excludes international aviation and shipping bunkers.",
+            entities: ["World"],
+        },
+        {
+            text: "Includes oil burned in military operations.",
+            entities: ["United States"],
+        },
+    ],
+    // flaring, which has no World data before 1950
+    1119891: [
+        {
+            text: "Flaring was not recorded separately before 1950.",
+            entities: ["World"],
+        },
+    ],
+    // gas
+    1119896: [
+        {
+            text: "Includes flaring at shale gas wells.",
+            entities: ["United States"],
+        },
+    ],
     // oecd-average-trust-in-governments (a time-range dumbbell)
     1195708: [
         {

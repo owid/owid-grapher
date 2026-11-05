@@ -1342,6 +1342,33 @@ const STACKED_DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
 ]
 
+const STACKED_AREA_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Legacy, entity strategy: the Western offshoots label shows its annotation. Hover the Western offshoots area for it in the tooltip",
+        path: "grapher/number-of-people-living-in-extreme-poverty-by-region-long-run",
+    },
+    {
+        label: "Entity strategy: low-income and lower-middle-income share one text and both labels show it; high-income has its own",
+        path: "grapher/population-by-income-level",
+    },
+    {
+        label: "Entity strategy, six regions: Oceania's thin band and Europe carry long annotations. A label that doesn't fit with its annotation can drop",
+        path: "grapher/population-regions-with-projections",
+    },
+    {
+        label: "Column strategy, World: the coal, oil and flaring labels show their own annotations, the other sources none",
+        path: "grapher/co2-by-source",
+    },
+    {
+        label: "No value: flaring has no World data before 1950. Hover 1900 and the flaring row shows its annotation without a value",
+        path: "grapher/co2-by-source?time=1900..2024",
+    },
+    {
+        label: "Column strategy, faceted by entity: each facet shows its own entity's annotations (China on coal, the United States on oil and gas)",
+        path: "grapher/co2-by-source?country=CHN~USA&facet=entity",
+    },
+]
+
 const ANNOTATION_TEST_SUITES: {
     slug: string
     title: string
@@ -1381,6 +1408,11 @@ const ANNOTATION_TEST_SUITES: {
         slug: "stacked-discrete-bar-entity",
         title: "Entity annotations: stacked discrete bar charts",
         charts: STACKED_DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "stacked-area-entity",
+        title: "Entity annotations: stacked area charts",
+        charts: STACKED_AREA_ENTITY_ANNOTATED_CHARTS,
     },
     {
         slug: "real",
