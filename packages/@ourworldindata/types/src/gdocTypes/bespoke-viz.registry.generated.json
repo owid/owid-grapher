@@ -408,12 +408,12 @@
         {
           "name": "title",
           "type": "string",
-          "description": "Chart title, replacing the generated one"
+          "description": "Chart title, replacing the generated one. Also hides the controls"
         },
         {
           "name": "subtitle",
           "type": "string",
-          "description": "Chart subtitle, replacing the generated one"
+          "description": "Chart subtitle, replacing the generated one. Also hides the controls"
         },
         {
           "name": "country",
