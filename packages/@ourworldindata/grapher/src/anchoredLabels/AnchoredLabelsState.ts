@@ -205,7 +205,9 @@ export class AnchoredLabelsState {
                     return 2
                 case Emphasis.Muted:
                     return 0
-                default:
+                case Emphasis.Default:
+                case Emphasis.Elevated:
+                case undefined:
                     return 1
             }
         }

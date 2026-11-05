@@ -271,7 +271,14 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
             // runSiteTools()
             // runCookiePreferencesManager()
             break
-        default:
+        case SiteFooterContext.dynamicCollectionPage:
+        case SiteFooterContext.explorerIndexPage:
+        case SiteFooterContext.default:
+        case SiteFooterContext.latestPage:
+        case SiteFooterContext.searchPage:
+        case SiteFooterContext.subscribePage:
+        case SiteFooterContext.slideshowPage:
+        case undefined:
             console.error(
                 `runSiteFooterScriptsForArchive: context ${context} not supported`
             )
@@ -346,7 +353,8 @@ export const runSiteFooterScripts = async (
         case SiteFooterContext.subscribePage:
             hydrateSubscribePage()
         // falls through
-        default:
+        case SiteFooterContext.default:
+        case undefined:
             // Features that were not ported over to gdocs, are only being run on WP pages:
             // - embedding charts through MultiEmbedderSingleton.embedAll()
             runSiteNavigation({ hideDonationFlag, isPreviewing })

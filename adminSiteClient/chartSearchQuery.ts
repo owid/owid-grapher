@@ -524,6 +524,8 @@ export function suggestChartSearchTerms(
             )
         case "is":
             return isSuggestions(term.value)
+        case undefined:
+            break
     }
 
     if (term.field !== undefined || term.value.length < MIN_SUGGESTION_LENGTH)
