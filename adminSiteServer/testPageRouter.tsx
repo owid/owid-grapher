@@ -1323,6 +1323,25 @@ const DUMBBELL_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
 ]
 
+const STACKED_DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Three indicators: Japan shows its shared annotation once, France all three joined, Sweden the text two indicators share, Germany the nuclear one. Hover them: Japan's sits by the title, the others' under each segment",
+        path: "grapher/per-capita-electricity-fossil-nuclear-renewables",
+    },
+    {
+        label: "Three indicators, four rows: the same cases with room to spare",
+        path: "grapher/per-capita-electricity-fossil-nuclear-renewables?country=JPN~FRA~SWE~DEU",
+    },
+    {
+        label: "Two indicators, 16 rows: if the annotations don't fit, no row shows one inline, but the tooltips still do. Hover India (shared) and Mozambique (per indicator)",
+        path: "grapher/distribution-of-population-across-income-thresholds-stacked-bar-30-only",
+    },
+    {
+        label: "Legacy: the United Kingdom's annotation, on all six indicators, shows once inline and next to the tooltip title",
+        path: "grapher/how-important-family-is-to-people-in-life",
+    },
+]
+
 const ANNOTATION_TEST_SUITES: {
     slug: string
     title: string
@@ -1357,6 +1376,11 @@ const ANNOTATION_TEST_SUITES: {
         slug: "dumbbell-entity",
         title: "Entity annotations: dumbbell charts",
         charts: DUMBBELL_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "stacked-discrete-bar-entity",
+        title: "Entity annotations: stacked discrete bar charts",
+        charts: STACKED_DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS,
     },
     {
         slug: "real",

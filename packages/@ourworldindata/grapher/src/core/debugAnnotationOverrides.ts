@@ -361,6 +361,77 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             entities: ["Nigeria"],
         },
     ],
+    // per-capita-electricity-fossil-nuclear-renewables (a stacked discrete
+    // bar): fossil. Japan shares one text on all three indicators, France
+    // differs on each, Sweden shares one on fossil and renewables, Germany
+    // is annotated on nuclear only
+    1295588: [
+        {
+            text: "Data covers fiscal years.",
+            entities: ["Japan"],
+        },
+        {
+            text: "Includes imported coal power.",
+            entities: ["France"],
+        },
+        {
+            text: "Combined heat and power plants included.",
+            entities: ["Sweden"],
+        },
+    ],
+    // nuclear
+    1295587: [
+        {
+            text: "Data covers fiscal years.",
+            entities: ["Japan"],
+        },
+        {
+            text: "Several reactors were offline for maintenance.",
+            entities: ["France"],
+        },
+        {
+            text: "The last reactors closed in April 2023.",
+            entities: ["Germany"],
+        },
+    ],
+    // renewables
+    1295590: [
+        {
+            text: "Data covers fiscal years.",
+            entities: ["Japan"],
+        },
+        {
+            text: "Hydropower output fell in a dry year.",
+            entities: ["France"],
+        },
+        {
+            text: "Combined heat and power plants included.",
+            entities: ["Sweden"],
+        },
+    ],
+    // distribution-of-population-across-income-thresholds-stacked-bar-30-only
+    // (a crowded stacked discrete bar): below $30 a day
+    1315271: [
+        {
+            text: "Survey measures consumption, not income.",
+            entities: ["India"],
+        },
+        {
+            text: "Below-threshold estimate interpolated between surveys.",
+            entities: ["Mozambique"],
+        },
+    ],
+    // above $30 a day
+    1316191: [
+        {
+            text: "Survey measures consumption, not income.",
+            entities: ["India"],
+        },
+        {
+            text: "Above-threshold estimate from a single survey.",
+            entities: ["Mozambique"],
+        },
+    ],
     // oecd-average-trust-in-governments (a time-range dumbbell)
     1195708: [
         {
