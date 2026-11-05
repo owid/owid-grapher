@@ -371,6 +371,28 @@ describe(parseDelimited, () => {
         expect([...rows]).toEqual([{ foo: "1", bar: "2" }])
     })
 
+    it.each(["\n", "\r\n"])(
+        "skips leading blank lines before selecting the header (%j)",
+        (newline) => {
+            const rows = parseDelimited(`${newline}${newline}a,b${newline}1,2`)
+            expect(rows.columns).toEqual(["a", "b"])
+            expect([...rows]).toEqual([{ a: "1", b: "2" }])
+        }
+    )
+
+    it("returns no columns or rows for only blank lines", () => {
+        const rows = parseDelimited("\r\n\r\n")
+        expect(rows.columns).toEqual([])
+        expect([...rows]).toEqual([])
+    })
+
+    it("strips a leading BOM before parsing quoted headers", () => {
+        // A comma in the quoted header proves it was unquoted during parsing.
+        const rows = parseDelimited('\uFEFF"a,b",c\n1,2')
+        expect(rows.columns).toEqual(["a,b", "c"])
+        expect([...rows]).toEqual([{ "a,b": "1", c: "2" }])
+    })
+
     it("unquotes cells containing delimiters, quotes and newlines", () => {
         const rows = parseDelimited(`name,note
 "Bonaire, Sint Eustatius and Saba","says ""hi""

@@ -645,14 +645,16 @@ export const parseDelimited = (
 ): DSVParsedArray<Record<string, any>> => {
     const [header = [], ...body] = dsvFormat(
         delimiter ?? detectDelimiter(str)
-    ).parseRows(str)
+    ).parseRows(
+        // Strip the BOM before parsing so a quoted first header is recognized.
+        str.replace(/^\uFEFF/, ""),
+        // Skip empty lines before selecting the header, as well as in the body.
+        (values) => (values.length === 1 && values[0] === "" ? null : values)
+    )
     const columns = header.map((name) => name.trim())
 
     const rows: Record<string, any>[] = []
     for (const values of body) {
-        // Skip empty lines
-        if (values.length === 1 && values[0] === "") continue
-
         // Some downstream methods expect all rows to have fields for all
         // columns, even if they are missing in that row
         const row: Record<string, unknown> = {}
