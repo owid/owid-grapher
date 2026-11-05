@@ -1890,15 +1890,13 @@ export function traverseEnrichedBlock(
         case "bespoke-component":
             callback(node)
             return
-        default: {
-            // Compile-time exhaustiveness; at runtime an unknown block type
-            // throws, as ts-pattern's `.exhaustive()` did.
-            const unknownNode: never = node
-            throw new Error(
-                `Unknown enriched block type: ${(unknownNode as { type?: string }).type}`
-            )
-        }
     }
+    // Every case returns, so this is reached only for a block type the switch
+    // doesn't handle: a type error at compile time, a throw at runtime.
+    const unknownBlock: never = node
+    throw new Error(
+        `Unknown enriched block type: ${(unknownBlock as { type?: string }).type}`
+    )
 }
 
 /**
