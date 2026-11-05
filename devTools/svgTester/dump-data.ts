@@ -194,7 +194,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
                 )
                 await saveGrapherSchemaAndData(charts, outDir, { concurrency })
             })
-            .with("thumbnails", "grapher-views", () =>
+            .with("thumbnails", "grapher-views", "mobile", () =>
                 writeTopGraphersManifest(testSuite, testSuiteDir)
             )
             .with("mdims", async () => {

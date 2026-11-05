@@ -50,7 +50,39 @@ import * as R from "remeda"
 import ReactDOMServer from "react-dom/server"
 import pMap from "p-map"
 
-export type SvgRenderVariant = "default" | "thumbnail"
+export type SvgRenderVariant = "default" | "thumbnail" | "mobile"
+
+const PHONE_WIDTH_PX = 375
+const ARTICLE_GUTTER_PX = 16
+const ARTICLE_CHART_HEIGHT_PX = 575
+const PHONE_ARTICLE_CHART_BOUNDS = new Bounds(
+    0,
+    0,
+    PHONE_WIDTH_PX - 2 * ARTICLE_GUTTER_PX,
+    ARTICLE_CHART_HEIGHT_PX
+)
+
+const SVG_RENDER_VARIANT_OPTIONS: Record<
+    SvgRenderVariant,
+    Partial<GrapherProgrammaticInterface>
+> = {
+    default: {},
+    thumbnail: {
+        staticBounds: new Bounds(
+            0,
+            0,
+            GRAPHER_THUMBNAIL_WIDTH,
+            GRAPHER_THUMBNAIL_HEIGHT
+        ),
+        variant: GrapherVariant.Thumbnail,
+        baseFontSize: 14,
+    },
+    mobile: {
+        bounds: PHONE_ARTICLE_CHART_BOUNDS,
+        staticBounds: PHONE_ARTICLE_CHART_BOUNDS,
+        isStaticLayoutResponsive: true,
+    },
+}
 
 interface SvgTesterSuiteSettings {
     description: string
@@ -96,6 +128,15 @@ export const SVG_TESTER_SUITE_SETTINGS: Record<
         shouldTestAllViews: false,
         shouldTestAllTabs: true,
         renderVariant: "thumbnail",
+    },
+    mobile: {
+        description:
+            "phone-width (343x575) renderings of the most-viewed Graphers",
+        configsSuite: "graphers",
+        isManifestRequired: true,
+        shouldTestAllViews: false,
+        shouldTestAllTabs: true,
+        renderVariant: "mobile",
     },
 }
 
@@ -623,19 +664,7 @@ export async function renderSvg({
         ...configAndData.config,
         adminBaseUrl: "https://ourworldindata.org",
         bakedGrapherURL: "https://ourworldindata.org/grapher",
-    }
-
-    // Apply thumbnail settings if variant is thumbnail
-    if (variant === "thumbnail") {
-        const thumbnailBounds = new Bounds(
-            0,
-            0,
-            GRAPHER_THUMBNAIL_WIDTH,
-            GRAPHER_THUMBNAIL_HEIGHT
-        )
-        config.staticBounds = thumbnailBounds
-        config.variant = GrapherVariant.Thumbnail
-        config.baseFontSize = 14
+        ...SVG_RENDER_VARIANT_OPTIONS[variant],
     }
 
     const grapher = initGrapherForSvgExport(
