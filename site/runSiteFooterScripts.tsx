@@ -16,7 +16,6 @@ import { OwidGdoc } from "./gdocs/OwidGdoc.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import SiteTools, { SITE_TOOLS_ROOT_CLASS } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
-import { hydrateCodeSnippets } from "@ourworldindata/components"
 import { hydrateDynamicCollectionPage } from "./collections/DynamicCollectionPageMain.js"
 import { LatestSearchWrapper } from "./latest/LatestSearchWrapper.js"
 import {
@@ -351,7 +350,6 @@ export const runSiteFooterScripts = async (
             // Features that were not ported over to gdocs, are only being run on WP pages:
             // - embedding charts through MultiEmbedderSingleton.embedAll()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
-            hydrateCodeSnippets()
             MultiEmbedderSingleton.embedAll(isPreviewing)
             runSiteTools()
             runCookiePreferencesManager()
