@@ -3,11 +3,11 @@ import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faBook,
-    faBullhorn,
     faChartLine,
     faCheck,
     faMinus,
     faLightbulb,
+    faNewspaper,
     faPlus,
     IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
@@ -46,7 +46,7 @@ const CONTENT_TYPE_CARDS: Record<
             "Major updates to the datasets behind our work. Published once or twice a week.",
     },
     announcement: {
-        icon: faBullhorn,
+        icon: faNewspaper,
         description:
             "News about Our World in Data itself. Independent of the topics you follow.",
     },
@@ -96,18 +96,18 @@ const ContentTypeCard = ({
         onClick={onToggle}
     >
         <span className="newsletter-preference-fields__card-header">
-            <FontAwesomeIcon icon={icon} />
-            <div
+            <span className="newsletter-preference-fields__card-title">
+                <FontAwesomeIcon icon={icon} />
+                {title}
+            </span>
+            <span
                 className={cx("newsletter-preference-fields__checkbox", {
                     "newsletter-preference-fields__checkbox--selected":
                         selected,
                 })}
             >
                 {selected && <FontAwesomeIcon icon={faCheck} />}
-            </div>
-        </span>
-        <span className="newsletter-preference-fields__card-title">
-            {title}
+            </span>
         </span>
         <span className="newsletter-preference-fields__card-description">
             {description}
