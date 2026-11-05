@@ -20,6 +20,3 @@ export function getContainerName(branchName: string): string {
     // Remove trailing hyphens
     return containerName.replace(/-+$/, "")
 }
-
-// Deliberate type error to test the staging build (reverted in the next commit)
-export const OPS_TYPECHECK_PROBE: number = "not a number"
