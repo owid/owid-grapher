@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest"
 import {
     AnnotationTooltipState,
-    LineChartSeries,
     PlacedPoint,
     RANGE_ANNOTATION_TOOLTIP_MARGIN,
     PlaceRangeAnnotationTooltipArgs,
 } from "./LineChartConstants"
 import {
-    joinDistinctEntityAnnotationTexts,
     findSeriesAtTime,
     placeRangeAnnotation,
     placeRangeAnnotationTooltip,
@@ -333,42 +331,5 @@ describe(findSeriesAtTime, () => {
 
     it("picks no segment outside every span", () => {
         expect(findSeriesAtTime(segments, 2010)).toBeUndefined()
-    })
-})
-
-describe(joinDistinctEntityAnnotationTexts, () => {
-    const withAnnotation = (
-        text?: string
-    ): Pick<LineChartSeries, "entityAnnotation"> => ({
-        entityAnnotation: text
-            ? { text, entityNames: ["usa"], timeScope: "all" }
-            : undefined,
-    })
-
-    it("joins distinct annotations in series order with a semicolon", () => {
-        expect(
-            joinDistinctEntityAnnotationTexts([
-                withAnnotation("historical note"),
-                withAnnotation("projection note"),
-            ])
-        ).toBe("historical note; projection note")
-    })
-
-    it("shows an annotation shared by both series once", () => {
-        expect(
-            joinDistinctEntityAnnotationTexts([
-                withAnnotation("shared note"),
-                withAnnotation("shared note"),
-            ])
-        ).toBe("shared note")
-    })
-
-    it("returns undefined when no series has an annotation", () => {
-        expect(
-            joinDistinctEntityAnnotationTexts([
-                withAnnotation(),
-                withAnnotation(),
-            ])
-        ).toBeUndefined()
     })
 })

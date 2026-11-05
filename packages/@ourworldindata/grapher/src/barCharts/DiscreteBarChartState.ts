@@ -27,9 +27,10 @@ import {
     getDefaultFailMessage,
     getShortNameForEntity,
     makeSelectionArray,
+    joinEntityAnnotationTexts,
 } from "../chart/ChartUtils"
 import { selectEntityAnnotation } from "../annotations/EntityAnnotations"
-import { joinDistinctEntityAnnotationTexts } from "../lineCharts/LineChartHelpers"
+import { excludeUndefined } from "@ourworldindata/utils"
 import {
     ChartErrorInfo,
     ColorScaleConfigInterface,
@@ -368,10 +369,12 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
                     .get(entityName)
                     ?.has(time)
             )
-        return joinDistinctEntityAnnotationTexts(
-            columnsWithValueAtTime.map((column) => ({
-                entityAnnotation: selectEntityAnnotation(column, entityName),
-            }))
+        return joinEntityAnnotationTexts(
+            excludeUndefined(
+                columnsWithValueAtTime.map(
+                    (column) => selectEntityAnnotation(column, entityName)?.text
+                )
+            )
         )
     }
 

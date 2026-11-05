@@ -424,3 +424,11 @@ export function isToleranceDistanceValid(args: {
 export function formatTimeSpan(count: number, interval: TimeInterval): string {
     return count === 1 ? `a ${interval}` : `${count} ${interval}s`
 }
+
+export function joinEntityAnnotationTexts(
+    texts: Iterable<string>
+): string | undefined {
+    const distinctTexts = new Set(texts)
+    if (distinctTexts.size === 0) return undefined
+    return [...distinctTexts].join("; ")
+}

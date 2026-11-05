@@ -5,11 +5,8 @@ import { excludeUndefined } from "@ourworldindata/utils"
 import { Time } from "@ourworldindata/types"
 import { RenderLineChartSeries } from "./LineChartConstants"
 import { LineChartState } from "./LineChartState.js"
-import {
-    findSeriesAtTime,
-    hasPointAtTime,
-    joinDistinctEntityAnnotationTexts,
-} from "./LineChartHelpers"
+import { findSeriesAtTime, hasPointAtTime } from "./LineChartHelpers"
+import { joinEntityAnnotationTexts } from "../chart/ChartUtils"
 import {
     Tooltip,
     TooltipState,
@@ -67,8 +64,13 @@ export class LineChartTooltip extends React.Component<LineChartTooltipProps> {
                 const seriesWithAnnotation = seriesGroup.filter(
                     (s) => s === series || hasPointAtTime(s, target.time)
                 )
-                const annotation =
-                    joinDistinctEntityAnnotationTexts(seriesWithAnnotation)
+                const annotation = joinEntityAnnotationTexts(
+                    excludeUndefined(
+                        seriesWithAnnotation.map(
+                            (s) => s.entityAnnotation?.text
+                        )
+                    )
+                )
                 return { series, annotation }
             })
             .filter((row) => row !== undefined)

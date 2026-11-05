@@ -430,16 +430,6 @@ function isSameMarker(a: AnnotationMarker, b: AnnotationMarker): boolean {
     )
 }
 
-export function joinDistinctEntityAnnotationTexts(
-    series: Pick<LineChartSeries, "entityAnnotation">[]
-): string | undefined {
-    const texts = new Set(
-        excludeUndefined(series.map((s) => s.entityAnnotation?.text))
-    )
-    if (texts.size === 0) return undefined
-    return [...texts].join("; ")
-}
-
 export function findSeriesAtTime<T extends Pick<LineChartSeries, "points">>(
     series: T[],
     time: Time
