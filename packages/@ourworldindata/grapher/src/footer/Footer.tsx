@@ -841,11 +841,13 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
     }
 
     protected override get fontSize(): number {
+        if (this.manager.isLayoutResponsive) return super.fontSize
         if (this.manager.isStaticAndSmall) return 14
         return this.useBaseFontSize ? scaleFontSize(13, this.baseFontSize) : 13
     }
 
     protected override get sourcesFontSize(): number {
+        if (this.manager.isLayoutResponsive) return super.sourcesFontSize
         return this.fontSize
     }
 

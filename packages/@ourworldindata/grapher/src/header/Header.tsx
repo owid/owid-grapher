@@ -426,10 +426,12 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
     }
 
     override get titleLineHeight(): number {
+        if (this.manager.isLayoutResponsive) return super.titleLineHeight
         return this.manager.isStaticAndSmall ? 1.1 : 1.2
     }
 
     override get subtitleLineHeight(): number {
+        if (this.manager.isLayoutResponsive) return super.subtitleLineHeight
         return 1.2
     }
 
