@@ -18,15 +18,15 @@ describe(SeriesLabelState, () => {
 
     it("splits longer labels into multiple lines", () => {
         const label = new SeriesLabelState({
-            text: "Asia and Oceania (excl. China and India)",
+            text: "Asia and Oceania excluding China and India",
             maxWidth: 120,
             fontSize: FONT_SIZE,
         })
 
         expect(label.spanLines).toEqual([
             [{ role: "name", text: "Asia and Oceania", fontWeight: 400 }],
-            [{ role: "name", text: "(excl. China and", fontWeight: 400 }],
-            [{ role: "name", text: "India)", fontWeight: 400 }],
+            [{ role: "name", text: "excluding China", fontWeight: 400 }],
+            [{ role: "name", text: "and India", fontWeight: 400 }],
         ])
     })
 
@@ -81,7 +81,7 @@ describe(SeriesLabelState, () => {
         ])
     })
 
-    it("does not split suffixes that name no publisher from the name", () => {
+    it("splits suffixes that name no publisher from the name", () => {
         const label = new SeriesLabelState({
             text: "Asia and Oceania (excl. China and India)",
             maxWidth: Infinity,
@@ -90,9 +90,10 @@ describe(SeriesLabelState, () => {
 
         expect(label.spanLines).toEqual([
             [
+                { role: "name", text: "Asia and Oceania", fontWeight: 400 },
                 {
-                    role: "name",
-                    text: "Asia and Oceania (excl. China and India)",
+                    role: "regionPublisherSuffix",
+                    text: " (excl. China and India)",
                     fontWeight: 400,
                 },
             ],
@@ -190,11 +191,8 @@ describe(SeriesLabelState, () => {
         })
 
         expect(label.positionedFragments).toMatchObject([
-            {
-                type: "text",
-                role: "name",
-                text: "Africa (FAKE)",
-            },
+            { type: "text", role: "name", text: "Africa" },
+            { type: "text", role: "regionPublisherSuffix", text: "(FAKE)" },
         ])
     })
 

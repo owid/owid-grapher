@@ -133,8 +133,7 @@ export class SeriesLabelState {
     }
 
     @computed private get name(): string {
-        // Only split the suffix from the main text if it names a region publisher
-        return this.parsedText.publisherKey
+        return this.parsedText.suffix
             ? this.parsedText.name
             : this.parsedText.raw
     }
@@ -209,7 +208,7 @@ export class SeriesLabelState {
      * the main name.
      */
     @computed private get suffixFragments(): ContentFragment[] | undefined {
-        if (!this.parsedText.publisherKey) return undefined
+        if (!this.parsedText.suffix) return undefined
 
         const fontSettings = { ...this.fontSettings, fontWeight: 400 }
 
