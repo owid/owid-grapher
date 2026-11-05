@@ -308,6 +308,18 @@ describe("entity labels", () => {
         })
     }
 
+    function negate(rows: [string, number][]): [string, number][] {
+        return rows.map(([entityName, value]) => [entityName, -value])
+    }
+
+    function getLeftmostLabelEdge(chart: DiscreteBarChart): number | undefined {
+        return _.min(
+            chart.placedSeries.map(
+                (series) => series.entityLabelX - series.label.width
+            )
+        )
+    }
+
     function getLineTexts(
         chart: DiscreteBarChart,
         entityName: string
@@ -334,29 +346,18 @@ describe("entity labels", () => {
     })
 
     it("leaves no gap left of the leftmost label", () => {
-        const chart = makeChart()
-        const labelLeftEdges = chart.placedSeries.map(
-            (series) => series.entityLabelX - series.label.width
-        )
-        expect(_.min(labelLeftEdges)).toBeCloseTo(0, 0)
+        expect(getLeftmostLabelEdge(makeChart())).toBeCloseTo(0, 0)
     })
 
     it("leaves no gap left of the leftmost label when all bars are positive", () => {
-        const chart = makeChart(
-            habitatLoss.map(([entityName, value]) => [entityName, -value])
-        )
-        const labelLeftEdges = chart.placedSeries.map(
-            (series) => series.entityLabelX - series.label.width
-        )
-        expect(_.min(labelLeftEdges)).toBeCloseTo(0, 0)
+        expect(
+            getLeftmostLabelEdge(makeChart(negate(habitatLoss)))
+        ).toBeCloseTo(0, 0)
     })
 
     it("lets labels of positive bars fill the label column", () => {
         const chart = makeChart([
-            ...habitatLoss.map(([entityName, value]): [string, number] => [
-                entityName,
-                -value,
-            ]),
+            ...negate(habitatLoss),
             ["Pneumonoultramicroscopic Africa", 2],
         ])
         expect(getLineTexts(chart, "Pneumonoultramicroscopic Africa")).toEqual([

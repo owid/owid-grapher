@@ -55,11 +55,11 @@ import { AnimatedRows } from "../animation/AnimatedRows.js"
 
 const DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND = "#787878"
 
-/** The gap between the entity label and the bar */
-const GAP__ENTITY_LABEL__BAR = 5
+/** The gap between a bar and the labels next to it */
+const BAR_LABEL_GAP = 5
 
-/** The gap between the the entity label and negative value label */
-const GAP__ENTITY_LABEL__VALUE_LABEL = 10
+/** The gap between a negative bar's entity label and its value label */
+const ENTITY_VALUE_LABEL_GAP = 10
 
 export interface Label {
     valueString: string
@@ -197,8 +197,7 @@ export class DiscreteBarChart
         )
     }
 
-    private makeXAxis(range: ValueRange): HorizontalAxis {
-        // NB: We use the user's YAxis options here to make the XAxis
+    private makeYAxis(range: ValueRange): HorizontalAxis {
         const axis = this.yAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
@@ -210,7 +209,7 @@ export class DiscreteBarChart
     }
 
     @computed get yAxis(): HorizontalAxis {
-        return this.makeXAxis(this.xRange)
+        return this.makeYAxis(this.xRange)
     }
 
     /** Where a row's entity label ends on the given axis */
@@ -218,23 +217,38 @@ export class DiscreteBarChart
         series: DiscreteBarSeries,
         axis: HorizontalAxis
     ): number {
-        if (series.value >= 0)
-            return axis.place(this.x0) - GAP__ENTITY_LABEL__BAR
+        if (series.value >= 0) return axis.place(this.x0) - BAR_LABEL_GAP
         return (
             axis.place(series.value) -
             this.formatValue(series).width -
-            GAP__ENTITY_LABEL__VALUE_LABEL
+            ENTITY_VALUE_LABEL_GAP
         )
+    }
+
+    /** Each row's entity label right edge as a line in the left labels width */
+    @computed private get entityLabelRightEdgeLines(): {
+        intercept: number
+        slope: number
+    }[] {
+        const [atZero, atOne] = [0, 1].map((leftLabelsWidth) => {
+            const axis = this.makeYAxis([
+                leftLabelsWidth,
+                this.bounds.width - this.rightValueLabelsWidth,
+            ])
+            return this.series.map((series) =>
+                this.getEntityLabelRightEdge(series, axis)
+            )
+        })
+        return atZero.map((intercept, index) => ({
+            intercept,
+            slope: atOne[index] - intercept,
+        }))
     }
 
     /** Where each row's entity label ends when the left labels get the given width */
     private getEntityLabelRightEdges(leftLabelsWidth: number): number[] {
-        const axis = this.makeXAxis([
-            leftLabelsWidth,
-            this.bounds.width - this.rightValueLabelsWidth,
-        ])
-        return this.series.map((series) =>
-            this.getEntityLabelRightEdge(series, axis)
+        return this.entityLabelRightEdgeLines.map(
+            ({ intercept, slope }) => intercept + slope * leftLabelsWidth
         )
     }
 
@@ -294,7 +308,7 @@ export class DiscreteBarChart
             )
             const valueLabelX =
                 this.yAxis.place(series.value) +
-                (isNegative ? -GAP__ENTITY_LABEL__BAR : GAP__ENTITY_LABEL__BAR)
+                (isNegative ? -BAR_LABEL_GAP : BAR_LABEL_GAP)
 
             const { labelY: entityLabelY, annotationY } =
                 computeCenteredLabelYPositions({

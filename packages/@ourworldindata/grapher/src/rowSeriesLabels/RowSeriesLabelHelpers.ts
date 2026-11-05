@@ -11,7 +11,11 @@ import {
 /** Vertical padding between the label and the annotation underneath it */
 const ANNOTATION_PADDING = 2
 
-/** Where each row's label must end, in px from the chart's left edge, when the left labels get the given width */
+/**
+ * Where each row's label must end, in px from the chart's left edge, when the
+ * left labels get the given width. Each edge must be linear in that width:
+ * `findLeftLabelsWidth` samples it at two points.
+ */
 export type GetLabelRightEdges = (leftLabelsWidth: number) => readonly number[]
 
 type LabelOptions = Pick<
@@ -22,7 +26,6 @@ type LabelOptions = Pick<
 /** A row's label, and whether it overflows its row */
 interface FittedLabel {
     label: SeriesLabelState
-    narrowWidth: number
     needsTruncation: boolean
 }
 
@@ -291,7 +294,7 @@ export function enrichSeriesWithLabels<
                   text: series.annotation,
                   labelHeight: labels[index].label.height,
                   // 80px extra to give annotations more room than labels
-                  firstTryWidth: labels[index].narrowWidth + 80,
+                  firstTryWidth: narrowWraps[index].textWrap.width + 80,
                   availableHeight: availableHeightPerSeries,
                   maxWidth: maxLabelWidth,
                   fontSettings: annotationFontSettings,
@@ -330,7 +333,7 @@ function widenLabels({
     maxLabelWidth,
     labelOptions,
 }: {
-    narrowWraps: readonly { textWrap: TextWrap; needsTruncation?: boolean }[]
+    narrowWraps: readonly ReturnType<typeof wrapLabelForHeight>[]
     getLabelRightEdges: GetLabelRightEdges
     maxLabelWidth: number
     labelOptions: LabelOptions
@@ -357,7 +360,7 @@ function widenLabels({
                   maxLabelWidth,
                   labelOptions,
               })
-        return { label, narrowWidth: textWrap.width, needsTruncation }
+        return { label, needsTruncation }
     })
 }
 
@@ -383,9 +386,7 @@ function widenLabel({
     const textWrap = new TextWrap({
         text: narrowWrap.text,
         maxWidth,
-        fontSize: narrowWrap.fontSize,
-        fontWeight: narrowWrap.fontWeight,
-        lineHeight: narrowWrap.lineHeight,
+        ...narrowLabel.fontSettings,
     })
     const label = SeriesLabelState.fromTextWrap(textWrap, labelOptions)
 
