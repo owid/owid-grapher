@@ -341,6 +341,16 @@ describe("entity labels", () => {
         expect(_.min(labelLeftEdges)).toBeCloseTo(0, 0)
     })
 
+    it("leaves no gap left of the leftmost label when all bars are positive", () => {
+        const chart = makeChart(
+            habitatLoss.map(([entityName, value]) => [entityName, -value])
+        )
+        const labelLeftEdges = chart.placedSeries.map(
+            (series) => series.entityLabelX - series.label.width
+        )
+        expect(_.min(labelLeftEdges)).toBeCloseTo(0, 0)
+    })
+
     it("lets labels of positive bars fill the label column", () => {
         const chart = makeChart([
             ...habitatLoss.map(([entityName, value]): [string, number] => [

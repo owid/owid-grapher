@@ -218,7 +218,8 @@ export class DiscreteBarChart
         series: DiscreteBarSeries,
         axis: HorizontalAxis
     ): number {
-        if (series.value >= 0) return axis.place(this.x0)
+        if (series.value >= 0)
+            return axis.place(this.x0) - GAP__ENTITY_LABEL__BAR
         return (
             axis.place(series.value) -
             this.formatValue(series).width -
@@ -287,11 +288,10 @@ export class DiscreteBarChart
             const barWidth = isNegative
                 ? this.yAxis.place(this.x0) - barX
                 : this.yAxis.place(series.value) - barX
-            const label = this.formatValue(series)
-
-            const entityLabelX = isNegative
-                ? barX - label.width - GAP__ENTITY_LABEL__VALUE_LABEL
-                : barX - GAP__ENTITY_LABEL__BAR
+            const entityLabelX = this.getEntityLabelRightEdge(
+                series,
+                this.yAxis
+            )
             const valueLabelX =
                 this.yAxis.place(series.value) +
                 (isNegative ? -GAP__ENTITY_LABEL__BAR : GAP__ENTITY_LABEL__BAR)
