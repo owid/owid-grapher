@@ -99,6 +99,29 @@ describe(SeriesLabelState, () => {
         ])
     })
 
+    it("splits a negated region publisher suffix from the name", () => {
+        const label = new SeriesLabelState({
+            text: "High-income countries (non-OECD)",
+            maxWidth: Infinity,
+            fontSize: FONT_SIZE,
+        })
+
+        expect(label.spanLines).toEqual([
+            [
+                {
+                    role: "name",
+                    text: "High-income countries",
+                    fontWeight: 400,
+                },
+                {
+                    role: "regionPublisherSuffix",
+                    text: " (non-OECD)",
+                    fontWeight: 400,
+                },
+            ],
+        ])
+    })
+
     it("places value on new line when suffix is present", () => {
         const label = new SeriesLabelState({
             text: "Africa (WHO)",
