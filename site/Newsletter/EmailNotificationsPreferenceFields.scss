@@ -42,14 +42,19 @@
     }
 }
 
-// The legend and the select-all button share a row. A floated legend isn't
+// The legend and the select-all button share a row, with the button
+// right after the legend text. A floated legend isn't
 // rendered as the fieldset's caption, so it can take part in the grid; the
 // pills and the alert span the full width below.
 .newsletter-preference-fields__topics {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto 1fr;
     align-items: center;
     column-gap: 16px;
+
+    .newsletter-preference-fields__select-all {
+        justify-self: start;
+    }
 
     legend {
         float: left;
