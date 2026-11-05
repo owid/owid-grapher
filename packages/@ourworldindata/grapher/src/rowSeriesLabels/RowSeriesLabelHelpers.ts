@@ -302,7 +302,7 @@ export function enrichSeriesWithLabels<
             : undefined
     )
 
-    const truncationWidth = computeTruncationWidth(labels, annotations)
+    const truncationWidth = computeTruncationWidth(narrowWraps, annotations)
 
     return series.map((series, index) => {
         const { label, needsTruncation } = labels[index]
@@ -430,15 +430,15 @@ function fitAnnotation({
     }
 }
 
-/** The width of the widest label or annotation that fits its row */
+/** The width of the widest narrow label or annotation that fits its row */
 function computeTruncationWidth(
-    labels: readonly FittedLabel[],
+    narrowWraps: readonly ReturnType<typeof wrapLabelForHeight>[],
     annotations: (FittedAnnotation | undefined)[]
 ): number {
     const fittingWidths = [
-        ...labels
-            .filter((label) => !label.needsTruncation)
-            .map(({ label }) => label.width),
+        ...narrowWraps
+            .filter(({ needsTruncation }) => !needsTruncation)
+            .map(({ textWrap }) => textWrap.width),
         ...excludeUndefined(annotations)
             .filter((annotation) => !annotation.needsTruncation)
             .map(({ textWrap }) => textWrap.width),
