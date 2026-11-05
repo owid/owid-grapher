@@ -6,7 +6,7 @@ import {
     excludeUndefined,
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { ColumnSlug, DumbbellValueLabelMode } from "@ourworldindata/types"
+import { DumbbellValueLabelMode } from "@ourworldindata/types"
 import {
     formatTooltipRangeValues,
     makeTooltipRoundingNotice,
@@ -21,7 +21,11 @@ import { GRAY_90 } from "../color/ColorConstants.js"
 import { DumbbellChartState } from "./DumbbellChartState"
 import { SizedDumbbellSeries } from "./DumbbellChartConstants"
 import { match } from "ts-pattern"
-import { selectEntityAnnotationsForColumns } from "../annotations/EntityAnnotations"
+import {
+    placeEntityAnnotationsInTooltip,
+    selectEntityAnnotationsForColumns,
+    TooltipAnnotationPlacement,
+} from "../annotations/EntityAnnotations"
 
 interface DumbbellTooltipProps {
     id: number
@@ -370,19 +374,4 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
             </Tooltip>
         )
     }
-}
-
-export type TooltipAnnotationPlacement =
-    | { kind: "shared"; text: string }
-    | { kind: "perColumn"; textBySlug: Map<ColumnSlug, string> }
-
-export function placeEntityAnnotationsInTooltip(
-    textBySlug: Map<ColumnSlug, string>,
-    columnSlugs: ColumnSlug[]
-): TooltipAnnotationPlacement {
-    const texts = columnSlugs.map((slug) => textBySlug.get(slug))
-    const [firstText] = texts
-    if (firstText !== undefined && texts.every((text) => text === firstText))
-        return { kind: "shared", text: firstText }
-    return { kind: "perColumn", textBySlug }
 }
