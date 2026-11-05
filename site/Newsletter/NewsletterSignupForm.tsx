@@ -138,6 +138,9 @@ const NewsletterSignupFormInner = ({
         <form
             className={cx("newsletter-signup-form", className)}
             onSubmit={handleSubmit}
+            // The Follow Topics hand-off only carries the email over to
+            // /subscribe, which validates it, so don't block it here.
+            noValidate={followTopics}
         >
             <NewsletterOption
                 id={`newsletter-signup-brief-${context}`}
