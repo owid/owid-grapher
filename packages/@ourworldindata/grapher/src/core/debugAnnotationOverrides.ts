@@ -310,6 +310,68 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             timeEnd: "2016-06-15",
         },
     ],
+    // time-spend-in-domestic-work-female-vs-male (a two-indicator dumbbell):
+    // female hours. India shares its text with the male indicator, Brazil
+    // differs, Germany is annotated on the female indicator only
+    1304682: [
+        {
+            text: "Time-use survey from 2019.",
+            entities: ["India"],
+        },
+        {
+            text: "Women's hours include caring for children.",
+            entities: ["Brazil"],
+        },
+        {
+            text: "Survey covers urban areas only.",
+            entities: ["Germany"],
+        },
+    ],
+    // male hours
+    1304683: [
+        {
+            text: "Time-use survey from 2019.",
+            entities: ["India"],
+        },
+        {
+            text: "Men's hours exclude repairs and gardening.",
+            entities: ["Brazil"],
+        },
+    ],
+    // share-of-children-vaccinated-against-measles-vs-share-vaccinated-against-dpt3
+    // (a crowded two-indicator dumbbell): measles
+    1077441: [
+        {
+            text: "Coverage estimates disrupted by conflict.",
+            entities: ["Yemen"],
+        },
+        {
+            text: "Measles coverage from household surveys.",
+            entities: ["Nigeria"],
+        },
+    ],
+    // DTP3
+    1077436: [
+        {
+            text: "Coverage estimates disrupted by conflict.",
+            entities: ["Yemen"],
+        },
+        {
+            text: "DTP3 coverage from administrative records.",
+            entities: ["Nigeria"],
+        },
+    ],
+    // oecd-average-trust-in-governments (a time-range dumbbell)
+    1195708: [
+        {
+            text: "Survey wording changed in 2015.",
+            entities: ["United Kingdom"],
+        },
+        {
+            text: "Sample excludes rural areas.",
+            entities: ["Brazil"],
+        },
+    ],
 }
 
 export function applyDebugAnnotationOverride(

@@ -1304,6 +1304,25 @@ const DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
 ]
 
+const DUMBBELL_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Two indicators: India shows its shared annotation once, Brazil both joined, Germany the female one. Hover them: India's sits by the title, Brazil's and Germany's under each value",
+        path: "grapher/time-spend-in-domestic-work-female-vs-male",
+    },
+    {
+        label: "Two indicators, three rows: the same cases with room to spare",
+        path: "grapher/time-spend-in-domestic-work-female-vs-male?country=IND~BRA~DEU",
+    },
+    {
+        label: "Two indicators, 25 rows: if the annotations don't fit, no row shows one inline, but the tooltips still do. Hover Yemen (shared) and Nigeria (per indicator)",
+        path: "grapher/share-of-children-vaccinated-against-measles-vs-share-vaccinated-against-dpt3",
+    },
+    {
+        label: "Time range: the United Kingdom and Brazil show their annotation inline and next to the tooltip title",
+        path: "grapher/oecd-average-trust-in-governments?tab=dumbbell",
+    },
+]
+
 const ANNOTATION_TEST_SUITES: {
     slug: string
     title: string
@@ -1333,6 +1352,11 @@ const ANNOTATION_TEST_SUITES: {
         slug: "discrete-bar-entity",
         title: "Entity annotations: discrete bar charts",
         charts: DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "dumbbell-entity",
+        title: "Entity annotations: dumbbell charts",
+        charts: DUMBBELL_ENTITY_ANNOTATED_CHARTS,
     },
     {
         slug: "real",
