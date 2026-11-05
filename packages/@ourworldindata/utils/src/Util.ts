@@ -1749,6 +1749,11 @@ export function traverseEnrichedBlock(
     // its branch patterns and closures on each call.
     const recurse = (child: OwidEnrichedGdocBlock): void =>
         traverseEnrichedBlock(child, callback, spanCallback)
+    // Without a span callback there's nothing to do for spans, so skip
+    // walking them altogether.
+    const traverseSpan = spanCallback
+        ? (span: Span): void => traverseEnrichedSpan(span, spanCallback)
+        : (): void => undefined
 
     switch (node.type) {
         case "sticky-right":
@@ -1786,10 +1791,7 @@ export function traverseEnrichedBlock(
             return
         case "aside":
             callback(node)
-            if (spanCallback)
-                node.caption.forEach((span) =>
-                    traverseEnrichedSpan(span, spanCallback)
-                )
+            node.caption.forEach(traverseSpan)
             return
         case "list":
         case "numbered-list":
@@ -1798,29 +1800,18 @@ export function traverseEnrichedBlock(
             return
         case "text":
             callback(node)
-            if (spanCallback)
-                node.value.forEach((span) =>
-                    traverseEnrichedSpan(span, spanCallback)
-                )
+            node.value.forEach(traverseSpan)
             return
         case "simple-text":
             if (spanCallback) spanCallback(node.value)
             return
         case "additional-charts":
             callback(node)
-            if (spanCallback)
-                node.items.forEach((spans) =>
-                    spans.forEach((span) =>
-                        traverseEnrichedSpan(span, spanCallback)
-                    )
-                )
+            node.items.forEach((spans) => spans.forEach(traverseSpan))
             return
         case "heading":
             callback(node)
-            if (spanCallback)
-                node.text.forEach((span) =>
-                    traverseEnrichedSpan(span, spanCallback)
-                )
+            node.text.forEach(traverseSpan)
             return
         case "expandable-paragraph":
             callback(node)
