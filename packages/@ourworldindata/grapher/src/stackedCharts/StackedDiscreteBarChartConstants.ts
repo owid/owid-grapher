@@ -19,6 +19,7 @@ export const LABEL_STYLE: Record<Emphasis, LabelStyleConfig> = {
 export interface DiscreteBarRow {
     entityName: string
     shortEntityName?: string
+    annotation?: string
     bars: BarSegment[]
     totalValue: number
     focus: InteractionState
