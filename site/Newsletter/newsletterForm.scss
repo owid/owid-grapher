@@ -30,6 +30,13 @@
     border-top: 1px solid $blue-20;
 }
 
+// A visible challenge or error just above the email row: its -16px collapses
+// with the row's 40px margin, leaving 24px on each side. The compact signup
+// form is a flex layout where margins don't collapse, so it's left out.
+.newsletter-form__verification--visible:has(+ .newsletter-form__email-submit) {
+    margin: 24px 0 -16px;
+}
+
 .newsletter-form__email {
     @include body-3-medium;
     flex: 1;
@@ -57,4 +64,15 @@
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+}
+
+// The Turnstile widget and its error. Until there's a challenge or an error to
+// show, the widget's 0px-tall container is taken out of the flow, so it adds
+// no flex/grid gap or margins. Forms space only the visible wrapper.
+.newsletter-form__verification:not(.newsletter-form__verification--visible) {
+    position: absolute;
+}
+
+.newsletter-form__verification .newsletter-form__alert {
+    margin: 0;
 }
