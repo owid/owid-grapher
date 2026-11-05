@@ -23,6 +23,8 @@ export function CausesOfDeathCaptionedChart({
     sex,
     entityName,
     year,
+    title,
+    subtitle,
     isLoading = false,
 }: {
     data: DataRow[]
@@ -31,6 +33,8 @@ export function CausesOfDeathCaptionedChart({
     sex: string
     entityName: EntityName
     year: Time
+    title?: string
+    subtitle?: string
     isLoading?: boolean
 }) {
     const entityData = useMemo(
@@ -51,6 +55,8 @@ export function CausesOfDeathCaptionedChart({
                     sex={sex}
                     entityName={entityName}
                     year={year}
+                    title={title}
+                    subtitle={subtitle}
                     numTotalDeaths={numTotalDeaths}
                     isLoading={isLoading}
                 />
@@ -78,6 +84,8 @@ function CausesOfDeathHeader({
     year,
     ageGroup,
     sex,
+    title,
+    subtitle,
     numTotalDeaths,
     isLoading,
 }: {
@@ -85,6 +93,8 @@ function CausesOfDeathHeader({
     year: Time
     ageGroup: string
     sex: string
+    title?: string
+    subtitle?: string
     numTotalDeaths: number
     isLoading: boolean
 }) {
@@ -95,7 +105,7 @@ function CausesOfDeathHeader({
             ? "globally"
             : `in ${formatEntityNameForSentence(entityName)}`
 
-    const title =
+    const generatedTitle =
         entityName === "World"
             ? `What did ${ageGroupName} die from in ${year}?`
             : `What did ${ageGroupName} in ${formatEntityNameForSentence(entityName)} die from in ${year}?`
@@ -103,22 +113,25 @@ function CausesOfDeathHeader({
     return (
         <ChartHeader
             className="causes-of-death-header"
-            title={title}
+            title={title ?? generatedTitle}
             subtitle={
-                <>
-                    The size of the entire visualization represents the total
-                    number of deaths {location} in {year}:{" "}
-                    <span
-                        className={cx({
-                            "causes-of-death-header__value--loading": isLoading,
-                        })}
-                    >
-                        {formatCount(numTotalDeaths)}
-                        {isLoading && <Spinner inline />}
-                    </span>
-                    . Each rectangle within is proportional to the share of
-                    deaths due to a particular cause.
-                </>
+                subtitle ?? (
+                    <>
+                        The size of the entire visualization represents the
+                        total number of deaths {location} in {year}:{" "}
+                        <span
+                            className={cx({
+                                "causes-of-death-header__value--loading":
+                                    isLoading,
+                            })}
+                        >
+                            {formatCount(numTotalDeaths)}
+                            {isLoading && <Spinner inline />}
+                        </span>
+                        . Each rectangle within is proportional to the share of
+                        deaths due to a particular cause.
+                    </>
+                )
             }
         />
     )
