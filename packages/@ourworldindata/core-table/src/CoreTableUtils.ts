@@ -643,6 +643,10 @@ export const parseDelimited = (
     delimiter?: string,
     parseFn?: (rawRow: RawRow) => ParsedRow
 ): DSVParsedArray<Record<string, any>> => {
+    // Use parseRows and build the row objects ourselves: d3-dsv's parse
+    // compiles its row converter with `new Function`, which a Content Security
+    // Policy without 'unsafe-eval' blocks — and Grapher may be embedded on sites
+    // with strict CSPs.
     const [header = [], ...body] = dsvFormat(
         delimiter ?? detectDelimiter(str)
     ).parseRows(
