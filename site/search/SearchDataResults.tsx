@@ -30,7 +30,7 @@ export const SearchDataResults = ({
         queryFn: () => queryFeaturedViz(liteSearchClient, state),
         enabled: state.query.trim() !== "",
     })
-    const featuredVizHit = featuredVizQuery.data?.hits[0]
+    const featuredVizHit = featuredVizQuery.data
 
     const { hits, isClosestMatches } = query
     // One loading state for the whole section, as in SearchWritingResults,

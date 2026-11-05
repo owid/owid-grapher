@@ -36,6 +36,7 @@ import {
     recommendTopicPages,
     TOPIC_PAGE_TYPE_FILTER,
     MAX_FACET_VALUES,
+    normalizePinnedSearch,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
@@ -364,21 +365,25 @@ export async function queryProfiles(
 }
 
 /**
- * The featured viz at the top of the Data results: the single best
- * matching featured-viz page. Honours the topic filter, ignores country
- * filters. No closest-matches fallback: there are so few featured-viz pages
- * that one shared word would be enough to show one.
+ * The featured viz at the top of the Data results, or null. A featured-viz
+ * page shows only when the whole query, normalized, is one of the searches
+ * its gdoc is pinned for; a text search would show one on any shared word.
+ * Honours the topic filter, ignores country filters.
  */
 export async function queryFeaturedViz(
     liteSearchClient: LiteClient,
     state: SearchState
-): Promise<SearchResponse<FeaturedVizHit>> {
+): Promise<FeaturedVizHit | null> {
+    const normalizedQuery = normalizePinnedSearch(state.query)
+    if (!normalizedQuery) return null
+
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
 
     const searchParams = {
         indexName: PAGES_INDEX,
-        query: state.query,
-        filters: `type:${OwidGdocType.FeaturedViz}`,
+        query: "",
+        // Normalization strips quotes, so the value can't break out of them
+        filters: `type:${OwidGdocType.FeaturedViz} AND pinnedForSearches:"${normalizedQuery}"`,
         facetFilters: formatTopicFacetFilters(selectedTopics),
         attributesToRetrieve: [
             "title",
@@ -391,7 +396,11 @@ export async function queryFeaturedViz(
         hitsPerPage: 1,
     }
 
-    return searchSingleForHits<FeaturedVizHit>(liteSearchClient, searchParams)
+    const response = await searchSingleForHits<FeaturedVizHit>(
+        liteSearchClient,
+        searchParams
+    )
+    return response.hits[0] ?? null
 }
 
 export interface LatestPagesResult {

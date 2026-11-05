@@ -33,11 +33,11 @@ vi.mock(import("./SearchChartHitComponent.js"), () => ({
     ),
 }))
 
-type FeaturedVizResponse =
-    | "migration-page"
-    | "bare-migration-page"
-    | "no-match"
-    | "error"
+/** Which featured-viz page the fake index holds, or that the request fails */
+type FeaturedVizResponse = "migration-page" | "bare-migration-page" | "error"
+
+/** The queries the fake index lists for its featured-viz page */
+const migrationPagePinnedSearches = ["migration", "immigration"]
 
 /** A featured-viz hit with every field the card shows */
 const migrationPage = {
@@ -60,6 +60,9 @@ const bareMigrationPage = {
     thumbnailUrl: "",
 }
 
+const isFeaturedVizRequest = (request: Record<string, unknown>): boolean =>
+    String(request.filters).startsWith("type:featured-viz")
+
 const chartHit = (slug: string): Record<string, unknown> => ({
     objectID: slug,
     slug,
@@ -67,8 +70,9 @@ const chartHit = (slug: string): Record<string, unknown> => ({
     type: "chart",
 })
 
-/** Answers chart requests with `chartHits` and the featured-viz request
- *  according to `featuredViz`. Records every request it receives. */
+/** Answers chart requests with `chartHits`, and the featured-viz request with
+ *  the page in `featuredViz` when the filtered query is one it is pinned for, as
+ *  Algolia's exact filter match would. Records every request it receives. */
 function makeClient(options: {
     chartHits: Record<string, unknown>[]
     featuredViz: FeaturedVizResponse
@@ -77,15 +81,21 @@ function makeClient(options: {
     const searchForHits = vi.fn(async (batch: Record<string, unknown>[]) => {
         requests.push(...batch)
         const [request] = batch
-        if (request.filters === "type:featured-viz") {
+        if (isFeaturedVizRequest(request)) {
             if (options.featuredViz === "error")
                 throw new Error("Algolia is down")
-            const hits =
+            const filteredQuery = String(request.filters).match(
+                /pinnedForSearches:"(.*)"/
+            )?.[1]
+            const page =
                 options.featuredViz === "migration-page"
-                    ? [migrationPage]
-                    : options.featuredViz === "bare-migration-page"
-                      ? [bareMigrationPage]
-                      : []
+                    ? migrationPage
+                    : bareMigrationPage
+            const hits =
+                filteredQuery &&
+                migrationPagePinnedSearches.includes(filteredQuery)
+                    ? [page]
+                    : []
             return { results: [{ hits, nbHits: hits.length }] }
         }
         const hits = options.chartHits
@@ -142,8 +152,7 @@ const linkHrefs = (): (string | null)[] =>
 
 const featuredVizRequests = (
     requests: Record<string, unknown>[]
-): Record<string, unknown>[] =>
-    requests.filter((request) => request.filters === "type:featured-viz")
+): Record<string, unknown>[] => requests.filter(isFeaturedVizRequest)
 
 describe(SearchDataResults, () => {
     it("puts the matching featured-viz page above the chart hits and counts it", async () => {
@@ -155,7 +164,7 @@ describe(SearchDataResults, () => {
 
         expect(await screen.findByText("(3 results)")).toBeTruthy()
         expect(linkHrefs()).toEqual([
-            "/featured-viz/migration",
+            "/migration",
             "/grapher/migrant-stock",
             "/grapher/refugees",
         ])
@@ -170,7 +179,7 @@ describe(SearchDataResults, () => {
 
         await screen.findByText("(2 results)")
         const card = screen.getAllByRole("link")[0]
-        expect(card.getAttribute("href")).toBe("/featured-viz/migration")
+        expect(card.getAttribute("href")).toBe("/migration")
         const inCard = within(card)
         expect(inCard.getByText("Featured visualization")).toBeTruthy()
         expect(
@@ -236,7 +245,7 @@ describe(SearchDataResults, () => {
         })
 
         expect(await screen.findByText("(1 result)")).toBeTruthy()
-        expect(linkHrefs()).toEqual(["/featured-viz/migration"])
+        expect(linkHrefs()).toEqual(["/migration"])
     })
 
     it("sends no featured-viz request without query text, even with a topic filter", async () => {
@@ -252,15 +261,26 @@ describe(SearchDataResults, () => {
         expect(featuredVizRequests(requests)).toEqual([])
     })
 
-    it("shows the chart hits alone when no featured-viz page matches", async () => {
-        const { requests } = renderDataResults({
-            query: "gdp",
-            chartHits: [chartHit("gdp-per-capita")],
-            featuredViz: "no-match",
+    it("shows the featured viz when the query matches a pinned search up to case and punctuation", async () => {
+        renderDataResults({
+            query: "  Immigration?",
+            chartHits: [],
+            featuredViz: "migration-page",
         })
 
         expect(await screen.findByText("(1 result)")).toBeTruthy()
-        expect(linkHrefs()).toEqual(["/grapher/gdp-per-capita"])
+        expect(linkHrefs()).toEqual(["/migration"])
+    })
+
+    it("shows the chart hits alone when the query only contains a pinned search", async () => {
+        const { requests } = renderDataResults({
+            query: "migration policy",
+            chartHits: [chartHit("migrant-stock")],
+            featuredViz: "migration-page",
+        })
+
+        expect(await screen.findByText("(1 result)")).toBeTruthy()
+        expect(linkHrefs()).toEqual(["/grapher/migrant-stock"])
         // The featured viz was asked for, and came back empty
         expect(featuredVizRequests(requests)).toHaveLength(1)
     })

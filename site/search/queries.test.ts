@@ -11,9 +11,10 @@ import {
 /**
  * The featured viz at the top of the Data results comes from its own
  * pages-index request. It must only ever return featured-viz pages, at most
- * one, narrowed by the topic filter but never by country filters (featured-viz
- * pages aren't tagged with countries, and putting countries in the query
- * would hide a relevant page).
+ * one, and only one whose hand-picked queries include the reader's whole
+ * query: the request is an exact filter on the normalized query, with no text
+ * search. It is narrowed by the topic filter but never by country filters
+ * (featured-viz pages aren't tagged with countries).
  */
 
 function makeClient(): {
@@ -37,15 +38,15 @@ function makeState(overrides: Partial<SearchState>): SearchState {
 }
 
 describe(queryFeaturedViz, () => {
-    it("asks for the single best featured-viz page, narrowed by topic, ignoring countries", async () => {
+    it("filters featured-viz pages on the normalized query, narrowed by topic, ignoring countries", async () => {
         const { client, searchForHits } = makeClient()
 
         await queryFeaturedViz(
             client,
             makeState({
-                query: "migration",
+                query: "  Cause-of-Death?",
                 filters: [
-                    createTopicFilter("Migration"),
+                    createTopicFilter("Health"),
                     createCountryFilter("France"),
                 ],
             })
@@ -57,12 +58,33 @@ describe(queryFeaturedViz, () => {
         const [request] = requests
         expect(request).toMatchObject({
             indexName: PAGES_INDEX,
-            query: "migration",
-            filters: "type:featured-viz",
-            facetFilters: [["tags:Migration"]],
+            query: "",
+            filters: 'type:featured-viz AND pinnedForSearches:"cause of death"',
+            facetFilters: [["tags:Health"]],
             hitsPerPage: 1,
         })
         // Country filters leave no trace in the request
         expect(JSON.stringify(request)).not.toContain("France")
+    })
+
+    it("returns the hit Algolia found, or null when there is none", async () => {
+        const hit = { objectID: "c0", slug: "migration", type: "featured-viz" }
+        const { client, searchForHits } = makeClient()
+        searchForHits.mockResolvedValueOnce({
+            results: [{ hits: [hit], nbHits: 1 }],
+        })
+        const state = makeState({ query: "migration" })
+
+        expect(await queryFeaturedViz(client, state)).toEqual(hit)
+        expect(await queryFeaturedViz(client, state)).toBeNull()
+    })
+
+    it("asks nothing when the query is only punctuation", async () => {
+        const { client, searchForHits } = makeClient()
+
+        const hit = await queryFeaturedViz(client, makeState({ query: "?!" }))
+
+        expect(hit).toBeNull()
+        expect(searchForHits).not.toHaveBeenCalled()
     })
 })
