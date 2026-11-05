@@ -149,7 +149,16 @@ export class DeployStatusPage extends Component {
 
     @action.bound async triggerDeploy() {
         const { admin } = this.context
-        await admin.rawRequest("/api/deploy", undefined, "PUT")
+        // A failed request shows requestJSON's error modal
+        const json = await admin.requestJSON<{
+            success: boolean
+            error?: string
+        }>("/api/deploy", {}, "PUT")
+        if (!json.success)
+            admin.setErrorMessage({
+                title: "No deploy requested",
+                content: json.error ?? "Unknown error",
+            })
     }
 
     async getData() {

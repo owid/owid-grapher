@@ -1,4 +1,3 @@
-import fs from "fs-extra"
 import { DeployBuild } from "@ourworldindata/utils"
 import {
     BUILDKITE_API_ACCESS_TOKEN,
@@ -9,21 +8,6 @@ import {
 
 const ORGANIZATION_SLUG = "our-world-in-data"
 const REQUEST_TIMEOUT_MS = 10_000
-
-const defaultCommitMessage = async (): Promise<string> => {
-    let message = "Automated update"
-
-    // In the deploy.sh script, we write the current git rev to 'public/head.txt'
-    // and want to include it in the deploy commit message
-    try {
-        const sha = await fs.readFile("public/head.txt", "utf8")
-        message += `\nowid/owid-grapher@${sha}`
-    } catch (err) {
-        console.warn(err)
-    }
-
-    return message
-}
 
 interface DeployMetadata {
     title: string
@@ -36,8 +20,6 @@ interface BuildkiteBuildResponse {
     message: string | null
     web_url: string
     created_at: string
-    started_at: string | null
-    finished_at: string | null
     meta_data?: Record<string, string> | null
 }
 
@@ -111,13 +93,11 @@ export class BuildkiteTrigger {
         { title, changesSlackMentions }: DeployMetadata,
         requestedAt: Date
     ): Promise<number> {
-        const message = changesSlackMentions.length
-            ? `🚚 ${title}${
-                  changesSlackMentions.length > 1
-                      ? ` and ${changesSlackMentions.length - 1} more updates`
-                      : ""
-              }`
-            : await defaultCommitMessage()
+        const message = `🚚 ${title}${
+            changesSlackMentions.length > 1
+                ? ` and ${changesSlackMentions.length - 1} more updates`
+                : ""
+        }`
 
         return this.triggerBuild(message, {
             CONTENT_DEPLOY: "1",
@@ -152,8 +132,6 @@ export class BuildkiteTrigger {
             message: build.message ?? "",
             webUrl: build.web_url,
             createdAt: build.created_at,
-            startedAt: build.started_at ?? undefined,
-            finishedAt: build.finished_at ?? undefined,
             // Set by owid/ops' deploy-content.sh
             covered: build.meta_data?.["deploy-covered"] === "true",
         }))
