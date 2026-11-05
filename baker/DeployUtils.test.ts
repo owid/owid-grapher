@@ -1,14 +1,19 @@
 /**
- * An admin edit deploys by requesting one Buildkite build once its
- * transaction commits (enqueueDeployChange + runAfterCommit in db.ts). These
- * tests drive the real transaction wrapper over a stand-in for knex, so they
- * can commit, roll back and nest without MySQL, and read the build requests
- * off a stubbed fetch.
+ * An admin edit deploys by requesting a Buildkite build once its transaction
+ * commits (enqueueDeployChange + runAfterCommit in db.ts). These tests drive
+ * the real transaction wrapper over a stand-in for knex, so they can commit,
+ * roll back and nest without MySQL, read the build requests off a stubbed
+ * fetch, and move time with fake timers.
  *
- * The contract: every change a committed outermost transaction enqueues goes
- * out in exactly one request; a rollback sends nothing; a savepoint's changes
- * wait for the outermost commit; and a failed request never fails the edit,
- * whose data is already committed.
+ * The contract:
+ * - every change a committed outermost transaction enqueues goes out, in one
+ *   request; a rollback sends nothing; a savepoint's changes wait for the
+ *   outermost commit;
+ * - the first edit after a quiet spell is requested right away, edits in the
+ *   following window are held and go out together when it ends (an ETL push
+ *   of hundreds of calls becomes a handful of requests), and nothing held is
+ *   dropped, including on shutdown;
+ * - a failed request never fails the edit, whose data is already committed.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { Knex } from "knex"
@@ -17,7 +22,11 @@ import {
     knexReadWriteTransaction,
     TransactionCloseMode,
 } from "../db/db.js"
-import { enqueueDeployChange } from "./DeployUtils.js"
+import {
+    DEPLOY_REQUEST_WINDOW_MS,
+    enqueueDeployChange,
+    flushHeldDeployChanges,
+} from "./DeployUtils.js"
 
 vi.mock(import("../settings/serverSettings.js"), async (importOriginal) => ({
     ...(await importOriginal()),
@@ -44,6 +53,22 @@ const inTransaction = <T>(
 ): Promise<T> =>
     knexReadWriteTransaction(fn, TransactionCloseMode.KeepOpen, knex)
 
+/** Commit one transaction that enqueues `message` */
+const edit = (message: string): Promise<void> =>
+    inTransaction(async (trx) => enqueueDeployChange(trx, author, message))
+
+/** Let requests that were sent without waiting finish (setImmediate isn't faked) */
+const settle = (): Promise<void> =>
+    new Promise((resolve) => setImmediate(resolve))
+
+/** Each request's changes, as the Slack note lists them */
+const requestedChanges = (): string[][] =>
+    buildRequests.map((request) =>
+        request.env.CHANGES_SLACK_MENTIONS.split("\n").map((line) =>
+            line.replace(" (by Ada Lovelace)", "")
+        )
+    )
+
 interface BuildRequest {
     message: string
     branch: string
@@ -54,6 +79,7 @@ let buildRequests: BuildRequest[]
 let fetchMock: ReturnType<typeof vi.fn>
 
 beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] })
     buildRequests = []
     fetchMock = vi.fn(async (_url: string, init: RequestInit) => {
         buildRequests.push(JSON.parse(init.body as string))
@@ -64,7 +90,10 @@ beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => undefined)
 })
 
-afterEach(() => {
+afterEach(async () => {
+    // Clear the window and anything held, so tests don't leak into each other
+    await flushHeldDeployChanges()
+    vi.useRealTimers()
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
 })
@@ -74,9 +103,11 @@ describe(enqueueDeployChange, () => {
         await inTransaction(async (trx) => {
             enqueueDeployChange(trx, author, "Updating chart a")
             enqueueDeployChange(trx, author, "Updating chart b")
+            await settle()
             // Nothing goes out before the commit
             expect(buildRequests).toEqual([])
         })
+        await settle()
 
         expect(buildRequests).toHaveLength(1)
         const [request] = buildRequests
@@ -84,11 +115,13 @@ describe(enqueueDeployChange, () => {
         expect(request.message).toBe(
             "🚚 Updating chart a (by Ada Lovelace) and 1 more updates"
         )
-        expect(request.env.CHANGES_SLACK_MENTIONS).toBe(
-            "Updating chart a (by Ada Lovelace)\nUpdating chart b (by Ada Lovelace)"
-        )
+        expect(requestedChanges()).toEqual([
+            ["Updating chart a", "Updating chart b"],
+        ])
         expect(request.env.CONTENT_DEPLOY).toBe("1")
-        expect(request.env.DEPLOY_REQUESTED_AT).toMatch(/^\d+$/)
+        expect(request.env.DEPLOY_REQUESTED_AT).toBe(
+            String(Math.floor(Date.now() / 1000))
+        )
     })
 
     it("requests nothing when the transaction rolls back", async () => {
@@ -98,6 +131,8 @@ describe(enqueueDeployChange, () => {
                 throw new Error("validation failed")
             })
         ).rejects.toThrow("validation failed")
+        await vi.advanceTimersByTimeAsync(DEPLOY_REQUEST_WINDOW_MS)
+        await settle()
 
         expect(fetchMock).not.toHaveBeenCalled()
     })
@@ -107,11 +142,13 @@ describe(enqueueDeployChange, () => {
             await inTransaction(async (savepoint) => {
                 enqueueDeployChange(savepoint, author, "Updating chart a")
             }, outer)
+            await settle()
             // Released savepoint, outer transaction still open
             expect(buildRequests).toEqual([])
         })
+        await settle()
 
-        expect(buildRequests).toHaveLength(1)
+        expect(requestedChanges()).toEqual([["Updating chart a"]])
     })
 
     it("doesn't fail the edit when the build request fails", async () => {
@@ -125,10 +162,69 @@ describe(enqueueDeployChange, () => {
                 return "saved"
             })
         ).resolves.toBe("saved")
+        await settle()
+
         expect(console.error).toHaveBeenCalledWith(
             expect.objectContaining({
                 message: expect.stringContaining("401"),
             })
         )
+    })
+})
+
+describe("a burst of edits", () => {
+    it("requests the first edit right away and the rest of its window together when the window ends", async () => {
+        await edit("a")
+        await settle()
+        expect(requestedChanges()).toEqual([["a"]])
+
+        await vi.advanceTimersByTimeAsync(10_000)
+        await edit("b")
+        await vi.advanceTimersByTimeAsync(20_000)
+        await edit("c")
+        await settle()
+        // Held: a build requested for "a" may already be baking
+        expect(requestedChanges()).toEqual([["a"]])
+
+        await vi.advanceTimersByTimeAsync(30_000) // 60 s after "a"
+        await settle()
+        expect(requestedChanges()).toEqual([["a"], ["b", "c"]])
+    })
+
+    it("keeps holding while edits keep coming, one request per window", async () => {
+        await edit("a") // 0 s: sent
+        await vi.advanceTimersByTimeAsync(DEPLOY_REQUEST_WINDOW_MS / 2)
+        await edit("b") // 30 s: held
+        await vi.advanceTimersByTimeAsync(DEPLOY_REQUEST_WINDOW_MS / 2)
+        // 60 s: "b" goes out and opens the next window
+        await edit("c") // held for that window
+        await vi.advanceTimersByTimeAsync(DEPLOY_REQUEST_WINDOW_MS - 1)
+        await settle()
+        expect(requestedChanges()).toEqual([["a"], ["b"]])
+
+        await vi.advanceTimersByTimeAsync(1) // 120 s
+        await settle()
+        expect(requestedChanges()).toEqual([["a"], ["b"], ["c"]])
+    })
+
+    it("requests the next edit right away once a window passes with nothing held", async () => {
+        await edit("a")
+        await vi.advanceTimersByTimeAsync(DEPLOY_REQUEST_WINDOW_MS)
+        await settle()
+        expect(requestedChanges()).toEqual([["a"]])
+
+        await edit("b")
+        await settle()
+        expect(requestedChanges()).toEqual([["a"], ["b"]])
+    })
+
+    it("sends held edits on shutdown", async () => {
+        await edit("a")
+        await edit("b")
+        await settle()
+        expect(requestedChanges()).toEqual([["a"]])
+
+        await flushHeldDeployChanges()
+        expect(requestedChanges()).toEqual([["a"], ["b"]])
     })
 })

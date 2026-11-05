@@ -8,6 +8,8 @@ import {
 import { WebAPIPlatformError, WebClient } from "@slack/web-api"
 import { DbPlainUser } from "@ourworldindata/utils"
 import { KnexReadWriteTransaction, runAfterCommit } from "../db/db.js"
+import { registerExitHandler } from "../db/cleanup.js"
+import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
 type DeployAuthor = Pick<DbPlainUser, "fullName" | "email">
 
@@ -23,12 +25,30 @@ const changesByTransaction = new WeakMap<
 >()
 
 /**
+ * At most one build request per window, plus a trailing one for what the
+ * window held. An ETL push calls the admin API once per indicator or chart, a
+ * few hundred times in minutes; this turns that into a handful of requests.
+ */
+export const DEPLOY_REQUEST_WINDOW_MS = 60_000
+
+let heldChanges: DeployChange[] = []
+let windowTimer: ReturnType<typeof setTimeout> | undefined
+
+/**
  * Deploy this edit once `trx` commits. All the changes a transaction enqueues
- * go out as one Buildkite build: the edit's caller waits for the build
- * request (with a timeout), never for the build. A rolled-back transaction
- * requests nothing. A failed request is logged to Sentry and doesn't fail
- * the edit, which then goes out with the next deploy. (Changes enqueued in a
- * savepoint wait for the outermost commit, as a request of their own.)
+ * go out in one Buildkite build request, and nobody waits for the request or
+ * the build. A rolled-back transaction requests nothing.
+ *
+ * The first committed edit after a quiet spell is requested right away. Edits
+ * committed in the next DEPLOY_REQUEST_WINDOW_MS are held and go out together
+ * when the window ends: a build requested earlier may already be baking, and
+ * may have read their pages before they committed, so it can't stand in for
+ * them. Held edits are sent on shutdown too (db/cleanup.ts), so only a hard
+ * kill loses them, and then they go out with the next deploy.
+ *
+ * A failed request is logged to Sentry and doesn't fail the edit, which then
+ * goes out with the next deploy. (Changes enqueued in a savepoint wait for the
+ * outermost commit, as a separate batch.)
  *
  * Does nothing unless BAKE_ON_CHANGE is set (it isn't in local dev).
  */
@@ -51,9 +71,50 @@ export const enqueueDeployChange = (
     // The first change registers the one request; later ones join its list
     const newChanges = [change]
     changesByTransaction.set(trx, newChanges)
-    runAfterCommit(trx, async () => {
-        await requestContentDeploy(newChanges)
-    })
+    runAfterCommit(trx, async () => queueForDeploy(newChanges))
+}
+
+const queueForDeploy = (changes: DeployChange[]): void => {
+    if (windowTimer) {
+        heldChanges.push(...changes)
+        return
+    }
+    startWindow()
+    void sendLoggingErrors(changes)
+}
+
+const startWindow = (): void => {
+    windowTimer = setTimeout(endWindow, DEPLOY_REQUEST_WINDOW_MS)
+}
+
+const endWindow = (): void => {
+    windowTimer = undefined
+    if (!heldChanges.length) return
+    const changes = heldChanges
+    heldChanges = []
+    // The trailing request opens a window of its own, so a steady stream of
+    // edits still gets one request per window
+    startWindow()
+    void sendLoggingErrors(changes)
+}
+
+/** Send the held edits now, e.g. before the process exits */
+export const flushHeldDeployChanges = async (): Promise<void> => {
+    clearTimeout(windowTimer)
+    windowTimer = undefined
+    const changes = heldChanges
+    heldChanges = []
+    if (changes.length) await sendLoggingErrors(changes)
+}
+
+registerExitHandler(flushHeldDeployChanges)
+
+const sendLoggingErrors = async (changes: DeployChange[]): Promise<void> => {
+    try {
+        await requestContentDeploy(changes)
+    } catch (error) {
+        await logErrorAndMaybeCaptureInSentry(error)
+    }
 }
 
 /** The admin's "Deploy now" button. Throws if the request fails. */
