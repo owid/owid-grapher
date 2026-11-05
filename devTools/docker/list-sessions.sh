@@ -45,4 +45,5 @@ fi
     printf '%s\n' "${rows[@]}"
 } | column -t -s $'\t'
 echo
-echo 'Attach with `tmux attach -t <session>`; stop a worktree'"'"'s with `make down.worktree` in it.'
+echo 'Attach:  tmux attach -t =<session>'
+echo 'Kill:    tmux kill-session -t =<session>   (leaves the shared MySQL up)'
