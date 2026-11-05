@@ -24,7 +24,16 @@ export function GrapherTabIcon({
             return <FontAwesomeIcon icon={faTable} />
         case GRAPHER_TAB_NAMES.WorldMap:
             return <FontAwesomeIcon icon={faEarthAmericas} />
-        default:
+        case GRAPHER_CHART_TYPES.LineChart:
+        case GRAPHER_CHART_TYPES.ScatterPlot:
+        case GRAPHER_CHART_TYPES.StackedArea:
+        case GRAPHER_CHART_TYPES.DiscreteBar:
+        case GRAPHER_CHART_TYPES.StackedDiscreteBar:
+        case GRAPHER_CHART_TYPES.SlopeChart:
+        case GRAPHER_CHART_TYPES.StackedBar:
+        case GRAPHER_CHART_TYPES.Marimekko:
+        case GRAPHER_CHART_TYPES.Dumbbell:
+        case GRAPHER_CHART_TYPES.Swimlane:
             return chartIcons[tab]
     }
 }

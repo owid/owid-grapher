@@ -2699,7 +2699,16 @@ export class GrapherState
                 return !this.hideTimeline
 
             // Use the chart-level `hideTimeline` option
-            default:
+            case GRAPHER_CHART_TYPES.LineChart:
+            case GRAPHER_CHART_TYPES.ScatterPlot:
+            case GRAPHER_CHART_TYPES.StackedArea:
+            case GRAPHER_CHART_TYPES.DiscreteBar:
+            case GRAPHER_CHART_TYPES.StackedDiscreteBar:
+            case GRAPHER_CHART_TYPES.SlopeChart:
+            case GRAPHER_CHART_TYPES.StackedBar:
+            case GRAPHER_CHART_TYPES.Marimekko:
+            case GRAPHER_CHART_TYPES.Dumbbell:
+            case GRAPHER_CHART_TYPES.Swimlane:
                 return !this.hideTimeline
         }
     }
@@ -4372,7 +4381,16 @@ export class GrapherState
                 return GRAPHER_TAB_CONFIG_OPTIONS.table
             case GRAPHER_TAB_NAMES.WorldMap:
                 return GRAPHER_TAB_CONFIG_OPTIONS.map
-            default:
+            case GRAPHER_CHART_TYPES.LineChart:
+            case GRAPHER_CHART_TYPES.ScatterPlot:
+            case GRAPHER_CHART_TYPES.StackedArea:
+            case GRAPHER_CHART_TYPES.DiscreteBar:
+            case GRAPHER_CHART_TYPES.StackedDiscreteBar:
+            case GRAPHER_CHART_TYPES.SlopeChart:
+            case GRAPHER_CHART_TYPES.StackedBar:
+            case GRAPHER_CHART_TYPES.Marimekko:
+            case GRAPHER_CHART_TYPES.Dumbbell:
+            case GRAPHER_CHART_TYPES.Swimlane:
                 return this.hasMultipleChartTypes
                     ? mapChartTypeNameToTabConfigOption(tabName)
                     : GRAPHER_TAB_CONFIG_OPTIONS.chart
