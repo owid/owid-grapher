@@ -46,6 +46,8 @@ export const PagesIndexRecordSchema = z.object({
     tags: z.optional(z.array(z.string())),
     thumbnailUrl: z.string(),
     availableEntities: z.optional(z.array(z.string())),
+    // Featured-viz pages only: the normalized searches this page is pinned for.
+    pinnedForSearches: z.optional(z.array(z.string())),
 })
 
 export type PageRecord = z.infer<typeof PagesIndexRecordSchema>
