@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import * as R from "remeda"
 import { TextWrap, shortenWithEllipsis } from "@ourworldindata/components"
 import { EntityName } from "@ourworldindata/types"
 import { FontSettings } from "../core/GrapherConstants.js"
@@ -286,6 +287,17 @@ export function enrichSeriesWithLabels<
         labelOptions,
     })
 
+    const widestLabelWidth =
+        _.max(
+            labels
+                .filter(({ needsTruncation }) => !needsTruncation)
+                .map(({ label }) => label.width)
+        ) ?? 0
+    const annotationWrapWidth = R.clamp(widestLabelWidth, {
+        min: Math.min(NARROW_ANNOTATION_WIDTH, maxLabelWidth),
+        max: maxLabelWidth,
+    })
+
     const fittedAnnotations = series.map((series, index) =>
         series.annotation
             ? fitAnnotation({
@@ -294,7 +306,7 @@ export function enrichSeriesWithLabels<
                       ? fontSettings.fontSize * fontSettings.lineHeight
                       : labels[index].label.height,
                   availableHeight: availableHeightPerSeries,
-                  maxWidth: maxLabelWidth,
+                  wrapWidth: annotationWrapWidth,
                   fontSettings: annotationFontSettings,
               })
             : undefined
@@ -408,13 +420,13 @@ function fitAnnotation({
     text,
     labelHeight,
     availableHeight,
-    maxWidth,
+    wrapWidth,
     fontSettings,
 }: {
     text: string
     labelHeight: number
     availableHeight: number
-    maxWidth: number
+    wrapWidth: number
     fontSettings: FontSettings
 }): TextWrap | undefined {
     // 4px extra padding to avoid crowding
@@ -423,13 +435,10 @@ function fitAnnotation({
 
     const textWrap = new TextWrap({
         text,
-        maxWidth: Math.min(maxWidth, NARROW_ANNOTATION_WIDTH),
+        maxWidth: wrapWidth,
         ...fontSettings,
     })
-    if (textWrap.height <= heightLeft) return textWrap
-
-    const wideTextWrap = new TextWrap({ text, maxWidth, ...fontSettings })
-    return wideTextWrap.height <= heightLeft ? wideTextWrap : undefined
+    return textWrap.height <= heightLeft ? textWrap : undefined
 }
 
 /** The width of the widest narrow label or annotation that fits its row */

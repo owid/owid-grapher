@@ -8,6 +8,9 @@ const TOO_LONG_TO_FIT =
     "countries and territories in the world and keeps going on and on so " +
     "that it has to be truncated by the label layout"
 
+const TALL_AT_NARROW_WIDTH =
+    "Estimate based on partial survey data collected in selected regions"
+
 function getLineTexts(label: { spanLines: { text: string }[][] }): string[] {
     return label.spanLines.map((line) => line.map((span) => span.text).join(""))
 }
@@ -151,6 +154,64 @@ describe(enrichSeriesWithLabels, () => {
                 undefined,
                 undefined,
             ])
+        })
+
+        it("wraps annotations at the narrow width under short labels", () => {
+            const [annotated] = enrichSeriesWithLabels({
+                ...roomyRows,
+                series: [
+                    { entityName: "France", annotation: "Survey data" },
+                    { entityName: "Chad" },
+                ],
+            })
+            const [narrowed] = enrichSeriesWithLabels({
+                ...roomyRows,
+                maxLabelWidth: 100,
+                series: [{ entityName: "France", annotation: "Survey data" }],
+            })
+
+            expect(annotated.annotationTextWrap?.maxWidth).toBe(150)
+            expect(narrowed.annotationTextWrap?.maxWidth).toBe(100)
+        })
+
+        it("drops an annotation too tall at the narrow width instead of widening it", () => {
+            const series = [
+                { entityName: "France", annotation: TALL_AT_NARROW_WIDTH },
+                { entityName: "Chad" },
+            ]
+
+            const annotated = enrichSeriesWithLabels({ ...roomyRows, series })
+            const [roomier] = enrichSeriesWithLabels({
+                ...roomyRows,
+                availableHeightPerSeries: 60,
+                series,
+            })
+
+            expect(annotated.map((row) => row.annotationTextWrap)).toEqual([
+                undefined,
+                undefined,
+            ])
+            expect(roomier.annotationTextWrap?.maxWidth).toBe(150)
+        })
+
+        it("wraps annotations at the width of a label wider than the narrow width", () => {
+            const [wideLabelRow] = enrichSeriesWithLabels({
+                ...roomyRows,
+                minLabelWidth: 200,
+                maxLabelWidth: 300,
+                series: [
+                    {
+                        entityName: "Democratic Republic of the Congo",
+                        annotation: TALL_AT_NARROW_WIDTH,
+                    },
+                    { entityName: "Chad" },
+                ],
+            })
+
+            expect(wideLabelRow.label.width).toBeGreaterThan(150)
+            expect(wideLabelRow.annotationTextWrap?.maxWidth).toBe(
+                wideLabelRow.label.width
+            )
         })
     })
 
