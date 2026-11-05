@@ -12,10 +12,7 @@ import { spawnSync } from "node:child_process"
 import * as fs from "node:fs"
 import * as os from "node:os"
 import * as path from "node:path"
-import { Readable } from "node:stream"
 import { init as initEsModuleLexer, parse } from "es-module-lexer/minimal"
-import { publint } from "publint"
-import { formatMessage } from "publint/utils"
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 
 const repoRoot = path.resolve(import.meta.dirname, "../..")
@@ -65,33 +62,6 @@ export async function readImportSpecifiers(
     ))
         specifiers.add(types)
     return specifiers
-}
-
-// Runs publint (https://publint.dev) over the packed tarball: it checks the
-// packaging metadata — `exports`/`files` consistency, entry points that don't
-// exist, module format vs. how Node interprets each file, and the like. The
-// module-format authority remains the attw pass in `yarn testPackage:attw`.
-//
-// The tarball (packed by `yarn testPackage:pack`, which applies
-// publishConfig) is linted rather than the package dir, which would check the
-// dev manifest with its src/ entry points instead.
-export function testPublint(tarballPath: string): void {
-    it("passes publint", async () => {
-        const tarball = Readable.toWeb(fs.createReadStream(tarballPath))
-        const { messages, pkg } = await publint({ pack: { tarball } })
-
-        // USE_ENGINES_NODE asks for an `engines.node` floor, which doesn't
-        // apply to packages meant for the browser.
-        const unexpected = messages.filter(
-            (message) => message.code !== "USE_ENGINES_NODE"
-        )
-        expect(
-            unexpected.map(
-                (message) =>
-                    `[${message.type}] ${formatMessage(message, pkg, { color: false })}`
-            )
-        ).toEqual([])
-    })
 }
 
 function writeTsconfig(

@@ -139,7 +139,7 @@ The editor's sources live in [`adminSiteClient/`](../../../adminSiteClient/) at 
 
 ### Testing the build outputs
 
-`yarn testPackage` packs the package (`yarn pack`, which applies `publishConfig`) and runs the tests in `packageTest/` against it: both builds import and export the public API, the admin stays out of the bundle, the standalone bundle mounts the editor over a CSV, the packed types check for a TypeScript consumer, and publint and attw pass. They aren't part of the repo-wide `yarn test`; CI runs them in the `npm packages` workflow. `yarn startDemoServer` serves `demo.html` on http://localhost:8434 against `dist/`, as a CDN consumer would load it.
+`yarn testPackage` packs the package (`yarn pack`, which applies `publishConfig`) and runs the tests in `packageTest/` against it: both builds import and export the public API, the admin stays out of the bundle, the standalone bundle mounts the editor over a CSV, and the packed types check for a TypeScript consumer; then the publint (`yarn testPackage:publint`, `--strict`) and attw (`yarn testPackage:attw`) CLIs check the tarball. They aren't part of the repo-wide `yarn test`; CI runs them in the `npm packages` workflow. `yarn startDemoServer` serves `demo.html` on http://localhost:8434 against `dist/`, as a CDN consumer would load it.
 
 ### Publishing a release
 
