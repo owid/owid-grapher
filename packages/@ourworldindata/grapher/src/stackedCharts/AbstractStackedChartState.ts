@@ -18,6 +18,7 @@ import {
 } from "./StackedConstants.js"
 import {
     OwidTable,
+    OwidColumn,
     CoreColumn,
     isNotErrorValueOrEmptyCell,
 } from "@ourworldindata/core-table"
@@ -34,6 +35,7 @@ import {
     CategoricalColorAssigner,
     CategoricalColorMap,
 } from "../color/CategoricalColorAssigner.js"
+import { selectEntityAnnotation } from "../annotations/EntityAnnotations.js"
 import { FocusArray } from "../focus/FocusArray.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
@@ -126,8 +128,8 @@ export abstract class AbstractStackedChartState implements ChartState {
         return this.manager.missingDataStrategy || MissingDataStrategy.auto
     }
 
-    @computed get yColumns(): CoreColumn[] {
-        return this.transformedTable.getColumns(this.yColumnSlugs)
+    @computed get yColumns(): OwidColumn[] {
+        return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
     }
 
     @computed get yColumnSlugs(): string[] {
@@ -145,6 +147,8 @@ export abstract class AbstractStackedChartState implements ChartState {
 
     @computed
     get columnsAsSeries(): readonly StackedRawSeries<number>[] {
+        const [entityName] = this.selectionArray.selectedEntityNames
+
         return this.yColumns
             .map((column) => {
                 return {
@@ -152,6 +156,10 @@ export abstract class AbstractStackedChartState implements ChartState {
                     seriesName: column.displayName,
                     rows: column.owidRows,
                     focus: this.focusArray.state(column.displayName),
+                    entityAnnotation: selectEntityAnnotation(
+                        column,
+                        entityName
+                    ),
                 }
             })
             .toReversed() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
@@ -170,6 +178,10 @@ export abstract class AbstractStackedChartState implements ChartState {
                     shortEntityName: getShortNameForEntity(entityName),
                     rows: owidRowsByEntityName.get(entityName) || [],
                     focus: this.focusArray.state(entityName),
+                    entityAnnotation: selectEntityAnnotation(
+                        this.yColumns[0],
+                        entityName
+                    ),
                 }
             })
             .toReversed() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
@@ -294,6 +306,7 @@ export abstract class AbstractStackedChartState implements ChartState {
                     color: this.categoricalColorAssigner.assign(seriesName),
                     focus: series.focus,
                     shortEntityName: series.shortEntityName,
+                    entityAnnotation: series.entityAnnotation,
                 }
             })
     }
