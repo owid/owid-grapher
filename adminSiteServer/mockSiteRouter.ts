@@ -19,6 +19,7 @@ import {
     renderGdocTombstone,
     renderExplorerIndexPage,
     renderSubscribePage,
+    renderDatasetPage,
     renderGdoc,
     renderSlideshowPage,
 } from "../baker/siteRenderers.js"
@@ -359,6 +360,13 @@ mockSiteRouter.get("/thank-you", async (req, res) =>
 mockSiteRouter.get("/subscribe", async (req, res) =>
     res.send(await renderSubscribePage())
 )
+
+// Prototype of a page for a whole dataset, rendered from mock data
+mockSiteRouter.get("/datasets/:slug", async (req, res) => {
+    const page = renderDatasetPage(req.params.slug)
+    if (!page) throw new JsonError("No such dataset", 404)
+    res.send(page)
+})
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
