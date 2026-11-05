@@ -88,11 +88,11 @@ function convertMarkdownNodeToIRTokens(
     switch (node.type) {
         // Nodes that just contain other nodes
         case "blockquote":
+        case "delete":
+        case "footnoteDefinition":
         case "heading":
         case "listItem":
         case "paragraph":
-        case "delete":
-        case "footnoteDefinition":
         case "table":
         case "tableCell":
         case "tableRow":
@@ -169,9 +169,9 @@ function convertMarkdownNodeToIRTokens(
             return [new IRText("---", fontParams)]
 
         case "definition":
+        case "footnoteReference":
         case "imageReference":
         case "linkReference":
-        case "footnoteReference":
             return [new IRText(`${node.identifier}: ${node.label}`, fontParams)]
     }
 }
