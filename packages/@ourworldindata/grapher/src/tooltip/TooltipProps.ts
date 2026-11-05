@@ -77,6 +77,7 @@ export interface TooltipValueRangeProps {
     originalTimes?: (string | undefined)[] // actual year data was drawn from (when ≠ target year)
     showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
     labelVariant?: "label+unit" | "unit-only"
+    detail?: string // secondary line under the value
 }
 
 export interface TooltipTableProps {

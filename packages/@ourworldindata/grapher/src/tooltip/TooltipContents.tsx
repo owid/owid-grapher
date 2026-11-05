@@ -69,6 +69,7 @@ export function TooltipValueRange({
     trend,
     labelVariant = "label+unit",
     showSignificanceSuperscript,
+    detail,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const [firstTerm, lastTerm] = values
 
@@ -88,6 +89,7 @@ export function TooltipValueRange({
             unit={unit}
             originalTimes={originalTimes}
             labelVariant={labelVariant}
+            detail={detail}
         >
             <span className="range">
                 <span className="term">
