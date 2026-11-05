@@ -94,6 +94,11 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             time: 1990,
             timeEnd: 2005,
         },
+        // Entity annotation on an income group, for the discrete bar's region tooltip
+        {
+            text: "Income groups follow the World Bank's 2024 classification, which sorts countries by their gross national income per person.",
+            entities: ["High-income countries"],
+        },
     ],
     // food-supply-vs-life-expectancy (a scatter plot), life-expectancy-un,
     // and the historical half of life-expectancy-at-birth-including-the-un-projections

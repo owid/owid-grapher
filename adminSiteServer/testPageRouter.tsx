@@ -1245,6 +1245,65 @@ const SLOPE_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
 ]
 
+const DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Entity strategy: China short, India long, the US and UK none. Both fit inline",
+        path: "grapher/co-emissions-per-capita?tab=discrete-bar&country=CHN~IND~USA~GBR",
+    },
+    {
+        label: "Entity strategy, crowded: the annotations don't fit, so China and India get an underlined label. Hover them",
+        path: "grapher/co-emissions-per-capita?tab=discrete-bar&country=CHN~IND~USA~GBR~DEU~FRA~ITA~ESP~POL~RUS~JPN~KOR~IDN~BRA~MEX~ARG~CAN~AUS~ZAF~NGA~EGY~TUR",
+    },
+    {
+        label: "Legacy annotations (maternal mortality): the United States",
+        path: "grapher/maternal-mortality?tab=discrete-bar",
+    },
+    {
+        label: "Legacy annotations (maternal mortality), crowded: the United States gets an underlined label",
+        path: "grapher/maternal-mortality?tab=discrete-bar&country=USA~SWE~AUS~JPN~TUR~GBR~FRA~DEU~ITA~ESP~NLD~NOR~FIN~DNK~CAN~MEX~BRA~ARG~CHL~IND~CHN~ZAF",
+    },
+    {
+        label: "Region names, five rows: High-income countries' long annotation fits inline",
+        path: "grapher/life-expectancy?time=2023&country=OWID_WRL~High-income+countries~Low-income+countries~Europe~Africa",
+    },
+    {
+        label: "Region names, ten rows: High-income countries' annotation no longer fits, so it moves into the label's tooltip",
+        path: "grapher/life-expectancy?time=2023&country=OWID_WRL~High-income+countries~Upper-middle-income+countries~Lower-middle-income+countries~Low-income+countries~Europe~Africa~Asia~Americas~Oceania",
+    },
+    {
+        label: "Region names, crowded: hover High-income countries. The region list and the annotation share one tooltip",
+        path: "grapher/life-expectancy?time=2023&country=OWID_WRL~High-income+countries~Upper-middle-income+countries~Lower-middle-income+countries~Low-income+countries~Europe~Africa~Asia~Americas~Oceania~USA~GBR~FRA~DEU~JPN~CHN~IND~BRA~NGA~ZAF~AUS~CAN",
+    },
+    {
+        label: "Combined historical and projection bars, a historical year (2000): Japan and India show their historical annotation, World its shared one, Brazil and Sweden none",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?time=2000",
+    },
+    {
+        label: "Combined bars, a projected year (2050): Brazil and India show their projection annotation, World its shared one, Japan and Sweden none",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?time=2050",
+    },
+    {
+        label: "Column strategy, real legacy annotation, the United States: only the maternal disorders bar is annotated, among many causes. Its label should get the underline",
+        path: "grapher/annual-number-of-deaths-by-cause?country=~USA",
+    },
+    {
+        label: "Column strategy, real legacy annotations, the United Kingdom: every indicator carries the same text, and each bar shows it",
+        path: "grapher/trust-state-institutions-wvs?country=~GBR",
+    },
+    {
+        label: "Column strategy, real legacy annotations, Non-DAC countries: every sector indicator is annotated",
+        path: "grapher/foreign-aid-given-by-sector-per-capita?country=~Non-DAC+countries",
+    },
+    {
+        label: "Column strategy, Afghanistan in 2000: deaths and births each show their own annotation",
+        path: "grapher/births-and-deaths-projected-to-2100?time=2000",
+    },
+    {
+        label: "Column strategy, Afghanistan in 2050: projected deaths shows its annotation, projected births none",
+        path: "grapher/births-and-deaths-projected-to-2100?time=2050",
+    },
+]
+
 const ANNOTATION_TEST_SUITES: {
     slug: string
     title: string
@@ -1269,6 +1328,11 @@ const ANNOTATION_TEST_SUITES: {
         slug: "slope-entity",
         title: "Entity annotations: slope charts",
         charts: SLOPE_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "discrete-bar-entity",
+        title: "Entity annotations: discrete bar charts",
+        charts: DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS,
     },
     {
         slug: "real",
