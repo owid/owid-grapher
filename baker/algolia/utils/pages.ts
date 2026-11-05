@@ -304,6 +304,11 @@ async function generateGdocRecords(
             topicHierarchiesByChildName
         )
 
+        const pinnedForSearches =
+            gdoc.content.type === OwidGdocType.FeaturedViz
+                ? (gdoc.content["pinned-for-searches"] ?? [])
+                : undefined
+
         for (const chunk of chunks) {
             const record = {
                 objectID: `${gdoc.id}-c${i}`,
@@ -324,6 +329,7 @@ async function generateGdocRecords(
                 authors: gdoc.content.authors,
                 thumbnailUrl,
                 availableEntities: [],
+                ...(pinnedForSearches && { pinnedForSearches }),
             }
             const score = computePageScore(record)
             records.push({ ...record, score })
