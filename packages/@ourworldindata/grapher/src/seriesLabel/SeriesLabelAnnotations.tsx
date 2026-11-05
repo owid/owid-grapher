@@ -74,12 +74,14 @@ function AnnotationGlyph({
 }: {
     timeScope: SeriesLabelAnnotation["timeScope"]
     color: string
-}): React.ReactElement {
+}): React.ReactElement | null {
     switch (timeScope) {
         case "point":
             return <PointGlyph color={color} />
         case "range":
             return <RangeGlyph color={color} />
+        case "all":
+            return null
     }
 }
 

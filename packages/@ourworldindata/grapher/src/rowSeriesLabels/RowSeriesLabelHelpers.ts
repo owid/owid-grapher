@@ -27,6 +27,7 @@ type LabelOptions = Pick<
 /** A row's label, and whether it overflows its row */
 interface FittedLabel {
     label: SeriesLabelState
+    textWrap: TextWrap
     needsTruncation: boolean
 }
 
@@ -253,6 +254,7 @@ export function enrichSeriesWithLabels<
         lineHeight: 1,
     },
     showRegionTooltip = false,
+    showDroppedAnnotationsInTooltip = false,
 }: {
     series: readonly TSeries[]
     availableHeightPerSeries: number
@@ -263,6 +265,7 @@ export function enrichSeriesWithLabels<
     fontSettings: FontSettings
     annotationFontSettings?: FontSettings
     showRegionTooltip?: boolean
+    showDroppedAnnotationsInTooltip?: boolean
 }): (TSeries & { label: SeriesLabelState; annotationTextWrap?: TextWrap })[] {
     const labelOptions = { showRegionTooltip, textAnchor: "end" } as const
 
@@ -307,15 +310,25 @@ export function enrichSeriesWithLabels<
     const truncationWidth = computeTruncationWidth(narrowWraps, annotations)
 
     return series.map((series, index) => {
-        const { label, needsTruncation } = labels[index]
+        const { label, textWrap, needsTruncation } = labels[index]
+        const fittedTextWrap = needsTruncation
+            ? truncateText(label.text, truncationWidth, fontSettings)
+            : textWrap
+        const tooltipAnnotations =
+            showDroppedAnnotationsInTooltip &&
+            isAnyAnnotationDropped &&
+            series.annotation
+                ? [{ text: series.annotation, timeScope: "all" as const }]
+                : undefined
         return {
             ...series,
-            label: needsTruncation
-                ? SeriesLabelState.fromTextWrap(
-                      truncateText(label.text, truncationWidth, fontSettings),
-                      labelOptions
-                  )
-                : label,
+            label:
+                needsTruncation || tooltipAnnotations
+                    ? SeriesLabelState.fromTextWrap(fittedTextWrap, {
+                          ...labelOptions,
+                          annotations: tooltipAnnotations,
+                      })
+                    : label,
             annotationTextWrap: annotations[index],
         }
     })
@@ -346,8 +359,8 @@ function widenLabels({
 
     return narrowWraps.map(({ textWrap, needsTruncation = false }, index) => {
         const narrowLabel = narrowLabels[index]
-        const label = needsTruncation
-            ? narrowLabel
+        const widened = needsTruncation
+            ? { label: narrowLabel, textWrap }
             : widenLabel({
                   narrowLabel,
                   narrowWrap: textWrap,
@@ -355,7 +368,7 @@ function widenLabels({
                   maxLabelWidth,
                   labelOptions,
               })
-        return { label, needsTruncation }
+        return { ...widened, needsTruncation }
     })
 }
 
@@ -372,11 +385,12 @@ function widenLabel({
     budget: number
     maxLabelWidth: number
     labelOptions: LabelOptions
-}): SeriesLabelState {
-    if (narrowLabel.spanLines.length === 1) return narrowLabel
+}): Pick<FittedLabel, "label" | "textWrap"> {
+    const narrow = { label: narrowLabel, textWrap: narrowWrap }
+    if (narrowLabel.spanLines.length === 1) return narrow
 
     const maxWidth = Math.min(budget, maxLabelWidth)
-    if (maxWidth <= narrowWrap.maxWidth) return narrowLabel
+    if (maxWidth <= narrowWrap.maxWidth) return narrow
 
     const textWrap = new TextWrap({
         text: narrowWrap.text,
@@ -387,7 +401,7 @@ function widenLabel({
 
     const hasFewerLines = label.spanLines.length < narrowLabel.spanLines.length
     const fitsBudget = label.width <= budget
-    return hasFewerLines && fitsBudget ? label : narrowLabel
+    return hasFewerLines && fitsBudget ? { label, textWrap } : narrow
 }
 
 function fitAnnotation({

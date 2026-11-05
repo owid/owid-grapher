@@ -153,4 +153,73 @@ describe(enrichSeriesWithLabels, () => {
             ])
         })
     })
+
+    describe("dropped annotations in the tooltip", () => {
+        const rowsWithDroppedAnnotations = {
+            ...twoLineRows,
+            series: [
+                { entityName: "France", annotation: "Estimate" },
+                { entityName: "Chad" },
+                {
+                    entityName: "Lower-middle-income countries",
+                    annotation: "Survey data",
+                },
+            ],
+        }
+
+        const getTooltipAnnotations = (
+            label: ReturnType<typeof enrichSeriesWithLabels>[number]["label"]
+        ): unknown[] =>
+            label.tooltipTargets.flatMap(
+                (target) => target.content.annotations ?? []
+            )
+
+        it("moves a dropped annotation into its row's label tooltip", () => {
+            const annotated = enrichSeriesWithLabels({
+                ...rowsWithDroppedAnnotations,
+                showDroppedAnnotationsInTooltip: true,
+            })
+
+            expect(annotated.map((row) => row.annotationTextWrap)).toEqual([
+                undefined,
+                undefined,
+                undefined,
+            ])
+            expect(
+                annotated.map((row) => getTooltipAnnotations(row.label))
+            ).toEqual([
+                [{ text: "Estimate", timeScope: "all" }],
+                [],
+                [{ text: "Survey data", timeScope: "all" }],
+            ])
+        })
+
+        it("leaves labels without annotations when the option is off", () => {
+            const annotated = enrichSeriesWithLabels(rowsWithDroppedAnnotations)
+
+            expect(
+                annotated.map((row) => getTooltipAnnotations(row.label))
+            ).toEqual([[], [], []])
+        })
+
+        it("leaves labels without annotations when every annotation fits", () => {
+            const annotated = enrichSeriesWithLabels({
+                ...twoLineRows,
+                availableHeightPerSeries: 40,
+                series: [
+                    { entityName: "France", annotation: "Estimate" },
+                    { entityName: "Chad" },
+                    { entityName: "Mali", annotation: "Survey data" },
+                ],
+                showDroppedAnnotationsInTooltip: true,
+            })
+
+            expect(
+                annotated.map((row) => row.annotationTextWrap?.text)
+            ).toEqual(["Estimate", undefined, "Survey data"])
+            expect(
+                annotated.map((row) => getTooltipAnnotations(row.label))
+            ).toEqual([[], [], []])
+        })
+    })
 })
