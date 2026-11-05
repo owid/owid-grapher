@@ -24,7 +24,10 @@ import {
     FontSettings,
 } from "../core/GrapherConstants"
 import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
-import { enrichSeriesWithLabels } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
+import {
+    computeCenteredLabelYPositions,
+    enrichSeriesWithLabels,
+} from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
@@ -323,7 +326,14 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get labelWidth(): number {
-        return _.max(this.sizedRows.map((d) => d.label.width)) ?? 0
+        return (
+            _.max(
+                this.sizedRows.flatMap((d) => [
+                    d.label.width,
+                    d.annotationTextWrap?.width ?? 0,
+                ])
+            ) ?? 0
+        )
     }
 
     @computed private get showTotalValueLabel(): boolean {
@@ -416,18 +426,31 @@ export class StackedDiscreteBarChart
 
         const topYOffset = innerBounds.top + barHeight / 2 + barSpacing / 2
 
-        return this.sizedRows.map((d, i) => ({
-            ...d,
-            yPosition: topYOffset + (barHeight + barSpacing) * i,
-            placedBars: d.bars.map((bar) => {
-                let barX = yAxis.place(x0 + bar.point.valueOffset)
-                const barWidth = Math.abs(
-                    yAxis.place(bar.point.value) - yAxis.place(x0)
-                )
-                if (bar.point.value < 0) barX -= barWidth
-                return { ...bar, x: barX, barWidth }
-            }),
-        }))
+        return this.sizedRows.map((d, i) => {
+            const yPosition = topYOffset + (barHeight + barSpacing) * i
+            const { labelY, annotationY } = computeCenteredLabelYPositions({
+                y: yPosition,
+                label: d.label,
+                annotation: d.annotationTextWrap,
+            })
+            return {
+                ...d,
+                yPosition,
+                labelYOffset: labelY - yPosition,
+                annotationYOffset:
+                    annotationY !== undefined
+                        ? annotationY - yPosition
+                        : undefined,
+                placedBars: d.bars.map((bar) => {
+                    let barX = yAxis.place(x0 + bar.point.valueOffset)
+                    const barWidth = Math.abs(
+                        yAxis.place(bar.point.value) - yAxis.place(x0)
+                    )
+                    if (bar.point.value < 0) barX -= barWidth
+                    return { ...bar, x: barX, barWidth }
+                }),
+            }
+        })
     }
 
     @computed private get renderRows(): RenderDiscreteBarRow[] {

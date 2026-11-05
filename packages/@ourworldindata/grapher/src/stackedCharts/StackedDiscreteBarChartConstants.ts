@@ -1,4 +1,5 @@
 import { Color, EntityName, SortBy } from "@ourworldindata/types"
+import { TextWrap } from "@ourworldindata/components"
 import { StackedPoint } from "./StackedConstants.js"
 import { Emphasis } from "../interaction/Emphasis.js"
 import { InteractionState } from "../interaction/InteractionState.js"
@@ -27,10 +28,13 @@ export interface DiscreteBarRow {
 
 export interface SizedDiscreteBarRow extends DiscreteBarRow {
     label: SeriesLabelState
+    annotationTextWrap?: TextWrap
 }
 
 export interface PlacedDiscreteBarRow extends SizedDiscreteBarRow {
     yPosition: number
+    labelYOffset: number
+    annotationYOffset?: number
     placedBars: PlacedBarSegment[]
 }
 
