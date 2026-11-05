@@ -208,12 +208,18 @@ function runSiteNavigation({
     }
 }
 
-function runSiteTools() {
+function runSiteTools({
+    hideNewsletterSubscription,
+}: { hideNewsletterSubscription?: boolean } = {}) {
     if (isInIFrame()) return
     const siteToolsElem = document.querySelector(`.${SITE_TOOLS_ROOT_CLASS}`)
     if (siteToolsElem) {
         const root = createRoot(siteToolsElem)
-        root.render(<SiteTools />)
+        root.render(
+            <SiteTools
+                hideNewsletterSubscription={hideNewsletterSubscription}
+            />
+        )
     }
 }
 
@@ -387,7 +393,12 @@ export const runSiteFooterScripts = async (
             // - embedding charts through MultiEmbedderSingleton.embedAll()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             MultiEmbedderSingleton.embedAll(isPreviewing)
-            runSiteTools()
+            // The subscribe and preferences pages are themselves the signup, so
+            // the floating subscribe button would only duplicate them.
+            runSiteTools({
+                hideNewsletterSubscription:
+                    context === SiteFooterContext.subscribePage,
+            })
             runCookiePreferencesManager()
             void runDetailsOnDemand()
             break
