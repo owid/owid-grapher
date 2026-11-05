@@ -5,6 +5,7 @@ import { ColorScaleBin } from "../color/ColorScaleBin"
 export interface SizedLegendSeries {
     bin: ColorScaleBin
     textWrap: TextWrap
+    annotationTextWrap?: TextWrap
     width: number
     height: number
 }

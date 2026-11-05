@@ -3,8 +3,13 @@ import { computed } from "mobx"
 import { TextWrap } from "@ourworldindata/components"
 import { Bounds } from "@ourworldindata/utils"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { scaleFontSize } from "../chart/ChartUtils"
-import { ColorScaleBin, isNumericBin } from "../color/ColorScaleBin"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
+import { INLINE_ANNOTATION_PADDING } from "../verticalLabels/VerticalLabelsConstants"
+import {
+    ColorScaleBin,
+    isCategoricalBin,
+    isNumericBin,
+} from "../color/ColorScaleBin"
 import {
     PlacedLegendSeries,
     SizedLegendSeries,
@@ -57,6 +62,17 @@ export class VerticalColorLegendState {
         return this.title.height + 5
     }
 
+    private makeAnnotationTextWrap(bin: ColorScaleBin): TextWrap | undefined {
+        const text = isCategoricalBin(bin) ? bin.annotation : undefined
+        if (!text) return undefined
+        return new TextWrap({
+            text,
+            maxWidth: Math.min(this.maxWidth, 150),
+            fontSize: roundFontSize(this.fontSize * 0.9),
+            lineHeight: 1,
+        })
+    }
+
     @computed private get sizedSeries(): SizedLegendSeries[] {
         const { fontSize, rectSize, rectPadding } = this
 
@@ -75,11 +91,23 @@ export class VerticalColorLegendState {
                 separators: [" ", "-"],
             })
 
+            const annotationTextWrap = this.makeAnnotationTextWrap(bin)
+
+            const labelHeight = annotationTextWrap
+                ? textWrap.height +
+                  INLINE_ANNOTATION_PADDING +
+                  annotationTextWrap.height
+                : textWrap.height
+
             return {
                 bin,
                 textWrap,
-                width: rectSize + rectPadding + textWrap.width,
-                height: Math.max(textWrap.height, rectSize),
+                annotationTextWrap,
+                width:
+                    rectSize +
+                    rectPadding +
+                    Math.max(textWrap.width, annotationTextWrap?.width ?? 0),
+                height: Math.max(labelHeight, rectSize),
             }
         })
     }
