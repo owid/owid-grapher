@@ -17,6 +17,7 @@ import { createZip, UncompressedFile } from "littlezipper"
 import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
 import { Env } from "./env.js"
 import {
+    getDataApiHeaders,
     getDataApiUrl,
     GrapherIdentifier,
     initGrapher,
@@ -52,6 +53,7 @@ export async function fetchMetadataForGrapher(
         dimensions: grapher.grapherState.dimensionConfigs,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl: getDataApiUrl(env),
+        dataApiHeaders: getDataApiHeaders(env),
     })
     if (inputTable) grapher.grapherState.inputTable = inputTable
 
@@ -81,6 +83,7 @@ export async function fetchZipForGrapher(
         dimensions: grapher.grapherState.dimensionConfigs,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl: getDataApiUrl(env),
+        dataApiHeaders: getDataApiHeaders(env),
     })
     if (inputTable) grapher.grapherState.inputTable = inputTable
     ensureDownloadOfDataAllowed(grapher.grapherState)
@@ -147,6 +150,7 @@ export async function fetchCsvForGrapher(
         dimensions: grapher.grapherState.dimensionConfigs,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl: getDataApiUrl(env),
+        dataApiHeaders: getDataApiHeaders(env),
     })
     if (inputTable) grapher.grapherState.inputTable = inputTable
     console.log("checking if download is allowed")
@@ -193,6 +197,7 @@ export async function fetchReadmeForGrapher(
         dimensions: grapher.grapherState.dimensionConfigs,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl: getDataApiUrl(env),
+        dataApiHeaders: getDataApiHeaders(env),
     })
     if (inputTable) grapher.grapherState.inputTable = inputTable
 
@@ -252,6 +257,7 @@ export async function fetchDataValuesForGrapher(
         dimensions: grapher.grapherState.dimensionConfigs,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl: getDataApiUrl(env),
+        dataApiHeaders: getDataApiHeaders(env),
     })
     if (inputTable) grapher.grapherState.inputTable = inputTable
 
@@ -343,6 +349,7 @@ export async function fetchSearchResultDataForGrapher(
         dimensions: grapher.grapherState.dimensionConfigs,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl,
+        dataApiHeaders: getDataApiHeaders(env),
     })
     if (inputTable) grapher.grapherState.inputTable = inputTable
 

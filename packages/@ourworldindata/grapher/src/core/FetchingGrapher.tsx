@@ -127,6 +127,7 @@ export function FetchingGrapher(
                     downloadedConfig?.selectedEntityColors ??
                     props.config?.selectedEntityColors,
                 dataApiUrl: props.dataApiUrl,
+                dataApiHeaders: {},
                 archiveContext: props.archiveContext,
                 noCache: props.noCache,
             })

@@ -6,7 +6,11 @@ import {
     GRAPHER_IMAGE_WIDTH_2X,
 } from "@ourworldindata/grapher"
 import { runInAction } from "mobx"
-import { DATA_API_URL } from "../settings/serverSettings.js"
+import { getDataApiInternalHeaders } from "@ourworldindata/utils"
+import {
+    DATA_API_INTERNAL_KEY,
+    DATA_API_URL,
+} from "../settings/serverSettings.js"
 import ReactDOMServer from "react-dom/server"
 import sharp from "sharp"
 
@@ -28,6 +32,7 @@ export async function grapherToSVG(
         dimensions: jsonConfig.dimensions ?? [],
         selectedEntityColors: jsonConfig.selectedEntityColors,
         dataApiUrl: DATA_API_URL,
+        dataApiHeaders: getDataApiInternalHeaders(DATA_API_INTERNAL_KEY),
         noCache: false,
     })
     if (inputTable) grapher.grapherState.inputTable = inputTable

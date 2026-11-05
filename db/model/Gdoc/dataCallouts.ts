@@ -26,6 +26,7 @@ import {
     makeCalloutGrapherStateKey,
     checkShouldDataCalloutRender,
     getEntitiesForProfile,
+    getDataApiInternalHeaders,
 } from "@ourworldindata/utils"
 import {
     ExplorerProgram,
@@ -34,7 +35,10 @@ import {
     ExplorerGrapherInterface,
 } from "@ourworldindata/explorer"
 import { match } from "ts-pattern"
-import { DATA_API_URL } from "../../../settings/serverSettings.js"
+import {
+    DATA_API_INTERNAL_KEY,
+    DATA_API_URL,
+} from "../../../settings/serverSettings.js"
 import * as db from "../../db.js"
 import { mapSlugsToIds, getChartConfigById } from "../Chart.js"
 import { getIndicatorChartConfig } from "../Variable.js"
@@ -123,6 +127,7 @@ export async function prepareCalloutTableForUrl(
     const inputTable = await fetchInputTableForConfig({
         dimensions: config.dimensions,
         dataApiUrl: DATA_API_URL,
+        dataApiHeaders: getDataApiInternalHeaders(DATA_API_INTERNAL_KEY),
     })
 
     if (!inputTable) return undefined
@@ -235,6 +240,7 @@ async function prepareCalloutTableForExplorer(
         const inputTable = await fetchInputTableForConfig({
             dimensions: finalConfig.dimensions,
             dataApiUrl: DATA_API_URL,
+            dataApiHeaders: getDataApiInternalHeaders(DATA_API_INTERNAL_KEY),
         })
 
         if (!inputTable) return undefined

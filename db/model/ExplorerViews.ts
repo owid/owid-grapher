@@ -20,7 +20,10 @@ import {
     updateChartConfig,
 } from "./ChartConfigs.js"
 import * as _ from "lodash-es"
-import { dimensionsToViewId } from "@ourworldindata/utils"
+import {
+    dimensionsToViewId,
+    getDataApiInternalHeaders,
+} from "@ourworldindata/utils"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import {
     ADMIN_BASE_URL,
@@ -29,6 +32,7 @@ import {
     CATALOG_URL,
     DATA_API_URL,
 } from "../../settings/clientSettings.mjs"
+import { DATA_API_INTERNAL_KEY } from "../../settings/serverSettings.js"
 
 interface ExplorerDataForViews {
     transformedProgram: ExplorerProgram
@@ -151,6 +155,7 @@ function createExplorerForViews(
         bakedBaseUrl: BAKED_BASE_URL,
         bakedGrapherUrl: BAKED_GRAPHER_URL,
         dataApiUrl: DATA_API_URL,
+        dataApiHeaders: getDataApiInternalHeaders(DATA_API_INTERNAL_KEY),
         catalogUrl: CATALOG_URL,
         loadMetadataOnly,
         throwOnMissingGrapher: true,

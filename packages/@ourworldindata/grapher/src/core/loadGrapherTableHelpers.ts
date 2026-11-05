@@ -18,11 +18,23 @@ export type FetchInputTableForConfigFn = (args: {
     dimensions?: OwidChartDimensionInterface[]
     selectedEntityColors?: SelectedEntityColors
     dataApiUrl: string
+    /**
+     * Extra headers for the requests to the data API. External users and our
+     * own client-side calls pass an empty object. Server-side calls must pass
+     * the internal-key header (see getDataApiInternalHeaders), or the API
+     * refuses them the data files of non-redistributable indicators.
+     */
+    dataApiHeaders: Record<string, string>
     archiveContext?: ArchiveContext
     noCache?: boolean
     loadMetadataOnly?: boolean
 }) => Promise<OwidTable | undefined>
 
+/**
+ * Fetch the data and metadata of all indicators in a chart config's
+ * dimensions from the data API, and turn them into the chart's input table.
+ * Returns undefined if the config has no indicator dimensions.
+ */
 export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
     args
 ) => {
@@ -35,6 +47,7 @@ export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
         variables,
         args.dataApiUrl,
         args.archiveContext,
+        args.dataApiHeaders,
         args.noCache,
         args.loadMetadataOnly
     )
@@ -50,6 +63,8 @@ export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
 export function getCachingInputTableFetcher(
     dataApiUrl: string,
     archiveContext: ArchiveContext | undefined,
+    /** See `dataApiHeaders` of fetchInputTableForConfig */
+    dataApiHeaders: Record<string, string>,
     noCache?: boolean,
     loadMetadataOnly?: boolean
 ): (
@@ -88,6 +103,7 @@ export function getCachingInputTableFetcher(
             const fetchedData = await Promise.all(
                 variablesToFetch.map((variableId) =>
                     loadVariableDataAndMetadata(variableId, dataApiUrl, {
+                        dataApiHeaders,
                         assetMap:
                             archiveContext?.type === "archive-page"
                                 ? archiveContext.assets.runtime

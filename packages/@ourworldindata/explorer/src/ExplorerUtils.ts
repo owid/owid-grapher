@@ -12,6 +12,8 @@ import { ExplorerProps } from "./Explorer.js"
 export async function buildExplorerProps(
     html: string,
     queryStr: string,
+    /** See `dataApiHeaders` of fetchInputTableForConfig */
+    dataApiHeaders: Record<string, string>,
     selection?: SelectionArray,
     bounds?: Bounds
 ) {
@@ -52,6 +54,7 @@ export async function buildExplorerProps(
         bakedBaseUrl: explorerConstants.bakedBaseUrl,
         bakedGrapherUrl: explorerConstants.bakedGrapherUrl,
         dataApiUrl: explorerConstants.dataApiUrl,
+        dataApiHeaders,
         catalogUrl: explorerConstants.catalogUrl,
         grapherConfigs,
         partialGrapherConfigs,

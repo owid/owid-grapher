@@ -85,6 +85,8 @@ export {
     retryPromise,
     fetchWithRetry,
     getOwidDataFetchUserAgent,
+    DATA_API_INTERNAL_KEY_HEADER,
+    getDataApiInternalHeaders,
     getOwidGdocFromJSON,
     extractGdocPageData,
     deserializeOwidGdocPageData,

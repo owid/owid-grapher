@@ -443,6 +443,7 @@ class VariableEditor extends Component<{
             dimensions: this.grapherConfig.dimensions,
             selectedEntityColors: this.grapherConfig.selectedEntityColors,
             dataApiUrl: DATA_API_URL,
+            dataApiHeaders: {},
             noCache: true,
         }).then((inputTable) => {
             if (inputTable) this.grapherState!.inputTable = inputTable

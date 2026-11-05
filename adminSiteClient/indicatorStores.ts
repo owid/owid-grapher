@@ -30,6 +30,7 @@ export function dataApiIndicatorStore(options: {
     const fetchTable = getCachingInputTableFetcher(
         options.dataApiUrl,
         undefined,
+        {},
         true
     )
     return {

@@ -14,6 +14,7 @@ import {
     omitUndefinedValues,
     mergeGrapherConfigs,
     getOwidDataFetchUserAgent,
+    getDataApiInternalHeaders,
     parseIntOrUndefined,
 } from "@ourworldindata/utils"
 import {
@@ -21,7 +22,10 @@ import {
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
-import { DATA_API_URL } from "../../settings/serverSettings.js"
+import {
+    DATA_API_INTERNAL_KEY,
+    DATA_API_URL,
+} from "../../settings/serverSettings.js"
 import { deleteGrapherConfigFromR2ByUuid } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import pMap from "p-map"
 import {
@@ -699,12 +703,17 @@ const createS3JsonParseError = (
     )
 }
 
-// Tag our server-side data API fetches with a descriptive User-Agent; see
-// getOwidDataFetchUserAgent. This code only ever runs in Node (the baker and
-// admin), so a value is always present, but we guard for undefined anyway.
-const dataFetchHeaders: HeadersInit | undefined = (() => {
+// Tag our server-side data API fetches with a descriptive User-Agent (see
+// getOwidDataFetchUserAgent), and send the internal key so the API also serves
+// us non-redistributable indicators' data. This code only ever runs in Node
+// (the baker and admin), so a User-Agent is always present, but we guard for
+// undefined anyway.
+const dataFetchHeaders: HeadersInit = (() => {
     const userAgent = getOwidDataFetchUserAgent()
-    return userAgent ? { "User-Agent": userAgent } : undefined
+    return {
+        ...(userAgent ? { "User-Agent": userAgent } : {}),
+        ...getDataApiInternalHeaders(DATA_API_INTERNAL_KEY),
+    }
 })()
 
 export const fetchS3DataValuesByPath = async (

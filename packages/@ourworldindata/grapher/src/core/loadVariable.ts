@@ -18,9 +18,18 @@ import urljoin from "url-join"
 // external traffic. See getOwidDataFetchUserAgent for details; it returns
 // undefined in the browser, so the shared client chart path is unaffected.
 const dataFetchUserAgent = getOwidDataFetchUserAgent()
-const dataFetchOptions: RequestInit | undefined = dataFetchUserAgent
-    ? { headers: { "User-Agent": dataFetchUserAgent } }
-    : undefined
+
+const getDataFetchOptions = (
+    dataApiHeaders: Record<string, string>
+): RequestInit | undefined => {
+    const headers = {
+        ...(dataFetchUserAgent ? { "User-Agent": dataFetchUserAgent } : {}),
+        ...dataApiHeaders,
+    }
+    // Send no extra headers from the browser, so the request stays a simple
+    // CORS request that needs no preflight
+    return Object.keys(headers).length > 0 ? { headers } : undefined
+}
 
 export const getVariableDataRoute = (
     dataApiUrl: string,
@@ -61,18 +70,21 @@ export const getVariableMetadataRoute = (
 export async function loadVariableDataAndMetadata(
     variableId: number,
     dataApiUrl: string,
-    options?: {
+    options: {
+        /** See `dataApiHeaders` of fetchInputTableForConfig */
+        dataApiHeaders: Record<string, string>
         assetMap?: AssetMap
         noCache?: boolean
         loadMetadataOnly?: boolean
     }
 ): Promise<OwidVariableDataMetadataDimensions> {
+    const dataFetchOptions = getDataFetchOptions(options.dataApiHeaders)
     const metadataPromise = fetchWithRetry(
         getVariableMetadataRoute(dataApiUrl, variableId, options),
         dataFetchOptions
     )
 
-    if (options?.loadMetadataOnly) {
+    if (options.loadMetadataOnly) {
         const metadataResponse = await metadataPromise
         if (!metadataResponse.ok) throw new Error(metadataResponse.statusText)
         const metadata: OwidVariableWithSourceAndDimension =
@@ -107,11 +119,13 @@ export async function loadVariablesDataSite(
     variableIds: number[],
     dataApiUrl: string,
     archiveContext: ArchiveContext | undefined,
+    dataApiHeaders: Record<string, string>,
     noCache?: boolean,
     loadMetadataOnly?: boolean
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map((variableId) =>
         loadVariableDataAndMetadata(variableId, dataApiUrl, {
+            dataApiHeaders,
             assetMap:
                 archiveContext?.type === "archive-page"
                     ? archiveContext.assets.runtime
