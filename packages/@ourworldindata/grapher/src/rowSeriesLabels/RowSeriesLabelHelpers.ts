@@ -288,19 +288,23 @@ export function enrichSeriesWithLabels<
         labelOptions,
     })
 
-    const annotations = series.map((series, index) =>
-        series.annotation
-            ? fitAnnotation({
-                  text: series.annotation,
-                  labelHeight: labels[index].label.height,
-                  // 80px extra to give annotations more room than labels
-                  firstTryWidth: narrowWraps[index].textWrap.width + 80,
-                  availableHeight: availableHeightPerSeries,
-                  maxWidth: maxLabelWidth,
-                  fontSettings: annotationFontSettings,
-              })
-            : undefined
-    )
+    const annotations = series.map((series, index) => {
+        if (!series.annotation) return undefined
+        const isTruncated = labels[index].needsTruncation
+        return fitAnnotation({
+            text: series.annotation,
+            labelHeight: isTruncated
+                ? fontSettings.fontSize * fontSettings.lineHeight
+                : labels[index].label.height,
+            // 80px extra to give annotations more room than labels
+            firstTryWidth: isTruncated
+                ? minLabelWidth
+                : narrowWraps[index].textWrap.width + 80,
+            availableHeight: availableHeightPerSeries,
+            maxWidth: maxLabelWidth,
+            fontSettings: annotationFontSettings,
+        })
+    })
 
     const truncationWidth = computeTruncationWidth(narrowWraps, annotations)
 
