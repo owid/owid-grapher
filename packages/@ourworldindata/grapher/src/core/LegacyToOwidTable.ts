@@ -865,30 +865,37 @@ const parseTimeScope = (
     if (annotation.time === undefined) return { timeScope: "all" }
 
     const interval = getTimeInterval(variable.display)
-    const time = parseAnnotationTime(annotation.time, interval)
-    const timeEnd =
+    const parsedTime = parseAnnotationTime(annotation.time, interval)
+    const parsedTimeEnd =
         annotation.timeEnd === undefined
             ? undefined
             : parseAnnotationTime(annotation.timeEnd, interval)
-    if (
-        time === undefined ||
-        (annotation.timeEnd !== undefined && timeEnd === undefined)
-    ) {
+
+    if (parsedTime === undefined) {
         console.warn(
-            `Dropping annotation of variable ${variable.id} with a time that doesn't fit its ${interval} interval`
+            `Dropping annotation of variable ${variable.id} with an invalid time: ${annotation.time}`
         )
         return undefined
     }
 
-    if (timeEnd === undefined || timeEnd === time)
-        return { timeScope: "point", time }
-    if (timeEnd < time) {
+    if (annotation.timeEnd !== undefined && parsedTimeEnd === undefined) {
+        console.warn(
+            `Dropping annotation of variable ${variable.id} with an invalid timeEnd: ${annotation.timeEnd}`
+        )
+        return undefined
+    }
+
+    if (parsedTimeEnd === undefined || parsedTimeEnd === parsedTime)
+        return { timeScope: "point", time: parsedTime }
+
+    if (parsedTimeEnd < parsedTime) {
         console.warn(
             `Dropping annotation of variable ${variable.id} with end time ${annotation.timeEnd} before start time ${annotation.time}`
         )
         return undefined
     }
-    return { timeScope: "range", startTime: time, endTime: timeEnd }
+
+    return { timeScope: "range", startTime: parsedTime, endTime: parsedTimeEnd }
 }
 
 const parseAnnotationTime = (
