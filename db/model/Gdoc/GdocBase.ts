@@ -1416,8 +1416,10 @@ export class GdocBase implements OwidGdocBaseInterface {
 
     toJSON(): OwidGdoc {
         // TODO: this function is currently only used to shrink the object a bit
-        // that is used for the isLightningDeploy check (but not, for example, to
-        // shrink the object we send over the wire at the /gdoc/:id endpoint).
+        // into the plain object (without class members) that the publish
+        // handlers inspect to pick a publishing action and that the Algolia
+        // indexers read (but not, for example, to shrink the object we send
+        // over the wire at the /gdoc/:id endpoint).
         // My hunch is that we'll want to clean up the class instance vs objects
         // divergence a bit in the near future - until then this can stay as is.
         return _.omit(this, [
