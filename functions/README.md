@@ -156,6 +156,8 @@ GET /api/detect-country
 
 This route provides a search API for charts, pages (articles, about pages) and topics. `type=topics` returns topic recommendations derived from the best-ranked matching charts, the same way the site's search page does (see "Topic page recommendations" in `site/search/README.md`); it reads the baked `/topicTagGraph.json` to map chart tags to topic pages.
 
+`type=pages` also takes `restrictSearchableAttributes`, a comma-separated subset of the pages index's searchable attributes (`title,excerpt,tags,authors,content`), to search only those; an unknown attribute is a 400. It exists for search-relevance experiments.
+
 For detailed API documentation, including all parameters, response schemas, and examples, see [search-api.openapi.yaml](../docs/search-api.openapi.yaml).
 
 ## `/api/search/cached-queries`
