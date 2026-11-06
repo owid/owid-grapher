@@ -239,19 +239,27 @@ describe(placeRangeAnnotation, () => {
         })
     })
 
-    it("keeps a range that touches the line only at its first or last point", () => {
+    it("drops a range that touches the line only at its first or last point", () => {
         expect(
             placeRangeAnnotation(
                 range("ends at start", 1990, 2000),
                 placedPoints
-            )?.points
-        ).toEqual([placedPoints[0]])
+            )
+        ).toBeUndefined()
         expect(
             placeRangeAnnotation(
                 range("starts at end", 2030, 2040),
                 placedPoints
-            )?.points
-        ).toEqual([placedPoints[3]])
+            )
+        ).toBeUndefined()
+    })
+
+    it("drops a range on a single-point line", () => {
+        expect(
+            placeRangeAnnotation(range("single point", 1990, 2010), [
+                placedPoints[0],
+            ])
+        ).toBeUndefined()
     })
 
     it("returns undefined when the range misses the line", () => {

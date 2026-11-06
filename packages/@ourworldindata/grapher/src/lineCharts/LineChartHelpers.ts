@@ -230,6 +230,7 @@ export function placeRangeAnnotation(
         ...placedPoints.slice(startIndex, endIndex + 1),
         midSegmentEnd,
     ])
+    if (points.length < 2) return undefined
 
     const snappedTimeRange = {
         startTime: startsMidSegment
