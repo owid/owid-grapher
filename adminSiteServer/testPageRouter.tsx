@@ -1419,6 +1419,29 @@ const MARIMEKKO_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
 ]
 
+const MAP_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Single indicator: hover China (short annotation) and India (long), both next to the title. The United States and the United Kingdom have none",
+        path: "grapher/co-emissions-per-capita?tab=map",
+    },
+    {
+        label: "Legacy annotations (maternal mortality): hover the United States",
+        path: "grapher/maternal-mortality?tab=map",
+    },
+    {
+        label: "Historical and projection pair, a historical year (2000): Japan and India show their historical annotation, Brazil and Sweden none",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?tab=map&time=2000",
+    },
+    {
+        label: "The pair, a projected year (2050): Brazil and India show their projection annotation, Japan and Sweden none",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?tab=map&time=2050",
+    },
+    {
+        label: "The pair, 2000 to 2050 (start and end maps): hover India for both annotations joined, Japan for the historical one behind its 2000 value, Brazil for the projection one behind its 2050 value",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?tab=map&time=2000..2050",
+    },
+]
+
 const ANNOTATION_TEST_SUITES: {
     slug: string
     title: string
@@ -1478,6 +1501,11 @@ const ANNOTATION_TEST_SUITES: {
         slug: "marimekko-entity",
         title: "Entity annotations: Marimekko charts",
         charts: MARIMEKKO_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "map-entity",
+        title: "Entity annotations: maps",
+        charts: MAP_ENTITY_ANNOTATED_CHARTS,
     },
     {
         slug: "real",
