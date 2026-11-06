@@ -33,6 +33,8 @@ export const DEPLOY_REQUEST_WINDOW_MS = 60_000
 
 let heldChanges: DeployChange[] = []
 let windowTimer: ReturnType<typeof setTimeout> | undefined
+/** Requests sent without waiting, so shutdown can wait for them */
+const inFlight = new Set<Promise<void>>()
 
 /**
  * Deploy this edit once `trx` commits. All the changes a transaction enqueues
@@ -80,7 +82,7 @@ const queueForDeploy = (changes: DeployChange[]): void => {
         return
     }
     startWindow()
-    void sendLoggingErrors(changes)
+    send(changes)
 }
 
 const startWindow = (): void => {
@@ -95,16 +97,27 @@ const endWindow = (): void => {
     // The trailing request opens a window of its own, so a steady stream of
     // edits still gets one request per window
     startWindow()
-    void sendLoggingErrors(changes)
+    send(changes)
 }
 
-/** Send the held edits now, e.g. before the process exits */
+const send = (changes: DeployChange[]): void => {
+    const request = sendLoggingErrors(changes).finally(() =>
+        inFlight.delete(request)
+    )
+    inFlight.add(request)
+}
+
+/**
+ * Send the held edits now and wait for every request still in flight, e.g.
+ * before the process exits
+ */
 export const flushHeldDeployChanges = async (): Promise<void> => {
     clearTimeout(windowTimer)
     windowTimer = undefined
     const changes = heldChanges
     heldChanges = []
-    if (changes.length) await sendLoggingErrors(changes)
+    if (changes.length) send(changes)
+    await Promise.all(inFlight)
 }
 
 registerExitHandler(flushHeldDeployChanges)
@@ -166,7 +179,7 @@ const getEmailSlackMentionsMap = async (
 ): Promise<Map<string, string>> => {
     if (ENV === "staging" || !SLACK_BOT_OAUTH_TOKEN) return new Map()
 
-    // An admin save waits for these lookups, so fail fast instead of the
+    // The build request waits for these lookups, so fail fast instead of the
     // client's default of retrying for minutes; a failed lookup just shows
     // the author's name instead of a mention
     const slackClient = new WebClient(SLACK_BOT_OAUTH_TOKEN, {

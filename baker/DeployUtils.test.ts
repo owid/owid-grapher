@@ -227,4 +227,25 @@ describe("a burst of edits", () => {
         await flushHeldDeployChanges()
         expect(requestedChanges()).toEqual([["a"], ["b"]])
     })
+
+    it("waits on shutdown for a request still in flight", async () => {
+        let respond = (): void => undefined
+        fetchMock.mockImplementationOnce(
+            () =>
+                new Promise<Response>((resolve) => {
+                    respond = () => resolve(new Response("{}"))
+                })
+        )
+        await edit("a")
+        await settle()
+
+        let flushed = false
+        const flushing = flushHeldDeployChanges().then(() => (flushed = true))
+        await settle()
+        expect(flushed).toBe(false)
+
+        respond()
+        await flushing
+        expect(flushed).toBe(true)
+    })
 })
