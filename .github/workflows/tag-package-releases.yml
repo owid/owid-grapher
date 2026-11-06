@@ -22,10 +22,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Tag packages whose version changed
         env:
           BEFORE: ${{ github.event.before }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           # Releasable packages are the ones with a bump.config.ts
@@ -40,7 +42,6 @@ jobs:
               echo "$tag already exists, skipping"
               continue
             fi
-            git tag "$tag" "$GITHUB_SHA"
-            git push origin "refs/tags/$tag"
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$GITHUB_SHA" --silent
             echo "Tagged $tag"
           done
