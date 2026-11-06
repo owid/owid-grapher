@@ -17,8 +17,10 @@ export function useSidePanel(
 ): SidePanel | null {
     const [panel, setPanel] = useState<SidePanel | null>(null)
     const onLoaded = useEffectEvent(create)
+    // Not `!archiveContext`: live pages of archived charts carry one too,
+    // pointing at their latest archived version
     const isEligible =
-        !!grapherState?.showAdminControls && !grapherState.archiveContext
+        !!grapherState?.showAdminControls && !grapherState.isOnArchivalPage
 
     useEffect(() => {
         if (!grapherState || !isEligible) return
