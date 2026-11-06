@@ -5,6 +5,7 @@ import { defineConfig } from "bumpp"
 // tags the merge commit.
 export default defineConfig({
     commit: "chore: release grapher@{version}",
+    tag: false,
     pr: {
         branch: "release/grapher-{version}",
     },
