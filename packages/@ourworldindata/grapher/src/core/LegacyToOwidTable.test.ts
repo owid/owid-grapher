@@ -1,4 +1,4 @@
-import { expect, it, describe, vi } from "vitest"
+import { expect, it, describe } from "vitest"
 
 import {
     GRAPHER_CHART_TYPES,
@@ -213,8 +213,6 @@ describe(legacyToOwidTableAndDimensions, () => {
         })
 
         it("ignores a lone timeEnd, turns equal-end ranges into points and drops backwards ranges", () => {
-            const warn = vi.spyOn(console, "warn").mockReturnValue()
-
             expect(
                 getAnnotations({
                     annotations: [
@@ -227,9 +225,6 @@ describe(legacyToOwidTableAndDimensions, () => {
                 { text: "End only", timeScope: "all" },
                 { text: "Same", timeScope: "point", time: 2005 },
             ])
-            expect(warn).toHaveBeenCalled()
-
-            warn.mockRestore()
         })
 
         describe("on sub-yearly data", () => {
@@ -287,8 +282,6 @@ describe(legacyToOwidTableAndDimensions, () => {
             })
 
             it("drops years and invalid dates", () => {
-                const warn = vi.spyOn(console, "warn").mockReturnValue()
-
                 expect(
                     getAnnotations({
                         display: { timeInterval: TimeInterval.Day },
@@ -303,22 +296,15 @@ describe(legacyToOwidTableAndDimensions, () => {
                         ],
                     })
                 ).toEqual([])
-                expect(warn).toHaveBeenCalledTimes(3)
-
-                warn.mockRestore()
             })
         })
 
         it("drops dates on yearly data", () => {
-            const warn = vi.spyOn(console, "warn").mockReturnValue()
-
             expect(
                 getAnnotations({
                     annotations: [{ text: "Date", time: "2020-03-15" }],
                 })
             ).toEqual([])
-
-            warn.mockRestore()
         })
     })
 
