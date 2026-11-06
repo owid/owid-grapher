@@ -14,6 +14,7 @@ import {
     PageChronologicalRecord,
     DataInsightHit,
     FlatArticleHit,
+    FeaturedVizHit,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
@@ -35,6 +36,7 @@ import {
     recommendTopicPages,
     TOPIC_PAGE_TYPE_FILTER,
     MAX_FACET_VALUES,
+    normalizePinnedSearch,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
@@ -62,6 +64,8 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+    featuredViz: (state: SearchState) =>
+        [PAGES_INDEX, "featured-viz", makeStateForKey(state)] as const,
 } as const
 
 export const latestPagesQueryKey = {
@@ -358,6 +362,45 @@ export async function queryProfiles(
     }
 
     return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
+}
+
+/**
+ * The featured viz at the top of the Data results, or null. A featured-viz
+ * page shows only when the whole query, normalized, is one of the searches
+ * its gdoc is pinned for; a text search would show one on any shared word.
+ * Honours the topic filter, ignores country filters.
+ */
+export async function queryFeaturedViz(
+    liteSearchClient: LiteClient,
+    state: SearchState
+): Promise<FeaturedVizHit | null> {
+    const normalizedQuery = normalizePinnedSearch(state.query)
+    if (!normalizedQuery) return null
+
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+
+    const searchParams = {
+        indexName: PAGES_INDEX,
+        query: "",
+        // Normalization strips quotes, so the value can't break out of them
+        filters: `type:${OwidGdocType.FeaturedViz} AND pinnedForSearches:"${normalizedQuery}"`,
+        facetFilters: formatTopicFacetFilters(selectedTopics),
+        attributesToRetrieve: [
+            "title",
+            "slug",
+            "type",
+            "thumbnailUrl",
+            "authors",
+            "excerpt",
+        ],
+        hitsPerPage: 1,
+    }
+
+    const response = await searchSingleForHits<FeaturedVizHit>(
+        liteSearchClient,
+        searchParams
+    )
+    return response.hits[0] ?? null
 }
 
 export interface LatestPagesResult {

@@ -352,6 +352,8 @@ export interface OwidGdocFeaturedVizContent {
     excerpt?: string
     "featured-image"?: string
     "hide-citation"?: boolean
+    /** Normalized with `normalizePinnedSearch`, deduped, non-empty. */
+    "pinned-for-searches"?: string[]
     body: OwidEnrichedGdocBlock[]
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
 }
@@ -743,6 +745,7 @@ export const OWID_GDOC_FEATURED_VIZ_CONTENT_KEY_KINDS = {
     refs: "authored",
     "hide-citation": "authored",
     "featured-image": "authored",
+    "pinned-for-searches": "authored",
     contributors: "authored",
     acknowledgements: "authored",
     authorRoles: "computed", // from authors

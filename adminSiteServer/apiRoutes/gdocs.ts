@@ -16,10 +16,14 @@ import {
     RedirectsTableName,
     OwidGdocType,
     GdocComponentPreviewRefreshResult,
+    OwidGdoc,
+    OwidGdocBaseInterface,
+    OwidGdocPostInterface,
+    OwidGdocDataInsightInterface,
+    OwidGdocFeaturedVizInterface,
 } from "@ourworldindata/types"
 import {
     checkIsChronologicalGdoc,
-    checkIsDataInsight,
     checkIsGdocPostExcludingFragments,
     checkShouldDataCalloutRender,
     getEntitiesForProfile,
@@ -76,6 +80,11 @@ import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import { GdocProfile } from "../../db/model/Gdoc/GdocProfile.js"
+import {
+    GdocFeaturedViz,
+    describePinnedSearchClash,
+    getPinnedSearchClashes,
+} from "../../db/model/Gdoc/GdocFeaturedViz.js"
 
 export async function getAllGdocIndexItems(
     req: Request,
@@ -314,6 +323,20 @@ function checkIsProfile(gdoc: { content: { type?: OwidGdocType } }): boolean {
     return gdoc.content.type === OwidGdocType.Profile
 }
 
+/** Gdoc types indexed in pages via `indexIndividualGdoc` (profiles are handled separately) */
+function checkIsIndexedInPages(
+    gdoc: OwidGdoc | OwidGdocBaseInterface
+): gdoc is
+    | OwidGdocPostInterface
+    | OwidGdocDataInsightInterface
+    | OwidGdocFeaturedVizInterface {
+    return (
+        checkIsGdocPostExcludingFragments(gdoc) ||
+        gdoc.content.type === OwidGdocType.DataInsight ||
+        gdoc.content.type === OwidGdocType.FeaturedViz
+    )
+}
+
 /**
  * Handles all four `GdocPublishingAction` cases
  * - SavingDraft (no action)
@@ -321,7 +344,7 @@ function checkIsProfile(gdoc: { content: { type?: OwidGdocType } }): boolean {
  * - Updating (index and bake (potentially via lightning deploy))
  * - Unpublishing (remove from index and bake)
  */
-async function indexAndBakeGdocIfNeccesary(
+export async function indexAndBakeGdocIfNeccesary(
     trx: db.KnexReadWriteTransaction,
     user: Required<DbInsertUser>,
     prevGdoc: AnyGdoc,
@@ -331,12 +354,8 @@ async function indexAndBakeGdocIfNeccesary(
     const nextJson = nextGdoc.toJSON()
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
     const action = getPublishingAction(prevJson, nextJson)
-    const wasIndexedInPages =
-        checkIsGdocPostExcludingFragments(prevJson) ||
-        checkIsDataInsight(prevJson)
-    const shouldIndexInPages =
-        checkIsGdocPostExcludingFragments(nextJson) ||
-        checkIsDataInsight(nextJson)
+    const wasIndexedInPages = checkIsIndexedInPages(prevJson)
+    const shouldIndexInPages = checkIsIndexedInPages(nextJson)
     const wasProfile = checkIsProfile(prevJson)
     const isProfile = checkIsProfile(nextJson)
     const wasChronologicalPost = checkIsChronologicalGdoc(prevJson)
@@ -407,6 +426,20 @@ async function validateSlugCollisionsIfPublishing(
     if (hasSlugCollision) {
         throw new JsonError(
             `You are attempting to publish a Google Doc with a slug that already exists: "${gdoc.slug}"`
+        )
+    }
+}
+
+async function validatePinnedSearchesIfPublishing(
+    trx: db.KnexReadonlyTransaction,
+    gdoc: AnyGdoc
+): Promise<void> {
+    if (!gdoc.published || !(gdoc instanceof GdocFeaturedViz)) return
+
+    const clashes = await getPinnedSearchClashes(trx, gdoc)
+    if (clashes.length > 0) {
+        throw new JsonError(
+            `You are attempting to publish a featured viz pinned for searches that another published featured viz is already pinned for. ${clashes.map(describePinnedSearchClash).join(" ")}`
         )
     }
 }
@@ -495,6 +528,7 @@ export async function createOrUpdateGdoc(
     await nextGdoc.loadState(trx)
 
     await validateSlugCollisionsIfPublishing(trx, nextGdoc)
+    await validatePinnedSearchesIfPublishing(trx, nextGdoc)
 
     // Create redirect if slug changed on a published gdoc
     await createRedirectForSlugChangeIfNeeded(trx, prevGdoc, nextGdoc)
@@ -578,10 +612,7 @@ export async function deleteGdoc(
         .where({ gdocId: id })
         .delete()
     if (gdoc.published) {
-        if (
-            checkIsGdocPostExcludingFragments(gdoc) ||
-            gdoc.content.type === OwidGdocType.DataInsight
-        ) {
+        if (checkIsIndexedInPages(gdoc)) {
             await removeIndividualGdocFromIndex(gdoc)
         }
         if (checkIsProfile(gdoc)) {
@@ -692,11 +723,7 @@ export async function getPreviewGdocIndexRecords(
             return payload
         }
 
-        // Only generate records for posts (excluding fragments)
-        if (
-            !checkIsGdocPostExcludingFragments(gdocJson) &&
-            !checkIsDataInsight(gdocJson)
-        ) {
+        if (!checkIsIndexedInPages(gdocJson)) {
             const payload: PagesIndexRecordsResponse = {
                 records: [],
                 count: 0,

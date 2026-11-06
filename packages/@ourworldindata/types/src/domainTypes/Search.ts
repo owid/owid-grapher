@@ -46,6 +46,8 @@ export const PagesIndexRecordSchema = z.object({
     tags: z.optional(z.array(z.string())),
     thumbnailUrl: z.string(),
     availableEntities: z.optional(z.array(z.string())),
+    // Featured-viz pages only: the normalized searches this page is pinned for.
+    pinnedForSearches: z.optional(z.array(z.string())),
 })
 
 export type PageRecord = z.infer<typeof PagesIndexRecordSchema>
@@ -245,6 +247,17 @@ export type ProfileHit = {
     type: OwidGdocType.Profile
     availableEntities: string[]
     objectID: string
+}
+
+/** The single featured-viz page shown at the top of the Data results. */
+export type FeaturedVizHit = {
+    objectID: string
+    type: OwidGdocType.FeaturedViz
+    title: string
+    slug: string
+    thumbnailUrl: string
+    authors?: string[]
+    excerpt?: string
 }
 
 export enum FilterType {

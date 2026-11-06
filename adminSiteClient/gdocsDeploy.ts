@@ -196,6 +196,7 @@ export const checkIsLightningUpdate = (
         excerpt: false, // requires updating references to this page
         "featured-image": false, // requires updating references to this page
         "hide-citation": false,
+        "pinned-for-searches": true, // only read by search, which is reindexed on every update
         body: false,
         refs: false,
         contributors: true,

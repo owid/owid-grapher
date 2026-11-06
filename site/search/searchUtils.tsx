@@ -55,6 +55,7 @@ import {
     faFileLines,
     faFlag,
     faLightbulb,
+    faStar,
     faTag,
     IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
@@ -368,6 +369,11 @@ export const PAGES_INDEX = getIndexName(SearchIndexName.Pages)
 export const PAGES_CHRONOLOGICAL_INDEX = getIndexName(
     SearchIndexName.PagesChronological
 )
+
+/** Page types autocomplete never suggests: profiles have their own
+ *  autocomplete source, and featured-viz pages only show in the Data results
+ *  slot. */
+export const AUTOCOMPLETE_PAGES_FILTER = `NOT type:${OwidGdocType.Profile} AND NOT type:${OwidGdocType.FeaturedViz}`
 export const DATA_CATALOG_ATTRIBUTES = [
     "title",
     "containerTitle",
@@ -1081,8 +1087,11 @@ export function getPageTypeNameAndIcon(pageType: OwidGdocType): {
             name: "Country Profile",
             icon: faFlag,
         }))
+        .with(OwidGdocType.FeaturedViz, () => ({
+            name: "Featured visualization",
+            icon: faStar,
+        }))
         .with(
-            OwidGdocType.FeaturedViz, // Not yet indexed
             OwidGdocType.Author, // Should never be indexed
             OwidGdocType.Fragment, // Should never be indexed
             OwidGdocType.Homepage, // Should never be indexed
