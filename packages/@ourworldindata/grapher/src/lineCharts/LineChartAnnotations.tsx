@@ -16,10 +16,7 @@ import {
 } from "./LineChartConstants"
 import { placeRangeAnnotationTooltip } from "./LineChartHelpers"
 import { AnnotationInfoIcon } from "../annotations/AnnotationInfoIcon"
-import {
-    RANGE_ANNOTATION_OUTLINE_OPACITY,
-    RANGE_ANNOTATION_OUTLINE_WIDTH,
-} from "../annotations/AnnotationConstants"
+import { RANGE_ANNOTATION_OUTLINE_OPACITY } from "../annotations/AnnotationConstants"
 import { AnnotationMarker } from "../annotations/EntityAnnotations"
 import { SeriesLabelAnnotations } from "../seriesLabel/SeriesLabelAnnotations"
 
@@ -118,17 +115,11 @@ export function LineChartRangeAnnotations({
         <g className="line-chart-range-annotations">
             {annotations.map((renderAnnotation) => (
                 <g key={renderAnnotation.key}>
-                    <path
-                        className="line-chart-range-annotations__outline"
-                        d={pointsToPath(renderAnnotation.points)}
-                        fill="none"
-                        stroke={renderAnnotation.points[0].color}
-                        strokeWidth={RANGE_ANNOTATION_OUTLINE_WIDTH}
-                        strokeOpacity={RANGE_ANNOTATION_OUTLINE_OPACITY}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        opacity={LINE_STYLE[renderAnnotation.emphasis].opacity}
-                        pointerEvents="none"
+                    <RangeAnnotationOutline
+                        points={renderAnnotation.points}
+                        color={renderAnnotation.color}
+                        emphasis={renderAnnotation.emphasis}
+                        outlineWidth={renderAnnotation.outlineWidth}
                     />
                     <RangeAnnotationHitArea
                         rangeAnnotation={renderAnnotation}
@@ -142,6 +133,31 @@ export function LineChartRangeAnnotations({
     )
 }
 
+function RangeAnnotationOutline({
+    points,
+    color,
+    emphasis,
+    outlineWidth,
+}: Pick<
+    RenderRangeAnnotation,
+    "points" | "color" | "emphasis" | "outlineWidth"
+>): React.ReactElement {
+    return (
+        <path
+            className="line-chart-range-annotations__outline"
+            d={pointsToPath(points)}
+            fill="none"
+            stroke={color}
+            strokeWidth={outlineWidth}
+            strokeOpacity={RANGE_ANNOTATION_OUTLINE_OPACITY}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity={LINE_STYLE[emphasis].opacity}
+            pointerEvents="none"
+        />
+    )
+}
+
 interface RangeAnnotationHitAreaProps extends Omit<
     LineChartRangeAnnotationsProps,
     "annotations"
@@ -150,7 +166,15 @@ interface RangeAnnotationHitAreaProps extends Omit<
 }
 
 function RangeAnnotationHitArea({
-    rangeAnnotation: { seriesName, points, heading, isTooltipOpen, annotation },
+    rangeAnnotation: {
+        seriesName,
+        points,
+        heading,
+        isTooltipOpen,
+        annotation,
+        color,
+        outlineWidth,
+    },
     hitWidth,
     onClick,
     onTooltipClose,
@@ -190,7 +214,7 @@ function RangeAnnotationHitArea({
                     annotations={[
                         { heading, text: annotation.text, timeScope: "range" },
                     ]}
-                    color={points[0].color}
+                    color={color}
                 />
             }
         >
@@ -211,15 +235,16 @@ function RangeAnnotationHitArea({
                         y: event.clientY - rect.top,
                     }
                     const click = getRelativeMouse(event.currentTarget, event)
-                    tooltipPlacement.storePointsRelativeToClick(
-                        points.map(
+                    tooltipPlacement.storeClick({
+                        pointsRelativeToClick: points.map(
                             (point) =>
                                 new PointVector(
                                     point.x - click.x,
                                     point.y - click.y
                                 )
-                        )
-                    )
+                        ),
+                        outlineWidth,
+                    })
                     onClick(seriesName, {
                         timeScope: "range",
                         startTime: annotation.startTime,
@@ -236,13 +261,18 @@ type RangeAnnotationTooltipPlacementModifier = Modifier<
     object
 >
 
+interface RangeAnnotationClick {
+    pointsRelativeToClick: PointVector[]
+    outlineWidth: number
+}
+
 interface RangeAnnotationTooltipPlacement {
     placementModifier: RangeAnnotationTooltipPlacementModifier
-    storePointsRelativeToClick: (points: PointVector[]) => void
+    storeClick: (click: RangeAnnotationClick) => void
 }
 
 function createRangeAnnotationTooltipPlacement(): RangeAnnotationTooltipPlacement {
-    let pointsRelativeToClick: PointVector[] = []
+    let click: RangeAnnotationClick | undefined
     const placementModifier: RangeAnnotationTooltipPlacementModifier = {
         name: "rangeAnnotationTooltipPlacement",
         enabled: true,
@@ -251,11 +281,11 @@ function createRangeAnnotationTooltipPlacement(): RangeAnnotationTooltipPlacemen
         requiresIfExists: ["preventOverflow"],
         fn({ state }) {
             const { popperOffsets } = state.modifiersData
-            if (!popperOffsets || pointsRelativeToClick.length === 0) return
+            if (!popperOffsets || !click) return
 
             const { reference, popper } = state.rects
             const clickPosition = new PointVector(reference.x, reference.y)
-            const points = pointsRelativeToClick.map((point) =>
+            const points = click.pointsRelativeToClick.map((point) =>
                 clickPosition.add(point)
             )
             const tooltipBounds = new Bounds(
@@ -282,13 +312,14 @@ function createRangeAnnotationTooltipPlacement(): RangeAnnotationTooltipPlacemen
                 clickPosition,
                 tooltipBounds,
                 containerBounds,
+                outlineWidth: click.outlineWidth,
             }).y
         },
     }
     return {
         placementModifier,
-        storePointsRelativeToClick: (points) => {
-            pointsRelativeToClick = points
+        storeClick: (newClick) => {
+            click = newClick
         },
     }
 }

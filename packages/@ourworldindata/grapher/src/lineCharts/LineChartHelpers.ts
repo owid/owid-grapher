@@ -33,7 +33,6 @@ import {
     RenderLineChartSeries,
 } from "./LineChartConstants"
 import { DualAxis, HorizontalAxis } from "../axis/Axis"
-import { RANGE_ANNOTATION_OUTLINE_WIDTH } from "../annotations/AnnotationConstants"
 import { LineChartState } from "./LineChartState"
 import { darkenColorForLine } from "../color/ColorUtils"
 import {
@@ -263,9 +262,10 @@ export function placeRangeAnnotationTooltip({
     clickPosition,
     tooltipBounds,
     containerBounds,
+    outlineWidth,
 }: PlaceRangeAnnotationTooltipArgs): Bounds {
     const minDistanceFromLine =
-        RANGE_ANNOTATION_OUTLINE_WIDTH / 2 + RANGE_ANNOTATION_TOOLTIP_MARGIN
+        outlineWidth / 2 + RANGE_ANNOTATION_TOOLTIP_MARGIN
     const [spanStart, spanEnd] = tooltipBounds
         .expand({ left: minDistanceFromLine, right: minDistanceFromLine })
         .xRange()
