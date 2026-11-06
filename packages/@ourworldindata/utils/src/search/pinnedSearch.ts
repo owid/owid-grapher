@@ -3,6 +3,12 @@
  * pinned for. The indexer, the clash checks and the site all compare in this
  * form, so a pinned search and a reader's search that should match always
  * compare equal.
+ *
+ * The Metabase question "Top site searches, last 12 months"
+ * (http://metabase.owid.io/question/2017) uses the same regexes in SQL to
+ * suggest pins for the suggest-pinned-searches skill. If you change this,
+ * update that query too. If the two drift, the SQL must never clean up more
+ * than this function: it would suggest pins that no search normalizes to.
  */
 export function normalizePinnedSearch(search: string): string {
     return search
