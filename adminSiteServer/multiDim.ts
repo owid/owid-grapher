@@ -15,8 +15,10 @@ import {
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageConfigRaw,
     MultiDimDataPagesTableName,
+    MultiDimRedirectsTableName,
     MultiDimXChartConfigsTableName,
     MultiDimViewDimensionsTableName,
+    NarrativeChartsTableName,
     R2GrapherConfigDirectory,
     View,
 } from "@ourworldindata/types"
@@ -394,4 +396,65 @@ export async function setMultiDimSlug(
     )
     await retrieveMultiDimConfigFromDbAndSaveToR2(knex, multiDim.id)
     return { ...multiDim, slug }
+}
+
+/** Deletes an unpublished multi-dim together with its view chart configs.
+ *  Rows in multi_dim_view_dimensions are kept, since that table is append-only
+ *  (analytics use it to resolve chart config ids of past views). */
+export async function deleteUnpublishedMultiDim(
+    knex: db.KnexReadWriteTransaction,
+    multiDim: DbEnrichedMultiDimDataPage
+): Promise<void> {
+    if (multiDim.published) {
+        throw new JsonError(
+            "Cannot delete a published multi-dim. Unpublish it first.",
+            400
+        )
+    }
+
+    const narrativeCharts = await db.knexRaw<{ name: string }>(
+        knex,
+        `-- sql
+        SELECT nc.name
+        FROM ${NarrativeChartsTableName} nc
+        JOIN ${MultiDimXChartConfigsTableName} mdxcc
+            ON mdxcc.id = nc.parentMultiDimXChartConfigId
+        WHERE mdxcc.multiDimId = ?`,
+        [multiDim.id]
+    )
+    if (narrativeCharts.length > 0) {
+        throw new JsonError(
+            `Cannot delete multi-dim: narrative charts are based on it (${narrativeCharts.map((nc) => nc.name).join(", ")}). Please delete them first.`,
+            400
+        )
+    }
+
+    const chartConfigIds = (
+        await knex<DbPlainMultiDimXChartConfig>(MultiDimXChartConfigsTableName)
+            .select("chartConfigId")
+            .where({ multiDimId: multiDim.id })
+    ).map((row) => row.chartConfigId)
+
+    // Redirects only take effect once a multi-dim is published, so the ones
+    // pointing to an unpublished multi-dim are inactive and can go with it.
+    await knex(MultiDimRedirectsTableName)
+        .where({ multiDimId: multiDim.id })
+        .delete()
+    await knex(MultiDimXChartConfigsTableName)
+        .where({ multiDimId: multiDim.id })
+        .delete()
+    await knex(ChartConfigsTableName).whereIn("id", chartConfigIds).delete()
+    await knex(MultiDimDataPagesTableName).where({ id: multiDim.id }).delete()
+
+    // Clean up R2 last, so a failing DB operation doesn't leave the DB
+    // pointing to configs that no longer exist.
+    for (const id of chartConfigIds) {
+        await deleteGrapherConfigFromR2ByUuid(id)
+    }
+    if (multiDim.slug) {
+        await deleteGrapherConfigFromR2(
+            R2GrapherConfigDirectory.multiDim,
+            `${multiDim.slug}.json`
+        )
+    }
 }
