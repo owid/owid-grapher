@@ -80,10 +80,10 @@ export class DeployStatusPage extends Component {
                         </button>
                     </div>
                     <p>
-                        Every published change starts a deploy that rebakes the
-                        whole site, which takes about 10 minutes. When several
-                        changes come in at once, a later deploy can take an
-                        earlier one's changes live.
+                        Every published change goes live with a deploy that
+                        rebakes the whole site, which takes a few minutes. A
+                        change starts a deploy right away; changes made in the 5
+                        minutes after that go out together in the next one.
                     </p>
                     {this.builds.length > 0 ? (
                         <table className="DeploysTable">
