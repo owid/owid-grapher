@@ -43,7 +43,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
 
       - name: Build package and generate API & schema reference
         working-directory: packages/@ourworldindata/grapher

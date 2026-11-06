@@ -19,7 +19,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
 
       - name: Install dependencies
         run: cp .env.example-grapher .env
@@ -38,7 +38,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
 
       - name: Run vitest
         run: yarn test --pool=forks
@@ -58,7 +58,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
 
       - name: Configure test environment
         run: cp .env.example-grapher .env
@@ -79,7 +79,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
 
@@ -95,7 +95,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
 
@@ -111,7 +111,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
 
@@ -127,7 +127,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
 
@@ -146,7 +146,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
 
@@ -176,7 +176,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
 
       - name: Build
         run: yarn buildViteSite
