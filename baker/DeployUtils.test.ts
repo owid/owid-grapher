@@ -22,11 +22,8 @@ import {
     knexReadWriteTransaction,
     TransactionCloseMode,
 } from "../db/db.js"
-import {
-    DEPLOY_REQUEST_WINDOW_MS,
-    enqueueDeployChange,
-    flushHeldDeployChanges,
-} from "./DeployUtils.js"
+import { DEPLOY_REQUEST_WINDOW_MS } from "@ourworldindata/utils"
+import { enqueueDeployChange, flushHeldDeployChanges } from "./DeployUtils.js"
 
 vi.mock(import("../settings/serverSettings.js"), async (importOriginal) => ({
     ...(await importOriginal()),

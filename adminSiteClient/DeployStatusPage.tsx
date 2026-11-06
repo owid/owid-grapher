@@ -4,7 +4,7 @@ import { action, observable, runInAction, makeObservable } from "mobx"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { DeployBuild } from "@ourworldindata/utils"
+import { DeployBuild, DEPLOY_REQUEST_WINDOW_MS } from "@ourworldindata/utils"
 import { Timeago } from "./Forms.js"
 
 type DeployStateKind = "waiting" | "deploying" | "deployed" | "failed" | "other"
@@ -82,8 +82,9 @@ export class DeployStatusPage extends Component {
                     <p>
                         Every published change goes live with a deploy that
                         rebakes the whole site, which takes a few minutes. A
-                        change starts a deploy right away; changes made in the 5
-                        minutes after that go out together in the next one.
+                        change starts a deploy right away; changes made in the{" "}
+                        {DEPLOY_REQUEST_WINDOW_MS / 60_000} minutes after that
+                        go out together in the next one.
                     </p>
                     {this.builds.length > 0 ? (
                         <table className="DeploysTable">

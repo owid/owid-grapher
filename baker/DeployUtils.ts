@@ -6,7 +6,7 @@ import {
     ENV,
 } from "../settings/serverSettings.js"
 import { WebAPIPlatformError, WebClient } from "@slack/web-api"
-import { DbPlainUser } from "@ourworldindata/utils"
+import { DbPlainUser, DEPLOY_REQUEST_WINDOW_MS } from "@ourworldindata/utils"
 import { KnexReadWriteTransaction, runAfterCommit } from "../db/db.js"
 import { registerExitHandler } from "../db/cleanup.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
@@ -23,17 +23,6 @@ const changesByTransaction = new WeakMap<
     KnexReadWriteTransaction,
     DeployChange[]
 >()
-
-/**
- * At most one build request per window, plus a trailing one for what the
- * window held. An ETL push calls the admin API once per indicator or chart, a
- * few hundred times in minutes; this turns that into a handful of requests.
- *
- * Keep it longer than a content build takes (~4–5 min on prod, with the
- * archive), so requests never come faster than builds finish and don't queue
- * up behind the deploy lock. If bakes get slower, raise it.
- */
-export const DEPLOY_REQUEST_WINDOW_MS = 5 * 60_000
 
 let heldChanges: DeployChange[] = []
 let windowTimer: ReturnType<typeof setTimeout> | undefined

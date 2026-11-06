@@ -46,7 +46,10 @@ export {
     type TocSidebarSection,
 } from "./domainTypes/Toc.js"
 
-export { type DeployBuild } from "./domainTypes/DeployStatus.js"
+export {
+    type DeployBuild,
+    DEPLOY_REQUEST_WINDOW_MS,
+} from "./domainTypes/DeployStatus.js"
 
 export {
     IDEAL_PLOT_ASPECT_RATIO,
