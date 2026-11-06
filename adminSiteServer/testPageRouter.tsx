@@ -1408,6 +1408,17 @@ const SCATTER_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
 ]
 
+const MARIMEKKO_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Hover China: the CO₂ and population annotations differ, each under its own value. Hover India: only CO₂ has an annotation, under its value. The continent color column has no row and doesn't count",
+        path: "grapher/co2-per-capita-marimekko",
+    },
+    {
+        label: "Colored by income group. Hover China: price, coverage and income group share a text, which sits next to the title. Hover Canada: price and coverage share a text but income group has none, so it sits under each value. Hover India: only income group has an annotation, under its value",
+        path: "grapher/carbon-price-vs-share-emissions",
+    },
+]
+
 const ANNOTATION_TEST_SUITES: {
     slug: string
     title: string
@@ -1462,6 +1473,11 @@ const ANNOTATION_TEST_SUITES: {
         slug: "scatter-entity",
         title: "Entity annotations: scatter plots",
         charts: SCATTER_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "marimekko-entity",
+        title: "Entity annotations: Marimekko charts",
+        charts: MARIMEKKO_ENTITY_ANNOTATED_CHARTS,
     },
     {
         slug: "real",

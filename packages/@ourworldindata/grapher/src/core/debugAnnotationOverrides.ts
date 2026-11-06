@@ -636,6 +636,39 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             entities: ["Space Shuttle"],
         },
     ],
+    // carbon-price-vs-share-emissions (a Marimekko colored by income group): carbon price on y
+    1269941: [
+        {
+            text: "The national ETS covers the power sector only.",
+            entities: ["China"],
+        },
+        {
+            text: "Combines the federal fuel charge and provincial systems.",
+            entities: ["Canada"],
+        },
+    ],
+    // share of world CO₂ covered on x
+    1269936: [
+        {
+            text: "The national ETS covers the power sector only.",
+            entities: ["China"],
+        },
+        {
+            text: "Combines the federal fuel charge and provincial systems.",
+            entities: ["Canada"],
+        },
+    ],
+    // World Bank income classification, the color
+    1290376: [
+        {
+            text: "The national ETS covers the power sector only.",
+            entities: ["China"],
+        },
+        {
+            text: "Classified as lower-middle income since 2009.",
+            entities: ["India"],
+        },
+    ],
 }
 
 export function applyDebugAnnotationOverride(
