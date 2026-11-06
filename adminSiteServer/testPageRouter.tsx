@@ -1408,6 +1408,41 @@ const SCATTER_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     },
 ]
 
+const SCATTER_POINT_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Single day (day 300). Hover Brazil: the cases and tests annotations each sit under their value, after the shared entity annotation and a semicolon. The day-780 annotations don't show",
+        path: "grapher/covid-19-daily-tests-vs-daily-new-confirmed-cases?time=300&country=~BRA",
+    },
+    {
+        label: "Tolerance on x (day 111). Hover Ecuador: cases have no value from day 109 to 115, so x resolves to day 108 and shows its annotation. The tests annotation for day 111 shows under tests. The cases annotation for day 111 doesn't show",
+        path: "grapher/covid-19-daily-tests-vs-daily-new-confirmed-cases?time=111&country=~ECU",
+    },
+    {
+        label: "Tolerance on y (day 783). Hover Brazil: tests end on day 780, so y resolves to day 780 and shows its annotation. The cases annotation for day 780 doesn't show, since cases have a value on day 783",
+        path: "grapher/covid-19-daily-tests-vs-daily-new-confirmed-cases?time=783&country=~BRA",
+    },
+    {
+        label: "Connected trajectory (days 200 to 400). Hover Chile: the start annotation shows under the first tests value. The end annotation shows under the last tests value, after the entity annotation and a semicolon. The day-300 annotation doesn't show",
+        path: "grapher/covid-19-daily-tests-vs-daily-new-confirmed-cases?time=200..400&country=~CHL",
+    },
+    {
+        label: "Size and a tolerance on x (2023). Hover China: the population annotation sits under the population value, after the entity annotation and a semicolon. GDP ends in 2022, so the GDP annotation for 2022 shows under GDP and the one for 2023 doesn't",
+        path: "grapher/co2-emissions-vs-gdp?time=2023&country=~CHN",
+    },
+    {
+        label: "Connected trajectory (1990 to 2000). Hover China: the 1990 annotation shows under the first CO₂ value and the 2000 annotation under the last, each after the entity annotation and a semicolon. The 1995 annotation doesn't show",
+        path: "grapher/co2-emissions-vs-gdp?time=1990..2000&country=~CHN",
+    },
+    {
+        label: "Relative mode (1990 to 2000). Hover China: the CO₂ row is the average annual change. Check that the 1990 and 2000 annotations still show under it and the 1995 annotation doesn't",
+        path: "grapher/co2-emissions-vs-gdp?time=1990..2000&stackMode=relative&country=~CHN",
+    },
+    {
+        label: "Time scatter colored by launch vehicle class. Hover Falcon 9: the 2010 cost annotation sits under the cost value, after the entity annotation and a semicolon, and the class annotation under the class value. The 2015 annotation doesn't show. Hover Space Shuttle: the 1981 annotations sit under cost and class, after their entity annotations",
+        path: "grapher/cost-space-launches-low-earth-orbit",
+    },
+]
+
 const MARIMEKKO_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     {
         label: "Hover China: the CO₂ and population annotations differ, each under its own value. Hover India: only CO₂ has an annotation, under its value. The continent color column has no row and doesn't count",
@@ -1496,6 +1531,11 @@ const ANNOTATION_TEST_SUITES: {
         slug: "scatter-entity",
         title: "Entity annotations: scatter plots",
         charts: SCATTER_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "scatter-point",
+        title: "Point annotations: scatter plots",
+        charts: SCATTER_POINT_ANNOTATED_CHARTS,
     },
     {
         slug: "marimekko-entity",

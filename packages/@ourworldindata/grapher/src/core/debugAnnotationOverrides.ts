@@ -253,6 +253,25 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             text: "Emissions are territorial: they count fossil fuels burned within India's borders and leave out the emissions embedded in goods India imports from other countries.",
             entities: ["India"],
         },
+        // Point annotations on China, on a trajectory from 1990 to 2000
+        {
+            // at the start of the trajectory, next to the entity annotation
+            text: "Emissions before 2000 are less certain.",
+            entities: ["China"],
+            time: 1990,
+        },
+        {
+            // in the middle of the trajectory, so it must not show
+            text: "Emissions fell in 1995.",
+            entities: ["China"],
+            time: 1995,
+        },
+        {
+            // at the end of the trajectory
+            text: "Emissions from 2000 follow the revised inventory.",
+            entities: ["China"],
+            time: 2000,
+        },
     ],
     // forest-area-as-share-of-land-area?tab=line&country=~Scotland, which has a legacy annotation
     1132530: [
@@ -595,6 +614,31 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             text: "Includes probable cases.",
             entities: ["Chile"],
         },
+        // Point annotations, in days since 21 January 2020
+        {
+            text: "Cases for this day include a reporting backlog.",
+            entities: ["Brazil"],
+            time: 300,
+        },
+        {
+            // at a day before the target, where cases have their own value, so it must not show
+            text: "Cases for this day are reported without a matching test count.",
+            entities: ["Brazil"],
+            time: 780,
+        },
+        // Ecuador has no cases value from day 109 to 115, so tolerance resolves day 111 to day 108
+        {
+            // at the day tolerance resolves to
+            text: "Cases for this week were reported late.",
+            entities: ["Ecuador"],
+            time: 108,
+        },
+        {
+            // at the target day, which has no cases value, so it must not show
+            text: "Cases for this day were not reported.",
+            entities: ["Ecuador"],
+            time: 111,
+        },
     ],
     // tests on y
     984183: [
@@ -610,12 +654,68 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             text: "Includes antigen tests.",
             entities: ["Chile"],
         },
+        // Point annotations
+        {
+            text: "Tests for this day are from a single laboratory network.",
+            entities: ["Brazil"],
+            time: 300,
+        },
+        {
+            // at the last tests value, which tolerance carries forward to day 783
+            text: "Tests for this day are the last Brazil reported.",
+            entities: ["Brazil"],
+            time: 780,
+        },
+        {
+            text: "Tests for this day are from a single day of testing.",
+            entities: ["Ecuador"],
+            time: 111,
+        },
+        {
+            // at the start of a trajectory from day 200 to day 400
+            text: "Testing was expanded to private laboratories.",
+            entities: ["Chile"],
+            time: 200,
+        },
+        {
+            // in the middle of the trajectory, so it must not show
+            text: "Tests for this day are revised upward.",
+            entities: ["Chile"],
+            time: 300,
+        },
+        {
+            // at the end of the trajectory, next to the entity annotation
+            text: "Rapid tests are counted from this day.",
+            entities: ["Chile"],
+            time: 400,
+        },
     ],
     // Population (historical), the size of co2-emissions-vs-gdp and other scatter plots
     953903: [
         {
             text: "Excludes Hong Kong and Macao.",
             entities: ["China"],
+        },
+        // Point annotation, at the end of the time range, next to the entity annotation
+        {
+            text: "Population for this year is a UN estimate.",
+            entities: ["China"],
+            time: 2023,
+        },
+    ],
+    // GDP per capita on x of co2-emissions-vs-gdp, which has no value after 2022
+    900793: [
+        {
+            // at the year tolerance resolves to when the chart shows 2023
+            text: "GDP for this year is a preliminary estimate.",
+            entities: ["China"],
+            time: 2022,
+        },
+        {
+            // at the target year, which has no GDP value, so it must not show
+            text: "GDP for this year is a projection.",
+            entities: ["China"],
+            time: 2023,
         },
     ],
     // cost-space-launches-low-earth-orbit (a time scatter colored by launch vehicle class): cost on y
@@ -628,12 +728,40 @@ const FAKE_ANNOTATIONS_BY_VARIABLE_ID: Record<
             text: "Retired in 2011.",
             entities: ["Space Shuttle"],
         },
+        // Point annotations
+        {
+            text: "Cost is for the first reusable-booster launch.",
+            entities: ["Falcon 9"],
+            time: 2010,
+        },
+        {
+            // at a year with no Falcon 9 launch, so it must not show
+            text: "Cost excludes development.",
+            entities: ["Falcon 9"],
+            time: 2015,
+        },
+        {
+            text: "Cost is for the first flight.",
+            entities: ["Space Shuttle"],
+            time: 1981,
+        },
     ],
     // launch vehicle class
     1014832: [
         {
             text: "Retired in 2011.",
             entities: ["Space Shuttle"],
+        },
+        // Point annotations
+        {
+            text: "Class is set by payload mass to low Earth orbit.",
+            entities: ["Falcon 9"],
+            time: 2010,
+        },
+        {
+            text: "Class is set by payload mass to low Earth orbit.",
+            entities: ["Space Shuttle"],
+            time: 1981,
         },
     ],
     // carbon-price-vs-share-emissions (a Marimekko colored by income group): carbon price on y
