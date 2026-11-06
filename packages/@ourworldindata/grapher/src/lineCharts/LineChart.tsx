@@ -71,7 +71,7 @@ import {
     transitionAnnotationTooltipState,
 } from "./LineChartHelpers"
 import { LineChartActiveTimeMarkers } from "./LineChartActiveTimeMarkers"
-import { LineChartAnnotationMarkers } from "./LineChartAnnotationMarkers"
+import { LineChartPointAnnotations } from "./LineChartAnnotations"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
 import { Lines } from "./Lines"
 import { LineChartState } from "./LineChartState.js"
@@ -562,7 +562,7 @@ export class LineChart
                         dotRadius={this.activeTimeCircleRadius}
                     />
                 )}
-                <LineChartAnnotationMarkers
+                <LineChartPointAnnotations
                     annotations={this.renderPointAnnotations}
                     radius={this.annotationMarkerRadius}
                     hitRadius={this.annotationMarkerHitRadius}
