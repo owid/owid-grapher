@@ -90,6 +90,7 @@
     @include sm-up {
         padding-left: 24px;
         border-left: 1px solid $blue-20;
+        align-self: start;
     }
 }
 
@@ -98,5 +99,11 @@
 
     @include md-up {
         margin-bottom: 0;
+    }
+}
+
+.about-this-data__key-data--with-newsletter-card {
+    @include md-up {
+        grid-column-end: 10;
     }
 }

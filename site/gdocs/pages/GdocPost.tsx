@@ -6,6 +6,7 @@ import { faBoxArchive } from "@fortawesome/free-solid-svg-icons"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import Credits from "../components/Credits.js"
 import Footnotes from "../components/Footnotes.js"
+import { layouts } from "../components/layout.js"
 import {
     OwidGdocPostInterface,
     OwidGdocType,
@@ -21,6 +22,7 @@ import { PastVersionsSection } from "../components/PastVersionsSection.js"
 import { LicenseSection } from "../components/LicenseSection.js"
 import { SidebarTableOfContents } from "../../SidebarTableOfContents.js"
 import { useDocumentContext } from "../DocumentContext.js"
+import TopicNewsletterCard from "../../TopicNewsletterCard.js"
 
 const citationDescriptionsByArticleType: Record<
     | OwidGdocType.Article
@@ -58,6 +60,7 @@ export function GdocPost({
     breadcrumbs,
     manualBreadcrumbs,
     tags,
+    topicArea,
 }: GdocPostProps) {
     const { archiveContext } = useDocumentContext()
     const postType = content.type ?? OwidGdocType.Article
@@ -125,6 +128,19 @@ export function GdocPost({
                     toc={content.toc}
                     blocks={content.body}
                     automaticSubscribeBanner={!shouldHideSubscribeBanner}
+                    // Modular topic pages render the card from TopicPageIntro
+                    afterIntro={
+                        postType === OwidGdocType.LinearTopicPage ? (
+                            <TopicNewsletterCard
+                                topicArea={topicArea}
+                                placement="topic_page"
+                                className={cx(
+                                    "topic-newsletter-card--linear-topic-page",
+                                    layouts.default["subscribe-banner--center"]
+                                )}
+                            />
+                        ) : null
+                    }
                 />
             ) : null}
             <Credits

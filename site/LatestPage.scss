@@ -39,6 +39,10 @@
     }
 }
 
+.latest-search__no-results {
+    grid-row: 1 / span 4;
+}
+
 // Pinned beside the first cards: rows 1–3 are the header, the filters and
 // the divider. The View toggle, on the feeds that have one, sits at the top
 // of this same column and row, so clear it — its 16px row of controls plus a

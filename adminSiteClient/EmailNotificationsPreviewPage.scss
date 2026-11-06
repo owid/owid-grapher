@@ -1,0 +1,78 @@
+.EmailNotificationsPreviewPage {
+    padding: 20px;
+}
+
+.EmailNotificationsPreviewPage__layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+.EmailNotificationsPreviewPage__controls {
+    flex: 0 0 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: sticky;
+    top: 16px;
+}
+
+.EmailNotificationsPreviewPage__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 0;
+
+    > span {
+        font-weight: 700;
+    }
+}
+
+.EmailNotificationsPreviewPage__preview {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.EmailNotificationsPreviewPage__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.EmailNotificationsPreviewPage__stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.EmailNotificationsPreviewPage__frame {
+    width: 100%;
+    // Tall enough that the email scrolls inside the frame rather than the
+    // page, which keeps the controls in view.
+    height: calc(100vh - 220px);
+    border: 1px solid #ddd;
+    background-color: #fff;
+}
+
+.EmailNotificationsPreviewPage__plain-text {
+    height: calc(100vh - 220px);
+    overflow: auto;
+    padding: 16px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 1000px) {
+    .EmailNotificationsPreviewPage__layout {
+        flex-direction: column;
+    }
+
+    .EmailNotificationsPreviewPage__controls {
+        position: static;
+        flex-basis: auto;
+        width: 100%;
+    }
+}

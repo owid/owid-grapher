@@ -7,12 +7,18 @@ import { NewsletterSubscription } from "./NewsletterSubscription.js"
 
 export const SITE_TOOLS_ROOT_CLASS = "site-tools-root"
 
-export default function SiteTools() {
+export default function SiteTools({
+    hideNewsletterSubscription = false,
+}: {
+    hideNewsletterSubscription?: boolean
+}) {
     return (
         <div className="site-tools">
-            <NewsletterSubscription
-                context={NewsletterSubscriptionContext.Floating}
-            />
+            {!hideNewsletterSubscription && (
+                <NewsletterSubscription
+                    context={NewsletterSubscriptionContext.Floating}
+                />
+            )}
             <FeedbackPrompt />
             {/* <SiteToolsButton
                 icon={faHandshake}
