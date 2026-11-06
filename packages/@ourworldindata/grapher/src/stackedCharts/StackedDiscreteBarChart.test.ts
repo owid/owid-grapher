@@ -493,6 +493,6 @@ describe("entity annotations", () => {
 
     it("joins different segment annotations into one row annotation", () => {
         const { rows } = makeChartState("Coal estimate", "Gas estimate")
-        expect(rows[0].annotation).toEqual("Coal estimate; Gas estimate")
+        expect(rows[0].annotation).toEqual("Coal estimate / Gas estimate")
     })
 })

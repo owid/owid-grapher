@@ -238,7 +238,7 @@ describe("entity annotation in the tooltip header", () => {
         })
 
         test("shows both annotations for a year with a historical and a projected value", () => {
-            expect(annotationAt(2020)).toEqual("Estimate; Medium scenario")
+            expect(annotationAt(2020)).toEqual("Estimate / Medium scenario")
         })
     })
 })

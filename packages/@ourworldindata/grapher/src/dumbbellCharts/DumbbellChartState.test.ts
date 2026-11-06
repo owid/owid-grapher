@@ -176,7 +176,7 @@ describe("column strategy", () => {
 
         it("joins different annotations", () => {
             const [series] = makeTwoColumnChartState("A", "B").series
-            expect(series.annotation).toEqual("A; B")
+            expect(series.annotation).toEqual("A / B")
         })
     })
 })

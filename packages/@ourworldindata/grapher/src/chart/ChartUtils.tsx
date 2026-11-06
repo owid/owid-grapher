@@ -430,5 +430,5 @@ export function joinEntityAnnotationTexts(
 ): string | undefined {
     const distinctTexts = new Set(texts)
     if (distinctTexts.size === 0) return undefined
-    return [...distinctTexts].join("; ")
+    return [...distinctTexts].join(" / ")
 }

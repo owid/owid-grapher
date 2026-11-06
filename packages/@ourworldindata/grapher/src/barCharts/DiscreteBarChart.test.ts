@@ -359,7 +359,7 @@ describe("entity annotations", () => {
         it("joins both annotations for a year with both a historical and a projected value", () => {
             const chartState = makeCombinedChartState(2020)
             expect(annotationByEntity(chartState)).toEqual({
-                France: "Estimate; Medium scenario",
+                France: "Estimate / Medium scenario",
                 Germany: undefined,
             })
         })
