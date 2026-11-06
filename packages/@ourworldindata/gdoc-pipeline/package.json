@@ -40,6 +40,7 @@
         "dist/gdoc-pipeline.d.ts.map"
     ],
     "scripts": {
+        "release": "bumpp",
         "build": "tsdown",
         "clean": "rm -rf dist dist-package",
         "testPackage": "yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:publint && yarn testPackage:attw",

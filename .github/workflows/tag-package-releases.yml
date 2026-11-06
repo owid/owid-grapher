@@ -1,0 +1,46 @@
+name: Tag package releases
+
+# Release PRs (opened by `bumpp --pr`) bump a package's version in a
+# `chore: release <package>@<version>` commit. bumpp doesn't tag locally, so tag
+# the merge commit here as a record of the release. (The Buildkite publish is
+# triggered by that commit message on master, not by the tag.)
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "packages/@ourworldindata/*/package.json"
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Tag packages whose version changed
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          # Releasable packages are the ones with a bump.config.ts
+          for config in packages/@ourworldindata/*/bump.config.ts; do
+            pkg=$(basename "$(dirname "$config")")
+            file="packages/@ourworldindata/$pkg/package.json"
+            new=$(jq -r .version "$file")
+            old=$(git show "$BEFORE:$file" 2>/dev/null | jq -r .version || true)
+            if [ "$new" = "$old" ]; then continue; fi
+            tag="$pkg@$new"
+            if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+              echo "$tag already exists, skipping"
+              continue
+            fi
+            git tag "$tag" "$GITHUB_SHA"
+            git push origin "refs/tags/$tag"
+            echo "Tagged $tag"
+          done
