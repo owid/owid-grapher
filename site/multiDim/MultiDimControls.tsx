@@ -1,7 +1,8 @@
 import cx from "clsx"
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState, type RefObject } from "react"
+import { useResizeObserver } from "usehooks-ts"
 
 import {
     DimensionEnriched,
@@ -9,7 +10,7 @@ import {
 } from "@ourworldindata/types"
 import { resolveDimensionPresentationType } from "@ourworldindata/utils"
 import DimensionDropdown from "./DimensionDropdown.js"
-import DimensionRadioGroup from "./DimensionRadioGroup.js"
+import MeasuredDimensionRadioGroup from "./MeasuredDimensionRadioGroup.js"
 
 export default function MultiDimControls({
     dimensions,
@@ -33,6 +34,7 @@ export default function MultiDimControls({
                 const fullDimension = dimensions[dim.slug] ?? dim
                 const presentationType = resolveDimensionPresentationType({
                     dimension: fullDimension,
+                    numberOfDimensions: Object.keys(dimensions).length,
                     // `dim` holds just the choices available right now
                     availableChoiceCount: dim.choices.length,
                 })
@@ -42,8 +44,13 @@ export default function MultiDimControls({
     )
     const needsToggle = controls.length > collapsedCount
 
+    const containerRef = useRef<HTMLDivElement | null>(null)
+    const { width: availableWidth } = useResizeObserver({
+        ref: containerRef as RefObject<HTMLDivElement>,
+    })
+
     return (
-        <div className="md-controls">
+        <div className="md-controls" ref={containerRef}>
             {controls.map(({ dim, fullDimension, presentationType }, index) => {
                 const controlClassName = cx({
                     "md-settings__control--hidden":
@@ -56,13 +63,12 @@ export default function MultiDimControls({
                     })
                 }
                 return presentationType === "radio" ? (
-                    <DimensionRadioGroup
+                    <MeasuredDimensionRadioGroup
                         key={dim.slug}
                         className={controlClassName}
                         dimension={fullDimension}
-                        availableChoiceSlugs={
-                            new Set(Object.keys(dim.choicesBySlug))
-                        }
+                        availableDimension={dim}
+                        availableWidth={availableWidth}
                         value={resolvedSettings[dim.slug]}
                         onChange={handleChange}
                         readOnly={readOnly}
