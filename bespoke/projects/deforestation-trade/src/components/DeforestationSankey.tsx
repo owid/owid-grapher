@@ -477,8 +477,8 @@ function makeNodeTooltip({
         // "Attributed to", as the source's model attributes the clearing to
         // the commodities later produced on the land rather than observing it
         const headlineDescription = isPartnerSideIncoming
-            ? `of forest cleared, attributed to ${commodity}${country ? ` consumed in ${country}` : ""}`
-            : `of forest cleared${country ? ` in ${country}` : ""}, attributed to ${commodity}`
+            ? `of forest cleared that's attributed to ${commodity}${country ? ` consumed in ${country}` : ""}`
+            : `of forest cleared${country ? ` in ${country}` : ""} that's attributed to ${commodity}`
         return {
             title: getGroupLabel(group),
             subtitle,
