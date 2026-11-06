@@ -380,6 +380,7 @@ function TooltipTrigger({
     const [tooltipRemountKey, setTooltipRemountKey] = useState(false)
 
     const { annotations, regionTooltip } = target.content
+    const { tooltipKey, regionName } = regionTooltip ?? {}
     const hasAnnotations = annotations !== undefined && annotations.length > 0
 
     const minHitAreaSize = getMinHitAreaSize()
@@ -455,18 +456,12 @@ function TooltipTrigger({
                 onHidden={() => setTooltipRemountKey((k) => !k)}
                 content={
                     <>
-                        {regionTooltip && (
+                        {tooltipKey && regionName && (
                             <RegionTooltip
                                 key={tooltipRemountKey.toString()}
-                                description={getDescriptionForKey(
-                                    regionTooltip.tooltipKey
-                                )}
-                                regions={getRegionsForKey(
-                                    regionTooltip.tooltipKey
-                                )}
-                                initiallyHighlightedRegion={
-                                    regionTooltip.regionName
-                                }
+                                description={getDescriptionForKey(tooltipKey)}
+                                regions={getRegionsForKey(tooltipKey)}
+                                initiallyHighlightedRegion={regionName}
                             />
                         )}
                         {hasAnnotations && (
