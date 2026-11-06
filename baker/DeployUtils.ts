@@ -52,8 +52,12 @@ const triggerBakeAndDeploy = async (
             await buildkite.runFullBuild(deployMetadata)
         }
     } else {
-        // otherwise, bake locally. This is used for local development or staging servers
-        const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
+        // otherwise, bake locally. This is used for local development or
+        // staging servers, where a save re-renders only the pages it changed;
+        // the staging cron's full bake refreshes the rest
+        const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL, undefined, {
+            incremental: true,
+        })
         if (lightningQueue?.length) {
             if (!lightningQueue.every((change) => change.slug))
                 throw new Error("Lightning deploy is missing a slug")

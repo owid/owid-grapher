@@ -14,29 +14,51 @@ import { ExplorerArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { ArchiveMetaInformation } from "@ourworldindata/types"
 import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../db/model/ArchivedExplorerVersion.js"
 
+/**
+ * Bakes all published explorers, or only those in `slugsToBake`, and removes
+ * the pages of explorers that are no longer published.
+ */
 export const bakeAllPublishedExplorers = async (
     outputFolder: string,
     explorerAdminServer: ExplorerAdminServer,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    slugsToBake?: Set<string>
 ) => {
-    // Remove the existing explorer pages, so that unpublished ones disappear.
-    // Only the HTML, since other bake steps write artifacts into this folder
-    // (e.g. _explorerRedirects.json) that we must not delete.
-    await traceJob("cleanup-explorer-pages", () =>
-        removeBakedExplorerPages(outputFolder)
-    )
-
     const published = await traceJob("load-explorer-pages", () =>
         explorerAdminServer.getAllPublishedExplorers(knex)
     )
-    await bakeExplorersToDir(outputFolder, published, knex)
+
+    // Remove the pages of explorers that aren't published, so that
+    // unpublished ones disappear. Only the HTML, since other bake steps write
+    // artifacts into this folder (e.g. _explorerRedirects.json) that we must
+    // not delete.
+    await traceJob("cleanup-explorer-pages", () =>
+        removeBakedExplorerPages(
+            outputFolder,
+            new Set(published.map((explorer) => explorer.slug))
+        )
+    )
+
+    await bakeExplorersToDir(
+        outputFolder,
+        published.filter(
+            (explorer) => !slugsToBake || slugsToBake.has(explorer.slug)
+        ),
+        knex
+    )
 }
 
-export const removeBakedExplorerPages = async (outputFolder: string) => {
+export const removeBakedExplorerPages = async (
+    outputFolder: string,
+    slugsToKeep: Set<string> = new Set()
+) => {
     await fs.mkdirp(outputFolder)
     const entries = await fs.readdir(outputFolder, { withFileTypes: true })
     const pages = entries.filter(
-        (entry) => entry.isFile() && entry.name.endsWith(".html")
+        (entry) =>
+            entry.isFile() &&
+            entry.name.endsWith(".html") &&
+            !slugsToKeep.has(path.basename(entry.name, ".html"))
     )
     await Promise.all(
         pages.map((page) => fs.unlink(path.join(outputFolder, page.name)))
