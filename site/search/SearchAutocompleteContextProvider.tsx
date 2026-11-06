@@ -11,12 +11,12 @@ export function SearchAutocompleteContextProvider({
     const [suggestions, setSuggestions] = useState<Filter[]>([])
     const [showSuggestions, setShowSuggestions] = useState<boolean>(false)
     const selectionHandlerRef = useRef<
-        ((filter: Filter, index: number) => void) | null
+        ((filter: Filter | undefined, index: number) => void) | null
     >(null)
 
     // Register a handler that will be called when an item is selected
     const registerSelectionHandler = useCallback(
-        (handler: (filter: Filter, index: number) => void) => {
+        (handler: (filter: Filter | undefined, index: number) => void) => {
             selectionHandlerRef.current = handler
         },
         []
@@ -26,7 +26,8 @@ export function SearchAutocompleteContextProvider({
     const onSelectActiveItem = useCallback(() => {
         if (!selectionHandlerRef.current) return
 
-        // Call the registered handler with the selected filter
+        // Call the registered handler with the selected filter (none for the
+        // AI search row after the suggestions)
         selectionHandlerRef.current(suggestions[activeIndex], activeIndex)
     }, [activeIndex, suggestions])
 
@@ -37,6 +38,7 @@ export function SearchAutocompleteContextProvider({
                 setActiveIndex,
                 suggestions,
                 setSuggestions,
+                itemCount: suggestions.length ? suggestions.length + 1 : 0,
                 showSuggestions,
                 setShowSuggestions,
                 onSelectActiveItem,
