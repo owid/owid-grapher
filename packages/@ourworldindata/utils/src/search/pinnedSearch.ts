@@ -3,6 +3,12 @@
  * pinned for. The indexer, the clash checks and the site all compare in this
  * form, so a pinned search and a reader's search that should match always
  * compare equal.
+ *
+ * The Metabase question "Top site searches, last 12 months"
+ * (http://metabase.owid.io/question/2017) repeats this cleanup in SQL to
+ * count past searches for the suggest-pinned-searches skill. If you change
+ * it here, update that query too. A mismatch only skews the counts authors
+ * see when picking pins; matching on the site isn't affected.
  */
 export function normalizePinnedSearch(search: string): string {
     return search
