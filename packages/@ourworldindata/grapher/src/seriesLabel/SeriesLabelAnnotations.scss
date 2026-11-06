@@ -1,6 +1,7 @@
 .series-label-annotations {
     color: $gray-100;
     font-size: 0.875rem;
+    line-height: 1.4;
 
     @include sm-only {
         font-size: 13px;
@@ -28,6 +29,11 @@
         margin: 0;
         padding: 0;
         list-style: none;
+    }
+
+    .series-label-annotations__entry {
+        display: grid;
+        row-gap: 2px;
     }
 
     .series-label-annotations__entry:not(:last-child) {
