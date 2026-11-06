@@ -29,6 +29,7 @@ import { CoreTable, OwidTable } from "@ourworldindata/core-table"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks.js"
 import { runSiteFooterScripts } from "./runSiteFooterScripts.js"
+import { runLabsBar } from "./labs/runLabsBar.js"
 
 declare let window: any
 window.Grapher = Grapher
@@ -57,3 +58,5 @@ analytics.startClickTracking()
 analytics.startDetectingBrowserTranslation()
 analytics.startPrintTracking()
 analytics.startFindInPageTracking()
+
+runLabsBar()
