@@ -219,10 +219,6 @@ type PlacedSankeyLabel = {
     iconStyle?: SankeyIconStyle
     labelColor?: string
     highlightedLabelColor?: string
-    /** Hidden icons still reserve horizontal space to keep labels aligned. */
-    isIconVisible: boolean
-    /** The variant is just the icon, shown by the band */
-    isIconOnly?: boolean
 }
 
 type Margin = { top: number; right: number; bottom: number; left: number }
@@ -1001,34 +997,35 @@ function SankeyLabel({
         label.y - 0.5 * getLabelTextHeight(label) + 0.5 * label.label.height
     const iconX = isTextAnchoredAtEnd ? label.x - iconSize : label.x
     const iconCenterY =
-        isInlineIcon && !label.isIconOnly ? firstLineCenterY : label.y
-    const icon =
-        label.icon && label.isIconVisible ? (
-            <>
-                {/* A badge sits on a white disc so it stays legible over
-                    the ribbons */}
-                {!isInlineIcon && (
-                    <circle
-                        className="sankey__label-icon-backing"
-                        cx={iconX + 0.5 * iconSize}
-                        cy={iconCenterY}
-                        r={0.5 * iconSize + ICON_BACKING_PADDING}
-                    />
-                )}
-                <svg
-                    className="sankey__label-icon"
-                    x={iconX}
-                    y={iconCenterY - 0.5 * iconSize}
-                    width={iconSize}
-                    height={iconSize}
-                    viewBox={`0 0 ${SANKEY_ICON_SIZE} ${SANKEY_ICON_SIZE}`}
-                >
-                    {label.icon}
-                </svg>
-            </>
-        ) : null
+        isInlineIcon && !isIconOnlyLabel(label.label.text, label.icon)
+            ? firstLineCenterY
+            : label.y
+    const icon = label.icon ? (
+        <>
+            {/* A badge sits on a white disc so it stays legible over
+                the ribbons */}
+            {!isInlineIcon && (
+                <circle
+                    className="sankey__label-icon-backing"
+                    cx={iconX + 0.5 * iconSize}
+                    cy={iconCenterY}
+                    r={0.5 * iconSize + ICON_BACKING_PADDING}
+                />
+            )}
+            <svg
+                className="sankey__label-icon"
+                x={iconX}
+                y={iconCenterY - 0.5 * iconSize}
+                width={iconSize}
+                height={iconSize}
+                viewBox={`0 0 ${SANKEY_ICON_SIZE} ${SANKEY_ICON_SIZE}`}
+            >
+                {label.icon}
+            </svg>
+        </>
+    ) : null
 
-    if (label.isIconOnly)
+    if (isIconOnlyLabel(label.label.text, label.icon))
         return (
             <g className={className} color={labelColor}>
                 {icon}
@@ -1200,11 +1197,10 @@ function placeSankeyLabels({
                 node,
                 variant,
                 anchor,
-                nodeHeightWithPadding,
                 fontSettings,
             })
             // An empty label has nothing to fit
-            if (placed.label.text === "" && !placed.isIconOnly) return [placed]
+            if (placed.label.text === "" && !placed.icon) return [placed]
             if (!fitsNodeHeight(placed, nodeHeightWithPadding)) continue
             if (
                 ribbons &&
@@ -1258,25 +1254,15 @@ function placeLabelVariant({
     node,
     variant,
     anchor,
-    nodeHeightWithPadding,
     fontSettings,
 }: {
     node: LaidOutNode
     variant: SankeyLabelVariant
     anchor: LabelAnchor
-    nodeHeightWithPadding: number
     fontSettings: FontSettings
 }): PlacedSankeyLabel {
     const { label = "", valueLabel, annotation, icon, iconStyle } = variant
-    const isIconOnly = label === "" && icon !== undefined
-
-    // Hide badges that would overlap adjacent labels, but preserve their
-    // text offset. An inline icon sits on the label's first line, so it
-    // goes wherever the label does; an icon alone is the whole label.
-    const isIconVisible =
-        isIconOnly ||
-        iconStyle === "inline" ||
-        nodeHeightWithPadding >= SANKEY_ICON_SIZE
+    const isIconOnly = isIconOnlyLabel(label, icon)
 
     const makeTextWrap = (
         text: string,
@@ -1306,9 +1292,12 @@ function placeLabelVariant({
         iconStyle,
         labelColor: node.labelColor,
         highlightedLabelColor: node.highlightedLabelColor,
-        isIconVisible,
-        isIconOnly,
     }
+}
+
+/** An icon without name text is drawn alone, centred on the node. */
+function isIconOnlyLabel(text: string, icon: React.ReactNode): boolean {
+    return text === "" && !!icon
 }
 
 /** Whether a placed label fits its node's height, padding included */
@@ -1316,7 +1305,8 @@ function fitsNodeHeight(
     label: PlacedSankeyLabel,
     nodeHeightWithPadding: number
 ): boolean {
-    if (label.isIconOnly) return getIconSize(label) <= nodeHeightWithPadding
+    if (isIconOnlyLabel(label.label.text, label.icon))
+        return getIconSize(label) <= nodeHeightWithPadding
     // A single line always fits, so every node can be named
     if (!label.valueLabel && !label.annotation) return true
     return getLabelTextHeight(label) <= nodeHeightWithPadding
@@ -1509,7 +1499,7 @@ function calculateNodeHitBounds(
 
 /** The box a placed label's text and icon take up */
 function getLabelBounds(label: PlacedSankeyLabel): Bounds {
-    if (label.isIconOnly) {
+    if (isIconOnlyLabel(label.label.text, label.icon)) {
         const size = getIconSize(label)
         const iconX = label.textAnchor === "end" ? label.x - size : label.x
         return new Bounds(iconX, label.y - size / 2, size, size)
@@ -1522,10 +1512,9 @@ function getLabelBounds(label: PlacedSankeyLabel): Bounds {
             label.annotation?.width ?? 0
         ) + getIconWidth(label)
     const textHeight = getLabelTextHeight(label)
-    const hasIcon = label.icon && label.isIconVisible
     // A badge is centred on the label; an inline icon on its first line,
     // past whose top and bottom it may reach
-    const height = !hasIcon
+    const height = !label.icon
         ? textHeight
         : label.iconStyle === "inline"
           ? textHeight + Math.max(0, INLINE_ICON_SIZE - label.label.height)
