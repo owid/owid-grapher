@@ -30,6 +30,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          # Subject of the pushed commit, without the " (#123)" a squash merge appends
+          subject=$(git log -1 --format=%s "$GITHUB_SHA" | sed -E 's/ \(#[0-9]+\)$//')
           # Releasable packages are the ones with a bump.config.ts
           for config in packages/@ourworldindata/*/bump.config.ts; do
             pkg=$(basename "$(dirname "$config")")
@@ -38,6 +40,11 @@ jobs:
             old=$(git show "$BEFORE:$file" 2>/dev/null | jq -r .version || true)
             if [ "$new" = "$old" ]; then continue; fi
             tag="$pkg@$new"
+            # Only tag the commit the Buildkite pipeline publishes from
+            if [ "$subject" != "chore: release $tag" ]; then
+              echo "Commit is not '$tag' release commit, skipping"
+              continue
+            fi
             if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
               echo "$tag already exists, skipping"
               continue
