@@ -6,7 +6,7 @@ import { LINE_STYLE, RenderPointAnnotation } from "./LineChartConstants"
 import { AnnotationInfoIcon } from "../annotations/AnnotationInfoIcon"
 import { SeriesLabelAnnotations } from "../seriesLabel/SeriesLabelAnnotations"
 
-interface LineChartAnnotationMarkersProps {
+interface LineChartPointAnnotationsProps {
     annotations: RenderPointAnnotation[]
     radius: number
     hitRadius: number
@@ -14,15 +14,15 @@ interface LineChartAnnotationMarkersProps {
     onTooltipClose: () => void
 }
 
-export function LineChartAnnotationMarkers({
+export function LineChartPointAnnotations({
     annotations,
     radius,
     hitRadius,
     onClick,
     onTooltipClose,
-}: LineChartAnnotationMarkersProps): React.ReactElement {
+}: LineChartPointAnnotationsProps): React.ReactElement {
     return (
-        <g className="line-chart-annotation-markers">
+        <g className="line-chart-point-annotations">
             {annotations.map(
                 ({
                     key,
@@ -49,7 +49,7 @@ export function LineChartAnnotationMarkers({
                         }
                     >
                         <g
-                            className="line-chart-annotation-markers__marker"
+                            className="line-chart-point-annotations__marker"
                             transform={`translate(${roundForSvg(point.x)}, ${roundForSvg(point.y)})`}
                             opacity={LINE_STYLE[emphasis].opacity}
                             onClick={() => onClick(seriesName, point.time)}
