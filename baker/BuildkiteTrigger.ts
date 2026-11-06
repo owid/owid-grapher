@@ -20,7 +20,6 @@ interface BuildkiteBuildResponse {
     message: string | null
     web_url: string
     created_at: string
-    meta_data?: Record<string, string> | null
 }
 
 export class BuildkiteTrigger {
@@ -82,17 +81,11 @@ export class BuildkiteTrigger {
         )
     }
 
-    /**
-     * Request one content deploy (a full bake) and return its build number.
-     *
-     * `requestedAt` (unix seconds) lets the deploy skip its bake when a full
-     * bake that started after it has already gone out ("covered", see
-     * templates/common.sh in owid/ops).
-     */
-    async requestContentBuild(
-        { title, changesSlackMentions }: DeployMetadata,
-        requestedAt: Date
-    ): Promise<number> {
+    /** Request one content deploy (a full bake) and return its build number */
+    async requestContentBuild({
+        title,
+        changesSlackMentions,
+    }: DeployMetadata): Promise<number> {
         const message = `🚚 ${title}${
             changesSlackMentions.length > 1
                 ? ` and ${changesSlackMentions.length - 1} more updates`
@@ -101,9 +94,6 @@ export class BuildkiteTrigger {
 
         return this.triggerBuild(message, {
             CONTENT_DEPLOY: "1",
-            DEPLOY_REQUESTED_AT: String(
-                Math.floor(requestedAt.getTime() / 1000)
-            ),
             CHANGES_SLACK_MENTIONS: changesSlackMentions.join("\n"),
         })
     }
@@ -132,8 +122,6 @@ export class BuildkiteTrigger {
             message: build.message ?? "",
             webUrl: build.web_url,
             createdAt: build.created_at,
-            // Set by owid/ops' deploy-content.sh
-            covered: build.meta_data?.["deploy-covered"] === "true",
         }))
     }
 }

@@ -6,6 +6,4 @@ export interface DeployBuild {
     message: string
     webUrl: string
     createdAt: string
-    /** Skipped its bake because a newer full bake had already gone out */
-    covered: boolean
 }

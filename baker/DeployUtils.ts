@@ -28,8 +28,12 @@ const changesByTransaction = new WeakMap<
  * At most one build request per window, plus a trailing one for what the
  * window held. An ETL push calls the admin API once per indicator or chart, a
  * few hundred times in minutes; this turns that into a handful of requests.
+ *
+ * Keep it longer than a content build takes (~4–5 min on prod, with the
+ * archive), so requests never come faster than builds finish and don't queue
+ * up behind the deploy lock. If bakes get slower, raise it.
  */
-export const DEPLOY_REQUEST_WINDOW_MS = 60_000
+export const DEPLOY_REQUEST_WINDOW_MS = 5 * 60_000
 
 let heldChanges: DeployChange[] = []
 let windowTimer: ReturnType<typeof setTimeout> | undefined
@@ -149,10 +153,10 @@ const requestContentDeploy = async (
     const changesAuthorNames = getChangesAuthorNames(changes)
     console.log(`Requesting a deploy for:\n${changesAuthorNames.join("\n")}`)
     const changesSlackMentions = await getChangesSlackMentions(changes)
-    return new BuildkiteTrigger().requestContentBuild(
-        { title: changesAuthorNames[0], changesSlackMentions },
-        new Date()
-    )
+    return new BuildkiteTrigger().requestContentBuild({
+        title: changesAuthorNames[0],
+        changesSlackMentions,
+    })
 }
 
 const getChangesAuthorNames = (queueItems: DeployChange[]): string[] => {

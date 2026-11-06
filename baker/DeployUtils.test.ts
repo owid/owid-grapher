@@ -119,9 +119,6 @@ describe(enqueueDeployChange, () => {
             ["Updating chart a", "Updating chart b"],
         ])
         expect(request.env.CONTENT_DEPLOY).toBe("1")
-        expect(request.env.DEPLOY_REQUESTED_AT).toBe(
-            String(Math.floor(Date.now() / 1000))
-        )
     })
 
     it("requests nothing when the transaction rolls back", async () => {
@@ -178,31 +175,31 @@ describe("a burst of edits", () => {
         await settle()
         expect(requestedChanges()).toEqual([["a"]])
 
-        await vi.advanceTimersByTimeAsync(10_000)
+        await vi.advanceTimersByTimeAsync(DEPLOY_REQUEST_WINDOW_MS / 4)
         await edit("b")
-        await vi.advanceTimersByTimeAsync(20_000)
+        await vi.advanceTimersByTimeAsync(DEPLOY_REQUEST_WINDOW_MS / 4)
         await edit("c")
         await settle()
         // Held: a build requested for "a" may already be baking
         expect(requestedChanges()).toEqual([["a"]])
 
-        await vi.advanceTimersByTimeAsync(30_000) // 60 s after "a"
+        await vi.advanceTimersByTimeAsync(DEPLOY_REQUEST_WINDOW_MS / 2) // a window after "a"
         await settle()
         expect(requestedChanges()).toEqual([["a"], ["b", "c"]])
     })
 
     it("keeps holding while edits keep coming, one request per window", async () => {
-        await edit("a") // 0 s: sent
+        await edit("a") // sent
         await vi.advanceTimersByTimeAsync(DEPLOY_REQUEST_WINDOW_MS / 2)
-        await edit("b") // 30 s: held
+        await edit("b") // half a window later: held
         await vi.advanceTimersByTimeAsync(DEPLOY_REQUEST_WINDOW_MS / 2)
-        // 60 s: "b" goes out and opens the next window
+        // A window after "a": "b" goes out and opens the next window
         await edit("c") // held for that window
         await vi.advanceTimersByTimeAsync(DEPLOY_REQUEST_WINDOW_MS - 1)
         await settle()
         expect(requestedChanges()).toEqual([["a"], ["b"]])
 
-        await vi.advanceTimersByTimeAsync(1) // 120 s
+        await vi.advanceTimersByTimeAsync(1) // two windows after "a"
         await settle()
         expect(requestedChanges()).toEqual([["a"], ["b"], ["c"]])
     })

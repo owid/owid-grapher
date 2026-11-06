@@ -7,13 +7,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { DeployBuild } from "@ourworldindata/utils"
 import { Timeago } from "./Forms.js"
 
-type DeployStateKind =
-    | "waiting"
-    | "deploying"
-    | "deployed"
-    | "covered"
-    | "failed"
-    | "other"
+type DeployStateKind = "waiting" | "deploying" | "deployed" | "failed" | "other"
 
 // Buildkite's build states, grouped the way an editor cares about them
 const stateKinds: Record<string, DeployStateKind> = {
@@ -29,7 +23,6 @@ const stateLabels: Record<DeployStateKind, string> = {
     waiting: "Waiting",
     deploying: "Deploying",
     deployed: "Deployed",
-    covered: "Covered by a later deploy",
     failed: "Failed",
     other: "Didn't run",
 }
@@ -103,12 +96,8 @@ export class DeployStatusPage extends Component {
                             </thead>
                             <tbody>
                                 {this.builds.map((build) => {
-                                    const state =
-                                        stateKinds[build.state] ?? "other"
                                     const kind =
-                                        state === "deployed" && build.covered
-                                            ? "covered"
-                                            : state
+                                        stateKinds[build.state] ?? "other"
                                     return (
                                         <tr key={build.number}>
                                             <td

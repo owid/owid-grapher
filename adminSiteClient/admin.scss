@@ -1277,8 +1277,7 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     .cell-status--deploying a {
         color: #c36d00;
     }
-    .cell-status--deployed a,
-    .cell-status--covered a {
+    .cell-status--deployed a {
         color: green;
     }
     .cell-status--failed a {
