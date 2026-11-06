@@ -743,6 +743,18 @@ export class LineChart
         })
     }
 
+    private findSeriesForLabel(series: LineChartSeries): LineChartSeries[] {
+        const historicalSlug = this.manager.projectionColumnInfoBySlug?.get(
+            series.columnSlug
+        )?.historicalSlug
+        return this.series.filter(
+            (s) =>
+                s.seriesName === series.seriesName ||
+                (s.entityName === series.entityName &&
+                    s.columnSlug === historicalSlug)
+        )
+    }
+
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed private get verticalLabelsSeries(): LabelSeries[] {
@@ -773,7 +785,12 @@ export class LineChart
                     seriesName
                 ),
                 annotations: toSeriesLabelAnnotations(
-                    series.pointAnnotations,
+                    _.sortBy(
+                        this.findSeriesForLabel(series).flatMap(
+                            (s) => s.pointAnnotations
+                        ),
+                        (annotation) => annotation.time
+                    ),
                     (time) => this.chartState.formatColumn.formatTime(time)
                 ),
                 yValue: lastValue,

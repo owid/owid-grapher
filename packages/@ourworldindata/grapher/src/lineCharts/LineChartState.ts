@@ -359,6 +359,7 @@ export class LineChartState implements ChartState, ColorScaleManager {
             points,
             seriesName,
             entityName,
+            columnSlug: column.slug,
             columnName,
             displayName,
             isProjection: column.isProjection,

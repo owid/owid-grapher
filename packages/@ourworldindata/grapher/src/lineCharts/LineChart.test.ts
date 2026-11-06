@@ -558,3 +558,94 @@ describe("point annotations", () => {
         })
     })
 })
+
+describe("time annotations on projection labels", () => {
+    const pointAnnotation = (
+        text: string,
+        time: number
+    ): IndicatorAnnotation => ({
+        text,
+        entityNames: ["usa"],
+        timeScope: "point",
+        time,
+    })
+
+    const makeProjectionChart = ({
+        historicalAnnotations,
+        projectedAnnotations = [],
+        ...managerOptions
+    }: {
+        historicalAnnotations: IndicatorAnnotation[]
+        projectedAnnotations?: IndicatorAnnotation[]
+    } & Partial<LineChartManager>): { chart: LineChart } => {
+        const table = new OwidTable(
+            {
+                entityName: ["usa", "usa", "usa"],
+                year: [2000, 2001, 2002],
+                gdp: [100, 200, ErrorValueTypes.MissingValuePlaceholder],
+                gdpProjected: [
+                    ErrorValueTypes.MissingValuePlaceholder,
+                    250,
+                    300,
+                ],
+            },
+            [
+                {
+                    slug: "gdp",
+                    type: ColumnTypeNames.Numeric,
+                    annotations: historicalAnnotations,
+                },
+                {
+                    slug: "gdpProjected",
+                    type: ColumnTypeNames.Numeric,
+                    display: { isProjection: true },
+                    annotations: projectedAnnotations,
+                },
+            ]
+        )
+        return makeLineChart({
+            table,
+            yColumnSlugs: ["gdp", "gdpProjected"],
+            selection: ["usa"],
+            ...managerOptions,
+        })
+    }
+
+    const labelAnnotationTexts = (chart: LineChart): string[][] =>
+        chart["verticalLabelsSeries"].map((label) =>
+            (label.annotations ?? []).map((annotation) => annotation.text)
+        )
+
+    it("lists the historical indicator's annotations on the projection label, in time order", () => {
+        const { chart } = makeProjectionChart({
+            historicalAnnotations: [pointAnnotation("historical point", 2000)],
+            projectedAnnotations: [pointAnnotation("projected point", 2002)],
+            seriesStrategy: SeriesStrategy.entity,
+        })
+
+        expect(labelAnnotationTexts(chart)).toEqual([
+            ["historical point", "projected point"],
+        ])
+    })
+
+    it("lists the paired historical indicator's annotations on the projection label in column strategy", () => {
+        const { chart } = makeProjectionChart({
+            historicalAnnotations: [pointAnnotation("historical point", 2000)],
+            seriesStrategy: SeriesStrategy.column,
+            projectionColumnInfoBySlug: new Map([
+                [
+                    "gdpProjected",
+                    {
+                        projectedSlug: "gdpProjected",
+                        historicalSlug: "gdp",
+                        combinedSlug: "gdpProjected-gdp",
+                        slugForIsProjectionColumn:
+                            "gdpProjected-gdp-isProjection",
+                    },
+                ],
+            ]),
+        })
+
+        expect(labelAnnotationTexts(chart)).toEqual([["historical point"]])
+    })
+})

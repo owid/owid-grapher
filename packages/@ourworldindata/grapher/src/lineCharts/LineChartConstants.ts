@@ -1,7 +1,9 @@
 import { ChartManager } from "../chart/ChartManager"
 import {
+    ColumnSlug,
     CoreValueType,
     EntityName,
+    ProjectionColumnInfo,
     SeriesName,
     Time,
 } from "@ourworldindata/types"
@@ -96,6 +98,7 @@ export interface LineChartSeries extends ChartSeries {
     plotMarkersOnly?: boolean
     points: LinePoint[]
     entityName: EntityName
+    columnSlug: ColumnSlug
     columnName: string
     focus: InteractionState
     pointAnnotations: PointAnnotation[]
@@ -128,6 +131,7 @@ export interface LineChartManager extends ChartManager {
     lineStrokeWidth?: number
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
     hasScatter?: boolean // x-axis config is ignored if a secondary scatter plot is present
+    projectionColumnInfoBySlug?: Map<ColumnSlug, ProjectionColumnInfo>
 }
 
 export type AnnotationTooltipState =
