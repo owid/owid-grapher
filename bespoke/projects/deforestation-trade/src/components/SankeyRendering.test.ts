@@ -59,7 +59,7 @@ describe("parallel link rendering", () => {
 
 /**
  * A node's label variants are tried in order, and the first that fits is
- * drawn. With `fitMiddleLabelsToRibbons`, a middle column's label only fits
+ * drawn. A middle column's label only fits
  * where it lies entirely on the node's own ribbons on its side; where no
  * variant does, the node goes unlabelled. The variants here are the full
  * label, then the name without the value line, then the icon alone, by the
@@ -73,12 +73,12 @@ describe("parallel link rendering", () => {
 const ICON = createElement("rect", { width: 16, height: 16 })
 
 function renderLabels({
-    fitMiddleLabelsToRibbons,
     isIconFirst = false,
+    iconStyle = "inline",
 }: {
-    fitMiddleLabelsToRibbons: boolean
     /** Try the icon alone before the variants with text */
     isIconFirst?: boolean
+    iconStyle?: "inline" | "badge"
 }): { texts: string[]; iconCount: number } {
     const middle: [id: string, value: number, label: string][] = [
         ["wide", 200, "wide"],
@@ -89,7 +89,7 @@ function renderLabels({
     const nodes: SankeyNode[] = [
         { id: "from", label: "" },
         ...middle.map(([id, , label]) => {
-            const icon = { icon: ICON, iconStyle: "inline" as const }
+            const icon = { icon: ICON, iconStyle }
             const withText = [
                 { label, valueLabel: "1 ha", ...icon },
                 { label, ...icon },
@@ -116,7 +116,6 @@ function renderLabels({
             width: 600,
             height: 400,
             middleLabelSide: "left",
-            fitMiddleLabelsToRibbons,
         })
     )
     const texts = [...markup.matchAll(/<tspan[^>]*>([^<]*)<\/tspan>/g)].map(
@@ -128,35 +127,24 @@ function renderLabels({
 
 describe("fitting middle labels to their ribbons", () => {
     it("shows a label in full where it fits, its name alone where only that fits, then its icon alone, then nothing", () => {
-        const { texts, iconCount } = renderLabels({
-            fitMiddleLabelsToRibbons: true,
-        })
+        const { texts, iconCount } = renderLabels({})
         expect(texts).toEqual(["wide", "1 ha", "medium"])
         // The wide and medium nodes' icons lead their text; the long-named
         // node keeps only its icon; the narrow node has none
         expect(iconCount).toEqual(3)
     })
 
-    it("leaves every label in place when fitting is off", () => {
+    it("also hides standalone badges where the ribbon is too thin", () => {
         const { texts, iconCount } = renderLabels({
-            fitMiddleLabelsToRibbons: false,
+            isIconFirst: true,
+            iconStyle: "badge",
         })
-        // (The narrow node is too short for its value line, as always)
-        expect(texts).toEqual([
-            "wide",
-            "1 ha",
-            "medium",
-            "1 ha",
-            "a name far too long to lie along its ribbon at all",
-            "1 ha",
-            "narrow",
-        ])
-        expect(iconCount).toEqual(4)
+        expect(texts).toEqual([])
+        expect(iconCount).toEqual(3)
     })
 
     it("tries the variants in the order given", () => {
         const { texts, iconCount } = renderLabels({
-            fitMiddleLabelsToRibbons: true,
             isIconFirst: true,
         })
         // Every node whose ribbon fits the icon shows it alone; on the narrow

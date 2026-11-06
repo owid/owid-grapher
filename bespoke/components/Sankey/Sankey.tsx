@@ -118,13 +118,6 @@ interface SankeyProps {
     tooltipMaxWidth?: number
     /** Side of a middle node's band to place labels over the ribbons; defaults to right. */
     middleLabelSide?: "left" | "right"
-    /**
-     * Only show a middle node's label where it fits on the node's own ribbons
-     * on its side; where it doesn't, fall back to its name without the value
-     * line, then to just its icon, then to nothing, whichever fits first. For labels drawn in a colour that only reads
-     * against their ribbon.
-     */
-    fitMiddleLabelsToRibbons?: boolean
     getNodeTooltip?: (args: NodeTooltipArgs) => SankeyTooltip | undefined
     getLinkTooltip?: (args: LinkTooltipArgs) => SankeyTooltip | undefined
     onNodeClick?: (node: SankeyNode) => void
@@ -265,7 +258,6 @@ export function Sankey({
     fontSettings = DEFAULT_FONT_SETTINGS,
     tooltipMaxWidth = 340,
     middleLabelSide = "right",
-    fitMiddleLabelsToRibbons = false,
     getLinkTooltip,
     getRelatedLinks,
     getRelatedLinksForNode,
@@ -395,17 +387,9 @@ export function Sankey({
                 nodePadding,
                 fontSettings,
                 middleLabelSide,
-                fitMiddleLabelsToRibbons,
                 middleBand,
             }),
-        [
-            layout,
-            nodePadding,
-            fontSettings,
-            middleLabelSide,
-            fitMiddleLabelsToRibbons,
-            middleBand,
-        ]
+        [layout, nodePadding, fontSettings, middleLabelSide, middleBand]
     )
 
     const nodesById = useMemo(
@@ -1166,22 +1150,20 @@ function getLabelTextHeight(label: {
  *
  * A variant fits when it fits the node's height (padding included): a
  * single line of text always does, more lines must stack within it, and an
- * icon alone must be no taller. With `fitMiddleLabelsToRibbons`, a middle
- * label must also lie entirely on the node's own ribbons on its side.
+ * icon alone must be no taller. A middle label must also lie entirely on
+ * the node's own ribbons on its side.
  */
 function placeSankeyLabels({
     layout,
     nodePadding,
     fontSettings,
     middleLabelSide,
-    fitMiddleLabelsToRibbons,
     middleBand,
 }: {
     layout: LaidOutGraph | null
     nodePadding: number
     fontSettings: FontSettings
     middleLabelSide: "left" | "right"
-    fitMiddleLabelsToRibbons: boolean
     middleBand?: MiddleBand
 }): PlacedSankeyLabel[] {
     if (!layout) return []
@@ -1204,7 +1186,7 @@ function placeSankeyLabels({
 
         // A middle label lies over the node's ribbons on its side
         const ribbons =
-            fitMiddleLabelsToRibbons && side === "middle"
+            side === "middle"
                 ? ((anchor.textAnchor === "end"
                       ? node.targetLinks
                       : node.sourceLinks
