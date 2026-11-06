@@ -24,6 +24,7 @@ import {
 } from "@ourworldindata/types"
 import { mergeGrapherConfigs, dimensionsToViewId } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
+import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
     buildMdimViewPatchConfig,
     getMdimViewConfigWithSchema,
@@ -446,15 +447,19 @@ export async function deleteUnpublishedMultiDim(
     await knex(ChartConfigsTableName).whereIn("id", chartConfigIds).delete()
     await knex(MultiDimDataPagesTableName).where({ id: multiDim.id }).delete()
 
-    // Clean up R2 last, so a failing DB operation doesn't leave the DB
-    // pointing to configs that no longer exist.
+    // R2 deletions can't be rolled back, so a failure must not roll back the
+    // DB deletes above: that would restore a multi-dim whose configs are
+    // already partly gone from R2. A leftover config of a deleted, unpublished
+    // multi-dim isn't served anywhere, so we only log the failure.
     for (const id of chartConfigIds) {
-        await deleteGrapherConfigFromR2ByUuid(id)
+        await deleteGrapherConfigFromR2ByUuid(id).catch(
+            logErrorAndMaybeCaptureInSentry
+        )
     }
     if (multiDim.slug) {
         await deleteGrapherConfigFromR2(
             R2GrapherConfigDirectory.multiDim,
             `${multiDim.slug}.json`
-        )
+        ).catch(logErrorAndMaybeCaptureInSentry)
     }
 }
