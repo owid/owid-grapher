@@ -24,10 +24,7 @@ import {
     FontSettings,
 } from "../core/GrapherConstants"
 import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
-import {
-    placeEntityAnnotationsInTooltip,
-    selectEntityAnnotationsForColumns,
-} from "../annotations/EntityAnnotations"
+import { selectEntityAnnotationsForColumns } from "../annotations/EntityAnnotations"
 import {
     computeCenteredLabelYPositions,
     enrichSeriesWithLabels,
@@ -586,13 +583,10 @@ export class StackedDiscreteBarChart
             : undefined
         const footer = excludeUndefined([toleranceNotice, roundingNotice])
 
-        const annotationPlacement = target
-            ? placeEntityAnnotationsInTooltip(
-                  selectEntityAnnotationsForColumns(
-                      this.chartState.yColumns,
-                      target.entityName
-                  ),
-                  this.chartState.yColumns.map((column) => column.slug)
+        const annotationTextBySlug = target
+            ? selectEntityAnnotationsForColumns(
+                  this.chartState.yColumns,
+                  target.entityName
               )
             : undefined
 
@@ -608,11 +602,6 @@ export class StackedDiscreteBarChart
                     offsetX={20}
                     offsetY={-16}
                     title={target.entityName}
-                    titleAnnotation={
-                        annotationPlacement?.kind === "shared"
-                            ? annotationPlacement.text
-                            : undefined
-                    }
                     subtitle={displayUnit}
                     subtitleFormat="unit"
                     footer={footer}
@@ -636,12 +625,9 @@ export class StackedDiscreteBarChart
                                 swatch: { color },
                                 blurred,
                                 focused: name === target.seriesName,
-                                annotation:
-                                    annotationPlacement?.kind === "perColumn"
-                                        ? annotationPlacement.textBySlug.get(
-                                              bar.columnSlug
-                                          )
-                                        : undefined,
+                                annotation: annotationTextBySlug?.get(
+                                    bar.columnSlug
+                                ),
                                 values: [!blurred ? value : undefined],
                                 originalTime:
                                     !blurred && time !== targetTime

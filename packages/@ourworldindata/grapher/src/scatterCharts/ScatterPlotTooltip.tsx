@@ -15,7 +15,7 @@ import {
     CoreColumn,
     OwidColumn,
 } from "@ourworldindata/core-table"
-import { OwidColumnDef } from "@ourworldindata/types"
+import { ColumnSlug, OwidColumnDef } from "@ourworldindata/types"
 import {
     Tooltip,
     TooltipState,
@@ -28,11 +28,7 @@ import {
 import { FooterItem, TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import { ScatterSeries, SeriesPoint } from "./ScatterPlotChartConstants"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
-import {
-    placeEntityAnnotationsInTooltip,
-    selectEntityAnnotationsForColumns,
-    TooltipAnnotationPlacement,
-} from "../annotations/EntityAnnotations"
+import { selectEntityAnnotationsForColumns } from "../annotations/EntityAnnotations"
 
 export interface ScatterPlotTooltipProps {
     id: number
@@ -170,18 +166,14 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
         )
     }
 
-    @computed private get annotationPlacement():
-        | TooltipAnnotationPlacement
+    @computed private get annotationTextBySlug():
+        | Map<ColumnSlug, string>
         | undefined {
         const { target } = this.props.tooltipState
         if (!target) return undefined
-        const { rowColumns } = this
-        return placeEntityAnnotationsInTooltip(
-            selectEntityAnnotationsForColumns(
-                rowColumns,
-                target.series.seriesName
-            ),
-            rowColumns.map((column) => column.slug)
+        return selectEntityAnnotationsForColumns(
+            this.rowColumns,
+            target.series.seriesName
         )
     }
 
@@ -214,9 +206,7 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
     }
 
     private getColumnAnnotation(column: CoreColumn): string | undefined {
-        return this.annotationPlacement?.kind === "perColumn"
-            ? this.annotationPlacement.textBySlug.get(column.slug)
-            : undefined
+        return this.annotationTextBySlug?.get(column.slug)
     }
 
     override render(): React.ReactElement | null {
@@ -238,11 +228,6 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
                 offsetY={-16}
                 style={{ maxWidth: "250px" }}
                 title={target.series.label}
-                titleAnnotation={
-                    this.annotationPlacement?.kind === "shared"
-                        ? this.annotationPlacement.text
-                        : undefined
-                }
                 subtitle={this.subtitle}
                 dissolve={fading}
                 footer={this.footer}

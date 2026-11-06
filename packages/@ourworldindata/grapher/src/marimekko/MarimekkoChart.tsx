@@ -63,10 +63,7 @@ import {
 } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
-import {
-    placeEntityAnnotationsInTooltip,
-    selectEntityAnnotationsForColumns,
-} from "../annotations/EntityAnnotations"
+import { selectEntityAnnotationsForColumns } from "../annotations/EntityAnnotations"
 import { MarimekkoBars } from "./MarimekkoBars"
 import {
     measureMarimekkoLabels,
@@ -476,16 +473,11 @@ export class MarimekkoChart
             xColumn && !xColumn.isMissing ? xColumn : undefined,
             tooltipEntityColor ? colorColumn : undefined,
         ])
-        const annotationPlacement = entityName
-            ? placeEntityAnnotationsInTooltip(
-                  selectEntityAnnotationsForColumns(rowColumns, entityName),
-                  rowColumns.map((column) => column.slug)
-              )
+        const annotationTextBySlug = entityName
+            ? selectEntityAnnotationsForColumns(rowColumns, entityName)
             : undefined
         const getColumnAnnotation = (column: CoreColumn): string | undefined =>
-            annotationPlacement?.kind === "perColumn"
-                ? annotationPlacement.textBySlug.get(column.slug)
-                : undefined
+            annotationTextBySlug?.get(column.slug)
 
         return (
             <g
@@ -532,11 +524,6 @@ export class MarimekkoChart
                         offsetX={20}
                         offsetY={-16}
                         title={entityName}
-                        titleAnnotation={
-                            annotationPlacement?.kind === "shared"
-                                ? annotationPlacement.text
-                                : undefined
-                        }
                         subtitle={timeColumn.formatValue(endTime)}
                         footer={footer}
                         dissolve={fading}

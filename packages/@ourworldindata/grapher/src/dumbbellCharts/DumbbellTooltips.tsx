@@ -6,7 +6,7 @@ import {
     excludeUndefined,
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { DumbbellValueLabelMode } from "@ourworldindata/types"
+import { ColumnSlug, DumbbellValueLabelMode } from "@ourworldindata/types"
 import {
     formatTooltipRangeValues,
     makeTooltipRoundingNotice,
@@ -21,11 +21,7 @@ import { GRAY_90 } from "../color/ColorConstants.js"
 import { DumbbellChartState } from "./DumbbellChartState"
 import { SizedDumbbellSeries } from "./DumbbellChartConstants"
 import { match } from "ts-pattern"
-import {
-    placeEntityAnnotationsInTooltip,
-    selectEntityAnnotationsForColumns,
-    TooltipAnnotationPlacement,
-} from "../annotations/EntityAnnotations"
+import { selectEntityAnnotationsForColumns } from "../annotations/EntityAnnotations"
 
 interface DumbbellTooltipProps {
     id: number
@@ -234,18 +230,15 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
         return this.roundingNotice?.icon === TooltipFooterIcon.Significance
     }
 
-    @computed private get annotationPlacement():
-        | TooltipAnnotationPlacement
+    @computed private get annotationTextBySlug():
+        | Map<ColumnSlug, string>
         | undefined {
         const { target } = this
         if (!target) return undefined
         const [startColumn, endColumn] = this.chartState.yColumns
-        return placeEntityAnnotationsInTooltip(
-            selectEntityAnnotationsForColumns(
-                [startColumn, endColumn],
-                target.entityName
-            ),
-            [startColumn.slug, endColumn.slug]
+        return selectEntityAnnotationsForColumns(
+            [startColumn, endColumn],
+            target.entityName
         )
     }
 
@@ -289,9 +282,7 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
     }
 
     private getColumnAnnotation(column: CoreColumn): string | undefined {
-        return this.annotationPlacement?.kind === "perColumn"
-            ? this.annotationPlacement.textBySlug.get(column.slug)
-            : undefined
+        return this.annotationTextBySlug?.get(column.slug)
     }
 
     override render(): React.ReactElement | null {
@@ -316,11 +307,6 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
                 offsetY={-16}
                 style={{ maxWidth: "300px" }}
                 title={target.displayName}
-                titleAnnotation={
-                    this.annotationPlacement?.kind === "shared"
-                        ? this.annotationPlacement.text
-                        : undefined
-                }
                 subtitle={this.subtitle}
                 footer={footer}
                 dissolve={fading}

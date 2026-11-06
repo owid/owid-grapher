@@ -35,10 +35,6 @@ export type AnnotationMarker = Extract<
     { timeScope: "point" | "range" }
 >
 
-export type TooltipAnnotationPlacement =
-    | { kind: "shared"; text: string }
-    | { kind: "perColumn"; textBySlug: Map<ColumnSlug, string> }
-
 function isPointAnnotation(
     annotation: IndicatorAnnotation
 ): annotation is PointAnnotation {
@@ -160,15 +156,4 @@ export function toSeriesLabelAnnotations(
     return _.sortBy(entries, (entry) => entry.startTime).map(
         ({ heading, text, timeScope }) => ({ heading, text, timeScope })
     )
-}
-
-export function placeEntityAnnotationsInTooltip(
-    textBySlug: Map<ColumnSlug, string>,
-    columnSlugs: ColumnSlug[]
-): TooltipAnnotationPlacement {
-    const texts = columnSlugs.map((slug) => textBySlug.get(slug))
-    const [firstText] = texts
-    if (firstText !== undefined && texts.every((text) => text === firstText))
-        return { kind: "shared", text: firstText }
-    return { kind: "perColumn", textBySlug }
 }
