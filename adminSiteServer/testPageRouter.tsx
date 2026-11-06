@@ -1306,7 +1306,7 @@ const DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
 
 const DUMBBELL_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     {
-        label: "Two indicators: India shows its shared annotation once, Brazil both joined, Germany the female one. Hover them: India's sits by the title, Brazil's and Germany's under each value",
+        label: "Two indicators: India shows its shared annotation once, Brazil both joined, Germany the female one. Hover them: in the tooltip each annotation sits under its own value, so India's shows twice",
         path: "grapher/time-spend-in-domestic-work-female-vs-male",
     },
     {
@@ -1325,7 +1325,7 @@ const DUMBBELL_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
 
 const STACKED_DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     {
-        label: "Three indicators: Japan shows its shared annotation once, France all three joined, Sweden the text two indicators share, Germany the nuclear one. Hover them: Japan's sits by the title, the others' under each segment",
+        label: "Three indicators: Japan shows its shared annotation once, France all three joined, Sweden the text two indicators share, Germany the nuclear one. Hover them: in the tooltip each annotation sits under its own segment, so Japan's shows three times",
         path: "grapher/per-capita-electricity-fossil-nuclear-renewables",
     },
     {
@@ -1337,7 +1337,7 @@ const STACKED_DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
         path: "grapher/distribution-of-population-across-income-thresholds-stacked-bar-30-only",
     },
     {
-        label: "Legacy: the United Kingdom's annotation, on all six indicators, shows once inline and next to the tooltip title",
+        label: "Legacy: the United Kingdom's annotation, on all six indicators, shows once inline and under each segment in the tooltip",
         path: "grapher/how-important-family-is-to-people-in-life",
     },
 ]
@@ -1395,7 +1395,7 @@ const STACKED_BAR_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
 
 const SCATTER_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
     {
-        label: "Hover Argentina: its annotation sits under the tests value. Brazil's x and y share a text, which sits next to the title. Chile's differ, each under its own value. The continent color column has no row and doesn't count",
+        label: "Hover Argentina: its annotation sits under the tests value. Brazil's x and y share a text, which sits under both values. Chile's differ, each under its own value. The continent color column has no row and doesn't count",
         path: "grapher/covid-19-daily-tests-vs-daily-new-confirmed-cases",
     },
     {
@@ -1403,7 +1403,7 @@ const SCATTER_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
         path: "grapher/co2-emissions-vs-gdp",
     },
     {
-        label: "Time scatter colored by launch vehicle class. Hover Falcon 9: its annotation sits under the cost value. Space Shuttle's cost and class share a text, which sits next to the title",
+        label: "Time scatter colored by launch vehicle class. Hover Falcon 9: its annotation sits under the cost value. Space Shuttle's cost and class share a text, which sits under both values",
         path: "grapher/cost-space-launches-low-earth-orbit",
     },
 ]
@@ -1414,7 +1414,7 @@ const MARIMEKKO_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
         path: "grapher/co2-per-capita-marimekko",
     },
     {
-        label: "Colored by income group. Hover China: price, coverage and income group share a text, which sits next to the title. Hover Canada: price and coverage share a text but income group has none, so it sits under each value. Hover India: only income group has an annotation, under its value",
+        label: "Colored by income group. Hover China: price, coverage and income group share a text, which sits under all three values. Hover Canada: price and coverage share a text and income group has none, so it sits under those two values. Hover India: only income group has an annotation, under its value",
         path: "grapher/carbon-price-vs-share-emissions",
     },
 ]
