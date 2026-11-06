@@ -4,7 +4,9 @@
  * cut from one reranked pool, so together with Algolia's later pages they show
  * every hit exactly once; the pool always comes from this deployment's charts
  * index; and requests the site wouldn't send are rejected, so the site falls
- * back to Algolia instead of showing a search that silently differs.
+ * back to Algolia instead of showing a search that silently differs. With
+ * vocab=1, the vocabulary terms' hits join the pool, unless the reader
+ * already filtered to a topic.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { ChartRecordType } from "@ourworldindata/types"
@@ -16,6 +18,17 @@ import type { Env } from "../../_common/env.js"
 vi.mock(import("@ourworldindata/utils"), async (importOriginal) => {
     const actual = await importOriginal()
     return { ...actual, searchSingleForHitsWithClosestMatches: vi.fn() }
+})
+
+vi.mock(import("./vocabulary.js"), async (importOriginal) => {
+    const actual = await importOriginal()
+    return {
+        ...actual,
+        pickVocabularyTerms: vi.fn(async () => ({
+            terms: [{ topic: "Fertility Rate", keyword: "fertility rate" }],
+            latencyMs: 5,
+        })),
+    }
 })
 
 const HITS_PER_PAGE = 2
@@ -67,9 +80,13 @@ const siteRequest = (overrides: Record<string, unknown> = {}) => ({
     ...overrides,
 })
 
-const post = async (body: unknown, ai: Ai | null = reverseAi()) => {
+const post = async (
+    body: unknown,
+    ai: Ai | null = reverseAi(),
+    params = "model=jev"
+) => {
     const request = new Request(
-        "http://localhost/api/search/rerank-charts?model=jev",
+        `http://localhost/api/search/rerank-charts?${params}`,
         { method: "POST", body: JSON.stringify(body) }
     )
     const response = await onRequestPost({
@@ -125,6 +142,54 @@ describe("/api/search/rerank-charts", () => {
             nbPages: 51,
         })
         expect(pages[0].rerank).toMatchObject({ model: "jev", poolSize: 6 })
+    })
+
+    describe("with vocab=1", () => {
+        beforeEach(() => {
+            search.mockImplementation(async (_client, params: any) =>
+                params.query === "fertility rate"
+                    ? ({ hits: [hit("h2"), hit("v1")], nbHits: 2 } as any)
+                    : ({
+                          hits: Array.from({ length: POOL_SIZE }, (_, i) =>
+                              hit(`h${i + 1}`)
+                          ),
+                          nbHits: 101,
+                      } as any)
+            )
+        })
+
+        it("searches each term within its topic and adds the hits the pool lacks", async () => {
+            const { body } = await post(
+                siteRequest({ hitsPerPage: 7 }),
+                reverseAi(),
+                "model=jev&vocab=1"
+            )
+
+            expect(search).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({
+                    query: "fertility rate",
+                    facetFilters: [
+                        ["availableEntities:France"],
+                        "tags:Fertility Rate",
+                    ],
+                })
+            )
+            expect(body.rerank.poolSize).toBe(POOL_SIZE + 1)
+            expect(body.vocabulary.terms).toHaveLength(1)
+        })
+
+        it("leaves a search the reader filtered to a topic alone", async () => {
+            const { body } = await post(
+                siteRequest({ facetFilters: [["tags:Health"]] }),
+                reverseAi(),
+                "model=jev&vocab=1"
+            )
+
+            expect(search).toHaveBeenCalledOnce()
+            expect(body.rerank.poolSize).toBe(POOL_SIZE)
+            expect(body.vocabulary).toBeUndefined()
+        })
     })
 
     describe("rejects with a 400", () => {

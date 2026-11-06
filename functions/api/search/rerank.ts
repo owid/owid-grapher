@@ -58,7 +58,7 @@ export const isRerankModel = (value: string): value is RerankModel =>
 
 // Kept identical to experiments/search_demand/rerank.py in owid/analytics,
 // so offline and deployed runs score the same prompt.
-const STATE_INTRO =
+export const STATE_INTRO =
     "Someone typed this query into the site search of Our World in Data, which publishes " +
     "charts, data explorers and articles on global problems (health, population, economy, " +
     "energy, environment, food, education, conflict, …):"
@@ -103,12 +103,8 @@ interface ParsedAnswers {
     anyRelevant?: number
 }
 
-/** Reads Jev's typed answers, failing loudly on any other shape. */
-function parseAnswers(response: Record<string, unknown>): ParsedAnswers {
-    // Jev wraps its answers in { state, result }; Clef returns them directly
-    const body = isRecord(response.result) ? response.result : response
-    const answers = body.answers
-    if (!isRecord(answers)) throw new Error("rerank response has no answers")
+/** Reads the rerank's typed answers, failing loudly on any other shape. */
+function parseAnswers(answers: Record<string, unknown>): ParsedAnswers {
     const best = answers.best_result
     const anyRelevant = answers.any_relevant
     const anyRelevantP =
@@ -123,6 +119,48 @@ function parseAnswers(response: Record<string, unknown>): ParsedAnswers {
     for (const [id, p] of Object.entries(best.probabilities))
         if (typeof p === "number") probabilities[id] = p
     return { probabilities, refused: false, anyRelevant: anyRelevantP }
+}
+
+/** The ids of a choice answer's `n` most likely options, most likely first. */
+export function topChoices(answer: unknown, n: number): string[] {
+    if (
+        !isRecord(answer) ||
+        answer.type === "refusal" ||
+        !isRecord(answer.probabilities)
+    )
+        return []
+    return Object.entries(answer.probabilities)
+        .filter(
+            (entry): entry is [string, number] => typeof entry[1] === "number"
+        )
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, n)
+        .map(([id]) => id)
+}
+
+/**
+ * One decision-model call through the AI Gateway: the answers to `questions`
+ * about `state`, keyed like `questions`. Throws on a failed call or a
+ * response without answers.
+ */
+export async function runDecisionModel(
+    ai: Ai,
+    model: RerankModel,
+    state: string,
+    questions: Record<string, unknown>,
+    signal: AbortSignal
+): Promise<Record<string, unknown>> {
+    const { id, selector }: RerankModelSpec = RERANK_MODELS[model]
+    const response = await ai.run(
+        id,
+        { ...(selector && { model: selector }), state, questions },
+        { gateway: { id: RERANK_GATEWAY_ID }, signal }
+    )
+    // Jev wraps its answers in { state, result }; Clef returns them directly
+    const body = isRecord(response.result) ? response.result : response
+    if (!isRecord(body.answers))
+        throw new Error("decision model response has no answers")
+    return body.answers
 }
 
 /** A hit as the rerank prompt reads it: Algolia's and /api/search's alike. */
@@ -156,32 +194,26 @@ export async function rerankHits<T extends RerankableHit>(
     const started = Date.now()
     let parsed: ParsedAnswers
     try {
-        const { id, selector }: RerankModelSpec = RERANK_MODELS[model]
-        const response = await ai.run(
-            id,
+        const answers = await runDecisionModel(
+            ai,
+            model,
+            buildState(query, hits),
             {
-                ...(selector && { model: selector }),
-                state: buildState(query, hits),
-                questions: {
-                    best_result: {
-                        type: "choice",
-                        instructions: BEST_INSTRUCTIONS,
-                        criteria: Object.fromEntries(
-                            hits.map((hit, i) => [ids[i], hit.title])
-                        ),
-                    },
-                    any_relevant: {
-                        type: "noul",
-                        instructions: ANY_RELEVANT_INSTRUCTIONS,
-                    },
+                best_result: {
+                    type: "choice",
+                    instructions: BEST_INSTRUCTIONS,
+                    criteria: Object.fromEntries(
+                        hits.map((hit, i) => [ids[i], hit.title])
+                    ),
+                },
+                any_relevant: {
+                    type: "noul",
+                    instructions: ANY_RELEVANT_INSTRUCTIONS,
                 },
             },
-            {
-                gateway: { id: RERANK_GATEWAY_ID },
-                signal: AbortSignal.timeout(RERANK_TIMEOUT_MS),
-            }
+            AbortSignal.timeout(RERANK_TIMEOUT_MS)
         )
-        parsed = parseAnswers(response)
+        parsed = parseAnswers(answers)
     } catch (error) {
         console.error("Search rerank failed:", error)
         Sentry.captureException(error)

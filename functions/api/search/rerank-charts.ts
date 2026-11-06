@@ -12,6 +12,11 @@ import {
     getIndexName,
 } from "./algoliaClient.js"
 import { isRerankModel, RERANK_MODELS, rerankHits } from "./rerank.js"
+import {
+    appendVocabularyHits,
+    pickVocabularyTerms,
+    VOCABULARY_HITS_PER_TERM,
+} from "./vocabulary.js"
 
 /**
  * Experimental: the search page's charts section, reranked (see rerank.ts).
@@ -30,6 +35,10 @@ import { isRerankModel, RERANK_MODELS, rerankHits } from "./rerank.js"
  * Reranking has to run here rather than in the browser: it needs the Workers
  * AI binding, and the model only ever sees what Algolia returned for the
  * query, never text a client sent as results.
+ *
+ * With `vocab=1`, the pool also gets the hits of the query translated into
+ * the topic vocabulary (see vocabulary.ts), unless the search is already
+ * filtered to a topic. The picks run alongside the pool's own search.
  */
 
 const MAX_BODY_BYTES = 16 * 1024
@@ -75,6 +84,10 @@ const isStringArray = (value: unknown): value is string[] =>
 const isFacetFilters = (value: unknown): boolean =>
     Array.isArray(value) &&
     value.every((v) => typeof v === "string" || isStringArray(v))
+
+// A facetFilters entry on the `tags` facet: the search is filtered to a topic
+const isTopicFacet = (facet: string | string[]): boolean =>
+    (Array.isArray(facet) ? facet : [facet]).some((f) => f.startsWith("tags:"))
 
 const isIntegerIn = (value: unknown, min: number, max: number): boolean =>
     Number.isInteger(value) &&
@@ -147,7 +160,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             return jsonResponse(400, {
                 error: "Reranking is not available on this deployment",
             })
-        const model = new URL(request.url).searchParams.get("model") ?? "jev"
+        const url = new URL(request.url)
+        const model = url.searchParams.get("model") ?? "jev"
         if (!isRerankModel(model))
             return jsonResponse(400, {
                 error: `Invalid model "${model}". Valid values: ${Object.keys(RERANK_MODELS).join(", ")}`,
@@ -168,27 +182,62 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         const { params, query, page, hitsPerPage } = parsed
 
         const config = getAlgoliaConfig(env)
-        const pool =
-            await searchSingleForHitsWithClosestMatches<SearchChartHit>(
-                createSearchClient(config),
-                {
-                    ...params,
-                    // Always this deployment's charts index, whatever the
-                    // client's build thinks it's called
-                    indexName: getIndexName(
-                        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-                        config.indexPrefix
-                    ),
-                    page: 0,
-                    hitsPerPage: hitsPerPage * RERANK_PAGES,
-                }
-            )
+        const client = createSearchClient(config)
+        const indexName = getIndexName(
+            SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+            config.indexPrefix
+        )
+        const facetFilters = (params.facetFilters ?? []) as (
+            | string
+            | string[]
+        )[]
+        const expand =
+            url.searchParams.get("vocab") === "1" &&
+            !facetFilters.some(isTopicFacet)
+
+        const [pool, vocabulary] = await Promise.all([
+            searchSingleForHitsWithClosestMatches<SearchChartHit>(client, {
+                ...params,
+                // Always this deployment's charts index, whatever the
+                // client's build thinks it's called
+                indexName,
+                page: 0,
+                hitsPerPage: hitsPerPage * RERANK_PAGES,
+            }),
+            expand ? pickVocabularyTerms(env.AI, model, query) : undefined,
+        ])
+        const candidates = vocabulary
+            ? await appendVocabularyHits(
+                  pool.hits,
+                  vocabulary.terms,
+                  async (term) =>
+                      (
+                          await searchSingleForHitsWithClosestMatches<SearchChartHit>(
+                              client,
+                              {
+                                  ...params,
+                                  indexName,
+                                  query: term.keyword,
+                                  facetFilters: [
+                                      ...facetFilters,
+                                      `tags:${term.topic}`,
+                                  ],
+                                  page: 0,
+                                  hitsPerPage: VOCABULARY_HITS_PER_TERM,
+                              }
+                          )
+                      ).hits,
+                  (hit) => hit.objectID
+              )
+            : pool.hits
         const { hits, rerank } = await rerankHits(
             env.AI,
             model,
             query,
-            pool.hits
+            candidates
         )
+        // Vocabulary hits can turn an empty search into a full one
+        const nbHits = Math.max(pool.nbHits ?? 0, candidates.length)
 
         return jsonResponse(200, {
             ...pool,
@@ -196,8 +245,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             page,
             hitsPerPage,
             // Algolia's default paginationLimitedTo caps how far anyone can page
-            nbPages: Math.ceil(Math.min(pool.nbHits ?? 0, 1000) / hitsPerPage),
+            nbHits,
+            nbPages: Math.ceil(Math.min(nbHits, 1000) / hitsPerPage),
             rerank,
+            ...(vocabulary && { vocabulary }),
         })
     } catch (error) {
         console.error("Rerank charts error:", error)

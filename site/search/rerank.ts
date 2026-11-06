@@ -10,13 +10,16 @@ import { SEARCH_RERANK_URL } from "../../settings/clientSettings.mjs"
 /**
  * Experimental: rerank the charts section with a decision model, served by
  * functions/api/search/rerank-charts.ts. Off unless the page was loaded with
- * `?rerank=<model>` (e.g. /search?q=malaria&rerank=jev). Read once at load,
+ * `?rerank=<model>` (e.g. /search?q=malaria&rerank=jev), plus `&vocab=1` to
+ * add the query's topic-vocabulary hits to the pool. Read once at load,
  * because the search page drops URL params it doesn't know.
  */
-const RERANK_MODEL: string | null =
+const PAGE_PARAMS =
     SEARCH_RERANK_URL && typeof window !== "undefined"
-        ? new URLSearchParams(window.location.search).get("rerank")
-        : null
+        ? new URLSearchParams(window.location.search)
+        : undefined
+const RERANK_MODEL: string | null = PAGE_PARAMS?.get("rerank") ?? null
+const RERANK_VOCAB = PAGE_PARAMS?.get("vocab") === "1"
 
 export const shouldRerankCharts = (query: string, page: number): boolean =>
     !!RERANK_MODEL && !!query.trim() && page < RERANK_PAGES
@@ -29,7 +32,7 @@ export async function searchChartsReranked<T>(
     liteSearchClient: LiteClient,
     searchParams: SingleSearchRequest
 ): Promise<SearchResponse<T> & { closestMatches?: boolean }> {
-    const url = `${SEARCH_RERANK_URL}?model=${encodeURIComponent(RERANK_MODEL ?? "")}`
+    const url = `${SEARCH_RERANK_URL}?model=${encodeURIComponent(RERANK_MODEL ?? "")}${RERANK_VOCAB ? "&vocab=1" : ""}`
     try {
         const response = await fetch(url, {
             method: "POST",
