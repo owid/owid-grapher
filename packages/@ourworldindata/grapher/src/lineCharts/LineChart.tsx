@@ -54,6 +54,7 @@ import {
     PlacedRangeAnnotation,
     RenderPointAnnotation,
     RenderRangeAnnotation,
+    LINE_STYLE,
 } from "./LineChartConstants"
 import {
     getHoverStateForSeries,
@@ -88,6 +89,7 @@ import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
 import { resolveEmphasis } from "../interaction/Emphasis"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import { RANGE_ANNOTATION_HALO_WIDTH } from "../annotations/AnnotationConstants"
 
 export type LineChartProps = ChartComponentProps<LineChartState>
 
@@ -790,6 +792,11 @@ export class LineChart
                         seriesName: series.seriesName,
                         emphasis: series.emphasis,
                         heading: `${series.displayName}, ${this.chartState.formatColumn.formatTimeRange(startTime, endTime)}`,
+                        color: series.color,
+                        outlineWidth:
+                            LINE_STYLE[series.emphasis].strokeWidthFactor *
+                                this.lineStrokeWidth +
+                            2 * RANGE_ANNOTATION_HALO_WIDTH,
                         isTooltipOpen: isMarkerTooltipOpen(
                             this.annotationTooltipState,
                             series.seriesName,

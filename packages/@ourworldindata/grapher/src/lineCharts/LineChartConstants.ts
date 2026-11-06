@@ -48,6 +48,7 @@ export interface PlaceRangeAnnotationTooltipArgs {
     clickPosition: PointVector
     tooltipBounds: Bounds
     containerBounds: Bounds
+    outlineWidth: number
 }
 
 export interface LineStyleConfig {
@@ -145,6 +146,8 @@ export interface RenderRangeAnnotation extends PlacedRangeAnnotation {
     emphasis: Emphasis
     heading: string
     isTooltipOpen: boolean
+    color: Color
+    outlineWidth: number
 }
 
 export interface PlacedLineChartSeries extends LineChartSeries {

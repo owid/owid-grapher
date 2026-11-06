@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest"
-import { RANGE_ANNOTATION_OUTLINE_WIDTH } from "../annotations/AnnotationConstants"
 import {
     AnnotationTooltipState,
     PlacedPoint,
@@ -273,8 +272,9 @@ describe(placeRangeAnnotation, () => {
 })
 
 describe(placeRangeAnnotationTooltip, () => {
+    const outlineWidth = 8
     const minDistanceFromLine =
-        RANGE_ANNOTATION_OUTLINE_WIDTH / 2 + RANGE_ANNOTATION_TOOLTIP_MARGIN
+        outlineWidth / 2 + RANGE_ANNOTATION_TOOLTIP_MARGIN
     const tooltipBounds = new Bounds(100, 0, 100, 40)
     const containerBounds = new Bounds(0, 0, 400, 400)
     const input = (
@@ -284,6 +284,7 @@ describe(placeRangeAnnotationTooltip, () => {
         clickPosition: new PointVector(150, 200),
         tooltipBounds,
         containerBounds,
+        outlineWidth,
         ...overrides,
     })
 
