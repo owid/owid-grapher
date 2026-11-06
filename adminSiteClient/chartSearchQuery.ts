@@ -9,6 +9,7 @@ import {
     buildRegexFromSearchWord,
     filterFunctionForSearchWords,
     SearchWord,
+    textSearchWords,
 } from "../adminShared/search.js"
 import type { ChartListItem } from "./ChartList.js"
 import { getChartListItemEtlSource, hasEtlDrift } from "./etlChartSync.js"
@@ -112,10 +113,7 @@ function toSearchWord(word: string, exclude: boolean): SearchWord {
 }
 
 function textWords(terms: SearchTerm[]): SearchWord[] {
-    return terms.filter(isTextTerm).flatMap((term) => {
-        const word = term.negate ? term.raw.slice(1) : term.raw
-        return word ? [toSearchWord(word, term.negate)] : []
-    })
+    return terms.filter(isTextTerm).flatMap(textSearchWords)
 }
 
 function chartTextFields(chart: ChartListItem): (string | undefined)[] {
@@ -524,6 +522,8 @@ export function suggestChartSearchTerms(
             )
         case "is":
             return isSuggestions(term.value)
+        case undefined:
+            break
     }
 
     if (term.field !== undefined || term.value.length < MIN_SUGGESTION_LENGTH)

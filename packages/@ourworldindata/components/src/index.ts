@@ -87,7 +87,6 @@ export { IndicatorSources } from "./IndicatorSources/IndicatorSources.js"
 export { TextInput } from "./TextInput.js"
 
 export { CodeSnippet } from "./CodeSnippet/CodeSnippet.js"
-export { hydrateCodeSnippets } from "./CodeSnippet/hydrateCodeSnippets.js"
 
 export { DataCitation } from "./DataCitation/DataCitation.js"
 export { DownloadButton } from "./DownloadButton/DownloadButton.js"

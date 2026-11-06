@@ -103,26 +103,21 @@ async function resolveMultiDimDataPageCatalogPathsToIndicatorIds(
     function resolveSingleField(
         indicator?: IndicatorEntryBeforePreProcessing
     ): IndicatorConfig | undefined {
-        switch (typeof indicator) {
-            case "number":
-                return { id: indicator }
-            case "string": {
-                const id = catalogPathToIndicatorIdMap.get(indicator)
-                return id ? { id } : undefined
-            }
-            case "object": {
-                if ("id" in indicator) return indicator
-                if ("catalogPath" in indicator) {
-                    const id = catalogPathToIndicatorIdMap.get(
-                        indicator.catalogPath
-                    )
-                    return id ? { ...indicator, id } : undefined
-                }
-                return undefined
-            }
-            default:
-                return undefined
+        if (typeof indicator === "number") return { id: indicator }
+        if (typeof indicator === "string") {
+            const id = catalogPathToIndicatorIdMap.get(indicator)
+            return id ? { id } : undefined
         }
+        if (typeof indicator === "object") {
+            if ("id" in indicator) return indicator
+            if ("catalogPath" in indicator) {
+                const id = catalogPathToIndicatorIdMap.get(
+                    indicator.catalogPath
+                )
+                return id ? { ...indicator, id } : undefined
+            }
+        }
+        return undefined
     }
 
     function resolveSingleOrArrayField(

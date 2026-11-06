@@ -43,7 +43,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
 
       - name: Build package and generate API & schema reference
         working-directory: packages/@ourworldindata/grapher
@@ -52,11 +52,11 @@ jobs:
           yarn buildDocsApi
           yarn buildDocsSchema
 
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
 
-      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           # Caching is disabled in this deploy workflow to avoid cache-poisoning
           # of the published docs artifact (zizmor cache-poisoning audit).
@@ -88,7 +88,7 @@ jobs:
         # Fork and Dependabot PRs don't get the Cloudflare secrets, so the
         # deploy would fail — build-only for those, deploy for trusted refs.
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN_DOCS }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

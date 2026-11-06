@@ -23,7 +23,7 @@ jobs:
           persist-credentials: false
           ref: ${{ github.head_ref }}
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
 

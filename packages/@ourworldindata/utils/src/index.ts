@@ -37,7 +37,6 @@ export {
     isMobile,
     isTouchDevice,
     type Json,
-    csvEscape,
     trimObject,
     fetchText,
     fetchJson,
@@ -271,6 +270,7 @@ export {
     getSiblingRegions,
     getContinentForCountry,
     articulateEntity,
+    checkHasDefiniteArticle,
 } from "./regions/index.js"
 export {
     instantiateProfile,

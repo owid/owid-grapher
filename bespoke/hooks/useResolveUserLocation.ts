@@ -10,6 +10,16 @@ export function isUserLocationCountry(
     return configCountry === USER_LOCATION_CONFIG_OPTION
 }
 
+/** The country to show before the user's location is known */
+export function findInitialCountry(
+    configCountry: string | undefined,
+    defaultCountry: string
+): string {
+    return configCountry && !isUserLocationCountry(configCountry)
+        ? configCountry
+        : defaultCountry
+}
+
 export function useResolveUserLocation({
     configCountry,
     availableCountryNames,

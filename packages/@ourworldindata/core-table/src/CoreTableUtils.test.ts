@@ -364,6 +364,180 @@ describe(parseDelimited, () => {
             parseDelimited(str.replace(/,/g, "\t"))
         )
     })
+
+    it("trims cells, skips blank lines and lists the columns", () => {
+        const rows = parseDelimited("  foo , bar\r\n\r\n 1 , 2 \r\n\r\n")
+        expect(rows.columns).toEqual(["foo", "bar"])
+        expect([...rows]).toEqual([{ foo: "1", bar: "2" }])
+    })
+
+    it.each(["\n", "\r\n"])(
+        "skips leading blank lines before selecting the header (%j)",
+        (newline) => {
+            const rows = parseDelimited(`${newline}${newline}a,b${newline}1,2`)
+            expect(rows.columns).toEqual(["a", "b"])
+            expect([...rows]).toEqual([{ a: "1", b: "2" }])
+        }
+    )
+
+    it("returns no columns or rows for only blank lines", () => {
+        const rows = parseDelimited("\r\n\r\n")
+        expect(rows.columns).toEqual([])
+        expect([...rows]).toEqual([])
+    })
+
+    it("strips a leading BOM before parsing quoted headers", () => {
+        // A comma in the quoted header proves it was unquoted during parsing.
+        const rows = parseDelimited('\uFEFF"a,b",c\n1,2')
+        expect(rows.columns).toEqual(["a,b", "c"])
+        expect([...rows]).toEqual([{ "a,b": "1", c: "2" }])
+    })
+
+    it("unquotes cells containing delimiters, quotes and newlines", () => {
+        const rows = parseDelimited(`name,note
+"Bonaire, Sint Eustatius and Saba","says ""hi""
+twice"`)
+        expect([...rows]).toEqual([
+            {
+                name: "Bonaire, Sint Eustatius and Saba",
+                note: 'says "hi"\ntwice',
+            },
+        ])
+    })
+
+    it("keeps empty fields as empty strings", () => {
+        const rows = parseDelimited("a,b,c\n1,,3\n,,")
+        expect([...rows]).toEqual([
+            { a: "1", b: "", c: "3" },
+            { a: "", b: "", c: "" },
+        ])
+    })
+
+    it("fills fields missing from short rows and drops extra fields", () => {
+        const rows = parseDelimited("a,b,c\n1\n1,2\n1,2,3,4")
+        expect([...rows]).toEqual([
+            { a: "1", b: "", c: "" },
+            { a: "1", b: "2", c: "" },
+            { a: "1", b: "2", c: "3" },
+        ])
+    })
+
+    it("skips empty lines anywhere in the body", () => {
+        const rows = parseDelimited("a,b\n\n1,2\n\n\n3,4\n\n")
+        expect([...rows]).toEqual([
+            { a: "1", b: "2" },
+            { a: "3", b: "4" },
+        ])
+    })
+
+    it("keeps a row of empty fields, which is not an empty line", () => {
+        expect([...parseDelimited("a,b\n,\n1,2")]).toEqual([
+            { a: "", b: "" },
+            { a: "1", b: "2" },
+        ])
+    })
+
+    it("returns no rows for empty input or a header-only input", () => {
+        const empty = parseDelimited("")
+        expect([...empty]).toEqual([])
+        expect(empty.columns).toEqual([])
+
+        const headerOnly = parseDelimited("a,b\n")
+        expect([...headerOnly]).toEqual([])
+        expect(headerOnly.columns).toEqual(["a", "b"])
+    })
+
+    it("trims quoted cells too, after unquoting", () => {
+        expect([...parseDelimited('a,b\n" x ","y "')]).toEqual([
+            { a: "x", b: "y" },
+        ])
+    })
+
+    it("uses an explicit delimiter over the detected one", () => {
+        // Detection would pick the tab; the explicit comma keeps it in the cell.
+        expect([...parseDelimited("a,b\nx\ty,z", ",")]).toEqual([
+            { a: "x\ty", b: "z" },
+        ])
+    })
+
+    it("detects space-delimited input when there are no tabs or commas", () => {
+        expect([...parseDelimited("a b\n1 2")]).toEqual([{ a: "1", b: "2" }])
+    })
+
+    it("passes each filled, trimmed row to parseFn", () => {
+        const seen: unknown[] = []
+        const rows = parseDelimited("a,b\n 1 \n3,4", undefined, (row) => {
+            seen.push(row)
+            return { sum: Number(row!.a) + Number(row!.b || 0) }
+        })
+        expect(seen).toEqual([
+            { a: "1", b: "" },
+            { a: "3", b: "4" },
+        ])
+        expect([...rows]).toEqual([{ sum: 1 }, { sum: 7 }])
+        expect(rows.columns).toEqual(["a", "b"])
+    })
+})
+
+describe(matrixToDelimited, () => {
+    it("writes null and undefined cells as empty fields", () => {
+        expect(
+            matrixToDelimited(
+                [
+                    ["a", "b", "c"],
+                    [null, 1, undefined],
+                    [undefined, null, null],
+                ],
+                ","
+            )
+        ).toEqual("a,b,c\n,1,\n,,")
+    })
+
+    it("keeps falsy values that aren't null or undefined", () => {
+        expect(
+            matrixToDelimited(
+                [
+                    ["zero", "false", "empty"],
+                    [0, false, ""],
+                ],
+                ","
+            )
+        ).toEqual("zero,false,empty\n0,false,")
+    })
+
+    it("defaults to tab-delimited output", () => {
+        expect(
+            matrixToDelimited([
+                ["a", "b"],
+                [1, 2],
+            ])
+        ).toEqual("a\tb\n1\t2")
+    })
+
+    it("quotes only cells containing the delimiter, quotes or newlines", () => {
+        expect(
+            matrixToDelimited(
+                [
+                    ["delimiter", "quote", "newline", "other delimiter"],
+                    ["x\ty", 'say "hi"', "two\nlines", "x,y"],
+                ],
+                "\t"
+            )
+        ).toEqual(
+            'delimiter\tquote\tnewline\tother delimiter\n"x\ty"\t"say ""hi"""\t"two\nlines"\tx,y'
+        )
+    })
+
+    it("round-trips tricky cells through parseDelimited", () => {
+        const matrix = [
+            ["name", "note"],
+            ["Bonaire, Sint Eustatius and Saba", 'says "hi"\ntwice'],
+            ["", "tab\tinside"],
+        ]
+        expect(
+            rowsToMatrix(parseDelimited(matrixToDelimited(matrix, ","), ","))
+        ).toEqual(matrix)
+    })
 })
 
 describe(guessColumnDefFromSlugAndRow, () => {

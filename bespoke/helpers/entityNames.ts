@@ -1,5 +1,5 @@
 import {
-    articulateEntity,
+    checkHasDefiniteArticle,
     checkIsIncomeGroup,
     getRegionByName,
 } from "@ourworldindata/utils"
@@ -38,7 +38,9 @@ export function formatEntityNameForSentence(
     const region = getRegionByName(entityName)
     if (region && checkIsIncomeGroup(region))
         return entityName.charAt(0).toLowerCase() + entityName.slice(1)
-    return articulateEntity(entityName)
+    return checkHasDefiniteArticle(rawEntityName)
+        ? `the ${entityName}`
+        : entityName
 }
 
 export function pickAvailableEntityName(

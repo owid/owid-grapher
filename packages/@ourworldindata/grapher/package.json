@@ -1,6 +1,6 @@
 {
     "name": "@ourworldindata/grapher",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "description": "OWID's data exploration and visualization library.",
     "repository": {
         "type": "git",
@@ -57,15 +57,17 @@
         "dist/grapher.d.ts.map"
     ],
     "scripts": {
+        "release": "bumpp",
         "build": "tsdown && yarn buildSchema",
         "buildSchema": "tsx scripts/buildLatestGrapherSchema.ts",
         "clean": "rm -rf dist dist-package",
         "startDemoServer": "http-server . -p 8433 -c-1 -o /demo.html",
         "buildDocsApi": "typedoc",
         "buildDocsSchema": "tsx ../../../devTools/schema/generate-schema-docs.ts",
-        "testPackage": "yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:attw",
+        "testPackage": "yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:publint && yarn testPackage:attw",
         "testPackage:pack": "yarn pack --out dist-package/grapher.tgz",
         "testPackage:vitest": "vitest run --config vitest.package.config.ts",
+        "testPackage:publint": "publint run --strict dist-package/grapher.tgz",
         "testPackage:attw": "attw --profile esm-only --exclude-entrypoints ./grapher.css -- dist-package/grapher.tgz"
     },
     "directories": {
@@ -130,6 +132,7 @@
         "lodash-es": "^4.18.1",
         "mobx": "^6.15.4",
         "mobx-react": "^7.6.0",
+        "publint": "^0.3.23",
         "react": "^19.3.1",
         "react-aria": "^3.53.1",
         "react-aria-components": "^1.22.1",

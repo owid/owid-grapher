@@ -18,15 +18,15 @@ describe(SeriesLabelState, () => {
 
     it("splits longer labels into multiple lines", () => {
         const label = new SeriesLabelState({
-            text: "Asia and Oceania (excl. China and India)",
+            text: "Asia and Oceania excluding China and India",
             maxWidth: 120,
             fontSize: FONT_SIZE,
         })
 
         expect(label.spanLines).toEqual([
             [{ role: "name", text: "Asia and Oceania", fontWeight: 400 }],
-            [{ role: "name", text: "(excl. China and", fontWeight: 400 }],
-            [{ role: "name", text: "India)", fontWeight: 400 }],
+            [{ role: "name", text: "excluding China", fontWeight: 400 }],
+            [{ role: "name", text: "and India", fontWeight: 400 }],
         ])
     })
 
@@ -73,7 +73,7 @@ describe(SeriesLabelState, () => {
             [
                 { role: "name", text: "Caribbean", fontWeight: 400 },
                 {
-                    role: "regionPublisherSuffix",
+                    role: "suffix",
                     text: " (UN)",
                     fontWeight: 400,
                 },
@@ -81,7 +81,7 @@ describe(SeriesLabelState, () => {
         ])
     })
 
-    it("does not split suffixes that name no publisher from the name", () => {
+    it("splits suffixes that name no publisher from the name", () => {
         const label = new SeriesLabelState({
             text: "Asia and Oceania (excl. China and India)",
             maxWidth: Infinity,
@@ -90,9 +90,48 @@ describe(SeriesLabelState, () => {
 
         expect(label.spanLines).toEqual([
             [
+                { role: "name", text: "Asia and Oceania", fontWeight: 400 },
+                {
+                    role: "suffix",
+                    text: " (excl. China and India)",
+                    fontWeight: 400,
+                },
+            ],
+        ])
+    })
+
+    it("wraps a suffix that is wider than the label onto lines of its own", () => {
+        const label = new SeriesLabelState({
+            text: "Asia and Oceania (excl. China and India)",
+            maxWidth: 120,
+            fontSize: FONT_SIZE,
+        })
+
+        expect(label.spanLines).toEqual([
+            [{ role: "name", text: "Asia and Oceania", fontWeight: 400 }],
+            [{ role: "suffix", text: "(excl. China and", fontWeight: 400 }],
+            [{ role: "suffix", text: "India)", fontWeight: 400 }],
+        ])
+        expect(label.width).toBeLessThanOrEqual(120)
+    })
+
+    it("splits a negated region publisher suffix from the name", () => {
+        const label = new SeriesLabelState({
+            text: "High-income countries (non-OECD)",
+            maxWidth: Infinity,
+            fontSize: FONT_SIZE,
+        })
+
+        expect(label.spanLines).toEqual([
+            [
                 {
                     role: "name",
-                    text: "Asia and Oceania (excl. China and India)",
+                    text: "High-income countries",
+                    fontWeight: 400,
+                },
+                {
+                    role: "suffix",
+                    text: " (non-OECD)",
                     fontWeight: 400,
                 },
             ],
@@ -111,7 +150,7 @@ describe(SeriesLabelState, () => {
             [
                 { role: "name", text: "Africa", fontWeight: 400 },
                 {
-                    role: "regionPublisherSuffix",
+                    role: "suffix",
                     text: " (WHO)",
                     fontWeight: 400,
                 },
@@ -133,7 +172,7 @@ describe(SeriesLabelState, () => {
             [
                 { role: "name", text: "Africa", fontWeight: 700 },
                 {
-                    role: "regionPublisherSuffix",
+                    role: "suffix",
                     text: " (WHO)",
                     fontWeight: 400,
                 },
@@ -152,9 +191,9 @@ describe(SeriesLabelState, () => {
 
         expect(label.positionedFragments).toMatchObject([
             { type: "text", role: "name", text: "Africa" },
-            { type: "text", role: "regionPublisherSuffix", text: "(WHO" },
+            { type: "text", role: "suffix", text: "(WHO" },
             { type: "icon", tooltipKey: "who" },
-            { type: "text", role: "regionPublisherSuffix", text: ")" },
+            { type: "text", role: "suffix", text: ")" },
         ])
     })
 
@@ -167,11 +206,8 @@ describe(SeriesLabelState, () => {
         })
 
         expect(label.positionedFragments).toMatchObject([
-            {
-                type: "text",
-                role: "name",
-                text: "Africa (FAKE)",
-            },
+            { type: "text", role: "name", text: "Africa" },
+            { type: "text", role: "suffix", text: "(FAKE)" },
         ])
     })
 

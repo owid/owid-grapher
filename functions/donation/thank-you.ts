@@ -196,35 +196,29 @@ export const onRequestPost: PagesFunction<Env> = async ({
             env.STRIPE_WEBHOOK_SECRET
         )
 
-        switch (event.type) {
-            case "checkout.session.completed": {
-                const session = event.data.object
-                const email = session.customer_details?.email ?? ""
-                const metadata = session.metadata ?? {}
+        // We only handle completed checkouts; other event types are ignored
+        if (event.type === "checkout.session.completed") {
+            const session = event.data.object
+            const email = session.customer_details?.email ?? ""
+            const metadata = session.metadata ?? {}
+            waitUntil(
+                sendThankYouEmail(env, {
+                    email,
+                    customerId: session.customer as string,
+                    // We support two checkout modes: "payment" (for one-time payments) and "subscription"
+                    // These are set when creating the checkout session, in checkout.ts
+                    // see https://stripe.com/docs/api/checkout/sessions/object#checkout_session_object-mode
+                    isSubscription: session.mode === "subscription",
+                    name: metadata.name,
+                    showOnList: metadata.showOnList === "true",
+                }).catch(Sentry.captureException)
+            )
+            if (metadata.subscribeToDonorNewsletter === "true") {
                 waitUntil(
-                    sendThankYouEmail(env, {
-                        email,
-                        customerId: session.customer as string,
-                        // We support two checkout modes: "payment" (for one-time payments) and "subscription"
-                        // These are set when creating the checkout session, in checkout.ts
-                        // see https://stripe.com/docs/api/checkout/sessions/object#checkout_session_object-mode
-                        isSubscription: session.mode === "subscription",
-                        name: metadata.name,
-                        showOnList: metadata.showOnList === "true",
-                    }).catch(Sentry.captureException)
-                )
-                if (metadata.subscribeToDonorNewsletter === "true") {
-                    waitUntil(
-                        subscribeToNewsletter(env, email).catch(
-                            Sentry.captureException
-                        )
+                    subscribeToNewsletter(env, email).catch(
+                        Sentry.captureException
                     )
-                }
-                break
-            }
-            default: {
-                // do not process other event types
-                break
+                )
             }
         }
 
