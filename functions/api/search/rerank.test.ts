@@ -8,7 +8,7 @@
  */
 import { describe, it, expect, vi } from "vitest"
 import { ChartRecordType } from "@ourworldindata/types"
-import { rerankCharts } from "./rerank.js"
+import { RERANK_TIMEOUT_MS, rerankCharts } from "./rerank.js"
 import type { EnrichedSearchChartHit, SearchApiResponse } from "./searchApi.js"
 
 const hit = (slug: string): EnrichedSearchChartHit =>
@@ -101,6 +101,20 @@ describe(rerankCharts, () => {
             r02: "Title of b",
         })
         expect(inputs.questions.any_relevant.type).toBe("noul")
+        expect(inputs).not.toHaveProperty("model")
+    })
+
+    it("sends Cloudflare's Clef models the model selector they require", async () => {
+        const ai = fakeAi(async () => jevAnswers({ r01: 1 }))
+
+        await rerankCharts(ai, "clef-flash", pool("a", "b"), 10)
+
+        const [model, inputs] = vi.mocked(ai.run).mock.calls[0] as [
+            string,
+            { model?: string },
+        ]
+        expect(model).toBe("@cf/cloudflare/clef-flash")
+        expect(inputs.model).toBe("clef-flash")
     })
 
     describe("falls back to Algolia's order", () => {
@@ -140,6 +154,32 @@ describe(rerankCharts, () => {
 
             expect(slugsOf(response)).toEqual(["a", "b"])
             expect(response.rerank.error).toBe("5007: model not found")
+        })
+
+        it("when the call takes longer than RERANK_TIMEOUT_MS", async () => {
+            // A call that only ends when the caller gives up on it
+            const ai = fakeAi(
+                (_model, _inputs, options) =>
+                    new Promise((_, reject) => {
+                        const { signal } = options as { signal: AbortSignal }
+                        signal.addEventListener("abort", () =>
+                            reject(signal.reason)
+                        )
+                    })
+            )
+
+            const response = await rerankCharts(
+                ai,
+                "jev",
+                pool("a", "b", "c"),
+                2
+            )
+
+            expect(slugsOf(response)).toEqual(["a", "b"])
+            expect(response.rerank.error).toBeDefined()
+            expect(response.rerank.latencyMs).toBeGreaterThanOrEqual(
+                RERANK_TIMEOUT_MS - 50
+            )
         })
 
         it("when the response has an unexpected shape", async () => {

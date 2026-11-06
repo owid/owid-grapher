@@ -28,10 +28,30 @@ import type { SearchApiResponse } from "./searchApi.js"
 
 export const RERANK_POOL_SIZE = 30
 
-// Model ids on Workers AI, keyed by the `rerank` param value. Pinned versions
-// would be better than these moving aliases once the experiment settles.
-export const RERANK_MODELS = { jev: "typesafe/jev" } as const
+// Decision models on Workers AI, keyed by the `rerank` param value. They all
+// take the same state-and-questions input; Cloudflare's Clef models also
+// require a `model` selector in it. Pinned versions would be better than these
+// moving aliases once the experiment settles.
+interface RerankModelSpec {
+    id: string
+    selector?: string
+}
+export const RERANK_MODELS = {
+    jev: { id: "typesafe/jev" },
+    "clef-flash": { id: "@cf/cloudflare/clef-flash", selector: "clef-flash" },
+    clef: { id: "@cf/cloudflare/clef", selector: "clef" },
+    "clef-omni": { id: "@cf/cloudflare/clef-omni", selector: "clef-omni" },
+} as const satisfies Record<string, RerankModelSpec>
 export type RerankModel = keyof typeof RERANK_MODELS
+
+// The AI Gateway rerank calls go through, for per-call logs (latency, cost,
+// errors) and a rate limit that caps spend if the endpoint is abused.
+const RERANK_GATEWAY_ID = "owid-search"
+
+// A rerank slower than this keeps Algolia's order instead: the search must
+// not wait seconds for it. Decision models answer in a few hundred ms (OpenAI
+// Decisions measured p95 0.36 s), so this only cuts off a stalled call.
+export const RERANK_TIMEOUT_MS = 1000
 
 export const isRerankModel = (value: string): value is RerankModel =>
     Object.hasOwn(RERANK_MODELS, value)
@@ -134,22 +154,31 @@ export async function rerankHits<T extends RerankableHit>(
     const started = Date.now()
     let parsed: ParsedAnswers
     try {
-        const response = await ai.run(RERANK_MODELS[model], {
-            state: buildState(query, hits),
-            questions: {
-                best_result: {
-                    type: "choice",
-                    instructions: BEST_INSTRUCTIONS,
-                    criteria: Object.fromEntries(
-                        hits.map((hit, i) => [ids[i], hit.title])
-                    ),
-                },
-                any_relevant: {
-                    type: "noul",
-                    instructions: ANY_RELEVANT_INSTRUCTIONS,
+        const { id, selector }: RerankModelSpec = RERANK_MODELS[model]
+        const response = await ai.run(
+            id,
+            {
+                ...(selector && { model: selector }),
+                state: buildState(query, hits),
+                questions: {
+                    best_result: {
+                        type: "choice",
+                        instructions: BEST_INSTRUCTIONS,
+                        criteria: Object.fromEntries(
+                            hits.map((hit, i) => [ids[i], hit.title])
+                        ),
+                    },
+                    any_relevant: {
+                        type: "noul",
+                        instructions: ANY_RELEVANT_INSTRUCTIONS,
+                    },
                 },
             },
-        })
+            {
+                gateway: { id: RERANK_GATEWAY_ID },
+                signal: AbortSignal.timeout(RERANK_TIMEOUT_MS),
+            }
+        )
         parsed = parseAnswers(response)
     } catch (error) {
         console.error("Search rerank failed:", error)
