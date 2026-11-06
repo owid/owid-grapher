@@ -1,12 +1,13 @@
 import cx from "clsx"
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 import {
     DimensionEnriched,
     MultiDimDimensionChoices,
 } from "@ourworldindata/types"
+import { resolveDimensionPresentationType } from "@ourworldindata/utils"
 import DimensionDropdown from "./DimensionDropdown.js"
 
 export default function MultiDimControls({
@@ -23,12 +24,23 @@ export default function MultiDimControls({
     readOnly?: boolean
 }) {
     const [isExpanded, setIsExpanded] = useState(false)
-    const dimensionsArray = Object.values(availableSettings)
-    const needsToggle = dimensionsArray.length > collapsedCount
+    const controls = useMemo(
+        () =>
+            Object.values(availableSettings).map((dim) => {
+                const presentationType = resolveDimensionPresentationType({
+                    dimension: dim,
+                    // `dim` holds just the choices available right now
+                    availableChoiceCount: dim.choices.length,
+                })
+                return { dim, presentationType }
+            }),
+        [availableSettings]
+    )
+    const needsToggle = controls.length > collapsedCount
 
     return (
         <div className="md-controls">
-            {dimensionsArray.map((dim, index) => (
+            {controls.map(({ dim, presentationType }, index) => (
                 <DimensionDropdown
                     key={dim.slug}
                     className={cx({
@@ -44,6 +56,7 @@ export default function MultiDimControls({
                         })
                     }}
                     readOnly={readOnly}
+                    showSearch={presentationType === "dropdown-with-search"}
                 />
             ))}
             {needsToggle && (
