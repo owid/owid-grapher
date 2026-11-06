@@ -30,10 +30,10 @@ import { match } from "ts-pattern"
 export const BAND_LABEL_GAP = 6
 
 /** Width and height of a node's optional icon, drawn next to its label */
-export const SANKEY_ICON_SIZE = 16
+const SANKEY_ICON_SIZE = 16
 
 /** Horizontal gap between a node's icon and its label text */
-export const SANKEY_ICON_TEXT_GAP = 8
+const SANKEY_ICON_TEXT_GAP = 8
 
 /** Size of an inline icon, which reads as part of the label's first line */
 const INLINE_ICON_SIZE = 14
@@ -396,6 +396,7 @@ export function Sankey({
                 fontSettings,
                 middleLabelSide,
                 fitMiddleLabelsToRibbons,
+                middleBand,
             }),
         [
             layout,
@@ -403,6 +404,7 @@ export function Sankey({
             fontSettings,
             middleLabelSide,
             fitMiddleLabelsToRibbons,
+            middleBand,
         ]
     )
 
@@ -431,6 +433,7 @@ export function Sankey({
             .exhaustive()
         return isCurrent ? rawHover : null
     }, [rawHover, layout])
+    const hoveredNodeId = hover?.kind === "node" ? hover.node.id : undefined
     const { ref: containerRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
         hover !== null,
         dismissTooltip
@@ -477,6 +480,7 @@ export function Sankey({
             if (getLinkTooltip) {
                 const link = findLinkAtPoint({
                     links: layout.links,
+                    middleBand,
                     mouseX: mouse.x,
                     mouseY: mouse.y,
                 })
@@ -498,6 +502,7 @@ export function Sankey({
             isNodeHoverable,
             labels,
             layout,
+            middleBand,
         ]
     )
 
@@ -524,6 +529,7 @@ export function Sankey({
             if (onLinkClick) {
                 const link = findLinkAtPoint({
                     links: layout.links,
+                    middleBand,
                     mouseX: mouse.x,
                     mouseY: mouse.y,
                 })
@@ -536,6 +542,7 @@ export function Sankey({
         },
         [
             isPinned,
+            middleBand,
             layout,
             labels,
             onNodeClick,
@@ -619,7 +626,7 @@ export function Sankey({
             if (!activeNodeIds.has(node.id)) continue
             const isFullyLit =
                 getNodeSide(node) !== "middle" ||
-                node.id === hoveredNodeIdOf(hover) ||
+                node.id === hoveredNodeId ||
                 [
                     ...(node.sourceLinks ?? []),
                     ...(node.targetLinks ?? []),
@@ -627,7 +634,7 @@ export function Sankey({
             if (isFullyLit) ids.add(node.id)
         }
         return ids
-    }, [layout, activeNodeIds, activeLinks, hover])
+    }, [layout, activeNodeIds, activeLinks, hoveredNodeId])
 
     // The ribbons each middle label lies over, which decide its colour
     const linksUnderLabel = useMemo(() => {
@@ -646,11 +653,15 @@ export function Sankey({
                     : node?.sourceLinks
             map.set(
                 label.nodeId,
-                findLinksUnderBox(getLabelBounds(label), sideLinks ?? [])
+                findLinksUnderBox(
+                    getLabelBounds(label),
+                    sideLinks ?? [],
+                    middleBand
+                )
             )
         }
         return map
-    }, [labels, nodesById])
+    }, [labels, nodesById, middleBand])
 
     // A label with any lit ribbon under it sits at least partly on opaque
     // colour, where its regular colour wouldn't read, so it takes the
@@ -680,7 +691,6 @@ export function Sankey({
 
     if (!layout) return null
 
-    const hoveredNodeId = hover?.kind === "node" ? hover.node.id : undefined
     const hoveredLink = hover?.kind === "link" ? hover.link : undefined
     const linkBundles = mergeParallelLinks
         ? bundleParallelLinks(linksInRenderOrder, (link) =>
@@ -873,23 +883,9 @@ function makeSankeyRibbonPath(
     links: LaidOutLink[],
     middleBand?: MiddleBand
 ): string | null {
-    const sourceNode = links[0].source as LaidOutNode
-    const targetNode = links[0].target as LaidOutNode
-
-    if (sourceNode.x1 === undefined || targetNode.x0 === undefined) return null
-    // Overlap full-width middle-node bands slightly to hide anti-aliasing
-    // seams; stop short of narrow ones by their gap
-    const getMiddleInset = (node: LaidOutNode): number => {
-        if (getNodeSide(node) !== "middle") return 0
-        if (!middleBand) return -RIBBON_NODE_OVERLAP
-        const nodeWidth = (node.x1 ?? 0) - (node.x0 ?? 0)
-        return Math.max(
-            0,
-            0.5 * (nodeWidth - middleBand.width) - middleBand.gap
-        )
-    }
-    const x0 = sourceNode.x1 - getMiddleInset(sourceNode)
-    const x1 = targetNode.x0 + getMiddleInset(targetNode)
+    const geometry = toRibbonGeometry(links[0], middleBand)
+    if (!geometry) return null
+    const { x0, x1 } = geometry
 
     let y0Top = Infinity
     let y0Bottom = -Infinity
@@ -997,7 +993,6 @@ function SankeyLabel({
     nodeColor?: string
 }): React.ReactElement {
     const className = cx("sankey__label", {
-        "sankey__label--inner": label.side === "middle",
         "sankey__label--colored": label.labelColor !== undefined,
         "sankey__label--hovered": isHovered,
         "sankey__label--active": isActive,
@@ -1180,12 +1175,14 @@ function placeSankeyLabels({
     fontSettings,
     middleLabelSide,
     fitMiddleLabelsToRibbons,
+    middleBand,
 }: {
     layout: LaidOutGraph | null
     nodePadding: number
     fontSettings: FontSettings
     middleLabelSide: "left" | "right"
     fitMiddleLabelsToRibbons: boolean
+    middleBand?: MiddleBand
 }): PlacedSankeyLabel[] {
     if (!layout) return []
 
@@ -1211,7 +1208,9 @@ function placeSankeyLabels({
                 ? ((anchor.textAnchor === "end"
                       ? node.targetLinks
                       : node.sourceLinks
-                  )?.flatMap((link) => toRibbonGeometry(link) ?? []) ?? [])
+                  )?.flatMap(
+                      (link) => toRibbonGeometry(link, middleBand) ?? []
+                  ) ?? [])
                 : undefined
 
         for (const variant of variants) {
@@ -1351,10 +1350,6 @@ function shiftNodeVertically(node: LaidOutNode, dy: number): void {
     for (const link of node.sourceLinks ?? []) {
         if (link.y0 !== undefined) link.y0 += dy
     }
-}
-
-function hoveredNodeIdOf(hover: HoverState | null): string | undefined {
-    return hover?.kind === "node" ? hover.node.id : undefined
 }
 
 /** Classify nodes by their upstream depth and downstream height. */
@@ -1572,7 +1567,10 @@ export type RibbonGeometry = {
     width: number
 }
 
-function toRibbonGeometry(link: LaidOutLink): RibbonGeometry | undefined {
+function toRibbonGeometry(
+    link: LaidOutLink,
+    middleBand?: MiddleBand
+): RibbonGeometry | undefined {
     const source = link.source as LaidOutNode
     const target = link.target as LaidOutNode
     if (
@@ -1583,12 +1581,23 @@ function toRibbonGeometry(link: LaidOutLink): RibbonGeometry | undefined {
     )
         return undefined
     return {
-        x0: source.x1,
-        x1: target.x0,
+        x0: source.x1 - getMiddleRibbonInset(source, middleBand),
+        x1: target.x0 + getMiddleRibbonInset(target, middleBand),
         y0: link.y0,
         y1: link.y1,
         width: link.width ?? 0,
     }
+}
+
+/** Extend ribbons under full-width bands, or towards a narrow band's gap. */
+function getMiddleRibbonInset(
+    node: LaidOutNode,
+    middleBand?: MiddleBand
+): number {
+    if (getNodeSide(node) !== "middle") return 0
+    if (!middleBand) return RIBBON_NODE_OVERLAP
+    const nodeWidth = (node.x1 ?? 0) - (node.x0 ?? 0)
+    return Math.max(0, 0.5 * (nodeWidth - middleBand.width) - middleBand.gap)
 }
 
 /** Space a label keeps from its ribbons' edges */
@@ -1640,10 +1649,14 @@ export function isBoxCoveredByRibbons(
 }
 
 /** The links whose ribbons pass under any part of a box */
-function findLinksUnderBox(box: Bounds, links: LaidOutLink[]): LaidOutLink[] {
+function findLinksUnderBox(
+    box: Bounds,
+    links: LaidOutLink[],
+    middleBand?: MiddleBand
+): LaidOutLink[] {
     const sampleCount = Math.max(1, Math.ceil(box.width / COVERAGE_SAMPLE_STEP))
     return links.filter((link) => {
-        const ribbon = toRibbonGeometry(link)
+        const ribbon = toRibbonGeometry(link, middleBand)
         if (!ribbon || ribbon.width <= 0) return false
         for (let i = 0; i <= sampleCount; i++) {
             const x = box.left + (i / sampleCount) * box.width
@@ -1666,16 +1679,20 @@ function findLinksUnderBox(box: Bounds, links: LaidOutLink[]): LaidOutLink[] {
  */
 function findLinkAtPoint({
     links,
+    middleBand,
     mouseX,
     mouseY,
 }: {
     links: LaidOutLink[]
+    middleBand?: MiddleBand
     mouseX: number
     mouseY: number
 }): LaidOutLink | null {
     let closest: { link: LaidOutLink; gap: number; dy: number } | null = null
     for (const link of links) {
-        const centerY = calculateLinkCenterY(link, mouseX)
+        const ribbon = toRibbonGeometry(link, middleBand)
+        if (!ribbon) continue
+        const centerY = calculateRibbonCenterY(ribbon, mouseX)
         if (centerY === null) continue
         const dy = Math.abs(mouseY - centerY)
         const halfBand = (link.width ?? 0) / 2
@@ -1701,24 +1718,6 @@ function findLinkAtPoint({
  * so x(t) is cubic in t and we bisect for the t matching `mouseX`. The
  * y curve simplifies to a smoothstep blend between y0 and y1.
  */
-function calculateLinkCenterY(
-    link: LaidOutLink,
-    mouseX: number
-): number | null {
-    const sourceNode = link.source as LaidOutNode
-    const targetNode = link.target as LaidOutNode
-    return calculateRibbonCenterY(
-        {
-            x0: sourceNode.x1 ?? 0, // right edge of source node = link start
-            x1: targetNode.x0 ?? 0, // left edge of target node  = link end
-            y0: link.y0 ?? 0,
-            y1: link.y1 ?? 0,
-            width: link.width ?? 0,
-        },
-        mouseX
-    )
-}
-
 function calculateRibbonCenterY(
     { x0, x1, y0, y1 }: RibbonGeometry,
     mouseX: number

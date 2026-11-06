@@ -165,3 +165,40 @@ describe("fitting middle labels to their ribbons", () => {
         expect(iconCount).toEqual(3)
     })
 })
+
+// Middle bands must meet the rendered ribbons: the default overlaps to hide
+// seams, while an explicitly narrow band leaves the requested gap on each side.
+describe("middle-band ribbon endpoints", () => {
+    it.each([
+        { name: "default overlap", middleBand: undefined, gap: -0.5 },
+        { name: "narrow band", middleBand: { width: 4, gap: 1 }, gap: 1 },
+    ])("preserves the $name on both sides", ({ middleBand, gap }) => {
+        const markup = renderToStaticMarkup(
+            createElement(Sankey, {
+                nodes: ["source", "middle", "target"].map((id) => ({
+                    id,
+                    label: "",
+                })),
+                links: [
+                    { source: "source", target: "middle", value: 1 },
+                    { source: "middle", target: "target", value: 1 },
+                ],
+                width: 600,
+                height: 400,
+                middleBand,
+            })
+        )
+        const bands = markup.match(/<rect\b[^>]*>/g) ?? []
+        expect(bands).toHaveLength(3)
+        const middleX = Number(bands[1].match(/\bx="([^"]+)"/)?.[1])
+        const middleWidth = Number(bands[1].match(/\bwidth="([^"]+)"/)?.[1])
+        const paths = [...markup.matchAll(/<path\b[^>]*\bd="([^"]+)"/g)].map(
+            (match) => match[1]
+        )
+        expect(paths).toHaveLength(2)
+        const incomingEndX = Number(paths[0].match(/L([^,]+),/)?.[1])
+        const outgoingStartX = Number(paths[1].match(/^M([^,]+),/)?.[1])
+        expect(middleX - incomingEndX).toBeCloseTo(gap)
+        expect(outgoingStartX - (middleX + middleWidth)).toBeCloseTo(gap)
+    })
+})
