@@ -105,7 +105,9 @@ interface ParsedAnswers {
 
 /** Reads Jev's typed answers, failing loudly on any other shape. */
 function parseAnswers(response: Record<string, unknown>): ParsedAnswers {
-    const answers = response.answers
+    // Jev wraps its answers in { state, result }; Clef returns them directly
+    const body = isRecord(response.result) ? response.result : response
+    const answers = body.answers
     if (!isRecord(answers)) throw new Error("rerank response has no answers")
     const best = answers.best_result
     const anyRelevant = answers.any_relevant

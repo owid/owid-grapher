@@ -104,6 +104,18 @@ describe(rerankCharts, () => {
         expect(inputs).not.toHaveProperty("model")
     })
 
+    it("reads Jev's answers, which it wraps in { state, result }", async () => {
+        const ai = fakeAi(async () => ({
+            state: "Completed",
+            result: jevAnswers({ r01: 0.1, r02: 0.9 }),
+        }))
+
+        const response = await rerankCharts(ai, "jev", pool("a", "b"), 10)
+
+        expect(slugsOf(response)).toEqual(["b", "a"])
+        expect(response.rerank.error).toBeUndefined()
+    })
+
     it("sends Cloudflare's Clef models the model selector they require", async () => {
         const ai = fakeAi(async () => jevAnswers({ r01: 1 }))
 
