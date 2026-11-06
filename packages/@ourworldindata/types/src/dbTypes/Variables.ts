@@ -178,13 +178,13 @@ export function serializeVariableSort(
     return sort ? JSON.stringify(sort) : null
 }
 
-export function parseVariableAnnotations(
+function parseVariableAnnotations(
     annotations: JsonString | null
 ): OwidVariableAnnotation[] | null {
     return annotations ? JSON.parse(annotations) : null
 }
 
-export function serializeVariableAnnotations(
+function serializeVariableAnnotations(
     annotations: OwidVariableAnnotation[] | null
 ): JsonString | null {
     return annotations ? JSON.stringify(annotations) : null
