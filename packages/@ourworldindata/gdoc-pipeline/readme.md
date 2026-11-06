@@ -94,7 +94,7 @@ yarn testPackage
 Releases go to OWID's private registry at `https://packages.owid.io` (set as `publishConfig.registry`). From this directory, with the build verified (`yarn build` + `yarn testPackage`):
 
 ```bash
-yarn bumpp
+yarn release
 ```
 
-Once that commit & tag (`gdoc-pipeline@<version>`) are pushed to `master`, a Buildkite pipeline runs the publish to the private npm registry.
+`yarn release` runs `bumpp --pr`, which opens a PR with the version bump (`chore: release gdoc-pipeline@<version>`). Merge it as a squash or rebase, so the commit on `master` starts with `chore: release gdoc-pipeline@` (the PR title does by default): the Buildkite pipeline publishes the package when it sees that commit message. `.github/workflows/tag-package-releases.yml` also tags the merge commit `gdoc-pipeline@<version>`.

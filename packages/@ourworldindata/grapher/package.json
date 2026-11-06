@@ -57,6 +57,7 @@
         "dist/grapher.d.ts.map"
     ],
     "scripts": {
+        "release": "bumpp",
         "build": "tsdown && yarn buildSchema",
         "buildSchema": "tsx scripts/buildLatestGrapherSchema.ts",
         "clean": "rm -rf dist dist-package",

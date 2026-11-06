@@ -102,7 +102,7 @@ The public docs site at [docs.owid.io/projects/grapher](https://docs.owid.io/pro
 Releases go to OWID's private registry at `https://packages.owid.io` (set as `publishConfig.registry`). From this directory, with the build verified (`yarn build` + `yarn testPackage`):
 
 ```bash
-yarn bumpp
+yarn release
 ```
 
-Once that commit & tag are pushed to `master`, a Buildkite pipeline runs a publish and will put the package release both onto our private npm registry, and will make the built files available on our Tailnet.
+`yarn release` runs `bumpp --pr`, which opens a PR with the version bump (`chore: release grapher@<version>`). Merge it as a squash or rebase, so the commit on `master` starts with `chore: release grapher@` (the PR title does by default): the Buildkite pipeline publishes the package when it sees that commit message. `.github/workflows/tag-package-releases.yml` also tags the merge commit `grapher@<version>`.

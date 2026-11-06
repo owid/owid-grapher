@@ -52,6 +52,7 @@
         "dist/editor.d.ts.map"
     ],
     "scripts": {
+        "release": "bumpp",
         "build": "tsdown",
         "clean": "rm -rf dist dist-package",
         "startDemoServer": "http-server . -p 8434 -c-1 -o /demo.html",
