@@ -2112,7 +2112,7 @@ __metadata:
     "@ourworldindata/utils": "workspace:^"
     "@types/d3-dsv": "npm:^3.0.7"
     "@types/lodash-es": "npm:^4.17.12"
-    d3-dsv: "npm:^3.0.1"
+    d3-dsv: "npm:^3.0.2"
     lodash-es: "npm:^4.18.1"
     remeda: "npm:^2.52.0"
     vitest: "npm:^5.0.5"
@@ -2259,16 +2259,16 @@ __metadata:
     bumpp: "npm:^12.2.0"
     clsx: "npm:^2.1.1"
     colorbrewer: "npm:^1.3.0"
-    d3-array: "npm:^3.2.4"
-    d3-color: "npm:^3.1.0"
-    d3-ease: "npm:^3.0.1"
-    d3-force: "npm:^3.0.0"
-    d3-geo: "npm:^3.1.1"
-    d3-interpolate: "npm:^3.0.1"
-    d3-quadtree: "npm:^3.0.1"
+    d3-array: "npm:^3.2.5"
+    d3-color: "npm:^3.1.1"
+    d3-ease: "npm:^3.0.2"
+    d3-force: "npm:^3.0.1"
+    d3-geo: "npm:^3.1.2"
+    d3-interpolate: "npm:^3.0.2"
+    d3-quadtree: "npm:^3.0.2"
     d3-scale: "npm:^4.0.2"
     d3-selection: "npm:^3.0.0"
-    d3-shape: "npm:^3.2.0"
+    d3-shape: "npm:^3.2.1"
     d3-zoom: "npm:^3.0.0"
     es-cookie: "npm:^1.5.0"
     fparser: "npm:^3.1.0"
@@ -2334,8 +2334,8 @@ __metadata:
     "@types/url-parse": "npm:^1.4.11"
     algoliasearch: "npm:^5.57.0"
     core-js: "npm:^3.49.0"
-    d3-array: "npm:^3.2.4"
-    d3-format: "npm:^3.1.2"
+    d3-array: "npm:^3.2.5"
+    d3-format: "npm:^3.1.3"
     dayjs: "npm:^1.11.23"
     es-cookie: "npm:^1.5.0"
     fuzzysort: "npm:^3.1.0"
@@ -7081,19 +7081,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-array@npm:2 - 3, d3-array@npm:2.10.0 - 3, d3-array@npm:2.5.0 - 3, d3-array@npm:^3.2.4":
-  version: 3.2.4
-  resolution: "d3-array@npm:3.2.4"
+"d3-array@npm:2 - 3, d3-array@npm:2.10.0 - 3, d3-array@npm:2.5.0 - 3, d3-array@npm:^3.2.5":
+  version: 3.2.5
+  resolution: "d3-array@npm:3.2.5"
   dependencies:
     internmap: "npm:1 - 2"
-  checksum: 10/5800c467f89634776a5977f6dae3f4e127d91be80f1d07e3e6e35303f9de93e6636d014b234838eea620f7469688d191b3f41207a30040aab750a63c97ec1d7c
+  checksum: 10/f0e13bf8aca975d0af8fff5006459fa33fa917914b932432946c5e0d6c12322ff2974503fdd64444cbf0fc0c778625f9724841495b73db0b1b811fa7ddd5ce79
   languageName: node
   linkType: hard
 
-"d3-color@npm:1 - 3, d3-color@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "d3-color@npm:3.1.0"
-  checksum: 10/536ba05bfd9f4fcd6fa289b5974f5c846b21d186875684637e22bf6855e6aba93e24a2eb3712985c6af3f502fbbfa03708edb72f58142f626241a8a17258e545
+"d3-color@npm:1 - 3, d3-color@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "d3-color@npm:3.1.1"
+  checksum: 10/ceb9b7678fa308f0fb97255b0edb227e9adad57ce38dc14d15f1cfb661d8b4295a661350562c4db9e4fe09b03e59169bcda1c6fea3841152439254695c903535
   languageName: node
   linkType: hard
 
@@ -7114,9 +7114,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-dsv@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "d3-dsv@npm:3.0.1"
+"d3-dsv@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "d3-dsv@npm:3.0.2"
   dependencies:
     commander: "npm:7"
     iconv-lite: "npm:0.6"
@@ -7131,64 +7131,64 @@ __metadata:
     json2tsv: bin/json2dsv.js
     tsv2csv: bin/dsv2dsv.js
     tsv2json: bin/dsv2json.js
-  checksum: 10/a628ac42a272466940f713f310db2e5246690b22035121dc1230077070c9135fb7c9b4d260f093fcadf63b0528202a1953107448a4be3a860c4f42f50d09504d
+  checksum: 10/25c8627f28041e337a83826530e46f70bf8a585cd2da458fc316a89fb4d70714b9756975d576fa476e30402747343e1dfdc4a212e89305a1bf5f10d3ba16bafe
   languageName: node
   linkType: hard
 
-"d3-ease@npm:1 - 3, d3-ease@npm:^3.0.1":
+"d3-ease@npm:1 - 3, d3-ease@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "d3-ease@npm:3.0.2"
+  checksum: 10/62f12217638ee852edcaec7c5d1dfa8f53de81326bf1ee07c8e10201a3e4822902149c26af453441715dab4cfeb1be5743653d3152eded9f9f22de97b52b3e6c
+  languageName: node
+  linkType: hard
+
+"d3-force@npm:^3.0.1":
   version: 3.0.1
-  resolution: "d3-ease@npm:3.0.1"
-  checksum: 10/985d46e868494e9e6806fedd20bad712a50dcf98f357bf604a843a9f6bc17714a657c83dd762f183173dcde983a3570fa679b2bc40017d40b24163cdc4167796
-  languageName: node
-  linkType: hard
-
-"d3-force@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "d3-force@npm:3.0.0"
+  resolution: "d3-force@npm:3.0.1"
   dependencies:
     d3-dispatch: "npm:1 - 3"
     d3-quadtree: "npm:1 - 3"
     d3-timer: "npm:1 - 3"
-  checksum: 10/85945f8d444d78567009518f0ab54c0f0c8873eb8eb9a2ff0ab667b0f81b419e101a411415d4a2c752547ec7143f89675e8c33b8f111e55e5579a04cb7f4591c
+  checksum: 10/b65ab681b632b26a241741956092bd061982abef0d4e790ec62b4d8b94b51ce8697931748c83e55b16946ac67b5ac554d7c96f2fd7d768f4b394a04888a402fc
   languageName: node
   linkType: hard
 
-"d3-format@npm:1 - 3, d3-format@npm:^3.1.2":
+"d3-format@npm:1 - 3, d3-format@npm:^3.1.3":
+  version: 3.1.3
+  resolution: "d3-format@npm:3.1.3"
+  checksum: 10/abdde60f7e5545021635bd510c397c8f2f937034f6f19ef72d9774ec2aae979f37138742e82ee8c8909992b4e666e2b180a40534134ba5b3dd65219a6822035b
+  languageName: node
+  linkType: hard
+
+"d3-geo@npm:^3.1.2":
   version: 3.1.2
-  resolution: "d3-format@npm:3.1.2"
-  checksum: 10/811d913c2c7624cb0d2a8f0ccd7964c50945b3de3c7f7aa14c309fba7266a3ec53cbee8c05f6ad61b2b65b93e157c55a0e07db59bc3180c39dac52be8e841ab1
-  languageName: node
-  linkType: hard
-
-"d3-geo@npm:^3.1.1":
-  version: 3.1.1
-  resolution: "d3-geo@npm:3.1.1"
+  resolution: "d3-geo@npm:3.1.2"
   dependencies:
     d3-array: "npm:2.5.0 - 3"
-  checksum: 10/dc5e980330d891dabf92869b98871b05ca2021c64d7ef253bcfd4f2348839ad33576fba474baecc2def86ebd3d943a11d93c0af26be0a2694f5bd59824838133
+  checksum: 10/843db3011666caafdc859c515db699b6d8190d450b89aa4d7dff0bdf159ccc7940b2a4fbba8d97475c404a123d79e5516ab219bfe024710c9177c567387f9cc5
   languageName: node
   linkType: hard
 
-"d3-interpolate@npm:1 - 3, d3-interpolate@npm:1.2.0 - 3, d3-interpolate@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "d3-interpolate@npm:3.0.1"
+"d3-interpolate@npm:1 - 3, d3-interpolate@npm:1.2.0 - 3, d3-interpolate@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "d3-interpolate@npm:3.0.2"
   dependencies:
     d3-color: "npm:1 - 3"
-  checksum: 10/988d66497ef5c190cf64f8c80cd66e1e9a58c4d1f8932d776a8e3ae59330291795d5a342f5a97602782ccbef21a5df73bc7faf1f0dc46a5145ba6243a82a0f0e
+  checksum: 10/5b0a1001b02ba6fcdc63a2d7af53569ff77b218de738a9f665abd4abfb6c63a6c67d26b527c32d478fc3c0c594e96864aac868d8e09238afac9a5acd80f0b310
   languageName: node
   linkType: hard
 
-"d3-path@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "d3-path@npm:3.1.0"
-  checksum: 10/8e97a9ab4930a05b18adda64cf4929219bac913a5506cf8585631020253b39309549632a5cbeac778c0077994442ddaaee8316ee3f380e7baf7566321b84e76a
+"d3-path@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "d3-path@npm:3.1.1"
+  checksum: 10/edd6bc46e3f0da2b56cd772be8bef589d9cc01bd8311269f1702f88c0db688b01b55f1a504dfad4cd5c162beb25d275e1d67797aebddcaca4777fa9a913e7cb8
   languageName: node
   linkType: hard
 
-"d3-quadtree@npm:1 - 3, d3-quadtree@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "d3-quadtree@npm:3.0.1"
-  checksum: 10/1915b6a7b031fc312f9af61947072db9468c5a2b03837f6a90b38fdaebcd0ea17a883bffd94d16b8a6848e81711a06222f7d39f129386ef1850297219b8d32ba
+"d3-quadtree@npm:1 - 3, d3-quadtree@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "d3-quadtree@npm:3.0.2"
+  checksum: 10/bffd4152048812953334db199ad38b9c69d46a0c4a389f21cd3cc843dfac55e22fa23a564bd5964b6dc3316ae15195ce3e2dbfe1846a997a63d89f87ccb047b2
   languageName: node
   linkType: hard
 
@@ -7212,12 +7212,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-shape@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "d3-shape@npm:3.2.0"
+"d3-shape@npm:^3.2.1":
+  version: 3.2.1
+  resolution: "d3-shape@npm:3.2.1"
   dependencies:
-    d3-path: "npm:^3.1.0"
-  checksum: 10/2e861f4d4781ee8abd85d2b435f848d667479dcf01a4e0db3a06600a5bdeddedb240f88229ec7b3bf7fa300c2b3526faeaf7e75f9a24dbf4396d3cc5358ff39d
+    d3-path: "npm:^3.1.1"
+  checksum: 10/f60e2d23357342811952ddf001e4d5e26afd97ad3c50cf5fbfea2e72f340bdaf0205790c7e40c6012d03a87259db88b974befc92cb66e6a37b6054b0e8ac0f1d
   languageName: node
   linkType: hard
 
@@ -8610,8 +8610,8 @@ __metadata:
     clsx: "npm:^2.1.1"
     cookie-parser: "npm:^1.4.7"
     core-js: "npm:^3.49.0"
-    d3-dsv: "npm:^3.0.1"
-    d3-geo: "npm:^3.1.1"
+    d3-dsv: "npm:^3.0.2"
+    d3-geo: "npm:^3.1.2"
     dayjs: "npm:^1.11.23"
     dotenv: "npm:^18.0.8"
     entities: "npm:^8.0.0"
