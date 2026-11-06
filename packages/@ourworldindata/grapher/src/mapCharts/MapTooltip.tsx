@@ -36,6 +36,8 @@ import { darkenColorForHighContrastText } from "../color/ColorUtils"
 import { MapSparkline, MapSparklineManager } from "./MapSparkline.js"
 import { match } from "ts-pattern"
 import { MapFormatValueForTooltip } from "./MapChartState.js"
+import { selectEntityAnnotation } from "../annotations/EntityAnnotations.js"
+import { joinEntityAnnotationTexts } from "../chart/ChartUtils.js"
 
 interface MapTooltipProps {
     id: number
@@ -197,6 +199,44 @@ export class MapTooltip
             .exhaustive()
     }
 
+    @computed private get entityAnnotationText(): string | undefined {
+        const { entityName } = this
+        return match(this.mapColumnInfo)
+            .with(
+                { type: "historical" },
+                { type: "projected" },
+                (info) =>
+                    selectEntityAnnotation(
+                        this.entityTable.get(info.slug),
+                        entityName
+                    )?.text
+            )
+            .with({ type: "historical+projected" }, (info) => {
+                const columns = [info.historicalSlug, info.projectedSlug].map(
+                    (slug) => this.entityTable.get(slug)
+                )
+                const times = excludeUndefined(
+                    this.props.targetTimes ?? [this.props.targetTime]
+                )
+                const shownColumns = columns.filter((column) =>
+                    times.some((time) =>
+                        column.valueByEntityNameAndOriginalTime
+                            .get(entityName)
+                            ?.has(time)
+                    )
+                )
+                return joinEntityAnnotationTexts(
+                    excludeUndefined(
+                        shownColumns.map(
+                            (column) =>
+                                selectEntityAnnotation(column, entityName)?.text
+                        )
+                    )
+                )
+            })
+            .exhaustive()
+    }
+
     @computed get lineColorScale(): ColorScale {
         return this.props.lineColorScale
     }
@@ -332,6 +372,7 @@ export class MapTooltip
                 offsetY={-16}
                 offsetYDirection={"downward"}
                 title={entityName}
+                titleAnnotation={this.entityAnnotationText}
                 subtitle={this.tooltipSubtitle}
                 subtitleFormat={this.toleranceNotice ? "notice" : undefined}
                 footer={footer}
