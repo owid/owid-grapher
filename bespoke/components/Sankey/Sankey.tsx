@@ -59,9 +59,6 @@ const ANNOTATION_ARROWHEAD_SIZE = 5
 /** Space between the arrowhead's tip and the band */
 const ANNOTATION_ARROW_BAND_GAP = 3
 
-/** How far a ribbon reaches under a middle node's band, in px */
-const RIBBON_NODE_OVERLAP = 0.5
-
 /** Smallest height a node's band is drawn at, however small its value */
 const MIN_NODE_DRAWN_HEIGHT = 1
 
@@ -108,9 +105,8 @@ interface SankeyProps {
     /** Whitespace between a node's band and the flow path */
     bandFlowGap?: number
     /**
-     * By default a middle node's band spans the node's full width and the
-     * ribbons on both sides run into it. When set, the band is drawn at this
-     * width, centred, with the ribbons stopping `gap` px short of it.
+     * Middle-node bands are centred within their layout slot, with ribbons
+     * stopping `gap` px short of them. Required only for graphs with middle nodes.
      */
     middleBand?: MiddleBand
     fontSettings?: FontSettings
@@ -919,21 +915,19 @@ function SankeyNodeView({
     const h = Math.max(MIN_NODE_DRAWN_HEIGHT, y1 - y0)
     const y = (y0 + y1 - h) / 2
 
-    // Middle-node bands span the full width to connect ribbons on both
-    // sides, unless they're drawn narrower and centred
+    // Middle-node bands are centred within their layout slot.
     const side = getNodeSide(node)
-    const w =
-        side !== "middle"
-            ? bandWidth
-            : middleBand
-              ? Math.min(middleBand.width, x1 - x0)
-              : Math.max(0, x1 - x0)
-    const x =
-        side === "right"
-            ? x1 - bandWidth
-            : side === "middle"
-              ? (x0 + x1 - w) / 2
-              : x0
+    const w = match(side)
+        .with("left", "right", () => bandWidth)
+        .with("middle", () =>
+            Math.min(requireMiddleBand(middleBand).width, x1 - x0)
+        )
+        .exhaustive()
+    const x = match(side)
+        .with("left", () => x0)
+        .with("right", () => x1 - bandWidth)
+        .with("middle", () => (x0 + x1 - w) / 2)
+        .exhaustive()
 
     const fill = nodeColor?.(node) ?? GRAPHER_DENIM
 
@@ -1560,15 +1554,23 @@ function toRibbonGeometry(
     }
 }
 
-/** Extend ribbons under full-width bands, or towards a narrow band's gap. */
+function requireMiddleBand(middleBand: MiddleBand | undefined): MiddleBand {
+    if (!middleBand)
+        throw new Error(
+            "Sankey: middleBand is required for graphs with middle nodes"
+        )
+    return middleBand
+}
+
+/** Extend ribbons towards the middle band, leaving its configured gap. */
 function getMiddleRibbonInset(
     node: LaidOutNode,
     middleBand?: MiddleBand
 ): number {
     if (getNodeSide(node) !== "middle") return 0
-    if (!middleBand) return RIBBON_NODE_OVERLAP
+    const { width, gap } = requireMiddleBand(middleBand)
     const nodeWidth = (node.x1 ?? 0) - (node.x0 ?? 0)
-    return Math.max(0, 0.5 * (nodeWidth - middleBand.width) - middleBand.gap)
+    return Math.max(0, 0.5 * (nodeWidth - width) - gap)
 }
 
 /** Space a label keeps from its ribbons' edges */

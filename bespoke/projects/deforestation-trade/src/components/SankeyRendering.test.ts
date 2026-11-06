@@ -111,6 +111,7 @@ function renderLabels({
     ])
     const markup = renderToStaticMarkup(
         createElement(Sankey, {
+            middleBand: { width: 4, gap: 1 },
             nodes,
             links,
             width: 600,
@@ -154,13 +155,30 @@ describe("fitting middle labels to their ribbons", () => {
     })
 })
 
-// Middle bands must meet the rendered ribbons: the default overlaps to hide
-// seams, while an explicitly narrow band leaves the requested gap on each side.
+// Middle bands leave the configured gap to the ribbons on both sides.
 describe("middle-band ribbon endpoints", () => {
-    it.each([
-        { name: "default overlap", middleBand: undefined, gap: -0.5 },
-        { name: "narrow band", middleBand: { width: 4, gap: 1 }, gap: 1 },
-    ])("preserves the $name on both sides", ({ middleBand, gap }) => {
+    it("requires settings when a graph has a middle node", () => {
+        expect(() =>
+            renderToStaticMarkup(
+                createElement(Sankey, {
+                    nodes: ["source", "middle", "target"].map((id) => ({
+                        id,
+                        label: "",
+                    })),
+                    links: [
+                        { source: "source", target: "middle", value: 1 },
+                        { source: "middle", target: "target", value: 1 },
+                    ],
+                    width: 600,
+                    height: 400,
+                })
+            )
+        ).toThrow("Sankey: middleBand is required for graphs with middle nodes")
+    })
+
+    it("preserves the configured gap on both sides", () => {
+        const middleBand = { width: 4, gap: 1 }
+        const gap = middleBand.gap
         const markup = renderToStaticMarkup(
             createElement(Sankey, {
                 nodes: ["source", "middle", "target"].map((id) => ({
