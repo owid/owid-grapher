@@ -276,7 +276,7 @@ function createColumns(
                 ) : (
                     <Popconfirm
                         title="Delete this multi-dim?"
-                        description="This deletes it and its views from the database. The ETL will recreate it the next time it's pushed."
+                        description="This deletes it and its views from the database. Also remove its step from the ETL, or the next ETL run will recreate it."
                         onConfirm={() => deleteMutation.mutate(record.id)}
                         okText="Delete"
                         okButtonProps={{ danger: true }}
