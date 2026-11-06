@@ -63,6 +63,10 @@ import {
 } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
+import {
+    placeEntityAnnotationsInTooltip,
+    selectEntityAnnotationsForColumns,
+} from "../annotations/EntityAnnotations"
 import { MarimekkoBars } from "./MarimekkoBars"
 import {
     measureMarimekkoLabels,
@@ -462,6 +466,27 @@ export class MarimekkoChart
 
         const footer = excludeUndefined([toleranceNotice, roundingNotice])
 
+        const tooltipEntityColor =
+            !colorColumn.isMissing &&
+            !(colorColumn instanceof ColumnTypeMap.Continent)
+                ? tooltipSeries?.entityColor
+                : undefined
+        const rowColumns = excludeUndefined([
+            yPoint ? yColumn : undefined,
+            xColumn && !xColumn.isMissing ? xColumn : undefined,
+            tooltipEntityColor ? colorColumn : undefined,
+        ])
+        const annotationPlacement = entityName
+            ? placeEntityAnnotationsInTooltip(
+                  selectEntityAnnotationsForColumns(rowColumns, entityName),
+                  rowColumns.map((column) => column.slug)
+              )
+            : undefined
+        const getColumnAnnotation = (column: CoreColumn): string | undefined =>
+            annotationPlacement?.kind === "perColumn"
+                ? annotationPlacement.textBySlug.get(column.slug)
+                : undefined
+
         return (
             <g
                 ref={this.base}
@@ -507,6 +532,11 @@ export class MarimekkoChart
                         offsetX={20}
                         offsetY={-16}
                         title={entityName}
+                        titleAnnotation={
+                            annotationPlacement?.kind === "shared"
+                                ? annotationPlacement.text
+                                : undefined
+                        }
                         subtitle={timeColumn.formatValue(endTime)}
                         footer={footer}
                         dissolve={fading}
@@ -517,6 +547,7 @@ export class MarimekkoChart
                                 label={yColumn.displayName}
                                 unit={yColumn.displayUnit}
                                 value={yColumn.formatValueShort(yPoint.value)}
+                                detail={getColumnAnnotation(yColumn)}
                                 originalTime={yOriginalTimeFormatted}
                                 showSignificanceSuperscript={
                                     showSignificanceSuperscriptIfApplicable &&
@@ -529,6 +560,7 @@ export class MarimekkoChart
                                 label={xColumn.displayName}
                                 unit={xColumn.displayUnit}
                                 value={xColumn.formatValueShort(xPoint?.value)}
+                                detail={getColumnAnnotation(xColumn)}
                                 originalTime={xOriginalTimeFormatted}
                                 showSignificanceSuperscript={
                                     showSignificanceSuperscriptIfApplicable &&
@@ -536,26 +568,21 @@ export class MarimekkoChart
                                 }
                             />
                         )}
-                        {!colorColumn.isMissing &&
-                            tooltipSeries?.entityColor &&
-                            !(
-                                colorColumn instanceof ColumnTypeMap.Continent
-                            ) && (
-                                <TooltipValue
-                                    label={
-                                        colorScale.legendDescription ??
-                                        colorColumn.displayName
-                                    }
-                                    value={
-                                        colorScale.getBinForValue(
-                                            tooltipSeries.entityColor
-                                                .colorDomainValue
-                                        )?.label ??
-                                        tooltipSeries.entityColor
-                                            .colorDomainValue
-                                    }
-                                />
-                            )}
+                        {tooltipEntityColor && (
+                            <TooltipValue
+                                label={
+                                    colorScale.legendDescription ??
+                                    colorColumn.displayName
+                                }
+                                value={
+                                    colorScale.getBinForValue(
+                                        tooltipEntityColor.colorDomainValue
+                                    )?.label ??
+                                    tooltipEntityColor.colorDomainValue
+                                }
+                                detail={getColumnAnnotation(colorColumn)}
+                            />
+                        )}
                     </Tooltip>
                 )}
             </g>
