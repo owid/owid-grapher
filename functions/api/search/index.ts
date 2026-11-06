@@ -2,6 +2,13 @@ import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "./algoliaClient.js"
 import {
+    isRerankModel,
+    RERANK_MODELS,
+    RERANK_POOL_SIZE,
+    rerankCharts,
+    RerankModel,
+} from "./rerank.js"
+import {
     searchCharts,
     searchPages,
     searchTopicPages,
@@ -11,6 +18,12 @@ import {
     SearchTopicsApiResponse,
     SearchValidationError,
 } from "./searchApi.js"
+import {
+    appendVocabularyHits,
+    pickVocabularyTerms,
+    VOCABULARY_HITS_PER_TERM,
+    type VocabularyInfo,
+} from "./vocabulary.js"
 import {
     FilterType,
     Filter,
@@ -45,6 +58,8 @@ const KNOWN_PARAMS = new Set<string>([
     "pageTypes",
     "page",
     "hitsPerPage",
+    "rerank",
+    "vocab",
 ])
 
 // The parameters only some search types read. A request that sends one to a
@@ -56,6 +71,8 @@ const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
     [SearchUrlParam.TOPIC, ["charts", "topics"]],
     [SearchUrlParam.REQUIRE_ALL_COUNTRIES, ["charts", "topics"]],
     ["pageTypes", ["pages"]],
+    ["rerank", ["charts"]],
+    ["vocab", ["charts"]],
 ])
 
 // type=topics filters by country only when charts match a query, so never
@@ -89,6 +106,40 @@ async function fetchTagGraph(env: Env, baseUrl: string): Promise<TagGraphRoot> {
             `Failed to fetch /topicTagGraph.json: ${response.status}`
         )
     return response.json()
+}
+
+/**
+ * The experimental `rerank` param of a charts search (see rerank.ts). It
+ * reorders the top RERANK_POOL_SIZE hits, so it serves page 0 only. With
+ * `vocab=1`, the pool also gets the query's vocabulary hits (see
+ * vocabulary.ts).
+ */
+function parseRerank(
+    value: string | null,
+    vocab: string | null,
+    env: Env,
+    page: number
+): { model: RerankModel; ai: Ai; vocab: boolean } | undefined {
+    if (vocab && vocab !== "1")
+        throw new SearchValidationError(
+            `Invalid vocab value "${vocab}". Use vocab=1`
+        )
+    if (vocab && !value)
+        throw new SearchValidationError("vocab=1 needs a rerank")
+    if (!value) return undefined
+    if (!isRerankModel(value))
+        throw new SearchValidationError(
+            `Invalid rerank value "${value}". Valid values: ${Object.keys(RERANK_MODELS).join(", ")}`
+        )
+    if (!env.AI)
+        throw new SearchValidationError(
+            "rerank is not available on this deployment"
+        )
+    if (page !== 0)
+        throw new SearchValidationError(
+            "rerank only supports page=0: it reorders the top results"
+        )
+    return { model: value, ai: env.AI, vocab: vocab === "1" }
 }
 
 const hasSearchEnvVars = (env: Env): boolean => {
@@ -247,6 +298,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
 
+        const rerank =
+            searchType === "charts"
+                ? parseRerank(
+                      url.searchParams.get("rerank"),
+                      url.searchParams.get("vocab"),
+                      env,
+                      page
+                  )
+                : undefined
+
         // Build filters array
         const filters: Filter[] = []
 
@@ -288,11 +349,70 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
 
+        // A search already filtered to a topic gets no vocabulary hits: the
+        // reader chose the topic
+        const searchChartsReranked = async (
+            rerank: NonNullable<ReturnType<typeof parseRerank>>
+        ): Promise<SearchApiResponse & { vocabulary?: VocabularyInfo }> => {
+            const expand = rerank.vocab && !topicParam?.trim()
+            const [pool, vocabulary] = await Promise.all([
+                searchCharts(
+                    algoliaConfig,
+                    searchState,
+                    0,
+                    Math.max(RERANK_POOL_SIZE, hitsPerPage),
+                    baseUrl
+                ),
+                expand
+                    ? pickVocabularyTerms(rerank.ai, rerank.model, query)
+                    : undefined,
+            ])
+            if (!vocabulary)
+                return rerankCharts(rerank.ai, rerank.model, pool, hitsPerPage)
+            const results = await appendVocabularyHits(
+                pool.results,
+                vocabulary.terms,
+                async (term) =>
+                    (
+                        await searchCharts(
+                            algoliaConfig,
+                            {
+                                ...searchState,
+                                query: term.keyword,
+                                filters: [
+                                    ...filters,
+                                    {
+                                        type: FilterType.TOPIC,
+                                        name: term.topic,
+                                    },
+                                ],
+                            },
+                            0,
+                            VOCABULARY_HITS_PER_TERM,
+                            baseUrl
+                        )
+                    ).results,
+                (hit) => hit.url
+            )
+            const reranked = await rerankCharts(
+                rerank.ai,
+                rerank.model,
+                {
+                    ...pool,
+                    results,
+                    nbHits: Math.max(pool.nbHits, results.length),
+                },
+                hitsPerPage
+            )
+            return { ...reranked, vocabulary }
+        }
+
         const search = (): Promise<
             SearchApiResponse | SearchPagesApiResponse | SearchTopicsApiResponse
         > => {
             switch (searchType) {
                 case "charts":
+                    if (rerank) return searchChartsReranked(rerank)
                     return searchCharts(
                         algoliaConfig,
                         searchState,

@@ -82,6 +82,15 @@ export const ALGOLIA_CACHED_QUERIES_URL: string =
     process.env.ALGOLIA_CACHED_QUERIES_URL ??
     (ENV === "development" ? "" : `${BAKED_BASE_URL}/api/search/cached-queries`)
 
+// Endpoint of the Cloudflare function that serves the search page's charts
+// section reranked by a decision model (functions/api/search/rerank-charts.ts).
+// Experimental and opt-in per page load with ?rerank=jev (site/search/rerank.ts).
+// Set it to http://localhost:8788/api/search/rerank-charts to test against
+// `yarn startLocalCloudflareFunctions`.
+export const SEARCH_RERANK_URL: string =
+    process.env.SEARCH_RERANK_URL ??
+    (ENV === "development" ? "" : `${BAKED_BASE_URL}/api/search/rerank-charts`)
+
 // Cloudflare Images has one store shared by all environments, so in development
 // images come from the production delivery URL unless set. `||` rather than `??`
 // because .env.example-full sets it to an empty value.

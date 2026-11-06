@@ -25,11 +25,13 @@ Inside a file-based route we sometimes use an instance of itty-router to decide 
 The development server reads the grapher config R2 buckets remotely, so wrangler has to be authenticated against the OWID Cloudflare account. `wrangler login` works, but it's a single login per machine: if you also use Cloudflare for other projects, put an API token in the repo's `.env` instead, which wrangler reads on its own and prefers over the login:
 
 ```
-CLOUDFLARE_API_TOKEN=...   # Account scope: Workers Scripts (Edit), Workers R2 Storage (Read), Account Settings (Read)
+CLOUDFLARE_API_TOKEN=...   # Account-owned token: Workers Scripts (Write), Workers R2 Storage (Read), Account Settings (Read)
 CLOUDFLARE_ACCOUNT_ID=078fcdfed9955087315dd86792e71a7e
 ```
 
 `make setup.worktree` copies both into new worktrees' `.env` from the main checkout.
+
+The experimental reranking (`/api/search?rerank=jev` and `/api/search/rerank-charts`) also calls Workers AI, through the `owid-search` AI Gateway, with the same token, so it needs **Workers AI (Read)** and **AI Gateway (Read)** on top. Without it everything else works and reranked searches fall back to the unreranked order, with the error in the response's `rerank.error`.
 
 Note: the compatibility date is defined in [`wrangler.jsonc`](../wrangler.jsonc) at the repo root, which is the authoritative source for local development, previews and production alike (not the Cloudflare dashboard). The e2e tests carry their own copy in [`test/wrangler.e2e.jsonc`](./test/wrangler.e2e.jsonc) — keep the two in sync.
 
@@ -161,6 +163,12 @@ For detailed API documentation, including all parameters, response schemas, and 
 ## `/api/search/cached-queries`
 
 A caching proxy for empty-query Algolia searches. The site routes Algolia multi-query requests where every query string is empty — the "browse" requests issued by default states like the search landing page or the empty autocomplete panel — to this endpoint (see `site/search/searchClients.ts`), which forwards them to Algolia and caches the response for a day — except for payloads touching the chronological pages index (which backs /latest and sorts by date), cached for only 15 minutes so newly published articles show up quickly. Requests containing a non-empty query are rejected with a 400 and should go to Algolia directly; the client falls back to a direct Algolia request whenever this endpoint fails or rejects.
+
+## `/api/search/rerank-charts`
+
+Experimental: the search page's charts section, reranked by a decision model (see `functions/api/search/rerank.ts`). The site calls it only when the page was loaded with `?rerank=<model>`, one of `jev`, `clef-flash`, `clef` or `clef-omni` (e.g. `/search?q=malaria&rerank=clef-flash`), and `SEARCH_RERANK_URL` is set, which it is by default outside development. It takes the exact Algolia search request the site would send and returns Algolia's response shape, with the first three pages reranked as one pool and a `rerank` field describing the call. Later pages, and any failed request, go to Algolia directly. Like `/api/search?rerank=`, it needs the `AI` binding, which only `wrangler pages dev` (local dev and staging) has; elsewhere it returns a 400 and the site falls back.
+
+Adding `vocab=1` (on the search page, `/search?q=under%20nurished&rerank=clef-flash&vocab=1`; on the API, `/api/search?q=…&rerank=clef-flash&vocab=1`) also translates the query into the topic vocabulary (`https://files.ourworldindata.org/topic_vocabulary.json`; see `functions/api/search/vocabulary.ts`): two more model calls pick the two most likely topics and a search term within each, and those terms' top hits join the pool before the rerank. The picks are in the response's `vocabulary` field. A search already filtered to a topic is left alone.
 
 ## `/deleted/:slug`
 
