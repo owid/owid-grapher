@@ -389,10 +389,14 @@ export function Sankey({
         [layout]
     )
 
-    // Only annotated labels use their node's colour (for the arrow)
-    const getLabelNodeColor = (nodeId: string): string | undefined => {
-        const node = nodesById.get(nodeId)
-        return node?.annotation ? nodeColor?.(node) : undefined
+    // Only annotated labels use their node's colour (for the arrow). The
+    // annotation may come from a label variant rather than the node itself
+    const getLabelNodeColor = (
+        label: PlacedSankeyLabel
+    ): string | undefined => {
+        if (!label.annotation) return undefined
+        const node = nodesById.get(label.nodeId)
+        return node ? nodeColor?.(node) : undefined
     }
 
     const svgRef = useRef<SVGSVGElement>(null)
@@ -764,7 +768,7 @@ export function Sankey({
                                 label.nodeId
                             )}
                             isAnchored={label.nodeId === anchorNodeId}
-                            nodeColor={getLabelNodeColor(label.nodeId)}
+                            nodeColor={getLabelNodeColor(label)}
                         />
                     ))}
                 </g>
