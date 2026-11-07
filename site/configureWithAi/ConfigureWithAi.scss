@@ -1,0 +1,901 @@
+// "Configure with AI" prototype: tabs in Grapher's side panel. Loaded with
+// the prototype's own chunk, so it imports the colours itself.
+@use "../../packages/@ourworldindata/components/src/styles/colors.scss" as *;
+
+.configure-with-ai {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    color: $blue-90;
+    font-size: 0.875rem;
+
+    button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+    }
+
+    button:disabled {
+        cursor: default;
+    }
+
+    a {
+        color: $vermillion;
+    }
+}
+
+.configure-with-ai__tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    flex-shrink: 0;
+    border-bottom: 1px solid $blue-20;
+}
+
+.configure-with-ai__tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 44px;
+    padding: 0 6px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: $gray-5;
+    color: $blue-60;
+    white-space: nowrap;
+
+    &[aria-selected="true"] {
+        background: #fff;
+        border-bottom-color: $vermillion;
+        color: $blue-100;
+        font-weight: 700;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: -2px;
+    }
+}
+
+.configure-with-ai__badge {
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: $amber;
+    color: $blue-100;
+    font-size: 0.625rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.configure-with-ai__tab-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.configure-with-ai__customize {
+    flex: 1;
+    min-height: 0;
+    padding-top: 16px;
+
+    > .configure-with-ai__muted {
+        padding: 0 16px;
+    }
+}
+
+.configure-with-ai__muted {
+    margin: 0;
+    color: $blue-60;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
+.configure-with-ai__try-ai {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    width: 100%;
+    padding: 10px 16px;
+    border: 0;
+    border-top: 1px solid $blue-20;
+    background: $blue-5;
+    text-align: left;
+
+    span {
+        flex: 1;
+    }
+
+    &:hover {
+        background: $blue-10;
+    }
+}
+
+// AI mode
+
+.configure-with-ai__ai {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.configure-with-ai__form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+    padding: 16px 16px 0;
+}
+
+.configure-with-ai__intro-title {
+    color: $blue-100;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.configure-with-ai__field {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 40px;
+    padding-left: 10px;
+    border: 1px solid $blue-30;
+    background: #fff;
+
+    &:focus-within {
+        border-color: $blue-60;
+    }
+}
+
+.configure-with-ai__field-icon {
+    flex-shrink: 0;
+    margin-top: 12px;
+    color: $blue-60;
+}
+
+// A text area so a long question wraps instead of scrolling sideways
+.configure-with-ai__input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: $blue-90;
+    font: inherit;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    resize: none;
+    overflow: hidden;
+}
+
+.configure-with-ai__counter {
+    align-self: center;
+    flex-shrink: 0;
+    color: $blue-60;
+    font-size: 0.6875rem;
+}
+
+.configure-with-ai__submit {
+    align-self: stretch;
+    min-width: 40px;
+    padding: 0 10px;
+    border: 0;
+    background: $blue-90;
+    color: #fff !important;
+    font-size: 0.8125rem;
+
+    &:disabled {
+        background: $blue-10;
+        color: $blue-50 !important;
+    }
+}
+
+.configure-with-ai__body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 12px 16px 16px;
+}
+
+.configure-with-ai__status {
+    margin: 0;
+    color: $blue-60;
+    font-size: 0.8125rem;
+
+    &:empty {
+        display: none;
+    }
+}
+
+.configure-with-ai__placeholders {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    span {
+        height: 32px;
+        background: $blue-5;
+        animation: configure-with-ai-pulse 1.4s ease-in-out infinite;
+    }
+
+    span:first-child {
+        height: 52px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        span {
+            animation: none;
+        }
+    }
+}
+
+@keyframes configure-with-ai-pulse {
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.configure-with-ai__message {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px;
+    border-radius: 8px;
+    background: $blue-5;
+    line-height: 1.45;
+
+    p {
+        margin: 0;
+    }
+}
+
+.configure-with-ai__message--error {
+    background: #fdecea;
+}
+
+.configure-with-ai__link-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $vermillion !important;
+    text-decoration: underline;
+}
+
+.configure-with-ai__section-title {
+    margin: 0 0 6px;
+    color: $blue-60;
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.configure-with-ai__intro {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.configure-with-ai__can {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    svg {
+        width: 14px;
+        margin-top: 3px;
+        color: $blue-60;
+    }
+
+    li > span {
+        display: flex;
+        flex-direction: column;
+    }
+
+    li > span > span {
+        color: $blue-60;
+        font-size: 0.8125rem;
+    }
+}
+
+.configure-with-ai__suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    button {
+        padding: 5px 10px;
+        border: 1px solid $blue-20;
+        border-radius: 999px;
+        background: #fff;
+        font-size: 0.8125rem;
+        text-align: left;
+
+        &:hover {
+            background: $blue-5;
+        }
+    }
+}
+
+.configure-with-ai__applied {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    background: $blue-5;
+
+    .configure-with-ai__view-label {
+        color: $blue-100;
+        font-weight: 700;
+    }
+}
+
+.configure-with-ai__others {
+    margin-top: 12px;
+}
+
+.configure-with-ai__strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.configure-with-ai__other {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    height: 100%;
+    padding: 6px;
+    border: 1px solid $blue-20;
+    background: #fff;
+    text-align: left;
+
+    &:hover:not(:disabled) {
+        border-color: $blue-50;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+    }
+}
+
+// Thumbnails are 1200×640
+.configure-with-ai__other-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 15 / 8;
+    object-fit: contain;
+    background: $gray-5;
+}
+
+.configure-with-ai__other-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 15 / 8;
+    background: $blue-5;
+    color: $blue-60;
+    font-size: 1.25rem;
+}
+
+.configure-with-ai__other-label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.8125rem;
+    line-height: 1.3;
+}
+
+.configure-with-ai__still {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid $blue-10;
+
+    .configure-with-ai__other-icon {
+        width: 64px;
+        flex-shrink: 0;
+        font-size: 1rem;
+    }
+}
+
+.configure-with-ai__still-image {
+    width: 64px;
+    flex-shrink: 0;
+    aspect-ratio: 15 / 8;
+    object-fit: contain;
+    border: 1px solid $blue-10;
+}
+
+.configure-with-ai__still-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.875rem;
+
+    > span:first-child {
+        color: $blue-60;
+        font-size: 0.75rem;
+    }
+}
+
+.configure-with-ai__search-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: $blue-90 !important;
+    text-decoration: underline;
+}
+
+.configure-with-ai__views {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.configure-with-ai__view {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    background: transparent;
+    text-align: left;
+
+    &:hover:not(:disabled) {
+        background: $blue-5;
+    }
+}
+
+.configure-with-ai__view:disabled:not(.configure-with-ai__view--active),
+.configure-with-ai__history-row:disabled:not(
+        .configure-with-ai__history-row--current
+    ) {
+    opacity: 0.5;
+}
+
+.configure-with-ai__view--active {
+    background: $blue-5;
+}
+
+.configure-with-ai__view-label {
+    .configure-with-ai__view--active & {
+        color: $blue-100;
+        font-weight: 700;
+    }
+}
+
+.configure-with-ai__now {
+    color: $vermillion;
+    font-size: 0.6875rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.configure-with-ai__closest {
+    align-self: flex-start;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: $amber-10;
+    color: $blue-90;
+    font-size: 0.6875rem;
+    font-weight: 700;
+}
+
+// Written by code from the data, so set apart from the model's note
+.configure-with-ai__facts {
+    color: $blue-90;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.configure-with-ai__note {
+    color: $blue-60;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
+.configure-with-ai__feedback {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 4px;
+    color: $blue-60;
+    font-size: 0.8125rem;
+
+    span {
+        flex: 1;
+    }
+}
+
+.configure-with-ai__thumb {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    background: transparent;
+    color: $blue-60 !important;
+
+    &[aria-pressed="true"] {
+        color: $blue-100 !important;
+    }
+
+    &:hover {
+        background: $blue-5;
+    }
+}
+
+.configure-with-ai__history {
+    padding-top: 12px;
+    border-top: 1px solid $blue-10;
+
+    ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+}
+
+.configure-with-ai__history-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 7px 4px;
+    border: 0;
+    border-bottom: 1px solid $blue-10;
+    background: transparent;
+    text-align: left;
+
+    &:hover:not(:disabled) {
+        background: $gray-5;
+    }
+}
+
+.configure-with-ai__history-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 24px;
+    background: $blue-5;
+    color: $blue-60;
+
+    .configure-with-ai__history-row--current & {
+        background: $blue-100;
+        color: #fff;
+    }
+}
+
+.configure-with-ai__history-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+
+    > span:last-child {
+        overflow: hidden;
+        color: $blue-60;
+        font-size: 0.75rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .configure-with-ai__history-row--current & > span:first-child {
+        color: $blue-100;
+        font-weight: 700;
+    }
+}
+
+.configure-with-ai__history-go {
+    flex-shrink: 0;
+    color: $blue-60;
+    font-size: 0.75rem;
+    text-decoration: underline;
+}
+
+.configure-with-ai__disclosure {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 8px 16px;
+    border-top: 1px solid $blue-10;
+    color: $blue-60;
+    font-size: 0.6875rem;
+    line-height: 1.35;
+}
+
+// Staff-only tools: a dashed edge and a grey ground set them apart from
+// what readers see
+.configure-with-ai__staff {
+    flex-shrink: 0;
+    padding: 4px 16px;
+    border-top: 1px dashed $blue-30;
+    background: $gray-5;
+}
+
+.configure-with-ai__staff--box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    border: 1px dashed $blue-30;
+
+    .configure-with-ai__staff-label {
+        margin: 0;
+    }
+
+    .configure-with-ai__suggestions button {
+        background: #fff;
+    }
+}
+
+.configure-with-ai__staff-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.configure-with-ai__staff-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    cursor: help;
+    color: $gray-80;
+    font-size: 0.6875rem;
+}
+
+.configure-with-ai__model select {
+    padding: 2px;
+    border: 1px solid $blue-20;
+    background: #fff;
+    color: $blue-90;
+    font-size: 0.6875rem;
+}
+
+.configure-with-ai__usage {
+    margin: 4px 0 0;
+    color: $gray-80;
+    font-size: 0.6875rem;
+}
+
+// "Explore with AI": an answer on other pages, over the whole Grapher
+.configure-with-ai-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 24px 16px;
+    overflow: hidden;
+    background: #fff;
+    color: $blue-90;
+    animation: configure-with-ai-overlay-in 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+
+@keyframes configure-with-ai-overlay-in {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+}
+
+.configure-with-ai-overlay__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.configure-with-ai-overlay__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    em {
+        font-weight: 400;
+        text-transform: none;
+    }
+}
+
+.configure-with-ai-overlay__close {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid $blue-20;
+    background: #fff;
+    color: $blue-90;
+    font-size: 0.875rem;
+
+    &:hover {
+        border-color: $blue-50;
+    }
+}
+
+.configure-with-ai-overlay__form {
+    position: relative;
+    max-width: 560px;
+}
+
+.configure-with-ai-overlay__search-icon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: $blue-60;
+}
+
+.configure-with-ai-overlay__input {
+    width: 100%;
+    padding: 10px 12px 10px 36px;
+    border: 1px solid $blue-30;
+    color: $blue-90;
+    font-size: 1rem;
+
+    &:focus {
+        border-color: $blue-60;
+        outline: none;
+    }
+}
+
+.configure-with-ai-overlay__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.configure-with-ai-overlay__message {
+    max-width: 720px;
+    margin: 0 0 14px;
+    font-size: 1rem;
+    line-height: 1.45;
+}
+
+.configure-with-ai-overlay__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.configure-with-ai-overlay__grid--loading li {
+    height: 260px;
+    background: $gray-5;
+    animation: configure-with-ai-pulse 1.4s ease-in-out infinite;
+}
+
+.configure-with-ai-overlay__card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border: 1px solid $blue-20;
+    background: #fff;
+    color: $blue-90 !important;
+    text-decoration: none !important;
+
+    &:hover {
+        border-color: $blue-50;
+    }
+}
+
+// Chart thumbnails are 1200×640
+.configure-with-ai-overlay__thumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 15 / 8;
+    border-bottom: 1px solid $blue-10;
+    background: $blue-5;
+    color: $blue-60;
+    font-size: 2rem;
+
+    img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        background: #fff;
+    }
+}
+
+.configure-with-ai-overlay__card-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px 12px;
+    font-size: 0.875rem;
+    line-height: 1.35;
+}
+
+.configure-with-ai-overlay__kind {
+    color: $blue-60;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.configure-with-ai-overlay__card-title {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.configure-with-ai-overlay__variant {
+    color: $blue-60;
+}
+
+.configure-with-ai-overlay__label {
+    align-self: flex-start;
+    padding: 2px 8px;
+    background: $blue-10;
+}
+
+.configure-with-ai-overlay__why {
+    color: $gray-80;
+}
+
+.configure-with-ai-overlay__go {
+    margin-top: auto;
+    padding-top: 8px;
+    color: $vermillion;
+}
+
+.configure-with-ai-overlay__footer .configure-with-ai__feedback {
+    margin: 0;
+    font-style: italic;
+
+    span {
+        flex: none;
+        margin-right: 8px;
+    }
+}
