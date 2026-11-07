@@ -1,5 +1,6 @@
 import * as React from "react"
-import { TextWrapSvg } from "@ourworldindata/components"
+import Tippy from "@tippyjs/react"
+import { DOD_TIPPY_PROPS, TextWrapSvg } from "@ourworldindata/components"
 import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { SeriesName } from "@ourworldindata/types"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
@@ -9,6 +10,24 @@ import { getSeriesKey } from "./VerticalLabelsHelpers"
 import { PlacedLabelSeries, RenderLabelSeries } from "./VerticalLabelsTypes"
 import { VerticalLabelsState } from "./VerticalLabelsState"
 import { Emphasis } from "../interaction/Emphasis.js"
+import {
+    AnnotationDodContent,
+    AnnotationInfoIcon,
+    getAnnotationIconRadius,
+} from "../lineCharts/LineChartAnnotationExperiment"
+
+/**
+ * EXPERIMENT: a label that shows an "i" icon next to it while `showIcon` is
+ * true. If it has `dodText`, it also carries a dotted underline and shows a
+ * details-on-demand popup on hover.
+ */
+export interface AnnotatedVerticalLabel {
+    seriesName: SeriesName
+    dodText?: string
+    showIcon: boolean
+    onDodShow?: () => void
+    onDodHide?: () => void
+}
 
 /** Series labels stacked vertically */
 export function VerticalLabels({
@@ -18,6 +37,7 @@ export function VerticalLabels({
     onMouseEnter,
     onMouseLeave,
     interactive = true,
+    annotatedLabel,
 }: {
     state: VerticalLabelsState
     x?: number
@@ -25,8 +45,12 @@ export function VerticalLabels({
     onMouseEnter?: (key: SeriesName) => void
     onMouseLeave?: () => void
     interactive?: boolean
+    annotatedLabel?: AnnotatedVerticalLabel
 }): React.ReactElement {
     const { renderSeries, annotatedSeries, textAnchor } = state
+    const dodLabelSeries = annotatedLabel
+        ? renderSeries.find((s) => s.seriesName === annotatedLabel.seriesName)
+        : undefined
 
     return (
         <g
@@ -39,6 +63,7 @@ export function VerticalLabels({
                     anchor={textAnchor}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
+                    annotatedLabel={annotatedLabel}
                 />
             )}
             {state.needsConnectorLines && (
@@ -53,6 +78,69 @@ export function VerticalLabels({
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
             />
+            {annotatedLabel && dodLabelSeries && (
+                <AnnotatedLabelDecoration
+                    series={dodLabelSeries}
+                    anchor={textAnchor}
+                    showIcon={annotatedLabel.showIcon}
+                    showUnderline={!!annotatedLabel.dodText}
+                />
+            )}
+        </g>
+    )
+}
+
+function AnnotatedLabelDecoration({
+    series,
+    anchor,
+    showIcon,
+    showUnderline,
+}: {
+    series: RenderLabelSeries
+    anchor: "start" | "end"
+    showIcon: boolean
+    showUnderline: boolean
+}): React.ReactElement {
+    const { width, height } = series.seriesLabel
+    const x1 =
+        anchor === "start" ? series.labelCoords.x : series.labelCoords.x - width
+    const y = series.labelCoords.y + height + 1
+    const color = darkenColorForText(series.color)
+    const emphasis = series.emphasis ?? Emphasis.Default
+    const opacity = LABEL_STYLE[emphasis].opacity
+
+    const iconRadius = getAnnotationIconRadius(
+        series.seriesLabel.fontSettings.fontSize
+    )
+    const iconGap = 4
+    const iconX =
+        anchor === "start"
+            ? x1 + width + iconGap + iconRadius
+            : x1 - iconGap - iconRadius
+
+    return (
+        <g style={{ pointerEvents: "none" }}>
+            {showUnderline && (
+                <line
+                    x1={roundForSvg(x1)}
+                    y1={roundForSvg(y)}
+                    x2={roundForSvg(x1 + width)}
+                    y2={roundForSvg(y)}
+                    stroke={color}
+                    strokeWidth={1}
+                    strokeDasharray={1}
+                    opacity={opacity}
+                />
+            )}
+            {showIcon && (
+                <AnnotationInfoIcon
+                    x={iconX}
+                    y={series.labelCoords.y + height / 2}
+                    radius={iconRadius}
+                    fill={color}
+                    opacity={opacity}
+                />
+            )}
         </g>
     )
 }
@@ -176,11 +264,13 @@ function InteractionOverlays({
     anchor,
     onMouseEnter,
     onMouseLeave,
+    annotatedLabel,
 }: {
     series: PlacedLabelSeries[]
     anchor: "start" | "end"
     onMouseEnter?: (key: SeriesName) => void
     onMouseLeave?: (key: SeriesName) => void
+    annotatedLabel?: AnnotatedVerticalLabel
 }): React.ReactElement {
     return (
         <g>
@@ -189,20 +279,47 @@ function InteractionOverlays({
                     anchor === "start"
                         ? series.origBounds.x
                         : series.origBounds.x - series.bounds.width
+                const rect = (
+                    <rect
+                        x={roundForSvg(x)}
+                        y={roundForSvg(series.bounds.y)}
+                        width={roundForSvg(series.bounds.width)}
+                        height={roundForSvg(series.bounds.height)}
+                        fill="#fff"
+                        opacity={0}
+                    />
+                )
+                const dodText =
+                    annotatedLabel?.seriesName === series.seriesName
+                        ? annotatedLabel.dodText
+                        : undefined
                 return (
                     <g
                         key={getSeriesKey(series, index)}
                         onMouseEnter={() => onMouseEnter?.(series.seriesName)}
                         onMouseLeave={() => onMouseLeave?.(series.seriesName)}
+                        style={dodText ? { cursor: "help" } : undefined}
                     >
-                        <rect
-                            x={roundForSvg(x)}
-                            y={roundForSvg(series.bounds.y)}
-                            width={roundForSvg(series.bounds.width)}
-                            height={roundForSvg(series.bounds.height)}
-                            fill="#fff"
-                            opacity={0}
-                        />
+                        {dodText ? (
+                            <Tippy
+                                theme={DOD_TIPPY_PROPS.theme}
+                                delay={DOD_TIPPY_PROPS.delay}
+                                interactive
+                                hideOnClick={false}
+                                arrow={false}
+                                appendTo={() => document.body}
+                                placement="top"
+                                onShow={annotatedLabel?.onDodShow}
+                                onHide={annotatedLabel?.onDodHide}
+                                content={
+                                    <AnnotationDodContent text={dodText} />
+                                }
+                            >
+                                {rect}
+                            </Tippy>
+                        ) : (
+                            rect
+                        )}
                     </g>
                 )
             })}
