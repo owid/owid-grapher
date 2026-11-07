@@ -1,3 +1,5 @@
+import { DataPageDataV2 } from "@ourworldindata/types"
+
 interface MarkdownBlock {
     type: "heading" | "listItem" | "paragraph"
     lines: string[]
@@ -141,4 +143,22 @@ function splitBlocksAt(
 export function splitDescriptionKey(markdown: string): DescriptionKeySplit {
     const blocks = parseMarkdownBlocks(markdown)
     return splitBlocksAt(blocks, findPreviewEnd(blocks))
+}
+
+/**
+ * The name to give the producer's own documentation: the indicator's short
+ * attribution, or else the name of the one producer its sources share. With
+ * several producers it isn't clear whose text it is, so it stays generic.
+ */
+export function getProducerDocsLabel(
+    datapageData: Pick<DataPageDataV2, "attributionShort" | "origins">
+): string {
+    if (datapageData.attributionShort) return datapageData.attributionShort
+    const origins = datapageData.origins.filter((origin) => origin.producer)
+    const producers = new Set(origins.map((origin) => origin.producer))
+    if (producers.size !== 1) return "Principal data source"
+    // the sources' short name, if they agree on one, else the producer's name
+    const shortNames = new Set(origins.map((origin) => origin.attributionShort))
+    const [shortName] = shortNames
+    return (shortNames.size === 1 && shortName) || origins[0].producer!
 }
