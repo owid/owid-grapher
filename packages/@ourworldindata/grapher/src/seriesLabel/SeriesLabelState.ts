@@ -22,7 +22,7 @@ const INFO_ICON_GAP = 4
 export interface SeriesLabelAnnotation {
     heading?: string
     text: string
-    timeScope: "point" | "range"
+    timeScope: "point" | "range" | "all"
 }
 
 export interface SeriesLabelStateOptions {
@@ -117,7 +117,7 @@ export class SeriesLabelState {
         textWrap: TextWrap,
         options?: Pick<
             SeriesLabelStateOptions,
-            "showRegionTooltip" | "textAnchor"
+            "showRegionTooltip" | "textAnchor" | "annotations"
         >
     ): SeriesLabelState {
         return new SeriesLabelState({
@@ -128,6 +128,7 @@ export class SeriesLabelState {
             lineHeight: textWrap?.lineHeight,
             showRegionTooltip: options?.showRegionTooltip,
             textAnchor: options?.textAnchor,
+            annotations: options?.annotations,
         })
     }
 

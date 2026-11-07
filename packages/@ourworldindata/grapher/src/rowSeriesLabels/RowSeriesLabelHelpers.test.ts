@@ -8,6 +8,9 @@ const TOO_LONG_TO_FIT =
     "countries and territories in the world and keeps going on and on so " +
     "that it has to be truncated by the label layout"
 
+const TALL_AT_NARROW_WIDTH =
+    "Estimate based on partial survey data collected in selected regions"
+
 function getLineTexts(label: { spanLines: { text: string }[][] }): string[] {
     return label.spanLines.map((line) => line.map((span) => span.text).join(""))
 }
@@ -71,27 +74,213 @@ describe(enrichSeriesWithLabels, () => {
         ])
     })
 
-    it("draws the annotation of a truncated row without widening the truncation width", () => {
-        const minLabelWidth = 120
+    it("shows the full annotation of a truncated row", () => {
+        const annotation = "Estimate based on partial survey data"
         const [truncated] = enrichSeriesWithLabels({
             series: [
                 {
                     entityName: TOO_LONG_TO_FIT + " " + TOO_LONG_TO_FIT,
-                    annotation: "Estimate based on partial survey data",
+                    annotation,
                 },
                 { entityName: "France" },
             ],
             availableHeightPerSeries: 40,
-            minLabelWidth,
+            minLabelWidth: 120,
             maxLabelWidth: 264,
             fontSettings,
         })
 
         expect(getLineTexts(truncated.label)).toHaveLength(1)
         expect(truncated.label.text.endsWith("…")).toBe(true)
-        expect(truncated.annotationTextWrap?.lines).toHaveLength(2)
-        expect(truncated.annotationTextWrap!.width).toBeLessThanOrEqual(
-            minLabelWidth
-        )
+        expect(truncated.annotationTextWrap?.text).toEqual(annotation)
+        expect(truncated.annotationTextWrap!.width).toBeLessThanOrEqual(150)
+    })
+
+    describe("annotations", () => {
+        const roomyRows = {
+            ...twoLineRows,
+            availableHeightPerSeries: 40,
+        }
+
+        it("keeps every annotation in full when all rows have room", () => {
+            const annotated = enrichSeriesWithLabels({
+                ...roomyRows,
+                series: [
+                    { entityName: "France", annotation: "Estimate" },
+                    { entityName: "Chad", annotation: "Survey data" },
+                ],
+            })
+
+            expect(
+                annotated.map((row) => row.annotationTextWrap?.text)
+            ).toEqual(["Estimate", "Survey data"])
+        })
+
+        it("drops every annotation when one row has no room for its own", () => {
+            const annotated = enrichSeriesWithLabels({
+                ...twoLineRows,
+                series: [
+                    { entityName: "France", annotation: "Estimate" },
+                    { entityName: "Chad", annotation: "Survey data" },
+                    {
+                        entityName: "Lower-middle-income countries",
+                        annotation: "Estimate",
+                    },
+                ],
+            })
+
+            expect(annotated.map((row) => row.annotationTextWrap)).toEqual([
+                undefined,
+                undefined,
+                undefined,
+            ])
+            expect(annotated.map((row) => row.annotation)).toEqual([
+                "Estimate",
+                "Survey data",
+                "Estimate",
+            ])
+        })
+
+        it("treats an annotation too long for the full label width as not fitting", () => {
+            const annotated = enrichSeriesWithLabels({
+                ...roomyRows,
+                series: [
+                    { entityName: "France", annotation: TOO_LONG_TO_FIT },
+                    { entityName: "Chad", annotation: "Survey data" },
+                ],
+            })
+
+            expect(annotated.map((row) => row.annotationTextWrap)).toEqual([
+                undefined,
+                undefined,
+            ])
+        })
+
+        it("wraps annotations at the narrow width under short labels", () => {
+            const [annotated] = enrichSeriesWithLabels({
+                ...roomyRows,
+                series: [
+                    { entityName: "France", annotation: "Survey data" },
+                    { entityName: "Chad" },
+                ],
+            })
+            const [narrowed] = enrichSeriesWithLabels({
+                ...roomyRows,
+                maxLabelWidth: 100,
+                series: [{ entityName: "France", annotation: "Survey data" }],
+            })
+
+            expect(annotated.annotationTextWrap?.maxWidth).toBe(150)
+            expect(narrowed.annotationTextWrap?.maxWidth).toBe(100)
+        })
+
+        it("drops an annotation too tall at the narrow width instead of widening it", () => {
+            const series = [
+                { entityName: "France", annotation: TALL_AT_NARROW_WIDTH },
+                { entityName: "Chad" },
+            ]
+
+            const annotated = enrichSeriesWithLabels({ ...roomyRows, series })
+            const [roomier] = enrichSeriesWithLabels({
+                ...roomyRows,
+                availableHeightPerSeries: 60,
+                series,
+            })
+
+            expect(annotated.map((row) => row.annotationTextWrap)).toEqual([
+                undefined,
+                undefined,
+            ])
+            expect(roomier.annotationTextWrap?.maxWidth).toBe(150)
+        })
+
+        it("wraps annotations at the width of a label wider than the narrow width", () => {
+            const [wideLabelRow] = enrichSeriesWithLabels({
+                ...roomyRows,
+                minLabelWidth: 200,
+                maxLabelWidth: 300,
+                series: [
+                    {
+                        entityName: "Democratic Republic of the Congo",
+                        annotation: TALL_AT_NARROW_WIDTH,
+                    },
+                    { entityName: "Chad" },
+                ],
+            })
+
+            expect(wideLabelRow.label.width).toBeGreaterThan(150)
+            expect(wideLabelRow.annotationTextWrap?.maxWidth).toBe(
+                wideLabelRow.label.width
+            )
+        })
+    })
+
+    describe("dropped annotations in the tooltip", () => {
+        const rowsWithDroppedAnnotations = {
+            ...twoLineRows,
+            series: [
+                { entityName: "France", annotation: "Estimate" },
+                { entityName: "Chad" },
+                {
+                    entityName: "Lower-middle-income countries",
+                    annotation: "Survey data",
+                },
+            ],
+        }
+
+        const getTooltipAnnotations = (
+            label: ReturnType<typeof enrichSeriesWithLabels>[number]["label"]
+        ): unknown[] =>
+            label.tooltipTargets.flatMap(
+                (target) => target.content.annotations ?? []
+            )
+
+        it("moves a dropped annotation into its row's label tooltip", () => {
+            const annotated = enrichSeriesWithLabels({
+                ...rowsWithDroppedAnnotations,
+                showDroppedAnnotationsInTooltip: true,
+            })
+
+            expect(annotated.map((row) => row.annotationTextWrap)).toEqual([
+                undefined,
+                undefined,
+                undefined,
+            ])
+            expect(
+                annotated.map((row) => getTooltipAnnotations(row.label))
+            ).toEqual([
+                [{ text: "Estimate", timeScope: "all" }],
+                [],
+                [{ text: "Survey data", timeScope: "all" }],
+            ])
+        })
+
+        it("leaves labels without annotations when the option is off", () => {
+            const annotated = enrichSeriesWithLabels(rowsWithDroppedAnnotations)
+
+            expect(
+                annotated.map((row) => getTooltipAnnotations(row.label))
+            ).toEqual([[], [], []])
+        })
+
+        it("leaves labels without annotations when every annotation fits", () => {
+            const annotated = enrichSeriesWithLabels({
+                ...twoLineRows,
+                availableHeightPerSeries: 40,
+                series: [
+                    { entityName: "France", annotation: "Estimate" },
+                    { entityName: "Chad" },
+                    { entityName: "Mali", annotation: "Survey data" },
+                ],
+                showDroppedAnnotationsInTooltip: true,
+            })
+
+            expect(
+                annotated.map((row) => row.annotationTextWrap?.text)
+            ).toEqual(["Estimate", undefined, "Survey data"])
+            expect(
+                annotated.map((row) => getTooltipAnnotations(row.label))
+            ).toEqual([[], [], []])
+        })
     })
 })

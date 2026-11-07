@@ -278,6 +278,7 @@ export class StackedBarChart
                         value: series.seriesName,
                         label: series.seriesName,
                         color: series.color,
+                        annotation: series.entityAnnotation?.text,
                     })
             )
             .toReversed() // Vertical legend orders things in the opposite direction we want
@@ -397,6 +398,7 @@ export class StackedBarChart
             return {
                 seriesName: series.seriesName,
                 seriesColor: series.color,
+                annotation: series.entityAnnotation?.text,
                 point,
             }
         })
@@ -430,7 +432,12 @@ export class StackedBarChart
                     columns={toTooltipTableColumns(formatColumn)}
                     totals={[totalValue]}
                     rows={sortedHoverPoints.map(
-                        ({ point, seriesName: name, seriesColor }) => {
+                        ({
+                            point,
+                            seriesName: name,
+                            seriesColor,
+                            annotation,
+                        }) => {
                             const focused = hoverSeries?.seriesName === name
                             const fake = point?.missing || point?.interpolated
                             const blurred = fake ?? true
@@ -443,7 +450,14 @@ export class StackedBarChart
                             const opacity = STACKED_BAR_STYLE[emphasis].opacity
                             const swatch = { color, opacity }
 
-                            return { name, swatch, blurred, focused, values }
+                            return {
+                                name,
+                                annotation,
+                                swatch,
+                                blurred,
+                                focused,
+                                values,
+                            }
                         }
                     )}
                 />

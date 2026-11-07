@@ -28,6 +28,7 @@ interface CategoricalBinProps extends BinProps {
     value: string
     label: string
     isHidden?: boolean
+    annotation?: string
     // Values this bin matches in addition to `value`. Set only for merged
     // legend bins (see `mergeCategoricalBinsByLabelAndColor`).
     additionalValues?: string[]
@@ -117,6 +118,9 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
 
     get text(): string {
         return this.props.label || this.props.value
+    }
+    get annotation(): string | undefined {
+        return this.props.annotation
     }
 
     /** All values this bin matches: `value` plus any values absorbed by merging */

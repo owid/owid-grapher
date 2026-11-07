@@ -191,6 +191,7 @@ export class StackedAreaChart
                         ? series.shortEntityName
                         : series.seriesName,
                 yValue: this.chartState.midpoints[index],
+                inlineAnnotation: series.entityAnnotation?.text,
                 isAllZeros: series.isAllZeros,
                 emphasis: resolveEmphasis({
                     hover: this.hoverStateForSeries(series),
@@ -556,6 +557,7 @@ export class StackedAreaChart
 
                         return {
                             name,
+                            annotation: series.entityAnnotation?.text,
                             swatch,
                             focused,
                             values,

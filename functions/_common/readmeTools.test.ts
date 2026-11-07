@@ -176,6 +176,46 @@ describe(constructReadme, () => {
             "## Sources",
         ])
     })
+
+    it("lists an indicator's annotations with their entities and times", () => {
+        const readme = constructReadme(
+            ...readmeArgs({
+                sourceName: "Test source",
+                annotations: [
+                    {
+                        timeScope: "all",
+                        entityNames: ["United States", "Canada"],
+                        text: "Includes territories.",
+                    },
+                    {
+                        timeScope: "range",
+                        entityNames: ["France"],
+                        startTime: 2010,
+                        endTime: 2015,
+                        text: "Estimated.\nSee the producer.",
+                    },
+                    { timeScope: "point", time: 2020, text: "Census year." },
+                ],
+            })
+        )
+
+        expect(readme).toContain("#### Annotations")
+        expect(readme).toContain(
+            "- United States, Canada: Includes territories."
+        )
+        expect(readme).toContain(
+            "- France, 2010–2015: Estimated.\n  See the producer."
+        )
+        expect(readme).toContain("- 2020: Census year.")
+    })
+
+    it("leaves out the annotations block when an indicator has none", () => {
+        const readme = constructReadme(
+            ...readmeArgs({ sourceName: "Test source" })
+        )
+
+        expect(readme).not.toContain("#### Annotations")
+    })
 })
 
 /**

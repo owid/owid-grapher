@@ -8,6 +8,7 @@ import {
     resolveLegendMarkerStyle,
     resolveLegendTextStyle,
 } from "./LegendStyleConfig"
+import { INLINE_ANNOTATION_PADDING } from "../verticalLabels/VerticalLabelsConstants"
 import { VerticalColorLegendState } from "./VerticalColorLegendState"
 
 interface VerticalColorLegendProps {
@@ -54,14 +55,30 @@ export function VerticalColorLegend(
                     )
 
                     return (
-                        <TextWrapSvg
-                            key={series.textWrap.text}
-                            textWrap={series.textWrap}
-                            x={x + series.label.x}
-                            y={y + series.label.y}
-                            fill={style.color}
-                            {...style}
-                        />
+                        <React.Fragment key={series.textWrap.text}>
+                            <TextWrapSvg
+                                textWrap={series.textWrap}
+                                x={x + series.label.x}
+                                y={y + series.label.y}
+                                fill={style.color}
+                                {...style}
+                            />
+                            {series.annotationTextWrap && (
+                                <TextWrapSvg
+                                    textWrap={series.annotationTextWrap}
+                                    x={x + series.label.x}
+                                    y={
+                                        y +
+                                        series.label.y +
+                                        series.textWrap.height +
+                                        INLINE_ANNOTATION_PADDING
+                                    }
+                                    fill="#333"
+                                    opacity={style.opacity}
+                                    style={{ fontWeight: 300 }}
+                                />
+                            )}
+                        </React.Fragment>
                     )
                 })}
             </g>

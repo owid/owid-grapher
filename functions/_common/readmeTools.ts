@@ -11,12 +11,14 @@ import {
     getIndicatorCitations,
     prepareSourcesForDisplay,
     formatDate,
+    getTimeInterval,
     stripDetailOnDemandLinks,
 } from "@ourworldindata/utils"
 import type { CoreColumn } from "@ourworldindata/core-table"
 import type { DisplaySource } from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
 import { getGrapherFilters } from "./urlTools.js"
+import { toMetadataAnnotations } from "./metadataTools.js"
 
 const markdownNewlineEnding = "  "
 
@@ -127,6 +129,30 @@ export function* getKeyDataLines(
             `Unit conversion factor: ${unitConversionFactor}` +
                 markdownNewlineEnding
         )
+}
+
+function* getAnnotationLines(
+    col: CoreColumn
+): Generator<string, void, unknown> {
+    const annotations = toMetadataAnnotations(
+        col.annotations,
+        getTimeInterval(col.display)
+    )
+    if (!annotations) return
+
+    yield ""
+    yield "#### Annotations"
+    for (const { text, entities, time, timeEnd } of annotations) {
+        const timeLabel =
+            time !== undefined && timeEnd !== undefined
+                ? `${time}–${timeEnd}`
+                : time?.toString()
+        const prefix = [...(entities ?? []), timeLabel]
+            .filter((part) => part !== undefined)
+            .join(", ")
+        const indentedText = text.trim().split("\n").join("\n  ")
+        yield `- ${prefix ? `${prefix}: ` : ""}${indentedText}`
+    }
 }
 
 export function yieldMultilineTextAsLines(line: string): string[] {
@@ -283,6 +309,9 @@ function* columnReadmeText(col: CoreColumn) {
     yield* getDescriptionLines(def)
 
     yield* getDataProcessingLines(def)
+
+    yield* getAnnotationLines(col)
+
     yield ""
 }
 

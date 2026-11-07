@@ -3,7 +3,7 @@
  */
 
 import { expect, it, describe, beforeAll, beforeEach, vi } from "vitest"
-import { render } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import {
     ColumnTypeNames,
     EntitySelectionMode,
@@ -618,5 +618,63 @@ describe("when the table is sorted by an ordinal column", () => {
             "Chad",
             "Fiji",
         ])
+    })
+})
+
+describe("when entities carry annotations", () => {
+    const renderWithAnnotations = (
+        annotationTextBySlug: Record<string, string>
+    ): HTMLElement => {
+        const slugs = Object.keys(annotationTextBySlug)
+        const table = new OwidTable(
+            [
+                ["entityName", "year", ...slugs],
+                ["France", 2020, ...slugs.map(() => 1)],
+                ["Chad", 2020, ...slugs.map(() => 2)],
+            ],
+            slugs.map((slug) => ({
+                slug,
+                type: ColumnTypeNames.Numeric,
+                annotations: [
+                    {
+                        timeScope: "all" as const,
+                        entityNames: ["France"],
+                        text: annotationTextBySlug[slug],
+                    },
+                ],
+            }))
+        )
+        const grapher = new GrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+            ySlugs: slugs.join(" "),
+            table,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        })
+        return render(<DataTable manager={grapher} />).container
+    }
+
+    it("underlines only the names of annotated entities", () => {
+        const container = renderWithAnnotations({ gdp: "Estimate" })
+        const isAnnotated = (entityName: string): boolean | undefined =>
+            findRow(container, entityName)
+                ?.querySelector(".entity-name")
+                ?.classList.contains("entity-name--annotated")
+
+        expect(isAnnotated("France")).toBe(true)
+        expect(isAnnotated("Chad")).toBe(false)
+    })
+
+    it("lists an annotation shared by several columns once", async () => {
+        const container = renderWithAnnotations({
+            gdp: "Estimate",
+            population: "Estimate",
+        })
+        const name = findRow(container, "France")!.querySelector(
+            ".entity-name"
+        )!
+
+        fireEvent.mouseEnter(name)
+
+        expect(await screen.findByText("Estimate")).toBeTruthy()
     })
 })

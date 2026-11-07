@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import { StackedDiscreteBarChartManager } from "./StackedDiscreteBarChart"
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import { CoreColumn, OwidColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     ChartErrorInfo,
     ColorSchemeName,
@@ -21,6 +21,7 @@ import {
     getDefaultFailMessage,
     getShortNameForEntity,
     makeSelectionArray,
+    joinEntityAnnotationTexts,
 } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { StackedSeries } from "./StackedConstants"
@@ -39,6 +40,7 @@ import { ColorSchemes } from "../color/ColorSchemes"
 import { excludeUndefined } from "@ourworldindata/utils"
 import { FocusArray } from "../focus/FocusArray"
 import { makeToleranceNotice } from "../chart/ToleranceNotice"
+import { selectEntityAnnotationsForColumns } from "../annotations/EntityAnnotations"
 
 export class StackedDiscreteBarChartState implements ChartState {
     manager: StackedDiscreteBarChartManager
@@ -145,7 +147,7 @@ export class StackedDiscreteBarChartState implements ChartState {
         return this.manager.yColumnSlugs ?? autoDetectYColumnSlugs(this.manager)
     }
 
-    @computed get yColumns(): CoreColumn[] {
+    @computed get yColumns(): OwidColumn[] {
         return this.transformedTable.getColumns(this.yColumnSlugs)
     }
 
@@ -245,9 +247,17 @@ export class StackedDiscreteBarChartState implements ChartState {
                     })
                 )
 
+                const annotation = joinEntityAnnotationTexts(
+                    selectEntityAnnotationsForColumns(
+                        this.yColumns,
+                        entityName
+                    ).values()
+                )
+
                 return {
                     entityName,
                     shortEntityName: getShortNameForEntity(entityName),
+                    annotation,
                     bars,
                     totalValue,
                     focus: this.focusArray.state(entityName),

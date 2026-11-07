@@ -6,6 +6,7 @@ import {
     PlaceRangeAnnotationTooltipArgs,
 } from "./LineChartConstants"
 import {
+    findSeriesAtTime,
     placeRangeAnnotation,
     placeRangeAnnotationTooltip,
     transitionAnnotationTooltipState,
@@ -301,5 +302,34 @@ describe(placeRangeAnnotationTooltip, () => {
             })
         )
         expect(placed.bottom).toBe(shortContainerBounds.bottom)
+    })
+})
+
+describe(findSeriesAtTime, () => {
+    const historical = {
+        points: [
+            { x: 2000, y: 1 },
+            { x: 2002, y: 2 },
+        ],
+    }
+    const projection = {
+        points: [
+            { x: 2002, y: 2 },
+            { x: 2005, y: 3 },
+        ],
+    }
+    const segments = [historical, projection]
+
+    it("picks the first segment with a point at the time", () => {
+        expect(findSeriesAtTime(segments, 2002)).toBe(historical)
+    })
+
+    it("falls back to the segment whose span contains the time", () => {
+        expect(findSeriesAtTime(segments, 2001)).toBe(historical)
+        expect(findSeriesAtTime(segments, 2003)).toBe(projection)
+    })
+
+    it("picks no segment outside every span", () => {
+        expect(findSeriesAtTime(segments, 2010)).toBeUndefined()
     })
 })

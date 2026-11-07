@@ -6,6 +6,7 @@ import {
     makeFigmaId,
     roundForSvg,
 } from "@ourworldindata/utils"
+import { TextWrapSvg } from "@ourworldindata/components"
 import { VerticalAlign } from "@ourworldindata/types"
 import { STACKED_BAR_STYLE } from "./StackedConstants"
 import {
@@ -16,6 +17,7 @@ import {
 import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants.js"
 
 const labelToBarPadding = 5
 
@@ -42,7 +44,16 @@ export function StackedDiscreteBarRow({
     onEntityMouseLeave: () => void
     onClearTooltip: () => void
 }): React.ReactElement {
-    const { entityName, label, segments, totalValue, emphasis } = row
+    const {
+        entityName,
+        label,
+        annotationTextWrap,
+        annotationYOffset,
+        labelYOffset,
+        segments,
+        totalValue,
+        emphasis,
+    } = row
 
     const totalLabel = formatValueForLabel(totalValue)
     const showLabelInsideBar = segments.length > 1
@@ -77,12 +88,22 @@ export function StackedDiscreteBarRow({
             <SeriesLabel
                 state={label}
                 x={yAxis.place(0) - labelToBarPadding}
-                y={-label.height / 2}
+                y={labelYOffset}
                 onMouseEnter={(): void => onEntityMouseEnter(label.text)}
                 onMouseLeave={onEntityMouseLeave}
                 onTooltipShow={onClearTooltip}
                 opacity={labelStyle.opacity}
             />
+            {annotationTextWrap && annotationYOffset !== undefined && (
+                <TextWrapSvg
+                    textWrap={annotationTextWrap}
+                    x={yAxis.place(0) - labelToBarPadding}
+                    y={annotationYOffset}
+                    fill={GRAPHER_DARK_TEXT}
+                    textAnchor="end"
+                    opacity={labelStyle.opacity}
+                />
+            )}
             {showTotalValueLabel && (
                 <text
                     transform={`translate(${roundForSvg(

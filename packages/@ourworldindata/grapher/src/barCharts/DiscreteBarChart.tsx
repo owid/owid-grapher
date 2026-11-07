@@ -136,6 +136,7 @@ export class DiscreteBarChart
                 this.getEntityLabelRightEdges(leftLabelsWidth),
             fontSettings: this.entityLabelStyle,
             showRegionTooltip: !this.manager.isStatic,
+            showDroppedAnnotationsInTooltip: !this.manager.isStatic,
         })
     }
 

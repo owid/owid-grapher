@@ -253,10 +253,7 @@ export class SlopeChartState implements ChartState {
                 entityName,
                 timeRange: [startTime, endTime],
             })
-        const entityAnnotation =
-            seriesStrategy === SeriesStrategy.entity
-                ? selectEntityAnnotation(this.yColumns[0], entityName)
-                : undefined
+        const entityAnnotation = selectEntityAnnotation(column, entityName)
 
         return {
             column,
