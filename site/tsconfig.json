@@ -17,6 +17,7 @@
     ],
     "include": [
         "./**/*",
+        "./labs/features.json",
         "../bespoke/shared/**/*",
         "../devTools/types/vitest.d.ts"
     ]
