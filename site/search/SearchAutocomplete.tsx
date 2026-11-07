@@ -16,6 +16,7 @@ import { Filter, FilterType } from "@ourworldindata/types"
 import { useSearchContext } from "./SearchContext.js"
 import { listedRegionsNames } from "@ourworldindata/utils"
 import { useDebounceValue } from "usehooks-ts"
+import { SearchAutocompleteAiItem } from "./SearchAiTeaser.js"
 
 export const SearchAutocomplete = ({
     localQuery,
@@ -33,6 +34,7 @@ export const SearchAutocomplete = ({
         actions: { addCountryAndSetQuery, setTopicAndClearQuery },
         synonymMap,
         analytics,
+        aiSearch: { start: startAiSearch },
     } = useSearchContext()
 
     const [debouncedLocalQuery] = useDebounceValue(localQuery, 200)
@@ -75,7 +77,14 @@ export const SearchAutocomplete = ({
     )
 
     const handleSelection = useCallback(
-        (filter: Filter, index: number) => {
+        (filter: Filter | undefined, index: number) => {
+            if (!filter) {
+                // The AI search row
+                startAiSearch(localQuery)
+                setShowSuggestions(false)
+                return
+            }
+
             const logSearchAutocompleteClick = () => {
                 analytics.logSearchAutocompleteClick({
                     query: localQuery,
@@ -147,6 +156,7 @@ export const SearchAutocomplete = ({
             setQueries,
             unmatchedQuery,
             analytics,
+            startAiSearch,
             localQuery,
             suggestions,
         ]
@@ -212,6 +222,16 @@ export const SearchAutocomplete = ({
                         </button>
                     </li>
                 ))}
+                {/* Counted in the autocomplete context's itemCount */}
+                <SearchAutocompleteAiItem
+                    id={getSearchAutocompleteItemId(suggestions.length)}
+                    query={localQuery.trim()}
+                    isActive={activeIndex === suggestions.length}
+                    onSelect={() =>
+                        handleSelection(undefined, suggestions.length)
+                    }
+                    onHover={() => setActiveIndex(suggestions.length)}
+                />
             </ul>
         </div>
     )

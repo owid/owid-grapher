@@ -3,10 +3,11 @@ import {
     FilterType,
     TemplateConfig,
     SearchResultType,
+    SearchActions,
 } from "@ourworldindata/types"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 import { LiteClient } from "algoliasearch/lite"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { match } from "ts-pattern"
 import { useIsFetching } from "@tanstack/react-query"
 
@@ -28,7 +29,10 @@ import { stateToSearchParams, useSearchParamsState } from "./searchState.js"
 // Components
 import { Searchbar } from "./Searchbar.js"
 import { SearchTopicsRefinementList } from "./SearchTopicsRefinementList.js"
-import { SearchContext } from "./SearchContext.js"
+import { AiSearchControls, SearchContext } from "./SearchContext.js"
+import { SearchAiResults } from "./SearchAiResults.js"
+import { SearchAiTeaser } from "./SearchAiTeaser.js"
+import { SearchAiSettingsPanel } from "./SearchAiSettingsPanel.js"
 import { SearchResultTypeToggle } from "./SearchResultTypeToggle.js"
 import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
 import { SearchTemplatesData } from "./SearchTemplatesData.js"
@@ -61,10 +65,57 @@ export const Search = ({
     const synonymMap = useMemo(() => buildSynonymMap(), [])
 
     // State derived from URL - single source of truth (includes automatic filter detection)
-    const { state, actions } = useSearchParamsState(
+    const { state, actions: urlActions } = useSearchParamsState(
         eligibleRegionNames,
         eligibleTopicsAndAreas,
         synonymMap
+    )
+
+    // AI search runs for the query it was started with, and closes when the
+    // reader changes the search in any other way than switching result type.
+    const [aiQuery, setAiQuery] = useState<string | null>(null)
+    // Back and forward change the search without going through the actions
+    useEffect(() => {
+        const close = (): void => setAiQuery(null)
+        window.addEventListener("popstate", close)
+        return () => window.removeEventListener("popstate", close)
+    }, [])
+    const actions = useMemo<SearchActions>(() => {
+        const closingAi =
+            <Args extends unknown[]>(action: (...args: Args) => void) =>
+            (...args: Args) => {
+                setAiQuery(null)
+                action(...args)
+            }
+        return {
+            setQuery: closingAi(urlActions.setQuery),
+            addCountry: closingAi(urlActions.addCountry),
+            addCountryAndSetQuery: closingAi(urlActions.addCountryAndSetQuery),
+            removeCountry: closingAi(urlActions.removeCountry),
+            setTopic: closingAi(urlActions.setTopic),
+            setTopicAndClearQuery: closingAi(urlActions.setTopicAndClearQuery),
+            removeTopic: closingAi(urlActions.removeTopic),
+            addFilter: closingAi(urlActions.addFilter),
+            removeFilter: closingAi(urlActions.removeFilter),
+            toggleRequireAllCountries: closingAi(
+                urlActions.toggleRequireAllCountries
+            ),
+            setResultType: urlActions.setResultType,
+            reset: closingAi(urlActions.reset),
+        }
+    }, [urlActions])
+    const aiSearch = useMemo<AiSearchControls>(
+        () => ({
+            query: aiQuery,
+            start: (query: string) => {
+                const trimmed = query.trim()
+                if (!trimmed) return
+                setAiQuery(trimmed)
+                urlActions.setQuery(trimmed)
+            },
+            close: () => setAiQuery(null),
+        }),
+        [aiQuery, urlActions]
     )
 
     // Handle analytics tracking (skips initial page load)
@@ -112,6 +163,7 @@ export const Search = ({
                 topicTagGraph,
                 synonymMap,
                 analytics,
+                aiSearch,
             }}
         >
             <div className="search-controls-container span-cols-12 col-start-2">
@@ -134,7 +186,15 @@ export const Search = ({
                 <SearchTopicsRefinementList topicType={topicType} />
                 <SearchResultTypeToggle />
             </div>
-            <div className="search-template-results col-start-2 span-cols-12">
+            {aiQuery ? (
+                <SearchAiResults key={aiQuery} query={aiQuery} />
+            ) : (
+                state.query && <SearchAiTeaser query={state.query} />
+            )}
+            <div
+                id="search-template-results"
+                className="search-template-results col-start-2 span-cols-12"
+            >
                 {/* SearchNoResults is hidden by CSS unless it ends up being
                     the only child of this container, i.e. unless none of the
                     result sections below rendered anything. */}
@@ -164,6 +224,7 @@ export const Search = ({
                 className="col-start-2 span-cols-12"
                 style={{ width: "200px", marginTop: "32px" }}
             />
+            <SearchAiSettingsPanel />
         </SearchContext.Provider>
     )
 }
