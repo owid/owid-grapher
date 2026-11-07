@@ -1,0 +1,21 @@
+.annotation-info-icon {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: annotation-info-icon-pop-in var(--duration-press) var(--ease-out)
+        both;
+}
+
+@keyframes annotation-info-icon-pop-in {
+    from {
+        transform: scale(0.5);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .annotation-info-icon {
+        animation: none;
+    }
+}
