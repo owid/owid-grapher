@@ -1,9 +1,12 @@
+import * as _ from "lodash-es"
 import {
     AnnotationTimeScope,
     EntityName,
     IndicatorAnnotation,
     TimeRange,
 } from "@ourworldindata/types"
+import { CoreColumn } from "@ourworldindata/core-table"
+import { SeriesLabelAnnotation } from "../seriesLabel/SeriesLabelState"
 
 export type PointAnnotation = Extract<
     IndicatorAnnotation,
@@ -14,6 +17,11 @@ export type RangeAnnotation = Extract<
     IndicatorAnnotation,
     { timeScope: "range"; entityNames: EntityName[] }
 >
+
+export interface EntityTimeAnnotations {
+    pointAnnotations: PointAnnotation[]
+    rangeAnnotations: RangeAnnotation[]
+}
 
 export type AnnotationMarker = Extract<
     AnnotationTimeScope,
@@ -36,11 +44,26 @@ function isRangeAnnotation(
     )
 }
 
-export function selectEntityPointAnnotations(
-    annotations: IndicatorAnnotation[],
-    entityName: EntityName,
+interface SelectEntityTimeAnnotationsArgs {
+    annotations: IndicatorAnnotation[]
+    entityName: EntityName
     timeRange: TimeRange
-): PointAnnotation[] {
+}
+
+export function selectEntityTimeAnnotations(
+    args: SelectEntityTimeAnnotationsArgs
+): EntityTimeAnnotations {
+    return {
+        pointAnnotations: selectEntityPointAnnotations(args),
+        rangeAnnotations: selectEntityRangeAnnotations(args),
+    }
+}
+
+function selectEntityPointAnnotations({
+    annotations,
+    entityName,
+    timeRange,
+}: SelectEntityTimeAnnotationsArgs): PointAnnotation[] {
     const [startTime, endTime] = timeRange
     return annotations
         .filter(isPointAnnotation)
@@ -53,11 +76,11 @@ export function selectEntityPointAnnotations(
         .sort((a, b) => a.time - b.time)
 }
 
-export function selectEntityRangeAnnotations(
-    annotations: IndicatorAnnotation[],
-    entityName: EntityName,
-    timeRange: TimeRange
-): RangeAnnotation[] {
+function selectEntityRangeAnnotations({
+    annotations,
+    entityName,
+    timeRange,
+}: SelectEntityTimeAnnotationsArgs): RangeAnnotation[] {
     const [windowStart, windowEnd] = timeRange
     return annotations
         .filter(isRangeAnnotation)
@@ -68,4 +91,27 @@ export function selectEntityRangeAnnotations(
                 annotation.endTime >= windowStart
         )
         .sort((a, b) => a.startTime - b.startTime)
+}
+
+export function toSeriesLabelAnnotations(
+    annotations: EntityTimeAnnotations,
+    timeColumn: CoreColumn
+): SeriesLabelAnnotation[] {
+    const entries = [
+        ...annotations.pointAnnotations.map(({ time, text }) => ({
+            startTime: time,
+            timeScope: "point" as const,
+            heading: timeColumn.formatTime(time),
+            text,
+        })),
+        ...annotations.rangeAnnotations.map(({ startTime, endTime, text }) => ({
+            startTime,
+            timeScope: "range" as const,
+            heading: timeColumn.formatTimeRange(startTime, endTime),
+            text,
+        })),
+    ]
+    return _.sortBy(entries, (entry) => entry.startTime).map(
+        ({ heading, text, timeScope }) => ({ heading, text, timeScope })
+    )
 }
