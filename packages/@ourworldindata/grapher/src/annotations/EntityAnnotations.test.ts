@@ -10,6 +10,7 @@ import {
     RangeAnnotation,
     selectEntityAnnotation,
     selectEntityAnnotationsForColumns,
+    selectEntityPointAnnotationsAtTimes,
     selectEntityTimeAnnotations,
     toSeriesLabelAnnotations,
 } from "./EntityAnnotations"
@@ -275,6 +276,66 @@ it("returns ranges in ascending start time order", () => {
         "middle",
         "late",
     ])
+})
+
+describe(selectEntityPointAnnotationsAtTimes, () => {
+    const point = (text: string, time: number): IndicatorAnnotation => ({
+        text,
+        entityNames: ["Chad"],
+        timeScope: "point",
+        time,
+    })
+    const select = (
+        annotations: IndicatorAnnotation[],
+        times: number[]
+    ): string[] =>
+        selectEntityPointAnnotationsAtTimes({
+            column: makeColumnWithAnnotations(annotations),
+            entityName: "Chad",
+            times,
+        }).map((annotation) => annotation.text)
+
+    it("keeps points at a listed time and drops those at an unlisted time between two listed ones", () => {
+        const annotations = [
+            point("first", 2000),
+            point("between", 2005),
+            point("last", 2010),
+        ]
+
+        expect(select(annotations, [2000, 2010])).toEqual(["first", "last"])
+    })
+
+    it("drops all-time, range and indicator-wide annotations", () => {
+        const annotations: IndicatorAnnotation[] = [
+            { text: "all", entityNames: ["Chad"], timeScope: "all" },
+            rangeAnnotation("range", 2000, 2005),
+            { text: "indicator-wide", timeScope: "point", time: 2000 },
+        ]
+
+        expect(select(annotations, [2000, 2005])).toEqual([])
+    })
+
+    it("keeps several annotations at one time, in definition order", () => {
+        const annotations = [
+            point("second in time", 2005),
+            point("definition 1", 2000),
+            point("definition 2", 2000),
+            point("definition 3", 2000),
+        ]
+
+        expect(select(annotations, [2000, 2005])).toEqual([
+            "definition 1",
+            "definition 2",
+            "definition 3",
+            "second in time",
+        ])
+    })
+
+    it("returns each annotation once when a time is listed twice", () => {
+        const annotations = [point("only", 2000)]
+
+        expect(select(annotations, [2000, 2000])).toEqual(["only"])
+    })
 })
 
 describe(selectEntityAnnotation, () => {

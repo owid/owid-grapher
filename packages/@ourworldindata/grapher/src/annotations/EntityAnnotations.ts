@@ -4,6 +4,7 @@ import {
     ColumnSlug,
     EntityName,
     IndicatorAnnotation,
+    Time,
     TimeRange,
 } from "@ourworldindata/types"
 import { excludeUndefined } from "@ourworldindata/utils"
@@ -87,6 +88,26 @@ function selectEntityPointAnnotations({
                 annotation.entityNames.includes(entityName) &&
                 annotation.time >= startTime &&
                 annotation.time <= endTime
+        )
+        .sort((a, b) => a.time - b.time)
+}
+
+export function selectEntityPointAnnotationsAtTimes({
+    column,
+    entityName,
+    times,
+}: {
+    column: OwidColumn
+    entityName: EntityName
+    times: Time[]
+}): PointAnnotation[] {
+    const timesSet = new Set(times)
+    return column.annotations
+        .filter(isPointAnnotation)
+        .filter(
+            (annotation) =>
+                annotation.entityNames.includes(entityName) &&
+                timesSet.has(annotation.time)
         )
         .sort((a, b) => a.time - b.time)
 }
