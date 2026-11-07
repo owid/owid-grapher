@@ -5,7 +5,7 @@ import {
     IndicatorAnnotation,
     TimeRange,
 } from "@ourworldindata/types"
-import { CoreColumn } from "@ourworldindata/core-table"
+import { CoreColumn, OwidColumn } from "@ourworldindata/core-table"
 import { SeriesLabelAnnotation } from "../seriesLabel/SeriesLabelState"
 
 export type PointAnnotation = Extract<
@@ -16,6 +16,11 @@ export type PointAnnotation = Extract<
 export type RangeAnnotation = Extract<
     IndicatorAnnotation,
     { timeScope: "range"; entityNames: EntityName[] }
+>
+
+export type EntityAnnotation = Extract<
+    IndicatorAnnotation,
+    { timeScope: "all"; entityNames: EntityName[] }
 >
 
 export interface EntityTimeAnnotations {
@@ -44,8 +49,16 @@ function isRangeAnnotation(
     )
 }
 
+function isEntityAnnotation(
+    annotation: IndicatorAnnotation
+): annotation is EntityAnnotation {
+    return (
+        annotation.timeScope === "all" && annotation.entityNames !== undefined
+    )
+}
+
 interface SelectEntityTimeAnnotationsArgs {
-    annotations: IndicatorAnnotation[]
+    column: OwidColumn
     entityName: EntityName
     timeRange: TimeRange
 }
@@ -60,12 +73,12 @@ export function selectEntityTimeAnnotations(
 }
 
 function selectEntityPointAnnotations({
-    annotations,
+    column,
     entityName,
     timeRange,
 }: SelectEntityTimeAnnotationsArgs): PointAnnotation[] {
     const [startTime, endTime] = timeRange
-    return annotations
+    return column.annotations
         .filter(isPointAnnotation)
         .filter(
             (annotation) =>
@@ -77,12 +90,12 @@ function selectEntityPointAnnotations({
 }
 
 function selectEntityRangeAnnotations({
-    annotations,
+    column,
     entityName,
     timeRange,
 }: SelectEntityTimeAnnotationsArgs): RangeAnnotation[] {
     const [windowStart, windowEnd] = timeRange
-    return annotations
+    return column.annotations
         .filter(isRangeAnnotation)
         .filter(
             (annotation) =>
@@ -91,6 +104,15 @@ function selectEntityRangeAnnotations({
                 annotation.endTime >= windowStart
         )
         .sort((a, b) => a.startTime - b.startTime)
+}
+
+export function selectEntityAnnotation(
+    column: OwidColumn,
+    entityName: EntityName
+): EntityAnnotation | undefined {
+    return column.annotations
+        .filter(isEntityAnnotation)
+        .find((annotation) => annotation.entityNames.includes(entityName))
 }
 
 export function toSeriesLabelAnnotations(

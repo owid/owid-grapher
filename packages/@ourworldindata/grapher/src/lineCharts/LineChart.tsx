@@ -71,7 +71,6 @@ import { HorizontalNumericColorLegendState } from "../legend/HorizontalNumericCo
 import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import {
     findClosestTimeAtMouse,
-    getAnnotationsForSeries,
     getYAxisConfigDefaults,
     isMarkerTooltipOpen,
     toPlacedLineChartSeries,
@@ -856,10 +855,7 @@ export class LineChart
                 color,
                 seriesName,
                 label: !this.manager.showSeriesLabels ? "" : displayName,
-                inlineAnnotation: getAnnotationsForSeries(
-                    this.chartState.annotationsMap,
-                    seriesName
-                ),
+                inlineAnnotation: series.entityAnnotation?.text,
                 annotations: toSeriesLabelAnnotations(
                     {
                         pointAnnotations: seriesForLabel.flatMap(

@@ -14,6 +14,8 @@ import {
     ColorSchemeName,
     ColumnTypeNames,
     DimensionProperty,
+    IndicatorAnnotation,
+    OwidColumnDef,
     GRAPHER_CHART_TYPES,
     SeriesStrategy,
 } from "@ourworldindata/types"
@@ -213,6 +215,117 @@ describe("sorting", () => {
             "Zambia",
             "United States",
             "Sweden",
+        ])
+    })
+})
+
+describe("entity annotations", () => {
+    const annotations: IndicatorAnnotation[] = [
+        { text: "Estimate", entityNames: ["France"], timeScope: "all" },
+    ]
+
+    const makeChartState = (
+        columnDefs: OwidColumnDef[],
+        row: (number | string)[][],
+        selectedEntityNames: string[]
+    ): DiscreteBarChartState => {
+        const slugs = columnDefs.map((def) => def.slug)
+        const grapherState = new GrapherState({
+            table: new OwidTable(
+                [["entityName", "year", ...slugs], ...row],
+                columnDefs
+            ),
+            dimensions: slugs.map((slug) => ({
+                slug,
+                property: DimensionProperty.y,
+            })),
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+            selectedEntityNames,
+        })
+        return grapherState.chartState as DiscreteBarChartState
+    }
+
+    it("attaches an entity's note to its bar when bars are entities", () => {
+        const chartState = makeChartState(
+            [
+                {
+                    slug: "population",
+                    type: ColumnTypeNames.Numeric,
+                    annotations,
+                },
+            ],
+            [
+                ["France", 2000, 100],
+                ["Germany", 2000, 200],
+            ],
+            ["France", "Germany"]
+        )
+
+        const annotationByEntity = Object.fromEntries(
+            chartState.series.map((series) => [
+                series.seriesName,
+                series.annotation,
+            ])
+        )
+        expect(annotationByEntity).toEqual({
+            France: "Estimate",
+            Germany: undefined,
+        })
+    })
+
+    it("takes the note from the historical column when historical and projected columns are combined", () => {
+        const chartState = makeChartState(
+            [
+                {
+                    slug: "population",
+                    type: ColumnTypeNames.Numeric,
+                    annotations,
+                },
+                {
+                    slug: "population_projection",
+                    type: ColumnTypeNames.Numeric,
+                    display: { isProjection: true },
+                },
+            ],
+            [
+                ["France", 2000, 100, ""],
+                ["Germany", 2000, 200, ""],
+            ],
+            ["France", "Germany"]
+        )
+
+        expect(chartState.yColumnMode.type).toEqual("combined")
+        const annotationByEntity = Object.fromEntries(
+            chartState.series.map((series) => [
+                series.seriesName,
+                series.annotation,
+            ])
+        )
+        expect(annotationByEntity).toEqual({
+            France: "Estimate",
+            Germany: undefined,
+        })
+    })
+
+    it("attaches no notes when bars are columns", () => {
+        const chartState = makeChartState(
+            [
+                {
+                    slug: "population",
+                    type: ColumnTypeNames.Numeric,
+                    annotations,
+                },
+                { slug: "area", type: ColumnTypeNames.Numeric, annotations },
+            ],
+            [["France", 2000, 100, 50]],
+            ["France"]
+        )
+
+        expect(chartState.seriesStrategy).toEqual(SeriesStrategy.column)
+        expect(chartState.series).toHaveLength(2)
+        expect(chartState.series.map((series) => series.annotation)).toEqual([
+            undefined,
+            undefined,
         ])
     })
 })
