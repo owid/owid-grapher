@@ -123,6 +123,7 @@ describe("request validation", () => {
             query: "add Canada",
             queryStr: "",
             model: "claude-sonnet-5-5",
+            scope: "page",
             tableSort: null,
         })
         expect(
