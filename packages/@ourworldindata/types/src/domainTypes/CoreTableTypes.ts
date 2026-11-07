@@ -266,6 +266,7 @@ export interface OwidColumnDef extends CoreColumnDef {
     owidProcessingLevel?: OwidProcessingLevel
     owidSchemaVersion?: number
     shortName?: string
+    annotations?: IndicatorAnnotation[]
 }
 
 export const OwidEntityNameColumnDef = {
@@ -309,3 +310,15 @@ export interface OwidVariableRow<ValueType extends PrimitiveType> {
     originalTime: Time
     originalValue?: ValueType
 }
+
+type AnnotationEntityScope =
+    | { entityNames: [EntityName, ...EntityName[]] }
+    | { entityNames?: never }
+
+export type AnnotationTimeScope =
+    | { timeScope: "all" }
+    | { timeScope: "point"; time: Time }
+    | { timeScope: "range"; startTime: Time; endTime: Time }
+
+export type IndicatorAnnotation = { text: string } & AnnotationEntityScope &
+    AnnotationTimeScope
