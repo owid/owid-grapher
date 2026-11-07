@@ -14,7 +14,7 @@ import {
 } from "../imagesHelpers.js"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.mjs"
 import { extractSqlError } from "./routeUtils.js"
-import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
+import { enqueueDeployChange } from "../../baker/DeployUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
 
@@ -124,7 +124,7 @@ export async function postImageHandler(
 export async function putImageHandler(
     req: Request,
     res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadWriteTransaction
 ) {
     const { type, content } = validateImagePayload(req.body)
     const { asBlob, dimensions, hash } = await processImageContent(
@@ -217,7 +217,8 @@ export async function putImageHandler(
     // Extract text from the new image version asynchronously
     void extractAndStoreImageText(newImageId, newCloudflareId)
 
-    await triggerStaticBuild(
+    enqueueDeployChange(
+        trx,
         res.locals.user,
         `Updating image "${originalFilename}"`
     )

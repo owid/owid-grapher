@@ -64,7 +64,7 @@ import {
     updateChartConfig,
 } from "../../db/model/ChartConfigs.js"
 import { deleteGrapherConfigFromR2 } from "../../serverUtils/r2/chartConfigR2Helpers.js"
-import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
+import { enqueueDeployChange } from "../../baker/DeployUtils.js"
 import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
 import { getPublishedSlugsByNarrativeChartName } from "../../db/model/NarrativeChart.js"
@@ -660,7 +660,7 @@ export const saveGrapher = async (
             `UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `,
             [now, user.id, chartId]
         )
-        await triggerStaticBuild(user, `Publishing chart ${fullConfig.slug}`)
+        enqueueDeployChange(knex, user, `Publishing chart ${fullConfig.slug}`)
     } else if (
         !fullConfig.isPublished &&
         existingConfig &&
@@ -676,9 +676,9 @@ export const saveGrapher = async (
             R2GrapherConfigDirectory.publishedGrapherBySlug,
             `${existingConfig.slug}.json`
         )
-        await triggerStaticBuild(user, `Unpublishing chart ${fullConfig.slug}`)
+        enqueueDeployChange(knex, user, `Unpublishing chart ${fullConfig.slug}`)
     } else if (fullConfig.isPublished)
-        await triggerStaticBuild(user, `Updating chart ${fullConfig.slug}`)
+        enqueueDeployChange(knex, user, `Updating chart ${fullConfig.slug}`)
 
     await enqueueExplorerRefreshJobsForDependencies(knex, {
         chartIds: [chartId],
@@ -1402,7 +1402,8 @@ async function upsertEtlConfigForChart(
     await refreshChartDimensionsAndR2(trx, chartId, row.configId, newFullConfig)
 
     if (newFullConfig.isPublished) {
-        await triggerStaticBuild(
+        enqueueDeployChange(
+            trx,
             user,
             `Updating ETL config for chart ${chartId}`
         )
@@ -1564,7 +1565,8 @@ export async function deleteChartsChartIdEtlConfig(
     await refreshChartDimensionsAndR2(trx, chartId, row.configId, newFullConfig)
 
     if (newFullConfig.isPublished) {
-        await triggerStaticBuild(
+        enqueueDeployChange(
+            trx,
             res.locals.user,
             `Clearing ETL config for chart ${chartId}`
         )
@@ -1630,7 +1632,8 @@ export async function deleteChart(
     }
 
     if (chart.isPublished) {
-        await triggerStaticBuild(
+        enqueueDeployChange(
+            trx,
             res.locals.user,
             `Deleting chart ${chart.slug}`
         )

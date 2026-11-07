@@ -7,7 +7,7 @@ import {
 } from "../../db/model/Redirect.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { expectChartId } from "./charts.js"
-import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
+import { enqueueDeployChange } from "../../baker/DeployUtils.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
@@ -62,7 +62,8 @@ export async function handlePostNewSiteRedirect(
         `INSERT INTO redirects (source, target) VALUES (?, ?)`,
         [source, target]
     )
-    await triggerStaticBuild(
+    enqueueDeployChange(
+        trx,
         res.locals.user,
         `Creating redirect id=${id} source=${source} target=${target}`
     )
@@ -80,7 +81,8 @@ export async function handleDeleteSiteRedirect(
         throw new JsonError(`No redirect found for id ${id}`, 404)
     }
     await db.knexRaw(trx, `DELETE FROM redirects WHERE id=?`, [id])
-    await triggerStaticBuild(
+    enqueueDeployChange(
+        trx,
         res.locals.user,
         `Deleting redirect id=${id} source=${redirect.source} target=${redirect.target}`
     )
@@ -164,7 +166,8 @@ export async function handleDeleteChartRedirect(
     if (!redirect) throw new JsonError(`No redirect found for id ${id}`, 404)
 
     await db.knexRaw(trx, `DELETE FROM chart_slug_redirects WHERE id=?`, [id])
-    await triggerStaticBuild(
+    enqueueDeployChange(
+        trx,
         res.locals.user,
         `Deleting redirect from ${redirect.slug}`
     )

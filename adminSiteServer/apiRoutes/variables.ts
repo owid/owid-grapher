@@ -42,7 +42,7 @@ import {
     assignTagsForCharts,
 } from "../../db/model/Chart.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
+import { enqueueDeployChange } from "../../baker/DeployUtils.js"
 import {
     saveGrapherConfigToR2,
     saveGrapherConfigToR2ByUuid,
@@ -332,7 +332,8 @@ export async function putIndicatorChartConfig(
     const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
 
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
-        await triggerStaticBuild(
+        enqueueDeployChange(
+            trx,
             res.locals.user,
             `Updating ETL config for indicator ${variableId}`
         )
@@ -403,7 +404,8 @@ export async function deleteIndicatorChartConfig(
     const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
 
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
-        await triggerStaticBuild(
+        enqueueDeployChange(
+            trx,
             res.locals.user,
             `Updating ETL config for indicator ${variableId}`
         )
