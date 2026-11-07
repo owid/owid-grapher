@@ -33,9 +33,9 @@ function ensureTrailingPunctuation(text: string): string {
     return /[.!?…]["'”’)\]]*$/.test(trimmed) ? trimmed : `${trimmed}.`
 }
 
-/** Plain text for the admin-only "Copy for social" button, shared by data
- * insights and announcements. The authors note is passed in because its
- * wording differs per gdoc type. */
+/** Plain text for the admin-only "Copy for social" button on announcement
+ * pages. The authors note is passed in because its wording depends on the
+ * announcement's kind. */
 export function buildSocialText({
     title,
     body,
