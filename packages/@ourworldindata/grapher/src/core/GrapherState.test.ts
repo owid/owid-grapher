@@ -309,6 +309,7 @@ describe("projectionColumnInfoBySlug", () => {
         columns: {
             slug: string
             display: { name?: string; isProjection?: boolean }
+            color?: string
         }[]
     ): OwidTable => {
         const headers = ["entityName", "year", ...columns.map((c) => c.slug)]
@@ -317,6 +318,7 @@ describe("projectionColumnInfoBySlug", () => {
             slug: c.slug,
             type: ColumnTypeNames.Numeric,
             display: c.display,
+            color: c.color,
         }))
         return new OwidTable([headers, data], columnDefs)
     }
@@ -398,6 +400,60 @@ describe("projectionColumnInfoBySlug", () => {
             "population"
         )
         expect(result.get("gdp_projection")?.historicalSlug).toBe("gdp")
+    })
+
+    it("matches projection columns with historical columns by color", () => {
+        const table = createOwidTableForColumns([
+            { slug: "deaths", display: { name: "Deaths" }, color: "#c4523e" },
+            {
+                slug: "deaths_projection",
+                display: { name: "Projected deaths", isProjection: true },
+                color: "#c4523e",
+            },
+            { slug: "births", display: { name: "Births" }, color: "#00295b" },
+            {
+                slug: "births_projection",
+                display: { name: "Projected births", isProjection: true },
+                color: "#00295b",
+            },
+        ])
+
+        const grapherState = new GrapherState({
+            table,
+            dimensions: createYDimensionsForSlugs([
+                "deaths",
+                "deaths_projection",
+                "births",
+                "births_projection",
+            ]),
+        })
+
+        const result = grapherState.projectionColumnInfoBySlug
+        expect(result.get("deaths_projection")?.historicalSlug).toBe("deaths")
+        expect(result.get("births_projection")?.historicalSlug).toBe("births")
+    })
+
+    it("leaves a projection unmatched when several historical columns share its color", () => {
+        const table = createOwidTableForColumns([
+            { slug: "deaths", display: { name: "Deaths" }, color: "#c4523e" },
+            { slug: "births", display: { name: "Births" }, color: "#c4523e" },
+            {
+                slug: "deaths_projection",
+                display: { name: "Projected deaths", isProjection: true },
+                color: "#c4523e",
+            },
+        ])
+
+        const grapherState = new GrapherState({
+            table,
+            dimensions: createYDimensionsForSlugs([
+                "deaths",
+                "births",
+                "deaths_projection",
+            ]),
+        })
+
+        expect(grapherState.projectionColumnInfoBySlug.size).toBe(0)
     })
 
     it("returns an empty map when no matching historical column is found", () => {
