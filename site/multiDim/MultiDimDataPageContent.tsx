@@ -39,6 +39,7 @@ import MetadataSection from "../MetadataSection.js"
 import DownloadSection from "../DownloadSection.js"
 import GrapherImage from "../GrapherImage.js"
 import { useMobxStateToReactState } from "../hooks.js"
+import { useConfigureWithAiOnMdim } from "../configureWithAi/useSidePanel.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 import { getDatapageDataV2, processRelatedResearch } from "../dataPage.js"
 import DataPageResearchAndWriting from "../DataPageResearchAndWriting.js"
@@ -312,6 +313,29 @@ export function DataPageContent({
         },
         [config, setSearchParams, updateGrapher]
     )
+
+    // Used by the "Configure with AI" prototype to switch to another view
+    const switchView = useCallback(
+        (
+            choices: MultiDimDimensionChoices,
+            grapherQueryParams: GrapherQueryParams
+        ) => {
+            const grapher = grapherStateRef.current
+            if (!grapher) return
+            const { selectedChoices } = config.filterToAvailableChoices(choices)
+            setSearchParams(selectedChoices, { replace: true })
+            updateGrapher(grapher, selectedChoices, grapherQueryParams)
+        },
+        [config, setSearchParams, updateGrapher]
+    )
+
+    useConfigureWithAiOnMdim({
+        slug: slug ?? "",
+        grapherState: slug ? grapherStateRef.current : null,
+        getChoices: () => settings,
+        switchView,
+        isBusy: isLoadingView,
+    })
 
     useMultiDimAnalytics(slug, config, settings)
 
