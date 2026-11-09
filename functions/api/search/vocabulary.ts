@@ -39,8 +39,10 @@ export const VOCABULARY_TOPICS = 2
 // Hits taken from each term's search
 export const VOCABULARY_HITS_PER_TERM = 5
 
-// Both calls together; the pool goes to the rerank without them after this
-export const VOCABULARY_TIMEOUT_MS = 1000
+// Both calls together; the pool goes to the rerank without them after this.
+// The two calls take ~650 ms at the median and ~900 ms at p95, so a 1 s cap
+// cut off 2–11% of picks per benchmark run.
+export const VOCABULARY_TIMEOUT_MS = 1500
 
 const TOPIC_INSTRUCTIONS =
     "Which Our World in Data topic is this person most likely looking for data on?"
