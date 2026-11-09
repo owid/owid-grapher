@@ -28,8 +28,8 @@ import {
  *
  * Two variants under test, both opt-in through the same param
  * (`vocab=skip`, `vocab=tag` or `vocab=skip,tag`; see parseVocabParam):
- * - skip: the topic question gets a "no rewrite" option, and a query whose
- *   most likely answer is that option gets no vocabulary hits.
+ * - skip: the topic call also asks whether the query as typed already finds
+ *   its data; when that's more likely than not, it gets no vocabulary hits.
  * - tag: the rerank prompt marks each vocabulary hit with the topic search
  *   that found it, so the model can weigh it against the query's own hits.
  */
@@ -49,10 +49,10 @@ export const VOCABULARY_TIMEOUT_MS = 1000
 
 const TOPIC_INSTRUCTIONS =
     "Which Our World in Data topic is this person most likely looking for data on?"
-// The option that lets the topic question answer "no rewrite" (vocab=skip)
-const NO_REWRITE_ID = "none"
-const NO_REWRITE_OPTION =
-    "None: the query's own words already name the data, so no topic's terms are needed"
+// Asked alongside the topic question with vocab=skip. A "none" option among
+// the topics never won: the topic question always has some answer.
+const QUERY_IS_CLEAR_INSTRUCTIONS =
+    "The query already uses the words Our World in Data's charts use for this data, so searching it as typed finds them."
 
 const keywordInstructions = (topic: string): string =>
     `Within the topic ${topic}, which search term best describes the data this person is looking for?`
@@ -101,7 +101,9 @@ export function parseVocabParam(
 export interface VocabularyInfo {
     terms: VocabularyTerm[]
     latencyMs: number
-    /** the topic question answered "no rewrite" (vocab=skip) */
+    /** P(the query as typed finds its data), asked with vocab=skip */
+    queryIsClear?: number
+    /** queryIsClear was over half, so no terms were picked */
     skipped?: boolean
     /** the picks failed; the pool was reranked without them */
     error?: string
@@ -174,25 +176,35 @@ export async function pickVocabularyTerms(
                 topic: {
                     type: "choice",
                     instructions: TOPIC_INSTRUCTIONS,
-                    criteria: Object.fromEntries([
-                        ...topics.map((topic, i) => [
+                    criteria: Object.fromEntries(
+                        topics.map((topic, i) => [
                             optionId("t", i),
                             `${topic.name} (e.g. ${topic.keywords.slice(0, 6).join(", ")})`,
-                        ]),
-                        ...(options.skip
-                            ? [[NO_REWRITE_ID, NO_REWRITE_OPTION]]
-                            : []),
-                    ]),
+                        ])
+                    ),
                 },
+                ...(options.skip && {
+                    query_is_clear: {
+                        type: "noul",
+                        instructions: QUERY_IS_CLEAR_INSTRUCTIONS,
+                    },
+                }),
             },
             signal
         )
-        const ranked = topChoices(topicAnswers.topic, VOCABULARY_TOPICS + 1)
-        if (ranked[0] === NO_REWRITE_ID)
-            return { terms: [], latencyMs: Date.now() - started, skipped: true }
-        const picked = ranked
-            .filter((id) => id !== NO_REWRITE_ID)
-            .slice(0, VOCABULARY_TOPICS)
+        const clear = topicAnswers.query_is_clear
+        const queryIsClear =
+            isRecord(clear) && typeof clear.noul === "number"
+                ? clear.noul
+                : undefined
+        if (queryIsClear !== undefined && queryIsClear > 0.5)
+            return {
+                terms: [],
+                latencyMs: Date.now() - started,
+                queryIsClear,
+                skipped: true,
+            }
+        const picked = topChoices(topicAnswers.topic, VOCABULARY_TOPICS)
             .map((id) => topics[optionIndex(id)])
             .filter((topic) => topic !== undefined)
 
@@ -230,7 +242,7 @@ export async function pickVocabularyTerms(
             const keyword = best && topic.keywords[optionIndex(best)]
             return keyword ? [{ topic: topic.name, keyword }] : []
         })
-        return { terms, latencyMs: Date.now() - started }
+        return { terms, latencyMs: Date.now() - started, queryIsClear }
     } catch (error) {
         console.error("Search vocabulary picks failed:", error)
         Sentry.captureException(error)

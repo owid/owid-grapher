@@ -65,52 +65,65 @@ describe(pickVocabularyTerms, () => {
         expect(ai.run.mock.calls[0][1].state).toContain("Query: under nurished")
     })
 
-    it("offers a no-rewrite option only with skip, and takes no terms when it wins", async () => {
-        const ai = {
-            run: vi.fn(async () => ({
-                answers: { topic: choice({ none: 0.7, t0: 0.2, t1: 0.1 }) },
-            })),
-        } as unknown as Ai & { run: ReturnType<typeof vi.fn> }
+    // With skip, the topic call also asks whether the query as typed works
+    const skippingAi = (queryIsClear: number) =>
+        ({
+            run: vi.fn(async (_model: string, input: any) =>
+                input.questions.topic
+                    ? {
+                          answers: {
+                              topic: choice({ t0: 0.6, t1: 0.3, t2: 0.1 }),
+                              ...(input.questions.query_is_clear && {
+                                  query_is_clear: {
+                                      type: "noul",
+                                      noul: queryIsClear,
+                                  },
+                              }),
+                          },
+                      }
+                    : { answers: { k0: choice({ k0: 0.9, k1: 0.1 }) } }
+            ),
+        }) as unknown as Ai & { run: ReturnType<typeof vi.fn> }
+
+    it("with skip, takes no terms when the query as typed likely finds its data", async () => {
+        const ai = skippingAi(0.8)
 
         const info = await pickVocabularyTerms(ai, "clef-flash", "malaria", {
             skip: true,
         })
 
-        expect(info).toMatchObject({ terms: [], skipped: true })
+        expect(info).toMatchObject({
+            terms: [],
+            queryIsClear: 0.8,
+            skipped: true,
+        })
         expect(ai.run).toHaveBeenCalledOnce()
-        expect(ai.run.mock.calls[0][1].questions.topic.criteria).toHaveProperty(
-            "none"
-        )
-
-        const plain = pickingAi()
-        await pickVocabularyTerms(plain, "clef-flash", "malaria")
-        expect(
-            plain.run.mock.calls[0][1].questions.topic.criteria
-        ).not.toHaveProperty("none")
     })
 
-    it("picks two topics past a no-rewrite option that isn't the top answer", async () => {
-        const ai = {
-            run: vi.fn(async (_model: string, input: any) =>
-                input.questions.topic
-                    ? {
-                          answers: {
-                              topic: choice({ t0: 0.5, none: 0.3, t1: 0.2 }),
-                          },
-                      }
-                    : { answers: { k0: choice({ k0: 0.9, k1: 0.1 }) } }
-            ),
-        } as unknown as Ai
+    it("with skip, picks terms as usual for a query that likely needs them", async () => {
+        const ai = skippingAi(0.3)
 
-        const info = await pickVocabularyTerms(ai, "clef-flash", "hunger", {
-            skip: true,
-        })
+        const info = await pickVocabularyTerms(
+            ai,
+            "clef-flash",
+            "under nurished",
+            { skip: true }
+        )
 
-        expect(info.terms.map((t) => t.topic)).toEqual([
-            "Hunger & Undernourishment",
-            "Famines",
-        ])
+        expect(info.terms).toHaveLength(2)
+        expect(info).toMatchObject({ queryIsClear: 0.3 })
         expect(info.skipped).toBeUndefined()
+    })
+
+    it("asks about the query only with skip", async () => {
+        const ai = skippingAi(0.8)
+
+        const info = await pickVocabularyTerms(ai, "clef-flash", "malaria")
+
+        expect(info.terms).toHaveLength(2)
+        expect(ai.run.mock.calls[0][1].questions).not.toHaveProperty(
+            "query_is_clear"
+        )
     })
 
     it("yields no terms when the model call fails", async () => {
