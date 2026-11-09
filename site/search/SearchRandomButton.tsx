@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faDice } from "@fortawesome/free-solid-svg-icons"
+import { faDiceFive } from "@fortawesome/free-solid-svg-icons"
 import { useEffect, useState } from "react"
 import { RANDOM_SEARCHES_URL } from "./rerank.js"
 
@@ -61,7 +61,7 @@ export const SearchRandomButton = ({
                 onSearch(queries[Math.floor(Math.random() * queries.length)])
             }
         >
-            <FontAwesomeIcon icon={faDice} />
+            <FontAwesomeIcon icon={faDiceFive} />
         </button>
     )
 }
