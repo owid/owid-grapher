@@ -45,6 +45,22 @@
     }
 }
 
+.search-random-button {
+    align-self: center;
+    flex: none;
+    background-color: transparent;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+    padding: 0;
+    color: $blue-50;
+    font-size: 1.125rem;
+    &:hover {
+        color: $blue-90;
+    }
+}
+
 .search-reset-button {
     background-color: transparent;
     color: #fff;

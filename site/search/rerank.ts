@@ -29,6 +29,13 @@ const PAGE_VOCAB = PAGE_PARAMS?.get("vocab") ?? null
 // would turn reranking on for everyone.
 const DEFAULT_RERANK_MODEL = "clef-flash"
 
+// Same TODO: the random-search button's list of real queries
+// (SearchRandomButton.tsx). Only a staging server has the file; elsewhere the
+// fetch 404s and the button doesn't render.
+export const RANDOM_SEARCHES_URL: string | undefined = PAGE_PARAMS
+    ? "/random-searches.json"
+    : undefined
+
 const RERANK_MODEL: string | null = !PAGE_PARAMS
     ? null
     : PAGE_RERANK === "off"
