@@ -435,3 +435,23 @@ it("doesn't label entities that are absent at the selected time", () => {
     expect(candidateNames).not.toContain("newcomer")
     expect(labelNames.toSorted()).toEqual(candidateNames.toSorted())
 })
+
+it("doesn't mute every bar when no selected entity is plotted", () => {
+    const table = new OwidTable(
+        [
+            ["year", "entityName", "population", "percentBelow2USD"],
+            [2001, "medium", 4000, 4],
+            [2001, "big", 5000, 8],
+            [2001, "small", 1000, 3],
+        ],
+        [...numericDefs("population", "percentBelow2USD"), yearDef()]
+    )
+
+    const { chartState } = makeMarimekko(table, {
+        selectedEntityNames: ["High-income countries"],
+    })
+
+    expect(chartState.series.map((series) => series.focus.background)).toEqual(
+        [false, false, false]
+    )
+})
