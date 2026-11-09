@@ -6,12 +6,16 @@ import * as Sentry from "@sentry/react"
 
 let labsUser: Promise<string | undefined> | undefined
 
+// The visitor's full name from the admin's users, else their Tailscale login
 async function fetchLabsUser(): Promise<string | undefined> {
     try {
         const response = await fetch("/labs/whoami")
         if (!response.ok) return undefined
-        const { login } = (await response.json()) as { login: string | null }
-        return login ?? undefined
+        const { login, name } = (await response.json()) as {
+            login: string | null
+            name: string | null
+        }
+        return name ?? login ?? undefined
     } catch {
         return undefined
     }

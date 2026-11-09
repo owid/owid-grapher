@@ -13,7 +13,7 @@ import {
     apiKeyAuthMiddleware,
     cloudflareAuthMiddleware,
     tailscaleAuthMiddleware,
-    getTailscaleLogin,
+    getTailscaleVisitor,
     devAuthMiddleware,
     requireAdminAuthMiddleware,
 } from "./authentication.js"
@@ -90,10 +90,13 @@ export class OwidAdminApp {
         if (ENV === "staging") {
             app.get("/labs/whoami", async (req, res) => {
                 res.set("Cache-Control", "private, no-store")
-                const login = await getTailscaleLogin(req).catch(
+                const visitor = await getTailscaleVisitor(req).catch(
                     () => undefined
                 )
-                res.json({ login: login ?? null })
+                res.json({
+                    login: visitor?.login ?? null,
+                    name: visitor?.name ?? null,
+                })
             })
         }
 
