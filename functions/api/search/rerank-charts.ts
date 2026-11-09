@@ -14,11 +14,10 @@ import {
 import { isRerankModel, RERANK_MODELS, rerankHits } from "./rerank.js"
 import {
     appendVocabularyHits,
-    parseVocabParam,
     pickVocabularyTerms,
     VOCABULARY_HITS_PER_TERM,
     vocabularyNote,
-    type VocabularyOptions,
+    type VocabularyTerm,
 } from "./vocabulary.js"
 
 /**
@@ -39,10 +38,9 @@ import {
  * AI binding, and the model only ever sees what Algolia returned for the
  * query, never text a client sent as results.
  *
- * With `vocab=1` (or its variants), the pool also gets the hits of the query
- * translated into the topic vocabulary (see vocabulary.ts), unless the search
- * is already filtered to a topic. The picks run alongside the pool's own
- * search.
+ * With `vocab=1`, the pool also gets the hits of the query translated into
+ * the topic vocabulary (see vocabulary.ts), unless the search is already
+ * filtered to a topic. The picks run alongside the pool's own search.
  */
 
 const MAX_BODY_BYTES = 16 * 1024
@@ -171,13 +169,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 error: `Invalid model "${model}". Valid values: ${Object.keys(RERANK_MODELS).join(", ")}`,
             })
 
-        let vocabOptions: VocabularyOptions | undefined
-        try {
-            vocabOptions = parseVocabParam(url.searchParams.get("vocab"))
-        } catch (error) {
-            return jsonResponse(400, { error: (error as Error).message })
-        }
-
         const body = await request.text()
         if (body.length > MAX_BODY_BYTES)
             return jsonResponse(413, { error: "Request body too large" })
@@ -202,7 +193,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             | string
             | string[]
         )[]
-        const vocab = facetFilters.some(isTopicFacet) ? undefined : vocabOptions
+        const expand =
+            url.searchParams.get("vocab") === "1" &&
+            !facetFilters.some(isTopicFacet)
 
         const [pool, vocabulary] = await Promise.all([
             searchSingleForHitsWithClosestMatches<SearchChartHit>(client, {
@@ -213,9 +206,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 page: 0,
                 hitsPerPage: hitsPerPage * RERANK_PAGES,
             }),
-            vocab
-                ? pickVocabularyTerms(env.AI, model, query, vocab)
-                : undefined,
+            expand ? pickVocabularyTerms(env.AI, model, query) : undefined,
         ])
         const { hits: candidates, via } = vocabulary
             ? await appendVocabularyHits(
@@ -240,18 +231,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                       ).hits,
                   (hit) => hit.objectID
               )
-            : { hits: pool.hits, via: undefined }
+            : { hits: pool.hits, via: new Map<string, VocabularyTerm>() }
         const { hits, rerank } = await rerankHits(
             env.AI,
             model,
             query,
             candidates,
-            vocab?.tag
-                ? (hit) => {
-                      const term = via?.get(hit.objectID)
-                      return term && vocabularyNote(term)
-                  }
-                : undefined
+            (hit) => {
+                const term = via.get(hit.objectID)
+                return term && vocabularyNote(term)
+            }
         )
         // Vocabulary hits can turn an empty search into a full one
         const nbHits = Math.max(pool.nbHits ?? 0, candidates.length)

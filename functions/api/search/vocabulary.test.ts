@@ -7,7 +7,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import {
     appendVocabularyHits,
-    parseVocabParam,
     parseVocabulary,
     pickVocabularyTerms,
 } from "./vocabulary.js"
@@ -63,67 +62,6 @@ describe(pickVocabularyTerms, () => {
         const keywordQuestions = ai.run.mock.calls[1][1].questions
         expect(Object.keys(keywordQuestions)).toEqual(["k0"])
         expect(ai.run.mock.calls[0][1].state).toContain("Query: under nurished")
-    })
-
-    // With skip, the topic call also asks whether the query as typed works
-    const skippingAi = (queryIsClear: number) =>
-        ({
-            run: vi.fn(async (_model: string, input: any) =>
-                input.questions.topic
-                    ? {
-                          answers: {
-                              topic: choice({ t0: 0.6, t1: 0.3, t2: 0.1 }),
-                              ...(input.questions.query_is_clear && {
-                                  query_is_clear: {
-                                      type: "noul",
-                                      noul: queryIsClear,
-                                  },
-                              }),
-                          },
-                      }
-                    : { answers: { k0: choice({ k0: 0.9, k1: 0.1 }) } }
-            ),
-        }) as unknown as Ai & { run: ReturnType<typeof vi.fn> }
-
-    it("with skip, takes no terms when the query as typed likely finds its data", async () => {
-        const ai = skippingAi(0.8)
-
-        const info = await pickVocabularyTerms(ai, "clef-flash", "malaria", {
-            skip: true,
-        })
-
-        expect(info).toMatchObject({
-            terms: [],
-            queryIsClear: 0.8,
-            skipped: true,
-        })
-        expect(ai.run).toHaveBeenCalledOnce()
-    })
-
-    it("with skip, picks terms as usual for a query that likely needs them", async () => {
-        const ai = skippingAi(0.3)
-
-        const info = await pickVocabularyTerms(
-            ai,
-            "clef-flash",
-            "under nurished",
-            { skip: true }
-        )
-
-        expect(info.terms).toHaveLength(2)
-        expect(info).toMatchObject({ queryIsClear: 0.3 })
-        expect(info.skipped).toBeUndefined()
-    })
-
-    it("asks about the query only with skip", async () => {
-        const ai = skippingAi(0.8)
-
-        const info = await pickVocabularyTerms(ai, "clef-flash", "malaria")
-
-        expect(info.terms).toHaveLength(2)
-        expect(ai.run.mock.calls[0][1].questions).not.toHaveProperty(
-            "query_is_clear"
-        )
     })
 
     it("yields no terms when the model call fails", async () => {
@@ -198,19 +136,5 @@ describe(appendVocabularyHits, () => {
             v1: terms[0],
             v2: terms[2],
         })
-    })
-})
-
-describe(parseVocabParam, () => {
-    it("reads 1 as the plain vocabulary and a list as its variants", () => {
-        expect(parseVocabParam(null)).toBeUndefined()
-        expect(parseVocabParam("1")).toEqual({ skip: false, tag: false })
-        expect(parseVocabParam("tag")).toEqual({ skip: false, tag: true })
-        expect(parseVocabParam("skip,tag")).toEqual({ skip: true, tag: true })
-    })
-
-    it("rejects anything else", () => {
-        expect(() => parseVocabParam("yes")).toThrow("Invalid vocab")
-        expect(() => parseVocabParam("1,tag")).toThrow("Invalid vocab")
     })
 })

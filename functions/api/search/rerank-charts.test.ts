@@ -159,9 +159,10 @@ describe("/api/search/rerank-charts", () => {
         })
 
         it("searches each term within its topic and adds the hits the pool lacks", async () => {
+            const ai = reverseAi()
             const { body } = await post(
                 siteRequest({ hitsPerPage: 7 }),
-                reverseAi(),
+                ai,
                 "model=jev&vocab=1"
             )
 
@@ -177,6 +178,14 @@ describe("/api/search/rerank-charts", () => {
             )
             expect(body.rerank.poolSize).toBe(POOL_SIZE + 1)
             expect(body.vocabulary.terms).toHaveLength(1)
+            // the rerank is told which hit came from the topic search
+            const { state } = vi.mocked(ai.run).mock.calls[0][1] as {
+                state: string
+            }
+            expect(state).toContain(
+                'Title of v1 — Subtitle of v1 (found by searching the related topic Fertility Rate for "fertility rate"'
+            )
+            expect(state).toContain("Title of h2 — Subtitle of h2\n")
         })
 
         it("leaves a search the reader filtered to a topic alone", async () => {

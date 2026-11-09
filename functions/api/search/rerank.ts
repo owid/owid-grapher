@@ -86,7 +86,7 @@ export interface RerankInfo {
 const candidateId = (index: number): string =>
     `r${String(index + 1).padStart(2, "0")}`
 
-// Explains the notes vocab=tag adds to the listing. Only a noted prompt has
+// Explains the notes on vocabulary hits (vocabulary.ts). Only a noted prompt has
 // it, so without notes the prompt stays identical to the offline one.
 const NOTES_INTRO =
     "Results with a note in parentheses weren't found by the query itself, but by a search on a related topic."
@@ -189,7 +189,7 @@ export interface RerankableHit {
 /**
  * Reorders `hits` (in Algolia's order) by the model's choice probabilities.
  * Returns every hit, so callers cut pages from the reordered list. `note`
- * adds a remark to a hit's line in the prompt (vocab=tag).
+ * adds a remark to a hit's line in the prompt (vocabulary.ts).
  */
 export async function rerankHits<T extends RerankableHit>(
     ai: Ai,

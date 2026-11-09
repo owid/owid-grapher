@@ -22,16 +22,11 @@ import {
  * a call at most 64 questions: the query's VOCABULARY_TOPICS most likely
  * topics, then the best term within each. Each term's top hits are appended
  * to the pool; the rerank then decides whether any of them belongs on top,
- * so a poor pick costs a few weak candidates, not a wrong result.
+ * so a poor pick costs a few weak candidates, not a wrong result. The rerank
+ * prompt notes which topic search found each of them (vocabularyNote), so the
+ * model can weigh a neighbouring topic's chart against the query's own hits.
  *
  * Like the rerank, a failed or slow pick leaves the pool as it was.
- *
- * Two variants under test, both opt-in through the same param
- * (`vocab=skip`, `vocab=tag` or `vocab=skip,tag`; see parseVocabParam):
- * - skip: the topic call also asks whether the query as typed already finds
- *   its data; when that's more likely than not, it gets no vocabulary hits.
- * - tag: the rerank prompt marks each vocabulary hit with the topic search
- *   that found it, so the model can weigh it against the query's own hits.
  */
 
 const VOCABULARY_URL = "https://files.ourworldindata.org/topic_vocabulary.json"
@@ -49,11 +44,6 @@ export const VOCABULARY_TIMEOUT_MS = 1000
 
 const TOPIC_INSTRUCTIONS =
     "Which Our World in Data topic is this person most likely looking for data on?"
-// Asked alongside the topic question with vocab=skip. A "none" option among
-// the topics never won: the topic question always has some answer.
-const QUERY_IS_CLEAR_INSTRUCTIONS =
-    "The query already uses the words Our World in Data's charts use for this data, so searching it as typed finds them."
-
 const keywordInstructions = (topic: string): string =>
     `Within the topic ${topic}, which search term best describes the data this person is looking for?`
 
@@ -68,43 +58,9 @@ export interface VocabularyTerm {
     keyword: string
 }
 
-export interface VocabularyOptions {
-    /** the topic question may answer "no rewrite" (vocab=skip) */
-    skip: boolean
-    /** the rerank prompt marks vocabulary hits (vocab=tag) */
-    tag: boolean
-}
-
-const VOCAB_VARIANTS = ["skip", "tag"] as const
-
-/**
- * The `vocab` param: "1" for the plain vocabulary, or a comma-separated list
- * of variants. Undefined when absent; throws on anything else.
- */
-export function parseVocabParam(
-    value: string | null
-): VocabularyOptions | undefined {
-    if (value === null || value === "") return undefined
-    if (value === "1") return { skip: false, tag: false }
-    const variants = value.split(",")
-    if (
-        !variants.every((v) =>
-            (VOCAB_VARIANTS as readonly string[]).includes(v)
-        )
-    )
-        throw new Error(
-            `Invalid vocab value "${value}". Use vocab=1, or a comma-separated list of ${VOCAB_VARIANTS.join(", ")}`
-        )
-    return { skip: variants.includes("skip"), tag: variants.includes("tag") }
-}
-
 export interface VocabularyInfo {
     terms: VocabularyTerm[]
     latencyMs: number
-    /** P(the query as typed finds its data), asked with vocab=skip */
-    queryIsClear?: number
-    /** queryIsClear was over half, so no terms were picked */
-    skipped?: boolean
     /** the picks failed; the pool was reranked without them */
     error?: string
 }
@@ -159,8 +115,7 @@ const optionIndex = (id: string): number => Number(id.slice(1))
 export async function pickVocabularyTerms(
     ai: Ai,
     model: RerankModel,
-    query: string,
-    options: Pick<VocabularyOptions, "skip"> = { skip: false }
+    query: string
 ): Promise<VocabularyInfo> {
     const started = Date.now()
     const signal = AbortSignal.timeout(VOCABULARY_TIMEOUT_MS)
@@ -183,27 +138,9 @@ export async function pickVocabularyTerms(
                         ])
                     ),
                 },
-                ...(options.skip && {
-                    query_is_clear: {
-                        type: "noul",
-                        instructions: QUERY_IS_CLEAR_INSTRUCTIONS,
-                    },
-                }),
             },
             signal
         )
-        const clear = topicAnswers.query_is_clear
-        const queryIsClear =
-            isRecord(clear) && typeof clear.noul === "number"
-                ? clear.noul
-                : undefined
-        if (queryIsClear !== undefined && queryIsClear > 0.5)
-            return {
-                terms: [],
-                latencyMs: Date.now() - started,
-                queryIsClear,
-                skipped: true,
-            }
         const picked = topChoices(topicAnswers.topic, VOCABULARY_TOPICS)
             .map((id) => topics[optionIndex(id)])
             .filter((topic) => topic !== undefined)
@@ -242,7 +179,7 @@ export async function pickVocabularyTerms(
             const keyword = best && topic.keywords[optionIndex(best)]
             return keyword ? [{ topic: topic.name, keyword }] : []
         })
-        return { terms, latencyMs: Date.now() - started, queryIsClear }
+        return { terms, latencyMs: Date.now() - started }
     } catch (error) {
         console.error("Search vocabulary picks failed:", error)
         Sentry.captureException(error)
@@ -287,6 +224,10 @@ export async function appendVocabularyHits<T>(
     return { hits: merged, via }
 }
 
-/** The rerank prompt's note on a vocabulary hit (vocab=tag). */
+/**
+ * The rerank prompt's note on a vocabulary hit. On the benchmark it moved a
+ * few relevant keyword hits back above a neighbouring topic's chart ("work
+ * laws", "heat").
+ */
 export const vocabularyNote = (term: VocabularyTerm): string =>
     `found by searching the related topic ${term.topic} for "${term.keyword}", not by the query itself`

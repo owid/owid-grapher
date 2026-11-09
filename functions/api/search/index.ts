@@ -20,12 +20,10 @@ import {
 } from "./searchApi.js"
 import {
     appendVocabularyHits,
-    parseVocabParam,
     pickVocabularyTerms,
     VOCABULARY_HITS_PER_TERM,
     vocabularyNote,
     type VocabularyInfo,
-    type VocabularyOptions,
 } from "./vocabulary.js"
 import {
     FilterType,
@@ -114,25 +112,21 @@ async function fetchTagGraph(env: Env, baseUrl: string): Promise<TagGraphRoot> {
 /**
  * The experimental `rerank` param of a charts search (see rerank.ts). It
  * reorders the top RERANK_POOL_SIZE hits, so it serves page 0 only. With
- * `vocab=1` (or its variants), the pool also gets the query's vocabulary
- * hits (see vocabulary.ts).
+ * `vocab=1`, the pool also gets the query's vocabulary hits (see
+ * vocabulary.ts).
  */
 function parseRerank(
     value: string | null,
     vocab: string | null,
     env: Env,
     page: number
-):
-    | { model: RerankModel; ai: Ai; vocab: VocabularyOptions | undefined }
-    | undefined {
-    let vocabOptions: VocabularyOptions | undefined
-    try {
-        vocabOptions = parseVocabParam(vocab)
-    } catch (error) {
-        throw new SearchValidationError((error as Error).message)
-    }
-    if (vocabOptions && !value)
-        throw new SearchValidationError("vocab needs a rerank")
+): { model: RerankModel; ai: Ai; vocab: boolean } | undefined {
+    if (vocab && vocab !== "1")
+        throw new SearchValidationError(
+            `Invalid vocab value "${vocab}". Use vocab=1`
+        )
+    if (vocab && !value)
+        throw new SearchValidationError("vocab=1 needs a rerank")
     if (!value) return undefined
     if (!isRerankModel(value))
         throw new SearchValidationError(
@@ -146,7 +140,7 @@ function parseRerank(
         throw new SearchValidationError(
             "rerank only supports page=0: it reorders the top results"
         )
-    return { model: value, ai: env.AI, vocab: vocabOptions }
+    return { model: value, ai: env.AI, vocab: vocab === "1" }
 }
 
 const hasSearchEnvVars = (env: Env): boolean => {
@@ -370,13 +364,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     Math.max(RERANK_POOL_SIZE, hitsPerPage),
                     baseUrl
                 ),
-                expand && rerank.vocab
-                    ? pickVocabularyTerms(
-                          rerank.ai,
-                          rerank.model,
-                          query,
-                          rerank.vocab
-                      )
+                expand
+                    ? pickVocabularyTerms(rerank.ai, rerank.model, query)
                     : undefined,
             ])
             if (!vocabulary)
@@ -415,12 +404,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     nbHits: Math.max(pool.nbHits, results.length),
                 },
                 hitsPerPage,
-                rerank.vocab?.tag
-                    ? (hit) => {
-                          const term = via.get(hit.url)
-                          return term && vocabularyNote(term)
-                      }
-                    : undefined
+                (hit) => {
+                    const term = via.get(hit.url)
+                    return term && vocabularyNote(term)
+                }
             )
             return { ...reranked, vocabulary }
         }
