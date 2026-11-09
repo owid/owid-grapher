@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faDice } from "@fortawesome/free-solid-svg-icons"
+import { faDiceFive } from "@fortawesome/free-solid-svg-icons"
 import { useEffect, useState } from "react"
 import { shouldShowStaffControls } from "@ourworldindata/grapher"
 
@@ -58,15 +58,13 @@ export const SearchRandomButton = ({
         <button
             className="search-random-button"
             type="button"
-            // Labs marks and counts its features by PR number (site/labs/ on Labs)
-            data-labs-feature={7755}
             aria-label="Search for a random real query"
             title="Search for a random real query, drawn by how often people search it"
             onClick={() =>
                 onSearch(queries[Math.floor(Math.random() * queries.length)])
             }
         >
-            <FontAwesomeIcon icon={faDice} />
+            <FontAwesomeIcon icon={faDiceFive} />
         </button>
     )
 }
