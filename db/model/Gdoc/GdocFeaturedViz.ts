@@ -169,6 +169,14 @@ export class GdocFeaturedViz
     ): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
 
+        if ((this.content["pinned-for-searches"] ?? []).length === 0) {
+            errors.push({
+                property: "pinned-for-searches",
+                message: `No pinned searches are set, so this page won't show as a card in the Data search results. To get suggestions, copy this into Claude Code: /suggest-pinned-searches https://docs.google.com/document/d/${this.id}/edit`,
+                type: OwidGdocErrorMessageType.Warning,
+            })
+        }
+
         for (const clash of await getPinnedSearchClashes(knex, this)) {
             errors.push({
                 property: "pinned-for-searches",
