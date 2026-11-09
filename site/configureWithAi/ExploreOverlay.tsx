@@ -11,11 +11,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { copyToClipboard } from "@ourworldindata/utils"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.mjs"
-import {
-    pageThumbnailUrl,
-    searchUrl,
-    sharedQueryUrl,
-} from "./configureWithAiView.js"
+import { pageThumbnailUrl, searchUrl } from "./configureWithAiView.js"
+import { sharedQueryUrl } from "./sharedQuery.js"
 import type {
     PanelState,
     PanelStore,
@@ -136,17 +133,22 @@ function CopyLinkButton({ query }: { query: string }) {
     }, [isCopied])
 
     return (
-        <button
-            className="configure-with-ai-overlay__copy"
-            type="button"
-            onClick={async () => {
-                if (await copyToClipboard(sharedQueryUrl(query)))
-                    setIsCopied(true)
-            }}
-        >
-            <FontAwesomeIcon icon={isCopied ? faCheck : faLink} />
-            {isCopied ? "Link copied" : "Copy link"}
-        </button>
+        <>
+            <button
+                className="configure-with-ai-overlay__copy"
+                type="button"
+                onClick={async () => {
+                    if (await copyToClipboard(sharedQueryUrl(query)))
+                        setIsCopied(true)
+                }}
+            >
+                <FontAwesomeIcon icon={isCopied ? faCheck : faLink} />
+                {isCopied ? "Link copied" : "Copy link"}
+            </button>
+            <span role="status" className="sr-only">
+                {isCopied ? "Link copied to clipboard" : ""}
+            </span>
+        </>
     )
 }
 

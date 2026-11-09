@@ -15,11 +15,11 @@ import cx from "clsx"
 import { shouldShowStaffControls } from "@ourworldindata/grapher"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.mjs"
 import {
-    MAX_QUERY_LENGTH,
     searchUrl,
     viewThumbnailUrl,
     type ConfigureWithAiView,
 } from "./configureWithAiView.js"
+import { MAX_QUERY_LENGTH } from "./sharedQuery.js"
 import type {
     HistoryEntry,
     PanelState,
@@ -150,9 +150,10 @@ export function AiModePanel({
     const { request, history, isBusy } = state
     const current = history.find((e) => e.id === state.currentId)
     // What the reader typed while this entry was showing; going back in
-    // History shows that entry's question instead
+    // History shows that entry's question instead. Nothing typed yet (-1)
+    // shows the question being asked, e.g. one from a shared link.
     const [draft, setDraft] = useState<{ forId: number | null; text: string }>({
-        forId: null,
+        forId: -1,
         text: "",
     })
     const input =
@@ -194,12 +195,13 @@ export function AiModePanel({
         focusInput()
     }
 
-    // A shared link asks its question as the page opens; no focus, which
-    // would scroll the page to the panel
+    // A shared link asks its question as the page opens, once an MDim page
+    // has loaded its view; no focus, which would scroll the page to the panel
     useEffect(() => {
+        if (isBusy) return
         const query = store.takeSharedQuery()
         if (query) void store.ask(query, model)
-    }, [store, model])
+    }, [store, model, isBusy])
 
     // The question wraps: the text area grows to fit it (up to 100 characters)
     useLayoutEffect(() => {

@@ -10,7 +10,6 @@ import {
     applyViewToGrapherState,
     dataTableSortToViewSort,
     restoreGrapherState,
-    sharedQueryFromUrl,
     snapshotGrapherState,
     viewToGrapherQueryParams,
 } from "./configureWithAiView.js"
@@ -32,7 +31,9 @@ const sidePanelFor = (store: PanelStore): SidePanel => ({
 
 export function createGrapherSidePanel(
     slug: string,
-    grapherState: GrapherState
+    grapherState: GrapherState,
+    /** A question from a shared link, asked once AI mode shows */
+    sharedQuery: string | null
 ): SidePanel {
     const start = snapshotGrapherState(grapherState)
     return sidePanelFor(
@@ -46,7 +47,7 @@ export function createGrapherSidePanel(
                     applyViewToGrapherState(grapherState, view),
                 restoreStart: () => restoreGrapherState(grapherState, start),
             },
-            sharedQueryFromUrl()
+            sharedQuery
         )
     )
 }
@@ -63,7 +64,10 @@ export interface MdimPage {
     ) => void
 }
 
-export function createMdimSidePanel(page: MdimPage): SidePanel {
+export function createMdimSidePanel(
+    page: MdimPage,
+    sharedQuery: string | null
+): SidePanel {
     const { slug, grapherState, getChoices, switchView } = page
     const startChoices = getChoices()
     const start = snapshotGrapherState(grapherState)
@@ -91,7 +95,7 @@ export function createMdimSidePanel(page: MdimPage): SidePanel {
                     switchView(startChoices, start.params)
                 },
             },
-            sharedQueryFromUrl()
+            sharedQuery
         )
     )
 }

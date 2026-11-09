@@ -34,8 +34,8 @@ export function WithConfigureWithAi({
         }),
         []
     )
-    useSidePanel(grapherState, (chunk, state) =>
-        chunk.createGrapherSidePanel(slug, state)
+    useSidePanel(grapherState, (chunk, state, sharedQuery) =>
+        chunk.createGrapherSidePanel(slug, state, sharedQuery)
     )
     return (
         <GuidedChartContext.Provider value={context}>

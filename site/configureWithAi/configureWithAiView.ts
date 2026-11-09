@@ -152,27 +152,6 @@ export function pageThumbnailUrl(
     return `${grapherBaseUrl}/${slug}.png${url.search}`
 }
 
-// A link to a page with AI mode asking a question: `?ai=<question>`. Grapher
-// rewrites the query string only when the chart changes, so the parameter is
-// still there when the panel's chunk loads.
-const SHARED_QUERY_PARAM = "ai"
-
-/** The longest question the panel takes */
-export const MAX_QUERY_LENGTH = 100
-
-export function sharedQueryFromUrl(): string | null {
-    const query = new URLSearchParams(window.location.search)
-        .get(SHARED_QUERY_PARAM)
-        ?.trim()
-    return query ? query.slice(0, MAX_QUERY_LENGTH) : null
-}
-
-export function sharedQueryUrl(query: string): string {
-    const url = new URL(window.location.href)
-    url.searchParams.set(SHARED_QUERY_PARAM, query)
-    return url.toString()
-}
-
 /** Search 404s on staging servers, so it links to the live site */
 export function searchUrl(query: string): string {
     return `https://ourworldindata.org/search?q=${encodeURIComponent(query)}`
