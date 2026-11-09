@@ -122,6 +122,26 @@ describe("Featured viz pinned searches", { timeout: 20000 }, () => {
         expect(await isPublished(b.id)).toBe(true)
     })
 
+    it("warns, without blocking publishing, when no searches are pinned", async () => {
+        const draft = await createFeaturedViz({
+            id: "pinned-none",
+            pinnedForSearches: [],
+        })
+
+        const gdoc = await env.fetchJson(`/gdocs/${draft.id}`)
+        const warnings = (gdoc.errors as OwidGdocErrorMessage[]).filter(
+            (error) => error.property === "pinned-for-searches"
+        )
+
+        expect(warnings).toHaveLength(1)
+        expect(warnings[0].type).toBe("warning")
+        expect(warnings[0].message).toContain(
+            "/suggest-pinned-searches https://docs.google.com/document/d/pinned-none/edit"
+        )
+        await publish(draft)
+        expect(await isPublished(draft.id)).toBe(true)
+    })
+
     it("allows publishing featured vizzes pinned for different searches", async () => {
         const a = await createFeaturedViz({
             id: "pinned-distinct-a",
