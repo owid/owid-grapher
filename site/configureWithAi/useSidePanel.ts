@@ -25,8 +25,10 @@ export function useSidePanel(
     // Read as the page first renders, before an MDim page rewrites the URL;
     // only the first panel installed asks it
     const sharedQuery = useRef(sharedQueryFromUrl())
+    // Not `!archiveContext`: live pages of archived charts carry one too,
+    // pointing at their latest archived version
     const isEligible =
-        !!grapherState?.showAdminControls && !grapherState.archiveContext
+        !!grapherState?.showAdminControls && !grapherState.isOnArchivalPage
 
     useEffect(() => {
         if (!grapherState || !isEligible) return
