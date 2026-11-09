@@ -371,6 +371,16 @@ interface TailscaleStatus {
     }
 }
 
+/** The Tailscale login of whoever sent the request, if it came over the tailnet */
+export async function getTailscaleLogin(
+    req: express.Request
+): Promise<string | undefined> {
+    const clientIp = getClientIp(req)
+    if (!clientIp) return undefined
+    const ipToUserMap = await getTailscaleIpToUserMap()
+    return ipToUserMap[clientIp]
+}
+
 async function getTailscaleIpToUserMap(): Promise<Record<string, string>> {
     return execWrapper("tailscale status --json")
         .then((res) => {

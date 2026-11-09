@@ -16,6 +16,7 @@ import {
     showFeature,
     useFeaturesOnPage,
 } from "./labsFeatures.js"
+import { identifyLabsUser } from "./labsUser.js"
 import "./LabsBar.scss"
 
 // Labs is a staff-only copy of the site, built from the `labs` branch: master
@@ -73,9 +74,11 @@ async function canReachSentry(): Promise<boolean> {
 async function openFeedbackForm(featuresOnPage: number[]): Promise<boolean> {
     const feedback = loadFeedback()
     if (!feedback || !(await canReachSentry())) return false
+    const login = await identifyLabsUser()
     const form = await feedback.createForm({
         tags: {
             labs_features_on_page: featuresOnPage.join(",") || "none",
+            labs_user: login ?? "unknown",
         },
         onFormClose: () => form.removeFromDom(),
         onFormSubmitted: () => form.removeFromDom(),

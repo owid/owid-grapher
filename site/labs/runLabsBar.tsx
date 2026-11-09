@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client"
 import { isInIFrame } from "@ourworldindata/utils"
 import { LabsBar } from "./LabsBar.js"
+import { identifyLabsUser } from "./labsUser.js"
 
 // Hiding the bar lasts for the rest of the browser session
 const LABS_BAR_HIDDEN_KEY = "labsBarHidden"
@@ -23,7 +24,10 @@ function rememberHidden(): void {
 
 export function runLabsBar(): void {
     // Embedded charts load the same bundle; only show the bar on full pages
-    if (isInIFrame() || wasHiddenThisSession()) return
+    if (isInIFrame()) return
+    // Name the visitor in this session's replay, even with the bar hidden
+    void identifyLabsUser()
+    if (wasHiddenThisSession()) return
 
     // In the main bundle rather than a lazy chunk: a second lazy chunk (AI mode
     // is the first) makes the build split out shared chunks, which the archive

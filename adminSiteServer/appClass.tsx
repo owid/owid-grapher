@@ -13,6 +13,7 @@ import {
     apiKeyAuthMiddleware,
     cloudflareAuthMiddleware,
     tailscaleAuthMiddleware,
+    getTailscaleLogin,
     devAuthMiddleware,
     requireAdminAuthMiddleware,
 } from "./authentication.js"
@@ -82,6 +83,19 @@ export class OwidAdminApp {
 
         // Require authentication (only for /admin requests)
         app.use("/admin", requireAdminAuthMiddleware)
+
+        // Labs: the Labs bar asks who's visiting, so feedback names its
+        // sender. Labs is tailnet-only and nginx passes only this path through
+        // to the admin, which is otherwise switched off there.
+        if (ENV === "staging") {
+            app.get("/labs/whoami", async (req, res) => {
+                res.set("Cache-Control", "private, no-store")
+                const login = await getTailscaleLogin(req).catch(
+                    () => undefined
+                )
+                res.json({ login: login ?? null })
+            })
+        }
 
         app.use("/", express.static("public"))
         app.use("/assets", express.static(`${VITE_DIST_DIR}/assets`))
