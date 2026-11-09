@@ -25,6 +25,13 @@ import {
  * so a poor pick costs a few weak candidates, not a wrong result.
  *
  * Like the rerank, a failed or slow pick leaves the pool as it was.
+ *
+ * Two variants under test, both opt-in through the same param
+ * (`vocab=skip`, `vocab=tag` or `vocab=skip,tag`; see parseVocabParam):
+ * - skip: the topic question gets a "no rewrite" option, and a query whose
+ *   most likely answer is that option gets no vocabulary hits.
+ * - tag: the rerank prompt marks each vocabulary hit with the topic search
+ *   that found it, so the model can weigh it against the query's own hits.
  */
 
 const VOCABULARY_URL = "https://files.ourworldindata.org/topic_vocabulary.json"
@@ -42,6 +49,11 @@ export const VOCABULARY_TIMEOUT_MS = 1000
 
 const TOPIC_INSTRUCTIONS =
     "Which Our World in Data topic is this person most likely looking for data on?"
+// The option that lets the topic question answer "no rewrite" (vocab=skip)
+const NO_REWRITE_ID = "none"
+const NO_REWRITE_OPTION =
+    "None: the query's own words already name the data, so no topic's terms are needed"
+
 const keywordInstructions = (topic: string): string =>
     `Within the topic ${topic}, which search term best describes the data this person is looking for?`
 
@@ -56,9 +68,41 @@ export interface VocabularyTerm {
     keyword: string
 }
 
+export interface VocabularyOptions {
+    /** the topic question may answer "no rewrite" (vocab=skip) */
+    skip: boolean
+    /** the rerank prompt marks vocabulary hits (vocab=tag) */
+    tag: boolean
+}
+
+const VOCAB_VARIANTS = ["skip", "tag"] as const
+
+/**
+ * The `vocab` param: "1" for the plain vocabulary, or a comma-separated list
+ * of variants. Undefined when absent; throws on anything else.
+ */
+export function parseVocabParam(
+    value: string | null
+): VocabularyOptions | undefined {
+    if (value === null || value === "") return undefined
+    if (value === "1") return { skip: false, tag: false }
+    const variants = value.split(",")
+    if (
+        !variants.every((v) =>
+            (VOCAB_VARIANTS as readonly string[]).includes(v)
+        )
+    )
+        throw new Error(
+            `Invalid vocab value "${value}". Use vocab=1, or a comma-separated list of ${VOCAB_VARIANTS.join(", ")}`
+        )
+    return { skip: variants.includes("skip"), tag: variants.includes("tag") }
+}
+
 export interface VocabularyInfo {
     terms: VocabularyTerm[]
     latencyMs: number
+    /** the topic question answered "no rewrite" (vocab=skip) */
+    skipped?: boolean
     /** the picks failed; the pool was reranked without them */
     error?: string
 }
@@ -113,7 +157,8 @@ const optionIndex = (id: string): number => Number(id.slice(1))
 export async function pickVocabularyTerms(
     ai: Ai,
     model: RerankModel,
-    query: string
+    query: string,
+    options: Pick<VocabularyOptions, "skip"> = { skip: false }
 ): Promise<VocabularyInfo> {
     const started = Date.now()
     const signal = AbortSignal.timeout(VOCABULARY_TIMEOUT_MS)
@@ -129,17 +174,25 @@ export async function pickVocabularyTerms(
                 topic: {
                     type: "choice",
                     instructions: TOPIC_INSTRUCTIONS,
-                    criteria: Object.fromEntries(
-                        topics.map((topic, i) => [
+                    criteria: Object.fromEntries([
+                        ...topics.map((topic, i) => [
                             optionId("t", i),
                             `${topic.name} (e.g. ${topic.keywords.slice(0, 6).join(", ")})`,
-                        ])
-                    ),
+                        ]),
+                        ...(options.skip
+                            ? [[NO_REWRITE_ID, NO_REWRITE_OPTION]]
+                            : []),
+                    ]),
                 },
             },
             signal
         )
-        const picked = topChoices(topicAnswers.topic, VOCABULARY_TOPICS)
+        const ranked = topChoices(topicAnswers.topic, VOCABULARY_TOPICS + 1)
+        if (ranked[0] === NO_REWRITE_ID)
+            return { terms: [], latencyMs: Date.now() - started, skipped: true }
+        const picked = ranked
+            .filter((id) => id !== NO_REWRITE_ID)
+            .slice(0, VOCABULARY_TOPICS)
             .map((id) => topics[optionIndex(id)])
             .filter((topic) => topic !== undefined)
 
@@ -191,14 +244,15 @@ export async function pickVocabularyTerms(
 
 /**
  * Searches each term (a failed search contributes nothing) and appends the
- * hits the pool doesn't have yet, in term order.
+ * hits the pool doesn't have yet, in term order. `via` maps each appended
+ * hit's key to the term that found it.
  */
 export async function appendVocabularyHits<T>(
     pool: T[],
     terms: VocabularyTerm[],
     search: (term: VocabularyTerm) => Promise<T[]>,
     key: (hit: T) => string
-): Promise<T[]> {
+): Promise<{ hits: T[]; via: Map<string, VocabularyTerm> }> {
     const perTerm = await Promise.all(
         terms.map((term) =>
             search(term).catch((error) => {
@@ -209,10 +263,18 @@ export async function appendVocabularyHits<T>(
     )
     const seen = new Set(pool.map(key))
     const merged = [...pool]
-    for (const hit of perTerm.flat()) {
-        if (seen.has(key(hit))) continue
-        seen.add(key(hit))
-        merged.push(hit)
-    }
-    return merged
+    const via = new Map<string, VocabularyTerm>()
+    perTerm.forEach((hits, i) => {
+        for (const hit of hits) {
+            if (seen.has(key(hit))) continue
+            seen.add(key(hit))
+            merged.push(hit)
+            via.set(key(hit), terms[i])
+        }
+    })
+    return { hits: merged, via }
 }
+
+/** The rerank prompt's note on a vocabulary hit (vocab=tag). */
+export const vocabularyNote = (term: VocabularyTerm): string =>
+    `found by searching the related topic ${term.topic} for "${term.keyword}", not by the query itself`

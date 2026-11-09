@@ -104,6 +104,26 @@ describe(rerankCharts, () => {
         expect(inputs).not.toHaveProperty("model")
     })
 
+    it("explains and adds the notes it is given, and only those", async () => {
+        const ai = fakeAi(async () => jevAnswers({ r01: 1 }))
+
+        await rerankCharts(ai, "jev", pool("a", "b"), 10, (h) =>
+            h.slug === "b" ? "found elsewhere" : undefined
+        )
+        await rerankCharts(ai, "jev", pool("a", "b"), 10)
+
+        const [noted, plain] = vi
+            .mocked(ai.run)
+            .mock.calls.map((call) => (call[1] as { state: string }).state)
+        expect(noted).toContain("weren't found by the query itself")
+        expect(noted).toContain("r01. Title of a — Subtitle of a\n")
+        expect(noted).toContain(
+            "r02. Title of b — Subtitle of b (found elsewhere)"
+        )
+        expect(plain).not.toContain("weren't found by the query itself")
+        expect(plain.endsWith("r02. Title of b — Subtitle of b")).toBe(true)
+    })
+
     it("reads Jev's answers, which it wraps in { state, result }", async () => {
         const ai = fakeAi(async () => ({
             state: "Completed",

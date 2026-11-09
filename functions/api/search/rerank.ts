@@ -86,16 +86,28 @@ export interface RerankInfo {
 const candidateId = (index: number): string =>
     `r${String(index + 1).padStart(2, "0")}`
 
-function buildState(query: string, hits: RerankableHit[]): string {
+// Explains the notes vocab=tag adds to the listing. Only a noted prompt has
+// it, so without notes the prompt stays identical to the offline one.
+const NOTES_INTRO =
+    "Results with a note in parentheses weren't found by the query itself, but by a search on a related topic."
+
+function buildState<T extends RerankableHit>(
+    query: string,
+    hits: T[],
+    note?: (hit: T) => string | undefined
+): string {
+    const notes = hits.map((hit) => note?.(hit))
     const listing = hits
         .map((hit, i) => {
             const kind =
                 hit.type === ChartRecordType.Chart ? "" : ` [${hit.type}]`
             const subtitle = (hit.subtitle ?? "").slice(0, 200)
-            return `${candidateId(i)}. ${hit.title}${kind} — ${subtitle}`
+            const noted = notes[i] ? ` (${notes[i]})` : ""
+            return `${candidateId(i)}. ${hit.title}${kind} — ${subtitle}${noted}`
         })
         .join("\n")
-    return `${STATE_INTRO}\n\nQuery: ${query}\n\nSearch results:\n${listing}`
+    const intro = notes.some(Boolean) ? `${NOTES_INTRO}\n` : ""
+    return `${STATE_INTRO}\n\nQuery: ${query}\n\nSearch results:\n${intro}${listing}`
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -176,13 +188,15 @@ export interface RerankableHit {
 
 /**
  * Reorders `hits` (in Algolia's order) by the model's choice probabilities.
- * Returns every hit, so callers cut pages from the reordered list.
+ * Returns every hit, so callers cut pages from the reordered list. `note`
+ * adds a remark to a hit's line in the prompt (vocab=tag).
  */
 export async function rerankHits<T extends RerankableHit>(
     ai: Ai,
     model: RerankModel,
     query: string,
-    hits: T[]
+    hits: T[],
+    note?: (hit: T) => string | undefined
 ): Promise<{ hits: T[]; rerank: RerankInfo }> {
     const keepOrder = (
         info: Omit<RerankInfo, "model" | "poolSize">
@@ -201,7 +215,7 @@ export async function rerankHits<T extends RerankableHit>(
         const answers = await runDecisionModel(
             ai,
             model,
-            buildState(query, hits),
+            buildState(query, hits, note),
             {
                 best_result: {
                     type: "choice",
@@ -254,13 +268,15 @@ export async function rerankCharts(
     ai: Ai,
     model: RerankModel,
     pool: SearchApiResponse,
-    hitsPerPage: number
+    hitsPerPage: number,
+    note?: (hit: SearchApiResponse["results"][number]) => string | undefined
 ): Promise<SearchApiResponse & { rerank: RerankInfo }> {
     const { hits, rerank } = await rerankHits(
         ai,
         model,
         pool.query,
-        pool.results
+        pool.results,
+        note
     )
     return {
         ...pool,

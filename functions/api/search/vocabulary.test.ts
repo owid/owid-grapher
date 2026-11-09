@@ -7,6 +7,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import {
     appendVocabularyHits,
+    parseVocabParam,
     parseVocabulary,
     pickVocabularyTerms,
 } from "./vocabulary.js"
@@ -62,6 +63,54 @@ describe(pickVocabularyTerms, () => {
         const keywordQuestions = ai.run.mock.calls[1][1].questions
         expect(Object.keys(keywordQuestions)).toEqual(["k0"])
         expect(ai.run.mock.calls[0][1].state).toContain("Query: under nurished")
+    })
+
+    it("offers a no-rewrite option only with skip, and takes no terms when it wins", async () => {
+        const ai = {
+            run: vi.fn(async () => ({
+                answers: { topic: choice({ none: 0.7, t0: 0.2, t1: 0.1 }) },
+            })),
+        } as unknown as Ai & { run: ReturnType<typeof vi.fn> }
+
+        const info = await pickVocabularyTerms(ai, "clef-flash", "malaria", {
+            skip: true,
+        })
+
+        expect(info).toMatchObject({ terms: [], skipped: true })
+        expect(ai.run).toHaveBeenCalledOnce()
+        expect(ai.run.mock.calls[0][1].questions.topic.criteria).toHaveProperty(
+            "none"
+        )
+
+        const plain = pickingAi()
+        await pickVocabularyTerms(plain, "clef-flash", "malaria")
+        expect(
+            plain.run.mock.calls[0][1].questions.topic.criteria
+        ).not.toHaveProperty("none")
+    })
+
+    it("picks two topics past a no-rewrite option that isn't the top answer", async () => {
+        const ai = {
+            run: vi.fn(async (_model: string, input: any) =>
+                input.questions.topic
+                    ? {
+                          answers: {
+                              topic: choice({ t0: 0.5, none: 0.3, t1: 0.2 }),
+                          },
+                      }
+                    : { answers: { k0: choice({ k0: 0.9, k1: 0.1 }) } }
+            ),
+        } as unknown as Ai
+
+        const info = await pickVocabularyTerms(ai, "clef-flash", "hunger", {
+            skip: true,
+        })
+
+        expect(info.terms.map((t) => t.topic)).toEqual([
+            "Hunger & Undernourishment",
+            "Famines",
+        ])
+        expect(info.skipped).toBeUndefined()
     })
 
     it("yields no terms when the model call fails", async () => {
@@ -120,7 +169,7 @@ describe(appendVocabularyHits, () => {
             a: ["h2", "v1"],
             c: ["v1", "v2"],
         }
-        const merged = await appendVocabularyHits(
+        const { hits, via } = await appendVocabularyHits(
             ["h1", "h2"],
             terms,
             async ({ keyword }) => {
@@ -130,6 +179,25 @@ describe(appendVocabularyHits, () => {
             (hit) => hit
         )
 
-        expect(merged).toEqual(["h1", "h2", "v1", "v2"])
+        expect(hits).toEqual(["h1", "h2", "v1", "v2"])
+        // each appended hit remembers the first term that found it
+        expect(Object.fromEntries(via)).toEqual({
+            v1: terms[0],
+            v2: terms[2],
+        })
+    })
+})
+
+describe(parseVocabParam, () => {
+    it("reads 1 as the plain vocabulary and a list as its variants", () => {
+        expect(parseVocabParam(null)).toBeUndefined()
+        expect(parseVocabParam("1")).toEqual({ skip: false, tag: false })
+        expect(parseVocabParam("tag")).toEqual({ skip: false, tag: true })
+        expect(parseVocabParam("skip,tag")).toEqual({ skip: true, tag: true })
+    })
+
+    it("rejects anything else", () => {
+        expect(() => parseVocabParam("yes")).toThrow("Invalid vocab")
+        expect(() => parseVocabParam("1,tag")).toThrow("Invalid vocab")
     })
 })
