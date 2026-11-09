@@ -45,7 +45,11 @@ export const RERANK_MODELS = {
 export type RerankModel = keyof typeof RERANK_MODELS
 
 // The AI Gateway rerank calls go through, for per-call logs (latency, cost,
-// errors) and a rate limit that caps spend if the endpoint is abused.
+// errors) and a rate limit that caps spend if the endpoint is abused. The hop
+// costs ~50 ms per call (paired timing against calling Workers AI directly,
+// with a clef-flash call taking ~200 ms). Dropping the `gateway` option below
+// would save that, at the price of the logs; a WAF rate-limit rule on the
+// endpoint would then have to replace the gateway's limit.
 const RERANK_GATEWAY_ID = "owid-search"
 
 // A rerank slower than this keeps Algolia's order instead: the search must
