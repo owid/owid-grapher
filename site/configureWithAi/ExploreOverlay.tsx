@@ -8,7 +8,7 @@ import {
     faXmark,
 } from "@fortawesome/free-solid-svg-icons"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.mjs"
-import { pageThumbnailUrl } from "./configureWithAiView.js"
+import { pageThumbnailUrl, searchUrl } from "./configureWithAiView.js"
 import type {
     PanelState,
     PanelStore,
@@ -32,20 +32,15 @@ export function ExploreOverlay({
     store,
     state,
     container,
-    ask,
     onClose,
 }: {
     store: PanelStore
     state: PanelState
     /** The Grapher's root element */
     container: HTMLElement
-    ask: (query: string) => void
     onClose: () => void
 }) {
     const { request } = state
-    const [input, setInput] = useState(
-        request.status === "idle" ? "" : request.query
-    )
     const closeRef = useRef<HTMLButtonElement>(null)
     const onKeyDown = useEffectEvent((e: KeyboardEvent): void => {
         if (e.key === "Escape") onClose()
@@ -58,7 +53,11 @@ export function ExploreOverlay({
         return () => document.removeEventListener("keydown", listener)
     }, [])
 
-    const isThinking = request.status === "thinking"
+    // Follow-up questions go in the side panel, so the overlay only ever
+    // shows an answer: a second search box would make this read as site
+    // search rather than a view of this chart
+    if (request.status !== "pages") return null
+    const searchQuery = request.searchQuery ?? request.query
     return createPortal(
         <div
             className="configure-with-ai-overlay"
@@ -80,82 +79,34 @@ export function ExploreOverlay({
                     <FontAwesomeIcon icon={faXmark} />
                 </button>
             </div>
-            <form
-                className="configure-with-ai-overlay__form"
-                autoComplete="off"
-                onSubmit={(e) => {
-                    e.preventDefault()
-                    if (input.trim() && !isThinking) ask(input)
-                }}
-            >
-                <FontAwesomeIcon
-                    className="configure-with-ai-overlay__search-icon"
-                    icon={faMagnifyingGlass}
-                />
-                <input
-                    className="configure-with-ai-overlay__input"
-                    type="text"
-                    maxLength={100}
-                    aria-label="Ask about this chart or any of our data"
-                    placeholder="Ask about this chart or any of our data…"
-                    value={input}
-                    readOnly={isThinking}
-                    onChange={(e) => setInput(e.target.value)}
-                />
-            </form>
             <div className="configure-with-ai-overlay__body">
-                {isThinking && (
-                    <>
-                        <p className="configure-with-ai-overlay__message">
-                            Searching across Our World in Data…
-                        </p>
-                        <ul
-                            className="configure-with-ai-overlay__grid configure-with-ai-overlay__grid--loading"
-                            aria-hidden
-                        >
-                            {[0, 1, 2, 3].map((i) => (
-                                <li key={i} />
-                            ))}
-                        </ul>
-                    </>
-                )}
-                {request.status === "error" && (
+                {request.message && (
                     <p className="configure-with-ai-overlay__message">
                         {request.message}
                     </p>
                 )}
-                {request.status === "empty" && (
-                    <p className="configure-with-ai-overlay__message">
-                        {request.interpretation ||
-                            "Nothing on our site matches this."}
-                    </p>
-                )}
-                {request.status === "pages" && (
-                    <>
-                        {request.message && (
-                            <p className="configure-with-ai-overlay__message">
-                                {request.message}
-                            </p>
-                        )}
-                        <ul className="configure-with-ai-overlay__grid">
-                            {request.pages.map((page) => (
-                                <li key={page.url}>
-                                    <PageCard page={page} />
-                                </li>
-                            ))}
-                        </ul>
-                    </>
-                )}
+                <ul className="configure-with-ai-overlay__grid">
+                    {request.pages.map((page) => (
+                        <li key={page.url}>
+                            <PageCard page={page} />
+                        </li>
+                    ))}
+                </ul>
+                <a
+                    className="configure-with-ai-overlay__search-link"
+                    href={searchUrl(searchQuery)}
+                >
+                    <FontAwesomeIcon icon={faMagnifyingGlass} />
+                    Or search all results for “{searchQuery}”
+                </a>
             </div>
-            {request.status === "pages" && (
-                <div className="configure-with-ai-overlay__footer">
-                    <Feedback
-                        store={store}
-                        feedback={request.feedback}
-                        prompt="Is this tool useful for you?"
-                    />
-                </div>
-            )}
+            <div className="configure-with-ai-overlay__footer">
+                <Feedback
+                    store={store}
+                    feedback={request.feedback}
+                    prompt="Is this tool useful for you?"
+                />
+            </div>
         </div>,
         container
     )

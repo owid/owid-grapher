@@ -15,6 +15,7 @@ import cx from "clsx"
 import { shouldShowStaffControls } from "@ourworldindata/grapher"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.mjs"
 import {
+    searchUrl,
     viewThumbnailUrl,
     type ConfigureWithAiView,
 } from "./configureWithAiView.js"
@@ -23,7 +24,6 @@ import type {
     PanelState,
     PanelStore,
     Request,
-    Scope,
     Suggestions,
     Usage,
 } from "./configureWithAiStore.js"
@@ -39,12 +39,6 @@ const MODELS = [
 type ModelId = (typeof MODELS)[number]["id"]
 const DEFAULT_MODEL: ModelId = "claude-sonnet-5-5"
 const MODEL_STORAGE_KEY = "configure-with-ai:model"
-const SCOPES: { id: Scope; label: string }[] = [
-    { id: "page", label: "This chart" },
-    { id: "site", label: "Across the site" },
-]
-const SCOPE_STORAGE_KEY = "configure-with-ai:scope"
-const DEFAULT_SCOPE: Scope = "site"
 const MAX_QUERY_LENGTH = 100
 const SLOW_AFTER_SECONDS = 10
 
@@ -72,25 +66,12 @@ const SUGGESTIONS: Record<string, string[]> = {
     ],
 }
 
-// Search 404s on staging servers, so link to the live site
-const searchUrl = (query: string): string =>
-    `https://ourworldindata.org/search?q=${encodeURIComponent(query)}`
-
 function readStoredModel(): ModelId {
     try {
         const stored = localStorage.getItem(MODEL_STORAGE_KEY)
         return MODELS.find((m) => m.id === stored)?.id ?? DEFAULT_MODEL
     } catch {
         return DEFAULT_MODEL
-    }
-}
-
-function readStoredScope(): Scope {
-    try {
-        const stored = localStorage.getItem(SCOPE_STORAGE_KEY)
-        return SCOPES.find((s) => s.id === stored)?.id ?? DEFAULT_SCOPE
-    } catch {
-        return DEFAULT_SCOPE
     }
 }
 
@@ -187,9 +168,6 @@ export function AiModePanel({
     const [isStaff] = useState(shouldShowStaffControls)
     const [storedModel, setModel] = useState<ModelId>(readStoredModel)
     const model = isStaff ? storedModel : DEFAULT_MODEL
-    // Staff can limit answers to this chart; everyone else gets the default
-    const [storedScope, setScope] = useState<Scope>(readStoredScope)
-    const scope = isStaff ? storedScope : DEFAULT_SCOPE
     const isThinking = request.status === "thinking"
     const isIdle = request.status === "idle" || request.status === "stopped"
     const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -212,7 +190,7 @@ export function AiModePanel({
     const ask = (query: string): void => {
         // The answer's entry shows the question from here on
         setDraft({ forId: -1, text: "" })
-        void store.ask(query, model, scope)
+        void store.ask(query, model)
         focusInput()
     }
 
@@ -235,10 +213,6 @@ export function AiModePanel({
         setModel(id)
         rememberChoice(MODEL_STORAGE_KEY, id)
     }
-    const changeScope = (id: Scope): void => {
-        setScope(id)
-        rememberChoice(SCOPE_STORAGE_KEY, id)
-    }
     // An answer with other pages has its usage on the request, not in History
     const usage = request.status === "pages" ? request.usage : current?.usage
 
@@ -253,9 +227,6 @@ export function AiModePanel({
                     store={store}
                     state={state}
                     container={grapherRoot}
-                    ask={(query) => {
-                        void store.ask(query, model, scope)
-                    }}
                     onClose={closeOverlay}
                 />
             )}
@@ -353,7 +324,6 @@ export function AiModePanel({
                         store={store}
                         state={state}
                         isStaff={isStaff}
-                        scope={scope}
                         ask={ask}
                     />
                 )}
@@ -401,21 +371,6 @@ export function AiModePanel({
                                 ? usageSummary(usage).line
                                 : "Only visible to OWID staff"}
                         </span>
-                        <label className="configure-with-ai__model">
-                            <span className="sr-only">Scope</span>
-                            <select
-                                value={scope}
-                                onChange={(e) =>
-                                    changeScope(e.target.value as Scope)
-                                }
-                            >
-                                {SCOPES.map((s) => (
-                                    <option key={s.id} value={s.id}>
-                                        {s.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
                         <label className="configure-with-ai__model">
                             <span className="sr-only">Model</span>
                             <select
@@ -544,13 +499,11 @@ function Intro({
     store,
     state,
     isStaff,
-    scope,
     ask,
 }: {
     store: PanelStore
     state: PanelState
     isStaff: boolean
-    scope: Scope
     ask: (q: string) => void
 }) {
     const suggestions = SUGGESTIONS[store.slug] ?? []
@@ -587,20 +540,10 @@ function Intro({
                     </span>
                 </li>
             </ul>
-            {scope === "site" ? (
-                <p className="configure-with-ai__muted">
-                    When this chart can't answer, it points you to other charts
-                    and articles on Our World in Data.
-                </p>
-            ) : (
-                <p className="configure-with-ai__muted">
-                    It shows this chart's data only. For other data,{" "}
-                    <a href="https://ourworldindata.org/search">
-                        search all charts
-                    </a>
-                    .
-                </p>
-            )}
+            <p className="configure-with-ai__muted">
+                When this chart can't answer, it points you to other charts and
+                articles on Our World in Data.
+            </p>
             {suggestions.length > 0 && (
                 <>
                     <p className="configure-with-ai__section-title">Try</p>

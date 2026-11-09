@@ -268,9 +268,12 @@ describe("the site-mode prompt", () => {
         const site = buildPrompt(ctx, "gdp", { site: true })
         expect(site.cached).toContain("## Beyond this chart")
         expect(site.cached).toContain('"intent": "here"|"elsewhere"')
-        expect(site.cached).not.toContain('"searchQuery"')
+        // Both ask for a search: site mode links it under the pages
+        expect(site.cached).toContain('"searchQuery"')
+        expect(site.cached).toContain("a search of the whole site")
         expect(page.cached).not.toContain("Beyond this chart")
         expect(page.cached).toContain('"searchQuery"')
+        expect(page.cached).not.toContain("a search of the whole site")
         expect(site.request).toBe(page.request)
     })
 })

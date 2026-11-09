@@ -36,9 +36,6 @@ export interface ChartAdapter {
 
 export type PanelTab = "customize" | "ai"
 
-/** "site" also lets the model point to other pages */
-export type Scope = "page" | "site"
-
 /** Mirrors SitePageSuggestion in functions/api/configure-with-ai/site.ts */
 export interface SitePage {
     kind: "chart" | "explorer" | "article" | "topic"
@@ -84,6 +81,8 @@ export type Request =
           query: string
           message: string | null
           pages: SitePage[]
+          /** What to search the whole site for, if the model suggested it */
+          searchQuery: string | null
           runId: string
           usage: Usage
           feedback?: "up" | "down"
@@ -167,7 +166,7 @@ export class PanelStore {
         if (isBusy !== this.state.isBusy) this.update({ isBusy })
     }
 
-    async ask(rawQuery: string, model: string, scope: Scope): Promise<void> {
+    async ask(rawQuery: string, model: string): Promise<void> {
         const query = rawQuery.trim()
         // While an MDim page loads a view, the current view isn't settled yet
         if (
@@ -191,7 +190,8 @@ export class PanelStore {
                     queryStr: this.adapter.getQueryStr(),
                     tableSort: this.adapter.getTableSort(),
                     model,
-                    scope,
+                    // Also lets the model point to other pages
+                    scope: "site",
                 }),
                 signal: controller.signal,
             })
@@ -215,6 +215,7 @@ export class PanelStore {
                         query,
                         message: body.message ?? null,
                         pages: body.pages,
+                        searchQuery: body.searchQuery ?? null,
                         runId: body.runId,
                         usage: body.usage,
                     },

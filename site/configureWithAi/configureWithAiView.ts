@@ -152,6 +152,11 @@ export function pageThumbnailUrl(
     return `${grapherBaseUrl}/${slug}.png${url.search}`
 }
 
+/** Search 404s on staging servers, so it links to the live site */
+export function searchUrl(query: string): string {
+    return `https://ourworldindata.org/search?q=${encodeURIComponent(query)}`
+}
+
 /**
  * A thumbnail of the view from the chart thumbnail service, or null for a
  * table, which the service draws as a single-year chart instead
