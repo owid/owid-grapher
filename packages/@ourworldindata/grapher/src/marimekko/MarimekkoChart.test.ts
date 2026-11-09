@@ -451,7 +451,9 @@ it("doesn't mute every bar when no selected entity is plotted", () => {
         selectedEntityNames: ["High-income countries"],
     })
 
-    expect(chartState.series.map((series) => series.focus.background)).toEqual(
-        [false, false, false]
-    )
+    expect(chartState.series.map((series) => series.focus.background)).toEqual([
+        false,
+        false,
+        false,
+    ])
 })
