@@ -544,15 +544,18 @@ export const renderExplorerIndexPage = async (
     // listed alongside the actual explorers, but live at their regular
     // /grapher URLs.
     const multiDims = await getAllPublishedMultiDimDataPages(knex)
-    const multiDimItems: ExplorerIndexItem[] = multiDims
-        .filter((multiDim) => isMultiDimDataExplorer(multiDim.config))
-        .map((multiDim) => ({
-            slug: multiDim.slug,
-            title: multiDim.config.title.title,
-            subtitle: multiDim.config.presentation?.explorerSubtitle ?? "",
-            href: `${BAKED_GRAPHER_URL}/${multiDim.slug}`,
-            thumbnailUrl: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${multiDim.slug}.png`,
-        }))
+    const multiDimItems: ExplorerIndexItem[] = multiDims.flatMap(
+        ({ slug, config }) => {
+            if (!isMultiDimDataExplorer(config)) return []
+            return {
+                slug,
+                title: config.title.title,
+                subtitle: config.presentation.explorerSubtitle ?? "",
+                href: `${BAKED_GRAPHER_URL}/${slug}`,
+                thumbnailUrl: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png`,
+            }
+        }
+    )
 
     const items = [...explorerItems, ...multiDimItems].sort((a, b) =>
         a.title.localeCompare(b.title)
