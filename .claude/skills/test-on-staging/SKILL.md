@@ -1,12 +1,14 @@
 ---
 name: test-on-staging
-description: Test a change on a branch's staging server without a browser — inspect or patch a chart's config remotely, pick the right preview link to share, and know when a PR needs its own search index. Use when testing on staging-site-<branch>, reading or changing a chart config on a remote server, or pointing someone at a chart on staging.
+description: Test a change on a branch's staging server or on Labs — know when a push is live, inspect or patch a chart's config remotely without a browser, pick the right preview link to share, and know when a PR needs its own search index. Use after pushing a change to check or share on staging-site-<branch> or labs.owid.io, when reading or changing a chart config on a remote server, or when pointing someone at a chart on staging.
 metadata:
     internal: true
 ---
 
 # Testing on staging
 
+- **When a push is live:** test or hand over a link only once the commit's `buildkite/grapher-automated-staging-environment/grapher-build` status is `success` (usually 1–2 min; earlier, you get the old version): `gh api repos/owid/owid-grapher/commits/<sha>/status --jq '.statuses[] | select(.context == "buildkite/grapher-automated-staging-environment/grapher-build") | .state'`. Server-rendered pages and bespoke components need `…/grapher-bake` instead. `failure` means the push won't show up; after ~10 min, say it may still be building. The bake ends by restarting the site, so a few seconds of failed requests then aren't a bug.
+- **On Labs** the commit that deploys is the `labs` branch, which owidbot rebuilds after each push to a PR with the `labs` label: wait until `git fetch -q origin labs && git merge-base --is-ancestor <sha> origin/labs` succeeds, then check the status above on the `origin/labs` tip. Link labs.owid.io; the admin tools below don't work there.
 - `yarn tsx devTools/callAdminApi.ts get <chartId> --branch <branch>` / `set <chartId> '<jsonPatch>' --branch <branch>` / `unset <chartId> <field> --branch <branch>`: inspect or change a chart's config on any `staging-site-<branch>` (or `--host` for local/prod) without the browser.
 - Auth is `ADMIN_API_KEY` in `.env` — one shared key works against **every** staging server (not per-branch), since `admin_api_keys` ships in the private data dump every staging build restores from (see `db/exportMetadataTables.ts`). It's the same key etl already uses; no need to mint a new one.
 - `STAGING=1 yarn startAdminDevServer` runs the admin **locally against the current branch's staging database** (`STAGING=<branch>` for another branch's), so you see a code change on save instead of after a deploy and a bake. Staging MySQL listens on Tailscale, so it needs no tunnel and no extra credentials. Two things to keep in mind: it is read-write on a database other people may be testing against, and every query pays the round trip (~10x the local latency), so it is somewhere to check behaviour, not to measure performance. `STAGING` works for any server-side entry point, not just the admin.
