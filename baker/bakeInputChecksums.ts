@@ -3,10 +3,10 @@ import { OwidGdocType, Url } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { hashMd5 } from "../serverUtils/hash.js"
-import { PageFingerprints } from "./bakeState.js"
+import { PageInputChecksums } from "./bakeState.js"
 
-// Fingerprints of what each kind of page reads from the database when it is
-// rendered. They cover the inputs that change between two full bakes: a
+// Input checksums of what each kind of page reads from the database when it
+// is rendered. They cover the inputs that change between two full bakes: a
 // page's own config or content, the metadata of the indicators it shows, the
 // data values its data callouts quote, the charts it lists ("related charts",
 // the all-charts block) and what it links to or embeds. Inputs that aren't
@@ -18,7 +18,7 @@ import { PageFingerprints } from "./bakeState.js"
 // One input no page in these steps reads today, and that would need covering
 // once one does: the legacy WordPress blocks some explorers embed (frozen).
 
-const fingerprint = (parts: unknown[]): string => hashMd5(JSON.stringify(parts))
+const checksum = (parts: unknown[]): string => hashMd5(JSON.stringify(parts))
 
 type Version = string
 
@@ -33,8 +33,8 @@ interface ChartListing {
     keyChartLevel: number | null
 }
 
-/** Inputs that the fingerprints of several bake steps share */
-export interface FingerprintInputs {
+/** Inputs that the checksums of several bake steps share */
+export interface ChecksumInputs {
     variableVersions: Map<number, Version>
     /** Published charts, one row per tag; untagged charts aren't listed */
     chartListings: ChartListing[]
@@ -42,9 +42,9 @@ export interface FingerprintInputs {
     calloutDataVersions: Map<string, Version>
 }
 
-export const getFingerprintInputs = async (
+export const getChecksumInputs = async (
     knex: db.KnexReadonlyTransaction
-): Promise<FingerprintInputs> => {
+): Promise<ChecksumInputs> => {
     const variableVersions = await getVariableVersions(knex)
     return {
         variableVersions,
@@ -129,7 +129,7 @@ const getVariableVersions = async (
     return new Map(
         variables.map((variable) => [
             variable.id,
-            fingerprint([
+            checksum([
                 variable.metadataChecksum ?? variable.updatedAt,
                 variable.nonRedistributable,
                 variable.etlConfigMd5,
@@ -239,7 +239,7 @@ const getCalloutDataVersions = async (
         Object.entries(_.groupBy(callouts, (c) => c.sourceId)).map(
             ([gdocId, gdocCallouts]) => [
                 gdocId,
-                fingerprint(
+                checksum(
                     gdocCallouts.map((c) => {
                         const ids =
                             variableIdsByTarget[`${c.linkType}:${c.target}`]
@@ -271,10 +271,10 @@ const getCalloutDataVersions = async (
  *   (getPostRelatedCharts), and the gdocs that link to it
  *   (getGdocsPostReferencesByChartId).
  */
-export const getChartPageFingerprints = async (
+export const getChartPageInputChecksums = async (
     knex: db.KnexReadonlyTransaction,
-    { variableVersions, chartListings }: FingerprintInputs
-): Promise<PageFingerprints> => {
+    { variableVersions, chartListings }: ChecksumInputs
+): Promise<PageInputChecksums> => {
     // Same selection as bakeAllChangedGrapherPagesAndDeleteRemovedGraphers
     const charts = await db.knexRaw<{
         id: number
@@ -356,7 +356,7 @@ export const getChartPageFingerprints = async (
 
     // Only the y indicators of a chart are what its data page is about
     const relatedChartsVersion = _.memoize((variableId: number): Version =>
-        fingerprint(
+        checksum(
             (chartIdsByVariableId[variableId] ?? []).flatMap(
                 (chartId) => listingsByChartId[chartId] ?? []
             )
@@ -373,7 +373,7 @@ export const getChartPageFingerprints = async (
             ]
             return [
                 chart.id.toString(),
-                fingerprint([
+                checksum([
                     chart.slug,
                     chart.configMd5,
                     versionsOf(
@@ -399,10 +399,10 @@ export const getChartPageFingerprints = async (
 }
 
 /** Keyed by slug */
-export const getMultiDimPageFingerprints = async (
+export const getMultiDimPageInputChecksums = async (
     knex: db.KnexReadonlyTransaction,
-    { variableVersions }: FingerprintInputs
-): Promise<PageFingerprints> => {
+    { variableVersions }: ChecksumInputs
+): Promise<PageInputChecksums> => {
     const multiDims = await getAllPublishedMultiDimDataPages(knex)
     const views = await db.knexRaw<{
         multiDimId: number
@@ -424,7 +424,7 @@ export const getMultiDimPageFingerprints = async (
             const views = viewsByMultiDimId[multiDim.id] ?? []
             return [
                 multiDim.slug,
-                fingerprint([
+                checksum([
                     multiDim.updatedAt,
                     multiDim.config,
                     views.map((view) => [view.viewId, view.configMd5]),
@@ -440,12 +440,12 @@ export const getMultiDimPageFingerprints = async (
 
 /**
  * Keyed by slug. Unpublished explorers are included, so that publishing one
- * changes its fingerprint even if nothing else about it changed.
+ * changes its checksum even if nothing else about it changed.
  */
-export const getExplorerPageFingerprints = async (
+export const getExplorerPageInputChecksums = async (
     knex: db.KnexReadonlyTransaction,
-    { variableVersions }: FingerprintInputs
-): Promise<PageFingerprints> => {
+    { variableVersions }: ChecksumInputs
+): Promise<PageInputChecksums> => {
     const explorers = await db.knexRaw<{
         slug: string
         isPublished: number
@@ -480,7 +480,7 @@ export const getExplorerPageFingerprints = async (
     return Object.fromEntries(
         explorers.map((explorer) => [
             explorer.slug,
-            fingerprint([
+            checksum([
                 explorer.isPublished,
                 explorer.updatedAt,
                 explorer.configMd5,
@@ -500,28 +500,28 @@ export const getExplorerPageFingerprints = async (
 }
 
 /** Keyed by slug */
-export const getGdocPostFingerprints = async (
+export const getGdocPostInputChecksums = async (
     knex: db.KnexReadonlyTransaction,
-    inputs: FingerprintInputs
-): Promise<PageFingerprints> =>
+    inputs: ChecksumInputs
+): Promise<PageInputChecksums> =>
     Object.fromEntries(
-        (await getGdocFingerprints(knex, inputs, db.GDOC_POST_BAKE_TYPES)).map(
-            (gdoc) => [gdoc.slug, gdoc.fingerprint]
-        )
+        (
+            await getGdocInputChecksums(knex, inputs, db.GDOC_POST_BAKE_TYPES)
+        ).map((gdoc) => [gdoc.slug, gdoc.checksum])
     )
 
 /**
- * Keyed by gdoc id. One fingerprint covers all of a profile's pages, since
+ * Keyed by gdoc id. One checksum covers all of a profile's pages, since
  * they are rendered from the same template and data; the data its callouts
  * quote also decides which entities get a page.
  */
-export const getCountryProfileFingerprints = async (
+export const getCountryProfileInputChecksums = async (
     knex: db.KnexReadonlyTransaction,
-    inputs: FingerprintInputs
-): Promise<PageFingerprints> =>
+    inputs: ChecksumInputs
+): Promise<PageInputChecksums> =>
     Object.fromEntries(
-        (await getGdocFingerprints(knex, inputs, [OwidGdocType.Profile])).map(
-            (gdoc) => [gdoc.id, gdoc.fingerprint]
+        (await getGdocInputChecksums(knex, inputs, [OwidGdocType.Profile])).map(
+            (gdoc) => [gdoc.id, gdoc.checksum]
         )
     )
 
@@ -534,11 +534,11 @@ export const getCountryProfileFingerprints = async (
  * block, the charts tagged with the gdoc's tags; and for announcements, the
  * other announcements (their carousel).
  */
-const getGdocFingerprints = async (
+const getGdocInputChecksums = async (
     knex: db.KnexReadonlyTransaction,
-    { chartListings, calloutDataVersions }: FingerprintInputs,
+    { chartListings, calloutDataVersions }: ChecksumInputs,
     gdocTypes: OwidGdocType[]
-): Promise<{ id: string; slug: string; fingerprint: Version }[]> => {
+): Promise<{ id: string; slug: string; checksum: Version }[]> => {
     // Same selection as getPublishedGdocsWithTags. contentMd5 catches a
     // second edit within the same second, which updatedAt can't tell apart.
     const gdocs = await db.knexRaw<{
@@ -561,7 +561,7 @@ const getGdocFingerprints = async (
     )
     // Announcement pages show the latest announcements of their kind; any
     // change to an announcement re-renders all of them, which is few pages
-    const announcementsVersion = fingerprint(
+    const announcementsVersion = checksum(
         gdocs
             .filter((gdoc) => gdoc.type === OwidGdocType.Announcement)
             .map((gdoc) => [gdoc.id, gdoc.updatedAt, gdoc.contentMd5])
@@ -619,7 +619,7 @@ const getGdocFingerprints = async (
         return {
             id: gdoc.id,
             slug: gdoc.slug,
-            fingerprint: fingerprint([
+            checksum: checksum([
                 gdoc.id,
                 gdoc.updatedAt,
                 gdoc.contentMd5,

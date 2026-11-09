@@ -17,26 +17,27 @@ export const incrementalBakeSteps = [
 export type IncrementalBakeStep = (typeof incrementalBakeSteps)[number]
 
 /**
- * A fingerprint of everything a page reads from the database when it is
- * rendered, keyed by the page's identifier within its bake step (a chart id,
- * a slug). Two bakes that see the same fingerprint render the same page.
+ * Input checksums: for each page, a checksum of everything it reads from the
+ * database when it is rendered (like ETL's `checksum_input`), keyed by the
+ * page's identifier within its bake step (a chart id, a slug). Two bakes that
+ * see the same input checksum render the same page.
  */
-export type PageFingerprints = Record<string, string>
+export type PageInputChecksums = Record<string, string>
 
 /**
  * What the baked site in a directory reflects: for each step, the
- * fingerprints of the pages it last rendered there. A step that has no entry
- * has never been baked into this directory with fingerprints, and an
+ * input checksums of the pages it last rendered there. A step that has no
+ * entry has never been baked into this directory with input checksums, and an
  * incremental bake falls back to rendering all of its pages.
  *
- * Fingerprints describe content, not the code that renders it: after a code
+ * Input checksums describe content, not the code that renders it: after a code
  * change, only a full bake re-renders the pages whose content didn't change.
  */
 export interface BakeState {
     version: typeof BAKE_STATE_VERSION
     /** The id in the baked directory's id file when the state was written */
     bakedSiteId?: string
-    steps: Partial<Record<IncrementalBakeStep, PageFingerprints>>
+    steps: Partial<Record<IncrementalBakeStep, PageInputChecksums>>
     /**
      * By profile gdoc id, the entity codes that got a page when the profile
      * was last rendered. Gdoc posts validate their links to a profile's
@@ -46,8 +47,8 @@ export interface BakeState {
     renderedProfileEntityCodes?: Record<string, string[]>
 }
 
-// Bump when fingerprints change shape, so that the next incremental bake
-// re-renders everything instead of comparing incompatible fingerprints
+// Bump when checksums change shape, so that the next incremental bake
+// re-renders everything instead of comparing incompatible checksums
 const BAKE_STATE_VERSION = 1
 
 /**
@@ -130,12 +131,12 @@ export const writeBakeState = async (
 }
 
 /**
- * The pages to re-render: those whose fingerprint differs from the previous
+ * The pages to re-render: those whose checksum differs from the previous
  * bake, and those that are new. Pages that disappeared aren't returned; each
  * step's cleanup removes their files.
  */
 export const getChangedPageKeys = (
-    previous: PageFingerprints,
-    current: PageFingerprints
+    previous: PageInputChecksums,
+    current: PageInputChecksums
 ): string[] =>
     Object.keys(current).filter((key) => previous[key] !== current[key])

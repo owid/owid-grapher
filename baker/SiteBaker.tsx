@@ -112,19 +112,19 @@ import {
     BakeState,
     getChangedPageKeys,
     IncrementalBakeStep,
-    PageFingerprints,
+    PageInputChecksums,
     readBakeState,
     writeBakeState,
 } from "./bakeState.js"
 import {
-    getChartPageFingerprints,
-    getCountryProfileFingerprints,
-    getExplorerPageFingerprints,
-    getGdocPostFingerprints,
-    getMultiDimPageFingerprints,
-    FingerprintInputs,
-    getFingerprintInputs,
-} from "./bakeFingerprints.js"
+    getChartPageInputChecksums,
+    getCountryProfileInputChecksums,
+    getExplorerPageInputChecksums,
+    getGdocPostInputChecksums,
+    getMultiDimPageInputChecksums,
+    ChecksumInputs,
+    getChecksumInputs,
+} from "./bakeInputChecksums.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -226,54 +226,55 @@ export class SiteBaker {
         return this._bakeState
     }
 
-    private _fingerprintInputs: Promise<FingerprintInputs> | undefined
-    private getFingerprintInputs(
+    private _checksumInputs: Promise<ChecksumInputs> | undefined
+    private getChecksumInputs(
         knex: db.KnexReadonlyTransaction
-    ): Promise<FingerprintInputs> {
-        this._fingerprintInputs ??= getFingerprintInputs(knex)
-        return this._fingerprintInputs
+    ): Promise<ChecksumInputs> {
+        this._checksumInputs ??= getChecksumInputs(knex)
+        return this._checksumInputs
     }
 
     /**
      * Runs a bake step that can render a subset of its pages. An incremental
-     * bake renders only the pages whose fingerprint changed since the
+     * bake renders only the pages whose input checksum changed since the
      * previous bake into this directory, and all of them if the step has no
-     * fingerprints from a previous bake; a regular bake renders all of them.
+     * input checksums from a previous bake; a regular bake renders all of them.
      * `bakePages` gets the keys of the pages to render, or undefined for all,
      * and is responsible for removing pages that no longer exist.
      *
-     * Either way, the fingerprints are recorded for the next incremental bake.
+     * Either way, the input checksums are recorded for the next incremental
+     * bake.
      * They are taken before rendering, so that a change made while the step
      * runs is picked up by the next bake rather than lost.
      */
     private async bakeChangedPages(
         knex: db.KnexReadonlyTransaction,
         step: IncrementalBakeStep,
-        getFingerprints: (
-            inputs: FingerprintInputs
-        ) => Promise<PageFingerprints>,
+        getInputChecksums: (
+            inputs: ChecksumInputs
+        ) => Promise<PageInputChecksums>,
         bakePages: (keysToBake: Set<string> | undefined) => Promise<void>
     ) {
-        const fingerprints = await traceJob(`fingerprint-${step}`, async () =>
-            getFingerprints(await this.getFingerprintInputs(knex))
+        const checksums = await traceJob(`input-checksum-${step}`, async () =>
+            getInputChecksums(await this.getChecksumInputs(knex))
         )
         const state = await this.getBakeState()
         const previous = this.incremental ? state.steps[step] : undefined
         let keysToBake: Set<string> | undefined
         if (previous) {
-            keysToBake = new Set(getChangedPageKeys(previous, fingerprints))
+            keysToBake = new Set(getChangedPageKeys(previous, checksums))
             console.log(
-                `Incremental bake: ${keysToBake.size} of ${Object.keys(fingerprints).length} pages changed in step "${step}"`
+                `Incremental bake: ${keysToBake.size} of ${Object.keys(checksums).length} pages changed in step "${step}"`
             )
         } else if (this.incremental) {
             console.log(
-                `Incremental bake: no fingerprints from a previous bake for step "${step}", baking all of its pages`
+                `Incremental bake: no input checksums from a previous bake for step "${step}", baking all of its pages`
             )
         }
 
         await bakePages(keysToBake)
 
-        state.steps[step] = fingerprints
+        state.steps[step] = checksums
         await writeBakeState(this.bakedSiteDir, state)
     }
 
@@ -284,7 +285,7 @@ export class SiteBaker {
         await this.bakeChangedPages(
             knex,
             "countryProfiles",
-            (inputs) => getCountryProfileFingerprints(knex, inputs),
+            (inputs) => getCountryProfileInputChecksums(knex, inputs),
             (profileIdsToBake) =>
                 this.bakeCountryProfilePages(knex, profileIdsToBake)
         )
@@ -1129,7 +1130,7 @@ export class SiteBaker {
         await this.bakeChangedPages(
             knex,
             "explorers",
-            (inputs) => getExplorerPageFingerprints(knex, inputs),
+            (inputs) => getExplorerPageInputChecksums(knex, inputs),
             (slugsToBake) =>
                 bakeAllPublishedExplorers(
                     `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}`,
@@ -1201,7 +1202,7 @@ export class SiteBaker {
         await this.bakeChangedPages(
             knex,
             "multiDimPages",
-            (inputs) => getMultiDimPageFingerprints(knex, inputs),
+            (inputs) => getMultiDimPageInputChecksums(knex, inputs),
             async (slugsToBake) => {
                 // Prefetching the attachments is slow, and only rendering
                 // pages needs them
@@ -1529,7 +1530,7 @@ export class SiteBaker {
             await this.bakeChangedPages(
                 knex,
                 "charts",
-                (inputs) => getChartPageFingerprints(knex, inputs),
+                (inputs) => getChartPageInputChecksums(knex, inputs),
                 (chartIdsToBake) =>
                     bakeAllChangedGrapherPagesAndDeleteRemovedGraphers(
                         this.bakedSiteDir,
@@ -1546,7 +1547,7 @@ export class SiteBaker {
             await this.bakeChangedPages(
                 knex,
                 "gdocPosts",
-                (inputs) => getGdocPostFingerprints(knex, inputs),
+                (inputs) => getGdocPostInputChecksums(knex, inputs),
                 (slugsToBake) =>
                     this.bakeGDocPosts(knex, slugsToBake && [...slugsToBake])
             )
