@@ -2,9 +2,6 @@ import { useState } from "react"
 import { faHeartBroken } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-// A card on the /explorers index page: either an actual explorer or a
-// multi-dim data page whose config declares
-// `presentation.pageType: "data-explorer"`.
 export interface ExplorerIndexItem {
     slug: string
     title: string

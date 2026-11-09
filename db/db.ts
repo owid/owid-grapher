@@ -49,7 +49,7 @@ import {
     TagGraphTableName,
     ExplorersTableName,
     MultiDimDataPagesTableName,
-    MultiDimDataPageType,
+    MultiDimExplorerPresentation,
     OwidGdocMinimalAnnouncementInterface,
     DbRawPostGdoc,
 } from "@ourworldindata/types"
@@ -577,7 +577,7 @@ export const getNonGrapherExplorerViewCount = (
 export const getMultiDimDataExplorerCount = (
     knex: KnexReadonlyTransaction
 ): Promise<number> => {
-    const pageType: MultiDimDataPageType = "data-explorer"
+    const pageType: MultiDimExplorerPresentation["pageType"] = "data-explorer"
     return knexRawFirst<{ count: number }>(
         knex,
         `-- sql

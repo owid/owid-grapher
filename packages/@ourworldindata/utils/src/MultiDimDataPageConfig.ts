@@ -11,7 +11,7 @@ import {
     OwidChartDimensionInterface,
     DimensionProperty,
     MultiDimDataPageConfigEnriched,
-    MultiDimPresentation,
+    MultiDimExplorerPresentation,
     normalizeDescriptionKey,
     OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
@@ -246,14 +246,11 @@ export function getMultiDimPageTitle(
     return fragments ? `${title.title} - ${fragments}` : title.title
 }
 
-/**
- * Whether a page presents itself as a data explorer: it gets a "Data
- * explorer" eyebrow, is listed on /explorers and counts towards the
- * homepage's data-explorer stat. Everything else is a plain data page.
- */
-export function isMultiDimDataExplorer(config: {
-    presentation?: MultiDimPresentation
-}): boolean {
+export function isMultiDimDataExplorer<
+    Config extends { presentation?: MultiDimExplorerPresentation },
+>(
+    config: Config
+): config is Config & { presentation: MultiDimExplorerPresentation } {
     return config.presentation?.pageType === "data-explorer"
 }
 
