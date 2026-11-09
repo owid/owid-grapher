@@ -179,7 +179,7 @@ $group-gap: 4px;
         cursor: pointer;
 
         &:focus-visible {
-            outline: none !important;
+            outline: none;
         }
 
         &[data-hovered],
