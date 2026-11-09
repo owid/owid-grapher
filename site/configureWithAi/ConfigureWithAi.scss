@@ -744,6 +744,12 @@
     }
 }
 
+.configure-with-ai-overlay__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.configure-with-ai-overlay__copy,
 .configure-with-ai-overlay__close {
     display: flex;
     align-items: center;

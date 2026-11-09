@@ -2,13 +2,20 @@ import { useEffect, useEffectEvent, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
+    faCheck,
     faFileLines,
+    faLink,
     faMagnifyingGlass,
     faWandMagicSparkles,
     faXmark,
 } from "@fortawesome/free-solid-svg-icons"
+import { copyToClipboard } from "@ourworldindata/utils"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.mjs"
-import { pageThumbnailUrl, searchUrl } from "./configureWithAiView.js"
+import {
+    pageThumbnailUrl,
+    searchUrl,
+    sharedQueryUrl,
+} from "./configureWithAiView.js"
 import type {
     PanelState,
     PanelStore,
@@ -69,15 +76,18 @@ export function ExploreOverlay({
                     <FontAwesomeIcon icon={faWandMagicSparkles} />
                     Explore with AI <em>(beta)</em>
                 </p>
-                <button
-                    className="configure-with-ai-overlay__close"
-                    type="button"
-                    ref={closeRef}
-                    onClick={onClose}
-                >
-                    Back to the chart
-                    <FontAwesomeIcon icon={faXmark} />
-                </button>
+                <div className="configure-with-ai-overlay__actions">
+                    <CopyLinkButton query={request.query} />
+                    <button
+                        className="configure-with-ai-overlay__close"
+                        type="button"
+                        ref={closeRef}
+                        onClick={onClose}
+                    >
+                        Back to the chart
+                        <FontAwesomeIcon icon={faXmark} />
+                    </button>
+                </div>
             </div>
             <div className="configure-with-ai-overlay__body">
                 {request.message && (
@@ -109,6 +119,34 @@ export function ExploreOverlay({
             </div>
         </div>,
         container
+    )
+}
+
+/**
+ * Copies a link that asks the same question when opened. The answer is asked
+ * again, so it can differ a little from this one.
+ */
+function CopyLinkButton({ query }: { query: string }) {
+    const [isCopied, setIsCopied] = useState(false)
+
+    useEffect(() => {
+        if (!isCopied) return
+        const timer = setTimeout(() => setIsCopied(false), 2000)
+        return () => clearTimeout(timer)
+    }, [isCopied])
+
+    return (
+        <button
+            className="configure-with-ai-overlay__copy"
+            type="button"
+            onClick={async () => {
+                if (await copyToClipboard(sharedQueryUrl(query)))
+                    setIsCopied(true)
+            }}
+        >
+            <FontAwesomeIcon icon={isCopied ? faCheck : faLink} />
+            {isCopied ? "Link copied" : "Copy link"}
+        </button>
     )
 }
 

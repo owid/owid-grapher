@@ -10,6 +10,7 @@ import {
     applyViewToGrapherState,
     dataTableSortToViewSort,
     restoreGrapherState,
+    sharedQueryFromUrl,
     snapshotGrapherState,
     viewToGrapherQueryParams,
 } from "./configureWithAiView.js"
@@ -35,14 +36,18 @@ export function createGrapherSidePanel(
 ): SidePanel {
     const start = snapshotGrapherState(grapherState)
     return sidePanelFor(
-        new PanelStore({
-            slug,
-            getQueryStr: () => grapherState.queryStr,
-            getTableSort: () =>
-                dataTableSortToViewSort(grapherState.dataTableSort),
-            applyView: (view) => applyViewToGrapherState(grapherState, view),
-            restoreStart: () => restoreGrapherState(grapherState, start),
-        })
+        new PanelStore(
+            {
+                slug,
+                getQueryStr: () => grapherState.queryStr,
+                getTableSort: () =>
+                    dataTableSortToViewSort(grapherState.dataTableSort),
+                applyView: (view) =>
+                    applyViewToGrapherState(grapherState, view),
+                restoreStart: () => restoreGrapherState(grapherState, start),
+            },
+            sharedQueryFromUrl()
+        )
     )
 }
 
@@ -63,27 +68,30 @@ export function createMdimSidePanel(page: MdimPage): SidePanel {
     const startChoices = getChoices()
     const start = snapshotGrapherState(grapherState)
     return sidePanelFor(
-        new PanelStore({
-            slug,
-            getQueryStr: () => {
-                const params = new URLSearchParams(getChoices())
-                for (const [key, value] of Object.entries(
-                    grapherState.changedParams
-                ))
-                    if (value !== undefined) params.set(key, value)
-                return "?" + params.toString()
+        new PanelStore(
+            {
+                slug,
+                getQueryStr: () => {
+                    const params = new URLSearchParams(getChoices())
+                    for (const [key, value] of Object.entries(
+                        grapherState.changedParams
+                    ))
+                        if (value !== undefined) params.set(key, value)
+                    return "?" + params.toString()
+                },
+                getTableSort: () =>
+                    dataTableSortToViewSort(grapherState.dataTableSort),
+                applyView: (view) => {
+                    if (!view.options) return
+                    applyTableSortToGrapherState(grapherState, view)
+                    switchView(view.options, viewToGrapherQueryParams(view))
+                },
+                restoreStart: () => {
+                    grapherState.dataTableSort = start.dataTableSort
+                    switchView(startChoices, start.params)
+                },
             },
-            getTableSort: () =>
-                dataTableSortToViewSort(grapherState.dataTableSort),
-            applyView: (view) => {
-                if (!view.options) return
-                applyTableSortToGrapherState(grapherState, view)
-                switchView(view.options, viewToGrapherQueryParams(view))
-            },
-            restoreStart: () => {
-                grapherState.dataTableSort = start.dataTableSort
-                switchView(startChoices, start.params)
-            },
-        })
+            sharedQueryFromUrl()
+        )
     )
 }

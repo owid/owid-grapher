@@ -131,8 +131,23 @@ export class PanelStore {
     private readonly listeners = new Set<() => void>()
     private abortController: AbortController | null = null
     private nextId = 1
+    /** A question from a shared link, asked once AI mode shows */
+    private sharedQuery: string | null
 
-    constructor(private adapter: ChartAdapter) {}
+    constructor(
+        private adapter: ChartAdapter,
+        sharedQuery: string | null = null
+    ) {
+        this.sharedQuery = sharedQuery
+        if (sharedQuery) this.state = { ...this.state, tab: "ai" }
+    }
+
+    /** The shared link's question, once: a second render doesn't ask again */
+    takeSharedQuery(): string | null {
+        const query = this.sharedQuery
+        this.sharedQuery = null
+        return query
+    }
 
     setAdapter(adapter: ChartAdapter): void {
         this.adapter = adapter

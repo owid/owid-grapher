@@ -15,6 +15,7 @@ import cx from "clsx"
 import { shouldShowStaffControls } from "@ourworldindata/grapher"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.mjs"
 import {
+    MAX_QUERY_LENGTH,
     searchUrl,
     viewThumbnailUrl,
     type ConfigureWithAiView,
@@ -39,7 +40,6 @@ const MODELS = [
 type ModelId = (typeof MODELS)[number]["id"]
 const DEFAULT_MODEL: ModelId = "claude-sonnet-5-5"
 const MODEL_STORAGE_KEY = "configure-with-ai:model"
-const MAX_QUERY_LENGTH = 100
 const SLOW_AFTER_SECONDS = 10
 
 // Joe's "Try…" suggestions for the four charts he tested
@@ -193,6 +193,13 @@ export function AiModePanel({
         void store.ask(query, model)
         focusInput()
     }
+
+    // A shared link asks its question as the page opens; no focus, which
+    // would scroll the page to the panel
+    useEffect(() => {
+        const query = store.takeSharedQuery()
+        if (query) void store.ask(query, model)
+    }, [store, model])
 
     // The question wraps: the text area grows to fit it (up to 100 characters)
     useLayoutEffect(() => {
