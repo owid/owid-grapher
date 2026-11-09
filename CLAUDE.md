@@ -70,7 +70,7 @@ Key facts that span multiple directories:
 
 ## Testing on staging
 
-Use the `test-on-staging` skill when checking a change on `staging-site-<branch>` — reading or patching a chart's config without a browser, the preview link to share, and Algolia/search caveats.
+Use the `test-on-staging` skill when checking a change on `staging-site-<branch>` or Labs — when a push is live there, reading or patching a chart's config without a browser, the preview link to share, and Algolia/search caveats.
 
 ## Team
 
