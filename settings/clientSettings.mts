@@ -84,7 +84,8 @@ export const ALGOLIA_CACHED_QUERIES_URL: string =
 
 // Endpoint of the Cloudflare function that serves the search page's charts
 // section reranked by a decision model (functions/api/search/rerank-charts.ts).
-// Experimental and opt-in per page load with ?rerank=jev (site/search/rerank.ts).
+// Experimental, and on by default wherever this is set, which includes
+// production (see DEFAULT_RERANK_MODEL in site/search/rerank.ts).
 // Set it to http://localhost:8788/api/search/rerank-charts to test against
 // `yarn startLocalCloudflareFunctions`.
 export const SEARCH_RERANK_URL: string =

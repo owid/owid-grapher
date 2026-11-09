@@ -9,26 +9,42 @@ import { SEARCH_RERANK_URL } from "../../settings/clientSettings.mjs"
 
 /**
  * Experimental: rerank the charts section with a decision model, served by
- * functions/api/search/rerank-charts.ts. Off unless the page was loaded with
- * `?rerank=<model>` (e.g. /search?q=malaria&rerank=jev), plus `&vocab=1` to
- * add the query's topic-vocabulary hits to the pool. Read once at load;
- * withRerankParams keeps them in the URL when the page rewrites it.
+ * functions/api/search/rerank-charts.ts, adding the query's topic-vocabulary
+ * hits to the pool. On by default with DEFAULT_RERANK_MODEL; the page URL
+ * overrides it: `?rerank=<model>` (e.g. /search?q=malaria&rerank=jev) picks
+ * another model, `?rerank=off` turns reranking off, `?vocab=0` keeps the
+ * vocabulary hits out. Read once at load; withRerankParams keeps them in the
+ * URL when the page rewrites it.
  */
 const PAGE_PARAMS =
     SEARCH_RERANK_URL && typeof window !== "undefined"
         ? new URLSearchParams(window.location.search)
         : undefined
-const RERANK_MODEL: string | null = PAGE_PARAMS?.get("rerank") ?? null
-const RERANK_VOCAB = PAGE_PARAMS?.get("vocab") === "1"
+const PAGE_RERANK = PAGE_PARAMS?.get("rerank") ?? null
+const PAGE_VOCAB = PAGE_PARAMS?.get("vocab") ?? null
+
+// TODO: remove before deploying reranking to production. It's here so that
+// every search on this PR's staging server is reranked without URL params,
+// and SEARCH_RERANK_URL is set in production too, so merging this as is
+// would turn reranking on for everyone.
+const DEFAULT_RERANK_MODEL = "clef-flash"
+
+const RERANK_MODEL: string | null = !PAGE_PARAMS
+    ? null
+    : PAGE_RERANK === "off"
+      ? null
+      : (PAGE_RERANK ?? DEFAULT_RERANK_MODEL)
+const RERANK_VOCAB = PAGE_VOCAB !== null ? PAGE_VOCAB === "1" : true
 
 /**
- * `params` plus the page's rerank opt-in, if it has one. The search page
- * rebuilds its URL from the search state, which knows nothing of the opt-in,
- * so without this a new query, a refresh or a shared link would lose it.
+ * `params` plus the page's rerank params, if it has any. The search page
+ * rebuilds its URL from the search state, which knows nothing of them, so
+ * without this a new query, a refresh or a shared link would lose an
+ * override such as rerank=off.
  */
 export function withRerankParams(params: URLSearchParams): URLSearchParams {
-    if (RERANK_MODEL) params.set("rerank", RERANK_MODEL)
-    if (RERANK_VOCAB) params.set("vocab", "1")
+    if (PAGE_RERANK) params.set("rerank", PAGE_RERANK)
+    if (PAGE_VOCAB) params.set("vocab", PAGE_VOCAB)
     return params
 }
 
