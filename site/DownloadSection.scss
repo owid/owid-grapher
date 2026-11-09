@@ -2,6 +2,24 @@
     margin-top: 16px;
 }
 
+// One centred column, with the heading in the page's section-title style
+.MetadataSection .downloads--stacked {
+    .metadata-section__heading {
+        @include datapage-section-title;
+    }
+
+    .citation__how-to-header {
+        @include body-2-semibold;
+        text-transform: none;
+        color: $blue-90;
+        margin: 0 0 4px;
+    }
+
+    .metadata-list {
+        margin-top: 8px;
+    }
+}
+
 .downloads-section {
     &:first-child {
         margin-bottom: 32px;

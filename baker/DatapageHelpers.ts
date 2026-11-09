@@ -16,12 +16,17 @@ import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
 import {
     EnrichedFaq,
     FaqDictionary,
+    LinkedAuthor,
     OwidGdocBaseInterface,
 } from "@ourworldindata/types"
 import { KnexReadonlyTransaction } from "../db/db.js"
 import { parseFaqs } from "@ourworldindata/gdoc-pipeline"
 import { getSlugForTopicTag } from "./GrapherBakingUtils.js"
-import { getShortPageCitation } from "../site/gdocs/utils.js"
+import {
+    getAuthorTeamAnchorId,
+    getShortPageCitation,
+} from "../site/gdocs/utils.js"
+import { TeamPagePhoto } from "../db/model/Gdoc/GdocBase.js"
 
 /**
  * Get the datapage companion gdoc, if any.
@@ -161,4 +166,49 @@ export const getPrimaryTopic = async (
         }
     }
     return undefined
+}
+
+/**
+ * Fill in data managers' photos from the team page where they have no author
+ * page photo. People with no author page at all get an empty slug, so they
+ * link to their team page entry. Names match across titles and roles, since
+ * the team page writes "Dr. Bastian Herre" for the owner "Bastian Herre".
+ */
+export function addTeamPagePhotos(
+    authors: LinkedAuthor[],
+    names: string[],
+    teamPagePhotos: TeamPagePhoto[]
+): LinkedAuthor[] {
+    const photosByAnchor = new Map(
+        teamPagePhotos.map((photo) => [
+            getAuthorTeamAnchorId(photo.name),
+            photo,
+        ])
+    )
+    const findPhoto = (name: string): TeamPagePhoto | undefined =>
+        photosByAnchor.get(getAuthorTeamAnchorId(name))
+
+    const withAuthorPage = authors.map((author) =>
+        author.featuredImage
+            ? author
+            : {
+                  ...author,
+                  featuredImage: findPhoto(author.name)?.image ?? null,
+              }
+    )
+    const withoutAuthorPage = names
+        .filter((name) => !authors.some((author) => author.name === name))
+        .flatMap((name) => {
+            const photo = findPhoto(name)
+            if (!photo) return []
+            return [
+                {
+                    name,
+                    slug: "",
+                    featuredImage: photo.image,
+                    updatedAt: photo.updatedAt,
+                },
+            ]
+        })
+    return [...withAuthorPage, ...withoutAuthorPage]
 }
