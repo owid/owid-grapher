@@ -74,6 +74,13 @@
     text-align: center;
 }
 
+.area-hint {
+    margin: 2px 0 0;
+    font-size: 0.75rem;
+    font-style: italic;
+    color: $light-text;
+}
+
 .area-yardstick__conversion,
 .area-yardstick__note {
     margin: 8px 0 0;

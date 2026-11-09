@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import cx from "clsx"
 
 import { Tippy } from "@ourworldindata/utils"
 
@@ -9,6 +10,7 @@ import {
     AreaComparison,
     audienceForCountry,
     describeArea,
+    describeAreaBriefly,
 } from "./areaYardstick.js"
 
 /** Metric units and European references, or for US visitors imperial units
@@ -95,6 +97,21 @@ export function AreaYardstick({
             </span>
         </Tippy>
     )
+}
+
+/** A one-line comparison for tight spaces like chart tooltips, e.g. "That's
+ *  about the size of Belgium" */
+export function AreaHint({
+    hectares,
+    className,
+}: {
+    hectares: number
+    className?: string
+}): React.ReactElement | null {
+    const audience = useAreaAudience()
+    const text = describeAreaBriefly(hectares, audience)
+    if (!text) return null
+    return <p className={cx("area-hint", className)}>That's {text}</p>
 }
 
 const TO_SCALE_MAX_SIDE = 56

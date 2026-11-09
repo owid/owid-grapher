@@ -420,7 +420,7 @@ function buildCaption({
     yearRange: YearRange
     total: number
     worldTotal: number | undefined
-}): { title: React.ReactNode; subtitle: string } {
+}): { title: React.ReactNode; subtitle: React.ReactNode } {
     const amount = formatHectares(total)
     const amountWithYardstick = (
         <AreaYardstick hectares={total} note={AREA_YARDSTICK_NOTE}>
@@ -435,10 +435,15 @@ function buildCaption({
     const worldShareClause = worldShare
         ? `, and ${possessiveEntity(articulated)} ${view} accounted for ${worldShare} of that`
         : ""
-    const worldClause = worldTotal
-        ? `For context, ${when} a total of ${formatHectares(worldTotal)} of forest was cleared worldwide for agriculture${worldShareClause}.`
-        : ""
-    const subtitle = worldClause
+    const subtitle = worldTotal ? (
+        <>
+            For context, {when} a total of{" "}
+            <AreaYardstick hectares={worldTotal} note={AREA_YARDSTICK_NOTE}>
+                {formatHectares(worldTotal)}
+            </AreaYardstick>{" "}
+            of forest was cleared worldwide for agriculture{worldShareClause}.
+        </>
+    ) : undefined
 
     if (view === "consumption")
         return {

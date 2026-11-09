@@ -193,7 +193,8 @@ export function describeArea(
     }
 }
 
-/** A one-line version for small spaces, e.g. "About the size of Belgium" */
+/** A one-line version for small spaces, e.g. "about the size of Belgium"
+ *  or "about 35 football pitches" */
 export function describeAreaBriefly(
     hectares: number,
     audience: AreaAudience = DEFAULT_AREA_AUDIENCE
@@ -201,10 +202,9 @@ export function describeAreaBriefly(
     const description = describeArea(hectares, audience)
     if (!description) return undefined
     const { comparison, count } = description
-    const text = comparison
+    return comparison
         ? `${comparison.phrase} ${comparison.reference.name}`
         : count
-    return text ? capitalize(text) : undefined
 }
 
 export function findComparison(
@@ -281,8 +281,4 @@ function formatCount(value: number): string {
     if (value >= 1e9) return `${formatCount(value / 1e9)} billion`
     if (value >= 1e6) return `${formatCount(value / 1e6)} million`
     return value.toLocaleString("en-US", { maximumFractionDigits: 2 })
-}
-
-function capitalize(text: string): string {
-    return text.charAt(0).toUpperCase() + text.slice(1)
 }

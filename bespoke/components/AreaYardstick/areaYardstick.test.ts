@@ -84,8 +84,8 @@ describe(describeArea, () => {
 
 describe(describeAreaBriefly, () => {
     it("prefers a place and falls back to a pitch count", () => {
-        expect(describeAreaBriefly(3_000_000)).toBe("About the size of Belgium")
-        expect(describeAreaBriefly(25)).toBe("About 35 football pitches")
+        expect(describeAreaBriefly(3_000_000)).toBe("about the size of Belgium")
+        expect(describeAreaBriefly(25)).toBe("about 35 football pitches")
     })
 })
 
