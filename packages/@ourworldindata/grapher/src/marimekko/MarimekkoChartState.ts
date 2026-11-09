@@ -119,8 +119,15 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
             this.focusArray.has(entityName) ||
             this.selectionArray.selectedSet.has(entityName)
         const isModeActive =
-            this.focusArray.hasFocusedSeries || this.selectionArray.hasSelection
+            this.focusArray.hasFocusedSeries || this.isAnySelectedEntityPlotted
         return new InteractionState(isSingledOut, isModeActive)
+    }
+
+    @computed private get isAnySelectedEntityPlotted(): boolean {
+        const { selectedSet } = this.selectionArray
+        return (this.uniqueEntityNames ?? []).some((entityName) =>
+            selectedSet.has(entityName)
+        )
     }
 
     @computed get yColumnSlug(): string | undefined {
