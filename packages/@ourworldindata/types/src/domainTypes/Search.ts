@@ -138,6 +138,7 @@ interface BaseSearchChartHit {
     variantName?: string
     titleVariant?: string
     subtitle?: string
+    source?: string
     availableTabs: GrapherTabName[]
     /**
      * Required by react-instantsearch's `<Highlight>`/`<Snippet>` components:

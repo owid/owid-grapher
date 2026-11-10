@@ -111,6 +111,7 @@ const DATA_CATALOG_ATTRIBUTES = [
     "slug",
     "subtitle",
     "variantName",
+    "source",
     "type",
     "queryParams",
     "availableEntities",
