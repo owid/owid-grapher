@@ -9,6 +9,10 @@ import {
 
 import { DimensionEnriched } from "@ourworldindata/types"
 import DimensionLabel from "./DimensionLabel.js"
+import DisabledReasonTooltip, {
+    DISABLED_CONTROL_REASON,
+    UNAVAILABLE_OPTION_REASON,
+} from "./DisabledReasonTooltip.js"
 
 // A segmented toggle group, exposed to assistive technology as a radio group.
 // It's a React Aria ToggleButtonGroup in single selection mode rather than a
@@ -47,21 +51,29 @@ export default function DimensionToggleButtons({
         >
             {/* The group has no label slot, so wire the label up by hand. */}
             <LabelContext.Provider value={{ id: labelId, elementType: "span" }}>
-                <DimensionLabel dimension={dimension} showChoiceDescriptions />
+                <DimensionLabel
+                    dimension={dimension}
+                    showChoiceDescriptions
+                    isDisabled={isDisabled}
+                />
             </LabelContext.Provider>
-            <ToggleButtonOptions
-                dimension={dimension}
-                aria-labelledby={labelId}
-                availableChoiceSlugs={availableChoiceSlugs}
-                value={value}
-                onChange={(newValue) => {
-                    // While a view is loading, ignore changes rather than
-                    // disabling the group: disabling would make the focused
-                    // option unfocusable and drop keyboard focus.
-                    if (!readOnly) onChange(newValue)
-                }}
-                isDisabled={isDisabled}
-            />
+            <DisabledReasonTooltip
+                reason={isDisabled ? DISABLED_CONTROL_REASON : undefined}
+            >
+                <ToggleButtonOptions
+                    dimension={dimension}
+                    aria-labelledby={labelId}
+                    availableChoiceSlugs={availableChoiceSlugs}
+                    value={value}
+                    onChange={(newValue) => {
+                        // While a view is loading, ignore changes rather than
+                        // disabling the group: disabling would make the focused
+                        // option unfocusable and drop keyboard focus.
+                        if (!readOnly) onChange(newValue)
+                    }}
+                    isDisabled={isDisabled}
+                />
+            </DisabledReasonTooltip>
         </div>
     )
 }
@@ -109,44 +121,62 @@ export function ToggleButtonOptions({
         >
             {dimension.choices.map((choice) => {
                 const descriptionId = `${id}-description-${choice.slug}`
+                const isChoiceUnavailable =
+                    availableChoiceSlugs !== undefined &&
+                    !availableChoiceSlugs.has(choice.slug)
                 return (
-                    <div
+                    // The tooltip hangs off the field rather than the button:
+                    // a disabled button doesn't get mouse events. In case the
+                    // whole group is disabled, the group's own tooltip
+                    // explains it instead.
+                    <DisabledReasonTooltip
                         key={choice.slug}
-                        className="md-settings__toggle-field"
+                        reason={
+                            isChoiceUnavailable && !isDisabled
+                                ? UNAVAILABLE_OPTION_REASON
+                                : undefined
+                        }
                     >
-                        <ToggleButton
-                            id={choice.slug}
-                            className="md-settings__toggle"
-                            data-track-note="multi-dim-choice-toggle"
-                            isDisabled={
-                                availableChoiceSlugs !== undefined &&
-                                !availableChoiceSlugs.has(choice.slug)
-                            }
-                            // Like in a native radio group, Tab only stops at
-                            // the selected option, and the arrow keys reach
-                            // the others.
-                            excludeFromTabOrder={choice.slug !== value}
-                            aria-describedby={
-                                choice.description ? descriptionId : undefined
-                            }
-                        >
-                            <span
-                                className="md-settings__toggle-label"
-                                title={choice.name}
+                        <div className="md-settings__toggle-field">
+                            <ToggleButton
+                                id={choice.slug}
+                                className="md-settings__toggle"
+                                data-track-note="multi-dim-choice-toggle"
+                                isDisabled={isChoiceUnavailable}
+                                // Like in a native radio group, Tab only
+                                // stops at the selected option, and the
+                                // arrow keys reach the others.
+                                excludeFromTabOrder={choice.slug !== value}
+                                aria-describedby={
+                                    choice.description
+                                        ? descriptionId
+                                        : undefined
+                                }
                             >
-                                {choice.name}
-                            </span>
-                        </ToggleButton>
-                        {/* Sighted users find choice descriptions in the label's
-                            info tooltip; screen readers read them with the option.
-                            Hidden, so that it's only announced as the option's
-                            description: aria-describedby resolves hidden targets. */}
-                        {choice.description && (
-                            <span id={descriptionId} hidden>
-                                {choice.description}
-                            </span>
-                        )}
-                    </div>
+                                <span
+                                    className="md-settings__toggle-label"
+                                    // The native tooltip would compete with
+                                    // the reason one.
+                                    title={
+                                        isChoiceUnavailable
+                                            ? undefined
+                                            : choice.name
+                                    }
+                                >
+                                    {choice.name}
+                                </span>
+                            </ToggleButton>
+                            {/* Sighted users find choice descriptions in the label's
+                                info tooltip; screen readers read them with the option.
+                                Hidden, so that it's only announced as the option's
+                                description: aria-describedby resolves hidden targets. */}
+                            {choice.description && (
+                                <span id={descriptionId} hidden>
+                                    {choice.description}
+                                </span>
+                            )}
+                        </div>
+                    </DisabledReasonTooltip>
                 )
             })}
         </ToggleButtonGroup>

@@ -38,6 +38,10 @@ $toggle-group-height: 32px;
         flex: 1;
         min-width: 0;
     }
+
+    &:has([data-disabled]) {
+        cursor: not-allowed;
+    }
 }
 
 // A field whose option is neither selected nor hovered.
@@ -84,8 +88,10 @@ $plain-field: ":not(:has([data-selected], [data-hovered]))";
         cursor: default;
     }
 
+    // Without pointer events, the hover reaches the field (or the group) and
+    // its disabled reason tooltip.
     &[data-disabled] {
-        cursor: default;
+        pointer-events: none;
     }
 
     // The global focus ring sits outside the option, so stack the focused
