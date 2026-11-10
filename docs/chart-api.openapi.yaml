@@ -85,7 +85,7 @@ paths:
         - `?imVariant=simplified`: a 1200×640 thumbnail with fewer gridlines and thinner lines
         - `?imVariant=simplified&imLabels=values`: the same thumbnail with values and no legend
 
-        The endpoint answers 400 instead of guessing when a request is unknown or contradictory. That covers an unknown `im*` param or value, a size or font size that isn't a positive integer, a flag other than `0` or `1`, a preset combined with `imWidth`, `imHeight`, `imFontSize` or `imDetails`, a preset on `imVariant=uncaptioned` or `imVariant=simplified`, `imDetails=1` without a caption, `imLabels=values` on a captioned image, and a deprecated param next to the param that replaces it.
+        Unrecognised `im*` params are ignored. Otherwise the endpoint answers 400 instead of guessing when a request is invalid or contradictory. That covers an unknown value for a recognised param, a size or font size that isn't a positive integer, a flag other than `0` or `1`, a preset combined with `imWidth`, `imHeight`, `imFontSize` or `imDetails`, a preset on `imVariant=uncaptioned` or `imVariant=simplified`, `imDetails=1` without a caption, `imLabels=values` on a captioned image, and a deprecated param next to the param that replaces it.
       operationId: getChartImage
       tags:
         - Images

@@ -340,7 +340,7 @@ You can find these fonts in the `fonts/` directory here; note however that these
 
 ### Options
 
-Image params start with `im`. The route parses them with `parseImageRequest` from `@ourworldindata/grapher` and answers 400 for an unknown or contradictory request. [chart-api.openapi.yaml](../docs/chart-api.openapi.yaml) documents every param and the combinations that fail.
+Image params start with `im`. The route parses them with `parseImageRequest` from `@ourworldindata/grapher` and answers 400 for an invalid or contradictory request. Unrecognised `im*` params are ignored. [chart-api.openapi.yaml](../docs/chart-api.openapi.yaml) documents every param and the combinations that fail.
 
 Each picture combines a variant, a label mode and a size:
 
