@@ -123,6 +123,22 @@ export const ALGOLIA_SECRET_KEY: string =
 export const ALGOLIA_INDEXING: boolean =
     serverSettings.ALGOLIA_INDEXING === "true"
 
+export const TYPESENSE_HOST: string = clientSettings.TYPESENSE_HOST
+export const TYPESENSE_PORT: number = clientSettings.TYPESENSE_PORT
+export const TYPESENSE_PROTOCOL: string = clientSettings.TYPESENSE_PROTOCOL
+// The admin key, needed to create collections and import documents. "xyz"
+// matches the key the local docker-compose container starts with.
+export const TYPESENSE_API_KEY: string =
+    serverSettings.TYPESENSE_API_KEY ?? "xyz"
+export const TYPESENSE_INDEXING: boolean =
+    serverSettings.TYPESENSE_INDEXING === "true"
+// The model Typesense embeds records and queries with, for hybrid search. A
+// "ts/..." model runs inside the Typesense server and needs no key; an
+// "openai/..." one uses OPENAI_API_KEY, at index and at query time.
+export const TYPESENSE_EMBEDDING_MODEL: string =
+    serverSettings.TYPESENSE_EMBEDDING_MODEL ?? "ts/multilingual-e5-small"
+export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
+
 export const UNCATEGORIZED_TAG_ID: number =
     parseIntOrUndefined(serverSettings.UNCATEGORIZED_TAG_ID) ?? 375
 
