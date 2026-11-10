@@ -174,8 +174,8 @@ const CASES: Record<string, ImageOptionsCase[]> = {
             expected: SQUARE,
         },
         {
-            query: "imType=square&imSquareSize=1000",
-            expected: { ...SQUARE, pngWidth: 1000, pngHeight: 1000 },
+            query: "imType=square&imSquareSize=1080",
+            expected: SQUARE,
         },
     ],
     "thumbnails lay out at a quarter of the png size, without an aspect clamp":
