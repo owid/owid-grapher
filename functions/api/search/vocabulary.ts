@@ -121,6 +121,53 @@ function loadVocabulary(): Promise<VocabularyTopic[]> {
 const optionId = (prefix: string, index: number): string => `${prefix}${index}`
 const optionIndex = (id: string): number => Number(id.slice(1))
 
+const trigrams = (text: string): Set<string> => {
+    const padded = ` ${text
+        .toLowerCase()
+        .replace(/[^a-z0-9 ]+/g, " ")
+        .trim()} `
+    const grams = new Set<string>()
+    for (let i = 0; i < padded.length - 2; i++)
+        grams.add(padded.slice(i, i + 3))
+    return grams
+}
+
+/**
+ * Under test (vocab=wide): the `n` topics whose name or terms look most like
+ * the query, by shared character trigrams, so without a model call. Typos
+ * still match ("under nurished" shares most trigrams with
+ * "undernourishment"); other languages and synonyms don't.
+ */
+export async function matchVocabularyTopics(
+    query: string,
+    n: number
+): Promise<string[]> {
+    const topics = await loadVocabulary()
+    const queryGrams = trigrams(query)
+    if (queryGrams.size === 0) return []
+    return topics
+        .map((topic) => ({
+            name: topic.name,
+            score: Math.max(
+                ...[topic.name, ...topic.keywords].map((text) => {
+                    const grams = trigrams(text)
+                    let shared = 0
+                    for (const gram of queryGrams) if (grams.has(gram)) shared++
+                    return Math.max(
+                        // how alike the query and the term are…
+                        shared / (queryGrams.size + grams.size - shared),
+                        // …or how much of the term the query contains
+                        (0.8 * shared) / grams.size
+                    )
+                })
+            ),
+        }))
+        .filter((topic) => topic.score > 0.15)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, n)
+        .map((topic) => topic.name)
+}
+
 interface PickedTopics {
     picked: VocabularyTopic[]
     state: string

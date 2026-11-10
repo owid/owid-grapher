@@ -28,6 +28,7 @@ import {
 import {
     appendVocabularyHits,
     pickVocabularyTerms,
+    matchVocabularyTopics,
     pickVocabularyTopics,
     VOCABULARY_HITS_PER_TERM,
     VOCABULARY_TOPICS,
@@ -143,13 +144,13 @@ function parseRerank(
           model: RerankModel
           ai: Ai
           vocab: boolean
-          chartsVocab: "term" | "topic" | "query" | "votes"
+          chartsVocab: "term" | "topic" | "query" | "votes" | "wide"
       }
     | undefined {
     // TODO: vocab=topic, vocab=query and vocab=votes are variants under test
     // (see searchChartsReranked and pickTopicsByChartVotes); keep whichever
     // wins as vocab=1
-    if (vocab && !["1", "topic", "query", "votes"].includes(vocab))
+    if (vocab && !["1", "topic", "query", "votes", "wide"].includes(vocab))
         throw new SearchValidationError(
             `Invalid vocab value "${vocab}". Use vocab=1`
         )
@@ -173,7 +174,10 @@ function parseRerank(
         ai: env.AI,
         vocab: !!vocab,
         chartsVocab:
-            vocab === "topic" || vocab === "query" || vocab === "votes"
+            vocab === "topic" ||
+            vocab === "query" ||
+            vocab === "votes" ||
+            vocab === "wide"
                 ? vocab
                 : "term",
     }
@@ -432,12 +436,32 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
         const pickTopics = (
             rerank: NonNullable<ReturnType<typeof parseRerank>>
-        ): Promise<VocabularyInfo<VocabularyTopicPick>> =>
-            rerank.chartsVocab === "votes"
-                ? pickTopicsByChartVotes(algoliaConfig, query, () =>
-                      fetchTagGraph(env, baseUrl)
-                  )
-                : pickVocabularyTopics(rerank.ai, rerank.model, query)
+        ): Promise<VocabularyInfo<VocabularyTopicPick>> => {
+            const byVotes = (): Promise<VocabularyInfo<VocabularyTopicPick>> =>
+                pickTopicsByChartVotes(algoliaConfig, query, () =>
+                    fetchTagGraph(env, baseUrl)
+                )
+            if (rerank.chartsVocab === "votes") return byVotes()
+            if (rerank.chartsVocab !== "wide")
+                return pickVocabularyTopics(rerank.ai, rerank.model, query)
+            // Under test (vocab=wide): no topic call. The topics the
+            // matching charts vote for and the ones whose terms look like
+            // the query are all candidates, and the rerank decides.
+            return Promise.all([
+                byVotes(),
+                matchVocabularyTopics(query, VOCABULARY_TOPICS).catch(
+                    (): string[] => []
+                ),
+            ]).then(([votes, matched]) => ({
+                ...votes,
+                terms: [
+                    ...new Set([
+                        ...votes.terms.map((term) => term.topic),
+                        ...matched,
+                    ]),
+                ].map((topic) => ({ topic })),
+            }))
+        }
 
         // A search already filtered to a topic gets no vocabulary hits: the
         // reader chose the topic
