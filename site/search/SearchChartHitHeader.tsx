@@ -23,6 +23,8 @@ export function SearchChartHitHeader({
     isLarge = false,
     onClick,
 }: SearchChartHitHeaderProps) {
+    const displayedSource = source ?? hit.source
+
     return (
         <a
             className={cx("search-chart-hit-header", {
@@ -49,16 +51,16 @@ export function SearchChartHitHeader({
                         <h3 className="search-chart-hit-header__title">
                             {title || hit.title}
                         </h3>
-                        {source && (
+                        {displayedSource && (
                             <span className="search-chart-hit-header__source search-chart-hit-header__source--desktop">
-                                Source: {source}
+                                Source: {displayedSource}
                             </span>
                         )}
                     </div>
                     <SearchChartHitSubtitle hit={hit} subtitle={subtitle} />
-                    {source && (
+                    {displayedSource && (
                         <span className="search-chart-hit-header__source search-chart-hit-header__source--mobile">
-                            Source: {source}
+                            Source: {displayedSource}
                         </span>
                     )}
                 </div>
