@@ -21,10 +21,7 @@ import {
 } from "@ourworldindata/types"
 import { createMultiDimIndexingContext } from "./context.js"
 import { attributeLinksToViewIds } from "./mdimViewsLogic.js"
-import {
-    getMultiDimViewTitle,
-    getRelevantIndicatorIds,
-} from "../../MultiDimBaker.js"
+import { getRelevantIndicatorIds } from "../../MultiDimBaker.js"
 import { toPlaintext } from "@ourworldindata/components"
 import {
     computeRecordScore,
@@ -132,11 +129,7 @@ async function getRecords(
                         ? Promise.resolve(metadata)
                         : loadIndicatorMetadata(indicatorId)
             )
-            const title = getMultiDimViewTitle(
-                metadata,
-                chartConfig,
-                grapherState
-            )
+            const title = grapherState.mainTitle
             const titleVariant =
                 view.indicators.y.length === 1
                     ? metadata.presentation?.titleVariant

@@ -18,7 +18,6 @@ import {
 } from "@ourworldindata/utils"
 import {
     computeRecordScore,
-    maybeAddChangeInPrefix,
     processAvailableEntities,
     parseJsonStringArray,
     loadGrapherStateWithMetadata,
@@ -248,10 +247,7 @@ async function buildChartRecord(
         ContentGraphLinkType.Grapher
     )
 
-    const title = maybeAddChangeInPrefix(
-        chart.config.title,
-        grapherState.shouldAddChangeInPrefixToTitle
-    )
+    const title = grapherState.mainTitle
 
     const topicTags = getUniqueNamesFromTagHierarchies(
         chart.tags,
