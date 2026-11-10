@@ -22,3 +22,6 @@ export const FLOAT_TOLERANCE_PX = 0.01
 
 /** How far from the plot edge an anchor can sit and still count as an edge label */
 export const EDGE_TOLERANCE_PX = 1
+
+/** Step size when nudging an in-chart label away from collisions */
+export const NUDGE_STEP_PX = 0.5

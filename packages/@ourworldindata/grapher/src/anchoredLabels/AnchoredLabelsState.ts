@@ -14,7 +14,11 @@ import {
 } from "./AnchoredLabelsTypes.js"
 import { Emphasis } from "../interaction/Emphasis.js"
 import { placeColumn, VerticalRange } from "./AnchoredLabelsPacking.js"
-import { EDGE_TOLERANCE_PX } from "./AnchoredLabelsConstants.js"
+import {
+    EDGE_TOLERANCE_PX,
+    FLOAT_TOLERANCE_PX,
+    NUDGE_STEP_PX,
+} from "./AnchoredLabelsConstants.js"
 
 interface AnchoredLabelsOptions {
     /** Font size for the labels */
@@ -67,9 +71,9 @@ interface AnchoredLabelsOptions {
 
 /**
  * Anchored labels are tied to a specific (x, y) position on the chart.
- * AnchoredLabelsState moves colliding edge labels up to one font size from
- * their anchors, hides labels that don't fit, and computes the final position
- * for each label.
+ * AnchoredLabelsState moves colliding labels up to one font size from their
+ * anchors, hides labels that don't fit, and computes the final position for
+ * each label.
  */
 export class AnchoredLabelsState {
     private readonly initialSeries: InitialAnchoredLabelSeries[]
@@ -247,7 +251,7 @@ export class AnchoredLabelsState {
     }
 
     @computed private get placedInChartSeries(): PlacedAnchoredLabelSeries[] {
-        const { anchorCollisionRadius } = this.options
+        const { anchorCollisionRadius, fontSize: maxNudge } = this.options
         const range = this.inChartVerticalRange
 
         const anchors = this.sizedSeries.map((series) => ({
@@ -264,16 +268,33 @@ export class AnchoredLabelsState {
         }))
         const placedCollisionBounds: Bounds[] = []
 
-        const findObstacles = (series: SizedAnchoredLabelSeries): Bounds[] => {
-            const obstacles = [...placedCollisionBounds]
+        /** Bounds a label could hit anywhere in its nudge range */
+        const findObstaclesInReach = (
+            series: SizedAnchoredLabelSeries,
+            collisionBounds: Bounds
+        ): Bounds[] => {
+            const reachTop = collisionBounds.top - maxNudge - NUDGE_STEP_PX
+            const reachBottom =
+                collisionBounds.bottom + maxNudge + NUDGE_STEP_PX
+            const isInReach = (bounds: Bounds): boolean =>
+                bounds.left <= collisionBounds.right &&
+                bounds.right >= collisionBounds.left &&
+                bounds.top <= reachBottom &&
+                bounds.bottom >= reachTop
+
+            const obstacles = placedCollisionBounds.filter(isInReach)
             for (const edge of edgeLabels)
-                if (this.comparePriority(edge.series, series) <= 0)
+                if (
+                    isInReach(edge.bounds) &&
+                    this.comparePriority(edge.series, series) <= 0
+                )
                     obstacles.push(edge.bounds)
             if (anchorCollisionRadius === 0) return obstacles
 
             const emphasisRank = getEmphasisRank(series)
             for (const anchor of anchors)
                 if (
+                    isInReach(anchor.bounds) &&
                     anchor.series.seriesName !== series.seriesName &&
                     emphasisRank <= getEmphasisRank(anchor.series)
                 )
@@ -287,16 +308,25 @@ export class AnchoredLabelsState {
 
             const { bounds } = series
             const collisionBounds = bounds.expand(this.collisionPadding)
-            const isFree =
-                bounds.top >= range.top &&
-                bounds.bottom <= range.bottom &&
-                !findObstacles(series).some((obstacle) =>
-                    obstacle.intersects(collisionBounds)
-                )
-            if (!isFree) continue
+            const obstacles = findObstaclesInReach(series, collisionBounds)
 
-            placed.push(series)
-            placedCollisionBounds.push(collisionBounds)
+            const isOffsetFree = (dy: number): boolean =>
+                bounds.top + dy >= range.top &&
+                bounds.bottom + dy <= range.bottom &&
+                !obstacles.some(
+                    (obstacle) =>
+                        obstacle.top <= collisionBounds.bottom + dy &&
+                        obstacle.bottom >= collisionBounds.top + dy
+                )
+
+            const dy = findNearestFreeOffset({ maxNudge, isOffsetFree })
+            if (dy === undefined) continue
+
+            const nudged = shiftSeries(series, dy)
+            placed.push(nudged)
+            placedCollisionBounds.push(
+                nudged.bounds.expand(this.collisionPadding)
+            )
         }
         return placed
     }
@@ -345,6 +375,22 @@ function shiftSeries<T extends SizedAnchoredLabelSeries>(
         },
         bounds: series.bounds.set({ y: series.bounds.y + dy }),
     }
+}
+
+/** Smallest vertical offset within maxNudge that isOffsetFree accepts, trying up before down */
+function findNearestFreeOffset({
+    maxNudge,
+    isOffsetFree,
+}: {
+    maxNudge: number
+    isOffsetFree: (dy: number) => boolean
+}): number | undefined {
+    for (let k = 0; k * NUDGE_STEP_PX <= maxNudge + FLOAT_TOLERANCE_PX; k++) {
+        const offset = k * NUDGE_STEP_PX
+        const offsets = k === 0 ? [0] : [-offset, offset]
+        for (const dy of offsets) if (isOffsetFree(dy)) return dy
+    }
+    return undefined
 }
 
 function toVerticalRange(yRange?: [number, number]): VerticalRange {
