@@ -21,9 +21,19 @@ const QUERY_ATTRIBUTES = ["query", "similarQuery", "facetQuery"] as const
 const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null && !Array.isArray(value)
 
+// The featured-viz request (`queryFeaturedViz`) leaves `query` empty and puts
+// the reader's search in a filter on this attribute, so it depends on user
+// input too.
+const PINNED_SEARCH_FILTER = "pinnedForSearches:"
+
+const hasPinnedSearchFilter = (params: Record<string, unknown>): boolean =>
+    typeof params.filters === "string" &&
+    params.filters.includes(PINNED_SEARCH_FILTER)
+
 const hasOnlyEmptyQueryAttributes = (
     params: Record<string, unknown>
 ): boolean =>
+    !hasPinnedSearchFilter(params) &&
     QUERY_ATTRIBUTES.every((attribute) => {
         const value = params[attribute]
         return value === undefined || value === ""
