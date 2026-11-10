@@ -76,7 +76,7 @@ html.IsInIframe {
     text-decoration: none;
 
     // A link to the full page, when there is one.
-    &:is(a):hover {
+    &[href]:hover {
         text-decoration: underline;
     }
 }
