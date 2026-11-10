@@ -55,6 +55,8 @@ export interface SearchPageHit {
     thumbnailUrl?: string
     date?: string
     content?: string
+    /** only on a reranked search, which reads it (see rerankPages) */
+    excerpt?: string
     authors?: string[]
     objectID: string
 }
@@ -271,7 +273,8 @@ export async function searchPages(
     offset: number = 0,
     length: number = 10,
     pageTypes: string[] = ["article", "about-page"],
-    baseUrl: string = "https://ourworldindata.org"
+    baseUrl: string = "https://ourworldindata.org",
+    extraAttributes: string[] = []
 ): Promise<SearchPagesApiResponse> {
     const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
 
@@ -286,7 +289,7 @@ export async function searchPages(
             indexName,
             query,
             filters,
-            attributesToRetrieve: PAGE_ATTRIBUTES,
+            attributesToRetrieve: [...PAGE_ATTRIBUTES, ...extraAttributes],
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
             offset,

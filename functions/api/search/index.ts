@@ -462,7 +462,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     0,
                     Math.max(RERANK_POOL_SIZE, hitsPerPage),
                     pageTypes, // undefined -> searchPages()'s own default
-                    baseUrl
+                    baseUrl,
+                    ["excerpt"]
                 )
             )
             const reranked = await rerankPages(

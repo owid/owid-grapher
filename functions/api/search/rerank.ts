@@ -312,8 +312,11 @@ export async function rerankCharts(
 
 /**
  * /api/search's reranked pages (articles, data insights, …): one page, cut
- * from the reordered pool. The prompt reads a page's matched text where it
- * reads a chart's subtitle.
+ * from the reordered pool. Where the prompt reads a chart's subtitle, it
+ * reads a page's excerpt, which says what the page is about. Algolia's
+ * matched text (`content`) can come from anywhere in an article, and judged
+ * on it, a CO₂ dataset article's paragraph on its GDP source won "gdp". It's
+ * only the fallback, for pages without an excerpt.
  */
 export async function rerankPages(
     ai: Ai,
@@ -328,7 +331,7 @@ export async function rerankPages(
         pool.results.map((page) => ({
             page,
             title: page.title,
-            subtitle: page.content,
+            subtitle: page.excerpt || page.content,
             type: page.type,
         }))
     )
