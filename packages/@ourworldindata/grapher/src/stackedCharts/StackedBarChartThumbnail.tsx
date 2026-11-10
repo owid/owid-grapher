@@ -21,7 +21,7 @@ import {
 } from "./StackedConstants"
 import {
     getXAxisConfigDefaultsForStackedBar,
-    resolveCollision,
+    makeStackedLabelComparator,
     toPlacedStackedBarSeries,
 } from "./StackedUtils"
 import {
@@ -173,21 +173,7 @@ export class StackedBarChartThumbnail
             maxWidth: this.labelsMaxWidth,
             labelPadding: LEGEND_PADDING,
             yRange: this.labelsRange,
-            resolveCollision: (
-                s1: InitialAnchoredLabelSeries,
-                s2: InitialAnchoredLabelSeries
-            ): InitialAnchoredLabelSeries => {
-                const series1 = this.chartState.seriesByName.get(s1.seriesName)
-                const series2 = this.chartState.seriesByName.get(s2.seriesName)
-
-                if (!series1 || !series2) return s1 // no preference
-
-                const picked = resolveCollision(series1, series2)
-                if (picked?.seriesName === s1.seriesName) return s1
-                if (picked?.seriesName === s2.seriesName) return s2
-
-                return s1 // no preference
-            },
+            compare: makeStackedLabelComparator(this.chartState.seriesByName),
         })
     }
 
