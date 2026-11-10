@@ -268,17 +268,12 @@ export class LineChartThumbnail
     }
 
     @computed private get labelsRange(): [number, number] {
-        const {
-            horizontalAxisPart,
-            manager: { chartAreaPadding = 0 },
-        } = this
+        return this.bounds.expand(this.manager.chartAreaPadding ?? 0).yRange()
+    }
 
-        return this.bounds
-            .expand({
-                top: chartAreaPadding,
-                bottom: chartAreaPadding + horizontalAxisPart.height,
-            })
-            .yRange()
+    /** Label range inside the plot, which ends above the x-axis tick labels */
+    private makeInChartLabelsRange(dualAxis: DualAxis): [number, number] {
+        return [dualAxis.innerBounds.bottom, this.labelsRange[1]]
     }
 
     @computed
@@ -368,19 +363,17 @@ export class LineChartThumbnail
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
             textAnchor: "start",
-            yRange: this.labelsRange,
+            xRange: dualAxis.innerBounds.xRange(),
+            yRanges: {
+                edge: this.labelsRange,
+                inChart: this.makeInChartLabelsRange(dualAxis),
+            },
             labelPadding: this.labelPadding,
             anchorCollisionRadius: this.dotRadius,
             compare: (
                 a: InitialAnchoredLabelSeries,
                 b: InitialAnchoredLabelSeries
-            ): number => {
-                const xA = this.endPointBySeriesName.get(a.seriesName)?.x ?? 0
-                const xB = this.endPointBySeriesName.get(b.seriesName)?.x ?? 0
-
-                // Prefer the series with the larger x value
-                return xB - xA
-            },
+            ): number => b.position.x - a.position.x,
         })
     }
 
@@ -502,9 +495,13 @@ export class LineChartThumbnail
             ...this.labelFontSettings,
             maxWidth: this.startLabelsMaxWidth,
             textAnchor: "end",
+            xRange: dualAxis.innerBounds.xRange(),
             labelPadding: this.labelPadding,
             anchorCollisionRadius: this.dotRadius,
-            yRange: this.labelsRange,
+            yRanges: {
+                edge: this.labelsRange,
+                inChart: this.makeInChartLabelsRange(dualAxis),
+            },
             compare: (
                 a: InitialAnchoredLabelSeries,
                 b: InitialAnchoredLabelSeries
@@ -514,11 +511,8 @@ export class LineChartThumbnail
                 const hasEndLabelB = visibleEndLabels.has(b.seriesName)
                 if (hasEndLabelA !== hasEndLabelB) return hasEndLabelA ? -1 : 1
 
-                const xA = this.startPointBySeriesName.get(a.seriesName)?.x ?? 0
-                const xB = this.startPointBySeriesName.get(b.seriesName)?.x ?? 0
-
                 // Prefer the series with the larger x value
-                return xB - xA
+                return b.position.x - a.position.x
             },
         })
     }
