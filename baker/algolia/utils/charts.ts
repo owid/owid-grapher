@@ -22,7 +22,9 @@ import {
     maybeAddChangeInPrefix,
     processAvailableEntities,
     parseJsonStringArray,
+    buildSourcesLineFromConfig,
 } from "./shared.js"
+import { getVariableMetadata } from "../../../db/model/Variable.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
 import { createChartsIndexingContext } from "./context.js"
@@ -272,6 +274,10 @@ async function buildChartRecord(
         variantName: chart.config.variantName ?? "",
         titleVariant: chart.titleVariant || undefined,
         subtitle: plaintextSubtitle,
+        source: await buildSourcesLineFromConfig(
+            chart.config,
+            getVariableMetadata
+        ),
         availableEntities: chart.entityNames,
         numDimensions: parseInt(chart.numDimensions),
         availableTabs: grapherState.availableTabs,

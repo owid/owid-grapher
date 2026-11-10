@@ -18,6 +18,7 @@ import {
     ChartViewsMap,
     ContentGraphLinkType,
     IndexingContext,
+    OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
 import { createMultiDimIndexingContext } from "./context.js"
 import { attributeLinksToViewIds } from "./mdimViewsLogic.js"
@@ -31,10 +32,12 @@ import {
     computeRecordScore,
     parseJsonStringArray,
     uniqNonEmptyStrings,
+    buildSourcesLineFromConfig,
 } from "./shared.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
 import { DatasetDimensionsForVariable } from "./types.js"
 import pMap from "p-map"
+import { getVariableMetadata } from "../../../db/model/Variable.js"
 
 // Published multi-dim must have a slug.
 type PublishedMultiDimWithSlug = DbEnrichedMultiDimDataPage & { slug: string }
@@ -100,100 +103,129 @@ async function getRecords(
         multiDimConfig
     )
 
-    return multiDim.config.views.map((view) => {
-        const viewId = dimensionsToViewId(view.dimensions)
-        const viewNumRelatedArticles =
-            numRelatedArticlesByViewId.get(viewId) ?? 0
-        const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
-        if (!id) {
-            throw new Error(
-                `MultiDimXChartConfig not found multiDimId=${multiDim.id} viewId=${viewId}`
-            )
+    const extraIndicatorMetadata = new Map<
+        number,
+        Promise<OwidVariableWithSourceAndDimension>
+    >()
+    const loadIndicatorMetadata = (
+        indicatorId: number
+    ): Promise<OwidVariableWithSourceAndDimension> => {
+        const loaded = relevantVariableMetadata[indicatorId]
+        if (loaded) return Promise.resolve(loaded)
+        let pending = extraIndicatorMetadata.get(indicatorId)
+        if (!pending) {
+            pending = getVariableMetadata(indicatorId)
+            extraIndicatorMetadata.set(indicatorId, pending)
         }
-        const chartConfig = chartConfigs.get(view.fullConfigId)
-        if (!chartConfig) {
-            throw new Error(
-                `MultiDim view chart config not found id=${multiDim.id} ` +
-                    `viewId=${viewId} chartConfigId=${view.fullConfigId}`
+        return pending
+    }
+
+    return pMap(
+        multiDim.config.views,
+        async (view) => {
+            const viewId = dimensionsToViewId(view.dimensions)
+            const viewNumRelatedArticles =
+                numRelatedArticlesByViewId.get(viewId) ?? 0
+            const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
+            if (!id) {
+                throw new Error(
+                    `MultiDimXChartConfig not found multiDimId=${multiDim.id} viewId=${viewId}`
+                )
+            }
+            const chartConfig = chartConfigs.get(view.fullConfigId)
+            if (!chartConfig) {
+                throw new Error(
+                    `MultiDim view chart config not found id=${multiDim.id} ` +
+                        `viewId=${viewId} chartConfigId=${view.fullConfigId}`
+                )
+            }
+            const grapherState = new GrapherState(chartConfig)
+            const queryStr = multiDimDimensionsToViewQueryStr(view.dimensions)
+            const variableId = view.indicators.y[0].id
+            const metadata = merge(
+                relevantVariableMetadata[variableId],
+                multiDim.config.metadata ?? {},
+                view.metadata ?? {}
             )
-        }
-        const grapherState = new GrapherState(chartConfig)
-        const queryStr = multiDimDimensionsToViewQueryStr(view.dimensions)
-        const variableId = view.indicators.y[0].id
-        const metadata = merge(
-            relevantVariableMetadata[variableId],
-            multiDim.config.metadata ?? {},
-            view.metadata ?? {}
-        )
-        const title = getMultiDimViewTitle(metadata, chartConfig, grapherState)
-        const titleVariant =
-            view.indicators.y.length === 1
-                ? metadata.presentation?.titleVariant
-                : undefined
-        const containerTitle = multiDim.config.title.title
-        const subtitle = toPlaintext(
-            metadata.descriptionShort || chartConfig.subtitle || ""
-        )
-        const availableEntities = metadata.dimensions.entities.values
-            .map((entity) => entity.name)
-            .filter(Boolean)
+            const title = getMultiDimViewTitle(
+                metadata,
+                chartConfig,
+                grapherState
+            )
+            const titleVariant =
+                view.indicators.y.length === 1
+                    ? metadata.presentation?.titleVariant
+                    : undefined
+            const containerTitle = multiDim.config.title.title
+            const subtitle = toPlaintext(
+                metadata.descriptionShort || chartConfig.subtitle || ""
+            )
+            const availableEntities = metadata.dimensions.entities.values
+                .map((entity) => entity.name)
+                .filter(Boolean)
 
-        const views_7d = Math.max(
-            chartViewsMap.byConfigId.get(view.fullConfigId) ?? 0,
-            predecessorMaxChartViewsByMultiDimViewConfigId.get(
-                view.fullConfigId
-            ) ?? 0
-        )
-        const score = computeRecordScore(viewNumRelatedArticles, views_7d)
+            const views_7d = Math.max(
+                chartViewsMap.byConfigId.get(view.fullConfigId) ?? 0,
+                predecessorMaxChartViewsByMultiDimViewConfigId.get(
+                    view.fullConfigId
+                ) ?? 0
+            )
+            const score = computeRecordScore(viewNumRelatedArticles, views_7d)
 
-        const datasetDimensions = view.indicators.y
-            .map((ind) => datasetDimensionsByVariableId.get(ind.id))
-            .filter(Boolean)
-        const datasetNamespaces = uniqNonEmptyStrings(
-            datasetDimensions.map((dataset) => dataset?.datasetNamespace)
-        )
-        const datasetVersions = uniqNonEmptyStrings(
-            datasetDimensions.map((dataset) => dataset?.datasetVersion)
-        )
-        const datasetProducts = uniqNonEmptyStrings(
-            datasetDimensions.map((dataset) => dataset?.datasetProduct)
-        )
-        const datasetProducers = uniqNonEmptyStrings(
-            datasetDimensions.map((dataset) => dataset?.datasetProducers)
-        )
+            const datasetDimensions = view.indicators.y
+                .map((ind) => datasetDimensionsByVariableId.get(ind.id))
+                .filter(Boolean)
+            const datasetNamespaces = uniqNonEmptyStrings(
+                datasetDimensions.map((dataset) => dataset?.datasetNamespace)
+            )
+            const datasetVersions = uniqNonEmptyStrings(
+                datasetDimensions.map((dataset) => dataset?.datasetVersion)
+            )
+            const datasetProducts = uniqNonEmptyStrings(
+                datasetDimensions.map((dataset) => dataset?.datasetProduct)
+            )
+            const datasetProducers = uniqNonEmptyStrings(
+                datasetDimensions.map((dataset) => dataset?.datasetProducers)
+            )
 
-        return {
-            type: ChartRecordType.MultiDimView,
-            objectID: `mdim-view-${id}`,
-            id: `mdim/${slug}${queryStr ? `?${queryStr}` : ""}`,
-            chartId: -1,
-            chartConfigId: view.fullConfigId,
-            slug,
-            queryParams: queryStr ? `?${queryStr}` : "",
-            title,
-            containerTitle,
-            subtitle,
-            variantName: chartConfig.variantName,
-            titleVariant,
-            availableTabs: grapherState.availableTabs,
-            keyChartForTags: [],
-            tags,
-            availableEntities,
-            publishedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            numDimensions: chartConfig.dimensions?.length ?? 0,
-            titleLength: title.length,
-            numRelatedArticles: viewNumRelatedArticles,
-            views_7d,
-            score,
-            isIncomeGroupSpecificFM: false,
-            isFM: false,
-            datasetNamespaces,
-            datasetVersions,
-            datasetProducts,
-            datasetProducers,
-        } as ChartRecord
-    })
+            return {
+                type: ChartRecordType.MultiDimView,
+                objectID: `mdim-view-${id}`,
+                id: `mdim/${slug}${queryStr ? `?${queryStr}` : ""}`,
+                chartId: -1,
+                chartConfigId: view.fullConfigId,
+                slug,
+                queryParams: queryStr ? `?${queryStr}` : "",
+                title,
+                containerTitle,
+                subtitle,
+                source: await buildSourcesLineFromConfig(
+                    chartConfig,
+                    loadIndicatorMetadata
+                ),
+                variantName: chartConfig.variantName,
+                titleVariant,
+                availableTabs: grapherState.availableTabs,
+                keyChartForTags: [],
+                tags,
+                availableEntities,
+                publishedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                numDimensions: chartConfig.dimensions?.length ?? 0,
+                titleLength: title.length,
+                numRelatedArticles: viewNumRelatedArticles,
+                views_7d,
+                score,
+                isIncomeGroupSpecificFM: false,
+                isFM: false,
+                datasetNamespaces,
+                datasetVersions,
+                datasetProducts,
+                datasetProducers,
+            } as ChartRecord
+        },
+        { concurrency: 10 }
+    )
 }
 
 async function getMultiDimDataPagesWithInheritedTags(
