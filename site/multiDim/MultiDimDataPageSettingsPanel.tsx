@@ -6,7 +6,7 @@ import { MultiDimDimensionChoices } from "@ourworldindata/types"
 import { MultiDimDataPageConfig } from "@ourworldindata/utils"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { useResolvedSettings } from "./multiDimSettings.js"
-import MultiDimDropdowns from "./MultiDimDropdowns.js"
+import MultiDimControls from "./MultiDimControls.js"
 
 export const MultiDimSettingsPanel = ({
     className,
@@ -38,11 +38,7 @@ export const MultiDimSettingsPanel = ({
 
     return (
         <div className={cx("md-settings-row", className)}>
-            <div className="h5-black-caps md-settings__configure-data">
-                Configure the data
-            </div>
-            <MultiDimDropdowns
-                className="md-settings__dropdowns"
+            <MultiDimControls
                 availableSettings={availableSettings}
                 resolvedSettings={resolvedSettings}
                 onChange={onChange}

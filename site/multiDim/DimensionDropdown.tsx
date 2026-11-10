@@ -17,6 +17,7 @@ import * as _ from "lodash-es"
 
 import { CloseButton, RadioButton } from "@ourworldindata/components"
 import { Choice, DimensionEnriched } from "@ourworldindata/types"
+import DimensionLabel from "./DimensionLabel.js"
 
 function DimensionItem({ choice }: { choice: Choice }) {
     return (
@@ -67,7 +68,11 @@ export default function DimensionDropdown({
     const isDisabled = disabled || dimension.choices.length === 1
     return (
         <Select
-            className={cx("md-settings__dropdown", className)}
+            className={cx(
+                "md-settings__control",
+                "md-settings__dropdown",
+                className
+            )}
             isDisabled={isDisabled}
             isOpen={isOpen}
             onOpenChange={setIsOpen}
@@ -75,19 +80,16 @@ export default function DimensionDropdown({
             onChange={(key) => {
                 if (typeof key === "string") onChange(key)
             }}
-            aria-label={dimension.name}
         >
+            <DimensionLabel dimension={dimension} />
             <Button
                 className="md-settings__dropdown-toggle"
                 data-track-note="multi-dim-choice-dropdown"
             >
-                <span className="md-settings__dropdown-label">
-                    {dimension.name}
-                </span>
                 <span className="md-settings__dropdown-current-choice">
                     {dimension.choicesBySlug[value].name}
                 </span>
-                <div>
+                <div className="md-settings__dropdown-caret">
                     {/* The div is neccesary to keep the icon `display: inline`,
             so it aligns with the text correctly. */}
                     <FontAwesomeIcon icon={faCaretDown} />
