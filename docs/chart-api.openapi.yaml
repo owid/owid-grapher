@@ -75,7 +75,17 @@ paths:
   /grapher/{slug}.{format}:
     get:
       summary: Get chart as PNG or SVG
-      description: Returns a PNG or SVG image of the chart.
+      description: |
+        Returns a PNG or SVG image of the chart.
+
+        Three params pick the picture. `imVariant` sets the frame and how much chart furniture is drawn, `imLabels` sets which text is drawn, and `imPreset`, `imWidth` and `imHeight` set the size. Some examples:
+
+        - `?imPreset=og`: the captioned chart at the Open Graph size, as used for social previews
+        - `?imVariant=uncaptioned&imWidth=1200&imHeight=800`: the chart without title, subtitle or footer
+        - `?imVariant=simplified`: a 1200×640 thumbnail with fewer gridlines and thinner lines
+        - `?imVariant=simplified&imLabels=values`: the same thumbnail with values and no legend
+
+        The endpoint answers 400 instead of guessing when a request is unknown or contradictory. That covers an unknown `im*` param or value, a size or font size that isn't a positive integer, a flag other than `0` or `1`, a preset combined with `imWidth`, `imHeight`, `imFontSize` or `imDetails`, a preset on `imVariant=uncaptioned` or `imVariant=simplified`, `imDetails=1` without a caption, `imLabels=values` on a captioned image, and a deprecated param next to the param that replaces it.
       operationId: getChartImage
       tags:
         - Images
@@ -88,13 +98,15 @@ paths:
           schema:
             type: string
             enum: [png, svg]
-        - $ref: "#/components/parameters/imType"
+        - $ref: "#/components/parameters/imVariant"
+        - $ref: "#/components/parameters/imLabels"
+        - $ref: "#/components/parameters/imPreset"
         - $ref: "#/components/parameters/imWidth"
         - $ref: "#/components/parameters/imHeight"
-        - $ref: "#/components/parameters/imDetails"
         - $ref: "#/components/parameters/imFontSize"
+        - $ref: "#/components/parameters/imDetails"
+        - $ref: "#/components/parameters/imType"
         - $ref: "#/components/parameters/imMinimal"
-        - $ref: "#/components/parameters/imSquareSize"
         - $ref: "#/components/parameters/nocache"
         - $ref: "#/components/parameters/tab"
         - $ref: "#/components/parameters/country"
@@ -124,6 +136,8 @@ paths:
               schema:
                 type: string
                 format: binary
+        "400":
+          $ref: "#/components/responses/BadImageRequest"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -660,63 +674,102 @@ components:
         nullable: true
       allowEmptyValue: true
 
-    imType:
-      name: imType
+    imVariant:
+      name: imVariant
       in: query
-      description: Image type/preset
+      description: |
+        Frame and chart furniture of the image.
+
+        - `captioned`: the full chart with title, subtitle and footer
+        - `uncaptioned`: the full chart without title, subtitle or footer
+        - `simplified`: a thumbnail without caption. Line, slope, stacked bar, stacked area, Marimekko and scatter charts drop most gridlines, show only the axis endpoints and draw thinner lines. It lays out at a quarter of the PNG size, 300×160 by default.
       schema:
         type: string
-        enum:
-          - twitter
-          - og
-          - thumbnail
-          - square
-          - uncaptioned
+        enum: [captioned, uncaptioned, simplified]
+        default: captioned
+      example: "simplified"
+
+    imLabels:
+      name: imLabels
+      in: query
+      description: |
+        Text drawn in the chart. `values` shows values and drops legends, for an image that sits next to a table naming the series. Only `all` is allowed with `imVariant=captioned`.
+      schema:
+        type: string
+        enum: [all, values]
+        default: all
+      example: "values"
+
+    imPreset:
+      name: imPreset
+      in: query
+      description: |
+        Fixed image size for a known destination. A preset sets the size and font, so it can't be combined with `imWidth`, `imHeight`, `imFontSize` or `imDetails`, and it's only allowed with `imVariant=captioned`.
+
+        - `og`: 1200×628 PNG for Open Graph (Facebook, LinkedIn, Slack, WhatsApp, Signal), laid out at 800×418
+        - `twitter`: 800×418 PNG
+        - `square`: 2160×2160 PNG, laid out at 540×540
+      schema:
+        type: string
+        enum: [og, twitter, square]
       example: "og"
 
     imWidth:
       name: imWidth
       in: query
-      description: Width of the generated image in pixels
+      description: |
+        Width of the PNG in pixels. If only one of `imWidth` and `imHeight` is given, the other follows an 850:600 aspect ratio. The aspect ratio is clamped between 1:2 and 2:1, and the PNG is capped at 12,750,000 pixels (4250×3000). The chart lays out at about 850×600 and scales to the requested size, so the SVG's viewBox can differ from these numbers. With `imVariant=simplified` the default is 1200 and the chart lays out at a quarter of the width.
       schema:
         type: integer
+        minimum: 1
 
     imHeight:
       name: imHeight
       in: query
-      description: Height of the generated image in pixels
+      description: |
+        Height of the PNG in pixels. See `imWidth`. With `imDetails=1` the image grows taller than this, because the height covers only the chart frame. With `imVariant=simplified` the default is 640.
       schema:
         type: integer
-
-    imDetails:
-      name: imDetails
-      in: query
-      description: Include details (1 to enable)
-      schema:
-        type: string
-        enum: ["0", "1"]
+        minimum: 1
 
     imFontSize:
       name: imFontSize
       in: query
-      description: Font size for the image
+      description: Base font size in layout pixels. Defaults to a size derived from the layout height, or 14 with `imVariant=simplified`.
       schema:
         type: integer
+        minimum: 1
+
+    imDetails:
+      name: imDetails
+      in: query
+      description: |
+        `1` lists the definitions of every Details on Demand term used in the chart below its footer. Only allowed with `imVariant=captioned` and no preset.
+      schema:
+        type: string
+        enum: ["0", "1"]
+        default: "0"
+
+    imType:
+      name: imType
+      in: query
+      deprecated: true
+      description: |
+        Deprecated. Use `imPreset` or `imVariant`. `og`, `twitter` and `square` mean the same `imPreset`. `thumbnail` means `imVariant=simplified` and `uncaptioned` means `imVariant=uncaptioned`. Can't be combined with `imVariant` or `imPreset`.
+      schema:
+        type: string
+        enum: [og, twitter, square, thumbnail, uncaptioned]
+      example: "og"
 
     imMinimal:
       name: imMinimal
       in: query
-      description: Minimal mode (1 to enable). Affects thumbnails and uncaptioned images.
+      deprecated: true
+      description: |
+        Deprecated. Use `imLabels`. `1` means `imLabels=values` and `0` means `imLabels=all`. Can't be combined with `imLabels`.
       schema:
         type: string
         enum: ["0", "1"]
-
-    imSquareSize:
-      name: imSquareSize
-      in: query
-      description: Size for square images
-      schema:
-        type: integer
 
     focus:
       name: focus
@@ -1284,6 +1337,15 @@ components:
           description: Numeric end time value.
 
   responses:
+    BadImageRequest:
+      description: The image params are unknown or contradictory. The error names the param and the reason.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: 400
+            error: "imPreset: not allowed with imVariant=simplified"
     NotFound:
       description: Chart not found
       content:
