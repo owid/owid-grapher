@@ -168,6 +168,102 @@ export async function matchVocabularyTopics(
         .map((topic) => topic.name)
 }
 
+const EMBEDDING_MODEL = "@cf/baai/bge-m3"
+
+/** One vector per text, in order. */
+async function embed(
+    ai: Ai,
+    texts: string[],
+    signal?: AbortSignal
+): Promise<number[][]> {
+    const response: unknown = await ai.run(
+        EMBEDDING_MODEL,
+        { text: texts },
+        { signal }
+    )
+    const data = (response as { data?: unknown }).data
+    if (!Array.isArray(data) || data.length !== texts.length)
+        throw new Error("embedding response has no vectors")
+    return data as number[][]
+}
+
+// Per isolate, like the vocabulary: the topics' vectors, unit length
+let topicVectors: Promise<{ name: string; vector: number[] }[]> | undefined
+
+const unit = (vector: number[]): number[] => {
+    const norm = Math.hypot(...vector) || 1
+    return vector.map((x) => x / norm)
+}
+
+function loadTopicVectors(
+    ai: Ai
+): Promise<{ name: string; vector: number[] }[]> {
+    topicVectors ??= loadVocabulary()
+        .then(async (topics) => {
+            const texts = topics.map(
+                (topic) =>
+                    `${topic.name}: ${topic.keywords.slice(0, 6).join(", ")}`
+            )
+            // the model takes at most 100 texts a call
+            const vectors = (
+                await Promise.all(
+                    [texts.slice(0, 64), texts.slice(64, 128), texts.slice(128)]
+                        .filter((batch) => batch.length > 0)
+                        .map((batch) => embed(ai, batch))
+                )
+            ).flat()
+            return topics.map((topic, i) => ({
+                name: topic.name,
+                vector: unit(vectors[i]),
+            }))
+        })
+        .catch((error) => {
+            topicVectors = undefined // retry on the next request
+            throw error
+        })
+    return topicVectors
+}
+
+/**
+ * Under test (vocab=embed): the query's VOCABULARY_TOPICS topics by embedding
+ * similarity, in place of the decision model's topic call. `steps.topic` is
+ * the query's embedding call alone.
+ */
+export async function pickTopicsByEmbedding(
+    ai: Ai,
+    query: string
+): Promise<VocabularyInfo<VocabularyTopicPick>> {
+    const started = Date.now()
+    try {
+        const signal = AbortSignal.timeout(VOCABULARY_TIMEOUT_MS)
+        const { value: topics, ms: load } = await timed(() =>
+            loadTopicVectors(ai)
+        )
+        const { value: vectors, ms: topic } = await timed(() =>
+            embed(ai, [query], signal)
+        )
+        const queryVector = unit(vectors[0])
+        const terms = topics
+            .map(({ name, vector }) => ({
+                topic: name,
+                score: vector.reduce(
+                    (sum, x, i) => sum + x * queryVector[i],
+                    0
+                ),
+            }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, VOCABULARY_TOPICS)
+            .map(({ topic }) => ({ topic }))
+        return {
+            terms,
+            latencyMs: Date.now() - started,
+            steps: { load, topic },
+        }
+    } catch (error) {
+        return failedPicks(error, started)
+    }
+}
+
 interface PickedTopics {
     picked: VocabularyTopic[]
     state: string

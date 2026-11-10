@@ -29,6 +29,7 @@ import {
     appendVocabularyHits,
     pickVocabularyTerms,
     matchVocabularyTopics,
+    pickTopicsByEmbedding,
     pickVocabularyTopics,
     VOCABULARY_HITS_PER_TERM,
     VOCABULARY_TOPICS,
@@ -144,7 +145,14 @@ function parseRerank(
           model: RerankModel
           ai: Ai
           vocab: boolean
-          chartsVocab: "term" | "topic" | "query" | "votes" | "wide" | "wideq"
+          chartsVocab:
+              | "term"
+              | "topic"
+              | "query"
+              | "votes"
+              | "wide"
+              | "wideq"
+              | "embed"
       }
     | undefined {
     // TODO: vocab=topic, vocab=query and vocab=votes are variants under test
@@ -152,7 +160,9 @@ function parseRerank(
     // wins as vocab=1
     if (
         vocab &&
-        !["1", "topic", "query", "votes", "wide", "wideq"].includes(vocab)
+        !["1", "topic", "query", "votes", "wide", "wideq", "embed"].includes(
+            vocab
+        )
     )
         throw new SearchValidationError(
             `Invalid vocab value "${vocab}". Use vocab=1`
@@ -181,6 +191,7 @@ function parseRerank(
             vocab === "query" ||
             vocab === "votes" ||
             vocab === "wide" ||
+            vocab === "embed" ||
             vocab === "wideq"
                 ? vocab
                 : "term",
@@ -446,6 +457,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     fetchTagGraph(env, baseUrl)
                 )
             if (rerank.chartsVocab === "votes") return byVotes()
+            if (rerank.chartsVocab === "embed")
+                return pickTopicsByEmbedding(rerank.ai, query)
             if (rerank.chartsVocab !== "wide" && rerank.chartsVocab !== "wideq")
                 return pickVocabularyTopics(rerank.ai, rerank.model, query)
             // Under test (vocab=wide): no topic call. The topics the
