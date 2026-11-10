@@ -78,8 +78,8 @@
 
 .homepage-intro__new-tag {
     text-transform: uppercase;
-    background-color: color.scale($vermillion, $alpha: -80%);
-    color: $vermillion;
+    background-color: theme-alpha("vermillion", 0.2);
+    color: $vermillion-text;
     padding: 2px 4px;
     border-radius: 2px;
     margin-right: 5px;
@@ -290,7 +290,7 @@
     display: flex;
     gap: 16px;
     svg {
-        color: $vermillion;
+        color: $vermillion-text;
         background: $blue-20;
         padding: 16px;
         border-radius: 50%;
@@ -303,7 +303,7 @@
 
     .homepage-intro__donation-link {
         margin: 0;
-        color: $vermillion;
+        color: $vermillion-text;
         text-decoration: underline;
         &:hover {
             text-decoration: none;

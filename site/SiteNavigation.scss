@@ -35,7 +35,7 @@
         flex: 1; // center owid logo
         > button {
             @include mobile-toggle-icon;
-            color: $white;
+            color: $always-white;
             &:hover {
                 color: $blue-40;
             }
@@ -122,7 +122,7 @@
                 margin-right: 0;
             }
             .SiteNavigationToggle__button {
-                color: $white;
+                color: $always-white;
                 &:hover {
                     color: $blue-40;
                 }
@@ -174,7 +174,7 @@
             display: flex;
             align-items: center;
             height: $search-cta-height;
-            color: $white;
+            color: $always-white;
             @include body-3-medium;
             padding: 0 24px;
             background-color: $vermillion;
@@ -209,7 +209,7 @@
     width: 100%;
     text-align: center;
     padding: 2px 0 5px;
-    color: $white;
+    color: $always-white;
     background-color: $vermillion;
 
     &:hover {

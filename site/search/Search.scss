@@ -22,7 +22,7 @@
     display: flex;
     align-items: flex-start;
     border: 1px solid $blue-20;
-    background-color: #fff;
+    background-color: $white;
     position: relative;
 
     &:focus-within {
@@ -107,7 +107,7 @@
 }
 
 .search-input {
-    background-color: white;
+    background-color: $white;
     height: 32px;
     border: none;
     padding: 0;

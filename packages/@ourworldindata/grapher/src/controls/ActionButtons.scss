@@ -43,7 +43,7 @@ div.ActionButton {
     }
 
     &.ActionButton--donate {
-        --light-fill: #{rgba($vermillion, 0.15)};
+        --light-fill: #{theme-alpha("vermillion", 0.15)};
         --hover-fill: #{rgba(#f4a39f, 0.15)};
         --active-fill: var(--hover-fill);
         --text-color: #{$vermillion};

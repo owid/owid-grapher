@@ -54,7 +54,7 @@
 .footer-left {
     padding-bottom: 24px;
     @include sm-only {
-        border-bottom: 1px solid color.scale($blue-20, $alpha: -90%);
+        border-bottom: 1px solid theme-alpha("blue-20", 0.1);
     }
     p {
         margin-top: 0;
@@ -114,7 +114,7 @@
 }
 
 .footer-base {
-    border-top: 1px solid color.scale($blue-20, $alpha: -90%);
+    border-top: 1px solid theme-alpha("blue-20", 0.1);
     padding-top: 24px;
 }
 
@@ -126,7 +126,7 @@
 
     @include sm-only {
         padding-bottom: 24px;
-        border-bottom: 1px solid color.scale($blue-20, $alpha: -90%);
+        border-bottom: 1px solid theme-alpha("blue-20", 0.1);
         margin-bottom: 16px;
         flex-wrap: wrap;
         justify-content: space-between;

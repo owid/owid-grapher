@@ -5,7 +5,7 @@ $chart-border-radius: 2px;
     $selected-option-color: #243d60;
 
     display: flex;
-    background: white;
+    background: $white;
     border-radius: $chart-border-radius;
     box-shadow: $light-shadow;
     padding: 0 14px;

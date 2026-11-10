@@ -37,7 +37,7 @@
             border-radius: 4px;
             border: 1px solid $background-stroke;
             box-shadow: 0px 4px 40px rgba(0, 0, 0, 0.2);
-            background: white;
+            background: $white;
             text-align: left;
             pointer-events: none;
             font-family: $sans-serif-font-stack;
@@ -100,7 +100,7 @@
 
             &.plain header {
                 border-radius: 3px;
-                background: white;
+                background: $white;
             }
 
             .content {

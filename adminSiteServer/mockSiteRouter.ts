@@ -29,6 +29,7 @@ import {
 
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { makeSitemap } from "../baker/sitemap.js"
+import { renderDarkModePalettesPage } from "./darkModePalettesPage.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { getChartConfigByUuid } from "../db/model/ChartConfigs.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
@@ -141,6 +142,15 @@ getPlainRouteWithROTransaction(
         res.set("Content-Type", "application/xml")
         const atomFeedDataInsights = await makeDataInsightsAtomFeed(trx)
         res.send(atomFeedDataInsights)
+    }
+)
+
+// DARK MODE PROTOTYPE: palette comparison page
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/dark-mode-palettes",
+    async (_, res, trx) => {
+        res.send(await renderDarkModePalettesPage(trx))
     }
 )
 

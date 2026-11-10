@@ -157,7 +157,7 @@
     @include h4-semibold;
     margin-top: 0;
     margin-bottom: 8px;
-    color: $vermillion;
+    color: $vermillion-text;
 }
 
 .deprecation-notice__icon {
@@ -168,7 +168,7 @@
     font-weight: 700;
 
     &__highlight {
-        color: $vermillion;
+        color: $vermillion-text;
     }
 }
 
@@ -329,7 +329,7 @@ h3.article-block__heading.has-supertitle {
     .centered-article-header__breadcrumbs {
         @include body-3-regular;
         &.breadcrumbs-white {
-            color: $white;
+            color: $always-white;
         }
         &.breadcrumbs-blue {
             color: $blue-90;
@@ -920,7 +920,7 @@ div.raw-html-table__container {
 
 .cta {
     @include body-2-semibold;
-    color: $vermillion;
+    color: $vermillion-text;
     margin-bottom: 16px;
     a {
         color: inherit;
@@ -1099,11 +1099,11 @@ div.raw-html-table__container {
 
     #autocomplete {
         height: 56px;
-        background-color: #fff;
+        background-color: $white;
     }
 
     .aa-DetachedSearchButton {
-        background-color: #fff;
+        background-color: $white;
         border-radius: 0;
         justify-content: space-between;
         cursor: text;
@@ -1113,7 +1113,7 @@ div.raw-html-table__container {
     .aa-DetachedSearchButtonIcon {
         position: absolute;
         right: 0;
-        background: white;
+        background: $white;
         svg {
             fill: $blue-50;
         }
@@ -1134,7 +1134,7 @@ div.raw-html-table__container {
     }
 
     .aa-Form {
-        background-color: #fff;
+        background-color: $white;
         border-color: $blue-20;
         height: 56px;
     }

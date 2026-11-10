@@ -8,7 +8,7 @@
 
 .search-country-selector-button {
     @include body-3-bold;
-    background-color: #fff;
+    background-color: $white;
     cursor: pointer;
     font-weight: bold;
     color: $blue-90;
@@ -99,7 +99,7 @@
 }
 
 .search-country-selector-search-input {
-    background-color: #fff;
+    background-color: $white;
     border: 1px solid $gray-20;
     border-radius: 0;
     height: 32px;
@@ -126,7 +126,7 @@
 }
 
 .search-country-selector-list-container {
-    background-color: #fff;
+    background-color: $white;
     padding: 16px;
     // wide enough for the toggle label text not to wrap
     width: 380px;

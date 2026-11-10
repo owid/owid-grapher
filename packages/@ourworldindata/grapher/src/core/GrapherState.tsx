@@ -1,3 +1,4 @@
+import { withLightChartTheme } from "../color/ChartTheme"
 import {
     MarkdownTextWrap,
     sumTextWrapHeights,
@@ -3148,7 +3149,10 @@ export class GrapherState
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         runInAction(() => (this.isExportingToSvgOrPng = true))
 
-        const innerHTML = renderToHtmlString(<Chart manager={this} />)
+        // DARK MODE PROTOTYPE: exports always use the light chart theme
+        const innerHTML = withLightChartTheme(() =>
+            renderToHtmlString(<Chart manager={this} />)
+        )
 
         // Restore isExportingToSvgOrPng
         runInAction(() => (this.isExportingToSvgOrPng = _isExportingToSvgOrPng))

@@ -54,7 +54,7 @@
 
 .owid-btn--outline-vermillion {
     border-color: $vermillion;
-    color: $vermillion;
+    color: $vermillion-text;
 
     &:hover {
         border-color: $accent-vermillion;
@@ -91,8 +91,8 @@
 
 .owid-btn--outline-white {
     background-color: transparent;
-    border-color: $white;
-    color: $white;
+    border-color: $always-white;
+    color: $always-white;
 
     &:hover {
         background-color: $white;

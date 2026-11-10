@@ -27,7 +27,7 @@
         width: $checkbox-size;
         height: $checkbox-size;
 
-        background: white;
+        background: $white;
         pointer-events: none;
         border-radius: 2px;
         border: 1px solid $light-stroke;
@@ -57,7 +57,7 @@
     }
 
     input:checked:active + .custom {
-        background: white;
+        background: $white;
     }
 
     input:disabled {

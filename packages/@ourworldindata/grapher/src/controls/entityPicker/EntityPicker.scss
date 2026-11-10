@@ -18,7 +18,7 @@ $zindex-dropdown: 100;
     flex-direction: column;
     box-shadow: $chart-box-shadow;
     border-radius: $chart-border-radius;
-    background-color: #fff;
+    background-color: $white;
     margin-top: 10px;
 
     &.isDropdown {
@@ -86,7 +86,7 @@ $zindex-dropdown: 100;
     position: relative;
 
     &.selected {
-        background-color: #fff;
+        background-color: $white;
         font-weight: bold;
         z-index: 1;
     }
@@ -165,13 +165,13 @@ $zindex-dropdown: 100;
 
     .bar {
         height: 100%;
-        background-color: rgba($oxford-blue, 0.03);
-        border-right: 1px solid rgba($oxford-blue, 0.05);
+        background-color: theme-alpha("oxford-blue", 0.03);
+        border-right: 1px solid theme-alpha("oxford-blue", 0.05);
     }
 
     &.selected .bar {
-        background-color: rgba($oxford-blue, 0.05);
-        border-right: 1px solid rgba($oxford-blue, 0.07);
+        background-color: theme-alpha("oxford-blue", 0.05);
+        border-right: 1px solid theme-alpha("oxford-blue", 0.07);
     }
 }
 
@@ -187,7 +187,7 @@ $zindex-dropdown: 100;
     .input-field {
         width: 100%;
         border: none;
-        background-color: #fff;
+        background-color: $white;
         border-radius: 3px;
         box-shadow: $light-shadow;
         padding: 11px 10px;

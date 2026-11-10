@@ -65,7 +65,7 @@
 .slideshow-slides--fullscreen {
     max-height: unset;
     height: 100vh;
-    background-color: #fff;
+    background-color: $white;
 
     .slideshow-footer {
         display: none;
@@ -110,7 +110,7 @@
     height: 36px;
     border: 1px solid #ddd;
     border-radius: 50%;
-    background: #fff;
+    background: $white;
     color: #333;
     font-size: 14px;
     cursor: pointer;
@@ -146,7 +146,7 @@
     height: 36px;
     border: 1px solid #ddd;
     border-radius: 50%;
-    background: #fff;
+    background: $white;
     color: #333;
     font-size: 14px;
     cursor: pointer;

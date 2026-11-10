@@ -7,7 +7,7 @@
 
     .article-block__text {
         @include body-2-regular;
-        color: $white;
+        color: $always-white;
 
         &:last-child {
             margin-bottom: 0;

@@ -92,7 +92,7 @@ $lato: $sans-serif-font-stack;
         }
     }
     &:hover input:checked + .outer .inner {
-        background: color.adjust($active-switch, $lightness: -13%);
+        background: $blue-70;
     }
 
     &.labeled-switch--disabled {

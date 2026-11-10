@@ -20,7 +20,7 @@
 .aa-Autocomplete[aria-expanded="true"] .aa-Form {
     box-shadow: none;
     border-color: $blue-20;
-    background-color: #fff;
+    background-color: $white;
     &:focus-within {
         box-shadow: none;
     }
@@ -108,7 +108,7 @@
 
 .aa-DetachedCancelButton {
     color: $blue-90;
-    background: #fff;
+    background: $white;
     // above the placeholder text on mobile
     z-index: 1;
     border-radius: 0;
@@ -136,7 +136,7 @@
 // for everything in the site nav between 960-1045px. Mirrored in Autocomplete.tsx
 @media (width <= 1045px) {
     .aa-DetachedSearchButtonIcon svg {
-        fill: #fff;
+        fill: $white;
     }
 }
 
@@ -160,7 +160,7 @@
         padding: 2px;
         border-radius: 8px;
         background-color: $blue-50;
-        fill: #fff;
+        fill: $white;
     }
 }
 

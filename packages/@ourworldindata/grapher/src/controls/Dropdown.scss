@@ -50,7 +50,7 @@ $grapher-dropdown-selected-fill: #c7ced7;
         border-radius: 4px;
         padding: 7px;
         color: $gray-90;
-        background: white;
+        background: $white;
         cursor: pointer;
         position: relative;
         width: 100%;
@@ -130,7 +130,7 @@ $grapher-dropdown-selected-fill: #c7ced7;
 
     margin-top: 3px;
     border-radius: 4px;
-    background: white;
+    background: $white;
     box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
     z-index: $zindex-controls-popup;
     color: $gray-90;
@@ -217,7 +217,7 @@ $grapher-dropdown-selected-fill: #c7ced7;
     outline: 0;
     font: 400 13px/16px $sans-serif-font-stack;
     color: $dark-text;
-    background: white;
+    background: $white;
     padding: 4px 6px;
 
     &:focus-visible {

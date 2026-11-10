@@ -137,7 +137,7 @@
 
 .latest-topic-facets__content-type-trigger {
     @include note-12-medium;
-    background-color: #fff;
+    background-color: $white;
     border: 1px solid $blue-20;
     border-radius: 0;
     height: 32px;
@@ -192,7 +192,7 @@
 }
 
 .latest-topic-facets__content-type-dropdown-menu {
-    background-color: #fff;
+    background-color: $white;
     border: 1px solid $blue-20;
     border-radius: 0;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
@@ -212,7 +212,7 @@
     padding: 0 16px;
     cursor: pointer;
     color: $blue-90;
-    background-color: #fff;
+    background-color: $white;
     transition: background-color 0.1s ease;
 
     &:focus-visible {
@@ -239,7 +239,7 @@
     height: 16px;
     border: 1px solid $blue-30;
     border-radius: 50%;
-    background-color: #fff;
+    background-color: $white;
     display: flex;
     align-items: center;
     justify-content: center;

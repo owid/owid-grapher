@@ -42,7 +42,7 @@ $checkbox-check-height: 4px;
         width: $checkbox-icon-size;
         height: $checkbox-icon-size;
         margin-top: -$checkbox-icon-size * 0.5;
-        background: #fff;
+        background: $white;
         border-radius: 3px;
         border: 1px solid $gray-30;
     }

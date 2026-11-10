@@ -225,7 +225,7 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
 .sidebar-toc__section--active > .sidebar-toc__h1 {
     &,
     &:hover {
-        color: $vermillion;
+        color: $vermillion-text;
     }
 
     &::before {
@@ -243,7 +243,7 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
     &,
     & > a,
     & > a:hover {
-        color: $vermillion;
+        color: $vermillion-text;
     }
 
     &::before {

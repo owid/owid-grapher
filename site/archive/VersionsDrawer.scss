@@ -39,7 +39,7 @@
     width: min(408px, 100%);
     background-color: $white;
     color: $blue-90;
-    box-shadow: 0 10px 30px rgba($oxford-blue, 0.25);
+    box-shadow: 0 10px 30px theme-alpha("oxford-blue", 0.25);
     display: flex;
     flex-direction: column;
     will-change: transform;

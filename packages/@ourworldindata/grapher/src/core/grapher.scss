@@ -82,6 +82,7 @@
 @import "../controls/Dropdown.scss";
 @import "../controls/MapZoomDropdown.scss";
 @import "../controls/DataTableFilterDropdown.scss";
+@import "./chartDarkTheme.scss";
 
 .grapher_dark {
     color: $dark-text;
@@ -106,7 +107,7 @@
 
     line-height: 1em;
 
-    background: white;
+    background: $white;
     color: $gray-80;
 
     position: relative;
@@ -212,7 +213,7 @@
 // (the `--short` version has a little less padding)
 .tippy-box[data-theme="grapher-explanation"],
 .tippy-box[data-theme="grapher-explanation--short"] {
-    background: white;
+    background: $white;
     color: $gray-80;
     font: 400 14px/1.5 $sans-serif-font-stack;
     box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
@@ -247,7 +248,7 @@
 // React Aria Tooltip
 // Matches the styling of .tippy-box[data-theme="grapher-explanation"]
 .react-aria-tooltip {
-    background: white;
+    background: $white;
     color: $gray-80;
     font: 400 14px/1.5 $sans-serif-font-stack;
     box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
@@ -261,7 +262,7 @@
 
         svg {
             display: block;
-            fill: white;
+            fill: $white;
             stroke: none;
         }
     }

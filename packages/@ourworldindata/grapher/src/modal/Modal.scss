@@ -29,7 +29,7 @@
     .modal-panel {
         position: absolute;
         border-radius: 4px;
-        background: #fff;
+        background: $white;
         box-shadow: 0px 4px 30px 0px rgba(0, 0, 0, 0.15);
         min-height: 150px;
         transition: transform var(--duration-popover) var(--ease-out);

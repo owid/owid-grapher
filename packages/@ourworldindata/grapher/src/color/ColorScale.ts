@@ -7,6 +7,7 @@ import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 import { OWID_NO_DATA_GRAY } from "./ColorConstants"
+import { themeCategoricalColor, themeRamp } from "./ChartTheme"
 import {
     ColorScaleConfigInterface,
     ColorSchemeName,
@@ -261,9 +262,17 @@ export class ColorScale {
         if (minPossibleValue === undefined || maxPossibleValue === undefined)
             return []
 
-        return pairs(bucketThresholds).map(([min, max], index) => {
-            const baseColor = baseColors[index]
-            const color = customNumericColors[index] ?? baseColor
+        const pairsOfThresholds = pairs(bucketThresholds)
+        // DARK MODE PROTOTYPE: adapt the numeric bins as one ramp, so their
+        // order stays readable on the dark background
+        const rampColors = themeRamp(
+            pairsOfThresholds.map(
+                (_, index) => customNumericColors[index] ?? baseColors[index]
+            )
+        )
+
+        return pairsOfThresholds.map(([min, max], index) => {
+            const color = rampColors[index] as Color
             const label = customNumericLabels[index]
 
             const roundingOptions = {
@@ -359,7 +368,9 @@ export class ColorScale {
                 baseColor = baseColors[index + boundingOffset]
             }
 
-            const color = customCategoryColors[value] ?? baseColor
+            const color = themeCategoricalColor(
+                customCategoryColors[value] ?? baseColor
+            )
             const label = customCategoryLabels[value] ?? value
 
             return new CategoricalBin({

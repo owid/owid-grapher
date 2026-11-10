@@ -13,7 +13,7 @@ $zindex-ControlsFooter: 2;
     position: absolute;
     bottom: $timelineHeight + 8px;
     text-align: left;
-    background: #fff;
+    background: $white;
     box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.06);
     padding: 4px 0;
     z-index: $zindex-ControlsFooterMenu;

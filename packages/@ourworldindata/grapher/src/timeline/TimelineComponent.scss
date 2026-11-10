@@ -125,7 +125,7 @@ $timelineHeight: 32px;
                 cursor: text;
                 padding: 0 8px;
                 height: $timelineHeight;
-                background: white;
+                background: $white;
                 border: 1px solid $gray-20;
                 border-radius: 4px;
                 font-weight: 400;
@@ -168,7 +168,7 @@ $timelineHeight: 32px;
                 min-width: 50px;
                 max-width: 140px;
                 height: $timelineHeight;
-                background: white;
+                background: $white;
                 border: 1px solid $blue-50;
                 color: inherit;
                 font-size: $font-size;
@@ -265,7 +265,7 @@ $timelineHeight: 32px;
 }
 
 .GrapherTimeline__DateInput {
-    background: white;
+    background: $white;
     border: 1px solid $blue-50;
     color: inherit;
     font-size: 13px;

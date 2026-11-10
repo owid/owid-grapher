@@ -1,6 +1,6 @@
 .explorer-index-page {
     .explorer-index-page__header {
-        background-color: #f0f4fa;
+        background-color: $blue-5;
         margin-bottom: 16px;
         padding-bottom: 24px;
         .h1-semibold {
@@ -12,11 +12,11 @@
         }
         p {
             margin: 0;
-            color: #355174;
+            color: $blue-70;
         }
     }
     .explorer-index-page-list {
-        background-color: #fff;
+        background-color: $white;
         list-style: none;
         row-gap: var(--grid-gap);
 

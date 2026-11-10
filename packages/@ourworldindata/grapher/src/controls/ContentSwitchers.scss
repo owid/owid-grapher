@@ -3,7 +3,7 @@ $active-icon: $blue-50;
 @at-root {
     .ContentSwitchers__OverflowMenu {
         border-radius: 4px;
-        background-color: #fff;
+        background-color: $white;
         box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.06);
     }
 
@@ -24,7 +24,7 @@ $active-icon: $blue-50;
         color: $light-text;
         cursor: pointer;
         width: 100%;
-        background-color: #fff;
+        background-color: $white;
 
         &[data-hovered] {
             background-color: $gray-10;

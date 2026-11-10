@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import { Color } from "@ourworldindata/types"
 import { rgb, color, RGBColor } from "d3-color"
 import { interpolate } from "d3-interpolate"
+import { isDarkChartTheme, lightenColorForDarkText } from "./ChartTheme"
 
 export const interpolateArray = (
     scaleArr: string[]
@@ -73,14 +74,19 @@ function darkenColorToTargetYiq(colorHex: Color, targetYiq: number): Color {
     return c.formatHex()
 }
 
+// DARK MODE PROTOTYPE: on a dark background, "darken for contrast" becomes
+// "lighten for contrast"
 export function darkenColorForLine(colorHex: Color): Color {
+    if (isDarkChartTheme()) return colorHex
     return darkenColorToTargetYiq(colorHex, 170)
 }
 
 export function darkenColorForText(colorHex: Color): Color {
+    if (isDarkChartTheme()) return lightenColorForDarkText(colorHex)
     return darkenColorToTargetYiq(colorHex, 125)
 }
 
 export function darkenColorForHighContrastText(colorHex: Color): Color {
+    if (isDarkChartTheme()) return lightenColorForDarkText(colorHex)
     return darkenColorToTargetYiq(colorHex, 105)
 }

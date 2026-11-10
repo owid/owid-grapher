@@ -40,7 +40,7 @@
     }
     .topic-page-header__byline a {
         @include owid-link-60;
-        color: color.scale($blue-60, $lightness: -5%);
+        color: $blue-70;
         &:visited {
             color: inherit;
         }
@@ -118,7 +118,7 @@
         a {
             padding: 8px 24px;
             border: 1px solid $vermillion;
-            color: $vermillion;
+            color: $vermillion-text;
             display: inline-block;
             cursor: pointer;
             line-height: 30px;

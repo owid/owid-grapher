@@ -31,7 +31,7 @@ html.IsInIframe #ExplorerContainer {
 .ExplorerHeaderBox {
     padding: 8px;
     min-width: $explorer-min-width-first-col;
-    background: white;
+    background: $white;
     border-radius: $chart-border-radius;
     box-shadow: $light-shadow;
     display: flex;

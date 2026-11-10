@@ -1,3 +1,4 @@
+import { themeCategoricalColor } from "../color/ChartTheme"
 import * as _ from "lodash-es"
 import { computed, makeObservable } from "mobx"
 import { match } from "ts-pattern"
@@ -321,11 +322,13 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
                 : undefined
             const color = hasColorScale
                 ? this.colorScale.getColor(colorValue)
-                : isColumnStrategy
-                  ? col.def.color
-                  : transformedTable.getColorForEntityName(
-                        entityNames[index] as string
-                    )
+                : themeCategoricalColor(
+                      isColumnStrategy
+                          ? col.def.color
+                          : transformedTable.getColorForEntityName(
+                                entityNames[index] as string
+                            )
+                  )
             const isProjection = isProjectionValues
                 ? (isProjectionValues[index] as boolean)
                 : col.isProjection

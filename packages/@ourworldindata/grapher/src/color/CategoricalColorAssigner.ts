@@ -2,6 +2,7 @@ import * as R from "remeda"
 import { Color } from "@ourworldindata/utils"
 import { ColorScheme } from "./ColorScheme"
 import { getLeastUsedColor } from "./ColorUtils"
+import { themeCategoricalColor } from "./ChartTheme"
 
 type CategoryId = string
 export type CategoricalColorMap = Map<CategoryId, Color>
@@ -92,6 +93,8 @@ export class CategoricalColorAssigner {
             color = this.colorScheme.colorMap[id]
         if (color === undefined) color = this.leastUsedColor
         this.autoColorMapCache.set(id, color)
-        return color
+        // DARK MODE PROTOTYPE: the cache keeps the authored (light) color so
+        // switching theme is lossless; the adapted color is only an output
+        return themeCategoricalColor(color)
     }
 }

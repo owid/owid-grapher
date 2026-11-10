@@ -1,0 +1,108 @@
+/*******************************************************************************
+ * DARK MODE PROTOTYPE — proposal C: chart UI colors (axes, gridlines, labels,
+ * map borders, halos, backgrounds) in the live chart.
+ *
+ * Grapher draws its SVG UI with ~110 hardcoded grays and ~660 references to
+ * gray constants. In production these would become a `GrapherTheme` object
+ * passed through GrapherState (so exported SVGs stay self-contained). For the
+ * prototype, we remap them with CSS: a CSS `fill`/`stroke` rule beats an SVG
+ * presentation attribute, so `[fill="#ddd"]` can be redirected without
+ * touching any chart code. Exports never see these rules and stay light.
+ *
+ * Each gray is mirrored: white → the dark chart background, dark text grays
+ * → light text grays. The curve is slightly bent so faint gridlines stay faint
+ * while text keeps good contrast.
+ *
+ * Data colors are NOT handled here — see color/ChartTheme.ts.
+ */
+
+@use "sass:color";
+@use "sass:math";
+@use "sass:map";
+
+$dark-chart-bg: #14181e;
+$dark-chart-fg: #e9ebed;
+
+@function mirror-gray($c) {
+    $lightness: math.div(color.channel($c, "lightness", $space: hsl), 100%);
+    $weight: math.pow(1 - $lightness, 0.85) * 100%;
+    @return color.mix($dark-chart-fg, $dark-chart-bg, $weight);
+}
+
+// Spellings used in the chart code, mapped to their color
+$chart-grays: (
+    "#fff": #fff,
+    "#ffffff": #fff,
+    "white": #fff,
+    "#fafafa": #fafafa,
+    "#f7f7f7": #f7f7f7,
+    "#f2f2f2": #f2f2f2,
+    "#f0f0f0": #f0f0f0,
+    "#eee": #eee,
+    "#e7e7e7": #e7e7e7,
+    "#e2e2e2": #e2e2e2,
+    "#ddd": #ddd,
+    "#dadada": #dadada,
+    "#d3d3d3": #d3d3d3,
+    "#ccc": #ccc,
+    "#c6c6c6": #c6c6c6,
+    "#bbb": #bbb,
+    "#aaa": #aaa,
+    "#a1a1a1": #a1a1a1,
+    "#999": #999,
+    "#888": #888,
+    "#858585": #858585,
+    "#787878": #787878,
+    "#777": #777,
+    "#767676": #767676,
+    "#666": #666,
+    "#5b5b5b": #5b5b5b,
+    "#555": #555,
+    "#4e4e4e": #4e4e4e,
+    "#444": #444,
+    "#333": #333,
+    "#2d2e2d": #2d2e2d,
+    "#222": #222,
+    "#111": #111,
+    "#000": #000,
+    "#000000": #000,
+    "black": #000,
+);
+
+:root[data-chart-theme="dark"] {
+    .GrapherComponent,
+    .Explorer {
+        // Logos keep their brand colors
+        @each $spelling, $gray in $chart-grays {
+            $dark: mirror-gray($gray);
+            svg [fill="#{$spelling}" i]:not(.logo *) {
+                fill: $dark;
+            }
+            svg [stroke="#{$spelling}" i]:not(.logo *) {
+                stroke: $dark;
+            }
+        }
+
+        // Chart SVGs set a white background inline (needed for PNG export)
+        svg[style*="background-color"] {
+            background-color: $dark-chart-bg !important;
+        }
+
+        // Text halos are drawn with an inline style, hence !important
+        svg [data-halo="default"] {
+            fill: $dark-chart-bg !important;
+            stroke: $dark-chart-bg !important;
+        }
+
+        // The live chart's backgrounds are set inline for exports
+        .CaptionedChart,
+        svg.chart {
+            background-color: $dark-chart-bg !important;
+        }
+
+        // Map "no data" pattern: a slightly lighter hatch on dark
+        svg pattern path {
+            stroke: #3b3f48;
+        }
+    }
+}

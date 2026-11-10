@@ -1,0 +1,356 @@
+/*******************************************************************************
+ * DARK MODE PROTOTYPE
+ *
+ * Page-level rules for the dark theme. Almost everything else switches through
+ * the tokens in colors.scss; this file only holds the exceptions.
+ */
+
+body {
+    background-color: var(--page-background);
+}
+
+/* Theme switcher (prototype only) */
+.theme-switcher {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 2147483000;
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--always-oxford-blue);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    font-family: $sans-serif-font-stack;
+}
+
+.theme-switcher__option {
+    appearance: none;
+    border: 0;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #c9d5e3;
+    background: transparent;
+    cursor: pointer;
+
+    &:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    &[aria-pressed="true"] {
+        color: #002147;
+        background: #fff;
+    }
+}
+
+:root[data-theme="dark"] {
+    /* Images authored on white (data insight PNGs, Figma static charts,
+       illustrations) are shown as they are, not inverted, because inverting
+       would change the data colors inside them. */
+
+    /* Scrollbars and native form controls follow the theme */
+    color-scheme: dark;
+}
+
+/* Proposal A: charts are light islands. Give them a little breathing room so
+   the white rectangle reads as a deliberate card, not a rendering bug. */
+:root[data-theme="dark"][data-chart-theme="light"] {
+    .GrapherComponent {
+        border-radius: 8px;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+
+    /* Explorers (controls, country list and chart) are one light card, like
+       a standalone Grapher */
+    .Explorer {
+        background-color: $white;
+        padding: 16px;
+    }
+
+    /* The full-width grapher page wraps the chart in a bordered frame */
+    figure[data-grapher-src] > .GrapherComponent,
+    .chart-key-info {
+        color-scheme: light;
+    }
+}
+
+/* Pill rows (e.g. "Popular pages" on the homepage). In light mode the pills
+   are white on a pale-blue strip; mirrored, they become a dark hole with the
+   brightest text on the page. On dark, they're a faint lift of the strip with
+   softer text instead. */
+:root[data-theme="dark"] {
+    .article-block__pill-row:not(.author-work .article-block__pill-row) {
+        p {
+            color: $blue-50;
+        }
+
+        .article-block__pill a {
+            color: $blue-70;
+            background-color: rgba(255, 255, 255, 0.05);
+
+            &:hover {
+                color: $blue-90;
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+        }
+    }
+}
+
+/* Native form controls. With `color-scheme: dark` the browser draws its own
+   neutral-gray inputs and checkboxes, which don't match the palette. These
+   rules have zero specificity (:where), so any component that styles its own
+   inputs still wins. */
+:where(:root[data-theme="dark"])
+    :where(
+        input[type="email"],
+        input[type="text"],
+        input[type="search"],
+        input[type="number"],
+        textarea
+    ) {
+    color: $blue-90;
+    background-color: $white;
+    border: 1px solid $blue-30;
+
+    &::placeholder {
+        color: $blue-50;
+    }
+
+    &:focus {
+        border-color: $blue-50;
+    }
+}
+
+:where(:root[data-theme="dark"])
+    :where(input[type="checkbox"], input[type="radio"]) {
+    accent-color: #4f86c6;
+}
+
+:root[data-theme="dark"] {
+    /* Separator in the homepage newsletter card (#bdd4f7 in light mode) */
+    .homepage-intro__newsletter-signup .newsletter-subscription-form {
+        border-bottom-color: $blue-30;
+    }
+
+    /* OWID custom checkboxes (newsletter sign-up, .owid-checkbox). In light
+       mode the checked box is a dark slate ($blue-70) with a white tick;
+       mirrored, it becomes pale gray and the tick disappears. Keep a mid
+       slate blue instead. */
+    .owid-checkbox,
+    .newsletter-subscription-form__checkbox {
+        input[type="checkbox"] + label::before {
+            border-color: $blue-30;
+        }
+
+        input[type="checkbox"]:checked + label::before {
+            background-color: #4a6a92;
+            border-color: #4a6a92;
+        }
+    }
+}
+
+/* Solid fills behind white text. These use blue/gray tokens that are mirrored
+   to light tones in the dark theme, while their text is hardcoded white, so
+   the label lost its contrast. On dark they get mid-tone slate fills that
+   keep white text readable (≥ 4.5:1). */
+$dark-solid-fill: #4a6a92;
+$dark-solid-fill-hover: #5a7ca6;
+$dark-solid-fill-deep: #34506f;
+$dark-solid-fill-deep-hover: #41618a;
+
+:root[data-theme="dark"] {
+    .owid-btn--solid-blue,
+    .search-chart-hit-captioned-link__cta,
+    .chart-thumbnail__cta {
+        background-color: $dark-solid-fill;
+
+        &:hover {
+            background-color: $dark-solid-fill-hover;
+        }
+    }
+
+    .owid-btn--solid-dark-blue {
+        background-color: $dark-solid-fill-deep;
+
+        &:hover {
+            background-color: $dark-solid-fill-deep-hover;
+        }
+    }
+
+    /* Grapher's small dark tooltip ($gray-90 behind white text) */
+    .tippy-box[data-theme="grapher-dark"] {
+        background-color: #353c47;
+    }
+
+    /* Arrow of the explanation tooltip matches its (now dark) box */
+    .tippy-box[data-theme="grapher-explanation"] .tippy-arrow,
+    .tippy-box[data-theme="grapher-explanation--short"] .tippy-arrow {
+        color: $white;
+    }
+}
+
+/* "Browse by topic" menu. The right-hand topic list and the active/hovered
+   category share a hardcoded pale blue (#d5e7fe) in light mode, which joins
+   them visually. On dark, they share a slate one step lighter than the
+   left-hand panel instead. */
+$dark-topics-panel: #283649;
+
+:root[data-theme="dark"] {
+    .SiteNavigationTopics {
+        .categories li > button:hover,
+        .categories li > button.active {
+            background-color: $dark-topics-panel;
+        }
+
+        ul.topics {
+            background-color: $dark-topics-panel;
+        }
+    }
+}
+
+/* Article header breadcrumbs. "breadcrumbs-blue" is chosen for light cover
+   colors (the default amber banner, light SDG colors), which stay light in the
+   dark theme too, so the text keeps the light-theme dark navy. */
+:root[data-theme="dark"] {
+    .centered-article-header__breadcrumbs.breadcrumbs-blue {
+        color: $text-on-dark-amber;
+    }
+}
+
+/* Search autocomplete. The suggestion panel is portaled to <body> and gets
+   its surface colors from Algolia's bundled theme, which reads its own
+   --aa-*-rgb variables. Point them at our tokens. */
+:root[data-theme="dark"] {
+    --aa-background-color-rgb: var(--white-rgb);
+    --aa-input-background-color-rgb: var(--white-rgb);
+    --aa-text-color-rgb: var(--blue-90-rgb);
+    --aa-muted-color-rgb: var(--blue-50-rgb);
+    --aa-icon-color-rgb: var(--blue-50-rgb);
+    --aa-panel-border-color-rgb: var(--blue-20-rgb);
+    --aa-input-border-color-rgb: var(--blue-30-rgb);
+    --aa-selected-color-rgb: var(--blue-20-rgb);
+    --aa-selected-color-alpha: 1;
+    --aa-scrollbar-track-background-color-rgb: var(--blue-10-rgb);
+    --aa-panel-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* Link icon next to headings. The light-theme icon is an SVG with the navy
+   fill baked in; on dark, the same shape is used as a mask over a theme
+   color instead. */
+:root[data-theme="dark"] .deep-link {
+    background: $blue-50;
+    -webkit-mask: $deep-link-icon no-repeat left / contain;
+    mask: $deep-link-icon no-repeat left / contain;
+
+    &:hover {
+        background: $blue-90;
+    }
+}
+
+/* Tooltips using tippy's bundled "light" theme (details on demand, footnotes,
+   …). That theme hardcodes a white box; on dark it becomes a raised slate
+   surface so the dark-theme text and links inside read correctly. */
+$dark-popover: #222a36;
+
+:root[data-theme="dark"] {
+    .tippy-box[data-theme~="light"] {
+        color: $blue-90;
+        background-color: $dark-popover;
+        box-shadow:
+            0 0 0 1px $blue-20,
+            0 8px 32px rgba(0, 0, 0, 0.5);
+
+        &[data-placement^="top"] > .tippy-arrow::before {
+            border-top-color: $dark-popover;
+        }
+        &[data-placement^="bottom"] > .tippy-arrow::before {
+            border-bottom-color: $dark-popover;
+        }
+        &[data-placement^="left"] > .tippy-arrow::before {
+            border-left-color: $dark-popover;
+        }
+        &[data-placement^="right"] > .tippy-arrow::before {
+            border-right-color: $dark-popover;
+        }
+        > .tippy-backdrop {
+            background-color: $dark-popover;
+        }
+        > .tippy-svg-arrow {
+            fill: $dark-popover;
+        }
+    }
+}
+
+/* Divider lines between expandable rows (FAQs, sources, data page sections).
+   The component defaults to a hardcoded #d0dae3 unless this variable is set;
+   components that set it themselves (e.g. the sources modal) still win. */
+:root[data-theme="dark"] {
+    --expandable-toggle-border: #{$blue-20};
+}
+
+/* Data table previews in search results and "Related charts". They sit next
+   to static chart thumbnails, which are always light images, so the table
+   stays light too to read as one row of previews. */
+:root[data-theme="dark"] .search-chart-hit-table-wrapper {
+    @include light-theme-tokens;
+}
+
+/* Explorers */
+:root[data-theme="dark"] {
+    /* Dark A: the explorer is a light card, so its text uses the light text
+       color instead of inheriting the dark page's light text */
+    &[data-chart-theme="light"] .Explorer,
+    &[data-chart-theme="light"] .grapher-dropdown-menu {
+        color: $text-color;
+    }
+
+    /* Dark C: the selected control option is a hardcoded navy (#243d60) */
+    &[data-chart-theme="dark"] .ExplorerControlBar .SelectedOption {
+        color: $blue-90;
+    }
+}
+
+/* Footnote tooltips are black with white text on the light site, i.e. the
+   inverse of the page. On dark they invert too: a light box with dark text. */
+$dark-footnote-bg: #eef1f5;
+
+:root[data-theme="dark"] .tippy-box[data-theme~="owid-footnote"] {
+    color: #1d3d63;
+    background-color: $dark-footnote-bg;
+
+    &::before {
+        background: linear-gradient(
+            rgba($dark-footnote-bg, 1),
+            rgba($dark-footnote-bg, 0)
+        );
+    }
+
+    &::after {
+        background: linear-gradient(
+            rgba($dark-footnote-bg, 0),
+            rgba($dark-footnote-bg, 1)
+        );
+    }
+
+    &[data-placement^="top"] .tippy-arrow::before {
+        border-top-color: $dark-footnote-bg;
+    }
+    &[data-placement^="bottom"] .tippy-arrow::before {
+        border-bottom-color: $dark-footnote-bg;
+    }
+    &[data-placement^="left"] .tippy-arrow::before {
+        border-left-color: $dark-footnote-bg;
+    }
+    &[data-placement^="right"] .tippy-arrow::before {
+        border-right-color: $dark-footnote-bg;
+    }
+
+    a,
+    a:hover {
+        color: #2162e6;
+    }
+}

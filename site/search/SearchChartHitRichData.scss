@@ -155,7 +155,7 @@
     }
 
     .search-chart-hit-table-wrapper {
-        background: #fff;
+        background: $white;
         width: 100%;
         position: relative;
 
@@ -409,7 +409,7 @@
 
             .search-chart-hit-thumbnail {
                 height: calc(100% - 24px);
-                background-color: #fff;
+                background-color: $white;
                 display: flex;
                 align-items: center;
             }

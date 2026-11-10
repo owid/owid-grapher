@@ -2,6 +2,7 @@ import { DEFAULT_ATOM_FEED_PROPS } from "./SiteConstants.js"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { ENV, GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.mjs"
 import { NoJSDetector } from "./NoJSDetector.js"
+import { ThemeScript } from "./ThemeScript.js"
 import {
     ArchiveContext,
     AssetMap,
@@ -130,6 +131,7 @@ export const Head = (props: {
                 type="font/woff2"
                 crossOrigin="anonymous"
             />
+            <ThemeScript />
             <meta property="og:url" content={canonicalUrl} />
             <meta property="og:title" content={pageTitle} />
             <meta property="og:description" content={pageDesc} />

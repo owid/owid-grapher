@@ -1,84 +1,274 @@
 /*******************************************************************************
  * Colors
+ *
+ * DARK MODE PROTOTYPE
+ * -------------------
+ * Every palette color is now a CSS custom property, defined once for the light
+ * theme and once for the dark theme. The Sass variables ($blue-90 etc.) resolve
+ * to `var(--blue-90)`, so the ~1,100 existing usages switch theme at runtime
+ * without being touched.
+ *
+ * The dark palette is not a naive inversion: neutrals and blues are mirrored
+ * (backgrounds become dark, text becomes light), while brand/accent colors are
+ * lifted just enough to keep a 4.5:1 contrast against the dark page.
+ *
+ * Because `var()` can't go through Sass color functions, every token also gets
+ * an `--name-rgb` triplet. Use `theme-alpha(name, 0.5)` instead of
+ * `rgba($name, 0.5)`.
+ *
+ * Theme is selected by attributes on <html> (set by the inline script in
+ * site/Head.tsx):
+ *   data-theme="light|dark"         site chrome
+ *   data-chart-theme="light|dark"   charts (proposal A = light islands,
+ *                                   proposal C = dark charts)
  */
 
 @use "sass:color";
+@use "sass:map";
+
+$palette-light: (
+    // Brand colors
+    "oxford-blue": #002147,
+    "vermillion": #ce261e,
+    // Red for text and icons; a fill red is too dark to read as text on dark
+    "vermillion-text": #ce261e,
+    "amber": #f7c020,
+    // Blue shades
+    "blue-100": #002147,
+    "blue-95": #112e4f,
+    "blue-90": #1d3d63,
+    "blue-70": #355174,
+    "blue-60": #426591,
+    "blue-50": #577291,
+    "blue-40": #98a9bd,
+    "blue-30": #a4b6ca,
+    "blue-20": #dbe5f0,
+    "blue-10": #ebeef2,
+    "blue-5": #f0f4fa,
+    // Gray shades
+    "gray-100": #2d2e2d,
+    "gray-90": #4e4e4e,
+    "gray-80": #5b5b5b,
+    "gray-70": #767676,
+    "gray-60": #a1a1a1,
+    "gray-50": #c6c6c6,
+    "gray-30": #dadada,
+    "gray-20": #e7e7e7,
+    "gray-10": #f2f2f2,
+    "gray-5": #f7f7f7,
+    // Amber shades
+    "amber-110": #f9cf44,
+    "amber-10": #f4eddb,
+    "beige": #fbf9f3,
+    "white": #ffffff,
+    // Accent colors
+    "accent-electric-blue": #2162e6,
+    "accent-pale-blue": #e7f2ff,
+    "accent-vermillion": #b40000,
+    // Visited
+    "purple-90": #631d49,
+    "purple-60": #91577c,
+    "visited-light": #b398a9,
+    "grey-text-color": #616161,
+    "controls-color": #0073e6,
+    // Category colors
+    "population-color": #2082a2,
+    "health-color": #bf1b1b,
+    "food-color": #588a0f,
+    "energy-color": #ca6f34,
+    "environment-color": #0c6947,
+    "technology-color": #2774c6,
+    "growth-inequality-color": #009655,
+    "work-life-color": #ab348a,
+    "public-sector-color": #eb6400,
+    "global-connections-color": #17393d,
+    "war-peace-color": #660000,
+    "politics-color": #1b0655,
+    "violence-rights-color": #cc235c,
+    "education-color": #253f77,
+    "media-color": #0089be,
+    "culture-color": #af488f,
+    // Colors that never change, e.g. text on a saturated button
+    "always-white": #ffffff,
+    "always-oxford-blue": #002147,
+    // Page-level surfaces
+    "page-background": #ffffff,
+    "header-background": #002147,
+);
+
+$palette-dark: (
+    // The darkest surface keeps a hint of the brand navy
+    "oxford-blue": #0c1725,
+    "vermillion": #c2483f,
+    "vermillion-text": #ec8a80,
+    "amber": #b8974c,
+    // Blues: mirrored and neutralised. In the dark theme they are near-neutral
+    // grays with only a slight cool tint, so the page doesn't read as blue
+    "blue-100": #f4f6f8,
+    "blue-95": #eceef2,
+    "blue-90": #e2e6ec,
+    "blue-70": #bcc5d2,
+    "blue-60": #a2b0c1,
+    "blue-50": #94a0ae,
+    "blue-40": #525e6c,
+    "blue-30": #3a4452,
+    "blue-20": #27303e,
+    "blue-10": #1e242e,
+    "blue-5": #191f28,
+    // Grays: mirrored
+    "gray-100": #e9eaed,
+    "gray-90": #ced0d5,
+    "gray-80": #b6bac0,
+    "gray-70": #999ea6,
+    "gray-60": #6e737c,
+    "gray-50": #4c515a,
+    "gray-30": #343a42,
+    "gray-20": #2a2f36,
+    "gray-10": #20242b,
+    "gray-5": #1a1f25,
+    "amber-110": #c2a35c,
+    "amber-10": #2c2618,
+    "beige": #181c22,
+    "white": #14181e,
+    "accent-electric-blue": #7aa7ff,
+    "accent-pale-blue": #1e2c3e,
+    "accent-vermillion": #d9776f,
+    "purple-90": #e3a9cd,
+    "purple-60": #c98fb4,
+    "visited-light": #7a5f70,
+    "grey-text-color": #a4a9b0,
+    "controls-color": #5aa9ff,
+    // Category colors: dark ones lifted so they still read on the dark page
+    "population-color": #3fa6c7,
+    "health-color": #e65a5a,
+    "food-color": #86b83f,
+    "energy-color": #e48a50,
+    "environment-color": #3aa57a,
+    "technology-color": #5a9ae0,
+    "growth-inequality-color": #2fbf7f,
+    "work-life-color": #d062ae,
+    "public-sector-color": #f5853a,
+    "global-connections-color": #6fa5ab,
+    "war-peace-color": #d06560,
+    "politics-color": #9583d9,
+    "violence-rights-color": #e9578a,
+    "education-color": #7f9be0,
+    "media-color": #36b2e0,
+    "culture-color": #cf75b3,
+    "always-white": #ffffff,
+    "always-oxford-blue": #002147,
+    "page-background": #14181e,
+    "header-background": #0c1522,
+);
+
+// Near-black navy for text on the dark-theme amber (donation footer, banners)
+$text-on-dark-amber: #0f1b2b;
+
+@function _rgb-triplet($c) {
+    @return color.channel($c, "red", $space: rgb),
+        color.channel($c, "green", $space: rgb),
+        color.channel($c, "blue", $space: rgb);
+}
+
+@mixin theme-tokens($palette) {
+    @each $name, $value in $palette {
+        --#{$name}: #{$value};
+        --#{$name}-rgb: #{_rgb-triplet($value)};
+    }
+}
+
+@mixin light-theme-tokens {
+    @include theme-tokens($palette-light);
+    color-scheme: light;
+}
+
+@mixin dark-theme-tokens {
+    @include theme-tokens($palette-dark);
+    color-scheme: dark;
+}
+
+/// rgba() for a theme token, e.g. `theme-alpha("blue-20", 0.1)`
+@function theme-alpha($name, $alpha) {
+    @return rgba(var(--#{$name}-rgb), $alpha);
+}
 
 // Brand colors
-$oxford-blue: #002147;
-$vermillion: #ce261e;
-$amber: #f7c020;
+$oxford-blue: var(--oxford-blue);
+$vermillion: var(--vermillion);
+$vermillion-text: var(--vermillion-text);
+$amber: var(--amber);
 
 // Blue shades
-$blue-100: #002147;
-$blue-95: #112e4f;
-$blue-90: #1d3d63;
-$blue-70: #355174;
-$blue-60: #426591;
-$blue-50: #577291;
-$blue-40: #98a9bd;
-$blue-30: #a4b6ca;
-$blue-20: #dbe5f0;
-$blue-10: #ebeef2;
-$blue-5: #f0f4fa;
+$blue-100: var(--blue-100);
+$blue-95: var(--blue-95);
+$blue-90: var(--blue-90);
+$blue-70: var(--blue-70);
+$blue-60: var(--blue-60);
+$blue-50: var(--blue-50);
+$blue-40: var(--blue-40);
+$blue-30: var(--blue-30);
+$blue-20: var(--blue-20);
+$blue-10: var(--blue-10);
+$blue-5: var(--blue-5);
 
 // Gray shades
-$gray-100: #2d2e2d;
-$gray-90: #4e4e4e;
-$gray-80: #5b5b5b;
-$gray-70: #767676;
-$gray-60: #a1a1a1;
-$gray-50: #c6c6c6;
-$gray-30: #dadada;
-$gray-20: #e7e7e7;
-$gray-10: #f2f2f2;
-$gray-5: #f7f7f7;
+$gray-100: var(--gray-100);
+$gray-90: var(--gray-90);
+$gray-80: var(--gray-80);
+$gray-70: var(--gray-70);
+$gray-60: var(--gray-60);
+$gray-50: var(--gray-50);
+$gray-30: var(--gray-30);
+$gray-20: var(--gray-20);
+$gray-10: var(--gray-10);
+$gray-5: var(--gray-5);
 
 // Amber shades
-$amber-110: #f9cf44;
-$amber-10: #f4eddb;
+$amber-110: var(--amber-110);
+$amber-10: var(--amber-10);
 
-$beige: #fbf9f3;
-$white: #ffffff;
+$beige: var(--beige);
+$white: var(--white);
+$always-white: var(--always-white);
 
 // Accent colors
-$accent-electric-blue: #2162e6;
-$accent-pale-blue: #e7f2ff;
-$accent-vermillion: #b40000;
+$accent-electric-blue: var(--accent-electric-blue);
+$accent-pale-blue: var(--accent-pale-blue);
+$accent-vermillion: var(--accent-vermillion);
 
 // Visited
-$purple-90: #631d49;
-$purple-60: #91577c;
-$visited-light: #b398a9;
+$purple-90: var(--purple-90);
+$purple-60: var(--purple-60);
+$visited-light: var(--visited-light);
 
 /* Text colors */
 $tertiary-text-color: $amber;
-$grey-text-color: #616161;
+$grey-text-color: var(--grey-text-color);
 $text-color: $blue-90;
 $secondary-text-color: $blue-60;
 $bluish-grey-text-color: $blue-50;
-$error-text-color: $vermillion;
+$error-text-color: $vermillion-text;
 
 /* Category colors */
-$population-color: #2082a2;
-$health-color: #bf1b1b;
-$food-color: #588a0f;
-$energy-color: #ca6f34;
-$environment-color: #0c6947;
-$technology-color: #2774c6;
-$growth-inequality-color: #009655;
-$work-life-color: #ab348a;
-$public-sector-color: #eb6400;
-$global-connections-color: #17393d;
-$war-peace-color: #660000;
-$politics-color: #1b0655;
-$violence-rights-color: #cc235c;
-$education-color: #253f77;
-$media-color: #0089be;
-$culture-color: #af488f;
+$population-color: var(--population-color);
+$health-color: var(--health-color);
+$food-color: var(--food-color);
+$energy-color: var(--energy-color);
+$environment-color: var(--environment-color);
+$technology-color: var(--technology-color);
+$growth-inequality-color: var(--growth-inequality-color);
+$work-life-color: var(--work-life-color);
+$public-sector-color: var(--public-sector-color);
+$global-connections-color: var(--global-connections-color);
+$war-peace-color: var(--war-peace-color);
+$politics-color: var(--politics-color);
+$violence-rights-color: var(--violence-rights-color);
+$education-color: var(--education-color);
+$media-color: var(--media-color);
+$culture-color: var(--culture-color);
 
 /* Controls color */
-$controls-color: #0073e6;
+$controls-color: var(--controls-color);
 $light-shadow:
     rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
     rgba(0, 0, 0, 0.08) 0px 2px 2px;
@@ -105,9 +295,130 @@ $sdgColors: (
 );
 
 :root {
-    // See also owidTypes.ts > OwidGdocPostContent > cover-color
-    --amber: #{$amber};
+    @include light-theme-tokens;
     @each $i, $sdgColor in $sdgColors {
         --sdg-color-#{$i}: #{$sdgColor};
+    }
+}
+
+// Dark site theme (proposals A and C)
+:root[data-theme="dark"] {
+    @include dark-theme-tokens;
+}
+
+// Brand surfaces. The site header and homepage hero are navy in the light
+// theme. In the dark theme they become the darkest tone on the page — near
+// black with a hint of the brand navy — while keeping the light-theme tokens
+// for their contents (nav text, buttons), which are designed for a dark
+// background. The amber cookie banner is designed around dark text and keeps
+// its light-theme colors unchanged.
+:root[data-theme="dark"] {
+    .site-navigation,
+    .site-footer,
+    .author-header,
+    .author-work .article-block__pill-row,
+    .article-block__homepage-search,
+    .cookie-notice,
+    // Explorer tiles sit on a baked-in navy thumbnail image, so their icon
+    // and text colors are designed for navy in both themes
+    .explorer-tile {
+        @include light-theme-tokens;
+    }
+
+    .site-navigation,
+    .site-footer,
+    .author-header,
+    .author-work .article-block__pill-row,
+    .article-block__homepage-search {
+        --oxford-blue: #{map.get($palette-dark, "header-background")};
+        --blue-100: #{map.get($palette-dark, "header-background")};
+        // The header search field
+        --blue-90: #20262f;
+        --blue-90-rgb: 32, 38, 47;
+    }
+
+    // The author page header and its topic strip are $blue-95 navy
+    .author-header,
+    .author-work .article-block__pill-row {
+        --blue-95: #{map.get($palette-dark, "header-background")};
+    }
+
+    // Brand red and yellow, toned down for the dark page. Fully saturated
+    // colors glow against dark backgrounds, so they get less saturation here,
+    // including on surfaces that otherwise keep their light-theme colors.
+    .site-navigation,
+    .site-footer,
+    .author-header,
+    .author-work .article-block__pill-row,
+    .article-block__homepage-search,
+    .cookie-notice,
+    .explorer-tile {
+        @each $name in ("vermillion", "vermillion-text", "amber", "amber-110") {
+            --#{$name}: #{map.get($palette-dark, $name)};
+            --#{$name}-rgb: #{_rgb-triplet(map.get($palette-dark, $name))};
+        }
+        // Hover state of the red Donate button
+        --accent-vermillion: #a83c35;
+        --accent-vermillion-rgb: 168, 60, 53;
+    }
+
+    // Tint the hero's world map image into the same near-black
+    .article-block__homepage-search {
+        background-blend-mode: luminosity;
+    }
+
+    // Amber surfaces (donation footer, in-page notices) are designed around
+    // dark navy text, like the cookie banner. They keep light-theme text
+    // colors on the muted dark-theme amber. Text color is set explicitly
+    // because it is otherwise inherited from the (light-text) page.
+    .donate-footer,
+    .pcrm,
+    .notice {
+        @include light-theme-tokens;
+        @each $name in ("vermillion", "vermillion-text", "amber", "amber-110") {
+            --#{$name}: #{map.get($palette-dark, $name)};
+            --#{$name}-rgb: #{_rgb-triplet(map.get($palette-dark, $name))};
+        }
+        color: var(--blue-90);
+    }
+
+    // The dark-theme amber is darker than the light-theme one, so the navy
+    // text on it is darkened too, to keep the same contrast
+    .donate-footer,
+    .pcrm,
+    .notice,
+    .cookie-notice {
+        --blue-90: #{$text-on-dark-amber};
+        --blue-90-rgb: #{_rgb-triplet($text-on-dark-amber)};
+        --blue-95: #{$text-on-dark-amber};
+        --blue-95-rgb: #{_rgb-triplet($text-on-dark-amber)};
+    }
+
+    // Dropdowns and menus that open from the header (Subscribe, Browse by
+    // topic, Resources, About, the mobile menu) are regular page surfaces,
+    // not part of the navy bar, so they switch back to the dark tokens.
+    .site-navigation .SiteNavigationToggle__dropdown,
+    .site-navigation .SiteMobileMenu__dropdown,
+    .site-navigation .SiteMobileMenu,
+    // The header search once it's open (field + suggestion panel)
+    .site-navigation .aa-Autocomplete[aria-expanded="true"],
+    .site-navigation .aa-Panel,
+    .aa-DetachedContainer,
+    .aa-DetachedOverlay {
+        @include dark-theme-tokens;
+        color: var(--blue-90);
+    }
+}
+
+// Proposal A: charts and chart-like embeds stay light "islands" on the dark
+// page. Re-declaring the light tokens on the chart root makes every Sass
+// color inside it resolve to its light value again.
+:root[data-theme="dark"][data-chart-theme="light"] {
+    .GrapherComponent,
+    .Explorer,
+    // Chart dropdown menus are popovers rendered at the end of <body>
+    .grapher-dropdown-menu,
+    .theme-light-island {
+        @include light-theme-tokens;
     }
 }

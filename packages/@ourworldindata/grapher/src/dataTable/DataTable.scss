@@ -73,7 +73,7 @@
     table {
         line-height: 1.333em;
         border: none;
-        background: white;
+        background: $white;
         width: 100%;
         border-collapse: separate;
         border-spacing: 0px;
@@ -91,7 +91,7 @@
             position: sticky;
             left: 0;
             z-index: 10;
-            background-color: #fff;
+            background-color: $white;
         }
 
         th.entity,
