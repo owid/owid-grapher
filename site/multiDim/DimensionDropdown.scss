@@ -187,8 +187,9 @@ $group-gap: 4px;
             background: $gray-10;
         }
 
-        // The hover fill alone is too faint to track keyboard focus, so
-        // keyboard focus also gets an inset ring.
+        // In comparison to :focus-visible above, React Aria tracks whether
+        // an element is being interacted with using the keyboard or the mouse,
+        // and sets data-focus-visible only for keyboard users.
         &[data-focus-visible] {
             outline: 2px solid $blue-60;
             outline-offset: -2px;
