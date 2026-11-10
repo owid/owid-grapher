@@ -3,10 +3,7 @@ import urljoin from "url-join"
 import cx from "clsx"
 import {
     EnrichedBlockAllCharts,
-    RelatedChart,
-    Url,
     ALL_CHARTS_ID,
-    KeyChartLevel,
     queryParamsToStr,
     getTopicPageHeading,
     sentenceCaseIfNotTopicPage,
@@ -22,48 +19,22 @@ type AllChartsProps = EnrichedBlockAllCharts & {
     id?: string
 }
 
-function sortRelatedCharts(
-    relatedCharts: RelatedChart[],
-    sortedSlugs: string[]
-): RelatedChart[] {
-    const chartBySlug = new Map(
-        relatedCharts.map((chart) => [chart.slug, chart])
-    )
-
-    const topCharts: RelatedChart[] = []
-    for (const slug of new Set(sortedSlugs)) {
-        const chart = chartBySlug.get(slug)
-        if (chart) {
-            topCharts.push({ ...chart, keyChartLevel: KeyChartLevel.Top })
-            chartBySlug.delete(slug)
-        }
-    }
-
-    return [...topCharts, ...chartBySlug.values()]
-}
-
-export function AllCharts(props: AllChartsProps) {
-    const { heading, top, className, id = ALL_CHARTS_ID } = props
+export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
     const { relatedCharts, tags } = useContext(AttachmentsContext)
     const { gdocType } = useDocumentContext()
     const defaultHeadingFragment = getTopicPageHeading("keyCharts", gdocType)
-    if (relatedCharts.length === 0) return null
-
-    const topSlugs = top.map((item) => Url.fromURL(item.url).slug as string)
-
     const firstTag = tags[0]
-    const firstTagDataCatalogQueryString = firstTag
-        ? queryParamsToStr({ topics: firstTag.name })
-        : ""
+    if (!firstTag || relatedCharts.length === 0) return null
 
-    const sortedRelatedCharts = sortRelatedCharts(relatedCharts, topSlugs)
+    const firstTagDataCatalogQueryString = queryParamsToStr({
+        topics: firstTag.name,
+    })
+
     return (
         <section className={cx(className, "needs-dividers")}>
             <h1 className="article-block__heading h1-semibold" id={id}>
                 <span>
-                    {firstTag
-                        ? `${defaultHeadingFragment} on ${sentenceCaseIfNotTopicPage(firstTag.name, gdocType, false)}`
-                        : heading}
+                    {`${defaultHeadingFragment} on ${sentenceCaseIfNotTopicPage(firstTag.name, gdocType, false)}`}
                 </span>
                 <a className="deep-link" aria-labelledby={id} href={`#${id}`} />
             </h1>
@@ -72,10 +43,7 @@ export function AllCharts(props: AllChartsProps) {
                 text="See all charts on this topic"
                 href={`${urljoin(BAKED_BASE_URL, `/data`, firstTagDataCatalogQueryString)}`}
             />
-            <RelatedCharts
-                showKeyChartsOnly={true}
-                charts={sortedRelatedCharts}
-            />
+            <RelatedCharts showKeyChartsOnly={true} charts={relatedCharts} />
         </section>
     )
 }

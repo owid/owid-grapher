@@ -94,7 +94,6 @@ import {
     RESEARCH_AND_WRITING_VARIANTS,
     EnrichedBlockExpandableParagraph,
     RawBlockExpandableParagraph,
-    RawBlockAllCharts,
     EnrichedBlockAllCharts,
     RefDictionary,
     OwidGdocErrorMessageType,
@@ -313,47 +312,8 @@ export function validateRawBoolean<
     return { isValid: true }
 }
 
-function parseAllCharts(raw: RawBlockAllCharts): EnrichedBlockAllCharts {
-    const createError = (error: ParseError): EnrichedBlockAllCharts => ({
-        type: "all-charts",
-        heading: "",
-        top: [],
-        parseErrors: [error],
-    })
-
-    if (!raw.value.heading)
-        return createError({ message: "all-charts block missing heading" })
-
-    const top = raw.value.top
-    if (top) {
-        if (!Array.isArray(top)) {
-            return createError({
-                message: `all-charts malformed "top" property: ${typeof raw
-                    .value.top}`,
-            })
-        }
-
-        for (const item of top) {
-            if (!_.isObject(item)) {
-                return createError({
-                    message: `all-charts invalid top item: ${item}`,
-                })
-            }
-
-            if (!("url" in item)) {
-                return createError({
-                    message: `all-charts top item missing "url" property: ${item}`,
-                })
-            }
-        }
-    }
-
-    return {
-        type: "all-charts",
-        heading: raw.value.heading,
-        top: top?.map((item) => ({ url: extractUrl(item.url) })) || [],
-        parseErrors: [],
-    }
+function parseAllCharts(): EnrichedBlockAllCharts {
+    return { type: "all-charts", parseErrors: [] }
 }
 
 function parseAdditionalCharts(

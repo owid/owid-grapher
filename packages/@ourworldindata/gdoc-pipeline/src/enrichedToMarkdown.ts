@@ -200,12 +200,8 @@ export function enrichedBlockToMarkdown(
             return spansToMarkdown(b.value, options)
         })
         .with({ type: "simple-text" }, (b): string | undefined => b.value.text)
-        .with({ type: "all-charts" }, (b): string | undefined =>
-            markdownComponent(
-                "AllCharts",
-                { heading: b.heading }, // Note: truncated
-                exportComponents
-            )
+        .with({ type: "all-charts" }, (_): string | undefined =>
+            markdownComponent("AllCharts", {}, exportComponents)
         )
         .with({ type: "additional-charts" }, (b): string | undefined => {
             if (!exportComponents) return undefined
