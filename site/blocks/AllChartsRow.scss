@@ -1,0 +1,92 @@
+.all-charts-row {
+    padding: 16px;
+    border-left: 3px solid transparent;
+}
+
+.all-charts-row:hover {
+    background: $blue-5;
+}
+
+.all-charts-row--selected {
+    background: $blue-5;
+    border-left-color: $blue-40;
+}
+
+.all-charts-row__select {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.all-charts-row__heading {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    line-height: 1.25;
+}
+
+.all-charts-row__title {
+    @include h4-semibold;
+    display: inline;
+    margin: 0 6px 0 0;
+    line-height: 1.25;
+    color: $blue-90;
+}
+
+.all-charts-row__title strong {
+    font-weight: 700;
+}
+
+.all-charts-row__variant {
+    @include label-2-regular;
+    color: $blue-60;
+}
+
+.all-charts-row__source {
+    @include note-1-regular;
+    display: block;
+    margin-top: 4px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: $blue-60;
+}
+
+.all-charts-row__thumbnails {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.all-charts-row__thumbnail {
+    display: block;
+    padding: 0;
+    border: 1px solid $blue-10;
+    background: white;
+    cursor: pointer;
+}
+
+.all-charts-row__thumbnail:hover {
+    background: $accent-pale-blue;
+}
+
+.all-charts-row__thumbnail--selected {
+    border-color: $blue-30;
+}
+
+.all-charts-row__thumbnail img {
+    display: block;
+    width: 158px;
+    height: 84px;
+    object-fit: contain;
+}

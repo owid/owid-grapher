@@ -17,6 +17,7 @@ import {
     SearchTopicType,
     ChartRecordType,
     SearchChartHit,
+    SearchChartUrlTarget,
     SearchUrlParam,
     SynonymMap,
     Ngram,
@@ -190,7 +191,7 @@ const generateQueryStrForChartHit = ({
     hit,
     grapherParams,
 }: {
-    hit: SearchChartHit
+    hit: SearchChartUrlTarget
     grapherParams?: GrapherQueryParams
 }): string => {
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
@@ -217,7 +218,7 @@ export const constructChartUrl = ({
     grapherParams,
     overlay,
 }: {
-    hit: SearchChartHit
+    hit: SearchChartUrlTarget
     grapherParams?: GrapherQueryParams
     overlay?: "sources" | "download-data"
 }): string => {
@@ -301,7 +302,7 @@ export const constructPreviewUrl = ({
     grapherParams,
     imageRequest,
 }: {
-    hit: SearchChartHit
+    hit: SearchChartUrlTarget
     grapherParams?: GrapherQueryParams
     imageRequest: ImageRequest
 }): string => {
