@@ -294,7 +294,14 @@ export class LineChartThumbnail
                 (series) => series.focus.active
             )
 
-        return labelCandidateSeries
+        // Keep one series per name, the one with the most recent data
+        // (series are sorted by time)
+        const seriesByName = Map.groupBy(
+            labelCandidateSeries,
+            (series) => series.seriesName
+        )
+
+        return [...seriesByName.values()].map((group) => group.at(-1)!)
     }
 
     @computed private get endPointBySeriesName(): Map<
@@ -399,7 +406,14 @@ export class LineChartThumbnail
                 (series) => series.focus.active
             )
 
-        return labelCandidateSeries
+        // Keep one series per name, the one with the earliest data
+        // (series are sorted by time)
+        const seriesByName = Map.groupBy(
+            labelCandidateSeries,
+            (series) => series.seriesName
+        )
+
+        return [...seriesByName.values()].map((group) => group[0])
     }
 
     @computed private get startPointBySeriesName(): Map<
