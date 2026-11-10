@@ -16,3 +16,6 @@ export const ANCHORED_LABEL_STYLE: Record<Emphasis, AnchoredLabelStyleConfig> =
         [Emphasis.Highlighted]: DEFAULT_ANCHORED_LABEL_STYLE,
         [Emphasis.Muted]: { opacity: GRAPHER_OPACITY_MUTED },
     }
+
+/** Slack for floating-point error in label position comparisons */
+export const FLOAT_TOLERANCE_PX = 0.01
