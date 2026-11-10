@@ -26,7 +26,7 @@ export interface ImageOptions {
     grapherProps?: Partial<GrapherProgrammaticInterface>
 }
 
-export const TWITTER_OPTIONS: Readonly<ImageOptions> = {
+const TWITTER_OPTIONS: Readonly<ImageOptions> = {
     // Twitter cards are 1.91:1 in aspect ratio, and 800x418 is the recommended size
     pngWidth: 800,
     pngHeight: 418,

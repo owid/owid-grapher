@@ -8,8 +8,10 @@ import {
     getDownloadUrl,
     Grapher,
     GrapherState,
+    type ImageRequest,
     loadCatalogData,
     migrateGrapherConfigToLatestVersion,
+    resolveImageLayout,
 } from "@ourworldindata/grapher"
 import { decodeHTML } from "entities"
 import {
@@ -33,7 +35,6 @@ import {
 import * as Sentry from "@sentry/cloudflare"
 import { StatusError } from "itty-router"
 import { Env } from "./env.js"
-import { ImageOptions } from "./imageOptions.js"
 
 export const grapherBaseUrl = "https://ourworldindata.org/grapher"
 
@@ -283,7 +284,7 @@ export async function fetchGrapherConfig({
 
 export async function initGrapher(
     identifier: GrapherIdentifier,
-    options: ImageOptions,
+    imageRequest: ImageRequest,
     searchParams: URLSearchParams,
     env: Env
 ): Promise<{
@@ -336,25 +337,27 @@ export async function initGrapher(
             baseUrl: env.CATALOG_URL,
         })
 
-    const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
+    const layout = resolveImageLayout(imageRequest)
+    const bounds = new Bounds(0, 0, layout.svgWidth, layout.svgHeight)
     const grapherState = new GrapherState({
         ...grapherConfigResponse.grapherConfig,
         bakedGrapherURL: grapherBaseUrl,
         queryStr: "?" + searchParams.toString(),
         bounds,
         staticBounds: bounds,
-        baseFontSize: options.fontSize,
+        baseFontSize: layout.fontSize,
+        variant: imageRequest.variant,
+        labelMode: imageRequest.labelMode,
         manager: {
-            ...options.grapherProps?.manager,
             // Set the baseUrl to ensure mdims have correct canonical URL in the metadata json
             baseUrl: `${grapherBaseUrl}/${identifier.id}`,
         },
         additionalDataLoaderFn,
-        ...options.grapherProps,
     })
     runInAction(() => {
         grapherState.isExportingToSvgOrPng = true
-        grapherState.shouldIncludeDetailsInStaticExport = options.details
+        grapherState.shouldIncludeDetailsInStaticExport =
+            imageRequest.includeDetails
     })
     const grapher = new Grapher({ grapherState })
 
