@@ -16,6 +16,7 @@ import {
     StackedPointPositionType,
     StackedSeries,
     PlacedStackedBarSeries,
+    MIN_LABELED_BAND_HEIGHT_PX,
 } from "./StackedConstants"
 import { DualAxis } from "../axis/Axis"
 import { Time } from "@ourworldindata/types"
@@ -265,6 +266,48 @@ export function toPlacedStackedBarSeries(
     }))
 }
 
+/**
+ * Labels of series whose last band is tall enough to label, anchored at the
+ * chart's right edge. When no band is, the top-ranked series keeps its label.
+ */
+export function toInitialAnchoredLabelSeries(
+    labelsSeries: readonly Omit<InitialAnchoredLabelSeries, "position">[],
+    seriesByName: Map<SeriesName, StackedSeries<number>>,
+    dualAxis: DualAxis
+): InitialAnchoredLabelSeries[] {
+    const anchoredSeries = labelsSeries.map((series) => ({
+        ...series,
+        position: {
+            x: dualAxis.bounds.right,
+            y: dualAxis.verticalAxis.place(series.value),
+        },
+    }))
+
+    const seriesWithTallBand = anchoredSeries.filter((series) => {
+        const stackedSeries = seriesByName.get(series.seriesName)
+        return (
+            !!stackedSeries &&
+            isLastBandTallEnoughToLabel(stackedSeries, dualAxis)
+        )
+    })
+    if (seriesWithTallBand.length > 0 || anchoredSeries.length === 0)
+        return seriesWithTallBand
+
+    const topRankedSeries = anchoredSeries.toSorted(
+        makeStackedLabelComparator(seriesByName)
+    )[0]
+    return [topRankedSeries]
+}
+
+function isLastBandTallEnoughToLabel(
+    series: StackedSeries<number>,
+    dualAxis: DualAxis
+): boolean {
+    return (
+        measureLastBandHeightPx(series, dualAxis) >= MIN_LABELED_BAND_HEIGHT_PX
+    )
+}
+
 export function makeStackedLabelComparator(
     seriesByName: Map<SeriesName, StackedSeries<number>>
 ): (a: InitialAnchoredLabelSeries, b: InitialAnchoredLabelSeries) => number {
@@ -274,4 +317,16 @@ export function makeStackedLabelComparator(
         if (!seriesA || !seriesB) return 0
         return compareStackedSeriesByImportance(seriesA, seriesB)
     }
+}
+
+function measureLastBandHeightPx(
+    series: StackedSeries<number>,
+    dualAxis: DualAxis
+): number {
+    const lastPoint = R.last(series.points)
+    if (!lastPoint) return 0
+    return Math.abs(
+        dualAxis.verticalAxis.place(lastPoint.valueOffset + lastPoint.value) -
+            dualAxis.verticalAxis.place(lastPoint.valueOffset)
+    )
 }
