@@ -70,7 +70,7 @@ export type MultiDimDataPageConfigEnriched = Omit<
 export type DimensionPresentationType =
     | "dropdown"
     | "dropdown-with-search"
-    | "radio"
+    | "toggle-buttons"
 
 export interface DimensionPresentation {
     // When omitted, resolveDimensionPresentationType picks the control type
