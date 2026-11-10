@@ -341,15 +341,15 @@ export class SlopeChartThumbnail
             maxWidth: this.startLabelsMaxWidth,
             labelPadding: LABEL_PADDING,
             yRange: this.labelsRange,
-            resolveCollision: (
-                s1: InitialAnchoredLabelSeries,
-                s2: InitialAnchoredLabelSeries
-            ): InitialAnchoredLabelSeries => {
+            compare: (
+                a: InitialAnchoredLabelSeries,
+                b: InitialAnchoredLabelSeries
+            ): number => {
                 // Prefer to label series that have an end label
-                if (visibleEndLabels.has(s1.seriesName)) return s1
-                if (visibleEndLabels.has(s2.seriesName)) return s2
-
-                return s1 // No preference
+                const hasEndLabelA = visibleEndLabels.has(a.seriesName)
+                const hasEndLabelB = visibleEndLabels.has(b.seriesName)
+                if (hasEndLabelA === hasEndLabelB) return 0
+                return hasEndLabelA ? -1 : 1
             },
         })
     }
