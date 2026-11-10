@@ -201,6 +201,76 @@ describe("/api/search/rerank-charts", () => {
         })
     })
 
+    describe("with section=pages", () => {
+        const pagesRequest = (overrides: Record<string, unknown> = {}) => ({
+            indexName: "pages",
+            query: "malaria",
+            filters: "type:article OR type:about-page",
+            attributesToRetrieve: ["title", "slug", "type", "content"],
+            offset: 0,
+            length: 4,
+            ...overrides,
+        })
+        const pageHit = (objectID: string) => ({
+            objectID,
+            type: "article",
+            title: `Title of ${objectID}`,
+            excerpt: `About ${objectID}`,
+        })
+
+        it("reranks Algolia's first 30 hits and leaves the hits after them in Algolia's order", async () => {
+            // 34 hits: a section's page that straddles the end of the pool
+            search.mockResolvedValue({
+                hits: Array.from({ length: 34 }, (_, i) =>
+                    pageHit(`p${i + 1}`)
+                ),
+                nbHits: 80,
+            } as any)
+
+            const { body } = await post(
+                pagesRequest({ offset: 28, length: 6 }),
+                reverseAi(),
+                "model=jev&section=pages"
+            )
+
+            expect(search).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({
+                    indexName: "staging-pages",
+                    filters: "type:article OR type:about-page",
+                    offset: 0,
+                    length: 34,
+                })
+            )
+            // reverseAi prefers r06 … r01 and gives the rest no probability,
+            // so the pool ends on its last two hits in Algolia's order
+            expect(body.hits.map((h: any) => h.objectID)).toEqual([
+                "p29",
+                "p30",
+                "p31",
+                "p32",
+                "p33",
+                "p34",
+            ])
+            expect(body).toMatchObject({ offset: 28, length: 6, nbHits: 80 })
+            expect(body.rerank).toMatchObject({ poolSize: 30 })
+        })
+
+        it.each([
+            ["a filter the site doesn't send", { filters: "type:profile" }],
+            ["an offset past the reranked pool", { offset: 30 }],
+        ])("rejects %s with a 400", async (_, overrides) => {
+            const { status } = await post(
+                pagesRequest(overrides),
+                reverseAi(),
+                "model=jev&section=pages"
+            )
+
+            expect(status).toBe(400)
+            expect(search).not.toHaveBeenCalled()
+        })
+    })
+
     describe("rejects with a 400", () => {
         it.each([
             ["a parameter the site doesn't send", { distinct: true }],

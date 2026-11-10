@@ -2,6 +2,7 @@ import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
 import {
     RERANK_PAGES,
+    RERANK_POOL_SIZE,
     searchSingleForHitsWithClosestMatches,
     type SingleSearchRequest,
 } from "@ourworldindata/utils"
@@ -59,14 +60,51 @@ export const shouldRerankCharts = (query: string, page: number): boolean =>
     !!RERANK_MODEL && !!query.trim() && page < RERANK_PAGES
 
 /**
- * The charts search, through the rerank endpoint. Falls back to Algolia
- * directly when the endpoint fails, so reranking never breaks the search.
+ * Whether a pages-index section (articles, data insights) asks the rerank
+ * endpoint for the hits from `offset` on: only within the reranked pool.
  */
-export async function searchChartsReranked<T>(
+export const shouldRerankPages = (query: string, offset: number): boolean =>
+    !!RERANK_MODEL && !!query.trim() && offset < RERANK_POOL_SIZE
+
+type Search<T> = (
     liteSearchClient: LiteClient,
     searchParams: SingleSearchRequest
-): Promise<SearchResponse<T> & { closestMatches?: boolean }> {
-    const url = `${SEARCH_RERANK_URL}?model=${encodeURIComponent(RERANK_MODEL ?? "")}${RERANK_VOCAB ? "&vocab=1" : ""}`
+) => Promise<SearchResponse<T> & { closestMatches?: boolean }>
+
+/** The charts search, through the rerank endpoint. */
+export const searchChartsReranked = <T>(
+    liteSearchClient: LiteClient,
+    searchParams: SingleSearchRequest
+): ReturnType<Search<T>> =>
+    searchReranked<T>(
+        RERANK_VOCAB ? "&vocab=1" : "",
+        searchSingleForHitsWithClosestMatches,
+        liteSearchClient,
+        searchParams
+    )
+
+/**
+ * A pages-index search, through the rerank endpoint. `search` is what the
+ * section would otherwise call.
+ */
+export const searchPagesReranked = <T>(
+    search: Search<T>,
+    liteSearchClient: LiteClient,
+    searchParams: SingleSearchRequest
+): ReturnType<Search<T>> =>
+    searchReranked<T>("&section=pages", search, liteSearchClient, searchParams)
+
+/**
+ * `searchParams` through the rerank endpoint. Falls back to `search`, Algolia
+ * directly, when the endpoint fails, so reranking never breaks the search.
+ */
+async function searchReranked<T>(
+    urlParams: string,
+    search: Search<T>,
+    liteSearchClient: LiteClient,
+    searchParams: SingleSearchRequest
+): ReturnType<Search<T>> {
+    const url = `${SEARCH_RERANK_URL}?model=${encodeURIComponent(RERANK_MODEL ?? "")}${urlParams}`
     try {
         const response = await fetch(url, {
             method: "POST",
@@ -78,8 +116,5 @@ export async function searchChartsReranked<T>(
     } catch (error) {
         console.warn("Search rerank failed:", error)
     }
-    return searchSingleForHitsWithClosestMatches<T>(
-        liteSearchClient,
-        searchParams
-    )
+    return search(liteSearchClient, searchParams)
 }

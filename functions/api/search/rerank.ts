@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/cloudflare"
 import { ChartRecordType } from "@ourworldindata/types"
+import { RERANK_POOL_SIZE } from "@ourworldindata/utils"
 import type { SearchApiResponse, SearchPagesApiResponse } from "./searchApi.js"
 
 /**
@@ -26,7 +27,7 @@ import type { SearchApiResponse, SearchPagesApiResponse } from "./searchApi.js"
  * reason a search fails.
  */
 
-export const RERANK_POOL_SIZE = 30
+export { RERANK_POOL_SIZE }
 
 // Decision models on Workers AI, keyed by the `rerank` param value. They all
 // take the same state-and-questions input; Cloudflare's Clef models also

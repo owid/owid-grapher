@@ -1,7 +1,12 @@
 import * as Sentry from "@sentry/cloudflare"
-import { SearchChartHit, SearchIndexName } from "@ourworldindata/types"
+import {
+    OwidGdocType,
+    SearchChartHit,
+    SearchIndexName,
+} from "@ourworldindata/types"
 import {
     RERANK_PAGES,
+    searchSingleForHits,
     searchSingleForHitsWithClosestMatches,
     type SingleSearchRequest,
 } from "@ourworldindata/utils"
@@ -14,6 +19,8 @@ import {
 import {
     isRerankModel,
     RERANK_MODELS,
+    RERANK_POOL_SIZE,
+    type RerankModel,
     rerankHits,
     timed,
     type SearchTimings,
@@ -47,6 +54,9 @@ import {
  * With `vocab=1`, the pool also gets the hits of the query translated into
  * the topic vocabulary (see vocabulary.ts), unless the search is already
  * filtered to a topic. The picks run alongside the pool's own search.
+ *
+ * With `section=pages` it reranks a pages-index section instead (articles,
+ * data insights): see rerankPagesSection.
  */
 
 const MAX_BODY_BYTES = 16 * 1024
@@ -149,6 +159,186 @@ function parseSearchRequest(payload: unknown): RerankRequest | string {
     }
 }
 
+// The pages-index requests of the site's queryArticles and queryDataInsights
+const ALLOWED_PAGES_KEYS = new Set([
+    "indexName",
+    "query",
+    "filters",
+    "facetFilters",
+    "restrictSearchableAttributes",
+    "attributesToRetrieve",
+    "highlightPreTag",
+    "highlightPostTag",
+    "hitsPerPage",
+    "page",
+    "offset",
+    "length",
+])
+
+// The page-type filters those two send. Any other filter is rejected: it
+// would let a caller run the rerank over records the site doesn't search.
+const ALLOWED_PAGES_FILTERS = new Set([
+    `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
+    `type:${OwidGdocType.DataInsight}`,
+])
+
+// Furthest hit a pages request may ask for. Past the pool the site asks
+// Algolia directly, so this only has to cover a page that straddles its end.
+const MAX_PAGES_END = RERANK_POOL_SIZE + 20
+
+interface PagesRerankRequest {
+    params: SingleSearchRequest
+    query: string
+    offset: number
+    length: number
+}
+
+/** The validated pages search request, or the reason it was rejected. */
+function parsePagesSearchRequest(
+    payload: unknown
+): PagesRerankRequest | string {
+    if (!isRecord(payload)) return "Body must be a JSON object"
+    const unknownKeys = Object.keys(payload).filter(
+        (key) => !ALLOWED_PAGES_KEYS.has(key)
+    )
+    if (unknownKeys.length > 0)
+        return `Unsupported search parameter(s): ${unknownKeys.join(", ")}`
+
+    const { query, filters } = payload
+    if (typeof query !== "string" || !query.trim())
+        return "query must be a non-empty string"
+    if (query.length > MAX_QUERY_LENGTH)
+        return `query must be at most ${MAX_QUERY_LENGTH} characters`
+    if (typeof filters !== "string" || !ALLOWED_PAGES_FILTERS.has(filters))
+        return "filters must be one of the site's page-type filters"
+
+    // Either Algolia pagination style: page + hitsPerPage, or offset + length
+    const paged = payload.hitsPerPage !== undefined
+    const length = paged ? payload.hitsPerPage : payload.length
+    if (!isIntegerIn(length, 1, MAX_HITS_PER_PAGE))
+        return `hitsPerPage or length must be between 1 and ${MAX_HITS_PER_PAGE}`
+    const start = paged ? (payload.page ?? 0) : (payload.offset ?? 0)
+    if (!isIntegerIn(start, 0, RERANK_POOL_SIZE))
+        return "page or offset must be a non-negative integer within the pool"
+    const offset = paged
+        ? (start as number) * (length as number)
+        : (start as number)
+    if (
+        offset >= RERANK_POOL_SIZE ||
+        offset + (length as number) > MAX_PAGES_END
+    )
+        return `Only the first ${RERANK_POOL_SIZE} results are reranked`
+
+    if (
+        payload.facetFilters !== undefined &&
+        !isFacetFilters(payload.facetFilters)
+    )
+        return "facetFilters must be an array of strings or string arrays"
+    for (const key of ["attributesToRetrieve", "restrictSearchableAttributes"])
+        if (payload[key] !== undefined && !isStringArray(payload[key]))
+            return `${key} must be an array of strings`
+    for (const key of ["highlightPreTag", "highlightPostTag"])
+        if (payload[key] !== undefined && typeof payload[key] !== "string")
+            return `${key} must be a string`
+
+    return {
+        params: payload as SingleSearchRequest,
+        query,
+        offset,
+        length: length as number,
+    }
+}
+
+interface RerankablePageHit {
+    title: string
+    type: string
+    excerpt?: string
+    content?: string
+}
+
+/**
+ * A pages-index section of the search page (articles, data insights),
+ * reranked. Algolia's first RERANK_POOL_SIZE hits are the pool, however the
+ * section pages through them; the hits a request asks for past the pool keep
+ * Algolia's order. Later requests go to Algolia directly and start where
+ * this one's hits end, so no hit is shown twice or skipped.
+ */
+async function rerankPagesSection(
+    env: Env & { AI: Ai },
+    model: RerankModel,
+    payload: unknown
+): Promise<Response> {
+    const parsed = parsePagesSearchRequest(payload)
+    if (typeof parsed === "string") return jsonResponse(400, { error: parsed })
+    const { params, query, offset, length } = parsed
+    const {
+        page: _page,
+        hitsPerPage: _hitsPerPage,
+        ...search
+    } = params as Record<string, unknown>
+
+    const config = getAlgoliaConfig(env)
+    const started = Date.now()
+    const { value: found, ms: poolMs } = await timed(() =>
+        // The site searches without the closest-matches fallback when it
+        // restricts the searchable attributes (a country filter is on)
+        (params.restrictSearchableAttributes
+            ? searchSingleForHits
+            : searchSingleForHitsWithClosestMatches)<RerankablePageHit>(
+            createSearchClient(config),
+            {
+                ...search,
+                indexName: getIndexName(
+                    SearchIndexName.Pages,
+                    config.indexPrefix
+                ),
+                // The rerank prompt reads a page's excerpt, or else its
+                // matched text (see rerankPages in rerank.ts)
+                attributesToRetrieve: [
+                    ...new Set([
+                        ...((params.attributesToRetrieve as string[]) ?? []),
+                        "title",
+                        "type",
+                        "excerpt",
+                        "content",
+                    ]),
+                ],
+                offset: 0,
+                length: Math.max(RERANK_POOL_SIZE, offset + length),
+            }
+        )
+    )
+    const { hits: pool, rerank } = await rerankHits(
+        env.AI,
+        model,
+        query,
+        found.hits.slice(0, RERANK_POOL_SIZE).map((hit) => ({
+            hit,
+            title: hit.title,
+            subtitle: hit.excerpt || hit.content,
+            type: hit.type,
+        }))
+    )
+    const hits = [
+        ...pool.map((entry) => entry.hit),
+        ...found.hits.slice(RERANK_POOL_SIZE),
+    ]
+    return jsonResponse(200, {
+        ...found,
+        hits: hits.slice(offset, offset + length),
+        // Echo the request's own pagination style
+        ...(params.hitsPerPage !== undefined
+            ? { page: offset / length, hitsPerPage: length }
+            : { offset, length }),
+        rerank,
+        timings: {
+            pool: poolMs,
+            rerank: rerank.latencyMs,
+            total: Date.now() - started,
+        } satisfies SearchTimings,
+    })
+}
+
 export const onRequestOptions: PagesFunction = async () =>
     new Response(null, {
         status: 204,
@@ -184,6 +374,17 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         } catch {
             return jsonResponse(400, { error: "Body is not valid JSON" })
         }
+        const section = url.searchParams.get("section") ?? "charts"
+        if (section === "pages")
+            return await rerankPagesSection(
+                { ...env, AI: env.AI },
+                model,
+                payload
+            )
+        if (section !== "charts")
+            return jsonResponse(400, {
+                error: `Invalid section "${section}". Valid values: charts, pages`,
+            })
         const parsed = parseSearchRequest(payload)
         if (typeof parsed === "string")
             return jsonResponse(400, { error: parsed })
