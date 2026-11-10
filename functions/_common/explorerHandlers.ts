@@ -18,9 +18,9 @@ import {
     type ImageRequest,
     migrateSelectedEntityNamesParam,
     parseImageRequest,
-    resolveImageLayout,
     SelectionArray,
 } from "@ourworldindata/grapher"
+import { resolveImageLayout } from "./imageLayout.js"
 import {
     assembleCsv,
     assembleDataValues,

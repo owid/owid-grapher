@@ -17,10 +17,9 @@ import {
 import { GRAPHER_TAB_NAMES } from "@ourworldindata/types"
 import {
     fetchInputTableForConfig,
-    type ImageLayout,
     type ImageRequest,
-    resolveImageLayout,
 } from "@ourworldindata/grapher"
+import { type ImageLayout, resolveImageLayout } from "./imageLayout.js"
 import ReactDOMServer from "react-dom/server"
 
 declare global {

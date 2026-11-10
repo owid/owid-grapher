@@ -11,8 +11,8 @@ import {
     type ImageRequest,
     loadCatalogData,
     migrateGrapherConfigToLatestVersion,
-    resolveImageLayout,
 } from "@ourworldindata/grapher"
+import { resolveImageLayout } from "./imageLayout.js"
 import { decodeHTML } from "entities"
 import {
     type DownloadRewriteTarget,
