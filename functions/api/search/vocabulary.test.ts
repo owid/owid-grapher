@@ -9,6 +9,7 @@ import {
     appendVocabularyHits,
     parseVocabulary,
     pickVocabularyTerms,
+    pickVocabularyTopics,
 } from "./vocabulary.js"
 
 const VOCABULARY = {
@@ -35,6 +36,26 @@ const pickingAi = () =>
                 : { answers: { k0: choice({ k0: 0.2, k1: 0.8 }) } }
         ),
     }) as unknown as Ai & { run: ReturnType<typeof vi.fn> }
+
+describe(pickVocabularyTopics, () => {
+    beforeEach(() => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(async () => new Response(JSON.stringify(VOCABULARY)))
+        )
+    })
+
+    it("picks the two most likely topics with the topic call alone", async () => {
+        const ai = pickingAi()
+        const info = await pickVocabularyTopics(ai, "clef-flash", "hungry")
+
+        expect(info.terms).toEqual([
+            { topic: "Hunger & Undernourishment" },
+            { topic: "Famines" },
+        ])
+        expect(ai.run).toHaveBeenCalledOnce()
+    })
+})
 
 describe(pickVocabularyTerms, () => {
     beforeEach(() => {

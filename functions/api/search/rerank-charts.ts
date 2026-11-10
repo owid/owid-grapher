@@ -29,6 +29,9 @@ import {
 import {
     appendVocabularyHits,
     pickVocabularyTerms,
+    pickVocabularyTopics,
+    type VocabularyTopicPick,
+    vocabularyTopicNote,
     VOCABULARY_HITS_PER_TERM,
     vocabularyNote,
     type VocabularyTerm,
@@ -251,6 +254,7 @@ function parsePagesSearchRequest(
 }
 
 interface RerankablePageHit {
+    objectID: string
     title: string
     type: string
     excerpt?: string
@@ -263,11 +267,19 @@ interface RerankablePageHit {
  * section pages through them; the hits a request asks for past the pool keep
  * Algolia's order. Later requests go to Algolia directly and start where
  * this one's hits end, so no hit is shown twice or skipped.
+ *
+ * With `vocab`, the pages of the query's vocabulary topics join the pool
+ * (see pickVocabularyTopics), unless the search is already filtered to a
+ * topic. Known gap: the pool is then longer than RERANK_POOL_SIZE when
+ * Algolia fills it, so its lowest-ranked hits fall between this endpoint's
+ * last request and Algolia's first, and a topic's page Algolia ranks past the
+ * pool can show twice. Most searches return far fewer pages than the pool.
  */
 async function rerankPagesSection(
     env: Env & { AI: Ai },
     model: RerankModel,
-    payload: unknown
+    payload: unknown,
+    vocab: boolean
 ): Promise<Response> {
     const parsed = parsePagesSearchRequest(payload)
     if (typeof parsed === "string") return jsonResponse(400, { error: parsed })
@@ -279,45 +291,77 @@ async function rerankPagesSection(
     } = params as Record<string, unknown>
 
     const config = getAlgoliaConfig(env)
+    const client = createSearchClient(config)
+    const facetFilters = (params.facetFilters ?? []) as (string | string[])[]
+    const pagesSearch = {
+        ...search,
+        indexName: getIndexName(SearchIndexName.Pages, config.indexPrefix),
+        // What the rerank prompt reads (see describePage)
+        attributesToRetrieve: [
+            ...new Set([
+                ...((params.attributesToRetrieve as string[]) ?? []),
+                "title",
+                "type",
+                "excerpt",
+                "content",
+            ]),
+        ],
+        offset: 0,
+    }
     const started = Date.now()
-    const { value: found, ms: poolMs } = await timed(() =>
-        // The site searches without the closest-matches fallback when it
-        // restricts the searchable attributes (a country filter is on)
-        (params.restrictSearchableAttributes
-            ? searchSingleForHits
-            : searchSingleForHitsWithClosestMatches)<RerankablePageHit>(
-            createSearchClient(config),
-            {
-                ...search,
-                indexName: getIndexName(
-                    SearchIndexName.Pages,
-                    config.indexPrefix
-                ),
-                // What the rerank prompt reads (see describePage)
-                attributesToRetrieve: [
-                    ...new Set([
-                        ...((params.attributesToRetrieve as string[]) ?? []),
-                        "title",
-                        "type",
-                        "excerpt",
-                        "content",
-                    ]),
-                ],
-                offset: 0,
-                length: Math.max(RERANK_POOL_SIZE, offset + length),
-            }
-        )
-    )
+    const [{ value: found, ms: poolMs }, vocabulary] = await Promise.all([
+        timed(() =>
+            // The site searches without the closest-matches fallback when it
+            // restricts the searchable attributes (a country filter is on)
+            (params.restrictSearchableAttributes
+                ? searchSingleForHits
+                : searchSingleForHitsWithClosestMatches)<RerankablePageHit>(
+                client,
+                {
+                    ...pagesSearch,
+                    length: Math.max(RERANK_POOL_SIZE, offset + length),
+                }
+            )
+        ),
+        vocab && !facetFilters.some(isTopicFacet)
+            ? pickVocabularyTopics(env.AI, model, query)
+            : undefined,
+    ])
+    const termSearchesStarted = Date.now()
+    const { hits: candidates, via } = vocabulary
+        ? await appendVocabularyHits(
+              found.hits.slice(0, RERANK_POOL_SIZE),
+              vocabulary.terms,
+              async (pick) =>
+                  (
+                      await searchSingleForHits<RerankablePageHit>(client, {
+                          ...pagesSearch,
+                          query: "",
+                          facetFilters: [...facetFilters, `tags:${pick.topic}`],
+                          length: VOCABULARY_HITS_PER_TERM,
+                      })
+                  ).hits,
+              (hit) => hit.objectID
+          )
+        : {
+              hits: found.hits.slice(0, RERANK_POOL_SIZE),
+              via: new Map<string, VocabularyTopicPick>(),
+          }
+    const termSearchesMs = Date.now() - termSearchesStarted
     const { hits: pool, rerank } = await rerankHits(
         env.AI,
         model,
         query,
-        found.hits.slice(0, RERANK_POOL_SIZE).map((hit) => ({
+        candidates.map((hit) => ({
             hit,
             title: hit.title,
             type: hit.type,
             ...describePage(hit),
-        }))
+        })),
+        ({ hit }) => {
+            const pick = via.get(hit.objectID)
+            return pick && vocabularyTopicNote(pick)
+        }
     )
     const hits = [
         ...pool.map((entry) => entry.hit),
@@ -330,9 +374,16 @@ async function rerankPagesSection(
         ...(params.hitsPerPage !== undefined
             ? { page: offset / length, hitsPerPage: length }
             : { offset, length }),
+        // Topic pages can turn an empty search into a full one
+        nbHits: Math.max(found.nbHits ?? 0, hits.length),
         rerank,
+        ...(vocabulary && { vocabulary }),
         timings: {
             pool: poolMs,
+            ...(vocabulary && {
+                vocabulary: vocabulary.latencyMs,
+                termSearches: termSearchesMs,
+            }),
             rerank: rerank.latencyMs,
             total: Date.now() - started,
         } satisfies SearchTimings,
@@ -379,7 +430,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             return await rerankPagesSection(
                 { ...env, AI: env.AI },
                 model,
-                payload
+                payload,
+                url.searchParams.get("vocab") === "1"
             )
         if (section !== "charts")
             return jsonResponse(400, {

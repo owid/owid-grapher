@@ -92,7 +92,12 @@ export const searchPagesReranked = <T>(
     liteSearchClient: LiteClient,
     searchParams: SingleSearchRequest
 ): ReturnType<Search<T>> =>
-    searchReranked<T>("&section=pages", search, liteSearchClient, searchParams)
+    searchReranked<T>(
+        `&section=pages${RERANK_VOCAB ? "&vocab=1" : ""}`,
+        search,
+        liteSearchClient,
+        searchParams
+    )
 
 /**
  * `searchParams` through the rerank endpoint. Falls back to `search`, Algolia

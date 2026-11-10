@@ -24,10 +24,12 @@ import {
 import {
     appendVocabularyHits,
     pickVocabularyTerms,
+    pickVocabularyTopics,
     VOCABULARY_HITS_PER_TERM,
     vocabularyNote,
     type VocabularyInfo,
-    type VocabularyTerm,
+    type VocabularyTopicPick,
+    vocabularyTopicNote,
 } from "./vocabulary.js"
 import {
     FilterType,
@@ -116,20 +118,17 @@ async function fetchTagGraph(env: Env, baseUrl: string): Promise<TagGraphRoot> {
 /**
  * The experimental `rerank` param of a charts or pages search (see
  * rerank.ts). It reorders the top RERANK_POOL_SIZE hits, so it serves page 0
- * only. With `vocab=1`, a charts pool also gets the query's vocabulary hits
- * (see vocabulary.ts).
+ * only. With `vocab=1`, the pool also gets the query's vocabulary hits (see
+ * vocabulary.ts): for charts each topic's term search, for pages each
+ * topic's pages.
  */
 function parseRerank(
     value: string | null,
     vocab: string | null,
     env: Env,
     page: number
-):
-    | { model: RerankModel; ai: Ai; vocab: boolean; vocabByTopic: boolean }
-    | undefined {
-    // TODO: vocab=topic is a variant under test for pages (see
-    // searchPagesReranked); keep whichever of the two wins as vocab=1
-    if (vocab && vocab !== "1" && vocab !== "topic")
+): { model: RerankModel; ai: Ai; vocab: boolean } | undefined {
+    if (vocab && vocab !== "1")
         throw new SearchValidationError(
             `Invalid vocab value "${vocab}". Use vocab=1`
         )
@@ -148,12 +147,7 @@ function parseRerank(
         throw new SearchValidationError(
             "rerank only supports page=0: it reorders the top results"
         )
-    return {
-        model: value,
-        ai: env.AI,
-        vocab: !!vocab,
-        vocabByTopic: vocab === "topic",
-    }
+    return { model: value, ai: env.AI, vocab: vocab === "1" }
 }
 
 const hasSearchEnvVars = (env: Env): boolean => {
@@ -465,7 +459,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             rerank: NonNullable<ReturnType<typeof parseRerank>>
         ): Promise<
             SearchPagesApiResponse & {
-                vocabulary?: VocabularyInfo
+                vocabulary?: VocabularyInfo<VocabularyTopicPick>
                 timings: SearchTimings
             }
         > => {
@@ -484,34 +478,25 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                         )
                     ),
                     rerank.vocab
-                        ? pickVocabularyTerms(rerank.ai, rerank.model, query)
+                        ? pickVocabularyTopics(rerank.ai, rerank.model, query)
                         : undefined,
                 ]
             )
             // Pages carry the charts' topic tags, so the query's vocabulary
             // topics find pages a keyword search misses: Algolia wants every
             // query word in a page, which leaves many searches a handful of
-            // hits. Within each topic this searches the picked term, or with
-            // vocab=topic nothing, which yields the topic's pages in
+            // hits. An empty search within a topic yields its pages in
             // Algolia's default order.
             const termSearchesStarted = Date.now()
             const { hits: results, via } = vocabulary
                 ? await appendVocabularyHits(
                       pool.results,
-                      rerank.vocabByTopic
-                          ? // two terms can share a topic
-                            vocabulary.terms.filter(
-                                (term, i, terms) =>
-                                    terms.findIndex(
-                                        (t) => t.topic === term.topic
-                                    ) === i
-                            )
-                          : vocabulary.terms,
+                      vocabulary.terms,
                       async (term) =>
                           (
                               await searchPages(
                                   algoliaConfig,
-                                  rerank.vocabByTopic ? "" : term.keyword,
+                                  "",
                                   0,
                                   VOCABULARY_HITS_PER_TERM,
                                   pageTypes,
@@ -522,7 +507,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                           ).results,
                       (hit) => hit.url
                   )
-                : { hits: pool.results, via: new Map<string, VocabularyTerm>() }
+                : {
+                      hits: pool.results,
+                      via: new Map<string, VocabularyTopicPick>(),
+                  }
             const termSearchesMs = Date.now() - termSearchesStarted
             const reranked = await rerankPages(
                 rerank.ai,
@@ -534,13 +522,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 },
                 hitsPerPage,
                 (hit) => {
-                    const term = via.get(hit.url)
-                    return (
-                        term &&
-                        (rerank.vocabByTopic
-                            ? `found by browsing the related topic ${term.topic}, not by the query itself`
-                            : vocabularyNote(term))
-                    )
+                    const pick = via.get(hit.url)
+                    return pick && vocabularyTopicNote(pick)
                 }
             )
             return {

@@ -56,16 +56,21 @@ export interface VocabularyTopic {
     keywords: string[]
 }
 
-export interface VocabularyTerm {
+export interface VocabularyTopicPick {
     topic: string
+}
+
+export interface VocabularyTerm extends VocabularyTopicPick {
     keyword: string
 }
 
-export interface VocabularyInfo {
-    terms: VocabularyTerm[]
+export interface VocabularyInfo<
+    Term extends VocabularyTopicPick = VocabularyTerm,
+> {
+    terms: Term[]
     latencyMs: number
-    /** latencyMs by step: loading the vocabulary file, then the two calls */
-    steps?: { load: number; topic: number; keyword: number }
+    /** latencyMs by step: loading the vocabulary file, then the call(s) */
+    steps?: { load: number; topic: number; keyword?: number }
     /** the picks failed; the pool was reranked without them */
     error?: string
 }
@@ -116,6 +121,87 @@ function loadVocabulary(): Promise<VocabularyTopic[]> {
 const optionId = (prefix: string, index: number): string => `${prefix}${index}`
 const optionIndex = (id: string): number => Number(id.slice(1))
 
+interface PickedTopics {
+    picked: VocabularyTopic[]
+    state: string
+    steps: { load: number; topic: number }
+}
+
+/** The query's VOCABULARY_TOPICS most likely topics: the first call. */
+async function pickTopics(
+    ai: Ai,
+    model: RerankModel,
+    query: string,
+    signal: AbortSignal
+): Promise<PickedTopics> {
+    const { value: topics, ms: load } = await timed(loadVocabulary)
+    const state = `${STATE_INTRO}\n\nQuery: ${query}`
+    const { value: answers, ms: topic } = await timed(() =>
+        runDecisionModel(
+            ai,
+            model,
+            state,
+            {
+                topic: {
+                    type: "choice",
+                    instructions: TOPIC_INSTRUCTIONS,
+                    criteria: Object.fromEntries(
+                        topics.map((topic, i) => [
+                            optionId("t", i),
+                            `${topic.name} (e.g. ${topic.keywords.slice(0, 6).join(", ")})`,
+                        ])
+                    ),
+                },
+            },
+            signal
+        )
+    )
+    const picked = topChoices(answers.topic, VOCABULARY_TOPICS)
+        .map((id) => topics[optionIndex(id)])
+        .filter((topic) => topic !== undefined)
+    return { picked, state, steps: { load, topic } }
+}
+
+/** Failed picks: no terms, so the pool is reranked as it was. */
+function failedPicks(error: unknown, started: number): VocabularyInfo<never> {
+    console.error("Search vocabulary picks failed:", error)
+    Sentry.captureException(error)
+    return {
+        terms: [],
+        latencyMs: Date.now() - started,
+        error: error instanceof Error ? error.message : String(error),
+    }
+}
+
+/**
+ * The query's most likely topics, without search terms: one call. For pages
+ * (articles, data insights), where a topic has few enough of them that its
+ * pages are the candidates. Searching the term within the topic found fewer
+ * relevant articles on the benchmark than taking the topic's pages.
+ */
+export async function pickVocabularyTopics(
+    ai: Ai,
+    model: RerankModel,
+    query: string
+): Promise<VocabularyInfo<VocabularyTopicPick>> {
+    const started = Date.now()
+    try {
+        const { picked, steps } = await pickTopics(
+            ai,
+            model,
+            query,
+            AbortSignal.timeout(VOCABULARY_TIMEOUT_MS)
+        )
+        return {
+            terms: picked.map((topic) => ({ topic: topic.name })),
+            latencyMs: Date.now() - started,
+            steps,
+        }
+    } catch (error) {
+        return failedPicks(error, started)
+    }
+}
+
 /** The query's most likely topics, each with its best search term. */
 export async function pickVocabularyTerms(
     ai: Ai,
@@ -125,32 +211,12 @@ export async function pickVocabularyTerms(
     const started = Date.now()
     const signal = AbortSignal.timeout(VOCABULARY_TIMEOUT_MS)
     try {
-        const { value: topics, ms: load } = await timed(loadVocabulary)
-        const state = `${STATE_INTRO}\n\nQuery: ${query}`
-
-        const { value: topicAnswers, ms: topic } = await timed(() =>
-            runDecisionModel(
-                ai,
-                model,
-                state,
-                {
-                    topic: {
-                        type: "choice",
-                        instructions: TOPIC_INSTRUCTIONS,
-                        criteria: Object.fromEntries(
-                            topics.map((topic, i) => [
-                                optionId("t", i),
-                                `${topic.name} (e.g. ${topic.keywords.slice(0, 6).join(", ")})`,
-                            ])
-                        ),
-                    },
-                },
-                signal
-            )
+        const { picked, state, steps } = await pickTopics(
+            ai,
+            model,
+            query,
+            signal
         )
-        const picked = topChoices(topicAnswers.topic, VOCABULARY_TOPICS)
-            .map((id) => topics[optionIndex(id)])
-            .filter((topic) => topic !== undefined)
 
         // A choice needs two options, so a one-term topic needs no question
         const questions = Object.fromEntries(
@@ -191,16 +257,10 @@ export async function pickVocabularyTerms(
         return {
             terms,
             latencyMs: Date.now() - started,
-            steps: { load, topic, keyword },
+            steps: { ...steps, keyword },
         }
     } catch (error) {
-        console.error("Search vocabulary picks failed:", error)
-        Sentry.captureException(error)
-        return {
-            terms: [],
-            latencyMs: Date.now() - started,
-            error: error instanceof Error ? error.message : String(error),
-        }
+        return failedPicks(error, started)
     }
 }
 
@@ -209,12 +269,15 @@ export async function pickVocabularyTerms(
  * hits the pool doesn't have yet, in term order. `via` maps each appended
  * hit's key to the term that found it.
  */
-export async function appendVocabularyHits<T>(
+export async function appendVocabularyHits<
+    T,
+    Term extends VocabularyTopicPick = VocabularyTerm,
+>(
     pool: T[],
-    terms: VocabularyTerm[],
-    search: (term: VocabularyTerm) => Promise<T[]>,
+    terms: Term[],
+    search: (term: Term) => Promise<T[]>,
     key: (hit: T) => string
-): Promise<{ hits: T[]; via: Map<string, VocabularyTerm> }> {
+): Promise<{ hits: T[]; via: Map<string, Term> }> {
     const perTerm = await Promise.all(
         terms.map((term) =>
             search(term).catch((error) => {
@@ -225,7 +288,7 @@ export async function appendVocabularyHits<T>(
     )
     const seen = new Set(pool.map(key))
     const merged = [...pool]
-    const via = new Map<string, VocabularyTerm>()
+    const via = new Map<string, Term>()
     perTerm.forEach((hits, i) => {
         for (const hit of hits) {
             if (seen.has(key(hit))) continue
@@ -244,3 +307,7 @@ export async function appendVocabularyHits<T>(
  */
 export const vocabularyNote = (term: VocabularyTerm): string =>
     `found by searching the related topic ${term.topic} for "${term.keyword}", not by the query itself`
+
+/** The rerank prompt's note on a page added from a vocabulary topic. */
+export const vocabularyTopicNote = (pick: VocabularyTopicPick): string =>
+    `found by browsing the related topic ${pick.topic}, not by the query itself`

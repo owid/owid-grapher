@@ -17,7 +17,11 @@ import type { Env } from "../../_common/env.js"
 
 vi.mock(import("@ourworldindata/utils"), async (importOriginal) => {
     const actual = await importOriginal()
-    return { ...actual, searchSingleForHitsWithClosestMatches: vi.fn() }
+    return {
+        ...actual,
+        searchSingleForHits: vi.fn(),
+        searchSingleForHitsWithClosestMatches: vi.fn(),
+    }
 })
 
 vi.mock(import("./vocabulary.js"), async (importOriginal) => {
@@ -26,6 +30,10 @@ vi.mock(import("./vocabulary.js"), async (importOriginal) => {
         ...actual,
         pickVocabularyTerms: vi.fn(async () => ({
             terms: [{ topic: "Fertility Rate", keyword: "fertility rate" }],
+            latencyMs: 5,
+        })),
+        pickVocabularyTopics: vi.fn(async () => ({
+            terms: [{ topic: "Fertility Rate" }],
             latencyMs: 5,
         })),
     }
@@ -254,6 +262,34 @@ describe("/api/search/rerank-charts", () => {
             ])
             expect(body).toMatchObject({ offset: 28, length: 6, nbHits: 80 })
             expect(body.rerank).toMatchObject({ poolSize: 30 })
+        })
+
+        it("with vocab=1, adds the pages of the query's topics to the pool", async () => {
+            search.mockResolvedValue({
+                hits: [pageHit("p1")],
+                nbHits: 1,
+            } as any)
+            vi.mocked(utils.searchSingleForHits).mockResolvedValue({
+                hits: [pageHit("p1"), pageHit("t1")],
+            } as any)
+
+            const { body } = await post(
+                pagesRequest(),
+                reverseAi(),
+                "model=jev&section=pages&vocab=1"
+            )
+
+            expect(utils.searchSingleForHits).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({
+                    query: "",
+                    facetFilters: ["tags:Fertility Rate"],
+                    filters: "type:article OR type:about-page",
+                })
+            )
+            // reverseAi prefers the later candidate: the topic's page
+            expect(body.hits.map((h: any) => h.objectID)).toEqual(["t1", "p1"])
+            expect(body.nbHits).toBe(2)
         })
 
         it.each([
