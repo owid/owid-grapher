@@ -459,7 +459,7 @@ export function DataPageContent({
                                 config={config}
                                 settings={displayedSettings}
                                 onChange={handleSettingsChange}
-                                disabled={isLoadingView}
+                                readOnly={isLoadingView}
                             />
                         </div>
                     </div>
