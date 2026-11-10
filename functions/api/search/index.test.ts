@@ -693,6 +693,192 @@ describe("Search API endpoint", () => {
                 expect(mockSearchCharts).not.toHaveBeenCalled()
             }
         )
+
+        describe("with vectors=1", () => {
+            // The embedding call returns a vector; any other call is the rerank,
+            // which here prefers the last candidate
+            const run = vi.fn(async (model: string) =>
+                model.includes("bge")
+                    ? { data: [[0.1, 0.2]] }
+                    : {
+                          answers: {
+                              best_result: {
+                                  type: "choice",
+                                  probabilities: { r01: 0.1, r04: 0.9 },
+                              },
+                              any_relevant: { type: "noul", noul: 0.9 },
+                          },
+                      }
+            )
+            const query = vi.fn()
+            const envWithVectors = {
+                ...mockEnv,
+                AI: { run },
+                SEARCH_VECTORS: { query },
+            } as unknown as Env
+            const chart = (
+                slug: string
+            ): searchApi.SearchApiResponse["results"][number] =>
+                ({
+                    slug,
+                    title: slug,
+                    type: "chart",
+                    url: `https://ourworldindata.org/grapher/${slug}`,
+                }) as searchApi.SearchApiResponse["results"][number]
+
+            it("adds the nearest records the pool lacks, fetched as hits of the same search", async () => {
+                query.mockResolvedValue({
+                    matches: [{ id: "7" }, { id: "9" }],
+                })
+                const mockSearchCharts = vi
+                    .spyOn(searchApi, "searchCharts")
+                    .mockImplementation(
+                        async (_config, _state, _page, _n, _base, ids) =>
+                            ids
+                                ? {
+                                      ...pool,
+                                      // "b" is in the pool already
+                                      results: [chart("b"), chart("fertility")],
+                                  }
+                                : {
+                                      ...pool,
+                                      results: ["a", "b", "c"].map(chart),
+                                  }
+                    )
+
+                const response = await get(
+                    "q=birth+rate&countries=France&rerank=jev&vectors=1&hitsPerPage=2",
+                    envWithVectors
+                )
+                const body = (await response.json()) as {
+                    results: { slug: string }[]
+                    vectors: { ids: string[] }
+                    timings: Record<string, number>
+                }
+
+                expect(query).toHaveBeenCalledWith(
+                    [0.1, 0.2],
+                    expect.objectContaining({ namespace: "charts" })
+                )
+                // the second search: no query, the same country filter, only
+                // the nearest records
+                expect(mockSearchCharts).toHaveBeenLastCalledWith(
+                    expect.anything(),
+                    expect.objectContaining({
+                        query: "",
+                        filters: [{ type: "country", name: "France" }],
+                    }),
+                    0,
+                    2,
+                    expect.any(String),
+                    ["7", "9"]
+                )
+                // the pool is a, b, c, fertility; the rerank picks the fourth
+                expect(body.results.map((r) => r.slug)).toEqual([
+                    "fertility",
+                    "a",
+                ])
+                expect(body.vectors.ids).toEqual(["7", "9"])
+                expect(body.timings).toHaveProperty("vectors")
+            })
+
+            it("reranks Algolia's pool alone when the vector lookup fails", async () => {
+                query.mockRejectedValue(new Error("index unavailable"))
+                const mockSearchCharts = vi
+                    .spyOn(searchApi, "searchCharts")
+                    .mockResolvedValue({
+                        ...pool,
+                        results: ["a", "b", "c"].map(chart),
+                    })
+
+                const response = await get(
+                    "q=birth+rate&rerank=jev&vectors=1",
+                    envWithVectors
+                )
+                const body = (await response.json()) as {
+                    results: { slug: string }[]
+                    vectors: { ids: string[]; error: string }
+                }
+
+                expect(response.status).toBe(200)
+                expect(mockSearchCharts).toHaveBeenCalledOnce()
+                expect(body.results).toHaveLength(3)
+                expect(body.vectors).toMatchObject({
+                    ids: [],
+                    error: "index unavailable",
+                })
+            })
+
+            it("searches the pages namespace by page type for type=pages", async () => {
+                query.mockResolvedValue({ matches: [{ id: "doc-c0" }] })
+                const page = (slug: string) => ({
+                    slug,
+                    title: slug,
+                    type: "data-insight",
+                    url: `https://ourworldindata.org/data-insights/${slug}`,
+                })
+                const mockSearchPages = vi
+                    .spyOn(searchApi, "searchPages")
+                    .mockImplementation(async (...args) => ({
+                        query: "birth rate",
+                        results: args[8] ? [page("near")] : [page("a")],
+                        nbHits: 1,
+                        offset: 0,
+                        length: 30,
+                    }))
+
+                const response = await get(
+                    "q=birth+rate&type=pages&pageTypes=data-insight&rerank=jev&vectors=1",
+                    envWithVectors
+                )
+                const body = (await response.json()) as {
+                    results: { slug: string }[]
+                }
+
+                expect(query).toHaveBeenCalledWith(
+                    [0.1, 0.2],
+                    expect.objectContaining({
+                        namespace: "pages",
+                        filter: { type: { $in: ["data-insight"] } },
+                    })
+                )
+                expect(mockSearchPages.mock.calls[1][8]).toEqual(["doc-c0"])
+                expect(body.results.map((r) => r.slug).sort()).toEqual([
+                    "a",
+                    "near",
+                ])
+            })
+
+            it.each([
+                [
+                    "no rerank",
+                    "q=gdp&vectors=1",
+                    envWithVectors,
+                    /needs a rerank/,
+                ],
+                [
+                    "vocab as well",
+                    "q=gdp&rerank=jev&vectors=1&vocab=1",
+                    envWithVectors,
+                    /either/,
+                ],
+                [
+                    "a deployment without the index",
+                    "q=gdp&rerank=jev&vectors=1",
+                    envWithAi,
+                    /not available/,
+                ],
+            ])(
+                "rejects %s with a 400",
+                async (_, queryString, env, message) => {
+                    const response = await get(queryString, env)
+
+                    expect(response.status).toBe(400)
+                    const body = (await response.json()) as { error: string }
+                    expect(body.error).toMatch(message)
+                }
+            )
+        })
     })
 
     describe("response format", () => {

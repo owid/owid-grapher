@@ -19,6 +19,7 @@ import {
     searchCharts,
     searchPages,
     searchTopicPages,
+    DEFAULT_PAGE_TYPES,
     SearchApiResponse,
     SearchPagesApiResponse,
     SearchState,
@@ -38,6 +39,11 @@ import {
     vocabularyTopicNote,
 } from "./vocabulary.js"
 import {
+    appendVectorHits,
+    findVectorCandidates,
+    type VectorInfo,
+} from "./vectorCandidates.js"
+import {
     FilterType,
     Filter,
     SearchUrlParam,
@@ -49,6 +55,7 @@ import {
     rankTopicsOfChartHits,
     searchSingleForHitsWithClosestMatches,
     TOPIC_VOTING_CHART_HITS,
+    VECTOR_NAMESPACES,
 } from "@ourworldindata/utils"
 
 const DEFAULT_HITS_PER_PAGE = 20
@@ -79,6 +86,7 @@ const KNOWN_PARAMS = new Set<string>([
     "hitsPerPage",
     "rerank",
     "vocab",
+    "vectors",
 ])
 
 // The parameters only some search types read. A request that sends one to a
@@ -92,6 +100,7 @@ const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
     ["pageTypes", ["pages"]],
     ["rerank", ["charts", "pages"]],
     ["vocab", ["charts", "pages"]],
+    ["vectors", ["charts", "pages"]],
 ])
 
 // type=topics filters by country only when charts match a query, so never
@@ -132,11 +141,13 @@ async function fetchTagGraph(env: Env, baseUrl: string): Promise<TagGraphRoot> {
  * rerank.ts). It reorders the top RERANK_POOL_SIZE hits, so it serves page 0
  * only. With `vocab=1`, the pool also gets the query's vocabulary hits (see
  * vocabulary.ts): for charts each topic's term search, for pages each
- * topic's pages.
+ * topic's pages. With `vectors=1` it gets the records nearest to the query
+ * by embedding instead (see vectorCandidates.ts).
  */
 function parseRerank(
     value: string | null,
     vocab: string | null,
+    vectors: string | null,
     env: Env,
     page: number
 ):
@@ -144,6 +155,8 @@ function parseRerank(
           model: RerankModel
           ai: Ai
           vocab: boolean
+          /** set when the pool gets vector candidates */
+          vectors?: Vectorize
           chartsVocab: "term" | "topic" | "query" | "votes" | "wide" | "wideq"
       }
     | undefined {
@@ -159,6 +172,19 @@ function parseRerank(
         )
     if (vocab && !value)
         throw new SearchValidationError("vocab=1 needs a rerank")
+    if (vectors && vectors !== "1")
+        throw new SearchValidationError(
+            `Invalid vectors value "${vectors}". Use vectors=1`
+        )
+    if (vectors && !value)
+        throw new SearchValidationError("vectors=1 needs a rerank")
+    // Two ways to widen the pool, compared against each other
+    if (vectors && vocab)
+        throw new SearchValidationError("Use either vectors=1 or vocab=1")
+    if (vectors && !env.SEARCH_VECTORS)
+        throw new SearchValidationError(
+            "vectors is not available on this deployment"
+        )
     if (!value) return undefined
     if (!isRerankModel(value))
         throw new SearchValidationError(
@@ -176,6 +202,7 @@ function parseRerank(
         model: value,
         ai: env.AI,
         vocab: !!vocab,
+        ...(vectors && { vectors: env.SEARCH_VECTORS }),
         chartsVocab:
             vocab === "topic" ||
             vocab === "query" ||
@@ -392,6 +419,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 ? parseRerank(
                       url.searchParams.get("rerank"),
                       url.searchParams.get("vocab"),
+                      url.searchParams.get("vectors"),
                       env,
                       page
                   )
@@ -476,13 +504,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 vocabulary?:
                     | VocabularyInfo
                     | VocabularyInfo<VocabularyTopicPick>
+                vectors?: VectorInfo
                 timings: SearchTimings
             }
         > => {
             const started = Date.now()
             const expand = rerank.vocab && !topicParam?.trim()
-            const [{ value: pool, ms: poolMs }, vocabulary] = await Promise.all(
-                [
+            const [{ value: pool, ms: poolMs }, vocabulary, vectors] =
+                await Promise.all([
                     timed(() =>
                         searchCharts(
                             algoliaConfig,
@@ -501,19 +530,57 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                               )
                             : pickTopics(rerank)
                         : undefined,
-                ]
-            )
+                    rerank.vectors && query.trim()
+                        ? findVectorCandidates(
+                              rerank.ai,
+                              rerank.vectors,
+                              query,
+                              VECTOR_NAMESPACES.charts
+                          )
+                        : undefined,
+                ])
             if (!vocabulary) {
+                // The nearest records as hits of this search: its country
+                // and topic filters apply to them too
+                const { value: vectorHits, ms: vectorHitsMs } = await timed(
+                    async () =>
+                        vectors?.ids.length
+                            ? (
+                                  await searchCharts(
+                                      algoliaConfig,
+                                      { ...searchState, query: "" },
+                                      0,
+                                      vectors.ids.length,
+                                      baseUrl,
+                                      vectors.ids
+                                  )
+                              ).results
+                            : []
+                )
+                const results = appendVectorHits(
+                    pool.results,
+                    vectorHits,
+                    (hit) => hit.url
+                )
                 const reranked = await rerankCharts(
                     rerank.ai,
                     rerank.model,
-                    pool,
+                    {
+                        ...pool,
+                        results,
+                        nbHits: Math.max(pool.nbHits, results.length),
+                    },
                     hitsPerPage
                 )
                 return {
                     ...reranked,
+                    ...(vectors && { vectors }),
                     timings: {
                         pool: poolMs,
+                        ...(vectors && {
+                            vectors: vectors.latencyMs,
+                            vectorHits: vectorHitsMs,
+                        }),
                         rerank: reranked.rerank.latencyMs,
                         total: Date.now() - started,
                     },
@@ -614,12 +681,13 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         ): Promise<
             SearchPagesApiResponse & {
                 vocabulary?: VocabularyInfo<VocabularyTopicPick>
+                vectors?: VectorInfo
                 timings: SearchTimings
             }
         > => {
             const started = Date.now()
-            const [{ value: pool, ms: poolMs }, vocabulary] = await Promise.all(
-                [
+            const [{ value: pool, ms: poolMs }, vocabulary, vectors] =
+                await Promise.all([
                     timed(() =>
                         searchPages(
                             algoliaConfig,
@@ -632,14 +700,40 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                         )
                     ),
                     rerank.vocab ? pickTopics(rerank) : undefined,
-                ]
-            )
+                    rerank.vectors && query.trim()
+                        ? findVectorCandidates(
+                              rerank.ai,
+                              rerank.vectors,
+                              query,
+                              VECTOR_NAMESPACES.pages,
+                              pageTypes ?? DEFAULT_PAGE_TYPES
+                          )
+                        : undefined,
+                ])
             // Pages carry the charts' topic tags, so the query's vocabulary
             // topics find pages a keyword search misses: Algolia wants every
             // query word in a page, which leaves many searches a handful of
             // hits. An empty search within a topic yields its pages in
             // Algolia's default order.
             const termSearchesStarted = Date.now()
+            const { value: vectorHits, ms: vectorHitsMs } = await timed(
+                async () =>
+                    vectors?.ids.length
+                        ? (
+                              await searchPages(
+                                  algoliaConfig,
+                                  "",
+                                  0,
+                                  vectors.ids.length,
+                                  pageTypes,
+                                  baseUrl,
+                                  ["excerpt"],
+                                  undefined,
+                                  vectors.ids
+                              )
+                          ).results
+                        : []
+            )
             const { hits: results, via } = vocabulary
                 ? await appendVocabularyHits(
                       pool.results,
@@ -660,7 +754,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                       (hit) => hit.url
                   )
                 : {
-                      hits: pool.results,
+                      hits: appendVectorHits(
+                          pool.results,
+                          vectorHits,
+                          (hit) => hit.url
+                      ),
                       via: new Map<string, VocabularyTopicPick>(),
                   }
             const termSearchesMs = Date.now() - termSearchesStarted
@@ -681,11 +779,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             return {
                 ...reranked,
                 ...(vocabulary && { vocabulary }),
+                ...(vectors && { vectors }),
                 timings: {
                     pool: poolMs,
                     ...(vocabulary && {
                         vocabulary: vocabulary.latencyMs,
                         termSearches: termSearchesMs,
+                    }),
+                    ...(vectors && {
+                        vectors: vectors.latencyMs,
+                        vectorHits: vectorHitsMs,
                     }),
                     rerank: reranked.rerank.latencyMs,
                     total: Date.now() - started,

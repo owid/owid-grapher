@@ -35,6 +35,9 @@ export interface Env {
     // Workers AI binding; only configured where reranking is enabled
     // (/api/search?rerank= and /api/search/rerank-charts)
     AI?: Ai
+    // Vectorize index of the search records' embeddings; only configured
+    // where /api/search?vectors=1 is enabled (functions/api/search/vectorCandidates.ts)
+    SEARCH_VECTORS?: Vectorize
 }
 // We collect the possible extensions here so we can easily take them into account
 // when handling redirects
