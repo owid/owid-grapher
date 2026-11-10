@@ -109,10 +109,7 @@ export default {
                 return Response.json({ exists: !!object })
             }
 
-            if (
-                url.pathname.startsWith("/grapher/") &&
-                url.pathname.endsWith(".config.json")
-            ) {
+            if (url.pathname.startsWith("/grapher/")) {
                 const context = makeGrapherContext(request, env)
                 return grapherOnRequest(context)
             }

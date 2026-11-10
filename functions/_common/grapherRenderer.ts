@@ -9,14 +9,18 @@ import LatoItalic from "../_common/fonts/LatoLatin-Italic.ttf.bin"
 import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "./env.js"
-import { ImageOptions, extractOptions } from "./imageOptions.js"
 import {
     getDataApiUrl,
     GrapherIdentifier,
     initGrapher,
 } from "./grapherTools.js"
 import { GRAPHER_TAB_NAMES } from "@ourworldindata/types"
-import { fetchInputTableForConfig } from "@ourworldindata/grapher"
+import {
+    fetchInputTableForConfig,
+    type ImageLayout,
+    type ImageRequest,
+    resolveImageLayout,
+} from "@ourworldindata/grapher"
 import ReactDOMServer from "react-dom/server"
 
 declare global {
@@ -25,14 +29,14 @@ declare global {
 
 async function fetchAndRenderGrapherToSvg(
     identifier: GrapherIdentifier,
-    options: ImageOptions,
+    imageRequest: ImageRequest,
     searchParams: URLSearchParams,
     env: Env
 ) {
     const grapherLogger = new TimeLogger("grapher")
     const { grapher } = await initGrapher(
         identifier,
-        options,
+        imageRequest,
         searchParams,
         env
     )
@@ -51,7 +55,7 @@ async function fetchAndRenderGrapherToSvg(
 
     let fetchDodsPromise: Promise<void> | undefined
     if (
-        options.details &&
+        grapher.grapherState.shouldIncludeDetailsInStaticExport &&
         grapher.grapherState.detailsOrderedByReference.length
     ) {
         fetchDodsPromise = fetch("https://ourworldindata.org/dods.json")
@@ -77,19 +81,25 @@ async function fetchAndRenderGrapherToSvg(
 
 export const fetchAndRenderGrapher = async (
     id: GrapherIdentifier,
+    imageRequest: ImageRequest,
     searchParams: URLSearchParams,
     outType: "png" | "svg",
     env: Env
 ) => {
-    const options = extractOptions(searchParams)
-
-    console.log("Rendering", id.id, outType, options)
-    const svg = await fetchAndRenderGrapherToSvg(id, options, searchParams, env)
+    console.log("Rendering", id.id, outType, imageRequest)
+    const svg = await fetchAndRenderGrapherToSvg(
+        id,
+        imageRequest,
+        searchParams,
+        env
+    )
     console.log("fetched svg")
 
     switch (outType) {
         case "png":
-            return png(await renderSvgToPng(svg, options))
+            return png(
+                await renderSvgToPng(svg, resolveImageLayout(imageRequest))
+            )
         case "svg":
             return new Response(svg, {
                 headers: {
@@ -117,12 +127,12 @@ function getResvgContext(): Promise<Context> {
     return resvgContext
 }
 
-export async function renderSvgToPng(svg: string, options: ImageOptions) {
+export async function renderSvgToPng(svg: string, layout: ImageLayout) {
     const context = await getResvgContext()
 
     // resvg-wasm only takes a scale factor, so compute it such that the
-    // resulting png is options.pngWidth pixels wide
-    const scale = options.pngWidth / options.svgWidth
+    // resulting png is layout.pngWidth pixels wide
+    const scale = layout.pngWidth / layout.svgWidth
 
     const pngLogger = new TimeLogger("png")
     const pngData = context.render(svg, scale)
