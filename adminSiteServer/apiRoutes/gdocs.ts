@@ -336,7 +336,7 @@ function checkIsIndexedInPages(
  * - Updating (index and bake)
  * - Unpublishing (remove from index and bake)
  */
-export async function indexAndBakeGdocIfNeccesary(
+async function indexAndBakeGdocIfNecessary(
     trx: db.KnexReadWriteTransaction,
     user: Required<DbInsertUser>,
     prevGdoc: AnyGdoc,
@@ -532,7 +532,7 @@ export async function createOrUpdateGdoc(
     )
 
     const upserted = await upsertGdoc(trx, nextGdoc)
-    await indexAndBakeGdocIfNeccesary(trx, res.locals.user, prevGdoc, nextGdoc)
+    await indexAndBakeGdocIfNecessary(trx, res.locals.user, prevGdoc, nextGdoc)
 
     return upserted
 }
