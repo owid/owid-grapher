@@ -219,11 +219,13 @@ describe("/api/search/rerank-charts", () => {
             length: 4,
             ...overrides,
         })
-        const pageHit = (objectID: string) => ({
-            objectID,
+        // One record per passage: the slug identifies the page
+        const pageHit = (slug: string, passage = 0) => ({
+            objectID: `${slug}-${passage}`,
+            slug,
             type: "article",
-            title: `Title of ${objectID}`,
-            excerpt: `About ${objectID}`,
+            title: `Title of ${slug}`,
+            excerpt: `About ${slug}`,
         })
 
         it("reranks Algolia's first 30 hits and leaves the hits after them in Algolia's order", async () => {
@@ -252,7 +254,7 @@ describe("/api/search/rerank-charts", () => {
             )
             // reverseAi prefers r06 … r01 and gives the rest no probability,
             // so the pool ends on its last two hits in Algolia's order
-            expect(body.hits.map((h: any) => h.objectID)).toEqual([
+            expect(body.hits.map((h: any) => h.slug)).toEqual([
                 "p29",
                 "p30",
                 "p31",
@@ -270,7 +272,8 @@ describe("/api/search/rerank-charts", () => {
                 nbHits: 1,
             } as any)
             vi.mocked(utils.searchSingleForHits).mockResolvedValue({
-                hits: [pageHit("p1"), pageHit("t1")],
+                // another passage of p1, which the pool already has
+                hits: [pageHit("p1", 3), pageHit("t1")],
             } as any)
 
             const { body } = await post(
@@ -288,7 +291,7 @@ describe("/api/search/rerank-charts", () => {
                 })
             )
             // reverseAi prefers the later candidate: the topic's page
-            expect(body.hits.map((h: any) => h.objectID)).toEqual(["t1", "p1"])
+            expect(body.hits.map((h: any) => h.slug)).toEqual(["t1", "p1"])
             expect(body.nbHits).toBe(2)
         })
 

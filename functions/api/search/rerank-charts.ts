@@ -254,7 +254,9 @@ function parsePagesSearchRequest(
 }
 
 interface RerankablePageHit {
-    objectID: string
+    // A page has one record per passage, so the slug identifies it, not the
+    // objectID: two searches can return different passages of one page
+    slug: string
     title: string
     type: string
     excerpt?: string
@@ -300,6 +302,7 @@ async function rerankPagesSection(
         attributesToRetrieve: [
             ...new Set([
                 ...((params.attributesToRetrieve as string[]) ?? []),
+                "slug",
                 "title",
                 "type",
                 "excerpt",
@@ -341,7 +344,7 @@ async function rerankPagesSection(
                           length: VOCABULARY_HITS_PER_TERM,
                       })
                   ).hits,
-              (hit) => hit.objectID
+              (hit) => hit.slug
           )
         : {
               hits: found.hits.slice(0, RERANK_POOL_SIZE),
@@ -359,7 +362,7 @@ async function rerankPagesSection(
             ...describePage(hit),
         })),
         ({ hit }) => {
-            const pick = via.get(hit.objectID)
+            const pick = via.get(hit.slug)
             return pick && vocabularyTopicNote(pick)
         }
     )
