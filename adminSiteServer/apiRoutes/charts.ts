@@ -44,10 +44,7 @@ import {
     getChartSlugById,
     setChartTags,
 } from "../../db/model/Chart.js"
-import {
-    getWordpressPostReferencesByChartId,
-    getGdocsPostReferencesByChartId,
-} from "../../db/model/Post.js"
+import { getGdocsPostReferencesByChartId } from "../../db/model/Post.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
@@ -84,10 +81,6 @@ export const getReferencesByChartId = async (
     chartId: number,
     knex: db.KnexReadonlyTransaction
 ): Promise<References> => {
-    const postsWordpressPromise = getWordpressPostReferencesByChartId(
-        chartId,
-        knex
-    )
     const postGdocsPromise = getGdocsPostReferencesByChartId(chartId, knex)
     const explorerSlugsPromise = db.knexRaw<{ explorerSlug: string }>(
         knex,
@@ -205,14 +198,12 @@ export const getReferencesByChartId = async (
         [chartId, chartId]
     )
     const [
-        postsWordpress,
         postsGdocs,
         explorerSlugs,
         narrativeCharts,
         dataInsights,
         staticVizReferences,
     ] = await Promise.all([
-        postsWordpressPromise,
         postGdocsPromise,
         explorerSlugsPromise,
         narrativeChartsPromise,
@@ -222,7 +213,6 @@ export const getReferencesByChartId = async (
 
     return {
         postsGdocs,
-        postsWordpress,
         explorers: explorerSlugs.map(
             (row: { explorerSlug: string }) => row.explorerSlug
         ),

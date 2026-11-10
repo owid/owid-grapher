@@ -93,10 +93,7 @@ export function adminOriginUrlSuggestions(
     references: References | undefined,
     topicSlugs: string[]
 ): OriginUrlSuggestion[] {
-    const posts = [
-        ...(references?.postsWordpress ?? []),
-        ...(references?.postsGdocs ?? []),
-    ].map((post) => ({
+    const posts = (references?.postsGdocs ?? []).map((post) => ({
         url: post.url.replace(BAKED_BASE_URL, ""),
         hint: "(referenced by this chart)",
     }))
