@@ -114,17 +114,7 @@ export class StackedBarChartThumbnail
     }
 
     @computed private get labelsRange(): [number, number] {
-        const {
-            horizontalAxisPart,
-            manager: { chartAreaPadding = 0 },
-        } = this
-
-        return this.bounds
-            .expand({
-                top: chartAreaPadding,
-                bottom: chartAreaPadding + horizontalAxisPart.height,
-            })
-            .yRange()
+        return this.bounds.expand(this.manager.chartAreaPadding ?? 0).yRange()
     }
 
     @computed private get labelsMaxWidth(): number {
@@ -172,7 +162,8 @@ export class StackedBarChartThumbnail
             ...this.labelFontSettings,
             maxWidth: this.labelsMaxWidth,
             labelPadding: LEGEND_PADDING,
-            yRange: this.labelsRange,
+            xRange: dualAxis.bounds.xRange(),
+            yRanges: { edge: this.labelsRange },
             compare: makeStackedLabelComparator(this.chartState.seriesByName),
         })
     }
