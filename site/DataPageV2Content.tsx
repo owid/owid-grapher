@@ -1,19 +1,13 @@
-import { useMemo, useEffect, useState } from "react"
+import { useMemo } from "react"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { DATAPAGE_ABOUT_THIS_DATA_SECTION_ID } from "@ourworldindata/components"
 import {
-    EXPERIMENT_ARM_SEPARATOR,
-    EXPERIMENT_PREFIX,
     DataPageV2ContentFields,
     GrapherInterface,
     ImageMetadata,
-    defaultExperimentState,
-    getExperimentState,
-    ExperimentState,
     isDataPageMetadataRedesignActive,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
-import { FeaturedMetrics } from "./FeaturedMetrics.js"
 import { RelatedDataCharts } from "./RelatedDataCharts.js"
 import {
     ADMIN_BASE_URL,
@@ -31,7 +25,6 @@ import IndicatorMetadataBox from "./IndicatorMetadataBox.js"
 import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
-import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
 
 declare global {
     interface Window {
@@ -104,19 +97,6 @@ export const DataPageV2Content = ({
         datapageData.relatedResearch,
         datapageData.topicTagsLinks ?? []
     )
-
-    // note: experimentState should NOT be used to conditionally render content b/c
-    // it will cause a flash of content before js loads.
-    const [experimentState, setExperimentState] = useState<ExperimentState>(
-        defaultExperimentState
-    )
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const s = getExperimentState()
-            // oxlint-disable-next-line react/set-state-in-effect -- read client-only experiment cookies after hydration
-            setExperimentState(s)
-        }
-    }, [])
 
     // Note: yColumns is not passed here, which means the short column names
     // option won't be visible in the download section on data pages. To enable
@@ -248,9 +228,7 @@ export const DataPageV2Content = ({
                                     )}
                                 {datapageData.allCharts &&
                                 datapageData.allCharts.length > 0 ? (
-                                    <div
-                                        className={`section-wrapper section-wrapper__related-charts ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--hide`}
-                                    >
+                                    <div className="section-wrapper section-wrapper__related-charts">
                                         <h2
                                             className="related-charts__title"
                                             id="all-charts"
@@ -265,32 +243,6 @@ export const DataPageV2Content = ({
                                         </div>
                                     </div>
                                 ) : null}
-                                {datapageData.primaryTopic && (
-                                    <div
-                                        className={`section-wrapper ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`}
-                                        id={
-                                            experimentState &&
-                                            experimentState[
-                                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                            ]?.isPageInExperiment &&
-                                            experimentState[
-                                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                            ]?.arm === "featured-metrics"
-                                                ? "all-charts"
-                                                : ""
-                                        }
-                                    >
-                                        <SiteQueryClientProvider>
-                                            <FeaturedMetrics
-                                                topicName={
-                                                    datapageData.primaryTopic
-                                                        .topicTag
-                                                }
-                                                isDataPage={true}
-                                            />
-                                        </SiteQueryClientProvider>
-                                    </div>
-                                )}
                             </div>
                             <MetadataSection
                                 attributionShort={datapageData.attributionShort}
