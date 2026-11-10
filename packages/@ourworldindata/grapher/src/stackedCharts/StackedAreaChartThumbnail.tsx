@@ -28,6 +28,7 @@ import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsType
 import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
 import {
+    toInitialAnchoredLabelSeries,
     makeStackedLabelComparator,
     toPlacedStackedAreaSeries,
 } from "./StackedUtils"
@@ -148,14 +149,11 @@ export class StackedAreaChartThumbnail
     }): AnchoredLabelsState | undefined {
         if (this.labelsSeries.length === 0) return undefined
 
-        const series = this.labelsSeries.map((series) => {
-            const position = {
-                x: dualAxis.bounds.right,
-                y: dualAxis.verticalAxis.place(series.value),
-            }
-
-            return { ...series, position }
-        })
+        const series = toInitialAnchoredLabelSeries(
+            this.labelsSeries,
+            this.chartState.seriesByName,
+            dualAxis
+        )
 
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
