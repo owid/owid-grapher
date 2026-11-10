@@ -42,24 +42,22 @@ router
     )
     .get(
         `/grapher/:slug${extensions.png}`,
-        async ({ params: { slug } }, { searchParams }, env, etag, ctx) =>
+        async ({ params: { slug } }, { searchParams }, env, _etag, ctx) =>
             handleThumbnailRequest(
                 { type: "slug", id: slug },
                 searchParams,
                 env,
-                etag,
                 ctx,
                 "png"
             )
     )
     .get(
         `/grapher/:slug${extensions.svg}`,
-        async ({ params: { slug } }, { searchParams }, env, etag, ctx) =>
+        async ({ params: { slug } }, { searchParams }, env, _etag, ctx) =>
             handleThumbnailRequest(
                 { type: "slug", id: slug },
                 searchParams,
                 env,
-                etag,
                 ctx,
                 "svg"
             )
