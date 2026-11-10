@@ -168,10 +168,10 @@ async function handleHtmlPageRequest(
     // In the case of the redirect, the browser will then request the new URL which will again be handled by this worker.
     if (grapherPageResp.status !== 200) return grapherPageResp
 
-    const openGraphThumbnailUrl = `/grapher/${slug}.png?imType=og${
+    const openGraphThumbnailUrl = `/grapher/${slug}.png?imPreset=og${
         url.search ? "&" + url.search.slice(1) : ""
     }`
-    const twitterThumbnailUrl = `/grapher/${slug}.png?imType=twitter${
+    const twitterThumbnailUrl = `/grapher/${slug}.png?imPreset=twitter${
         url.search ? "&" + url.search.slice(1) : ""
     }`
 
