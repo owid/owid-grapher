@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import {
     KeyChartLevel,
     ContentGraphLinkType,
@@ -23,9 +22,8 @@ import {
     maybeAddChangeInPrefix,
     processAvailableEntities,
     parseJsonStringArray,
-    buildSourcesLineFromConfig,
+    loadGrapherStateWithMetadata,
 } from "./shared.js"
-import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
 import { createChartsIndexingContext } from "./context.js"
 import pMap from "p-map"
@@ -239,7 +237,10 @@ async function buildChartRecord(
     chart: ParsedChartRecordRow,
     context: ChartsIndexingContext
 ): Promise<ChartRecord | null> {
-    const grapherState = new GrapherState(chart.config)
+    const grapherState = await loadGrapherStateWithMetadata(
+        chart.config,
+        context.loadIndicatorMetadata
+    )
 
     const relatedArticles = (await getRelatedArticles(knex, chart.id)) ?? []
     const linksFromGdocs = await getPublishedLinksTo(
@@ -252,9 +253,6 @@ async function buildChartRecord(
         chart.config.title,
         grapherState.shouldAddChangeInPrefixToTitle
     )
-    const plaintextSubtitle = _.isNil(chart.config.subtitle)
-        ? undefined
-        : toPlaintext(chart.config.subtitle)
 
     const topicTags = getUniqueNamesFromTagHierarchies(
         chart.tags,
@@ -273,11 +271,8 @@ async function buildChartRecord(
         title,
         variantName: chart.config.variantName ?? "",
         titleVariant: chart.titleVariant || undefined,
-        subtitle: plaintextSubtitle,
-        source: await buildSourcesLineFromConfig(
-            chart.config,
-            context.loadIndicatorMetadata
-        ),
+        subtitle: toPlaintext(grapherState.effectiveSubtitle),
+        source: toPlaintext(grapherState.sourcesLine),
         availableEntities: chart.entityNames,
         numDimensions: parseInt(chart.numDimensions),
         availableTabs: grapherState.availableTabs,
