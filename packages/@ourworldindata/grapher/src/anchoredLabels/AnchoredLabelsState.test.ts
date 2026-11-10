@@ -68,6 +68,31 @@ describe(AnchoredLabelsState, () => {
         ).toEqual(["A"])
     })
 
+    it("prefers the label furthest from those already kept when the comparator has no preference", () => {
+        const twoLabelRangeTop = 100 - labelHeight
+        const twoLabelRange: [number, number] = [
+            twoLabelRangeTop + 2 * labelHeight + VERTICAL_GAP,
+            twoLabelRangeTop,
+        ]
+        const series = [
+            makeSeries("A", undefined, { x: 0, y: 100 }),
+            makeSeries("Near A", undefined, { x: 0, y: 101 }),
+            makeSeries("Far", undefined, {
+                x: 0,
+                y: 100 + labelHeight + VERTICAL_GAP,
+            }),
+        ]
+        const options = { yRanges: { edge: twoLabelRange } }
+
+        expect(visibleNames(series, options)).toEqual(["A", "Far"])
+
+        const rankFarLast: Compare = (a, b) =>
+            Number(a.seriesName === "Far") - Number(b.seriesName === "Far")
+        expect(
+            visibleNames(series, { ...options, compare: rankFarLast })
+        ).toEqual(["A", "Near A"])
+    })
+
     it("prefers a highlighted label over a default one whatever the comparator says", () => {
         const options = { compare: preferB, yRanges: { edge: oneLabelRange } }
         const series = [makeSeries("A", Emphasis.Highlighted), makeSeries("B")]
