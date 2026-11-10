@@ -194,8 +194,11 @@ export class AnchoredLabelsState {
         )
     }
 
+    /** Ranked by comparePriority, with ties ordered to spread labels out */
     @computed private get sizedSeriesByPriority(): SizedAnchoredLabelSeries[] {
-        return this.sizedSeries.toSorted((a, b) => this.comparePriority(a, b))
+        return orderByPriorityThenFarthest(this.sizedSeries, (a, b) =>
+            this.comparePriority(a, b)
+        )
     }
 
     @computed private get verticalRange(): VerticalRange {
@@ -397,6 +400,51 @@ function toVerticalRange(yRange?: [number, number]): VerticalRange {
     return yRange
         ? { top: yRange[1], bottom: yRange[0] }
         : { top: -Infinity, bottom: Infinity }
+}
+
+/**
+ * Repeatedly picks the highest-priority remaining series, breaking ties by
+ * the anchor furthest from every anchor picked so far; full ties keep input
+ * order
+ */
+function orderByPriorityThenFarthest<T extends InitialAnchoredLabelSeries>(
+    series: readonly T[],
+    comparePriority: (a: T, b: T) => number
+): T[] {
+    const remaining = series.map((candidate) => ({
+        candidate,
+        squaredDistanceToPicked: Infinity,
+    }))
+    const picked: T[] = []
+
+    while (remaining.length > 0) {
+        let bestIndex = 0
+        for (let index = 1; index < remaining.length; index++) {
+            const current = remaining[index]
+            const best = remaining[bestIndex]
+            const order = comparePriority(current.candidate, best.candidate)
+            if (
+                order < 0 ||
+                (order === 0 &&
+                    current.squaredDistanceToPicked >
+                        best.squaredDistanceToPicked)
+            )
+                bestIndex = index
+        }
+
+        const [{ candidate: next }] = remaining.splice(bestIndex, 1)
+        picked.push(next)
+
+        for (const entry of remaining) {
+            const dx = entry.candidate.position.x - next.position.x
+            const dy = entry.candidate.position.y - next.position.y
+            entry.squaredDistanceToPicked = Math.min(
+                entry.squaredDistanceToPicked,
+                dx * dx + dy * dy
+            )
+        }
+    }
+    return picked
 }
 
 function getEmphasisRank(series: InitialAnchoredLabelSeries): number {
