@@ -12,7 +12,6 @@ import {
     typesenseSearchWithClosestMatches,
     extractTypesenseHits,
     getTypesenseFoundCount,
-    type TypesenseConfig,
     type TypesenseSearchParams,
     type TypesenseSearchResponse,
     CHARTS_QUERY_BY,
@@ -36,6 +35,8 @@ import {
     type SearchPagesApiResponse,
     type SearchState,
 } from "./searchApi.js"
+import { getIndexName } from "./algoliaClient.js"
+import { type TypesenseApiConfig } from "./typesenseClient.js"
 
 // Experimental: /api/search?engine=typesense answers charts and pages searches
 // from Typesense instead of Algolia, in the same response shapes, so the
@@ -133,7 +134,7 @@ function dedupDocs(docs: Doc[], field: string): Doc[] {
  * fallback; a hybrid one here (see HYBRID_WINDOW).
  */
 async function searchDocs(
-    config: TypesenseConfig,
+    config: TypesenseApiConfig,
     collection: SearchIndexName,
     params: TypesenseSearchParams,
     options: {
@@ -147,7 +148,11 @@ async function searchDocs(
     const execute = (
         searchParams: TypesenseSearchParams
     ): Promise<TypesenseSearchResponse<Doc>> =>
-        typesenseSearch<Doc>(config, collection, searchParams)
+        typesenseSearch<Doc>(
+            config,
+            getIndexName(collection, config.indexPrefix),
+            searchParams
+        )
 
     if (!isHybrid(options.query, options.alpha)) {
         const result = await typesenseSearchWithClosestMatches<Doc>(
@@ -182,7 +187,7 @@ const pick = (doc: Doc, attributes: string[]): Doc =>
     )
 
 export async function searchChartsTypesense(
-    config: TypesenseConfig,
+    config: TypesenseApiConfig,
     state: SearchState,
     page: number,
     hitsPerPage: number,
@@ -245,7 +250,7 @@ export async function searchChartsTypesense(
 }
 
 export async function searchPagesTypesense(
-    config: TypesenseConfig,
+    config: TypesenseApiConfig,
     query: string,
     offset: number,
     length: number,

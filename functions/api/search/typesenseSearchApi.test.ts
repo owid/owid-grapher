@@ -4,7 +4,13 @@ import {
     searchPagesTypesense,
 } from "./typesenseSearchApi.js"
 
-const config = { host: "typesense", port: 8108, protocol: "http", apiKey: "x" }
+const config = {
+    host: "typesense",
+    port: 8108,
+    protocol: "http",
+    apiKey: "x",
+    indexPrefix: "staging",
+}
 const baseUrl = "https://ourworldindata.org"
 const state = (query: string) => ({
     query,
@@ -54,6 +60,9 @@ describe("Typesense search", () => {
         )
 
         const params = sentParams()
+        expect(new URL(fetchMock.mock.calls[0][0] as string).pathname).toBe(
+            "/collections/staging-explorer-views-and-charts/documents/search"
+        )
         expect(params.get("group_by")).toBe("deduplicationId")
         expect(params.get("page")).toBe("2")
         expect(params.get("vector_query")).toBeNull()
