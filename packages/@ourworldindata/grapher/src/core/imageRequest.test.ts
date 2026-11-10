@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { ChartLabelMode, GrapherVariant } from "@ourworldindata/types"
 import {
+    DEFAULT_IMAGE_REQUEST,
     ImageRequest,
     parseImageRequest,
     serializeImageRequest,
@@ -11,6 +12,10 @@ function parse(query: string): ImageRequest {
     if (!result.ok) throw new Error(`${query}: ${result.error.reason}`)
     return result.request
 }
+
+it("parses a query without image params to the default request", () => {
+    expect(parse("country=FRA&tab=map")).toEqual(DEFAULT_IMAGE_REQUEST)
+})
 
 describe("new params", () => {
     it("gives the same request for imType=og and imPreset=og", () => {
