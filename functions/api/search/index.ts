@@ -7,6 +7,8 @@ import {
     RERANK_POOL_SIZE,
     rerankCharts,
     RerankModel,
+    timed,
+    type SearchTimings,
 } from "./rerank.js"
 import {
     searchCharts,
@@ -354,22 +356,47 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // reader chose the topic
         const searchChartsReranked = async (
             rerank: NonNullable<ReturnType<typeof parseRerank>>
-        ): Promise<SearchApiResponse & { vocabulary?: VocabularyInfo }> => {
+        ): Promise<
+            SearchApiResponse & {
+                vocabulary?: VocabularyInfo
+                timings: SearchTimings
+            }
+        > => {
+            const started = Date.now()
             const expand = rerank.vocab && !topicParam?.trim()
-            const [pool, vocabulary] = await Promise.all([
-                searchCharts(
-                    algoliaConfig,
-                    searchState,
-                    0,
-                    Math.max(RERANK_POOL_SIZE, hitsPerPage),
-                    baseUrl
-                ),
-                expand
-                    ? pickVocabularyTerms(rerank.ai, rerank.model, query)
-                    : undefined,
-            ])
-            if (!vocabulary)
-                return rerankCharts(rerank.ai, rerank.model, pool, hitsPerPage)
+            const [{ value: pool, ms: poolMs }, vocabulary] = await Promise.all(
+                [
+                    timed(() =>
+                        searchCharts(
+                            algoliaConfig,
+                            searchState,
+                            0,
+                            Math.max(RERANK_POOL_SIZE, hitsPerPage),
+                            baseUrl
+                        )
+                    ),
+                    expand
+                        ? pickVocabularyTerms(rerank.ai, rerank.model, query)
+                        : undefined,
+                ]
+            )
+            if (!vocabulary) {
+                const reranked = await rerankCharts(
+                    rerank.ai,
+                    rerank.model,
+                    pool,
+                    hitsPerPage
+                )
+                return {
+                    ...reranked,
+                    timings: {
+                        pool: poolMs,
+                        rerank: reranked.rerank.latencyMs,
+                        total: Date.now() - started,
+                    },
+                }
+            }
+            const termSearchesStarted = Date.now()
             const { hits: results, via } = await appendVocabularyHits(
                 pool.results,
                 vocabulary.terms,
@@ -395,6 +422,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     ).results,
                 (hit) => hit.url
             )
+            const termSearchesMs = Date.now() - termSearchesStarted
             const reranked = await rerankCharts(
                 rerank.ai,
                 rerank.model,
@@ -409,7 +437,17 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     return term && vocabularyNote(term)
                 }
             )
-            return { ...reranked, vocabulary }
+            return {
+                ...reranked,
+                vocabulary,
+                timings: {
+                    pool: poolMs,
+                    vocabulary: vocabulary.latencyMs,
+                    termSearches: termSearchesMs,
+                    rerank: reranked.rerank.latencyMs,
+                    total: Date.now() - started,
+                },
+            }
         }
 
         const search = (): Promise<

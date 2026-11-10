@@ -44,18 +44,40 @@ export const RERANK_MODELS = {
 } as const satisfies Record<string, RerankModelSpec>
 export type RerankModel = keyof typeof RERANK_MODELS
 
-// The AI Gateway rerank calls go through, for per-call logs (latency, cost,
-// errors) and a rate limit that caps spend if the endpoint is abused. The hop
-// costs ~50 ms per call (paired timing against calling Workers AI directly,
-// with a clef-flash call taking ~200 ms). Dropping the `gateway` option below
-// would save that, at the price of the logs; a WAF rate-limit rule on the
-// endpoint would then have to replace the gateway's limit.
-const RERANK_GATEWAY_ID = "owid-search"
+// TODO: decide before deploying reranking to production. The calls used to go
+// through the `owid-search` AI Gateway (`{ gateway: { id: "owid-search" } }`
+// as ai.run's options), for per-call logs (latency, cost, errors) and a rate
+// limit that caps spend if the endpoint is abused. The hop cost ~50 ms per
+// call (paired timing against calling Workers AI directly, with a clef-flash
+// call taking ~200 ms), three calls per search with the vocabulary, so it's
+// off while we work on latency. Without it nothing caps spend: production
+// needs the gateway back or a WAF rate-limit rule on the endpoints.
 
 // A rerank slower than this keeps Algolia's order instead: the search must
 // not wait seconds for it. Decision models answer in a few hundred ms (OpenAI
 // Decisions measured p95 0.36 s), so this only cuts off a stalled call.
 export const RERANK_TIMEOUT_MS = 1000
+
+/**
+ * Where a reranked search's time went, in ms, for finding what to speed up.
+ * `pool` (the Algolia search) and `vocabulary` run side by side.
+ */
+export interface SearchTimings {
+    pool: number
+    vocabulary?: number
+    termSearches?: number
+    rerank: number
+    total: number
+}
+
+/** `run`'s result and how long it took. */
+export async function timed<T>(
+    run: () => Promise<T>
+): Promise<{ value: T; ms: number }> {
+    const started = Date.now()
+    const value = await run()
+    return { value, ms: Date.now() - started }
+}
 
 export const isRerankModel = (value: string): value is RerankModel =>
     Object.hasOwn(RERANK_MODELS, value)
@@ -155,7 +177,7 @@ export function topChoices(answer: unknown, n: number): string[] {
 }
 
 /**
- * One decision-model call through the AI Gateway: the answers to `questions`
+ * One decision-model call: the answers to `questions`
  * about `state`, keyed like `questions`. Throws on a failed call or a
  * response without answers.
  */
@@ -170,7 +192,7 @@ export async function runDecisionModel(
     const response = await ai.run(
         id,
         { ...(selector && { model: selector }), state, questions },
-        { gateway: { id: RERANK_GATEWAY_ID }, signal }
+        { signal }
     )
     // Jev wraps its answers in { state, result }; Clef returns them directly
     const body = isRecord(response.result) ? response.result : response

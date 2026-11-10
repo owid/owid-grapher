@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/cloudflare"
 import {
     runDecisionModel,
     STATE_INTRO,
+    timed,
     topChoices,
     type RerankModel,
 } from "./rerank.js"
@@ -63,6 +64,8 @@ export interface VocabularyTerm {
 export interface VocabularyInfo {
     terms: VocabularyTerm[]
     latencyMs: number
+    /** latencyMs by step: loading the vocabulary file, then the two calls */
+    steps?: { load: number; topic: number; keyword: number }
     /** the picks failed; the pool was reranked without them */
     error?: string
 }
@@ -122,26 +125,28 @@ export async function pickVocabularyTerms(
     const started = Date.now()
     const signal = AbortSignal.timeout(VOCABULARY_TIMEOUT_MS)
     try {
-        const topics = await loadVocabulary()
+        const { value: topics, ms: load } = await timed(loadVocabulary)
         const state = `${STATE_INTRO}\n\nQuery: ${query}`
 
-        const topicAnswers = await runDecisionModel(
-            ai,
-            model,
-            state,
-            {
-                topic: {
-                    type: "choice",
-                    instructions: TOPIC_INSTRUCTIONS,
-                    criteria: Object.fromEntries(
-                        topics.map((topic, i) => [
-                            optionId("t", i),
-                            `${topic.name} (e.g. ${topic.keywords.slice(0, 6).join(", ")})`,
-                        ])
-                    ),
+        const { value: topicAnswers, ms: topic } = await timed(() =>
+            runDecisionModel(
+                ai,
+                model,
+                state,
+                {
+                    topic: {
+                        type: "choice",
+                        instructions: TOPIC_INSTRUCTIONS,
+                        criteria: Object.fromEntries(
+                            topics.map((topic, i) => [
+                                optionId("t", i),
+                                `${topic.name} (e.g. ${topic.keywords.slice(0, 6).join(", ")})`,
+                            ])
+                        ),
+                    },
                 },
-            },
-            signal
+                signal
+            )
         )
         const picked = topChoices(topicAnswers.topic, VOCABULARY_TOPICS)
             .map((id) => topics[optionIndex(id)])
@@ -169,10 +174,12 @@ export async function pickVocabularyTerms(
                     : []
             )
         )
-        const keywordAnswers =
-            Object.keys(questions).length > 0
-                ? await runDecisionModel(ai, model, state, questions, signal)
-                : {}
+        const { value: keywordAnswers, ms: keyword } = await timed(
+            async (): Promise<Record<string, unknown>> =>
+                Object.keys(questions).length > 0
+                    ? runDecisionModel(ai, model, state, questions, signal)
+                    : {}
+        )
 
         const terms = picked.flatMap((topic, i): VocabularyTerm[] => {
             if (topic.keywords.length === 1)
@@ -181,7 +188,11 @@ export async function pickVocabularyTerms(
             const keyword = best && topic.keywords[optionIndex(best)]
             return keyword ? [{ topic: topic.name, keyword }] : []
         })
-        return { terms, latencyMs: Date.now() - started }
+        return {
+            terms,
+            latencyMs: Date.now() - started,
+            steps: { load, topic, keyword },
+        }
     } catch (error) {
         console.error("Search vocabulary picks failed:", error)
         Sentry.captureException(error)

@@ -11,7 +11,13 @@ import {
     getAlgoliaConfig,
     getIndexName,
 } from "./algoliaClient.js"
-import { isRerankModel, RERANK_MODELS, rerankHits } from "./rerank.js"
+import {
+    isRerankModel,
+    RERANK_MODELS,
+    rerankHits,
+    timed,
+    type SearchTimings,
+} from "./rerank.js"
 import {
     appendVocabularyHits,
     pickVocabularyTerms,
@@ -197,17 +203,21 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             url.searchParams.get("vocab") === "1" &&
             !facetFilters.some(isTopicFacet)
 
-        const [pool, vocabulary] = await Promise.all([
-            searchSingleForHitsWithClosestMatches<SearchChartHit>(client, {
-                ...params,
-                // Always this deployment's charts index, whatever the
-                // client's build thinks it's called
-                indexName,
-                page: 0,
-                hitsPerPage: hitsPerPage * RERANK_PAGES,
-            }),
+        const started = Date.now()
+        const [{ value: pool, ms: poolMs }, vocabulary] = await Promise.all([
+            timed(() =>
+                searchSingleForHitsWithClosestMatches<SearchChartHit>(client, {
+                    ...params,
+                    // Always this deployment's charts index, whatever the
+                    // client's build thinks it's called
+                    indexName,
+                    page: 0,
+                    hitsPerPage: hitsPerPage * RERANK_PAGES,
+                })
+            ),
             expand ? pickVocabularyTerms(env.AI, model, query) : undefined,
         ])
+        const termSearchesStarted = Date.now()
         const { hits: candidates, via } = vocabulary
             ? await appendVocabularyHits(
                   pool.hits,
@@ -232,6 +242,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                   (hit) => hit.objectID
               )
             : { hits: pool.hits, via: new Map<string, VocabularyTerm>() }
+        const termSearchesMs = Date.now() - termSearchesStarted
         const { hits, rerank } = await rerankHits(
             env.AI,
             model,
@@ -255,6 +266,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             nbPages: Math.ceil(Math.min(nbHits, 1000) / hitsPerPage),
             rerank,
             ...(vocabulary && { vocabulary }),
+            timings: {
+                pool: poolMs,
+                ...(vocabulary && {
+                    vocabulary: vocabulary.latencyMs,
+                    termSearches: termSearchesMs,
+                }),
+                rerank: rerank.latencyMs,
+                total: Date.now() - started,
+            } satisfies SearchTimings,
         })
     } catch (error) {
         console.error("Rerank charts error:", error)
