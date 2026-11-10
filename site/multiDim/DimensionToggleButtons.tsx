@@ -13,7 +13,7 @@ import DimensionLabel from "./DimensionLabel.js"
 // A segmented toggle group, exposed to assistive technology as a radio group.
 // It's a React Aria ToggleButtonGroup in single selection mode rather than a
 // RadioGroup, so that the arrow keys only move focus and Space/Enter selects.
-export default function DimensionToggleGroup({
+export default function DimensionToggleButtons({
     className,
     dimension,
     availableChoiceSlugs,
