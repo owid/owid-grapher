@@ -45,26 +45,16 @@ const OPEN_GRAPH_OPTIONS: Readonly<ImageOptions> = {
     fontSize: 21,
 }
 
-const getSquareOptions = (params: URLSearchParams): ImageOptions => {
-    const options: ImageOptions = {
-        pngWidth: 4 * GRAPHER_SQUARE_SIZE,
-        pngHeight: 4 * GRAPHER_SQUARE_SIZE,
-        svgWidth: GRAPHER_SQUARE_SIZE,
-        svgHeight: GRAPHER_SQUARE_SIZE,
-        details: false,
-        fontSize: undefined,
-        grapherProps: {
-            staticBounds: DEFAULT_GRAPHER_BOUNDS_SQUARE,
-        },
-    }
-
-    if (params.has("imSquareSize")) {
-        const size = parseInt(params.get("imSquareSize")!)
-        options.pngWidth = size
-        options.pngHeight = size
-    }
-
-    return options
+const SQUARE_OPTIONS: Readonly<ImageOptions> = {
+    pngWidth: 4 * GRAPHER_SQUARE_SIZE,
+    pngHeight: 4 * GRAPHER_SQUARE_SIZE,
+    svgWidth: GRAPHER_SQUARE_SIZE,
+    svgHeight: GRAPHER_SQUARE_SIZE,
+    details: false,
+    fontSize: undefined,
+    grapherProps: {
+        staticBounds: DEFAULT_GRAPHER_BOUNDS_SQUARE,
+    },
 }
 
 const getThumbnailOptions = (params: URLSearchParams): ImageOptions => {
@@ -126,7 +116,7 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
     if (imType === "twitter") return TWITTER_OPTIONS
     else if (imType === "og") return OPEN_GRAPH_OPTIONS
     else if (imType === "thumbnail") return getThumbnailOptions(params)
-    else if (imType === "square") return getSquareOptions(params)
+    else if (imType === "square") return SQUARE_OPTIONS
 
     if (imType === "uncaptioned") {
         if (!options.grapherProps) options.grapherProps = {}
