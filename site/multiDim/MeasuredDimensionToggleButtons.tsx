@@ -3,7 +3,9 @@ import { useResizeObserver } from "usehooks-ts"
 
 import { DimensionEnriched } from "@ourworldindata/types"
 import DimensionDropdown from "./DimensionDropdown.js"
-import DimensionToggleButtons from "./DimensionToggleButtons.js"
+import DimensionToggleButtons, {
+    DimensionToggleButtonsSizer,
+} from "./DimensionToggleButtons.js"
 
 /**
  * Renders as a toggle group when there is enough space for that, and as a dropdown if not.
@@ -43,24 +45,10 @@ export default function MeasuredDimensionToggleButtons({
                 controls cannot change the measured width and cause a loop.
                 CSS sizes this copy for the active layout; ResizeObserver also
                 catches changes from font loading and viewport breakpoints. */}
-            <div
-                className="md-settings__toggle-group-options md-toggle-measure"
-                aria-hidden="true"
+            <DimensionToggleButtonsSizer
+                dimension={dimension}
                 ref={measureRef}
-            >
-                {dimension.choices.map((choice) => (
-                    <div
-                        key={choice.slug}
-                        className="md-settings__toggle-field"
-                    >
-                        <span className="md-settings__toggle">
-                            <span className="md-settings__toggle-label">
-                                {choice.name}
-                            </span>
-                        </span>
-                    </div>
-                ))}
-            </div>
+            />
             {fitsAsToggleGroup ? (
                 <DimensionToggleButtons
                     className={className}

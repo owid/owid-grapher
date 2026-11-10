@@ -1,5 +1,5 @@
 import cx from "clsx"
-import { useId } from "react"
+import { useId, type Ref } from "react"
 import {
     Key,
     LabelContext,
@@ -109,6 +109,37 @@ export default function DimensionToggleButtons({
                     )
                 })}
             </ToggleButtonGroup>
+        </div>
+    )
+}
+
+// A hidden copy of the options at their natural width, measured to decide
+// whether the toggle buttons fit the controls row (see
+// MeasuredDimensionToggleButtons). It mirrors the options' markup above with
+// the same classes, so anything that changes an option's width (an icon,
+// say) has to be added here too.
+export function DimensionToggleButtonsSizer({
+    dimension,
+    ref,
+}: {
+    dimension: DimensionEnriched
+    ref: Ref<HTMLDivElement>
+}) {
+    return (
+        <div
+            className="md-settings__toggle-group-options md-toggle-measure"
+            aria-hidden="true"
+            ref={ref}
+        >
+            {dimension.choices.map((choice) => (
+                <div key={choice.slug} className="md-settings__toggle-field">
+                    <span className="md-settings__toggle">
+                        <span className="md-settings__toggle-label">
+                            {choice.name}
+                        </span>
+                    </span>
+                </div>
+            ))}
         </div>
     )
 }
