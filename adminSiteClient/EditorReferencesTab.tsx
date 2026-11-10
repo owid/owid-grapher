@@ -214,7 +214,7 @@ export class EditorReferencesTabForNarrativeChart extends Component<{
                                     !!dataInsight.image && !dataInsight.figmaUrl
                                 }
                                 makeImageUrl={() =>
-                                    `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${this.narrativeChartConfigId}.png?imType=square&nocache`
+                                    `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${this.narrativeChartConfigId}.png?imPreset=square&nocache`
                                 }
                             />
                         </>
