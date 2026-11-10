@@ -1,14 +1,12 @@
 import { GrapherVariant } from "@ourworldindata/types"
 import {
+    ExplicitImageSize,
     GRAPHER_SQUARE_SIZE,
     GRAPHER_THUMBNAIL_HEIGHT,
     GRAPHER_THUMBNAIL_WIDTH,
-} from "./GrapherConstants"
-import {
-    ExplicitImageSize,
     ImageRequest,
     ImageSizePreset,
-} from "./imageRequest.js"
+} from "@ourworldindata/grapher"
 
 export interface ImageLayout {
     pngWidth: number
