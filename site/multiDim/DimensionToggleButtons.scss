@@ -115,9 +115,9 @@ $plain-field: ":not(:has([data-selected], [data-hovered]))";
     opacity: 0.5;
 }
 
-// A hidden copy of a toggle group's options at their natural width, measured
+// A hidden instance of a toggle group's options at their natural width, measured
 // to decide whether the toggle group fits the controls row (see
-// DimensionToggleButtonsSizer). Fixed positioning keeps it out of the layout and out of
+// MeasuredDimensionToggleButtons). Fixed positioning keeps it out of the layout and out of
 // the page's scrollable area.
 .md-toggle-measure.md-settings__toggle-group-options {
     position: fixed;

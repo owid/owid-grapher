@@ -24,10 +24,10 @@ test("toggle group measurements include enough room for full labels in each resp
         <style>${css}</style>
         <div class="md-settings__toggle-group-options md-toggle-measure" aria-hidden="true">
             <div class="md-settings__toggle-field">
-                <span class="md-settings__toggle"><span class="md-settings__toggle-label">Short</span></span>
+                <button type="button" class="md-settings__toggle" disabled><span class="md-settings__toggle-label">Short</span></button>
             </div>
             <div class="md-settings__toggle-field">
-                <span class="md-settings__toggle"><span class="md-settings__toggle-label">A considerably longer choice name</span></span>
+                <button type="button" class="md-settings__toggle" disabled><span class="md-settings__toggle-label">A considerably longer choice name</span></button>
             </div>
         </div>
     `)

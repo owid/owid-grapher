@@ -4,12 +4,12 @@ import { useResizeObserver } from "usehooks-ts"
 import { DimensionEnriched } from "@ourworldindata/types"
 import DimensionDropdown from "./DimensionDropdown.js"
 import DimensionToggleButtons, {
-    DimensionToggleButtonsSizer,
+    ToggleButtonOptions,
 } from "./DimensionToggleButtons.js"
 
 /**
  * Renders as a toggle group when there is enough space for that, and as a dropdown if not.
- * To do that, a hidden copy of its options is always rendered, and we measure its width (using a ResizeObserver) to see if it fits.
+ * To do that, a hidden instance of its options is always rendered, and we measure its width (using a ResizeObserver) to see if it fits.
  */
 export default function MeasuredDimensionToggleButtons({
     className,
@@ -43,10 +43,14 @@ export default function MeasuredDimensionToggleButtons({
         <>
             {/* Keep measuring even while the dropdown is shown, so switching
                 controls cannot change the measured width and cause a loop.
-                CSS sizes this copy for the active layout; ResizeObserver also
+                CSS sizes this instance for the active layout; ResizeObserver also
                 catches changes from font loading and viewport breakpoints. */}
-            <DimensionToggleButtonsSizer
+            <ToggleButtonOptions
+                className="md-toggle-measure"
                 dimension={dimension}
+                // The styles also make it invisible, which keeps it out of
+                // the tab order and the accessibility tree.
+                isDisabled
                 ref={measureRef}
             />
             {fitsAsToggleGroup ? (
