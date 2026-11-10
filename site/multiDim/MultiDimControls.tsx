@@ -9,7 +9,7 @@ import {
 } from "@ourworldindata/types"
 import { resolveDimensionPresentationType } from "@ourworldindata/utils"
 import DimensionDropdown from "./DimensionDropdown.js"
-import DimensionToggleGroup from "./DimensionToggleGroup.js"
+import DimensionToggleButtons from "./DimensionToggleButtons.js"
 
 export default function MultiDimControls({
     dimensions,
@@ -56,7 +56,7 @@ export default function MultiDimControls({
                     })
                 }
                 return presentationType === "toggle-buttons" ? (
-                    <DimensionToggleGroup
+                    <DimensionToggleButtons
                         key={dim.slug}
                         className={controlClassName}
                         dimension={fullDimension}
