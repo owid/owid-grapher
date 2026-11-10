@@ -58,6 +58,14 @@ export type ImageRequest =
           includeDetails: false
       }
 
+/** The request an image URL without image params parses to */
+export const DEFAULT_IMAGE_REQUEST: ImageRequest = {
+    variant: GrapherVariant.Default,
+    labelMode: ChartLabelMode.All,
+    size: { kind: "explicit" },
+    includeDetails: false,
+}
+
 export interface ImageRequestError {
     param: string
     reason: string
