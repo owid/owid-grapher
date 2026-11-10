@@ -19,3 +19,6 @@ export const ANCHORED_LABEL_STYLE: Record<Emphasis, AnchoredLabelStyleConfig> =
 
 /** Slack for floating-point error in label position comparisons */
 export const FLOAT_TOLERANCE_PX = 0.01
+
+/** How far from the plot edge an anchor can sit and still count as an edge label */
+export const EDGE_TOLERANCE_PX = 1
