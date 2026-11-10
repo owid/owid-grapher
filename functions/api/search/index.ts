@@ -710,12 +710,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                           )
                         : undefined,
                 ])
-            // Pages carry the charts' topic tags, so the query's vocabulary
-            // topics find pages a keyword search misses: Algolia wants every
-            // query word in a page, which leaves many searches a handful of
-            // hits. An empty search within a topic yields its pages in
-            // Algolia's default order.
-            const termSearchesStarted = Date.now()
             const { value: vectorHits, ms: vectorHitsMs } = await timed(
                 async () =>
                     vectors?.ids.length
@@ -734,6 +728,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                           ).results
                         : []
             )
+            // Pages carry the charts' topic tags, so the query's vocabulary
+            // topics find pages a keyword search misses: Algolia wants every
+            // query word in a page, which leaves many searches a handful of
+            // hits. An empty search within a topic yields its pages in
+            // Algolia's default order.
+            const termSearchesStarted = Date.now()
             const { hits: results, via } = vocabulary
                 ? await appendVocabularyHits(
                       pool.results,

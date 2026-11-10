@@ -15,6 +15,8 @@
 // dev and staging tokens deliberately lack.
 
 import fs from "fs/promises"
+import pMap from "p-map"
+import * as R from "remeda"
 import * as db from "../../db/db.js"
 import {
     SEARCH_EMBEDDING_MODEL,
@@ -84,18 +86,15 @@ async function writeEmbeddings(
         if (!fits) console.warn(`Skipping ${record.id}: id too long`)
         return fits && record.text
     })
-    const batches: Embeddable[][] = []
-    for (let i = 0; i < usable.length; i += BATCH_SIZE)
-        batches.push(usable.slice(i, i + BATCH_SIZE))
-
-    const lines: string[] = []
-    let next = 0
-    const worker = async (): Promise<void> => {
-        while (next < batches.length) {
-            const batch = batches[next++]
-            const vectors = await embed(batch.map((record) => record.text))
-            batch.forEach((record, i) =>
-                lines.push(
+    let done = 0
+    const lines = (
+        await pMap(
+            R.chunk(usable, BATCH_SIZE),
+            async (batch) => {
+                const vectors = await embed(batch.map((record) => record.text))
+                done += batch.length
+                console.log(`${namespace}: ${done}/${usable.length}`)
+                return batch.map((record, i) =>
                     JSON.stringify({
                         id: record.id,
                         namespace,
@@ -104,12 +103,10 @@ async function writeEmbeddings(
                         metadata: { type: record.type },
                     })
                 )
-            )
-            if (next % 20 === 0)
-                console.log(`${namespace}: ${lines.length}/${usable.length}`)
-        }
-    }
-    await Promise.all(Array.from({ length: CONCURRENCY }, worker))
+            },
+            { concurrency: CONCURRENCY }
+        )
+    ).flat()
 
     const path = `tmp/search-embeddings-${namespace}.ndjson`
     await fs.mkdir("tmp", { recursive: true })
@@ -155,4 +152,10 @@ const buildSearchEmbeddings = async (): Promise<void> => {
     )
 }
 
-void buildSearchEmbeddings().then(() => process.exit(0))
+void buildSearchEmbeddings().then(
+    () => process.exit(0),
+    (error) => {
+        console.error(error)
+        process.exit(1)
+    }
+)
