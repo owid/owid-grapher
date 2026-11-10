@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { GrapherVariant } from "@ourworldindata/types"
+import { ChartLabelMode, GrapherVariant } from "@ourworldindata/types"
 import { Bounds } from "@ourworldindata/utils"
 import { extractOptions, ImageOptions } from "./imageOptions.js"
 
@@ -31,8 +31,8 @@ function makeThumbnail(
     svgHeight: number,
     {
         fontSize = 14,
-        useMinimalLabeling,
-    }: { fontSize?: number; useMinimalLabeling?: boolean } = {}
+        labelMode,
+    }: { fontSize?: number; labelMode?: ChartLabelMode } = {}
 ): ImageOptions {
     return {
         pngWidth: 4 * svgWidth,
@@ -44,7 +44,7 @@ function makeThumbnail(
         grapherProps: {
             staticBounds: new Bounds(0, 0, svgWidth, svgHeight),
             variant: GrapherVariant.Thumbnail,
-            ...(useMinimalLabeling !== undefined && { useMinimalLabeling }),
+            ...(labelMode !== undefined && { labelMode }),
         },
     }
 }
@@ -134,7 +134,7 @@ const CASES: Record<string, ImageOptionsCase[]> = {
                 ...DEFAULT,
                 grapherProps: {
                     variant: GrapherVariant.Uncaptioned,
-                    useMinimalLabeling: true,
+                    labelMode: ChartLabelMode.Values,
                 },
             },
         },
@@ -144,7 +144,7 @@ const CASES: Record<string, ImageOptionsCase[]> = {
                 ...DEFAULT,
                 grapherProps: {
                     variant: GrapherVariant.Uncaptioned,
-                    useMinimalLabeling: false,
+                    labelMode: ChartLabelMode.All,
                 },
             },
         },
@@ -199,12 +199,14 @@ const CASES: Record<string, ImageOptionsCase[]> = {
             },
             {
                 query: "imType=thumbnail&imMinimal=1",
-                expected: makeThumbnail(300, 160, { useMinimalLabeling: true }),
+                expected: makeThumbnail(300, 160, {
+                    labelMode: ChartLabelMode.Values,
+                }),
             },
             {
                 query: "imType=thumbnail&imMinimal=0",
                 expected: makeThumbnail(300, 160, {
-                    useMinimalLabeling: false,
+                    labelMode: ChartLabelMode.All,
                 }),
             },
         ],

@@ -33,6 +33,7 @@ import {
     AxisConfigInterface,
     ChartErrorInfo,
     GrapherVariant,
+    ChartLabelMode,
     TickFormattingOptions,
 } from "@ourworldindata/types"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
@@ -343,16 +344,18 @@ export class FacetChart
         const showLegend = !this.hideFacetLegends
 
         // Show start and end value labels for line chart thumbnails
-        const useMinimalLabeling = this.variant === GrapherVariant.Thumbnail
+        const labelMode =
+            this.variant === GrapherVariant.Thumbnail
+                ? ChartLabelMode.Values
+                : ChartLabelMode.All
         // Hide the start value label only when facets are auto-switched to
         // thumbnail mode because they are small (not when the whole chart
         // is explicitly rendered as a thumbnail).
         const hideStartValueLabel =
             this.variant === GrapherVariant.Thumbnail &&
             this.manager.variant !== GrapherVariant.Thumbnail
-        const showSeriesLabels = useMinimalLabeling
-            ? true
-            : !this.hideFacetLegends
+        const showSeriesLabels =
+            labelMode === ChartLabelMode.Values || !this.hideFacetLegends
 
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
@@ -390,7 +393,7 @@ export class FacetChart
                 tooltip,
                 shouldPinTooltipToBottom,
                 externalLegendHoverBin: legendHoverBin,
-                useMinimalLabeling,
+                labelMode,
                 hideStartValueLabel,
                 // Allow labels in line chart thumbnails to overflow facet bounds
                 chartAreaPadding: Infinity,
@@ -734,7 +737,7 @@ export class FacetChart
     @computed private get showLegend(): boolean {
         const { isNumericLegend, categoricalLegendData, numericLegendData } =
             this
-        if (this.manager.useMinimalLabeling) return false
+        if (this.manager.labelMode === ChartLabelMode.Values) return false
         const hasBins =
             categoricalLegendData.length > 0 || numericLegendData.length > 0
         if (!hasBins) return false
