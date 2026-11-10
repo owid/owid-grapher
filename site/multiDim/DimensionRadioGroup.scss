@@ -40,9 +40,8 @@ $radio-group-height: 32px;
     }
 }
 
-// A field that is neither selected nor hovered. The hovered state only
-// appears on the radio button inside the field, hence the :has().
-$plain-field: ":not([data-selected], :has([data-hovered]))";
+// A field whose option is neither selected nor hovered.
+$plain-field: ":not(:has([data-selected], [data-hovered]))";
 
 // Thin separator bar between options, as in grapher's Tabs.scss, drawn only
 // between two plain options so that a selected or hovered one has no
@@ -66,23 +65,17 @@ $plain-field: ":not([data-selected], :has([data-hovered]))";
     height: 28px;
     padding: 0 16px;
     border-radius: 3px;
+    // Reset the native button look; the site's global styles already take
+    // care of the margin and border.
+    background: none;
+    font: inherit;
+    letter-spacing: inherit;
     color: $gray-70;
     white-space: nowrap;
     cursor: pointer;
 
-    &:focus-visible {
-        // Override global focus-visible style.
-        outline: none !important;
-    }
-
     &[data-hovered]:not([data-selected]):not([data-disabled]) {
         background: $gray-10;
-    }
-
-    // $blue-60 keeps the ring above 3:1 on white and on the selected fill.
-    &[data-focus-visible] {
-        outline: 2px solid $blue-60;
-        outline-offset: -2px;
     }
 
     &[data-selected] {
@@ -93,6 +86,13 @@ $plain-field: ":not([data-selected], :has([data-hovered]))";
 
     &[data-disabled] {
         cursor: default;
+    }
+
+    // The global focus ring sits outside the option, so stack the focused
+    // option above its neighbours, which would otherwise paint over the ring.
+    &:focus-visible {
+        position: relative;
+        z-index: 1;
     }
 
     @media (width <= $toggle-full-width-breakpoint) {
