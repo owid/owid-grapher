@@ -9,14 +9,17 @@ import {
 } from "@ourworldindata/types"
 import { resolveDimensionPresentationType } from "@ourworldindata/utils"
 import DimensionDropdown from "./DimensionDropdown.js"
+import DimensionToggleButtons from "./DimensionToggleButtons.js"
 
 export default function MultiDimControls({
+    dimensions,
     availableSettings,
     resolvedSettings,
     onChange,
     collapsedCount,
     readOnly,
 }: {
+    dimensions: Record<string, DimensionEnriched>
     availableSettings: Record<string, DimensionEnriched>
     resolvedSettings: MultiDimDimensionChoices
     onChange: (settings: MultiDimDimensionChoices) => void
@@ -27,38 +30,55 @@ export default function MultiDimControls({
     const controls = useMemo(
         () =>
             Object.values(availableSettings).map((dim) => {
+                const fullDimension = dimensions[dim.slug] ?? dim
                 const presentationType = resolveDimensionPresentationType({
-                    dimension: dim,
+                    dimension: fullDimension,
                     // `dim` holds just the choices available right now
                     availableChoiceCount: dim.choices.length,
                 })
-                return { dim, presentationType }
+                return { dim, fullDimension, presentationType }
             }),
-        [availableSettings]
+        [availableSettings, dimensions]
     )
     const needsToggle = controls.length > collapsedCount
 
     return (
         <div className="md-controls">
-            {controls.map(({ dim, presentationType }, index) => (
-                <DimensionDropdown
-                    key={dim.slug}
-                    className={cx({
-                        "md-settings__control--hidden":
-                            !isExpanded && index >= collapsedCount,
-                    })}
-                    dimension={dim}
-                    value={resolvedSettings[dim.slug]}
-                    onChange={(value) => {
-                        onChange({
-                            ...resolvedSettings,
-                            [dim.slug]: value,
-                        })
-                    }}
-                    readOnly={readOnly}
-                    showSearch={presentationType === "dropdown-with-search"}
-                />
-            ))}
+            {controls.map(({ dim, fullDimension, presentationType }, index) => {
+                const controlClassName = cx({
+                    "md-settings__control--hidden":
+                        !isExpanded && index >= collapsedCount,
+                })
+                const handleChange = (value: string) => {
+                    onChange({
+                        ...resolvedSettings,
+                        [dim.slug]: value,
+                    })
+                }
+                return presentationType === "toggle-buttons" ? (
+                    <DimensionToggleButtons
+                        key={dim.slug}
+                        className={controlClassName}
+                        dimension={fullDimension}
+                        availableChoiceSlugs={
+                            new Set(Object.keys(dim.choicesBySlug))
+                        }
+                        value={resolvedSettings[dim.slug]}
+                        onChange={handleChange}
+                        readOnly={readOnly}
+                    />
+                ) : (
+                    <DimensionDropdown
+                        key={dim.slug}
+                        className={controlClassName}
+                        dimension={dim}
+                        value={resolvedSettings[dim.slug]}
+                        onChange={handleChange}
+                        readOnly={readOnly}
+                        showSearch={presentationType === "dropdown-with-search"}
+                    />
+                )
+            })}
             {needsToggle && (
                 <button
                     className="md-controls__toggle label-2-medium"
