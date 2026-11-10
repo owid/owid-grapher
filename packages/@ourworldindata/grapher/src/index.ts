@@ -217,3 +217,14 @@ export {
     DumbbellMode,
     DEFAULT_DUMBBELL_TREND_COLOR_MAP,
 } from "./dumbbellCharts/DumbbellChartConstants"
+export {
+    parseImageRequest,
+    serializeImageRequest,
+    type ImageSizePreset,
+    type ExplicitImageSize,
+    type PresetImageSize,
+    type ImageRequest,
+    type ImageRequestError,
+    type ParseImageRequestResult,
+} from "./core/imageRequest.js"
+export { resolveImageLayout, type ImageLayout } from "./core/imageLayout.js"
