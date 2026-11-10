@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest"
-import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { GrapherVariant } from "@ourworldindata/types"
 import { Bounds } from "@ourworldindata/utils"
 import { extractOptions, ImageOptions } from "./imageOptions.js"
@@ -43,11 +42,10 @@ function makeThumbnail(
         details: false,
         fontSize,
         grapherProps: {
-            isSocialMediaExport: false,
             staticBounds: new Bounds(0, 0, svgWidth, svgHeight),
             variant: GrapherVariant.Thumbnail,
             ...(useMinimalLabeling !== undefined && { useMinimalLabeling }),
-        } as Partial<GrapherProgrammaticInterface>,
+        },
     }
 }
 
