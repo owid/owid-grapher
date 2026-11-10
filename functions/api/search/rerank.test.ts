@@ -241,7 +241,7 @@ describe(rerankCharts, () => {
 })
 
 describe(rerankPages, () => {
-    it("reorders pages, describing each by its type and its excerpt, or else its matched text", async () => {
+    it("reorders pages, describing each by its type, its excerpt and its matched text", async () => {
         const ai = fakeAi(async () => jevAnswers({ r01: 0.2, r02: 0.8 }))
         const page = (slug: string, type: string, excerpt?: string) => ({
             slug,
@@ -273,7 +273,9 @@ describe(rerankPages, () => {
         const { state } = vi.mocked(ai.run).mock.calls[0][1] as {
             state: string
         }
-        expect(state).toContain("r01. Title of a [article] — About a")
+        expect(state).toContain(
+            'r01. Title of a [article] — About a Matching passage: "Text of a"'
+        )
         expect(state).toContain("r02. Title of b [data-insight] — Text of b")
     })
 })

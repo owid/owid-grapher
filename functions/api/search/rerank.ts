@@ -126,7 +126,10 @@ function buildState<T extends RerankableHit>(
                 hit.type === ChartRecordType.Chart ? "" : ` [${hit.type}]`
             const subtitle = (hit.subtitle ?? "").slice(0, 200)
             const noted = notes[i] ? ` (${notes[i]})` : ""
-            return `${candidateId(i)}. ${hit.title}${kind} — ${subtitle}${noted}`
+            const passage = hit.passage
+                ? ` Matching passage: "${hit.passage.slice(0, 200)}"`
+                : ""
+            return `${candidateId(i)}. ${hit.title}${kind} — ${subtitle}${noted}${passage}`
         })
         .join("\n")
     const intro = notes.some(Boolean) ? `${NOTES_INTRO}\n` : ""
@@ -208,7 +211,25 @@ export interface RerankableHit {
     subtitle?: string
     /** a chart record type, or a page type such as `article` */
     type: string
+    /** the text of a page that matched the query, when `subtitle` isn't it */
+    passage?: string
 }
+
+/**
+ * How the rerank prompt describes a page. Its excerpt says what the page is
+ * about; Algolia's matched text (`content`) says why it was found, and can
+ * come from anywhere in an article. The model needs both: on the matched text
+ * alone, a CO₂ dataset article's paragraph on its GDP source won "gdp", and
+ * on the excerpt alone it can't see that an article has a section on the
+ * query. A page without an excerpt (a data insight) is described by its text.
+ */
+export const describePage = (page: {
+    excerpt?: string
+    content?: string
+}): Pick<RerankableHit, "subtitle" | "passage"> =>
+    page.excerpt
+        ? { subtitle: page.excerpt, passage: page.content }
+        : { subtitle: page.content }
 
 /**
  * Reorders `hits` (in Algolia's order) by the model's choice probabilities.
@@ -313,11 +334,7 @@ export async function rerankCharts(
 
 /**
  * /api/search's reranked pages (articles, data insights, …): one page, cut
- * from the reordered pool. Where the prompt reads a chart's subtitle, it
- * reads a page's excerpt, which says what the page is about. Algolia's
- * matched text (`content`) can come from anywhere in an article, and judged
- * on it, a CO₂ dataset article's paragraph on its GDP source won "gdp". It's
- * only the fallback, for pages without an excerpt.
+ * from the reordered pool (see describePage).
  */
 export async function rerankPages(
     ai: Ai,
@@ -332,8 +349,8 @@ export async function rerankPages(
         pool.results.map((page) => ({
             page,
             title: page.title,
-            subtitle: page.excerpt || page.content,
             type: page.type,
+            ...describePage(page),
         }))
     )
     return {

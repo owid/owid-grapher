@@ -18,6 +18,7 @@ import {
 } from "./algoliaClient.js"
 import {
     isRerankModel,
+    describePage,
     RERANK_MODELS,
     RERANK_POOL_SIZE,
     type RerankModel,
@@ -292,8 +293,7 @@ async function rerankPagesSection(
                     SearchIndexName.Pages,
                     config.indexPrefix
                 ),
-                // The rerank prompt reads a page's excerpt, or else its
-                // matched text (see rerankPages in rerank.ts)
+                // What the rerank prompt reads (see describePage)
                 attributesToRetrieve: [
                     ...new Set([
                         ...((params.attributesToRetrieve as string[]) ?? []),
@@ -315,8 +315,8 @@ async function rerankPagesSection(
         found.hits.slice(0, RERANK_POOL_SIZE).map((hit) => ({
             hit,
             title: hit.title,
-            subtitle: hit.excerpt || hit.content,
             type: hit.type,
+            ...describePage(hit),
         }))
     )
     const hits = [
