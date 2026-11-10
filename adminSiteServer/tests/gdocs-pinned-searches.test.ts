@@ -55,7 +55,7 @@ async function publish(
         body: JSON.stringify({
             ...draft,
             published: true,
-            publishedAt: new Date("2024-01-01T00:00:00.000Z").toISOString(),
+            publishedAt: "2024-01-01T00:00:00.000Z",
         }),
         expectStatus,
     })
@@ -69,11 +69,16 @@ async function isPublished(id: string): Promise<boolean> {
     return Boolean(row.published)
 }
 
-async function pinnedSearchErrors(id: string): Promise<string[]> {
+async function pinnedSearchErrors(id: string): Promise<OwidGdocErrorMessage[]> {
     const gdoc = await env.fetchJson(`/gdocs/${id}`)
-    return (gdoc.errors as OwidGdocErrorMessage[])
-        .filter((error) => error.property === "pinned-for-searches")
-        .map((error) => error.message)
+    return (gdoc.errors as OwidGdocErrorMessage[]).filter(
+        (error) => error.property === "pinned-for-searches"
+    )
+}
+
+async function pinnedSearchErrorMessages(id: string): Promise<string[]> {
+    const errors = await pinnedSearchErrors(id)
+    return errors.map((error) => error.message)
 }
 
 describe("Featured viz pinned searches", { timeout: 20000 }, () => {
@@ -109,7 +114,7 @@ describe("Featured viz pinned searches", { timeout: 20000 }, () => {
             pinnedForSearches: ["migration"],
         })
 
-        const errors = await pinnedSearchErrors(b.id)
+        const errors = await pinnedSearchErrorMessages(b.id)
 
         expect(errors).toHaveLength(1)
         expect(errors[0]).toContain('"migration"')
@@ -137,7 +142,7 @@ describe("Featured viz pinned searches", { timeout: 20000 }, () => {
             pinnedForSearches: ["deforestation"],
         })
 
-        expect(await pinnedSearchErrors(b.id)).toEqual([])
+        expect(await pinnedSearchErrorMessages(b.id)).toEqual([])
         await publish(b)
         expect(await isPublished(b.id)).toBe(true)
     })
@@ -148,10 +153,7 @@ describe("Featured viz pinned searches", { timeout: 20000 }, () => {
             pinnedForSearches: [],
         })
 
-        const gdoc = await env.fetchJson(`/gdocs/${draft.id}`)
-        const warnings = (gdoc.errors as OwidGdocErrorMessage[]).filter(
-            (error) => error.property === "pinned-for-searches"
-        )
+        const warnings = await pinnedSearchErrors(draft.id)
 
         expect(warnings).toHaveLength(1)
         expect(warnings[0].type).toBe("warning")
@@ -173,7 +175,7 @@ describe("Featured viz pinned searches", { timeout: 20000 }, () => {
             pinnedForSearches: ["trade"],
         })
 
-        expect(await pinnedSearchErrors(b.id)).toEqual([])
+        expect(await pinnedSearchErrorMessages(b.id)).toEqual([])
         await publish(b)
         expect(await isPublished(b.id)).toBe(true)
     })

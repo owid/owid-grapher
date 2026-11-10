@@ -64,8 +64,15 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+    // Only what queryFeaturedViz depends on, so a country filter or a change
+    // of case doesn't refetch
     featuredViz: (state: SearchState) =>
-        [PAGES_INDEX, "featured-viz", makeStateForKey(state)] as const,
+        [
+            PAGES_INDEX,
+            "featured-viz",
+            normalizePinnedSearch(state.query),
+            getFilterNamesOfType(state.filters, FilterType.TOPIC),
+        ] as const,
 } as const
 
 export const latestPagesQueryKey = {

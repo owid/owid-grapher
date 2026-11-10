@@ -1,5 +1,7 @@
 $featured-viz-background-color: #fff7eb;
 $featured-viz-label-color: #916c00;
+// At and below this width, the thumbnail stacks above the text
+$featured-viz-stack-breakpoint: 400px;
 
 .search-featured-viz-hit {
     display: block;
@@ -8,7 +10,6 @@ $featured-viz-label-color: #916c00;
     padding: 16px;
     background-color: $featured-viz-background-color;
     text-decoration: none;
-    cursor: pointer;
 
     @include sm-only {
         margin: 8px 0;
@@ -29,7 +30,6 @@ $featured-viz-label-color: #916c00;
 }
 
 .search-featured-viz-hit__label-icon {
-    color: $featured-viz-label-color;
     margin-right: 6px;
 }
 
@@ -45,7 +45,7 @@ $featured-viz-label-color: #916c00;
     // Stack the thumbnail above the text, like the home page's featured
     // tiles. Only on narrow phones: above 400px, a full-width thumbnail is
     // huge.
-    @media (width <= 400px) {
+    @media (width <= $featured-viz-stack-breakpoint) {
         flex-direction: column;
         align-items: stretch;
     }
@@ -59,7 +59,7 @@ $featured-viz-label-color: #916c00;
     object-fit: cover;
     background-color: $white;
 
-    @media (width <= 400px) {
+    @media (width <= $featured-viz-stack-breakpoint) {
         width: 100%;
         height: auto;
     }

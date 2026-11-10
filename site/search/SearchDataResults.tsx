@@ -3,6 +3,7 @@ import { queryCharts, queryFeaturedViz, searchQueryKeys } from "./queries.js"
 import { useSelectedRegionNames, useInfiniteSearch } from "./searchHooks.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { SearchChartHit } from "@ourworldindata/types"
+import { normalizePinnedSearch } from "@ourworldindata/utils"
 import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 import { SearchClosestMatchesNotice } from "./SearchClosestMatchesNotice.js"
@@ -30,7 +31,7 @@ export const SearchDataResults = ({
     const featuredVizQuery = useQuery({
         queryKey: searchQueryKeys.featuredViz(state),
         queryFn: () => queryFeaturedViz(liteSearchClient, state),
-        enabled: state.query.trim() !== "",
+        enabled: normalizePinnedSearch(state.query) !== "",
     })
     const featuredVizHit = featuredVizQuery.data
 

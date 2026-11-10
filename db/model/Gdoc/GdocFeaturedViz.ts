@@ -29,14 +29,14 @@ import * as db from "../../db.js"
 
 const METADATA_FETCH_TIMEOUT_MS = 10_000
 
-export interface PinnedSearchClash {
+interface PinnedSearchClash {
     search: string
     slug: string
 }
 
 /** The searches this gdoc is pinned for that another published featured viz
  *  is already pinned for, each with that other page's slug. */
-export async function getPinnedSearchClashes(
+async function getPinnedSearchClashes(
     knex: db.KnexReadonlyTransaction,
     gdoc: { id: string; content: { "pinned-for-searches"?: string[] } }
 ): Promise<PinnedSearchClash[]> {
@@ -70,7 +70,7 @@ export async function getPinnedSearchClashes(
     })
 }
 
-export function describePinnedSearchClash({
+function describePinnedSearchClash({
     search,
     slug,
 }: PinnedSearchClash): string {

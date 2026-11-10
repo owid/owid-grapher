@@ -18,6 +18,7 @@ import {
     GdocComponentPreviewRefreshResult,
     OwidGdoc,
     OwidGdocBaseInterface,
+    OwidGdocErrorMessageType,
 } from "@ourworldindata/types"
 import {
     checkIsChronologicalGdoc,
@@ -75,11 +76,6 @@ import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import { GdocProfile } from "../../db/model/Gdoc/GdocProfile.js"
-import {
-    GdocFeaturedViz,
-    describePinnedSearchClash,
-    getPinnedSearchClashes,
-} from "../../db/model/Gdoc/GdocFeaturedViz.js"
 
 export async function getAllGdocIndexItems(
     req: Request,
@@ -413,20 +409,21 @@ async function validateSlugCollisionsIfPublishing(
     }
 }
 
-// The same clash is also a validation error on the gdoc (GdocFeaturedViz),
-// which disables Publish in the admin. That check runs in the browser on
-// errors computed earlier, so another featured viz may have taken the search
-// since. The server checks again at publish time, as it does for slugs.
-async function validatePinnedSearchesIfPublishing(
-    trx: db.KnexReadonlyTransaction,
-    gdoc: AnyGdoc
-): Promise<void> {
-    if (!gdoc.published || !(gdoc instanceof GdocFeaturedViz)) return
+// A pinned-search clash is a validation error on the gdoc (GdocFeaturedViz),
+// which disables Publish in the admin. The admin decides that from errors it
+// loaded earlier, so another featured viz may have taken the search since.
+// `loadState` has just validated the gdoc again, so reject on its errors.
+function validatePinnedSearchesIfPublishing(gdoc: AnyGdoc): void {
+    if (!gdoc.published) return
 
-    const clashes = await getPinnedSearchClashes(trx, gdoc)
+    const clashes = gdoc.errors.filter(
+        (error) =>
+            error.property === "pinned-for-searches" &&
+            error.type === OwidGdocErrorMessageType.Error
+    )
     if (clashes.length > 0) {
         throw new JsonError(
-            `You are attempting to publish a featured viz pinned for searches that another published featured viz is already pinned for. ${clashes.map(describePinnedSearchClash).join(" ")}`
+            `You are attempting to publish a featured viz pinned for searches that another published featured viz is already pinned for. ${clashes.map((clash) => clash.message).join(" ")}`
         )
     }
 }
@@ -515,7 +512,7 @@ export async function createOrUpdateGdoc(
     await nextGdoc.loadState(trx)
 
     await validateSlugCollisionsIfPublishing(trx, nextGdoc)
-    await validatePinnedSearchesIfPublishing(trx, nextGdoc)
+    validatePinnedSearchesIfPublishing(nextGdoc)
 
     // Create redirect if slug changed on a published gdoc
     await createRedirectForSlugChangeIfNeeded(trx, prevGdoc, nextGdoc)

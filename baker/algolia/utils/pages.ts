@@ -19,6 +19,8 @@ import {
     articulateEntity,
     getPrefixedGdocPath,
     getFeaturedImageFilename,
+    checkIsFeaturedViz,
+    checkIsGdocPostExcludingFragments,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import {
@@ -148,6 +150,7 @@ function filterSpansForExcerptLong(span: Span): Span | null {
 function getExcerptLongFromGdoc(
     gdoc: IndexableInPagesGdoc
 ): string[] | undefined {
+    if (!checkIsGdocPostExcludingFragments(gdoc)) return
     if (
         gdoc.content.type !== OwidGdocType.TopicPage &&
         // Most (all?) linear topic pages currently don't have an intro block,
@@ -156,20 +159,15 @@ function getExcerptLongFromGdoc(
     ) {
         return
     }
-    // The check above narrows content.type, but not the gdoc itself
-    const topicPage = gdoc as OwidGdocPostInterface
 
     let textBlocks: EnrichedBlockText[]
-    const topicPageIntroBlock = getFirstBlockOfType(
-        topicPage,
-        "topic-page-intro"
-    )
+    const topicPageIntroBlock = getFirstBlockOfType(gdoc, "topic-page-intro")
     const maxParagraphs = 3
     if (topicPageIntroBlock) {
         textBlocks = topicPageIntroBlock.content.slice(0, maxParagraphs)
     } else {
         textBlocks = takeConsecutiveBlocksOfType(
-            topicPage,
+            gdoc,
             "text",
             maxParagraphs
         ).filter((block) => {
@@ -304,11 +302,6 @@ async function generateGdocRecords(
             topicHierarchiesByChildName
         )
 
-        const pinnedForSearches =
-            gdoc.content.type === OwidGdocType.FeaturedViz
-                ? (gdoc.content["pinned-for-searches"] ?? [])
-                : undefined
-
         for (const chunk of chunks) {
             const record = {
                 objectID: `${gdoc.id}-c${i}`,
@@ -329,7 +322,9 @@ async function generateGdocRecords(
                 authors: gdoc.content.authors,
                 thumbnailUrl,
                 availableEntities: [],
-                ...(pinnedForSearches && { pinnedForSearches }),
+                pinnedForSearches: checkIsFeaturedViz(gdoc)
+                    ? gdoc.content["pinned-for-searches"]
+                    : undefined,
             }
             const score = computePageScore(record)
             records.push({ ...record, score })
