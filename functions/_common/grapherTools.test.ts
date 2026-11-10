@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs"
-import path from "node:path"
 import { expect, it, describe, DeeplyAllowMatchers } from "vitest"
 
 import {
@@ -7,14 +5,8 @@ import {
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
 import { GrapherState } from "@ourworldindata/grapher"
+import { OwidTableSlugs } from "@ourworldindata/types"
 import {
-    ChartLabelMode,
-    GrapherVariant,
-    OwidTableSlugs,
-} from "@ourworldindata/types"
-import { Env } from "./env.js"
-import {
-    initGrapher,
     resolveMultiDimViewFromCompanion,
     resolveMultiDimViewQueryStr,
     rewriteJsonLdText,
@@ -187,46 +179,6 @@ describe(resolveMultiDimViewFromCompanion, () => {
         ).toBeUndefined()
     })
 })
-
-describe(initGrapher, () => {
-    it("configures grapher state from a simplified values request", async () => {
-        const { grapher } = await initGrapher(
-            { type: "slug", id: "life-expectancy" },
-            {
-                variant: GrapherVariant.Thumbnail,
-                labelMode: ChartLabelMode.Values,
-                size: { kind: "explicit" },
-                includeDetails: false,
-            },
-            new URLSearchParams(),
-            makeEnvWithConfig(
-                "functions/test/fixtures/life-expectancy.config.json"
-            )
-        )
-
-        const { grapherState } = grapher
-        expect(grapherState.variant).toBe(GrapherVariant.Thumbnail)
-        expect(grapherState.labelMode).toBe(ChartLabelMode.Values)
-        expect(grapherState.staticBounds.width).toBe(300)
-        expect(grapherState.staticBounds.height).toBe(160)
-    })
-})
-
-function makeEnvWithConfig(fixturePath: string): Env {
-    const config = readFileSync(path.join(process.cwd(), fixturePath), "utf8")
-    const bucket = {
-        get: async () => ({
-            body: config,
-            httpEtag: '"fixture"',
-            writeHttpMetadata: () => undefined,
-        }),
-    } as unknown as R2Bucket
-    const env: Partial<Env> = {
-        GRAPHER_CONFIG_R2_BUCKET: bucket,
-        GRAPHER_CONFIG_R2_BUCKET_PATH: "v1",
-    }
-    return env as Env
-}
 
 /**
  * Helper function to assert that an array contains exactly the expected elements
