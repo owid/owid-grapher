@@ -144,13 +144,16 @@ function parseRerank(
           model: RerankModel
           ai: Ai
           vocab: boolean
-          chartsVocab: "term" | "topic" | "query" | "votes" | "wide"
+          chartsVocab: "term" | "topic" | "query" | "votes" | "wide" | "wideq"
       }
     | undefined {
     // TODO: vocab=topic, vocab=query and vocab=votes are variants under test
     // (see searchChartsReranked and pickTopicsByChartVotes); keep whichever
     // wins as vocab=1
-    if (vocab && !["1", "topic", "query", "votes", "wide"].includes(vocab))
+    if (
+        vocab &&
+        !["1", "topic", "query", "votes", "wide", "wideq"].includes(vocab)
+    )
         throw new SearchValidationError(
             `Invalid vocab value "${vocab}". Use vocab=1`
         )
@@ -177,7 +180,8 @@ function parseRerank(
             vocab === "topic" ||
             vocab === "query" ||
             vocab === "votes" ||
-            vocab === "wide"
+            vocab === "wide" ||
+            vocab === "wideq"
                 ? vocab
                 : "term",
     }
@@ -442,7 +446,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     fetchTagGraph(env, baseUrl)
                 )
             if (rerank.chartsVocab === "votes") return byVotes()
-            if (rerank.chartsVocab !== "wide")
+            if (rerank.chartsVocab !== "wide" && rerank.chartsVocab !== "wideq")
                 return pickVocabularyTopics(rerank.ai, rerank.model, query)
             // Under test (vocab=wide): no topic call. The topics the
             // matching charts vote for and the ones whose terms look like
@@ -552,6 +556,23 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     if (rerank.chartsVocab === "query") {
                         const found = await searchTopic(term.topic, query)
                         if (found.length > 0) return found
+                    }
+                    if (rerank.chartsVocab === "wideq") {
+                        // Under test: the reader's query within the topic
+                        // first, then the topic's top charts, up to
+                        // VOCABULARY_HITS_PER_TERM charts the pool lacks
+                        const [matching, top] = await Promise.all([
+                            searchTopic(term.topic, query),
+                            searchTopic(term.topic, ""),
+                        ])
+                        const taken = new Set(pool.results.map((h) => h.url))
+                        return [...matching, ...top]
+                            .filter((hit) => {
+                                if (taken.has(hit.url)) return false
+                                taken.add(hit.url)
+                                return true
+                            })
+                            .slice(0, VOCABULARY_HITS_PER_TERM)
                     }
                     return searchTopic(term.topic, "")
                 },
