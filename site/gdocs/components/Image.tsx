@@ -45,6 +45,7 @@ export type ImageParentContainer =
     | "latest-article"
     | "latest-data-insight"
     | "latest-data-insight-expanded"
+    | "latest-data-insight-grid"
     | "chart-rows"
     | "pull-chart"
     | "bespoke-component--narrow"
@@ -72,6 +73,8 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["latest-data-insight"]: gridSpan5,
     // Full width of the in-place data insight card on /latest (6 columns).
     ["latest-data-insight-expanded"]: gridSpan6,
+    // One of four grid cards on the homepage (3 columns), swiped on mobile.
+    ["latest-data-insight-grid"]: gridSpan3Sm,
     ["latest-announcement"]: gridSpan6,
     ["chart-rows"]: gridSpan3Sm,
     ["pull-chart"]: gridSpan3Sm,

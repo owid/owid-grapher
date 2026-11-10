@@ -25,6 +25,21 @@
     }
 }
 
+// Data insights experiment (see LatestDataInsightsExperiment.scss): the grid
+// keeps the section background, and with it the spacing that sets
+// the section off from its neighbours, on small screens too, where the
+// carousel's cards carry their own.
+.exp-latest-data-insights-v1--titles .latest-data-insights-block {
+    margin-top: 32px;
+    margin-bottom: 16px;
+    background-color: $blue-5;
+
+    // Same gap as above the donation box, which ends the intro on mobile.
+    @include sm-only {
+        margin-top: 24px;
+    }
+}
+
 .latest-data-insights-block__see-all-data-insights-button {
     justify-self: end;
     align-self: center;

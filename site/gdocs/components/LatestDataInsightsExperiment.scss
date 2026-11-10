@@ -1,0 +1,10 @@
+// Data insights experiment: the experiments middleware adds
+// `exp-latest-data-insights-v1--<arm>` to <body>. Without it (outside the
+// experiment, admin previews, local dev) only the carousel shows. To preview
+// an arm locally, add the class to <body> in devtools.
+body:not(.exp-latest-data-insights-v1--titles)
+    .latest-data-insights-experiment__grid,
+.exp-latest-data-insights-v1--titles
+    .latest-data-insights-experiment__carousel {
+    display: none;
+}
