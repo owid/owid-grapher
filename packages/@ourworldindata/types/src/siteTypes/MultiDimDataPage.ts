@@ -73,8 +73,13 @@ export type DimensionPresentationType =
     | "toggle-buttons"
 
 export interface DimensionPresentation {
+    // The preferred control type. It's a recommendation rather than a
+    // guarantee: toggle buttons that don't fit the controls row render as a
+    // dropdown instead (see MeasuredDimensionToggleButtons).
+    //
     // When omitted, resolveDimensionPresentationType picks the control type
-    // automatically, based on the number of choices.
+    // automatically, based on the number of choices and whether they are
+    // grouped.
     type?: DimensionPresentationType
 }
 
