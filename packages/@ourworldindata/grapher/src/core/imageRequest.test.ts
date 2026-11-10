@@ -94,7 +94,6 @@ describe(serializeImageRequest, () => {
 
 describe("rejected image requests", () => {
     const ERROR_CASES: { query: string; param: string }[] = [
-        { query: "imFoo=1", param: "imFoo" },
         { query: "imPreset=og&imFontSize=16", param: "imFontSize" },
         { query: "imType=twitter&imFontSize=16", param: "imFontSize" },
         { query: "imPreset=og&imDetails=1", param: "imDetails" },
@@ -108,7 +107,6 @@ describe("rejected image requests", () => {
         { query: "imWidth=0", param: "imWidth" },
         { query: "imHeight=1.5", param: "imHeight" },
         { query: "imFontSize=-3", param: "imFontSize" },
-        { query: "imScale=4", param: "imScale" },
         { query: "imType=unknown", param: "imType" },
         { query: "imType=thumbnail&imVariant=uncaptioned", param: "imType" },
         { query: "imType=og&imPreset=og", param: "imType" },
@@ -120,7 +118,6 @@ describe("rejected image requests", () => {
         { query: "imPreset=og&imWidth=400", param: "imWidth" },
         { query: "imPreset=og&imHeight=400", param: "imHeight" },
         { query: "imType=twitter&imWidth=1700", param: "imWidth" },
-        { query: "imType=square&imSquareSize=1080", param: "imSquareSize" },
         { query: "imPreset=og&imVariant=simplified", param: "imPreset" },
         { query: "imPreset=square&imVariant=uncaptioned", param: "imPreset" },
         { query: "imVariant=simplified&imDetails=1", param: "imDetails" },
@@ -152,5 +149,12 @@ describe("rejected image requests", () => {
 
     it("ignores grapher params", () => {
         expect(parse("country=FRA~DEU&tab=map&nocache")).toEqual(parse(""))
+    })
+
+    it("ignores unknown image params", () => {
+        expect(parse("imFoo=1&imScale=4")).toEqual(parse(""))
+        expect(parse("imType=square&imSquareSize=1080")).toEqual(
+            parse("imPreset=square")
+        )
     })
 })
