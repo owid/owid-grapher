@@ -335,7 +335,6 @@ export class SiteBaker {
         const html = renderGdocTombstone(tombstone, {
             ...attachments,
             linkedCharts: {},
-            relatedCharts: [],
             tags: [],
         })
         const outPath = path.join(
@@ -820,14 +819,6 @@ export class SiteBaker {
                         publishedGdoc.breadcrumbs = db.getBestBreadcrumbs(
                             publishedGdoc.tags,
                             tagHierarchiesByChildName
-                        )
-                    }
-
-                    // this is a no-op if the gdoc doesn't have an all-chart block
-                    if ("loadRelatedCharts" in publishedGdoc) {
-                        await publishedGdoc.loadRelatedCharts(
-                            knex,
-                            attachments.archivedVersions.charts
                         )
                     }
 

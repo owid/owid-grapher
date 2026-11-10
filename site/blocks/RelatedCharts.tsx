@@ -11,22 +11,12 @@ import { useDocumentContext } from "../gdocs/DocumentContext.js"
 
 export const RELATED_CHARTS_CLASS_NAME = "related-charts"
 
-export const RelatedCharts = ({
-    charts,
-    showKeyChartsOnly = false,
-}: {
-    charts: RelatedChart[]
-    showKeyChartsOnly?: boolean
-}) => {
+export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
     const [activeChartIdx, setActiveChartIdx] = useState(0)
     const { isPreviewing } = useDocumentContext()
 
-    const chartsToShow = showKeyChartsOnly
-        ? charts.filter((chart) => !!chart.keyChartLevel)
-        : charts
-
     const sortedCharts = _.orderBy(
-        chartsToShow,
+        charts,
         (chart) => chart.keyChartLevel,
         "desc"
     )

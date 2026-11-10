@@ -156,7 +156,7 @@ interface BaseSearchChartHit {
     _snippetResult?: Record<string, SnippetResultOption>
 }
 
-type SearchChartViewHit = BaseSearchChartHit & {
+export type SearchChartViewHit = BaseSearchChartHit & {
     type: ChartRecordType.Chart
 }
 
@@ -180,6 +180,12 @@ export type SearchChartHit =
     | SearchChartViewHit
     | SearchExplorerViewHit
     | SearchMultiDimViewHit
+
+export interface SearchChartUrlTarget {
+    type: ChartRecordType
+    slug: string
+    queryParams?: string
+}
 
 export interface SearchChartHitComponentProps {
     hit: SearchChartHit
