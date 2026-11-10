@@ -1,5 +1,6 @@
 import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
+import { OwidVariableWithSourceAndDimension } from "../OwidVariable.js"
 import * as z from "zod/mini"
 
 // Structural copies of algoliasearch's HighlightResultOption and
@@ -345,6 +346,10 @@ export type ChartViewsMap = {
     byGrapherSlug: Map<string, number>
 }
 
+export type IndicatorMetadataLoader = (
+    indicatorId: number
+) => Promise<OwidVariableWithSourceAndDimension>
+
 /**
  * Context object containing shared enrichment data needed for Algolia indexing of chart, explorer and multi-dim views.
  */
@@ -358,6 +363,7 @@ export interface IndexingContext {
         Array<Array<{ id: number; name: string; slug: string | null }>>
     >
     chartViewsMap: ChartViewsMap
+    loadIndicatorMetadata: IndicatorMetadataLoader
 }
 
 export type ChartsIndexingContext = IndexingContext & {
