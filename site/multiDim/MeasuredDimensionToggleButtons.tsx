@@ -1,4 +1,4 @@
-import { useRef, type RefObject } from "react"
+import { useRef, useState, type RefObject } from "react"
 import { useResizeObserver } from "usehooks-ts"
 
 import { DimensionEnriched } from "@ourworldindata/types"
@@ -6,9 +6,11 @@ import DimensionDropdown from "./DimensionDropdown.js"
 import DimensionToggleButtons, {
     ToggleButtonOptions,
 } from "./DimensionToggleButtons.js"
+import { fitsAsToggleButtons } from "./toggleButtonsFit.js"
 
 /**
- * Renders as a toggle group when there is enough space for that, and as a dropdown if not.
+ * Renders as a toggle group when there is enough space for that, and as a dropdown if not
+ * (even when toggle buttons are explicitly configured via `presentation.type`).
  * To do that, a hidden instance of its options is always rendered, and we measure its width (using a ResizeObserver) to see if it fits.
  */
 export default function MeasuredDimensionToggleButtons({
@@ -33,11 +35,18 @@ export default function MeasuredDimensionToggleButtons({
         ref: measureRef as RefObject<HTMLDivElement>,
         box: "border-box",
     })
-    // Keep the toggle group until both widths are known, including during SSR.
-    const fitsAsToggleGroup =
-        requiredWidth === undefined ||
-        !availableWidth ||
-        requiredWidth <= availableWidth
+    // The decision depends on what is showing right now (see
+    // fitsAsToggleButtons), so it's kept in state and updated while
+    // rendering whenever a measurement changes it. Starts out as toggle
+    // buttons, which is also what the server renders.
+    const [showsToggleButtons, setShowsToggleButtons] = useState(true)
+    const fitsAsToggleGroup = fitsAsToggleButtons({
+        showsToggleButtons,
+        requiredWidth,
+        availableWidth,
+    })
+    if (fitsAsToggleGroup !== showsToggleButtons)
+        setShowsToggleButtons(fitsAsToggleGroup)
 
     return (
         <>
