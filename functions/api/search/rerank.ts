@@ -340,7 +340,10 @@ export async function rerankPages(
     ai: Ai,
     model: RerankModel,
     pool: SearchPagesApiResponse,
-    length: number
+    length: number,
+    note?: (
+        page: SearchPagesApiResponse["results"][number]
+    ) => string | undefined
 ): Promise<SearchPagesApiResponse & { rerank: RerankInfo }> {
     const { hits, rerank } = await rerankHits(
         ai,
@@ -351,7 +354,8 @@ export async function rerankPages(
             title: page.title,
             type: page.type,
             ...describePage(page),
-        }))
+        })),
+        note && ((hit) => note(hit.page))
     )
     return {
         ...pool,

@@ -274,7 +274,9 @@ export async function searchPages(
     length: number = 10,
     pageTypes: string[] = ["article", "about-page"],
     baseUrl: string = "https://ourworldindata.org",
-    extraAttributes: string[] = []
+    extraAttributes: string[] = [],
+    /** only pages tagged with this topic */
+    topic?: string
 ): Promise<SearchPagesApiResponse> {
     const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
 
@@ -289,6 +291,7 @@ export async function searchPages(
             indexName,
             query,
             filters,
+            ...(topic && { facetFilters: [`tags:${topic}`] }),
             attributesToRetrieve: [...PAGE_ATTRIBUTES, ...extraAttributes],
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
