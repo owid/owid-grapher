@@ -93,10 +93,7 @@ export function enrichedBlockToRawBlock(
         }))
         .with({ type: "all-charts" }, (b): RawBlockAllCharts => ({
             type: b.type,
-            value: {
-                heading: b.heading,
-                top: b.top,
-            },
+            value: {},
         }))
         .with({ type: "additional-charts" }, (b): RawBlockAdditionalCharts => ({
             type: b.type,

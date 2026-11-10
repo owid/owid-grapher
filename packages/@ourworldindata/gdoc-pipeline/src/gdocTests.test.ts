@@ -86,6 +86,36 @@ caption: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         })
     })
 
+    describe("all-charts block", () => {
+        const legacyBlock = `{.all-charts}
+heading: Interactive charts on homelessness
+[.top]
+url: https://ourworldindata.org/grapher/homelessness-rate-point-in-time-count
+[]
+{}`
+
+        it.each([
+            ["an empty block", "{.all-charts}\n{}"],
+            ["a legacy block with heading and top", legacyBlock],
+        ])("parses %s without errors", (_description, content) => {
+            const article = archieToEnriched(getArchieMLDocWithContent(content))
+            expect(article?.body).toEqual([
+                { type: "all-charts", parseErrors: [] },
+            ])
+        })
+
+        it("drops heading and top when serializing a legacy block", () => {
+            const article = archieToEnriched(
+                getArchieMLDocWithContent(legacyBlock)
+            )
+            const text = OwidRawGdocBlockToArchieMLString(
+                enrichedBlockToRawBlock(article.body![0])
+            )
+            expect(text).not.toContain("heading:")
+            expect(text).not.toContain("[.top]")
+        })
+    })
+
     it("can parse a heading block", () => {
         const archieMLString = `{.heading}
 text: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
