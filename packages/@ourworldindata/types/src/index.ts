@@ -146,6 +146,7 @@ export {
     type GlobeConfig,
     type ProjectionColumnInfo,
     GrapherVariant,
+    ChartLabelMode,
     type ChartErrorInfo,
     type ToleranceOptions,
 } from "./grapherTypes/GrapherTypes.js"

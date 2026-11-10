@@ -55,6 +55,7 @@ import {
     SeriesStrategy,
     GRAPHER_MAP_TYPE,
     GrapherVariant,
+    ChartLabelMode,
     SeriesColorMap,
     OwidChartDimensionInterface,
     DimensionProperty,
@@ -552,17 +553,10 @@ export class GrapherState
     })
 
     variant = GrapherVariant.Default
+    labelMode: ChartLabelMode = ChartLabelMode.All
 
     /** Whether to hide a chart's legends */
     hideLegend: boolean | undefined = false
-
-    /**
-     * Minimal labeling is used in search when a thumbnail is embedded
-     * alongside a complementary table because the table already provides a lot
-     * of information, which is why the chart can be simplified to avoid
-     * redundancy and visual clutter
-     */
-    useMinimalLabeling = false
 
     // Bounds
     staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
@@ -789,7 +783,7 @@ export class GrapherState
             hideShareButton: observable,
             hideDonateButton: observable,
             hideExploreTheDataButton: observable,
-            useMinimalLabeling: observable,
+            labelMode: observable,
         })
 
         this.updateFromObject(options)
@@ -1527,8 +1521,7 @@ export class GrapherState
     }
 
     @computed get showLegend(): boolean {
-        // Don't show any legends in minimal mode
-        if (this.useMinimalLabeling) return false
+        if (this.labelMode === ChartLabelMode.Values) return false
 
         // Hide the legend for stacked bar charts if the legend only ever shows a single entity
         if (this.isOnStackedBarTab) {

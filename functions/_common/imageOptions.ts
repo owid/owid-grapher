@@ -6,7 +6,7 @@ import {
     GRAPHER_THUMBNAIL_HEIGHT,
 } from "@ourworldindata/grapher"
 import { Bounds } from "@ourworldindata/utils"
-import { GrapherVariant } from "@ourworldindata/types"
+import { ChartLabelMode, GrapherVariant } from "@ourworldindata/types"
 
 const DEFAULT_WIDTH = 850
 const DEFAULT_HEIGHT = 600
@@ -78,8 +78,10 @@ const getThumbnailOptions = (params: URLSearchParams): ImageOptions => {
 
     if (params.has("imMinimal")) {
         if (!options.grapherProps) options.grapherProps = {}
-        options.grapherProps.useMinimalLabeling =
+        options.grapherProps.labelMode =
             params.get("imMinimal")! === "1"
+                ? ChartLabelMode.Values
+                : ChartLabelMode.All
     }
 
     if (params.has("imFontSize"))
@@ -122,8 +124,10 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
         if (!options.grapherProps) options.grapherProps = {}
         options.grapherProps.variant = GrapherVariant.Uncaptioned
         if (params.has("imMinimal")) {
-            options.grapherProps.useMinimalLabeling =
+            options.grapherProps.labelMode =
                 params.get("imMinimal")! === "1"
+                    ? ChartLabelMode.Values
+                    : ChartLabelMode.All
         }
     }
 
