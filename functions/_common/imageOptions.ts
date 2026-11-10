@@ -46,7 +46,7 @@ const OPEN_GRAPH_OPTIONS: Readonly<ImageOptions> = {
 }
 
 const getSquareOptions = (params: URLSearchParams): ImageOptions => {
-    const options = {
+    const options: ImageOptions = {
         pngWidth: 4 * GRAPHER_SQUARE_SIZE,
         pngHeight: 4 * GRAPHER_SQUARE_SIZE,
         svgWidth: GRAPHER_SQUARE_SIZE,
@@ -55,7 +55,7 @@ const getSquareOptions = (params: URLSearchParams): ImageOptions => {
         fontSize: undefined,
         grapherProps: {
             staticBounds: DEFAULT_GRAPHER_BOUNDS_SQUARE,
-        } as Partial<GrapherProgrammaticInterface>,
+        },
     }
 
     if (params.has("imSquareSize")) {
@@ -68,7 +68,7 @@ const getSquareOptions = (params: URLSearchParams): ImageOptions => {
 }
 
 const getThumbnailOptions = (params: URLSearchParams): ImageOptions => {
-    const options = {
+    const options: ImageOptions = {
         pngWidth: 4 * GRAPHER_THUMBNAIL_WIDTH,
         pngHeight: 4 * GRAPHER_THUMBNAIL_HEIGHT,
         svgWidth: GRAPHER_THUMBNAIL_WIDTH,
@@ -76,7 +76,6 @@ const getThumbnailOptions = (params: URLSearchParams): ImageOptions => {
         details: false,
         fontSize: 14,
         grapherProps: {
-            isSocialMediaExport: false,
             staticBounds: new Bounds(
                 0,
                 0,
@@ -84,7 +83,7 @@ const getThumbnailOptions = (params: URLSearchParams): ImageOptions => {
                 GRAPHER_THUMBNAIL_HEIGHT
             ),
             variant: GrapherVariant.Thumbnail,
-        } as Partial<GrapherProgrammaticInterface>,
+        },
     }
 
     if (params.has("imMinimal")) {
