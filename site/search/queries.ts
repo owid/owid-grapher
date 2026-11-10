@@ -64,14 +64,13 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
-    // Only what queryFeaturedViz depends on, so a country filter or a change
-    // of case doesn't refetch
+    // Only what queryFeaturedViz depends on, so filters or a change of case
+    // don't refetch
     featuredViz: (state: SearchState) =>
         [
             PAGES_INDEX,
             "featured-viz",
             normalizePinnedSearch(state.query),
-            getFilterNamesOfType(state.filters, FilterType.TOPIC),
         ] as const,
 } as const
 
@@ -375,7 +374,10 @@ export async function queryProfiles(
  * The featured viz at the top of the Data results, or null. A featured-viz
  * page shows only when the whole query, normalized, is one of the searches
  * its gdoc is pinned for; a text search would show one on any shared word.
- * Honours the topic filter, ignores country filters.
+ * Ignores all filters: a pin is a deliberate pick for that exact search,
+ * so the card shows whatever topic or country is selected. Narrowing by
+ * topic would only hide it when the featured viz isn't tagged with the
+ * selected topic.
  */
 export async function queryFeaturedViz(
     liteSearchClient: LiteClient,
@@ -384,14 +386,11 @@ export async function queryFeaturedViz(
     const normalizedQuery = normalizePinnedSearch(state.query)
     if (!normalizedQuery) return null
 
-    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
-
     const searchParams = {
         indexName: PAGES_INDEX,
         query: "",
         // Normalization strips quotes, so the value can't break out of them
         filters: `type:${OwidGdocType.FeaturedViz} AND pinnedForSearches:"${normalizedQuery}"`,
-        facetFilters: formatTopicFacetFilters(selectedTopics),
         attributesToRetrieve: [
             "title",
             "slug",

@@ -13,8 +13,8 @@ import {
  * pages-index request. It must only ever return featured-viz pages, at most
  * one, and only one whose hand-picked queries include the reader's whole
  * query: the request is an exact filter on the normalized query, with no text
- * search. It is narrowed by the topic filter but never by country filters
- * (featured-viz pages aren't tagged with countries).
+ * search. Topic and country filters don't narrow it: a pin is a deliberate
+ * pick for that exact search.
  */
 
 function makeClient(): {
@@ -38,7 +38,7 @@ function makeState(overrides: Partial<SearchState>): SearchState {
 }
 
 describe(queryFeaturedViz, () => {
-    it("filters featured-viz pages on the normalized query, narrowed by topic, ignoring countries", async () => {
+    it("filters featured-viz pages on the normalized query, ignoring topic and country filters", async () => {
         const { client, searchForHits } = makeClient()
 
         await queryFeaturedViz(
@@ -60,10 +60,10 @@ describe(queryFeaturedViz, () => {
             indexName: PAGES_INDEX,
             query: "",
             filters: 'type:featured-viz AND pinnedForSearches:"cause of death"',
-            facetFilters: [["tags:Health"]],
             hitsPerPage: 1,
         })
-        // Country filters leave no trace in the request
+        // Filters leave no trace in the request
+        expect(JSON.stringify(request)).not.toContain("Health")
         expect(JSON.stringify(request)).not.toContain("France")
     })
 
