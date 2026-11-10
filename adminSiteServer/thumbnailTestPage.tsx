@@ -355,6 +355,7 @@ body {
 .card__thumbnails {
     display: flex;
     gap: 12px;
+    width: fit-content;
 }
 
 .thumbnail {
