@@ -21,6 +21,7 @@ import {
 } from "./StackedConstants"
 import {
     getXAxisConfigDefaultsForStackedBar,
+    toInitialAnchoredLabelSeries,
     makeStackedLabelComparator,
     toPlacedStackedBarSeries,
 } from "./StackedUtils"
@@ -149,14 +150,11 @@ export class StackedBarChartThumbnail
     }): AnchoredLabelsState | undefined {
         if (this.labelsSeries.length === 0) return undefined
 
-        const series = this.labelsSeries.map((series) => {
-            const position = {
-                x: dualAxis.bounds.right,
-                y: dualAxis.verticalAxis.place(series.value),
-            }
-
-            return { ...series, position }
-        })
+        const series = toInitialAnchoredLabelSeries(
+            this.labelsSeries,
+            this.chartState.seriesByName,
+            dualAxis
+        )
 
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
