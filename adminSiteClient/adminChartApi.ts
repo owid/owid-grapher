@@ -100,7 +100,6 @@ export interface NarrativeChartMinimalInformation {
 }
 
 export interface References {
-    postsWordpress?: PostReference[]
     postsGdocs?: PostReference[]
     explorers?: string[]
     narrativeCharts?: NarrativeChartMinimalInformation[]
