@@ -1,7 +1,9 @@
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 import {
+    ChartLabelMode,
     ChartRecordType,
     EntityName,
+    GrapherVariant,
     GrapherTabName,
     GrapherValuesJson,
     SearchChartHit,
@@ -14,7 +16,6 @@ import {
     toGrapherQueryParams,
 } from "./searchUtils"
 import { chartHitQueryKeys } from "./queries"
-import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
 import { calculateScatterPreviewImageDimensions } from "./SearchChartHitRichDataHelpers.js"
 
 export function useQueryChartInfo({
@@ -74,15 +75,18 @@ export function constructChartAndPreviewUrlsForTab({
         grapherParams,
     })
 
-    const imageDimensions = hasScatter
-        ? calculateScatterPreviewImageDimensions()
-        : undefined
     const previewUrl = constructPreviewUrl({
         hit,
         grapherParams,
-        variant: PreviewVariant.Thumbnail,
-        imageWidth: imageDimensions?.width,
-        imageHeight: imageDimensions?.height,
+        imageRequest: {
+            variant: GrapherVariant.Thumbnail,
+            labelMode: ChartLabelMode.All,
+            size: {
+                kind: "explicit",
+                ...(hasScatter && calculateScatterPreviewImageDimensions()),
+            },
+            includeDetails: false,
+        },
     })
 
     return { chartUrl, previewUrl }

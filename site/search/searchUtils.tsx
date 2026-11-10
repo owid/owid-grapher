@@ -31,7 +31,6 @@ import {
     getAllChildrenOfArea,
     timeBoundToTimeBoundString,
     queryParamsToStr,
-    omitUndefinedValues,
     type SearchFacetAttribute,
     getFilterNamesOfType,
     setToFacetFilters,
@@ -45,6 +44,8 @@ import {
     generateSelectedEntityNamesParam,
     isValidTabQueryParam,
     mapGrapherTabNameToQueryParam,
+    serializeImageRequest,
+    type ImageRequest,
 } from "@ourworldindata/grapher"
 import { getIndexName } from "./searchClient.js"
 import {
@@ -70,10 +71,7 @@ import {
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../settings/clientSettings.mjs"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import {
-    PreviewVariant,
-    RichDataComponentVariant,
-} from "./SearchChartHitRichDataTypes.js"
+import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
 // Common English stop words that should be ignored in search
 const STOP_WORDS = new Set([
@@ -301,36 +299,19 @@ export const constructSearchResultUrl = ({
 export const constructPreviewUrl = ({
     hit,
     grapherParams,
-    variant,
-    isMinimal,
-    fontSize,
-    imageWidth,
-    imageHeight,
+    imageRequest,
 }: {
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
-    variant: PreviewVariant
-    isMinimal?: boolean
-    fontSize?: number
-    imageWidth?: number
-    imageHeight?: number
+    imageRequest: ImageRequest
 }): string => {
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
 
-    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
-
-    const searchParams = new URLSearchParams(
-        omitUndefinedValues({
-            imType: variant === "large" ? "uncaptioned" : variant,
-            imMinimal: isMinimal ? "1" : "0",
-            imFontSize: fontSize?.toString(),
-            imWidth: imageWidth?.toString(),
-            imHeight: imageHeight?.toString(),
-        })
-    )
-    const fullQueryStr = queryStr
-        ? `${queryStr}&${searchParams}`
-        : `?${searchParams}`
+    const queryParts = [
+        generateQueryStrForChartHit({ hit, grapherParams }).replace(/^\?/, ""),
+        serializeImageRequest(imageRequest).toString(),
+    ].filter((queryStr) => queryStr)
+    const fullQueryStr = queryParts.length > 0 ? `?${queryParts.join("&")}` : ""
 
     const basePath = isExplorerView
         ? EXPLORER_DYNAMIC_THUMBNAIL_URL
