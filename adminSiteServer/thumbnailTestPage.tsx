@@ -26,7 +26,7 @@ import {
 } from "./thumbnailTestCases.js"
 import { sampleThumbnailTestSections } from "./thumbnailTestSample.js"
 
-/** Font size of `imType=thumbnail` images in functions/_common/imageOptions.ts */
+/** Font size of `imVariant=simplified` images in functions/_common/imageLayout.ts */
 const THUMBNAIL_FONT_SIZE = 14
 
 const LIVE_BASE_URL = "https://ourworldindata.org"
@@ -104,7 +104,7 @@ export function addThumbnailTestRoutes(router: Router): void {
     )
 }
 
-/** Mirrors `getThumbnailOptions` in functions/_common/imageOptions.ts, keep the two in sync */
+/** Mirrors `resolveThumbnailLayout` in functions/_common/imageLayout.ts, keep the two in sync */
 async function renderThumbnailSvg(
     config: GrapherInterface,
     queryStr: string
