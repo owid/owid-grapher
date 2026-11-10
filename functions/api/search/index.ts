@@ -127,8 +127,17 @@ function parseRerank(
     vocab: string | null,
     env: Env,
     page: number
-): { model: RerankModel; ai: Ai; vocab: boolean } | undefined {
-    if (vocab && vocab !== "1")
+):
+    | {
+          model: RerankModel
+          ai: Ai
+          vocab: boolean
+          chartsVocab: "term" | "topic" | "query"
+      }
+    | undefined {
+    // TODO: vocab=topic and vocab=query are variants under test for charts
+    // (see searchChartsReranked); keep whichever wins as vocab=1
+    if (vocab && !["1", "topic", "query"].includes(vocab))
         throw new SearchValidationError(
             `Invalid vocab value "${vocab}". Use vocab=1`
         )
@@ -147,7 +156,13 @@ function parseRerank(
         throw new SearchValidationError(
             "rerank only supports page=0: it reorders the top results"
         )
-    return { model: value, ai: env.AI, vocab: vocab === "1" }
+    return {
+        model: value,
+        ai: env.AI,
+        vocab: !!vocab,
+        chartsVocab:
+            vocab === "topic" ? "topic" : vocab === "query" ? "query" : "term",
+    }
 }
 
 const hasSearchEnvVars = (env: Env): boolean => {
@@ -363,7 +378,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             rerank: NonNullable<ReturnType<typeof parseRerank>>
         ): Promise<
             SearchApiResponse & {
-                vocabulary?: VocabularyInfo
+                vocabulary?:
+                    | VocabularyInfo
+                    | VocabularyInfo<VocabularyTopicPick>
                 timings: SearchTimings
             }
         > => {
@@ -381,7 +398,17 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                         )
                     ),
                     expand
-                        ? pickVocabularyTerms(rerank.ai, rerank.model, query)
+                        ? rerank.chartsVocab === "term"
+                            ? pickVocabularyTerms(
+                                  rerank.ai,
+                                  rerank.model,
+                                  query
+                              )
+                            : pickVocabularyTopics(
+                                  rerank.ai,
+                                  rerank.model,
+                                  query
+                              )
                         : undefined,
                 ]
             )
@@ -402,29 +429,45 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 }
             }
             const termSearchesStarted = Date.now()
-            const { hits: results, via } = await appendVocabularyHits(
+            // Within a topic: the picked term (vocab=1), nothing, which
+            // yields the topic's charts in Algolia's default order
+            // (vocab=topic), or the reader's own query, and nothing when
+            // that finds no chart (vocab=query)
+            const searchTopic = async (
+                topic: string,
+                topicQuery: string
+            ): Promise<SearchApiResponse["results"]> =>
+                (
+                    await searchCharts(
+                        algoliaConfig,
+                        {
+                            ...searchState,
+                            query: topicQuery,
+                            filters: [
+                                ...filters,
+                                { type: FilterType.TOPIC, name: topic },
+                            ],
+                        },
+                        0,
+                        VOCABULARY_HITS_PER_TERM,
+                        baseUrl
+                    )
+                ).results
+            const { hits: results, via } = await appendVocabularyHits<
+                SearchApiResponse["results"][number],
+                VocabularyTopicPick & { keyword?: string }
+            >(
                 pool.results,
                 vocabulary.terms,
-                async (term) =>
-                    (
-                        await searchCharts(
-                            algoliaConfig,
-                            {
-                                ...searchState,
-                                query: term.keyword,
-                                filters: [
-                                    ...filters,
-                                    {
-                                        type: FilterType.TOPIC,
-                                        name: term.topic,
-                                    },
-                                ],
-                            },
-                            0,
-                            VOCABULARY_HITS_PER_TERM,
-                            baseUrl
-                        )
-                    ).results,
+                async (term) => {
+                    if (term.keyword !== undefined)
+                        return searchTopic(term.topic, term.keyword)
+                    if (rerank.chartsVocab === "query") {
+                        const found = await searchTopic(term.topic, query)
+                        if (found.length > 0) return found
+                    }
+                    return searchTopic(term.topic, "")
+                },
                 (hit) => hit.url
             )
             const termSearchesMs = Date.now() - termSearchesStarted
@@ -439,7 +482,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 hitsPerPage,
                 (hit) => {
                     const term = via.get(hit.url)
-                    return term && vocabularyNote(term)
+                    if (!term) return undefined
+                    return term.keyword !== undefined
+                        ? vocabularyNote({ ...term, keyword: term.keyword })
+                        : vocabularyTopicNote(term)
                 }
             )
             return {
