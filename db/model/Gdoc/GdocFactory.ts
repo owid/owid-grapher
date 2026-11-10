@@ -88,6 +88,12 @@ export function gdocFromJSON(json: Record<string, any>): AnyGdoc {
     json.createdAt = json.createdAt ? new Date(json.createdAt) : new Date()
     json.publishedAt = json.publishedAt ? new Date(json.publishedAt) : null
     json.updatedAt = json.updatedAt ? new Date(json.updatedAt) : json.createdAt
+    if (Array.isArray(json.tags)) {
+        const toDate = (date: string): Date => new Date(date)
+        json.tags = json.tags.map(
+            R.evolve({ createdAt: toDate, updatedAt: toDate })
+        )
+    }
 
     return match(type)
         .with(
