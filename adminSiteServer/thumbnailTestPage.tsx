@@ -300,7 +300,8 @@ function ThumbnailTestSectionView({
 
 const PAGE_STYLE = `
 body {
-    margin: 0;
+    max-width: 1272px;
+    margin: 0 auto;
     padding: 16px 24px 48px;
     background: #f7f7f5;
     color: #1d2733;
