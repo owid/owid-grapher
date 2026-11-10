@@ -1,8 +1,11 @@
-Lists the Grapher charts tagged with the document's topic tag. The block
-needs a tag on the document (set in the gdocs admin index). Without one it
-shows an error in place of the list. The block is written empty and nothing
-is configurable from the doc. The heading reads "Key charts on <tag name>",
-built from the document's first tag ("Key Charts" on topic pages).
+Lists every chart tagged with the document's first topic tag. The block needs
+a tag on the document (set in the gdocs admin index). The block is written empty and nothing is
+configurable from the doc.
+
+The charts come from Algolia, the site search's charts index, ordered by search score.
+
+The heading reads "All charts on <tag name> (N charts)". Each row shows the chart title, variant and source line. It also
+shows up to three tab thumbnails that switch the live chart preview.
 
 ```archie
 {.all-charts}

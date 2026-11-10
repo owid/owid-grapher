@@ -117,7 +117,6 @@ export function OwidGdoc({
                 imageMetadata: _.get(props, "imageMetadata", {}),
                 linkedCharts: _.get(props, "linkedCharts", {}),
                 linkedIndicators: _.get(props, "linkedIndicators", {}),
-                relatedCharts: _.get(props, "relatedCharts", []),
                 latestDataInsights: _.get(props, "latestDataInsights", []),
                 latestAnnouncements: _.get(props, "latestAnnouncements", []),
                 homepageMetadata: _.get(props, "homepageMetadata", {}),

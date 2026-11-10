@@ -9,7 +9,6 @@ const attachments: Attachments = {
     imageMetadata: {},
     linkedCharts: {},
     linkedIndicators: {},
-    relatedCharts: [],
     linkedNarrativeCharts: {},
     linkedStaticViz: {},
     tags: [],
