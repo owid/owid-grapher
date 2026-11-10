@@ -84,6 +84,7 @@ export interface ChartRecord {
     subtitle: string | undefined
     variantName: string
     titleVariant?: string
+    source?: string
     availableTabs: GrapherTabName[]
     keyChartForTags: string[]
     tags: string[]

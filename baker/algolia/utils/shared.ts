@@ -9,7 +9,9 @@ import {
     slugify,
     Url,
     lowerCaseFirstLetterUnlessAbbreviation,
+    excludeUndefined,
 } from "@ourworldindata/utils"
+import { toPlaintext } from "@ourworldindata/components"
 import {
     getFeaturedMetricsByParentTagName,
     knexRaw,
@@ -19,6 +21,9 @@ import {
     ChartRecord,
     ChartRecordType,
     ExpandedFeaturedMetric,
+    GrapherInterface,
+    OwidVariableDataMetadataDimensions,
+    OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
 import urljoin from "url-join"
 import * as R from "remeda"
@@ -29,7 +34,11 @@ import {
     REAL_FM_INCOME_GROUPS,
 } from "./types.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import { GRAPHER_ROUTE_FOLDER } from "@ourworldindata/grapher"
+import {
+    GRAPHER_ROUTE_FOLDER,
+    GrapherState,
+    legacyToOwidTableAndDimensions,
+} from "@ourworldindata/grapher"
 import * as db from "../../../db/db.js"
 
 const countriesWithVariantNames = new Set(
@@ -531,4 +540,38 @@ export function applyFeaturedMetricBoosts(
         }
         return record
     })
+}
+
+export async function buildSourcesLineFromConfig(
+    config: GrapherInterface,
+    loadIndicatorMetadata: (
+        indicatorId: number
+    ) => Promise<OwidVariableWithSourceAndDimension>
+): Promise<string> {
+    if (config.sourceDesc !== undefined) return toPlaintext(config.sourceDesc)
+
+    const grapherState = new GrapherState(config)
+    const indicatorIds = _.uniq(
+        excludeUndefined(
+            grapherState.dimensions.map((dimension) => dimension.variableId)
+        )
+    )
+    const metadataByIndicator = await Promise.all(
+        indicatorIds.map((indicatorId) => loadIndicatorMetadata(indicatorId))
+    )
+    const dataByIndicatorId = new Map<
+        number,
+        OwidVariableDataMetadataDimensions
+    >(
+        metadataByIndicator.map((metadata) => [
+            metadata.id,
+            { data: { values: [], years: [], entities: [] }, metadata },
+        ])
+    )
+    grapherState.inputTable = legacyToOwidTableAndDimensions(
+        dataByIndicatorId,
+        grapherState.dimensionConfigs,
+        grapherState.selectedEntityColors
+    )
+    return toPlaintext(grapherState.sourcesLine)
 }
