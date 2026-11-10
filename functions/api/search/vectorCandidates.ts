@@ -24,8 +24,8 @@ const VECTOR_TOP_K = 40
 
 /**
  * A lookup slower than this adds nothing: the pool is reranked as Algolia
- * returned it. Embedding the query takes about 0.2 s and the index query
- * less, so this only cuts off a stalled call.
+ * returned it. Embedding the query and querying the index take about 0.2 s
+ * each, so this only cuts off a stalled call.
  */
 export const VECTOR_TIMEOUT_MS = 1500
 

@@ -3,10 +3,10 @@
 //
 // It builds the same records the Algolia indexers do, embeds each with
 // Workers AI and writes one NDJSON file per index, in the format
-// `vectorize insert` reads. A vector's id is the record's Algolia objectID, so
+// `vectorize upsert` reads. A vector's id is the record's Algolia objectID, so
 // the search function can fetch a vector hit from Algolia.
 //
-//   yarn tsx --tsconfig tsconfig.tsx.json baker/vectorize/buildSearchEmbeddings.ts
+//   STAGING=<branch> yarn tsx --tsconfig tsconfig.tsx.json baker/vectorize/buildSearchEmbeddings.ts
 //   cf vectorize upsert <index> --file tmp/search-embeddings-charts.ndjson
 //   cf vectorize upsert <index> --file tmp/search-embeddings-pages.ndjson
 //
