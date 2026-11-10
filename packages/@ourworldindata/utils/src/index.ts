@@ -446,6 +446,8 @@ export {
 export {
     TOPIC_PAGE_TYPE_FILTER,
     recommendTopicPages,
+    rankTopicsOfChartHits,
+    TOPIC_VOTING_CHART_HITS,
 } from "./search/searchTopicPages.js"
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
