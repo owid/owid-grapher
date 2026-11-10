@@ -7,15 +7,14 @@ import {
 } from "@ourworldindata/grapher"
 import { Bounds } from "@ourworldindata/utils"
 import { GrapherVariant } from "@ourworldindata/types"
-import {
-    DEFAULT_ASPECT_RATIO,
-    MIN_ASPECT_RATIO,
-    MAX_ASPECT_RATIO,
-    MAX_NUM_PNG_PIXELS,
-    DEFAULT_NUM_PIXELS,
-    DEFAULT_WIDTH,
-    DEFAULT_HEIGHT,
-} from "./grapherRenderer.js"
+
+const DEFAULT_WIDTH = 850
+const DEFAULT_HEIGHT = 600
+const DEFAULT_ASPECT_RATIO = DEFAULT_WIDTH / DEFAULT_HEIGHT
+const DEFAULT_NUM_PIXELS = DEFAULT_WIDTH * DEFAULT_HEIGHT
+const MIN_ASPECT_RATIO = 0.5
+const MAX_ASPECT_RATIO = 2
+const MAX_NUM_PNG_PIXELS = 4250 * 3000
 
 export interface ImageOptions {
     pngWidth: number

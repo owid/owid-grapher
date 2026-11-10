@@ -23,16 +23,6 @@ declare global {
     var window: any
 }
 
-// Lots of defaults; these are mostly the same as they are in owid-grapher.
-// Note, however, that these are not being used for Twitter or Facebook images, these use custom sizes defined below.
-export const DEFAULT_WIDTH = 850
-export const DEFAULT_HEIGHT = 600
-export const DEFAULT_ASPECT_RATIO = DEFAULT_WIDTH / DEFAULT_HEIGHT
-export const DEFAULT_NUM_PIXELS = DEFAULT_WIDTH * DEFAULT_HEIGHT
-export const MIN_ASPECT_RATIO = 0.5
-export const MAX_ASPECT_RATIO = 2
-export const MAX_NUM_PNG_PIXELS = 4250 * 3000 // 12.75 megapixels, or 5x the initial resolution, is the maximum png size we generate
-
 async function fetchAndRenderGrapherToSvg(
     identifier: GrapherIdentifier,
     options: ImageOptions,
