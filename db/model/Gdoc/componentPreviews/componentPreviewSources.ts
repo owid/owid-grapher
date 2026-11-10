@@ -130,13 +130,21 @@ function computeVersion(
         .slice(0, 12)
 }
 
+const SIZE_CHANGING_IMAGE_PARAMS = [
+    "imType",
+    "imVariant",
+    "imPreset",
+    "imWidth",
+    "imHeight",
+]
+
 /**
  * Chart PNGs render at the default grapher size unless the link asks for a
  * different one with `im*` params, whose resulting shape we don't predict
  */
 function getChartRenderAspectRatio(queryStr: string): number | undefined {
     const params = new URLSearchParams(queryStr)
-    if (["imType", "imWidth", "imHeight"].some((param) => params.has(param)))
+    if (SIZE_CHANGING_IMAGE_PARAMS.some((param) => params.has(param)))
         return undefined
     return DEFAULT_GRAPHER_WIDTH / DEFAULT_GRAPHER_HEIGHT
 }

@@ -130,10 +130,10 @@ async function handleHtmlPageRequest(
     // is a genuine 404: pass the static 404 page through as-is.
     if (explorerPage.status === 404) return explorerPage
 
-    const openGraphThumbnailUrl = `/explorers/${slug}.png?imType=og${
+    const openGraphThumbnailUrl = `/explorers/${slug}.png?imPreset=og${
         url.search ? "&" + url.search.slice(1) : ""
     }`
-    const twitterThumbnailUrl = `/explorers/${slug}.png?imType=twitter${
+    const twitterThumbnailUrl = `/explorers/${slug}.png?imPreset=twitter${
         url.search ? "&" + url.search.slice(1) : ""
     }`
 
