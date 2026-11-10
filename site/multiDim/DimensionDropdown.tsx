@@ -27,6 +27,9 @@ import { Choice, DimensionEnriched } from "@ourworldindata/types"
 import { FuzzySearch } from "@ourworldindata/utils"
 import { TOUCH_DEVICE_MEDIA_QUERY } from "../SiteConstants.js"
 import DimensionLabel from "./DimensionLabel.js"
+import DisabledReasonTooltip, {
+    DISABLED_CONTROL_REASON,
+} from "./DisabledReasonTooltip.js"
 
 function DimensionItem({ choice }: { choice: Choice }) {
     return (
@@ -158,6 +161,8 @@ export default function DimensionDropdown({
         </ListBox>
     )
 
+    const isDisabled = dimension.choices.length === 1
+
     return (
         <Select
             className={cx(
@@ -165,7 +170,7 @@ export default function DimensionDropdown({
                 "md-settings__dropdown",
                 className
             )}
-            isDisabled={dimension.choices.length === 1}
+            isDisabled={isDisabled}
             isOpen={isOpen}
             // While a view is loading (readOnly), don't open the menu, but
             // always allow closing it. Disabling the whole select instead
@@ -181,20 +186,26 @@ export default function DimensionDropdown({
                 if (typeof key === "string" && !readOnly) onChange(key)
             }}
         >
-            <DimensionLabel dimension={dimension} />
-            <Button
-                className="md-settings__dropdown-toggle"
-                data-track-note="multi-dim-choice-dropdown"
+            <DimensionLabel dimension={dimension} isDisabled={isDisabled} />
+            <DisabledReasonTooltip
+                reason={isDisabled ? DISABLED_CONTROL_REASON : undefined}
             >
-                <span className="md-settings__dropdown-current-choice">
-                    {dimension.choicesBySlug[value].name}
-                </span>
-                <div className="md-settings__dropdown-caret">
-                    {/* The div is neccesary to keep the icon `display: inline`,
+                <span className="md-settings__dropdown-toggle-wrapper">
+                    <Button
+                        className="md-settings__dropdown-toggle"
+                        data-track-note="multi-dim-choice-dropdown"
+                    >
+                        <span className="md-settings__dropdown-current-choice">
+                            {dimension.choicesBySlug[value].name}
+                        </span>
+                        <div className="md-settings__dropdown-caret">
+                            {/* The div is neccesary to keep the icon `display: inline`,
             so it aligns with the text correctly. */}
-                    <FontAwesomeIcon icon={faCaretDown} />
-                </div>
-            </Button>
+                            <FontAwesomeIcon icon={faCaretDown} />
+                        </div>
+                    </Button>
+                </span>
+            </DisabledReasonTooltip>
             <Popover
                 className={cx("md-menu", {
                     "md-menu--searchable": showSearch,
