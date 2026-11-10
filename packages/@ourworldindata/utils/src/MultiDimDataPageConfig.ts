@@ -11,6 +11,7 @@ import {
     OwidChartDimensionInterface,
     DimensionProperty,
     MultiDimDataPageConfigEnriched,
+    MultiDimExplorerPresentation,
     normalizeDescriptionKey,
     OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
@@ -243,6 +244,14 @@ export function getMultiDimPageTitle(
         title.titleVariant
     )
     return fragments ? `${title.title} - ${fragments}` : title.title
+}
+
+export function isMultiDimDataExplorer<
+    Config extends { presentation?: MultiDimExplorerPresentation },
+>(
+    config: Config
+): config is Config & { presentation: MultiDimExplorerPresentation } {
+    return config.presentation?.pageType === "data-explorer"
 }
 
 export const extractMultiDimChoicesFromSearchParams = (

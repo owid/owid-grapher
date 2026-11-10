@@ -33,14 +33,22 @@ export type IndicatorEntryAfterPreProcessing = IndicatorConfig
 
 type Metadata = Omit<OwidVariableWithSource, "id">
 
+// Without a presentation, a multi-dim is a plain data page. Further page
+// types can be added as a discriminated union on pageType
+export interface MultiDimExplorerPresentation {
+    pageType: "data-explorer"
+    // Shown on the page's /explorers card
+    explorerSubtitle: string
+}
+
 interface MultiDimDataPageConfigType<
     IndicatorType extends Record<string, any>,
 > {
     grapherConfigSchema?: string
     title: IndicatorTitleWithFragments
+    presentation?: MultiDimExplorerPresentation
     defaultSelection?: string[]
     topicTags?: string[]
-    // commonIndicatorPathPrefix?: string
     dimensions: Dimension[]
     views: View<IndicatorType>[]
     metadata?: Metadata

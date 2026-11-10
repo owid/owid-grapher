@@ -870,6 +870,7 @@ export type {
     MultiDimDataPageProps,
     MultiDimPageCompanion,
     MultiDimPageCompanionView,
+    MultiDimExplorerPresentation,
     FaqEntryKeyedByGdocIdAndFragmentId,
     Choice,
     ChoicesEnriched,
