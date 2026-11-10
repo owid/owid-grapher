@@ -9,7 +9,7 @@ import {
 } from "@ourworldindata/types"
 import { resolveDimensionPresentationType } from "@ourworldindata/utils"
 import DimensionDropdown from "./DimensionDropdown.js"
-import DimensionRadioGroup from "./DimensionRadioGroup.js"
+import DimensionToggleGroup from "./DimensionToggleGroup.js"
 
 export default function MultiDimControls({
     dimensions,
@@ -55,8 +55,8 @@ export default function MultiDimControls({
                         [dim.slug]: value,
                     })
                 }
-                return presentationType === "radio" ? (
-                    <DimensionRadioGroup
+                return presentationType === "toggle-buttons" ? (
+                    <DimensionToggleGroup
                         key={dim.slug}
                         className={controlClassName}
                         dimension={fullDimension}

@@ -333,17 +333,17 @@ export async function upsertMultiDim(
     return multiDimId
 }
 
-/** Throws if a dimension explicitly configured as a radio group has grouped choices */
+/** Throws if a dimension explicitly configured as a toggle group has grouped choices */
 function validateDimensionPresentations(
     config: MultiDimDataPageConfigPreProcessed
 ): void {
     for (const dimension of config.dimensions) {
         if (
-            dimension.presentation?.type === "radio" &&
+            dimension.presentation?.type === "toggle-buttons" &&
             dimension.choices.some((choice) => choice.group)
         ) {
             throw new JsonError(
-                `Dimension "${dimension.slug}" is configured as a radio group, ` +
+                `Dimension "${dimension.slug}" is configured as a toggle group, ` +
                     `but has grouped choices. Choice groups are only supported in dropdowns.`
             )
         }

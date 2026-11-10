@@ -5,9 +5,9 @@ import { Label } from "react-aria-components"
 import { DimensionEnriched } from "@ourworldindata/types"
 import { Tippy } from "@ourworldindata/utils"
 
-// The label rendered above each dimension control (dropdown or radio group),
+// The label rendered above each dimension control (dropdown or toggle group),
 // with an optional info icon showing the dimension's description on hover.
-// Radio groups also list the choice descriptions in the tooltip, since unlike
+// Toggle groups also list the choice descriptions in the tooltip, since unlike
 // dropdowns they have no menu to show them in.
 //
 // The icon sits next to the `Label` rather than inside it: React Aria focuses
