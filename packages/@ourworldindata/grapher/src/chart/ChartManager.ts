@@ -14,6 +14,7 @@ import {
     EntityName,
     DetailsMarker,
     GrapherVariant,
+    ChartLabelMode,
     SideWidths,
 } from "@ourworldindata/types"
 import { TooltipManager } from "../tooltip/TooltipProps"
@@ -35,7 +36,7 @@ export interface ChartManager {
     transformedTable?: OwidTable
 
     variant?: GrapherVariant
-    useMinimalLabeling?: boolean
+    labelMode?: ChartLabelMode
     hideStartValueLabel?: boolean // Only used in LineChartThumbnail
     chartAreaPadding?: number
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { Bounds } from "@ourworldindata/utils"
 import {
+    ChartLabelMode,
     ColumnTypeNames,
     GRAPHER_CHART_TYPES,
     GrapherVariant,
@@ -304,8 +305,8 @@ describe("thumbnail", () => {
         ).toEqual(["2000", "2005"])
     })
 
-    it("drops the legend but keeps the rows with minimal labeling", () => {
-        const chart = makeThumbnail({ useMinimalLabeling: true })
+    it("drops the legend but keeps the rows when it shows values only", () => {
+        const chart = makeThumbnail({ labelMode: ChartLabelMode.Values })
 
         expect(chart["categoricalLegendState"]).toBeUndefined()
         expect(chart["ordinalLegendState"]).toBeUndefined()
