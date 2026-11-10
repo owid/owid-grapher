@@ -44,7 +44,7 @@ import {
 } from "./LineChartHelpers"
 import {
     HorizontalAxisComponent,
-    VerticalAxisDomainLine,
+    HorizontalAxisDomainLine,
     VerticalAxisZeroLine,
 } from "../axis/AxisViews"
 import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsTypes"
@@ -454,7 +454,7 @@ export class LineChartThumbnail
                 const value = startPoint.y
                 const label = this.shouldShowValueLabelsOnly
                     ? this.formatLabel(value)
-                    : series.seriesName
+                    : series.displayName
 
                 const color = this.chartState.hasColorScale
                     ? darkenColorForLine(
@@ -645,7 +645,7 @@ export class LineChartThumbnail
                 ? this.chartState.colorScale.legendDescription
                 : undefined,
             legendTickSize: 1,
-            numericBinSize: 6,
+            numericBinHeight: 6,
             categoricalLegendStyleConfig: CATEGORICAL_LEGEND_STYLE,
             numericLegendStyleConfig: NUMERIC_LEGEND_STYLE,
         }
@@ -745,8 +745,7 @@ export class LineChartThumbnail
                     // The domain line is the baseline at the bottom of the plot.
                     // When the zero line is shown it already serves as a baseline,
                     // so we only draw the domain line in its absence
-                    <VerticalAxisDomainLine
-                        verticalAxis={this.dualAxis.verticalAxis}
+                    <HorizontalAxisDomainLine
                         bounds={this.dualAxis.innerBounds}
                         strokeWidth={0.5}
                     />

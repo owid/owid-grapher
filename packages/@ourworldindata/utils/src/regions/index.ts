@@ -50,5 +50,6 @@ export {
     getCountryNamesForRegion,
     getRegionAlternativeNames,
     articulateEntity,
+    checkHasDefiniteArticle,
     getRegionByCode,
 } from "./regionsUtils.js"

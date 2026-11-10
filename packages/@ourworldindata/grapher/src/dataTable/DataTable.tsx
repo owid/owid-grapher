@@ -17,7 +17,11 @@ import {
     OwidTableSlugs,
     OwidVariableRoundingMode,
 } from "@ourworldindata/types"
-import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
+import {
+    OwidTable,
+    CoreColumn,
+    ColumnTypeMap,
+} from "@ourworldindata/core-table"
 import {
     valuesByEntityAtTimes,
     es6mapValues,
@@ -34,6 +38,7 @@ import {
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_ENTITY_TYPE,
+    SVG_FONT_FAMILY,
     SVG_STYLE_PROPS,
 } from "../core/GrapherConstants"
 import * as R from "remeda"
@@ -173,6 +178,19 @@ export class DataTable extends React.Component<DataTableProps> {
         if (sortIndex === ENTITY_SORT_INDEX)
             return (row): string => row.entityName
 
+        const column =
+            this.dataTableDimensionsWithValues[sortIndex]?.coreTableColumn
+        const orderIndices =
+            column instanceof ColumnTypeMap.Ordinal &&
+            column.allowedValuesSorted?.length
+                ? new Map(
+                      column.allowedValuesSorted.map((value, index) => [
+                          value,
+                          index,
+                      ])
+                  )
+                : undefined
+
         return (row): string | number => {
             const dv = row.values[sortIndex] as DataTableValuesForEntity
 
@@ -196,6 +214,12 @@ export class DataTable extends React.Component<DataTableProps> {
                     (!isFinite(value) || isNaN(value)))
             )
                 return order === SortOrder.asc ? Infinity : -Infinity
+
+            if (orderIndices && typeof value === "string") {
+                const unknownValueKey =
+                    order === SortOrder.asc ? orderIndices.size : -1
+                return orderIndices.get(value) ?? unknownValueKey
+            }
 
             return value
         }
@@ -500,6 +524,7 @@ export class DataTable extends React.Component<DataTableProps> {
             <svg
                 width={this.bounds.width}
                 height={this.bounds.height}
+                fontFamily={SVG_FONT_FAMILY}
                 style={SVG_STYLE_PROPS}
             >
                 <NoDataMessage

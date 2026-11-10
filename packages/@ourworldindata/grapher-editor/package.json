@@ -52,12 +52,14 @@
         "dist/editor.d.ts.map"
     ],
     "scripts": {
+        "release": "bumpp",
         "build": "tsdown",
         "clean": "rm -rf dist dist-package",
         "startDemoServer": "http-server . -p 8434 -c-1 -o /demo.html",
-        "testPackage": "yarn testPackage:typecheck && yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:attw",
+        "testPackage": "yarn testPackage:typecheck && yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:publint && yarn testPackage:attw",
         "testPackage:pack": "yarn pack --out dist-package/grapher-editor.tgz",
         "testPackage:vitest": "vitest run --config vitest.package.config.ts",
+        "testPackage:publint": "publint run --strict dist-package/grapher-editor.tgz",
         "testPackage:attw": "attw --profile esm-only --exclude-entrypoints ./editor.css -- dist-package/grapher-editor.tgz",
         "testPackage:typecheck": "tsc -p tsconfig.json"
     },
@@ -79,6 +81,7 @@
         "@types/react-dom": "^19.3.0",
         "bumpp": "^12.2.0",
         "http-server": "^14.1.1",
+        "publint": "^0.3.23",
         "react": "^19.3.1",
         "react-dom": "^19.3.1",
         "sass": "^1.89.2",

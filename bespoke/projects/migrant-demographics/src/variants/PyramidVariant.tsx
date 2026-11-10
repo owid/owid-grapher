@@ -17,11 +17,10 @@ import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleto
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import {
-    isUserLocationCountry,
+    findInitialCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
@@ -51,18 +50,18 @@ import { DEFAULT_COUNTRY, NARROW_BREAKPOINT } from "../core/constants.js"
 import { MigrantPyramid } from "../components/MigrantPyramid.js"
 import { PyramidControls } from "../components/PyramidControls.js"
 
+const COUNTRY_URL_PARAM = "country"
+
 export function PyramidVariant({
     config,
     urls,
 }: BespokeVariantProps<MigrantDemographicsConfig>): React.ReactElement {
     return (
-        <EmbedConfigProvider config={config}>
-            <NuqsAdapter>
-                <QueryClientProvider client={queryClient}>
-                    <FetchingPyramidVariant config={config} urls={urls} />
-                </QueryClientProvider>
-            </NuqsAdapter>
-        </EmbedConfigProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <FetchingPyramidVariant config={config} urls={urls} />
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 
@@ -73,27 +72,25 @@ function FetchingPyramidVariant({
     config: MigrantDemographicsConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const initialCountry = isUserLocationCountry(config.country)
-        ? DEFAULT_COUNTRY
-        : config.country
+    const initialCountry = findInitialCountry(config.country, DEFAULT_COUNTRY)
 
     const [requestedCountry, setCountry] = useUrlState({
-        key: "migrantPyramidCountry",
+        key: COUNTRY_URL_PARAM,
         parser: parseAsString,
         defaultValue: initialCountry,
     })
     const [year, setYear] = useUrlState({
-        key: "migrantPyramidYear",
+        key: "year",
         parser: parseAsInteger,
         defaultValue: config.year ?? 0, // 0 = latest available year
     })
     const [show, setShow] = useUrlState({
-        key: "migrantPyramidShow",
+        key: "show",
         parser: parseAsStringEnum<ShowMode>(["number", "share"]),
         defaultValue: config.show,
     })
     const [compare, setCompare] = useUrlState({
-        key: "migrantPyramidCompare",
+        key: "compare",
         parser: parseAsBoolean,
         defaultValue: config.compare,
     })
@@ -123,7 +120,7 @@ function FetchingPyramidVariant({
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlStateKey: "migrantPyramidCountry",
+        urlStateKey: COUNTRY_URL_PARAM,
         setCountry,
     })
 
@@ -216,6 +213,8 @@ function CaptionedPyramidVariant({
     // the subtitle read "the 0 people", so it gets its own message
     const total = pyramidData?.migrantsTotal.total ?? 0
 
+    const shouldHideControls =
+        config.hideControls || !!config.title || !!config.subtitle
     const title = config.title ?? chartTitle(country, year)
     const subtitle =
         config.subtitle ??
@@ -223,7 +222,7 @@ function CaptionedPyramidVariant({
 
     // The outline only appears once the comparison is switched on
     const isShowingNatives = !!view?.natives
-    const canToggleNatives = !config.hideControls
+    const canToggleNatives = !shouldHideControls
     const hasLegendRow = isShowingNatives || canToggleNatives
 
     return (
@@ -233,7 +232,7 @@ function CaptionedPyramidVariant({
                 "migrant-pyramid--narrow": isNarrow,
             })}
         >
-            {!config.hideControls && (
+            {!shouldHideControls && (
                 <PyramidControls
                     metadata={metadata}
                     country={country}
@@ -323,5 +322,5 @@ function chartTitle(country: string, year: number): string {
 
 function chartSubtitle(country: string, total: number): string {
     const count = formatCountLong(total)
-    return `The age and sex profile of the ${count} people living in ${formatEntityNameForSentence(country)} who were born elsewhere.`
+    return `Age and sex profile of the ${count} people living in ${formatEntityNameForSentence(country)} who were born elsewhere.`
 }

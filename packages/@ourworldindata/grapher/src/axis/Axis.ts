@@ -26,7 +26,7 @@ import {
 } from "./timeAxisTicks.js"
 import { match, P } from "ts-pattern"
 import { MarkdownTextWrap, TextWrapGroup } from "@ourworldindata/components"
-import { CoreColumn } from "@ourworldindata/core-table"
+import { CoreColumn, TimeColumn } from "@ourworldindata/core-table"
 import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants.js"
 import { makeAxisLabel } from "./AxisUtils.js"
 import * as R from "remeda"
@@ -137,6 +137,10 @@ abstract class AbstractAxis {
 
     @computed get shouldOffsetTickLabelAtEnd(): boolean {
         return this.config.shouldOffsetTickLabelAtEnd ?? true
+    }
+
+    @computed get isDomainEndExclusive(): boolean {
+        return this.config.isDomainEndExclusive ?? false
     }
 
     @computed get fontSize(): number {
@@ -388,6 +392,12 @@ abstract class AbstractAxis {
     }
 
     getTickValues(): Tickmark[] {
+        return this.getCandidateTickValues().filter((tick) =>
+            this.isBeforeExclusiveDomainEnd(tick.value)
+        )
+    }
+
+    private getCandidateTickValues(): Tickmark[] {
         const { d3_scale, timeAxisTicks } = this
 
         if (timeAxisTicks) return timeAxisTicks
@@ -588,7 +598,7 @@ abstract class AbstractAxis {
                 case AxisAlign.end:
                     return this.range[1]
                 case AxisAlign.middle:
-                default:
+                case undefined:
                     return (this.range[0] + this.range[1]) / 2
             }
         }
@@ -614,6 +624,10 @@ abstract class AbstractAxis {
 
     @computed protected get baseTicks(): Tickmark[] {
         return this.getTickValues().filter((tick) => !tick.gridLineOnly)
+    }
+
+    private isBeforeExclusiveDomainEnd(value: number): boolean {
+        return !this.isDomainEndExclusive || value < this.domain[1]
     }
 
     formatTick(
@@ -659,7 +673,9 @@ abstract class AbstractAxis {
             markdown: true,
         }
 
-        const logScaleNotice = "plotted on a logarithmic axis"
+        const logScaleNotice = this.config.shortenLabelLogNotice
+            ? "log axis"
+            : "plotted on a logarithmic axis"
 
         if (axisLabel.unit) {
             const secondaryText = this.isLogScale
@@ -754,12 +770,17 @@ export class HorizontalAxis extends AbstractAxis {
                   )
                 : undefined
 
+            const lastTime =
+                this.isDomainEndExclusive && formatColumn instanceof TimeColumn
+                    ? formatColumn.addPeriods(end, -1)
+                    : end
+
             const endLabel =
-                Number.isFinite(end) && end !== start
+                Number.isFinite(end) && lastTime !== start
                     ? this.placeTickLabel(
                           end,
                           // Include the full plotted range for sub-yearly data
-                          formatColumn.formatTimeShortEnd(end)
+                          formatColumn.formatTimeShortEnd(lastTime)
                       )
                     : undefined
 
@@ -773,7 +794,7 @@ export class HorizontalAxis extends AbstractAxis {
     }
 
     protected override get baseTicks(): Tickmark[] {
-        if (this.timeAxisTicks) return this.timeAxisTicks
+        if (this.timeAxisTicks) return this.getTickValues()
 
         let ticks = this.getTickValues().filter(
             (tick): boolean => !tick.gridLineOnly
@@ -790,7 +811,11 @@ export class HorizontalAxis extends AbstractAxis {
                 },
                 ...ticks,
             ]
-        if (domain[1] % 1 === 0 && this.hideFractionalTicks)
+        if (
+            domain[1] % 1 === 0 &&
+            this.hideFractionalTicks &&
+            !this.isDomainEndExclusive
+        )
             ticks = [
                 ...ticks,
                 {

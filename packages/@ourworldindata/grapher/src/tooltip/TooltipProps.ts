@@ -47,6 +47,7 @@ export interface TooltipProps {
     titleAnnotation?: string // rendered next to the title, but muted
     subtitle?: string | number // header deck
     subtitleFormat?: "notice" | "unit" // optional postprocessing for subtitle
+    headerAside?: React.ReactNode // floated to the right of the title and subtitle, e.g. an icon
     footer?: FooterItem[]
     style?: React.CSSProperties // css overrides (particularly width/maxWidth)
     dissolve?: TooltipFadeMode // flag that the tooltip should begin fading out
@@ -64,6 +65,7 @@ export interface TooltipValueProps {
     showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
     labelVariant?: "label+unit" | "unit-only"
     noDataLabel?: string
+    detail?: string // secondary line under the value
 }
 
 export interface TooltipValueRangeProps {
@@ -110,6 +112,7 @@ export interface TooltipVariableProps {
     isProjection?: boolean
     originalTimes?: (string | undefined)[]
     labelVariant?: "label+unit" | "unit-only"
+    detail?: string
     children?: React.ReactNode
 }
 

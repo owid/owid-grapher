@@ -112,6 +112,55 @@ describe("GrapherLoader canonicalUrl", () => {
     })
 })
 
+describe("GrapherLoader with selectedEntityColors", () => {
+    const colorConfig: GrapherInterface = {
+        ...config,
+        selectedEntityNames: ["Berlin", "Vienna"],
+        selectedEntityColors: { Berlin: "#3360a9", Vienna: "#ed6c2d" },
+    }
+
+    const seriesColors = (
+        loader: GrapherLoader
+    ): Record<string, string | undefined> =>
+        Object.fromEntries(
+            loader.grapherState.chartState.series.map((series) => [
+                series.seriesName,
+                series.color,
+            ])
+        )
+
+    it("colors entities from an inline CSV", () => {
+        const loader = GrapherLoader.fromCsv({
+            config: colorConfig,
+            csv,
+            columnDefs,
+        })
+        expect(seriesColors(loader)).toEqual({
+            Berlin: "#3360a9",
+            Vienna: "#ed6c2d",
+        })
+    })
+
+    it("keeps an entity color column the table already has", () => {
+        const loader = GrapherLoader.fromTable({
+            config: colorConfig,
+            data: new OwidTable(
+                `entityName,year,vacancy_rate,entityColor
+Berlin,2020,1.2,#111111
+Vienna,2020,3.8,#222222`,
+                [
+                    ...columnDefs,
+                    { slug: "entityColor", type: ColumnTypeNames.Color },
+                ]
+            ),
+        })
+        expect(seriesColors(loader)).toEqual({
+            Berlin: "#111111",
+            Vienna: "#222222",
+        })
+    })
+})
+
 describe("GrapherLoader with a versioned config", () => {
     it("migrates an outdated config to the latest schema version", () => {
         const { grapherState } = GrapherLoader.fromCsv({

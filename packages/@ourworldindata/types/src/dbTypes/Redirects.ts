@@ -1,7 +1,7 @@
 export const RedirectsTableName = "redirects"
 
 export interface DbInsertRedirect {
-    id: number
+    id?: number
     source: string
     target: string
     createdAt?: Date

@@ -10,6 +10,7 @@ import type {
 import StylesTarget from "vite-plugin-css-position/react"
 
 import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
+import { EmbedOptionsProvider } from "../../../hooks/useEmbedOptions.js"
 
 import { DEFAULT_COUNTRY } from "./core/constants.js"
 import { SHOW_MODES, VariantName } from "./core/types.js"
@@ -32,17 +33,19 @@ export const VARIANTS = [
 export const CONFIG_SPEC = {
     title: {
         type: "string",
-        description: "Chart title, replacing the generated one",
+        description:
+            "Chart title, replacing the generated one. Also hides the controls",
     },
     subtitle: {
         type: "string",
-        description: "Chart subtitle, replacing the generated one",
+        description:
+            "Chart subtitle, replacing the generated one. Also hides the controls",
     },
     country: {
         type: "string",
         default: DEFAULT_COUNTRY,
         description:
-            "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
+            "Country shown first, or United States if the data doesn't have it. `userLocation` picks the user's country",
     },
     year: {
         type: "integer",
@@ -97,7 +100,9 @@ export const mount: BespokeComponentMountFn = (
         <>
             {/* This is where Vite-injected styles will be placed - make sure to add this to your code so that the styles are correctly injected into the Shadow DOM. */}
             <StylesTarget />
-            <variant.component config={config} urls={urls} />
+            <EmbedOptionsProvider options={opts.embedOptions}>
+                <variant.component config={config} urls={urls} />
+            </EmbedOptionsProvider>
         </>
     )
     return () => root.unmount()

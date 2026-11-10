@@ -8,7 +8,7 @@ import {
     firstOfNonEmptyArray,
     lastOfNonEmptyArray,
 } from "@ourworldindata/utils"
-import { quantile } from "d3"
+import { quantile } from "d3-array"
 import { sortedUniq } from "lodash-es"
 import * as R from "remeda"
 import { match, P } from "ts-pattern"

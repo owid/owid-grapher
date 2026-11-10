@@ -80,7 +80,9 @@ import {
     handleGetMultiDim,
     handleGetMultiDims,
     handlePatchMultiDim,
+    handleDeleteMultiDim,
     handleGetMultiDimRedirects,
+    handleGetRedirectsToPath,
     handlePostMultiDimRedirect,
     handleBulkCreateMultiDimRedirects,
     handleDeleteMultiDimRedirect,
@@ -406,7 +408,7 @@ getRouteWithROTransaction(
     getGdocCalloutCoverage
 )
 // ArchieML read and write for agents. GET reads any registered doc; writes
-// need unpublished docs outside shared drives
+// need unpublished docs the service account can edit
 getRouteWithROTransaction(apiRouter, "/gdocs/:id/archieml", getGdocArchieMl)
 // The writes' body is plain text, which FunctionalRouter's parsers don't
 // cover. They open their own short transactions, rather than holding one
@@ -417,7 +419,8 @@ apiRouter.router.put(
     archieMlTextBody,
     apiRouter.wrap(putGdocArchieMl)
 )
-// Creates a doc of any type, shared with the `email` query parameter
+// Creates a doc of any type, in the `folderId` query parameter's folder (else
+// GDOCS_EDIT_GDOC_FOLDER_ID's) and shared with its `email`
 apiRouter.router.post(
     "/gdocs/archieml",
     archieMlTextBody,
@@ -487,6 +490,7 @@ putRouteWithRWTransaction(
     handlePutMultiDim
 )
 patchRouteWithRWTransaction(apiRouter, "/multi-dims/:id", handlePatchMultiDim)
+deleteRouteWithRWTransaction(apiRouter, "/multi-dims/:id", handleDeleteMultiDim)
 getRouteWithROTransaction(
     apiRouter,
     "/multi-dim-redirects.json",
@@ -496,6 +500,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/multi-dims/:id/redirects",
     handleGetMultiDimRedirects
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/multi-dim-redirects/redirects-to",
+    handleGetRedirectsToPath
 )
 postRouteWithRWTransaction(
     apiRouter,

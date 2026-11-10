@@ -32,6 +32,7 @@ export interface MarimekkoPoint {
  * Marimekko plots one series per entity, so `seriesName` and `entityName` always agree.
  */
 export interface MarimekkoSeries extends ChartSeries {
+    color: Color
     entityName: EntityName
     shortEntityName?: string
     /** Undefined when the entity has no y value, which draws the no-data placeholder */

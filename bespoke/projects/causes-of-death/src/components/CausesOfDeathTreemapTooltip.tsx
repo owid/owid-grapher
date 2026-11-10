@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import * as R from "remeda"
-import * as d3 from "d3"
+import { scaleLinear } from "d3-scale"
+import { line as d3Line } from "d3-shape"
 
 import { Bounds } from "@ourworldindata/utils"
 import { GrapherTooltipAnchor } from "@ourworldindata/types"
@@ -201,15 +202,14 @@ function CausesOfDeathTooltipSparkline({
     dotRadius?: number
 }) {
     // Calculate scales using d3
-    const xScale = d3.scaleLinear().domain(timeRange).range([0, width])
+    const xScale = scaleLinear().domain(timeRange).range([0, width])
 
     const yMin = 0
     const yMax = maxBy(data, getValue) ?? 0
-    const yScale = d3.scaleLinear().domain([yMin, yMax]).range([height, 0])
+    const yScale = scaleLinear().domain([yMin, yMax]).range([height, 0])
 
     // Create path using d3 line generator
-    const line = d3
-        .line<SparklineDatapoint>()
+    const line = d3Line<SparklineDatapoint>()
         .x((d) => xScale(d.year))
         .y((d) => yScale(getValue(d)))
 

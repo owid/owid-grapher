@@ -1,5 +1,4 @@
 import { DeployMetadata } from "@ourworldindata/utils"
-import * as _ from "lodash-es"
 import {
     BUILDKITE_API_ACCESS_TOKEN,
     BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG,
@@ -117,23 +116,6 @@ export class BuildkiteTrigger {
                 `Build ${buildNumber} failed with state "${state}". See Buildkite for details.`
             )
         }
-    }
-
-    async runLightningBuild(
-        gdocSlugs: string[],
-        { title, changesSlackMentions }: DeployMetadata
-    ): Promise<void> {
-        const uniqueGdocSlugs = _.uniq(gdocSlugs)
-        const message = `⚡️ ${title}${
-            uniqueGdocSlugs.length > 1
-                ? ` and ${uniqueGdocSlugs.length - 1} more updates`
-                : ""
-        }`
-        const buildNumber = await this.triggerBuild(message, {
-            LIGHTNING_GDOC_SLUGS: uniqueGdocSlugs.join(" "),
-            CHANGES_SLACK_MENTIONS: changesSlackMentions.join("\n"),
-        })
-        await this.waitForBuildToFinish(buildNumber)
     }
 
     async runFullBuild({

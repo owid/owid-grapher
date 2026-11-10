@@ -13,7 +13,7 @@ import {
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrapSvg } from "@ourworldindata/components"
-import { ScaleType, VerticalAlign } from "@ourworldindata/types"
+import { ScaleType, ValueRange, VerticalAlign } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -42,6 +42,7 @@ import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { makeProjectedDataPatternId } from "./DiscreteBarChartHelpers"
 import {
     enrichSeriesWithLabels,
+    findLeftLabelsWidth,
     computeCenteredLabelYPositions,
 } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
@@ -54,11 +55,11 @@ import { AnimatedRows } from "../animation/AnimatedRows.js"
 
 const DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND = "#787878"
 
-/** The gap between the entity label and the bar */
-const GAP__ENTITY_LABEL__BAR = 5
+/** The gap between a bar and the labels next to it */
+const BAR_LABEL_GAP = 5
 
-/** The gap between the the entity label and negative value label */
-const GAP__ENTITY_LABEL__VALUE_LABEL = 10
+/** The gap between a negative bar's entity label and its value label */
+const ENTITY_VALUE_LABEL_GAP = 10
 
 export interface Label {
     valueString: string
@@ -131,6 +132,8 @@ export class DiscreteBarChart
             availableHeightPerSeries: this.availableHeightPerSeries,
             minLabelWidth: 0.3 * this.bounds.width,
             maxLabelWidth: 0.66 * this.bounds.width,
+            getLabelRightEdges: (leftLabelsWidth) =>
+                this.getEntityLabelRightEdges(leftLabelsWidth),
             fontSettings: this.entityLabelStyle,
             showRegionTooltip: !this.manager.isStatic,
         })
@@ -194,38 +197,72 @@ export class DiscreteBarChart
         )
     }
 
-    @computed get yAxis(): HorizontalAxis {
-        // NB: We use the user's YAxis options here to make the XAxis
+    private makeYAxis(range: ValueRange): HorizontalAxis {
         const axis = this.yAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
         axis.scaleType = ScaleType.linear
         axis.formatColumn = this.chartState.formatColumn
-        axis.range = this.xRange
+        axis.range = range
         axis.label = ""
         return axis
     }
 
-    /**
-     * The maximum width needed for labels positioned on the left side of the chart.
-     *
-     * For positive values, returns the width of entity labels and annotations.
-     * For negative values, returns the entity label width, annotation width, value label width
-     * and the padding between them.
-     */
-    @computed private get leftLabelsWidth(): number {
-        const labelWidths = this.sizedSeries.map((series) => {
-            const textWidth = Math.max(
-                series.label?.width ?? 0,
-                series.annotationTextWrap?.width ?? 0
+    @computed get yAxis(): HorizontalAxis {
+        return this.makeYAxis(this.xRange)
+    }
+
+    /** Where a row's entity label ends on the given axis */
+    private getEntityLabelRightEdge(
+        series: DiscreteBarSeries,
+        axis: HorizontalAxis
+    ): number {
+        if (series.value >= 0) return axis.place(this.x0) - BAR_LABEL_GAP
+        return (
+            axis.place(series.value) -
+            this.formatValue(series).width -
+            ENTITY_VALUE_LABEL_GAP
+        )
+    }
+
+    /** Each row's entity label right edge as a line in the left labels width */
+    @computed private get entityLabelRightEdgeLines(): {
+        intercept: number
+        slope: number
+    }[] {
+        const [atZero, atOne] = [0, 1].map((leftLabelsWidth) => {
+            const axis = this.makeYAxis([
+                leftLabelsWidth,
+                this.bounds.width - this.rightValueLabelsWidth,
+            ])
+            return this.series.map((series) =>
+                this.getEntityLabelRightEdge(series, axis)
             )
-            if (series.value < 0) {
-                const valueWidth = this.formatValue(series).width
-                return textWidth + valueWidth + GAP__ENTITY_LABEL__VALUE_LABEL
-            }
-            return textWidth
         })
-        return _.max(labelWidths) ?? 0
+        return atZero.map((intercept, index) => ({
+            intercept,
+            slope: atOne[index] - intercept,
+        }))
+    }
+
+    /** Where each row's entity label ends when the left labels get the given width */
+    private getEntityLabelRightEdges(leftLabelsWidth: number): number[] {
+        return this.entityLabelRightEdgeLines.map(
+            ({ intercept, slope }) => intercept + slope * leftLabelsWidth
+        )
+    }
+
+    /** The narrowest width for the left labels at which every entity label fits */
+    @computed private get leftLabelsWidth(): number {
+        return findLeftLabelsWidth(
+            (leftLabelsWidth) => this.getEntityLabelRightEdges(leftLabelsWidth),
+            this.sizedSeries.map((series) =>
+                Math.max(
+                    series.label?.width ?? 0,
+                    series.annotationTextWrap?.width ?? 0
+                )
+            )
+        )
     }
 
     @computed private get innerBounds(): Bounds {
@@ -253,7 +290,7 @@ export class DiscreteBarChart
         return (this.innerBounds.height - totalWhiteSpace) / this.barCount
     }
 
-    @computed private get placedSeries(): PlacedDiscreteBarSeries[] {
+    @computed get placedSeries(): PlacedDiscreteBarSeries[] {
         const yOffset =
             this.innerBounds.top + this.barHeight / 2 + this.barSpacing / 2
         return this.sizedSeries.map((series, index) => {
@@ -265,14 +302,13 @@ export class DiscreteBarChart
             const barWidth = isNegative
                 ? this.yAxis.place(this.x0) - barX
                 : this.yAxis.place(series.value) - barX
-            const label = this.formatValue(series)
-
-            const entityLabelX = isNegative
-                ? barX - label.width - GAP__ENTITY_LABEL__VALUE_LABEL
-                : barX - GAP__ENTITY_LABEL__BAR
+            const entityLabelX = this.getEntityLabelRightEdge(
+                series,
+                this.yAxis
+            )
             const valueLabelX =
                 this.yAxis.place(series.value) +
-                (isNegative ? -GAP__ENTITY_LABEL__BAR : GAP__ENTITY_LABEL__BAR)
+                (isNegative ? -BAR_LABEL_GAP : BAR_LABEL_GAP)
 
             const { labelY: entityLabelY, annotationY } =
                 computeCenteredLabelYPositions({
@@ -334,25 +370,49 @@ export class DiscreteBarChart
         series: RenderDiscreteBarSeries,
         y = 0
     ): React.ReactElement {
-        const barColor = series.isProjection
-            ? `url(#${makeProjectedDataPatternId(series.color, this.manager.patternIdSuffix)})`
-            : series.color
+        const barOpacity = DISCRETE_BAR_STYLE[series.emphasis].barOpacity
+        const barLeft = roundForSvg(series.barX)
+        const barTop = roundForSvg(y - this.barHeight / 2)
+        const geometry = {
+            x: 0,
+            y: 0,
+            transform: `translate(${barLeft}, ${barTop})`,
+            width: roundForSvg(series.barWidth),
+            height: roundForSvg(this.barHeight),
+        }
+        const style = { transition: "height 200ms ease" }
+
+        if (!series.isProjection)
+            return (
+                <rect
+                    key={`bar-${series.seriesName}`}
+                    id={makeFigmaId(series.seriesName)}
+                    {...geometry}
+                    fill={series.color}
+                    opacity={barOpacity}
+                    style={style}
+                />
+            )
 
         return (
-            <rect
-                key={`bar-${series.seriesName}`}
-                id={makeFigmaId(series.seriesName)}
-                x={0}
-                y={0}
-                transform={`translate(${roundForSvg(series.barX)}, ${roundForSvg(
-                    y - this.barHeight / 2
-                )})`}
-                width={roundForSvg(series.barWidth)}
-                height={roundForSvg(this.barHeight)}
-                fill={barColor}
-                opacity={DISCRETE_BAR_STYLE[series.emphasis].barOpacity}
-                style={{ transition: "height 200ms ease" }}
-            />
+            <g key={`bar-${series.seriesName}`} opacity={barOpacity}>
+                <rect
+                    id={makeFigmaId(series.seriesName)}
+                    {...geometry}
+                    fill={series.color}
+                    style={style}
+                />
+                <rect
+                    id={makeFigmaId(
+                        series.seriesName,
+                        "projected-data-pattern"
+                    )}
+                    {...geometry}
+                    fill={`url(#${makeProjectedDataPatternId(this.manager.patternIdSuffix)})`}
+                    pointerEvents="none"
+                    style={style}
+                />
+            </g>
         )
     }
 
@@ -470,31 +530,15 @@ export class DiscreteBarChart
     }
 
     private renderDefs(): React.ReactElement | null {
-        const projections = this.series.filter((series) => series.isProjection)
-        const uniqProjections = _.uniqBy(projections, (series) => series.color)
-        if (projections.length === 0) return null
+        if (!this.series.some((series) => series.isProjection)) return null
 
         return (
             <defs>
-                {/* passed to the legend as pattern for the projected data legend item */}
                 <StripedProjectedDataPattern
                     patternId={makeProjectedDataPatternId(
-                        this.projectedDataColorInLegend,
                         this.manager.patternIdSuffix
                     )}
-                    color={this.projectedDataColorInLegend}
                 />
-                {/* make a pattern for every series with a unique color */}
-                {uniqProjections.map((series) => (
-                    <StripedProjectedDataPattern
-                        key={series.color}
-                        patternId={makeProjectedDataPatternId(
-                            series.color,
-                            this.manager.patternIdSuffix
-                        )}
-                        color={series.color}
-                    />
-                ))}
             </defs>
         )
     }
@@ -616,8 +660,7 @@ export class DiscreteBarChart
                     label: "Projected data",
                     index: 0,
                     value: "projected",
-                    patternRef: makeProjectedDataPatternId(
-                        this.projectedDataColorInLegend,
+                    overlayPatternRef: makeProjectedDataPatternId(
                         this.manager.patternIdSuffix
                     ),
                 })
@@ -648,7 +691,7 @@ export class DiscreteBarChart
         return undefined
     }
 
-    @computed private get numericBinSize(): number {
+    @computed private get numericBinHeight(): number {
         return 0.625 * this.fontSize
     }
 
@@ -662,7 +705,7 @@ export class DiscreteBarChart
             align: HorizontalAlign.center,
             title: this.legendTitle,
             tickSize: 1,
-            binSize: this.numericBinSize,
+            binHeight: this.numericBinHeight,
         })
     }
 
@@ -685,16 +728,14 @@ export class DiscreteBarChart
 
 function StripedProjectedDataPattern({
     patternId,
-    color,
     opacity = 0.5,
     size = 7,
-    strokeWidth = 10,
+    stripeWidth = 2,
 }: {
     patternId: string
-    color: string
     opacity?: number
     size?: number
-    strokeWidth?: number
+    stripeWidth?: number
 }): React.ReactElement {
     return (
         <pattern
@@ -704,17 +745,12 @@ function StripedProjectedDataPattern({
             height={size}
             patternTransform="rotate(45)"
         >
-            {/* semi-transparent background */}
-            <rect width={size} height={size} fill={color} opacity={opacity} />
-
-            {/* stripes */}
-            <line
-                x1="0"
-                y1="0"
-                x2="0"
-                y2={roundForSvg(size)}
-                stroke={color}
-                strokeWidth={strokeWidth}
+            <rect
+                x={size - stripeWidth}
+                width={stripeWidth}
+                height={size}
+                fill="#fff"
+                opacity={opacity}
             />
         </pattern>
     )

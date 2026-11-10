@@ -154,14 +154,14 @@ The editor's sources live in [`adminSiteClient/`](../../../adminSiteClient/) at 
 
 ### Testing the build outputs
 
-`yarn testPackage` packs the package (`yarn pack`, which applies `publishConfig`) and runs the tests in `packageTest/` against it: both builds import and export the public API, the admin stays out of the bundle, the standalone bundle mounts the editor over a CSV, the packed types check for a TypeScript consumer, and publint and attw pass. They aren't part of the repo-wide `yarn test`; CI runs them in the `npm packages` workflow. `yarn startDemoServer` serves `demo.html` on http://localhost:8434 against `dist/`, as a CDN consumer would load it.
+`yarn testPackage` packs the package (`yarn pack`, which applies `publishConfig`) and runs the tests in `packageTest/` against it: both builds import and export the public API, the admin stays out of the bundle, the standalone bundle mounts the editor over a CSV, and the packed types check for a TypeScript consumer; then the publint (`yarn testPackage:publint`, `--strict`) and attw (`yarn testPackage:attw`) CLIs check the tarball. They aren't part of the repo-wide `yarn test`; CI runs them in the `npm packages` workflow. `yarn startDemoServer` serves `demo.html` on http://localhost:8434 against `dist/`, as a CDN consumer would load it.
 
 ### Publishing a release
 
 Releases go to `https://packages.owid.io` (`publishConfig.registry`). From this directory, with the build verified:
 
 ```bash
-yarn bumpp
+yarn release
 ```
 
-This bumps the version in a `chore: release grapher-editor@<version>` commit and tags it. Pushed to `master`, such a commit triggers the Buildkite pipeline that publishes the package to the registry, like grapher's releases. The pipeline's steps are defined in the ops repo (`.buildkite/grapher/package_release.yml`), which needs a `grapher-editor` step before the first release.
+`yarn release` runs `bumpp --pr`, which opens a PR with the version bump (`chore: release grapher-editor@<version>`). Merge it as a squash or rebase, so the commit on `master` starts with `chore: release grapher-editor@` (the PR title does by default): the Buildkite pipeline publishes the package when it sees that commit message. `.github/workflows/tag-package-releases.yml` also tags the merge commit `grapher-editor@<version>`. The pipeline's steps are defined in the ops repo (`.buildkite/grapher/package_release.yml`), which needs a `grapher-editor` step before the first release.

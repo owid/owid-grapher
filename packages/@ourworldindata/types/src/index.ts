@@ -141,6 +141,8 @@ export {
     type DumbbellTrendColorMap,
     DumbbellConnectorStyle,
     DumbbellValueLabelMode,
+    type SwimlaneChartConfigInterface,
+    SwimlaneSegmentLabelMode,
     type GlobeConfig,
     type ProjectionColumnInfo,
     GrapherVariant,
@@ -605,10 +607,6 @@ export {
     type DbEnrichedImageWithUserId,
     type DbEnrichedImageWithPageviews,
     type DbInsertImage,
-    parseImageRow,
-    parseImageUpdatedAt,
-    serializeImageRow,
-    serializeImageUpdatedAt,
     ImagesTableName,
 } from "./dbTypes/Images.js"
 export {

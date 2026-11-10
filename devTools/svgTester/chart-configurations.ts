@@ -102,6 +102,11 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
         yScale: scaleTypeOptions,
         focus: focusOptions,
     },
+    [GRAPHER_CHART_TYPES.Swimlane]: {
+        tab: ["chart"],
+        time: timeOptionsAll,
+        focus: focusOptions,
+    },
 }
 
 // The above view matrix is used to generate all possible combinations of query params
@@ -199,6 +204,11 @@ const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
     [GRAPHER_CHART_TYPES.Dumbbell]: [
         // Test focus mode only in the default view
         { focus: "<firstSeries>", yScale: ScaleType.log },
+    ],
+    [GRAPHER_CHART_TYPES.Swimlane]: [
+        // Test focus mode only in the default view
+        { focus: "<firstSeries>", time: TimePoint.earliest },
+        { focus: "<firstSeries>", time: TimePoint.latest },
     ],
 }
 

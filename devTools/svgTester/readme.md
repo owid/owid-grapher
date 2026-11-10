@@ -56,7 +56,7 @@ For the most-viewed graphers, creates a manifest file listing which charts to te
 
 ### 2. Generate reference SVGs
 
-Use `export-graphs.ts` to generate reference SVG exports. The script uses parallel processing (workerpools) for efficient handling of large numbers of charts. For each item, it:
+Use `export-graphs.ts` to generate reference SVG exports. The script uses parallel processing (a tinypool worker pool) for efficient handling of large numbers of charts. For each item, it:
 
 - Loads the config and data
 - Initializes a grapher instance
@@ -78,7 +78,7 @@ This script does NOT require database access - it uses the dumped data files fro
 
 ## Check against reference SVGs
 
-Use `verify-graphs.ts` to check SVG outputs against the reference export. The script uses parallel processing (workerpools) for efficient verification. For each item, it:
+Use `verify-graphs.ts` to check SVG outputs against the reference export. The script uses parallel processing (a tinypool worker pool) for efficient verification. For each item, it:
 
 - Loads the config and data
 - Initializes a grapher instance

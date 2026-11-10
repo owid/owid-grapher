@@ -9,7 +9,9 @@ import type {
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
+import { migrateLegacyUrlParams } from "../../../helpers/legacyUrlParams.js"
 import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
+import { EmbedOptionsProvider } from "../../../hooks/useEmbedOptions.js"
 
 import { SimulationVariant } from "./variants/SimulationVariant.js"
 import { PopulationVariant } from "./variants/PopulationVariant.js"
@@ -21,6 +23,7 @@ import {
     VariantName,
 } from "./core/types.js"
 import { parseControlPoints } from "./core/parsers.js"
+import { DEMOGRAPHY_LEGACY_URL_PARAM_NAMES } from "./core/urlState.js"
 
 import "./index.scss"
 
@@ -32,7 +35,7 @@ export const VARIANTS = [
     {
         name: "simulation",
         description:
-            "Population projection for one country where readers set the fertility, life expectancy and migration assumptions",
+            "Population projection for one country where users set the fertility, life expectancy and migration assumptions",
         component: SimulationVariant,
         defaultSize: "widest",
     },
@@ -71,7 +74,7 @@ export const CONFIG_SPEC = {
         type: "string",
         default: "userLocation",
         description:
-            "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
+            "Country shown first, or United States if the data doesn't have it. `userLocation` picks the user's country",
     },
     time: {
         type: "integer",
@@ -153,11 +156,17 @@ export const mount: BespokeComponentMountFn = (
     const authoredConfig = opts.config ?? {}
     const config = parseConfigFromSpec(CONFIG_SPEC, authoredConfig)
 
+    if (opts.embedOptions?.urlSync) {
+        migrateLegacyUrlParams(DEMOGRAPHY_LEGACY_URL_PARAM_NAMES)
+    }
+
     const root = createRoot(container)
     root.render(
         <>
             <StylesTarget />
-            <variant.component config={config} urls={urls} />
+            <EmbedOptionsProvider options={opts.embedOptions}>
+                <variant.component config={config} urls={urls} />
+            </EmbedOptionsProvider>
         </>
     )
     return () => root.unmount()

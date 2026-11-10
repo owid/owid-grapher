@@ -263,7 +263,6 @@ test.describe("Header", () => {
 
     const logoOptions = [
         { option: "CORE+OWID", changes: { logo: "core+owid" } },
-        { option: "GV+OWID", changes: { logo: "gv+owid" } },
         { option: "No logo", changes: { hideLogo: true } },
     ]
     for (const row of logoOptions) {
