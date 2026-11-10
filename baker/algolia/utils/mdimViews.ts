@@ -18,14 +18,13 @@ import {
     ChartViewsMap,
     ContentGraphLinkType,
     IndexingContext,
-    OwidVariableWithSourceAndDimension,
+    IndicatorMetadataLoader,
 } from "@ourworldindata/types"
 import { createMultiDimIndexingContext } from "./context.js"
 import { attributeLinksToViewIds } from "./mdimViewsLogic.js"
 import {
     getMultiDimViewTitle,
     getRelevantIndicatorIds,
-    getRelevantIndicatorMetadata,
 } from "../../MultiDimBaker.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import {
@@ -37,7 +36,6 @@ import {
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
 import { DatasetDimensionsForVariable } from "./types.js"
 import pMap from "p-map"
-import { getVariableMetadata } from "../../../db/model/Variable.js"
 
 // Published multi-dim must have a slug.
 type PublishedMultiDimWithSlug = DbEnrichedMultiDimDataPage & { slug: string }
@@ -77,7 +75,8 @@ async function getRecords(
     tags: string[],
     chartViewsMap: ChartViewsMap,
     predecessorMaxChartViewsByMultiDimViewConfigId: Map<string, number>,
-    multiDimXChartConfigIdMap: Map<string, number>
+    multiDimXChartConfigIdMap: Map<string, number>,
+    loadIndicatorMetadata: IndicatorMetadataLoader
 ) {
     const { slug } = multiDim
     console.log(
@@ -88,8 +87,6 @@ async function getRecords(
         multiDim.config.views.map((view) => view.fullConfigId)
     )
     const relevantIndicatorIds = getRelevantIndicatorIds(multiDim.config)
-    const relevantVariableMetadata =
-        await getRelevantIndicatorMetadata(relevantIndicatorIds)
     const datasetDimensionsByVariableId =
         await getDatasetDimensionsByVariableIds(trx, [...relevantIndicatorIds])
     const linksFromGdocs = await getPublishedLinksTo(
@@ -102,23 +99,6 @@ async function getRecords(
         linksFromGdocs,
         multiDimConfig
     )
-
-    const extraIndicatorMetadata = new Map<
-        number,
-        Promise<OwidVariableWithSourceAndDimension>
-    >()
-    const loadIndicatorMetadata = (
-        indicatorId: number
-    ): Promise<OwidVariableWithSourceAndDimension> => {
-        const loaded = relevantVariableMetadata[indicatorId]
-        if (loaded) return Promise.resolve(loaded)
-        let pending = extraIndicatorMetadata.get(indicatorId)
-        if (!pending) {
-            pending = getVariableMetadata(indicatorId)
-            extraIndicatorMetadata.set(indicatorId, pending)
-        }
-        return pending
-    }
 
     return pMap(
         multiDim.config.views,
@@ -143,7 +123,7 @@ async function getRecords(
             const queryStr = multiDimDimensionsToViewQueryStr(view.dimensions)
             const variableId = view.indicators.y[0].id
             const metadata = merge(
-                relevantVariableMetadata[variableId],
+                await loadIndicatorMetadata(variableId),
                 multiDim.config.metadata ?? {},
                 view.metadata ?? {}
             )
@@ -290,7 +270,8 @@ export async function getMultiDimViewRecords(
                 tags,
                 context.chartViewsMap,
                 context.predecessorMaxChartViewsByMultiDimViewConfigId,
-                context.multiDimXChartConfigIdMap
+                context.multiDimXChartConfigIdMap,
+                context.loadIndicatorMetadata
             ),
         { concurrency: 10 }
     )

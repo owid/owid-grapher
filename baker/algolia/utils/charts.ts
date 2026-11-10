@@ -24,7 +24,6 @@ import {
     parseJsonStringArray,
     buildSourcesLineFromConfig,
 } from "./shared.js"
-import { getVariableMetadata } from "../../../db/model/Variable.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
 import { createChartsIndexingContext } from "./context.js"
@@ -276,7 +275,7 @@ async function buildChartRecord(
         subtitle: plaintextSubtitle,
         source: await buildSourcesLineFromConfig(
             chart.config,
-            getVariableMetadata
+            context.loadIndicatorMetadata
         ),
         availableEntities: chart.entityNames,
         numDimensions: parseInt(chart.numDimensions),
@@ -319,7 +318,7 @@ export const getChartsRecords = async (
     const recordsOrNull = await pMap(
         parsedCharts,
         (chart) => buildChartRecord(knex, chart, context),
-        { concurrency: 10 }
+        { concurrency: 20 }
     )
 
     return excludeNullish(recordsOrNull)

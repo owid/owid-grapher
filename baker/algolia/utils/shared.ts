@@ -22,8 +22,8 @@ import {
     ChartRecordType,
     ExpandedFeaturedMetric,
     GrapherInterface,
+    IndicatorMetadataLoader,
     OwidVariableDataMetadataDimensions,
-    OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
 import urljoin from "url-join"
 import * as R from "remeda"
@@ -544,9 +544,7 @@ export function applyFeaturedMetricBoosts(
 
 export async function buildSourcesLineFromConfig(
     config: GrapherInterface,
-    loadIndicatorMetadata: (
-        indicatorId: number
-    ) => Promise<OwidVariableWithSourceAndDimension>
+    loadIndicatorMetadata: IndicatorMetadataLoader
 ): Promise<string> {
     if (config.sourceDesc !== undefined) return toPlaintext(config.sourceDesc)
 
