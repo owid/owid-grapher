@@ -6,6 +6,8 @@ import {
     TagGraphRoot,
     SearchState,
     SearchChartHit,
+    type SearchChartViewHit,
+    ChartRecordType,
     StackedArticleHit,
     TopicPageHit,
     FilterType,
@@ -16,7 +18,11 @@ import {
     FlatArticleHit,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
-import { type LiteClient } from "algoliasearch/lite"
+import {
+    type LiteClient,
+    type SearchForHitsOptions,
+    type SearchParamsObject,
+} from "algoliasearch/lite"
 import {
     getFilterNamesOfType,
     formatCountryFacetFilters,
@@ -27,6 +33,8 @@ import {
     PAGES_CHRONOLOGICAL_INDEX,
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
+    createCountryFilter,
+    createTopicFilter,
 } from "./searchUtils.js"
 import {
     buildChartsFacetFilters,
@@ -523,4 +531,73 @@ export async function queryWritingTopics(
             totalCount: (articles.nbHits ?? 0) + (topicPages.nbHits ?? 0),
         }
     })
+}
+
+export interface AllChartsBlockQuery {
+    topic: string
+    query: string
+    countries: string[]
+    page: number
+}
+
+export interface AllChartsBlockPage {
+    hits: SearchChartViewHit[]
+    nbHits: number
+    page: number
+    nbPages: number
+}
+
+export const ALL_CHARTS_BLOCK_HITS_PER_PAGE = 20
+
+export function buildAllChartsBlockSearchParams(
+    allChartsBlockQuery: AllChartsBlockQuery
+): SearchParamsObject & SearchForHitsOptions {
+    const { topic, query, countries, page } = allChartsBlockQuery
+    const facetFilters = [
+        ...buildChartsFacetFilters({
+            query,
+            filters: [
+                createTopicFilter(topic),
+                ...countries.map(createCountryFilter),
+            ],
+            requireAllCountries: true,
+        }),
+        `type:${ChartRecordType.Chart}`,
+    ]
+
+    return {
+        indexName: CHARTS_INDEX,
+        query,
+        facetFilters,
+        attributesToRetrieve: [
+            "title",
+            "slug",
+            "variantName",
+            "type",
+            "availableTabs",
+            "source",
+        ],
+        attributesToHighlight: ["title"],
+        attributesToSnippet: [],
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        hitsPerPage: ALL_CHARTS_BLOCK_HITS_PER_PAGE,
+        page,
+    }
+}
+
+export async function queryAllChartsBlock(
+    liteSearchClient: LiteClient,
+    allChartsBlockQuery: AllChartsBlockQuery
+): Promise<AllChartsBlockPage> {
+    const response = await searchSingleForHits<SearchChartViewHit>(
+        liteSearchClient,
+        buildAllChartsBlockSearchParams(allChartsBlockQuery)
+    )
+    return {
+        hits: response.hits,
+        nbHits: response.nbHits ?? 0,
+        page: response.page ?? allChartsBlockQuery.page,
+        nbPages: response.nbPages ?? 0,
+    }
 }

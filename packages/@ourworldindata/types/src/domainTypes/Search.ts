@@ -154,7 +154,7 @@ interface BaseSearchChartHit {
     _snippetResult?: Record<string, SnippetResultOption>
 }
 
-type SearchChartViewHit = BaseSearchChartHit & {
+export type SearchChartViewHit = BaseSearchChartHit & {
     type: ChartRecordType.Chart
 }
 
