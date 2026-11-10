@@ -6,14 +6,12 @@ import {
     getEntityNamesParam,
     generateSelectedEntityNamesParam,
     constructGrapherValuesJson,
-    type ImageRequest,
+    DEFAULT_IMAGE_REQUEST,
 } from "@ourworldindata/grapher"
 import {
     GRAPHER_TAB_QUERY_PARAMS,
     EntityName,
     GrapherSearchResultJson,
-    ChartLabelMode,
-    GrapherVariant,
 } from "@ourworldindata/types"
 import { error, StatusError } from "itty-router"
 import { createZip, UncompressedFile } from "littlezipper"
@@ -38,13 +36,6 @@ import { checkCache } from "./reusableHandlers.js"
 import { reaction, runInAction } from "mobx"
 import { slugify } from "@ourworldindata/utils"
 
-const TWITTER_IMAGE_REQUEST: ImageRequest = {
-    variant: GrapherVariant.Default,
-    labelMode: ChartLabelMode.All,
-    size: { kind: "preset", preset: "twitter" },
-    includeDetails: false,
-}
-
 export async function fetchMetadataForGrapher(
     identifier: GrapherIdentifier,
     env: Env,
@@ -53,7 +44,7 @@ export async function fetchMetadataForGrapher(
     console.log("Initializing grapher")
     const { grapher, multiDimAvailableDimensions } = await initGrapher(
         identifier,
-        TWITTER_IMAGE_REQUEST,
+        DEFAULT_IMAGE_REQUEST,
         searchParams ?? new URLSearchParams(""),
         env
     )
@@ -85,7 +76,7 @@ export async function fetchZipForGrapher(
     const { grapher, identifierType: effectiveIdentifierType } =
         await initGrapher(
             identifier,
-            TWITTER_IMAGE_REQUEST,
+            DEFAULT_IMAGE_REQUEST,
             searchParams ?? new URLSearchParams(""),
             env
         )
@@ -150,7 +141,7 @@ export async function fetchCsvForGrapher(
 ) {
     const { grapher } = await initGrapher(
         identifier,
-        TWITTER_IMAGE_REQUEST,
+        DEFAULT_IMAGE_REQUEST,
         searchParams ?? new URLSearchParams(""),
         env
     )
@@ -195,7 +186,7 @@ export async function fetchReadmeForGrapher(
     console.log("Initializing grapher")
     const { grapher, multiDimAvailableDimensions } = await initGrapher(
         identifier,
-        TWITTER_IMAGE_REQUEST,
+        DEFAULT_IMAGE_REQUEST,
         searchParams ?? new URLSearchParams(""),
         env
     )
@@ -252,7 +243,7 @@ export async function fetchDataValuesForGrapher(
     // Initialize Grapher and download its data
     const { grapher } = await initGrapher(
         identifier,
-        TWITTER_IMAGE_REQUEST,
+        DEFAULT_IMAGE_REQUEST,
         searchParams,
         env
     )
@@ -344,7 +335,7 @@ export async function fetchSearchResultDataForGrapher(
     // Initialize Grapher and download its data
     const { grapher } = await initGrapher(
         identifier,
-        TWITTER_IMAGE_REQUEST,
+        DEFAULT_IMAGE_REQUEST,
         searchParams,
         env
     )
