@@ -1,5 +1,6 @@
 import * as React from "react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { Alert, Button, Checkbox, Flex, Modal, Typography } from "antd"
 import { useDebounceValue } from "usehooks-ts"
 import { excludeUndefined } from "@ourworldindata/utils"
@@ -36,53 +37,44 @@ function selectedFromDimension(dimension: ChartDimension): SelectedColumn {
 interface CatalogSearch {
     /** The latest search's page, or the one before while it runs */
     page?: IndicatorSearchPage
+    /** Whether `page` is the one before, which the latest search replaces */
+    isPrevious: boolean
     isLoading: boolean
     hasFailed: boolean
 }
 
-interface Answer {
-    request: string
-    /** The latest page that came back, which a failure doesn't replace */
-    page?: IndicatorSearchPage
-    hasFailed: boolean
+// Keys a catalog in a query cache the admin shares between its editors, where
+// two editors' catalogs can answer the same search differently
+const catalogIds = new WeakMap<IndicatorCatalog, number>()
+let lastCatalogId = 0
+function catalogId(catalog: IndicatorCatalog): number {
+    let id = catalogIds.get(catalog)
+    if (id === undefined) {
+        id = ++lastCatalogId
+        catalogIds.set(catalog, id)
+    }
+    return id
 }
 
-// Not react-query, which the admin uses elsewhere: the editor is meant to run
-// outside the admin, without its QueryClientProvider
 function useCatalogSearch(
     catalog: IndicatorCatalog,
     query: string,
     page: number
 ): CatalogSearch {
-    const request = JSON.stringify([query, page])
-    const [answer, setAnswer] = useState<Answer>()
-    useEffect(() => {
-        let isCurrent = true
-        catalog.search(query, page).then(
-            (result) => {
-                if (isCurrent)
-                    setAnswer({ request, page: result, hasFailed: false })
-            },
-            (error: unknown) => {
-                console.error(error)
-                if (isCurrent)
-                    setAnswer((previous) => ({
-                        request,
-                        page: previous?.page,
-                        hasFailed: true,
-                    }))
-            }
-        )
-        return () => {
-            isCurrent = false
-        }
-    }, [catalog, query, page, request])
-
-    const isLoading = answer?.request !== request
+    const search = useQuery({
+        queryKey: ["catalog-search", catalogId(catalog), query, page],
+        queryFn: ({ signal }) => catalog.search(query, page, { signal }),
+        placeholderData: keepPreviousData,
+        // The picker says when a search fails, and the next keystroke tries
+        // again; retrying first would keep it quiet for seconds
+        retry: false,
+        refetchOnWindowFocus: false,
+    })
     return {
-        page: answer?.page,
-        isLoading,
-        hasFailed: !isLoading && answer.hasFailed,
+        page: search.data,
+        isPrevious: search.isPlaceholderData,
+        isLoading: search.isFetching,
+        hasFailed: search.isError,
     }
 }
 
@@ -194,7 +186,7 @@ export function VariableSelector({
                         />
                     ) : (
                         <>
-                            {search.page && !search.isLoading && (
+                            {search.page && !search.isPrevious && (
                                 <VariableSearchNotice
                                     regexError={search.page.regexError}
                                     unindexedTerms={search.page.unindexedTerms}

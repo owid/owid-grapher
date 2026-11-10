@@ -40,6 +40,11 @@ export interface GrapherEditorProps {
     syncTabWithUrl?: ConfigEditorManager["syncTabWithUrl"]
 }
 
+/**
+ * Needs a React Query `QueryClientProvider` above it, which caches the
+ * editor's requests, such as the picker's searches. The admin's lasts the
+ * whole session; the package's GrapherEditor gives each editor its own.
+ */
 @observer
 export class GrapherEditor
     extends React.Component<GrapherEditorProps>

@@ -125,7 +125,7 @@ The CSV and table stores offer every data column under "Add indicators", searche
     })
     ```
 
-- **`catalog`**, for your own search backend: an `IndicatorCatalog` with `search(query, page)`, which returns an `IndicatorSearchPage` (the matching indicators grouped by dataset, the `total` and `pageSize` to page through, and `unit: "datasets"` when `total` counts datasets). `initialQuery(datasetIds)` picks the query the picker opens on, and `fields` lists any `field:value` terms your search understands, for the picker's help. Each indicator's `column` is what picking it puts in the slot: `{ variableId }` for an OWID indicator.
+- **`catalog`**, for your own search backend: an `IndicatorCatalog` with `search(query, page, { signal })`, which returns an `IndicatorSearchPage` (the matching indicators grouped by dataset, the `total` and `pageSize` to page through, and `unit: "datasets"` when `total` counts datasets). The picker aborts `signal` when it no longer needs a search, such as when the query changes while it runs; pass it on to `fetch` to cancel the request. `initialQuery(datasetIds)` picks the query the picker opens on, and `fields` lists any `field:value` terms your search understands, for the picker's help. Each indicator's `column` is what picking it puts in the slot: `{ variableId }` for an OWID indicator.
 
 ### Other props
 

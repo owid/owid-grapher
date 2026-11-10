@@ -134,7 +134,7 @@ describe("npm build (dist/editor.react.js)", () => {
             fs.readFileSync(`${npmBuildPath}.map`, "utf8")
         ) as { sources: string[] }
         const adminOnly = sources.filter((source) =>
-            /adminSiteClient\/Admin(App|AppContext)?\.tsx?$|settings\/clientSettings|node_modules\/(react-router|react-router-dom|@tanstack\/react-query)\//.test(
+            /adminSiteClient\/Admin(App|AppContext)?\.tsx?$|settings\/clientSettings|node_modules\/(react-router|react-router-dom)\//.test(
                 source
             )
         )

@@ -1,5 +1,6 @@
 import * as React from "react"
 import { createRoot } from "react-dom/client"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import type { GrapherInterface } from "@ourworldindata/types"
 import {
     GrapherEditor as AdminGrapherEditor,
@@ -20,7 +21,13 @@ export type GrapherEditorProps = Pick<
 }
 
 export function GrapherEditor(props: GrapherEditorProps): React.ReactElement {
-    return <AdminGrapherEditor {...props} />
+    // Each editor caches its own requests; React Query stays out of the API
+    const [queryClient] = React.useState(() => new QueryClient())
+    return (
+        <QueryClientProvider client={queryClient}>
+            <AdminGrapherEditor {...props} />
+        </QueryClientProvider>
+    )
 }
 
 export type { EditorTabName } from "../../../../adminSiteClient/ConfigEditor.js"

@@ -5,6 +5,7 @@ import * as React from "react"
 import { act } from "react"
 import { createRoot, type Root } from "react-dom/client"
 import { runInAction } from "mobx"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import {
     ColumnTypeNames,
@@ -51,13 +52,15 @@ async function mountEditor(
     )
     roots.push(root)
     const element = (
-        <GrapherEditor
-            ref={ref}
-            config={config}
-            store={rentStore()}
-            onSave={() => undefined}
-            {...props}
-        />
+        <QueryClientProvider client={new QueryClient()}>
+            <GrapherEditor
+                ref={ref}
+                config={config}
+                store={rentStore()}
+                onSave={() => undefined}
+                {...props}
+            />
+        </QueryClientProvider>
     )
     await act(async () =>
         root.render(

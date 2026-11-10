@@ -3,6 +3,7 @@
  */
 import { describe, expect, it, vi } from "vitest"
 import { act, fireEvent, render, screen, within } from "@testing-library/react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { DimensionSlot } from "@ourworldindata/grapher"
 import { VariableSelector } from "./VariableSelector.js"
 import {
@@ -75,12 +76,14 @@ function renderSelector(
     const onComplete = vi.fn()
     const onDismiss = vi.fn()
     render(
-        <VariableSelector
-            catalog={catalog}
-            slot={slot}
-            onComplete={onComplete}
-            onDismiss={onDismiss}
-        />
+        <QueryClientProvider client={new QueryClient()}>
+            <VariableSelector
+                catalog={catalog}
+                slot={slot}
+                onComplete={onComplete}
+                onDismiss={onDismiss}
+            />
+        </QueryClientProvider>
     )
     return { onComplete, onDismiss }
 }
@@ -116,7 +119,9 @@ describe(VariableSelector, () => {
         )
 
         expect(searchBox().value).toBe("dataset-id:3 ")
-        expect(catalog.search).toHaveBeenCalledWith("dataset-id:3 ", 1)
+        expect(catalog.search).toHaveBeenCalledWith("dataset-id:3 ", 1, {
+            signal: expect.any(AbortSignal),
+        })
         expect(selectedNames()).toEqual(["Coal"])
         await screen.findByLabelText("Oil")
         expect(isTicked("Coal")).toBe(true)
@@ -225,6 +230,8 @@ describe(VariableSelector, () => {
                     pageOf({ ...energy, variables: [energy.variables[0]] })
                 )
             })
+            // React Query renders the answers on a timer of its own
+            await act(() => vi.advanceTimersByTimeAsync(0))
 
             expect(screen.queryByLabelText("Oil")).not.toBeNull()
             expect(screen.queryByLabelText("Coal")).toBeNull()

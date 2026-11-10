@@ -70,7 +70,12 @@ export interface IndicatorCatalog {
     fields: readonly SearchFieldHelp[]
     /** The search the picker opens on, given the datasets a slot draws from */
     initialQuery(datasetIds: number[]): string
-    search(query: string, page: number): Promise<IndicatorSearchPage>
+    /** `signal` aborts a search the picker no longer needs */
+    search(
+        query: string,
+        page: number,
+        options?: { signal?: AbortSignal }
+    ): Promise<IndicatorSearchPage>
 }
 
 /** Details on demand, for checking `[term](#dod:term)` links in text fields */

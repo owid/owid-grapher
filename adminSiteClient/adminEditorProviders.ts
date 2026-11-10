@@ -54,13 +54,14 @@ export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
             const distinct = new Set(datasetIds)
             return distinct.size === 1 ? `dataset-id:${[...distinct][0]}` : ""
         },
-        async search(query, page) {
+        async search(query, page, options) {
             // The picker says when a search fails; the admin's own error
             // dialog would reload the page and lose the chart's edits
             const get = <T extends Json>(params: Json): Promise<T> =>
                 admin.requestJSON<T>("/api/variables.json", params, "GET", {
                     onFailure: "continue",
                     isBackground: true,
+                    signal: options?.signal,
                 })
             if (namesOneDataset(query)) {
                 const result = await get<VariablesSearchResult>({
@@ -134,11 +135,17 @@ function groupByDataset(
     return [...groups.values()]
 }
 
+// One catalog per admin, so the picker's searches, which the admin's query
+// cache keys by catalog, are cached across the charts of a session
+const adminCatalogs = new WeakMap<Admin, IndicatorCatalog>()
+
 export function adminIndicatorStore(admin: Admin): IndicatorStore {
-    return dataApiIndicatorStore({
-        dataApiUrl: DATA_API_URL,
-        catalog: adminIndicatorCatalog(admin),
-    })
+    let catalog = adminCatalogs.get(admin)
+    if (!catalog) {
+        catalog = adminIndicatorCatalog(admin)
+        adminCatalogs.set(admin, catalog)
+    }
+    return dataApiIndicatorStore({ dataApiUrl: DATA_API_URL, catalog })
 }
 
 /** Details on demand from the admin API */
