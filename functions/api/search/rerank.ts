@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/cloudflare"
 import { ChartRecordType } from "@ourworldindata/types"
-import type { SearchApiResponse } from "./searchApi.js"
+import type { SearchApiResponse, SearchPagesApiResponse } from "./searchApi.js"
 
 /**
  * Experimental: reorder a charts search with a "decision model" — one that
@@ -205,7 +205,8 @@ export async function runDecisionModel(
 export interface RerankableHit {
     title: string
     subtitle?: string
-    type: ChartRecordType
+    /** a chart record type, or a page type such as `article` */
+    type: string
 }
 
 /**
@@ -305,6 +306,36 @@ export async function rerankCharts(
         results: hits.slice(0, hitsPerPage),
         hitsPerPage,
         nbPages: 1,
+        rerank,
+    }
+}
+
+/**
+ * /api/search's reranked pages (articles, data insights, …): one page, cut
+ * from the reordered pool. The prompt reads a page's matched text where it
+ * reads a chart's subtitle.
+ */
+export async function rerankPages(
+    ai: Ai,
+    model: RerankModel,
+    pool: SearchPagesApiResponse,
+    length: number
+): Promise<SearchPagesApiResponse & { rerank: RerankInfo }> {
+    const { hits, rerank } = await rerankHits(
+        ai,
+        model,
+        pool.query,
+        pool.results.map((page) => ({
+            page,
+            title: page.title,
+            subtitle: page.content,
+            type: page.type,
+        }))
+    )
+    return {
+        ...pool,
+        results: hits.slice(0, length).map((hit) => hit.page),
+        length,
         rerank,
     }
 }

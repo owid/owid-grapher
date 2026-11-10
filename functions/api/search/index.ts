@@ -6,6 +6,7 @@ import {
     RERANK_MODELS,
     RERANK_POOL_SIZE,
     rerankCharts,
+    rerankPages,
     RerankModel,
     timed,
     type SearchTimings,
@@ -74,7 +75,7 @@ const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
     [SearchUrlParam.TOPIC, ["charts", "topics"]],
     [SearchUrlParam.REQUIRE_ALL_COUNTRIES, ["charts", "topics"]],
     ["pageTypes", ["pages"]],
-    ["rerank", ["charts"]],
+    ["rerank", ["charts", "pages"]],
     ["vocab", ["charts"]],
 ])
 
@@ -112,10 +113,10 @@ async function fetchTagGraph(env: Env, baseUrl: string): Promise<TagGraphRoot> {
 }
 
 /**
- * The experimental `rerank` param of a charts search (see rerank.ts). It
- * reorders the top RERANK_POOL_SIZE hits, so it serves page 0 only. With
- * `vocab=1`, the pool also gets the query's vocabulary hits (see
- * vocabulary.ts).
+ * The experimental `rerank` param of a charts or pages search (see
+ * rerank.ts). It reorders the top RERANK_POOL_SIZE hits, so it serves page 0
+ * only. With `vocab=1`, a charts pool also gets the query's vocabulary hits
+ * (see vocabulary.ts).
  */
 function parseRerank(
     value: string | null,
@@ -302,7 +303,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         }
 
         const rerank =
-            searchType === "charts"
+            searchType === "charts" || searchType === "pages"
                 ? parseRerank(
                       url.searchParams.get("rerank"),
                       url.searchParams.get("vocab"),
@@ -450,6 +451,36 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             }
         }
 
+        const searchPagesReranked = async (
+            rerank: NonNullable<ReturnType<typeof parseRerank>>
+        ): Promise<SearchPagesApiResponse & { timings: SearchTimings }> => {
+            const started = Date.now()
+            const { value: pool, ms: poolMs } = await timed(() =>
+                searchPages(
+                    algoliaConfig,
+                    query,
+                    0,
+                    Math.max(RERANK_POOL_SIZE, hitsPerPage),
+                    pageTypes, // undefined -> searchPages()'s own default
+                    baseUrl
+                )
+            )
+            const reranked = await rerankPages(
+                rerank.ai,
+                rerank.model,
+                pool,
+                hitsPerPage
+            )
+            return {
+                ...reranked,
+                timings: {
+                    pool: poolMs,
+                    rerank: reranked.rerank.latencyMs,
+                    total: Date.now() - started,
+                },
+            }
+        }
+
         const search = (): Promise<
             SearchApiResponse | SearchPagesApiResponse | SearchTopicsApiResponse
         > => {
@@ -464,6 +495,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                         baseUrl
                     )
                 case "pages":
+                    if (rerank) return searchPagesReranked(rerank)
                     return searchPages(
                         algoliaConfig,
                         query,

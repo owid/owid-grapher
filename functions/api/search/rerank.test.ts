@@ -8,7 +8,7 @@
  */
 import { describe, it, expect, vi } from "vitest"
 import { ChartRecordType } from "@ourworldindata/types"
-import { RERANK_TIMEOUT_MS, rerankCharts } from "./rerank.js"
+import { RERANK_TIMEOUT_MS, rerankCharts, rerankPages } from "./rerank.js"
 import type { EnrichedSearchChartHit, SearchApiResponse } from "./searchApi.js"
 
 const hit = (slug: string): EnrichedSearchChartHit =>
@@ -237,5 +237,39 @@ describe(rerankCharts, () => {
         expect(ai.run).not.toHaveBeenCalled()
         expect(slugsOf(response)).toEqual(["only"])
         expect(response.rerank.poolSize).toBe(1)
+    })
+})
+
+describe(rerankPages, () => {
+    it("reorders pages, describing each by its type and matched text", async () => {
+        const ai = fakeAi(async () => jevAnswers({ r01: 0.2, r02: 0.8 }))
+        const page = (slug: string, type: string) => ({
+            slug,
+            type,
+            title: `Title of ${slug}`,
+            content: `Text of ${slug}`,
+            url: `https://ourworldindata.org/${slug}`,
+        })
+
+        const response = await rerankPages(
+            ai,
+            "jev",
+            {
+                query: "malaria",
+                results: [page("a", "article"), page("b", "data-insight")],
+                nbHits: 40,
+                offset: 0,
+                length: 30,
+            },
+            1
+        )
+
+        expect(response.results).toEqual([page("b", "data-insight")])
+        expect(response.length).toBe(1)
+        const { state } = vi.mocked(ai.run).mock.calls[0][1] as {
+            state: string
+        }
+        expect(state).toContain("r01. Title of a [article] — Text of a")
+        expect(state).toContain("r02. Title of b [data-insight] — Text of b")
     })
 })
