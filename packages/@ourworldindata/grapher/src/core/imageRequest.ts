@@ -92,23 +92,6 @@ const LEGACY_IMAGE_TYPES = new Map<
     ["uncaptioned", { variant: GrapherVariant.Uncaptioned }],
 ])
 
-const IMAGE_PARAMS = [
-    "imVariant",
-    "imLabels",
-    "imPreset",
-    "imWidth",
-    "imHeight",
-    "imFontSize",
-    "imDetails",
-]
-
-const LEGACY_IMAGE_PARAMS = ["imType", "imMinimal"]
-
-const ACCEPTED_PARAMS: ReadonlySet<string> = new Set([
-    ...IMAGE_PARAMS,
-    ...LEGACY_IMAGE_PARAMS,
-])
-
 export function parseImageRequest(
     params: URLSearchParams
 ): ParseImageRequestResult {
@@ -154,11 +137,6 @@ function fail(param: string, reason: string): never {
 }
 
 function parseImageRequestOrThrow(params: URLSearchParams): ImageRequest {
-    for (const key of params.keys()) {
-        if (key.startsWith("im") && !ACCEPTED_PARAMS.has(key))
-            fail(key, "unknown parameter")
-    }
-
     if (params.has("imType") && params.has("imVariant"))
         fail("imType", "cannot be combined with imVariant")
     if (params.has("imType") && params.has("imPreset"))
