@@ -7,7 +7,6 @@ import {
     MultiDimDataPageConfig,
     multiDimDimensionsToViewQueryStr,
 } from "@ourworldindata/utils"
-import { toPlaintext } from "@ourworldindata/components"
 import * as db from "../../../db/db.js"
 import { getChartConfigsByUuids } from "../../../db/model/ChartConfigs.js"
 import { getAllPublishedMultiDimDataPages } from "../../../db/model/MultiDimDataPage.js"
@@ -26,12 +25,12 @@ import {
     getMultiDimViewTitle,
     getRelevantIndicatorIds,
 } from "../../MultiDimBaker.js"
-import { GrapherState } from "@ourworldindata/grapher"
+import { toPlaintext } from "@ourworldindata/components"
 import {
     computeRecordScore,
     parseJsonStringArray,
     uniqNonEmptyStrings,
-    buildSourcesLineFromConfig,
+    loadGrapherStateWithMetadata,
 } from "./shared.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
 import { DatasetDimensionsForVariable } from "./types.js"
@@ -119,13 +118,19 @@ async function getRecords(
                         `viewId=${viewId} chartConfigId=${view.fullConfigId}`
                 )
             }
-            const grapherState = new GrapherState(chartConfig)
             const queryStr = multiDimDimensionsToViewQueryStr(view.dimensions)
             const variableId = view.indicators.y[0].id
             const metadata = merge(
                 await loadIndicatorMetadata(variableId),
                 multiDim.config.metadata ?? {},
                 view.metadata ?? {}
+            )
+            const grapherState = await loadGrapherStateWithMetadata(
+                chartConfig,
+                (indicatorId) =>
+                    indicatorId === variableId
+                        ? Promise.resolve(metadata)
+                        : loadIndicatorMetadata(indicatorId)
             )
             const title = getMultiDimViewTitle(
                 metadata,
@@ -137,9 +142,6 @@ async function getRecords(
                     ? metadata.presentation?.titleVariant
                     : undefined
             const containerTitle = multiDim.config.title.title
-            const subtitle = toPlaintext(
-                metadata.descriptionShort || chartConfig.subtitle || ""
-            )
             const availableEntities = metadata.dimensions.entities.values
                 .map((entity) => entity.name)
                 .filter(Boolean)
@@ -178,11 +180,8 @@ async function getRecords(
                 queryParams: queryStr ? `?${queryStr}` : "",
                 title,
                 containerTitle,
-                subtitle,
-                source: await buildSourcesLineFromConfig(
-                    chartConfig,
-                    loadIndicatorMetadata
-                ),
+                subtitle: toPlaintext(grapherState.effectiveSubtitle),
+                source: toPlaintext(grapherState.sourcesLine),
                 variantName: chartConfig.variantName,
                 titleVariant,
                 availableTabs: grapherState.availableTabs,
