@@ -48,9 +48,10 @@ export default function MeasuredDimensionToggleButtons({
             <ToggleButtonOptions
                 className="md-toggle-measure"
                 dimension={dimension}
-                // The styles also make it invisible, which keeps it out of
-                // the tab order and the accessibility tree.
                 isDisabled
+                // Keeps it out of the tab order and the accessibility
+                // tree, as do the styles, which make it invisible.
+                inert
                 ref={measureRef}
             />
             {fitsAsToggleGroup ? (

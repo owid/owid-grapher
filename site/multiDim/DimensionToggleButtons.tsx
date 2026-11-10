@@ -76,6 +76,7 @@ export function ToggleButtonOptions({
     value,
     onChange,
     isDisabled,
+    inert,
     ref,
     "aria-labelledby": ariaLabelledBy,
 }: {
@@ -86,6 +87,7 @@ export function ToggleButtonOptions({
     value?: string
     onChange?: (value: string) => void
     isDisabled: boolean
+    inert?: boolean
     ref?: Ref<HTMLDivElement>
     "aria-labelledby"?: string
 }) {
@@ -102,6 +104,7 @@ export function ToggleButtonOptions({
                 if (key !== undefined) onChange?.(String(key))
             }}
             isDisabled={isDisabled}
+            inert={inert}
             ref={ref}
         >
             {dimension.choices.map((choice) => {
