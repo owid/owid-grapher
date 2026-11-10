@@ -1,6 +1,11 @@
 import * as _ from "lodash-es"
 import React from "react"
-import { EntitySelectionMode, SeriesName, Color } from "@ourworldindata/types"
+import {
+    ChartLabelMode,
+    EntitySelectionMode,
+    SeriesName,
+    Color,
+} from "@ourworldindata/types"
 import { observable, computed, action, makeObservable } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
 import { Quadtree, quadtree } from "d3-quadtree"
@@ -585,7 +590,10 @@ export class ScatterPlotChart
     @computed private get sizeLegend(): ScatterSizeLegend | undefined {
         if (this.chartState.isConnected || this.sizeColumn.isMissing)
             return undefined
-        if (!this.manager.showLegend && !this.manager.useMinimalLabeling)
+        if (
+            !this.manager.showLegend &&
+            this.manager.labelMode !== ChartLabelMode.Values
+        )
             return undefined
         return new ScatterSizeLegend(this)
     }

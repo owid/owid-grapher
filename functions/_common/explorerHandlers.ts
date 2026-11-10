@@ -67,9 +67,8 @@ async function initGrapherForExplorerView(
 
     if (options.grapherProps?.variant)
         explorer.grapherState.variant = options.grapherProps.variant
-    if (options.grapherProps?.useMinimalLabeling)
-        explorer.grapherState.useMinimalLabeling =
-            options.grapherProps.useMinimalLabeling
+    if (options.grapherProps?.labelMode)
+        explorer.grapherState.labelMode = options.grapherProps.labelMode
     explorer.grapherState.initialOptions = { baseFontSize: options.fontSize }
 
     return {
