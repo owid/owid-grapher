@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { ChartLabelMode, GrapherVariant } from "@ourworldindata/types"
 import { ImageLayout, resolveImageLayout } from "./imageLayout.js"
-import { ImageRequest, parseImageRequest } from "./imageRequest.js"
+import { ImageRequest, parseImageRequest } from "@ourworldindata/grapher"
 
 function parse(query: string): ImageRequest {
     const result = parseImageRequest(new URLSearchParams(query))

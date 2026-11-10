@@ -228,4 +228,3 @@ export {
     type ImageRequestError,
     type ParseImageRequestResult,
 } from "./core/imageRequest.js"
-export { resolveImageLayout, type ImageLayout } from "./core/imageLayout.js"
