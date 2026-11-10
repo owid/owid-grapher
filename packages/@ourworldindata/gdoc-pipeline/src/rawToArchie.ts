@@ -659,17 +659,9 @@ function* rawBlockExpanderToArchieMLString(
 }
 
 function* rawBlockAllChartsToArchieMLString(
-    block: RawBlockAllCharts
+    _block: RawBlockAllCharts
 ): Generator<string, void, undefined> {
     yield "{.all-charts}"
-    yield* propertyToArchieMLString("heading", block.value)
-    if (block.value.top) {
-        yield "[.top]"
-        for (const item of block.value.top) {
-            yield* propertyToArchieMLString("url", item)
-        }
-        yield "[]"
-    }
     yield "{}"
 }
 
