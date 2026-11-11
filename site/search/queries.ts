@@ -2,6 +2,7 @@ import * as R from "remeda"
 import {
     EntityName,
     LATEST_FEED_TYPE_VALUES,
+    NEWSLETTER_RECORD_TYPE,
     OwidGdocType,
     TagGraphRoot,
     SearchState,
@@ -375,11 +376,11 @@ export interface LatestPagesResult {
     latestTypeFacetCounts: Record<string, number>
 }
 
-// The gdoc-type guard that excludes topic pages and linear topic pages
-// (indexed for the atom feed but hidden from /latest).
-const LATEST_BASE_FILTER = LATEST_FEED_TYPE_VALUES.map((t) => `type:${t}`).join(
-    " OR "
-)
+// The type guard that excludes topic pages and linear topic pages (indexed
+// for the atom feed but hidden from /latest).
+const LATEST_BASE_FILTER = [...LATEST_FEED_TYPE_VALUES, NEWSLETTER_RECORD_TYPE]
+    .map((t) => `type:${t}`)
+    .join(" OR ")
 
 // Issues three searches in a single batched `liteSearchClient.searchForHits([...])`
 // call (one network round-trip): the paginated card list plus per-axis facet
