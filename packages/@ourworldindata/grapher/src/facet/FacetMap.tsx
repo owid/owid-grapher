@@ -18,10 +18,11 @@ import {
     ChartErrorInfo,
     GRAPHER_MAP_TYPE,
     GrapherInteractionEvent,
+    GrapherVariant,
     MapRegionName,
     Time,
 } from "@ourworldindata/types"
-import { calculateAspectRatio } from "./FacetChartUtils"
+import { calculateAspectRatio, getFacetLabelFontSize } from "./FacetChartUtils"
 import { getVisibleLabels, scaleFontSize } from "../chart/ChartUtils"
 import {
     FacetMapManager,
@@ -229,12 +230,24 @@ export class FacetMap
         return getVisibleLabels(this.manager.labelMode).legends
     }
 
+    @computed private get facetTitleFontSize(): number {
+        if (this.manager.variant !== GrapherVariant.Thumbnail)
+            return this.facetFontSize
+
+        const { rows, columns } = this.getGridParams(this.bounds)
+        return getFacetLabelFontSize({
+            cellWidth: this.bounds.width / columns,
+            cellHeight: this.bounds.height / rows,
+            baseFontSize: this.fontSize,
+        })
+    }
+
     @computed private get labelHeight(): number {
-        return this.facetFontSize
+        return this.facetTitleFontSize
     }
 
     @computed private get labelPadding(): number {
-        return 0.5 * this.facetFontSize
+        return 0.5 * this.facetTitleFontSize
     }
 
     @computed get series(): MapFacetSeries[] {
@@ -623,7 +636,7 @@ export class FacetMap
     }
 
     override render(): React.ReactElement {
-        const { facetFontSize } = this
+        const { facetTitleFontSize } = this
         return (
             <>
                 {this.renderMapLegend()}
@@ -637,7 +650,7 @@ export class FacetMap
                                 <text
                                     {...this.getLabelPosition(series)}
                                     fill={GRAPHER_DARK_TEXT}
-                                    fontSize={facetFontSize}
+                                    fontSize={facetTitleFontSize}
                                     textAnchor="middle"
                                     style={{ fontWeight: 700 }}
                                 >
