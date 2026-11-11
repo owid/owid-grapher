@@ -41,12 +41,18 @@ export type ChartThemeName = "light" | "dark"
 
 const themeBox = observable.box<ChartThemeName>("light")
 
+// Outside the browser (baking, SVG exports, thumbnails, tests) the theme is
+// always light. Don't read the observable there: every chart computed that
+// reads it would register as one of its observers, and since the box is a
+// module-level singleton it would keep every rendered chart alive.
+const canSwitchTheme = typeof document !== "undefined"
+
 export function getChartTheme(): ChartThemeName {
-    return themeBox.get()
+    return canSwitchTheme ? themeBox.get() : "light"
 }
 
 export function isDarkChartTheme(): boolean {
-    return themeBox.get() === "dark"
+    return canSwitchTheme && themeBox.get() === "dark"
 }
 
 export function setChartTheme(theme: ChartThemeName): void {
@@ -58,6 +64,7 @@ export function setChartTheme(theme: ChartThemeName): void {
  * chart downloaded from a dark page looks the same as one from a light page.
  */
 export function withLightChartTheme<T>(fn: () => T): T {
+    if (!canSwitchTheme) return fn()
     const previous = themeBox.get()
     if (previous === "light") return fn()
     return runInAction(() => {
@@ -71,7 +78,10 @@ export function withLightChartTheme<T>(fn: () => T): T {
 }
 
 // Keep in sync with <html data-chart-theme="…"> (set by site/ThemeScript.tsx)
-if (typeof document !== "undefined" && typeof MutationObserver !== "undefined") {
+if (
+    typeof document !== "undefined" &&
+    typeof MutationObserver !== "undefined"
+) {
     const root = document.documentElement
     const sync = (): void =>
         setChartTheme(
@@ -312,7 +322,10 @@ export function lightenColorForDarkText(color: Color): Color {
     const lch = hexToOklch(color)
     if (!lch) return color
     if (lch.l >= TEXT_L_MIN) return color
-    return oklchToHex({ ...lch, l: TEXT_L_MIN + (lch.l * (1 - TEXT_L_MIN)) / 2 })
+    return oklchToHex({
+        ...lch,
+        l: TEXT_L_MIN + (lch.l * (1 - TEXT_L_MIN)) / 2,
+    })
 }
 
 /** Theme-aware helpers used by the chart code */
@@ -323,7 +336,9 @@ export function themeCategoricalColor<T extends Color | undefined>(
     return adaptCategoricalColorForDark(color) as T
 }
 
-export function themeRamp(colors: (Color | undefined)[]): (Color | undefined)[] {
+export function themeRamp(
+    colors: (Color | undefined)[]
+): (Color | undefined)[] {
     if (!isDarkChartTheme() || colors.length === 0) return colors
     return adaptRampForDark(colors)
 }
