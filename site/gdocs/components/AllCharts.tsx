@@ -7,7 +7,6 @@ import {
 } from "@tanstack/react-query"
 import { useDebounceValue, useIntersectionObserver } from "usehooks-ts"
 import {
-    EnrichedBlockAllCharts,
     ALL_CHARTS_ID,
     fetchJson,
     getTopicPageHeading,
@@ -18,7 +17,6 @@ import { AttachmentsContext } from "../AttachmentsContext.js"
 import { useDocumentContext } from "../DocumentContext.js"
 import {
     AllChartsBlock,
-    AllChartsBlockError,
     AllChartsBlockSkeleton,
 } from "../../blocks/AllChartsBlock.js"
 import {
@@ -36,12 +34,13 @@ const MAX_SUGGESTIONS = 5
 
 const SEARCH_DEBOUNCE_MS = 200
 
-type AllChartsProps = EnrichedBlockAllCharts & {
+export function AllCharts({
+    className,
+    id = ALL_CHARTS_ID,
+}: {
     className?: string
     id?: string
-}
-
-export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
+}) {
     const { tags } = useContext(AttachmentsContext)
     const { gdocType } = useDocumentContext()
     const topic = tags[0]?.name
@@ -125,11 +124,14 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
                 />
             )
         return (
-            <AllChartsBlockError
+            <AllChartsBlock
                 className={className}
                 id={id}
                 heading={heading}
-                searchHref={buildSearchHref({
+                hits={[]}
+                countries={[]}
+                searchStatus="error"
+                noResultsHref={buildSearchHref({
                     resultType: SearchResultType.DATA,
                     topic,
                 })}

@@ -13,7 +13,7 @@ import { constructThumbnailUrlForTab } from "../search/SearchChartHitSmallHelper
 interface AllChartsRowProps {
     hit: SearchChartViewHit
     isSelected: boolean
-    displayedTab: GrapherTabName | undefined
+    displayedTab: GrapherTabName
     thumbnailTabs: GrapherTabName[]
     countries: string[]
     inlinePreviewId?: string

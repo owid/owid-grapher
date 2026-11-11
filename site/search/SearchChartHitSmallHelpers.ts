@@ -7,7 +7,6 @@ import {
     GrapherTabName,
     GrapherValuesJson,
     SearchChartHit,
-    SearchChartUrlTarget,
 } from "@ourworldindata/types"
 import { fetchJson } from "@ourworldindata/utils"
 import {
@@ -64,7 +63,7 @@ export function constructChartAndPreviewUrlsForTab({
     entities,
     hasScatter = false,
 }: {
-    hit: SearchChartUrlTarget
+    hit: SearchChartHit
     tab: GrapherTabName
     entities?: EntityName[]
     hasScatter?: boolean
@@ -88,7 +87,7 @@ export function constructThumbnailUrlForTab({
     entities,
     hasScatter = false,
 }: {
-    hit: SearchChartUrlTarget
+    hit: SearchChartHit
     tab: GrapherTabName
     entities?: EntityName[]
     hasScatter?: boolean

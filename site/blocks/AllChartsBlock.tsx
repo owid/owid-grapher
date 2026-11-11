@@ -47,12 +47,6 @@ interface AllChartsSelection {
     tab?: GrapherTabName
 }
 
-interface AllChartsHeadingProps {
-    id: string
-    heading: string
-    hitCount?: number
-}
-
 export function AllChartsBlock({
     id,
     heading,
@@ -421,27 +415,6 @@ function AllChartsResultsSkeleton(): React.ReactElement {
     )
 }
 
-export function AllChartsBlockError({
-    id,
-    heading,
-    searchHref,
-    className,
-}: {
-    id: string
-    heading: string
-    searchHref: string
-    className?: string
-}): React.ReactElement {
-    return (
-        <section
-            className={cx(className, "needs-dividers", "all-charts-block")}
-        >
-            <AllChartsHeading id={id} heading={heading} />
-            <AllChartsErrorPanel searchHref={searchHref} />
-        </section>
-    )
-}
-
 function AllChartsErrorPanel({
     searchHref,
 }: {
@@ -546,7 +519,11 @@ function AllChartsHeading({
     id,
     heading,
     hitCount,
-}: AllChartsHeadingProps): React.ReactElement {
+}: {
+    id: string
+    heading: string
+    hitCount?: number
+}): React.ReactElement {
     return (
         <h1 className="article-block__heading h1-semibold" id={id}>
             <span>{heading}</span>

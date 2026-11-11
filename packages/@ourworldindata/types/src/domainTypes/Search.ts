@@ -179,12 +179,6 @@ export type SearchChartHit =
     | SearchExplorerViewHit
     | SearchMultiDimViewHit
 
-export interface SearchChartUrlTarget {
-    type: ChartRecordType
-    slug: string
-    queryParams?: string
-}
-
 export interface SearchChartHitComponentProps {
     hit: SearchChartHit
     selectedRegionNames?: string[] | undefined

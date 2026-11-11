@@ -384,7 +384,7 @@ function renderBlock(): ReturnType<typeof render> {
                 }}
             >
                 <AttachmentsContext.Provider value={attachments}>
-                    <AllCharts type="all-charts" parseErrors={[]} />
+                    <AllCharts />
                 </AttachmentsContext.Provider>
             </DocumentContext.Provider>
         </QueryClientProvider>
