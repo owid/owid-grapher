@@ -40,8 +40,26 @@ export interface CurveLabelOptions {
     labelHeight: number
     /** Gap between a label and the curve below it, default 4 */
     curvePadding?: number
-    /** Gap kept between two labels, default 2 */
-    labelPadding?: number
+    /**
+     * Room kept around a label, free of other labels and of other curves'
+     * peaks, so each label reads on its own; default 10 (x) and 6 (y)
+     */
+    labelMargin?: { x: number; y: number }
+    /** Gap kept between a label and an obstacle, default 2 */
+    obstaclePadding?: number
+    /**
+     * How far down another curve may rise above the label's own one under
+     * the label (px) before the label reads as belonging to it; default 2
+     */
+    topmostTolerance?: number
+    /** At most this many labels are placed; default no limit */
+    maxLabels?: number
+    /**
+     * Labels may only move along their curve when there are at most this
+     * many curves; in busier charts they go above their peak or nowhere.
+     * Default 6
+     */
+    maxCurvesForShift?: number
     /**
      * How far a label may move from its peak, in multiples of its own
      * width; default 1.5
@@ -50,31 +68,31 @@ export interface CurveLabelOptions {
     /**
      * A label moved away from its peak stays where the curve is at least
      * this share of its peak's height above the baseline, so it still reads
-     * as belonging to its own curve; default 0.7
+     * as belonging to its own curve; default 0.6
      */
     minHeightShare?: number
     /** Boxes labels mustn't cover, e.g. a button over the plot */
     obstacles?: LabelBox[]
 }
 
-/** Half the width of the spot above a peak that other curves' labels keep off */
-const PEAK_SLOT_HALF_WIDTH = 3
-
 /**
- * Places each curve's label just above it, where it clearly belongs to that
- * curve, without two labels (or a label and an obstacle) overlapping.
- * Curves are handled tallest peak first, and each label goes either
+ * Places a few of the curves' labels just above them, where each clearly
+ * belongs to its curve and reads on its own; the rest are dropped, for a
+ * legend to list instead. Curves are handled tallest peak first, up to
+ * `maxLabels`, and each label goes either
  *
  * 1. right above its curve's peak, or
- * 2. a little along its curve: at most `maxShift` label widths away from
- *    the peak, where the curve is at least `minHeightShare` of the peak's
- *    height, and not over another curve's peak; the spot nearest the peak
- *    wins.
+ * 2. only in charts of at most `maxCurvesForShift` curves: a little along
+ *    its curve, at most `maxShift` label widths away from the peak, where
+ *    the curve is at least `minHeightShare` of the peak's height; the spot
+ *    nearest the peak wins.
  *
- * A label always sits above its curve along its whole width, and is shifted
- * horizontally to stay inside `bounds`. Labels are never stacked on top of
- * each other, which would read as belonging to the wrong curve: a label
- * that fits in neither way is dropped, for a legend to list instead.
+ * Wherever it goes, a label sits above its own curve along its whole width,
+ * its own curve is the topmost one there, it stays inside `bounds`, and it
+ * keeps `labelMargin` free of other labels and of other curves' peaks.
+ * Labels are never stacked on top of each other, which would read as
+ * belonging to the wrong curve. Candidates' points are expected to share
+ * their x positions.
  */
 export function placeCurveLabels(
     candidates: CurveLabelCandidate[],
@@ -82,11 +100,16 @@ export function placeCurveLabels(
 ): CurveLabelLayout {
     const { bounds, labelHeight } = options
     const curvePadding = options.curvePadding ?? 4
-    const labelPadding = options.labelPadding ?? 2
+    const margin = options.labelMargin ?? { x: 10, y: 6 }
+    const obstaclePadding = options.obstaclePadding ?? 2
+    const tolerance = options.topmostTolerance ?? 2
+    const maxLabels = options.maxLabels ?? Infinity
+    const canShift = candidates.length <= (options.maxCurvesForShift ?? 6)
     const maxShift = options.maxShift ?? 1.5
-    const minHeightShare = options.minHeightShare ?? 0.7
+    const minHeightShare = options.minHeightShare ?? 0.6
 
-    const occupied: LabelBox[] = [...(options.obstacles ?? [])]
+    const obstacles = options.obstacles ?? []
+    const placedBoxes: LabelBox[] = []
     const placed = new Map<string, CurveLabel>()
 
     const withPeaks = candidates.flatMap((candidate, index) => {
@@ -95,18 +118,6 @@ export function placeCurveLabels(
             ? []
             : [{ candidate, index, peak: candidate.points[peak] }]
     })
-    // The spot right above each peak, where its own label would go
-    const peakSlots = new Map(
-        withPeaks.map(({ candidate, peak }): [string, LabelBox] => [
-            candidate.key,
-            {
-                left: peak.x - PEAK_SLOT_HALF_WIDTH,
-                right: peak.x + PEAK_SLOT_HALF_WIDTH,
-                top: peak.y - curvePadding - labelHeight,
-                bottom: peak.y,
-            },
-        ])
-    )
 
     // Tallest peak first (smallest y); ties keep input order
     const ordered = withPeaks.toSorted(
@@ -114,8 +125,12 @@ export function placeCurveLabels(
     )
 
     for (const { candidate, peak } of ordered) {
+        if (placed.size >= maxLabels) break
         const { points, width } = candidate
         if (width > bounds.right - bounds.left) continue
+        const others = withPeaks.filter(
+            (other) => other.candidate !== candidate
+        )
 
         /** The label centred at `x` (clamped into bounds), resting on the curve */
         const boxAt = (x: number): LabelBox => {
@@ -125,14 +140,31 @@ export function placeCurveLabels(
             const bottom = highestCurveY(points, left, right) - curvePadding
             return { left, right, top: bottom - labelHeight, bottom }
         }
-        const fits = (box: LabelBox): boolean =>
-            box.top >= bounds.top &&
-            !occupied.some((other) => overlaps(box, other, labelPadding))
-        const clearsOtherPeaks = (box: LabelBox): boolean =>
-            [...peakSlots].every(
-                ([key, slot]) =>
-                    key === candidate.key || !overlaps(box, slot, 0)
+        const isOwnCurveTopmost = (box: LabelBox): boolean =>
+            points
+                .filter((point) => point.x >= box.left && point.x <= box.right)
+                .every((point) =>
+                    others.every(
+                        (other) =>
+                            interpolateY(other.candidate.points, point.x) >=
+                            point.y - tolerance
+                    )
+                )
+        const fits = (box: LabelBox): boolean => {
+            if (box.top < bounds.top) return false
+            if (
+                obstacles.some((other) => overlaps(box, other, obstaclePadding))
             )
+                return false
+            const roomy = grow(box, margin)
+            return (
+                !placedBoxes.some((other) => overlaps(roomy, other, 0)) &&
+                !others.some(({ peak: otherPeak }) =>
+                    contains(roomy, otherPeak)
+                ) &&
+                isOwnCurveTopmost(box)
+            )
+        }
 
         // 1. Right above the peak
         let box: LabelBox | undefined = boxAt(peak.x)
@@ -141,26 +173,25 @@ export function placeCurveLabels(
         if (!fits(box)) {
             const minY =
                 bounds.bottom - (bounds.bottom - peak.y) * minHeightShare
-            box = points
-                .filter(
-                    (point) =>
-                        point.y <= minY &&
-                        Math.abs(point.x - peak.x) <= maxShift * width
-                )
-                .toSorted(
-                    (a, b) =>
-                        Math.abs(a.x - peak.x) - Math.abs(b.x - peak.x) ||
-                        a.x - b.x
-                )
-                .map((point) => boxAt(point.x))
-                .find(
-                    (candidateBox) =>
-                        fits(candidateBox) && clearsOtherPeaks(candidateBox)
-                )
+            box = canShift
+                ? points
+                      .filter(
+                          (point) =>
+                              point.y <= minY &&
+                              Math.abs(point.x - peak.x) <= maxShift * width
+                      )
+                      .toSorted(
+                          (a, b) =>
+                              Math.abs(a.x - peak.x) - Math.abs(b.x - peak.x) ||
+                              a.x - b.x
+                      )
+                      .map((point) => boxAt(point.x))
+                      .find(fits)
+                : undefined
         }
         if (!box) continue
 
-        occupied.push(box)
+        placedBoxes.push(box)
         placed.set(candidate.key, {
             key: candidate.key,
             x: (box.left + box.right) / 2,
@@ -173,6 +204,24 @@ export function placeCurveLabels(
         labels: candidates.flatMap((c) => placed.get(c.key) ?? []),
         dropped: candidates.filter((c) => !placed.has(c.key)).map((c) => c.key),
     }
+}
+
+function grow(box: LabelBox, by: { x: number; y: number }): LabelBox {
+    return {
+        left: box.left - by.x,
+        right: box.right + by.x,
+        top: box.top - by.y,
+        bottom: box.bottom + by.y,
+    }
+}
+
+function contains(box: LabelBox, point: { x: number; y: number }): boolean {
+    return (
+        point.x >= box.left &&
+        point.x <= box.right &&
+        point.y >= box.top &&
+        point.y <= box.bottom
+    )
 }
 
 /**

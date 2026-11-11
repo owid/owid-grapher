@@ -117,6 +117,9 @@ const COUNTRY_LABEL_LINE_HEIGHT = 1.2
  * the label above it, which mustn't run into the poverty line's label
  */
 const COUNTRY_LABEL_HEADROOM = 30
+/** More countries than this are labelled directly only up to it; the rest go to the legend */
+const MAX_COUNTRY_LABELS = 6
+const MAX_COUNTRY_LABELS_NARROW = 4
 /** Country labels stay this far below the plot's top, clear of the poverty line's label */
 const COUNTRY_LABEL_TOP_INSET = 9
 
@@ -276,6 +279,9 @@ function IncomeDistributionChartContent({
                 bottom: plotBottom,
             },
             labelHeight: countryLabelFontSize * COUNTRY_LABEL_LINE_HEIGHT,
+            maxLabels: isNarrow
+                ? MAX_COUNTRY_LABELS_NARROW
+                : MAX_COUNTRY_LABELS,
             obstacles: [
                 ...(obstacles ?? []),
                 ...(legendBox ? [legendBox] : []),
@@ -299,6 +305,7 @@ function IncomeDistributionChartContent({
         xScale,
         yScale,
         countryLabelFontSize,
+        isNarrow,
         plotLeft,
         plotRight,
         plotTop,
