@@ -1,7 +1,12 @@
 import { expect, it, describe } from "vitest"
+import * as R from "remeda"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import { ColumnTypeNames, TimeInterval } from "@ourworldindata/types"
 import {
     findClosestByValue,
     findDataRangePeers,
+    findLatestValuesInWindow,
+    findLatestValueWindow,
     selectParentRegionsAsPeers,
 } from "./PeerCountrySelection.js"
 
@@ -263,5 +268,307 @@ describe(findDataRangePeers, () => {
             targetCountry: "Target",
         })
         expect(peersForTarget).toEqual(["B", "F", "H", "J"])
+    })
+})
+
+type Row = [entityName: string, year: number, value: number | string]
+
+/** Rows must be in time order, as they are in a loaded grapher table */
+const makeColumn = (
+    rows: Row[],
+    {
+        tolerance,
+        timeInterval,
+        type = ColumnTypeNames.Numeric,
+    }: {
+        tolerance?: number
+        timeInterval?: TimeInterval
+        type?: ColumnTypeNames
+    } = {}
+): CoreColumn =>
+    new OwidTable(
+        [["entityName", "year", "value"], ...rows],
+        [
+            { slug: "year", type: ColumnTypeNames.Year },
+            {
+                slug: "value",
+                type,
+                tolerance,
+                display: timeInterval ? { timeInterval } : undefined,
+            },
+        ]
+    ).get("value")
+
+const COUNTRIES = [
+    "France",
+    "Germany",
+    "Italy",
+    "Spain",
+    "Poland",
+    "Norway",
+    "Sweden",
+    "Finland",
+    "Denmark",
+    "Austria",
+]
+
+/** Ten countries, each with one value the given number of years before 2020 */
+const countriesWithYearsBeforeEnd = (yearsBeforeEnd: number[]): Row[] =>
+    R.sortBy(
+        COUNTRIES.map((name, index): Row => [
+            name,
+            2020 - yearsBeforeEnd[index],
+            index,
+        ]),
+        ([, year]) => year
+    )
+
+/** Coverage alone would give [2017, 2020] */
+const SPREAD_OUT_COUNTRIES = countriesWithYearsBeforeEnd([
+    0, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+])
+
+describe(findLatestValueWindow, () => {
+    it("ends at the data's last year when the chart runs past it", () => {
+        const column = makeColumn(
+            [
+                ["France", 2018, 1],
+                ["Germany", 2019, 2],
+            ],
+            { tolerance: 2 }
+        )
+
+        expect(
+            findLatestValueWindow({
+                column,
+                entityNames: ["France", "Germany"],
+                endTime: 2030,
+            })
+        ).toEqual([2017, 2019])
+    })
+
+    it("ends at the chart's end when the data runs past it", () => {
+        const column = makeColumn(
+            [
+                ["France", 2018, 1],
+                ["Germany", 2020, 2],
+            ],
+            { tolerance: 2 }
+        )
+
+        expect(
+            findLatestValueWindow({
+                column,
+                entityNames: ["France", "Germany"],
+                endTime: 2018,
+            })
+        ).toEqual([2016, 2018])
+    })
+
+    it("uses the indicator's tolerance, capped at 10 years", () => {
+        const window = (tolerance: number): [number, number] =>
+            findLatestValueWindow({
+                column: makeColumn(SPREAD_OUT_COUNTRIES, { tolerance }),
+                entityNames: COUNTRIES,
+                endTime: 2020,
+            })
+
+        expect(window(4)).toEqual([2016, 2020])
+        expect(window(40)).toEqual([2010, 2020])
+    })
+
+    it("treats a tolerance of 0 as set", () => {
+        const column = makeColumn(SPREAD_OUT_COUNTRIES, { tolerance: 0 })
+
+        expect(
+            findLatestValueWindow({
+                column,
+                entityNames: COUNTRIES,
+                endTime: 2020,
+            })
+        ).toEqual([2020, 2020])
+    })
+
+    it("caps daily data at 3650 days", () => {
+        const column = makeColumn([["France", 20_000, 1]], {
+            tolerance: 5_000,
+            timeInterval: TimeInterval.Day,
+        })
+
+        expect(
+            findLatestValueWindow({ column, entityNames: ["France"] })
+        ).toEqual([16_350, 20_000])
+    })
+
+    it("uses only the plotted year for single-time charts without a tolerance", () => {
+        const column = makeColumn(SPREAD_OUT_COUNTRIES)
+
+        expect(
+            findLatestValueWindow({
+                column,
+                entityNames: COUNTRIES,
+                endTime: 2020,
+                isSingleTimeChart: true,
+            })
+        ).toEqual([2020, 2020])
+    })
+
+    it("uses the tolerance for single-time charts, which draw tolerance-filled values", () => {
+        const column = makeColumn(SPREAD_OUT_COUNTRIES, { tolerance: 5 })
+
+        expect(
+            findLatestValueWindow({
+                column,
+                entityNames: COUNTRIES,
+                endTime: 2020,
+                isSingleTimeChart: true,
+            })
+        ).toEqual([2015, 2020])
+    })
+
+    it("covers 80% of countries' latest values, rounded up to a whole year", () => {
+        const column = makeColumn(
+            countriesWithYearsBeforeEnd([0, 0, 0, 0, 1, 1, 1, 2, 5, 8])
+        )
+
+        expect(
+            findLatestValueWindow({
+                column,
+                entityNames: COUNTRIES,
+                endTime: 2020,
+            })
+        ).toEqual([2017, 2020])
+    })
+
+    it("caps the covering window at 10 years", () => {
+        const column = makeColumn(
+            countriesWithYearsBeforeEnd([0, 0, 15, 15, 15, 15, 15, 15, 15, 15])
+        )
+
+        expect(
+            findLatestValueWindow({
+                column,
+                entityNames: COUNTRIES,
+                endTime: 2020,
+            })
+        ).toEqual([2010, 2020])
+    })
+
+    it("measures coverage over countries only when at least 10 have data", () => {
+        const regions = ["World", "Africa", "Asia", "Europe", "Oceania"]
+        const column = makeColumn([
+            ...countriesWithYearsBeforeEnd([0, 0, 0, 0, 1, 1, 1, 2, 5, 8]),
+            ...regions.map((name): Row => [name, 2020, 0]),
+        ])
+
+        expect(
+            findLatestValueWindow({
+                column,
+                entityNames: [...COUNTRIES, ...regions],
+                endTime: 2020,
+            })
+        ).toEqual([2017, 2020])
+    })
+
+    it("measures coverage over all entities when fewer than 10 countries have data", () => {
+        const column = makeColumn([
+            ["Oceania", 2012, 1],
+            ["World", 2012, 1],
+            ["Asia", 2014, 1],
+            ["Europe", 2014, 1],
+            ["Africa", 2016, 1],
+            ["France", 2020, 1],
+            ["Germany", 2020, 1],
+            ["Italy", 2020, 1],
+        ])
+
+        expect(
+            findLatestValueWindow({
+                column,
+                entityNames: [
+                    "France",
+                    "Germany",
+                    "Italy",
+                    "Africa",
+                    "Asia",
+                    "Europe",
+                    "Oceania",
+                    "World",
+                ],
+                endTime: 2020,
+            })
+        ).toEqual([2012, 2020])
+    })
+})
+
+describe(findLatestValuesInWindow, () => {
+    it("returns each entity's latest value inside the window, inclusive at both ends", () => {
+        const column = makeColumn([
+            ["Germany", 2012, 3],
+            ["France", 2014, 1],
+            ["France", 2015, 2],
+            ["Italy", 2019, 4],
+            ["Italy", 2021, 5],
+        ])
+
+        expect(
+            findLatestValuesInWindow({
+                column,
+                entityNames: ["France", "Germany", "Italy"],
+                window: [2015, 2020],
+            })
+        ).toEqual([
+            { entityName: "France", value: 2, time: 2015 },
+            { entityName: "Italy", value: 4, time: 2019 },
+        ])
+    })
+
+    it("returns only the requested entities", () => {
+        const column = makeColumn([
+            ["France", 2018, 1],
+            ["Spain", 2018, 2],
+        ])
+
+        expect(
+            findLatestValuesInWindow({
+                column,
+                entityNames: ["France"],
+                window: [2015, 2020],
+            })
+        ).toEqual([{ entityName: "France", value: 1, time: 2018 }])
+    })
+
+    it("skips non-numeric values in mixed columns", () => {
+        const column = makeColumn(
+            [
+                ["France", 2018, 7],
+                ["France", 2019, "n/a"],
+            ],
+            { type: ColumnTypeNames.NumberOrString }
+        )
+
+        expect(
+            findLatestValuesInWindow({
+                column,
+                entityNames: ["France"],
+                window: [2015, 2020],
+            })
+        ).toEqual([{ entityName: "France", value: 7, time: 2018 }])
+    })
+
+    it("sorts by value, then by entity name", () => {
+        const column = makeColumn([
+            ["Spain", 2020, 5],
+            ["Italy", 2020, 9],
+            ["France", 2020, 5],
+        ])
+
+        expect(
+            findLatestValuesInWindow({
+                column,
+                entityNames: ["Spain", "Italy", "France"],
+                window: [2020, 2020],
+            }).map(({ entityName }) => entityName)
+        ).toEqual(["France", "Spain", "Italy"])
     })
 })

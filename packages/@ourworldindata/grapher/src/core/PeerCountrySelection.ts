@@ -6,6 +6,7 @@ import {
     NumericCatalogKey,
     PeerCountryStrategy,
     Time,
+    TimeRange,
 } from "@ourworldindata/types"
 import {
     checkIsAggregate,
@@ -16,11 +17,18 @@ import {
     getContinentForCountry,
     getParentRegions,
     getRegionByName,
+    getTimeInterval,
+    isSubYearly,
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
+import { quantile } from "d3-array"
 import { WORLD_ENTITY_NAME } from "./GrapherConstants.js"
 import { match } from "ts-pattern"
 import type { GrapherState } from "./GrapherState.js"
+
+const LATEST_VALUE_WINDOW_MAX_YEARS = 10
+const LATEST_VALUE_WINDOW_MIN_COUNTRIES = 10
+const LATEST_VALUE_WINDOW_COVERAGE = 0.8
 
 interface SelectDefaultEntitiesAsPeersParams {
     defaultSelection: EntityName[]
@@ -75,6 +83,13 @@ type SelectPeerCountriesParams =
     | WithStrategy<SelectByDataRangeParams, PeerCountryStrategy.DataRange>
     | WithStrategy<SelectNeighborsAsPeersParams, PeerCountryStrategy.Neighbors>
     | { peerCountryStrategy: PeerCountryStrategy.None }
+
+/** An entity's latest value within a time window */
+export interface LatestValue {
+    entityName: EntityName
+    value: number
+    time: Time
+}
 
 /**
  * Selects peer countries for a grapher based on the configured strategy.
@@ -593,6 +608,43 @@ export function findDataRangePeers({
     return R.unique(selected)
 }
 
+export function findLatestValueWindow({
+    column,
+    entityNames,
+    endTime,
+    isSingleTimeChart = false,
+}: {
+    column: CoreColumn
+    entityNames: readonly EntityName[]
+    endTime?: Time
+    isSingleTimeChart?: boolean
+}): TimeRange {
+    const windowEndTime = Math.min(endTime ?? column.maxTime, column.maxTime)
+    const windowLength = findWindowLength({
+        column,
+        entityNames,
+        windowEndTime,
+        isSingleTimeChart,
+    })
+    return [windowEndTime - windowLength, windowEndTime]
+}
+
+export function findLatestValuesInWindow({
+    column,
+    entityNames,
+    window,
+}: {
+    column: CoreColumn
+    entityNames: readonly EntityName[]
+    window: TimeRange
+}): LatestValue[] {
+    return R.sortBy(
+        findLatestValues({ column, entityNames, timeRange: window }),
+        (latestValue) => latestValue.value,
+        (latestValue) => latestValue.entityName
+    )
+}
+
 /** Pick the entity with the highest population from the bucket */
 function maxPopulationPick(
     bucket: { entityName: EntityName; value: number }[],
@@ -731,4 +783,78 @@ function extractValuesAtTime({
         if (value !== undefined) values.set(entityName, value)
     }
     return values
+}
+
+function findWindowLength({
+    column,
+    entityNames,
+    windowEndTime,
+    isSingleTimeChart,
+}: {
+    column: CoreColumn
+    entityNames: readonly EntityName[]
+    windowEndTime: Time
+    isSingleTimeChart: boolean
+}): number {
+    const maxWindowLength = isSubYearly(getTimeInterval(column.display))
+        ? LATEST_VALUE_WINDOW_MAX_YEARS * 365
+        : LATEST_VALUE_WINDOW_MAX_YEARS
+
+    const indicatorTolerance = column.display?.tolerance ?? column.def.tolerance
+    if (indicatorTolerance !== undefined)
+        return Math.min(indicatorTolerance, maxWindowLength)
+
+    if (isSingleTimeChart) return 0
+
+    const latestValues = findLatestValues({
+        column,
+        entityNames,
+        timeRange: [-Infinity, windowEndTime],
+    })
+    const latestCountryValues = latestValues.filter(({ entityName }) => {
+        const region = getRegionByName(entityName)
+        return region !== undefined && checkIsCountry(region)
+    })
+    const latestValuesForCoverage =
+        latestCountryValues.length >= LATEST_VALUE_WINDOW_MIN_COUNTRIES
+            ? latestCountryValues
+            : latestValues
+    const timesBeforeEnd = latestValuesForCoverage.map(
+        ({ time }) => windowEndTime - time
+    )
+    const coveringWindowLength = quantile(
+        timesBeforeEnd,
+        LATEST_VALUE_WINDOW_COVERAGE
+    )
+    if (coveringWindowLength === undefined) return maxWindowLength
+
+    return Math.min(Math.ceil(coveringWindowLength), maxWindowLength)
+}
+
+function findLatestValues({
+    column,
+    entityNames,
+    timeRange: [startTime, endTime],
+}: {
+    column: CoreColumn
+    entityNames: readonly EntityName[]
+    timeRange: TimeRange
+}): LatestValue[] {
+    const requestedEntityNames = new Set(entityNames)
+    const latestValueByEntityNameInRange = new Map<EntityName, LatestValue>()
+    const { allEntityNames, values, originalTimes } = column
+    for (let i = 0; i < values.length; i++) {
+        const entityName = allEntityNames[i]
+        const value = values[i]
+        const time = originalTimes[i]
+        if (!requestedEntityNames.has(entityName)) continue
+        if (!R.isNumber(value)) continue
+        if (time < startTime || time > endTime) continue
+        latestValueByEntityNameInRange.set(entityName, {
+            entityName,
+            value,
+            time,
+        })
+    }
+    return [...latestValueByEntityNameInRange.values()]
 }
