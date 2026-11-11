@@ -1,5 +1,10 @@
 import { EntityName, SeriesName } from "@ourworldindata/types"
-import { Url, performUrlMigrations, UrlMigration } from "@ourworldindata/utils"
+import {
+    Url,
+    performUrlMigrations,
+    safeDecodeURIComponent,
+    UrlMigration,
+} from "@ourworldindata/utils"
 import { codeToEntityName, entityNameToCode } from "./EntityCodes"
 
 /*
@@ -27,10 +32,10 @@ import { codeToEntityName, entityNameToCode } from "./EntityCodes"
 const V1_DELIMITER = "+"
 export const ENTITY_V2_DELIMITER = "~"
 
-const isV1Param = (encodedQueryParam: string): boolean => {
+const isV1Param = (queryParam: string): boolean => {
     // No legacy entities have a v2Delimiter in their name,
     // so if a v2Delimiter is present we know it's a v2 link.
-    return !decodeURIComponent(encodedQueryParam).includes(ENTITY_V2_DELIMITER)
+    return !queryParam.includes(ENTITY_V2_DELIMITER)
 }
 
 const entityNamesFromV1EncodedParam = (
@@ -38,7 +43,7 @@ const entityNamesFromV1EncodedParam = (
 ): EntityName[] => {
     // need to use still-encoded URL params because we need to
     // distinguish between `+` and `%20` in legacy URLs
-    return encodedQueryParam.split(V1_DELIMITER).map(decodeURIComponent)
+    return encodedQueryParam.split(V1_DELIMITER).map(safeDecodeURIComponent)
 }
 
 const entityNamesToV2Param = (entityNames: EntityName[]): string => {
@@ -53,16 +58,15 @@ const entityNamesFromV2Param = (queryParam: string): EntityName[] => {
 }
 
 const migrateV1Delimited: UrlMigration = (url) => {
-    const { country } = url.encodedQueryParams
+    const { country } = url.queryParams
+    if (country === undefined || !isV1Param(country)) return url
 
-    if (country !== undefined && isV1Param(country)) {
-        return url.updateQueryParams({
-            country: entityNamesToV2Param(
-                entityNamesFromV1EncodedParam(country)
-            ),
-        })
-    }
-    return url
+    const encodedCountry = url.encodedQueryParams.country ?? ""
+    return url.updateQueryParams({
+        country: entityNamesToV2Param(
+            entityNamesFromV1EncodedParam(encodedCountry)
+        ),
+    })
 }
 
 /*

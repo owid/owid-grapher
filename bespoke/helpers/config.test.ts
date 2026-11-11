@@ -36,7 +36,7 @@ const SPEC = {
 } as const satisfies BespokeConfigSpec
 
 describe(parseConfigFromSpec, () => {
-    it("returns exactly the spec's keys and the embed flags, keeping valid values", () => {
+    it("returns exactly the spec's keys, keeping valid values", () => {
         expect(
             parseConfigFromSpec(SPEC, {
                 flow: "export",
@@ -48,6 +48,7 @@ describe(parseConfigFromSpec, () => {
                 scale: "2.5",
                 points: "1,2",
                 tradeFlow: "import",
+                urlSync: "true",
             })
         ).toStrictEqual({
             flow: "export",
@@ -58,18 +59,7 @@ describe(parseConfigFromSpec, () => {
             year: 1990,
             scale: 2.5,
             points: [1, 2],
-            urlSync: false,
-            hideMetadataModal: false,
         })
-    })
-
-    it("parses the embed flags like any other boolean", () => {
-        expect(
-            parseConfigFromSpec(SPEC, {
-                urlSync: "true",
-                hideMetadataModal: "false",
-            })
-        ).toMatchObject({ urlSync: true, hideMetadataModal: false })
     })
 
     it("treats an empty value as unset", () => {

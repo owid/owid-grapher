@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "fs/promises"
 import { execFileSync } from "child_process"
-import { parse } from "papaparse"
+import { csvParse } from "d3-dsv"
 import { topology } from "topojson-server"
 import {
     type FeatureCollection,
@@ -279,10 +279,9 @@ async function main() {
     // fetch csv and js-ify non-string fields
     console.log(`Fetching ${ETL_REGIONS_URL}`)
     const response = await fetch(ETL_REGIONS_URL)
-    let { data } = parse(await response.text(), {
-        header: true,
-        transform: csvToJson,
-    })
+    let data: unknown[] = csvParse(await response.text(), (row) =>
+        _.mapValues(row, (val, col) => csvToJson(val ?? "", col))
+    )
 
     // strip out empty and excluded rows and make sure entities are sorted
     data = _.sortBy(data, "code")

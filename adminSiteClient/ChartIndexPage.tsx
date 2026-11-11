@@ -12,12 +12,14 @@ export class ChartIndexPage extends Component {
     declare context: AdminAppContextType
 
     charts: ChartListItem[] = []
+    isLoading = true
 
     constructor(props: Record<string, never>) {
         super(props)
 
         makeObservable(this, {
             charts: observable,
+            isLoading: observable,
         })
     }
 
@@ -30,6 +32,7 @@ export class ChartIndexPage extends Component {
                     <ChartList
                         charts={charts}
                         autofocusSearchInput
+                        loading={this.isLoading}
                         onDelete={action((c: ChartListItem) =>
                             this.charts.splice(this.charts.indexOf(c), 1)
                         )}
@@ -44,6 +47,7 @@ export class ChartIndexPage extends Component {
         const json = await admin.getJSON("/api/charts.json")
         runInAction(() => {
             this.charts = json.charts
+            this.isLoading = false
         })
     }
 

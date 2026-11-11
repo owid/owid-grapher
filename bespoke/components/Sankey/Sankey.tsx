@@ -20,6 +20,7 @@ import {
     type FontSettings,
 } from "@ourworldindata/grapher"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
+import type { FooterItem } from "@ourworldindata/grapher/src/tooltip/TooltipProps.js"
 import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import cx from "clsx"
 import { usePinnedTooltip } from "../../hooks/usePinnedTooltip.js"
@@ -29,10 +30,16 @@ import { match } from "ts-pattern"
 export const BAND_LABEL_GAP = 6
 
 /** Width and height of a node's optional icon, drawn next to its label */
-export const SANKEY_ICON_SIZE = 16
+const SANKEY_ICON_SIZE = 16
 
 /** Horizontal gap between a node's icon and its label text */
-export const SANKEY_ICON_TEXT_GAP = 8
+const SANKEY_ICON_TEXT_GAP = 8
+
+/** Size of an inline icon, which reads as part of the label's first line */
+const INLINE_ICON_SIZE = 14
+
+/** Horizontal gap between an inline icon and the label text it leads */
+const INLINE_ICON_TEXT_GAP = 6
 
 /** How far the white disc behind an icon extends past the icon's box */
 const ICON_BACKING_PADDING = 2
@@ -51,9 +58,6 @@ const ANNOTATION_ARROW_RISE = 11
 const ANNOTATION_ARROWHEAD_SIZE = 5
 /** Space between the arrowhead's tip and the band */
 const ANNOTATION_ARROW_BAND_GAP = 3
-
-/** How far a ribbon reaches under a middle node's band, in px */
-const RIBBON_NODE_OVERLAP = 0.5
 
 /** Smallest height a node's band is drawn at, however small its value */
 const MIN_NODE_DRAWN_HEIGHT = 1
@@ -100,7 +104,14 @@ interface SankeyProps {
     bandWidth?: number
     /** Whitespace between a node's band and the flow path */
     bandFlowGap?: number
+    /**
+     * Middle-node bands are centred within their layout slot, with ribbons
+     * stopping `gap` px short of them. Required only for graphs with middle nodes.
+     */
+    middleBand?: MiddleBand
     fontSettings?: FontSettings
+    /** Widest a tooltip may grow, in px */
+    tooltipMaxWidth?: number
     /** Side of a middle node's band to place labels over the ribbons; defaults to right. */
     middleLabelSide?: "left" | "right"
     getNodeTooltip?: (args: NodeTooltipArgs) => SankeyTooltip | undefined
@@ -129,7 +140,11 @@ export type LinkTooltipArgs = {
 export type SankeyTooltip = {
     title: string
     subtitle?: string
+    /** Shown at the right of the tooltip's header, e.g. an icon */
+    headerAside?: React.ReactNode
     content: React.ReactNode
+    /** Small print under the content, such as a definition */
+    footer?: FooterItem[]
 }
 
 export type SankeyNode = {
@@ -139,8 +154,20 @@ export type SankeyNode = {
     /** Note below the value with an arrow to the band; hidden unless all three lines fit. */
     annotation?: string
     annotationFontSize?: number
-    /** SVG content for a `0 0 16 16` viewBox, placed between the band and label. */
-    icon?: React.ReactNode
+    /**
+     * The ways to label the node, best first: the Sankey draws the first one
+     * that fits (see `placeSankeyLabels`), and no label if none does.
+     * Defaults to the node's `label`, `valueLabel` and `annotation`, then
+     * the same without the annotation, then without the value.
+     */
+    labelVariants?: SankeyLabelVariant[]
+    /** Colour of the label and value text. Outer labels default to dark
+     *  text with a lighter value line. Middle-column labels lie over the
+     *  ribbons, so they must set a colour picked to read against them. */
+    labelColor?: string
+    /** Colour of the label while any of the ribbons under it is
+     *  highlighted, and so drawn opaque; defaults to `labelColor` */
+    highlightedLabelColor?: string
 }
 
 export type SankeyLink = {
@@ -152,6 +179,25 @@ export type SankeyLink = {
 }
 
 export type LinkSide = "source" | "target"
+
+export type SankeyIconStyle = "badge" | "inline"
+
+/** One way to label a node */
+export type SankeyLabelVariant = {
+    /** Omit, or leave empty, for a variant that is just the icon */
+    label?: string
+    valueLabel?: string
+    annotation?: string
+    /** SVG content for a `0 0 16 16` viewBox */
+    icon?: React.ReactNode
+    /**
+     * How the icon goes with the label, between the band and the text: as a
+     * badge on a white disc centred on the label (the default), or inline, as
+     * a small glyph beside the label's first line. Either way an icon
+     * without text sits by the band, centred on the node.
+     */
+    iconStyle?: SankeyIconStyle
+}
 
 /** A node's position relative to the outer columns. */
 export type SankeyNodeSide = "left" | "right" | "middle"
@@ -166,11 +212,14 @@ type PlacedSankeyLabel = {
     valueLabel?: TextWrap
     annotation?: TextWrap
     icon?: React.ReactNode
-    /** Hidden icons still reserve horizontal space to keep labels aligned. */
-    isIconVisible: boolean
+    iconStyle?: SankeyIconStyle
+    labelColor?: string
+    highlightedLabelColor?: string
 }
 
 type Margin = { top: number; right: number; bottom: number; left: number }
+
+type MiddleBand = { width: number; gap: number }
 
 type LaidOutGraph = SankeyGraph<SankeyNode, SankeyLink>
 type LaidOutNode = D3SankeyNode<SankeyNode, SankeyLink>
@@ -197,7 +246,9 @@ export function Sankey({
     nodePadding = 12,
     bandWidth = 4,
     bandFlowGap = 3,
+    middleBand,
     fontSettings = DEFAULT_FONT_SETTINGS,
+    tooltipMaxWidth = 340,
     middleLabelSide = "right",
     getLinkTooltip,
     getRelatedLinks,
@@ -328,8 +379,9 @@ export function Sankey({
                 nodePadding,
                 fontSettings,
                 middleLabelSide,
+                middleBand,
             }),
-        [layout, nodePadding, fontSettings, middleLabelSide]
+        [layout, nodePadding, fontSettings, middleLabelSide, middleBand]
     )
 
     const nodesById = useMemo(
@@ -337,10 +389,14 @@ export function Sankey({
         [layout]
     )
 
-    // Only annotated labels use their node's colour (for the arrow)
-    const getLabelNodeColor = (nodeId: string): string | undefined => {
-        const node = nodesById.get(nodeId)
-        return node?.annotation ? nodeColor?.(node) : undefined
+    // Only annotated labels use their node's colour (for the arrow). The
+    // annotation may come from a label variant rather than the node itself
+    const getLabelNodeColor = (
+        label: PlacedSankeyLabel
+    ): string | undefined => {
+        if (!label.annotation) return undefined
+        const node = nodesById.get(label.nodeId)
+        return node ? nodeColor?.(node) : undefined
     }
 
     const svgRef = useRef<SVGSVGElement>(null)
@@ -357,6 +413,7 @@ export function Sankey({
             .exhaustive()
         return isCurrent ? rawHover : null
     }, [rawHover, layout])
+    const hoveredNodeId = hover?.kind === "node" ? hover.node.id : undefined
     const { ref: containerRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
         hover !== null,
         dismissTooltip
@@ -403,6 +460,7 @@ export function Sankey({
             if (getLinkTooltip) {
                 const link = findLinkAtPoint({
                     links: layout.links,
+                    middleBand,
                     mouseX: mouse.x,
                     mouseY: mouse.y,
                 })
@@ -424,6 +482,7 @@ export function Sankey({
             isNodeHoverable,
             labels,
             layout,
+            middleBand,
         ]
     )
 
@@ -450,6 +509,7 @@ export function Sankey({
             if (onLinkClick) {
                 const link = findLinkAtPoint({
                     links: layout.links,
+                    middleBand,
                     mouseX: mouse.x,
                     mouseY: mouse.y,
                 })
@@ -462,6 +522,7 @@ export function Sankey({
         },
         [
             isPinned,
+            middleBand,
             layout,
             labels,
             onNodeClick,
@@ -536,6 +597,63 @@ export function Sankey({
         return ids
     }, [hover, activeLinks])
 
+    // A middle node's band spans all of its ribbons, so when only some of
+    // them are lit it would stand out against the faded rest, crossing the
+    // lit ribbons; it's only highlighted when all of its links are
+    const highlightedBandNodeIds = useMemo(() => {
+        const ids = new Set<string>()
+        for (const node of layout?.nodes ?? []) {
+            if (!activeNodeIds.has(node.id)) continue
+            const isFullyLit =
+                getNodeSide(node) !== "middle" ||
+                node.id === hoveredNodeId ||
+                [
+                    ...(node.sourceLinks ?? []),
+                    ...(node.targetLinks ?? []),
+                ].every((l) => activeLinks.has(l))
+            if (isFullyLit) ids.add(node.id)
+        }
+        return ids
+    }, [layout, activeNodeIds, activeLinks, hoveredNodeId])
+
+    // The ribbons each middle label lies over, which decide its colour
+    const linksUnderLabel = useMemo(() => {
+        const map = new Map<string, LaidOutLink[]>()
+        for (const label of labels) {
+            // Only labels that change colour on highlight need their ribbons
+            if (
+                label.side !== "middle" ||
+                label.highlightedLabelColor === undefined
+            )
+                continue
+            const node = nodesById.get(label.nodeId)
+            const sideLinks =
+                label.textAnchor === "end"
+                    ? node?.targetLinks
+                    : node?.sourceLinks
+            map.set(
+                label.nodeId,
+                findLinksUnderBox(
+                    getLabelBounds(label),
+                    sideLinks ?? [],
+                    middleBand
+                )
+            )
+        }
+        return map
+    }, [labels, nodesById, middleBand])
+
+    // A label with any lit ribbon under it sits at least partly on opaque
+    // colour, where its regular colour wouldn't read, so it takes the
+    // highlighted colour even over the faded rest
+    const labelIdsOnHighlightedRibbons = useMemo(() => {
+        const ids = new Set<string>()
+        if (activeLinks.size === 0) return ids
+        for (const [nodeId, links] of linksUnderLabel)
+            if (links.some((l) => activeLinks.has(l))) ids.add(nodeId)
+        return ids
+    }, [linksUnderLabel, activeLinks])
+
     // Paint active links last so they appear above inactive ribbons.
     const linksInRenderOrder = useMemo<LaidOutLink[]>(() => {
         if (!layout) return []
@@ -553,7 +671,6 @@ export function Sankey({
 
     if (!layout) return null
 
-    const hoveredNodeId = hover?.kind === "node" ? hover.node.id : undefined
     const hoveredLink = hover?.kind === "link" ? hover.link : undefined
     const linkBundles = mergeParallelLinks
         ? bundleParallelLinks(linksInRenderOrder, (link) =>
@@ -608,6 +725,7 @@ export function Sankey({
                         <SankeyLinkView
                             key={makeLinkKey(toLinkData(bundle[0]))}
                             links={bundle}
+                            middleBand={middleBand}
                             linkColor={linkColor}
                             isHovered={
                                 hoveredLink !== undefined &&
@@ -631,9 +749,10 @@ export function Sankey({
                             key={node.id}
                             node={node}
                             bandWidth={bandWidth}
+                            middleBand={middleBand}
                             nodeColor={nodeColor}
                             isHovered={hoveredNodeId === node.id}
-                            isActive={activeNodeIds.has(node.id)}
+                            isActive={highlightedBandNodeIds.has(node.id)}
                             isAnchored={node.id === anchorNodeId}
                         />
                     ))}
@@ -645,8 +764,11 @@ export function Sankey({
                             label={label}
                             isHovered={hoveredNodeId === label.nodeId}
                             isActive={activeNodeIds.has(label.nodeId)}
+                            isOnHighlightedRibbons={labelIdsOnHighlightedRibbons.has(
+                                label.nodeId
+                            )}
                             isAnchored={label.nodeId === anchorNodeId}
-                            nodeColor={getLabelNodeColor(label.nodeId)}
+                            nodeColor={getLabelNodeColor(label)}
                         />
                     ))}
                 </g>
@@ -658,9 +780,11 @@ export function Sankey({
                     y={hover.position.y}
                     offsetX={8}
                     offsetY={8}
-                    style={{ maxWidth: "340px" }}
+                    style={{ maxWidth: `${tooltipMaxWidth}px` }}
                     title={tooltip.title}
                     subtitle={tooltip.subtitle}
+                    headerAside={tooltip.headerAside}
+                    footer={tooltip.footer}
                     anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
                     containerBounds={isPinned ? undefined : tooltipBounds}
                 >
@@ -698,6 +822,7 @@ function bundleParallelLinks(
 /** One ribbon for one link, or for a bundle of parallel ones */
 function SankeyLinkView({
     links,
+    middleBand,
     linkColor,
     isHovered,
     isActive,
@@ -705,13 +830,14 @@ function SankeyLinkView({
     linkLowVolumeThreshold,
 }: {
     links: LaidOutLink[]
+    middleBand?: MiddleBand
     linkColor?: (link: SankeyLink) => string
     isHovered?: boolean
     isActive?: boolean
     totalFlowVolume?: number
     linkLowVolumeThreshold?: number
 }): React.ReactElement | null {
-    const path = makeSankeyRibbonPath(links)
+    const path = makeSankeyRibbonPath(links, middleBand)
     if (!path) return null
 
     const color = linkColor?.(toLinkData(links[0])) ?? GRAPHER_DENIM
@@ -733,18 +859,13 @@ function SankeyLinkView({
 
 // Filled ribbons avoid the overlaps that thick centerline strokes create on
 // sharp bends. A bundle spans the outer edges of all its parallel links.
-function makeSankeyRibbonPath(links: LaidOutLink[]): string | null {
-    const sourceNode = links[0].source as LaidOutNode
-    const targetNode = links[0].target as LaidOutNode
-
-    if (sourceNode.x1 === undefined || targetNode.x0 === undefined) return null
-    // Overlap middle-node bands slightly to hide anti-aliasing seams.
-    const x0 =
-        sourceNode.x1 -
-        (getNodeSide(sourceNode) === "middle" ? RIBBON_NODE_OVERLAP : 0)
-    const x1 =
-        targetNode.x0 +
-        (getNodeSide(targetNode) === "middle" ? RIBBON_NODE_OVERLAP : 0)
+function makeSankeyRibbonPath(
+    links: LaidOutLink[],
+    middleBand?: MiddleBand
+): string | null {
+    const geometry = toRibbonGeometry(links[0], middleBand)
+    if (!geometry) return null
+    const { x0, x1 } = geometry
 
     let y0Top = Infinity
     let y0Bottom = -Infinity
@@ -776,6 +897,7 @@ function makeSankeyRibbonPath(links: LaidOutLink[]): string | null {
 function SankeyNodeView({
     node,
     bandWidth,
+    middleBand,
     nodeColor,
     isHovered,
     isActive,
@@ -783,6 +905,7 @@ function SankeyNodeView({
 }: {
     node: LaidOutNode
     bandWidth: number
+    middleBand?: MiddleBand
     nodeColor?: (node: SankeyNode) => string
     isHovered?: boolean
     isActive?: boolean
@@ -796,10 +919,19 @@ function SankeyNodeView({
     const h = Math.max(MIN_NODE_DRAWN_HEIGHT, y1 - y0)
     const y = (y0 + y1 - h) / 2
 
-    // Middle-node bands span the full width to connect ribbons on both sides.
+    // Middle-node bands are centred within their layout slot.
     const side = getNodeSide(node)
-    const x = side === "right" ? x1 - bandWidth : x0
-    const w = side === "middle" ? Math.max(0, x1 - x0) : bandWidth
+    const w = match(side)
+        .with("left", "right", () => bandWidth)
+        .with("middle", () =>
+            Math.min(requireMiddleBand(middleBand).width, x1 - x0)
+        )
+        .exhaustive()
+    const x = match(side)
+        .with("left", () => x0)
+        .with("right", () => x1 - bandWidth)
+        .with("middle", () => (x0 + x1 - w) / 2)
+        .exhaustive()
 
     const fill = nodeColor?.(node) ?? GRAPHER_DENIM
 
@@ -825,60 +957,89 @@ function SankeyLabel({
     label,
     isHovered,
     isActive,
+    isOnHighlightedRibbons,
     isAnchored,
     nodeColor = GRAPHER_DENIM,
 }: {
     label: PlacedSankeyLabel
     isHovered?: boolean
     isActive?: boolean
+    /** Any of the ribbons under the label is highlighted */
+    isOnHighlightedRibbons?: boolean
     isAnchored?: boolean
     /** The node band's colour, which an annotation and its arrow take on */
     nodeColor?: string
 }): React.ReactElement {
     const className = cx("sankey__label", {
-        "sankey__label--inner": label.side === "middle",
+        "sankey__label--colored": label.labelColor !== undefined,
         "sankey__label--hovered": isHovered,
         "sankey__label--active": isActive,
         "sankey__label--anchored": isAnchored,
     })
 
-    // The icon always sits nearest the node's band, with the text after it
-    const isTextAnchoredAtEnd = label.textAnchor === "end"
-    const textOffset = getIconLabelOffset(label)
-    const textX = isTextAnchoredAtEnd
-        ? label.x - textOffset
-        : label.x + textOffset
+    const labelColor = isOnHighlightedRibbons
+        ? (label.highlightedLabelColor ?? label.labelColor)
+        : label.labelColor
 
-    // The icon sits on a white disc so it stays legible over the ribbons
-    const iconX = isTextAnchoredAtEnd ? label.x - SANKEY_ICON_SIZE : label.x
-    const iconY = label.y - 0.5 * SANKEY_ICON_SIZE
-    const icon =
-        label.icon && label.isIconVisible ? (
-            <>
+    // The icon sits nearest the node's band, with the text after it
+    const isTextAnchoredAtEnd = label.textAnchor === "end"
+    const directionAway = isTextAnchoredAtEnd ? -1 : 1
+    const textOffset = getIconWidth(label)
+    const textX = label.x + directionAway * textOffset
+
+    // An inline icon lines up with the label's first line, or, shown without
+    // its text, with the node; either way it's in the same column by the band
+    const isInlineIcon = label.iconStyle === "inline"
+    const iconSize = getIconSize(label)
+    const firstLineCenterY =
+        label.y - 0.5 * getLabelTextHeight(label) + 0.5 * label.label.height
+    const iconX = isTextAnchoredAtEnd ? label.x - iconSize : label.x
+    const iconCenterY =
+        isInlineIcon && !isIconOnlyLabel(label.label.text, label.icon)
+            ? firstLineCenterY
+            : label.y
+    const icon = label.icon ? (
+        <>
+            {/* A badge sits on a white disc so it stays legible over
+                the ribbons */}
+            {!isInlineIcon && (
                 <circle
                     className="sankey__label-icon-backing"
-                    cx={iconX + 0.5 * SANKEY_ICON_SIZE}
-                    cy={label.y}
-                    r={0.5 * SANKEY_ICON_SIZE + ICON_BACKING_PADDING}
+                    cx={iconX + 0.5 * iconSize}
+                    cy={iconCenterY}
+                    r={0.5 * iconSize + ICON_BACKING_PADDING}
                 />
-                <svg
-                    className="sankey__label-icon"
-                    x={iconX}
-                    y={iconY}
-                    width={SANKEY_ICON_SIZE}
-                    height={SANKEY_ICON_SIZE}
-                    viewBox={`0 0 ${SANKEY_ICON_SIZE} ${SANKEY_ICON_SIZE}`}
-                >
-                    {label.icon}
-                </svg>
-            </>
-        ) : null
+            )}
+            <svg
+                className="sankey__label-icon"
+                x={iconX}
+                y={iconCenterY - 0.5 * iconSize}
+                width={iconSize}
+                height={iconSize}
+                viewBox={`0 0 ${SANKEY_ICON_SIZE} ${SANKEY_ICON_SIZE}`}
+            >
+                {label.icon}
+            </svg>
+        </>
+    ) : null
+
+    if (isIconOnlyLabel(label.label.text, label.icon))
+        return (
+            <g className={className} color={labelColor}>
+                {icon}
+            </g>
+        )
 
     // The label's lines stack, centred as a block on the node
     const lines = [
-        { textWrap: label.label, fill: GRAPHER_DARK_TEXT },
+        { textWrap: label.label, fill: labelColor ?? GRAPHER_DARK_TEXT },
         ...(label.valueLabel
-            ? [{ textWrap: label.valueLabel, fill: GRAPHER_LIGHT_TEXT }]
+            ? [
+                  {
+                      textWrap: label.valueLabel,
+                      fill: labelColor ?? GRAPHER_LIGHT_TEXT,
+                  },
+              ]
             : []),
         ...(label.annotation
             ? [
@@ -892,10 +1053,11 @@ function SankeyLabel({
     ]
     let lineTop = label.y - 0.5 * getLabelTextHeight(label)
 
-    const directionToBand = isTextAnchoredAtEnd ? 1 : -1
+    const directionToBand = -directionAway
 
     return (
-        <g className={className}>
+        // An icon drawn in `currentColor` follows the label's colour
+        <g className={className} color={labelColor}>
             {icon}
             {lines.map(({ textWrap, fill, className }, i) => {
                 if (textWrap === label.annotation)
@@ -978,116 +1140,174 @@ function getLabelTextHeight(label: {
     )
 }
 
+/**
+ * Place each node's label: the first of its variants that fits, or none.
+ *
+ * A variant fits when it fits the node's height (padding included): a
+ * single line of text always does, more lines must stack within it, and an
+ * icon alone must be no taller. A middle label must also lie entirely on
+ * the node's own ribbons on its side.
+ */
 function placeSankeyLabels({
     layout,
     nodePadding,
     fontSettings,
     middleLabelSide,
+    middleBand,
 }: {
     layout: LaidOutGraph | null
     nodePadding: number
     fontSettings: FontSettings
     middleLabelSide: "left" | "right"
+    middleBand?: MiddleBand
 }): PlacedSankeyLabel[] {
     if (!layout) return []
 
     return layout.nodes.flatMap((node) => {
-        const { label, valueLabel, annotation, icon } = node
-
-        const x0 = node.x0 ?? 0
-        const x1 = node.x1 ?? 0
-        const y0 = node.y0 ?? 0
-        const y1 = node.y1 ?? 0
-        const nodeHeight = y1 - y0
-
-        // Outer labels sit in the outer margins; middle-column labels lie over
-        // the ribbons on whichever side the caller prefers
+        const variants = getLabelVariants(node)
         const side = getNodeSide(node)
-        const labelSide = side === "middle" ? middleLabelSide : side
-        const x =
-            labelSide === "left" ? x0 - BAND_LABEL_GAP : x1 + BAND_LABEL_GAP
-        const y = (y0 + y1) / 2
-        const textAnchor = labelSide === "left" ? "end" : "start"
+        if (
+            side === "middle" &&
+            node.labelColor === undefined &&
+            variants.some((v) => v.label)
+        )
+            console.warn(
+                `Sankey: middle-column node "${node.id}" has a label but no labelColor; middle labels lie over the ribbons and need a colour that reads against them`
+            )
 
-        // Hide icons that would overlap adjacent labels, but preserve their text offset.
-        const nodeHeightWithPadding = nodeHeight + nodePadding
-        const isIconVisible = nodeHeightWithPadding >= SANKEY_ICON_SIZE
+        const nodeHeightWithPadding =
+            (node.y1 ?? 0) - (node.y0 ?? 0) + nodePadding
+        const anchor = getLabelAnchor(node, side, middleLabelSide)
 
-        const labelTextWrap = new TextWrap({
+        // A middle label lies over the node's ribbons on its side
+        const ribbons =
+            side === "middle"
+                ? ((anchor.textAnchor === "end"
+                      ? node.targetLinks
+                      : node.sourceLinks
+                  )?.flatMap(
+                      (link) => toRibbonGeometry(link, middleBand) ?? []
+                  ) ?? [])
+                : undefined
+
+        for (const variant of variants) {
+            const placed = placeLabelVariant({
+                node,
+                variant,
+                anchor,
+                fontSettings,
+            })
+            // An empty label has nothing to fit
+            if (placed.label.text === "" && !placed.icon) return [placed]
+            if (!fitsNodeHeight(placed, nodeHeightWithPadding)) continue
+            if (
+                ribbons &&
+                !isBoxCoveredByRibbons(getLabelBounds(placed), ribbons)
+            )
+                continue
+            return [placed]
+        }
+        return []
+    })
+}
+
+/** A node's label variants, best first */
+function getLabelVariants(node: SankeyNode): SankeyLabelVariant[] {
+    if (node.labelVariants) return node.labelVariants
+    const { label, valueLabel, annotation } = node
+    return [
+        { label, valueLabel, annotation },
+        ...(annotation ? [{ label, valueLabel }] : []),
+        ...(valueLabel || annotation ? [{ label }] : []),
+    ]
+}
+
+type LabelAnchor = Pick<
+    PlacedSankeyLabel,
+    "nodeId" | "x" | "y" | "textAnchor" | "side"
+>
+
+/** Where a node's label starts: by its band, centred on it */
+function getLabelAnchor(
+    node: LaidOutNode,
+    side: SankeyNodeSide,
+    middleLabelSide: "left" | "right"
+): LabelAnchor {
+    // Outer labels sit in the outer margins; middle-column labels lie over
+    // the ribbons on whichever side the caller prefers
+    const labelSide = side === "middle" ? middleLabelSide : side
+    return {
+        nodeId: node.id,
+        x:
+            labelSide === "left"
+                ? (node.x0 ?? 0) - BAND_LABEL_GAP
+                : (node.x1 ?? 0) + BAND_LABEL_GAP,
+        y: ((node.y0 ?? 0) + (node.y1 ?? 0)) / 2,
+        textAnchor: labelSide === "left" ? "end" : "start",
+        side,
+    }
+}
+
+function placeLabelVariant({
+    node,
+    variant,
+    anchor,
+    fontSettings,
+}: {
+    node: LaidOutNode
+    variant: SankeyLabelVariant
+    anchor: LabelAnchor
+    fontSettings: FontSettings
+}): PlacedSankeyLabel {
+    const { label = "", valueLabel, annotation, icon, iconStyle } = variant
+    const isIconOnly = isIconOnlyLabel(label, icon)
+
+    const makeTextWrap = (
+        text: string,
+        overrides?: Partial<FontSettings>
+    ): TextWrap =>
+        new TextWrap({
             ...fontSettings,
-            text: label,
+            ...overrides,
+            text,
             maxWidth: Infinity,
             verticalAlign: VerticalAlign.middle,
-            fontWeight: 700,
         })
 
-        if (valueLabel) {
-            const valueLabelTextWrap = new TextWrap({
-                ...fontSettings,
-                text: valueLabel,
-                maxWidth: Infinity,
-                verticalAlign: VerticalAlign.middle,
-            })
-
-            const totalLabelHeight =
-                labelTextWrap.height +
-                valueLabelTextWrap.height +
-                VALUE_LABEL_GAP
-
-            const shouldShowValueLabel =
-                nodeHeightWithPadding >= totalLabelHeight
-
-            const annotationTextWrap = annotation
-                ? new TextWrap({
-                      ...fontSettings,
+    return {
+        ...anchor,
+        label: makeTextWrap(label, { fontWeight: 700 }),
+        valueLabel:
+            valueLabel && !isIconOnly ? makeTextWrap(valueLabel) : undefined,
+        annotation:
+            annotation && !isIconOnly
+                ? makeTextWrap(annotation, {
                       fontSize:
                           node.annotationFontSize ?? fontSettings.fontSize,
-                      text: annotation,
-                      maxWidth: Infinity,
-                      verticalAlign: VerticalAlign.middle,
                   })
-                : undefined
-            const shouldShowAnnotation =
-                shouldShowValueLabel &&
-                annotationTextWrap !== undefined &&
-                nodeHeightWithPadding >=
-                    totalLabelHeight +
-                        ANNOTATION_GAP +
-                        annotationTextWrap.height
+                : undefined,
+        icon,
+        iconStyle,
+        labelColor: node.labelColor,
+        highlightedLabelColor: node.highlightedLabelColor,
+    }
+}
 
-            return [
-                {
-                    nodeId: node.id,
-                    x,
-                    y,
-                    textAnchor,
-                    side,
-                    label: labelTextWrap,
-                    valueLabel: shouldShowValueLabel
-                        ? valueLabelTextWrap
-                        : undefined,
-                    annotation: shouldShowAnnotation
-                        ? annotationTextWrap
-                        : undefined,
-                    icon,
-                    isIconVisible,
-                },
-            ]
-        } else {
-            return [
-                {
-                    nodeId: node.id,
-                    x,
-                    y,
-                    textAnchor,
-                    side,
-                    label: labelTextWrap,
-                    icon,
-                    isIconVisible,
-                },
-            ]
-        }
-    })
+/** An icon without name text is drawn alone, centred on the node. */
+function isIconOnlyLabel(text: string, icon: React.ReactNode): boolean {
+    return text === "" && !!icon
+}
+
+/** Whether a placed label fits its node's height, padding included */
+function fitsNodeHeight(
+    label: PlacedSankeyLabel,
+    nodeHeightWithPadding: number
+): boolean {
+    if (isIconOnlyLabel(label.label.text, label.icon))
+        return getIconSize(label) <= nodeHeightWithPadding
+    // A single line always fits, so every node can be named
+    if (!label.valueLabel && !label.annotation) return true
+    return getLabelTextHeight(label) <= nodeHeightWithPadding
 }
 
 function shiftNodeVertically(node: LaidOutNode, dy: number): void {
@@ -1157,7 +1377,9 @@ function toNodeData(node: LaidOutNode): SankeyNode {
         valueLabel: node.valueLabel,
         annotation: node.annotation,
         annotationFontSize: node.annotationFontSize,
-        icon: node.icon,
+        labelVariants: node.labelVariants,
+        labelColor: node.labelColor,
+        highlightedLabelColor: node.highlightedLabelColor,
     }
 }
 
@@ -1174,24 +1396,37 @@ export function measureMaxLabelWidthForNode(
     node: SankeyNode,
     fontSettings: FontSettings
 ): number {
-    return (
-        Math.max(
-            textWidth(node.label, fontSettings),
-            node.valueLabel ? textWidth(node.valueLabel, fontSettings) : 0,
-            node.annotation
-                ? textWidth(node.annotation, {
-                      ...fontSettings,
-                      fontSize:
-                          node.annotationFontSize ?? fontSettings.fontSize,
-                  })
-                : 0
-        ) + getIconLabelOffset(node)
+    // Any of the variants may be drawn, so make room for the widest
+    return Math.max(
+        0,
+        ...getLabelVariants(node).map(
+            (variant) =>
+                Math.max(
+                    textWidth(variant.label ?? "", fontSettings),
+                    variant.valueLabel
+                        ? textWidth(variant.valueLabel, fontSettings)
+                        : 0,
+                    variant.annotation
+                        ? textWidth(variant.annotation, {
+                              ...fontSettings,
+                              fontSize:
+                                  node.annotationFontSize ??
+                                  fontSettings.fontSize,
+                          })
+                        : 0
+                ) + getIconWidth(variant)
+        )
     )
 }
 
-/** Horizontal space an icon takes up ahead of its label text, if any */
-function getIconLabelOffset(node: { icon?: React.ReactNode }): number {
-    return node.icon ? SANKEY_ICON_SIZE + SANKEY_ICON_TEXT_GAP : 0
+type IconOwner = { icon?: React.ReactNode; iconStyle?: SankeyIconStyle }
+
+/** Horizontal space an icon adds to its label, gap included */
+function getIconWidth(node: IconOwner): number {
+    if (!node.icon) return 0
+    return node.iconStyle === "inline"
+        ? INLINE_ICON_SIZE + INLINE_ICON_TEXT_GAP
+        : SANKEY_ICON_SIZE + SANKEY_ICON_TEXT_GAP
 }
 
 function textWidth(text: string, fontSettings: FontSettings): number {
@@ -1208,7 +1443,12 @@ export function getSankeyVerticalLabelPadding(
     return 0.5 * fontSettings.fontSize * fontSettings.lineHeight
 }
 
-/** Find the nearest hoverable node within tolerance of its combined band and label bounds. */
+/**
+ * Find the nearest hoverable node within tolerance of its combined band and
+ * label bounds. A middle node's label lies over the ribbons, though, where
+ * the tolerance would steal hovers from the ribbons around it, so it only
+ * counts when the pointer is right on it.
+ */
 function findNodeAtPoint({
     nodes,
     labels,
@@ -1228,8 +1468,14 @@ function findNodeAtPoint({
     let closest: { node: LaidOutNode; dist: number } | null = null
     for (const node of nodes) {
         if (isHoverable && !isHoverable(node)) continue
-        const bounds = calculateNodeHitBounds(node, labelByNodeId.get(node.id))
-        const dist = bounds.distanceToPoint(mouse)
+        const label = labelByNodeId.get(node.id)
+        const dist =
+            label?.side === "middle"
+                ? Math.min(
+                      calculateNodeHitBounds(node).distanceToPoint(mouse),
+                      getLabelBounds(label).contains(mouse) ? 0 : Infinity
+                  )
+                : calculateNodeHitBounds(node, label).distanceToPoint(mouse)
         if (dist > NODE_HIT_TOLERANCE) continue
         if (!closest || dist < closest.dist) closest = { node, dist }
     }
@@ -1246,23 +1492,162 @@ function calculateNodeHitBounds(
         new PointVector(node.x1 ?? 0, node.y1 ?? 0)
     )
     if (!label) return bandBounds
+    return Bounds.merge([bandBounds, getLabelBounds(label)])
+}
+
+/** The box a placed label's text and icon take up */
+function getLabelBounds(label: PlacedSankeyLabel): Bounds {
+    if (isIconOnlyLabel(label.label.text, label.icon)) {
+        const size = getIconSize(label)
+        const iconX = label.textAnchor === "end" ? label.x - size : label.x
+        return new Bounds(iconX, label.y - size / 2, size, size)
+    }
 
     const width =
         Math.max(
             label.label.width,
             label.valueLabel?.width ?? 0,
             label.annotation?.width ?? 0
-        ) + getIconLabelOffset(label)
+        ) + getIconWidth(label)
     const textHeight = getLabelTextHeight(label)
-    const height =
-        label.icon && label.isIconVisible
-            ? Math.max(textHeight, SANKEY_ICON_SIZE)
-            : textHeight
+    // A badge is centred on the label; an inline icon on its first line,
+    // past whose top and bottom it may reach
+    const height = !label.icon
+        ? textHeight
+        : label.iconStyle === "inline"
+          ? textHeight + Math.max(0, INLINE_ICON_SIZE - label.label.height)
+          : Math.max(textHeight, SANKEY_ICON_SIZE)
 
     const labelX = label.textAnchor === "end" ? label.x - width : label.x
-    const labelBounds = new Bounds(labelX, label.y - height / 2, width, height)
+    return new Bounds(labelX, label.y - height / 2, width, height)
+}
 
-    return Bounds.merge([bandBounds, labelBounds])
+function getIconSize(node: IconOwner): number {
+    return node.iconStyle === "inline" ? INLINE_ICON_SIZE : SANKEY_ICON_SIZE
+}
+
+/** A ribbon's ends: its horizontal extent and its centre line's height and
+ *  thickness there */
+export type RibbonGeometry = {
+    x0: number
+    x1: number
+    y0: number
+    y1: number
+    width: number
+}
+
+function toRibbonGeometry(
+    link: LaidOutLink,
+    middleBand?: MiddleBand
+): RibbonGeometry | undefined {
+    const source = link.source as LaidOutNode
+    const target = link.target as LaidOutNode
+    if (
+        source.x1 === undefined ||
+        target.x0 === undefined ||
+        link.y0 === undefined ||
+        link.y1 === undefined
+    )
+        return undefined
+    return {
+        x0: source.x1 - getMiddleRibbonInset(source, middleBand),
+        x1: target.x0 + getMiddleRibbonInset(target, middleBand),
+        y0: link.y0,
+        y1: link.y1,
+        width: link.width ?? 0,
+    }
+}
+
+function requireMiddleBand(middleBand: MiddleBand | undefined): MiddleBand {
+    if (!middleBand)
+        throw new Error(
+            "Sankey: middleBand is required for graphs with middle nodes"
+        )
+    return middleBand
+}
+
+/** Extend ribbons towards the middle band, leaving its configured gap. */
+function getMiddleRibbonInset(
+    node: LaidOutNode,
+    middleBand?: MiddleBand
+): number {
+    if (getNodeSide(node) !== "middle") return 0
+    const { width, gap } = requireMiddleBand(middleBand)
+    const nodeWidth = (node.x1 ?? 0) - (node.x0 ?? 0)
+    return Math.max(0, 0.5 * (nodeWidth - width) - gap)
+}
+
+/** Space a label keeps from its ribbons' edges */
+const LABEL_RIBBON_PADDING = 1
+
+/** Ribbons this close count as one, across anti-aliasing seams */
+const RIBBON_SEAM_TOLERANCE = 0.5
+
+/** Horizontal step at which a box's coverage is checked */
+const COVERAGE_SAMPLE_STEP = 4
+
+/**
+ * Whether a box lies entirely on the given ribbons: at every x across it, its
+ * whole height is inside the ribbons' combined thickness, with a little
+ * padding. Adjacent ribbons combine; a gap between them, or the ribbons
+ * ending, leaves the box uncovered there.
+ */
+export function isBoxCoveredByRibbons(
+    box: Bounds,
+    ribbons: RibbonGeometry[]
+): boolean {
+    const top = box.top - LABEL_RIBBON_PADDING
+    const bottom = box.bottom + LABEL_RIBBON_PADDING
+    const sampleCount = Math.max(1, Math.ceil(box.width / COVERAGE_SAMPLE_STEP))
+    for (let i = 0; i <= sampleCount; i++) {
+        const x = box.left + (i / sampleCount) * box.width
+        const spans = ribbons
+            .flatMap((ribbon) => {
+                const centerY = calculateRibbonCenterY(ribbon, x)
+                if (centerY === null || ribbon.width <= 0) return []
+                const halfWidth = ribbon.width / 2
+                return [[centerY - halfWidth, centerY + halfWidth]]
+            })
+            .sort((a, b) => a[0] - b[0])
+        let isCovered = false
+        let spanTop = -Infinity
+        let spanBottom = -Infinity
+        for (const [start, end] of spans) {
+            if (start > spanBottom + RIBBON_SEAM_TOLERANCE) spanTop = start
+            spanBottom = Math.max(spanBottom, end)
+            if (spanTop <= top && spanBottom >= bottom) {
+                isCovered = true
+                break
+            }
+        }
+        if (!isCovered) return false
+    }
+    return true
+}
+
+/** The links whose ribbons pass under any part of a box */
+function findLinksUnderBox(
+    box: Bounds,
+    links: LaidOutLink[],
+    middleBand?: MiddleBand
+): LaidOutLink[] {
+    const sampleCount = Math.max(1, Math.ceil(box.width / COVERAGE_SAMPLE_STEP))
+    return links.filter((link) => {
+        const ribbon = toRibbonGeometry(link, middleBand)
+        if (!ribbon || ribbon.width <= 0) return false
+        for (let i = 0; i <= sampleCount; i++) {
+            const x = box.left + (i / sampleCount) * box.width
+            const centerY = calculateRibbonCenterY(ribbon, x)
+            if (centerY === null) continue
+            const halfWidth = ribbon.width / 2
+            if (
+                centerY + halfWidth > box.top &&
+                centerY - halfWidth < box.bottom
+            )
+                return true
+        }
+        return false
+    })
 }
 
 /**
@@ -1271,16 +1656,20 @@ function calculateNodeHitBounds(
  */
 function findLinkAtPoint({
     links,
+    middleBand,
     mouseX,
     mouseY,
 }: {
     links: LaidOutLink[]
+    middleBand?: MiddleBand
     mouseX: number
     mouseY: number
 }): LaidOutLink | null {
     let closest: { link: LaidOutLink; gap: number; dy: number } | null = null
     for (const link of links) {
-        const centerY = calculateLinkCenterY(link, mouseX)
+        const ribbon = toRibbonGeometry(link, middleBand)
+        if (!ribbon) continue
+        const centerY = calculateRibbonCenterY(ribbon, mouseX)
         if (centerY === null) continue
         const dy = Math.abs(mouseY - centerY)
         const halfBand = (link.width ?? 0) / 2
@@ -1306,18 +1695,11 @@ function findLinkAtPoint({
  * so x(t) is cubic in t and we bisect for the t matching `mouseX`. The
  * y curve simplifies to a smoothstep blend between y0 and y1.
  */
-function calculateLinkCenterY(
-    link: LaidOutLink,
+function calculateRibbonCenterY(
+    { x0, x1, y0, y1 }: RibbonGeometry,
     mouseX: number
 ): number | null {
-    const sourceNode = link.source as LaidOutNode
-    const targetNode = link.target as LaidOutNode
-    const x0 = sourceNode.x1 ?? 0 // right edge of source node = link start
-    const x1 = targetNode.x0 ?? 0 // left edge of target node  = link end
     if (mouseX < x0 || mouseX > x1) return null
-
-    const y0 = link.y0 ?? 0
-    const y1 = link.y1 ?? 0
     if (x1 === x0) return (y0 + y1) / 2
 
     const xi = (x0 + x1) / 2

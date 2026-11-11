@@ -16,6 +16,8 @@ type AggregateEntryWithPublisher = Extract<
     { regionType: "aggregate"; definedBy: string; publisher: string }
 >
 
+export type RegionName = RegionEntry["name"]
+
 export type OwidContinentName = ContinentEntry["name"]
 export type OwidContinentCode = ContinentEntry["code"]
 

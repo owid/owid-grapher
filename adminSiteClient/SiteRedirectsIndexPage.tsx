@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useContext, useMemo, useState } from "react"
+import { useContext, useMemo } from "react"
 import {
     Alert,
     Button,
@@ -18,6 +18,7 @@ import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 import { Admin } from "./Admin.js"
+import { useListSearch } from "./useListSearch.js"
 
 const SOURCE_PATTERN = /^\/$|^\/.*[^/]+$/
 const INVALID_SOURCE_MESSAGE =
@@ -127,13 +128,14 @@ function createColumns(
     ]
 }
 
+const searchedText = (redirect: Redirect) => [redirect.source, redirect.target]
+
 export default function SiteRedirectsIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [notificationApi, notificationContextHolder] =
         notification.useNotification()
     const queryClient = useQueryClient()
     const [form] = Form.useForm<FormData>()
-    const [search, setSearch] = useState("")
 
     const { data: redirects } = useQuery({
         queryKey: ["siteRedirects"],
@@ -183,14 +185,11 @@ export default function SiteRedirectsIndexPage() {
         createMutation.mutate(values)
     }
 
-    const filteredRedirects = useMemo(() => {
-        const query = search.trim().toLowerCase()
-        return redirects?.filter((redirect) =>
-            [redirect.source, redirect.target].some((field) =>
-                field.toLowerCase().includes(query)
-            )
-        )
-    }, [redirects, search])
+    const {
+        searchValue,
+        setSearchValue,
+        filtered: filteredRedirects,
+    } = useListSearch(redirects, searchedText)
 
     const columns = useMemo(
         () => createColumns((id) => deleteMutation.mutate(id)),
@@ -360,13 +359,13 @@ export default function SiteRedirectsIndexPage() {
                         <Flex align="center" justify="space-between" gap={24}>
                             <Input
                                 placeholder="Search by source or target"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
                                 style={{ width: 400 }}
                                 autoFocus
                             />
                             <Typography.Text>
-                                Showing {filteredRedirects?.length ?? 0} of{" "}
+                                Showing {filteredRedirects.length} of{" "}
                                 {redirects?.length ?? 0} redirects
                             </Typography.Text>
                         </Flex>

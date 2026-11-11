@@ -1,0 +1,140 @@
+$etl-color: #7a3e8f;
+$etl-background: #f3e7f7;
+$admin-color: #1d5fbf;
+$admin-background: #e1ecfb;
+
+.chart-source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 8px;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: none;
+    }
+}
+
+.chart-source-badge--etl {
+    color: $etl-color;
+    background: $etl-background;
+
+    &:hover {
+        color: $etl-color;
+    }
+}
+
+// Same colour as an in-sync ETL badge, striped to flag the admin changes
+.chart-source-badge--drifted {
+    background: repeating-linear-gradient(
+        -45deg,
+        $etl-background 0 4px,
+        #fff 4px 8px
+    );
+}
+
+.chart-source-badge--button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.chart-source-badge--admin {
+    color: $admin-color;
+    background: $admin-background;
+}
+
+.chart-source-tooltip {
+    padding: 2px 0;
+    font-size: 0.8rem;
+    line-height: 1.4;
+
+    code {
+        padding: 0 4px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.15);
+        color: inherit;
+        font-size: 0.75rem;
+    }
+}
+
+.chart-source-tooltip__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.chart-source-tooltip__catalog-path {
+    color: rgba(255, 255, 255, 0.6);
+    font-family: SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.7rem;
+    word-break: break-all;
+}
+
+.chart-source-tooltip__status {
+    margin-top: 8px;
+}
+
+.chart-source-tooltip__drift {
+    margin: 6px 0 0;
+
+    dt {
+        margin-top: 6px;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    dd {
+        margin: 2px 0 0;
+    }
+}
+
+.chart-source-tooltip__fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.chart-source-tooltip__footer {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.7rem;
+}
+
+.etl-source-section__drift-note {
+    margin-bottom: 1rem;
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: #fff;
+}
+
+// Draws the eye to the section when the editor's ETL badge opens it
+.etl-source-section--highlighted > section {
+    animation: etl-source-section-highlight 2.5s ease-out;
+}
+
+@keyframes etl-source-section-highlight {
+    0%,
+    40% {
+        box-shadow: inset 0 0 0 3px $etl-color;
+    }
+    100% {
+        box-shadow: inset 0 0 0 3px rgba($etl-color, 0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .etl-source-section--highlighted > section {
+        animation-timing-function: steps(1, end);
+    }
+}

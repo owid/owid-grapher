@@ -1,0 +1,142 @@
+.chart-list__preview {
+    display: block;
+    width: 104px;
+    height: auto;
+    border: 1px solid #eee;
+}
+
+.chart-list__preview--draft {
+    opacity: 0.6;
+}
+
+.chart-list__chart {
+    min-width: 280px;
+}
+
+// Drafts read as secondary: a grey, italic title
+.chart-list__chart--draft .chart-list__title {
+    color: #888;
+    font-style: italic;
+}
+
+// A muted red: findable when scanning for drafts, without pulling the eye
+.chart-list__draft-label {
+    margin-right: 6px;
+    color: #b5524b;
+}
+
+.chart-list__tags {
+    margin-top: 6px;
+
+    // Tighter pills than elsewhere in the admin, as tags are one line of many
+    // in this cell
+    .TagBadge {
+        margin-right: 4px;
+        margin-bottom: 4px;
+        border-radius: 4px;
+    }
+
+    .TagBadge__name,
+    .TagBadge__sorting,
+    .TagBadge__approve {
+        padding: 1px 6px;
+        vertical-align: middle;
+    }
+
+    .TagBadge__sorting,
+    .TagBadge__approve {
+        padding: 1px 5px;
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+    }
+}
+
+.chart-list__title {
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.chart-list__variant {
+    color: #888;
+    font-weight: normal;
+}
+
+.chart-list__source {
+    margin-left: 6px;
+
+    .chart-source-badge {
+        font-size: 0.7rem;
+        padding: 0 6px;
+    }
+}
+
+.chart-list__meta {
+    margin-top: 2px;
+    font-size: 0.85em;
+    color: #777;
+}
+
+.chart-list__meta-separator {
+    color: #ccc;
+    padding: 0 5px;
+}
+
+.chart-list__notes {
+    margin-top: 4px;
+    font-size: 0.85em;
+    color: #666;
+    font-style: italic;
+}
+
+.chart-list__timestamp {
+    min-width: 90px;
+    line-height: 1.35;
+}
+
+.chart-list__time {
+    white-space: nowrap;
+}
+
+.chart-list__author {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 0.85em;
+    color: #777;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        color: #0d6efd;
+        text-decoration: underline;
+    }
+}
+
+.chart-list__header-help {
+    cursor: help;
+    white-space: nowrap;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 3px;
+}
+
+// antd's default row lines are too faint to follow across a wide row
+.chart-list .ant-table-tbody > tr > td {
+    border-bottom-color: #dedede;
+}
+
+.chart-list__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 72px;
+}
+
+.chart-list__secondary-actions {
+    display: flex;
+    gap: 4px;
+
+    .ant-btn {
+        flex: 1;
+    }
+}

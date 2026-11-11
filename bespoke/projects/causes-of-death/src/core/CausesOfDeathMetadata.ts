@@ -1,5 +1,5 @@
 import * as R from "remeda"
-import { EntityName } from "@ourworldindata/types"
+import { BespokeMetadata, EntityName } from "@ourworldindata/types"
 import {
     AgeGroupMetadata,
     CategoryMetadata,
@@ -8,7 +8,10 @@ import {
     VariableMetadata,
     BasicEntry,
 } from "./CausesOfDeathConstants.js"
-import { getBespokeSourceLine } from "../../../../components/MetadataModal/bespokeMetadata.js"
+import {
+    getBespokeSourceLine,
+    parseBespokeMetadata,
+} from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 export class CausesOfDeathMetadata {
     private readonly metadata: MetadataJson
@@ -17,6 +20,7 @@ export class CausesOfDeathMetadata {
     categories: MetadataJson["categories"]
     source: string
     timeRange: MetadataJson["timeRange"]
+    provenance: BespokeMetadata | undefined
 
     private _entityNameToId?: Map<EntityName, number>
     private _variableById?: Map<number, VariableMetadata>
@@ -35,6 +39,7 @@ export class CausesOfDeathMetadata {
         this.categories = metadata.categories
         this.source = getBespokeSourceLine(metadata)
         this.timeRange = metadata.timeRange
+        this.provenance = parseBespokeMetadata(metadata)
     }
 
     get entityNameToId(): Map<EntityName, number> {

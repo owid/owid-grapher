@@ -911,3 +911,38 @@ describe("continent colors remain consistent regardless of data", () => {
         )
     })
 })
+
+describe("table tab timeline", () => {
+    it("ends at the last year with both x and y", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "year", "x", "y"],
+                ["UK", 2020, 1, 1],
+                ["UK", 2021, 2, 2],
+                ["UK", 2022, 3, 3],
+                ["UK", 2023, null, 4],
+            ],
+            [
+                {
+                    slug: "x",
+                    type: ColumnTypeNames.Numeric,
+                    display: { tolerance: 5 },
+                },
+                {
+                    slug: "y",
+                    type: ColumnTypeNames.Numeric,
+                    display: { tolerance: 0 },
+                },
+            ]
+        )
+        const grapher = new GrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+            xSlug: "x",
+            ySlugs: "y",
+            table,
+            tab: "table",
+        })
+
+        expect(_.max(grapher.times)).toEqual(2022)
+    })
+})

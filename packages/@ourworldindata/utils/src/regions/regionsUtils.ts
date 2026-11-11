@@ -9,6 +9,7 @@ import type {
     Continent,
     IncomeGroup,
     OwidIncomeGroupCode,
+    RegionName,
     RegionSet,
     SuffixedRegionName,
     AggregateWithPublisher,
@@ -390,7 +391,7 @@ export const getRegionAlternativeNames = (
 
 // Regions that require the definite article "the" before their name
 // Maintained here instead of in the ETL because it's such a specific piece of metadata.
-const regionsWithArticles = new Set([
+const regionsWithArticles = new Set<string>([
     "Aland Islands",
     "Netherlands Antilles",
     "United Arab Emirates",
@@ -407,6 +408,7 @@ const regionsWithArticles = new Set([
     "Channel Islands",
     "Dominican Republic",
     "Western Sahara",
+    "European Union (27)",
     "Falkland Islands",
     "Faroe Islands",
     "United Kingdom",
@@ -445,10 +447,13 @@ const regionsWithArticles = new Set([
     "Vatican",
     "British Virgin Islands",
     "United States Virgin Islands",
-])
+] satisfies RegionName[])
+
+export const checkHasDefiniteArticle = (entityName: EntityName): boolean =>
+    regionsWithArticles.has(entityName)
 
 export const articulateEntity = (entityName: EntityName): string => {
-    return regionsWithArticles.has(entityName)
+    return checkHasDefiniteArticle(entityName)
         ? `the ${entityName}`
         : entityName
 }

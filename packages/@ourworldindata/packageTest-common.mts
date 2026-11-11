@@ -12,11 +12,8 @@ import { spawnSync } from "node:child_process"
 import * as fs from "node:fs"
 import * as os from "node:os"
 import * as path from "node:path"
-import { Readable } from "node:stream"
 import { init as initEsModuleLexer, parse } from "es-module-lexer/minimal"
-import { publint, type Message } from "publint"
-import { formatMessage } from "publint/utils"
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 
 const repoRoot = path.resolve(import.meta.dirname, "../..")
 const tscBin = path.join(repoRoot, "node_modules/.bin/tsc")
@@ -65,45 +62,6 @@ export async function readImportSpecifiers(
     ))
         specifiers.add(types)
     return specifiers
-}
-
-// Runs publint (https://publint.dev) over the packed tarball: it checks the
-// packaging metadata — `exports`/`files` consistency, entry points that don't
-// exist, module format vs. how Node interprets each file, and the like. The
-// module-format authority remains the attw pass in `yarn testPackage:attw`.
-//
-// The tarball (packed by `yarn testPackage:pack`, which applies
-// publishConfig) is linted rather than the package dir, which would check the
-// dev manifest with its src/ entry points instead.
-export function testPublint(
-    tarballPath: string,
-    knownFalsePositive?: {
-        matches: (message: Message) => boolean
-        description: string
-    }
-): void {
-    it("passes publint", async () => {
-        const tarball = Readable.toWeb(fs.createReadStream(tarballPath))
-        const { messages, pkg } = await publint({ pack: { tarball } })
-
-        const unexpected = messages.filter(
-            (message) => !knownFalsePositive?.matches(message)
-        )
-        expect(
-            unexpected.map(
-                (message) =>
-                    `[${message.type}] ${formatMessage(message, pkg, { color: false })}`
-            )
-        ).toEqual([])
-
-        // If the false positive disappears (fixed upstream, or the bundle
-        // changed), the exception should be removed.
-        if (knownFalsePositive)
-            expect(
-                messages.some(knownFalsePositive.matches),
-                `publint no longer reports the known false positive (${knownFalsePositive.description}) — remove the exception.`
-            ).toBe(true)
-    })
 }
 
 function writeTsconfig(
@@ -367,4 +325,35 @@ export function describePackedPackage(options: PackedPackageOptions): void {
             runTsc("tsconfig.dtscheck.json")
         })
     })
+}
+
+// Grapher renders lazily once scrolled into view. happy-dom does no layout,
+// so its IntersectionObserver never fires — replace it with one that reports
+// the chart visible immediately.
+export function stubImmediateIntersectionObserver(): void {
+    vi.stubGlobal(
+        "IntersectionObserver",
+        class {
+            constructor(
+                private readonly callback: IntersectionObserverCallback
+            ) {}
+            observe(target: Element): void {
+                this.callback(
+                    [
+                        {
+                            isIntersecting: true,
+                            target,
+                        } as IntersectionObserverEntry,
+                    ],
+                    this as unknown as IntersectionObserver
+                )
+            }
+            unobserve(): void {
+                // noop
+            }
+            disconnect(): void {
+                // noop
+            }
+        }
+    )
 }

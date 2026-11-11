@@ -27,6 +27,7 @@ import {
 import { SlideRenderer } from "./SlideRenderer.js"
 import { SiteSlideChartEmbed } from "./SiteSlideChartEmbed.js"
 import { SlideLogo } from "./SlideLogo.js"
+import { useHasHydrated } from "../hooks.js"
 
 export const _OWID_SLIDESHOW_PROPS = "_OWID_SLIDESHOW_PROPS"
 
@@ -139,10 +140,14 @@ export function SlideshowPresentation(props: {
 
     const containerRef = useRef<HTMLDivElement>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    // Fullscreen isn't available on iPhone, or in iframes that don't allow it.
+    // Only checked after hydration to avoid a mismatch.
+    const hasHydrated = useHasHydrated()
+    const canFullscreen = hasHydrated && !!document.fullscreenEnabled
 
     const toggleFullscreen = useCallback(() => {
         const el = containerRef.current
-        if (!el) return
+        if (!el || !document.fullscreenEnabled) return
         if (!document.fullscreenElement) {
             void el.requestFullscreen()
         } else {
@@ -259,17 +264,21 @@ export function SlideshowPresentation(props: {
                         <FontAwesomeIcon icon={faChevronRight} />
                     </button>
                 </div>
-                <button
-                    className="SlideshowPresentation__fullscreen-button"
-                    onClick={toggleFullscreen}
-                    aria-label={
-                        isFullscreen ? "Exit fullscreen" : "Enter fullscreen"
-                    }
-                >
-                    <FontAwesomeIcon
-                        icon={isFullscreen ? faCompress : faExpand}
-                    />
-                </button>
+                {canFullscreen && (
+                    <button
+                        className="SlideshowPresentation__fullscreen-button"
+                        onClick={toggleFullscreen}
+                        aria-label={
+                            isFullscreen
+                                ? "Exit fullscreen"
+                                : "Enter fullscreen"
+                        }
+                    >
+                        <FontAwesomeIcon
+                            icon={isFullscreen ? faCompress : faExpand}
+                        />
+                    </button>
+                )}
             </div>
         </div>
     )

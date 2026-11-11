@@ -12,11 +12,8 @@ import urlJoin from "url-join"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy, faSpinner, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { copyToClipboard } from "@ourworldindata/utils"
-import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-} from "../adminShared/search.js"
+import { useListSearch } from "./useListSearch.js"
+import { useSearchQueryParam } from "./variableSearchQuery.js"
 
 type FileMapOrFile = DbPlainFile | FileMap
 
@@ -147,13 +144,9 @@ function FileMapViewer({
     )
 }
 
-function SearchResultsViewer({
-    fileMap,
-    searchValue,
-}: {
-    fileMap: FileMap
-    searchValue: string
-}) {
+const searchedText = (file: DbPlainFile) => [file.filename, file.path]
+
+function SearchResultsViewer({ fileMap }: { fileMap: FileMap }) {
     const allFiles = useMemo(() => {
         const flattenFiles = (
             map: FileMap,
@@ -176,22 +169,9 @@ function SearchResultsViewer({
 
         return flattenFiles(fileMap)
     }, [fileMap])
-    const searchWords = useMemo(
-        () => buildSearchWordsFromSearchString(searchValue),
-        [searchValue]
-    )
-
-    const filteredFiles = useMemo(() => {
-        const filterFn = filterFunctionForSearchWords(
-            searchWords,
-            (file: DbPlainFile) => [file.filename, file.path]
-        )
-        return allFiles.filter(filterFn)
-    }, [allFiles, searchWords])
-
-    const highlightFn = useMemo(
-        () => highlightFunctionForSearchWords(searchWords),
-        [searchWords]
+    const { filtered: filteredFiles, highlight: highlightFn } = useListSearch(
+        allFiles,
+        searchedText
     )
 
     return (
@@ -304,7 +284,7 @@ export function FilesIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const location = useLocation()
     const history = useHistory()
-    const [searchValue, setSearchValue] = useState("")
+    const [searchValue, setSearchValue] = useSearchQueryParam()
 
     const { data } = useQuery({
         queryKey: ["files"],
@@ -386,10 +366,7 @@ export function FilesIndexPage() {
                     />
                 </Space>
                 {searchValue.length > 3 ? (
-                    <SearchResultsViewer
-                        fileMap={data || {}}
-                        searchValue={searchValue}
-                    />
+                    <SearchResultsViewer fileMap={data || {}} />
                 ) : (
                     <FileMapViewer
                         fileMap={data || {}}

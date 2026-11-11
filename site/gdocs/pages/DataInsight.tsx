@@ -1,7 +1,4 @@
-import {
-    OwidGdocDataInsightInterface,
-    formatAuthors,
-} from "@ourworldindata/utils"
+import { OwidGdocDataInsightInterface } from "@ourworldindata/utils"
 import { useContext } from "react"
 import * as React from "react"
 import LatestBreadcrumb from "../components/LatestBreadcrumb.js"
@@ -13,14 +10,7 @@ import StandalonePostBody, {
 } from "../components/StandalonePostBody.js"
 import { dataInsightsToCarouselItems } from "../components/latestCarouselItems.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
-import { buildSocialText } from "../socialText.js"
-import { CopySocialButton } from "../components/CopySocialButton.js"
 import { buildLatestPagePath } from "../../latest/latestUtils.js"
-
-function buildAuthorsNote(authors: string[]): string | undefined {
-    if (authors.length === 0) return undefined
-    return `(This Data Insight was written by ${formatAuthors(authors)}.)`
-}
 
 type DataInsightProps = {
     className?: string
@@ -56,17 +46,6 @@ export const DataInsightPage = (
                         <CopyLinkButton
                             path={`/data-insights/${props.slug}`}
                             trackNote="data_insight_copy_link"
-                        />
-                        <CopySocialButton
-                            className="copy-link-button"
-                            text={buildSocialText({
-                                title: props.content.title,
-                                body: props.content.body,
-                                authorsNote: buildAuthorsNote(
-                                    props.content.authors
-                                ),
-                                linkedDocuments: attachments.linkedDocuments,
-                            })}
                         />
                     </>
                 }

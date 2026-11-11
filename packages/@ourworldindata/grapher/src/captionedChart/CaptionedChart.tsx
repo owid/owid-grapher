@@ -166,6 +166,7 @@ export class CaptionedChart extends AbstractCaptionedChart {
 
     @computed private get verticalPaddingSmall(): number {
         if (this.manager.isOnMapTab) return 4
+        if (this.manager.isOnTableTab) return this.manager.isMedium ? 4 : 8
         return this.manager.isMedium ? 8 : 16
     }
 

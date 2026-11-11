@@ -29,7 +29,7 @@ export interface SeriesLabelStateOptions {
     showRegionTooltip?: boolean
 }
 
-export type TextRole = "name" | "value" | "regionPublisherSuffix" | "regionIcon"
+export type TextRole = "name" | "value" | "suffix" | "regionIcon"
 
 export interface TextSpan {
     role: TextRole
@@ -133,8 +133,7 @@ export class SeriesLabelState {
     }
 
     @computed private get name(): string {
-        // Only split the suffix from the main text if it names a region publisher
-        return this.parsedText.publisherKey
+        return this.parsedText.suffix
             ? this.parsedText.name
             : this.parsedText.raw
     }
@@ -201,68 +200,62 @@ export class SeriesLabelState {
     }
 
     /**
-     * Fragments for the parenthetical region publisher suffix (e.g. "(WHO)")
+     * Lines for the parenthetical suffix (e.g. "(WHO)")
      *
      * Some region sets have an associated tooltip, in which case we render
      * an info icon inside the parentheses. If there is no info icon, the
      * suffix is rendered in a muted style to visually differentiate it from
      * the main name.
      */
-    @computed private get suffixFragments(): ContentFragment[] | undefined {
-        if (!this.parsedText.publisherKey) return undefined
+    @computed private get suffixLines(): ContentLine[] | undefined {
+        if (!this.parsedText.suffix) return undefined
 
         const fontSettings = { ...this.fontSettings, fontWeight: 400 }
+        const makeTextFragment = (
+            text: string,
+            width: number
+        ): TextFragment => ({
+            type: "text",
+            role: "suffix",
+            text,
+            width,
+            fontWeight: fontSettings.fontWeight,
+        })
 
-        if (this.regionIconInfo && !this.regionIconFragments) {
-            const textBeforeIcon = `(${this.parsedText.suffix}`
-            const textAfterIcon = `)`
+        const iconInfo = this.regionIconFragments
+            ? undefined
+            : this.regionIconInfo
+        const closingParenthesis = ")"
+        const trailingFragments: ContentFragment[] = iconInfo
+            ? [
+                  this.spaceFragment,
+                  {
+                      type: "icon",
+                      width: this.iconSize,
+                      iconSize: this.iconSize,
+                      ...iconInfo,
+                  },
+                  makeTextFragment(
+                      closingParenthesis,
+                      Bounds.forText(closingParenthesis, fontSettings).width
+                  ),
+              ]
+            : []
+        const trailingWidth = _.sumBy(trailingFragments, (f) => f.width)
 
-            const textBeforeWidth = Bounds.forText(
-                textBeforeIcon,
-                fontSettings
-            ).width
-            const textAfterWidth = Bounds.forText(
-                textAfterIcon,
-                fontSettings
-            ).width
+        const suffixWrap = new TextWrap({
+            text: iconInfo
+                ? `(${this.parsedText.suffix}`
+                : `(${this.parsedText.suffix})`,
+            maxWidth: this.options.maxWidth - trailingWidth,
+            ...fontSettings,
+        })
 
-            return [
-                {
-                    type: "text",
-                    role: "regionPublisherSuffix",
-                    text: textBeforeIcon,
-                    width: textBeforeWidth,
-                    fontWeight: fontSettings.fontWeight,
-                },
-                this.spaceFragment,
-                {
-                    type: "icon",
-                    width: this.iconSize,
-                    iconSize: this.iconSize,
-                    ...this.regionIconInfo,
-                },
-                {
-                    type: "text",
-                    role: "regionPublisherSuffix",
-                    text: textAfterIcon,
-                    width: textAfterWidth,
-                    fontWeight: fontSettings.fontWeight,
-                },
-            ]
-        } else {
-            const text = `(${this.parsedText.suffix})`
-            const width = Bounds.forText(text, fontSettings).width
-
-            return [
-                {
-                    type: "text",
-                    role: "regionPublisherSuffix",
-                    text,
-                    width,
-                    fontWeight: fontSettings.fontWeight,
-                },
-            ]
-        }
+        const lines: ContentLine[] = suffixWrap.lines.map((line) => [
+            makeTextFragment(line.text, line.width),
+        ])
+        lines[lines.length - 1].push(...trailingFragments)
+        return lines
     }
 
     @computed private get valueFragments(): ContentFragment[] | undefined {
@@ -312,7 +305,7 @@ export class SeriesLabelState {
         if (this.regionIconFragments) return "regionIcon"
 
         // Suffix has priority
-        if (this.suffixFragments) {
+        if (this.suffixLines) {
             const suffixText = `(${this.parsedText.suffix})`
             const reservedWidth = this.regionIconInfo
                 ? this.iconSize + this.spaceWidth
@@ -322,7 +315,7 @@ export class SeriesLabelState {
                 textToAppend: suffixText,
                 reservedWidth,
             })
-            return fits ? "regionPublisherSuffix" : undefined
+            return fits ? "suffix" : undefined
         }
 
         // Only consider value if not forced to new line
@@ -337,25 +330,19 @@ export class SeriesLabelState {
         return undefined
     }
 
-    @computed private get fragmentGroups(): {
+    @computed private get lineGroups(): {
         role: TextRole
-        fragments: ContentFragment[]
+        lines: ContentLine[]
     }[] {
         return excludeUndefined([
-            this.suffixFragments
-                ? {
-                      role: "regionPublisherSuffix",
-                      fragments: this.suffixFragments,
-                  }
+            this.suffixLines
+                ? { role: "suffix", lines: this.suffixLines }
                 : undefined,
             this.regionIconFragments
-                ? {
-                      role: "regionIcon",
-                      fragments: this.regionIconFragments,
-                  }
+                ? { role: "regionIcon", lines: [this.regionIconFragments] }
                 : undefined,
             this.valueFragments
-                ? { role: "value", fragments: this.valueFragments }
+                ? { role: "value", lines: [this.valueFragments] }
                 : undefined,
         ])
     }
@@ -365,7 +352,7 @@ export class SeriesLabelState {
         const {
             nameWrap,
             spaceFragment,
-            fragmentGroups,
+            lineGroups,
             roleOnNameLine,
             fontSettings: { fontWeight },
         } = this
@@ -384,11 +371,11 @@ export class SeriesLabelState {
         // Reference to the last line of the name
         const lastNameLine = lines[lines.length - 1]
 
-        // Append suffix and value fragments to the last line or add as new lines
-        for (const { role, fragments } of fragmentGroups) {
+        // Append suffix and value lines to the last name line or add as new lines
+        for (const { role, lines: groupLines } of lineGroups) {
             if (roleOnNameLine === role)
-                lastNameLine.push(spaceFragment, ...fragments)
-            else lines.push(fragments)
+                lastNameLine.push(spaceFragment, ...groupLines[0])
+            else lines.push(...groupLines)
         }
 
         return lines

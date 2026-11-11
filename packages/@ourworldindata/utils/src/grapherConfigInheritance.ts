@@ -14,13 +14,13 @@ import * as Sentry from "@sentry/browser"
 // even when they happen to match the parent stack. Every other field,
 // `dimensions` included, is an ordinary inherited property: it survives in the
 // patch only as a genuine override.
-const KEYS_EXCLUDED_FROM_INHERITANCE = [
+export const KEYS_EXCLUDED_FROM_INHERITANCE = [
     "$schema",
     "id",
     "slug",
     "version",
     "isPublished",
-]
+] as const satisfies readonly (keyof GrapherInterface)[]
 
 export function mergeGrapherConfigs(
     ...grapherConfigs: GrapherInterface[]
