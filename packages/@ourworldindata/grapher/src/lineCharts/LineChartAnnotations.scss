@@ -1,3 +1,21 @@
-.line-chart-point-annotations__marker {
+.line-chart-point-annotations__marker,
+.line-chart-range-annotations__hit-area {
     cursor: pointer;
+}
+
+.line-chart-range-annotations__outline {
+    animation: line-chart-range-annotations-fade-in var(--duration-press)
+        var(--ease-out) both;
+}
+
+@keyframes line-chart-range-annotations-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .line-chart-range-annotations__outline {
+        animation: none;
+    }
 }

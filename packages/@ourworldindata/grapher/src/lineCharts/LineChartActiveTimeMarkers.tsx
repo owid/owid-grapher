@@ -33,7 +33,11 @@ export function LineChartActiveTimeMarkers({
     return (
         <>
             {times.map((time) => (
-                <g className="hoverIndicator" key={time}>
+                <g
+                    className="hoverIndicator"
+                    key={time}
+                    style={{ pointerEvents: "none" }}
+                >
                     <line
                         x1={roundForSvg(horizontalAxis.place(time))}
                         y1={roundForSvg(verticalAxis.range[0])}

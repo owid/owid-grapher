@@ -17,6 +17,7 @@ import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { SeriesLabelTooltip } from "../seriesLabel/SeriesLabel"
 import { VerticalLabels } from "../verticalLabels/VerticalLabels"
+import { AnnotationMarker } from "../annotations/EntityAnnotations"
 import { VerticalLabelsState } from "../verticalLabels/VerticalLabelsState"
 import { TooltipState } from "../tooltip/Tooltip"
 import { LineChartTooltip } from "./LineChartTooltip"
@@ -50,7 +51,10 @@ import {
     ELEVATED_MARKER_RADIUS,
     AnnotationTooltipEvent,
     AnnotationTooltipState,
+    PlacedRangeAnnotation,
     RenderPointAnnotation,
+    RenderRangeAnnotation,
+    LINE_STYLE,
 } from "./LineChartConstants"
 import {
     getHoverStateForSeries,
@@ -66,13 +70,17 @@ import {
     findClosestTimeAtMouse,
     getAnnotationsForSeries,
     getYAxisConfigDefaults,
+    isMarkerTooltipOpen,
     toPlacedLineChartSeries,
     toRenderLineChartSeries,
     toSeriesLabelAnnotations,
     transitionAnnotationTooltipState,
 } from "./LineChartHelpers"
 import { LineChartActiveTimeMarkers } from "./LineChartActiveTimeMarkers"
-import { LineChartPointAnnotations } from "./LineChartAnnotations"
+import {
+    LineChartPointAnnotations,
+    LineChartRangeAnnotations,
+} from "./LineChartAnnotations"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
 import { Lines } from "./Lines"
 import { LineChartState } from "./LineChartState.js"
@@ -81,6 +89,7 @@ import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
 import { resolveEmphasis } from "../interaction/Emphasis"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import { RANGE_ANNOTATION_HALO_WIDTH } from "../annotations/AnnotationConstants"
 
 export type LineChartProps = ChartComponentProps<LineChartState>
 
@@ -235,6 +244,10 @@ export class LineChart
         return getMinHitAreaSize() / 2
     }
 
+    @computed private get annotationRangeHitWidth(): number {
+        return getMinHitAreaSize()
+    }
+
     @computed private get isTooltipActive(): boolean {
         return this.manager.tooltip?.get()?.id === this.tooltipId
     }
@@ -289,7 +302,7 @@ export class LineChart
 
     @action.bound private onAnnotationMarkerClick(
         seriesName: SeriesName,
-        time: Time
+        marker: AnnotationMarker
     ): void {
         this.chartState.focusArray.clear()
         this.dismissTooltip()
@@ -297,7 +310,7 @@ export class LineChart
         this.dispatchAnnotationTooltipEvent({
             type: "markerClick",
             seriesName,
-            time,
+            marker,
         })
     }
 
@@ -444,6 +457,7 @@ export class LineChart
             verticalAlign: VerticalAlign.top,
             isInteractive: !this.isStatic,
             canShowInfoIcons: true,
+            hasAnnotationMarkers: true,
         })
     }
 
@@ -560,6 +574,12 @@ export class LineChart
                 {this.renderColorLegend()}
                 {this.renderDualAxis()}
                 {this.renderChartElements()}
+                <LineChartRangeAnnotations
+                    annotations={this.renderRangeAnnotations}
+                    hitWidth={this.annotationRangeHitWidth}
+                    onClick={this.onAnnotationMarkerClick}
+                    onTooltipClose={this.onAnnotationTooltipClose}
+                />
 
                 {(this.isTooltipActive || this.hasTimeHighlights) && (
                     <LineChartActiveTimeMarkers
@@ -702,15 +722,31 @@ export class LineChart
         return this.isTooltipActive && this.activeTimes.includes(time)
     }
 
+    private isActiveTimeInRange({
+        startTime,
+        endTime,
+    }: PlacedRangeAnnotation["snappedTimeRange"]): boolean {
+        return (
+            this.isTooltipActive &&
+            this.activeTimes.some(
+                (time) => time >= startTime && time <= endTime
+            )
+        )
+    }
+
     @computed private get seriesNamesWithLabelInfoIcon(): Set<SeriesName> {
         return new Set(
             this.renderSeries
                 .filter(
                     (series) =>
                         !series.hover.background &&
-                        series.placedPointAnnotations.some(({ point }) =>
+                        (series.placedPointAnnotations.some(({ point }) =>
                             this.isAtHoveredTime(point.time)
-                        )
+                        ) ||
+                            series.placedRangeAnnotations.some(
+                                ({ snappedTimeRange }) =>
+                                    this.isActiveTimeInRange(snappedTimeRange)
+                            ))
                 )
                 .map((series) => series.seriesName)
         )
@@ -718,11 +754,12 @@ export class LineChart
 
     @computed private get renderPointAnnotations(): RenderPointAnnotation[] {
         return this.renderSeries.flatMap((series, index) => {
-            const state = this.annotationTooltipState
             const isTooltipOpenAt = (time: Time): boolean =>
-                state.kind === "markerOpen" &&
-                state.seriesName === series.seriesName &&
-                state.time === time
+                isMarkerTooltipOpen(
+                    this.annotationTooltipState,
+                    series.seriesName,
+                    { timeScope: "point", time }
+                )
             return series.placedPointAnnotations
                 .filter(
                     ({ point }) =>
@@ -738,9 +775,45 @@ export class LineChart
                     key: `${getSeriesKey(series, index)}-${placedAnnotation.point.time}`,
                     seriesName: series.seriesName,
                     emphasis: series.emphasis,
+                    heading: `${series.displayName}, ${this.chartState.formatColumn.formatTime(placedAnnotation.point.time)}`,
                     isTooltipOpen: isTooltipOpenAt(placedAnnotation.point.time),
                 }))
         })
+    }
+
+    @computed private get renderRangeAnnotations(): RenderRangeAnnotation[] {
+        return this.renderSeries.flatMap((series, index) =>
+            series.placedRangeAnnotations
+                .map((placedAnnotation) => {
+                    const { startTime, endTime } = placedAnnotation.annotation
+                    return {
+                        ...placedAnnotation,
+                        key: `${getSeriesKey(series, index)}-${startTime}-${endTime}`,
+                        seriesName: series.seriesName,
+                        emphasis: series.emphasis,
+                        heading: `${series.displayName}, ${this.chartState.formatColumn.formatTimeRange(startTime, endTime)}`,
+                        color: series.color,
+                        outlineWidth:
+                            LINE_STYLE[series.emphasis].strokeWidthFactor *
+                                this.lineStrokeWidth +
+                            2 * RANGE_ANNOTATION_HALO_WIDTH,
+                        isTooltipOpen: isMarkerTooltipOpen(
+                            this.annotationTooltipState,
+                            series.seriesName,
+                            { timeScope: "range", startTime, endTime }
+                        ),
+                    }
+                })
+                .filter(
+                    ({ isTooltipOpen, snappedTimeRange }) =>
+                        isTooltipOpen ||
+                        (!series.hover.background &&
+                            (this.isLabelTooltipShowingAnnotations(
+                                series.seriesName
+                            ) ||
+                                this.isActiveTimeInRange(snappedTimeRange)))
+                )
+        )
     }
 
     private findSeriesForLabel(series: LineChartSeries): LineChartSeries[] {
@@ -776,6 +849,7 @@ export class LineChart
             const { seriesName, displayName, color, focus } = series
             const lastValue = R.last(series.points)!.y
             const hover = this.hoverStateForSeries(series)
+            const seriesForLabel = this.findSeriesForLabel(series)
             return {
                 color,
                 seriesName,
@@ -785,13 +859,15 @@ export class LineChart
                     seriesName
                 ),
                 annotations: toSeriesLabelAnnotations(
-                    _.sortBy(
-                        this.findSeriesForLabel(series).flatMap(
+                    {
+                        pointAnnotations: seriesForLabel.flatMap(
                             (s) => s.pointAnnotations
                         ),
-                        (annotation) => annotation.time
-                    ),
-                    (time) => this.chartState.formatColumn.formatTime(time)
+                        rangeAnnotations: seriesForLabel.flatMap(
+                            (s) => s.rangeAnnotations
+                        ),
+                    },
+                    this.chartState.formatColumn
                 ),
                 yValue: lastValue,
                 emphasis: resolveEmphasis({ focus, hover }),
