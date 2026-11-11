@@ -123,6 +123,26 @@ const DATA_CATALOG_ATTRIBUTES = [
 ]
 
 /**
+ * An Algolia filter matching the given records. It lets a search return
+ * records found elsewhere (the vector candidates, vectorCandidates.ts) as
+ * ordinary hits: with the search's other filters applied, and one hit per
+ * chart or page. Callers pass ids from our own index, never a client's.
+ */
+const objectIDFilter = (objectIDs: string[]): string =>
+    objectIDs.map((id) => `objectID:${JSON.stringify(id)}`).join(" OR ")
+
+/** The hits sorted as their objectIDs are in `objectIDs`. */
+const inOrderOf = <T extends { objectID: string }>(
+    hits: T[],
+    objectIDs: string[]
+): T[] => {
+    const rank = new Map(objectIDs.map((id, i) => [id, i]))
+    return [...hits].sort(
+        (a, b) => (rank.get(a.objectID) ?? 0) - (rank.get(b.objectID) ?? 0)
+    )
+}
+
+/**
  * Fetches available topics from Algolia
  */
 async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
@@ -181,7 +201,9 @@ export async function searchCharts(
     state: SearchState,
     page: number = 0,
     hitsPerPage: number = 20,
-    baseUrl: string = "https://ourworldindata.org"
+    baseUrl: string = "https://ourworldindata.org",
+    /** only these records, in this order (see objectIDFilter) */
+    objectIDs?: string[]
 ): Promise<SearchApiResponse> {
     const facetFilters = buildChartsFacetFilters({
         query: state.query,
@@ -207,8 +229,10 @@ export async function searchCharts(
             hitsPerPage,
             page,
             ...(facetFilters.length > 0 && { facetFilters }),
+            ...(objectIDs && { filters: objectIDFilter(objectIDs) }),
         }
     )
+    if (objectIDs) result.hits = inOrderOf(result.hits, objectIDs)
 
     // If we got zero results and user is filtering by topic, check if the topic exists
     if (result.nbHits === 0) await assertTopicsExist(config, state.filters)
@@ -267,21 +291,29 @@ const PAGE_ATTRIBUTES = [
     "modifiedDate",
 ]
 
+/** The page types a pages search covers when it names none. */
+export const DEFAULT_PAGE_TYPES = ["article", "about-page"]
+
 export async function searchPages(
     config: AlgoliaConfig,
     query: string,
     offset: number = 0,
     length: number = 10,
-    pageTypes: string[] = ["article", "about-page"],
+    pageTypes: string[] = DEFAULT_PAGE_TYPES,
     baseUrl: string = "https://ourworldindata.org",
     extraAttributes: string[] = [],
     /** only pages tagged with this topic */
-    topic?: string
+    topic?: string,
+    /** only these records, in this order (see objectIDFilter) */
+    objectIDs?: string[]
 ): Promise<SearchPagesApiResponse> {
     const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
 
     // Build filters string for page types
-    const filters = pageTypes.map((type) => `type:${type}`).join(" OR ")
+    const typeFilter = pageTypes.map((type) => `type:${type}`).join(" OR ")
+    const filters = objectIDs
+        ? `(${typeFilter}) AND (${objectIDFilter(objectIDs)})`
+        : typeFilter
 
     const client = createSearchClient(config)
 
@@ -299,6 +331,7 @@ export async function searchPages(
             length,
         }
     )
+    if (objectIDs) result.hits = inOrderOf(result.hits, objectIDs)
 
     return {
         query,

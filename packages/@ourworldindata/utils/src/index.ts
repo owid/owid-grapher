@@ -462,6 +462,10 @@ export {
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
 
 export { RERANK_PAGES, RERANK_POOL_SIZE } from "./search/searchRerank.js"
+export {
+    SEARCH_EMBEDDING_MODEL,
+    VECTOR_NAMESPACES,
+} from "./search/searchVectors.js"
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"

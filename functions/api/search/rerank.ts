@@ -67,6 +67,9 @@ export interface SearchTimings {
     pool: number
     vocabulary?: number
     termSearches?: number
+    /** the vector lookup, which runs beside `pool`, then fetching its hits */
+    vectors?: number
+    vectorHits?: number
     rerank: number
     total: number
 }

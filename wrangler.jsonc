@@ -35,6 +35,15 @@
     // which authenticates with the dev/staging CLOUDFLARE_API_TOKEN. Deliberately not in
     // "preview" (public *.owid.pages.dev URLs) or "production", where the param returns 400.
     "ai": { "binding": "AI", "remote": true },
+    // Embeddings of the search records, for the experimental /api/search?vectors=1
+    // (functions/api/search/vectorCandidates.ts). Top level only, like the AI binding.
+    "vectorize": [
+        {
+            "binding": "SEARCH_VECTORS",
+            "index_name": "search-candidates-experiment",
+            "remote": true
+        }
+    ],
     "vars": {
         "ENV": "development",
         "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH": "v1",
