@@ -11,6 +11,7 @@ import {
 } from "../core/currency.js"
 import { WORLD_ENTITY_NAME } from "../core/constants.js"
 import type { Currency, TimeInterval } from "../core/types.js"
+import { formatLegendLabel } from "../core/legendLabels.js"
 
 /** Length in px of a 100% bar in the overlay legend */
 const OVERLAY_BAR_MAX_WIDTH = 100
@@ -177,7 +178,9 @@ export function IncomeDistributionLegend({
                                     />
                                 </span>
                                 <span className="income-distribution-legend__label">
-                                    {entry.label ?? entry.key}
+                                    {formatLegendLabel(
+                                        entry.label ?? entry.key
+                                    )}
                                 </span>
                             </li>
                         )
@@ -207,7 +210,7 @@ export function IncomeDistributionLegend({
                             style={{ backgroundColor: entry.color }}
                         />
                         <span className="income-distribution-legend__label">
-                            {entry.label ?? entry.key}
+                            {formatLegendLabel(entry.label ?? entry.key)}
                         </span>
                     </li>
                 ))}
@@ -246,7 +249,7 @@ export function IncomeDistributionLegend({
                             {...pointerHandlers(entry.key)}
                         >
                             <span className="income-distribution-legend__label">
-                                {entry.label ?? entry.key}
+                                {formatLegendLabel(entry.label ?? entry.key)}
                             </span>
                             <span className="income-distribution-legend__bar-cell">
                                 <span className="income-distribution-legend__bar-track">
