@@ -37,7 +37,6 @@ import {
     recommendTopicPages,
     TOPIC_PAGE_TYPE_FILTER,
     MAX_FACET_VALUES,
-    normalizePinnedSearch,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
@@ -65,13 +64,13 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
-    // Only what queryFeaturedViz depends on, so filters or a change of case
-    // don't refetch
+    // Only what queryFeaturedViz depends on. Country filters and case changes
+    // don't change the result, so they shouldn't send a new uncached request.
     featuredViz: (state: SearchState) =>
         [
             PAGES_INDEX,
             "featured-viz",
-            normalizePinnedSearch(state.query),
+            getFeaturedVizFilterForState(state),
         ] as const,
 } as const
 
@@ -371,24 +370,32 @@ export async function queryProfiles(
     return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
 }
 
+export function getFeaturedVizFilterForState(
+    state: SearchState
+): string | null {
+    const [topic] = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+    return getFeaturedVizFilter(state.query, topic)
+}
+
 /**
- * The featured viz at the top of the Data results, or null.
- * Ignores all filters: a pin is a deliberate pick for that exact search,
- * so the card shows whatever topic or country is selected. Narrowing by
- * topic would only hide it when the featured viz isn't tagged with the
- * selected topic.
+ * The featured viz at the top of the Data results, or null. Country filters
+ * don't narrow it. When several pages match, as when two featured viz share
+ * a topic, the pages index's ranking picks the most viewed one, as in the
+ * autocomplete.
  */
 export async function queryFeaturedViz(
     liteSearchClient: LiteClient,
     state: SearchState
 ): Promise<FeaturedVizHit | null> {
-    const filters = getFeaturedVizFilter(state.query)
+    const filters = getFeaturedVizFilterForState(state)
     if (!filters) return null
 
     const searchParams = {
         indexName: PAGES_INDEX,
         query: "",
         filters,
+        distinct: true,
+        hitsPerPage: 1,
         attributesToRetrieve: [
             "title",
             "slug",
@@ -397,7 +404,6 @@ export async function queryFeaturedViz(
             "authors",
             "excerpt",
         ],
-        hitsPerPage: 1,
     }
 
     const response = await searchSingleForHits<FeaturedVizHit>(

@@ -170,9 +170,13 @@ export class GdocFeaturedViz
         const errors: OwidGdocErrorMessage[] = []
 
         if ((this.content["pinned-for-searches"] ?? []).length === 0) {
+            const hasTags = (this.tags ?? []).length > 0
+            const noPinsMessage = hasTags
+                ? "No pinned searches are set, so this featured viz only shows as a card in the Data search results when a reader picks one of its topics and types nothing."
+                : "No pinned searches or topic tags are set, so this featured viz won't show as a card in the Data search results. Add pinned searches, a topic tag, or both."
             errors.push({
                 property: "pinned-for-searches",
-                message: `No pinned searches are set, so this page won't show as a card in the Data search results. To get suggestions, copy this into Claude Code: /suggest-pinned-searches https://docs.google.com/document/d/${this.id}/edit`,
+                message: `${noPinsMessage} To get suggestions, copy this into Claude Code: /suggest-pinned-searches https://docs.google.com/document/d/${this.id}/edit`,
                 type: OwidGdocErrorMessageType.Warning,
             })
         }

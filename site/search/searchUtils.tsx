@@ -376,16 +376,26 @@ export const PAGES_CHRONOLOGICAL_INDEX = getIndexName(
 export const AUTOCOMPLETE_PAGES_FILTER = `NOT type:${OwidGdocType.Profile} AND NOT type:${OwidGdocType.FeaturedViz}`
 
 /**
- * The pages-index filter matching featured-viz pages pinned for this exact
- * search, or null when the query normalizes to nothing. Matching the whole
- * normalized query, not a text search, because a text search would show a
- * featured viz on any shared word.
+ * The pages-index filter for the featured viz to show, or null when there is
+ * nothing to match on. The reader's words must be one of the searches a page
+ * is pinned for, matched whole: a text search would show a featured viz on
+ * any shared word. A selected topic narrows to pages tagged with it, and is
+ * enough on its own when no words are typed.
  */
-export function getFeaturedVizFilter(query: string): string | null {
-    const normalizedQuery = normalizePinnedSearch(query)
-    if (!normalizedQuery) return null
-    // Normalization strips quotes, so the value can't break out of them
-    return `type:${OwidGdocType.FeaturedViz} AND pinnedForSearches:"${normalizedQuery}"`
+export function getFeaturedVizFilter(
+    query: string,
+    topic?: string
+): string | null {
+    const words = normalizePinnedSearch(query)
+    if (!words && !topic) return null
+    return [
+        `type:${OwidGdocType.FeaturedViz}`,
+        // Normalization strips quotes, so the value can't break out of them
+        words && `pinnedForSearches:"${words}"`,
+        topic && `tags:${JSON.stringify(topic)}`,
+    ]
+        .filter(Boolean)
+        .join(" AND ")
 }
 export const DATA_CATALOG_ATTRIBUTES = [
     "title",

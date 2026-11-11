@@ -22,11 +22,11 @@ which fails if an entry here does not match a field of
   previews — the viz needs JavaScript, so it cannot stand in for one.
 - `hide-citation`: Set to true to hide the "Cite this work" section at the
   end of the page and the page citation in the methods box.
-- `pinned-for-searches`: Comma-separated searches this page is pinned for,
-  e.g. "population, world population". The page shows as a card at the top of
-  the Data search results only when a reader's whole search matches one of
-  these, ignoring case and punctuation. Each search can be pinned to only one
-  published featured viz. Omitted, the page never shows as a card.
+- `pinned-for-searches`: Comma-separated searches this featured viz is pinned
+  for, e.g. "population, world population". The featured viz shows as a card
+  at the top of the Data search results when a reader's whole search matches
+  one of these. The card also shows, pins or not, when a reader picks one of
+  the featured viz's topics and types nothing.
 - `body`: The page body: the featured viz and the prose around it. The first
   `{.bespoke-component}` block is the hero; see the template skeleton.
 - `refs`: Footnote definitions for ID-based references, authored as a

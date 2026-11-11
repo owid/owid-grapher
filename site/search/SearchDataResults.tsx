@@ -1,9 +1,13 @@
 import { useQuery } from "@tanstack/react-query"
-import { queryCharts, queryFeaturedViz, searchQueryKeys } from "./queries.js"
+import {
+    getFeaturedVizFilterForState,
+    queryCharts,
+    queryFeaturedViz,
+    searchQueryKeys,
+} from "./queries.js"
 import { useSelectedRegionNames, useInfiniteSearch } from "./searchHooks.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { SearchChartHit } from "@ourworldindata/types"
-import { normalizePinnedSearch } from "@ourworldindata/utils"
 import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 import { SearchClosestMatchesNotice } from "./SearchClosestMatchesNotice.js"
@@ -24,14 +28,10 @@ export const SearchDataResults = ({
         queryFn: queryCharts,
     })
 
-    // The featured viz: at most one page, fetched beside the charts. Not
-    // shown when browsing by filters alone. Its key starts with the pages
-    // index, so once React Query's retries run out, a failure shows the
-    // page-wide "search unavailable" notice, like any other index query.
     const featuredVizQuery = useQuery({
         queryKey: searchQueryKeys.featuredViz(state),
         queryFn: () => queryFeaturedViz(liteSearchClient, state),
-        enabled: normalizePinnedSearch(state.query) !== "",
+        enabled: getFeaturedVizFilterForState(state) !== null,
     })
     const featuredVizHit = featuredVizQuery.data
 
