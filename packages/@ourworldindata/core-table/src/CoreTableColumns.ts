@@ -34,6 +34,7 @@ import {
     CoreColumnDef,
     OwidColumnDef,
     EntityName,
+    IndicatorAnnotation,
     OwidVariableRow,
     ErrorValue,
     OwidVariableRoundingMode,
@@ -485,6 +486,11 @@ export abstract class AbstractCoreColumn<
         return _.uniq(this.allEntityNames)
     }
 
+    @imemo get annotations(): IndicatorAnnotation[] {
+        if (!this.isOwidColumn()) return []
+        return this.def.annotations ?? []
+    }
+
     @imemo private get allEntityNames(): EntityName[] {
         // Type guard: early return if not OwidColumn
         if (!this.isOwidColumn()) return []
@@ -629,10 +635,6 @@ class StringColumn<
     }
 }
 
-class SeriesAnnotationColumn<
-    TABLE_TYPE extends CoreTable = CoreTable,
-    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
-> extends StringColumn<TABLE_TYPE, DEF_TYPE> {}
 class CategoricalColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
@@ -1277,7 +1279,6 @@ class AgeColumn<
 
 export const ColumnTypeMap = {
     String: StringColumn,
-    SeriesAnnotation: SeriesAnnotationColumn,
     Categorical: CategoricalColumn,
     Ordinal: OrdinalColumn,
     Region: RegionColumn,

@@ -10,7 +10,7 @@ import {
     SortConfig,
     DumbbellTrendColorMap,
 } from "@ourworldindata/types"
-import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
+import { OwidTable, OwidColumn, CoreColumn } from "@ourworldindata/core-table"
 import { domainExtent } from "@ourworldindata/utils"
 import { ChartState } from "../chart/ChartInterface"
 import { makeToleranceNotice } from "../chart/ToleranceNotice"
@@ -39,11 +39,7 @@ import {
     SortKeyFn,
     sortByColumnValue,
 } from "../chart/ChartUtils"
-import {
-    AnnotationsMap,
-    getAnnotationsMap,
-    getAnnotationsForSeries,
-} from "../lineCharts/LineChartHelpers"
+import { selectEntityAnnotation } from "../annotations/EntityAnnotations"
 
 export class DumbbellChartState implements ChartState {
     manager: DumbbellChartManager
@@ -90,11 +86,11 @@ export class DumbbellChartState implements ChartState {
         return autoDetectYColumnSlugs(this.manager)
     }
 
-    @computed get yColumns(): CoreColumn[] {
+    @computed get yColumns(): OwidColumn[] {
         return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
     }
 
-    @computed get yColumn(): CoreColumn {
+    @computed get yColumn(): OwidColumn {
         return this.yColumns[0]
     }
 
@@ -156,10 +152,6 @@ export class DumbbellChartState implements ChartState {
         )
     }
 
-    @computed private get annotationsMap(): AnnotationsMap | undefined {
-        return getAnnotationsMap(this.inputTable, this.yColumnSlugs[0])
-    }
-
     @computed private get sortConfig(): SortConfig {
         return this.manager.sortConfig ?? {}
     }
@@ -181,7 +173,6 @@ export class DumbbellChartState implements ChartState {
             startTime,
             endTime,
             focusArray,
-            annotationsMap,
             directionColors: colors,
         } = this
 
@@ -232,10 +223,10 @@ export class DumbbellChartState implements ChartState {
                 const shortEntityName = getShortNameForEntity(entityName)
                 const displayName = shortEntityName ?? entityName
 
-                const annotation = getAnnotationsForSeries(
-                    annotationsMap,
+                const annotation = selectEntityAnnotation(
+                    yColumn,
                     entityName
-                )
+                )?.text
 
                 return {
                     seriesName: entityName,
@@ -254,7 +245,7 @@ export class DumbbellChartState implements ChartState {
 
     /** Constructs series by comparing two different columns' values at a single time point */
     private constructSeriesForTwoColumns(): DumbbellSeries[] {
-        const { endTime, focusArray, annotationsMap, columnColors } = this
+        const { endTime, focusArray, columnColors } = this
         const [startColumn, endColumn] = this.yColumns
 
         if (!startColumn || !endColumn) return []
@@ -289,10 +280,10 @@ export class DumbbellChartState implements ChartState {
                 const shortEntityName = getShortNameForEntity(entityName)
                 const displayName = shortEntityName ?? entityName
 
-                const annotation = getAnnotationsForSeries(
-                    annotationsMap,
+                const annotation = selectEntityAnnotation(
+                    startColumn,
                     entityName
-                )
+                )?.text
 
                 return {
                     seriesName: entityName,
