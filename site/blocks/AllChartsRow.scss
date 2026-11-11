@@ -31,18 +31,21 @@ $all-charts-row-thumbnail-gap: 8px;
 }
 
 .all-charts-row__heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 6px;
+}
+
+.all-charts-row__title {
+    @include h4-semibold;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
     overflow: hidden;
-    line-height: 1.25;
-}
-
-.all-charts-row__title {
-    @include h4-semibold;
-    display: inline;
-    margin: 0 6px 0 0;
+    min-width: 0;
+    margin: 0;
     line-height: 1.25;
     color: $blue-90;
 }
@@ -53,6 +56,11 @@ $all-charts-row-thumbnail-gap: 8px;
 
 .all-charts-row__variant {
     @include label-2-regular;
+    flex: 1 1 0;
+    min-width: min(6em, 100%);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     color: $blue-60;
 }
 
