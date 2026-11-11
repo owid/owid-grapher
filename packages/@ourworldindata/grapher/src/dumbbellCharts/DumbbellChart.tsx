@@ -16,6 +16,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     DumbbellValueLabelMode,
+    GrapherVariant,
     TickFormattingOptions,
 } from "@ourworldindata/types"
 import { action, computed, observable, makeObservable } from "mobx"
@@ -304,6 +305,14 @@ export class DumbbellChart
             minFixed: Number.isFinite(configMin),
             maxFixed: Number.isFinite(configMax),
         })
+    }
+
+    @computed private get isThumbnail(): boolean {
+        return this.manager.variant === GrapherVariant.Thumbnail
+    }
+
+    @computed private get shouldShowBackgroundLines(): boolean {
+        return !this.isThumbnail
     }
 
     @computed private get shouldShowEntityLabels(): boolean {
@@ -689,6 +698,7 @@ export class DumbbellChart
                             range={this.xRange}
                             valueLabelStyle={this.valueLabelStyle}
                             showEntityLabel={this.shouldShowEntityLabels}
+                            showBackgroundLine={this.shouldShowBackgroundLines}
                             y={series.y}
                         />
                     ))}
@@ -738,6 +748,7 @@ export class DumbbellChart
                             range={xRange}
                             valueLabelStyle={valueLabelStyle}
                             showEntityLabel={this.shouldShowEntityLabels}
+                            showBackgroundLine={this.shouldShowBackgroundLines}
                             y={0}
                             onInfoTooltipShow={this.dismissTooltip}
                         />
