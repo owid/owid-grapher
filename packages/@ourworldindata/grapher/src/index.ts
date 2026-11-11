@@ -36,6 +36,7 @@ export {
     BASE_FONT_SIZE,
     WORLD_ENTITY_NAME,
     Patterns,
+    CookieKey,
     CONTINENTS_INDICATOR_ID,
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
