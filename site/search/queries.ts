@@ -80,6 +80,8 @@ export const searchQueryKeys = {
 export const allChartsBlockQueryKeys = {
     charts: (request: Omit<AllChartsBlockRequest, "page">) =>
         [CHARTS_INDEX, "all-charts-block", request] as const,
+    suggestions: (topicSlug: string) =>
+        ["topic-vocabulary", topicSlug] as const,
 } as const
 
 export const latestPagesQueryKey = {

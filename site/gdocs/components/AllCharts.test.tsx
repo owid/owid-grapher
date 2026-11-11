@@ -37,10 +37,20 @@ const TABS: Record<string, string[]> = {
     alpha: ["Table", "WorldMap", "LineChart", "SlopeChart", "Marimekko"],
 }
 const DEFAULT_TABS = ["Table", "WorldMap", "LineChart"]
+const POVERTY_KEYWORDS = [
+    "GDP per capita",
+    "extreme poverty",
+    "relative poverty",
+    "multidimensional poverty",
+    "consumption",
+    "national poverty lines",
+    "consumer price index",
+]
 
 beforeEach(() => {
     observers.clear()
     vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver)
+    stubVocabulary({ poverty: { keywords: POVERTY_KEYWORDS } })
     searchForHits.mockReset()
     searchForHits.mockImplementation(
         async ([{ page, query }]: [{ page: number; query: string }]) =>
@@ -59,6 +69,7 @@ it("fetches nothing until the block nears the viewport, then shows the first pag
     await flushEffects()
 
     expect(searchForHits).not.toHaveBeenCalled()
+    expect(fetch).not.toHaveBeenCalled()
     expect(document.querySelector(".animate-pulse")).not.toBeNull()
 
     fireIntersectionObserversMatching("section")
@@ -210,6 +221,81 @@ it("filters by countries typed into the search and shows them on the rows, thumb
         "alpha?tab=line&country=~ESP"
     )
 })
+
+it("shows the first five suggestions, and hides the one being searched for", async () => {
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    await screen.findByRole("button", { name: "GDP per capita" })
+    expect(getSuggestions()).toEqual([
+        "GDP per capita",
+        "extreme poverty",
+        "relative poverty",
+        "multidimensional poverty",
+        "consumption",
+    ])
+
+    fireEvent.click(screen.getByRole("button", { name: "relative poverty" }))
+
+    expect(screen.getByRole("textbox")).toHaveValue("relative poverty")
+    expect(screen.getByRole("textbox")).toHaveFocus()
+    await flushEffects()
+    expect(requestedQueries()).toEqual(["", "relative poverty"])
+    expect(getSuggestions()).toEqual([
+        "GDP per capita",
+        "extreme poverty",
+        "multidimensional poverty",
+        "consumption",
+        "national poverty lines",
+    ])
+
+    fireEvent.change(screen.getByRole("textbox"), {
+        target: { value: "gdp per capita" },
+    })
+
+    expect(getSuggestions()).toEqual([
+        "extreme poverty",
+        "relative poverty",
+        "multidimensional poverty",
+        "consumption",
+        "national poverty lines",
+    ])
+})
+
+it.each([
+    {
+        scenario: "a topic missing from the vocabulary",
+        fetchVocabulary: async (): Promise<Response> => Response.json({}),
+    },
+    {
+        scenario: "a failed vocabulary request",
+        fetchVocabulary: async (): Promise<Response> => {
+            throw new TypeError("Failed to fetch")
+        },
+    },
+])("shows no suggestions for $scenario", async ({ fetchVocabulary }) => {
+    vi.stubGlobal("fetch", vi.fn(fetchVocabulary))
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+    await flushEffects()
+
+    expect(document.querySelector(".all-charts-block__suggestions")).toBeNull()
+})
+
+function stubVocabulary(vocabulary: object): void {
+    vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => new Response(JSON.stringify(vocabulary)))
+    )
+}
+
+function getSuggestions(): string[] {
+    return Array.from(
+        document.querySelectorAll(".all-charts-block__suggestion-button")
+    ).map((button) => button.textContent ?? "")
+}
 
 function makeResponse(page: number, slugs: string[], nbHits = 3): unknown {
     const hits = slugs.map((slug) => ({
