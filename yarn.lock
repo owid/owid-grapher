@@ -3023,12 +3023,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pydantic/genai-prices@npm:^0.1.11":
-  version: 0.1.11
-  resolution: "@pydantic/genai-prices@npm:0.1.11"
+"@pydantic/genai-prices@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "@pydantic/genai-prices@npm:0.2.1"
   bin:
     genai-prices: dist/cli.js
-  checksum: 10/4f5dc6e54815d204b4e2abd9530c60d2ec34953754787e1874cdf171afcf74b5090c0a774ffd00c60ec35b1cd4ce566734c58ce288d4ba237c8255b0f4cb52fb
+  checksum: 10/029884e2565fc4ef4b69915298021f3ad8317b1adc7149e98215b1f080b12ba3f138eea38274502d529374b9ea492adb352083ed37e3b9156382e31bb4fc0e67
   languageName: node
   linkType: hard
 
@@ -8562,7 +8562,7 @@ __metadata:
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@playwright/test": "npm:^1.63.0"
-    "@pydantic/genai-prices": "npm:^0.1.11"
+    "@pydantic/genai-prices": "npm:^0.2.1"
     "@react-aria/optimize-locales-plugin": "npm:^2.1.0"
     "@react-querybuilder/antd": "npm:^8.23.1"
     "@rollup/plugin-swc": "npm:^0.4.1"
