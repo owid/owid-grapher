@@ -227,7 +227,6 @@ export class EditorTextTab extends Component<EditorTextTabProps> {
                         options={[
                             { label: "OWID", value: "owid" },
                             { label: "CORE+OWID", value: "core+owid" },
-                            { label: "GV+OWID", value: "gv+owid" },
                             { label: "No logo", value: "none" },
                         ]}
                         value={

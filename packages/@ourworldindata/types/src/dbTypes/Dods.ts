@@ -3,7 +3,7 @@ export const DodsTableName = "dods"
 export interface DbInsertDod {
     name: string
     content: string
-    lastUpdatedUserId: number
+    lastUpdatedUserId?: number | null
     createdAt?: Date
     updatedAt?: Date
     id?: number

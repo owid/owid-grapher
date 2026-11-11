@@ -9,7 +9,7 @@ import {
 
 import { BespokeMetadata } from "@ourworldindata/types"
 
-import { useEmbedConfig } from "../../hooks/useEmbedConfig.js"
+import { useEmbedOptions } from "../../hooks/useEmbedOptions.js"
 
 interface BespokeMetadataContextValue {
     metadata?: BespokeMetadata
@@ -32,7 +32,7 @@ export function BespokeMetadataProvider({
     metadata: BespokeMetadata | undefined
     children: React.ReactNode
 }): React.ReactElement {
-    const { hideMetadataModal } = useEmbedConfig()
+    const { hideMetadataModal } = useEmbedOptions()
     const [isModalOpen, setIsModalOpen] = useState(false)
     const frameRef = useRef<HTMLDivElement | null>(null)
 

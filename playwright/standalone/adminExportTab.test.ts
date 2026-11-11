@@ -82,7 +82,7 @@ test.describe("displayed elements", () => {
         )
         await editor.openTab("Export")
         expect(await titleText(editor, await downloadSvg(editor))).toBe(
-            "Test chart2020"
+            "Test chart 2020"
         )
 
         await editor.checkbox("Title suffix: automatic time").uncheck()
@@ -180,30 +180,4 @@ test("downloads are named after the chart and the preview size", async ({
         editor.button(/Download SVG/).click(),
     ])
     expect(svg.suggestedFilename()).toBe("life-expectancy-export-mobile.svg")
-})
-
-test("only published charts link to the animation wizard", async ({
-    seedChart,
-    openEditor,
-}) => {
-    const draft = await openEditor(
-        await seedChart(lineChart(indicators.lifeExpectancy))
-    )
-    await draft.openTab("Export")
-    await expect(draft.section("Animate chart")).toHaveCount(0)
-
-    const published = await openEditor(
-        await seedChart({
-            ...lineChart(indicators.lifeExpectancy),
-            slug: "an-animated-chart",
-            isPublished: true,
-        })
-    )
-    await published.openTab("Export")
-    const link = published.section("Animate chart").getByRole("link")
-    await expect(link).toHaveAttribute("href", /chart-animation/)
-    await expect(link).toHaveAttribute(
-        "href",
-        /animation_chart_url=.*an-animated-chart/
-    )
 })

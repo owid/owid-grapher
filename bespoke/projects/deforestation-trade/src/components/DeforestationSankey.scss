@@ -31,8 +31,9 @@
     position: relative;
 }
 
-// Use regular weight for every line, as in Grapher's legends.
-.deforestation-sankey .sankey__label text {
+// Use regular weight for the countries' labels, as in Grapher's legends;
+// the commodities' (coloured) names stay bold, set apart from the countries
+.deforestation-sankey .sankey__label:not(.sankey__label--colored) text {
     font-weight: 400;
 }
 
@@ -40,13 +41,6 @@
     color: $light-text;
     font-size: 12px;
     padding: 4px 0 0;
-}
-
-.deforestation-sankey__tooltip-description {
-    margin: 0 0 10px;
-    color: $light-text;
-    font-size: 13px;
-    line-height: 1.4;
 }
 
 .deforestation-sankey__tooltip-headline {
@@ -90,19 +84,37 @@
 }
 
 .deforestation-sankey__share-table .deforestation-sankey__share-table-name {
-    color: $dark-text;
+    width: 100%;
     padding-right: 12px;
+    color: $dark-text;
 }
 
-.deforestation-sankey__share-table .deforestation-sankey__share-table-value {
+.deforestation-sankey__share-table-value {
     color: $dark-text;
-    text-align: right;
     font-variant-numeric: tabular-nums;
-    padding-right: 12px;
 }
 
+// A name, its value, and the dotted leader between them, guiding the eye
+// from one to the other
+.deforestation-sankey__leader-row {
+    display: flex;
+    align-items: baseline;
+}
+
+.deforestation-sankey__leader {
+    flex: 1 1 auto;
+    min-width: 8px;
+    height: 1px;
+    margin: 0 4px;
+    background: radial-gradient(circle, #c6c6c6 0.6px, transparent 0.9px) left
+        center / 4px 1px repeat-x;
+}
+
+// A thin rule sets the shares apart from the hectares
 .deforestation-sankey__share-table .deforestation-sankey__share-table-share {
     width: 40px;
+    padding-left: 8px;
+    border-left: 1px solid #dadada;
     color: $light-text;
     text-align: right;
     font-variant-numeric: tabular-nums;
@@ -114,25 +126,12 @@
     padding: 4px 0 0;
 }
 
-.deforestation-sankey__tooltip-group {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding-top: 6px;
-    font-size: 13px;
-}
-
-// The value line inside a group tooltip is a TooltipValue block; keep it on
-// the icon's baseline rather than in a block of its own
-.deforestation-sankey__tooltip-group .variable {
-    margin: 0;
-}
-
-.deforestation-sankey__tooltip-group-icon {
-    flex: 0 0 auto;
+.deforestation-sankey__tooltip-badge {
+    display: block;
 }
 
 .deforestation-sankey__commodity-table {
+    width: 100%;
     border-collapse: collapse;
     margin-top: 6px;
     font-size: 12px;
@@ -154,14 +153,21 @@
 
 .deforestation-sankey__commodity-table
     .deforestation-sankey__commodity-table-name {
+    width: 100%;
     color: $dark-text;
-    padding-right: 16px;
     white-space: nowrap;
 }
 
 .deforestation-sankey__commodity-table-value {
     color: $light-text;
-    text-align: right;
-    white-space: nowrap;
     font-variant-numeric: tabular-nums;
+}
+
+// On hover, fade the rest of the chart rather than greying it out, as the
+// migration Sankey does, so the ribbons keep their commodity's colour
+.deforestation-sankey
+    .sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__link:not(.sankey__link--hovered):not(.sankey__link--active) {
+    fill-opacity: 0.2;
+    filter: none;
 }

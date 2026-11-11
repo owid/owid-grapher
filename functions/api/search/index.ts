@@ -1,6 +1,10 @@
 import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
-import { getAlgoliaConfig } from "./algoliaClient.js"
+import {
+    createSearchClient,
+    getAlgoliaConfig,
+    getIndexName,
+} from "./algoliaClient.js"
 import {
     isRerankModel,
     RERANK_MODELS,
@@ -29,8 +33,11 @@ import {
 import {
     appendVocabularyHits,
     pickVocabularyTerms,
+    matchVocabularyTopics,
+    pickTopicsByEmbedding,
     pickVocabularyTopics,
     VOCABULARY_HITS_PER_TERM,
+    VOCABULARY_TOPICS,
     vocabularyNote,
     type VocabularyInfo,
     type VocabularyTopicPick,
@@ -41,8 +48,14 @@ import {
     Filter,
     SearchUrlParam,
     ALL_GDOC_TYPES,
+    SearchIndexName,
     TagGraphRoot,
 } from "@ourworldindata/types"
+import {
+    rankTopicsOfChartHits,
+    searchSingleForHitsWithClosestMatches,
+    TOPIC_VOTING_CHART_HITS,
+} from "@ourworldindata/utils"
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
@@ -148,12 +161,25 @@ function parseRerank(
           model: RerankModel
           ai: Ai
           vocab: boolean
-          chartsVocab: "term" | "topic" | "query"
+          chartsVocab:
+              | "term"
+              | "topic"
+              | "query"
+              | "votes"
+              | "wide"
+              | "wideq"
+              | "embed"
       }
     | undefined {
-    // TODO: vocab=topic and vocab=query are variants under test for charts
-    // (see searchChartsReranked); keep whichever wins as vocab=1
-    if (vocab && !["1", "topic", "query"].includes(vocab))
+    // TODO: vocab=topic, vocab=query and vocab=votes are variants under test
+    // (see searchChartsReranked and pickTopicsByChartVotes); keep whichever
+    // wins as vocab=1
+    if (
+        vocab &&
+        !["1", "topic", "query", "votes", "wide", "wideq", "embed"].includes(
+            vocab
+        )
+    )
         throw new SearchValidationError(
             `Invalid vocab value "${vocab}". Use vocab=1`
         )
@@ -177,7 +203,58 @@ function parseRerank(
         ai: env.AI,
         vocab: !!vocab,
         chartsVocab:
-            vocab === "topic" ? "topic" : vocab === "query" ? "query" : "term",
+            vocab === "topic" ||
+            vocab === "query" ||
+            vocab === "votes" ||
+            vocab === "wide" ||
+            vocab === "embed" ||
+            vocab === "wideq"
+                ? vocab
+                : "term",
+    }
+}
+
+/**
+ * Under test (vocab=votes): the query's topics without a model call, as the
+ * topic page recommendations pick them. The charts matching the query vote
+ * for their topic tags, weighted by rank (rankTopicsOfChartHits), and the
+ * VOCABULARY_TOPICS winners are the picks. No matching chart, no picks.
+ */
+async function pickTopicsByChartVotes(
+    config: ReturnType<typeof getAlgoliaConfig>,
+    query: string,
+    loadTagGraph: () => Promise<TagGraphRoot>
+): Promise<VocabularyInfo<VocabularyTopicPick>> {
+    const started = Date.now()
+    try {
+        const [found, tagGraph] = await Promise.all([
+            searchSingleForHitsWithClosestMatches<{ tags?: string[] }>(
+                createSearchClient(config),
+                {
+                    indexName: getIndexName(
+                        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+                        config.indexPrefix
+                    ),
+                    query,
+                    attributesToRetrieve: ["tags"],
+                    hitsPerPage: TOPIC_VOTING_CHART_HITS,
+                }
+            ),
+            loadTagGraph(),
+        ])
+        return {
+            terms: rankTopicsOfChartHits(found.hits, tagGraph)
+                .slice(0, VOCABULARY_TOPICS)
+                .map((topic) => ({ topic: topic.name })),
+            latencyMs: Date.now() - started,
+        }
+    } catch (error) {
+        console.error("Search topic votes failed:", error)
+        return {
+            terms: [],
+            latencyMs: Date.now() - started,
+            error: error instanceof Error ? error.message : String(error),
+        }
     }
 }
 
@@ -481,6 +558,36 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                       baseUrl,
                       ...(extraAttributes ? [extraAttributes] : [])
                   )
+        const pickTopics = (
+            rerank: NonNullable<ReturnType<typeof parseRerank>>
+        ): Promise<VocabularyInfo<VocabularyTopicPick>> => {
+            const byVotes = (): Promise<VocabularyInfo<VocabularyTopicPick>> =>
+                pickTopicsByChartVotes(algoliaConfig, query, () =>
+                    fetchTagGraph(env, baseUrl)
+                )
+            if (rerank.chartsVocab === "votes") return byVotes()
+            if (rerank.chartsVocab === "embed")
+                return pickTopicsByEmbedding(rerank.ai, query)
+            if (rerank.chartsVocab !== "wide" && rerank.chartsVocab !== "wideq")
+                return pickVocabularyTopics(rerank.ai, rerank.model, query)
+            // Under test (vocab=wide): no topic call. The topics the
+            // matching charts vote for and the ones whose terms look like
+            // the query are all candidates, and the rerank decides.
+            return Promise.all([
+                byVotes(),
+                matchVocabularyTopics(query, VOCABULARY_TOPICS).catch(
+                    (): string[] => []
+                ),
+            ]).then(([votes, matched]) => ({
+                ...votes,
+                terms: [
+                    ...new Set([
+                        ...votes.terms.map((term) => term.topic),
+                        ...matched,
+                    ]),
+                ].map((topic) => ({ topic })),
+            }))
+        }
 
         // A search already filtered to a topic gets no vocabulary hits: the
         // reader chose the topic
@@ -511,11 +618,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                                   rerank.model,
                                   query
                               )
-                            : pickVocabularyTopics(
-                                  rerank.ai,
-                                  rerank.model,
-                                  query
-                              )
+                            : pickTopics(rerank)
                         : undefined,
                 ]
             )
@@ -573,6 +676,23 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                         const found = await searchTopic(term.topic, query)
                         if (found.length > 0) return found
                     }
+                    if (rerank.chartsVocab === "wideq") {
+                        // Under test: the reader's query within the topic
+                        // first, then the topic's top charts, up to
+                        // VOCABULARY_HITS_PER_TERM charts the pool lacks
+                        const [matching, top] = await Promise.all([
+                            searchTopic(term.topic, query),
+                            searchTopic(term.topic, ""),
+                        ])
+                        const taken = new Set(pool.results.map((h) => h.url))
+                        return [...matching, ...top]
+                            .filter((hit) => {
+                                if (taken.has(hit.url)) return false
+                                taken.add(hit.url)
+                                return true
+                            })
+                            .slice(0, VOCABULARY_HITS_PER_TERM)
+                    }
                     return searchTopic(term.topic, "")
                 },
                 (hit) => hit.url
@@ -626,9 +746,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                             ["excerpt"]
                         )
                     ),
-                    rerank.vocab
-                        ? pickVocabularyTopics(rerank.ai, rerank.model, query)
-                        : undefined,
+                    rerank.vocab ? pickTopics(rerank) : undefined,
                 ]
             )
             // Pages carry the charts' topic tags, so the query's vocabulary

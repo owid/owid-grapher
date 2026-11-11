@@ -2,8 +2,14 @@ import { expect, it, describe } from "vitest"
 
 import { v7 as uuidv7 } from "uuid"
 
-import { MultiDimDataPageConfigEnriched } from "@ourworldindata/types"
-import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
+import {
+    Dimension,
+    MultiDimDataPageConfigEnriched,
+} from "@ourworldindata/types"
+import {
+    MultiDimDataPageConfig,
+    resolveDimensionPresentationType,
+} from "./MultiDimDataPageConfig.js"
 
 it("fromObject", () => {
     const config = MultiDimDataPageConfig.fromObject({ title: "Test" } as any)
@@ -91,5 +97,131 @@ describe("methods", () => {
             view: "stunting",
         })
         expect(view).toBeDefined()
+    })
+})
+
+describe(resolveDimensionPresentationType, () => {
+    const makeDimension = (
+        choiceCount: number,
+        overrides: Partial<Dimension> = {}
+    ): Dimension => ({
+        slug: "dim",
+        name: "Dimension",
+        choices: Array.from({ length: choiceCount }, (_, i) => ({
+            slug: `choice-${i}`,
+            name: `Choice ${i}`,
+        })),
+        ...overrides,
+    })
+
+    // Unless a test says otherwise, all of a dimension's choices are
+    // available.
+    const resolveWith = (
+        dimension: Dimension,
+        numberOfDimensions: number,
+        availableChoiceCount = dimension.choices.length
+    ): string =>
+        resolveDimensionPresentationType({
+            dimension,
+            numberOfDimensions,
+            availableChoiceCount,
+        })
+
+    describe("on a page with several dimensions", () => {
+        const resolve = (
+            dimension: Dimension,
+            availableChoiceCount?: number
+        ): string => resolveWith(dimension, 3, availableChoiceCount)
+
+        it("defaults to toggle buttons for at most two choices", () => {
+            expect(resolve(makeDimension(1))).toBe("toggle-buttons")
+            expect(resolve(makeDimension(2))).toBe("toggle-buttons")
+        })
+
+        it("defaults to dropdown for more than two choices", () => {
+            expect(resolve(makeDimension(3))).toBe("dropdown")
+        })
+
+        it("defaults to dropdown when choices are grouped", () => {
+            const dimension = makeDimension(2)
+            dimension.choices[0].group = "Group"
+            expect(resolve(dimension)).toBe("dropdown")
+        })
+
+        it("adds a search field when at least ten choices are available", () => {
+            expect(resolve(makeDimension(9))).toBe("dropdown")
+            expect(resolve(makeDimension(10))).toBe("dropdown-with-search")
+        })
+
+        // The search field depends on how many options the menu lists right
+        // now, not on how many the dimension has in total.
+        it("skips the search field when few choices are available", () => {
+            expect(resolve(makeDimension(30), 5)).toBe("dropdown")
+            expect(resolve(makeDimension(30), 10)).toBe("dropdown-with-search")
+        })
+
+        // Toggle group or dropdown is decided on all choices, so the control
+        // doesn't switch type as other selections change.
+        it("ignores availability when choosing between toggle buttons and dropdown", () => {
+            expect(resolve(makeDimension(2), 1)).toBe("toggle-buttons")
+            expect(resolve(makeDimension(3), 2)).toBe("dropdown")
+        })
+    })
+
+    // A lone dimension has the whole controls row to itself, so a toggle
+    // group stays readable with a few more choices.
+    describe("on a page with a single dimension", () => {
+        const resolve = (dimension: Dimension): string =>
+            resolveWith(dimension, 1)
+
+        it("defaults to toggle buttons for at most four choices", () => {
+            expect(resolve(makeDimension(3))).toBe("toggle-buttons")
+            expect(resolve(makeDimension(4))).toBe("toggle-buttons")
+        })
+
+        it("defaults to dropdown for more than four choices", () => {
+            expect(resolve(makeDimension(5))).toBe("dropdown")
+        })
+
+        it("defaults to dropdown when choices are grouped", () => {
+            const dimension = makeDimension(3)
+            dimension.choices[0].group = "Group"
+            expect(resolve(dimension)).toBe("dropdown")
+        })
+    })
+
+    it("respects an explicit presentation type", () => {
+        expect(
+            resolveWith(
+                makeDimension(2, { presentation: { type: "dropdown" } }),
+                3
+            )
+        ).toBe("dropdown")
+        expect(
+            resolveWith(
+                makeDimension(4, { presentation: { type: "dropdown" } }),
+                1
+            )
+        ).toBe("dropdown")
+        expect(
+            resolveWith(
+                makeDimension(5, { presentation: { type: "toggle-buttons" } }),
+                3
+            )
+        ).toBe("toggle-buttons")
+        expect(
+            resolveWith(
+                makeDimension(3, {
+                    presentation: { type: "dropdown-with-search" },
+                }),
+                3
+            )
+        ).toBe("dropdown-with-search")
+        expect(
+            resolveWith(
+                makeDimension(30, { presentation: { type: "dropdown" } }),
+                3
+            )
+        ).toBe("dropdown")
     })
 })

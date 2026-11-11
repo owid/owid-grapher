@@ -1,0 +1,70 @@
+.chart-search {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    margin-bottom: 16px;
+}
+
+.chart-search__box {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.chart-search__input {
+    width: 500px;
+}
+
+.chart-search__filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.chart-search__filter {
+    width: 120px;
+}
+
+.chart-search__filter--wide {
+    width: 150px;
+}
+
+.chart-search__filter--names {
+    width: 200px;
+
+    .ant-select-content {
+        flex-wrap: nowrap;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .ant-select-content-item:first-child {
+        min-width: 0;
+        flex-shrink: 1;
+    }
+
+    .ant-select-content-item:first-child .ant-select-selection-item {
+        max-width: 100%;
+    }
+}
+
+.chart-search__option {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.chart-search__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chart-search__count {
+    flex-shrink: 0;
+    color: #999;
+    font-variant-numeric: tabular-nums;
+}

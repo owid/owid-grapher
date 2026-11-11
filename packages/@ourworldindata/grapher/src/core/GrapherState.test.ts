@@ -611,18 +611,21 @@ it("canChangeEntity reflects all available entities before transforms", () => {
     expect(grapher.canChangeEntity).toBe(true)
 })
 
-it("dumbbell charts force multi-entity selection when mode is single-entity", () => {
-    const table = SynthesizeGDPTable()
-    const grapher = new GrapherState({
-        chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
-        addCountryMode: EntitySelectionMode.SingleEntity,
-        table,
-        selectedEntityNames: table.sampleEntityName(1),
-    })
+it.each([GRAPHER_CHART_TYPES.Dumbbell, GRAPHER_CHART_TYPES.Swimlane])(
+    "%s charts force multi-entity selection when mode is single-entity",
+    (chartType) => {
+        const table = SynthesizeGDPTable()
+        const grapher = new GrapherState({
+            chartTypes: [chartType],
+            addCountryMode: EntitySelectionMode.SingleEntity,
+            table,
+            selectedEntityNames: table.sampleEntityName(1),
+        })
 
-    expect(grapher.canSelectMultipleEntities).toBe(true)
-    expect(grapher.canChangeEntity).toBe(false)
-})
+        expect(grapher.canSelectMultipleEntities).toBe(true)
+        expect(grapher.canChangeEntity).toBe(false)
+    }
+)
 
 describe("syncing entity selection between the chart and map tab", () => {
     const chartSelection = ["Spain", "Italy"]
@@ -2097,6 +2100,38 @@ describe("adjustStateForTab", () => {
             )
         })
 
+        it("collapses time range to the end time when switching to the table tab", () => {
+            const grapher = createGrapher()
+            grapher.timelineHandleTimeBounds = [2000, 2010]
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.Table)
+
+            expect(grapher.startHandleTimeBound).toBe(
+                grapher.endHandleTimeBound
+            )
+            expect(grapher.endHandleTimeBound).toBe(2010)
+        })
+
+        it("expands the table's single time to a range when switching back to a range tab", () => {
+            const grapher = createGrapher()
+            grapher.timelineHandleTimeBounds = [2000, 2010]
+            switchTab(grapher, GRAPHER_TAB_NAMES.Table)
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
+
+            expect(grapher.startHandleTimeBound).not.toBe(
+                grapher.endHandleTimeBound
+            )
+        })
+
+        it("does not lock the table tab's timeline to a single time", () => {
+            const grapher = createGrapher()
+            switchTab(grapher, GRAPHER_TAB_NAMES.Table)
+
+            expect(grapher.onlyTimeRangeSelectionPossible).toBe(false)
+            expect(grapher.isSingleTimeSelectionActive).toBe(false)
+        })
+
         it("expands single time to a range when switching to a range tab", () => {
             const grapher = createGrapher()
 
@@ -2230,7 +2265,6 @@ describe("adjustStateForTab", () => {
                 maxTime: 2010,
             })
             const authoredSelection = grapher.selection.selectedEntityNames
-            const authoredHandles = [...grapher.timelineHandleTimeBounds]
 
             switchTab(grapher, GRAPHER_TAB_NAMES.Table)
             switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
@@ -2238,7 +2272,43 @@ describe("adjustStateForTab", () => {
             expect(grapher.selection.selectedEntityNames).toEqual(
                 authoredSelection
             )
-            expect(grapher.timelineHandleTimeBounds).toEqual(authoredHandles)
+            expect(grapher.startHandleTimeBound).not.toBe(
+                grapher.endHandleTimeBound
+            )
+        })
+
+        it("collapses a scatter-only chart with an authored single time after a range is set on the table", () => {
+            const grapher = createGrapher({
+                xSlug: SampleColumnSlugs.Population,
+                chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+                minTime: 2010,
+                maxTime: 2010,
+            })
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.Table)
+            grapher.timelineHandleTimeBounds = [2000, 2010]
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.startHandleTimeBound).toBe(
+                grapher.endHandleTimeBound
+            )
+        })
+
+        it("expands a scatter-only chart with an authored single time to a range in relative mode", () => {
+            const grapher = createGrapher({
+                xSlug: SampleColumnSlugs.Population,
+                chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+                minTime: 2010,
+                maxTime: 2010,
+            })
+            grapher.stackMode = StackMode.relative
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.Table)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.startHandleTimeBound).not.toBe(
+                grapher.endHandleTimeBound
+            )
         })
 
         it("keeps the authored selection and single time of a scatter-only chart", () => {

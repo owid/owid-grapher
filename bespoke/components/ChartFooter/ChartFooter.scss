@@ -22,6 +22,11 @@
         margin-top: 4px;
     }
 
+    .chart-footer__source a,
+    .chart-footer__note a {
+        overflow-wrap: anywhere;
+    }
+
     .chart-footer__learn-more {
         padding: 0;
         background: none;

@@ -46,6 +46,7 @@ import { RcFile } from "antd/es/upload/interface.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.mjs"
 import { NotificationInstance } from "antd/es/notification/interface.js"
 import { EditableTextarea } from "./EditableTextarea.js"
+import { useListSearch } from "./useListSearch.js"
 
 type ImageMap = Record<string, DbEnrichedImageWithPageviews>
 
@@ -709,6 +710,8 @@ function PutImageButton({
 
 const NotificationContext = createContext(null)
 
+const searchedText = (image: DbEnrichedImageWithPageviews) => [image.filename]
+
 export function ImageIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [notificationApi, notificationContextHolder] =
@@ -716,7 +719,6 @@ export function ImageIndexPage() {
     const [images, setImages] = useState<ImageMap>({})
     const [users, setUsers] = useState<UserMap>({})
     const [usage, setUsage] = useState<Record<string, UsageInfo[]>>({})
-    const [filenameSearchValue, setFilenameSearchValue] = useState("")
     const [imageTypeFilter, setImageTypeFilter] =
         useState<ImageTypeFilter>("all")
 
@@ -846,18 +848,19 @@ export function ImageIndexPage() {
         [admin, notificationApi]
     )
 
+    const imageList = useMemo(() => Object.values(images), [images])
+    const { searchValue, setSearchValue, filtered } = useListSearch(
+        imageList,
+        searchedText
+    )
     const filteredImages = useMemo(
         () =>
-            Object.values(images).filter((image) => {
-                const matchesFilename = image.filename
-                    .toLowerCase()
-                    .includes(filenameSearchValue.toLowerCase())
-                const matchesType =
-                    imageTypeFilter === "all" ||
-                    getImageType(image) === imageTypeFilter
-                return matchesFilename && matchesType
-            }),
-        [images, filenameSearchValue, imageTypeFilter]
+            imageTypeFilter === "all"
+                ? filtered
+                : filtered.filter(
+                      (image) => getImageType(image) === imageTypeFilter
+                  ),
+        [filtered, imageTypeFilter]
     )
 
     const columns = useMemo(
@@ -880,10 +883,8 @@ export function ImageIndexPage() {
                         <Flex gap={12}>
                             <Input
                                 placeholder="Search by filename"
-                                value={filenameSearchValue}
-                                onChange={(e) =>
-                                    setFilenameSearchValue(e.target.value)
-                                }
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
                                 style={{ width: 300, marginBottom: 20 }}
                             />
                             <Select

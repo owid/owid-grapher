@@ -160,11 +160,14 @@ export const GDOCS_PRIVATE_KEY: string = (
     .replaceAll('"', "")
     .replaceAll("'", "")
 export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
-export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
-    serverSettings.GDOCS_BACKPORTING_TARGET_FOLDER ?? ""
 
 export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
     serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ?? ""
+
+// Drive folder that POST /gdocs/archieml creates docs in when the request
+// names none
+export const GDOCS_EDIT_GDOC_FOLDER_ID: string =
+    serverSettings.GDOCS_EDIT_GDOC_FOLDER_ID ?? ""
 
 // Chart preview images in gdocs are fetched by Google's servers, so these must
 // be publicly reachable. That's why they default to production in every

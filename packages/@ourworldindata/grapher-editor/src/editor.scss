@@ -1,0 +1,8 @@
+// The editor's rules are still part of the admin's stylesheet
+@import "../../../../adminSiteClient/admin.scss";
+@import "../../grapher/src/core/grapher.scss";
+
+// The admin sizes the editor with its flex layout; a host sizes its container
+.ChartEditorPage {
+    height: 100%;
+}

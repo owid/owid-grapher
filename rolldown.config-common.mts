@@ -1,6 +1,6 @@
 // Build configuration that is shared between our vite builds (see
-// vite.config-common.mts) and the standalone grapher library build, which uses
-// tsdown (see packages/@ourworldindata/grapher/tsdown.config.ts).
+// vite.config-common.mts) and the npm package builds, which use tsdown (see
+// packages/@ourworldindata/tsdown.config-common.mts).
 //
 // Both bundlers run on rolldown, so everything in here must only depend on
 // rolldown - nothing vite-specific.
@@ -10,7 +10,12 @@ import { withFilter } from "rolldown/filter"
 import type { DeprecationOrId } from "sass"
 
 // see docs/browser-support.md
-export const BUILD_TARGET = ["chrome106", "firefox110", "safari16.0"]
+export const BUILD_TARGET = ["chrome106", "firefox110", "safari16.4"]
+
+// CSS can target older Safari than JS: unlike our JS, our CSS works in
+// Safari 16.0, as long as Lightning CSS doesn't rewrite `min-width`/`max-width`
+// media queries into range syntax (`width>=769px`, Safari 16.4+).
+export const CSS_BUILD_TARGET = ["chrome106", "firefox110", "safari16"]
 
 export const scssPreprocessorOptions = {
     // Prevent reintroducing deprecated features.
@@ -57,6 +62,12 @@ export const pluginSwcDecorators = (): Plugin =>
                     // This setting we need to override from @rollup/plugin-swc's default, otherwise it will not put optional properties on classes (e.g. `class A { optionalProp?: string }`), thereby breaking mobx decorators
                     loose: false,
                     target: "esnext",
+                    // Import the decorator helper from @swc/helpers instead of
+                    // inlining a ~3 KB copy into every file with decorators,
+                    // so the bundle contains it only once. Needs a direct
+                    // @swc/helpers dependency that has `_apply_decs_2311`
+                    // (>= 0.5.23); the published packages bundle it in.
+                    externalHelpers: true,
                 },
             },
         }),

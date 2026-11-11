@@ -206,32 +206,44 @@ test.describe("Refs tab", () => {
         )
     })
 
-    test("a chart with references can't be deleted", async ({
+    // Being used in published content blocks deletion; that needs a published
+    // gdoc, which can't be seeded through the admin API, so it's covered by
+    // adminSiteServer/tests/narrative-charts.test.ts
+    test("deleting a chart also deletes its unused narrative charts", async ({
         seedChart,
         openEditor,
         request,
     }) => {
         const chart = await seedChart(lineChart(indicators.lifeExpectancy))
-        await request.post("/admin/api/narrative-charts", {
+        const name = `deleted-with-${chart.id}`
+        const response = await request.post("/admin/api/narrative-charts", {
             data: {
                 type: "chart",
-                name: `keeps-alive-${chart.id}`,
+                name,
                 parentChartId: chart.id,
                 config: { $schema: latestGrapherConfigSchema },
             },
         })
+        const { narrativeChartId } = await response.json()
         const editor = await openEditor(chart)
         await expect(editor.tabs.filter({ hasText: /^Refs/ })).toHaveText(
             "Refs (1)"
         )
 
-        const alert = editor.acceptNextDialog()
+        const confirmation = editor.acceptNextDialog()
         await editor.button("Delete").click()
 
-        expect(await alert).toContain("Cannot delete chart")
-        const stored = await request.get(
+        expect(await confirmation).toContain(
+            `The following narrative charts based on this chart will be deleted too:\n• ${name}`
+        )
+        await expect(editor.page).toHaveURL(/\/admin\/charts$/)
+        const storedChart = await request.get(
             `/admin/api/charts/${chart.id}.config.json`
         )
-        expect(stored.ok()).toBe(true)
+        expect(storedChart.status()).toBe(404)
+        const storedNarrativeChart = await request.get(
+            `/admin/api/narrative-charts/${narrativeChartId}.config.json`
+        )
+        expect(storedNarrativeChart.ok()).toBe(false)
     })
 })

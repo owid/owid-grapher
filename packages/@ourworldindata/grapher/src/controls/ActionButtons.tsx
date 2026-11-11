@@ -29,6 +29,7 @@ export interface ActionButtonsManager extends ShareMenuManager {
     isAdmin?: boolean
     isShareMenuActive?: boolean
     hideShareButton?: boolean
+    hideDonateButton?: boolean
     hideExploreTheDataButton?: boolean
     isInIFrame?: boolean
     canonicalUrl?: string
@@ -251,7 +252,11 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
     }
 
     @computed private get hasDonateButton(): boolean {
-        return !!this.manager.isInIFrame && !this.manager.isAdmin
+        return (
+            !this.manager.hideDonateButton &&
+            !!this.manager.isInIFrame &&
+            !this.manager.isAdmin
+        )
     }
 
     @computed private get hasShareButton(): boolean {
@@ -266,6 +271,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
 
     @computed private get hasExploreTheDataButton(): boolean {
         const { manager } = this
+        if (!manager.canonicalUrl) return false
         return !manager.hideExploreTheDataButton || !!manager.isInIFrame
     }
 

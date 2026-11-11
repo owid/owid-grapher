@@ -2,6 +2,7 @@
     "extends": "../tsconfigs/tsconfig.base.json",
     "compilerOptions": {
         "outDir": "../../itsJustJavascript/devTools/regionsUpdater",
-        "rootDir": "."
+        "rootDir": ".",
+        "types": ["node"]
     }
 }

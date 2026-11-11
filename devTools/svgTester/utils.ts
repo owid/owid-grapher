@@ -23,6 +23,7 @@ import {
 } from "@ourworldindata/utils"
 import fs, { stat } from "fs-extra"
 import path from "path"
+import { Tinypool } from "tinypool"
 import { execFileSync } from "child_process"
 import { getVariableData } from "../../db/model/Variable.js"
 import { assertValidGrapherConfig } from "../../db/grapherConfigValidation.js"
@@ -181,6 +182,22 @@ export const JOB_TIMEOUT_MS = 2 * 60 * 1000
 // wall-clock, not just a cheaper-but-slower tradeoff. Override via
 // SVG_TESTER_MAX_WORKERS on memory-constrained hosts.
 export const MAX_WORKERS = Number(process.env.SVG_TESTER_MAX_WORKERS) || 6
+
+// Each worker loads this very module and runs one of its exported functions by
+// name. It does so through a dynamic import(), so tsx has to hook into the
+// ESM loader (`--import`) rather than just require().
+export function createWorkerPool(
+    options: { maxThreads?: number; isolateWorkers?: boolean } = {}
+): Tinypool {
+    const maxThreads = options.maxThreads ?? MAX_WORKERS
+    return new Tinypool({
+        filename: __filename,
+        minThreads: Math.min(2, maxThreads),
+        maxThreads,
+        isolateWorkers: options.isolateWorkers,
+        execArgv: ["--import", "tsx"],
+    })
+}
 
 const resultDifference = (difference: SvgDifference): VerifyResult => ({
     kind: "difference",
@@ -516,7 +533,7 @@ function resolveFocusPlaceholderInQueryString(
 
 // Grapher internals log warnings (e.g. about ambiguous table joins) without any
 // hint of which chart triggered them, so tag every log line with the view being
-// rendered. Safe because a workerpool worker only ever renders one view at a time.
+// rendered. Safe because a pool worker only ever renders one view at a time.
 let currentViewId: string | undefined
 for (const method of ["log", "warn", "error"] as const) {
     const original = console[method].bind(console)
@@ -645,11 +662,25 @@ export function numberBoundsClipPaths(svg: string): string {
 }
 
 function prepareSvgForComparison(svg: string): string {
-    // React renders the whole svg onto a single line, and the line diff in the
-    // admin needs lines to work with, so break it up one tag per line. `><`
-    // only ever occurs at a tag boundary because React escapes `>` in text and
-    // in attributes.
-    return numberBoundsClipPaths(svg).replaceAll("><", ">\n<")
+    return breakSvgTagsOntoLines(numberBoundsClipPaths(svg))
+}
+
+/**
+ * React renders the whole svg onto a single line, and the line diff in the
+ * admin needs lines to work with, so break it up one tag per line. Each `<text>`
+ * element stays on one line: a line break inside it is whitespace that renders
+ * as a space. `><` only ever occurs at a tag boundary because React escapes `>`
+ * in text and in attributes.
+ */
+export function breakSvgTagsOntoLines(svg: string): string {
+    return (
+        svg
+            .split(/(<text\b.*?<\/text>)/s)
+            // split puts the captured text elements at the odd indexes
+            .map((part, i) => (i % 2 ? part : part.replaceAll("><", ">\n<")))
+            .filter(Boolean)
+            .join("\n")
+    )
 }
 
 export interface RenderSvgAndSaveJobDescription {
@@ -833,12 +864,13 @@ export async function renderAndVerifySvg({
     }
 }
 
-// A `.timeout()` breach and a render crash both arrive through the same `.catch`
-// in verify-graphs.ts, so the only thing distinguishing them is the error name
-// workerpool gives a timeout. Errors crossing a worker boundary are structured
-// clones rather than real Error instances, hence the defensive access.
+// A timeout and a render crash both arrive through the same `.catch` in
+// verify-graphs.ts, so the only thing distinguishing them is the error name
+// tinypool gives an aborted task - and we only ever abort on a timeout. Errors
+// crossing a worker boundary are structured clones rather than real Error
+// instances, hence the defensive access.
 function classifyVerifyError(error: Error): SvgTesterVerifyErrorEntry["kind"] {
-    return error?.name === "TimeoutError" ? "timeout" : "render"
+    return error?.name === "AbortError" ? "timeout" : "render"
 }
 
 // Several failure paths in here `throw` a plain string rather than an Error, and
@@ -1022,7 +1054,7 @@ const PROGRESS_INTERVAL_MS = 30 * 1000
 export function startProgress(
     suite: SvgTesterSuite,
     total: number,
-    pool: { stats: () => { busyWorkers: number } },
+    pool: Pick<Tinypool, "queueSize">,
     options: { withOutcomes?: boolean; onTick?: () => void } = {}
 ): { recordResult: (result?: VerifyResult) => void; stop: () => void } {
     const startedAt = Date.now()
@@ -1037,7 +1069,8 @@ export function startProgress(
                 `${counts.errors} errored`
             )
         parts.push(
-            `${pool.stats().busyWorkers} busy`,
+            // Tasks are either done, queued, or running on a worker
+            `${total - counts.done - pool.queueSize} busy`,
             formatDuration(Date.now() - startedAt)
         )
         console.log(`${suite}: ${parts.join(" · ")}`)
