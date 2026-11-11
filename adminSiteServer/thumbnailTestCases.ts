@@ -215,6 +215,15 @@ export const THUMBNAIL_TEST_SECTIONS: ThumbnailTestSection[] = [
                 label: "Entities as series",
             },
             {
+                slug: "solar-pv-cumulative-capacity",
+                label: "One entity, legend hidden by the config",
+            },
+            {
+                slug: "solar-pv-cumulative-capacity",
+                queryStr: "country=OWID_WRL~CHN&facet=none",
+                label: "Same chart with two entities, legend shown",
+            },
+            {
                 slug: "car-sales",
                 label: "Two indicators",
             },
