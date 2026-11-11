@@ -80,12 +80,14 @@ export class SlopeChartThumbnail
     }
 
     @computed private get xStartMarkWidth(): number {
+        if (this.xAxisConfig.hideTickLabels) return 0
         return Bounds.forText(this.formattedStartTime, {
             fontSize: this.xMarkFontSize,
         }).width
     }
 
     @computed private get xEndMarkWidth(): number {
+        if (this.xAxisConfig.hideTickLabels) return 0
         return Bounds.forText(this.formattedEndTime, {
             fontSize: this.xMarkFontSize,
         }).width
@@ -96,15 +98,23 @@ export class SlopeChartThumbnail
         return this.xMarkFontSize
     }
 
+    @computed private get xStartPadding(): number {
+        return Math.max(0.5 * this.xStartMarkWidth, DOT_RADIUS)
+    }
+
+    @computed private get xEndPadding(): number {
+        return Math.max(0.5 * this.xEndMarkWidth, DOT_RADIUS)
+    }
+
     @computed get innerBounds(): Bounds {
         const { left, right } = this.effectiveLabelWidths
         const rightPadding = Math.max(
             right > 0 ? right + LABEL_PADDING : 0, // end labels plus padding
-            0.5 * this.xEndMarkWidth // half the width of the end time label (since it's centered)
+            this.xEndPadding
         )
         const leftPadding = Math.max(
             left > 0 ? left + LABEL_PADDING : 0, // start labels plus padding
-            0.5 * this.xStartMarkWidth // half the width of the start time label (since it's centered)
+            this.xStartPadding
         )
 
         return this.bounds
@@ -143,7 +153,12 @@ export class SlopeChartThumbnail
             startTime: this.chartState.startTime,
             endTime: this.chartState.endTime,
         })
-        return new AxisConfig({ ...xAxisConfig, ...overrides }, this)
+        const { axisText } = getVisibleLabels(this.manager.labelMode)
+        const labelModeOverrides = axisText ? {} : { hideTickLabels: true }
+        return new AxisConfig(
+            { ...xAxisConfig, ...overrides, ...labelModeOverrides },
+            this
+        )
     }
 
     @computed get yDomain(): [number, number] {
@@ -398,8 +413,8 @@ export class SlopeChartThumbnail
         // time marks, but not for labels (which is what we're estimating)
         const preliminaryBounds = this.bounds
             .padBottom(this.xMarksHeight)
-            .padRight(0.5 * this.xEndMarkWidth)
-            .padLeft(0.5 * this.xStartMarkWidth)
+            .padRight(this.xEndPadding)
+            .padLeft(this.xStartPadding)
 
         const preliminaryYAxis = this.chartState.toVerticalAxis(
             this.yAxisConfig,
@@ -448,12 +463,9 @@ export class SlopeChartThumbnail
     @computed get contentInset(): SideWidths | undefined {
         if (this.chartState.errorInfo.reason) return undefined
         const { bounds } = this
-        const hideTimeLabels = this.xAxisConfig.hideTickLabels
-        const startOverflow = hideTimeLabels ? 0 : 0.5 * this.xStartMarkWidth
-        const endOverflow = hideTimeLabels ? 0 : 0.5 * this.xEndMarkWidth
         return {
-            left: this.startX - startOverflow - bounds.left,
-            right: bounds.right - (this.endX + endOverflow),
+            left: this.startX - 0.5 * this.xStartMarkWidth - bounds.left,
+            right: bounds.right - (this.endX + 0.5 * this.xEndMarkWidth),
         }
     }
 
