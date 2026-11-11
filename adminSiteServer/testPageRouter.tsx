@@ -30,7 +30,12 @@ import {
     GrapherChartOrMapType,
 } from "@ourworldindata/types"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
+import {
+    ExplorerChartCreationMode,
+    EXPLORER_EMBEDDED_FIGURE_SELECTOR,
+} from "@ourworldindata/explorer"
+import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "@ourworldindata/grapher"
+import { viteAssetsForSite } from "../site/viteUtils.js"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 
@@ -1013,5 +1018,661 @@ function MultiDimTestPage(props: MultiDimTestPageProps) {
         </html>
     )
 }
+
+// DEBUG ONLY: charts with annotations mocked in debugAnnotationOverrides.ts
+interface AnnotatedChart {
+    label: string
+    path: string
+    widthPx?: number
+}
+
+const REAL_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "World: Great Leap Forward (point), COVID-19 (point)",
+        path: "grapher/life-expectancy?time=1870..latest&country=~OWID_WRL",
+    },
+    {
+        label: "Central African Republic: 2022 outlier (point)",
+        path: "grapher/life-expectancy-unwpp?tab=line&country=~CAF",
+    },
+    {
+        label: "Central African Republic: 2022 outlier, on a scatter plot",
+        path: "grapher/food-supply-vs-life-expectancy",
+    },
+    {
+        label: "Africa (FAO): jump from data coverage (point on two indicators)",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?country=~Africa+%28FAO%29",
+    },
+    {
+        label: "Forest in Scotland: pre-1600 data omitted (point, plus a legacy annotation)",
+        path: "grapher/forest-area-as-share-of-land-area?tab=line&time=earliest..latest&country=~Scotland",
+    },
+    {
+        label: "Chestnut production in Spain (range)",
+        path: "explorers/global-food?tab=line&country=~ESP&Food=Chestnut&Metric=Production&Per+capita=false",
+    },
+    {
+        label: "Obesity in France (range)",
+        path: "grapher/share-of-adults-defined-as-obese?tab=line&country=GBR~FRA",
+    },
+    {
+        label: "Chicken meat production in France (range)",
+        path: "grapher/chicken-meat-production?tab=line&country=~FRA",
+    },
+    {
+        label: "Maternal mortality in the US (range)",
+        path: "grapher/maternal-mortality?tab=line&time=1962..latest",
+    },
+    {
+        label: "GDP per capita in Tanzania (range)",
+        path: "grapher/gdp-per-capita-penn-world-table?tab=line&country=~TZA",
+    },
+    {
+        label: "CO₂ per capita in Sint Maarten (range)",
+        path: "grapher/co-emissions-per-capita?country=OWID_WRL~USA~GBR~OWID_EU27~IND~CHN~ZAF~CAN~KEN~BEL~SXM",
+    },
+]
+
+const MADE_UP_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Life expectancy by continent",
+        path: "grapher/life-expectancy",
+    },
+    {
+        label: "Life expectancy in China",
+        path: "grapher/life-expectancy?country=~CHN",
+    },
+    {
+        label: "DTP3 immunization, long entity names",
+        path: "grapher/share-of-children-immunized-dtp3?tab=line&country=Africa+%28WHO%29~Eastern+Mediterranean+%28WHO%29",
+    },
+    {
+        label: "Foreign aid, legacy annotation and long entity names",
+        path: "grapher/foreign-aid-given-net?tab=line&country=Non-DAC+countries~Global+Alliance+for+Vaccines+and+Immunization",
+    },
+    {
+        label: "Monthly temperature anomalies, daily time axis",
+        path: "grapher/monthly-temperature-anomalies?tab=line&country=~OWID_WRL",
+    },
+]
+
+const REGION_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Africa (WHO): a point and a range on a name with a provider suffix",
+        path: "grapher/share-of-children-immunized-dtp3?tab=line&country=~Africa+%28WHO%29",
+    },
+    {
+        label: "Eastern Mediterranean (WHO): a point on a long name with a provider suffix",
+        path: "grapher/share-of-children-immunized-dtp3?tab=line&country=~Eastern+Mediterranean+%28WHO%29",
+    },
+    {
+        label: "WHO regions: points and a range on several suffixed names",
+        path: "grapher/share-of-children-immunized-dtp3?tab=line&country=Africa+%28WHO%29~Eastern+Mediterranean+%28WHO%29~Europe+%28WHO%29",
+    },
+    {
+        label: "Oceania and Europe (WHO): a continent and a suffixed name without annotations",
+        path: "grapher/share-of-children-immunized-dtp3?tab=line&country=Oceania~Europe+%28WHO%29",
+    },
+    {
+        label: "Africa: a range on a continent",
+        path: "grapher/life-expectancy?country=~Africa",
+    },
+    {
+        label: "Europe: points and a range on a continent",
+        path: "grapher/life-expectancy?country=~Europe",
+    },
+    {
+        label: "Income groups: a point and a range",
+        path: "grapher/life-expectancy?country=High-income+countries~Low-income+countries",
+    },
+    {
+        label: "Continents and income groups together",
+        path: "grapher/life-expectancy?country=High-income+countries~Low-income+countries~Africa~Europe",
+    },
+]
+
+const SLOPE_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Maternal mortality in the US (range, plus a legacy annotation)",
+        path: "grapher/maternal-mortality?tab=slope&time=1990..2020",
+    },
+    {
+        label: "Maternal mortality in the US, range after the period (no annotation)",
+        path: "grapher/maternal-mortality?tab=slope&time=1985..2000",
+    },
+    {
+        label: "CO₂ per capita in Sint Maarten (range)",
+        path: "grapher/co-emissions-per-capita?tab=slope&time=1950..latest&country=OWID_WRL~SXM",
+    },
+    {
+        label: "CO₂ per capita by continent (region popups, no annotations)",
+        path: "grapher/co-emissions-per-capita?tab=slope&time=1970..latest&country=Europe~Africa~Asia~OWID_WRL",
+    },
+    {
+        label: "Foreign aid, points on long entity names and a legacy annotation",
+        path: "grapher/foreign-aid-given-net?tab=slope&time=2007..2024",
+    },
+    {
+        label: "Africa (FAO): a point on two indicators",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?tab=slope&country=~Africa+%28FAO%29",
+    },
+]
+
+const ENTITY_STRATEGY_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "One indicator: China short, India long, the US and UK none",
+        path: "grapher/co-emissions-per-capita?tab=line&country=CHN~IND~USA~GBR",
+    },
+    {
+        label: "One indicator, one annotated entity",
+        path: "grapher/co-emissions-per-capita?tab=line&country=~CHN",
+    },
+    {
+        label: "Legacy annotations (maternal mortality)",
+        path: "grapher/maternal-mortality?tab=line&time=1962..latest",
+    },
+]
+
+const PROJECTION_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Japan historical only, Brazil projection only, India a different annotation on each, World the same on both, Sweden none. Hover a historical year, the overlap year and a projected year",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?tab=line",
+    },
+    {
+        label: "India alone: a different annotation on the historical and projection indicators",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?tab=line&country=~IND",
+    },
+    {
+        label: "Japan alone: annotated on the historical indicator only",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?tab=line&country=~JPN",
+    },
+]
+
+const COLUMN_STRATEGY_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "World: a different annotation on food supply and population, none on land use",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?country=~OWID_WRL",
+    },
+    {
+        label: "Africa (FAO): the same text on food supply and population, shown on both labels",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?country=~Africa+%28FAO%29",
+    },
+    {
+        label: "World and Africa (FAO) together",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?country=OWID_WRL~Africa+%28FAO%29",
+    },
+    {
+        label: "With projections, Afghanistan: deaths annotated on both halves, births on the historical half only. Paired by color, so each projection label shows its historical annotation too",
+        path: "grapher/births-and-deaths-projected-to-2100?tab=line&country=~AFG",
+    },
+    {
+        label: "With projections, Afghanistan and World",
+        path: "grapher/births-and-deaths-projected-to-2100?tab=line&country=AFG~OWID_WRL",
+    },
+]
+
+const SLOPE_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Entity strategy: China short, India long, the US and UK none",
+        path: "grapher/co-emissions-per-capita?tab=slope&time=1990..latest&country=CHN~IND~USA~GBR",
+    },
+    {
+        label: "Entity strategy at 500px (compact layout)",
+        path: "grapher/co-emissions-per-capita?tab=slope&time=1990..latest&country=CHN~IND~USA~GBR",
+        widthPx: 500,
+    },
+    {
+        label: "Legacy annotations (maternal mortality)",
+        path: "grapher/maternal-mortality?tab=slope&time=1990..2020",
+    },
+    {
+        label: "Legacy annotations (maternal mortality) at 500px (compact layout)",
+        path: "grapher/maternal-mortality?tab=slope&time=1990..2020",
+        widthPx: 500,
+    },
+    {
+        label: "Column strategy, World: a different annotation on food supply and population, none on land use",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?tab=slope&country=~OWID_WRL",
+    },
+    {
+        label: "Column strategy, Africa (FAO): the same text on food supply and population, shown on both labels",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?tab=slope&country=~Africa+%28FAO%29",
+    },
+    {
+        label: "Column strategy, World at 500px (compact layout)",
+        path: "grapher/change-in-food-supply-population-and-agricultural-land-use?tab=slope&country=~OWID_WRL",
+        widthPx: 500,
+    },
+]
+
+const DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Entity strategy: China short, India long, the US and UK none. Both fit inline",
+        path: "grapher/co-emissions-per-capita?tab=discrete-bar&country=CHN~IND~USA~GBR",
+    },
+    {
+        label: "Entity strategy, crowded: the annotations don't fit, so China and India get an underlined label. Hover them",
+        path: "grapher/co-emissions-per-capita?tab=discrete-bar&country=CHN~IND~USA~GBR~DEU~FRA~ITA~ESP~POL~RUS~JPN~KOR~IDN~BRA~MEX~ARG~CAN~AUS~ZAF~NGA~EGY~TUR",
+    },
+    {
+        label: "Legacy annotations (maternal mortality): the United States",
+        path: "grapher/maternal-mortality?tab=discrete-bar",
+    },
+    {
+        label: "Legacy annotations (maternal mortality), crowded: the United States gets an underlined label",
+        path: "grapher/maternal-mortality?tab=discrete-bar&country=USA~SWE~AUS~JPN~TUR~GBR~FRA~DEU~ITA~ESP~NLD~NOR~FIN~DNK~CAN~MEX~BRA~ARG~CHL~IND~CHN~ZAF",
+    },
+    {
+        label: "Region names, five rows: High-income countries' long annotation fits inline",
+        path: "grapher/life-expectancy?time=2023&country=OWID_WRL~High-income+countries~Low-income+countries~Europe~Africa",
+    },
+    {
+        label: "Region names, ten rows: High-income countries' annotation no longer fits, so it moves into the label's tooltip",
+        path: "grapher/life-expectancy?time=2023&country=OWID_WRL~High-income+countries~Upper-middle-income+countries~Lower-middle-income+countries~Low-income+countries~Europe~Africa~Asia~Americas~Oceania",
+    },
+    {
+        label: "Region names, crowded: hover High-income countries. The region list and the annotation share one tooltip",
+        path: "grapher/life-expectancy?time=2023&country=OWID_WRL~High-income+countries~Upper-middle-income+countries~Lower-middle-income+countries~Low-income+countries~Europe~Africa~Asia~Americas~Oceania~USA~GBR~FRA~DEU~JPN~CHN~IND~BRA~NGA~ZAF~AUS~CAN",
+    },
+    {
+        label: "Combined historical and projection bars, a historical year (2000): Japan and India show their historical annotation, World its shared one, Brazil and Sweden none",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?time=2000",
+    },
+    {
+        label: "Combined bars, a projected year (2050): Brazil and India show their projection annotation, World its shared one, Japan and Sweden none",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?time=2050",
+    },
+    {
+        label: "Column strategy, real legacy annotation, the United States: only the maternal disorders bar is annotated, among many causes. Its label should get the underline",
+        path: "grapher/annual-number-of-deaths-by-cause?country=~USA",
+    },
+    {
+        label: "Column strategy, real legacy annotations, the United Kingdom: every indicator carries the same text, and each bar shows it",
+        path: "grapher/trust-state-institutions-wvs?country=~GBR",
+    },
+    {
+        label: "Column strategy, real legacy annotations, Non-DAC countries: every sector indicator is annotated",
+        path: "grapher/foreign-aid-given-by-sector-per-capita?country=~Non-DAC+countries",
+    },
+    {
+        label: "Column strategy, Afghanistan in 2000: deaths and births each show their own annotation",
+        path: "grapher/births-and-deaths-projected-to-2100?time=2000",
+    },
+    {
+        label: "Column strategy, Afghanistan in 2050: projected deaths shows its annotation, projected births none",
+        path: "grapher/births-and-deaths-projected-to-2100?time=2050",
+    },
+]
+
+const DUMBBELL_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Two indicators: India shows its shared annotation once, Brazil both joined, Germany the female one. Hover them: in the tooltip each annotation sits under its own value, so India's shows twice",
+        path: "grapher/time-spend-in-domestic-work-female-vs-male",
+    },
+    {
+        label: "Two indicators, three rows: the same cases with room to spare",
+        path: "grapher/time-spend-in-domestic-work-female-vs-male?country=IND~BRA~DEU",
+    },
+    {
+        label: "Two indicators, 25 rows: if the annotations don't fit, no row shows one inline, but the tooltips still do. Hover Yemen (shared) and Nigeria (per indicator)",
+        path: "grapher/share-of-children-vaccinated-against-measles-vs-share-vaccinated-against-dpt3",
+    },
+    {
+        label: "Time range: the United Kingdom and Brazil show their annotation inline and next to the tooltip title",
+        path: "grapher/oecd-average-trust-in-governments?tab=dumbbell",
+    },
+]
+
+const STACKED_DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Three indicators: Japan shows its shared annotation once, France all three joined, Sweden the text two indicators share, Germany the nuclear one. Hover them: in the tooltip each annotation sits under its own segment, so Japan's shows three times",
+        path: "grapher/per-capita-electricity-fossil-nuclear-renewables",
+    },
+    {
+        label: "Three indicators, four rows: the same cases with room to spare",
+        path: "grapher/per-capita-electricity-fossil-nuclear-renewables?country=JPN~FRA~SWE~DEU",
+    },
+    {
+        label: "Two indicators, 16 rows: if the annotations don't fit, no row shows one inline, but the tooltips still do. Hover India (shared) and Mozambique (per indicator)",
+        path: "grapher/distribution-of-population-across-income-thresholds-stacked-bar-30-only",
+    },
+    {
+        label: "Legacy: the United Kingdom's annotation, on all six indicators, shows once inline and under each segment in the tooltip",
+        path: "grapher/how-important-family-is-to-people-in-life",
+    },
+]
+
+const STACKED_AREA_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Legacy, entity strategy: the Western offshoots label shows its annotation. Hover the Western offshoots area for it in the tooltip",
+        path: "grapher/number-of-people-living-in-extreme-poverty-by-region-long-run",
+    },
+    {
+        label: "Entity strategy: low-income and lower-middle-income share one text and both labels show it; high-income has its own",
+        path: "grapher/population-by-income-level",
+    },
+    {
+        label: "Entity strategy, six regions: Oceania's thin band and Europe carry long annotations. A label that doesn't fit with its annotation can drop",
+        path: "grapher/population-regions-with-projections",
+    },
+    {
+        label: "Column strategy, World: the coal, oil and flaring labels show their own annotations, the other sources none",
+        path: "grapher/co2-by-source",
+    },
+    {
+        label: "No value: flaring has no World data before 1950. Hover 1900 and the flaring row shows its annotation without a value",
+        path: "grapher/co2-by-source?time=1900..2024",
+    },
+    {
+        label: "Column strategy, faceted by entity: each facet shows its own entity's annotations (China on coal, the United States on oil and gas)",
+        path: "grapher/co2-by-source?country=CHN~USA&facet=entity",
+    },
+]
+
+const STACKED_BAR_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Column strategy, World: the forests and savannas legend items show their own annotations, the other land types none. Hover a bar for them on the tooltip rows",
+        path: "grapher/area-burned-wildfires-by-type?facet=none",
+    },
+    {
+        label: "Entity strategy: World and Indonesia show their annotations in the legend, the other countries none",
+        path: "grapher/annual-carbon-dioxide-emissions?facet=none",
+    },
+    {
+        label: "Column strategy, DAC countries: each indicator's legend item shows its own annotation",
+        path: "grapher/government-vs-private-aid-by-donor",
+    },
+    {
+        label: "At 500px the legend is horizontal and shows no annotations. Hover a bar and the tooltip rows still show them",
+        path: "grapher/government-vs-private-aid-by-donor",
+        widthPx: 500,
+    },
+    {
+        label: "Tall: Brazil's seven long annotations all show and the legend grows past the bottom of the chart",
+        path: "grapher/tree-cover-loss-by-dominant-driver?country=~BRA",
+    },
+]
+
+const SCATTER_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Hover Argentina: its annotation sits under the tests value. Brazil's x and y share a text, which sits under both values. Chile's differ, each under its own value. The continent color column has no row and doesn't count",
+        path: "grapher/covid-19-daily-tests-vs-daily-new-confirmed-cases",
+    },
+    {
+        label: "Hover China: the CO₂ and population annotations differ, each under its own value",
+        path: "grapher/co2-emissions-vs-gdp",
+    },
+    {
+        label: "Time scatter colored by launch vehicle class. Hover Falcon 9: its annotation sits under the cost value. Space Shuttle's cost and class share a text, which sits under both values",
+        path: "grapher/cost-space-launches-low-earth-orbit",
+    },
+]
+
+const SCATTER_POINT_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Single day (day 300). Hover Brazil: the cases and tests point annotations each sit under their value, without a date and before the shared entity annotation. The 11 March 2022 annotations don't show",
+        path: "grapher/covid-19-daily-tests-vs-daily-new-confirmed-cases?time=300&country=~BRA",
+    },
+    {
+        label: "Tolerance (day 783). Hover Brazil: neither indicator has a value on 14 March 2022, so both resolve to 11 March. The 11 March annotations show under cases and tests, before the entity annotation. The 14 March ones don't",
+        path: "grapher/covid-19-daily-tests-vs-daily-new-confirmed-cases?time=783&country=~BRA",
+    },
+    {
+        label: "Connected trajectory (days 200 to 400). Hover Chile: under tests, the 8 August 2020 and 24 February 2021 annotations each start with their date, then comes the entity annotation. The 16 November 2020 annotation doesn't show",
+        path: "grapher/covid-19-daily-tests-vs-daily-new-confirmed-cases?time=200..400&country=~CHL",
+    },
+    {
+        label: "Size (2022). Hover China: the population point annotation sits under the population value, without a year and before the entity annotation",
+        path: "grapher/co2-emissions-vs-gdp?time=2022&country=~CHN",
+    },
+    {
+        label: "Connected trajectory (1990 to 2000). Hover China: under CO₂, the 1990 and 2000 annotations each start with their year, then comes the entity annotation. The 1995 annotation doesn't show",
+        path: "grapher/co2-emissions-vs-gdp?time=1990..2000&country=~CHN",
+    },
+    {
+        label: "Relative mode (1990 to 2000). Hover China: the CO₂ row is the average annual change. Only the entity annotation shows under it. The 1990, 1995 and 2000 point annotations don't",
+        path: "grapher/co2-emissions-vs-gdp?time=1990..2000&stackMode=relative&country=~CHN",
+    },
+    {
+        label: "Time scatter colored by launch vehicle class. Hover Falcon 9: the 2010 cost annotation sits under cost, without a year and before the entity annotation, and the class annotation under class. The 2015 annotation doesn't show. Hover Space Shuttle: the 1981 annotations sit under cost and class, before their entity annotations",
+        path: "grapher/cost-space-launches-low-earth-orbit",
+    },
+]
+
+const MARIMEKKO_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Hover China: the CO₂ and population annotations differ, each under its own value. Hover India: only CO₂ has an annotation, under its value. The continent color column has no row and doesn't count",
+        path: "grapher/co2-per-capita-marimekko",
+    },
+    {
+        label: "Colored by income group. Hover China: price, coverage and income group share a text, which sits under all three values. Hover Canada: price and coverage share a text and income group has none, so it sits under those two values. Hover India: only income group has an annotation, under its value",
+        path: "grapher/carbon-price-vs-share-emissions",
+    },
+]
+
+const MAP_ENTITY_ANNOTATED_CHARTS: AnnotatedChart[] = [
+    {
+        label: "Single indicator: hover China (short annotation) and India (long), both next to the title. The United States and the United Kingdom have none",
+        path: "grapher/co-emissions-per-capita?tab=map",
+    },
+    {
+        label: "Legacy annotations (maternal mortality): hover the United States",
+        path: "grapher/maternal-mortality?tab=map",
+    },
+    {
+        label: "Historical and projection pair, a historical year (2000): Japan and India show their historical annotation, Brazil and Sweden none",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?tab=map&time=2000",
+    },
+    {
+        label: "The pair, a projected year (2050): Brazil and India show their projection annotation, Japan and Sweden none",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?tab=map&time=2050",
+    },
+    {
+        label: "The pair, 2000 to 2050 (start and end maps): hover India for both annotations joined, Japan for the historical one behind its 2000 value, Brazil for the projection one behind its 2050 value",
+        path: "grapher/life-expectancy-at-birth-including-the-un-projections?tab=map&time=2000..2050",
+    },
+]
+
+const ANNOTATION_TEST_SUITES: {
+    slug: string
+    title: string
+    charts: AnnotatedChart[]
+}[] = [
+    {
+        slug: "entity-strategy",
+        title: "Entity annotations: entity strategy",
+        charts: ENTITY_STRATEGY_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "projections",
+        title: "Entity annotations: historical and projected data",
+        charts: PROJECTION_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "column-strategy",
+        title: "Entity annotations: column strategy",
+        charts: COLUMN_STRATEGY_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "slope-entity",
+        title: "Entity annotations: slope charts",
+        charts: SLOPE_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "discrete-bar-entity",
+        title: "Entity annotations: discrete bar charts",
+        charts: DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "dumbbell-entity",
+        title: "Entity annotations: dumbbell charts",
+        charts: DUMBBELL_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "stacked-discrete-bar-entity",
+        title: "Entity annotations: stacked discrete bar charts",
+        charts: STACKED_DISCRETE_BAR_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "stacked-area-entity",
+        title: "Entity annotations: stacked area charts",
+        charts: STACKED_AREA_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "stacked-bar-entity",
+        title: "Entity annotations: stacked bar charts",
+        charts: STACKED_BAR_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "scatter-entity",
+        title: "Entity annotations: scatter plots",
+        charts: SCATTER_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "scatter-point",
+        title: "Point annotations: scatter plots",
+        charts: SCATTER_POINT_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "marimekko-entity",
+        title: "Entity annotations: Marimekko charts",
+        charts: MARIMEKKO_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "map-entity",
+        title: "Entity annotations: maps",
+        charts: MAP_ENTITY_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "real",
+        title: "Real examples from Figma",
+        charts: REAL_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "made-up",
+        title: "Made-up examples",
+        charts: MADE_UP_ANNOTATED_CHARTS,
+    },
+    {
+        slug: "regions",
+        title: "Region names",
+        charts: REGION_ANNOTATED_CHARTS,
+    },
+    { slug: "slope", title: "Slope charts", charts: SLOPE_ANNOTATED_CHARTS },
+]
+
+function AnnotationsTestPage({ suiteSlug }: { suiteSlug?: string }) {
+    const suites = ANNOTATION_TEST_SUITES.filter(
+        (suite) => !suiteSlug || suite.slug === suiteSlug
+    )
+    const style = `
+        body {
+            margin: 0;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        h2 {
+            text-align: center;
+            margin: 30px 0 0;
+        }
+
+        h3 {
+            margin: 10px 0 0;
+        }
+
+        figure {
+            height: 575px;
+            width: 100%;
+            max-width: 815px;
+            margin: 10px;
+        }
+
+        .suite-picker {
+            display: flex;
+            justify-content: center;
+            padding: 20px 10px 0;
+        }
+    `
+    return (
+        <html>
+            <Head
+                canonicalUrl=""
+                pageTitle="Test Annotations"
+                baseUrl={BAKED_BASE_URL}
+            >
+                <style dangerouslySetInnerHTML={{ __html: style }} />
+            </Head>
+            <body>
+                <form className="suite-picker" method="get">
+                    <select name="suite" defaultValue={suiteSlug ?? ""}>
+                        <option value="">All suites</option>
+                        {ANNOTATION_TEST_SUITES.map((suite) => (
+                            <option key={suite.slug} value={suite.slug}>
+                                {suite.title}
+                            </option>
+                        ))}
+                    </select>
+                </form>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `document.querySelector(".suite-picker select").addEventListener("change", (event) => event.target.form.submit())`,
+                    }}
+                />
+                {suites.map((suite) => (
+                    <div key={suite.slug}>
+                        <h2>{suite.title}</h2>
+                        <AnnotatedChartList charts={suite.charts} />
+                    </div>
+                ))}
+                {viteAssetsForSite().forFooter}
+                <script
+                    type="module"
+                    dangerouslySetInnerHTML={{
+                        __html: "window.MultiEmbedderSingleton.embedAll()",
+                    }}
+                />
+            </body>
+        </html>
+    )
+}
+
+function AnnotatedChartList({ charts }: { charts: AnnotatedChart[] }) {
+    return (
+        <>
+            {charts.map(({ label, path, widthPx }) => (
+                <div key={`${path}-${widthPx}`} className="row">
+                    <h3>
+                        <a href={`${BAKED_BASE_URL}/${path}`}>{label}</a>
+                    </h3>
+                    <figure
+                        style={widthPx ? { maxWidth: widthPx } : undefined}
+                        {...{
+                            [path.startsWith("explorers/")
+                                ? EXPLORER_EMBEDDED_FIGURE_SELECTOR
+                                : GRAPHER_EMBEDDED_FIGURE_ATTR]:
+                                `${BAKED_BASE_URL}/${path}`,
+                        }}
+                    />
+                </div>
+            ))}
+        </>
+    )
+}
+
+testPageRouter.get("/annotations", (req, res) => {
+    const suiteSlug =
+        typeof req.query.suite === "string" && req.query.suite
+            ? req.query.suite
+            : undefined
+    res.send(renderToHtmlPage(<AnnotationsTestPage suiteSlug={suiteSlug} />))
+})
 
 export { getSafeComparisonUrl, testPageRouter }
