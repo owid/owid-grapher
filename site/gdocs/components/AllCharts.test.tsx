@@ -32,6 +32,17 @@ vi.mock(import("../../GrapherWithFallback.js"), () => ({
     ),
 }))
 
+vi.mock(import("../../MultiDimEmbed.js"), () => ({
+    MultiDimEmbed: ({ url }: { url: string }) => (
+        <div data-testid="preview">{`mdim:${url}`}</div>
+    ),
+}))
+
+const MDIM_VIEWS: Record<string, string> = {
+    "mdim-a": "?metric=a",
+    "mdim-b": "?metric=b",
+}
+
 const PAGES: Record<number, string[]> = { 0: ["alpha", "beta"], 1: ["gamma"] }
 const TABS: Record<string, string[]> = {
     alpha: ["Table", "WorldMap", "LineChart", "SlopeChart", "Marimekko"],
@@ -245,6 +256,89 @@ it("filters by countries typed into the search and shows them on the rows, thumb
     )
 })
 
+it("asks for charts and multi-dim views on the topic", async () => {
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    const facetFilters = requestedFacetFilters()[0] as unknown[]
+    expect(facetFilters).toContainEqual(["type:chart", "type:multiDimView"])
+    expect(facetFilters).toContainEqual(["tags:Poverty"])
+})
+
+it("previews a multi-dim view live with its view params, the tab and no controls", async () => {
+    showMultiDimViews()
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    const viewRow = await findRow("mdim-a")
+    expect(viewRow.querySelector("img")?.getAttribute("src")).toContain(
+        "metric=a"
+    )
+    fireEvent.click(within(viewRow).getByRole("button", { name: "Line chart" }))
+
+    const previewText = screen.getByTestId("preview").textContent
+    expect(previewText).toMatch(/^mdim:.*\/shared-mdim\?/)
+    expect(previewText).toContain("metric=a")
+    expect(previewText).toContain("tab=line")
+    expect(previewText).toContain("hideControls=true")
+    expect(
+        within(viewRow)
+            .getByRole("button", { name: "Line chart" })
+            .querySelector("img")
+            ?.getAttribute("src")
+    ).toContain("tab=line")
+
+    const chartRow = await findRow("alpha")
+    fireEvent.click(
+        within(chartRow).getByRole("button", { name: "Line chart" })
+    )
+    expect(screen.getByTestId("preview")).toHaveTextContent("alpha?tab=line")
+})
+
+it("treats two views of one multi-dim as separate selections", async () => {
+    showMultiDimViews()
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    const firstViewRow = await findRow("mdim-a")
+    const secondViewRow = await findRow("mdim-b")
+    fireEvent.click(
+        within(firstViewRow).getByRole("button", { name: "Line chart" })
+    )
+    fireEvent.click(
+        within(secondViewRow).getByRole("button", { name: "Line chart" })
+    )
+
+    const previewText = screen.getByTestId("preview").textContent
+    expect(previewText).toContain("metric=b")
+    expect(previewText).not.toContain("metric=a")
+    expect(secondViewRow).toHaveClass("all-charts-row--selected")
+    expect(firstViewRow).not.toHaveClass("all-charts-row--selected")
+})
+
+it("passes typed countries to a multi-dim preview", async () => {
+    showMultiDimViews(["mdim-a", "alpha"])
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    fireEvent.change(screen.getByRole("textbox"), {
+        target: { value: "spain" },
+    })
+
+    await vi.waitFor(() =>
+        expect(screen.getByTestId("preview").textContent).toContain(
+            "country=~ESP"
+        )
+    )
+    expect(screen.getByTestId("preview").textContent).toMatch(
+        /^mdim:.*metric=a/
+    )
+})
+
 it("shows the first five suggestions, and hides the one being searched for", async () => {
     renderBlock()
     fireIntersectionObserversMatching("section")
@@ -307,6 +401,12 @@ it.each([
     expect(document.querySelector(".all-charts-block__suggestions")).toBeNull()
 })
 
+function showMultiDimViews(ids = ["alpha", "mdim-a", "mdim-b"]): void {
+    searchForHits.mockImplementation(async ([{ page }]: [{ page: number }]) =>
+        makeResponse(page, ids)
+    )
+}
+
 function stubVocabulary(vocabulary: object): void {
     vi.stubGlobal(
         "fetch",
@@ -320,18 +420,35 @@ function getSuggestions(): string[] {
     ).map((button) => button.textContent ?? "")
 }
 
-function makeResponse(page: number, slugs: string[], nbHits = 3): unknown {
-    const hits = slugs.map((slug) => {
-        const title = `Title of ${slug}`
-        return {
-            objectID: slug,
-            type: ChartRecordType.Chart,
-            slug,
-            title,
-            availableTabs: TABS[slug] ?? DEFAULT_TABS,
-        }
+function makeResponse(page: number, ids: string[], nbHits = 3): unknown {
+    const hits = ids.map((id) => {
+        const queryParams = MDIM_VIEWS[id]
+        return queryParams
+            ? {
+                  objectID: id,
+                  type: ChartRecordType.MultiDimView,
+                  slug: "shared-mdim",
+                  queryParams,
+                  ...makeHitFields(id),
+              }
+            : {
+                  objectID: id,
+                  type: ChartRecordType.Chart,
+                  slug: id,
+                  ...makeHitFields(id),
+              }
     })
     return { results: [{ hits, nbHits, page, nbPages: 2 }] }
+}
+
+function makeHitFields(id: string): {
+    title: string
+    availableTabs: string[]
+} {
+    return {
+        title: `Title of ${id}`,
+        availableTabs: TABS[id] ?? DEFAULT_TABS,
+    }
 }
 
 async function findRow(slug: string): Promise<HTMLElement> {

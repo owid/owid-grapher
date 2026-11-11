@@ -164,7 +164,7 @@ type SearchExplorerViewHit = BaseSearchChartHit & {
     queryParams: string
 }
 
-type SearchMultiDimViewHit = BaseSearchChartHit & {
+export type SearchMultiDimViewHit = BaseSearchChartHit & {
     type: ChartRecordType.MultiDimView
     queryParams: string
     chartConfigId: string
