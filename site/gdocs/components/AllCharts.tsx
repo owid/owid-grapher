@@ -1,6 +1,10 @@
-import { useContext } from "react"
-import { skipToken, useInfiniteQuery } from "@tanstack/react-query"
-import { useIntersectionObserver } from "usehooks-ts"
+import { useContext, useState } from "react"
+import {
+    keepPreviousData,
+    skipToken,
+    useInfiniteQuery,
+} from "@tanstack/react-query"
+import { useDebounceValue, useIntersectionObserver } from "usehooks-ts"
 import {
     getHighlightedParts,
     unescape,
@@ -25,9 +29,13 @@ import {
     queryAllChartsBlock,
 } from "../../search/queries.js"
 import { getLiteSearchClient } from "../../search/searchClients.js"
-import { buildSearchHrefForCard } from "../../search/searchState.js"
+import { buildSearchHref } from "../../search/searchState.js"
 
 const ALL_CHARTS_PREFETCH_ROOT_MARGIN = "100% 0px"
+
+const SEARCH_DEBOUNCE_MS = 200
+const SEARCH_PLACEHOLDER =
+    "Search indicators by name, keyword, country, or source…"
 
 type AllChartsProps = EnrichedBlockAllCharts & {
     className?: string
@@ -44,7 +52,14 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
         freezeOnceVisible: true,
     })
 
-    const chartsQuery = { topic: topic ?? "", query: "", countries: [] }
+    const [query, setQuery] = useState("")
+    const [debouncedQuery] = useDebounceValue(query, SEARCH_DEBOUNCE_MS)
+    const requestedQuery = query.trim() === "" ? "" : debouncedQuery.trim()
+
+    const chartsQuery = {
+        topic: topic ?? "",
+        query: requestedQuery,
+    }
     const {
         data,
         isError,
@@ -62,6 +77,7 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
                           page: pageParam,
                       })
                 : skipToken,
+        placeholderData: keepPreviousData,
         initialPageParam: 0,
         getNextPageParam: (lastPage) => {
             const { page, nbPages } = lastPage
@@ -88,10 +104,10 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
                 className={className}
                 id={id}
                 heading={heading}
-                searchHref={buildSearchHrefForCard(
-                    SearchResultType.DATA,
-                    topic
-                )}
+                searchHref={buildSearchHref({
+                    resultType: SearchResultType.DATA,
+                    topic,
+                })}
             />
         )
     }
@@ -108,7 +124,7 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
             availableTabs: hit.availableTabs,
         }))
     )
-    if (rows.length === 0) return null
+    const { query: rowsQuery, countries } = data.pages[0]
 
     return (
         <AllChartsBlock
@@ -117,6 +133,13 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
             heading={heading}
             rowCount={data.pages[0].nbHits}
             rows={rows}
+            countries={countries}
+            search={{
+                query,
+                rowsQuery,
+                onQueryChange: setQuery,
+                placeholder: SEARCH_PLACEHOLDER,
+            }}
             onLoadMore={
                 hasNextPage && !isFetchNextPageError
                     ? () => {
@@ -125,6 +148,10 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
                     : undefined
             }
             isLoadingMore={isFetchingNextPage}
+            noResultsHref={buildSearchHref({
+                resultType: SearchResultType.DATA,
+                query: rowsQuery,
+            })}
         />
     )
 }

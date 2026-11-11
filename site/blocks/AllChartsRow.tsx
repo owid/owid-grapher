@@ -4,6 +4,8 @@ import {
     GrapherTabName,
     SearchChartUrlTarget,
 } from "@ourworldindata/types"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
 import { makeLabelForGrapherTab } from "@ourworldindata/grapher"
 import { constructChartAndPreviewUrlsForTab } from "../search/SearchChartHitSmallHelpers.js"
 
@@ -22,7 +24,7 @@ export interface AllChartsRowData extends SearchChartUrlTarget {
 interface AllChartsRowProps {
     row: AllChartsRowData
     isSelected: boolean
-    selectedTab?: GrapherTabName
+    displayedTab: GrapherTabName | undefined
     thumbnailTabs: GrapherTabName[]
     countries: string[]
     inlinePreviewId?: string
@@ -33,15 +35,13 @@ interface AllChartsRowProps {
 export function AllChartsRow({
     row,
     isSelected,
-    selectedTab,
+    displayedTab,
     thumbnailTabs,
     countries,
     inlinePreviewId,
     onTitleSelect,
     onThumbnailSelect,
 }: AllChartsRowProps) {
-    const displayedTab = isSelected ? selectedTab : thumbnailTabs[0]
-
     const selectStateProps = inlinePreviewId
         ? {
               "aria-expanded": isSelected,
@@ -81,6 +81,12 @@ export function AllChartsRow({
                     {row.source && (
                         <span className="all-charts-row__source">
                             <strong>Source:</strong> {row.source}
+                        </span>
+                    )}
+                    {countries.length > 0 && (
+                        <span className="all-charts-row__countries">
+                            <FontAwesomeIcon icon={faLocationDot} />{" "}
+                            {countries.join(", ")}
                         </span>
                     )}
                 </button>
