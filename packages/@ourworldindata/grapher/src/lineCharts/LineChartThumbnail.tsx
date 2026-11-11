@@ -118,7 +118,12 @@ export class LineChartThumbnail
     @computed private get xAxisConfig(): AxisConfig {
         const { xAxisConfig } = this.manager
         const custom = { labelPadding: 0, tickPadding: 2 }
-        return new AxisConfig({ ...custom, ...xAxisConfig }, this)
+        const { axisText } = getVisibleLabels(this.manager.labelMode)
+        const labelModeOverrides = axisText ? {} : { hideTickLabels: true }
+        return new AxisConfig(
+            { ...custom, ...xAxisConfig, ...labelModeOverrides },
+            this
+        )
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
