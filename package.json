@@ -140,7 +140,7 @@
         "mobx": "^6.15.4",
         "mobx-react": "^7.6.0",
         "multer": "^2.5.0",
-        "mysql2": "^3.23.1",
+        "mysql2": "^3.24.6",
         "nodejs-polars": "^0.7.2",
         "normalize.css": "^8.0.1",
         "p-map": "^7.1.1",

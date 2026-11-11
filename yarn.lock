@@ -7367,13 +7367,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"denque@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "denque@npm:2.1.0"
-  checksum: 10/8ea05321576624b90acfc1ee9208b8d1d04b425cf7573b9b4fa40a2c3ed4d4b0af5190567858f532f677ed2003d4d2b73c8130b34e3c7b8d5e88cdcfbfaa1fe7
-  languageName: node
-  linkType: hard
-
 "depd@npm:^2.0.0, depd@npm:~2.0.0":
   version: 2.0.0
   resolution: "depd@npm:2.0.0"
@@ -8654,7 +8647,7 @@ __metadata:
     mobx: "npm:^6.15.4"
     mobx-react: "npm:^7.6.0"
     multer: "npm:^2.5.0"
-    mysql2: "npm:^3.23.1"
+    mysql2: "npm:^3.24.6"
     nodejs-polars: "npm:^0.7.2"
     normalize.css: "npm:^8.0.1"
     oxfmt: "npm:^0.70.0"
@@ -9011,7 +9004,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"iconv-lite@npm:^0.7.2, iconv-lite@npm:^0.7.3, iconv-lite@npm:~0.7.0":
+"iconv-lite@npm:^0.7.3, iconv-lite@npm:~0.7.0":
   version: 0.7.3
   resolution: "iconv-lite@npm:0.7.3"
   dependencies:
@@ -10521,21 +10514,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mysql2@npm:^3.23.1":
-  version: 3.23.1
-  resolution: "mysql2@npm:3.23.1"
+"mysql2@npm:^3.24.6":
+  version: 3.24.6
+  resolution: "mysql2@npm:3.24.6"
   dependencies:
     aws-ssl-profiles: "npm:^1.1.2"
-    denque: "npm:^2.1.0"
     generate-function: "npm:^2.3.1"
-    iconv-lite: "npm:^0.7.2"
+    iconv-lite: "npm:^0.7.3"
     long: "npm:^5.3.2"
     lru.min: "npm:^1.1.4"
     named-placeholders: "npm:^1.1.6"
     sql-escaper: "npm:^1.5.1"
   peerDependencies:
     "@types/node": ">= 8"
-  checksum: 10/fc2fc865069faf438f382926eda57dc1047eafeb3c28804591cc9f71c926469c8ccbff94b1d9c83aab76cd7166febd560308ae64dfcaa4c51cee2ac7ecee95ba
+  checksum: 10/b01818b73cad6b16dc89eaa19a80e5205891eaf0603db6e7c64dd304bb9c572af6923a00d2e53e25496f803c685ba91d68f61f683b17641135410fa4a710b7c4
   languageName: node
   linkType: hard
 
