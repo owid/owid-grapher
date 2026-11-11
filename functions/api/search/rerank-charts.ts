@@ -28,13 +28,11 @@ import {
 } from "./rerank.js"
 import {
     appendVocabularyHits,
-    pickVocabularyTerms,
+    pickTopicsByEmbedding,
     pickVocabularyTopics,
     type VocabularyTopicPick,
     vocabularyTopicNote,
     VOCABULARY_HITS_PER_TERM,
-    vocabularyNote,
-    type VocabularyTerm,
 } from "./vocabulary.js"
 
 /**
@@ -55,9 +53,10 @@ import {
  * AI binding, and the model only ever sees what Algolia returned for the
  * query, never text a client sent as results.
  *
- * With `vocab=1`, the pool also gets the hits of the query translated into
- * the topic vocabulary (see vocabulary.ts), unless the search is already
- * filtered to a topic. The picks run alongside the pool's own search.
+ * With `vocab=1`, the pool also gets the top charts of the query's topics in
+ * the topic vocabulary, picked by static embedding (see vocabulary.ts),
+ * unless the search is already filtered to a topic. The pick runs alongside
+ * the pool's own search.
  *
  * With `section=pages` it reranks a pages-index section instead (articles,
  * data insights): see rerankPagesSection.
@@ -471,33 +470,34 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                     hitsPerPage: hitsPerPage * RERANK_PAGES,
                 })
             ),
-            expand ? pickVocabularyTerms(env.AI, model, query) : undefined,
+            expand
+                ? pickTopicsByEmbedding(query, (p) => context.waitUntil(p))
+                : undefined,
         ])
         const termSearchesStarted = Date.now()
         const { hits: candidates, via } = vocabulary
             ? await appendVocabularyHits(
                   pool.hits,
                   vocabulary.terms,
-                  async (term) =>
+                  // An empty search within a topic: its charts in Algolia's
+                  // default order
+                  async (pick) =>
                       (
-                          await searchSingleForHitsWithClosestMatches<SearchChartHit>(
-                              client,
-                              {
-                                  ...params,
-                                  indexName,
-                                  query: term.keyword,
-                                  facetFilters: [
-                                      ...facetFilters,
-                                      `tags:${term.topic}`,
-                                  ],
-                                  page: 0,
-                                  hitsPerPage: VOCABULARY_HITS_PER_TERM,
-                              }
-                          )
+                          await searchSingleForHits<SearchChartHit>(client, {
+                              ...params,
+                              indexName,
+                              query: "",
+                              facetFilters: [
+                                  ...facetFilters,
+                                  `tags:${pick.topic}`,
+                              ],
+                              page: 0,
+                              hitsPerPage: VOCABULARY_HITS_PER_TERM,
+                          })
                       ).hits,
                   (hit) => hit.objectID
               )
-            : { hits: pool.hits, via: new Map<string, VocabularyTerm>() }
+            : { hits: pool.hits, via: new Map<string, VocabularyTopicPick>() }
         const termSearchesMs = Date.now() - termSearchesStarted
         const { hits, rerank } = await rerankHits(
             env.AI,
@@ -505,8 +505,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             query,
             candidates,
             (hit) => {
-                const term = via.get(hit.objectID)
-                return term && vocabularyNote(term)
+                const pick = via.get(hit.objectID)
+                return pick && vocabularyTopicNote(pick)
             }
         )
         // Vocabulary hits can turn an empty search into a full one

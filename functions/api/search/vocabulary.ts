@@ -6,49 +6,49 @@ import {
     topChoices,
     type RerankModel,
 } from "./rerank.js"
+import { embedStaticTexts } from "./staticEmbedding.js"
 
 /**
- * Experimental: widen the rerank pool with charts keyword search misses, by
- * translating the query into the topic vocabulary. Opt-in via `vocab=1` next
- * to a rerank.
+ * Experimental: widen the rerank pool with results keyword search misses, by
+ * mapping the query onto the topic vocabulary. Opt-in via `vocab=1` next to a
+ * rerank.
  *
  * The vocabulary partitions our charts into topics, each with a few search
  * terms picked because they find that topic's charts ("Air Pollution":
- * deaths, particulate matter, ozone, …). A decision model can't write a new
- * query, but it can choose from that list, so "under nurished" becomes
- * Hunger & Undernourishment: undernourishment, and searching that term within
- * its topic finds the charts the typo missed.
+ * deaths, particulate matter, ozone, …). The query's VOCABULARY_TOPICS most
+ * likely topics are picked, and each topic's top results are appended to the
+ * pool, so "under nurished" brings in Hunger & Undernourishment's charts even
+ * though the typo matched none. The rerank then decides whether any of them
+ * belongs on top, so a poor pick costs a few weak candidates, not a wrong
+ * result. The rerank prompt notes which topic found each of them
+ * (vocabularyTopicNote), so the model can weigh a neighbouring topic's result
+ * against the query's own hits.
  *
- * Two calls in a row, because a choice question takes at most 255 options and
- * a call at most 64 questions: the query's VOCABULARY_TOPICS most likely
- * topics, then the best term within each. Each term's top hits are appended
- * to the pool; the rerank then decides whether any of them belongs on top,
- * so a poor pick costs a few weak candidates, not a wrong result. The rerank
- * prompt notes which topic search found each of them (vocabularyNote), so the
- * model can weigh a neighbouring topic's chart against the query's own hits.
+ * Charts pick their topics by static embedding (pickTopicsByEmbedding), which
+ * runs in the function in well under a millisecond; pages pick them with a
+ * decision model call (pickVocabularyTopics) or the variants under test in
+ * index.ts.
  *
  * Like the rerank, a failed or slow pick leaves the pool as it was.
  */
 
 const VOCABULARY_URL = "https://files.ourworldindata.org/topic_vocabulary.json"
 
-// Topics to pick a term from. Two, because the topic probability is often
-// split (energy questions between Energy and Energy Mix), and a second term
-// costs only one more search.
+// Topics picked per query. Two, because the topic probability is often split
+// (energy questions between Energy and Energy Mix), and a second topic costs
+// only one more search.
 export const VOCABULARY_TOPICS = 2
 
-// Hits taken from each term's search
+// Results taken from each topic's search
 export const VOCABULARY_HITS_PER_TERM = 5
 
-// Both calls together; the pool goes to the rerank without them after this.
-// The two calls take ~650 ms at the median and ~900 ms at p95, so a 1 s cap
-// cut off 2–11% of picks per benchmark run.
+// The pick, loads included; the pool goes to the rerank without it after
+// this. The decision model's topic call takes ~300 ms at the median; the
+// static pick hits this only while an isolate loads the model.
 export const VOCABULARY_TIMEOUT_MS = 1500
 
 const TOPIC_INSTRUCTIONS =
     "Which Our World in Data topic is this person most likely looking for data on?"
-const keywordInstructions = (topic: string): string =>
-    `Within the topic ${topic}, which search term best describes the data this person is looking for?`
 
 export interface VocabularyTopic {
     /** the topic's tag name, as the charts index's `tags` facet holds it */
@@ -60,17 +60,11 @@ export interface VocabularyTopicPick {
     topic: string
 }
 
-export interface VocabularyTerm extends VocabularyTopicPick {
-    keyword: string
-}
-
-export interface VocabularyInfo<
-    Term extends VocabularyTopicPick = VocabularyTerm,
-> {
-    terms: Term[]
+export interface VocabularyInfo {
+    terms: VocabularyTopicPick[]
     latencyMs: number
-    /** latencyMs by step: loading the vocabulary file, then the call(s) */
-    steps?: { load: number; topic: number; keyword?: number }
+    /** latencyMs by step: loading the vocabulary (and model), then the pick */
+    steps?: { load: number; topic: number }
     /** the picks failed; the pool was reranked without them */
     error?: string
 }
@@ -133,9 +127,9 @@ const trigrams = (text: string): Set<string> => {
 }
 
 /**
- * Under test (vocab=wide): the `n` topics whose name or terms look most like
- * the query, by shared character trigrams, so without a model call. Typos
- * still match ("under nurished" shares most trigrams with
+ * Under test (vocab=wide, pages): the `n` topics whose name or terms look
+ * most like the query, by shared character trigrams, so without a model call.
+ * Typos still match ("under nurished" shares most trigrams with
  * "undernourishment"); other languages and synonyms don't.
  */
 export async function matchVocabularyTopics(
@@ -168,113 +162,76 @@ export async function matchVocabularyTopics(
         .map((topic) => topic.name)
 }
 
-const EMBEDDING_MODEL = "@cf/baai/bge-m3"
-
-/** One vector per text, in order. */
-async function embed(
-    ai: Ai,
-    texts: string[],
-    signal?: AbortSignal
-): Promise<number[][]> {
-    const response: unknown = await ai.run(
-        EMBEDDING_MODEL,
-        { text: texts },
-        { signal }
-    )
-    const data = (response as { data?: unknown }).data
-    if (!Array.isArray(data) || data.length !== texts.length)
-        throw new Error("embedding response has no vectors")
-    return data as number[][]
-}
-
-/** Embeds texts, one vector per text, in order. */
-export interface TextEmbedder {
-    /** keys the per-isolate cache of the topics' vectors */
-    name: string
-    embed: (texts: string[], signal?: AbortSignal) => Promise<number[][]>
-}
-
-export const bgeM3Embedder = (ai: Ai): TextEmbedder => ({
-    name: "bge-m3",
-    embed: async (texts, signal) =>
-        // the model takes at most 100 texts a call
-        (
-            await Promise.all(
-                [texts.slice(0, 64), texts.slice(64, 128), texts.slice(128)]
-                    .filter((batch) => batch.length > 0)
-                    .map((batch) => embed(ai, batch, signal))
-            )
-        ).flat(),
-})
-
-// Per isolate and embedder, like the vocabulary: the topics' vectors, unit length
-const topicVectors = new Map<
-    string,
-    Promise<{ name: string; vector: number[] }[]>
->()
-
 const unit = (vector: number[]): number[] => {
-    const norm = Math.hypot(...vector) || 1
-    return vector.map((x) => x / norm)
+    const norm = Math.hypot(...vector)
+    return norm > 0 ? vector.map((x) => x / norm) : vector
 }
 
-function loadTopicVectors(
-    embedder: TextEmbedder
-): Promise<{ name: string; vector: number[] }[]> {
-    let vectors = topicVectors.get(embedder.name)
-    if (!vectors) {
-        vectors = loadVocabulary()
-            .then(async (topics) => {
-                const embedded = await embedder.embed(
-                    topics.map(
-                        (topic) =>
-                            `${topic.name}: ${topic.keywords.slice(0, 6).join(", ")}`
-                    )
+// Per isolate, like the vocabulary: the topics' vectors, unit length
+let topicVectors: Promise<{ name: string; vector: number[] }[]> | undefined
+
+function loadTopicVectors(): Promise<{ name: string; vector: number[] }[]> {
+    topicVectors ??= loadVocabulary()
+        .then(async (topics) => {
+            const embedded = await embedStaticTexts(
+                topics.map(
+                    (topic) =>
+                        `${topic.name}: ${topic.keywords.slice(0, 6).join(", ")}`
                 )
-                return topics.map((topic, i) => ({
-                    name: topic.name,
-                    vector: unit(embedded[i]),
-                }))
-            })
-            .catch((error) => {
-                topicVectors.delete(embedder.name) // retry on the next request
-                throw error
-            })
-        topicVectors.set(embedder.name, vectors)
-    }
-    return vectors
+            )
+            return topics.map((topic, i) => ({
+                name: topic.name,
+                vector: unit(embedded[i]),
+            }))
+        })
+        .catch((error) => {
+            topicVectors = undefined // retry on the next request
+            throw error
+        })
+    return topicVectors
 }
+
+/** Rejects after `ms`; the promise itself keeps running. */
+const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> =>
+    new Promise((resolve, reject) => {
+        const timer = setTimeout(
+            () => reject(new Error(`timed out after ${ms} ms`)),
+            ms
+        )
+        promise.then(resolve, reject).finally(() => clearTimeout(timer))
+    })
 
 /**
- * Under test (vocab=embed, vocab=static): the query's VOCABULARY_TOPICS
- * topics by embedding similarity, in place of the decision model's topic
- * call. `steps.topic` is the query's embedding alone.
+ * The query's VOCABULARY_TOPICS topics by static embedding similarity (see
+ * staticEmbedding.ts), without a model call. A query with no word the model
+ * knows picks none. `steps.load` is the vocabulary and model, loaded once per
+ * isolate; a load slower than VOCABULARY_TIMEOUT_MS fails the pick, and
+ * `waitUntil` keeps it running for the next request.
  */
 export async function pickTopicsByEmbedding(
-    embedder: TextEmbedder,
-    query: string
-): Promise<VocabularyInfo<VocabularyTopicPick>> {
+    query: string,
+    waitUntil?: (promise: Promise<unknown>) => void
+): Promise<VocabularyInfo> {
     const started = Date.now()
     try {
-        const signal = AbortSignal.timeout(VOCABULARY_TIMEOUT_MS)
+        const loading = loadTopicVectors()
+        waitUntil?.(loading.catch(() => undefined))
         const { value: topics, ms: load } = await timed(() =>
-            loadTopicVectors(embedder)
+            withTimeout(loading, VOCABULARY_TIMEOUT_MS)
         )
-        const { value: vectors, ms: topic } = await timed(() =>
-            embedder.embed([query], signal)
-        )
-        const queryVector = unit(vectors[0])
-        const terms = topics
-            .map(({ name, vector }) => ({
-                topic: name,
-                score: vector.reduce(
-                    (sum, x, i) => sum + x * queryVector[i],
-                    0
-                ),
-            }))
-            .sort((a, b) => b.score - a.score)
-            .slice(0, VOCABULARY_TOPICS)
-            .map(({ topic }) => ({ topic }))
+        const { value: terms, ms: topic } = await timed(async () => {
+            const [queryVector] = await embedStaticTexts([query])
+            if (queryVector.every((x) => x === 0)) return []
+            const q = unit(queryVector)
+            return topics
+                .map(({ name, vector }) => ({
+                    topic: name,
+                    score: vector.reduce((sum, x, i) => sum + x * q[i], 0),
+                }))
+                .sort((a, b) => b.score - a.score)
+                .slice(0, VOCABULARY_TOPICS)
+                .map(({ topic }) => ({ topic }))
+        })
         return {
             terms,
             latencyMs: Date.now() - started,
@@ -285,49 +242,8 @@ export async function pickTopicsByEmbedding(
     }
 }
 
-interface PickedTopics {
-    picked: VocabularyTopic[]
-    state: string
-    steps: { load: number; topic: number }
-}
-
-/** The query's VOCABULARY_TOPICS most likely topics: the first call. */
-async function pickTopics(
-    ai: Ai,
-    model: RerankModel,
-    query: string,
-    signal: AbortSignal
-): Promise<PickedTopics> {
-    const { value: topics, ms: load } = await timed(loadVocabulary)
-    const state = `${STATE_INTRO}\n\nQuery: ${query}`
-    const { value: answers, ms: topic } = await timed(() =>
-        runDecisionModel(
-            ai,
-            model,
-            state,
-            {
-                topic: {
-                    type: "choice",
-                    instructions: TOPIC_INSTRUCTIONS,
-                    criteria: Object.fromEntries(
-                        topics.map((topic, i) => [
-                            optionId("t", i),
-                            `${topic.name} (e.g. ${topic.keywords.slice(0, 6).join(", ")})`,
-                        ])
-                    ),
-                },
-            },
-            signal
-        )
-    )
-    const picked = topChoices(answers.topic, VOCABULARY_TOPICS)
-        .map((id) => topics[optionIndex(id)])
-        .filter((topic) => topic !== undefined)
-    return { picked, state, steps: { load, topic } }
-}
-
 /** Failed picks: no terms, so the pool is reranked as it was. */
-function failedPicks(error: unknown, started: number): VocabularyInfo<never> {
+function failedPicks(error: unknown, started: number): VocabularyInfo {
     console.error("Search vocabulary picks failed:", error)
     Sentry.captureException(error)
     return {
@@ -338,90 +254,47 @@ function failedPicks(error: unknown, started: number): VocabularyInfo<never> {
 }
 
 /**
- * The query's most likely topics, without search terms: one call. For pages
- * (articles, data insights), where a topic has few enough of them that its
- * pages are the candidates. Searching the term within the topic found fewer
- * relevant articles on the benchmark than taking the topic's pages.
+ * The query's VOCABULARY_TOPICS most likely topics, by one decision model
+ * call. For pages (articles, data insights), where a topic has few enough of
+ * them that its pages are the candidates.
  */
 export async function pickVocabularyTopics(
     ai: Ai,
     model: RerankModel,
     query: string
-): Promise<VocabularyInfo<VocabularyTopicPick>> {
-    const started = Date.now()
-    try {
-        const { picked, steps } = await pickTopics(
-            ai,
-            model,
-            query,
-            AbortSignal.timeout(VOCABULARY_TIMEOUT_MS)
-        )
-        return {
-            terms: picked.map((topic) => ({ topic: topic.name })),
-            latencyMs: Date.now() - started,
-            steps,
-        }
-    } catch (error) {
-        return failedPicks(error, started)
-    }
-}
-
-/** The query's most likely topics, each with its best search term. */
-export async function pickVocabularyTerms(
-    ai: Ai,
-    model: RerankModel,
-    query: string
 ): Promise<VocabularyInfo> {
     const started = Date.now()
-    const signal = AbortSignal.timeout(VOCABULARY_TIMEOUT_MS)
     try {
-        const { picked, state, steps } = await pickTopics(
-            ai,
-            model,
-            query,
-            signal
-        )
-
-        // A choice needs two options, so a one-term topic needs no question
-        const questions = Object.fromEntries(
-            picked.flatMap((topic, i) =>
-                topic.keywords.length > 1
-                    ? [
-                          [
-                              optionId("k", i),
-                              {
-                                  type: "choice",
-                                  instructions: keywordInstructions(topic.name),
-                                  criteria: Object.fromEntries(
-                                      topic.keywords.map((keyword, j) => [
-                                          optionId("k", j),
-                                          keyword,
-                                      ])
-                                  ),
-                              },
-                          ],
-                      ]
-                    : []
+        const signal = AbortSignal.timeout(VOCABULARY_TIMEOUT_MS)
+        const { value: topics, ms: load } = await timed(loadVocabulary)
+        const { value: answers, ms: topic } = await timed(() =>
+            runDecisionModel(
+                ai,
+                model,
+                `${STATE_INTRO}\n\nQuery: ${query}`,
+                {
+                    topic: {
+                        type: "choice",
+                        instructions: TOPIC_INSTRUCTIONS,
+                        criteria: Object.fromEntries(
+                            topics.map((topic, i) => [
+                                optionId("t", i),
+                                `${topic.name} (e.g. ${topic.keywords.slice(0, 6).join(", ")})`,
+                            ])
+                        ),
+                    },
+                },
+                signal
             )
         )
-        const { value: keywordAnswers, ms: keyword } = await timed(
-            async (): Promise<Record<string, unknown>> =>
-                Object.keys(questions).length > 0
-                    ? runDecisionModel(ai, model, state, questions, signal)
-                    : {}
-        )
-
-        const terms = picked.flatMap((topic, i): VocabularyTerm[] => {
-            if (topic.keywords.length === 1)
-                return [{ topic: topic.name, keyword: topic.keywords[0] }]
-            const [best] = topChoices(keywordAnswers[optionId("k", i)], 1)
-            const keyword = best && topic.keywords[optionIndex(best)]
-            return keyword ? [{ topic: topic.name, keyword }] : []
-        })
+        const terms = topChoices(answers.topic, VOCABULARY_TOPICS)
+            .map((id) => topics[optionIndex(id)])
+            .filter((picked) => picked !== undefined)
+            .map((picked) => ({ topic: picked.name }))
         return {
             terms,
             latencyMs: Date.now() - started,
-            steps: { ...steps, keyword },
+            steps: { load, topic },
         }
     } catch (error) {
         return failedPicks(error, started)
@@ -429,30 +302,27 @@ export async function pickVocabularyTerms(
 }
 
 /**
- * Searches each term (a failed search contributes nothing) and appends the
- * hits the pool doesn't have yet, in term order. `via` maps each appended
- * hit's key to the term that found it.
+ * Searches each picked topic (a failed search contributes nothing) and
+ * appends the hits the pool doesn't have yet, in pick order. `via` maps each
+ * appended hit's key to the pick that found it.
  */
-export async function appendVocabularyHits<
-    T,
-    Term extends VocabularyTopicPick = VocabularyTerm,
->(
+export async function appendVocabularyHits<T>(
     pool: T[],
-    terms: Term[],
-    search: (term: Term) => Promise<T[]>,
+    terms: VocabularyTopicPick[],
+    search: (term: VocabularyTopicPick) => Promise<T[]>,
     key: (hit: T) => string
-): Promise<{ hits: T[]; via: Map<string, Term> }> {
+): Promise<{ hits: T[]; via: Map<string, VocabularyTopicPick> }> {
     const perTerm = await Promise.all(
         terms.map((term) =>
             search(term).catch((error) => {
-                console.error("Search vocabulary term failed:", error)
+                console.error("Search vocabulary topic failed:", error)
                 return []
             })
         )
     )
     const seen = new Set(pool.map(key))
     const merged = [...pool]
-    const via = new Map<string, Term>()
+    const via = new Map<string, VocabularyTopicPick>()
     perTerm.forEach((hits, i) => {
         for (const hit of hits) {
             if (seen.has(key(hit))) continue
@@ -465,13 +335,9 @@ export async function appendVocabularyHits<
 }
 
 /**
- * The rerank prompt's note on a vocabulary hit. On the benchmark it moved a
- * few relevant keyword hits back above a neighbouring topic's chart ("work
- * laws", "heat").
+ * The rerank prompt's note on a hit added from a vocabulary topic. On the
+ * benchmark such notes moved a few relevant keyword hits back above a
+ * neighbouring topic's result ("work laws", "heat").
  */
-export const vocabularyNote = (term: VocabularyTerm): string =>
-    `found by searching the related topic ${term.topic} for "${term.keyword}", not by the query itself`
-
-/** The rerank prompt's note on a page added from a vocabulary topic. */
 export const vocabularyTopicNote = (pick: VocabularyTopicPick): string =>
     `found by browsing the related topic ${pick.topic}, not by the query itself`

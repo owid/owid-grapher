@@ -1,24 +1,22 @@
 /**
- * Under test (vocab=static): a static embedding model run inside the
- * function, in place of a Workers AI call. Every Workers AI call costs ~80–100
+ * A static embedding model run inside the function, for the charts'
+ * vocabulary topic picks (vocabulary.ts). Every Workers AI call costs ~80–100
  * ms however small it is; a static model is a table with one vector per
  * token, so embedding a query is tokenizing it and averaging its tokens'
  * vectors: well under a millisecond.
  *
  * The model is potion-base-8M (model2vec, distilled from bge-base-en-v1.5),
  * English, 256 dimensions. Its float table is 30 MB, too big for the
- * functions bundle, so it's fetched once per isolate, pinned to a revision.
- * TODO: copy both files to files.ourworldindata.org if this variant wins.
+ * functions bundle, so it's fetched once per isolate from our copy of the
+ * Hugging Face files, pinned to their revision.
  *
  * This reimplements model2vec's encoding: the BERT tokenizer (lowercase,
  * accents stripped, split on whitespace and punctuation, WordPiece), unknown
  * words dropped, the mean of the tokens' vectors.
  */
 
-import type { TextEmbedder } from "./vocabulary.js"
-
 const MODEL_BASE =
-    "https://huggingface.co/minishlab/potion-base-8M/resolve/bf8b056651a2c21b8d2565580b8569da283cab23"
+    "https://files.ourworldindata.org/search/potion-base-8M/bf8b056651a2c21b8d2565580b8569da283cab23"
 
 // WordPiece gives up on longer words, as the original does
 const MAX_WORD_CHARS = 100
@@ -163,13 +161,10 @@ const fetchModelFile = async (name: string): Promise<Response> => {
     return response
 }
 
-/** The first call loads the model; the topics' vectors take that hit. */
-export const staticEmbedder: TextEmbedder = {
-    name: "potion-base-8M",
-    embed: async (texts) => {
-        const loaded = await loadStaticModel()
-        return texts.map((text) => embedStatic(loaded, text))
-    },
+/** One vector per text, in order; the first call loads the model. */
+export async function embedStaticTexts(texts: string[]): Promise<number[][]> {
+    const loaded = await loadStaticModel()
+    return texts.map((text) => embedStatic(loaded, text))
 }
 
 let model: Promise<StaticModel> | undefined

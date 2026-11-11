@@ -5,8 +5,8 @@
  * every hit exactly once; the pool always comes from this deployment's charts
  * index; and requests the site wouldn't send are rejected, so the site falls
  * back to Algolia instead of showing a search that silently differs. With
- * vocab=1, the vocabulary terms' hits join the pool, unless the reader
- * already filtered to a topic.
+ * vocab=1, the top hits of the query's vocabulary topics join the pool,
+ * unless the reader already filtered to a topic.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { ChartRecordType } from "@ourworldindata/types"
@@ -28,8 +28,8 @@ vi.mock(import("./vocabulary.js"), async (importOriginal) => {
     const actual = await importOriginal()
     return {
         ...actual,
-        pickVocabularyTerms: vi.fn(async () => ({
-            terms: [{ topic: "Fertility Rate", keyword: "fertility rate" }],
+        pickTopicsByEmbedding: vi.fn(async () => ({
+            terms: [{ topic: "Fertility Rate" }],
             latencyMs: 5,
         })),
         pickVocabularyTopics: vi.fn(async () => ({
@@ -100,6 +100,7 @@ const post = async (
     const response = await onRequestPost({
         request,
         env: env(ai ?? undefined),
+        waitUntil: () => undefined,
     } as any)
     return { status: response.status, body: (await response.json()) as any }
 }
@@ -107,7 +108,10 @@ const post = async (
 describe("/api/search/rerank-charts", () => {
     const search = vi.mocked(utils.searchSingleForHitsWithClosestMatches)
 
+    const topicSearch = vi.mocked(utils.searchSingleForHits)
+
     beforeEach(() => {
+        topicSearch.mockReset()
         search.mockReset()
         search.mockResolvedValue({
             hits: Array.from({ length: POOL_SIZE }, (_, i) => hit(`h${i + 1}`)),
@@ -154,19 +158,13 @@ describe("/api/search/rerank-charts", () => {
 
     describe("with vocab=1", () => {
         beforeEach(() => {
-            search.mockImplementation(async (_client, params: any) =>
-                params.query === "fertility rate"
-                    ? ({ hits: [hit("h2"), hit("v1")], nbHits: 2 } as any)
-                    : ({
-                          hits: Array.from({ length: POOL_SIZE }, (_, i) =>
-                              hit(`h${i + 1}`)
-                          ),
-                          nbHits: 101,
-                      } as any)
-            )
+            topicSearch.mockResolvedValue({
+                hits: [hit("h2"), hit("v1")],
+                nbHits: 2,
+            } as any)
         })
 
-        it("searches each term within its topic and adds the hits the pool lacks", async () => {
+        it("adds the top charts of each picked topic the pool lacks", async () => {
             const ai = reverseAi()
             const { body } = await post(
                 siteRequest({ hitsPerPage: 7 }),
@@ -174,10 +172,10 @@ describe("/api/search/rerank-charts", () => {
                 "model=jev&vocab=1"
             )
 
-            expect(search).toHaveBeenCalledWith(
+            expect(topicSearch).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({
-                    query: "fertility rate",
+                    query: "",
                     facetFilters: [
                         ["availableEntities:France"],
                         "tags:Fertility Rate",
@@ -191,7 +189,7 @@ describe("/api/search/rerank-charts", () => {
                 state: string
             }
             expect(state).toContain(
-                'Title of v1 — Subtitle of v1 (found by searching the related topic Fertility Rate for "fertility rate"'
+                "Title of v1 — Subtitle of v1 (found by browsing the related topic Fertility Rate"
             )
             expect(state).toContain("Title of h2 — Subtitle of h2\n")
         })
@@ -203,7 +201,7 @@ describe("/api/search/rerank-charts", () => {
                 "model=jev&vocab=1"
             )
 
-            expect(search).toHaveBeenCalledOnce()
+            expect(topicSearch).not.toHaveBeenCalled()
             expect(body.rerank.poolSize).toBe(POOL_SIZE)
             expect(body.vocabulary).toBeUndefined()
         })
@@ -271,7 +269,7 @@ describe("/api/search/rerank-charts", () => {
                 hits: [pageHit("p1")],
                 nbHits: 1,
             } as any)
-            vi.mocked(utils.searchSingleForHits).mockResolvedValue({
+            topicSearch.mockResolvedValue({
                 // another passage of p1, which the pool already has
                 hits: [pageHit("p1", 3), pageHit("t1")],
             } as any)
@@ -282,7 +280,7 @@ describe("/api/search/rerank-charts", () => {
                 "model=jev&section=pages&vocab=1"
             )
 
-            expect(utils.searchSingleForHits).toHaveBeenCalledWith(
+            expect(topicSearch).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({
                     query: "",
