@@ -2,6 +2,7 @@ import * as R from "remeda"
 import { describe, expect, it } from "vitest"
 
 import {
+    hideLabelsUnderBox,
     placeCurveLabels,
     type LabelBox,
     type CurveLabelCandidate,
@@ -88,7 +89,7 @@ describe(placeCurveLabels, () => {
         ])
     })
 
-    it("moves a colliding label along its curve, keeping the tallest peak's label in place", () => {
+    it("moves a colliding label a little along its curve, keeping the tallest peak's label in place", () => {
         const { labels, dropped } = placeCurveLabels(
             [triangle("Low", 310, 110), triangle("High", 300, 100)],
             OPTIONS
@@ -96,14 +97,16 @@ describe(placeCurveLabels, () => {
         expect(dropped).toEqual([])
         const byKey = R.indexBy(labels, (l) => l.key)
         expect(byKey.High.x).toBe(300)
-        // Low's label moved off its peak, clear of High's label
+        // Low's label moved off its peak, clear of High's label...
         expect(byKey.Low.x).not.toBe(310)
         expect(boxesOverlap(byKey.Low.box, byKey.High.box)).toBe(false)
-        // ...but stayed on the upper half of its own curve
-        expect(byKey.Low.y).toBeLessThan(300 - 0.5 * 190)
+        // ...but no more than 1.5 label widths, on the top 30% of its curve
+        expect(Math.abs(byKey.Low.x - 310)).toBeLessThanOrEqual(1.5 * 60)
+        expect(byKey.Low.y).toBeLessThan(300 - 0.7 * 190)
     })
 
-    it("stacks a label above the others when its curve is too narrow to move along", () => {
+    it("drops a label rather than stack it above another", () => {
+        // Too narrow a curve to move along
         const { labels, dropped } = placeCurveLabels(
             [
                 triangle("High", 300, 100),
@@ -111,16 +114,79 @@ describe(placeCurveLabels, () => {
             ],
             OPTIONS
         )
-        expect(dropped).toEqual([])
-        const byKey = R.indexBy(labels, (l) => l.key)
-        expect(byKey.Narrow.x).toBe(300)
-        expect(byKey.Narrow.box.bottom).toBeLessThanOrEqual(
-            byKey.High.box.top - 2
+        expect(labels.map((l) => l.key)).toEqual(["High"])
+        expect(dropped).toEqual(["Narrow"])
+    })
+
+    it("doesn't move a label further than allowed from its peak", () => {
+        // A broad curve with its middle covered: room only far from the peak
+        const broad = triangle("A", 300, 100, { halfWidth: 600 })
+        const obstacle = { left: 210, right: 390, top: 0, bottom: 300 }
+        expect(
+            placeCurveLabels([broad], { ...OPTIONS, obstacles: [obstacle] })
+                .dropped
+        ).toEqual(["A"])
+        expect(
+            placeCurveLabels([broad], {
+                ...OPTIONS,
+                obstacles: [obstacle],
+                maxShift: 3,
+            }).labels
+        ).toHaveLength(1)
+    })
+
+    it("keeps a moved label off another curve's peak", () => {
+        const { labels } = placeCurveLabels(
+            [
+                triangle("A", 300, 100),
+                triangle("B", 330, 110, { halfWidth: 600 }),
+                // Where B's label would otherwise move to
+                triangle("C", 280, 115, { halfWidth: 20 }),
+            ],
+            OPTIONS
         )
+        const b = labels.find((l) => l.key === "B")!
+        expect(b).toBeDefined()
+        expect(b.box.left > 283 || b.box.right < 277).toBe(true)
+    })
+
+    it("leaves some of many close peaks unlabelled, and never floats a label above its curve", () => {
+        const curves = [
+            triangle("A", 300, 100),
+            triangle("B", 310, 104),
+            triangle("C", 320, 108),
+            triangle("D", 290, 112),
+            triangle("E", 330, 116),
+        ]
+        const { labels, dropped } = placeCurveLabels(curves, OPTIONS)
+        expect(dropped.length).toBeGreaterThan(0)
+        expect(labels.length + dropped.length).toBe(curves.length)
+        for (const label of labels) {
+            // Resting on its own curve's highest point under it, not
+            // floating higher up
+            const { points } = curves.find((c) => c.key === label.key)!
+            const { left, right, bottom } = label.box
+            const highestWithin = Math.min(
+                ...points
+                    .filter((p) => p.x >= left && p.x <= right)
+                    .map((p) => p.y)
+            )
+            const highestAround = Math.min(
+                ...points
+                    .filter((p) => p.x >= left - 10 && p.x <= right + 10)
+                    .map((p) => p.y)
+            )
+            expect(bottom).toBeLessThanOrEqual(highestWithin - 4)
+            expect(bottom).toBeGreaterThanOrEqual(highestAround - 4)
+        }
+        for (const [a, b] of R.pipe(labels, (ls) =>
+            ls.flatMap((l, i) => ls.slice(i + 1).map((m) => [l, m] as const))
+        ))
+            expect(boxesOverlap(a.box, b.box)).toBe(false)
     })
 
     it("drops a label that fits nowhere and reports it", () => {
-        // No room above the peaks to stack into
+        // No room above the peaks
         const { labels, dropped } = placeCurveLabels(
             [triangle("A", 300, 20), triangle("B", 300, 22, { halfWidth: 30 })],
             OPTIONS
@@ -130,11 +196,14 @@ describe(placeCurveLabels, () => {
     })
 
     it("avoids obstacles", () => {
-        const obstacle = { left: 250, right: 350, top: 70, bottom: 100 }
-        const { labels } = placeCurveLabels([triangle("A", 300, 100)], {
-            ...OPTIONS,
-            obstacles: [obstacle],
-        })
+        const obstacle = { left: 280, right: 320, top: 70, bottom: 100 }
+        const { labels } = placeCurveLabels(
+            [triangle("A", 300, 100, { halfWidth: 400 })],
+            {
+                ...OPTIONS,
+                obstacles: [obstacle],
+            }
+        )
         expect(labels).toHaveLength(1)
         expect(boxesOverlap(labels[0].box, obstacle)).toBe(false)
     })
@@ -145,5 +214,49 @@ describe(placeCurveLabels, () => {
             OPTIONS
         )
         expect(labels.map((l) => l.key)).toEqual(["Low", "High"])
+    })
+})
+
+describe(hideLabelsUnderBox, () => {
+    const layout = placeCurveLabels(
+        [
+            triangle("Left", 100, 100),
+            triangle("Middle", 300, 100),
+            triangle("Right", 500, 100),
+        ],
+        OPTIONS
+    )
+
+    it("leaves the labels alone when there's no box", () => {
+        expect(hideLabelsUnderBox(layout, () => undefined)).toEqual(layout)
+    })
+
+    it("hides the labels the box covers, growing it until it covers no more", () => {
+        // A box in the top-right corner that grows leftwards with every row
+        const boxFor = (keys: string[]): LabelBox | undefined => ({
+            left: 520 - 150 * keys.length,
+            right: 600,
+            top: 0,
+            bottom: 120,
+        })
+        const result = hideLabelsUnderBox(
+            { ...layout, dropped: ["Gone"] },
+            boxFor
+        )
+        // One row covers Right; two rows reach Middle; three reach Left
+        expect(result.labels).toEqual([])
+        expect(result.dropped).toEqual(["Gone", "Right", "Middle", "Left"])
+    })
+
+    it("keeps the labels it doesn't cover where they were", () => {
+        const result = hideLabelsUnderBox(layout, () => ({
+            left: 520,
+            right: 600,
+            top: 0,
+            bottom: 120,
+        }))
+        expect(result.labels.map((l) => l.key)).toEqual(["Left", "Middle"])
+        expect(result.labels).toEqual(layout.labels.slice(0, 2))
+        expect(result.dropped).toEqual(["Right"])
     })
 })

@@ -35,6 +35,7 @@ import {
     timeIntervalNoun,
 } from "../core/currency.js"
 import {
+    hideLabelsUnderBox,
     placeCurveLabels,
     type CurveLabelCandidate,
     type CurveLabelLayout,
@@ -78,16 +79,22 @@ export interface IncomeDistributionChartProps {
      */
     obstacles?: LabelBox[]
     /**
-     * A box the country labels also keep clear of, without it counting
-     * towards `onCountryLabelsChange`: the overlay legend, which only shows
-     * when some country couldn't be labelled
+     * A box over the plot that the country labels keep clear of, whose
+     * contents don't depend on them: the overlay legend listing every
+     * country, as it does with a poverty line
      */
     legendBox?: LabelBox
     /**
-     * Countries view: called with whether every country got a label, given
-     * `obstacles` alone
+     * Where the box listing the countries left without a label would start
+     * (its top, in px), when there's to be one. Labels the box would cover
+     * are left out too, and listed in it (see hideLabelsUnderBox).
      */
-    onCountryLabelsChange?: (allLabelled: boolean) => void
+    leftoverLegendTop?: number
+    /**
+     * Countries view: called with the countries left without a label, in
+     * series order
+     */
+    onUnlabelledCountriesChange?: (keys: string[]) => void
 }
 
 const MARGIN = { top: 10, right: 16, bottom: 32, left: 16 }
@@ -168,7 +175,8 @@ function IncomeDistributionChartContent({
     isNarrow,
     obstacles,
     legendBox,
-    onCountryLabelsChange,
+    leftoverLegendTop,
+    onUnlabelledCountriesChange,
     width,
     height,
 }: IncomeDistributionChartProps & {
@@ -247,9 +255,7 @@ function IncomeDistributionChartContent({
     const countryLabelFontSize = isNarrow
         ? COUNTRY_LABEL_FONT_SIZE_NARROW
         : COUNTRY_LABEL_FONT_SIZE
-    const countryLabels = useMemo(():
-        | { layout: CurveLabelLayout; allLabelled: boolean }
-        | undefined => {
+    const countryLabels = useMemo((): CurveLabelLayout | undefined => {
         if (isStacked) return undefined
         const candidates = model.series.map((s): CurveLabelCandidate => ({
             key: s.key,
@@ -270,17 +276,22 @@ function IncomeDistributionChartContent({
                 bottom: plotBottom,
             },
             labelHeight: countryLabelFontSize * COUNTRY_LABEL_LINE_HEIGHT,
-            obstacles: obstacles ?? [],
+            obstacles: [
+                ...(obstacles ?? []),
+                ...(legendBox ? [legendBox] : []),
+            ],
         }
-        const withoutLegend = placeCurveLabels(candidates, options)
-        const allLabelled = withoutLegend.dropped.length === 0
-        const layout = legendBox
-            ? placeCurveLabels(candidates, {
-                  ...options,
-                  obstacles: [...options.obstacles, legendBox],
-              })
-            : withoutLegend
-        return { layout, allLabelled }
+        const layout = placeCurveLabels(candidates, options)
+        if (leftoverLegendTop === undefined) return layout
+        // The box only lists what's left over, so its size depends on the
+        // labels: place them as if it weren't there, then hide the ones it
+        // ends up covering
+        return hideLabelsUnderBox(layout, (keys) =>
+            estimateLeftoverLegendBox(keys, {
+                top: leftoverLegendTop,
+                right: width - MARGIN.right,
+            })
+        )
     }, [
         isStacked,
         model.series,
@@ -294,13 +305,21 @@ function IncomeDistributionChartContent({
         plotBottom,
         obstacles,
         legendBox,
+        leftoverLegendTop,
+        width,
     ])
 
-    const allCountriesLabelled = countryLabels?.allLabelled
+    // Reported by value, so a new layout with the same leftovers doesn't
+    // re-render the caller
+    const unlabelledCountries = countryLabels?.dropped.join("\n")
     useEffect(() => {
-        if (allCountriesLabelled !== undefined)
-            onCountryLabelsChange?.(allCountriesLabelled)
-    }, [allCountriesLabelled, onCountryLabelsChange])
+        if (unlabelledCountries !== undefined)
+            onUnlabelledCountriesChange?.(
+                unlabelledCountries === ""
+                    ? []
+                    : unlabelledCountries.split("\n")
+            )
+    }, [unlabelledCountries, onUnlabelledCountriesChange])
 
     const seriesColors = useMemo(
         () => new Map(model.series.map((s) => [s.key, s.color])),
@@ -595,7 +614,7 @@ function IncomeDistributionChartContent({
                         onPointerDown={handleAreaPointerDown}
                     >
                         <CountryLabelLayer
-                            labels={countryLabels.layout.labels}
+                            labels={countryLabels.labels}
                             colors={seriesColors}
                             fontSize={countryLabelFontSize}
                             highlightedKeys={highlightedKeys}
@@ -1046,6 +1065,54 @@ function PointerLine({
             </text>
         </g>
     )
+}
+
+/**
+ * Mirrors the overlay legend's swatch rows (IncomeDistributionLegend.scss):
+ * 10px 12px padding, a 1px border, rows of 12px text at 1.25 line height with
+ * 2px padding above and below, a 10px swatch and a 6px gap before the label,
+ * which is capped at 260px
+ */
+const LEFTOVER_LEGEND = {
+    paddingX: 12 + 1,
+    paddingY: 10 + 1,
+    rowHeight: 12 * 1.25 + 4,
+    markWidth: 10 + 6,
+    fontSize: 12,
+    maxLabelWidth: 260,
+    /** For rounding and font differences */
+    slack: 4,
+}
+
+/**
+ * Where the overlay legend listing `keys` will be, right-aligned at `right`
+ * from `top` down; undefined when there's nothing to list
+ */
+function estimateLeftoverLegendBox(
+    keys: string[],
+    { top, right }: { top: number; right: number }
+): LabelBox | undefined {
+    if (keys.length === 0) return undefined
+    const labelWidth = Math.min(
+        Math.max(
+            ...keys.map(
+                (key) =>
+                    Bounds.forText(key, { fontSize: LEFTOVER_LEGEND.fontSize })
+                        .width
+            )
+        ),
+        LEFTOVER_LEGEND.maxLabelWidth
+    )
+    const width =
+        2 * LEFTOVER_LEGEND.paddingX +
+        LEFTOVER_LEGEND.markWidth +
+        labelWidth +
+        LEFTOVER_LEGEND.slack
+    const height =
+        2 * LEFTOVER_LEGEND.paddingY +
+        keys.length * LEFTOVER_LEGEND.rowHeight +
+        LEFTOVER_LEGEND.slack
+    return { left: right - width, right, top, bottom: top + height }
 }
 
 function computeAreaPaths(

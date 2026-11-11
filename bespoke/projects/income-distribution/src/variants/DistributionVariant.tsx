@@ -72,6 +72,10 @@ import {
     LegendEntry,
 } from "../components/IncomeDistributionLegend.js"
 
+/** Top of the overlays over the plot without the button, and the gap between them (DistributionVariant.scss) */
+const OVERLAY_TOP = 30
+const OVERLAY_GAP = 8
+
 /** More selected countries than this and the title stops naming them */
 const MAX_COUNTRIES_IN_TITLE = 4
 
@@ -256,9 +260,10 @@ function CaptionedDistributionVariant({
     const isNarrow = width > 0 && width < NARROW_BREAKPOINT
 
     const [hoveredEntity, setHoveredEntity] = useState<string | null>(null)
-    // Whether the chart labelled every country directly; assumed until it
-    // says otherwise, so the overlay legend doesn't flash up on load
-    const [allCountriesLabelled, setAllCountriesLabelled] = useState(true)
+    // The countries the chart couldn't label directly, which the overlay
+    // legend then lists; none until it says otherwise, so the legend doesn't
+    // flash up on load
+    const [unlabelledCountries, setUnlabelledCountries] = useState<string[]>([])
 
     // What floats over the plot, measured so the chart's labels keep clear
     const [chartArea, setChartArea] = useState<HTMLDivElement | null>(null)
@@ -351,7 +356,25 @@ function CaptionedDistributionVariant({
     const showOverlayLegend =
         !isNarrow &&
         !hasNoCountries &&
-        (view === "global" || povertyLine !== null || !allCountriesLabelled)
+        (view === "global" ||
+            povertyLine !== null ||
+            unlabelledCountries.length > 0)
+    // Countries view without a line: the overlay legend is a sidebar for the
+    // countries left without a label, not a repeat of every one
+    const listsLeftovers =
+        view === "countries" && povertyLine === null && !isNarrow
+    const overlayLegendEntries = useMemo(() => {
+        if (!listsLeftovers) return legendEntries
+        const leftovers = new Set(unlabelledCountries)
+        return legendEntries.filter((entry) => leftovers.has(entry.key))
+    }, [listsLeftovers, legendEntries, unlabelledCountries])
+    // Where that legend starts: below the button, else below the poverty
+    // line's label (see .income-distribution-captioned-chart__overlays)
+    const leftoverLegendTop = listsLeftovers
+        ? editCountriesBox
+            ? editCountriesBox.bottom + OVERLAY_GAP
+            : OVERLAY_TOP
+        : undefined
     const showInlineLegend = isNarrow && !hasNoCountries
     // Wide charts put the button over the plot's top-right corner, above the
     // overlay legend; narrow ones keep it in the row above the plot
@@ -442,7 +465,7 @@ function CaptionedDistributionVariant({
                                     <div ref={setOverlayLegendNode}>
                                         <IncomeDistributionLegend
                                             layout="overlay"
-                                            entries={legendEntries}
+                                            entries={overlayLegendEntries}
                                             hoveredEntity={hoveredEntity}
                                             onHoverEntity={setHoveredEntity}
                                             sharesBelowLine={sharesBelowLine}
@@ -481,8 +504,15 @@ function CaptionedDistributionVariant({
                                 onHoverEntity={setHoveredEntity}
                                 isNarrow={isNarrow}
                                 obstacles={chartObstacles}
-                                legendBox={overlayLegendBox}
-                                onCountryLabelsChange={setAllCountriesLabelled}
+                                legendBox={
+                                    listsLeftovers
+                                        ? undefined
+                                        : overlayLegendBox
+                                }
+                                leftoverLegendTop={leftoverLegendTop}
+                                onUnlabelledCountriesChange={
+                                    setUnlabelledCountries
+                                }
                             />
                         )}
                     </div>
