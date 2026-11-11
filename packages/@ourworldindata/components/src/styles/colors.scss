@@ -363,7 +363,11 @@ $sdgColors: (
     .cookie-notice,
     // Explorer tiles sit on a baked-in navy thumbnail image, so their icon
     // and text colors are designed for navy in both themes
-    .explorer-tile {
+    .explorer-tile,
+    // "Configure the data" dropdowns on multi-dimensional data pages and
+    // their menus (rendered at the end of <body>) look like chart controls
+    .md-settings__dropdown,
+    .md-menu {
         @include light-theme-tokens;
     }
 

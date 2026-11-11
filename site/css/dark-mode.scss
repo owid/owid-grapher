@@ -376,3 +376,8 @@ $dark-footnote-bg: #eef1f5;
         background-color: $blue-30;
     }
 }
+
+/* The multi-dim data page dropdown menu inherits text color from <body> */
+:root[data-theme="dark"] .md-menu {
+    color: $text-color;
+}
