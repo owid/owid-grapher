@@ -357,3 +357,9 @@ $dark-footnote-bg: #eef1f5;
         color: #2162e6;
     }
 }
+
+/* Small chart icon after links to charts in articles. Its $blue-30 is a faint
+   accent on white, but mirrored it nearly disappears on the dark page. */
+:root[data-theme="dark"] .span-linked-chart .span-linked-chart-icon {
+    color: $blue-50;
+}
