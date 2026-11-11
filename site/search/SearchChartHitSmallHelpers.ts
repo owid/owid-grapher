@@ -7,7 +7,6 @@ import {
     GrapherTabName,
     GrapherValuesJson,
     SearchChartHit,
-    SearchChartUrlTarget,
 } from "@ourworldindata/types"
 import { fetchJson } from "@ourworldindata/utils"
 import {
@@ -64,21 +63,38 @@ export function constructChartAndPreviewUrlsForTab({
     entities,
     hasScatter = false,
 }: {
-    hit: SearchChartUrlTarget
+    hit: SearchChartHit
     tab: GrapherTabName
     entities?: EntityName[]
     hasScatter?: boolean
 }): { chartUrl: string; previewUrl: string } {
-    const grapherParams = toGrapherQueryParams({ entities, tab })
-
     const chartUrl = constructChartUrl({
         hit,
-        grapherParams,
+        grapherParams: toGrapherQueryParams({ entities, tab }),
     })
-
-    const previewUrl = constructPreviewUrl({
+    const previewUrl = constructThumbnailUrlForTab({
         hit,
-        grapherParams,
+        tab,
+        entities,
+        hasScatter,
+    })
+    return { chartUrl, previewUrl }
+}
+
+export function constructThumbnailUrlForTab({
+    hit,
+    tab,
+    entities,
+    hasScatter = false,
+}: {
+    hit: SearchChartHit
+    tab: GrapherTabName
+    entities?: EntityName[]
+    hasScatter?: boolean
+}): string {
+    return constructPreviewUrl({
+        hit,
+        grapherParams: toGrapherQueryParams({ entities, tab }),
         imageRequest: {
             variant: GrapherVariant.Thumbnail,
             labelMode: ChartLabelMode.All,
@@ -89,6 +105,4 @@ export function constructChartAndPreviewUrlsForTab({
             includeDetails: false,
         },
     })
-
-    return { chartUrl, previewUrl }
 }

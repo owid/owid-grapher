@@ -7,12 +7,8 @@ import {
 } from "@tanstack/react-query"
 import { useDebounceValue, useIntersectionObserver } from "usehooks-ts"
 import {
-    getHighlightedParts,
-    unescape,
-} from "instantsearch.js/es/lib/utils/index.js"
-import {
-    EnrichedBlockAllCharts,
     ALL_CHARTS_ID,
+    fetchJson,
     getTopicPageHeading,
     sentenceCaseIfNotTopicPage,
 } from "@ourworldindata/utils"
@@ -21,11 +17,8 @@ import { AttachmentsContext } from "../AttachmentsContext.js"
 import { useDocumentContext } from "../DocumentContext.js"
 import {
     AllChartsBlock,
-    AllChartsBlockError,
     AllChartsBlockSkeleton,
-    AllChartsSuggestions,
 } from "../../blocks/AllChartsBlock.js"
-import { AllChartsRowData, TextPart } from "../../blocks/AllChartsRow.js"
 import {
     allChartsBlockQueryKeys,
     queryAllChartsBlock,
@@ -40,19 +33,20 @@ const TOPIC_VOCABULARY_URL =
 const MAX_SUGGESTIONS = 5
 
 const SEARCH_DEBOUNCE_MS = 200
-const SEARCH_PLACEHOLDER =
-    "Search indicators by name, keyword, country, or source…"
 
-type AllChartsProps = EnrichedBlockAllCharts & {
+export function AllCharts({
+    className,
+    id = ALL_CHARTS_ID,
+}: {
     className?: string
     id?: string
-}
-
-export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
+}) {
     const { tags } = useContext(AttachmentsContext)
     const { gdocType } = useDocumentContext()
-    const topic = tags[0]?.name
-    const topicSlug = tags[0]?.slug
+
+    const firstTag = tags[0]
+    const firstTagSlug = firstTag?.slug
+    const topics = tags.map((tag) => tag.name)
 
     const { ref, isIntersecting } = useIntersectionObserver({
         rootMargin: ALL_CHARTS_PREFETCH_ROOT_MARGIN,
@@ -64,12 +58,9 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
         query,
         SEARCH_DEBOUNCE_MS
     )
-    const requestedQuery = query.trim() === "" ? "" : debouncedQuery.trim()
+    const requestedQuery = debouncedQuery.trim()
 
-    const chartsQuery = {
-        topic: topic ?? "",
-        query: requestedQuery,
-    }
+    const chartsQuery = { topics, query: requestedQuery }
     const {
         data,
         isError,
@@ -80,7 +71,7 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
     } = useInfiniteQuery({
         queryKey: allChartsBlockQueryKeys.charts(chartsQuery),
         queryFn:
-            topic && isIntersecting
+            topics.length > 0 && isIntersecting
                 ? ({ pageParam }) =>
                       queryAllChartsBlock(getLiteSearchClient(), {
                           ...chartsQuery,
@@ -96,15 +87,22 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
     })
 
     const { data: suggestionKeywords } = useQuery({
-        queryKey: allChartsBlockQueryKeys.suggestions(topicSlug ?? ""),
+        queryKey: allChartsBlockQueryKeys.suggestions(firstTagSlug ?? ""),
         queryFn:
-            topicSlug && isIntersecting
-                ? () => fetchTopicSuggestions(topicSlug)
+            firstTagSlug && isIntersecting
+                ? () => fetchTopicSuggestions(firstTagSlug)
                 : skipToken,
         staleTime: Infinity,
     })
 
-    if (!topic) return null
+    if (!firstTag) return null
+
+    const onQueryChange = (nextQuery: string): void => {
+        setQuery(nextQuery)
+        if (nextQuery.trim() !== "") return
+        setDebouncedQuery("")
+        setDebouncedQuery.flush()
+    }
 
     const onSuggestionSelect = (term: string): void => {
         setQuery(term)
@@ -112,9 +110,17 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
         setDebouncedQuery.flush()
     }
 
-    const heading = `${getTopicPageHeading("allCharts", gdocType)} on ${sentenceCaseIfNotTopicPage(topic, gdocType, false)}`
+    const heading = `${getTopicPageHeading("allCharts", gdocType)} on ${sentenceCaseIfNotTopicPage(firstTag.name, gdocType, false)}`
 
-    if (!data) {
+    const firstPage = data?.pages[0]
+    const fetchedQuery = firstPage?.query ?? requestedQuery
+    const noResultsHref = buildSearchHref(
+        fetchedQuery
+            ? { resultType: SearchResultType.DATA, query: fetchedQuery }
+            : { resultType: SearchResultType.DATA, topic: firstTag.name }
+    )
+
+    if (!data && requestedQuery === "") {
         if (!isError)
             return (
                 <AllChartsBlockSkeleton
@@ -125,54 +131,37 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
                 />
             )
         return (
-            <AllChartsBlockError
+            <AllChartsBlock
                 className={className}
                 id={id}
                 heading={heading}
-                searchHref={buildSearchHref({
-                    resultType: SearchResultType.DATA,
-                    topic,
-                })}
+                hits={[]}
+                countries={[]}
+                searchStatus="error"
+                noResultsHref={noResultsHref}
             />
         )
     }
-
-    const rows = data.pages.flatMap((page) =>
-        page.hits.map((hit): AllChartsRowData => ({
-            type: hit.type,
-            slug: hit.slug,
-            titleParts: parseHighlightedText(
-                hit._highlightResult?.title?.value ?? hit.title
-            ),
-            variantName: hit.variantName,
-            source: hit.source,
-            availableTabs: hit.availableTabs,
-        }))
-    )
-    const { query: rowsQuery, countries } = data.pages[0]
-    const suggestions: AllChartsSuggestions =
-        suggestionKeywords === undefined
-            ? { status: "loading" }
-            : {
-                  status: "loaded",
-                  terms: pickVisibleSuggestions(suggestionKeywords, query),
-                  onSelect: onSuggestionSelect,
-              }
 
     return (
         <AllChartsBlock
             className={className}
             id={id}
             heading={heading}
-            rowCount={data.pages[0].nbHits}
-            rows={rows}
-            countries={countries}
+            hitCount={firstPage?.nbHits}
+            hits={(data?.pages ?? []).flatMap((page) => page.hits)}
+            countries={firstPage?.countries ?? []}
+            searchStatus={data ? undefined : isError ? "error" : "pending"}
             search={{
                 query,
-                rowsQuery,
-                onQueryChange: setQuery,
-                placeholder: SEARCH_PLACEHOLDER,
-                suggestions,
+                fetchedQuery,
+                onQueryChange,
+                suggestedTerms: pickVisibleSuggestions(
+                    suggestionKeywords ?? [],
+                    query
+                ),
+                isLoadingSuggestions: suggestionKeywords === undefined,
+                onSuggestionSelect,
             }}
             onLoadMore={
                 hasNextPage && !isFetchNextPageError
@@ -182,27 +171,17 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
                     : undefined
             }
             isLoadingMore={isFetchingNextPage}
-            noResultsHref={buildSearchHref({
-                resultType: SearchResultType.DATA,
-                query: rowsQuery,
-            })}
+            noResultsHref={noResultsHref}
         />
     )
 }
 
-function parseHighlightedText(highlighted: string): TextPart[] {
-    return getHighlightedParts(unescape(highlighted)).map((part) => ({
-        text: part.value,
-        isMatched: part.isHighlighted,
-    }))
-}
-
 async function fetchTopicSuggestions(topicSlug: string): Promise<string[]> {
     try {
-        const response = await fetch(TOPIC_VOCABULARY_URL)
-        if (!response.ok) return []
-        const vocabulary: Partial<Record<string, { keywords: string[] }>> =
-            await response.json()
+        const vocabulary =
+            await fetchJson<Partial<Record<string, { keywords: string[] }>>>(
+                TOPIC_VOCABULARY_URL
+            )
         return vocabulary[topicSlug]?.keywords ?? []
     } catch {
         return []

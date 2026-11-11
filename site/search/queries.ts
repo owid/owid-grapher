@@ -598,22 +598,13 @@ export async function queryWritingTopics(
     })
 }
 
-/** What the all-charts block asks for: the reader's raw input */
-export interface AllChartsBlockRequest {
-    topic: string
+interface AllChartsBlockRequest {
+    topics: string[]
     query: string
     page: number
 }
 
-export interface AllChartsBlockQuery {
-    topic: string
-    query: string
-    countries: string[]
-    page: number
-}
-
-export interface AllChartsBlockPage {
-    /** The raw input this page answers */
+interface AllChartsBlockPage {
     query: string
     countries: string[]
     hits: SearchChartViewHit[]
@@ -622,14 +613,13 @@ export interface AllChartsBlockPage {
     nbPages: number
 }
 
-export const ALL_CHARTS_BLOCK_HITS_PER_PAGE = 20
-export const MAX_ALL_CHARTS_BLOCK_COUNTRIES = 4
+const ALL_CHARTS_BLOCK_HITS_PER_PAGE = 20
+const MAX_ALL_CHARTS_BLOCK_COUNTRIES = 4
 
 const getSynonymMap = lazy(() => buildSynonymMap())
 
-/** Splits the reader's input into the text query and the countries named in it */
-export function parseAllChartsBlockQuery(query: string): {
-    query: string
+function parseAllChartsBlockQuery(query: string): {
+    textQuery: string
     countries: string[]
 } {
     const state = applyAutomaticFilters(
@@ -643,22 +633,29 @@ export function parseAllChartsBlockQuery(query: string): {
         getSynonymMap()
     )
     return {
-        query: state.query,
+        textQuery: state.query,
         countries: [
             ...getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         ].slice(0, MAX_ALL_CHARTS_BLOCK_COUNTRIES),
     }
 }
 
-export function buildAllChartsBlockSearchParams(
-    allChartsBlockQuery: AllChartsBlockQuery
-): SearchParamsObject & SearchForHitsOptions {
-    const { topic, query, countries, page } = allChartsBlockQuery
+function buildAllChartsBlockSearchParams({
+    topics,
+    textQuery,
+    countries,
+    page,
+}: {
+    topics: string[]
+    textQuery: string
+    countries: string[]
+    page: number
+}): SearchParamsObject & SearchForHitsOptions {
     const facetFilters = [
         ...buildChartsFacetFilters({
-            query,
+            query: textQuery,
             filters: [
-                createTopicFilter(topic),
+                ...topics.map(createTopicFilter),
                 ...countries.map(createCountryFilter),
             ],
             requireAllCountries: true,
@@ -668,7 +665,7 @@ export function buildAllChartsBlockSearchParams(
 
     return {
         indexName: CHARTS_INDEX,
-        query,
+        query: textQuery,
         facetFilters,
         attributesToRetrieve: [
             "title",
@@ -678,10 +675,8 @@ export function buildAllChartsBlockSearchParams(
             "availableTabs",
             "source",
         ],
-        attributesToHighlight: ["title"],
+        attributesToHighlight: [],
         attributesToSnippet: [],
-        highlightPreTag: "<mark>",
-        highlightPostTag: "</mark>",
         hitsPerPage: ALL_CHARTS_BLOCK_HITS_PER_PAGE,
         page,
     }
@@ -695,7 +690,7 @@ export async function queryAllChartsBlock(
     const response = await searchSingleForHits<SearchChartViewHit>(
         liteSearchClient,
         buildAllChartsBlockSearchParams({
-            topic: request.topic,
+            topics: request.topics,
             ...parsed,
             page: request.page,
         })
