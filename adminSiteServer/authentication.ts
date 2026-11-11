@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node"
 import express from "express"
+import type { ParamsFlatDictionary } from "express-serve-static-core"
 import * as db from "../db/db.js"
 import { CLOUDFLARE_AUD } from "../settings/serverSettings.js"
 import * as jose from "jose"
@@ -12,7 +13,12 @@ import { DbPlainUser } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { hashApiKey } from "../serverUtils/apiKey.js"
 
-export type Request = express.Request
+/**
+ * Express 5 types route params as `string | string[]`, since `*splat`
+ * wildcards produce arrays. Our handlers only read named `:params`, which are
+ * always strings, so we narrow the params type here.
+ */
+export type Request = express.Request<ParamsFlatDictionary>
 
 export type Response = express.Response<any, { user: DbPlainUser }>
 
