@@ -7600,10 +7600,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"entities@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "entities@npm:8.0.0"
-  checksum: 10/d6e2ba75e444fb101ee2fbb07c839e687306c8a509426b75186619c19196f97c1db9932ca083f823c03e4a20e7407b654aa34de8cbb7770468e20fb2d4573a0e
+"entities@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "entities@npm:9.0.0"
+  checksum: 10/bbb55a5c7e701f484fd0fbf6d9ffc9748b6eac9d27cdf73d18a1917e18efc0d8cf747bbd363018921fd0c3fa7f8fc6d2940bfa751363a2194c90840acc9dc716
   languageName: node
   linkType: hard
 
@@ -8620,7 +8620,7 @@ __metadata:
     d3-geo: "npm:^3.1.1"
     dayjs: "npm:^1.11.23"
     dotenv: "npm:^18.0.8"
-    entities: "npm:^8.0.0"
+    entities: "npm:^9.0.0"
     es-cookie: "npm:^1.5.0"
     es-module-lexer: "npm:^3.0.2"
     eslint: "npm:^10.0.3"
@@ -10871,7 +10871,7 @@ __metadata:
     algoliasearch: "npm:^5.57.0"
     cheerio: "npm:^1.2.0"
     cookie: "npm:^2.0.1"
-    entities: "npm:^8.0.0"
+    entities: "npm:^9.0.0"
     itty-router: "npm:^5.0.23"
     littlezipper: "npm:^0.1.5"
     lodash-es: "npm:^4.18.1"
