@@ -12,7 +12,7 @@
         "@ourworldindata/utils": "workspace:^",
         "@sentry/cloudflare": "^11.11.0",
         "algoliasearch": "^5.57.0",
-        "cookie": "^2.0.1",
+        "cookie": "^2.0.2",
         "entities": "^9.0.0",
         "itty-router": "^5.0.23",
         "littlezipper": "^0.1.5",
