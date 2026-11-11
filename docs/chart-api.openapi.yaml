@@ -84,8 +84,10 @@ paths:
         - `?imVariant=uncaptioned&imWidth=1200&imHeight=800`: the chart without title, subtitle or footer
         - `?imVariant=simplified`: a 1200×640 thumbnail with fewer gridlines and thinner lines
         - `?imVariant=simplified&imLabels=values`: the same thumbnail with values and no legend
+        - `?imVariant=simplified&imLabels=names`: the same thumbnail with names and no values or legend
+        - `?imVariant=simplified&imLabels=none`: the same thumbnail with no text at all
 
-        Unrecognised `im*` params are ignored. Otherwise the endpoint answers 400 instead of guessing when a request is invalid or contradictory. That covers an unknown value for a recognised param, a size or font size that isn't a positive integer, a flag other than `0` or `1`, a preset combined with `imWidth`, `imHeight`, `imFontSize` or `imDetails`, a preset on `imVariant=uncaptioned` or `imVariant=simplified`, `imDetails=1` without a caption, `imLabels=values` on a captioned image, and a deprecated param next to the param that replaces it.
+        Unrecognised `im*` params are ignored. Otherwise the endpoint answers 400 instead of guessing when a request is invalid or contradictory. That covers an unknown value for a recognised param, a size or font size that isn't a positive integer, a flag other than `0` or `1`, a preset combined with `imWidth`, `imHeight`, `imFontSize` or `imDetails`, a preset on `imVariant=uncaptioned` or `imVariant=simplified`, `imDetails=1` without a caption, `imLabels=values` on a captioned image, `imLabels=names` or `imLabels=none` on anything but a simplified image, and a deprecated param next to the param that replaces it.
       operationId: getChartImage
       tags:
         - Images
@@ -693,10 +695,10 @@ components:
       name: imLabels
       in: query
       description: |
-        Text drawn in the chart. `values` shows values and drops legends, for an image that sits next to a table naming the series. Only `all` is allowed with `imVariant=captioned`.
+        Text drawn in the chart. `values` shows values and drops legends, for an image that sits next to a table naming the series. `names` shows names, such as line labels and facet titles, and drops values and legends. `none` draws no text at all. Only `all` is allowed with `imVariant=captioned`, and `names` and `none` only with `imVariant=simplified`.
       schema:
         type: string
-        enum: [all, values]
+        enum: [all, values, names, none]
         default: all
       example: "values"
 
