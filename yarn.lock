@@ -1543,21 +1543,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@googleapis/docs@npm:^13.0.0":
-  version: 13.0.0
-  resolution: "@googleapis/docs@npm:13.0.0"
+"@googleapis/docs@npm:^14.1.1":
+  version: 14.1.1
+  resolution: "@googleapis/docs@npm:14.1.1"
   dependencies:
     googleapis-common: "npm:^9.0.0"
-  checksum: 10/860fbc717dc75b26488ce3ee1ea9b92a4684e70587609a518731ecc714c8dd8f597e4b7d1d4e25878d790a147ab2a2d97cb0dfbde8e09153d2d1c8b7fbce9844
+  checksum: 10/23beef35e37477dff51941f2882c318c48ffe64eb733c18149cf09bc7ce67ac0a225cccf0fe526d5915a2781a8b0cff28cc185d3347df865f0d220cc48f42364
   languageName: node
   linkType: hard
 
-"@googleapis/drive@npm:^25.0.0":
-  version: 25.0.0
-  resolution: "@googleapis/drive@npm:25.0.0"
+"@googleapis/drive@npm:^27.0.0":
+  version: 27.0.0
+  resolution: "@googleapis/drive@npm:27.0.0"
   dependencies:
     googleapis-common: "npm:^9.0.0"
-  checksum: 10/60e3d25e47d453e8001bd0e320e5afe679ed013f90ed295f2947feb43bb5fe778ec0ff888f0f2b74c472a683e0646ea12d6b214730327b74b46e68ca03d22090
+  checksum: 10/3c5c6cf57ab41b6275da03fcbd96a44a0fcca817f0f4515ec0cd4734118e9014683cdbb716bd74ef86cba1606deeb048b311c04cfad2539a39b3f5d758f7dec0
   languageName: node
   linkType: hard
 
@@ -2160,7 +2160,7 @@ __metadata:
   resolution: "@ourworldindata/gdoc-pipeline@workspace:packages/@ourworldindata/gdoc-pipeline"
   dependencies:
     "@arethetypeswrong/cli": "npm:^0.18.5"
-    "@googleapis/docs": "npm:^13.0.0"
+    "@googleapis/docs": "npm:^14.1.1"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
@@ -2177,7 +2177,7 @@ __metadata:
     vitest: "npm:^5.0.5"
     zod: "npm:^4.6.7"
   peerDependencies:
-    "@googleapis/docs": ^13.0.0
+    "@googleapis/docs": ^14.0.0
     zod: ^4.4.3
   peerDependenciesMeta:
     "@googleapis/docs":
@@ -8359,25 +8359,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gaxios@npm:^7.1.3, gaxios@npm:^7.1.4, gaxios@npm:^7.3.0":
-  version: 7.3.1
-  resolution: "gaxios@npm:7.3.1"
+"gaxios@npm:^8.3.0, gaxios@npm:^8.3.1":
+  version: 8.3.2
+  resolution: "gaxios@npm:8.3.2"
   dependencies:
     extend: "npm:^3.0.2"
     https-proxy-agent: "npm:^7.0.1"
     node-fetch: "npm:^3.3.2"
-  checksum: 10/8b00343b2f3ffcfaa7833893f0ca4f31e0fdbc0fb82ad718d8dd0e124817f3aeda965ad7e35c25ed3a472bed2f5b2597a61f1371efd4e6d3bec43a8451cd4e6d
+  checksum: 10/5198b2c76c35194b37a24f3252dd2bf6106e64b526c016af354f0795c51ae0363efff90d7260d5f5ee4391eb745e11f4b2631de6b2fd1cb70c90fe5eb318b857
   languageName: node
   linkType: hard
 
-"gcp-metadata@npm:^9.0.0":
-  version: 9.0.3
-  resolution: "gcp-metadata@npm:9.0.3"
+"gcp-metadata@npm:^9.2.1":
+  version: 9.2.3
+  resolution: "gcp-metadata@npm:9.2.3"
   dependencies:
-    gaxios: "npm:^7.1.3"
-    google-logging-utils: "npm:^2.0.0"
+    gaxios: "npm:^8.3.1"
+    google-logging-utils: "npm:^2.1.0"
     json-bigint: "npm:^1.0.0"
-  checksum: 10/ecb81e7904585698d1e10c443dbbd6ab7c43401e10552d2f7e4662a76aeb344cf67832b5ef1713ee28146e333a2cffcd8663b96f3a165b70ae8ba45e8eac5006
+  checksum: 10/436eb11ebc44630d93b66bbc1e339232235262dfeded19ca2b73a6f69765c303fb80f696ce905d2d3e59c349f9b2b8640377cab57c63d8c006aefbc4aaaddaeb
   languageName: node
   linkType: hard
 
@@ -8484,38 +8484,38 @@ __metadata:
   languageName: node
   linkType: hard
 
-"google-auth-library@npm:^11.0.0, google-auth-library@npm:^11.0.2":
-  version: 11.0.2
-  resolution: "google-auth-library@npm:11.0.2"
+"google-auth-library@npm:^11.0.0, google-auth-library@npm:^11.3.3":
+  version: 11.3.3
+  resolution: "google-auth-library@npm:11.3.3"
   dependencies:
     base64-js: "npm:^1.3.0"
     ecdsa-sig-formatter: "npm:^1.0.11"
-    gaxios: "npm:^7.1.4"
-    gcp-metadata: "npm:^9.0.0"
-    google-logging-utils: "npm:^2.0.0"
+    gaxios: "npm:^8.3.1"
+    gcp-metadata: "npm:^9.2.1"
+    google-logging-utils: "npm:^2.1.0"
     jws: "npm:^4.0.0"
-  checksum: 10/ef796c586564f740b6245261810364bd1e4f9113969c0ff15ffae9c67d5d2e18b808e77e9b68f5671cc612b757cb10906026b8bcf5f0b142bc75d7c60413d256
+  checksum: 10/122a87f7599518f820254c27cdddce7e7707363275a352619c833c3a6fbacc90a3d62dad3ced2e6e35eb03382f3d39f2b03d64cafe0dcebbd4049f22abfd3ce6
   languageName: node
   linkType: hard
 
-"google-logging-utils@npm:^2.0.0":
-  version: 2.0.1
-  resolution: "google-logging-utils@npm:2.0.1"
-  checksum: 10/dc30fe5b59a5ef979e6314ceb5f8e24146cb886ef7234b831769f8afb49c09219817a4831e865094d8983918721a844c5b3ad580fc6b55370a03a3de85963c1f
+"google-logging-utils@npm:^2.0.0, google-logging-utils@npm:^2.1.0":
+  version: 2.1.1
+  resolution: "google-logging-utils@npm:2.1.1"
+  checksum: 10/544121c52c3c048968e38dc7c7c1507994b8e0019307ebb2c66e29666602108e56a176df5944623d5e282670e518def0198eff50abbad078a3de27bf90abc38c
   languageName: node
   linkType: hard
 
 "googleapis-common@npm:^9.0.0":
-  version: 9.0.4
-  resolution: "googleapis-common@npm:9.0.4"
+  version: 9.3.1
+  resolution: "googleapis-common@npm:9.3.1"
   dependencies:
     extend: "npm:^3.0.2"
-    gaxios: "npm:^7.3.0"
+    gaxios: "npm:^8.3.0"
     google-auth-library: "npm:^11.0.0"
     google-logging-utils: "npm:^2.0.0"
     qs: "npm:^6.7.0"
     url-template: "npm:^2.0.8"
-  checksum: 10/f045d912ca349a379cc1b9e439ea096f798c580ed0be757433e2a405a86a010c8e11eb4d1e64245805dda7a16d492042b0d9f08cba1bedb26c2ae1075aa85d31
+  checksum: 10/9cf9edf0741e427086d52cb02f8091ae1ac6877cea6b088667d0bbfe3c521267259a90b3ca47d5b5fa585b1b7c9bfffefd6d36b0e63296a77ebf203f43c5e42c
   languageName: node
   linkType: hard
 
@@ -8557,8 +8557,8 @@ __metadata:
     "@fortawesome/free-brands-svg-icons": "npm:^7.3.1"
     "@fortawesome/free-solid-svg-icons": "npm:^7.3.1"
     "@fortawesome/react-fontawesome": "npm:^3.5.0"
-    "@googleapis/docs": "npm:^13.0.0"
-    "@googleapis/drive": "npm:^25.0.0"
+    "@googleapis/docs": "npm:^14.1.1"
+    "@googleapis/drive": "npm:^27.0.0"
     "@handsontable/react-wrapper": "npm:^18.1.2"
     "@marsidev/react-turnstile": "npm:^1.5.2"
     "@ourworldindata/components": "workspace:^"
@@ -8638,7 +8638,7 @@ __metadata:
     filenamify: "npm:^7.0.1"
     flag-icons: "npm:^7.6.0"
     fs-extra: "npm:^11.3.4"
-    google-auth-library: "npm:^11.0.2"
+    google-auth-library: "npm:^11.3.3"
     handsontable: "npm:^18.1.2"
     happy-dom: "npm:^21.0.4"
     http-server: "npm:^14.1.1"
