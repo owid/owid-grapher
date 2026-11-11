@@ -31,9 +31,11 @@
         }
     ],
     // Workers AI, for the experimental /api/search?rerank= (functions/api/search/rerank.ts).
-    // Top level only, i.e. `wrangler pages dev` (local dev and the staging containers),
-    // which authenticates with the dev/staging CLOUDFLARE_API_TOKEN. Deliberately not in
-    // "preview" (public *.owid.pages.dev URLs) or "production", where the param returns 400.
+    // Here for `wrangler pages dev` (local dev and the staging containers), which
+    // authenticates with the dev/staging CLOUDFLARE_API_TOKEN, and in "preview", to measure
+    // latency on Cloudflare's edge. Not in "production", where the param returns 400.
+    // Nothing caps spend yet (see the TODO in rerank.ts), so the public *.owid.pages.dev
+    // previews can run up Workers AI cost.
     "ai": { "binding": "AI", "remote": true },
     "vars": {
         "ENV": "development",
@@ -43,6 +45,7 @@
     },
     "env": {
         "preview": {
+            "ai": { "binding": "AI" },
             "r2_buckets": [
                 {
                     "bucket_name": "owid-grapher-configs-staging",
