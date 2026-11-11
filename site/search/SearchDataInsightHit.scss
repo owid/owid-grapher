@@ -17,8 +17,8 @@
 }
 
 .search-data-insight-hit__image-container {
-    @include aspect-ratio(1);
-
+    position: relative;
+    aspect-ratio: 1;
     border: 1px solid $blue-10;
     margin-bottom: 16px;
 
