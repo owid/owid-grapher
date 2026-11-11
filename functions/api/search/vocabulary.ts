@@ -187,8 +187,31 @@ async function embed(
     return data as number[][]
 }
 
-// Per isolate, like the vocabulary: the topics' vectors, unit length
-let topicVectors: Promise<{ name: string; vector: number[] }[]> | undefined
+/** Embeds texts, one vector per text, in order. */
+export interface TextEmbedder {
+    /** keys the per-isolate cache of the topics' vectors */
+    name: string
+    embed: (texts: string[], signal?: AbortSignal) => Promise<number[][]>
+}
+
+export const bgeM3Embedder = (ai: Ai): TextEmbedder => ({
+    name: "bge-m3",
+    embed: async (texts, signal) =>
+        // the model takes at most 100 texts a call
+        (
+            await Promise.all(
+                [texts.slice(0, 64), texts.slice(64, 128), texts.slice(128)]
+                    .filter((batch) => batch.length > 0)
+                    .map((batch) => embed(ai, batch, signal))
+            )
+        ).flat(),
+})
+
+// Per isolate and embedder, like the vocabulary: the topics' vectors, unit length
+const topicVectors = new Map<
+    string,
+    Promise<{ name: string; vector: number[] }[]>
+>()
 
 const unit = (vector: number[]): number[] => {
     const norm = Math.hypot(...vector) || 1
@@ -196,51 +219,49 @@ const unit = (vector: number[]): number[] => {
 }
 
 function loadTopicVectors(
-    ai: Ai
+    embedder: TextEmbedder
 ): Promise<{ name: string; vector: number[] }[]> {
-    topicVectors ??= loadVocabulary()
-        .then(async (topics) => {
-            const texts = topics.map(
-                (topic) =>
-                    `${topic.name}: ${topic.keywords.slice(0, 6).join(", ")}`
-            )
-            // the model takes at most 100 texts a call
-            const vectors = (
-                await Promise.all(
-                    [texts.slice(0, 64), texts.slice(64, 128), texts.slice(128)]
-                        .filter((batch) => batch.length > 0)
-                        .map((batch) => embed(ai, batch))
+    let vectors = topicVectors.get(embedder.name)
+    if (!vectors) {
+        vectors = loadVocabulary()
+            .then(async (topics) => {
+                const embedded = await embedder.embed(
+                    topics.map(
+                        (topic) =>
+                            `${topic.name}: ${topic.keywords.slice(0, 6).join(", ")}`
+                    )
                 )
-            ).flat()
-            return topics.map((topic, i) => ({
-                name: topic.name,
-                vector: unit(vectors[i]),
-            }))
-        })
-        .catch((error) => {
-            topicVectors = undefined // retry on the next request
-            throw error
-        })
-    return topicVectors
+                return topics.map((topic, i) => ({
+                    name: topic.name,
+                    vector: unit(embedded[i]),
+                }))
+            })
+            .catch((error) => {
+                topicVectors.delete(embedder.name) // retry on the next request
+                throw error
+            })
+        topicVectors.set(embedder.name, vectors)
+    }
+    return vectors
 }
 
 /**
- * Under test (vocab=embed): the query's VOCABULARY_TOPICS topics by embedding
- * similarity, in place of the decision model's topic call. `steps.topic` is
- * the query's embedding call alone.
+ * Under test (vocab=embed, vocab=static): the query's VOCABULARY_TOPICS
+ * topics by embedding similarity, in place of the decision model's topic
+ * call. `steps.topic` is the query's embedding alone.
  */
 export async function pickTopicsByEmbedding(
-    ai: Ai,
+    embedder: TextEmbedder,
     query: string
 ): Promise<VocabularyInfo<VocabularyTopicPick>> {
     const started = Date.now()
     try {
         const signal = AbortSignal.timeout(VOCABULARY_TIMEOUT_MS)
         const { value: topics, ms: load } = await timed(() =>
-            loadTopicVectors(ai)
+            loadTopicVectors(embedder)
         )
         const { value: vectors, ms: topic } = await timed(() =>
-            embed(ai, [query], signal)
+            embedder.embed([query], signal)
         )
         const queryVector = unit(vectors[0])
         const terms = topics
