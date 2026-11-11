@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import { getVisibleLabels } from "../chart/ChartUtils"
 import React from "react"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -316,6 +317,7 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed private get shouldShowAnnotations(): boolean {
         return !!(
+            getVisibleLabels(this.manager.labelMode).values &&
             this.manager.mapColumn.hasNumberFormatting &&
             !this.mapConfig.tooltipUseCustomLabels
         )
