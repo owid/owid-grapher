@@ -29,6 +29,12 @@ const FEED_ATTRIBUTES = [
     "thumbnailUrl",
 ]
 
+// Newsletters are indexed for /latest but left out of the feed: an issue
+// mostly links back to work the feed has already carried.
+const FEED_LATEST_TYPE_VALUES = LATEST_TYPE_VALUES.filter(
+    (type) => type !== "newsletter"
+)
+
 interface FeedHit {
     title: string
     slug: string
@@ -187,7 +193,7 @@ function parseLatestTypes(param: string | null): LatestType[] | undefined {
         .split("~")
         .map((t) => t.trim())
         .filter((t): t is LatestType =>
-            (LATEST_TYPE_VALUES as readonly string[]).includes(t)
+            (FEED_LATEST_TYPE_VALUES as readonly string[]).includes(t)
         )
 }
 
@@ -209,7 +215,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
         if (typeParam && latestTypes?.length === 0) {
             return new Response(
-                `Invalid type parameter. Allowed types: ${LATEST_TYPE_VALUES.join(", ")}`,
+                `Invalid type parameter. Allowed types: ${FEED_LATEST_TYPE_VALUES.join(", ")}`,
                 { status: 400, headers: { "Content-Type": "text/plain" } }
             )
         }
