@@ -1,10 +1,6 @@
 import cx from "clsx"
 import { Highlight } from "react-instantsearch"
-import {
-    GRAPHER_TAB_NAMES,
-    GrapherTabName,
-    SearchChartViewHit,
-} from "@ourworldindata/types"
+import { GrapherTabName, SearchChartViewHit } from "@ourworldindata/types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
 import { makeLabelForGrapherTab } from "@ourworldindata/grapher"
@@ -97,9 +93,6 @@ export function AllChartsRow({
                                         hit,
                                         tab,
                                         entities: countries,
-                                        hasScatter:
-                                            tab ===
-                                            GRAPHER_TAB_NAMES.ScatterPlot,
                                     })}
                                     loading="lazy"
                                     alt=""
