@@ -11,7 +11,6 @@ import {
     RenderMarimekkoSeries,
 } from "./MarimekkoChartConstants"
 import { Bounds } from "@ourworldindata/utils"
-import { ChartLabelMode } from "@ourworldindata/types"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { AxisConfig } from "../axis/AxisConfig"
 import {
@@ -77,8 +76,7 @@ export class MarimekkoChartThumbnail
     }
 
     @computed private get shouldShowVerticalAxis(): boolean {
-        // The y axis is a Values-only exception to the visible labels table
-        return this.manager.labelMode === ChartLabelMode.Values
+        return getVisibleLabels(this.manager.labelMode).axisText
     }
 
     @computed private get yAxisConfig(): AxisConfig {
