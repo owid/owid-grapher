@@ -29,15 +29,15 @@ import {
 import { sampleThumbnailTestSections } from "./thumbnailTestSample.js"
 
 /** Font size of `imVariant=simplified` images in functions/_common/imageLayout.ts */
-const THUMBNAIL_FONT_SIZE = 14
+export const THUMBNAIL_FONT_SIZE = 14
 
-const LIVE_BASE_URL = "https://ourworldindata.org"
+export const LIVE_BASE_URL = "https://ourworldindata.org"
 
-const SAMPLE_COUNT_OPTIONS = [5, 10, 20]
+export const SAMPLE_COUNT_OPTIONS = [5, 10, 20]
 
 const LABEL_MODES = Object.values(ChartLabelMode)
 
-interface SampleOptions {
+export interface SampleOptions {
     countPerSection: number
     seed: number
 }
@@ -106,11 +106,13 @@ export function addThumbnailTestRoutes(router: Router): void {
                     trx,
                     req.params.slug
                 )
-                const svg = await renderThumbnailSvg(
-                    config,
-                    params.toString(),
-                    labelMode
-                )
+                const svg = await renderImageSvg(config, params.toString(), {
+                    variant: GrapherVariant.Thumbnail,
+                    labelMode,
+                    widthPx: GRAPHER_THUMBNAIL_WIDTH,
+                    heightPx: GRAPHER_THUMBNAIL_HEIGHT,
+                    fontSize: THUMBNAIL_FONT_SIZE,
+                })
                 res.setHeader("Content-Type", "image/svg+xml")
                 res.send(prefixSvgIds(svg, idPrefix))
             } catch (error) {
@@ -120,26 +122,29 @@ export function addThumbnailTestRoutes(router: Router): void {
     )
 }
 
-/** Mirrors `resolveThumbnailLayout` in functions/_common/imageLayout.ts, keep the two in sync */
-async function renderThumbnailSvg(
+export interface TestImageOptions {
+    variant: GrapherVariant
+    labelMode: ChartLabelMode
+    widthPx: number
+    heightPx: number
+    fontSize: number | undefined
+}
+
+/** Mirrors `initGrapher` in functions/_common/grapherTools.ts, keep the two in sync */
+export async function renderImageSvg(
     config: GrapherInterface,
     queryStr: string,
-    labelMode: ChartLabelMode
+    { variant, labelMode, widthPx, heightPx, fontSize }: TestImageOptions
 ): Promise<string> {
-    const bounds = new Bounds(
-        0,
-        0,
-        GRAPHER_THUMBNAIL_WIDTH,
-        GRAPHER_THUMBNAIL_HEIGHT
-    )
+    const bounds = new Bounds(0, 0, widthPx, heightPx)
     const grapherState = new GrapherState({
         ...config,
         bakedGrapherURL: `${LIVE_BASE_URL}/grapher`,
         queryStr: `?${queryStr}`,
         bounds,
         staticBounds: bounds,
-        baseFontSize: THUMBNAIL_FONT_SIZE,
-        variant: GrapherVariant.Thumbnail,
+        baseFontSize: fontSize,
+        variant,
         labelMode,
         additionalDataLoaderFn: (key) =>
             loadCatalogData(key, { baseUrl: CATALOG_URL }),
@@ -416,7 +421,7 @@ body {
 }
 `
 
-const PAGE_SCRIPT = `
+export const PAGE_SCRIPT = `
 const form = document.querySelector(".controls")
 form.addEventListener("change", () => form.submit())
 form.querySelector(".controls__shuffle")?.addEventListener("click", () => {
@@ -451,31 +456,31 @@ for (const element of document.querySelectorAll(".thumbnail--local"))
 `
 
 /** Inline SVGs share the page's id namespace, so unprefixed clip paths and gradients collide */
-function prefixSvgIds(svg: string, prefix: string): string {
+export function prefixSvgIds(svg: string, prefix: string): string {
     return svg
         .replace(/\bid="/g, `id="${prefix}-`)
         .replace(/url\(#/g, `url(#${prefix}-`)
         .replace(/href="#/g, `href="#${prefix}-`)
 }
 
-function hashQueryStr(queryStr: string): string {
+export function hashQueryStr(queryStr: string): string {
     let value = 0
     for (const char of queryStr) value = (value * 31 + char.charCodeAt(0)) | 0
     return (value >>> 0).toString(36)
 }
 
-function readStringParam(value: unknown): string | undefined {
+export function readStringParam(value: unknown): string | undefined {
     return typeof value === "string" && value ? value : undefined
 }
 
-function parseEntityNames(value: string | undefined): string[] {
+export function parseEntityNames(value: string | undefined): string[] {
     return (value ?? "")
         .split(",")
         .map((name) => name.trim())
         .filter((name) => name !== "")
 }
 
-function applyFocus(
+export function applyFocus(
     testCase: ThumbnailTestCase,
     focusedEntityNames: string[]
 ): ThumbnailTestCase {
@@ -485,16 +490,16 @@ function applyFocus(
     return { ...testCase, queryStr: params.toString() }
 }
 
-function readPositiveIntParam(value: unknown): number | undefined {
+export function readPositiveIntParam(value: unknown): number | undefined {
     const number = Number(value)
     return Number.isInteger(number) && number > 0 ? number : undefined
 }
 
-function makeRandomSeed(): number {
+export function makeRandomSeed(): number {
     return 1 + Math.floor(Math.random() * 999_999)
 }
 
-function readScaleParam(value: unknown): number {
+export function readScaleParam(value: unknown): number {
     const scale = Number(value)
     return Number.isFinite(scale) && scale > 0 ? scale : 1
 }
@@ -515,7 +520,7 @@ function makeSvgUrl(
     return `/admin/test/thumbnails/${slug}.svg?${params}`
 }
 
-function makeLiveUrl({ slug, queryStr }: ThumbnailTestCase): string {
+export function makeLiveUrl({ slug, queryStr }: ThumbnailTestCase): string {
     return `${LIVE_BASE_URL}/grapher/${slug}${queryStr ? `?${queryStr}` : ""}`
 }
 
