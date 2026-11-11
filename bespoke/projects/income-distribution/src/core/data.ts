@@ -4,7 +4,10 @@ import * as R from "remeda"
 import { fetchJson } from "@ourworldindata/utils"
 import type { BespokeMetadata } from "@ourworldindata/types"
 
-import { parseBespokeMetadata } from "../../../../components/MetadataModal/bespokeMetadata.js"
+import {
+    getBespokeSourceLine,
+    parseBespokeMetadata,
+} from "../../../../components/MetadataModal/bespokeMetadata.js"
 import { CURRENCY_CONVERSIONS_URL } from "./constants.js"
 import {
     REGIONS,
@@ -49,19 +52,20 @@ export function useIncomeDistributionMetadata(metadataUrl: string): {
 }
 
 /**
- * The footer source is read from the raw file rather than the validated one,
- * so the chart keeps its attribution even when the modal can't be shown
+ * The footer source is built from the raw file rather than the validated
+ * one, so the chart keeps its attribution even when the modal can't be shown
  */
 export function parseIncomeDistributionMetadata(
     raw: unknown
 ): IncomeDistributionMetadata {
     const loose = (R.isPlainObject(raw) ? raw : {}) as Partial<BespokeMetadata>
-    const firstOrigin = loose.origins?.[0]
     const source =
-        nonEmptyString(loose.attribution) ??
-        nonEmptyString(firstOrigin?.attribution) ??
-        nonEmptyString(firstOrigin?.producer) ??
-        FALLBACK_SOURCE
+        getBespokeSourceLine({
+            attribution: nonEmptyString(loose.attribution),
+            origins: Array.isArray(loose.origins)
+                ? loose.origins.filter(R.isPlainObject)
+                : undefined,
+        }) || FALLBACK_SOURCE
 
     return { bespokeMetadata: parseBespokeMetadata(raw), source }
 }

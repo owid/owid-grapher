@@ -5,13 +5,16 @@ import type {
     BespokeComponentMountFn,
     BespokeComponentMountOpts,
     BespokeComponentVariantsList,
+    BespokeConfigSpec,
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
-import { parseEmbedConfig } from "../../../helpers/config.js"
+import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
+import { EmbedOptionsProvider } from "../../../hooks/useEmbedOptions.js"
 
-import { VariantName } from "./core/types.js"
-import { parseConfig } from "./core/config.js"
+import { DEFAULT_YEAR } from "./core/constants.js"
+import { parseCountryList, parsePositiveNumber } from "./core/parsers.js"
+import { TIME_INTERVALS, VIEWS, VariantName } from "./core/types.js"
 import { DistributionVariant } from "./variants/DistributionVariant.js"
 
 import "./index.scss"
@@ -21,8 +24,72 @@ import "./index.scss"
 enableShadowDOM()
 
 export const VARIANTS = [
-    { name: "distribution", component: DistributionVariant, demoConfig: {} },
+    {
+        name: "distribution",
+        description:
+            "Income mountains: how the world's population, or selected countries', is spread across income levels",
+        component: DistributionVariant,
+        defaultSize: "wide",
+    },
 ] satisfies BespokeComponentVariantsList<VariantName>
+
+export const CONFIG_SPEC = {
+    title: {
+        type: "string",
+        description:
+            "Chart title, replacing the generated one. Also hides the controls",
+    },
+    subtitle: {
+        type: "string",
+        description:
+            "Chart subtitle, replacing the generated one. Also hides the controls",
+    },
+    view: {
+        type: "enum",
+        values: VIEWS,
+        default: "global",
+        description:
+            "View shown first: `global` stacks every country by World Bank region, `countries` draws the selected countries side by side",
+    },
+    countries: {
+        type: "custom",
+        format: "Comma-separated country names, such as `China, India, userLocation`",
+        parse: parseCountryList,
+        description:
+            "Countries of the selected-countries view. `userLocation` adds the user's country. Defaults to China, the United States, India, Nigeria and the user's country",
+    },
+    year: {
+        type: "integer",
+        default: DEFAULT_YEAR,
+        description:
+            "Year shown, from 1990 to 2026. The chart has no year control. From 2025 on, the figures are World Bank nowcasts",
+    },
+    povertyLine: {
+        type: "custom",
+        format: "A positive number, such as `8.3`",
+        parse: parsePositiveNumber,
+        description:
+            "Poverty line drawn first, in international-$ per day. If unset, the user can draw one by clicking the chart",
+    },
+    timeInterval: {
+        type: "enum",
+        values: TIME_INTERVALS,
+        default: "daily",
+        description: "Whether incomes are shown per day, month or year",
+    },
+    currency: {
+        type: "string",
+        description:
+            "Three-letter code of the country whose currency incomes are shown in, such as `DEU`. `userLocation` picks the user's currency. Defaults to international-$",
+    },
+    hideControls: {
+        type: "boolean",
+        description:
+            "Hide the view, countries, time interval and currency controls, and the button that clears the poverty line",
+    },
+} as const satisfies BespokeConfigSpec
+
+export type IncomeDistributionConfig = ConfigFromSpec<typeof CONFIG_SPEC>
 
 export const mount: BespokeComponentMountFn = (
     container: HTMLDivElement,
@@ -42,18 +109,16 @@ export const mount: BespokeComponentMountFn = (
 
     const urls = { dataUrl: opts.dataUrl, metadataUrl: opts.metadataUrl }
 
-    const rawConfig = opts.config ?? {}
-    const config = {
-        ...parseConfig(rawConfig),
-        ...parseEmbedConfig(rawConfig),
-    }
+    const config = parseConfigFromSpec(CONFIG_SPEC, opts.config ?? {})
 
     const root = createRoot(container)
     root.render(
         <>
             {/* This is where Vite-injected styles will be placed - make sure to add this to your code so that the styles are correctly injected into the Shadow DOM. */}
             <StylesTarget />
-            <variant.component config={config} urls={urls} />
+            <EmbedOptionsProvider options={opts.embedOptions}>
+                <variant.component config={config} urls={urls} />
+            </EmbedOptionsProvider>
         </>
     )
     return () => root.unmount()

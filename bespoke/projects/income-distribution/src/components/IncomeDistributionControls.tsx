@@ -121,7 +121,6 @@ export function IncomeDistributionControls({
                         const interval = TIME_INTERVALS.find((t) => t === value)
                         if (interval) setTimeInterval(interval)
                     }}
-                    aria-label="Income per"
                 />
                 <CurrencyDropdown
                     currency={currency}
@@ -185,7 +184,6 @@ function CurrencyDropdown({
             selectedValue={currencyKey(currency)}
             onChange={setCurrency}
             placeholder="Select a currency…"
-            aria-label="Currency"
             isSearchable
             isLoading={currencies === undefined}
         />

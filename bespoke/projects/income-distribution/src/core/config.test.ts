@@ -1,11 +1,22 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
-import { parseConfig } from "./config.js"
+import { parseConfigFromSpec } from "../../../../helpers/config.js"
+import { BespokeConfigError } from "../../../../shared/bespokeComponentTypes.js"
 
-describe(parseConfig, () => {
+import { CONFIG_SPEC, type IncomeDistributionConfig } from "../index.js"
+
+// Reads a global the Vite plugin defines, which vitest doesn't load
+vi.mock(import("vite-plugin-css-position/react"), () => ({
+    default: vi.fn(),
+}))
+
+const parse = (authored: Record<string, string>): IncomeDistributionConfig =>
+    parseConfigFromSpec(CONFIG_SPEC, authored)
+
+describe("the authored config", () => {
     it("reads a fully specified ArchieML block", () => {
         expect(
-            parseConfig({
+            parse({
                 hideControls: "true",
                 title: "Custom title",
                 subtitle: "Custom subtitle",
@@ -29,51 +40,46 @@ describe(parseConfig, () => {
         })
     })
 
-    it("leaves everything unset for an empty block, so the defaults apply", () => {
-        expect(parseConfig({})).toEqual({
-            hideControls: false,
+    it("fills in the defaults for an empty block", () => {
+        expect(parse({})).toEqual({
+            hideControls: undefined,
             title: undefined,
             subtitle: undefined,
-            view: undefined,
+            view: "global",
             countries: undefined,
-            year: undefined,
+            year: 2025,
             povertyLine: undefined,
-            timeInterval: undefined,
+            timeInterval: "daily",
             currency: undefined,
         })
     })
 
-    it("ignores values outside the allowed options", () => {
-        const config = parseConfig({
-            view: "map",
-            timeInterval: "weekly",
-        })
-        expect(config.view).toBeUndefined()
-        expect(config.timeInterval).toBeUndefined()
+    it("falls back to the default year for a blank value", () => {
+        expect(parse({ year: " " }).year).toBe(2025)
+    })
+
+    it.each<Record<string, string>>([
+        { view: "map" },
+        { timeInterval: "weekly" },
+        { year: "abc" },
+        { povertyLine: "0" },
+        { povertyLine: "-2" },
+        { povertyLine: "abc" },
+    ])("rejects %j", (authored) => {
+        expect(() => parse(authored)).toThrow(BespokeConfigError)
     })
 
     it("drops blank entries from the country list, and an all-blank list", () => {
-        expect(
-            parseConfig({ countries: " China,, ,India " }).countries
-        ).toEqual(["China", "India"])
-        expect(parseConfig({ countries: " , " }).countries).toBeUndefined()
+        expect(parse({ countries: " China,, ,India " }).countries).toEqual([
+            "China",
+            "India",
+        ])
+        expect(parse({ countries: " , " }).countries).toBeUndefined()
     })
 
-    it.each(["0", "-2", "abc", ""])(
-        "has no custom poverty line for %j",
-        (povertyLine) => {
-            expect(parseConfig({ povertyLine }).povertyLine).toBeUndefined()
-        }
-    )
-
-    it.each(["0", "", "abc"])(
-        "falls back to the default year for %j",
-        (year) => {
-            expect(parseConfig({ year }).year).toBeUndefined()
-        }
-    )
-
-    it("treats a blank currency as unset", () => {
-        expect(parseConfig({ currency: "   " }).currency).toBeUndefined()
+    it("treats a blank poverty line or currency as unset", () => {
+        const config = parse({ povertyLine: "", currency: "   " })
+        expect(config.povertyLine).toBeUndefined()
+        expect(config.currency).toBeUndefined()
     })
 })

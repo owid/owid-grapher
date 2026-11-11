@@ -6,10 +6,10 @@ import type { Currency, Region, TimeInterval } from "./types.js"
 export const INT_POVERTY_LINE = 3
 
 /**
- * The year shown when the config doesn't name one. The feed has 1990–2026,
- * the last years of which are World Bank nowcasts.
+ * The year shown when the config doesn't name one, as CONFIG_SPEC's default.
+ * The feed has 1990–2026, the last years of which are World Bank nowcasts.
  */
-export const DEFAULT_YEAR = 2025
+export const DEFAULT_YEAR = "2025"
 
 /**
  * From this year on the feed's figures are World Bank nowcasts rather than
@@ -19,7 +19,7 @@ export const FIRST_NOWCAST_YEAR = 2025
 
 /**
  * The countries the selected-countries view starts with. "userLocation" is
- * the sentinel the reader's own country gets substituted for.
+ * the sentinel the user's own country gets substituted for.
  */
 export const USER_LOCATION_SENTINEL = "userLocation"
 export const DEFAULT_COUNTRIES = [

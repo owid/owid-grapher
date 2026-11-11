@@ -18,19 +18,19 @@ import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import { combineStatuses } from "../../../../helpers/queryStatus.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 
-import { IncomeDistributionConfig } from "../core/config.js"
+import type { IncomeDistributionConfig } from "../index.js"
 import {
     DEFAULT_COUNTRIES,
-    DEFAULT_YEAR,
     FIRST_NOWCAST_YEAR,
     INTERNATIONAL_DOLLAR,
     NARROW_BREAKPOINT,
@@ -72,15 +72,13 @@ const NO_CURRENCIES: Currency[] = []
 export function DistributionVariant({
     config,
     urls,
-}: VariantProps<IncomeDistributionConfig>): React.ReactElement {
+}: BespokeVariantProps<IncomeDistributionConfig>): React.ReactElement {
     return (
-        <EmbedConfigProvider config={config}>
-            <NuqsAdapter>
-                <QueryClientProvider client={queryClient}>
-                    <FetchingDistributionVariant config={config} urls={urls} />
-                </QueryClientProvider>
-            </NuqsAdapter>
-        </EmbedConfigProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <FetchingDistributionVariant config={config} urls={urls} />
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 
@@ -92,32 +90,32 @@ function FetchingDistributionVariant({
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
     const [view, setView] = useUrlState({
-        key: "incomeDistributionView",
+        key: "view",
         parser: parseAsStringEnum<View>([...VIEWS]),
-        defaultValue: config.view ?? "global",
+        defaultValue: config.view,
     })
-    // May hold the "userLocation" sentinel until the reader edits the
+    // May hold the "userLocation" sentinel until the user edits the
     // selection; it's resolved where the list is rendered
     const [countries, setCountries] = useUrlState({
-        key: "incomeDistributionCountries",
+        key: "countries",
         parser: parseAsArrayOf(parseAsString),
         defaultValue: config.countries ?? DEFAULT_COUNTRIES,
     })
     // 0 stands for "no custom poverty line": URL state needs a non-null default
     const [rawPovertyLine, setRawPovertyLine] = useUrlState({
-        key: "incomeDistributionPovertyLine",
+        key: "povertyLine",
         parser: parseAsFloat,
         defaultValue: config.povertyLine ?? 0,
     })
     const [timeInterval, setTimeInterval] = useUrlState({
-        key: "incomeDistributionTimeInterval",
+        key: "timeInterval",
         parser: parseAsStringEnum<TimeInterval>([...TIME_INTERVALS]),
-        defaultValue: config.timeInterval ?? "daily",
+        defaultValue: config.timeInterval,
     })
     // A country code (see currencyKey), INTERNATIONAL_DOLLAR.code or the
     // "userLocation" sentinel
     const [currencyKey, setCurrencyKey] = useUrlState({
-        key: "incomeDistributionCurrency",
+        key: "currency",
         parser: parseAsString,
         defaultValue: config.currency ?? INTERNATIONAL_DOLLAR.code,
     })
@@ -128,7 +126,7 @@ function FetchingDistributionVariant({
         data: yearData,
         status: yearStatus,
         isPlaceholderData,
-    } = useIncomeDistributionYear(config.year ?? DEFAULT_YEAR, urls.dataUrl)
+    } = useIncomeDistributionYear(config.year, urls.dataUrl)
     // A failure here only costs the currency dropdown its local currencies
     const { data: loadedCurrencies, status: currenciesStatus } =
         useCurrencyConversions()
@@ -149,7 +147,7 @@ function FetchingDistributionVariant({
         [setRawPovertyLine]
     )
 
-    // The reader's own currency: the conversion row of the country they're in
+    // The user's own currency: the conversion row of the country they're in
     const suggestedCurrency = useMemo(
         () =>
             userCountryInfo
@@ -299,6 +297,9 @@ function CaptionedDistributionVariant({
         [setPovertyLine]
     )
 
+    // A custom title or subtitle is fixed text, which the controls would contradict
+    const shouldHideControls =
+        config.hideControls || !!config.title || !!config.subtitle
     const hasNoCountries = view === "countries" && model.series.length === 0
 
     const title = config.title ?? chartTitle(view, selectedCountries, year)
@@ -312,7 +313,7 @@ function CaptionedDistributionVariant({
                 "income-distribution--narrow": isNarrow,
             })}
         >
-            {!config.hideControls && (
+            {!shouldHideControls && (
                 <IncomeDistributionControls
                     view={view}
                     setView={setView}
@@ -341,7 +342,7 @@ function CaptionedDistributionVariant({
                             currency={currency}
                             timeInterval={timeInterval}
                             onClearPovertyLine={
-                                config.hideControls
+                                shouldHideControls
                                     ? undefined
                                     : clearPovertyLine
                             }
@@ -352,7 +353,7 @@ function CaptionedDistributionVariant({
                         {isLoading && <Spinner />}
                         {hasNoCountries ? (
                             <div className="income-distribution__no-data">
-                                {config.hideControls
+                                {shouldHideControls
                                     ? "No data for the selected countries."
                                     : "Select a country to see its income distribution."}
                             </div>

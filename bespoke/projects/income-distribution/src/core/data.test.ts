@@ -119,17 +119,15 @@ describe(parseIncomeDistributionMetadata, () => {
         expect(metadata.source).toBe("Lakner et al. (2022)")
     })
 
-    it("falls back to the first origin's attribution, then its producer", () => {
+    it("builds the source from the origins when the file has no attribution", () => {
         expect(
             parseIncomeDistributionMetadata({
-                origins: [{ producer: "World Bank", attribution: "PIP" }],
+                origins: [
+                    { producer: "World Bank", attribution: "PIP" },
+                    { producer: "Lakner et al.", datePublished: "2022-01-01" },
+                ],
             }).source
-        ).toBe("PIP")
-        expect(
-            parseIncomeDistributionMetadata({
-                origins: [{ producer: "World Bank" }],
-            }).source
-        ).toBe("World Bank")
+        ).toBe("PIP; Lakner et al. (2022)")
     })
 
     it("still names a source when the file is unusable", () => {
