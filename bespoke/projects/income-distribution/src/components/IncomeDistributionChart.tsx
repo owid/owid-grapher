@@ -1,4 +1,12 @@
-import { memo, useCallback, useId, useMemo, useRef, useState } from "react"
+import {
+    memo,
+    useCallback,
+    useEffect,
+    useId,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import * as R from "remeda"
 import { scaleLinear, scaleLog } from "@visx/scale"
 import { area, curveMonotoneX } from "d3-shape"
@@ -13,6 +21,7 @@ import {
     GRAY_20,
     GRAY_60,
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils.js"
 
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
@@ -25,6 +34,12 @@ import {
     formatIncome,
     timeIntervalNoun,
 } from "../core/currency.js"
+import {
+    placeCurveLabels,
+    type CurveLabelCandidate,
+    type CurveLabelLayout,
+    type LabelBox,
+} from "../core/curveLabels.js"
 import { placeRegionLabels, RegionBandPixels } from "../core/regionLabels.js"
 import type {
     Currency,
@@ -57,6 +72,22 @@ export interface IncomeDistributionChartProps {
     hoveredEntity: string | null
     onHoverEntity: (key: string | null) => void
     isNarrow: boolean
+    /**
+     * Boxes over the plot (in the chart's own coordinates) that the country
+     * labels and the poverty line's label keep clear of, e.g. a button
+     */
+    obstacles?: LabelBox[]
+    /**
+     * A box the country labels also keep clear of, without it counting
+     * towards `onCountryLabelsChange`: the overlay legend, which only shows
+     * when some country couldn't be labelled
+     */
+    legendBox?: LabelBox
+    /**
+     * Countries view: called with whether every country got a label, given
+     * `obstacles` alone
+     */
+    onCountryLabelsChange?: (allLabelled: boolean) => void
 }
 
 const MARGIN = { top: 10, right: 16, bottom: 32, left: 16 }
@@ -68,6 +99,19 @@ const LABELLED_MULTIPLIERS_NARROW = [1, 3]
 
 const REGION_LABEL_FONT_SIZES = [13, 12, 11, 10, 9] as const
 const REGION_LABEL_FONT_SIZES_NARROW = [11, 10, 9] as const
+
+const COUNTRY_LABEL_FONT_SIZE = 12
+const COUNTRY_LABEL_FONT_SIZE_NARROW = 11
+const COUNTRY_LABEL_FONT_WEIGHT = 700
+/** Line height of a country label as a multiple of its font size, for its box */
+const COUNTRY_LABEL_LINE_HEIGHT = 1.2
+/**
+ * Countries view: room kept between the plot's top and the tallest peak for
+ * the label above it, which mustn't run into the poverty line's label
+ */
+const COUNTRY_LABEL_HEADROOM = 30
+/** Country labels stay this far below the plot's top, clear of the poverty line's label */
+const COUNTRY_LABEL_TOP_INSET = 9
 
 const FADED_OPACITY = 0.35
 const DIMMED_OPACITY = 0.3
@@ -122,6 +166,9 @@ function IncomeDistributionChartContent({
     hoveredEntity,
     onHoverEntity,
     isNarrow,
+    obstacles,
+    legendBox,
+    onCountryLabelsChange,
     width,
     height,
 }: IncomeDistributionChartProps & {
@@ -150,9 +197,18 @@ function IncomeDistributionChartContent({
         () =>
             scaleLinear<number>({
                 domain: [0, model.yMax > 0 ? model.yMax : 1],
-                range: [plotBottom, plotTop],
+                // Unstacked curves get room above them for their labels
+                range: [
+                    plotBottom,
+                    isStacked
+                        ? plotTop
+                        : Math.min(
+                              plotTop + COUNTRY_LABEL_HEADROOM,
+                              plotBottom
+                          ),
+                ],
             }),
-        [model.yMax, plotBottom, plotTop]
+        [model.yMax, plotBottom, plotTop, isStacked]
     )
 
     const paths = useMemo(
@@ -187,6 +243,69 @@ function IncomeDistributionChartContent({
                 : REGION_LABEL_FONT_SIZES,
         })
     }, [model.regionBands, incomes, xScale, yScale, isNarrow])
+
+    const countryLabelFontSize = isNarrow
+        ? COUNTRY_LABEL_FONT_SIZE_NARROW
+        : COUNTRY_LABEL_FONT_SIZE
+    const countryLabels = useMemo(():
+        | { layout: CurveLabelLayout; allLabelled: boolean }
+        | undefined => {
+        if (isStacked) return undefined
+        const candidates = model.series.map((s): CurveLabelCandidate => ({
+            key: s.key,
+            width: Bounds.forText(s.key, {
+                fontSize: countryLabelFontSize,
+                fontWeight: COUNTRY_LABEL_FONT_WEIGHT,
+            }).width,
+            points: incomes.map((income, i) => ({
+                x: xScale(income),
+                y: yScale(s.y1[i]),
+            })),
+        }))
+        const options = {
+            bounds: {
+                left: plotLeft,
+                right: plotRight,
+                top: plotTop + COUNTRY_LABEL_TOP_INSET,
+                bottom: plotBottom,
+            },
+            labelHeight: countryLabelFontSize * COUNTRY_LABEL_LINE_HEIGHT,
+            obstacles: obstacles ?? [],
+        }
+        const withoutLegend = placeCurveLabels(candidates, options)
+        const allLabelled = withoutLegend.dropped.length === 0
+        const layout = legendBox
+            ? placeCurveLabels(candidates, {
+                  ...options,
+                  obstacles: [...options.obstacles, legendBox],
+              })
+            : withoutLegend
+        return { layout, allLabelled }
+    }, [
+        isStacked,
+        model.series,
+        incomes,
+        xScale,
+        yScale,
+        countryLabelFontSize,
+        plotLeft,
+        plotRight,
+        plotTop,
+        plotBottom,
+        obstacles,
+        legendBox,
+    ])
+
+    const allCountriesLabelled = countryLabels?.allLabelled
+    useEffect(() => {
+        if (allCountriesLabelled !== undefined)
+            onCountryLabelsChange?.(allCountriesLabelled)
+    }, [allCountriesLabelled, onCountryLabelsChange])
+
+    const seriesColors = useMemo(
+        () => new Map(model.series.map((s) => [s.key, s.color])),
+        [model.series]
+    )
 
     // Series the hovered entity covers: itself, or the countries of a hovered region
     const highlightedKeys = useMemo(() => {
@@ -468,12 +587,29 @@ function IncomeDistributionChartContent({
                     </text>
                 ))}
 
+                {countryLabels && (
+                    <g
+                        className="income-distribution-chart__country-labels"
+                        onPointerOver={handleAreaPointerOver}
+                        onPointerLeave={handleAreaPointerLeave}
+                        onPointerDown={handleAreaPointerDown}
+                    >
+                        <CountryLabelLayer
+                            labels={countryLabels.layout.labels}
+                            colors={seriesColors}
+                            fontSize={countryLabelFontSize}
+                            highlightedKeys={highlightedKeys}
+                        />
+                    </g>
+                )}
+
                 {povertyLine !== null && (
                     <PovertyLine
                         x={xScale(povertyLine)}
                         plotTop={plotTop}
                         plotBottom={plotBottom}
                         width={width}
+                        obstacles={obstacles}
                         label={`${isInternationalPovertyLine ? "International poverty line" : "Poverty line"}: ${formatIncome(povertyLine, currency, timeInterval, { short: true })}`}
                         valueNow={povertyLine}
                         valueMin={minIncome}
@@ -581,6 +717,51 @@ const AreaLayer = memo(function AreaLayer({
     )
 })
 
+/**
+ * The country names above their curves, in the curves' colours. Memoised
+ * like AreaLayer, so pointer moves don't redraw them.
+ */
+const CountryLabelLayer = memo(function CountryLabelLayer({
+    labels,
+    colors,
+    fontSize,
+    highlightedKeys,
+}: {
+    labels: CurveLabelLayout["labels"]
+    colors: Map<string, string>
+    fontSize: number
+    highlightedKeys: Set<string> | undefined
+}): React.ReactElement {
+    return (
+        <>
+            {labels.map((label) => {
+                const color = colors.get(label.key) ?? GRAPHER_DARK_TEXT
+                const isDimmed =
+                    highlightedKeys !== undefined &&
+                    !highlightedKeys.has(label.key)
+                return (
+                    <text
+                        key={label.key}
+                        data-key={label.key}
+                        className="income-distribution-chart__country-label"
+                        x={label.x}
+                        y={label.y}
+                        // The box's bottom is the text's descent line
+                        dy="-0.25em"
+                        textAnchor="middle"
+                        fontSize={fontSize}
+                        fontWeight={COUNTRY_LABEL_FONT_WEIGHT}
+                        fill={darkenColorForText(color)}
+                        opacity={isDimmed ? DIMMED_OPACITY : 1}
+                    >
+                        {label.key}
+                    </text>
+                )
+            })}
+        </>
+    )
+})
+
 function XAxis({
     ticks,
     xScale,
@@ -647,6 +828,7 @@ function PovertyLine({
     plotTop,
     plotBottom,
     width,
+    obstacles,
     label,
     valueNow,
     valueMin,
@@ -662,6 +844,8 @@ function PovertyLine({
     plotTop: number
     plotBottom: number
     width: number
+    /** Boxes the label stays clear of by moving left of the ball */
+    obstacles?: LabelBox[]
     label: string
     /** Int-$/day, for assistive tech */
     valueNow: number
@@ -687,7 +871,20 @@ function PovertyLine({
         fontWeight: 700,
     }).width
     // The label sits right of the ball, or left of it when it would overflow
-    const fitsRight = x + ballRadius + gap + textWidth + clearSpace <= width
+    // or run into an obstacle (e.g. the button over the plot's corner)
+    const rightStart = x + ballRadius + gap
+    const rightEnd = rightStart + textWidth + clearSpace
+    const labelTop = ballY - clearSize / 2
+    const labelBottom = ballY + clearSize / 2
+    const fitsRight =
+        rightEnd <= width &&
+        !(obstacles ?? []).some(
+            (box) =>
+                box.left < rightEnd &&
+                box.right > rightStart &&
+                box.top < labelBottom &&
+                box.bottom > labelTop
+        )
     const textX = fitsRight
         ? x + ballRadius + gap
         : x - ballRadius - gap - clearSpace

@@ -123,33 +123,34 @@
 }
 
 // Floats over the plot's top-right corner, which the mountains leave mostly
-// empty (see showOverlayLegend in DistributionVariant.tsx). It sits below the
-// poverty line's label and keeps the chart's right plot margin (MARGIN in
-// IncomeDistributionChart.tsx); it stays put when a line is set, so the plot
-// never moves
+// empty (see showOverlayLegend in DistributionVariant.tsx); it's positioned by
+// .income-distribution-captioned-chart__overlays. It stays put when a line is
+// set, so the plot never moves
 .income-distribution-legend--overlay {
-    position: absolute;
-    top: 30px;
-    right: 16px;
-    z-index: 2;
+    position: relative;
     padding: 10px 12px;
     border: 1px solid $blue-20;
     background: rgba($white, 0.95);
 }
 
+// The rows set the box's width and the heading wraps within it: taking no
+// width of its own, it fills whatever the rows (or the box's min-width) leave
+// it, with room on the right for the ×
 .income-distribution-legend--overlay .income-distribution-legend__header {
     display: block;
+    box-sizing: border-box;
+    width: 0;
+    min-width: 100%;
     margin-bottom: 6px;
+    padding-right: 22px;
     font-size: 12px;
     line-height: 1.35;
-    // One line, however long the amount: the heading sets the box's width,
-    // and the labels below wrap within it
-    white-space: nowrap;
 }
 
-// Room for the × in the box's top-right corner
+// Wide enough for the heading to wrap into two lines at most, with a typical
+// amount in it
 .income-distribution-legend--overlay-shares {
-    padding-right: 34px;
+    min-width: 200px;
 }
 
 .income-distribution-legend__close {
@@ -257,18 +258,12 @@
     line-height: 1.25;
 }
 
-// With a poverty line the heading alone sets the box's width: the rows take
-// no width of their own and fill whatever the heading leaves them
-.income-distribution-legend--overlay-shares .income-distribution-legend__rows {
-    width: 0;
-    min-width: 100%;
+// The labels set the box's width, so long region names would make it wide;
+// cap them instead
+.income-distribution-legend--overlay .income-distribution-legend__label {
+    max-width: 260px;
 }
 
-// Without the heading's width to wrap within, long region names would make
-// the box wide; cap the labels instead
-.income-distribution-legend--overlay:not(
-        .income-distribution-legend--overlay-shares
-    )
-    .income-distribution-legend__label {
-    max-width: 260px;
+.income-distribution-legend__label-line {
+    display: block;
 }

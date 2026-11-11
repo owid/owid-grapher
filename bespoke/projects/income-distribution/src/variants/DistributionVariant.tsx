@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import cx from "clsx"
 import * as R from "remeda"
 import { QueryClientProvider } from "@tanstack/react-query"
@@ -48,6 +48,7 @@ import {
     useIncomeDistributionYear,
 } from "../core/data.js"
 import { buildChartModel } from "../core/chartModel.js"
+import type { LabelBox } from "../core/curveLabels.js"
 import { shareBelowLineForEntities } from "../core/density.js"
 import {
     povertyLineMode as readPovertyLineMode,
@@ -255,6 +256,22 @@ function CaptionedDistributionVariant({
     const isNarrow = width > 0 && width < NARROW_BREAKPOINT
 
     const [hoveredEntity, setHoveredEntity] = useState<string | null>(null)
+    // Whether the chart labelled every country directly; assumed until it
+    // says otherwise, so the overlay legend doesn't flash up on load
+    const [allCountriesLabelled, setAllCountriesLabelled] = useState(true)
+
+    // What floats over the plot, measured so the chart's labels keep clear
+    const [chartArea, setChartArea] = useState<HTMLDivElement | null>(null)
+    const [editCountriesNode, setEditCountriesNode] =
+        useState<HTMLDivElement | null>(null)
+    const [overlayLegendNode, setOverlayLegendNode] =
+        useState<HTMLDivElement | null>(null)
+    const editCountriesBox = useBoxWithin(chartArea, editCountriesNode)
+    const overlayLegendBox = useBoxWithin(chartArea, overlayLegendNode)
+    const chartObstacles = useMemo(
+        () => (editCountriesBox ? [editCountriesBox] : undefined),
+        [editCountriesBox]
+    )
 
     const year = yearData.year
     const availableCountries = useMemo(
@@ -328,9 +345,27 @@ function CaptionedDistributionVariant({
     // On wide charts the legend floats over the plot's top-right corner and
     // turns into the share bars when a poverty line is set, so setting a line
     // never pushes the plot down; narrow charts keep it above the plot, where
-    // it doesn't cover the mountains
-    const showOverlayLegend = !isNarrow && !hasNoCountries
+    // it doesn't cover the mountains. In the countries view the curves are
+    // labelled directly, so without a line the overlay legend only shows when
+    // some country couldn't be labelled.
+    const showOverlayLegend =
+        !isNarrow &&
+        !hasNoCountries &&
+        (view === "global" || povertyLine !== null || !allCountriesLabelled)
     const showInlineLegend = isNarrow && !hasNoCountries
+    // Wide charts put the button over the plot's top-right corner, above the
+    // overlay legend; narrow ones keep it in the row above the plot
+    const showOverlayEditCountries = showEditCountries && !isNarrow
+    const showToolbar = isNarrow && (showInlineLegend || showEditCountries)
+
+    const editCountries = (
+        <CountryMultiSelect
+            availableCountries={availableCountries}
+            selectedCountries={selectedCountries}
+            onChange={setSelectedCountries}
+            isNarrow={isNarrow}
+        />
+    )
 
     const title = config.title ?? chartTitle(view, selectedCountries)
     const subtitle =
@@ -361,7 +396,7 @@ function CaptionedDistributionVariant({
             <BespokeMetadataProvider metadata={metadata.bespokeMetadata}>
                 <Frame className="income-distribution-captioned-chart">
                     <ChartHeader title={title} subtitle={subtitle} />
-                    {(showInlineLegend || showEditCountries) && (
+                    {showToolbar && (
                         <div className="income-distribution-captioned-chart__toolbar">
                             {showInlineLegend && (
                                 <IncomeDistributionLegend
@@ -378,31 +413,50 @@ function CaptionedDistributionVariant({
                             )}
                             {showEditCountries && (
                                 <div className="income-distribution-captioned-chart__edit-countries">
-                                    <CountryMultiSelect
-                                        availableCountries={availableCountries}
-                                        selectedCountries={selectedCountries}
-                                        onChange={setSelectedCountries}
-                                        isNarrow={isNarrow}
-                                    />
+                                    {editCountries}
                                 </div>
                             )}
                         </div>
                     )}
-                    <div className="income-distribution-captioned-chart__chart-area">
+                    <div
+                        ref={setChartArea}
+                        className="income-distribution-captioned-chart__chart-area"
+                    >
                         {isLoading && <Spinner />}
-                        {showOverlayLegend && (
-                            <IncomeDistributionLegend
-                                layout="overlay"
-                                entries={legendEntries}
-                                hoveredEntity={hoveredEntity}
-                                onHoverEntity={setHoveredEntity}
-                                sharesBelowLine={sharesBelowLine}
-                                povertyLine={povertyLine}
-                                currency={currency}
-                                timeInterval={timeInterval}
-                                onClearPovertyLine={onClearPovertyLine}
-                                isNarrow={false}
-                            />
+                        {(showOverlayEditCountries || showOverlayLegend) && (
+                            <div
+                                className={cx(
+                                    "income-distribution-captioned-chart__overlays",
+                                    {
+                                        "income-distribution-captioned-chart__overlays--with-button":
+                                            showOverlayEditCountries,
+                                    }
+                                )}
+                            >
+                                {showOverlayEditCountries && (
+                                    <div ref={setEditCountriesNode}>
+                                        {editCountries}
+                                    </div>
+                                )}
+                                {showOverlayLegend && (
+                                    <div ref={setOverlayLegendNode}>
+                                        <IncomeDistributionLegend
+                                            layout="overlay"
+                                            entries={legendEntries}
+                                            hoveredEntity={hoveredEntity}
+                                            onHoverEntity={setHoveredEntity}
+                                            sharesBelowLine={sharesBelowLine}
+                                            povertyLine={povertyLine}
+                                            currency={currency}
+                                            timeInterval={timeInterval}
+                                            onClearPovertyLine={
+                                                onClearPovertyLine
+                                            }
+                                            isNarrow={false}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         )}
                         {hasNoCountries ? (
                             <div className="income-distribution__no-data">
@@ -426,6 +480,9 @@ function CaptionedDistributionVariant({
                                 hoveredEntity={hoveredEntity}
                                 onHoverEntity={setHoveredEntity}
                                 isNarrow={isNarrow}
+                                obstacles={chartObstacles}
+                                legendBox={overlayLegendBox}
+                                onCountryLabelsChange={setAllCountriesLabelled}
                             />
                         )}
                     </div>
@@ -437,6 +494,42 @@ function CaptionedDistributionVariant({
             </BespokeMetadataProvider>
         </div>
     )
+}
+
+/**
+ * Where `element` sits within `container` (both laid out), kept up to date as
+ * either resizes; undefined while either is missing
+ */
+function useBoxWithin(
+    container: HTMLElement | null,
+    element: HTMLElement | null
+): LabelBox | undefined {
+    const [box, setBox] = useState<LabelBox | undefined>(undefined)
+
+    useEffect(() => {
+        if (!container || !element || typeof ResizeObserver === "undefined")
+            return
+        const update = (): void => {
+            const outer = container.getBoundingClientRect()
+            const inner = element.getBoundingClientRect()
+            const next: LabelBox = {
+                left: inner.left - outer.left,
+                right: inner.right - outer.left,
+                top: inner.top - outer.top,
+                bottom: inner.bottom - outer.top,
+            }
+            // Keep the old object when nothing moved, so the chart's label
+            // layout isn't redone
+            setBox((prev) => (prev && R.isDeepEqual(prev, next) ? prev : next))
+        }
+        // Also reports both elements' sizes once when they're observed
+        const observer = new ResizeObserver(update)
+        observer.observe(container)
+        observer.observe(element)
+        return () => observer.disconnect()
+    }, [container, element])
+
+    return container && element ? box : undefined
 }
 
 function chartTitle(view: View, selectedCountries: string[]): string {

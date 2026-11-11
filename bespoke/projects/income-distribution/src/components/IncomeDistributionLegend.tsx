@@ -11,7 +11,7 @@ import {
 } from "../core/currency.js"
 import { WORLD_ENTITY_NAME } from "../core/constants.js"
 import type { Currency, TimeInterval } from "../core/types.js"
-import { formatLegendLabel } from "../core/legendLabels.js"
+import { formatLegendLabel, legendLabelLines } from "../core/legendLabels.js"
 
 /** Length in px of a 100% bar in the overlay legend */
 const OVERLAY_BAR_MAX_WIDTH = 100
@@ -178,9 +178,20 @@ export function IncomeDistributionLegend({
                                     />
                                 </span>
                                 <span className="income-distribution-legend__label">
-                                    {formatLegendLabel(
+                                    {/* One block per preferred line, so a
+                                        broken label is only as wide as its
+                                        longest line and the rows, which set
+                                        the box's width, stay narrow */}
+                                    {legendLabelLines(
                                         entry.label ?? entry.key
-                                    )}
+                                    ).map((line) => (
+                                        <span
+                                            key={line}
+                                            className="income-distribution-legend__label-line"
+                                        >
+                                            {line}
+                                        </span>
+                                    ))}
                                 </span>
                             </li>
                         )

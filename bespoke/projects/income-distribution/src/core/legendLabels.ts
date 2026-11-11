@@ -18,3 +18,13 @@ export function formatLegendLabel(label: string): string {
     if (!lines) return label
     return lines.map((words) => words.join(NBSP)).join(" ")
 }
+
+/**
+ * The label's preferred lines, for layouts that always break there: a label
+ * without preferred breaks is a single line
+ */
+export function legendLabelLines(label: string): string[] {
+    const lines = PREFERRED_LINE_BREAKS[label]
+    if (!lines) return [label]
+    return lines.map((words) => words.join(" "))
+}

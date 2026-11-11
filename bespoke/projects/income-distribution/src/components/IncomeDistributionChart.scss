@@ -27,6 +27,20 @@
     pointer-events: none;
 }
 
+// Only the names themselves take the pointer (to highlight their curve), so
+// the labels' boxes don't get in the way of the plot
+.income-distribution-chart__country-labels {
+    pointer-events: none;
+}
+
+.income-distribution-chart__country-label {
+    stroke: $white;
+    stroke-width: 3px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+    pointer-events: visiblePainted;
+}
+
 // The poverty line is dragged with the pointer, or moved with the arrow keys
 // once focused (see PovertyLine in IncomeDistributionChart.tsx)
 .income-distribution-chart__poverty-line {
