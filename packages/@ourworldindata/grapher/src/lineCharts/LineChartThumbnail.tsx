@@ -10,7 +10,7 @@ import {
     getRelativeMouse,
     roundForSvg,
 } from "@ourworldindata/utils"
-import { ChartLabelMode, SideWidths, Time } from "@ourworldindata/types"
+import { SideWidths, Time } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LineChartState } from "./LineChartState"
 import { LineChartProps } from "./LineChart.js"
@@ -55,6 +55,7 @@ import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes.js"
 import { CategoricalBin } from "../color/ColorScaleBin.js"
 import {
+    getVisibleLabels,
     getHoverStateForSeries,
     isTargetOutsideElement,
     scaleFontSize,
@@ -429,14 +430,12 @@ export class LineChartThumbnail
         )
     }
 
-    @computed private get shouldShowValueLabelsOnly(): boolean {
-        return this.manager.labelMode === ChartLabelMode.Values
+    @computed private get shouldShowStartNames(): boolean {
+        return getVisibleLabels(this.manager.labelMode).names
     }
 
     @computed private get startLabelsMaxWidth(): number | undefined {
-        return this.shouldShowValueLabelsOnly
-            ? undefined
-            : 0.25 * this.bounds.width
+        return this.shouldShowStartNames ? 0.25 * this.bounds.width : undefined
     }
 
     @computed private get startLabelsSeries(): Omit<
@@ -454,9 +453,9 @@ export class LineChartThumbnail
                 if (!startPoint) return undefined
 
                 const value = startPoint.y
-                const label = this.shouldShowValueLabelsOnly
-                    ? this.formatLabel(value)
-                    : series.displayName
+                const label = this.shouldShowStartNames
+                    ? series.displayName
+                    : this.formatLabel(value)
 
                 const color = this.chartState.hasColorScale
                     ? darkenColorForLine(

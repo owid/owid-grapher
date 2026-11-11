@@ -77,6 +77,7 @@ export class MarimekkoChartThumbnail
     }
 
     @computed private get shouldShowVerticalAxis(): boolean {
+        // The y axis is a Values-only exception to the visible labels table
         return this.manager.labelMode === ChartLabelMode.Values
     }
 

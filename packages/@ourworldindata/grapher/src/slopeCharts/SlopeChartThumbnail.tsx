@@ -3,7 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { scaleLinear } from "d3-scale"
 import { ChartInterface } from "../chart/ChartInterface"
-import { ChartLabelMode, SideWidths } from "@ourworldindata/types"
+import { SideWidths } from "@ourworldindata/types"
 import { SlopeChartState } from "./SlopeChartState.js"
 import { type SlopeChartProps } from "./SlopeChart.js"
 import {
@@ -24,7 +24,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
 } from "../core/GrapherConstants"
-import { scaleFontSize } from "../chart/ChartUtils"
+import { getVisibleLabels, scaleFontSize } from "../chart/ChartUtils"
 import { Bounds, SeriesName } from "@ourworldindata/utils"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Slope } from "./Slope"
@@ -289,14 +289,12 @@ export class SlopeChartThumbnail
         })
     }
 
-    @computed private get shouldShowValueLabelsOnly(): boolean {
-        return this.manager.labelMode === ChartLabelMode.Values
+    @computed private get shouldShowStartNames(): boolean {
+        return getVisibleLabels(this.manager.labelMode).names
     }
 
     @computed private get startLabelsMaxWidth(): number | undefined {
-        return this.shouldShowValueLabelsOnly
-            ? undefined
-            : 0.25 * this.bounds.width
+        return this.shouldShowStartNames ? 0.25 * this.bounds.width : undefined
     }
 
     @computed private get startLabelsSeries(): Omit<
@@ -309,9 +307,9 @@ export class SlopeChartThumbnail
             const { seriesName, displayName, color } = series
             const firstPoint = series.start
             const value = firstPoint?.value ?? 0
-            const label = this.shouldShowValueLabelsOnly
-                ? this.formatLabel(value)
-                : displayName
+            const label = this.shouldShowStartNames
+                ? displayName
+                : this.formatLabel(value)
 
             return { seriesName, value, label, color }
         })
