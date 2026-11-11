@@ -18,7 +18,7 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
 } from "../core/GrapherConstants"
-import { scaleFontSize } from "../chart/ChartUtils"
+import { getVisibleLabels, scaleFontSize } from "../chart/ChartUtils"
 import { MarimekkoBars } from "./MarimekkoBars"
 import { DualAxisComponent } from "../axis/AxisViews"
 import {
@@ -143,7 +143,14 @@ export class MarimekkoChartThumbnail
     }
 
     @computed private get shouldShowLabels(): boolean {
-        return this.chartState.isFocusModeActive
+        return (
+            getVisibleLabels(this.manager.labelMode).rowLabelNames &&
+            this.chartState.isFocusModeActive
+        )
+    }
+
+    @computed private get shouldShowNoDataLabel(): boolean {
+        return getVisibleLabels(this.manager.labelMode).values
     }
 
     @computed private get labelledSeries(): PlacedMarimekkoSeries[] {
@@ -172,6 +179,7 @@ export class MarimekkoChartThumbnail
                     fontSize={this.fontSize}
                     patternIdSuffix={this.manager.patternIdSuffix}
                     isFocusModeActive={this.chartState.isFocusModeActive}
+                    showNoDataLabel={this.shouldShowNoDataLabel}
                 />
                 <MarimekkoInternalLabels
                     series={this.labelledSeries}
