@@ -7,6 +7,7 @@ import {
     SearchState,
     SearchChartHit,
     type SearchChartViewHit,
+    type SearchMultiDimViewHit,
     ChartRecordType,
     StackedArticleHit,
     TopicPageHit,
@@ -590,6 +591,8 @@ export async function queryWritingTopics(
     })
 }
 
+export type AllChartsBlockHit = SearchChartViewHit | SearchMultiDimViewHit
+
 export async function queryAllChartsBlock(
     liteSearchClient: LiteClient,
     topics: string[],
@@ -605,7 +608,10 @@ export async function queryAllChartsBlock(
             ],
             requireAllCountries: true,
         }),
-        `type:${ChartRecordType.Chart}`,
+        [
+            `type:${ChartRecordType.Chart}`,
+            `type:${ChartRecordType.MultiDimView}`,
+        ],
     ]
 
     const searchParams = {
@@ -617,6 +623,7 @@ export async function queryAllChartsBlock(
             "slug",
             "variantName",
             "type",
+            "queryParams",
             "availableTabs",
             "source",
         ],
@@ -626,7 +633,7 @@ export async function queryAllChartsBlock(
         page,
     }
 
-    const response = await searchSingleForHits<SearchChartViewHit>(
+    const response = await searchSingleForHits<AllChartsBlockHit>(
         liteSearchClient,
         searchParams
     )
