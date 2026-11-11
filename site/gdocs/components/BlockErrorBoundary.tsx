@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as Sentry from "@sentry/react"
 import { Button } from "@ourworldindata/components"
-import { useDebug } from "../DebugContext.js"
+import { DebugContext } from "../DebugContext.js"
 
 export const BlockErrorBoundary = ({
     children,
@@ -39,7 +39,9 @@ export const BlockErrorFallback = ({
     resetError?: VoidFunction
     className?: string
 }): React.ReactElement => {
-    const debug = useDebug()
+    // Not useDebug: the fallback also renders outside a DebugProvider (the
+    // data insights Atom feed), where throwing would fail the whole bake
+    const debug = React.useContext(DebugContext) ?? false
     return (
         <div
             className={className}
