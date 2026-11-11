@@ -479,7 +479,7 @@ export class HorizontalAxisComponent extends React.Component<{
         else return new Bounds(bounds.right, bounds.bottom - 30, 100, 100)
     }
 
-    override render(): React.ReactElement {
+    override render(): React.ReactElement | null {
         const {
             bounds,
             axis,
@@ -492,6 +492,8 @@ export class HorizontalAxisComponent extends React.Component<{
             detailsMarker,
             showEndpointsOnly,
         } = this.props
+        if (axis.hideAxis) return null
+
         const { labelTextWrap: label, labelOffset, orient } = axis
         const tickSize = 5
         const horizontalAxisLabelsOnTop = orient === Position.top
