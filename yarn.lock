@@ -4255,26 +4255,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/types@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@slack/types@npm:3.0.0"
-  checksum: 10/30ae3fc5b28f7275f155edc1628284099ec814fd80843d76d410b4c36317f4aefc4f35938bbacc0aaff4ca9dbd8777ededb241f771c7e02e835828a07c376f85
+"@slack/types@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "@slack/types@npm:3.3.0"
+  checksum: 10/04a5aa7810df74bc123fd7559feba8d52e1bceb54dbc18f9dcef157ae872a28bfd290e928415e5d900add171b89ba9a56d26bb603c7b9d17e29e5ad5f59f5ccc
   languageName: node
   linkType: hard
 
-"@slack/web-api@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "@slack/web-api@npm:8.0.0"
+"@slack/web-api@npm:^8.3.0":
+  version: 8.3.0
+  resolution: "@slack/web-api@npm:8.3.0"
   dependencies:
     "@slack/logger": "npm:^5.0.0"
-    "@slack/types": "npm:^3.0.0"
+    "@slack/types": "npm:^3.3.0"
     "@types/node": "npm:>=20"
-    "@types/retry": "npm:0.12.0"
+    "@types/retry": "npm:0.12.5"
     eventemitter3: "npm:^5.0.1"
-    p-queue: "npm:^6"
-    p-retry: "npm:^4"
+    p-queue: "npm:^6.6.2"
+    p-retry: "npm:^4.6.2"
     retry: "npm:^0.13.1"
-  checksum: 10/88526cee2502f279ed42160d0f8710e5adfbfe6b28a41151ed8978f8bb090914b749b4f5b14fe7f03cbb5ae666df36d650c6e3275f7b03b21929dce751c65f7f
+  checksum: 10/e3878022bc0529912053b7f6ae237de8c71620ec29dec4294e66779cdea40bb3250df5871055f997ec82465be32c00090ec0dd0e0025def5de558dae0fad544f
   languageName: node
   linkType: hard
 
@@ -5277,6 +5277,13 @@ __metadata:
   version: 0.12.0
   resolution: "@types/retry@npm:0.12.0"
   checksum: 10/bbd0b88f4b3eba7b7acfc55ed09c65ef6f2e1bcb4ec9b4dca82c66566934351534317d294a770a7cc6c0468d5573c5350abab6e37c65f8ef254443e1b028e44d
+  languageName: node
+  linkType: hard
+
+"@types/retry@npm:0.12.5":
+  version: 0.12.5
+  resolution: "@types/retry@npm:0.12.5"
+  checksum: 10/3fb6bf91835ca0eb2987567d6977585235a7567f8aeb38b34a8bb7bbee57ac050ed6f04b9998cda29701b8c893f5dfe315869bc54ac17e536c9235637fe351a2
   languageName: node
   linkType: hard
 
@@ -8570,7 +8577,7 @@ __metadata:
     "@sentry/node": "npm:^11.11.0"
     "@sentry/profiling-node": "npm:^11.11.0"
     "@sentry/react": "npm:^11.11.0"
-    "@slack/web-api": "npm:^8.0.0"
+    "@slack/web-api": "npm:^8.3.0"
     "@swc/core": "npm:^1.16.1"
     "@swc/helpers": "npm:^0.5.23"
     "@tanstack/react-query": "npm:^5.90.6"
@@ -11170,7 +11177,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-queue@npm:^6":
+"p-queue@npm:^6.6.2":
   version: 6.6.2
   resolution: "p-queue@npm:6.6.2"
   dependencies:
@@ -11180,7 +11187,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-retry@npm:^4":
+"p-retry@npm:^4.6.2":
   version: 4.6.2
   resolution: "p-retry@npm:4.6.2"
   dependencies:
