@@ -76,8 +76,6 @@ type SelectPeerCountriesParams =
     | WithStrategy<SelectNeighborsAsPeersParams, PeerCountryStrategy.Neighbors>
     | { peerCountryStrategy: PeerCountryStrategy.None }
 
-export { isValidPeerCountryStrategyQueryParam } from "@ourworldindata/types"
-
 /**
  * Selects peer countries for a grapher based on the configured strategy.
  *

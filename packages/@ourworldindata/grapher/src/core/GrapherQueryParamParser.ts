@@ -10,6 +10,7 @@ import {
     SeriesName,
     StackMode,
     PeerCountryStrategyQueryParam,
+    isValidPeerCountryStrategyQueryParam,
     VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS,
 } from "@ourworldindata/types"
 import { parseFloatOrUndefined } from "@ourworldindata/utils"
@@ -25,7 +26,6 @@ import { DataTableFilter } from "../dataTable/DataTableConstants.js"
 import { DownloadModalTabName } from "../modal/DownloadModal.js"
 import { GrapherModal } from "./GrapherConstants.js"
 import { isValidMapRegionName } from "../mapCharts/MapHelpers.js"
-import { isValidPeerCountryStrategyQueryParam } from "./PeerCountrySelection.js"
 
 /**
  * Discriminated union representing the result of parsing a query parameter
