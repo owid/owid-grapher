@@ -101,9 +101,8 @@ $rw-margin-bottom-grid-cell: 4px;
     }
 
     figure {
-        padding-bottom: 57%;
+        padding-bottom: calc(100% / 1.91);
         width: 100%;
-        max-height: 57%;
         display: block;
         box-sizing: border-box;
         position: relative;

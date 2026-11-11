@@ -22,7 +22,8 @@
 
 .search-flat-article-hit__image {
     width: 84px;
-    height: 64px;
+    height: auto;
+    aspect-ratio: 1.91 / 1;
     object-fit: cover;
 }
 
