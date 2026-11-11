@@ -11,12 +11,7 @@ import {
     roundForSvg,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
-import {
-    ChartLabelMode,
-    SeriesName,
-    SeriesStrategy,
-    Time,
-} from "@ourworldindata/types"
+import { SeriesName, SeriesStrategy, Time } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -45,6 +40,7 @@ import {
     StackedSeries,
 } from "./StackedConstants"
 import {
+    getVisibleLabels,
     isTargetOutsideElement,
     getHoverStateForSeries,
 } from "../chart/ChartUtils"
@@ -216,7 +212,7 @@ export class StackedAreaChart
     @computed private get showLegend(): boolean {
         return (
             !!this.manager.showSeriesLabels &&
-            this.manager.labelMode !== ChartLabelMode.Values
+            getVisibleLabels(this.manager.labelMode).endLabelNames
         )
     }
 

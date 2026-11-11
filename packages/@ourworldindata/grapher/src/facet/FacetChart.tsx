@@ -47,7 +47,11 @@ import {
     FacetChartManager,
 } from "./FacetChartConstants"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
-import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import {
+    getVisibleLabels,
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+} from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -737,7 +741,7 @@ export class FacetChart
     @computed private get showLegend(): boolean {
         const { isNumericLegend, categoricalLegendData, numericLegendData } =
             this
-        if (this.manager.labelMode === ChartLabelMode.Values) return false
+        if (!getVisibleLabels(this.manager.labelMode).legends) return false
         const hasBins =
             categoricalLegendData.length > 0 || numericLegendData.length > 0
         if (!hasBins) return false
