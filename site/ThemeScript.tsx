@@ -11,7 +11,7 @@
  *   system  – follows prefers-color-scheme (dark → dark-a)
  *
  * Dark palettes (only shown while the page is dark):
- *   current, midnight, slate, ink – see $dark-palette-variants in
+ *   current, midnight, midnight-navy, slate, ink – see $dark-palette-variants in
  *   components/src/styles/colors.scss
  *
  * Proposal C (dark charts with adapted data colors) has been removed from the
@@ -25,7 +25,7 @@ const themeScript = `(function () {
     var KEY = "owid-theme";
     var PALETTE_KEY = "owid-dark-palette";
     var MODES = ["light", "dark-a", "system"];
-    var PALETTES = ["current", "midnight", "slate", "ink"];
+    var PALETTES = ["current", "midnight", "midnight-navy", "slate", "ink"];
     // Dark C was removed from the options; anyone who had it picked (or a
     // shared ?theme=dark-c link) lands on Dark A instead of falling back to
     // light. The dark-chart code is still in place if it's needed again.
@@ -103,10 +103,11 @@ const themeScript = `(function () {
         "dark-a": "Proposal A: dark site, charts stay light",
         system: "Follow the operating system (dark uses proposal A)"
     };
-    var PALETTE_LABELS = { current: "Current", midnight: "Midnight", slate: "Slate", ink: "Ink" };
+    var PALETTE_LABELS = { current: "Current", midnight: "Midnight", "midnight-navy": "Midnight + navy", slate: "Slate", ink: "Ink" };
     var PALETTE_TITLES = {
         current: "The palette as reviewed so far",
         midnight: "Deeper, more saturated navy; warm gold; classic red",
+        "midnight-navy": "Midnight, with the header and footer in the light theme's brand navy",
         slate: "Blue-green slate; a cleaner yellow; coral red",
         ink: "Indigo-tinted ink; soft peach-gold; rose red"
     };

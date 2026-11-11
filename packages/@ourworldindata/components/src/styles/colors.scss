@@ -289,6 +289,22 @@ $dark-palette-variants: (
     ),
 );
 
+// Midnight, with the site header and footer in the light theme's brand navy
+$dark-palette-variants: map.merge(
+    $dark-palette-variants,
+    (
+        "midnight-navy":
+            map.merge(
+                map.get($dark-palette-variants, "midnight"),
+                (
+                    "brand-bar": #002147,
+                    // The search field on the navy header ($blue-90 in light)
+                    "brand-bar-field": #1d3d63,
+                )
+            ),
+    )
+);
+
 @function _rgb-triplet($c) {
     @return color.channel($c, "red", $space: rgb),
         color.channel($c, "green", $space: rgb),
@@ -492,6 +508,28 @@ $sdgColors: (
         @include use-dark-token("header-background", $as: "blue-100");
         // The header search field
         @include use-dark-token("header-field", $as: "blue-90");
+    }
+
+    // A palette can give the site header and footer their own color with
+    // `brand-bar` / `brand-bar-field` (e.g. the light theme's brand navy);
+    // otherwise they share header-background with the hero and author pages.
+    .site-navigation,
+    .site-footer {
+        --oxford-blue: var(--dark-brand-bar, var(--dark-header-background));
+        --oxford-blue-rgb: var(
+            --dark-brand-bar-rgb,
+            var(--dark-header-background-rgb)
+        );
+        --blue-100: var(--dark-brand-bar, var(--dark-header-background));
+        --blue-100-rgb: var(
+            --dark-brand-bar-rgb,
+            var(--dark-header-background-rgb)
+        );
+        --blue-90: var(--dark-brand-bar-field, var(--dark-header-field));
+        --blue-90-rgb: var(
+            --dark-brand-bar-field-rgb,
+            var(--dark-header-field-rgb)
+        );
     }
 
     // The author page header and its topic strip are $blue-95 navy
