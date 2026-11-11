@@ -512,7 +512,10 @@ function AllChartsBlockPreview({
                 <MultiDimEmbed
                     key={url}
                     url={url}
-                    chartConfig={PREVIEW_GRAPHER_CONFIG}
+                    chartConfig={{
+                        ...PREVIEW_GRAPHER_CONFIG,
+                        hideExploreTheDataButton: !hit.isDataExplorer,
+                    }}
                     isPreviewing={isPreviewing}
                 />
             )

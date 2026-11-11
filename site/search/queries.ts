@@ -627,6 +627,7 @@ export async function queryAllChartsBlock(
             "queryParams",
             "availableTabs",
             "source",
+            "isDataExplorer",
         ],
         attributesToHighlight: [],
         attributesToSnippet: [],
