@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faFlag, faGlobe } from "@fortawesome/free-solid-svg-icons"
+import { faGlobe } from "@fortawesome/free-solid-svg-icons"
 
 import {
     Controls,
@@ -12,16 +12,11 @@ import {
 } from "../../../../components/Switcher/Switcher.js"
 
 import { Currency, PovertyLineMode, TimeInterval, View } from "../core/types.js"
-import { CountryMultiSelect } from "./CountryMultiSelect.js"
 import { IncomeUnitPicker } from "./IncomeUnitPicker.js"
 
 export interface IncomeDistributionControlsProps {
     view: View
     setView: (v: View) => void
-    selectedCountries: string[]
-    setSelectedCountries: (names: string[]) => void
-    /** Sorted names from the year's data */
-    availableCountries: string[]
     timeInterval: TimeInterval
     setTimeInterval: (t: TimeInterval) => void
     currency: Currency
@@ -35,6 +30,33 @@ export interface IncomeDistributionControlsProps {
     povertyLineMode: PovertyLineMode
     setPovertyLineMode: (mode: PovertyLineMode) => void
     isNarrow: boolean
+}
+
+/**
+ * Two overlapping distributions, one filled and one outlined, sized like the
+ * globe next to it and coloured by the switcher through currentColor
+ */
+function TwoDistributionsIcon(): React.ReactElement {
+    return (
+        <svg
+            className="income-distribution-controls__view-icon"
+            viewBox="0 0 22 14"
+            aria-hidden
+        >
+            <path
+                d="M1 13 C3.5 13 4.5 2 7.5 2 S11.5 13 14 13 Z"
+                fill="currentColor"
+                opacity={0.6}
+            />
+            <path
+                d="M7 13 C10 13 11.5 4 14.5 4 S18.5 13 21 13"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.6}
+                strokeLinecap="round"
+            />
+        </svg>
+    )
 }
 
 const VIEW_ITEMS: SwitcherItem<View>[] = [
@@ -51,8 +73,8 @@ const VIEW_ITEMS: SwitcherItem<View>[] = [
         key: "countries",
         element: (
             <>
-                <FontAwesomeIcon icon={faFlag} size="sm" aria-hidden />
-                Selected countries
+                <TwoDistributionsIcon />
+                Compare countries
             </>
         ),
     },
@@ -72,9 +94,6 @@ const POVERTY_LINE_ITEMS: SwitcherItem<PovertyLineMode>[] = [
 export function IncomeDistributionControls({
     view,
     setView,
-    selectedCountries,
-    setSelectedCountries,
-    availableCountries,
     timeInterval,
     setTimeInterval,
     currency,
@@ -99,19 +118,6 @@ export function IncomeDistributionControls({
                         ariaLabel="View"
                     />
                 </LabeledControl>
-                {view === "countries" && (
-                    <LabeledControl
-                        label="Countries"
-                        className="income-distribution-controls__countries"
-                    >
-                        <CountryMultiSelect
-                            availableCountries={availableCountries}
-                            selectedCountries={selectedCountries}
-                            onChange={setSelectedCountries}
-                            isNarrow={isNarrow}
-                        />
-                    </LabeledControl>
-                )}
                 <LabeledControl
                     label="Measured in"
                     className="income-distribution-controls__units"

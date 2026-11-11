@@ -27,7 +27,7 @@ export const VARIANTS = [
     {
         name: "distribution",
         description:
-            "Income mountains: how the world's population, or selected countries', is spread across income levels",
+            "Income mountains: how the world's population, or that of a few countries compared, is spread across income levels",
         component: DistributionVariant,
         defaultSize: "wide",
     },
@@ -49,14 +49,14 @@ export const CONFIG_SPEC = {
         values: VIEWS,
         default: "global",
         description:
-            "View shown first: `global` stacks every country by World Bank region, `countries` draws the selected countries side by side",
+            "View shown first: `global` stacks every country by World Bank region, `countries` compares the countries in `countries` side by side",
     },
     countries: {
         type: "custom",
         format: "Comma-separated country names, such as `China, India, userLocation`",
         parse: parseCountryList,
         description:
-            "Countries of the selected-countries view. `userLocation` adds the user's country. Defaults to China, the United States, India, Nigeria and the user's country",
+            "Countries of the compare-countries view. `userLocation` adds the user's country. Defaults to China, the United States, India, Nigeria and the user's country",
     },
     year: {
         type: "integer",
@@ -74,7 +74,7 @@ export const CONFIG_SPEC = {
     timeInterval: {
         type: "enum",
         values: TIME_INTERVALS,
-        default: "daily",
+        default: "monthly",
         description: "Whether incomes are shown per day, month or year",
     },
     currency: {

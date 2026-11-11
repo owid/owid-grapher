@@ -21,7 +21,7 @@ export const DEFAULT_YEAR = "2025"
 export const FIRST_NOWCAST_YEAR = 2025
 
 /**
- * The countries the selected-countries view starts with. "userLocation" is
+ * The countries the compare-countries view starts with. "userLocation" is
  * the sentinel the user's own country gets substituted for.
  */
 export const USER_LOCATION_SENTINEL = "userLocation"
@@ -75,7 +75,7 @@ export const REGION_COLORS: Record<Region, string> = {
 
 export const WORLD_COLOR = OwidDistinctColors.Purple
 
-/** Colours for the selected-countries view, assigned in selection order */
+/** Colours for the compare-countries view, assigned in selection order */
 export const COUNTRY_COLOR_ROTATION: string[] = [
     OwidDistinctColors.Turquoise,
     OwidDistinctColors.Denim,

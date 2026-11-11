@@ -381,7 +381,7 @@
       "entryFile": "bespoke/projects/income-distribution/src/index.tsx",
       "sidecarFile": "bespoke/projects/income-distribution/docs.md",
       "prose": {
-        "intro": "Income mountains: how the world's population is spread across income levels, from the World Bank's Poverty and Inequality Platform. The global view stacks every country by World Bank region, so the height of the mountain is the number of people living at each income. The selected-countries view draws chosen countries side by side, each normalised to the same area. Users can add a poverty line, the World Bank's international one or their own, from the controls or by clicking the chart, drag it to see the share of people below it, and switch to their local currency and to incomes per month or year.\n\nThe global view, as it starts by default:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{}\n```\n\nA few countries compared, with a poverty line already drawn at $8.30 a day:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\nview: countries\ncountries: India, Brazil, Germany, userLocation\npovertyLine: 8.3\n{}\n{}\n```\n\nMonthly incomes in the user's own currency:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\ncurrency: userLocation\ntimeInterval: monthly\n{}\n{}\n```",
+        "intro": "Income mountains: how the world's population is spread across income levels, from the World Bank's Poverty and Inequality Platform. The global view stacks every country by World Bank region, so the height of the mountain is the number of people living at each income. The compare-countries view draws chosen countries side by side, each normalised to the same area; readers pick them with the \"Edit countries\" button above the plot. Users can add a poverty line, the World Bank's international one or their own, from the controls or by clicking the chart, drag it to see the share of people below it, and switch to their local currency and to incomes per day or year. Incomes are shown per month unless `timeInterval` says otherwise.\n\nThe global view, as it starts by default:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{}\n```\n\nA few countries compared, with a poverty line already drawn at $8.30 a day:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\nview: countries\ncountries: India, Brazil, Germany, userLocation\npovertyLine: 8.3\n{}\n{}\n```\n\nDaily incomes in the user's own currency:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\ncurrency: userLocation\ntimeInterval: daily\n{}\n{}\n```",
         "notes": "- `povertyLine` is always in international-$ per day, whatever `currency` and `timeInterval` say; the chart converts it.\n- Countries in `countries` that the data doesn't have are left out silently. `userLocation` is left out when the user's country can't be detected.\n- A custom `title` or `subtitle` hides the controls, as `hideControls` does."
       },
       "examples": [
@@ -398,7 +398,7 @@
           "position": 1
         },
         {
-          "archie": "{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\ncurrency: userLocation\ntimeInterval: monthly\n{}\n{}",
+          "archie": "{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\ncurrency: userLocation\ntimeInterval: daily\n{}\n{}",
           "flavour": "archie",
           "section": "intro",
           "position": 2
@@ -407,7 +407,7 @@
       "variants": [
         {
           "name": "distribution",
-          "description": "Income mountains: how the world's population, or selected countries', is spread across income levels",
+          "description": "Income mountains: how the world's population, or that of a few countries compared, is spread across income levels",
           "defaultSize": "wide",
           "archie": "{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\nsize: wide\n{}\n"
         }
@@ -430,14 +430,14 @@
             "global",
             "countries"
           ],
-          "description": "View shown first: `global` stacks every country by World Bank region, `countries` draws the selected countries side by side",
+          "description": "View shown first: `global` stacks every country by World Bank region, `countries` compares the countries in `countries` side by side",
           "default": "global"
         },
         {
           "name": "countries",
           "type": "custom",
           "format": "Comma-separated country names, such as `China, India, userLocation`",
-          "description": "Countries of the selected-countries view. `userLocation` adds the user's country. Defaults to China, the United States, India, Nigeria and the user's country"
+          "description": "Countries of the compare-countries view. `userLocation` adds the user's country. Defaults to China, the United States, India, Nigeria and the user's country"
         },
         {
           "name": "year",
@@ -460,7 +460,7 @@
             "yearly"
           ],
           "description": "Whether incomes are shown per day, month or year",
-          "default": "daily"
+          "default": "monthly"
         },
         {
           "name": "currency",

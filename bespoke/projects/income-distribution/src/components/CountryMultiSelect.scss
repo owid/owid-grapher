@@ -1,5 +1,38 @@
-// The trigger reuses Grapher's dropdown classes (.grapher-dropdown .control);
-// the popover's contents are styled inline, see CountryMultiSelect.tsx
-.income-distribution-country-multi-select {
-    min-width: 200px;
+// Mirrors Grapher's entity selection toggle (button.menu-toggle in
+// grapher/src/controls/Controls.scss); the popover's contents are styled
+// inline, see CountryMultiSelect.tsx
+.income-distribution-edit-countries {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 32px;
+    padding: 7px;
+    border: 1px solid $gray-20;
+    border-radius: 4px;
+    background: $white;
+    color: $dark-text;
+    font: 400 13px/16px $sans-serif-font-stack;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-10;
+    }
+
+    &[data-focus-visible] {
+        outline: 2px solid $blue-30;
+        outline-offset: 1px;
+    }
+
+    svg {
+        height: 12px;
+    }
+}
+
+.income-distribution-edit-countries--active,
+.income-distribution-edit-countries--active:hover {
+    border-color: $blue-20;
+    background: $blue-20;
+    color: $active-text;
 }

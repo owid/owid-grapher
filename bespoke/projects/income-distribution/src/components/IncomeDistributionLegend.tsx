@@ -1,6 +1,8 @@
 import { useMemo } from "react"
 import cx from "clsx"
 import * as R from "remeda"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faXmark } from "@fortawesome/free-solid-svg-icons"
 
 import {
     formatIncome,
@@ -9,6 +11,11 @@ import {
 } from "../core/currency.js"
 import { WORLD_ENTITY_NAME } from "../core/constants.js"
 import type { Currency, TimeInterval } from "../core/types.js"
+
+/** Length in px of a 100% bar in the overlay legend */
+const OVERLAY_BAR_MAX_WIDTH = 100
+/** The shortest bar, so a share near zero still shows its colour */
+const OVERLAY_BAR_MIN_WIDTH = 2
 
 export interface LegendEntry {
     key: string
@@ -31,6 +38,13 @@ export interface IncomeDistributionLegendProps {
     timeInterval: TimeInterval
     onClearPovertyLine?: () => void
     isNarrow: boolean
+    /**
+     * "inline" sits above the plot and turns into a list of share bars when
+     * a poverty line is set. "overlay" floats over the plot's top-right
+     * corner, where each colour square grows into a bar of the share below
+     * the line, and an × replaces the "Clear" link
+     */
+    layout?: "inline" | "overlay"
 }
 
 export function IncomeDistributionLegend({
@@ -43,19 +57,21 @@ export function IncomeDistributionLegend({
     timeInterval,
     onClearPovertyLine,
     isNarrow,
+    layout = "inline",
 }: IncomeDistributionLegendProps): React.ReactElement {
     const shares = povertyLine !== null ? sharesBelowLine : undefined
 
-    const sortedEntries = useMemo(
-        () =>
-            shares
-                ? R.sortBy(entries, [
-                      (entry) => shares.get(entry.key) ?? -1,
-                      "desc",
-                  ])
-                : entries,
-        [entries, shares]
-    )
+    // Rows render in the stable `entries` order and are ranked with CSS
+    // `order`: re-sorting the DOM would move nodes, which cancels a bar's
+    // running width transition and makes it snap
+    const rankOf = useMemo(() => {
+        if (!shares) return undefined
+        const ranked = R.sortBy(entries, [
+            (entry) => shares.get(entry.key) ?? -1,
+            "desc",
+        ])
+        return new Map(ranked.map((entry, rank) => [entry.key, rank]))
+    }, [entries, shares])
 
     // Only dim when the hovered entity is one of ours; a hovered country in
     // the region legend leaves the legend as it is
@@ -85,6 +101,92 @@ export function IncomeDistributionLegend({
                 hasHoveredEntry && entry.key !== hoveredEntity,
         })
 
+    const shareHeading =
+        povertyLine !== null ? (
+            <>
+                Share of population living on less than{" "}
+                {formatIncome(povertyLine, currency, timeInterval, {
+                    short: true,
+                })}{" "}
+                a {timeIntervalNoun(timeInterval)}:
+            </>
+        ) : null
+
+    if (layout === "overlay") {
+        const showShares = shares !== undefined && povertyLine !== null
+        return (
+            <div
+                className={cx(
+                    "income-distribution-legend",
+                    "income-distribution-legend--overlay",
+                    { "income-distribution-legend--overlay-shares": showShares }
+                )}
+            >
+                {showShares && (
+                    <div className="income-distribution-legend__header">
+                        {shareHeading}
+                    </div>
+                )}
+                {showShares && onClearPovertyLine && (
+                    <button
+                        type="button"
+                        className="income-distribution-legend__close"
+                        onClick={onClearPovertyLine}
+                        aria-label="Remove poverty line"
+                        data-hint="Remove poverty line"
+                    >
+                        <FontAwesomeIcon icon={faXmark} aria-hidden />
+                    </button>
+                )}
+                <ul className="income-distribution-legend__rows">
+                    {entries.map((entry) => {
+                        const share = showShares
+                            ? shares.get(entry.key)
+                            : undefined
+                        return (
+                            <li
+                                key={entry.key}
+                                className={entryClassName(entry)}
+                                style={{ order: rankOf?.get(entry.key) }}
+                                {...pointerHandlers(entry.key)}
+                            >
+                                <span className="income-distribution-legend__mark">
+                                    {showShares && (
+                                        <span className="income-distribution-legend__value">
+                                            {share !== undefined
+                                                ? formatShare(share)
+                                                : "–"}
+                                        </span>
+                                    )}
+                                    {/* The swatch is the bar: it grows from a square to the share's length */}
+                                    <span
+                                        className="income-distribution-legend__swatch"
+                                        style={{
+                                            backgroundColor: entry.color,
+                                            width: showShares
+                                                ? R.clamp(
+                                                      (share ?? 0) *
+                                                          OVERLAY_BAR_MAX_WIDTH,
+                                                      {
+                                                          min: OVERLAY_BAR_MIN_WIDTH,
+                                                          max: OVERLAY_BAR_MAX_WIDTH,
+                                                      }
+                                                  )
+                                                : undefined,
+                                        }}
+                                    />
+                                </span>
+                                <span className="income-distribution-legend__label">
+                                    {entry.label ?? entry.key}
+                                </span>
+                            </li>
+                        )
+                    })}
+                </ul>
+            </div>
+        )
+    }
+
     if (shares === undefined || povertyLine === null) {
         return (
             <ul
@@ -94,7 +196,7 @@ export function IncomeDistributionLegend({
                     { "income-distribution-legend--narrow": isNarrow }
                 )}
             >
-                {sortedEntries.map((entry) => (
+                {entries.map((entry) => (
                     <li
                         key={entry.key}
                         className={entryClassName(entry)}
@@ -122,13 +224,7 @@ export function IncomeDistributionLegend({
             )}
         >
             <div className="income-distribution-legend__header">
-                <span>
-                    Share of population living on less than{" "}
-                    {formatIncome(povertyLine, currency, timeInterval, {
-                        short: true,
-                    })}{" "}
-                    a {timeIntervalNoun(timeInterval)}:
-                </span>
+                <span>{shareHeading}</span>
                 {onClearPovertyLine && (
                     <button
                         type="button"
@@ -140,12 +236,13 @@ export function IncomeDistributionLegend({
                 )}
             </div>
             <ul className="income-distribution-legend__bars">
-                {sortedEntries.map((entry) => {
+                {entries.map((entry) => {
                     const share = shares.get(entry.key)
                     return (
                         <li
                             key={entry.key}
                             className={entryClassName(entry)}
+                            style={{ order: rankOf?.get(entry.key) }}
                             {...pointerHandlers(entry.key)}
                         >
                             <span className="income-distribution-legend__label">

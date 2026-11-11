@@ -37,7 +37,7 @@ export interface IncomeDistributionTooltipProps {
     color?: string
     /**
      * Show only the click hint, with no entity or share. Used in the
-     * selected-countries view over empty space, where a World figure
+     * compare-countries view over empty space, where a World figure
      * wouldn't match anything drawn.
      */
     hintOnly?: boolean

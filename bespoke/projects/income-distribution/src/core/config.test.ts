@@ -24,7 +24,7 @@ describe("the authored config", () => {
                 countries: "China, United States,userLocation",
                 year: "2020",
                 povertyLine: "6.85",
-                timeInterval: "monthly",
+                timeInterval: "yearly",
                 currency: " DEU ",
             })
         ).toEqual({
@@ -35,7 +35,7 @@ describe("the authored config", () => {
             countries: ["China", "United States", "userLocation"],
             year: 2020,
             povertyLine: 6.85,
-            timeInterval: "monthly",
+            timeInterval: "yearly",
             currency: "DEU",
         })
     })
@@ -49,7 +49,7 @@ describe("the authored config", () => {
             countries: undefined,
             year: 2025,
             povertyLine: undefined,
-            timeInterval: "daily",
+            timeInterval: "monthly",
             currency: undefined,
         })
     })

@@ -64,13 +64,14 @@ import {
     View,
 } from "../core/types.js"
 import { IncomeDistributionControls } from "../components/IncomeDistributionControls.js"
+import { CountryMultiSelect } from "../components/CountryMultiSelect.js"
 import { IncomeDistributionChart } from "../components/IncomeDistributionChart.js"
 import {
     IncomeDistributionLegend,
     LegendEntry,
 } from "../components/IncomeDistributionLegend.js"
 
-/** More selected countries than this and the title names only the first few */
+/** More selected countries than this and the title stops naming them */
 const MAX_COUNTRIES_IN_TITLE = 4
 
 /** Stands in for the currency list when it failed to load; stable for memo deps */
@@ -323,9 +324,17 @@ function CaptionedDistributionVariant({
     const hasNoCountries = view === "countries" && model.series.length === 0
     const onClearPovertyLine = shouldHideControls ? undefined : clearPovertyLine
 
-    const title = config.title ?? chartTitle(view, selectedCountries, year)
+    const showEditCountries = view === "countries" && !shouldHideControls
+    // On wide charts the legend floats over the plot's top-right corner and
+    // turns into the share bars when a poverty line is set, so setting a line
+    // never pushes the plot down; narrow charts keep it above the plot, where
+    // it doesn't cover the mountains
+    const showOverlayLegend = !isNarrow && !hasNoCountries
+    const showInlineLegend = isNarrow && !hasNoCountries
+
+    const title = config.title ?? chartTitle(view, selectedCountries)
     const subtitle =
-        config.subtitle ?? chartSubtitle(view, currency, timeInterval)
+        config.subtitle ?? chartSubtitle(year, currency, timeInterval)
 
     return (
         <div
@@ -338,9 +347,6 @@ function CaptionedDistributionVariant({
                 <IncomeDistributionControls
                     view={view}
                     setView={setView}
-                    selectedCountries={selectedCountries}
-                    setSelectedCountries={setSelectedCountries}
-                    availableCountries={availableCountries}
                     timeInterval={timeInterval}
                     setTimeInterval={setTimeInterval}
                     currency={currency}
@@ -355,26 +361,54 @@ function CaptionedDistributionVariant({
             <BespokeMetadataProvider metadata={metadata.bespokeMetadata}>
                 <Frame className="income-distribution-captioned-chart">
                     <ChartHeader title={title} subtitle={subtitle} />
-                    {!hasNoCountries && (
-                        <IncomeDistributionLegend
-                            entries={legendEntries}
-                            hoveredEntity={hoveredEntity}
-                            onHoverEntity={setHoveredEntity}
-                            sharesBelowLine={sharesBelowLine}
-                            povertyLine={povertyLine}
-                            currency={currency}
-                            timeInterval={timeInterval}
-                            onClearPovertyLine={onClearPovertyLine}
-                            isNarrow={isNarrow}
-                        />
+                    {(showInlineLegend || showEditCountries) && (
+                        <div className="income-distribution-captioned-chart__toolbar">
+                            {showInlineLegend && (
+                                <IncomeDistributionLegend
+                                    entries={legendEntries}
+                                    hoveredEntity={hoveredEntity}
+                                    onHoverEntity={setHoveredEntity}
+                                    sharesBelowLine={sharesBelowLine}
+                                    povertyLine={povertyLine}
+                                    currency={currency}
+                                    timeInterval={timeInterval}
+                                    onClearPovertyLine={onClearPovertyLine}
+                                    isNarrow={isNarrow}
+                                />
+                            )}
+                            {showEditCountries && (
+                                <div className="income-distribution-captioned-chart__edit-countries">
+                                    <CountryMultiSelect
+                                        availableCountries={availableCountries}
+                                        selectedCountries={selectedCountries}
+                                        onChange={setSelectedCountries}
+                                        isNarrow={isNarrow}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     )}
                     <div className="income-distribution-captioned-chart__chart-area">
                         {isLoading && <Spinner />}
+                        {showOverlayLegend && (
+                            <IncomeDistributionLegend
+                                layout="overlay"
+                                entries={legendEntries}
+                                hoveredEntity={hoveredEntity}
+                                onHoverEntity={setHoveredEntity}
+                                sharesBelowLine={sharesBelowLine}
+                                povertyLine={povertyLine}
+                                currency={currency}
+                                timeInterval={timeInterval}
+                                onClearPovertyLine={onClearPovertyLine}
+                                isNarrow={false}
+                            />
+                        )}
                         {hasNoCountries ? (
                             <div className="income-distribution__no-data">
                                 {shouldHideControls
                                     ? "No data for the selected countries."
-                                    : "Select a country to see its income distribution."}
+                                    : "Use “Edit countries” to pick a country and see its income distribution."}
                             </div>
                         ) : (
                             <IncomeDistributionChart
@@ -405,31 +439,26 @@ function CaptionedDistributionVariant({
     )
 }
 
-function chartTitle(
-    view: View,
-    selectedCountries: string[],
-    year: number
-): string {
+function chartTitle(view: View, selectedCountries: string[]): string {
     if (view === "global")
-        return `How is income distributed across the world's population in ${year}?`
+        return "How is income distributed across the world's population?"
     if (selectedCountries.length === 0)
-        return `How is income distributed in the selected countries in ${year}?`
-    return `How is income distributed in ${formatCountryList(selectedCountries)} in ${year}?`
+        return "How is income distributed in the selected countries?"
+    // Naming three of seven countries would read as an arbitrary pick
+    if (selectedCountries.length > MAX_COUNTRIES_IN_TITLE)
+        return "How is income distributed across different countries?"
+    return `How is income distributed in ${formatCountryList(selectedCountries)}?`
 }
 
-/** "A", "A and B", "A, B and C"; past the limit, "A, B, C and 4 other countries" */
+/** "A", "A and B", "A, B and C" */
 function formatCountryList(countries: string[]): string {
     const names = countries.map((name) => formatEntityNameForSentence(name))
-    if (names.length > MAX_COUNTRIES_IN_TITLE) {
-        const rest = names.length - 3
-        return `${names.slice(0, 3).join(", ")} and ${rest} other ${rest === 1 ? "country" : "countries"}`
-    }
     if (names.length <= 1) return names.join("")
     return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
 }
 
 function chartSubtitle(
-    view: View,
+    year: number,
     currency: Currency,
     timeInterval: TimeInterval
 ): string {
@@ -437,12 +466,7 @@ function chartSubtitle(
         currency.code === INTERNATIONAL_DOLLAR.code
             ? "international-$"
             : `${currency.name} (${currency.countryName})`
-    const measured = `Incomes are measured in ${currencyLabel} per ${timeIntervalNoun(timeInterval)}, adjusted for inflation and for differences in the cost of living between countries.`
-    const explanation =
-        view === "global"
-            ? "The population of every region is stacked along the income axis, so the height of the mountain is the number of people in the world living at each income level."
-            : "Each curve shows how a country's population is spread across income levels; every curve covers the same area, whatever the country's population."
-    return `${measured} ${explanation}`
+    return `Data for ${year}. Incomes are measured in ${currencyLabel} per ${timeIntervalNoun(timeInterval)}, adjusted for inflation and for differences in the cost of living between countries.`
 }
 
 function chartNote(currency: Currency, year: number): string {

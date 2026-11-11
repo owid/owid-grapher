@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react"
+import cx from "clsx"
 import * as R from "remeda"
 import {
     Autocomplete,
@@ -12,7 +13,11 @@ import {
     Selection,
     useFilter,
 } from "react-aria-components"
-import { faCheck, faTimesCircle } from "@fortawesome/free-solid-svg-icons"
+import {
+    faCheck,
+    faPen,
+    faTimesCircle,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 import {
@@ -61,29 +66,27 @@ export function CountryMultiSelect({
 
     return (
         <DialogTrigger isOpen={isOpen} onOpenChange={handleOpenChange}>
-            <div className="grapher-dropdown income-distribution-country-multi-select">
-                <Button
-                    className="control income-distribution-country-multi-select__trigger"
-                    // The visible label abbreviates long selections
-                    aria-label={
-                        selectedCountries.length > 0
-                            ? `Selected countries: ${selectedCountries.join(", ")}`
-                            : "Select countries"
-                    }
-                >
-                    <span
-                        className="select-value"
-                        data-placeholder={
-                            selectedCountries.length === 0 ? true : undefined
-                        }
-                    >
-                        {triggerLabel(selectedCountries)}
-                    </span>
-                </Button>
-            </div>
+            {/* Mirrors Grapher's "Edit countries and regions" toggle
+                (button.menu-toggle in EntitySelectionToggle) */}
+            <Button
+                className={({ isPressed }) =>
+                    cx("income-distribution-edit-countries", {
+                        "income-distribution-edit-countries--active":
+                            isOpen || isPressed,
+                    })
+                }
+                aria-label={
+                    selectedCountries.length > 0
+                        ? `Edit countries. Selected: ${selectedCountries.join(", ")}`
+                        : "Edit countries"
+                }
+            >
+                <FontAwesomeIcon icon={faPen} aria-hidden />
+                Edit countries
+            </Button>
             <Popover
                 className="grapher-dropdown-menu"
-                placement="bottom start"
+                placement="bottom end"
                 style={{ minWidth: 240 }}
             >
                 <CountryListBox
@@ -261,10 +264,4 @@ function CheckboxIndicator({
             {isSelected && <FontAwesomeIcon icon={faCheck} />}
         </span>
     )
-}
-
-function triggerLabel(selectedCountries: string[]): string {
-    if (selectedCountries.length === 0) return "Select countries…"
-    if (selectedCountries.length <= 2) return selectedCountries.join(", ")
-    return `${selectedCountries.length} countries selected`
 }

@@ -1,4 +1,4 @@
-Income mountains: how the world's population is spread across income levels, from the World Bank's Poverty and Inequality Platform. The global view stacks every country by World Bank region, so the height of the mountain is the number of people living at each income. The selected-countries view draws chosen countries side by side, each normalised to the same area. Users can add a poverty line, the World Bank's international one or their own, from the controls or by clicking the chart, drag it to see the share of people below it, and switch to their local currency and to incomes per month or year.
+Income mountains: how the world's population is spread across income levels, from the World Bank's Poverty and Inequality Platform. The global view stacks every country by World Bank region, so the height of the mountain is the number of people living at each income. The compare-countries view draws chosen countries side by side, each normalised to the same area; readers pick them with the "Edit countries" button above the plot. Users can add a poverty line, the World Bank's international one or their own, from the controls or by clicking the chart, drag it to see the share of people below it, and switch to their local currency and to incomes per day or year. Incomes are shown per month unless `timeInterval` says otherwise.
 
 The global view, as it starts by default:
 
@@ -23,7 +23,7 @@ povertyLine: 8.3
 {}
 ```
 
-Monthly incomes in the user's own currency:
+Daily incomes in the user's own currency:
 
 ```archie
 {.bespoke-component}
@@ -31,7 +31,7 @@ bundle: income-distribution
 variant: distribution
 {.config}
 currency: userLocation
-timeInterval: monthly
+timeInterval: daily
 {}
 {}
 ```

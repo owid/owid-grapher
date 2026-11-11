@@ -82,3 +82,9 @@
     white-space: nowrap;
     pointer-events: none;
 }
+
+// The tooltip is absolutely positioned without a z-index of its own, which
+// would leave it under the overlay legend (z-index 2) when the two meet
+.income-distribution-chart .tooltip-container > .Tooltip {
+    z-index: 3;
+}

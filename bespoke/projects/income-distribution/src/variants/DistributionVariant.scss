@@ -29,3 +29,31 @@
     text-align: center;
     color: $light-text;
 }
+
+// Under the header: the "Edit countries" button on the right and, on narrow
+// charts, the legend on the left
+.income-distribution-captioned-chart__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    min-height: 32px;
+    margin-bottom: 8px;
+}
+
+// The colour swatches share the row with the button; the share bars get a
+// row of their own, with the button wrapping below them
+.income-distribution-captioned-chart__toolbar
+    > .income-distribution-legend--swatches {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.income-distribution-captioned-chart__toolbar
+    > .income-distribution-legend--shares {
+    flex: 1 1 100%;
+}
+
+.income-distribution-captioned-chart__edit-countries {
+    margin-left: auto;
+}
