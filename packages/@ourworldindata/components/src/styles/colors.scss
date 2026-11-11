@@ -568,8 +568,14 @@ $sdgColors: (
 :root[data-theme="dark"][data-chart-theme="light"] {
     .GrapherComponent,
     .Explorer,
-    // Chart dropdown menus are popovers rendered at the end of <body>
+    // Chart popovers and tooltips are rendered at the end of <body>, outside
+    // the chart, so they're listed separately
     .grapher-dropdown-menu,
+    .GrapherSettingsPopover,
+    .ContentSwitchers__OverflowMenu,
+    .react-aria-tooltip,
+    .tippy-box[data-theme="grapher-explanation"],
+    .tippy-box[data-theme="grapher-explanation--short"],
     .theme-light-island {
         @include light-theme-tokens;
     }

@@ -63,14 +63,8 @@ body {
     color-scheme: dark;
 }
 
-/* Proposal A: charts are light islands. Give them a little breathing room so
-   the white rectangle reads as a deliberate card, not a rendering bug. */
+/* Proposal A: charts are light islands, with square corners like images */
 :root[data-theme="dark"][data-chart-theme="light"] {
-    .GrapherComponent {
-        border-radius: 8px;
-        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
-    }
-
     /* Explorers (controls, country list and chart) are one light card, like
        a standalone Grapher */
     .Explorer {
@@ -311,7 +305,9 @@ $dark-popover: dark-token("surface-raised");
     /* Dark A: the explorer is a light card, so its text uses the light text
        color instead of inheriting the dark page's light text */
     &[data-chart-theme="light"] .Explorer,
-    &[data-chart-theme="light"] .grapher-dropdown-menu {
+    &[data-chart-theme="light"] .grapher-dropdown-menu,
+    &[data-chart-theme="light"] .GrapherSettingsPopover,
+    &[data-chart-theme="light"] .ContentSwitchers__OverflowMenu {
         color: $text-color;
     }
 
