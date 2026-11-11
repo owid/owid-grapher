@@ -20,7 +20,7 @@ export type GrapherEditorProps = Pick<
 }
 
 export function GrapherEditor(props: GrapherEditorProps): React.ReactElement {
-    return React.createElement(AdminGrapherEditor, props)
+    return <AdminGrapherEditor {...props} />
 }
 
 export type { EditorTabName } from "../../../../adminSiteClient/ConfigEditor.js"
@@ -59,6 +59,6 @@ export function mountGrapherEditor(
     props: GrapherEditorProps
 ): GrapherEditorHandle {
     const root = createRoot(container)
-    root.render(React.createElement(GrapherEditor, props))
+    root.render(<GrapherEditor {...props} />)
     return { unmount: (): void => root.unmount() }
 }

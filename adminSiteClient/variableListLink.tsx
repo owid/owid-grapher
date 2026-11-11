@@ -1,4 +1,5 @@
 import * as React from "react"
+import { createContext } from "react"
 
 export interface VariableListLinkProps {
     /** The admin page's path, under /admin */
@@ -12,6 +13,6 @@ export interface VariableListLinkProps {
  * `Link`; importing that into the list would bundle the admin's router into
  * the chart editor package, whose picker shows none of these links.
  */
-export const VariableListLinkContext = React.createContext<
+export const VariableListLinkContext = createContext<
     (props: VariableListLinkProps) => React.ReactElement
->(({ to, ...rest }) => React.createElement("a", { href: to, ...rest }))
+>(({ to, ...rest }) => <a href={to} {...rest} />)

@@ -141,7 +141,7 @@ The CSV and table stores offer every data column under "Add indicators", searche
 
 ### Where the code is
 
-The editor's sources live in [`adminSiteClient/`](../../../adminSiteClient/) at the repo root, because OWID's admin is the package's first consumer and runs the same code. [`src/editor.public.ts`](./src/editor.public.ts) re-exports the public API from there, and the build bundles it. That makes the editor's files in `adminSiteClient/` a published API: they must not import the admin app, its settings or its router. The admin's own wiring lives next to them (`AdminGrapherEditor.tsx`, `adminEditorProviders.ts`), and the package tests fail if any of it reaches the bundle.
+The editor's sources live in [`adminSiteClient/`](../../../adminSiteClient/) at the repo root, because OWID's admin is the package's first consumer and runs the same code. [`src/editor.public.tsx`](./src/editor.public.tsx) re-exports the public API from there, and the build bundles it. That makes the editor's files in `adminSiteClient/` a published API: they must not import the admin app, its settings or its router. The admin's own wiring lives next to them (`AdminGrapherEditor.tsx`, `adminEditorProviders.ts`), and the package tests fail if any of it reaches the bundle.
 
 ### Build outputs
 

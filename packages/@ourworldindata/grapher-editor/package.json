@@ -8,8 +8,8 @@
         "directory": "packages/@ourworldindata/grapher-editor"
     },
     "type": "module",
-    "main": "src/editor.public.ts",
-    "types": "src/editor.public.ts",
+    "main": "src/editor.public.tsx",
+    "types": "src/editor.public.tsx",
     "publishConfig": {
         "registry": "https://packages.owid.io",
         "main": "dist/editor.standalone.min.js",
