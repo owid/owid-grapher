@@ -21,6 +21,11 @@ describe(parsePinnedSearches, () => {
         ["Population, population., POPULATION", ["population"]],
         ["food, trade, food", ["food", "trade"]],
         ["", []],
+        [
+            ["Population", "Life-Expectancy", "population"],
+            ["population", "life expectancy"],
+        ],
+        [["food", { type: "text" }, "  "], ["food"]],
     ])("parses %j to %j", (value, expected) => {
         expect(parsePinnedSearches(value)).toEqual(expected)
     })

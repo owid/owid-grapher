@@ -117,10 +117,13 @@ export class GdocFeaturedViz
             )
         }
 
-        if (typeof content["pinned-for-searches"] === "string") {
-            content["pinned-for-searches"] = parsePinnedSearches(
-                content["pinned-for-searches"]
-            )
+        const pinnedForSearches = content["pinned-for-searches"]
+        if (
+            typeof pinnedForSearches === "string" ||
+            Array.isArray(pinnedForSearches)
+        ) {
+            content["pinned-for-searches"] =
+                parsePinnedSearches(pinnedForSearches)
         }
     }
 

@@ -18,8 +18,14 @@ export function normalizePinnedSearch(search: string): string {
         .trim()
 }
 
-/** Parses an authored comma-separated list of pinned searches. */
-export function parsePinnedSearches(value: string): string[] {
-    const searches = value.split(",").map(normalizePinnedSearch)
+/**
+ * Parses authored pinned searches: a comma-separated line, or an ArchieML
+ * list (`[pinned-for-searches]` with `* item` lines). Both end up normalized.
+ */
+export function parsePinnedSearches(value: string | unknown[]): string[] {
+    const items = typeof value === "string" ? value.split(",") : value
+    const searches = items
+        .filter((item): item is string => typeof item === "string")
+        .map(normalizePinnedSearch)
     return [...new Set(searches.filter((search) => search !== ""))]
 }
