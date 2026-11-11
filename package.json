@@ -131,7 +131,7 @@
         "google-auth-library": "^11.0.2",
         "handsontable": "^18.1.2",
         "ini": "^7.0.0",
-        "jose": "^6.2.1",
+        "jose": "^6.2.15",
         "json8-pointer": "^1.0.6",
         "knex": "^3.3.0",
         "lodash-es": "^4.18.1",

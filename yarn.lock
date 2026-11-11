@@ -8637,7 +8637,7 @@ __metadata:
     http-server: "npm:^14.1.1"
     husky: "npm:^9.0.11"
     ini: "npm:^7.0.0"
-    jose: "npm:^6.2.1"
+    jose: "npm:^6.2.15"
     json8-pointer: "npm:^1.0.6"
     knex: "npm:^3.3.0"
     lint-staged: "npm:^17.0.5"
@@ -9306,10 +9306,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:^6.2.1":
-  version: 6.2.1
-  resolution: "jose@npm:6.2.1"
-  checksum: 10/12f06a76ac743eb48314e662e02b141f6e4644dbcbdb1cd083c3867b1f72f1e148a67ebf4978d0d5adeb62f4be1572feee76f1849cbc32f8af1457ec9f788299
+"jose@npm:^6.2.15":
+  version: 6.2.15
+  resolution: "jose@npm:6.2.15"
+  checksum: 10/57ea834a3aae6612b603dc04e5e068dabf1582934ffc759f004a0c654632bec06e6184aee73246157d03fb56179d50ac4e5c56ad02cf939086ef888ae8d8ebec
   languageName: node
   linkType: hard
 
