@@ -26,7 +26,9 @@ import {
     plural,
     TableCount,
 } from "./variableSearchQuery.js"
+import urljoin from "url-join"
 import {
+    ADMIN_BASE_URL,
     BAKED_BASE_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
@@ -305,7 +307,18 @@ class MultiDimList extends Component<MultiDimListProps> {
                                             className="chartPreview"
                                         />
                                     </a>
-                                ) : null}
+                                ) : (
+                                    <a
+                                        href={urljoin(
+                                            ADMIN_BASE_URL,
+                                            `/admin/grapher/${encodeURIComponent(mdim.catalogPath)}`
+                                        )}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Preview draft
+                                    </a>
+                                )}
                             </td>
                             <td>
                                 {mdim.slug ? (
