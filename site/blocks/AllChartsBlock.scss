@@ -153,12 +153,12 @@ $all-charts-block-sticky-nav-clearance: 64px;
         background: $gray-10;
     }
 
-    .all-charts-block__error .search-no-results h2 {
+    .all-charts-block__panel .search-no-results h2 {
         @include body-2-regular;
     }
 }
 
-.all-charts-block__error {
+.all-charts-block__panel {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -166,16 +166,91 @@ $all-charts-block-sticky-nav-clearance: 64px;
     background: $gray-5;
 }
 
-.all-charts-block__error .search-no-results {
+.all-charts-block__panel .search-no-results {
     display: block;
     margin-top: 0;
 }
 
-.all-charts-block__error p {
+.all-charts-block__panel p {
     margin: 0;
 }
 
 .all-charts-block__search-button {
     display: inline-block;
     margin-top: 16px;
+}
+
+.all-charts-block__search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    margin-bottom: 16px;
+    padding: 0 12px;
+    background: white;
+    border: 1px solid $gray-10;
+    transition: box-shadow var(--duration-hover) ease;
+}
+
+.all-charts-block__search:focus-within {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.all-charts-block__search-icon {
+    color: $blue-50;
+}
+
+.all-charts-block__search-input {
+    @include body-3-regular;
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: $blue-90;
+
+    &:focus {
+        outline: none;
+    }
+
+    &::placeholder {
+        color: $blue-50;
+        text-overflow: ellipsis;
+    }
+
+    @include sm-only {
+        // Prevents auto-zoom on Safari
+        font-size: 16px;
+    }
+}
+
+.all-charts-block__search-clear {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $blue-60;
+    cursor: pointer;
+
+    &:hover {
+        color: $blue-90;
+    }
+}
+
+.all-charts-block__skeleton-search {
+    height: 44px;
+    margin-bottom: 16px;
+    background: $gray-10;
+}
+
+@include md-down {
+    .all-charts-block__search {
+        position: sticky;
+        top: 56px;
+        z-index: 1;
+    }
+}
+
+@include sm-only {
+    .all-charts-block__search {
+        top: 48px;
+    }
 }
