@@ -347,11 +347,7 @@ export class FacetChart
         // Hide the legends in all facets
         const showLegend = !this.hideFacetLegends
 
-        // Show start and end value labels for line chart thumbnails
-        const labelMode =
-            this.variant === GrapherVariant.Thumbnail
-                ? ChartLabelMode.Values
-                : ChartLabelMode.All
+        const labelMode = toFacetLabelMode(this.manager.labelMode, this.variant)
         // Hide the start value label only when facets are auto-switched to
         // thumbnail mode because they are small (not when the whole chart
         // is explicitly rendered as a thumbnail).
@@ -625,7 +621,10 @@ export class FacetChart
                 })
             }
             // Reserve space for the facet label at the top of the cell
-            bounds = bounds.padTop(this.facetLabelFontSize + this.labelPadding)
+            if (this.shouldShowFacetTitles)
+                bounds = bounds.padTop(
+                    this.facetLabelFontSize + this.labelPadding
+                )
             // NOTE: The order of overrides is important!
             // We need to preserve most config coming in.
             const manager = {
@@ -736,6 +735,10 @@ export class FacetChart
         return this.externalLegends.some((legend) =>
             legend.numericLegendData?.some((bin) => bin instanceof NumericBin)
         )
+    }
+
+    @computed private get shouldShowFacetTitles(): boolean {
+        return getVisibleLabels(this.manager.labelMode).rowLabelNames
     }
 
     @computed private get showLegend(): boolean {
@@ -1039,15 +1042,17 @@ export class FacetChart
 
                     return (
                         <React.Fragment key={index}>
-                            <SeriesLabel
-                                state={seriesLabelState}
-                                x={contentBounds.x + contentLeftOffset}
-                                y={
-                                    contentBounds.top -
-                                    seriesLabelState.height -
-                                    labelPadding
-                                }
-                            />
+                            {this.shouldShowFacetTitles && (
+                                <SeriesLabel
+                                    state={seriesLabelState}
+                                    x={contentBounds.x + contentLeftOffset}
+                                    y={
+                                        contentBounds.top -
+                                        seriesLabelState.height -
+                                        labelPadding
+                                    }
+                                />
+                            )}
                             <g id={makeFigmaId(seriesName)}>
                                 <ChartComponent
                                     manager={facetChart.manager}
@@ -1062,4 +1067,18 @@ export class FacetChart
             </React.Fragment>
         )
     }
+}
+
+function toFacetLabelMode(
+    parentLabelMode: ChartLabelMode = ChartLabelMode.All,
+    facetVariant: GrapherVariant
+): ChartLabelMode {
+    if (
+        parentLabelMode === ChartLabelMode.Names ||
+        parentLabelMode === ChartLabelMode.None
+    )
+        return ChartLabelMode.None
+    return facetVariant === GrapherVariant.Thumbnail
+        ? ChartLabelMode.Values
+        : ChartLabelMode.All
 }
