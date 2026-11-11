@@ -1,0 +1,24 @@
+.VariableSelector__body {
+    display: flex;
+    gap: 16px;
+}
+
+.VariableSelector__main {
+    flex: 1;
+    min-width: 0;
+}
+
+.VariableSelector__results {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.VariableSelector__selected {
+    flex: 0 0 26%;
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+.VariableSelector__selected-item {
+    margin-top: 6px;
+}

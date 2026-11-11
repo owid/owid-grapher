@@ -1,13 +1,13 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import {
     ColumnTypeNames,
     DimensionProperty,
     OwidTableSlugs,
 } from "@ourworldindata/types"
-import { csvIndicatorStore } from "./indicatorStores.js"
+import { csvIndicatorStore, dataApiIndicatorStore } from "./indicatorStores.js"
 
 const csv = `entityName,year,rent_index,vacancy_rate,region
 Berlin,2015,100,3.1,DE
@@ -33,13 +33,27 @@ function makeStore() {
 
 describe(csvIndicatorStore, () => {
     it("offers every data column as a pickable indicator, categorical ones included", async () => {
-        const catalog = await makeStore().catalog!.load()
-        expect(catalog.namespaces.map((n) => n.name)).toEqual(["housing.csv"])
-        expect(catalog.datasets[0].variables).toEqual([
-            { id: 1, slug: "rent_index", name: "Rent index" },
-            { id: 2, slug: "vacancy_rate", name: "vacancy_rate" },
-            { id: 3, slug: "region", name: "region" },
+        const page = await makeStore().catalog!.search("", 1)
+        expect(page.datasets.map((dataset) => dataset.name)).toEqual([
+            "housing.csv",
         ])
+        expect(page.datasets[0].variables).toEqual([
+            { id: 1, name: "Rent index", column: { slug: "rent_index" } },
+            { id: 2, name: "vacancy_rate", column: { slug: "vacancy_rate" } },
+            { id: 3, name: "region", column: { slug: "region" } },
+        ])
+    })
+
+    it("searches the columns by name and by slug", async () => {
+        const catalog = makeStore().catalog!
+        const names = async (query: string): Promise<string[]> =>
+            (await catalog.search(query, 1)).datasets.flatMap((dataset) =>
+                dataset.variables.map((variable) => variable.name)
+            )
+        expect(await names("rent")).toEqual(["Rent index"])
+        expect(await names("vacancy_r")).toEqual(["vacancy_rate"])
+        expect(await names("-rent")).toEqual(["vacancy_rate", "region"])
+        expect(await names("nothing")).toEqual([])
     })
 
     it("serves the columns the dimensions name, under the host's own slugs", async () => {
@@ -92,5 +106,58 @@ describe(csvIndicatorStore, () => {
         expect(table!.numericColumnSlugs).toEqual([])
         expect(table!.has("region")).toBe(false)
         expect(table!.availableEntityNames).toEqual(["Berlin", "Vienna"])
+    })
+})
+
+describe("dataApiIndicatorStore with datasets", () => {
+    const datasets = () =>
+        Promise.resolve(
+            Array.from({ length: 10 }, (_, i) => ({
+                id: i + 1,
+                name: `Dataset ${i + 1}`,
+                namespace: "who",
+                variables: [
+                    { id: 100 + i, name: `Deaths ${i + 1}` },
+                    { id: 200 + i, name: `Births ${i + 1}` },
+                ],
+            }))
+        )
+    const catalogOf = (load: typeof datasets) =>
+        dataApiIndicatorStore({ dataApiUrl: "", datasets: load }).catalog!
+
+    it("offers the datasets' indicators, picked by id", async () => {
+        const page = await catalogOf(datasets).search("births 3", 1)
+        expect(page).toMatchObject({ unit: "datasets", total: 1 })
+        expect(page.datasets[0]).toMatchObject({
+            id: 3,
+            namespace: "who",
+            matchCount: 1,
+            variables: [
+                {
+                    id: 202,
+                    datasetName: "Dataset 3",
+                    column: { variableId: 202 },
+                },
+            ],
+        })
+    })
+
+    it("pages through the datasets with a match", async () => {
+        const catalog = catalogOf(datasets)
+        const first = await catalog.search("deaths", 1)
+        const second = await catalog.search("deaths", 2)
+        expect(first.total).toBe(10)
+        expect([...first.datasets, ...second.datasets]).toHaveLength(10)
+        expect(second.datasets[0].id).toBe(first.pageSize + 1)
+    })
+
+    it("loads the datasets once, and again after a failed load", async () => {
+        const load = vi.fn(datasets).mockRejectedValueOnce(new Error("offline"))
+        const catalog = catalogOf(load)
+        expect(load).not.toHaveBeenCalled()
+        await expect(catalog.search("", 1)).rejects.toThrow("offline")
+        await catalog.search("", 1)
+        await catalog.search("deaths", 1)
+        expect(load).toHaveBeenCalledTimes(2)
     })
 })

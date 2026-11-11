@@ -13,7 +13,6 @@ describe("DimensionSlotView#updateDefaultSelection", () => {
         const view = new DimensionSlotView({
             slot: {} as any,
             editor: { grapherState } as any,
-            database: {} as any,
             errorMessagesForDimensions: {} as any,
         })
 

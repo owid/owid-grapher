@@ -11,8 +11,16 @@ import {
     applyDimensionDisplayAndConversionFactor,
     getCachingInputTableFetcher,
 } from "@ourworldindata/grapher"
-import { IndicatorCatalog } from "./editorProviders.js"
-import { Dataset, IndicatorCatalogData } from "./EditorDatabase.js"
+import {
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+} from "../adminShared/search.js"
+import {
+    CATALOG_DATASETS_PER_PAGE,
+    CatalogDataset,
+    CatalogIndicator,
+    IndicatorCatalog,
+} from "./editorProviders.js"
 
 export interface IndicatorStore {
     catalog?: IndicatorCatalog
@@ -22,20 +30,95 @@ export interface IndicatorStore {
     ): Promise<OwidTable | undefined>
 }
 
-/** OWID's indicator store: variableIds resolved against the Data API */
-export function dataApiIndicatorStore(options: {
-    dataApiUrl: string
-    catalog?: IndicatorCatalog
-}): IndicatorStore {
+/** A dataset of OWID indicators, for `dataApiIndicatorStore`'s `datasets` */
+export interface IndicatorListDataset {
+    id: number
+    name: string
+    namespace?: string
+    version?: string
+    variables: { id: number; name: string }[]
+}
+
+/**
+ * OWID's indicator store: variableIds resolved against the Data API. "Add
+ * indicators" offers either `datasets`, loaded when the picker first opens and
+ * searched in the browser by indicator name, or a `catalog` with its own search.
+ */
+export function dataApiIndicatorStore(
+    options: { dataApiUrl: string } & (
+        | { datasets: () => Promise<IndicatorListDataset[]>; catalog?: never }
+        | { catalog?: IndicatorCatalog; datasets?: never }
+    )
+): IndicatorStore {
     const fetchTable = getCachingInputTableFetcher(
         options.dataApiUrl,
         undefined,
         true
     )
+    const { datasets } = options
     return {
-        catalog: options.catalog,
+        catalog: datasets ? listCatalog(datasets) : options.catalog,
         loadTable: (dimensions, selectedEntityColors) =>
             fetchTable(dimensions, selectedEntityColors),
+    }
+}
+
+function listCatalog(
+    load: () => Promise<IndicatorListDataset[]>
+): IndicatorCatalog {
+    return inMemoryCatalog(async () =>
+        (await load()).map((dataset) => ({
+            id: dataset.id,
+            name: dataset.name,
+            namespace: dataset.namespace,
+            version: dataset.version,
+            variables: dataset.variables.map((variable) => ({
+                id: variable.id,
+                name: variable.name,
+                // tells same-named picks apart in the picker's selected list
+                datasetName: dataset.name,
+                column: { variableId: variable.id },
+            })),
+        }))
+    )
+}
+
+function inMemoryCatalog(
+    load: () => Promise<CatalogDataset[]>
+): IndicatorCatalog {
+    let datasets: Promise<CatalogDataset[]> | undefined
+    return {
+        fields: [],
+        initialQuery: () => "",
+        async search(query, page) {
+            // A failed load is retried by the next search
+            datasets ??= load().catch((error: unknown) => {
+                datasets = undefined
+                throw error
+            })
+            const matches = filterFunctionForSearchWords(
+                buildSearchWordsFromSearchString(query),
+                (indicator: CatalogIndicator) => [
+                    indicator.name,
+                    indicator.column.slug,
+                ]
+            )
+            const groups = (await datasets).flatMap((dataset) => {
+                const variables = dataset.variables.filter(matches)
+                return variables.length
+                    ? [{ ...dataset, matchCount: variables.length, variables }]
+                    : []
+            })
+            return {
+                datasets: groups.slice(
+                    (page - 1) * CATALOG_DATASETS_PER_PAGE,
+                    page * CATALOG_DATASETS_PER_PAGE
+                ),
+                unit: "datasets",
+                total: groups.length,
+                pageSize: CATALOG_DATASETS_PER_PAGE,
+            }
+        },
     }
 }
 
@@ -51,29 +134,21 @@ export function tableIndicatorStore(
         (slug) => !nonDataSlugs.has(slug)
     )
 
-    const dataset: Dataset = {
-        id: 1,
-        name: datasetName,
-        namespace: datasetName,
-        version: undefined,
-        isPrivate: false,
-        nonRedistributable: false,
-        variables: dataSlugs.map((slug, i) => ({
-            id: i + 1,
-            slug,
-            name: table.get(slug).displayName,
-        })),
-    }
-    const catalogData: IndicatorCatalogData = {
-        namespaces: [{ name: datasetName, isArchived: false }],
-        datasets: [dataset],
-    }
+    const indicators: CatalogIndicator[] = dataSlugs.map((slug, i) => ({
+        // only keys the row: picking it puts the column's slug in the slot
+        id: i + 1,
+        name: table.get(slug).displayName,
+        column: { slug },
+    }))
+    const catalog = inMemoryCatalog(() =>
+        Promise.resolve([{ id: 1, name: datasetName, variables: indicators }])
+    )
 
     const isDataColumn = (slug: ColumnSlug | undefined): boolean =>
         slug !== undefined && dataSlugs.includes(slug)
 
     return {
-        catalog: { load: () => Promise.resolve(catalogData) },
+        catalog,
 
         loadTable: (dimensions, selectedEntityColors) => {
             for (const dimension of dimensions)
