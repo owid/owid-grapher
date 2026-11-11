@@ -268,7 +268,8 @@ export class LineChartThumbnail
     }
 
     @computed private get labelsRange(): [number, number] {
-        return this.bounds.expand(this.manager.chartAreaPadding ?? 0).yRange()
+        const padding = this.manager.chartAreaPadding ?? 0
+        return [this.bounds.bottom + padding, this.bounds.top - padding]
     }
 
     /** Label range inside the plot, which ends above the x-axis tick labels */
