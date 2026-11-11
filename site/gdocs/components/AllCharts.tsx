@@ -3,6 +3,7 @@ import {
     keepPreviousData,
     skipToken,
     useInfiniteQuery,
+    useQuery,
 } from "@tanstack/react-query"
 import { useDebounceValue, useIntersectionObserver } from "usehooks-ts"
 import {
@@ -22,6 +23,7 @@ import {
     AllChartsBlock,
     AllChartsBlockError,
     AllChartsBlockSkeleton,
+    AllChartsSuggestions,
 } from "../../blocks/AllChartsBlock.js"
 import { AllChartsRowData, TextPart } from "../../blocks/AllChartsRow.js"
 import {
@@ -32,6 +34,10 @@ import { getLiteSearchClient } from "../../search/searchClients.js"
 import { buildSearchHref } from "../../search/searchState.js"
 
 const ALL_CHARTS_PREFETCH_ROOT_MARGIN = "100% 0px"
+
+const TOPIC_VOCABULARY_URL =
+    "https://files.ourworldindata.org/topic_vocabulary.json"
+const MAX_SUGGESTIONS = 5
 
 const SEARCH_DEBOUNCE_MS = 200
 const SEARCH_PLACEHOLDER =
@@ -46,6 +52,7 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
     const { tags } = useContext(AttachmentsContext)
     const { gdocType } = useDocumentContext()
     const topic = tags[0]?.name
+    const topicSlug = tags[0]?.slug
 
     const { ref, isIntersecting } = useIntersectionObserver({
         rootMargin: ALL_CHARTS_PREFETCH_ROOT_MARGIN,
@@ -53,7 +60,10 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
     })
 
     const [query, setQuery] = useState("")
-    const [debouncedQuery] = useDebounceValue(query, SEARCH_DEBOUNCE_MS)
+    const [debouncedQuery, setDebouncedQuery] = useDebounceValue(
+        query,
+        SEARCH_DEBOUNCE_MS
+    )
     const requestedQuery = query.trim() === "" ? "" : debouncedQuery.trim()
 
     const chartsQuery = {
@@ -85,7 +95,22 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
         },
     })
 
+    const { data: suggestionKeywords } = useQuery({
+        queryKey: allChartsBlockQueryKeys.suggestions(topicSlug ?? ""),
+        queryFn:
+            topicSlug && isIntersecting
+                ? () => fetchTopicSuggestions(topicSlug)
+                : skipToken,
+        staleTime: Infinity,
+    })
+
     if (!topic) return null
+
+    const onSuggestionSelect = (term: string): void => {
+        setQuery(term)
+        setDebouncedQuery(term)
+        setDebouncedQuery.flush()
+    }
 
     const heading = `${getTopicPageHeading("allCharts", gdocType)} on ${sentenceCaseIfNotTopicPage(topic, gdocType, false)}`
 
@@ -125,6 +150,14 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
         }))
     )
     const { query: rowsQuery, countries } = data.pages[0]
+    const suggestions: AllChartsSuggestions =
+        suggestionKeywords === undefined
+            ? { status: "loading" }
+            : {
+                  status: "loaded",
+                  terms: pickVisibleSuggestions(suggestionKeywords, query),
+                  onSelect: onSuggestionSelect,
+              }
 
     return (
         <AllChartsBlock
@@ -139,6 +172,7 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
                 rowsQuery,
                 onQueryChange: setQuery,
                 placeholder: SEARCH_PLACEHOLDER,
+                suggestions,
             }}
             onLoadMore={
                 hasNextPage && !isFetchNextPageError
@@ -161,4 +195,23 @@ function parseHighlightedText(highlighted: string): TextPart[] {
         text: part.value,
         isMatched: part.isHighlighted,
     }))
+}
+
+async function fetchTopicSuggestions(topicSlug: string): Promise<string[]> {
+    try {
+        const response = await fetch(TOPIC_VOCABULARY_URL)
+        if (!response.ok) return []
+        const vocabulary: Partial<Record<string, { keywords: string[] }>> =
+            await response.json()
+        return vocabulary[topicSlug]?.keywords ?? []
+    } catch {
+        return []
+    }
+}
+
+function pickVisibleSuggestions(keywords: string[], query: string): string[] {
+    const normalizedQuery = query.trim().toLowerCase()
+    return keywords
+        .filter((keyword) => keyword.toLowerCase() !== normalizedQuery)
+        .slice(0, MAX_SUGGESTIONS)
 }
