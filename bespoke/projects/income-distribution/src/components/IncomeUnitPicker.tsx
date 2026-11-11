@@ -1,4 +1,5 @@
 import { useCallback, useId, useMemo, useState } from "react"
+import cx from "clsx"
 import {
     Autocomplete,
     Button,
@@ -15,12 +16,9 @@ import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 import {
-    GRAPHER_BACKGROUND,
-    GRAY_10,
-    GRAY_20,
-    GRAY_70,
-    GRAY_90,
-} from "@ourworldindata/grapher/src/color/ColorConstants.js"
+    Switcher,
+    SwitcherItem,
+} from "../../../../components/Switcher/Switcher.js"
 
 import {
     INTERNATIONAL_DOLLAR,
@@ -32,12 +30,13 @@ import {
     timeIntervalNoun,
 } from "../core/currency.js"
 import { Currency, TIME_INTERVALS, TimeInterval } from "../core/types.js"
+// The popover portals into the light DOM, out of reach of the bundle's
+// shadow-root styles, so it brings its own (see the file's header)
+import popoverCss from "./IncomeUnitPickerPopover.scss?inline"
 
-// The popover portals into the light DOM, where none of this bundle's styles
-// reach, so everything inside it is either a global grapher-dropdown class or
-// inline (as in CountryMultiSelect.tsx). No TS constants exist for these.
-const ACTIVE_TEXT = "#1d3d63" // $blue-90
-const ACTIVE_FILL = "#dbe5f0" // $blue-20
+const TIME_INTERVAL_ITEMS: SwitcherItem<TimeInterval>[] = TIME_INTERVALS.map(
+    (interval) => ({ key: interval, element: TIME_INTERVAL_LABELS[interval] })
+)
 
 type CurrencyChoice = "international" | "suggested" | "other"
 
@@ -112,30 +111,27 @@ export function IncomeUnitPicker({
                 </Button>
             </div>
             <Popover
-                className="grapher-dropdown-menu"
+                className={cx(
+                    "grapher-dropdown-menu",
+                    "income-distribution-unit-picker__popover",
+                    isNarrow &&
+                        "income-distribution-unit-picker__popover--narrow"
+                )}
                 placement="bottom start"
-                style={{ width: isNarrow ? 290 : 350, overflowY: "auto" }}
             >
-                <div style={{ padding: "4px 0 8px" }}>
+                <style>{popoverCss}</style>
+                <div className="income-distribution-unit-picker__panel">
                     <div className="group-heading">Currency &amp; prices</div>
                     <div
                         id={introId}
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 6,
-                            margin: "2px 8px 8px",
-                            fontSize: 12,
-                            lineHeight: 1.4,
-                            color: GRAY_70,
-                        }}
+                        className="income-distribution-unit-picker__intro"
                     >
-                        <p style={{ margin: 0 }}>
+                        <p>
                             To compare incomes across countries, we convert them
                             to a single currency, adjusting for price
                             differences.
                         </p>
-                        <p style={{ margin: 0 }}>Convert to:</p>
+                        <p>Convert to:</p>
                     </div>
                     <div
                         role="radiogroup"
@@ -169,27 +165,24 @@ export function IncomeUnitPicker({
                     {visibleChoice === "other" && (
                         <OtherCurrencyList
                             currencies={currencies}
-                            // Also highlights the reader's own currency when
-                            // it was picked from the list
+                            // Also highlights the reader's own currency
+                            // when it was picked from the list
                             selectedKey={
                                 selectedChoice === "international"
                                     ? undefined
                                     : currencyKey(currency)
                             }
                             onSelect={setCurrency}
-                            maxHeight={isNarrow ? 180 : 240}
                         />
                     )}
-                    <div
-                        style={{
-                            margin: "8px 8px 0",
-                            borderTop: `1px solid ${GRAY_10}`,
-                        }}
-                    />
+                    <div className="income-distribution-unit-picker__divider" />
                     <div className="group-heading">Income per</div>
-                    <TimeIntervalSegments
-                        timeInterval={timeInterval}
-                        setTimeInterval={setTimeInterval}
+                    <Switcher
+                        className="income-distribution-unit-picker__interval"
+                        items={TIME_INTERVAL_ITEMS}
+                        selectedKey={timeInterval}
+                        onChange={setTimeInterval}
+                        ariaLabel="Income per"
                     />
                 </div>
             </Popover>
@@ -223,44 +216,26 @@ function ChoiceRow({
     label: string
     detail?: string
 }): React.ReactElement {
-    const [isHovered, setIsHovered] = useState(false)
     return (
         <label
-            onPointerEnter={() => setIsHovered(true)}
-            onPointerLeave={() => setIsHovered(false)}
-            style={{
-                display: "grid",
-                gridTemplateColumns: "16px minmax(0, 1fr)",
-                gap: 10,
-                alignItems: "start",
-                padding: "8px 16px",
-                cursor: "pointer",
-                background: checked
-                    ? ACTIVE_FILL
-                    : isHovered
-                      ? GRAY_10
-                      : undefined,
-                color: checked ? ACTIVE_TEXT : GRAY_90,
-            }}
+            className={cx(
+                "income-distribution-unit-picker__choice",
+                checked && "income-distribution-unit-picker__choice--checked"
+            )}
         >
             <input
                 type="radio"
+                className="income-distribution-unit-picker__choice-input"
                 name={name}
                 checked={checked}
                 onChange={onSelect}
-                style={{ margin: "1px 0 0", accentColor: ACTIVE_TEXT }}
             />
             <span>
-                <span style={{ display: "block" }}>{label}</span>
+                <span className="income-distribution-unit-picker__choice-label">
+                    {label}
+                </span>
                 {detail && (
-                    <span
-                        style={{
-                            display: "block",
-                            marginTop: 2,
-                            fontSize: 12,
-                            color: GRAY_70,
-                        }}
-                    >
+                    <span className="income-distribution-unit-picker__choice-detail">
                         {detail}
                     </span>
                 )}
@@ -273,12 +248,10 @@ function OtherCurrencyList({
     currencies,
     selectedKey,
     onSelect,
-    maxHeight,
 }: {
     currencies: Currency[] | undefined
     selectedKey: string | undefined
     onSelect: (key: string) => void
-    maxHeight: number
 }): React.ReactElement {
     const { contains } = useFilter({ sensitivity: "base" })
     const options = useMemo(
@@ -304,19 +277,18 @@ function OtherCurrencyList({
 
     if (currencies === undefined)
         return (
-            <div style={{ padding: "8px 16px 8px 42px", color: GRAY_70 }}>
+            <div className="income-distribution-unit-picker__loading">
                 Loading currencies…
             </div>
         )
 
     return (
-        <div style={{ margin: "4px 8px 0 34px" }}>
+        <div className="income-distribution-unit-picker__other">
             <Autocomplete filter={contains}>
                 <SearchField
-                    className="grapher-dropdown-search"
+                    className="grapher-dropdown-search income-distribution-unit-picker__search"
                     aria-label="Search currencies"
                     autoFocus
-                    style={{ margin: "0 0 4px" }}
                 >
                     <span className="grapher-dropdown-search-icon" />
                     <Input
@@ -328,39 +300,24 @@ function OtherCurrencyList({
                     </Button>
                 </SearchField>
                 <ListBox
-                    className="grapher-dropdown-listbox"
+                    className="grapher-dropdown-listbox income-distribution-unit-picker__listbox"
                     aria-label="Currencies"
                     selectionMode="single"
                     disallowEmptySelection
                     selectedKeys={selectedKeys}
                     onSelectionChange={handleSelectionChange}
                     renderEmptyState={() => (
-                        <div style={{ padding: "7px 12px", color: GRAY_70 }}>
+                        <div className="income-distribution-unit-picker__empty">
                             No currencies found
                         </div>
                     )}
-                    style={{
-                        maxHeight,
-                        border: `1px solid ${GRAY_20}`,
-                        borderRadius: 4,
-                    }}
                 >
                     {options.map((option) => (
                         <ListBoxItem
                             key={option.key}
                             id={option.key}
                             textValue={option.label}
-                            style={({ isHovered, isFocused, isSelected }) => ({
-                                padding: "7px 12px",
-                                cursor: "pointer",
-                                outline: "none",
-                                color: isSelected ? ACTIVE_TEXT : undefined,
-                                background: isSelected
-                                    ? ACTIVE_FILL
-                                    : isHovered || isFocused
-                                      ? GRAY_10
-                                      : undefined,
-                            })}
+                            className="income-distribution-unit-picker__option"
                         >
                             {option.label}
                         </ListBoxItem>
@@ -368,78 +325,5 @@ function OtherCurrencyList({
                 </ListBox>
             </Autocomplete>
         </div>
-    )
-}
-
-/** Day / Month / Year, styled like the bespoke Switcher */
-function TimeIntervalSegments({
-    timeInterval,
-    setTimeInterval,
-}: {
-    timeInterval: TimeInterval
-    setTimeInterval: (interval: TimeInterval) => void
-}): React.ReactElement {
-    return (
-        <div
-            role="radiogroup"
-            aria-label="Income per"
-            style={{
-                display: "flex",
-                margin: "0 16px",
-                padding: 2,
-                border: `1px solid ${GRAY_20}`,
-                borderRadius: 4,
-                background: GRAPHER_BACKGROUND,
-            }}
-        >
-            {TIME_INTERVALS.map((interval) => (
-                <TimeIntervalSegment
-                    key={interval}
-                    label={TIME_INTERVAL_LABELS[interval]}
-                    checked={interval === timeInterval}
-                    onSelect={() => setTimeInterval(interval)}
-                />
-            ))}
-        </div>
-    )
-}
-
-function TimeIntervalSegment({
-    label,
-    checked,
-    onSelect,
-}: {
-    label: string
-    checked: boolean
-    onSelect: () => void
-}): React.ReactElement {
-    // Inline because the popover lives in the light DOM; mirrors the
-    // Switcher's hovered state
-    const [isHovered, setIsHovered] = useState(false)
-    return (
-        <button
-            type="button"
-            role="radio"
-            aria-checked={checked}
-            onClick={onSelect}
-            onPointerEnter={() => setIsHovered(true)}
-            onPointerLeave={() => setIsHovered(false)}
-            style={{
-                flex: 1,
-                height: 28,
-                border: "none",
-                borderRadius: 3,
-                background: checked
-                    ? ACTIVE_FILL
-                    : isHovered
-                      ? GRAY_10
-                      : "none",
-                color: checked ? ACTIVE_TEXT : GRAY_90,
-                font: "inherit",
-                cursor: "pointer",
-            }}
-        >
-            {label}
-        </button>
     )
 }

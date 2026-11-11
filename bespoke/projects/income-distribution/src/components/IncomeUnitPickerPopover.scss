@@ -1,0 +1,132 @@
+// Styles for IncomeUnitPicker's popover. react-aria portals it into the light
+// DOM (its Autocomplete can't select with Enter inside a shadow root), where
+// the bundle's shadow-root stylesheet doesn't reach. So this file is imported
+// with ?inline and rendered as a <style> inside the popover, carrying the
+// shared Switcher's styles with it. The grapher-dropdown-* classes it also
+// uses are global on the site (and in dev-only-global-css.css on the demo).
+
+// Variables only; these partials emit no CSS
+@import "../../../../../packages/@ourworldindata/components/src/styles/colors.scss";
+@import "../../../../../packages/@ourworldindata/components/src/styles/variables.scss";
+@import "../../../../../packages/@ourworldindata/grapher/src/core/variables.scss";
+
+@import "../../../../components/Switcher/Switcher.scss";
+
+// Doubled up to override .grapher-dropdown-menu's trigger width
+.grapher-dropdown-menu.income-distribution-unit-picker__popover {
+    width: 350px;
+    overflow-y: auto;
+}
+
+.grapher-dropdown-menu.income-distribution-unit-picker__popover--narrow {
+    width: 290px;
+}
+
+.income-distribution-unit-picker__panel {
+    padding: 4px 0 8px;
+}
+
+.income-distribution-unit-picker__intro {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 2px 8px 8px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: $gray-70;
+
+    p {
+        margin: 0;
+    }
+}
+
+.income-distribution-unit-picker__choice {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    padding: 8px 16px;
+    cursor: pointer;
+    color: $gray-90;
+
+    &:hover {
+        background: $gray-10;
+    }
+}
+
+.income-distribution-unit-picker__choice--checked,
+.income-distribution-unit-picker__choice--checked:hover {
+    color: $active-text;
+    background: $blue-20;
+}
+
+.income-distribution-unit-picker__choice-input {
+    margin: 1px 0 0;
+    accent-color: $active-text;
+}
+
+.income-distribution-unit-picker__choice-label {
+    display: block;
+}
+
+.income-distribution-unit-picker__choice-detail {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: $gray-70;
+}
+
+.income-distribution-unit-picker__loading {
+    padding: 8px 16px 8px 42px;
+    color: $gray-70;
+}
+
+.income-distribution-unit-picker__other {
+    margin: 4px 8px 0 34px;
+}
+
+.income-distribution-unit-picker__search {
+    margin: 0 0 4px;
+}
+
+.income-distribution-unit-picker__listbox {
+    max-height: 240px;
+    overflow-y: auto;
+    border: 1px solid $gray-20;
+    border-radius: 4px;
+}
+
+.income-distribution-unit-picker__popover--narrow
+    .income-distribution-unit-picker__listbox {
+    max-height: 180px;
+}
+
+.income-distribution-unit-picker__option {
+    padding: 7px 12px;
+    cursor: pointer;
+    outline: none;
+
+    &[data-hovered],
+    &[data-focused] {
+        background: $gray-10;
+    }
+
+    &[data-selected] {
+        color: $active-text;
+        background: $blue-20;
+    }
+}
+
+.income-distribution-unit-picker__empty {
+    padding: 7px 12px;
+    color: $gray-70;
+}
+
+.income-distribution-unit-picker__divider {
+    margin: 8px 8px 0;
+    border-top: 1px solid $gray-10;
+}
+
+.income-distribution-unit-picker__interval {
+    margin: 0 16px;
+}
