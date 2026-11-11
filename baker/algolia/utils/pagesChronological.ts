@@ -31,6 +31,7 @@ import { getAlgoliaClient } from "../configureAlgolia.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
 import { ALGOLIA_INDEXING } from "../../../settings/serverSettings.js"
 import { getThumbnailUrl, getExcerptFromGdoc } from "./pages.js"
+import { getOwidBriefRecords } from "./owidBrief.js"
 import { match, P } from "ts-pattern"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 
@@ -436,5 +437,45 @@ export async function getPagesChronologicalRecords(
         if (record) records.push(record)
     }
 
+    // A Mailchimp outage shouldn't block reindexing everything else. The
+    // scheduled indexer puts back any issues that are missing.
+    try {
+        records.push(...(await getOwidBriefRecords()))
+    } catch (e) {
+        await logErrorAndMaybeCaptureInSentry(e)
+    }
+
     return records
+}
+
+/** Index the issues of The OWID Brief that aren't in the index yet. */
+export async function indexMissingOwidBriefsInChronological(): Promise<void> {
+    if (!ALGOLIA_INDEXING) return
+
+    const client = getAlgoliaClient()
+    if (!client) {
+        console.error(
+            "Failed indexing The OWID Brief to pages-chronological (Algolia client not initialized)"
+        )
+        return
+    }
+
+    const records = await getOwidBriefRecords()
+    if (!records.length) return
+
+    const indexName = getIndexName(SearchIndexName.PagesChronological)
+    const { results } = await client.getObjects<{ objectID: string } | null>({
+        requests: records.map((record) => ({
+            indexName,
+            objectID: record.objectID,
+            attributesToRetrieve: ["objectID"],
+        })),
+    })
+    const missing = records.filter((_, i) => results[i] === null)
+    console.log(
+        `${records.length} issues of The OWID Brief, ${missing.length} missing from ${indexName}.`
+    )
+    if (!missing.length) return
+
+    await client.saveObjects({ indexName, objects: missing })
 }

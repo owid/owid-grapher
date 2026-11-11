@@ -14,7 +14,10 @@ import {
 } from "@ourworldindata/types"
 import { checkIsChronologicalGdoc } from "@ourworldindata/utils"
 import { getAndLoadGdocById } from "../../db/model/Gdoc/GdocFactory.js"
-import { indexIndividualGdocInChronological } from "./utils/pagesChronological.js"
+import {
+    indexIndividualGdocInChronological,
+    indexMissingOwidBriefsInChronological,
+} from "./utils/pagesChronological.js"
 
 /**
  * Indexes scheduled gdocs into the pages-chronological index once their
@@ -68,6 +71,8 @@ const indexScheduledPagesChronologicalToAlgolia = async () => {
             }
         }
     }, db.TransactionCloseMode.Close)
+
+    await indexMissingOwidBriefsInChronological()
 }
 
 /** Returns the subset of `objectIDs` that aren't yet present in `indexName`. */
