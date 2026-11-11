@@ -138,6 +138,7 @@ import {
 } from "../chart/ChartTabs.js"
 import { makeChartState } from "../chart/ChartTypeMap.js"
 import {
+    getVisibleLabels,
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     scaleFontSize,
@@ -1507,7 +1508,7 @@ export class GrapherState
     }
 
     @computed get showLegend(): boolean {
-        if (this.labelMode === ChartLabelMode.Values) return false
+        if (!getVisibleLabels(this.labelMode).legends) return false
 
         // Hide the legend for stacked bar charts if the legend only ever shows a single entity
         if (this.isOnStackedBarTab) {

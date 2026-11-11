@@ -10,7 +10,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
 } from "../core/GrapherConstants"
-import { scaleFontSize } from "../chart/ChartUtils"
+import { getVisibleLabels, scaleFontSize } from "../chart/ChartUtils"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
@@ -18,7 +18,7 @@ import {
     HorizontalAxisComponent,
     VerticalAxisZeroLine,
 } from "../axis/AxisViews"
-import { ChartLabelMode, Time } from "@ourworldindata/types"
+import { Time } from "@ourworldindata/types"
 import {
     PlacedStackedAreaSeries,
     RenderStackedAreaSeries,
@@ -126,7 +126,7 @@ export class StackedAreaChartThumbnail
     >[] {
         if (
             !this.manager.showSeriesLabels ||
-            this.manager.labelMode === ChartLabelMode.Values
+            !getVisibleLabels(this.manager.labelMode).endLabelNames
         )
             return []
 
