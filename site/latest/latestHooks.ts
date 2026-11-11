@@ -15,6 +15,7 @@ import {
 } from "../search/queries.js"
 import {
     DEFAULT_LATEST_STATE,
+    NEWSLETTER_RECORD_TYPE,
     type LatestState,
     type LatestType,
     type PageChronologicalRecord,
@@ -103,6 +104,7 @@ function getProbeHref(hit: PageChronologicalRecord): string | null {
         .with(
             { type: OwidGdocType.TopicPage },
             { type: OwidGdocType.LinearTopicPage },
+            { type: NEWSLETTER_RECORD_TYPE },
             () => null
         )
         .exhaustive()
