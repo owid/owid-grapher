@@ -159,10 +159,135 @@ $palette-dark: (
     "always-oxford-blue": #002147,
     "page-background": #14181e,
     "header-background": #0c1522,
+    // Dark-only tokens
+    // Search field in the header bar
+    "header-field": #20262f,
+    // Hover state of the red Donate button
+    "vermillion-hover": #a83c35,
+    // Near-black navy for text on the dark-theme amber (donation footer, banners)
+    "text-on-amber": #0f1b2b,
+    // Popovers and tooltips raised above the page
+    "surface-raised": #222a36,
+    // Solid fills behind white text (solid blue buttons, CTA labels)
+    "solid-fill": #4a6a92,
+    "solid-fill-hover": #5a7ca6,
+    "solid-fill-deep": #34506f,
+    "solid-fill-deep-hover": #41618a,
 );
 
-// Near-black navy for text on the dark-theme amber (donation footer, banners)
-$text-on-dark-amber: #0f1b2b;
+// DARK MODE PROTOTYPE: alternative dark palettes, picked with the switcher
+// (<html data-dark-palette="…">). Each only overrides the tokens it lists; the
+// rest come from $palette-dark above ("Current").
+$dark-palette-variants: (
+    // Deeper, more saturated brand navy; warm gold; classic red
+    "midnight": (
+        "white": #0e1726,
+        "page-background": #0e1726,
+        "beige": #111b2b,
+        "blue-5": #132036,
+        "blue-10": #17263d,
+        "blue-20": #213350,
+        "blue-30": #324765,
+        "blue-40": #4a6185,
+        "blue-50": #8ea3c0,
+        "blue-60": #a2b6d1,
+        "blue-70": #bccbdf,
+        "blue-90": #dfe7f3,
+        "blue-95": #eaf0f7,
+        "blue-100": #f3f6fb,
+        "gray-5": #121c2c,
+        "gray-10": #172235,
+        "gray-20": #202c40,
+        "gray-30": #2a374c,
+        "oxford-blue": #091222,
+        "accent-pale-blue": #1a2d4a,
+        "header-background": #07101e,
+        "header-field": #16233a,
+        "amber": #c9a04a,
+        "amber-110": #d3ac5a,
+        "vermillion": #c94a3f,
+        "vermillion-text": #f08c80,
+        "vermillion-hover": #ad3c33,
+        "text-on-amber": #0a1324,
+        "surface-raised": #1c2b44,
+        "solid-fill": #3f6597,
+        "solid-fill-hover": #4e76aa,
+        "solid-fill-deep": #2c4a72,
+        "solid-fill-deep-hover": #385a87,
+    ),
+    // Blue-green slate; a cleaner yellow; coral red
+    "slate": (
+        "white": #121a1e,
+        "page-background": #121a1e,
+        "beige": #151d20,
+        "blue-5": #172227,
+        "blue-10": #1b282e,
+        "blue-20": #25353c,
+        "blue-30": #34484f,
+        "blue-40": #4b6269,
+        "blue-50": #8ca4a9,
+        "blue-60": #a0b6bb,
+        "blue-70": #bacbcf,
+        "blue-90": #dde8ea,
+        "blue-95": #e9f0f1,
+        "blue-100": #f2f7f7,
+        "gray-5": #162024,
+        "gray-10": #1b262a,
+        "gray-20": #243034,
+        "gray-30": #2d3a3e,
+        "oxford-blue": #0b1316,
+        "accent-pale-blue": #1a2c31,
+        "header-background": #0a1215,
+        "header-field": #1a262b,
+        "amber": #c4a85a,
+        "amber-110": #cdb36a,
+        "vermillion": #c8574c,
+        "vermillion-text": #f19a8f,
+        "vermillion-hover": #ab493f,
+        "text-on-amber": #0d1719,
+        "surface-raised": #20323a,
+        "solid-fill": #3e6b78,
+        "solid-fill-hover": #4c7c8a,
+        "solid-fill-deep": #2d525d,
+        "solid-fill-deep-hover": #386370,
+    ),
+    // Indigo-tinted ink; soft peach-gold; rose red
+    "ink": (
+        "white": #14151f,
+        "page-background": #14151f,
+        "beige": #171824,
+        "blue-5": #191b28,
+        "blue-10": #1e2030,
+        "blue-20": #282b3e,
+        "blue-30": #383c54,
+        "blue-40": #51566f,
+        "blue-50": #989cb5,
+        "blue-60": #abafc6,
+        "blue-70": #c3c6d8,
+        "blue-90": #e3e4ee,
+        "blue-95": #ececf4,
+        "blue-100": #f5f5fa,
+        "gray-5": #181926,
+        "gray-10": #1d1e2c,
+        "gray-20": #262838,
+        "gray-30": #303243,
+        "oxford-blue": #0d0e17,
+        "accent-pale-blue": #212439,
+        "header-background": #0c0d16,
+        "header-field": #1d1f2d,
+        "amber": #c9a35e,
+        "amber-110": #d2af6c,
+        "vermillion": #c74f55,
+        "vermillion-text": #f0939a,
+        "vermillion-hover": #aa4248,
+        "text-on-amber": #12111c,
+        "surface-raised": #252840,
+        "solid-fill": #555c94,
+        "solid-fill-hover": #656ca6,
+        "solid-fill-deep": #3f4571,
+        "solid-fill-deep-hover": #4b5284,
+    ),
+);
 
 @function _rgb-triplet($c) {
     @return color.channel($c, "red", $space: rgb),
@@ -182,9 +307,35 @@ $text-on-dark-amber: #0f1b2b;
     color-scheme: light;
 }
 
+// Dark tokens read from `--dark-*` source variables (set on :root, see
+// below), so a palette variant only has to override the sources and every
+// place that re-applies the dark tokens (header menus, search panel, …)
+// follows it.
+@mixin dark-source-tokens($palette) {
+    @each $name, $value in $palette {
+        --dark-#{$name}: #{$value};
+        --dark-#{$name}-rgb: #{_rgb-triplet($value)};
+    }
+}
+
 @mixin dark-theme-tokens {
-    @include theme-tokens($palette-dark);
+    @each $name, $_ in $palette-dark {
+        --#{$name}: var(--dark-#{$name});
+        --#{$name}-rgb: var(--dark-#{$name}-rgb);
+    }
     color-scheme: dark;
+}
+
+/// The current dark value of a token, e.g. `dark-token("amber")`. Use it on
+/// surfaces that otherwise keep light-theme tokens.
+@function dark-token($name) {
+    @return var(--dark-#{$name});
+}
+
+/// Sets `--name` and `--name-rgb` to the current dark value of a token
+@mixin use-dark-token($name, $as: $name) {
+    --#{$as}: var(--dark-#{$name});
+    --#{$as}-rgb: var(--dark-#{$name}-rgb);
 }
 
 /// rgba() for a theme token, e.g. `theme-alpha("blue-20", 0.1)`
@@ -303,7 +454,14 @@ $sdgColors: (
 
 // Dark site theme (proposals A and C)
 :root[data-theme="dark"] {
+    @include dark-source-tokens($palette-dark);
     @include dark-theme-tokens;
+}
+
+@each $variant, $overrides in $dark-palette-variants {
+    :root[data-theme="dark"][data-dark-palette="#{$variant}"] {
+        @include dark-source-tokens($overrides);
+    }
 }
 
 // Brand surfaces. The site header and homepage hero are navy in the light
@@ -330,17 +488,16 @@ $sdgColors: (
     .author-header,
     .author-work .article-block__pill-row,
     .article-block__homepage-search {
-        --oxford-blue: #{map.get($palette-dark, "header-background")};
-        --blue-100: #{map.get($palette-dark, "header-background")};
+        @include use-dark-token("header-background", $as: "oxford-blue");
+        @include use-dark-token("header-background", $as: "blue-100");
         // The header search field
-        --blue-90: #20262f;
-        --blue-90-rgb: 32, 38, 47;
+        @include use-dark-token("header-field", $as: "blue-90");
     }
 
     // The author page header and its topic strip are $blue-95 navy
     .author-header,
     .author-work .article-block__pill-row {
-        --blue-95: #{map.get($palette-dark, "header-background")};
+        @include use-dark-token("header-background", $as: "blue-95");
     }
 
     // Brand red and yellow, toned down for the dark page. Fully saturated
@@ -354,12 +511,10 @@ $sdgColors: (
     .cookie-notice,
     .explorer-tile {
         @each $name in ("vermillion", "vermillion-text", "amber", "amber-110") {
-            --#{$name}: #{map.get($palette-dark, $name)};
-            --#{$name}-rgb: #{_rgb-triplet(map.get($palette-dark, $name))};
+            @include use-dark-token($name);
         }
         // Hover state of the red Donate button
-        --accent-vermillion: #a83c35;
-        --accent-vermillion-rgb: 168, 60, 53;
+        @include use-dark-token("vermillion-hover", $as: "accent-vermillion");
     }
 
     // Tint the hero's world map image into the same near-black
@@ -376,8 +531,7 @@ $sdgColors: (
     .notice {
         @include light-theme-tokens;
         @each $name in ("vermillion", "vermillion-text", "amber", "amber-110") {
-            --#{$name}: #{map.get($palette-dark, $name)};
-            --#{$name}-rgb: #{_rgb-triplet(map.get($palette-dark, $name))};
+            @include use-dark-token($name);
         }
         color: var(--blue-90);
     }
@@ -388,10 +542,8 @@ $sdgColors: (
     .pcrm,
     .notice,
     .cookie-notice {
-        --blue-90: #{$text-on-dark-amber};
-        --blue-90-rgb: #{_rgb-triplet($text-on-dark-amber)};
-        --blue-95: #{$text-on-dark-amber};
-        --blue-95-rgb: #{_rgb-triplet($text-on-dark-amber)};
+        @include use-dark-token("text-on-amber", $as: "blue-90");
+        @include use-dark-token("text-on-amber", $as: "blue-95");
     }
 
     // Dropdowns and menus that open from the header (Subscribe, Browse by

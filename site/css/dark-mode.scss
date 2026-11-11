@@ -16,12 +16,19 @@ body {
     bottom: 16px;
     z-index: 2147483000;
     display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    font-family: $sans-serif-font-stack;
+}
+
+.theme-switcher__group {
+    display: flex;
     gap: 2px;
     padding: 3px;
     border-radius: 999px;
     background: var(--always-oxford-blue);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    font-family: $sans-serif-font-stack;
 }
 
 .theme-switcher__option {
@@ -147,8 +154,8 @@ body {
         }
 
         input[type="checkbox"]:checked + label::before {
-            background-color: #4a6a92;
-            border-color: #4a6a92;
+            background-color: dark-token("solid-fill");
+            border-color: dark-token("solid-fill");
         }
     }
 }
@@ -157,10 +164,10 @@ body {
    to light tones in the dark theme, while their text is hardcoded white, so
    the label lost its contrast. On dark they get mid-tone slate fills that
    keep white text readable (≥ 4.5:1). */
-$dark-solid-fill: #4a6a92;
-$dark-solid-fill-hover: #5a7ca6;
-$dark-solid-fill-deep: #34506f;
-$dark-solid-fill-deep-hover: #41618a;
+$dark-solid-fill: dark-token("solid-fill");
+$dark-solid-fill-hover: dark-token("solid-fill-hover");
+$dark-solid-fill-deep: dark-token("solid-fill-deep");
+$dark-solid-fill-deep-hover: dark-token("solid-fill-deep-hover");
 
 :root[data-theme="dark"] {
     .owid-btn--solid-blue,
@@ -197,7 +204,7 @@ $dark-solid-fill-deep-hover: #41618a;
    category share a hardcoded pale blue (#d5e7fe) in light mode, which joins
    them visually. On dark, they share a slate one step lighter than the
    left-hand panel instead. */
-$dark-topics-panel: #283649;
+$dark-topics-panel: dark-token("blue-20");
 
 :root[data-theme="dark"] {
     .SiteNavigationTopics {
@@ -217,7 +224,7 @@ $dark-topics-panel: #283649;
    dark theme too, so the text keeps the light-theme dark navy. */
 :root[data-theme="dark"] {
     .centered-article-header__breadcrumbs.breadcrumbs-blue {
-        color: $text-on-dark-amber;
+        color: dark-token("text-on-amber");
     }
 }
 
@@ -254,7 +261,7 @@ $dark-topics-panel: #283649;
 /* Tooltips using tippy's bundled "light" theme (details on demand, footnotes,
    …). That theme hardcodes a white box; on dark it becomes a raised slate
    surface so the dark-theme text and links inside read correctly. */
-$dark-popover: #222a36;
+$dark-popover: dark-token("surface-raised");
 
 :root[data-theme="dark"] {
     .tippy-box[data-theme~="light"] {
