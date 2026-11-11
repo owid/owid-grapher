@@ -326,7 +326,12 @@ export class StackedDiscreteBarChart
         })
     }
 
+    @computed private get shouldShowEntityLabels(): boolean {
+        return getVisibleLabels(this.manager.labelMode).rowLabelNames
+    }
+
     @computed private get labelWidth(): number {
+        if (!this.shouldShowEntityLabels) return 0
         return _.max(this.sizedRows.map((d) => d.label.width)) ?? 0
     }
 
@@ -696,6 +701,7 @@ export class StackedDiscreteBarChart
                             labelFontSize={this.labelFontSize}
                             showTotalValueLabel={this.showTotalValueLabel}
                             showSegmentValueLabels={this.shouldShowValueLabels}
+                            showEntityLabel={this.shouldShowEntityLabels}
                             formatValueForLabel={this.formatValueForLabel}
                             onEntityMouseEnter={this.onEntityMouseEnter}
                             onEntityMouseLeave={this.onEntityMouseLeave}
@@ -736,6 +742,7 @@ export class StackedDiscreteBarChart
                             yAxis={this.yAxis}
                             showTotalValueLabel={this.showTotalValueLabel}
                             showSegmentValueLabels={this.shouldShowValueLabels}
+                            showEntityLabel={this.shouldShowEntityLabels}
                             formatValueForLabel={this.formatValueForLabel}
                             onEntityMouseEnter={this.onEntityMouseEnter}
                             onEntityMouseLeave={this.onEntityMouseLeave}

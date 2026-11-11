@@ -27,6 +27,7 @@ export function StackedDiscreteBarRow({
     yAxis,
     showTotalValueLabel,
     showSegmentValueLabels,
+    showEntityLabel,
     formatValueForLabel,
     onEntityMouseEnter,
     onEntityMouseLeave,
@@ -39,6 +40,7 @@ export function StackedDiscreteBarRow({
     yAxis: HorizontalAxis
     showTotalValueLabel: boolean
     showSegmentValueLabels: boolean
+    showEntityLabel: boolean
     formatValueForLabel: (value: number) => string
     onEntityMouseEnter: (entityName: string, seriesName?: string) => void
     onEntityMouseLeave: () => void
@@ -76,15 +78,17 @@ export function StackedDiscreteBarRow({
                     onMouseLeave={onEntityMouseLeave}
                 />
             ))}
-            <SeriesLabel
-                state={label}
-                x={yAxis.place(0) - labelToBarPadding}
-                y={-label.height / 2}
-                onMouseEnter={(): void => onEntityMouseEnter(label.text)}
-                onMouseLeave={onEntityMouseLeave}
-                onInfoTooltipShow={onClearTooltip}
-                opacity={labelStyle.opacity}
-            />
+            {showEntityLabel && (
+                <SeriesLabel
+                    state={label}
+                    x={yAxis.place(0) - labelToBarPadding}
+                    y={-label.height / 2}
+                    onMouseEnter={(): void => onEntityMouseEnter(label.text)}
+                    onMouseLeave={onEntityMouseLeave}
+                    onInfoTooltipShow={onClearTooltip}
+                    opacity={labelStyle.opacity}
+                />
+            )}
             {showTotalValueLabel && (
                 <text
                     transform={`translate(${roundForSvg(
