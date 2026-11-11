@@ -18,6 +18,7 @@ import { toSizeRange } from "./ScatterUtils"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
+import { getVisibleLabels } from "../chart/ChartUtils"
 
 @observer
 export class ScatterPlotChartThumbnail
@@ -53,24 +54,51 @@ export class ScatterPlotChartThumbnail
         return this.innerBounds
     }
 
+    @computed private get shouldShowAxisTitles(): boolean {
+        return getVisibleLabels(this.manager.labelMode).axisText
+    }
+
+    @computed private get shouldShowTickLabels(): boolean {
+        return getVisibleLabels(this.manager.labelMode).values
+    }
+
+    @computed private get labelModeOverrides(): {
+        hideTickLabels?: boolean
+        hideLabelUnit?: boolean
+    } {
+        return this.shouldShowTickLabels
+            ? {}
+            : { hideTickLabels: true, hideLabelUnit: true }
+    }
+
     @computed private get xAxisConfig(): AxisConfig {
         const { xAxisConfig } = this.manager
         const custom = { labelPadding: 2, shortenLabelLogNotice: true }
-        return new AxisConfig({ ...custom, ...xAxisConfig }, this)
+        return new AxisConfig(
+            { ...custom, ...xAxisConfig, ...this.labelModeOverrides },
+            this
+        )
     }
 
     @computed private get yAxisConfig(): AxisConfig {
         const { yAxisConfig } = this.manager
         const custom = { labelPadding: 8, shortenLabelLogNotice: true }
-        return new AxisConfig({ ...custom, ...yAxisConfig }, this)
+        return new AxisConfig(
+            { ...custom, ...yAxisConfig, ...this.labelModeOverrides },
+            this
+        )
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
-        return this.chartState.toVerticalAxis(this.yAxisConfig)
+        const axis = this.chartState.toVerticalAxis(this.yAxisConfig)
+        if (!this.shouldShowAxisTitles) axis.label = ""
+        return axis
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        return this.chartState.toHorizontalAxis(this.xAxisConfig)
+        const axis = this.chartState.toHorizontalAxis(this.xAxisConfig)
+        if (!this.shouldShowAxisTitles) axis.label = ""
+        return axis
     }
 
     @computed private get dualAxis(): DualAxis {
