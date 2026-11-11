@@ -568,11 +568,14 @@ $sdgColors: (
 :root[data-theme="dark"][data-chart-theme="light"] {
     .GrapherComponent,
     .Explorer,
+    // The settings bar above a multi-dim chart embedded in an article
+    .md-embed-settings,
     // Chart popovers and tooltips are rendered at the end of <body>, outside
     // the chart, so they're listed separately
     .grapher-dropdown-menu,
     .GrapherSettingsPopover,
     .ContentSwitchers__OverflowMenu,
+    .md-menu,
     .react-aria-tooltip,
     .tippy-box[data-theme="grapher-explanation"],
     .tippy-box[data-theme="grapher-explanation--short"],

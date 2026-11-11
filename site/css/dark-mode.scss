@@ -307,7 +307,9 @@ $dark-popover: dark-token("surface-raised");
     &[data-chart-theme="light"] .Explorer,
     &[data-chart-theme="light"] .grapher-dropdown-menu,
     &[data-chart-theme="light"] .GrapherSettingsPopover,
-    &[data-chart-theme="light"] .ContentSwitchers__OverflowMenu {
+    &[data-chart-theme="light"] .ContentSwitchers__OverflowMenu,
+    &[data-chart-theme="light"] .md-embed-settings,
+    &[data-chart-theme="light"] .md-menu {
         color: $text-color;
     }
 
@@ -362,4 +364,15 @@ $dark-footnote-bg: #eef1f5;
    accent on white, but mirrored it nearly disappears on the dark page. */
 :root[data-theme="dark"] .span-linked-chart .span-linked-chart-icon {
     color: $blue-50;
+}
+
+/* Light-blue solid buttons (e.g. "Download options" in search results and
+   Related charts). On hover they go to a hardcoded #bed2e7 or the darker
+   $blue-10; on dark the hover is one step lighter than the resting fill. */
+:root[data-theme="dark"] {
+    .owid-btn--solid-light-blue:hover,
+    .search-chart-hit-rich-data__header-actions
+        .search-chart-hit-rich-data__button:hover {
+        background-color: $blue-30;
+    }
 }
