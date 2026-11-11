@@ -1,7 +1,9 @@
 import {
     Choice,
     ChoicesEnriched,
+    Dimension,
     DimensionEnriched,
+    DimensionPresentationType,
     IndicatorsAfterPreProcessing,
     IndicatorTitleWithFragments,
     joinTitleFragments,
@@ -11,6 +13,7 @@ import {
     OwidChartDimensionInterface,
     DimensionProperty,
     MultiDimDataPageConfigEnriched,
+    MultiDimExplorerPresentation,
     normalizeDescriptionKey,
     OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
@@ -243,6 +246,51 @@ export function getMultiDimPageTitle(
         title.titleVariant
     )
     return fragments ? `${title.title} - ${fragments}` : title.title
+}
+
+/**
+ * Which control a dimension should be rendered as. An explicit
+ * `presentation.type` in the config takes precedence; otherwise dimensions with at
+ * most two ungrouped choices render as a toggle group (at most four when the
+ * page has only this one dimension, so there's room for a wider control),
+ * dropdowns offering at least ten choices get a search field, and
+ * everything else is a plain dropdown.
+ *
+ * Toggle group or dropdown is decided on the dimension's full choice list and
+ * the config's total number of dimensions, so a control doesn't switch type
+ * as other selections change. The search field is decided on the number of
+ * choices currently available (`availableChoiceCount`): what matters is how
+ * many options the menu actually lists, and at worst the field comes and goes
+ * within the same dropdown. A dimension the heuristic gets wrong can always
+ * set `presentation.type` explicitly.
+ *
+ * The result, explicit or not, is a recommendation: toggle buttons that
+ * don't fit the controls row are rendered as a dropdown instead (see
+ * MeasuredDimensionToggleButtons).
+ */
+export function resolveDimensionPresentationType({
+    dimension,
+    numberOfDimensions,
+    availableChoiceCount,
+}: {
+    dimension: Dimension
+    numberOfDimensions: number
+    availableChoiceCount: number
+}): DimensionPresentationType {
+    if (dimension.presentation?.type) return dimension.presentation.type
+    const hasGroups = dimension.choices.some((choice) => choice.group)
+    const maxToggleChoices = numberOfDimensions === 1 ? 4 : 2
+    if (dimension.choices.length <= maxToggleChoices && !hasGroups)
+        return "toggle-buttons"
+    return availableChoiceCount >= 10 ? "dropdown-with-search" : "dropdown"
+}
+
+export function isMultiDimDataExplorer<
+    Config extends { presentation?: MultiDimExplorerPresentation },
+>(
+    config: Config
+): config is Config & { presentation: MultiDimExplorerPresentation } {
+    return config.presentation?.pageType === "data-explorer"
 }
 
 export const extractMultiDimChoicesFromSearchParams = (

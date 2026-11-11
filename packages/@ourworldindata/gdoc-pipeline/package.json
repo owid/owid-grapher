@@ -22,7 +22,7 @@
         }
     },
     "peerDependencies": {
-        "@googleapis/docs": "^13.0.0",
+        "@googleapis/docs": "^14.0.0",
         "zod": "^4.4.3"
     },
     "peerDependenciesMeta": {
@@ -56,7 +56,7 @@
     "author": "",
     "devDependencies": {
         "@arethetypeswrong/cli": "^0.18.5",
-        "@googleapis/docs": "^13.0.0",
+        "@googleapis/docs": "^14.1.1",
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
