@@ -29,10 +29,10 @@ CLOUDFLARE_GOOGLE_ANALYTICS_MEASUREMENT_PROTOCOL_KEY=
 CLOUDFLARE_GOOGLE_ANALYTICS_MEASUREMENT_ID=
 CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE=
 
-# search (/api/search, the cached-queries proxy, the atom feed); same values
-# as in .env.example-full
-ALGOLIA_ID
-ALGOLIA_SEARCH_KEY
+# search (/api/search, the cached-queries proxy, the atom feed): production's
+# indices with a public key that forces analytics off, as in .env.example-full
+ALGOLIA_ID=ASCB5XMYF2
+ALGOLIA_SEARCH_KEY=ODZiMDkyMGRiNGU4MmU4MWZhYzUxNTNhZjY1NWI1NTY3ZTE2MmZhOGZhZDVlMTUxOWY1MGRkYTRlNWY1YzlmOGFuYWx5dGljcz1mYWxzZSZjbGlja0FuYWx5dGljcz1mYWxzZQ==
 
 # optional
 SLACK_BOT_OAUTH_TOKEN=
