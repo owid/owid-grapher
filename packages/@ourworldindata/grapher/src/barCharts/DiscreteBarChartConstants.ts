@@ -93,6 +93,7 @@ export interface DiscreteBarItem {
     colorValue?: CoreValueType
     color?: Color
     isProjection?: boolean
+    annotation?: string
 }
 
 /**

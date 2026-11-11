@@ -144,4 +144,39 @@ describe("column strategy", () => {
         expect(usa.annotation).toEqual("Note on USA")
         expect(uk.annotation).toBeUndefined()
     })
+
+    describe("with annotations on both indicators", () => {
+        const makeTwoColumnChartState = (
+            startText: string,
+            endText: string
+        ): DumbbellChartState =>
+            makeChartState(
+                [
+                    ["population", "gdp", "year", "entityName"],
+                    [100, 500, 2010, "USA"],
+                ],
+                ["population", "gdp"],
+                ["population", "gdp"].map((slug) => ({
+                    slug,
+                    type: ColumnTypeNames.Numeric,
+                    annotations: [
+                        {
+                            text: slug === "population" ? startText : endText,
+                            entityNames: ["USA"],
+                            timeScope: "all",
+                        },
+                    ],
+                }))
+            )
+
+        it("shows an annotation shared by both indicators once", () => {
+            const [series] = makeTwoColumnChartState("Shared", "Shared").series
+            expect(series.annotation).toEqual("Shared")
+        })
+
+        it("joins different annotations", () => {
+            const [series] = makeTwoColumnChartState("A", "B").series
+            expect(series.annotation).toEqual("A / B")
+        })
+    })
 })

@@ -63,6 +63,7 @@ import {
 } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
+import { selectEntityAnnotationsForColumns } from "../annotations/EntityAnnotations"
 import { MarimekkoBars } from "./MarimekkoBars"
 import {
     measureMarimekkoLabels,
@@ -462,6 +463,22 @@ export class MarimekkoChart
 
         const footer = excludeUndefined([toleranceNotice, roundingNotice])
 
+        const tooltipEntityColor =
+            !colorColumn.isMissing &&
+            !(colorColumn instanceof ColumnTypeMap.Continent)
+                ? tooltipSeries?.entityColor
+                : undefined
+        const rowColumns = excludeUndefined([
+            yPoint ? yColumn : undefined,
+            xColumn && !xColumn.isMissing ? xColumn : undefined,
+            tooltipEntityColor ? colorColumn : undefined,
+        ])
+        const annotationTextBySlug = entityName
+            ? selectEntityAnnotationsForColumns(rowColumns, entityName)
+            : undefined
+        const getColumnAnnotation = (column: CoreColumn): string | undefined =>
+            annotationTextBySlug?.get(column.slug)
+
         return (
             <g
                 ref={this.base}
@@ -517,6 +534,7 @@ export class MarimekkoChart
                                 label={yColumn.displayName}
                                 unit={yColumn.displayUnit}
                                 value={yColumn.formatValueShort(yPoint.value)}
+                                detail={getColumnAnnotation(yColumn)}
                                 originalTime={yOriginalTimeFormatted}
                                 showSignificanceSuperscript={
                                     showSignificanceSuperscriptIfApplicable &&
@@ -529,6 +547,7 @@ export class MarimekkoChart
                                 label={xColumn.displayName}
                                 unit={xColumn.displayUnit}
                                 value={xColumn.formatValueShort(xPoint?.value)}
+                                detail={getColumnAnnotation(xColumn)}
                                 originalTime={xOriginalTimeFormatted}
                                 showSignificanceSuperscript={
                                     showSignificanceSuperscriptIfApplicable &&
@@ -536,26 +555,21 @@ export class MarimekkoChart
                                 }
                             />
                         )}
-                        {!colorColumn.isMissing &&
-                            tooltipSeries?.entityColor &&
-                            !(
-                                colorColumn instanceof ColumnTypeMap.Continent
-                            ) && (
-                                <TooltipValue
-                                    label={
-                                        colorScale.legendDescription ??
-                                        colorColumn.displayName
-                                    }
-                                    value={
-                                        colorScale.getBinForValue(
-                                            tooltipSeries.entityColor
-                                                .colorDomainValue
-                                        )?.label ??
-                                        tooltipSeries.entityColor
-                                            .colorDomainValue
-                                    }
-                                />
-                            )}
+                        {tooltipEntityColor && (
+                            <TooltipValue
+                                label={
+                                    colorScale.legendDescription ??
+                                    colorColumn.displayName
+                                }
+                                value={
+                                    colorScale.getBinForValue(
+                                        tooltipEntityColor.colorDomainValue
+                                    )?.label ??
+                                    tooltipEntityColor.colorDomainValue
+                                }
+                                detail={getColumnAnnotation(colorColumn)}
+                            />
+                        )}
                     </Tooltip>
                 )}
             </g>

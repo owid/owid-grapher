@@ -3,6 +3,7 @@ import { ChartSeries } from "../chart/ChartInterface"
 import { Point } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState.js"
 import { Emphasis } from "../interaction/Emphasis"
+import { EntityAnnotation } from "../annotations/EntityAnnotations"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
@@ -90,6 +91,7 @@ export interface StackedRawSeries<
     rows: OwidVariableRow<PositionType>[]
     focus: InteractionState
     shortEntityName?: string
+    entityAnnotation?: EntityAnnotation
 }
 
 export interface StackedSeries<
@@ -102,6 +104,7 @@ export interface StackedSeries<
     isAllZeros?: boolean
     shortEntityName?: string
     focus?: InteractionState
+    entityAnnotation?: EntityAnnotation
 }
 
 export interface PlacedStackedBarSeries<

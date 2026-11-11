@@ -231,6 +231,13 @@
                     width: max-content;
                     max-width: min(27ch, 38cqw);
                 }
+
+                .entity-name--annotated {
+                    text-decoration: underline;
+                    text-decoration-style: dotted;
+                    text-underline-offset: 2px;
+                    cursor: help;
+                }
             }
 
             tr:not(.title):hover td {

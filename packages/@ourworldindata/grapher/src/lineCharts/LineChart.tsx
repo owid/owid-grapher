@@ -63,6 +63,7 @@ import {
     getHoverStateForSeries,
     getSeriesKey,
     isTargetOutsideElement,
+    joinEntityAnnotationTexts,
 } from "../chart/ChartUtils"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
@@ -855,7 +856,13 @@ export class LineChart
                 color,
                 seriesName,
                 label: !this.manager.showSeriesLabels ? "" : displayName,
-                inlineAnnotation: series.entityAnnotation?.text,
+                inlineAnnotation: joinEntityAnnotationTexts(
+                    excludeUndefined(
+                        this.findSeriesForLabel(series).map(
+                            (s) => s.entityAnnotation?.text
+                        )
+                    )
+                ),
                 annotations: toSeriesLabelAnnotations(
                     {
                         pointAnnotations: seriesForLabel.flatMap(

@@ -20,6 +20,7 @@ import {
 import {
     OwidTable,
     CoreColumn,
+    OwidColumn,
     ColumnTypeMap,
 } from "@ourworldindata/core-table"
 import {
@@ -69,6 +70,9 @@ import {
     ENTITY_DATA_TABLE_SORT,
 } from "./DataTableConstants"
 import { Sparkline } from "../sparkline/Sparkline"
+import { DataTableEntityName } from "./DataTableEntityName"
+import { joinEntityAnnotationTexts } from "../chart/ChartUtils"
+import { selectEntityAnnotationsForColumns } from "../annotations/EntityAnnotations"
 
 const columnNameByType: Record<DataTableColumnKey, string> = {
     single: "Value",
@@ -440,7 +444,15 @@ export class DataTable extends React.Component<DataTableProps> {
         return (
             <tr key={row.entityName}>
                 <td key="entity" className={classnames({ entity: true })}>
-                    <div className="entity-name">{row.entityName}</div>
+                    <DataTableEntityName
+                        entityName={row.entityName}
+                        annotationText={joinEntityAnnotationTexts(
+                            selectEntityAnnotationsForColumns(
+                                dimensions.map((d) => d.coreTableColumn),
+                                row.entityName
+                            ).values()
+                        )}
+                    />
                 </td>
 
                 {row.values.map((valuesForEntity, dimIndex) => {
@@ -606,7 +618,7 @@ export class DataTable extends React.Component<DataTableProps> {
         return autoSelectedStartTime
     }
 
-    @computed private get columnsToShow(): CoreColumn[] {
+    @computed private get columnsToShow(): OwidColumn[] {
         const slugs = this.manager.dataTableSlugs ?? []
         if (slugs.length)
             return slugs

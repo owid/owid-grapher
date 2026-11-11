@@ -1,4 +1,4 @@
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import { OwidColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     ColumnSlug,
     EntityName,
@@ -49,7 +49,7 @@ export interface DataTableManager {
 export interface DataTableDimension {
     columnDefinitions: DataTableColumnDefinition[]
     valuesByEntityName: Map<EntityName, DataTableValuesForEntity>
-    coreTableColumn: CoreColumn
+    coreTableColumn: OwidColumn
 }
 
 /**

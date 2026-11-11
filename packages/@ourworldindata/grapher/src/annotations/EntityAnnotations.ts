@@ -1,10 +1,12 @@
 import * as _ from "lodash-es"
 import {
     AnnotationTimeScope,
+    ColumnSlug,
     EntityName,
     IndicatorAnnotation,
     TimeRange,
 } from "@ourworldindata/types"
+import { excludeUndefined } from "@ourworldindata/utils"
 import { CoreColumn, OwidColumn } from "@ourworldindata/core-table"
 import { SeriesLabelAnnotation } from "../seriesLabel/SeriesLabelState"
 
@@ -113,6 +115,24 @@ export function selectEntityAnnotation(
     return column.annotations
         .filter(isEntityAnnotation)
         .find((annotation) => annotation.entityNames.includes(entityName))
+}
+
+export function selectEntityAnnotationsForColumns(
+    columns: OwidColumn[],
+    entityName: EntityName
+): Map<ColumnSlug, string> {
+    return new Map(
+        excludeUndefined(
+            columns.map((column) => {
+                const entityAnnotation = selectEntityAnnotation(
+                    column,
+                    entityName
+                )
+                if (!entityAnnotation?.text) return undefined
+                return [column.slug, entityAnnotation.text]
+            })
+        )
+    )
 }
 
 export function toSeriesLabelAnnotations(

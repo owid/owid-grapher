@@ -9,6 +9,7 @@ import {
     PointAnnotation,
     RangeAnnotation,
     selectEntityAnnotation,
+    selectEntityAnnotationsForColumns,
     selectEntityTimeAnnotations,
     toSeriesLabelAnnotations,
 } from "./EntityAnnotations"
@@ -332,6 +333,57 @@ describe(selectEntityAnnotation, () => {
                 "Chad"
             )?.text
         ).toBe("first")
+    })
+})
+
+describe(selectEntityAnnotationsForColumns, () => {
+    const makeColumns = (
+        textBySlug: Record<string, string | undefined>
+    ): OwidColumn[] => {
+        const slugs = Object.keys(textBySlug)
+        const table = new OwidTable(
+            { entityName: ["Chad"], year: [2000], a: [1], b: [2] },
+            slugs.map((slug) => ({
+                slug,
+                type: ColumnTypeNames.Numeric,
+                annotations:
+                    textBySlug[slug] === undefined
+                        ? []
+                        : [
+                              {
+                                  text: textBySlug[slug],
+                                  entityNames: ["Chad"],
+                                  timeScope: "all",
+                              },
+                          ],
+            }))
+        )
+        return slugs.map((slug) => table.get(slug))
+    }
+
+    it("returns an empty map when no column has a note for the entity", () => {
+        const columns = makeColumns({ a: undefined, b: undefined })
+
+        expect(selectEntityAnnotationsForColumns(columns, "Chad").size).toBe(0)
+    })
+
+    it("keys each note by its column's slug, in column order, even when texts repeat", () => {
+        const columns = makeColumns({ a: "Same note", b: "Same note" })
+
+        expect([...selectEntityAnnotationsForColumns(columns, "Chad")]).toEqual(
+            [
+                ["a", "Same note"],
+                ["b", "Same note"],
+            ]
+        )
+    })
+
+    it("leaves out columns without a note for the entity", () => {
+        const columns = makeColumns({ a: undefined, b: "Note B" })
+
+        expect([...selectEntityAnnotationsForColumns(columns, "Chad")]).toEqual(
+            [["b", "Note B"]]
+        )
     })
 })
 

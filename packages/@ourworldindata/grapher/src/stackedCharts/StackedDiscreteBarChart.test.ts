@@ -1,5 +1,6 @@
 import { expect, it, describe } from "vitest"
 
+import { ColumnTypeNames } from "@ourworldindata/types"
 import { SortOrder, SortBy, MissingDataStrategy } from "@ourworldindata/utils"
 import {
     OwidTable,
@@ -437,5 +438,61 @@ describe("showLegend", () => {
         expect(chart["externalLegend"]?.categoricalLegendData?.length).toEqual(
             2
         )
+    })
+})
+
+describe("entity annotations", () => {
+    const makeChartState = (
+        coalText: string,
+        gasText: string
+    ): StackedDiscreteBarChartState => {
+        const table = new OwidTable(
+            [
+                ["coal", "gas", "year", "entityName"],
+                [20, 30, 2000, "France"],
+            ],
+            [
+                {
+                    slug: "coal",
+                    type: ColumnTypeNames.Numeric,
+                    annotations: [
+                        {
+                            text: coalText,
+                            entityNames: ["France"],
+                            timeScope: "all",
+                        },
+                    ],
+                },
+                {
+                    slug: "gas",
+                    type: ColumnTypeNames.Numeric,
+                    annotations: [
+                        {
+                            text: gasText,
+                            entityNames: ["France"],
+                            timeScope: "all",
+                        },
+                    ],
+                },
+                yearDef(),
+            ]
+        )
+        return new StackedDiscreteBarChartState({
+            manager: {
+                table,
+                selection: table.availableEntityNames,
+                yColumnSlugs: ["coal", "gas"],
+            },
+        })
+    }
+
+    it("gives a row one annotation when every segment column has the same one", () => {
+        const { rows } = makeChartState("Estimate", "Estimate")
+        expect(rows[0].annotation).toEqual("Estimate")
+    })
+
+    it("joins different segment annotations into one row annotation", () => {
+        const { rows } = makeChartState("Coal estimate", "Gas estimate")
+        expect(rows[0].annotation).toEqual("Coal estimate / Gas estimate")
     })
 })

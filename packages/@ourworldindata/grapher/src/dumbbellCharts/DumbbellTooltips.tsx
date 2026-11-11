@@ -6,7 +6,7 @@ import {
     excludeUndefined,
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { DumbbellValueLabelMode } from "@ourworldindata/types"
+import { ColumnSlug, DumbbellValueLabelMode } from "@ourworldindata/types"
 import {
     formatTooltipRangeValues,
     makeTooltipRoundingNotice,
@@ -21,6 +21,7 @@ import { GRAY_90 } from "../color/ColorConstants.js"
 import { DumbbellChartState } from "./DumbbellChartState"
 import { SizedDumbbellSeries } from "./DumbbellChartConstants"
 import { match } from "ts-pattern"
+import { selectEntityAnnotationsForColumns } from "../annotations/EntityAnnotations"
 
 interface DumbbellTooltipProps {
     id: number
@@ -130,6 +131,7 @@ export class DumbbellTimeRangeTooltip extends React.Component<DumbbellTooltipPro
                 offsetY={-16}
                 style={{ maxWidth: "300px" }}
                 title={target.displayName}
+                titleAnnotation={target.annotation}
                 subtitle={this.subtitle}
                 subtitleFormat={this.toleranceNotice ? "notice" : undefined}
                 footer={footer}
@@ -228,6 +230,18 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
         return this.roundingNotice?.icon === TooltipFooterIcon.Significance
     }
 
+    @computed private get annotationTextBySlug():
+        | Map<ColumnSlug, string>
+        | undefined {
+        const { target } = this
+        if (!target) return undefined
+        const [startColumn, endColumn] = this.chartState.yColumns
+        return selectEntityAnnotationsForColumns(
+            [startColumn, endColumn],
+            target.entityName
+        )
+    }
+
     @computed private get changeRow():
         | {
               label: string
@@ -267,6 +281,10 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
             .exhaustive()
     }
 
+    private getColumnAnnotation(column: CoreColumn): string | undefined {
+        return this.annotationTextBySlug?.get(column.slug)
+    }
+
     override render(): React.ReactElement | null {
         const { target } = this
         const { position, fading } = this.props.tooltipState
@@ -298,6 +316,7 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
                     label={startColumn.displayName}
                     unit={startColumn.displayUnit}
                     value={startColumn.formatValueShort(target.start.value)}
+                    detail={this.getColumnAnnotation(startColumn)}
                     color={target.start.color}
                     originalTime={
                         target.start.time !== endTime
@@ -314,6 +333,7 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
                     label={endColumn.displayName}
                     unit={endColumn.displayUnit}
                     value={endColumn.formatValueShort(target.end.value)}
+                    detail={this.getColumnAnnotation(endColumn)}
                     color={target.end.color}
                     originalTime={
                         target.end.time !== endTime

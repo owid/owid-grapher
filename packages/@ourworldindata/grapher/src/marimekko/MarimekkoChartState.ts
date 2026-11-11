@@ -7,7 +7,7 @@ import {
     MarimekkoChartManager,
     MarimekkoSeries,
 } from "./MarimekkoChartConstants"
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import { CoreColumn, OwidColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     autoDetectYColumnSlugs,
     getShortNameForEntity,
@@ -129,7 +129,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         return slugs[0]
     }
 
-    @computed get yColumn(): CoreColumn {
+    @computed get yColumn(): OwidColumn {
         return this.transformedTable.get(this.yColumnSlug)
     }
 
@@ -141,7 +141,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         return this.manager.xColumnSlug
     }
 
-    @computed get xColumn(): CoreColumn | undefined {
+    @computed get xColumn(): OwidColumn | undefined {
         if (this.xColumnSlug === undefined) return undefined
         return this.transformedTable.get(this.xColumnSlug)
     }
@@ -158,7 +158,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         })
     }
 
-    @computed get colorColumn(): CoreColumn {
+    @computed get colorColumn(): OwidColumn {
         return this.transformedTable.get(this.colorColumnSlug)
     }
 
