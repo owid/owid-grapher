@@ -15,6 +15,9 @@ export interface ThumbnailTestSection {
 const MANY_COUNTRIES =
     "USA~DEU~CHN~IND~BRA~NGA~JPN~GBR~FRA~ITA~ESP~MEX~RUS~ZAF~IDN~EGY"
 
+/** Section of faceted charts of any type */
+export const FACET_SECTION_ID = "facet"
+
 const LONG_NAME_COUNTRIES = "COD~CAF~BIH~VCT~TTO~USA~FSM~STP"
 
 export const THUMBNAIL_TEST_SECTIONS: ThumbnailTestSection[] = [
@@ -418,6 +421,70 @@ export const THUMBNAIL_TEST_SECTIONS: ThumbnailTestSection[] = [
                 slug: "political-regime",
                 queryStr: `tab=swimlane&country=${MANY_COUNTRIES}`,
                 label: "Many entities",
+            },
+        ],
+    },
+    {
+        id: FACET_SECTION_ID,
+        title: "Faceted",
+        cases: [
+            {
+                slug: "electric-car-sales-share",
+                label: "Line chart by entity",
+            },
+            {
+                slug: "real-gdp-growth",
+                label: "Line chart by entity, negative values",
+            },
+            {
+                slug: "measles-cases-and-death-rate",
+                label: "Line chart by metric",
+            },
+            {
+                slug: "drivers-deforestation-commodity",
+                label: "Line chart by metric, many facets",
+            },
+            {
+                slug: "annual-death-rates-in-different-age-groups",
+                label: "Line chart by metric, several entities",
+            },
+            {
+                slug: "per-capita-meat-consumption-by-type-kilograms-per-year",
+                queryStr: "facet=entity&country=OWID_WRL~USA~CHN~BRA",
+                label: "Stacked area by entity",
+            },
+            {
+                slug: "number-of-people-with-blindness-due-to-each-cause",
+                label: "Stacked area by metric",
+            },
+            {
+                slug: "deaths-in-armed-conflicts-by-type-and-country",
+                label: "Stacked bar by entity",
+            },
+            {
+                slug: "airliner-hijackings-and-fatalities-from-them",
+                label: "Stacked bar by metric",
+            },
+            {
+                slug: "environmental-footprint-milks",
+                label: "Discrete bar by metric",
+            },
+            {
+                slug: "antibiotic-use-intensity-in-livestock-by-region",
+                label: "Discrete bar by entity",
+            },
+            {
+                slug: "materials-low-carbon-electricity",
+                label: "Stacked discrete bar by entity",
+            },
+            {
+                slug: "share-of-adults-borrowing-from-different-sources",
+                label: "Slope chart by entity",
+            },
+            {
+                slug: "gdp-per-capita-worldbank",
+                queryStr: "tab=map&time=2000..latest",
+                label: "Map comparing two years",
             },
         ],
     },
