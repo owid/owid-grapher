@@ -8660,7 +8660,7 @@ __metadata:
     oxfmt: "npm:^0.70.0"
     oxlint: "npm:^1.86.0"
     oxlint-tsgolint: "npm:^7.0.2003"
-    p-map: "npm:^7.0.3"
+    p-map: "npm:^7.1.1"
     polylabel: "npm:^2.1.0"
     progress: "npm:^2.0.3"
     react: "npm:^19.3.1"
@@ -11170,10 +11170,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-map@npm:^7.0.3":
-  version: 7.0.3
-  resolution: "p-map@npm:7.0.3"
-  checksum: 10/2ef48ccfc6dd387253d71bf502604f7893ed62090b2c9d73387f10006c342606b05233da0e4f29388227b61eb5aeface6197e166520c465c234552eeab2fe633
+"p-map@npm:^7.1.1":
+  version: 7.1.1
+  resolution: "p-map@npm:7.1.1"
+  checksum: 10/edc3b791c092701b4d3e9f453f6cf3ab7f4a2d07350a5a3cb189a519516af3b51058e33395595882906b1547dc3acbecfc2fd970f61c14f35507400bd02a8d50
   languageName: node
   linkType: hard
 
