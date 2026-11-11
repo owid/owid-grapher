@@ -5,6 +5,7 @@ import {
 import { GRAPHER_TAB_NAMES, GrapherInterface } from "@ourworldindata/types"
 import * as db from "../db/db.js"
 import {
+    FACET_SECTION_ID,
     THUMBNAIL_TEST_SECTIONS,
     ThumbnailTestSection,
 } from "./thumbnailTestCases.js"
@@ -66,16 +67,18 @@ async function findSampleCandidates(
         if (grapherState.activeTab === GRAPHER_TAB_NAMES.Table)
             grapherState.resetToDefaultTab()
         if (grapherState.activeTab === GRAPHER_TAB_NAMES.Table) return []
-        return [
-            {
-                slug: row.slug,
-                title: config.title ?? row.slug,
-                sectionId: mapGrapherTabNameToQueryParam(
-                    grapherState.activeTab
-                ),
-                pageviews: row.pageviews ?? 0,
-            },
-        ]
+        const candidate = {
+            slug: row.slug,
+            title: config.title ?? row.slug,
+            pageviews: row.pageviews ?? 0,
+        }
+        const tabSectionId = mapGrapherTabNameToQueryParam(
+            grapherState.activeTab
+        )
+        const sectionIds = grapherState.isFaceted
+            ? [tabSectionId, FACET_SECTION_ID]
+            : [tabSectionId]
+        return sectionIds.map((sectionId) => ({ ...candidate, sectionId }))
     })
 }
 
