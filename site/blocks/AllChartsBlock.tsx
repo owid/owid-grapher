@@ -57,6 +57,7 @@ export function AllChartsBlock({
     heading,
     rowCount,
     rows,
+    countries,
     onLoadMore,
     isLoadingMore,
     search,
@@ -67,6 +68,7 @@ export function AllChartsBlock({
     heading: string
     rowCount: number
     rows: AllChartsRowData[]
+    countries: string[]
     onLoadMore?: () => void
     isLoadingMore?: boolean
     search?: AllChartsBlockSearch
@@ -85,7 +87,7 @@ export function AllChartsBlock({
     const selectedTab =
         selectedRow &&
         ((selection?.slug === selectedRow.slug && selection.tab) ||
-            getDefaultTabForRow(selectedRow, []))
+            getDefaultTabForRow(selectedRow, countries))
 
     const isNarrow = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
 
@@ -106,6 +108,7 @@ export function AllChartsBlock({
                         // New element per query, so the scroll position resets
                         key={rowsQuery}
                         rows={rows}
+                        countries={countries}
                         selectedRow={selectedRow}
                         selectedTab={selectedTab}
                         isNarrow={isNarrow}
@@ -121,6 +124,7 @@ export function AllChartsBlock({
                                 <AllChartsPreview
                                     slug={selectedRow.slug}
                                     tab={selectedTab}
+                                    countries={countries}
                                 />
                             )}
                         </div>
@@ -133,6 +137,7 @@ export function AllChartsBlock({
 
 function AllChartsList({
     rows,
+    countries,
     selectedRow,
     selectedTab,
     isNarrow,
@@ -141,6 +146,7 @@ function AllChartsList({
     isLoadingMore,
 }: {
     rows: AllChartsRowData[]
+    countries: string[]
     selectedRow: AllChartsRowData | undefined
     selectedTab: GrapherTabName | undefined
     isNarrow: boolean
@@ -165,6 +171,7 @@ function AllChartsList({
                     <AllChartsItem
                         key={`${row.type}:${row.slug}:${row.queryParams ?? ""}`}
                         row={row}
+                        countries={countries}
                         isSelected={row === selectedRow}
                         selectedTab={selectedTab}
                         isNarrow={isNarrow}
@@ -193,12 +200,14 @@ function AllChartsList({
 
 function AllChartsItem({
     row,
+    countries,
     isSelected,
     selectedTab,
     isNarrow,
     onSelect,
 }: {
     row: AllChartsRowData
+    countries: string[]
     isSelected: boolean
     selectedTab: GrapherTabName | undefined
     isNarrow: boolean
@@ -226,11 +235,13 @@ function AllChartsItem({
             <AllChartsRow
                 row={row}
                 isSelected={isSelected}
-                selectedTab={selectedTab}
-                thumbnailTabs={pickThumbnailTabs(row.availableTabs, {
-                    hasCountries: false,
-                })}
-                countries={[]}
+                displayedTab={
+                    isSelected
+                        ? selectedTab
+                        : getDefaultTabForRow(row, countries)
+                }
+                thumbnailTabs={pickThumbnailTabs(row.availableTabs)}
+                countries={countries}
                 inlinePreviewId={isNarrow ? inlinePreviewId : undefined}
                 onTitleSelect={(tab) => select(tab, !isSelected)}
                 onThumbnailSelect={(tab) => select(tab, true)}
@@ -241,7 +252,11 @@ function AllChartsItem({
                     id={inlinePreviewId}
                 >
                     {selectedTab && (
-                        <AllChartsPreview slug={row.slug} tab={selectedTab} />
+                        <AllChartsPreview
+                            slug={row.slug}
+                            tab={selectedTab}
+                            countries={countries}
+                        />
                     )}
                 </div>
             )}
@@ -419,16 +434,20 @@ function AllChartsPanel({
 function AllChartsPreview({
     slug,
     tab,
+    countries,
 }: {
     slug: string
     tab: GrapherTabName
+    countries: string[]
 }): React.ReactElement {
     const { isPreviewing } = useDocumentContext()
     return (
         <GrapherWithFallback
-            key={`${slug}:${tab}`}
+            key={`${slug}:${tab}:${countries.join("|")}`}
             slug={slug}
-            queryStr={queryParamsToStr(toGrapherQueryParams({ tab }))}
+            queryStr={queryParamsToStr(
+                toGrapherQueryParams({ tab, entities: countries })
+            )}
             className={GRAPHER_PREVIEW_CLASS}
             isEmbeddedInAnOwidPage
             isEmbeddedInADataPage={false}
@@ -460,26 +479,16 @@ function getDefaultTabForRow(
     row: AllChartsRowData,
     countries: string[]
 ): GrapherTabName {
-    const [firstTab] = pickThumbnailTabs(row.availableTabs, {
-        hasCountries: countries.length > 0,
-    })
-    return firstTab ?? GRAPHER_TAB_NAMES.Table
+    const thumbnailTabs = pickThumbnailTabs(row.availableTabs)
+    const preferredTab =
+        countries.length > 0
+            ? thumbnailTabs.find((tab) => tab !== GRAPHER_TAB_NAMES.WorldMap)
+            : undefined
+    return preferredTab ?? thumbnailTabs[0] ?? GRAPHER_TAB_NAMES.Table
 }
 
-function pickThumbnailTabs(
-    availableTabs: GrapherTabName[],
-    { hasCountries }: { hasCountries: boolean }
-): GrapherTabName[] {
-    const tabs = availableTabs
+function pickThumbnailTabs(availableTabs: GrapherTabName[]): GrapherTabName[] {
+    return availableTabs
         .filter((tab) => tab !== GRAPHER_TAB_NAMES.Table)
         .slice(0, MAX_THUMBNAILS)
-
-    if (
-        hasCountries &&
-        tabs.length > 1 &&
-        tabs[0] === GRAPHER_TAB_NAMES.WorldMap
-    )
-        return [...tabs.slice(1), tabs[0]]
-
-    return tabs
 }

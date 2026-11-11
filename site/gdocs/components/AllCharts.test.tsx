@@ -183,6 +183,34 @@ it("returns to the first page without a request when the input is cleared", asyn
     expect(screen.getByRole("textbox")).toHaveValue("")
 })
 
+it("filters by countries typed into the search and shows them on the rows, thumbnails and preview", async () => {
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    fireEvent.change(screen.getByRole("textbox"), {
+        target: { value: "spain" },
+    })
+
+    await vi.waitFor(() =>
+        expect(requestedFacetFilters().at(-1)).toContain(
+            "availableEntities:Spain"
+        )
+    )
+    await vi.waitFor(() =>
+        expect(
+            document.querySelector(".all-charts-row__countries")
+        ).toHaveTextContent("Spain")
+    )
+    const alphaRow = await findRow("alpha")
+    expect(alphaRow.querySelector("img")?.getAttribute("src")).toContain(
+        "country=~ESP"
+    )
+    expect(screen.getByTestId("preview")).toHaveTextContent(
+        "alpha?tab=line&country=~ESP"
+    )
+})
+
 function makeResponse(page: number, slugs: string[], nbHits = 3): unknown {
     const hits = slugs.map((slug) => ({
         objectID: slug,
@@ -201,6 +229,10 @@ async function findRow(slug: string): Promise<HTMLElement> {
 
 function requestedPages(): number[] {
     return searchForHits.mock.calls.map(([[params]]) => params.page)
+}
+
+function requestedFacetFilters(): unknown[] {
+    return searchForHits.mock.calls.map(([[params]]) => params.facetFilters)
 }
 
 function requestedQueries(): string[] {

@@ -6,6 +6,7 @@ import {
     TagGraphRoot,
     SearchState,
     SearchChartHit,
+    SearchResultType,
     type SearchChartViewHit,
     ChartRecordType,
     StackedArticleHit,
@@ -43,8 +44,12 @@ import {
     recommendTopicPages,
     TOPIC_PAGE_TYPE_FILTER,
     MAX_FACET_VALUES,
+    lazy,
+    listedRegionsNames,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
+import { applyAutomaticFilters } from "./searchState.js"
+import { buildSynonymMap } from "./synonymUtils.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
@@ -73,8 +78,8 @@ export const searchQueryKeys = {
 } as const
 
 export const allChartsBlockQueryKeys = {
-    charts: (query: Omit<AllChartsBlockQuery, "page">) =>
-        [CHARTS_INDEX, "all-charts-block", query] as const,
+    charts: (request: Omit<AllChartsBlockRequest, "page">) =>
+        [CHARTS_INDEX, "all-charts-block", request] as const,
 } as const
 
 export const latestPagesQueryKey = {
@@ -538,6 +543,13 @@ export async function queryWritingTopics(
     })
 }
 
+/** What the all-charts block asks for: the reader's raw input */
+export interface AllChartsBlockRequest {
+    topic: string
+    query: string
+    page: number
+}
+
 export interface AllChartsBlockQuery {
     topic: string
     query: string
@@ -546,7 +558,9 @@ export interface AllChartsBlockQuery {
 }
 
 export interface AllChartsBlockPage {
+    /** The raw input this page answers */
     query: string
+    countries: string[]
     hits: SearchChartViewHit[]
     nbHits: number
     page: number
@@ -554,6 +568,32 @@ export interface AllChartsBlockPage {
 }
 
 export const ALL_CHARTS_BLOCK_HITS_PER_PAGE = 20
+export const MAX_ALL_CHARTS_BLOCK_COUNTRIES = 4
+
+const getSynonymMap = lazy(() => buildSynonymMap())
+
+/** Splits the reader's input into the text query and the countries named in it */
+export function parseAllChartsBlockQuery(query: string): {
+    query: string
+    countries: string[]
+} {
+    const state = applyAutomaticFilters(
+        {
+            query,
+            filters: [],
+            requireAllCountries: true,
+            resultType: SearchResultType.DATA,
+        },
+        listedRegionsNames(),
+        getSynonymMap()
+    )
+    return {
+        query: state.query,
+        countries: [
+            ...getFilterNamesOfType(state.filters, FilterType.COUNTRY),
+        ].slice(0, MAX_ALL_CHARTS_BLOCK_COUNTRIES),
+    }
+}
 
 export function buildAllChartsBlockSearchParams(
     allChartsBlockQuery: AllChartsBlockQuery
@@ -594,17 +634,23 @@ export function buildAllChartsBlockSearchParams(
 
 export async function queryAllChartsBlock(
     liteSearchClient: LiteClient,
-    allChartsBlockQuery: AllChartsBlockQuery
+    request: AllChartsBlockRequest
 ): Promise<AllChartsBlockPage> {
+    const parsed = parseAllChartsBlockQuery(request.query)
     const response = await searchSingleForHits<SearchChartViewHit>(
         liteSearchClient,
-        buildAllChartsBlockSearchParams(allChartsBlockQuery)
+        buildAllChartsBlockSearchParams({
+            topic: request.topic,
+            ...parsed,
+            page: request.page,
+        })
     )
     return {
-        query: allChartsBlockQuery.query,
+        query: request.query,
+        countries: parsed.countries,
         hits: response.hits,
         nbHits: response.nbHits ?? 0,
-        page: response.page ?? allChartsBlockQuery.page,
+        page: response.page ?? request.page,
         nbPages: response.nbPages ?? 0,
     }
 }

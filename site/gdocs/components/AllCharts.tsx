@@ -59,7 +59,6 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
     const chartsQuery = {
         topic: topic ?? "",
         query: requestedQuery,
-        countries: [],
     }
     const {
         data,
@@ -125,7 +124,7 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
             availableTabs: hit.availableTabs,
         }))
     )
-    const rowsQuery = data.pages[0].query
+    const { query: rowsQuery, countries } = data.pages[0]
 
     return (
         <AllChartsBlock
@@ -134,6 +133,7 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
             heading={heading}
             rowCount={data.pages[0].nbHits}
             rows={rows}
+            countries={countries}
             search={{
                 query,
                 rowsQuery,
