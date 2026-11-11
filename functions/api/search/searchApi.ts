@@ -107,7 +107,7 @@ export interface SearchPagesApiResponse {
 }
 
 // Minimal set of attributes needed by the MCP server and other API consumers
-const DATA_CATALOG_ATTRIBUTES = [
+export const DATA_CATALOG_ATTRIBUTES = [
     "title",
     "containerTitle",
     "slug",
@@ -176,6 +176,22 @@ async function assertTopicsExist(
     }
 }
 
+/** Where a chart hit lives on the site, by record type. */
+export function getChartHitUrl(
+    hit: Pick<SearchChartHit, "type" | "slug"> & { queryParams?: string },
+    baseUrl: string
+): string {
+    const queryParams = hit.queryParams || ""
+    // Explorer views: /explorers/{slug}{queryParams}
+    if (hit.type === ChartRecordType.ExplorerView)
+        return `${baseUrl}/explorers/${hit.slug}${queryParams}`
+    // Multi-dimensional views: /grapher/{slug}{queryParams}
+    if (hit.type === ChartRecordType.MultiDimView)
+        return `${baseUrl}/grapher/${hit.slug}${queryParams}`
+    // Regular charts: /grapher/{slug}
+    return `${baseUrl}/grapher/${hit.slug}`
+}
+
 export async function searchCharts(
     config: AlgoliaConfig,
     state: SearchState,
@@ -223,24 +239,9 @@ export async function searchCharts(
             }
         }
 
-        // Construct URL based on type
-        let url: string
-        if (cleanHit.type === ChartRecordType.ExplorerView) {
-            // Explorer views: /explorers/{slug}{queryParams}
-            const queryParams = cleanHit.queryParams || ""
-            url = `${baseUrl}/explorers/${cleanHit.slug}${queryParams}`
-        } else if (cleanHit.type === ChartRecordType.MultiDimView) {
-            // Multi-dimensional views: /grapher/{slug}{queryParams}
-            const queryParams = cleanHit.queryParams || ""
-            url = `${baseUrl}/grapher/${cleanHit.slug}${queryParams}`
-        } else {
-            // Regular charts: /grapher/{slug}
-            url = `${baseUrl}/grapher/${cleanHit.slug}`
-        }
-
         return {
             ...(cleanHit as SearchChartHit),
-            url,
+            url: getChartHitUrl(cleanHit, baseUrl),
         }
     })
 
@@ -256,7 +257,7 @@ export async function searchCharts(
 }
 
 // Minimal set of attributes needed for page search
-const PAGE_ATTRIBUTES = [
+export const PAGE_ATTRIBUTES = [
     "title",
     "thumbnailUrl",
     "date",

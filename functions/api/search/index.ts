@@ -25,6 +25,11 @@ import {
     SearchTopicsApiResponse,
     SearchValidationError,
 } from "./searchApi.js"
+import { getTypesenseConfig } from "./typesenseClient.js"
+import {
+    searchChartsTypesense,
+    searchPagesTypesense,
+} from "./typesenseSearchApi.js"
 import {
     appendVocabularyHits,
     pickVocabularyTerms,
@@ -80,7 +85,16 @@ const KNOWN_PARAMS = new Set<string>([
     "hitsPerPage",
     "rerank",
     "vocab",
+    "engine",
+    "alpha",
 ])
+
+// Experimental: which engine answers a charts or pages search. Typesense
+// takes `alpha`, the weight of the vector half of its hybrid search (see
+// typesenseSearchApi.ts); 0 is a keyword-only search.
+const SEARCH_ENGINES = ["algolia", "typesense"] as const
+type SearchEngine = (typeof SEARCH_ENGINES)[number]
+const DEFAULT_ALPHA = 0.3
 
 // The parameters only some search types read. A request that sends one to a
 // type that doesn't read it gets a warning instead of a silently different
@@ -93,6 +107,8 @@ const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
     ["pageTypes", ["pages"]],
     ["rerank", ["charts", "pages"]],
     ["vocab", ["charts", "pages"]],
+    ["engine", ["charts", "pages"]],
+    ["alpha", ["charts", "pages"]],
 ])
 
 // type=topics filters by country only when charts match a query, so never
@@ -240,6 +256,42 @@ async function pickTopicsByChartVotes(
             error: error instanceof Error ? error.message : String(error),
         }
     }
+}
+
+/**
+ * The experimental `engine` and `alpha` params of a charts or pages search.
+ * Typesense answers the search itself and, with `rerank`, supplies the pool;
+ * the vocabulary topic search (`vocab`) is Algolia's only.
+ */
+function parseEngine(
+    engine: string | null,
+    alpha: string | null,
+    vocab: string | null,
+    env: Env
+): { engine: SearchEngine; alpha: number } {
+    if (engine && !(SEARCH_ENGINES as readonly string[]).includes(engine))
+        throw new SearchValidationError(
+            `Invalid engine value "${engine}". Valid values: ${SEARCH_ENGINES.join(", ")}`
+        )
+    if (engine !== "typesense") {
+        if (alpha)
+            throw new SearchValidationError("alpha needs engine=typesense")
+        return { engine: "algolia", alpha: 0 }
+    }
+    if (!env.TYPESENSE_HOST || !env.TYPESENSE_SEARCH_KEY)
+        throw new SearchValidationError(
+            "engine=typesense is not available on this deployment"
+        )
+    if (vocab)
+        throw new SearchValidationError(
+            "vocab is not available with engine=typesense"
+        )
+    const parsed = alpha ? Number(alpha) : DEFAULT_ALPHA
+    if (!(parsed >= 0 && parsed <= 1))
+        throw new SearchValidationError(
+            `Invalid alpha value "${alpha}". Use a number from 0 (keyword only) to 1 (vector only)`
+        )
+    return { engine: "typesense", alpha: parsed }
 }
 
 const hasSearchEnvVars = (env: Env): boolean => {
@@ -449,6 +501,63 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
 
+        const { engine, alpha } =
+            searchType === "charts" || searchType === "pages"
+                ? parseEngine(
+                      url.searchParams.get("engine"),
+                      url.searchParams.get("alpha"),
+                      url.searchParams.get("vocab"),
+                      env
+                  )
+                : { engine: "algolia" as const, alpha: 0 }
+
+        // The engine's own charts and pages search: what a plain search
+        // returns, and the pool a reranked one reorders
+        const engineSearchCharts = (
+            page: number,
+            hitsPerPage: number
+        ): Promise<SearchApiResponse> =>
+            engine === "typesense"
+                ? searchChartsTypesense(
+                      getTypesenseConfig(env),
+                      searchState,
+                      page,
+                      hitsPerPage,
+                      baseUrl,
+                      alpha
+                  )
+                : searchCharts(
+                      algoliaConfig,
+                      searchState,
+                      page,
+                      hitsPerPage,
+                      baseUrl
+                  )
+        const engineSearchPages = (
+            offset: number,
+            length: number,
+            extraAttributes?: string[]
+        ): Promise<SearchPagesApiResponse> =>
+            engine === "typesense"
+                ? searchPagesTypesense(
+                      getTypesenseConfig(env),
+                      query,
+                      offset,
+                      length,
+                      pageTypes, // undefined -> the default page types
+                      baseUrl,
+                      extraAttributes ?? [],
+                      alpha
+                  )
+                : searchPages(
+                      algoliaConfig,
+                      query,
+                      offset,
+                      length,
+                      pageTypes, // undefined -> searchPages()'s own default
+                      baseUrl,
+                      ...(extraAttributes ? [extraAttributes] : [])
+                  )
         const pickTopics = (
             rerank: NonNullable<ReturnType<typeof parseRerank>>
         ): Promise<VocabularyInfo<VocabularyTopicPick>> => {
@@ -497,12 +606,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             const [{ value: pool, ms: poolMs }, vocabulary] = await Promise.all(
                 [
                     timed(() =>
-                        searchCharts(
-                            algoliaConfig,
-                            searchState,
+                        engineSearchCharts(
                             0,
-                            Math.max(RERANK_POOL_SIZE, hitsPerPage),
-                            baseUrl
+                            Math.max(RERANK_POOL_SIZE, hitsPerPage)
                         )
                     ),
                     expand
@@ -634,13 +740,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             const [{ value: pool, ms: poolMs }, vocabulary] = await Promise.all(
                 [
                     timed(() =>
-                        searchPages(
-                            algoliaConfig,
-                            query,
+                        engineSearchPages(
                             0,
                             Math.max(RERANK_POOL_SIZE, hitsPerPage),
-                            pageTypes, // undefined -> searchPages()'s own default
-                            baseUrl,
                             ["excerpt"]
                         )
                     ),
@@ -712,22 +814,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             switch (searchType) {
                 case "charts":
                     if (rerank) return searchChartsReranked(rerank)
-                    return searchCharts(
-                        algoliaConfig,
-                        searchState,
-                        page,
-                        hitsPerPage,
-                        baseUrl
-                    )
+                    return engineSearchCharts(page, hitsPerPage)
                 case "pages":
                     if (rerank) return searchPagesReranked(rerank)
-                    return searchPages(
-                        algoliaConfig,
-                        query,
+                    return engineSearchPages(
                         page * hitsPerPage, // Convert page to offset
-                        hitsPerPage,
-                        pageTypes, // undefined -> searchPages()'s own default
-                        baseUrl
+                        hitsPerPage
                     )
                 case "topics":
                     return searchTopicPages(

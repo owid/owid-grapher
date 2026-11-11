@@ -73,6 +73,14 @@ export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""
 export const ALGOLIA_INDEX_PREFIX: string =
     process.env.ALGOLIA_INDEX_PREFIX ?? ""
 
+// Experimental Typesense search backend (see baker/typesense/ and
+// /api/search?engine=typesense)
+export const TYPESENSE_HOST: string = process.env.TYPESENSE_HOST ?? "localhost"
+export const TYPESENSE_PORT: number =
+    parseIntOrUndefined(process.env.TYPESENSE_PORT) ?? 8108
+export const TYPESENSE_PROTOCOL: string =
+    process.env.TYPESENSE_PROTOCOL ?? "http"
+
 // Endpoint of the Cloudflare function that proxies empty-query Algolia
 // searches and caches their results aggressively (see
 // functions/api/search/cached-queries.ts).

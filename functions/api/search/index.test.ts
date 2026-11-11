@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, assert } from "vitest"
 import { onRequestGet } from "./index.js"
 import * as searchApi from "./searchApi.js"
+import * as typesenseSearchApi from "./typesenseSearchApi.js"
 import type { Env } from "../../_common/env.js"
 
 // Mock the searchApi module
@@ -13,6 +14,12 @@ vi.mock(import("./searchApi.js"), async (importOriginal) => {
         searchTopicPages: vi.fn(),
     }
 })
+
+vi.mock(import("./typesenseSearchApi.js"), async (importOriginal) => ({
+    ...(await importOriginal()),
+    searchChartsTypesense: vi.fn(),
+    searchPagesTypesense: vi.fn(),
+}))
 
 describe("Search API endpoint", () => {
     const mockEnv: Env = {
@@ -693,6 +700,73 @@ describe("Search API endpoint", () => {
                 expect(mockSearchCharts).not.toHaveBeenCalled()
             }
         )
+
+        describe("engine parameter", () => {
+            const envWithTypesense = {
+                ...envWithAi,
+                TYPESENSE_HOST: "typesense",
+                TYPESENSE_SEARCH_KEY: "xyz",
+            } as Env
+
+            it("takes a reranked search's pool from Typesense, at the requested alpha", async () => {
+                const mockTypesense = vi
+                    .spyOn(typesenseSearchApi, "searchChartsTypesense")
+                    .mockResolvedValue(pool)
+                const mockAlgolia = vi.spyOn(searchApi, "searchCharts")
+
+                const response = await get(
+                    "q=birth+rate&rerank=jev&engine=typesense&alpha=0.5&hitsPerPage=2",
+                    envWithTypesense
+                )
+                const body = (await response.json()) as {
+                    results: { slug: string }[]
+                }
+
+                expect(mockAlgolia).not.toHaveBeenCalled()
+                expect(mockTypesense).toHaveBeenCalledWith(
+                    expect.anything(),
+                    expect.objectContaining({ query: "birth rate" }),
+                    0,
+                    30,
+                    "http://localhost",
+                    0.5
+                )
+                expect(body.results.map((hit) => hit.slug)).toEqual(["c", "b"])
+            })
+
+            it.each([
+                ["an unknown engine", "q=gdp&engine=elastic", /Invalid engine/],
+                [
+                    "alpha without Typesense",
+                    "q=gdp&alpha=0.5",
+                    /engine=typesense/,
+                ],
+                [
+                    "an alpha outside 0 to 1",
+                    "q=gdp&engine=typesense&alpha=2",
+                    /Invalid alpha/,
+                ],
+                [
+                    "the vocabulary topic search",
+                    "q=gdp&engine=typesense&rerank=jev&vocab=1",
+                    /vocab is not available/,
+                ],
+            ])("rejects %s with a 400", async (_, query, message) => {
+                const response = await get(query, envWithTypesense)
+
+                expect(response.status).toBe(400)
+                const body = (await response.json()) as { error: string }
+                expect(body.error).toMatch(message)
+            })
+
+            it("rejects engine=typesense on a deployment without a Typesense server", async () => {
+                const response = await get("q=gdp&engine=typesense", mockEnv)
+
+                expect(response.status).toBe(400)
+                const body = (await response.json()) as { error: string }
+                expect(body.error).toMatch(/not available/)
+            })
+        })
     })
 
     describe("response format", () => {
