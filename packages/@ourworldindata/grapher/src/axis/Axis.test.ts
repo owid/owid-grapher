@@ -123,6 +123,35 @@ it("respects minSize unless hidden", () => {
     expect(hiddenAxis.size).toEqual(0)
 })
 
+it("reserves only the title height on a horizontal axis with hidden tick labels", () => {
+    const axisWithoutTickLabels = new AxisConfig({
+        min: 0,
+        max: 100,
+        label: "Axis title",
+        hideTickLabels: true,
+    }).toHorizontalAxis()
+
+    expect(axisWithoutTickLabels.labelOffset).toBeGreaterThan(0)
+    expect(axisWithoutTickLabels.height).toEqual(
+        axisWithoutTickLabels.labelOffset
+    )
+})
+
+it("reserves no width on a vertical axis with hidden tick labels", () => {
+    const config: AxisConfigInterface = { min: 0, max: 100 }
+
+    const axis = new AxisConfig(config).toVerticalAxis()
+    axis.range = [0, 500]
+    const axisWithoutTickLabels = new AxisConfig({
+        ...config,
+        hideTickLabels: true,
+    }).toVerticalAxis()
+    axisWithoutTickLabels.range = [0, 500]
+
+    expect(axis.width).toBeGreaterThan(0)
+    expect(axisWithoutTickLabels.width).toEqual(0)
+})
+
 it("respects maxTicks parameter", () => {
     const config: AxisConfigInterface = {
         min: 0,
