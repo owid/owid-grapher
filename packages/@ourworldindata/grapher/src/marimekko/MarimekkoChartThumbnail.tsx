@@ -11,6 +11,7 @@ import {
     RenderMarimekkoSeries,
 } from "./MarimekkoChartConstants"
 import { Bounds } from "@ourworldindata/utils"
+import { EntityName } from "@ourworldindata/types"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { AxisConfig } from "../axis/AxisConfig"
 import {
@@ -140,10 +141,18 @@ export class MarimekkoChartThumbnail
         )
     }
 
+    @computed private get labelledEntityNames(): EntityName[] {
+        const { selectionArray, focusArray } = this.chartState
+        return _.uniq([
+            ...selectionArray.selectedEntityNames,
+            ...focusArray.seriesNames,
+        ])
+    }
+
     @computed private get shouldShowLabels(): boolean {
         return (
             getVisibleLabels(this.manager.labelMode).rowLabelNames &&
-            this.chartState.isFocusModeActive
+            this.labelledEntityNames.length > 0
         )
     }
 
@@ -153,7 +162,7 @@ export class MarimekkoChartThumbnail
 
     @computed private get labelledSeries(): PlacedMarimekkoSeries[] {
         if (!this.shouldShowLabels) return []
-        return this.chartState.focusArray.seriesNames
+        return this.labelledEntityNames
             .map((entityName) => this.placedSeriesByEntityName.get(entityName))
             .filter((series) => series !== undefined)
     }
@@ -181,6 +190,9 @@ export class MarimekkoChartThumbnail
                 />
                 <MarimekkoInternalLabels
                     series={this.labelledSeries}
+                    focusedEntityNames={
+                        this.chartState.focusArray.seriesNameSet
+                    }
                     dualAxis={this.dualAxis}
                     fontSize={this.labelFontSize}
                     labelPadding={LABEL_PADDING}
