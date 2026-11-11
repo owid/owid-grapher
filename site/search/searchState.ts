@@ -376,7 +376,6 @@ export function stateToSearchParams(state: SearchState): URLSearchParams {
     return params
 }
 
-/** Link to the site search for a result type, optionally with a query and a topic filter */
 export function buildSearchHref({
     resultType,
     query = "",

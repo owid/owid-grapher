@@ -545,22 +545,20 @@ export async function queryWritingTopics(
     })
 }
 
-/** What the all-charts block asks for: the reader's raw input */
 export interface AllChartsBlockRequest {
     topic: string
     query: string
     page: number
 }
 
-export interface AllChartsBlockQuery {
+export interface ParsedAllChartsBlockRequest {
     topic: string
-    query: string
+    textQuery: string
     countries: string[]
     page: number
 }
 
 export interface AllChartsBlockPage {
-    /** The raw input this page answers */
     query: string
     countries: string[]
     hits: SearchChartViewHit[]
@@ -574,9 +572,8 @@ export const MAX_ALL_CHARTS_BLOCK_COUNTRIES = 4
 
 const getSynonymMap = lazy(() => buildSynonymMap())
 
-/** Splits the reader's input into the text query and the countries named in it */
 export function parseAllChartsBlockQuery(query: string): {
-    query: string
+    textQuery: string
     countries: string[]
 } {
     const state = applyAutomaticFilters(
@@ -590,7 +587,7 @@ export function parseAllChartsBlockQuery(query: string): {
         getSynonymMap()
     )
     return {
-        query: state.query,
+        textQuery: state.query,
         countries: [
             ...getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         ].slice(0, MAX_ALL_CHARTS_BLOCK_COUNTRIES),
@@ -598,12 +595,12 @@ export function parseAllChartsBlockQuery(query: string): {
 }
 
 export function buildAllChartsBlockSearchParams(
-    allChartsBlockQuery: AllChartsBlockQuery
+    parsedRequest: ParsedAllChartsBlockRequest
 ): SearchParamsObject & SearchForHitsOptions {
-    const { topic, query, countries, page } = allChartsBlockQuery
+    const { topic, textQuery, countries, page } = parsedRequest
     const facetFilters = [
         ...buildChartsFacetFilters({
-            query,
+            query: textQuery,
             filters: [
                 createTopicFilter(topic),
                 ...countries.map(createCountryFilter),
@@ -615,7 +612,7 @@ export function buildAllChartsBlockSearchParams(
 
     return {
         indexName: CHARTS_INDEX,
-        query,
+        query: textQuery,
         facetFilters,
         attributesToRetrieve: [
             "title",

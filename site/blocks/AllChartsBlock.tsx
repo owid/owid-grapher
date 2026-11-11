@@ -28,7 +28,6 @@ import { AllChartsRow, AllChartsRowData } from "./AllChartsRow.js"
 
 const SKELETON_ROW_COUNT = 6
 const MAX_THUMBNAILS = 3
-/** Stable reference, since the Grapher refetches its config whenever this object changes */
 const PREVIEW_GRAPHER_CONFIG = { enableKeyboardShortcuts: false }
 
 export type AllChartsSuggestions =
@@ -40,9 +39,7 @@ export type AllChartsSuggestions =
       }
 
 export interface AllChartsBlockSearch {
-    /** The input's text */
     query: string
-    /** The query the rows currently answer */
     rowsQuery: string
     onQueryChange: (query: string) => void
     placeholder: string
@@ -114,7 +111,6 @@ export function AllChartsBlock({
             ) : (
                 <div className="grid grid-cols-12">
                     <AllChartsList
-                        // New element per query, so the scroll position resets
                         key={rowsQuery}
                         rows={rows}
                         countries={countries}
