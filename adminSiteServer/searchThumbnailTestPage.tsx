@@ -28,7 +28,7 @@ import {
     SAMPLE_COUNT_OPTIONS,
     SampleOptions,
     THUMBNAIL_FONT_SIZE,
-    applyFocus,
+    applyEntityParams,
     hashQueryStr,
     makeLiveUrl,
     makeRandomSeed,
@@ -146,8 +146,12 @@ export function addSearchThumbnailTestRoutes(router: Router): void {
                     ? { countPerSection, seed }
                     : undefined
             const sectionId = readStringParam(req.query.type)
+            const select = readStringParam(req.query.select)
             const focus = readStringParam(req.query.focus)
-            const focusedEntityNames = parseEntityNames(focus)
+            const entityParams = {
+                selectedEntityNames: parseEntityNames(select),
+                focusedEntityNames: parseEntityNames(focus),
+            }
             const baseSections = (
                 sample
                     ? await sampleThumbnailTestSections(trx, sample)
@@ -158,17 +162,17 @@ export function addSearchThumbnailTestRoutes(router: Router): void {
             for (const section of baseSections) {
                 const cases: SearchThumbnailTestCase[] = []
                 for (const testCase of section.cases) {
-                    const focusedCase = applyFocus(testCase, focusedEntityNames)
+                    const entityCase = applyEntityParams(testCase, entityParams)
                     const { config } = await getChartConfigBySlug(
                         trx,
                         testCase.slug
                     )
                     cases.push({
-                        ...focusedCase,
+                        ...entityCase,
                         fontSize: findFontSize(
                             new GrapherState({
                                 ...config,
-                                queryStr: `?${focusedCase.queryStr ?? ""}`,
+                                queryStr: `?${entityCase.queryStr ?? ""}`,
                             })
                         ),
                     })
@@ -181,6 +185,7 @@ export function addSearchThumbnailTestRoutes(router: Router): void {
                         sections={sections}
                         sectionId={sectionId}
                         sample={sample}
+                        select={select}
                         focus={focus}
                         variant={readVariantParam(req.query.variant)}
                         scale={readScaleParam(req.query.scale)}
@@ -329,6 +334,7 @@ function SearchThumbnailTestPage({
     sections,
     sectionId,
     sample,
+    select,
     focus,
     variant,
     scale,
@@ -336,6 +342,7 @@ function SearchThumbnailTestPage({
     sections: SearchThumbnailTestSection[]
     sectionId?: string
     sample?: SampleOptions
+    select?: string
     focus?: string
     variant: GrapherVariant
     scale: number
@@ -404,6 +411,15 @@ function SearchThumbnailTestPage({
                             </button>
                         </>
                     )}
+                    <label>
+                        Select{" "}
+                        <input
+                            type="text"
+                            name="select"
+                            placeholder="France, Germany"
+                            defaultValue={select}
+                        />
+                    </label>
                     <label>
                         Focus{" "}
                         <input

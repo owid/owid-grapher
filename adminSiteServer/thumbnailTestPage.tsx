@@ -6,6 +6,7 @@ import {
     GrapherState,
     fetchInputTableForConfig,
     generateFocusedSeriesNamesParam,
+    generateSelectedEntityNamesParam,
     loadCatalogData,
     GRAPHER_THUMBNAIL_WIDTH,
     GRAPHER_THUMBNAIL_HEIGHT,
@@ -62,8 +63,12 @@ export function addThumbnailTestRoutes(router: Router): void {
                     ? { countPerSection, seed }
                     : undefined
             const sectionId = readStringParam(req.query.type)
+            const select = readStringParam(req.query.select)
             const focus = readStringParam(req.query.focus)
-            const focusedEntityNames = parseEntityNames(focus)
+            const entityParams = {
+                selectedEntityNames: parseEntityNames(select),
+                focusedEntityNames: parseEntityNames(focus),
+            }
             const sections = (
                 sample
                     ? await sampleThumbnailTestSections(trx, sample)
@@ -73,7 +78,7 @@ export function addThumbnailTestRoutes(router: Router): void {
                 .map((section) => ({
                     ...section,
                     cases: section.cases.map((testCase) =>
-                        applyFocus(testCase, focusedEntityNames)
+                        applyEntityParams(testCase, entityParams)
                     ),
                 }))
             res.send(
@@ -82,6 +87,7 @@ export function addThumbnailTestRoutes(router: Router): void {
                         sections={sections}
                         sectionId={sectionId}
                         sample={sample}
+                        select={select}
                         focus={focus}
                         shouldCompareWithLive={req.query.compare === "1"}
                         scale={readScaleParam(req.query.scale)}
@@ -174,6 +180,7 @@ function ThumbnailTestPage({
     sections,
     sectionId,
     sample,
+    select,
     focus,
     shouldCompareWithLive,
     scale,
@@ -181,6 +188,7 @@ function ThumbnailTestPage({
     sections: ThumbnailTestSection[]
     sectionId?: string
     sample?: SampleOptions
+    select?: string
     focus?: string
     shouldCompareWithLive: boolean
     scale: number
@@ -239,6 +247,15 @@ function ThumbnailTestPage({
                             </button>
                         </>
                     )}
+                    <label>
+                        Select{" "}
+                        <input
+                            type="text"
+                            name="select"
+                            placeholder="France, Germany"
+                            defaultValue={select}
+                        />
+                    </label>
                     <label>
                         Focus{" "}
                         <input
@@ -480,13 +497,26 @@ export function parseEntityNames(value: string | undefined): string[] {
         .filter((name) => name !== "")
 }
 
-export function applyFocus(
-    testCase: ThumbnailTestCase,
+export interface EntityParams {
+    selectedEntityNames: string[]
     focusedEntityNames: string[]
+}
+
+/** Overrides the case's selection and focus when the page asks for them */
+export function applyEntityParams(
+    testCase: ThumbnailTestCase,
+    { selectedEntityNames, focusedEntityNames }: EntityParams
 ): ThumbnailTestCase {
-    if (focusedEntityNames.length === 0) return testCase
+    if (selectedEntityNames.length === 0 && focusedEntityNames.length === 0)
+        return testCase
     const params = new URLSearchParams(testCase.queryStr)
-    params.set("focus", generateFocusedSeriesNamesParam(focusedEntityNames))
+    if (selectedEntityNames.length > 0)
+        params.set(
+            "country",
+            generateSelectedEntityNamesParam(selectedEntityNames)
+        )
+    if (focusedEntityNames.length > 0)
+        params.set("focus", generateFocusedSeriesNamesParam(focusedEntityNames))
     return { ...testCase, queryStr: params.toString() }
 }
 
