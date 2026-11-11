@@ -115,6 +115,7 @@ $all-charts-row-thumbnail-gap: 8px;
     width: $all-charts-row-thumbnail-width;
     height: $all-charts-row-thumbnail-height;
     object-fit: contain;
+    mix-blend-mode: multiply;
 }
 
 @include md-down {
