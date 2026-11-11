@@ -88,11 +88,10 @@ $chart-grays: (
             background-color: $dark-chart-bg !important;
         }
 
-        // Text halos are drawn with an inline style, hence !important
-        svg [data-halo="default"] {
-            fill: $dark-chart-bg !important;
-            stroke: $dark-chart-bg !important;
-        }
+        // Not handled yet: text halos are drawn with an inline white style.
+        // Recoloring them needs a hook on <Halo> (e.g. a data attribute),
+        // which also changes exported SVG markup, so it was left out while
+        // dark charts aren't offered.
 
         // The live chart's backgrounds are set inline for exports
         .CaptionedChart,

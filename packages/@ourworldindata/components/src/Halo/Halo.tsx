@@ -41,10 +41,6 @@ export function Halo(props: HaloProps): React.ReactElement {
     }
     const halo = React.cloneElement(props.children, {
         id: props.id,
-        // DARK MODE PROTOTYPE: lets the dark chart theme recolor default halos
-        ...(props.outlineColor === undefined
-            ? { "data-halo": "default" }
-            : undefined),
         style: {
             ...defaultStyle,
             ...props.style,
