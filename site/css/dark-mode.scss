@@ -226,17 +226,35 @@ $dark-topics-panel: dark-token("blue-20");
    its surface colors from Algolia's bundled theme, which reads its own
    --aa-*-rgb variables. Point them at our tokens. */
 :root[data-theme="dark"] {
-    --aa-background-color-rgb: var(--white-rgb);
-    --aa-input-background-color-rgb: var(--white-rgb);
+    // The open search (field + suggestions) is a raised surface, so it
+    // stands out from the page behind it
+    --aa-background-color-rgb: var(--surface-raised-rgb);
+    --aa-input-background-color-rgb: var(--surface-raised-rgb);
     --aa-text-color-rgb: var(--blue-90-rgb);
     --aa-muted-color-rgb: var(--blue-50-rgb);
     --aa-icon-color-rgb: var(--blue-50-rgb);
-    --aa-panel-border-color-rgb: var(--blue-20-rgb);
+    --aa-panel-border-color-rgb: var(--blue-30-rgb);
     --aa-input-border-color-rgb: var(--blue-30-rgb);
-    --aa-selected-color-rgb: var(--blue-20-rgb);
+    --aa-selected-color-rgb: var(--blue-30-rgb);
     --aa-selected-color-alpha: 1;
     --aa-scrollbar-track-background-color-rgb: var(--blue-10-rgb);
-    --aa-panel-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+    --aa-panel-shadow:
+        0 0 0 1px rgba(var(--blue-30-rgb), 1), 0 16px 48px rgba(0, 0, 0, 0.6);
+
+    .aa-Autocomplete[aria-expanded="true"] .aa-Form,
+    .aa-DetachedFormContainer .aa-Form {
+        background-color: dark-token("surface-raised");
+    }
+
+    // Our Autocomplete.scss turns the panel's shadow off; on dark it's what
+    // separates the suggestions from the page
+    .aa-Panel {
+        box-shadow: var(--aa-panel-shadow);
+    }
+
+    .aa-Item[aria-selected="true"] {
+        background-color: $blue-30;
+    }
 }
 
 /* Link icon next to headings. The light-theme icon is an SVG with the navy
