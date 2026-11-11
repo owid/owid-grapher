@@ -162,6 +162,45 @@ it("requests the typed query after the debounce and resets selection to the firs
     expect(screen.getByTestId("preview")).toHaveTextContent("delta?tab=map")
 })
 
+it("bolds the parts of a title that match the query, unescaped", async () => {
+    searchForHits.mockResolvedValue({
+        results: [
+            {
+                hits: [
+                    {
+                        objectID: "epsilon",
+                        type: ChartRecordType.Chart,
+                        slug: "epsilon",
+                        title: "Title of epsilon & more",
+                        availableTabs: DEFAULT_TABS,
+                        _highlightResult: {
+                            title: {
+                                value: "Title of <mark>epsilon</mark> &amp; more",
+                            },
+                        },
+                    },
+                ],
+                nbHits: 1,
+                page: 0,
+                nbPages: 1,
+            },
+        ],
+    })
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+
+    const title = await screen.findByText(
+        (_, element) =>
+            element?.classList.contains("all-charts-row__title") === true &&
+            element.textContent === "Title of epsilon & more"
+    )
+    expect(
+        Array.from(title.querySelectorAll("strong")).map(
+            (strong) => strong.textContent
+        )
+    ).toEqual(["epsilon"])
+})
+
 it("shows the no-results panel with a search link carrying the query", async () => {
     renderBlock()
     fireIntersectionObserversMatching("section")
