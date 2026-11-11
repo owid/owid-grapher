@@ -43,8 +43,17 @@ vi.mock(import("../../GrapherWithFallback.js"), () => ({
 }))
 
 vi.mock(import("../../MultiDimEmbed.js"), () => ({
-    MultiDimEmbed: ({ url }: { url: string }) => (
-        <div data-testid="preview">{`mdim:${url}`}</div>
+    MultiDimEmbed: ({
+        url,
+        chartConfig,
+    }: {
+        url: string
+        chartConfig: { hideExploreTheDataButton?: boolean }
+    }) => (
+        <div
+            data-testid="preview"
+            data-explore-button={!chartConfig.hideExploreTheDataButton}
+        >{`mdim:${url}`}</div>
     ),
 }))
 
@@ -52,6 +61,8 @@ const MDIM_VIEWS: Record<string, string> = {
     "mdim-a": "?metric=a",
     "mdim-b": "?metric=b",
 }
+
+const DATA_EXPLORER_IDS = new Set(["mdim-a"])
 
 const PAGES: Record<number, string[]> = { 0: ["alpha", "beta"], 1: ["gamma"] }
 const TABS: Record<string, string[]> = {
@@ -354,6 +365,33 @@ it("treats two views of one multi-dim as separate selections", async () => {
     expect(firstViewRow).not.toHaveClass("all-charts-block-row--selected")
 })
 
+it("links to the page only from a data-explorer multi-dim preview", async () => {
+    showMultiDimViews()
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    fireEvent.click(
+        within(await findRow("mdim-a")).getByRole("button", {
+            name: "Line chart",
+        })
+    )
+    expect(screen.getByTestId("preview")).toHaveAttribute(
+        "data-explore-button",
+        "true"
+    )
+
+    fireEvent.click(
+        within(await findRow("mdim-b")).getByRole("button", {
+            name: "Line chart",
+        })
+    )
+    expect(screen.getByTestId("preview")).toHaveAttribute(
+        "data-explore-button",
+        "false"
+    )
+})
+
 it("passes typed countries to a multi-dim preview", async () => {
     showMultiDimViews(["mdim-a", "alpha"])
     renderBlock()
@@ -582,6 +620,7 @@ function makeResponse(page: number, ids: string[], nbHits = 3): unknown {
                   type: ChartRecordType.MultiDimView,
                   slug: "shared-mdim",
                   queryParams,
+                  isDataExplorer: DATA_EXPLORER_IDS.has(id),
                   ...makeHitFields(id),
               }
             : {
