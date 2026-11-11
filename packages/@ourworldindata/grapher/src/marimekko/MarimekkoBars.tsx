@@ -20,6 +20,7 @@ interface MarimekkoBarsProps {
     fontSize: number
     patternIdSuffix?: string
     isFocusModeActive?: boolean
+    showNoDataLabel?: boolean
     onEntityMouseOver?: (entityName: string, ev: React.MouseEvent) => void
     onEntityMouseLeave?: () => void
     onEntityClick?: (entityName: string) => void
@@ -31,6 +32,7 @@ export function MarimekkoBars({
     fontSize,
     patternIdSuffix,
     isFocusModeActive,
+    showNoDataLabel = true,
     onEntityClick,
     onEntityMouseLeave,
     onEntityMouseOver,
@@ -56,7 +58,7 @@ export function MarimekkoBars({
                     onEntityMouseOver={onEntityMouseOver}
                 />
             ))}
-            {!isFocusModeActive && noDataArea && (
+            {showNoDataLabel && !isFocusModeActive && noDataArea && (
                 <text
                     transform={`translate(${roundForSvg(
                         noDataArea.labelX
