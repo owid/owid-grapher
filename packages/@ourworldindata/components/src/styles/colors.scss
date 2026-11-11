@@ -98,23 +98,23 @@ $palette-light: (
 
 $palette-dark: (
     // The darkest surface keeps a hint of the brand navy
-    "oxford-blue": #0c1725,
-    "vermillion": #c2483f,
-    "vermillion-text": #ec8a80,
-    "amber": #b8974c,
-    // Blues: mirrored and neutralised. In the dark theme they are near-neutral
-    // grays with only a slight cool tint, so the page doesn't read as blue
-    "blue-100": #f4f6f8,
-    "blue-95": #eceef2,
-    "blue-90": #e2e6ec,
-    "blue-70": #bcc5d2,
-    "blue-60": #a2b0c1,
-    "blue-50": #94a0ae,
-    "blue-40": #525e6c,
-    "blue-30": #3a4452,
-    "blue-20": #27303e,
-    "blue-10": #1e242e,
-    "blue-5": #191f28,
+    "oxford-blue": #091222,
+    "vermillion": #c94a3f,
+    "vermillion-text": #f08c80,
+    "amber": #c9a04a,
+    // Blues: mirrored. Dark ones become light text, light ones become deep
+    // navy surfaces
+    "blue-100": #f3f6fb,
+    "blue-95": #eaf0f7,
+    "blue-90": #dfe7f3,
+    "blue-70": #bccbdf,
+    "blue-60": #a2b6d1,
+    "blue-50": #8ea3c0,
+    "blue-40": #4a6185,
+    "blue-30": #324765,
+    "blue-20": #213350,
+    "blue-10": #17263d,
+    "blue-5": #132036,
     // Grays: mirrored
     "gray-100": #e9eaed,
     "gray-90": #ced0d5,
@@ -122,16 +122,16 @@ $palette-dark: (
     "gray-70": #999ea6,
     "gray-60": #6e737c,
     "gray-50": #4c515a,
-    "gray-30": #343a42,
-    "gray-20": #2a2f36,
-    "gray-10": #20242b,
-    "gray-5": #1a1f25,
-    "amber-110": #c2a35c,
+    "gray-30": #2a374c,
+    "gray-20": #202c40,
+    "gray-10": #172235,
+    "gray-5": #121c2c,
+    "amber-110": #d3ac5a,
     "amber-10": #2c2618,
-    "beige": #181c22,
-    "white": #14181e,
+    "beige": #111b2b,
+    "white": #0e1726,
     "accent-electric-blue": #7aa7ff,
-    "accent-pale-blue": #1e2c3e,
+    "accent-pale-blue": #1a2d4a,
     "accent-vermillion": #d9776f,
     "purple-90": #e3a9cd,
     "purple-60": #c98fb4,
@@ -157,152 +157,26 @@ $palette-dark: (
     "culture-color": #cf75b3,
     "always-white": #ffffff,
     "always-oxford-blue": #002147,
-    "page-background": #14181e,
-    "header-background": #0c1522,
+    "page-background": #0e1726,
+    "header-background": #07101e,
     // Dark-only tokens
     // Search field in the header bar
-    "header-field": #20262f,
+    "header-field": #16233a,
     // Hover state of the red Donate button
-    "vermillion-hover": #a83c35,
+    "vermillion-hover": #ad3c33,
     // Near-black navy for text on the dark-theme amber (donation footer, banners)
-    "text-on-amber": #0f1b2b,
+    "text-on-amber": #0a1324,
     // Popovers and tooltips raised above the page
-    "surface-raised": #222a36,
+    "surface-raised": #1c2b44,
     // Solid fills behind white text (solid blue buttons, CTA labels)
-    "solid-fill": #4a6a92,
-    "solid-fill-hover": #5a7ca6,
-    "solid-fill-deep": #34506f,
-    "solid-fill-deep-hover": #41618a,
-);
-
-// DARK MODE PROTOTYPE: alternative dark palettes, picked with the switcher
-// (<html data-dark-palette="…">). Each only overrides the tokens it lists; the
-// rest come from $palette-dark above ("Current").
-$dark-palette-variants: (
-    // Deeper, more saturated brand navy; warm gold; classic red
-    "midnight": (
-        "white": #0e1726,
-        "page-background": #0e1726,
-        "beige": #111b2b,
-        "blue-5": #132036,
-        "blue-10": #17263d,
-        "blue-20": #213350,
-        "blue-30": #324765,
-        "blue-40": #4a6185,
-        "blue-50": #8ea3c0,
-        "blue-60": #a2b6d1,
-        "blue-70": #bccbdf,
-        "blue-90": #dfe7f3,
-        "blue-95": #eaf0f7,
-        "blue-100": #f3f6fb,
-        "gray-5": #121c2c,
-        "gray-10": #172235,
-        "gray-20": #202c40,
-        "gray-30": #2a374c,
-        "oxford-blue": #091222,
-        "accent-pale-blue": #1a2d4a,
-        "header-background": #07101e,
-        "header-field": #16233a,
-        "amber": #c9a04a,
-        "amber-110": #d3ac5a,
-        "vermillion": #c94a3f,
-        "vermillion-text": #f08c80,
-        "vermillion-hover": #ad3c33,
-        "text-on-amber": #0a1324,
-        "surface-raised": #1c2b44,
-        "solid-fill": #3f6597,
-        "solid-fill-hover": #4e76aa,
-        "solid-fill-deep": #2c4a72,
-        "solid-fill-deep-hover": #385a87,
-    ),
-    // Blue-green slate; a cleaner yellow; coral red
-    "slate": (
-        "white": #121a1e,
-        "page-background": #121a1e,
-        "beige": #151d20,
-        "blue-5": #172227,
-        "blue-10": #1b282e,
-        "blue-20": #25353c,
-        "blue-30": #34484f,
-        "blue-40": #4b6269,
-        "blue-50": #8ca4a9,
-        "blue-60": #a0b6bb,
-        "blue-70": #bacbcf,
-        "blue-90": #dde8ea,
-        "blue-95": #e9f0f1,
-        "blue-100": #f2f7f7,
-        "gray-5": #162024,
-        "gray-10": #1b262a,
-        "gray-20": #243034,
-        "gray-30": #2d3a3e,
-        "oxford-blue": #0b1316,
-        "accent-pale-blue": #1a2c31,
-        "header-background": #0a1215,
-        "header-field": #1a262b,
-        "amber": #c4a85a,
-        "amber-110": #cdb36a,
-        "vermillion": #c8574c,
-        "vermillion-text": #f19a8f,
-        "vermillion-hover": #ab493f,
-        "text-on-amber": #0d1719,
-        "surface-raised": #20323a,
-        "solid-fill": #3e6b78,
-        "solid-fill-hover": #4c7c8a,
-        "solid-fill-deep": #2d525d,
-        "solid-fill-deep-hover": #386370,
-    ),
-    // Indigo-tinted ink; soft peach-gold; rose red
-    "ink": (
-        "white": #14151f,
-        "page-background": #14151f,
-        "beige": #171824,
-        "blue-5": #191b28,
-        "blue-10": #1e2030,
-        "blue-20": #282b3e,
-        "blue-30": #383c54,
-        "blue-40": #51566f,
-        "blue-50": #989cb5,
-        "blue-60": #abafc6,
-        "blue-70": #c3c6d8,
-        "blue-90": #e3e4ee,
-        "blue-95": #ececf4,
-        "blue-100": #f5f5fa,
-        "gray-5": #181926,
-        "gray-10": #1d1e2c,
-        "gray-20": #262838,
-        "gray-30": #303243,
-        "oxford-blue": #0d0e17,
-        "accent-pale-blue": #212439,
-        "header-background": #0c0d16,
-        "header-field": #1d1f2d,
-        "amber": #c9a35e,
-        "amber-110": #d2af6c,
-        "vermillion": #c74f55,
-        "vermillion-text": #f0939a,
-        "vermillion-hover": #aa4248,
-        "text-on-amber": #12111c,
-        "surface-raised": #252840,
-        "solid-fill": #555c94,
-        "solid-fill-hover": #656ca6,
-        "solid-fill-deep": #3f4571,
-        "solid-fill-deep-hover": #4b5284,
-    ),
-);
-
-// Midnight, with the site header and footer in the light theme's brand navy
-$dark-palette-variants: map.merge(
-    $dark-palette-variants,
-    (
-        "midnight-navy":
-            map.merge(
-                map.get($dark-palette-variants, "midnight"),
-                (
-                    "brand-bar": #002147,
-                    // The search field on the navy header ($blue-90 in light)
-                    "brand-bar-field": #1d3d63,
-                )
-            ),
-    )
+    "solid-fill": #3f6597,
+    "solid-fill-hover": #4e76aa,
+    "solid-fill-deep": #2c4a72,
+    "solid-fill-deep-hover": #385a87,
+    // The site header and footer use the light theme's brand navy
+    "brand-bar": #002147,
+    // Search field on the navy header ($blue-90 in the light theme)
+    "brand-bar-field": #1d3d63,
 );
 
 @function _rgb-triplet($c) {
@@ -474,12 +348,6 @@ $sdgColors: (
     @include dark-theme-tokens;
 }
 
-@each $variant, $overrides in $dark-palette-variants {
-    :root[data-theme="dark"][data-dark-palette="#{$variant}"] {
-        @include dark-source-tokens($overrides);
-    }
-}
-
 // Brand surfaces. The site header and homepage hero are navy in the light
 // theme. In the dark theme they become the darkest tone on the page — near
 // black with a hint of the brand navy — while keeping the light-theme tokens
@@ -510,26 +378,13 @@ $sdgColors: (
         @include use-dark-token("header-field", $as: "blue-90");
     }
 
-    // A palette can give the site header and footer their own color with
-    // `brand-bar` / `brand-bar-field` (e.g. the light theme's brand navy);
-    // otherwise they share header-background with the hero and author pages.
+    // The site header and footer are the light theme's brand navy, while
+    // the homepage hero and author headers use the darker header-background
     .site-navigation,
     .site-footer {
-        --oxford-blue: var(--dark-brand-bar, var(--dark-header-background));
-        --oxford-blue-rgb: var(
-            --dark-brand-bar-rgb,
-            var(--dark-header-background-rgb)
-        );
-        --blue-100: var(--dark-brand-bar, var(--dark-header-background));
-        --blue-100-rgb: var(
-            --dark-brand-bar-rgb,
-            var(--dark-header-background-rgb)
-        );
-        --blue-90: var(--dark-brand-bar-field, var(--dark-header-field));
-        --blue-90-rgb: var(
-            --dark-brand-bar-field-rgb,
-            var(--dark-header-field-rgb)
-        );
+        @include use-dark-token("brand-bar", $as: "oxford-blue");
+        @include use-dark-token("brand-bar", $as: "blue-100");
+        @include use-dark-token("brand-bar-field", $as: "blue-90");
     }
 
     // The author page header and its topic strip are $blue-95 navy
