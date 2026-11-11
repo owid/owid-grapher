@@ -43,6 +43,8 @@ const MDIM_VIEWS: Record<string, string> = {
     "mdim-b": "?metric=b",
 }
 
+const DATA_EXPLORER_IDS = new Set(["mdim-a"])
+
 const PAGES: Record<number, string[]> = { 0: ["alpha", "beta"], 1: ["gamma"] }
 const TABS: Record<string, string[]> = {
     alpha: ["Table", "WorldMap", "LineChart", "SlopeChart", "Marimekko"],
@@ -319,6 +321,23 @@ it("treats two views of one multi-dim as separate selections", async () => {
     expect(firstViewRow).not.toHaveClass("all-charts-row--selected")
 })
 
+it("labels a data-explorer multi-dim row, and no other row", async () => {
+    showMultiDimViews()
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    expect(
+        within(await findRow("mdim-a")).getByText("Data explorer")
+    ).toBeVisible()
+    expect(
+        within(await findRow("mdim-b")).queryByText("Data explorer")
+    ).toBeNull()
+    expect(
+        within(await findRow("alpha")).queryByText("Data explorer")
+    ).toBeNull()
+})
+
 it("passes typed countries to a multi-dim preview", async () => {
     showMultiDimViews(["mdim-a", "alpha"])
     renderBlock()
@@ -429,6 +448,7 @@ function makeResponse(page: number, ids: string[], nbHits = 3): unknown {
                   type: ChartRecordType.MultiDimView,
                   slug: "shared-mdim",
                   queryParams,
+                  isDataExplorer: DATA_EXPLORER_IDS.has(id),
                   ...makeHitFields(id),
               }
             : {

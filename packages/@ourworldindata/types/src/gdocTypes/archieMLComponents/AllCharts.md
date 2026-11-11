@@ -4,6 +4,8 @@ configurable from the doc.
 
 The charts and multi-dim views come from Algolia, the site search's charts index, picked and ordered as site search does (explorer views are left out).
 
+Multi-dims flagged as data explorers carry a "Data explorer" label after their title.
+
 The heading reads "All charts on <tag name> (N charts)". Each row shows the chart title, variant and source line. It also
 shows up to three tab thumbnails that switch the live chart preview.
 

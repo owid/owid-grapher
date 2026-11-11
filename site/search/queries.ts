@@ -646,6 +646,7 @@ function buildAllChartsBlockSearchParams({
             "queryParams",
             "availableTabs",
             "source",
+            "isDataExplorer",
         ],
         attributesToHighlight: [],
         attributesToSnippet: [],
