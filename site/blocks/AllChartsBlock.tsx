@@ -16,150 +16,163 @@ import {
     GRAPHER_PREVIEW_CLASS,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
+    SearchChartViewHit,
 } from "@ourworldindata/types"
-import { queryParamsToStr } from "@ourworldindata/utils"
+import { commafyNumber, queryParamsToStr } from "@ourworldindata/utils"
 import { GrapherWithFallback } from "../GrapherWithFallback.js"
 import { useDocumentContext } from "../gdocs/DocumentContext.js"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { toGrapherQueryParams } from "../search/searchUtils.js"
 import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
-import { AllChartsRow, AllChartsRowData } from "./AllChartsRow.js"
+import { AllChartsRow } from "./AllChartsRow.js"
 
 const SKELETON_ROW_COUNT = 6
 const MAX_THUMBNAILS = 3
-/** Stable reference, since the Grapher refetches its config whenever this object changes */
 const PREVIEW_GRAPHER_CONFIG = { enableKeyboardShortcuts: false }
-
-export type AllChartsSuggestions =
-    | { status: "loading" }
-    | {
-          status: "loaded"
-          terms: string[]
-          onSelect: (term: string) => void
-      }
+const SEARCH_PLACEHOLDER =
+    "Search indicators by name, keyword, country, or source…"
 
 export interface AllChartsBlockSearch {
-    /** The input's text */
     query: string
-    /** The query the rows currently answer */
-    rowsQuery: string
+    fetchedQuery: string
     onQueryChange: (query: string) => void
-    placeholder: string
-    suggestions?: AllChartsSuggestions
+    suggestedTerms: string[]
+    isLoadingSuggestions: boolean
+    onSuggestionSelect: (term: string) => void
 }
 
 interface AllChartsSelection {
-    rowsQuery: string
+    fetchedQuery: string
     slug: string
     tab?: GrapherTabName
-}
-
-interface AllChartsHeadingProps {
-    id: string
-    heading: string
-    rowCount?: number
 }
 
 export function AllChartsBlock({
     id,
     heading,
-    rowCount,
-    rows,
+    hitCount,
+    hits,
     countries,
+    search,
     onLoadMore,
     isLoadingMore,
-    search,
+    searchStatus,
     noResultsHref,
     className,
 }: {
     id: string
     heading: string
-    rowCount: number
-    rows: AllChartsRowData[]
+    hitCount?: number
+    hits: SearchChartViewHit[]
     countries: string[]
+    search?: AllChartsBlockSearch
     onLoadMore?: () => void
     isLoadingMore?: boolean
-    search?: AllChartsBlockSearch
+    searchStatus?: "pending" | "error"
     noResultsHref: string
     className?: string
 }): React.ReactElement {
-    const rowsQuery = search?.rowsQuery ?? ""
-    const [storedSelection, setSelection] = useState<
-        AllChartsSelection | undefined
-    >()
-    const selection =
-        storedSelection?.rowsQuery === rowsQuery ? storedSelection : undefined
-
-    const selectedRow =
-        rows.find((row) => row.slug === selection?.slug) ?? rows[0]
-    const selectedTab =
-        selectedRow &&
-        ((selection?.slug === selectedRow.slug && selection.tab) ||
-            getDefaultTabForRow(selectedRow, countries))
-
-    const isNarrow = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
-
+    const fetchedQuery = search?.fetchedQuery ?? ""
     return (
         <section
             className={cx(className, "needs-dividers", "all-charts-block")}
         >
-            <AllChartsHeading id={id} heading={heading} rowCount={rowCount} />
+            <AllChartsHeading id={id} heading={heading} hitCount={hitCount} />
             {search && <AllChartsSearchInput search={search} />}
-            {rows.length === 0 ? (
+            {searchStatus === "pending" ? (
+                <AllChartsResultsSkeleton />
+            ) : searchStatus === "error" ? (
+                <AllChartsErrorPanel searchHref={noResultsHref} />
+            ) : hits.length === 0 ? (
                 <AllChartsNoResults
-                    hasQuery={rowsQuery !== ""}
+                    hasQuery={fetchedQuery !== ""}
                     searchHref={noResultsHref}
                 />
             ) : (
-                <div className="grid grid-cols-12">
-                    <AllChartsList
-                        // New element per query, so the scroll position resets
-                        key={rowsQuery}
-                        rows={rows}
-                        countries={countries}
-                        selectedRow={selectedRow}
-                        selectedTab={selectedTab}
-                        isNarrow={isNarrow}
-                        onSelect={(row, tab) =>
-                            setSelection({ rowsQuery, slug: row.slug, tab })
-                        }
-                        onLoadMore={onLoadMore}
-                        isLoadingMore={isLoadingMore}
-                    />
-                    {!isNarrow && (
-                        <div className="all-charts-block__preview span-cols-7">
-                            {selectedRow && selectedTab && (
-                                <AllChartsPreview
-                                    slug={selectedRow.slug}
-                                    tab={selectedTab}
-                                    countries={countries}
-                                />
-                            )}
-                        </div>
-                    )}
-                </div>
+                <AllChartsResults
+                    fetchedQuery={fetchedQuery}
+                    hits={hits}
+                    countries={countries}
+                    onLoadMore={onLoadMore}
+                    isLoadingMore={isLoadingMore}
+                />
             )}
         </section>
     )
 }
 
-function AllChartsList({
-    rows,
+function AllChartsResults({
+    fetchedQuery,
+    hits,
     countries,
-    selectedRow,
+    onLoadMore,
+    isLoadingMore,
+}: {
+    fetchedQuery: string
+    hits: SearchChartViewHit[]
+    countries: string[]
+    onLoadMore?: () => void
+    isLoadingMore?: boolean
+}): React.ReactElement {
+    const [storedSelection, setSelection] = useState<AllChartsSelection>()
+    const selection =
+        storedSelection?.fetchedQuery === fetchedQuery
+            ? storedSelection
+            : undefined
+
+    const selectedHit =
+        hits.find((hit) => hit.slug === selection?.slug) ?? hits[0]
+    const selectedTab =
+        (selection?.slug === selectedHit.slug && selection.tab) ||
+        getDefaultTab(pickThumbnailTabs(selectedHit.availableTabs), countries)
+
+    const isNarrow = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
+
+    return (
+        <div className="grid grid-cols-12">
+            <AllChartsList
+                key={fetchedQuery}
+                hits={hits}
+                countries={countries}
+                selectedHit={selectedHit}
+                selectedTab={selectedTab}
+                isNarrow={isNarrow}
+                onSelect={(hit, tab) =>
+                    setSelection({ fetchedQuery, slug: hit.slug, tab })
+                }
+                onLoadMore={onLoadMore}
+                isLoadingMore={isLoadingMore}
+            />
+            {!isNarrow && (
+                <div className="all-charts-block__preview span-cols-7">
+                    <AllChartsPreview
+                        slug={selectedHit.slug}
+                        tab={selectedTab}
+                        countries={countries}
+                    />
+                </div>
+            )}
+        </div>
+    )
+}
+
+function AllChartsList({
+    hits,
+    countries,
+    selectedHit,
     selectedTab,
     isNarrow,
     onSelect,
     onLoadMore,
     isLoadingMore,
 }: {
-    rows: AllChartsRowData[]
+    hits: SearchChartViewHit[]
     countries: string[]
-    selectedRow: AllChartsRowData | undefined
-    selectedTab: GrapherTabName | undefined
+    selectedHit: SearchChartViewHit
+    selectedTab: GrapherTabName
     isNarrow: boolean
-    onSelect: (row: AllChartsRowData, tab: GrapherTabName | undefined) => void
+    onSelect: (hit: SearchChartViewHit, tab: GrapherTabName | undefined) => void
     onLoadMore?: () => void
     isLoadingMore?: boolean
 }): React.ReactElement {
@@ -176,15 +189,15 @@ function AllChartsList({
     return (
         <div className="all-charts-block__list-wrapper span-cols-5 span-md-cols-12">
             <ul className="all-charts-block__list" ref={setListElement}>
-                {rows.map((row) => (
+                {hits.map((hit) => (
                     <AllChartsItem
-                        key={`${row.type}:${row.slug}:${row.queryParams ?? ""}`}
-                        row={row}
+                        key={hit.objectID}
+                        hit={hit}
                         countries={countries}
-                        isSelected={row === selectedRow}
+                        isSelected={hit === selectedHit}
                         selectedTab={selectedTab}
                         isNarrow={isNarrow}
-                        onSelect={(tab) => onSelect(row, tab)}
+                        onSelect={(tab) => onSelect(hit, tab)}
                     />
                 ))}
                 {onLoadMore && (
@@ -208,30 +221,30 @@ function AllChartsList({
 }
 
 function AllChartsItem({
-    row,
+    hit,
     countries,
     isSelected,
     selectedTab,
     isNarrow,
     onSelect,
 }: {
-    row: AllChartsRowData
+    hit: SearchChartViewHit
     countries: string[]
     isSelected: boolean
-    selectedTab: GrapherTabName | undefined
+    selectedTab: GrapherTabName
     isNarrow: boolean
     onSelect: (tab: GrapherTabName | undefined) => void
 }): React.ReactElement {
     const itemRef = useRef<HTMLLIElement>(null)
     const inlinePreviewId = useId()
+    const thumbnailTabs = pickThumbnailTabs(hit.availableTabs)
 
     const select = (
         tab: GrapherTabName | undefined,
-        shouldScrollToRow: boolean
+        scrollTarget: HTMLElement | null
     ): void => {
         flushSync(() => onSelect(tab))
-        if (isNarrow && shouldScrollToRow)
-            itemRef.current?.scrollIntoView({ block: "start" })
+        if (isNarrow) scrollTarget?.scrollIntoView({ block: "start" })
     }
 
     return (
@@ -242,31 +255,31 @@ function AllChartsItem({
             ref={itemRef}
         >
             <AllChartsRow
-                row={row}
+                hit={hit}
                 isSelected={isSelected}
                 displayedTab={
                     isSelected
                         ? selectedTab
-                        : getDefaultTabForRow(row, countries)
+                        : getDefaultTab(thumbnailTabs, countries)
                 }
-                thumbnailTabs={pickThumbnailTabs(row.availableTabs)}
+                thumbnailTabs={thumbnailTabs}
                 countries={countries}
                 inlinePreviewId={isNarrow ? inlinePreviewId : undefined}
-                onTitleSelect={(tab) => select(tab, !isSelected)}
-                onThumbnailSelect={(tab) => select(tab, true)}
+                onTitleSelect={() => {
+                    if (!isSelected) select(undefined, itemRef.current)
+                }}
+                onThumbnailSelect={(tab, thumbnail) => select(tab, thumbnail)}
             />
             {isNarrow && isSelected && (
                 <div
                     className="all-charts-block__inline-preview"
                     id={inlinePreviewId}
                 >
-                    {selectedTab && (
-                        <AllChartsPreview
-                            slug={row.slug}
-                            tab={selectedTab}
-                            countries={countries}
-                        />
-                    )}
+                    <AllChartsPreview
+                        slug={hit.slug}
+                        tab={selectedTab}
+                        countries={countries}
+                    />
                 </div>
             )}
         </li>
@@ -278,59 +291,69 @@ function AllChartsSearchInput({
 }: {
     search: AllChartsBlockSearch
 }): React.ReactElement {
+    const {
+        query,
+        onQueryChange,
+        suggestedTerms,
+        isLoadingSuggestions,
+        onSuggestionSelect,
+    } = search
     const inputRef = useRef<HTMLInputElement>(null)
     return (
         <>
-            <div className="all-charts-block__search" role="search">
-                <FontAwesomeIcon
-                    className="all-charts-block__search-icon"
-                    icon={faMagnifyingGlass}
-                />
-                <input
-                    ref={inputRef}
-                    type="text"
-                    className="all-charts-block__search-input"
-                    aria-label="Search charts on this topic"
-                    placeholder={search.placeholder}
-                    value={search.query}
-                    onChange={(event) =>
-                        search.onQueryChange(event.target.value)
-                    }
-                />
-                {search.query !== "" && (
-                    <button
-                        type="button"
-                        className="all-charts-block__search-clear"
-                        aria-label="Clear search"
-                        onClick={() => {
-                            search.onQueryChange("")
-                            inputRef.current?.focus()
-                        }}
-                    >
-                        <FontAwesomeIcon icon={faCircleXmark} />
-                    </button>
-                )}
+            <div className="all-charts-block__sticky-search">
+                <div className="all-charts-block__search" role="search">
+                    <FontAwesomeIcon
+                        className="all-charts-block__search-icon"
+                        icon={faMagnifyingGlass}
+                    />
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        className="all-charts-block__search-input"
+                        aria-label="Search charts on this topic"
+                        placeholder={SEARCH_PLACEHOLDER}
+                        value={query}
+                        onChange={(event) => onQueryChange(event.target.value)}
+                    />
+                    {query !== "" && (
+                        <button
+                            type="button"
+                            className="all-charts-block__search-clear"
+                            aria-label="Clear search"
+                            onClick={() => {
+                                onQueryChange("")
+                                inputRef.current?.focus()
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faCircleXmark} />
+                        </button>
+                    )}
+                </div>
             </div>
-            {search.suggestions && (
-                <AllChartsSuggestionsLine
-                    suggestions={search.suggestions}
-                    onAfterSelect={() => inputRef.current?.focus()}
-                />
-            )}
+            <AllChartsSuggestions
+                terms={suggestedTerms}
+                isLoading={isLoadingSuggestions}
+                onSelect={(term) => {
+                    onSuggestionSelect(term)
+                    inputRef.current?.focus()
+                }}
+            />
         </>
     )
 }
 
-function AllChartsSuggestionsLine({
-    suggestions,
-    onAfterSelect,
+function AllChartsSuggestions({
+    terms,
+    isLoading,
+    onSelect,
 }: {
-    suggestions: AllChartsSuggestions
-    onAfterSelect: () => void
+    terms: string[]
+    isLoading: boolean
+    onSelect: (term: string) => void
 }): React.ReactElement | null {
-    if (suggestions.status === "loading")
+    if (isLoading)
         return <div className="all-charts-block__suggestions" aria-hidden />
-    const { terms, onSelect } = suggestions
     if (terms.length === 0) return null
     return (
         <div className="all-charts-block__suggestions">
@@ -343,10 +366,7 @@ function AllChartsSuggestionsLine({
                         <button
                             type="button"
                             className="all-charts-block__suggestion-button"
-                            onClick={() => {
-                                onSelect(term)
-                                onAfterSelect()
-                            }}
+                            onClick={() => onSelect(term)}
                         >
                             {term}
                         </button>
@@ -374,58 +394,62 @@ export function AllChartsBlockSkeleton({
             ref={ref}
         >
             <AllChartsHeading id={id} heading={heading} />
-            <div className="all-charts-block__skeleton-search animate-pulse" />
-            <div className="all-charts-block__suggestions" aria-hidden />
-            <div className="grid grid-cols-12">
-                <div className="all-charts-block__list-wrapper span-cols-5 span-md-cols-12">
-                    <ul className="all-charts-block__list animate-pulse">
-                        {Array.from(
-                            { length: SKELETON_ROW_COUNT },
-                            (_, index) => (
-                                <li
-                                    className="all-charts-block__item all-charts-block__skeleton-row"
-                                    key={index}
-                                >
-                                    <div className="all-charts-block__skeleton-title" />
-                                    <div className="all-charts-block__skeleton-source" />
-                                    <div className="all-charts-block__skeleton-thumbnail" />
-                                    {index === 0 && (
-                                        <div className="all-charts-block__skeleton-inline-preview" />
-                                    )}
-                                </li>
-                            )
-                        )}
-                    </ul>
-                </div>
-                <div className="all-charts-block__preview all-charts-block__skeleton-preview animate-pulse span-cols-7 span-md-cols-12" />
-            </div>
+            <AllChartsSearchSkeleton />
+            <AllChartsSuggestionsSkeleton />
+            <AllChartsResultsSkeleton />
         </section>
     )
 }
 
-export function AllChartsBlockError({
-    id,
-    heading,
+function AllChartsSearchSkeleton(): React.ReactElement {
+    return <div className="all-charts-block__skeleton-search animate-pulse" />
+}
+
+function AllChartsSuggestionsSkeleton(): React.ReactElement {
+    return (
+        <div className="all-charts-block__suggestions" aria-hidden>
+            <div className="all-charts-block__skeleton-suggestions animate-pulse" />
+        </div>
+    )
+}
+
+function AllChartsResultsSkeleton(): React.ReactElement {
+    return (
+        <div className="grid grid-cols-12">
+            <div className="all-charts-block__list-wrapper span-cols-5 span-md-cols-12">
+                <ul className="all-charts-block__list animate-pulse">
+                    {Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
+                        <li
+                            className="all-charts-block__item all-charts-block__skeleton-row"
+                            key={index}
+                        >
+                            <div className="all-charts-block__skeleton-title" />
+                            <div className="all-charts-block__skeleton-source" />
+                            <div className="all-charts-block__skeleton-thumbnail" />
+                            {index === 0 && (
+                                <div className="all-charts-block__skeleton-inline-preview" />
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div className="all-charts-block__preview all-charts-block__skeleton-preview animate-pulse span-cols-7 span-md-cols-12" />
+        </div>
+    )
+}
+
+function AllChartsErrorPanel({
     searchHref,
-    className,
 }: {
-    id: string
-    heading: string
     searchHref: string
-    className?: string
 }): React.ReactElement {
     return (
-        <section
-            className={cx(className, "needs-dividers", "all-charts-block")}
-        >
-            <AllChartsHeading id={id} heading={heading} />
-            <AllChartsPanel
-                icon={faExclamationTriangle}
-                heading="We couldn't load the charts on this topic."
-                text="Try reloading the page, or search all our charts."
-                href={searchHref}
-            />
-        </section>
+        <AllChartsPanel
+            icon={faExclamationTriangle}
+            heading="We couldn't load the charts on this topic."
+            text="Try reloading the page, or search all our charts."
+            href={searchHref}
+        />
     )
 }
 
@@ -436,18 +460,19 @@ function AllChartsNoResults({
     hasQuery: boolean
     searchHref: string
 }): React.ReactElement {
-    return hasQuery ? (
+    return (
         <AllChartsPanel
             icon={faSearch}
-            heading="There are no results for this query."
-            text="Try searching for something else or searching all our charts."
-            href={searchHref}
-        />
-    ) : (
-        <AllChartsPanel
-            icon={faSearch}
-            heading="There are no charts on this topic yet."
-            text="Search all our charts instead."
+            heading={
+                hasQuery
+                    ? "There are no results for this query."
+                    : "There are no charts on this topic yet."
+            }
+            text={
+                hasQuery
+                    ? "Try searching for something else or searching all our charts."
+                    : "Search all our charts instead."
+            }
             href={searchHref}
         />
     )
@@ -516,14 +541,18 @@ function AllChartsPreview({
 function AllChartsHeading({
     id,
     heading,
-    rowCount,
-}: AllChartsHeadingProps): React.ReactElement {
+    hitCount,
+}: {
+    id: string
+    heading: string
+    hitCount?: number
+}): React.ReactElement {
     return (
         <h1 className="article-block__heading h1-semibold" id={id}>
             <span>{heading}</span>
-            {rowCount !== undefined && (
+            {hitCount !== undefined && (
                 <span className="all-charts-block__count">
-                    {`(${rowCount} ${rowCount === 1 ? "chart" : "charts"})`}
+                    {`(${commafyNumber(hitCount)} ${hitCount === 1 ? "chart" : "charts"})`}
                 </span>
             )}
             <a className="deep-link" aria-labelledby={id} href={`#${id}`} />
@@ -531,11 +560,10 @@ function AllChartsHeading({
     )
 }
 
-function getDefaultTabForRow(
-    row: AllChartsRowData,
+function getDefaultTab(
+    thumbnailTabs: GrapherTabName[],
     countries: string[]
 ): GrapherTabName {
-    const thumbnailTabs = pickThumbnailTabs(row.availableTabs)
     const preferredTab =
         countries.length > 0
             ? thumbnailTabs.find((tab) => tab !== GRAPHER_TAB_NAMES.WorldMap)

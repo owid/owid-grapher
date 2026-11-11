@@ -8564,7 +8564,6 @@ __metadata:
     http-server: "npm:^14.1.1"
     husky: "npm:^9.0.11"
     ini: "npm:^7.0.0"
-    instantsearch.js: "npm:4.112.0"
     jose: "npm:^6.2.15"
     knex: "npm:^3.3.0"
     lint-staged: "npm:^17.6.0"
