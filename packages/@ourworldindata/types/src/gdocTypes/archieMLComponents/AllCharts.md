@@ -1,6 +1,6 @@
-Lists every chart tagged with any of the document's tags. The block needs at least one tag on the document (set in the admin).
+Lists every chart and multi-dim view tagged with any of the document's tags. The block needs at least one tag on the document (set in the admin).
 
-The charts come from Algolia, ordered by search score.
+The charts and multi-dim views come from Algolia, picked and ordered as the site search does (explorer views are left out).
 
 The heading reads "All charts on <first tag's name> (N charts)". Each row shows the chart title, its variant name and its source line. It also shows up to three tab thumbnails that switch the live chart preview.
 

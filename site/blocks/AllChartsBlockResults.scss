@@ -97,7 +97,8 @@ $all-charts-block-results-inline-preview-height: 520px;
 
     .all-charts-block-results__preview,
     .all-charts-block-results__inline-preview {
-        .GrapherWithFallback {
+        .GrapherWithFallback,
+        .multi-dim-embed {
             height: 100%;
         }
 
