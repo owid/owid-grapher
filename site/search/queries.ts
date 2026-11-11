@@ -546,6 +546,7 @@ export interface AllChartsBlockQuery {
 }
 
 export interface AllChartsBlockPage {
+    query: string
     hits: SearchChartViewHit[]
     nbHits: number
     page: number
@@ -600,6 +601,7 @@ export async function queryAllChartsBlock(
         buildAllChartsBlockSearchParams(allChartsBlockQuery)
     )
     return {
+        query: allChartsBlockQuery.query,
         hits: response.hits,
         nbHits: response.nbHits ?? 0,
         page: response.page ?? allChartsBlockQuery.page,

@@ -7,7 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { TocHeadingWithSupertitle } from "@ourworldindata/utils"
 import { SearchResultType } from "@ourworldindata/types"
-import { buildSearchHrefForCard } from "../../search/searchState.js"
+import { buildSearchHref } from "../../search/searchState.js"
 import cx from "clsx"
 
 const DEFAULT_TITLE = "Sections"
@@ -50,7 +50,7 @@ export const LTPTableOfContents = ({
 
     const resourceCards = SECONDARY_CARDS.map((card) => ({
         ...card,
-        href: buildSearchHrefForCard(card.resultType, tagName),
+        href: buildSearchHref({ resultType: card.resultType, topic: tagName }),
     }))
 
     return (

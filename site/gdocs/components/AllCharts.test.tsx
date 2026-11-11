@@ -42,8 +42,11 @@ beforeEach(() => {
     observers.clear()
     vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver)
     searchForHits.mockReset()
-    searchForHits.mockImplementation(async ([{ page }]: [{ page: number }]) =>
-        makeResponse(page, PAGES[page])
+    searchForHits.mockImplementation(
+        async ([{ page, query }]: [{ page: number; query: string }]) =>
+            query === "gas"
+                ? makeResponse(page, [], 0)
+                : makeResponse(page, query ? ["delta"] : PAGES[page])
     )
 })
 
@@ -133,7 +136,54 @@ it("keeps the loaded rows and stops loading when a later page fails", async () =
     expect(screen.queryByRole("link", { name: /Search all charts/ })).toBeNull()
 })
 
-function makeResponse(page: number, slugs: string[]): unknown {
+it("requests the typed query after the debounce and resets selection to the first hit", async () => {
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    const betaRow = await findRow("beta")
+    fireEvent.click(within(betaRow).getByRole("button", { name: "Line chart" }))
+    expect(screen.getByTestId("preview")).toHaveTextContent("beta?tab=line")
+
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "air" } })
+    expect(requestedQueries()).toEqual([""])
+
+    expect(await screen.findByText("Title of delta")).toBeVisible()
+    expect(requestedQueries()).toEqual(["", "air"])
+    expect(screen.getByTestId("preview")).toHaveTextContent("delta?tab=map")
+})
+
+it("shows the no-results panel with a search link carrying the query", async () => {
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "gas" } })
+
+    const searchLink = await screen.findByRole("link", {
+        name: /Search all charts/,
+    })
+    expect(searchLink).toHaveAttribute("href", "/search?q=gas")
+    expect(
+        screen.getByText("There are no results for this query.")
+    ).toBeVisible()
+    expect(screen.getByText("(0 charts)")).toBeVisible()
+})
+
+it("returns to the first page without a request when the input is cleared", async () => {
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "gas" } })
+    await screen.findByRole("link", { name: /Search all charts/ })
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear search" }))
+
+    expect(await screen.findByText("Title of alpha")).toBeVisible()
+    await flushEffects()
+    expect(requestedQueries()).toEqual(["", "gas"])
+    expect(screen.getByRole("textbox")).toHaveValue("")
+})
+
+function makeResponse(page: number, slugs: string[], nbHits = 3): unknown {
     const hits = slugs.map((slug) => ({
         objectID: slug,
         type: ChartRecordType.Chart,
@@ -141,7 +191,7 @@ function makeResponse(page: number, slugs: string[]): unknown {
         title: `Title of ${slug}`,
         availableTabs: TABS[slug] ?? DEFAULT_TABS,
     }))
-    return { results: [{ hits, nbHits: 3, page, nbPages: 2 }] }
+    return { results: [{ hits, nbHits, page, nbPages: 2 }] }
 }
 
 async function findRow(slug: string): Promise<HTMLElement> {
@@ -153,9 +203,13 @@ function requestedPages(): number[] {
     return searchForHits.mock.calls.map(([[params]]) => params.page)
 }
 
+function requestedQueries(): string[] {
+    return searchForHits.mock.calls.map(([[params]]) => params.query)
+}
+
 function renderBlock(): ReturnType<typeof render> {
     const queryClient = new QueryClient({
-        defaultOptions: { queries: { retry: false } },
+        defaultOptions: { queries: { retry: false, staleTime: Infinity } },
     })
     const attachments = {
         tags: [{ id: 1, name: "Poverty", slug: "poverty" }],

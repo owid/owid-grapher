@@ -376,23 +376,26 @@ export function stateToSearchParams(state: SearchState): URLSearchParams {
     return params
 }
 
-/**
- * Build a link to the site search, pre-filtered to a single topic and a given
- * result type (Data / Writing). Used by the LTP "Sections" block and the
- * sidebar TOC's bottom "See all charts" CTA.
- */
-export function buildSearchHrefForCard(
-    resultType: SearchResultType,
-    tagName: string
-): string {
-    const searchState: SearchState = {
-        query: "",
-        filters: [createTopicFilter(tagName)],
+/** Link to the site search for a result type, optionally with a query and a topic filter */
+export function buildSearchHref({
+    resultType,
+    query = "",
+    topic,
+}: {
+    resultType: SearchResultType
+    query?: string
+    topic?: string
+}): string {
+    const params = stateToSearchParams({
+        query,
+        filters: topic ? [createTopicFilter(topic)] : [],
         requireAllCountries: false,
         resultType,
-    }
-    const params = stateToSearchParams(searchState)
-    return `${SEARCH_BASE_PATH}?${params.toString()}`
+    })
+    const paramsString = params.toString()
+    return paramsString
+        ? `${SEARCH_BASE_PATH}?${paramsString}`
+        : SEARCH_BASE_PATH
 }
 
 /**

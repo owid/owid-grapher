@@ -24,7 +24,7 @@ import {
 import { SearchResultType, TocSidebarSection } from "@ourworldindata/types"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
 import { useIsScrolling } from "./hooks.js"
-import { buildSearchHrefForCard } from "./search/searchState.js"
+import { buildSearchHref } from "./search/searchState.js"
 import { useClearHashOnReturnToTop } from "./useClearHashOnReturnToTop.js"
 import { useKeepActiveTocRowInView } from "./useKeepActiveTocRowInView.js"
 import { useTocScrollSpy } from "./useTocScrollSpy.js"
@@ -316,7 +316,10 @@ const SeeAllChartsCta = ({ tagName }: { tagName: string }) => {
     return (
         <a
             className="sidebar-toc__cta"
-            href={buildSearchHrefForCard(SearchResultType.DATA, tagName)}
+            href={buildSearchHref({
+                resultType: SearchResultType.DATA,
+                topic: tagName,
+            })}
             data-track-note="toc_see_all_charts"
         >
             <FontAwesomeIcon icon={faMagnifyingGlass} />
