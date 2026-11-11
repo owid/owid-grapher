@@ -34,8 +34,8 @@
     // Here for `wrangler pages dev` (local dev and the staging containers), which
     // authenticates with the dev/staging CLOUDFLARE_API_TOKEN, and in "preview", to measure
     // latency on Cloudflare's edge. Not in "production", where the param returns 400.
-    // Nothing caps spend yet (see the TODO in rerank.ts), so the public *.owid.pages.dev
-    // previews can run up Workers AI cost.
+    // The owid-search AI Gateway's rate limit caps spend (see rerank.ts), previews
+    // included.
     "ai": { "binding": "AI", "remote": true },
     "vars": {
         "ENV": "development",
