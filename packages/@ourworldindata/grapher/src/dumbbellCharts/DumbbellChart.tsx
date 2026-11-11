@@ -250,13 +250,16 @@ export class DumbbellChart
 
     @computed private get yAxisConfig(): AxisConfig {
         const { axisText } = getVisibleLabels(this.manager.labelMode)
-        const labelModeOverrides = axisText ? {} : { hideTickLabels: true }
+        const shouldHideTickLabels = !axisText || this.isThumbnail
+        const tickLabelOverrides = shouldHideTickLabels
+            ? { hideTickLabels: true }
+            : {}
         return new AxisConfig(
             {
                 ...this.manager.yAxisConfig,
-                hideGridlines: false,
+                hideGridlines: this.isThumbnail,
                 shouldOffsetTickLabelAtStart: false,
-                ...labelModeOverrides,
+                ...tickLabelOverrides,
             },
             this
         )
@@ -808,7 +811,9 @@ function DumbbellChartAxis({
                 axis={axis}
                 tickColor={GRAPHER_LIGHT_TEXT}
             />
-            <HorizontalAxisGridLines bounds={dataBounds} axis={axis} />
+            {!axis.hideGridlines && (
+                <HorizontalAxisGridLines bounds={dataBounds} axis={axis} />
+            )}
             {axis.contains(0) && (
                 <HorizontalAxisZeroLine
                     bounds={dataBounds}
