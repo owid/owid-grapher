@@ -70,7 +70,12 @@ export class StackedAreaChartThumbnail
     @computed private get xAxisConfig(): AxisConfig {
         const { xAxisConfig } = this.manager
         const custom = { hideGridlines: true, labelPadding: 0 }
-        return new AxisConfig({ ...custom, ...xAxisConfig }, this)
+        const { axisText } = getVisibleLabels(this.manager.labelMode)
+        const labelModeOverrides = axisText ? {} : { hideTickLabels: true }
+        return new AxisConfig(
+            { ...custom, ...xAxisConfig, ...labelModeOverrides },
+            this
+        )
     }
 
     @computed private get yAxisConfig(): AxisConfig {
