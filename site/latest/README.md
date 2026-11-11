@@ -58,6 +58,8 @@ Every content type renders more than one way in the feed. What matters for the i
 
 **Announcements and data updates** collapse to a teaser in the unfiltered feed and show their full body once the type filter is on — or, for announcements, once the reader clicks _Read more_ ([`ExpandableText`](./ExpandableText.tsx)). Both transitions happen in the browser from data the record already carries. Similar to data insights, compact data update cards link to their standalone page.
 
+**Newsletters** are the one record type that isn't a gdoc: issues of The OWID Brief, fetched from Mailchimp by the indexer ([`owidBrief.ts`](../../baker/algolia/utils/owidBrief.ts)). They have no page on the site and no topic tags, so the card has a single variant that links out to the issue's archive page via the record's `url`, and they only appear when no topic filter is active.
+
 ## Component layout
 
 ```
@@ -69,5 +71,6 @@ LatestSearchWrapper            (Algolia LiteClient + QueryClientProvider)
               ├── LatestArticleHit
               ├── LatestDataInsightHit
               ├── LatestDataUpdateHit
-              └── LatestAnnouncementHit
+              ├── LatestAnnouncementHit
+              └── LatestNewsletterHit
 ```
