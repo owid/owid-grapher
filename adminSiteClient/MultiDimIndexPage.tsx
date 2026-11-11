@@ -1,332 +1,525 @@
+import * as React from "react"
 import {
     useMutation,
     UseMutationResult,
     useQuery,
     useQueryClient,
 } from "@tanstack/react-query"
-import { useContext, useMemo, useState } from "react"
+import { useContext, useDeferredValue, useMemo, useState } from "react"
 import {
     Button,
-    Checkbox,
+    Dropdown,
     Flex,
-    Input,
     Popconfirm,
     Space,
     Switch,
     Table,
     TableColumnsType,
+    Tooltip,
     Typography,
+    message,
     notification,
 } from "antd"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCopy, faPen, faTrashCan } from "@fortawesome/free-solid-svg-icons"
+import cx from "clsx"
+import urljoin from "url-join"
+import { copyToClipboard, excludeUndefined, Json } from "@ourworldindata/utils"
 import { Admin } from "./Admin.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import urljoin from "url-join"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../settings/clientSettings.mjs"
-import { dayjs, Json } from "@ourworldindata/utils"
 import { Link } from "./Link.js"
-import { useListSearch } from "./useListSearch.js"
+import { ApiMultiDimOverview } from "../adminShared/AdminTypes.js"
+import { highlightFunctionForSearchWords } from "../adminShared/search.js"
+import {
+    ChartSearchAccessors,
+    ChartSearchFacet,
+    chartSearchFilter,
+    chartSearchWordsToHighlight,
+    countNames,
+} from "./chartSearchQuery.js"
+import { ChartSearchToolbar } from "./ChartSearchToolbar.js"
+import {
+    CountCell,
+    HeaderWithHelp,
+    Highlighter,
+    TimestampCell,
+} from "./ChartListCells.js"
+import { compareTimes, DESCEND_FIRST } from "./chartListSorting.js"
+import { plural } from "./variableSearchQuery.js"
+import { useSearchQueryParam } from "./useSearchQueryParam.js"
 
-type ApiMultiDim = {
-    id: number
-    catalogPath: string
-    title: string
-    slug: string | null
-    updatedAt: string
-    published: boolean
-    mdimViews: number
-    pageviews: number
+// Listed the way the charts are (ChartList.tsx), with the same cells and
+// search, as a step towards one list of charts in which a multi-dim is a chart
+// with dimensions.
+
+type MultiDim = ApiMultiDimOverview
+
+const DEFAULT_PAGE_SIZE = 50
+
+// Every multi-dim comes from ETL and has no admin author, so the source and
+// author filters would have nothing to tell apart
+const MULTI_DIM_FACETS: readonly ChartSearchFacet[] = ["status", "tag"]
+
+const MULTI_DIM_SEARCH: ChartSearchAccessors<MultiDim> = {
+    text: (mdim) => [
+        mdim.title,
+        mdim.slug,
+        mdim.catalogPath,
+        `${mdim.id}`,
+        ...mdim.dimensions,
+        ...mdim.tags,
+    ],
+    isPublished: (mdim) => mdim.published,
+    isEtl: () => true,
+    isDrifted: () => false,
+    tags: (mdim) => mdim.tags,
+    authors: () => [],
 }
 
-type MultiDim = Omit<ApiMultiDim, "updatedAt"> & {
-    updatedAt: Date
-}
+const NO_AUTHORS: [] = []
 
-function PreviewLink({
-    slug,
-    catalogPath,
-}: {
-    slug: string | null
-    catalogPath: string
-}) {
-    const [status, setStatus] = useState<"loading" | "success" | "error">(
-        "loading"
-    )
+type SlugMutation = UseMutationResult<
+    MultiDim,
+    unknown,
+    { id: number; slug: string },
+    unknown
+>
+type PublishMutation = UseMutationResult<
+    MultiDim,
+    unknown,
+    { id: number; published: boolean },
+    unknown
+>
+type DeleteMutation = UseMutationResult<void, unknown, number, unknown>
 
-    const content = (
-        <>
-            {slug ? (
-                <>
-                    {status !== "success" && (
-                        <div className="multi-dim-preview">
-                            {status === "loading"
-                                ? "Loading image..."
-                                : "Error loading image"}
-                        </div>
-                    )}
-                    <img
-                        className="multi-dim-preview-img"
-                        style={{
-                            display: status === "success" ? "block" : "none",
-                        }}
-                        src={urljoin(
-                            GRAPHER_DYNAMIC_THUMBNAIL_URL,
-                            `/${slug}.png?imHeight=400`
-                        )}
-                        alt=""
-                        onLoad={() => setStatus("success")}
-                        onError={() => setStatus("error")}
-                    />
-                </>
-            ) : (
-                <div className="multi-dim-preview">Preview</div>
-            )}
-        </>
-    )
-
+/**
+ * Its thumbnail comes by slug, which works for a draft too: setting a slug
+ * puts the config where the thumbnails are rendered from. A draft links to its
+ * admin preview, which needs no slug.
+ */
+function PreviewCell({ mdim }: { mdim: MultiDim }): React.ReactElement {
+    const [hasFailed, setHasFailed] = useState(false)
+    const href =
+        mdim.published && mdim.slug
+            ? urljoin(BAKED_GRAPHER_URL, mdim.slug)
+            : urljoin(
+                  ADMIN_BASE_URL,
+                  `/admin/grapher/${encodeURIComponent(mdim.catalogPath)}`
+              )
     return (
-        <a
-            className="multi-dim-preview-link"
-            target="_blank"
-            rel="noopener"
-            href={urljoin(
-                ADMIN_BASE_URL,
-                `/admin/grapher/${encodeURIComponent(catalogPath)}`
+        <a href={href} target="_blank" rel="noopener">
+            {mdim.slug && !hasFailed ? (
+                <img
+                    src={urljoin(
+                        GRAPHER_DYNAMIC_THUMBNAIL_URL,
+                        `/${mdim.slug}.png`
+                    )}
+                    height={600}
+                    width={850}
+                    loading="lazy"
+                    className={cx("chart-list__preview", {
+                        "chart-list__preview--draft": !mdim.published,
+                    })}
+                    onError={() => setHasFailed(true)}
+                />
+            ) : (
+                <span className="chart-list__preview chart-list__preview--empty">
+                    Preview
+                </span>
             )}
-        >
-            {content}
         </a>
     )
 }
 
-function SlugField({
-    id,
-    slug,
-    slugMutation,
+/** Its dimensions as a pill, where a chart shows its type, named on hover */
+function DimensionsPill({
+    dimensions,
 }: {
-    id: number
-    slug: string | null
-    slugMutation: UseMutationResult<
-        MultiDim,
-        unknown,
-        { id: number; slug: string },
-        unknown
-    >
-}) {
-    const copyable = slug
-        ? {
-              text: urljoin(BAKED_GRAPHER_URL, slug),
-              tooltips: ["Copy live URL", "Copied"],
-          }
-        : undefined
-
-    function handleOnChange(value: string) {
-        if (value !== slug) slugMutation.mutate({ id, slug: value })
-    }
-
+    dimensions: string[]
+}): React.ReactElement {
     return (
-        <Typography.Text
-            copyable={copyable}
-            editable={{ onChange: handleOnChange }}
+        <Tooltip
+            title={
+                dimensions.length > 0 ? (
+                    <ul className="chart-list__dimension-names">
+                        {dimensions.map((name) => (
+                            <li key={name}>{name}</li>
+                        ))}
+                    </ul>
+                ) : undefined
+            }
         >
-            {slug}
-        </Typography.Text>
+            <span className="chart-list__dimensions">
+                {plural(dimensions.length, "dimension")}
+            </span>
+        </Tooltip>
     )
 }
 
-function createColumns(
-    slugMutation: UseMutationResult<
-        MultiDim,
-        unknown,
-        { id: number; slug: string },
-        unknown
-    >,
-    publishMutation: UseMutationResult<
-        MultiDim,
-        unknown,
-        { id: number; published: boolean },
-        unknown
-    >,
-    deleteMutation: UseMutationResult<void, unknown, number, unknown>
-): TableColumnsType<MultiDim> {
-    return [
-        {
-            title: "Preview",
-            dataIndex: "thumbnailUrl",
-            width: 100,
-            key: "thumbnail",
-            render: (_, record) => {
-                return (
-                    <PreviewLink
-                        slug={record.slug}
-                        catalogPath={record.catalogPath}
-                    />
-                )
-            },
-        },
-        {
-            title: "Title",
-            dataIndex: "title",
-            key: "title",
-            render: (text, record) =>
-                record.published && record.slug ? (
+/** The slug, editable here since this list is where it is set */
+function SlugField({
+    mdim,
+    slugMutation,
+}: {
+    mdim: MultiDim
+    slugMutation: SlugMutation
+}): React.ReactElement {
+    const onChange = (value: string): void => {
+        const slug = value.trim()
+        if (slug && slug !== mdim.slug)
+            slugMutation.mutate({ id: mdim.id, slug })
+    }
+    return (
+        <div className="chart-list__slug-field">
+            <span className="chart-list__slug-prefix">/grapher/</span>
+            <Typography.Text
+                className={cx({ "chart-list__no-slug": !mdim.slug })}
+                editable={{
+                    text: mdim.slug ?? "",
+                    onChange,
+                    tooltip: mdim.slug ? "Edit slug" : "Set a slug to publish",
+                }}
+                copyable={
+                    mdim.published && mdim.slug
+                        ? {
+                              text: urljoin(BAKED_GRAPHER_URL, mdim.slug),
+                              tooltips: ["Copy live URL", "Copied"],
+                          }
+                        : false
+                }
+            >
+                {mdim.slug ?? "no slug yet"}
+            </Typography.Text>
+        </div>
+    )
+}
+
+/**
+ * Title with the draft flag, then id, dimensions and views, catalog path, slug
+ * and tags. Drafts are greyed out, as in the chart list.
+ */
+function MultiDimCell({
+    mdim,
+    highlight,
+    slugMutation,
+}: {
+    mdim: MultiDim
+    highlight: Highlighter
+    slugMutation: SlugMutation
+}): React.ReactElement {
+    const title = highlight(mdim.title)
+    return (
+        <div
+            className={cx("chart-list__chart", {
+                "chart-list__chart--draft": !mdim.published,
+            })}
+        >
+            <div className="chart-list__title">
+                {!mdim.published && (
+                    <span className="chart-list__draft-label">Draft</span>
+                )}
+                {mdim.published && mdim.slug ? (
                     <a
-                        href={urljoin(BAKED_GRAPHER_URL, record.slug)}
+                        href={urljoin(BAKED_GRAPHER_URL, mdim.slug)}
                         target="_blank"
                         rel="noopener"
                     >
-                        {text}
+                        {title}
                     </a>
                 ) : (
-                    text
-                ),
-            sorter: (a, b) => a.title.localeCompare(b.title),
-        },
-        {
-            title: "Catalog path",
-            dataIndex: "catalogPath",
-            key: "catalogPath",
-            render: (catalogPath) => (
-                <Typography.Text copyable>{catalogPath}</Typography.Text>
-            ),
-            sorter: (a, b) => a.catalogPath.localeCompare(b.catalogPath),
-        },
-        {
-            title: "Slug",
-            dataIndex: "slug",
-            key: "slug",
-            render: (slug, { id }) => (
-                <SlugField id={id} slug={slug} slugMutation={slugMutation} />
-            ),
-            sorter: (a, b) => {
-                if (a.slug === null) return 1
-                if (b.slug === null) return -1
-                return a.slug.localeCompare(b.slug)
-            },
-        },
-        {
-            title: "Mdim views",
-            dataIndex: "mdimViews",
-            key: "mdimViews",
-            align: "right",
-            render: (views) => views?.toLocaleString(),
-            sorter: (a, b) => a.mdimViews - b.mdimViews,
-        },
-        {
-            title: "Pageviews (14d)",
-            dataIndex: "pageviews",
-            key: "pageviews",
-            align: "right",
-            render: (views) => views?.toLocaleString(),
-            sorter: (a, b) => a.pageviews - b.pageviews,
-        },
-        {
-            title: "Last updated",
-            dataIndex: "updatedAt",
-            key: "updatedAt",
-            defaultSortOrder: "descend",
-            render: (updatedAt) => {
-                const date = dayjs(updatedAt)
-                return <span title={date.format()}>{date.fromNow()}</span>
-            },
-            sorter: (a, b) => a.updatedAt.getTime() - b.updatedAt.getTime(),
-        },
-        {
-            title: "Published",
-            dataIndex: "published",
-            key: "published",
-            align: "center",
-            render: (published, record) => (
-                <Popconfirm
-                    title={`Are you sure you want to ${published ? "unpublish" : "publish"} this page?`}
-                    onConfirm={() =>
-                        publishMutation.mutate({
-                            id: record.id,
-                            published: !published,
-                        })
-                    }
-                    okText="Yes"
-                    cancelText="No"
+                    <span>{title}</span>
+                )}
+            </div>
+            <div className="chart-list__meta">
+                <span>#{highlight(`${mdim.id}`)}</span>
+                <span className="chart-list__meta-separator">·</span>
+                <DimensionsPill dimensions={mdim.dimensions} />
+                <span className="chart-list__meta-separator">·</span>
+                <Tooltip title="Each combination of dimension choices is a view, a chart of its own">
+                    <span className="chart-list__header-help">
+                        {plural(mdim.mdimViews, "view")}
+                    </span>
+                </Tooltip>
+            </div>
+            <div className="chart-list__catalog-path" title={mdim.catalogPath}>
+                {highlight(mdim.catalogPath)}
+            </div>
+            <SlugField mdim={mdim} slugMutation={slugMutation} />
+            {mdim.tags.length > 0 && (
+                // Set in its ETL config, so they're read here, not edited
+                <div className="chart-list__tags">
+                    {mdim.tags.map((tag) => (
+                        <span key={tag} className="TagBadge">
+                            <span className="TagBadge__name">{tag}</span>
+                        </span>
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
+
+type CopyOptionKey = "admin-url" | "live-url" | "catalog-path"
+
+async function copyOption(mdim: MultiDim, key: CopyOptionKey): Promise<void> {
+    const text =
+        key === "admin-url"
+            ? `[${mdim.title}](${ADMIN_BASE_URL}/admin/multi-dims/${mdim.id})`
+            : key === "live-url"
+              ? `[${mdim.title}](${urljoin(BAKED_GRAPHER_URL, mdim.slug ?? "")})`
+              : mdim.catalogPath
+    const ok = await copyToClipboard(text)
+    if (!ok) void message.error("Couldn't copy to the clipboard")
+    else if (key === "catalog-path") void message.success("Copied catalog path")
+    else void message.success("Copied Markdown link")
+}
+
+function ActionsCell({
+    mdim,
+    deleteMutation,
+}: {
+    mdim: MultiDim
+    deleteMutation: DeleteMutation
+}): React.ReactElement {
+    const linkOptions: { key: CopyOptionKey; label: string }[] =
+        excludeUndefined([
+            { key: "admin-url", label: "Admin URL" },
+            mdim.published && mdim.slug
+                ? { key: "live-url", label: "Live URL" }
+                : undefined,
+        ])
+    const isDeleting =
+        deleteMutation.isPending && deleteMutation.variables === mdim.id
+
+    return (
+        <div className="chart-list__actions">
+            <Link to={`/multi-dims/${mdim.id}`}>
+                <Button
+                    type="primary"
+                    size="small"
+                    block
+                    icon={<FontAwesomeIcon icon={faPen} />}
                 >
-                    <Switch
-                        checked={published}
-                        disabled={
-                            !record.slug ||
-                            (publishMutation.isPending &&
-                                publishMutation.variables?.id === record.id)
-                        }
-                    />
-                </Popconfirm>
-            ),
-            sorter: (a, b) => Number(b.published) - Number(a.published),
-        },
-        {
-            title: "Actions",
-            key: "actions",
-            width: 100,
-            render: (_, record) =>
-                record.published ? (
-                    <Link to={`/multi-dims/${record.id}`}>
-                        <Button type="primary">Edit</Button>
-                    </Link>
+                    Edit
+                </Button>
+            </Link>
+            <div className="chart-list__secondary-actions">
+                <Dropdown
+                    trigger={["click"]}
+                    menu={{
+                        items: [
+                            {
+                                type: "group",
+                                label: "Copy as Markdown link",
+                                children: linkOptions,
+                            },
+                            { type: "divider" },
+                            { key: "catalog-path", label: "Copy catalog path" },
+                        ],
+                        onClick: (e) => {
+                            void copyOption(mdim, e.key as CopyOptionKey)
+                        },
+                    }}
+                >
+                    <Tooltip title="Copy">
+                        <Button
+                            size="small"
+                            aria-label="Copy"
+                            icon={<FontAwesomeIcon icon={faCopy} />}
+                        />
+                    </Tooltip>
+                </Dropdown>
+                {mdim.published ? (
+                    <Tooltip title="Unpublish it to delete it">
+                        <Button
+                            size="small"
+                            danger
+                            disabled
+                            aria-label="Delete"
+                            icon={<FontAwesomeIcon icon={faTrashCan} />}
+                        />
+                    </Tooltip>
                 ) : (
                     <Popconfirm
                         title="Delete this multi-dim?"
                         description="This deletes it and its views from the database. Also remove its step from the ETL, or the next ETL run will recreate it."
-                        onConfirm={() => deleteMutation.mutate(record.id)}
+                        onConfirm={() => deleteMutation.mutate(mdim.id)}
                         okText="Delete"
                         okButtonProps={{ danger: true }}
                         cancelText="Cancel"
                     >
-                        <Button
-                            danger
-                            loading={
-                                deleteMutation.isPending &&
-                                deleteMutation.variables === record.id
-                            }
-                        >
-                            Delete
-                        </Button>
+                        <Tooltip title="Delete">
+                            <Button
+                                size="small"
+                                danger
+                                aria-label="Delete"
+                                loading={isDeleting}
+                                icon={<FontAwesomeIcon icon={faTrashCan} />}
+                            />
+                        </Tooltip>
                     </Popconfirm>
-                ),
+                )}
+            </div>
+        </div>
+    )
+}
+
+function PublishedCell({
+    mdim,
+    publishMutation,
+}: {
+    mdim: MultiDim
+    publishMutation: PublishMutation
+}): React.ReactElement {
+    const isUpdating =
+        publishMutation.isPending && publishMutation.variables?.id === mdim.id
+    return (
+        <Popconfirm
+            title={`Are you sure you want to ${mdim.published ? "unpublish" : "publish"} this page?`}
+            onConfirm={() =>
+                publishMutation.mutate({
+                    id: mdim.id,
+                    published: !mdim.published,
+                })
+            }
+            okText="Yes"
+            cancelText="No"
+            disabled={!mdim.slug}
+        >
+            <Tooltip title={mdim.slug ? undefined : "Set a slug to publish"}>
+                <Switch
+                    size="small"
+                    checked={mdim.published}
+                    disabled={!mdim.slug || isUpdating}
+                />
+            </Tooltip>
+        </Popconfirm>
+    )
+}
+
+function createColumns({
+    highlight,
+    slugMutation,
+    publishMutation,
+    deleteMutation,
+}: {
+    highlight: Highlighter
+    slugMutation: SlugMutation
+    publishMutation: PublishMutation
+    deleteMutation: DeleteMutation
+}): TableColumnsType<MultiDim> {
+    return [
+        {
+            key: "preview",
+            width: 112,
+            render: (_, mdim) => <PreviewCell mdim={mdim} />,
+        },
+        {
+            title: "Multi-dim",
+            key: "multiDim",
+            render: (_, mdim) => (
+                <MultiDimCell
+                    mdim={mdim}
+                    highlight={highlight}
+                    slugMutation={slugMutation}
+                />
+            ),
+        },
+        {
+            key: "actions",
+            width: 100,
+            render: (_, mdim) => (
+                <ActionsCell mdim={mdim} deleteMutation={deleteMutation} />
+            ),
+        },
+        {
+            title: "Last updated",
+            key: "updatedAt",
+            sorter: (a, b) => compareTimes(a.updatedAt, b.updatedAt),
+            sortDirections: DESCEND_FIRST,
+            defaultSortOrder: "descend",
+            render: (_, mdim) => <TimestampCell time={mdim.updatedAt} />,
+        },
+        {
+            title: "Published",
+            key: "published",
+            align: "center",
+            sorter: (a, b) => Number(a.published) - Number(b.published),
+            sortDirections: DESCEND_FIRST,
+            render: (_, mdim) => (
+                <PublishedCell mdim={mdim} publishMutation={publishMutation} />
+            ),
+        },
+        {
+            title: (
+                <HeaderWithHelp
+                    title="Views/day"
+                    help="Average daily views of the multi-dim's page over the last 365 days"
+                />
+            ),
+            key: "viewsPerDay",
+            align: "right",
+            sorter: (a, b) => a.viewsPerDay - b.viewsPerDay,
+            sortDirections: DESCEND_FIRST,
+            render: (_, mdim) => <CountCell count={mdim.viewsPerDay} />,
+        },
+        {
+            title: "Narrative charts",
+            key: "narrativeChartsCount",
+            align: "right",
+            sorter: (a, b) => a.narrativeChartsCount - b.narrativeChartsCount,
+            sortDirections: DESCEND_FIRST,
+            render: (_, mdim) => (
+                <CountCell count={mdim.narrativeChartsCount} />
+            ),
+        },
+        {
+            title: (
+                <HeaderWithHelp
+                    title="References"
+                    help="Published Google Docs and static visualizations that link to it"
+                />
+            ),
+            key: "referencesCount",
+            align: "right",
+            sorter: (a, b) => a.referencesCount - b.referencesCount,
+            sortDirections: DESCEND_FIRST,
+            render: (_, mdim) => <CountCell count={mdim.referencesCount} />,
         },
     ]
 }
 
-function deserializeMultiDim(mdim: ApiMultiDim): MultiDim {
-    return {
-        ...mdim,
-        updatedAt: new Date(mdim.updatedAt),
-    }
-}
-
-async function fetchMultiDims(admin: Admin) {
+async function fetchMultiDims(admin: Admin): Promise<MultiDim[]> {
     const { multiDims } = await admin.getJSONInBackground<{
-        multiDims: ApiMultiDim[]
+        multiDims: MultiDim[]
     }>("/api/multi-dims.json")
-    return multiDims.map(deserializeMultiDim)
+    return multiDims
 }
 
-async function patchMultiDim(admin: Admin, id: number, data: Json) {
-    const { multiDim } = await admin.requestJSON<{ multiDim: ApiMultiDim }>(
+async function patchMultiDim(
+    admin: Admin,
+    id: number,
+    data: Json
+): Promise<MultiDim> {
+    const { multiDim } = await admin.requestJSON<{ multiDim: MultiDim }>(
         `/api/multi-dims/${id}`,
         data,
         "PATCH"
     )
-    return deserializeMultiDim(multiDim)
+    return multiDim
 }
 
 async function deleteMultiDim(admin: Admin, id: number): Promise<void> {
     await admin.requestJSON(`/api/multi-dims/${id}`, {}, "DELETE")
 }
 
-const searchedText = (mdim: MultiDim) => [mdim.title, mdim.slug]
-
-export function MultiDimIndexPage() {
+export function MultiDimIndexPage(): React.ReactElement {
     const { admin } = useContext(AdminAppContext)
     const [notificationApi, notificationContextHolder] =
         notification.useNotification()
@@ -376,71 +569,102 @@ export function MultiDimIndexPage() {
         },
     })
 
-    const [showOnlyPublished, setShowOnlyPublished] = useState(false)
+    const [searchValue, setSearchValue] = useSearchQueryParam()
+    const [currentPage, setCurrentPage] = useState(1)
+    const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
+    const onSearchChange = (value: string): void => {
+        setSearchValue(value)
+        setCurrentPage(1)
+    }
 
-    const { searchValue, setSearchValue, filtered } = useListSearch(
-        data,
-        searchedText
+    const rows = useMemo(() => data ?? [], [data])
+    const tagCounts = useMemo(
+        () => countNames(rows, (mdim) => mdim.tags),
+        [rows]
     )
-    const filteredMdims = useMemo(
+
+    // The list follows a step behind the search box, as on the charts page
+    const query = useDeferredValue(searchValue)
+    const filtered = useMemo(
         () =>
-            showOnlyPublished
-                ? filtered.filter((mdim) => mdim.published)
-                : filtered,
-        [filtered, showOnlyPublished]
+            query.trim()
+                ? rows.filter(chartSearchFilter(query, rows, MULTI_DIM_SEARCH))
+                : rows,
+        [query, rows]
     )
-
-    const columns = createColumns(slugMutation, publishMutation, deleteMutation)
+    const columns = useMemo(
+        () =>
+            createColumns({
+                highlight: highlightFunctionForSearchWords(
+                    chartSearchWordsToHighlight(query).inText
+                ),
+                slugMutation,
+                publishMutation,
+                deleteMutation,
+            }),
+        [query, slugMutation, publishMutation, deleteMutation]
+    )
 
     return (
         <AdminLayout title="Multidimensional Data Pages">
             {notificationContextHolder}
-            <main>
-                <Space orientation="vertical" size="middle">
-                    <Flex align="center" justify="space-between" gap={24}>
-                        <Space size="middle">
-                            <Input
-                                placeholder="Search by title or slug"
-                                value={searchValue}
-                                onChange={(e) => setSearchValue(e.target.value)}
-                                style={{ width: 500 }}
-                                autoFocus
-                            />
-                            <Checkbox
-                                checked={showOnlyPublished}
-                                onChange={(e) =>
-                                    setShowOnlyPublished(e.target.checked)
-                                }
-                            >
-                                Show only published
-                            </Checkbox>
-                        </Space>
-                        <Space>
-                            <a
-                                href={urljoin(
-                                    ADMIN_BASE_URL,
-                                    "/admin/grapher/covid%2Flatest%2Fcovid%23dummy"
-                                )}
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                Example
-                            </a>
-                            <a
-                                href="https://docs.owid.io/projects/etl/architecture/metadata/reference/collections/"
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                Docs
-                            </a>
-                        </Space>
-                    </Flex>
-                    <Table
-                        columns={columns}
-                        dataSource={filteredMdims}
-                        rowKey={(x) => x.id}
+            <main className="chart-list">
+                <Flex justify="space-between" align="start" gap={24}>
+                    <ChartSearchToolbar
+                        query={searchValue}
+                        onQueryChange={onSearchChange}
+                        tags={tagCounts}
+                        authors={NO_AUTHORS}
+                        facets={MULTI_DIM_FACETS}
+                        placeholder="Search, or filter: tag:Energy is:draft"
+                        searchedIn="the title, slug, catalog path, id, dimensions and tags"
+                        autoFocus
                     />
-                </Space>
+                    <Space className="chart-list__page-links">
+                        <a
+                            href={urljoin(
+                                ADMIN_BASE_URL,
+                                "/admin/grapher/covid%2Flatest%2Fcovid%23dummy"
+                            )}
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            Example
+                        </a>
+                        <a
+                            href="https://docs.owid.io/projects/etl/architecture/metadata/reference/collections/"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            Docs
+                        </a>
+                    </Space>
+                </Flex>
+                <Table<MultiDim>
+                    size="small"
+                    tableLayout="auto"
+                    scroll={{ x: true }}
+                    rowKey="id"
+                    columns={columns}
+                    dataSource={filtered}
+                    loading={!data}
+                    pagination={{
+                        current: currentPage,
+                        pageSize,
+                        onChange: (page, size) => {
+                            setCurrentPage(page)
+                            setPageSize(size)
+                        },
+                        showSizeChanger: true,
+                        pageSizeOptions: [25, 50, 100, 200],
+                        placement: ["topStart", "bottomEnd"],
+                        showTotal: (total, [from, to]) =>
+                            `${from}–${to} of ${plural(total, "multi-dim")}` +
+                            (query.trim()
+                                ? ` (${rows.length.toLocaleString()} total)`
+                                : ""),
+                    }}
+                />
             </main>
         </AdminLayout>
     )

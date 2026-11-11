@@ -9,6 +9,18 @@
     opacity: 0.6;
 }
 
+// Where there is no thumbnail to show, the same size as one
+.chart-list__preview--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 850 / 600;
+    border: 1px dashed #d9d9d9;
+    background: #fafafa;
+    color: #999;
+    font-size: 0.8em;
+}
+
 .chart-list__chart {
     min-width: 280px;
 }
@@ -79,6 +91,62 @@
 .chart-list__meta-separator {
     color: #ccc;
     padding: 0 5px;
+}
+
+// A multi-dim's dimensions, where a chart's meta line shows its type
+.chart-list__dimensions {
+    display: inline-block;
+    padding: 0 6px;
+    border: 1px solid #d6dde6;
+    border-radius: 4px;
+    background: #f2f5f9;
+    color: #3f5170;
+    font-size: 0.95em;
+    line-height: 1.5;
+    cursor: help;
+}
+
+.chart-list__dimension-names {
+    margin: 0;
+    padding-left: 16px;
+}
+
+// A multi-dim's ETL catalog path; long ones are cut off, hover for all of it
+.chart-list__catalog-path {
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 420px;
+    font-family: monospace;
+    font-size: 0.85em;
+    color: #777;
+}
+
+.chart-list__slug-field {
+    font-family: monospace;
+    font-size: 0.85em;
+    color: #777;
+
+    .ant-typography {
+        font-size: inherit;
+        color: #555;
+    }
+}
+
+.chart-list__slug-prefix {
+    color: #aaa;
+}
+
+.chart-list__no-slug.ant-typography {
+    color: #aaa;
+    font-style: italic;
+}
+
+// The page's own links, level with the search box
+.chart-list__page-links {
+    padding-top: 5px;
+    white-space: nowrap;
 }
 
 .chart-list__notes {

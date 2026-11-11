@@ -11,6 +11,7 @@ import {
     MultiDimDataPageConfigRaw,
     MultiDimDataPagesTableName,
     MultiDimRedirectsTableName,
+    MultiDimXChartConfigsTableName,
 } from "@ourworldindata/types"
 import {
     MultiDimDataPageConfig,
@@ -35,6 +36,7 @@ import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import * as db from "../../db/db.js"
 import { getMultiDimViewRecords } from "../../baker/algolia/utils/mdimViews.js"
+import { ApiMultiDimOverview } from "../../adminShared/AdminTypes.js"
 import {
     validateNewGrapherSlug,
     validateMultiDimSlug,
@@ -363,40 +365,89 @@ async function createSlugChangeRedirect(
     })
 }
 
+/** A JSON column read as an array of strings, whether the driver parsed it or not */
+function stringArrayOf(value: unknown): string[] {
+    const parsed: unknown =
+        typeof value === "string" ? JSON.parse(value) : value
+    return Array.isArray(parsed) ? parsed.map(String) : []
+}
+
 export async function handleGetMultiDims(
     _req: Request,
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
-) {
+): Promise<{ multiDims: ApiMultiDimOverview[] }> {
     try {
         const results = await db.knexRaw<
             Pick<
                 DbPlainMultiDimDataPage,
                 "id" | "catalogPath" | "slug" | "updatedAt" | "published"
-            > & { title: string; pageviews: number; mdimViews: number }
+            > & {
+                title: string
+                dimensions: unknown
+                tags: unknown
+                mdimViews: number
+                viewsPerDay: number | string
+                narrativeChartsCount: number | string
+                referencesCount: number | string
+            }
         >(
             trx,
+            // The counts mirror chart_references_view: published gdocs (minus
+            // fragments and about pages) and static visualizations linking to
+            // the multi-dim's slug, and the narrative charts made from any of
+            // its views. Explorers can't embed a multi-dim.
             `-- sql
             SELECT
                 mdp.id,
                 mdp.catalogPath,
                 mdp.slug,
                 mdp.config->>'$.title.title' as title,
+                mdp.config->'$.dimensions[*].name' as dimensions,
+                mdp.config->'$.topicTags' as tags,
                 mdp.updatedAt,
                 mdp.published,
-                COALESCE(agv.views_14d, 0) as pageviews,
-                COALESCE(JSON_LENGTH(mdp.config, '$.views'), 0) as mdimViews
+                COALESCE(JSON_LENGTH(mdp.config, '$.views'), 0) as mdimViews,
+                ROUND(COALESCE(agv.views_365d, 0) / 365, 1) as viewsPerDay,
+                (
+                    SELECT COUNT(*)
+                    FROM narrative_charts nc
+                    JOIN ${MultiDimXChartConfigsTableName} mx
+                        ON mx.id = nc.parentMultiDimXChartConfigId
+                    WHERE mx.multiDimId = mdp.id
+                ) as narrativeChartsCount,
+                (
+                    SELECT COUNT(DISTINCT pgl.sourceId)
+                    FROM posts_gdocs_links pgl
+                    JOIN posts_gdocs pg ON pg.id = pgl.sourceId
+                    WHERE pgl.target = mdp.slug
+                        AND pgl.linkType = 'grapher'
+                        AND pg.published = TRUE
+                        AND pg.type NOT IN ('fragment', 'about-page')
+                ) + (
+                    SELECT COUNT(*)
+                    FROM static_viz sv
+                    WHERE sv.grapherSlug = mdp.slug
+                ) as referencesCount
             FROM ${MultiDimDataPagesTableName} mdp
             LEFT JOIN analytics_grapher_views agv ON (
                 agv.grapher_slug = mdp.slug
                 AND agv.day = (SELECT MAX(day) FROM analytics_grapher_views)
             )`
         )
-        const multiDims = results.map((row) => ({
-            ...row,
+        const multiDims = results.map((row): ApiMultiDimOverview => ({
+            id: row.id,
+            catalogPath: row.catalogPath,
+            slug: row.slug,
+            title: row.title,
+            updatedAt: row.updatedAt.toISOString(),
             published: Boolean(row.published),
-            pageviews: Number(row.pageviews),
+            dimensions: stringArrayOf(row.dimensions),
+            tags: stringArrayOf(row.tags),
             mdimViews: Number(row.mdimViews),
+            viewsPerDay: Number(row.viewsPerDay),
+            narrativeChartsCount: Number(row.narrativeChartsCount),
+            referencesCount: Number(row.referencesCount),
         }))
         return { multiDims }
     } catch (error) {
