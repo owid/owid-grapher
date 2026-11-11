@@ -1,7 +1,8 @@
 import * as React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
+import { flushSync } from "react-dom"
 import cx from "clsx"
-import { useIntersectionObserver } from "usehooks-ts"
+import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 import {
     faExclamationTriangle,
     faSearch,
@@ -15,7 +16,9 @@ import {
 import { queryParamsToStr } from "@ourworldindata/utils"
 import { GrapherWithFallback } from "../GrapherWithFallback.js"
 import { useDocumentContext } from "../gdocs/DocumentContext.js"
+import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { toGrapherQueryParams } from "../search/searchUtils.js"
+import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
 import { AllChartsRow, AllChartsRowData } from "./AllChartsRow.js"
 
@@ -39,6 +42,7 @@ export function AllChartsBlock({
     rowCount,
     rows,
     onLoadMore,
+    isLoadingMore,
     className,
 }: {
     id: string
@@ -46,6 +50,7 @@ export function AllChartsBlock({
     rowCount: number
     rows: AllChartsRowData[]
     onLoadMore?: () => void
+    isLoadingMore?: boolean
     className?: string
 }): React.ReactElement {
     const [selection, setSelection] = useState<AllChartsSelection | undefined>()
@@ -59,6 +64,21 @@ export function AllChartsBlock({
         selectedRow &&
         ((selection?.slug === selectedRow.slug && selection.tab) ||
             getDefaultTabForRow(selectedRow, []))
+
+    const isNarrow = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
+
+    const inlinePreviewId = useId()
+    const selectedItemRef = useRef<HTMLLIElement>(null)
+
+    const select = (
+        row: AllChartsRowData,
+        tab: GrapherTabName | undefined,
+        shouldScrollToRow: boolean
+    ): void => {
+        flushSync(() => setSelection({ slug: row.slug, tab }))
+        if (isNarrow && shouldScrollToRow)
+            selectedItemRef.current?.scrollIntoView({ block: "start" })
+    }
 
     const { ref: sentinelRef, isIntersecting: isSentinelVisible } =
         useIntersectionObserver({ root: listElement })
@@ -75,26 +95,60 @@ export function AllChartsBlock({
             <div className="grid grid-cols-12">
                 <div className="all-charts-block__list-wrapper span-cols-5 span-md-cols-12">
                     <ul className="all-charts-block__list" ref={setListElement}>
-                        {rows.map((row) => (
-                            <li
-                                className="all-charts-block__item"
-                                key={`${row.type}:${row.slug}:${row.queryParams ?? ""}`}
-                            >
-                                <AllChartsRow
-                                    row={row}
-                                    isSelected={row === selectedRow}
-                                    selectedTab={selectedTab}
-                                    thumbnailTabs={pickThumbnailTabs(
-                                        row.availableTabs,
-                                        { hasCountries: false }
-                                    )}
-                                    countries={[]}
-                                    onSelect={(tab) =>
-                                        setSelection({ slug: row.slug, tab })
+                        {rows.map((row) => {
+                            const isSelected = row === selectedRow
+                            return (
+                                <li
+                                    className={cx("all-charts-block__item", {
+                                        "all-charts-block__item--selected":
+                                            isSelected,
+                                    })}
+                                    key={`${row.type}:${row.slug}:${row.queryParams ?? ""}`}
+                                    ref={
+                                        isSelected ? selectedItemRef : undefined
                                     }
-                                />
-                            </li>
-                        ))}
+                                >
+                                    <AllChartsRow
+                                        row={row}
+                                        isSelected={isSelected}
+                                        selectedTab={selectedTab}
+                                        thumbnailTabs={pickThumbnailTabs(
+                                            row.availableTabs,
+                                            { hasCountries: false }
+                                        )}
+                                        countries={[]}
+                                        inlinePreviewId={
+                                            isNarrow
+                                                ? inlinePreviewId
+                                                : undefined
+                                        }
+                                        onTitleSelect={(tab) =>
+                                            select(
+                                                row,
+                                                tab,
+                                                row !== selectedRow
+                                            )
+                                        }
+                                        onThumbnailSelect={(tab) =>
+                                            select(row, tab, true)
+                                        }
+                                    />
+                                    {isNarrow && isSelected && (
+                                        <div
+                                            className="all-charts-block__inline-preview"
+                                            id={inlinePreviewId}
+                                        >
+                                            {selectedTab && (
+                                                <AllChartsPreview
+                                                    slug={row.slug}
+                                                    tab={selectedTab}
+                                                />
+                                            )}
+                                        </div>
+                                    )}
+                                </li>
+                            )
+                        })}
                         {onLoadMore && (
                             <li
                                 className="all-charts-block__sentinel"
@@ -103,15 +157,25 @@ export function AllChartsBlock({
                             />
                         )}
                     </ul>
-                </div>
-                <div className="all-charts-block__preview span-cols-7 span-md-cols-12">
-                    {selectedRow && selectedTab && (
-                        <AllChartsPreview
-                            slug={selectedRow.slug}
-                            tab={selectedTab}
+                    {onLoadMore && (
+                        <SearchHorizontalDivider
+                            className="all-charts-block__show-more"
+                            hasButton
+                            isLoading={isLoadingMore}
+                            onClick={onLoadMore}
                         />
                     )}
                 </div>
+                {!isNarrow && (
+                    <div className="all-charts-block__preview span-cols-7">
+                        {selectedRow && selectedTab && (
+                            <AllChartsPreview
+                                slug={selectedRow.slug}
+                                tab={selectedTab}
+                            />
+                        )}
+                    </div>
+                )}
             </div>
         </section>
     )
@@ -146,6 +210,10 @@ export function AllChartsBlockSkeleton({
                                 >
                                     <div className="all-charts-block__skeleton-title" />
                                     <div className="all-charts-block__skeleton-source" />
+                                    <div className="all-charts-block__skeleton-thumbnail" />
+                                    {index === 0 && (
+                                        <div className="all-charts-block__skeleton-inline-preview" />
+                                    )}
                                 </li>
                             )
                         )}

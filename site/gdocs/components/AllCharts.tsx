@@ -124,6 +124,7 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
                       }
                     : undefined
             }
+            isLoadingMore={isFetchingNextPage}
         />
     )
 }

@@ -1,4 +1,6 @@
 $all-charts-block-height: 575px;
+$all-charts-block-inline-preview-height: 520px;
+$all-charts-block-sticky-nav-clearance: 64px;
 
 .all-charts-block__count {
     @include note-1-medium;
@@ -33,30 +35,42 @@ $all-charts-block-height: 575px;
 
 .all-charts-block__item {
     border-bottom: 1px solid $blue-10;
+    scroll-margin-top: $all-charts-block-sticky-nav-clearance;
+}
+
+.all-charts-block__skeleton-inline-preview {
+    display: none;
 }
 
 .all-charts-block__sentinel {
     height: 1px;
 }
 
+.all-charts-block .all-charts-block__show-more {
+    display: none;
+}
+
 .all-charts-block__preview {
     height: $all-charts-block-height;
 }
 
-.all-charts-block__preview .GrapherWithFallback {
+.all-charts-block__preview .GrapherWithFallback,
+.all-charts-block__inline-preview .GrapherWithFallback {
     height: 100%;
 }
 
 .all-charts-block__preview figure.chart.grapher-component,
-.all-charts-block__preview figure.chart.GrapherWithFallback__fallback {
+.all-charts-block__preview figure.chart.GrapherWithFallback__fallback,
+.all-charts-block__inline-preview figure.chart.grapher-component,
+.all-charts-block__inline-preview figure.chart.GrapherWithFallback__fallback {
     @include figure-grapher-reset;
     height: 100%;
     margin: 0;
 }
 
 .all-charts-block__skeleton-row {
-    padding: 16px;
-    border-left: 3px solid transparent;
+    padding: $all-charts-row-padding;
+    border-left: $all-charts-row-accent-width solid transparent;
 }
 
 .all-charts-block__skeleton-row:first-child {
@@ -80,12 +94,68 @@ $all-charts-block-height: 575px;
     background: $gray-10;
 }
 
-.all-charts-block__skeleton-row::after {
-    content: "";
-    display: block;
+.all-charts-block__skeleton-thumbnail {
     width: $all-charts-row-thumbnail-width;
     height: $all-charts-row-thumbnail-height;
     background: $gray-10;
+}
+
+@include md-down {
+    .all-charts-block__list-wrapper {
+        height: auto;
+    }
+
+    .all-charts-block__list-wrapper::after {
+        display: none;
+    }
+
+    .all-charts-block .all-charts-block__list {
+        height: auto;
+        padding: 0;
+        overflow: visible;
+    }
+
+    .all-charts-block__sentinel {
+        display: none;
+    }
+
+    .all-charts-block .all-charts-block__show-more {
+        display: flex;
+    }
+
+    .all-charts-block__item--selected {
+        background: $blue-5;
+        box-shadow: inset $all-charts-row-accent-width 0 0 $blue-40;
+    }
+
+    .all-charts-block__item--selected .all-charts-block__inline-preview {
+        height: $all-charts-block-inline-preview-height;
+        margin: 0 $all-charts-row-padding $all-charts-row-padding
+            ($all-charts-row-accent-width + $all-charts-row-padding);
+    }
+
+    .all-charts-block__item--selected
+        .all-charts-block__inline-preview
+        .GrapherWithFallback.full-width-on-mobile {
+        margin: 0;
+    }
+
+    .all-charts-block__skeleton-thumbnail {
+        width: calc((100% - 2 * #{$all-charts-row-thumbnail-gap}) / 3);
+        height: auto;
+        aspect-ratio: 158 / 84;
+    }
+
+    .all-charts-block__skeleton-inline-preview {
+        display: block;
+        height: $all-charts-block-inline-preview-height;
+        margin-top: $all-charts-row-padding;
+        background: $gray-10;
+    }
+
+    .all-charts-block__error .search-no-results h2 {
+        @include body-2-regular;
+    }
 }
 
 .all-charts-block__error {

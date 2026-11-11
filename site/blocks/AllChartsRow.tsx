@@ -25,7 +25,9 @@ interface AllChartsRowProps {
     selectedTab?: GrapherTabName
     thumbnailTabs: GrapherTabName[]
     countries: string[]
-    onSelect: (tab?: GrapherTabName) => void
+    inlinePreviewId?: string
+    onTitleSelect: (tab?: GrapherTabName) => void
+    onThumbnailSelect: (tab: GrapherTabName) => void
 }
 
 export function AllChartsRow({
@@ -34,9 +36,18 @@ export function AllChartsRow({
     selectedTab,
     thumbnailTabs,
     countries,
-    onSelect,
+    inlinePreviewId,
+    onTitleSelect,
+    onThumbnailSelect,
 }: AllChartsRowProps) {
     const displayedTab = isSelected ? selectedTab : thumbnailTabs[0]
+
+    const selectStateProps = inlinePreviewId
+        ? {
+              "aria-expanded": isSelected,
+              "aria-controls": isSelected ? inlinePreviewId : undefined,
+          }
+        : { "aria-pressed": isSelected }
 
     return (
         <div
@@ -48,8 +59,8 @@ export function AllChartsRow({
                 <button
                     type="button"
                     className="all-charts-row__select"
-                    aria-pressed={isSelected}
-                    onClick={() => onSelect(displayedTab)}
+                    {...selectStateProps}
+                    onClick={() => onTitleSelect(displayedTab)}
                 >
                     <span className="all-charts-row__heading">
                         <span className="all-charts-row__title">
@@ -87,7 +98,7 @@ export function AllChartsRow({
                                         format: "long",
                                     })}
                                     aria-pressed={tab === displayedTab}
-                                    onClick={() => onSelect(tab)}
+                                    onClick={() => onThumbnailSelect(tab)}
                                 >
                                     <img
                                         src={

@@ -1,9 +1,12 @@
 $all-charts-row-thumbnail-width: 158px;
 $all-charts-row-thumbnail-height: 84px;
+$all-charts-row-padding: 16px;
+$all-charts-row-accent-width: 3px;
+$all-charts-row-thumbnail-gap: 8px;
 
 .all-charts-row {
-    padding: 16px;
-    border-left: 3px solid transparent;
+    padding: $all-charts-row-padding;
+    border-left: $all-charts-row-accent-width solid transparent;
 }
 
 .all-charts-row:hover {
@@ -65,7 +68,7 @@ $all-charts-row-thumbnail-height: 84px;
 
 .all-charts-row__thumbnails {
     display: flex;
-    gap: 8px;
+    gap: $all-charts-row-thumbnail-gap;
     margin: 12px 0 0;
     padding: 0;
     list-style: none;
@@ -92,4 +95,26 @@ $all-charts-row-thumbnail-height: 84px;
     width: $all-charts-row-thumbnail-width;
     height: $all-charts-row-thumbnail-height;
     object-fit: contain;
+}
+
+@include md-down {
+    .all-charts-row--selected {
+        background: none;
+        border-left-color: transparent;
+    }
+
+    .all-charts-row__thumbnails {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .all-charts-row__thumbnail {
+        width: 100%;
+    }
+
+    .all-charts-row__thumbnail img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 158 / 84;
+    }
 }
