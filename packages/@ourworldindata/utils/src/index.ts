@@ -462,6 +462,11 @@ export {
 } from "./search/searchTopicPages.js"
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
+export {
+    type AlgoliaHostOption,
+    getAlgoliaBaseUrl,
+    getAlgoliaHostClientOptions,
+} from "./search/algoliaHost.js"
 
 export {
     PINNED_SEARCHES_ATTRIBUTE,

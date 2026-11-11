@@ -1,6 +1,7 @@
 import { algoliasearch, SearchClient } from "algoliasearch"
 import type { SynonymHit, IndexSettings } from "@algolia/client-search"
 import {
+    ALGOLIA_HOST,
     ALGOLIA_ID,
     TOPICS_CONTENT_GRAPH,
 } from "../../settings/clientSettings.mjs"
@@ -13,6 +14,7 @@ import {
     countries,
     excludeUndefined,
     PINNED_SEARCHES_ATTRIBUTE,
+    getAlgoliaHostClientOptions,
 } from "@ourworldindata/utils"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { PAGES_INDEX, CHARTS_INDEX } from "../../site/search/searchUtils.js"
@@ -27,7 +29,11 @@ export const getAlgoliaClient = (): SearchClient | undefined => {
         return
     }
 
-    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
+    const client = algoliasearch(
+        ALGOLIA_ID,
+        ALGOLIA_SECRET_KEY,
+        getAlgoliaHostClientOptions(ALGOLIA_HOST)
+    )
     return client
 }
 
