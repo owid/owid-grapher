@@ -39,6 +39,8 @@ const SPACE_BETWEEN_DOT_AND_LABEL = 4
 
 const LABEL_PADDING = DOT_RADIUS + SPACE_BETWEEN_DOT_AND_LABEL
 
+type SeriesLabelText = "name" | "value"
+
 @observer
 export class SlopeChartThumbnail
     extends React.Component<SlopeChartProps>
@@ -242,15 +244,16 @@ export class SlopeChartThumbnail
         InitialAnchoredLabelSeries,
         "position"
     >[] {
-        if (!this.manager.showSeriesLabels) return []
+        const { end } = this.seriesLabelText
+        if (!this.manager.showSeriesLabels || !end) return []
 
         return this.labelCandidateSeries.map((series) => {
-            const { seriesName, color } = series
+            const { seriesName, displayName, color } = series
 
             const lastPoint = series.end
             const value = lastPoint?.value ?? 0
 
-            const label = this.formatLabel(value)
+            const label = end === "name" ? displayName : this.formatLabel(value)
 
             return { seriesName, value, label, color }
         })
@@ -263,7 +266,8 @@ export class SlopeChartThumbnail
         yAxis: VerticalAxis
         xRange: [number, number]
     }): AnchoredLabelsState | undefined {
-        if (!this.manager.showSeriesLabels) return undefined
+        if (!this.manager.showSeriesLabels || !this.seriesLabelText.end)
+            return undefined
 
         const series = this.endLabelsSeries.map((series) => {
             const position = {
@@ -276,6 +280,7 @@ export class SlopeChartThumbnail
 
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
+            maxWidth: this.labelsMaxWidth(this.seriesLabelText.end),
             xRange,
             labelPadding: LABEL_PADDING,
             yRanges: { edge: this.labelsRange },
@@ -289,27 +294,34 @@ export class SlopeChartThumbnail
         })
     }
 
-    @computed private get shouldShowStartNames(): boolean {
-        return getVisibleLabels(this.manager.labelMode).names
+    @computed private get seriesLabelText(): {
+        start?: SeriesLabelText
+        end?: SeriesLabelText
+    } {
+        const { endLabelNames, values } = getVisibleLabels(this.manager.labelMode)
+        return {
+            start: values ? (endLabelNames ? "name" : "value") : undefined,
+            end: values ? "value" : endLabelNames ? "name" : undefined,
+        }
     }
 
-    @computed private get startLabelsMaxWidth(): number | undefined {
-        return this.shouldShowStartNames ? 0.25 * this.bounds.width : undefined
+    private labelsMaxWidth(text?: SeriesLabelText): number {
+        return text === "name" ? 0.25 * this.bounds.width : Infinity
     }
 
     @computed private get startLabelsSeries(): Omit<
         InitialAnchoredLabelSeries,
         "position"
     >[] {
-        if (!this.manager.showSeriesLabels) return []
+        const { start } = this.seriesLabelText
+        if (!this.manager.showSeriesLabels || !start) return []
 
         return this.labelCandidateSeries.map((series) => {
             const { seriesName, displayName, color } = series
             const firstPoint = series.start
             const value = firstPoint?.value ?? 0
-            const label = this.shouldShowStartNames
-                ? displayName
-                : this.formatLabel(value)
+            const label =
+                start === "name" ? displayName : this.formatLabel(value)
 
             return { seriesName, value, label, color }
         })
@@ -324,7 +336,8 @@ export class SlopeChartThumbnail
         xRange: [number, number]
         visibleEndLabels: Set<SeriesName>
     }): AnchoredLabelsState | undefined {
-        if (!this.manager.showSeriesLabels) return undefined
+        if (!this.manager.showSeriesLabels || !this.seriesLabelText.start)
+            return undefined
 
         const series = this.startLabelsSeries.map((series) => {
             const position = {
@@ -338,7 +351,7 @@ export class SlopeChartThumbnail
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
             textAnchor: "end",
-            maxWidth: this.startLabelsMaxWidth,
+            maxWidth: this.labelsMaxWidth(this.seriesLabelText.start),
             xRange,
             labelPadding: LABEL_PADDING,
             yRanges: { edge: this.labelsRange },
