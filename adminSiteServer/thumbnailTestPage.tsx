@@ -5,11 +5,13 @@ import {
     Grapher,
     GrapherState,
     fetchInputTableForConfig,
+    generateFocusedSeriesNamesParam,
     loadCatalogData,
     GRAPHER_THUMBNAIL_WIDTH,
     GRAPHER_THUMBNAIL_HEIGHT,
 } from "@ourworldindata/grapher"
 import {
+    ChartLabelMode,
     GrapherInterface,
     GrapherVariant,
     GRAPHER_TAB_NAMES,
@@ -32,6 +34,8 @@ const THUMBNAIL_FONT_SIZE = 14
 const LIVE_BASE_URL = "https://ourworldindata.org"
 
 const SAMPLE_COUNT_OPTIONS = [5, 10, 20]
+
+const LABEL_MODES = Object.values(ChartLabelMode)
 
 interface SampleOptions {
     countPerSection: number
@@ -58,17 +62,27 @@ export function addThumbnailTestRoutes(router: Router): void {
                     ? { countPerSection, seed }
                     : undefined
             const sectionId = readStringParam(req.query.type)
+            const focus = readStringParam(req.query.focus)
+            const focusedEntityNames = parseEntityNames(focus)
             const sections = (
                 sample
                     ? await sampleThumbnailTestSections(trx, sample)
                     : THUMBNAIL_TEST_SECTIONS
-            ).filter((section) => !sectionId || section.id === sectionId)
+            )
+                .filter((section) => !sectionId || section.id === sectionId)
+                .map((section) => ({
+                    ...section,
+                    cases: section.cases.map((testCase) =>
+                        applyFocus(testCase, focusedEntityNames)
+                    ),
+                }))
             res.send(
                 renderToHtmlPage(
                     <ThumbnailTestPage
                         sections={sections}
                         sectionId={sectionId}
                         sample={sample}
+                        focus={focus}
                         shouldCompareWithLive={req.query.compare === "1"}
                         scale={readScaleParam(req.query.scale)}
                     />
@@ -81,22 +95,24 @@ export function addThumbnailTestRoutes(router: Router): void {
         router,
         "/thumbnails/:slug.svg",
         async (req, res, trx) => {
-            const queryStr = new URLSearchParams(
+            const params = new URLSearchParams(
                 req.query as Record<string, string>
-            ).toString()
+            )
+            const idPrefix = `${req.params.slug}-${hashQueryStr(params.toString())}`
+            const labelMode = readLabelModeParam(params.get("imLabels"))
+            params.delete("imLabels")
             try {
                 const { config } = await getChartConfigBySlug(
                     trx,
                     req.params.slug
                 )
-                const svg = await renderThumbnailSvg(config, queryStr)
-                res.setHeader("Content-Type", "image/svg+xml")
-                res.send(
-                    prefixSvgIds(
-                        svg,
-                        `${req.params.slug}-${hashQueryStr(queryStr)}`
-                    )
+                const svg = await renderThumbnailSvg(
+                    config,
+                    params.toString(),
+                    labelMode
                 )
+                res.setHeader("Content-Type", "image/svg+xml")
+                res.send(prefixSvgIds(svg, idPrefix))
             } catch (error) {
                 res.status(500).send(String(error))
             }
@@ -107,7 +123,8 @@ export function addThumbnailTestRoutes(router: Router): void {
 /** Mirrors `resolveThumbnailLayout` in functions/_common/imageLayout.ts, keep the two in sync */
 async function renderThumbnailSvg(
     config: GrapherInterface,
-    queryStr: string
+    queryStr: string,
+    labelMode: ChartLabelMode
 ): Promise<string> {
     const bounds = new Bounds(
         0,
@@ -123,6 +140,7 @@ async function renderThumbnailSvg(
         staticBounds: bounds,
         baseFontSize: THUMBNAIL_FONT_SIZE,
         variant: GrapherVariant.Thumbnail,
+        labelMode,
         additionalDataLoaderFn: (key) =>
             loadCatalogData(key, { baseUrl: CATALOG_URL }),
     })
@@ -151,12 +169,14 @@ function ThumbnailTestPage({
     sections,
     sectionId,
     sample,
+    focus,
     shouldCompareWithLive,
     scale,
 }: {
     sections: ThumbnailTestSection[]
     sectionId?: string
     sample?: SampleOptions
+    focus?: string
     shouldCompareWithLive: boolean
     scale: number
 }): React.ReactElement {
@@ -215,6 +235,15 @@ function ThumbnailTestPage({
                         </>
                     )}
                     <label>
+                        Focus{" "}
+                        <input
+                            type="text"
+                            name="focus"
+                            placeholder="France, Germany"
+                            defaultValue={focus}
+                        />
+                    </label>
+                    <label>
                         <input
                             type="checkbox"
                             name="compare"
@@ -252,17 +281,17 @@ function ThumbnailTestSectionView({
     return (
         <section className="section">
             <h2>{section.title}</h2>
-            {shouldCompareWithLive && (
-                <div className="card__thumbnails">
+            <div className="card__thumbnails column-headings">
+                {shouldCompareWithLive && (
                     <span className="column-heading">Live</span>
-                    <span className="column-heading">Local</span>
-                </div>
-            )}
-            <div
-                className={
-                    shouldCompareWithLive ? "grid grid--compare" : "grid"
-                }
-            >
+                )}
+                {LABEL_MODES.map((labelMode) => (
+                    <span key={labelMode} className="column-heading">
+                        imLabels={labelMode}
+                    </span>
+                ))}
+            </div>
+            <div className="grid">
                 {section.cases.map((testCase, index) => (
                     <figure key={index} className="card">
                         <figcaption
@@ -286,10 +315,13 @@ function ThumbnailTestSectionView({
                                     alt=""
                                 />
                             )}
-                            <div
-                                className="thumbnail thumbnail--local"
-                                data-src={makeSvgUrl(testCase)}
-                            />
+                            {LABEL_MODES.map((labelMode) => (
+                                <div
+                                    key={labelMode}
+                                    className="thumbnail thumbnail--local"
+                                    data-src={makeSvgUrl(testCase, labelMode)}
+                                />
+                            ))}
                         </a>
                     </figure>
                 ))}
@@ -300,7 +332,7 @@ function ThumbnailTestSectionView({
 
 const PAGE_STYLE = `
 body {
-    max-width: 1272px;
+    width: fit-content;
     margin: 0 auto;
     padding: 16px 24px 48px;
     background: #f7f7f5;
@@ -321,12 +353,16 @@ body {
 
 .grid {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 24px;
 }
 
-.grid--compare {
-    flex-direction: column;
+.column-headings {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding-top: 8px;
+    background: #f7f7f5;
 }
 
 .column-heading {
@@ -432,6 +468,23 @@ function readStringParam(value: unknown): string | undefined {
     return typeof value === "string" && value ? value : undefined
 }
 
+function parseEntityNames(value: string | undefined): string[] {
+    return (value ?? "")
+        .split(",")
+        .map((name) => name.trim())
+        .filter((name) => name !== "")
+}
+
+function applyFocus(
+    testCase: ThumbnailTestCase,
+    focusedEntityNames: string[]
+): ThumbnailTestCase {
+    if (focusedEntityNames.length === 0) return testCase
+    const params = new URLSearchParams(testCase.queryStr)
+    params.set("focus", generateFocusedSeriesNamesParam(focusedEntityNames))
+    return { ...testCase, queryStr: params.toString() }
+}
+
 function readPositiveIntParam(value: unknown): number | undefined {
     const number = Number(value)
     return Number.isInteger(number) && number > 0 ? number : undefined
@@ -446,8 +499,20 @@ function readScaleParam(value: unknown): number {
     return Number.isFinite(scale) && scale > 0 ? scale : 1
 }
 
-function makeSvgUrl({ slug, queryStr }: ThumbnailTestCase): string {
-    return `/admin/test/thumbnails/${slug}.svg${queryStr ? `?${queryStr}` : ""}`
+function readLabelModeParam(value: string | null): ChartLabelMode {
+    return (
+        LABEL_MODES.find((labelMode) => labelMode === value) ??
+        ChartLabelMode.All
+    )
+}
+
+function makeSvgUrl(
+    { slug, queryStr }: ThumbnailTestCase,
+    labelMode: ChartLabelMode
+): string {
+    const params = new URLSearchParams(queryStr)
+    params.set("imLabels", labelMode)
+    return `/admin/test/thumbnails/${slug}.svg?${params}`
 }
 
 function makeLiveUrl({ slug, queryStr }: ThumbnailTestCase): string {
