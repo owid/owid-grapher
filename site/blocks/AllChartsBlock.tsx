@@ -31,6 +31,14 @@ const MAX_THUMBNAILS = 3
 /** Stable reference, since the Grapher refetches its config whenever this object changes */
 const PREVIEW_GRAPHER_CONFIG = { enableKeyboardShortcuts: false }
 
+export type AllChartsSuggestions =
+    | { status: "loading" }
+    | {
+          status: "loaded"
+          terms: string[]
+          onSelect: (term: string) => void
+      }
+
 export interface AllChartsBlockSearch {
     /** The input's text */
     query: string
@@ -38,6 +46,7 @@ export interface AllChartsBlockSearch {
     rowsQuery: string
     onQueryChange: (query: string) => void
     placeholder: string
+    suggestions?: AllChartsSuggestions
 }
 
 interface AllChartsSelection {
@@ -271,33 +280,79 @@ function AllChartsSearchInput({
 }): React.ReactElement {
     const inputRef = useRef<HTMLInputElement>(null)
     return (
-        <div className="all-charts-block__search" role="search">
-            <FontAwesomeIcon
-                className="all-charts-block__search-icon"
-                icon={faMagnifyingGlass}
-            />
-            <input
-                ref={inputRef}
-                type="text"
-                className="all-charts-block__search-input"
-                aria-label="Search charts on this topic"
-                placeholder={search.placeholder}
-                value={search.query}
-                onChange={(event) => search.onQueryChange(event.target.value)}
-            />
-            {search.query !== "" && (
-                <button
-                    type="button"
-                    className="all-charts-block__search-clear"
-                    aria-label="Clear search"
-                    onClick={() => {
-                        search.onQueryChange("")
-                        inputRef.current?.focus()
-                    }}
-                >
-                    <FontAwesomeIcon icon={faCircleXmark} />
-                </button>
+        <>
+            <div className="all-charts-block__search" role="search">
+                <FontAwesomeIcon
+                    className="all-charts-block__search-icon"
+                    icon={faMagnifyingGlass}
+                />
+                <input
+                    ref={inputRef}
+                    type="text"
+                    className="all-charts-block__search-input"
+                    aria-label="Search charts on this topic"
+                    placeholder={search.placeholder}
+                    value={search.query}
+                    onChange={(event) =>
+                        search.onQueryChange(event.target.value)
+                    }
+                />
+                {search.query !== "" && (
+                    <button
+                        type="button"
+                        className="all-charts-block__search-clear"
+                        aria-label="Clear search"
+                        onClick={() => {
+                            search.onQueryChange("")
+                            inputRef.current?.focus()
+                        }}
+                    >
+                        <FontAwesomeIcon icon={faCircleXmark} />
+                    </button>
+                )}
+            </div>
+            {search.suggestions && (
+                <AllChartsSuggestionsLine
+                    suggestions={search.suggestions}
+                    onAfterSelect={() => inputRef.current?.focus()}
+                />
             )}
+        </>
+    )
+}
+
+function AllChartsSuggestionsLine({
+    suggestions,
+    onAfterSelect,
+}: {
+    suggestions: AllChartsSuggestions
+    onAfterSelect: () => void
+}): React.ReactElement | null {
+    if (suggestions.status === "loading")
+        return <div className="all-charts-block__suggestions" aria-hidden />
+    const { terms, onSelect } = suggestions
+    if (terms.length === 0) return null
+    return (
+        <div className="all-charts-block__suggestions">
+            <span className="all-charts-block__suggestions-label">
+                Suggested:
+            </span>
+            <ul className="all-charts-block__suggestions-list">
+                {terms.map((term) => (
+                    <li key={term} className="all-charts-block__suggestion">
+                        <button
+                            type="button"
+                            className="all-charts-block__suggestion-button"
+                            onClick={() => {
+                                onSelect(term)
+                                onAfterSelect()
+                            }}
+                        >
+                            {term}
+                        </button>
+                    </li>
+                ))}
+            </ul>
         </div>
     )
 }
@@ -320,6 +375,7 @@ export function AllChartsBlockSkeleton({
         >
             <AllChartsHeading id={id} heading={heading} />
             <div className="all-charts-block__skeleton-search animate-pulse" />
+            <div className="all-charts-block__suggestions" aria-hidden />
             <div className="grid grid-cols-12">
                 <div className="all-charts-block__list-wrapper span-cols-5 span-md-cols-12">
                     <ul className="all-charts-block__list animate-pulse">
