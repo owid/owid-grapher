@@ -10,7 +10,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
 } from "../core/GrapherConstants"
-import { scaleFontSize } from "../chart/ChartUtils"
+import { getVisibleLabels, scaleFontSize } from "../chart/ChartUtils"
 import { Bounds, excludeUndefined } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -126,7 +126,11 @@ export class StackedBarChartThumbnail
         InitialAnchoredLabelSeries,
         "position"
     >[] {
-        if (!this.manager.showLegend) return []
+        if (
+            !this.manager.showSeriesLabels ||
+            !getVisibleLabels(this.manager.labelMode).endLabelNames
+        )
+            return []
 
         return excludeUndefined(
             this.chartState.series.map((series, seriesIndex) => {
