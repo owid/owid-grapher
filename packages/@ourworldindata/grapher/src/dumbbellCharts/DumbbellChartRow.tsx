@@ -24,6 +24,7 @@ export function DumbbellChartRow({
     y,
     range,
     valueLabelStyle,
+    showEntityLabel,
     onInfoTooltipShow,
 }: {
     series: RenderDumbbellSeries
@@ -32,6 +33,7 @@ export function DumbbellChartRow({
     y: number
     range: [number, number]
     valueLabelStyle: FontSettings
+    showEntityLabel: boolean
     onInfoTooltipShow?: () => void
 }): React.ReactElement {
     const style = DUMBBELL_STYLE[series.emphasis]
@@ -57,7 +59,7 @@ export function DumbbellChartRow({
             />
 
             {/* Entity label */}
-            {series.label && (
+            {showEntityLabel && (
                 <SeriesLabel
                     state={series.label}
                     x={series.labelPosition.x}
@@ -68,7 +70,8 @@ export function DumbbellChartRow({
             )}
 
             {/* Entity annotation */}
-            {series.annotationTextWrap &&
+            {showEntityLabel &&
+                series.annotationTextWrap &&
                 series.annotationPosition !== undefined && (
                     <TextWrapSvg
                         textWrap={series.annotationTextWrap}
