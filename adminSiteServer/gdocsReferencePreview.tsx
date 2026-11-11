@@ -246,7 +246,7 @@ function applyPreviewDocumentType(content: OwidGdocPostContent): void {
 
 // Blocks that read the document's topic tag: the `tags[0]?.name` readers in
 // site/gdocs/components/ArticleBlock.tsx, which render an error placeholder
-// on an untagged document. Keep the two in step.
+// on an untagged document.
 const TAG_DEPENDENT_BLOCK_TYPES = [
     "all-charts",
     "featured-metrics",
