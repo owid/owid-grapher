@@ -23,7 +23,11 @@ import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
-import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
+import {
+    getVisibleLabels,
+    roundFontSize,
+    scaleFontSize,
+} from "../chart/ChartUtils"
 import {
     BAR_SPACING_FACTOR,
     DISCRETE_BAR_STYLE,
@@ -151,8 +155,13 @@ export class DiscreteBarChart
         return this.series.some((d) => d.value < 0)
     }
 
+    @computed private get shouldShowValueLabels(): boolean {
+        return getVisibleLabels(this.manager.labelMode).values
+    }
+
     // The amount of space we need to allocate for bar end labels on the right
     @computed private get rightValueLabelsWidth(): number {
+        if (!this.shouldShowValueLabels) return 0
         if (!this.hasPositive) return 0
 
         const labelsWidths = this.series
@@ -218,6 +227,8 @@ export class DiscreteBarChart
         axis: HorizontalAxis
     ): number {
         if (series.value >= 0) return axis.place(this.x0) - BAR_LABEL_GAP
+        if (!this.shouldShowValueLabels)
+            return axis.place(series.value) - BAR_LABEL_GAP
         return (
             axis.place(series.value) -
             this.formatValue(series).width -
@@ -519,7 +530,8 @@ export class DiscreteBarChart
         )
     }
 
-    private renderValueLabels(): React.ReactElement {
+    private renderValueLabels(): React.ReactElement | null {
+        if (!this.shouldShowValueLabels) return null
         return (
             <g id={makeFigmaId("value-labels")}>
                 {this.renderSeries.map((series) =>
@@ -549,7 +561,7 @@ export class DiscreteBarChart
                 {this.renderBar(series)}
                 {this.renderEntityLabel(series)}
                 {this.renderEntityAnnotation(series)}
-                {this.renderValueLabel(series)}
+                {this.shouldShowValueLabels && this.renderValueLabel(series)}
             </g>
         )
     }
