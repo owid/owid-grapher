@@ -66,6 +66,18 @@ $all-charts-row-thumbnail-gap: 8px;
     color: $blue-60;
 }
 
+.all-charts-row__countries {
+    @include note-1-regular;
+    display: block;
+    margin-top: 2px;
+    font-weight: bold;
+    color: $blue-60;
+
+    .svg-inline--fa {
+        margin-right: 4px;
+    }
+}
+
 .all-charts-row__thumbnails {
     display: flex;
     gap: $all-charts-row-thumbnail-gap;
