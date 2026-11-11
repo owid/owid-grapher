@@ -351,6 +351,8 @@ Each picture combines a variant, a label mode and a size:
 | `/grapher/population.png?imVariant=uncaptioned&imWidth=1200&imHeight=800` | The chart without title, subtitle or footer                                     |
 | `/grapher/population.png?imVariant=simplified`                            | The search thumbnail, laid out at 300×160 and rendered at 1200×640              |
 | `/grapher/population.png?imVariant=simplified&imLabels=values`            | The thumbnail next to a data table, with values and no legend                   |
+| `/grapher/population.png?imVariant=simplified&imLabels=names`             | The thumbnail with names, and no values or legend                               |
+| `/grapher/population.png?imVariant=simplified&imLabels=none`              | The thumbnail with no text at all                                               |
 
 `imType` and `imMinimal` still work as deprecated aliases, so URLs cached by social sites and search engines keep rendering. `nocache` skips the Cloudflare cache, both reading and writing.
 

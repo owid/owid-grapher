@@ -19,7 +19,12 @@ export interface ExplicitImageSize {
 const LABEL_MODES_BY_VARIANT = {
     [GrapherVariant.Default]: [ChartLabelMode.All],
     [GrapherVariant.Uncaptioned]: [ChartLabelMode.All, ChartLabelMode.Values],
-    [GrapherVariant.Thumbnail]: [ChartLabelMode.All, ChartLabelMode.Values],
+    [GrapherVariant.Thumbnail]: [
+        ChartLabelMode.All,
+        ChartLabelMode.Values,
+        ChartLabelMode.Names,
+        ChartLabelMode.None,
+    ],
 } as const satisfies Record<GrapherVariant, readonly ChartLabelMode[]>
 
 type LabelModeOf<Variant extends GrapherVariant> =
