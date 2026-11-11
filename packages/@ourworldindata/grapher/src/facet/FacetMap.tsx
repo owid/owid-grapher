@@ -22,7 +22,7 @@ import {
     Time,
 } from "@ourworldindata/types"
 import { calculateAspectRatio } from "./FacetChartUtils"
-import { scaleFontSize } from "../chart/ChartUtils"
+import { getVisibleLabels, scaleFontSize } from "../chart/ChartUtils"
 import {
     FacetMapManager,
     MapFacetSeries,
@@ -131,7 +131,11 @@ export class FacetMap
         return (
             this.bounds
                 // Make space for facet labels
-                .padTop(this.labelHeight + this.labelPadding)
+                .padTop(
+                    this.shouldShowFacetTitles
+                        ? this.labelHeight + this.labelPadding
+                        : 0
+                )
                 // Make space for the legend
                 .padBottom(
                     this.legendHeight +
@@ -207,10 +211,22 @@ export class FacetMap
 
     @computed private get facetGridPadding(): SplitBoundsPadding {
         return {
-            rowPadding: Math.round(this.labelHeight + this.labelPadding),
+            rowPadding: Math.round(
+                this.shouldShowFacetTitles
+                    ? this.labelHeight + this.labelPadding
+                    : this.labelHeight
+            ),
             columnPadding: Math.round(this.labelHeight),
             outerPadding: 0,
         }
+    }
+
+    @computed private get shouldShowFacetTitles(): boolean {
+        return getVisibleLabels(this.manager.labelMode).rowLabelNames
+    }
+
+    @computed private get shouldShowLegend(): boolean {
+        return getVisibleLabels(this.manager.labelMode).legends
     }
 
     @computed private get labelHeight(): number {
@@ -286,6 +302,7 @@ export class FacetMap
                 transformedTable: transformedTableFromGrapher,
                 fontSize: facetFontSize,
                 showLegend: false,
+                labelMode: this.manager.labelMode,
                 isStatic,
                 mapColumnSlug,
                 mapConfig,
@@ -427,6 +444,7 @@ export class FacetMap
     @computed private get categoryLegendState():
         | HorizontalCategoricalColorLegendState
         | undefined {
+        if (!this.shouldShowLegend) return undefined
         if (this.categoricalLegendData.length <= 1) return undefined
         return new HorizontalCategoricalColorLegendState(
             this.categoricalLegendData,
@@ -441,6 +459,7 @@ export class FacetMap
     @computed private get numericLegendState():
         | HorizontalNumericColorLegendState
         | undefined {
+        if (!this.shouldShowLegend) return undefined
         if (this.numericLegendData.length <= 1) return undefined
         return new HorizontalNumericColorLegendState(this.numericLegendData, {
             baseFontSize: this.fontSize,
@@ -614,15 +633,17 @@ export class FacetMap
 
                     return (
                         <React.Fragment key={seriesName}>
-                            <text
-                                {...this.getLabelPosition(series)}
-                                fill={GRAPHER_DARK_TEXT}
-                                fontSize={facetFontSize}
-                                textAnchor="middle"
-                                style={{ fontWeight: 700 }}
-                            >
-                                {seriesName}
-                            </text>
+                            {this.shouldShowFacetTitles && (
+                                <text
+                                    {...this.getLabelPosition(series)}
+                                    fill={GRAPHER_DARK_TEXT}
+                                    fontSize={facetFontSize}
+                                    textAnchor="middle"
+                                    style={{ fontWeight: 700 }}
+                                >
+                                    {seriesName}
+                                </text>
+                            )}
                             <g id={makeFigmaId(seriesName)}>
                                 <ChartComponent
                                     manager={series.manager}
