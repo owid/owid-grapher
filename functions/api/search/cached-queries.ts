@@ -1,6 +1,9 @@
 import * as Sentry from "@sentry/cloudflare"
 import { SearchIndexName } from "@ourworldindata/types"
-import { isEmptyQuerySearchPayload } from "@ourworldindata/utils"
+import {
+    getAlgoliaBaseUrl,
+    isEmptyQuerySearchPayload,
+} from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
 import { getIndexName } from "./algoliaClient.js"
 
@@ -133,7 +136,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         }
 
         const algoliaResponse = await fetch(
-            `https://${env.ALGOLIA_ID}-dsn.algolia.net/1/indexes/*/queries`,
+            `${getAlgoliaBaseUrl(env.ALGOLIA_ID, env.ALGOLIA_HOST)}/1/indexes/*/queries`,
             {
                 method: "POST",
                 headers: {

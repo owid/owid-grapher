@@ -1,12 +1,14 @@
 import { liteClient, type LiteClient } from "algoliasearch/lite"
 import { createNullCache } from "@algolia/client-common"
 import { createFetchRequester } from "@algolia/requester-fetch"
+import { getAlgoliaHostClientOptions } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
 
 export interface AlgoliaConfig {
     appId: string
     apiKey: string
     indexPrefix?: string
+    host?: string
 }
 
 export function getAlgoliaConfig(env: Env): AlgoliaConfig {
@@ -21,6 +23,7 @@ export function getAlgoliaConfig(env: Env): AlgoliaConfig {
         appId,
         apiKey,
         indexPrefix: env.ALGOLIA_INDEX_PREFIX,
+        host: env.ALGOLIA_HOST,
     }
 }
 
@@ -44,5 +47,6 @@ export function createSearchClient(config: AlgoliaConfig): LiteClient {
     return liteClient(config.appId, config.apiKey, {
         requester: createFetchRequester(),
         responsesCache: createNullCache(),
+        ...getAlgoliaHostClientOptions(config.host),
     })
 }
