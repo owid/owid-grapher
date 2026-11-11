@@ -1,28 +1,17 @@
 import cx from "clsx"
+import { Highlight } from "react-instantsearch"
 import {
     GRAPHER_TAB_NAMES,
     GrapherTabName,
-    SearchChartUrlTarget,
+    SearchChartViewHit,
 } from "@ourworldindata/types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
 import { makeLabelForGrapherTab } from "@ourworldindata/grapher"
 import { constructThumbnailUrlForTab } from "../search/SearchChartHitSmallHelpers.js"
 
-export interface TextPart {
-    text: string
-    isMatched: boolean
-}
-
-export interface AllChartsRowData extends SearchChartUrlTarget {
-    titleParts: TextPart[]
-    variantName?: string
-    source?: string
-    availableTabs: GrapherTabName[]
-}
-
 interface AllChartsRowProps {
-    row: AllChartsRowData
+    hit: SearchChartViewHit
     isSelected: boolean
     displayedTab: GrapherTabName | undefined
     thumbnailTabs: GrapherTabName[]
@@ -33,7 +22,7 @@ interface AllChartsRowProps {
 }
 
 export function AllChartsRow({
-    row,
+    hit,
     isSelected,
     displayedTab,
     thumbnailTabs,
@@ -63,23 +52,21 @@ export function AllChartsRow({
             >
                 <span className="all-charts-row__heading">
                     <span className="all-charts-row__title">
-                        {row.titleParts.map((part, index) =>
-                            part.isMatched ? (
-                                <strong key={index}>{part.text}</strong>
-                            ) : (
-                                <span key={index}>{part.text}</span>
-                            )
-                        )}
+                        <Highlight
+                            hit={hit}
+                            attribute="title"
+                            highlightedTagName="strong"
+                        />
                     </span>
-                    {row.variantName && (
+                    {hit.variantName && (
                         <span className="all-charts-row__variant">
-                            {row.variantName}
+                            {hit.variantName}
                         </span>
                     )}
                 </span>
-                {row.source && (
+                {hit.source && (
                     <span className="all-charts-row__source">
-                        <strong>Source:</strong> {row.source}
+                        <strong>Source:</strong> {hit.source}
                     </span>
                 )}
                 {countries.length > 0 && (
@@ -107,7 +94,7 @@ export function AllChartsRow({
                             >
                                 <img
                                     src={constructThumbnailUrlForTab({
-                                        hit: row,
+                                        hit,
                                         tab,
                                         entities: countries,
                                         hasScatter:

@@ -131,7 +131,6 @@
         "google-auth-library": "^11.3.3",
         "handsontable": "^18.1.2",
         "ini": "^7.0.0",
-        "instantsearch.js": "4.112.0",
         "jose": "^6.2.15",
         "json8-pointer": "^1.0.6",
         "knex": "^3.3.0",

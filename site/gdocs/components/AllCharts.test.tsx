@@ -337,13 +337,17 @@ function getSuggestions(): string[] {
 }
 
 function makeResponse(page: number, slugs: string[], nbHits = 3): unknown {
-    const hits = slugs.map((slug) => ({
-        objectID: slug,
-        type: ChartRecordType.Chart,
-        slug,
-        title: `Title of ${slug}`,
-        availableTabs: TABS[slug] ?? DEFAULT_TABS,
-    }))
+    const hits = slugs.map((slug) => {
+        const title = `Title of ${slug}`
+        return {
+            objectID: slug,
+            type: ChartRecordType.Chart,
+            slug,
+            title,
+            availableTabs: TABS[slug] ?? DEFAULT_TABS,
+            _highlightResult: { title: { value: title } },
+        }
+    })
     return { results: [{ hits, nbHits, page, nbPages: 2 }] }
 }
 

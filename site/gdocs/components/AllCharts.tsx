@@ -7,10 +7,6 @@ import {
 } from "@tanstack/react-query"
 import { useDebounceValue, useIntersectionObserver } from "usehooks-ts"
 import {
-    getHighlightedParts,
-    unescape,
-} from "instantsearch.js/es/lib/utils/index.js"
-import {
     EnrichedBlockAllCharts,
     ALL_CHARTS_ID,
     fetchJson,
@@ -25,7 +21,6 @@ import {
     AllChartsBlockError,
     AllChartsBlockSkeleton,
 } from "../../blocks/AllChartsBlock.js"
-import { AllChartsRowData, TextPart } from "../../blocks/AllChartsRow.js"
 import {
     allChartsBlockQueryKeys,
     queryAllChartsBlock,
@@ -142,18 +137,6 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
         )
     }
 
-    const rows = (data?.pages ?? []).flatMap((page) =>
-        page.hits.map((hit): AllChartsRowData => ({
-            type: hit.type,
-            slug: hit.slug,
-            titleParts: parseHighlightedText(
-                hit._highlightResult?.title?.value ?? hit.title
-            ),
-            variantName: hit.variantName,
-            source: hit.source,
-            availableTabs: hit.availableTabs,
-        }))
-    )
     const firstPage = data?.pages[0]
     const fetchedQuery = firstPage?.query ?? requestedQuery
 
@@ -162,8 +145,8 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
             className={className}
             id={id}
             heading={heading}
-            rowCount={firstPage?.nbHits}
-            rows={rows}
+            hitCount={firstPage?.nbHits}
+            hits={(data?.pages ?? []).flatMap((page) => page.hits)}
             countries={firstPage?.countries ?? []}
             searchStatus={data ? undefined : isError ? "error" : "pending"}
             search={{
@@ -191,13 +174,6 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
             })}
         />
     )
-}
-
-function parseHighlightedText(highlighted: string): TextPart[] {
-    return getHighlightedParts(unescape(highlighted)).map((part) => ({
-        text: part.value,
-        isMatched: part.isHighlighted,
-    }))
 }
 
 async function fetchTopicSuggestions(topicSlug: string): Promise<string[]> {
