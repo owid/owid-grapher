@@ -159,6 +159,10 @@ export class DiscreteBarChart
         return getVisibleLabels(this.manager.labelMode).values
     }
 
+    @computed private get shouldShowEntityLabels(): boolean {
+        return getVisibleLabels(this.manager.labelMode).rowLabelNames
+    }
+
     // The amount of space we need to allocate for bar end labels on the right
     @computed private get rightValueLabelsWidth(): number {
         if (!this.shouldShowValueLabels) return 0
@@ -265,6 +269,7 @@ export class DiscreteBarChart
 
     /** The narrowest width for the left labels at which every entity label fits */
     @computed private get leftLabelsWidth(): number {
+        if (!this.shouldShowEntityLabels) return 0
         return findLeftLabelsWidth(
             (leftLabelsWidth) => this.getEntityLabelRightEdges(leftLabelsWidth),
             this.sizedSeries.map((series) =>
@@ -501,7 +506,8 @@ export class DiscreteBarChart
         )
     }
 
-    private renderEntityLabels(): React.ReactElement {
+    private renderEntityLabels(): React.ReactElement | null {
+        if (!this.shouldShowEntityLabels) return null
         return (
             <g id={makeFigmaId("entity-labels")}>
                 {this.renderSeries.map((series) => (
@@ -514,6 +520,7 @@ export class DiscreteBarChart
     }
 
     private renderEntityAnnotations(): React.ReactElement | null {
+        if (!this.shouldShowEntityLabels) return null
         const hasAnnotations = this.renderSeries.some(
             (series) =>
                 series.annotationTextWrap && series.annotationY !== undefined
@@ -559,8 +566,9 @@ export class DiscreteBarChart
         return (
             <g key={series.seriesName}>
                 {this.renderBar(series)}
-                {this.renderEntityLabel(series)}
-                {this.renderEntityAnnotation(series)}
+                {this.shouldShowEntityLabels && this.renderEntityLabel(series)}
+                {this.shouldShowEntityLabels &&
+                    this.renderEntityAnnotation(series)}
                 {this.shouldShowValueLabels && this.renderValueLabel(series)}
             </g>
         )
