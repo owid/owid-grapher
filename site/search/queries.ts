@@ -28,6 +28,7 @@ import {
     PAGES_CHRONOLOGICAL_INDEX,
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
+    getFeaturedVizFilter,
 } from "./searchUtils.js"
 import {
     buildChartsFacetFilters,
@@ -371,9 +372,7 @@ export async function queryProfiles(
 }
 
 /**
- * The featured viz at the top of the Data results, or null. A featured-viz
- * page shows only when the whole query, normalized, is one of the searches
- * its gdoc is pinned for; a text search would show one on any shared word.
+ * The featured viz at the top of the Data results, or null.
  * Ignores all filters: a pin is a deliberate pick for that exact search,
  * so the card shows whatever topic or country is selected. Narrowing by
  * topic would only hide it when the featured viz isn't tagged with the
@@ -383,14 +382,13 @@ export async function queryFeaturedViz(
     liteSearchClient: LiteClient,
     state: SearchState
 ): Promise<FeaturedVizHit | null> {
-    const normalizedQuery = normalizePinnedSearch(state.query)
-    if (!normalizedQuery) return null
+    const filters = getFeaturedVizFilter(state.query)
+    if (!filters) return null
 
     const searchParams = {
         indexName: PAGES_INDEX,
         query: "",
-        // Normalization strips quotes, so the value can't break out of them
-        filters: `type:${OwidGdocType.FeaturedViz} AND pinnedForSearches:"${normalizedQuery}"`,
+        filters,
         attributesToRetrieve: [
             "title",
             "slug",

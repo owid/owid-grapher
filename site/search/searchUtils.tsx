@@ -40,6 +40,7 @@ import {
     formatFeaturedMetricFacetFilter,
     formatCountryFacetFilters,
     formatTopicFacetFilters,
+    normalizePinnedSearch,
 } from "@ourworldindata/utils"
 import {
     generateSelectedEntityNamesParam,
@@ -370,10 +371,22 @@ export const PAGES_CHRONOLOGICAL_INDEX = getIndexName(
     SearchIndexName.PagesChronological
 )
 
-/** Page types autocomplete never suggests: profiles have their own
- *  autocomplete source, and featured-viz pages only show in the Data results
- *  slot. */
+/** Keeps profiles and featured-viz pages out of the autocomplete's
+ *  text-matched pages. Each has its own autocomplete source. */
 export const AUTOCOMPLETE_PAGES_FILTER = `NOT type:${OwidGdocType.Profile} AND NOT type:${OwidGdocType.FeaturedViz}`
+
+/**
+ * The pages-index filter matching featured-viz pages pinned for this exact
+ * search, or null when the query normalizes to nothing. Matching the whole
+ * normalized query, not a text search, because a text search would show a
+ * featured viz on any shared word.
+ */
+export function getFeaturedVizFilter(query: string): string | null {
+    const normalizedQuery = normalizePinnedSearch(query)
+    if (!normalizedQuery) return null
+    // Normalization strips quotes, so the value can't break out of them
+    return `type:${OwidGdocType.FeaturedViz} AND pinnedForSearches:"${normalizedQuery}"`
+}
 export const DATA_CATALOG_ATTRIBUTES = [
     "title",
     "containerTitle",
