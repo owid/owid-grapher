@@ -2,9 +2,12 @@
     $muted-opacity: 0.3;
     $outline: #333333;
 
-    max-width: 320px;
     color: $gray-100;
     font-size: 0.875rem;
+
+    @include sm-only {
+        font-size: 13px;
+    }
 
     a {
         @include owid-link-90;

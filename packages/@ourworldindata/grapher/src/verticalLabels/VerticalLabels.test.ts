@@ -34,9 +34,9 @@ const series = makeSeries([
     {
         seriesName: "Canada",
         yValue: 50,
-        annotation: "A country in North America",
+        inlineAnnotation: "A country in North America",
     },
-    { seriesName: "Mexico", yValue: 20, annotation: "Below Canada" },
+    { seriesName: "Mexico", yValue: 20, inlineAnnotation: "Below Canada" },
 ])
 
 it("can create a new legend", () => {

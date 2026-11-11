@@ -1,6 +1,12 @@
 import * as _ from "lodash-es"
-import { Bounds, isMobile, PointVector } from "@ourworldindata/utils"
+import {
+    Bounds,
+    excludeUndefined,
+    isMobile,
+    PointVector,
+} from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
+import { match } from "ts-pattern"
 import {
     AxisAlign,
     AxisConfigInterface,
@@ -13,6 +19,8 @@ import {
     Time,
 } from "@ourworldindata/types"
 import {
+    AnnotationTooltipEvent,
+    AnnotationTooltipState,
     LineChartSeries,
     LinePoint,
     PlacedLineChartSeries,
@@ -27,6 +35,8 @@ import {
     getHoverStateForSeries,
 } from "../chart/ChartUtils"
 import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
+import { PointAnnotation } from "../annotations/EntityAnnotations"
+import { SeriesLabelAnnotation } from "../seriesLabel/SeriesLabelState"
 
 export type AnnotationsMap = Map<PrimitiveType, Set<PrimitiveType>>
 
@@ -149,7 +159,16 @@ export function toPlacedLineChartSeries(
                 color,
             }
         })
-        return { ...series, placedPoints }
+        const placedPointsByTime = new Map(
+            placedPoints.map((point) => [point.time, point])
+        )
+        const placedPointAnnotations = excludeUndefined(
+            series.pointAnnotations.map((annotation) => {
+                const point = placedPointsByTime.get(annotation.time)
+                return point ? { annotation, point } : undefined
+            })
+        )
+        return { ...series, placedPoints, placedPointAnnotations }
     })
 }
 
@@ -226,4 +245,46 @@ export function toRenderLineChartSeries(
     }
 
     return series
+}
+
+/** Point annotations as entries of a series label's tooltip */
+export function toSeriesLabelAnnotations(
+    annotations: PointAnnotation[],
+    formatTime: (time: Time) => string
+): SeriesLabelAnnotation[] {
+    return annotations.map((annotation) => ({
+        heading: formatTime(annotation.time),
+        text: annotation.text,
+    }))
+}
+
+export function transitionAnnotationTooltipState(
+    state: AnnotationTooltipState,
+    event: AnnotationTooltipEvent
+): AnnotationTooltipState {
+    return match<AnnotationTooltipEvent, AnnotationTooltipState>(event)
+        .with(
+            { type: "labelTooltipShow" },
+            ({ seriesName, hasAnnotations }) => ({
+                kind: "labelOpen",
+                seriesName,
+                hasAnnotations,
+            })
+        )
+        .with({ type: "labelTooltipHide" }, ({ seriesName }) =>
+            state.kind === "labelOpen" && state.seriesName === seriesName
+                ? { kind: "idle" }
+                : state
+        )
+        .with({ type: "markerClick" }, ({ seriesName, time }) =>
+            state.kind === "markerOpen" &&
+            state.seriesName === seriesName &&
+            state.time === time
+                ? { kind: "idle" }
+                : { kind: "markerOpen", seriesName, time }
+        )
+        .with({ type: "markerTooltipClose" }, () =>
+            state.kind === "markerOpen" ? { kind: "idle" } : state
+        )
+        .exhaustive()
 }

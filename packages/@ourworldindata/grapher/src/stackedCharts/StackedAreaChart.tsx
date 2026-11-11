@@ -232,7 +232,7 @@ export class StackedAreaChart
             yAxis,
             yRange: () => this.verticalLabelsYRange,
             seriesNamesSortedByImportance: this.seriesSortedByImportance,
-            showRegionTooltip: !this.isStatic,
+            isInteractive: !this.isStatic,
         })
     }
 
@@ -616,7 +616,6 @@ export class StackedAreaChart
                 x={this.verticalLabelsX}
                 onMouseEnter={this.onVerticalLabelMouseEnter}
                 onMouseLeave={this.onVerticalLabelMouseLeave}
-                interactive={!this.isStatic}
             />
         )
     }
