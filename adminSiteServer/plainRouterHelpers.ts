@@ -1,4 +1,5 @@
-import { NextFunction, Request, Response, Router } from "express"
+import { NextFunction, Response, Router } from "express"
+import { Request } from "./authentication.js"
 import * as db from "../db/db.js"
 export function getPlainRouteWithROTransaction<T>(
     router: Router,

@@ -1,4 +1,5 @@
 import express, { Router } from "express"
+import { Request } from "./authentication.js"
 import path from "path"
 import * as R from "remeda"
 import {
@@ -92,7 +93,7 @@ mockSiteRouter.use(express.urlencoded({ extended: true }))
 mockSiteRouter.use(express.json())
 
 async function redirectFromGrapherSlugIfNeeded(
-    req: express.Request,
+    req: Request,
     res: express.Response,
     trx: KnexReadonlyTransaction,
     extension = ""
