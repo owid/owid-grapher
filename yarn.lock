@@ -8675,7 +8675,7 @@ __metadata:
     s-expression: "npm:^3.1.1"
     safe-stable-stringify: "npm:^2.4.1"
     sass: "npm:^1.89.2"
-    schema-dts: "npm:^2.0.0"
+    schema-dts: "npm:^2.1.0"
     sharp: "npm:^0.35.5"
     simple-git: "npm:^4.0.2"
     tinyexec: "npm:^1.1.1"
@@ -12350,21 +12350,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"schema-dts-lib@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "schema-dts-lib@npm:1.0.0"
-  peerDependencies:
-    typescript: ">=4.9.5"
-  checksum: 10/1c21734eee830142e98fbe9ecad47dade1c86d800bf9b9523d15e0dc961caf9ec2d5f994ac85f7a2262dc5f4499682255f7e33d505f3f3dc18c609ea94f9a19f
+"schema-dts-lib@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "schema-dts-lib@npm:1.1.0"
+  checksum: 10/4890f3b01d7ed5cb78db5f313a8fd127d367b0e7466c3dd0ce1cc4d62cddd5ceff29e6165105446690dbe7f40e2a6b0ac95bc5ce4b560a72e2903924e0b5f9c2
   languageName: node
   linkType: hard
 
-"schema-dts@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "schema-dts@npm:2.0.0"
+"schema-dts@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "schema-dts@npm:2.1.0"
   dependencies:
-    schema-dts-lib: "npm:^1.0.0"
-  checksum: 10/62c1ecc50ba8228fa87a48398b056b00dd23317230e3d8d6fb89b8244b55e9eeffb44ac825342128a1fd2e776b85408b7c7ac2b33be357a0bcd8be32f139e7cc
+    schema-dts-lib: "npm:^1.1.0"
+  checksum: 10/6c770948a621b7b483be9b13e13b87c1e62ad9883fb7ea867ead617c59daa366e2bc3cc862eb2378e4c29f699faae272fe64c5e08e7df8ea16f32b403c0be751
   languageName: node
   linkType: hard
 

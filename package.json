@@ -229,7 +229,7 @@
         "oxlint-tsgolint": "^7.0.2003",
         "rolldown": "^1.2.1",
         "sass": "^1.89.2",
-        "schema-dts": "^2.0.0",
+        "schema-dts": "^2.1.0",
         "tinypool": "^2.1.2",
         "topojson-server": "^3.0.1",
         "tsx": "^4.23.0",
