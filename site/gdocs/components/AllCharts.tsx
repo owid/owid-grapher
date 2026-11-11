@@ -13,6 +13,7 @@ import {
 import {
     EnrichedBlockAllCharts,
     ALL_CHARTS_ID,
+    fetchJson,
     getTopicPageHeading,
     sentenceCaseIfNotTopicPage,
 } from "@ourworldindata/utils"
@@ -23,7 +24,6 @@ import {
     AllChartsBlock,
     AllChartsBlockError,
     AllChartsBlockSkeleton,
-    AllChartsSuggestions,
 } from "../../blocks/AllChartsBlock.js"
 import { AllChartsRowData, TextPart } from "../../blocks/AllChartsRow.js"
 import {
@@ -40,8 +40,6 @@ const TOPIC_VOCABULARY_URL =
 const MAX_SUGGESTIONS = 5
 
 const SEARCH_DEBOUNCE_MS = 200
-const SEARCH_PLACEHOLDER =
-    "Search indicators by name, keyword, country, or source…"
 
 type AllChartsProps = EnrichedBlockAllCharts & {
     className?: string
@@ -64,7 +62,7 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
         query,
         SEARCH_DEBOUNCE_MS
     )
-    const requestedQuery = query.trim() === "" ? "" : debouncedQuery.trim()
+    const requestedQuery = debouncedQuery.trim()
 
     const chartsQuery = {
         topic: topic ?? "",
@@ -106,6 +104,13 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
 
     if (!topic) return null
 
+    const onQueryChange = (nextQuery: string): void => {
+        setQuery(nextQuery)
+        if (nextQuery.trim() !== "") return
+        setDebouncedQuery("")
+        setDebouncedQuery.flush()
+    }
+
     const onSuggestionSelect = (term: string): void => {
         setQuery(term)
         setDebouncedQuery(term)
@@ -114,7 +119,7 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
 
     const heading = `${getTopicPageHeading("allCharts", gdocType)} on ${sentenceCaseIfNotTopicPage(topic, gdocType, false)}`
 
-    if (!data) {
+    if (!data && requestedQuery === "") {
         if (!isError)
             return (
                 <AllChartsBlockSkeleton
@@ -137,7 +142,7 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
         )
     }
 
-    const rows = data.pages.flatMap((page) =>
+    const rows = (data?.pages ?? []).flatMap((page) =>
         page.hits.map((hit): AllChartsRowData => ({
             type: hit.type,
             slug: hit.slug,
@@ -149,30 +154,28 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
             availableTabs: hit.availableTabs,
         }))
     )
-    const { query: rowsQuery, countries } = data.pages[0]
-    const suggestions: AllChartsSuggestions =
-        suggestionKeywords === undefined
-            ? { status: "loading" }
-            : {
-                  status: "loaded",
-                  terms: pickVisibleSuggestions(suggestionKeywords, query),
-                  onSelect: onSuggestionSelect,
-              }
+    const firstPage = data?.pages[0]
+    const fetchedQuery = firstPage?.query ?? requestedQuery
 
     return (
         <AllChartsBlock
             className={className}
             id={id}
             heading={heading}
-            rowCount={data.pages[0].nbHits}
+            rowCount={firstPage?.nbHits}
             rows={rows}
-            countries={countries}
+            countries={firstPage?.countries ?? []}
+            searchStatus={data ? undefined : isError ? "error" : "pending"}
             search={{
                 query,
-                rowsQuery,
-                onQueryChange: setQuery,
-                placeholder: SEARCH_PLACEHOLDER,
-                suggestions,
+                fetchedQuery,
+                onQueryChange,
+                suggestedTerms: pickVisibleSuggestions(
+                    suggestionKeywords ?? [],
+                    query
+                ),
+                isLoadingSuggestions: suggestionKeywords === undefined,
+                onSuggestionSelect,
             }}
             onLoadMore={
                 hasNextPage && !isFetchNextPageError
@@ -184,7 +187,7 @@ export function AllCharts({ className, id = ALL_CHARTS_ID }: AllChartsProps) {
             isLoadingMore={isFetchingNextPage}
             noResultsHref={buildSearchHref({
                 resultType: SearchResultType.DATA,
-                query: rowsQuery,
+                query: fetchedQuery,
             })}
         />
     )
@@ -199,10 +202,10 @@ function parseHighlightedText(highlighted: string): TextPart[] {
 
 async function fetchTopicSuggestions(topicSlug: string): Promise<string[]> {
     try {
-        const response = await fetch(TOPIC_VOCABULARY_URL)
-        if (!response.ok) return []
-        const vocabulary: Partial<Record<string, { keywords: string[] }>> =
-            await response.json()
+        const vocabulary =
+            await fetchJson<Partial<Record<string, { keywords: string[] }>>>(
+                TOPIC_VOCABULARY_URL
+            )
         return vocabulary[topicSlug]?.keywords ?? []
     } catch {
         return []

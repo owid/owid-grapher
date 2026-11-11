@@ -200,7 +200,7 @@ export function enrichedBlockToMarkdown(
             return spansToMarkdown(b.value, options)
         })
         .with({ type: "simple-text" }, (b): string | undefined => b.value.text)
-        .with({ type: "all-charts" }, (_): string | undefined =>
+        .with({ type: "all-charts" }, (): string | undefined =>
             markdownComponent("AllCharts", {}, exportComponents)
         )
         .with({ type: "additional-charts" }, (b): string | undefined => {

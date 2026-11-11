@@ -545,20 +545,13 @@ export async function queryWritingTopics(
     })
 }
 
-export interface AllChartsBlockRequest {
+interface AllChartsBlockRequest {
     topic: string
     query: string
     page: number
 }
 
-export interface ParsedAllChartsBlockRequest {
-    topic: string
-    textQuery: string
-    countries: string[]
-    page: number
-}
-
-export interface AllChartsBlockPage {
+interface AllChartsBlockPage {
     query: string
     countries: string[]
     hits: SearchChartViewHit[]
@@ -567,12 +560,12 @@ export interface AllChartsBlockPage {
     nbPages: number
 }
 
-export const ALL_CHARTS_BLOCK_HITS_PER_PAGE = 20
-export const MAX_ALL_CHARTS_BLOCK_COUNTRIES = 4
+const ALL_CHARTS_BLOCK_HITS_PER_PAGE = 20
+const MAX_ALL_CHARTS_BLOCK_COUNTRIES = 4
 
 const getSynonymMap = lazy(() => buildSynonymMap())
 
-export function parseAllChartsBlockQuery(query: string): {
+function parseAllChartsBlockQuery(query: string): {
     textQuery: string
     countries: string[]
 } {
@@ -594,10 +587,17 @@ export function parseAllChartsBlockQuery(query: string): {
     }
 }
 
-export function buildAllChartsBlockSearchParams(
-    parsedRequest: ParsedAllChartsBlockRequest
-): SearchParamsObject & SearchForHitsOptions {
-    const { topic, textQuery, countries, page } = parsedRequest
+function buildAllChartsBlockSearchParams({
+    topic,
+    textQuery,
+    countries,
+    page,
+}: {
+    topic: string
+    textQuery: string
+    countries: string[]
+    page: number
+}): SearchParamsObject & SearchForHitsOptions {
     const facetFilters = [
         ...buildChartsFacetFilters({
             query: textQuery,

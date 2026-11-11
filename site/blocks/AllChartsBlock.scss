@@ -1,6 +1,7 @@
 $all-charts-block-height: 575px;
 $all-charts-block-inline-preview-height: 520px;
 $all-charts-block-sticky-nav-clearance: 64px;
+$all-charts-block-search-height: 44px;
 
 .all-charts-block__count {
     @include note-1-medium;
@@ -156,6 +157,12 @@ $all-charts-block-sticky-nav-clearance: 64px;
     .all-charts-block__panel .search-no-results h2 {
         @include body-2-regular;
     }
+
+    .all-charts-block__search {
+        position: sticky;
+        top: 56px;
+        z-index: 1;
+    }
 }
 
 .all-charts-block__panel {
@@ -184,7 +191,7 @@ $all-charts-block-sticky-nav-clearance: 64px;
     display: flex;
     align-items: center;
     gap: 8px;
-    height: 44px;
+    height: $all-charts-block-search-height;
     margin-bottom: 16px;
     padding: 0 12px;
     background: white;
@@ -236,7 +243,7 @@ $all-charts-block-sticky-nav-clearance: 64px;
 }
 
 .all-charts-block__skeleton-search {
-    height: 44px;
+    height: $all-charts-block-search-height;
     margin-bottom: 16px;
     background: $gray-10;
 }
@@ -292,17 +299,7 @@ $all-charts-block-sticky-nav-clearance: 64px;
     .all-charts-block__suggestion:nth-child(n + 4) {
         display: none;
     }
-}
 
-@include md-down {
-    .all-charts-block__search {
-        position: sticky;
-        top: 56px;
-        z-index: 1;
-    }
-}
-
-@include sm-only {
     .all-charts-block__search {
         top: 48px;
     }

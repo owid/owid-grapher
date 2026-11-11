@@ -7,7 +7,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
 import { makeLabelForGrapherTab } from "@ourworldindata/grapher"
-import { constructChartAndPreviewUrlsForTab } from "../search/SearchChartHitSmallHelpers.js"
+import { constructThumbnailUrlForTab } from "../search/SearchChartHitSmallHelpers.js"
 
 export interface TextPart {
     text: string
@@ -28,7 +28,7 @@ interface AllChartsRowProps {
     thumbnailTabs: GrapherTabName[]
     countries: string[]
     inlinePreviewId?: string
-    onTitleSelect: (tab?: GrapherTabName) => void
+    onTitleSelect: () => void
     onThumbnailSelect: (tab: GrapherTabName) => void
 }
 
@@ -55,77 +55,73 @@ export function AllChartsRow({
                 "all-charts-row--selected": isSelected,
             })}
         >
-            <div className="all-charts-row__header">
-                <button
-                    type="button"
-                    className="all-charts-row__select"
-                    {...selectStateProps}
-                    onClick={() => onTitleSelect(displayedTab)}
-                >
-                    <span className="all-charts-row__heading">
-                        <span className="all-charts-row__title">
-                            {row.titleParts.map((part, index) =>
-                                part.isMatched ? (
-                                    <strong key={index}>{part.text}</strong>
-                                ) : (
-                                    <span key={index}>{part.text}</span>
-                                )
-                            )}
-                        </span>
-                        {row.variantName && (
-                            <span className="all-charts-row__variant">
-                                {row.variantName}
-                            </span>
+            <button
+                type="button"
+                className="all-charts-row__select"
+                {...selectStateProps}
+                onClick={onTitleSelect}
+            >
+                <span className="all-charts-row__heading">
+                    <span className="all-charts-row__title">
+                        {row.titleParts.map((part, index) =>
+                            part.isMatched ? (
+                                <strong key={index}>{part.text}</strong>
+                            ) : (
+                                <span key={index}>{part.text}</span>
+                            )
                         )}
                     </span>
-                    {row.source && (
-                        <span className="all-charts-row__source">
-                            <strong>Source:</strong> {row.source}
+                    {row.variantName && (
+                        <span className="all-charts-row__variant">
+                            {row.variantName}
                         </span>
                     )}
-                    {countries.length > 0 && (
-                        <span className="all-charts-row__countries">
-                            <FontAwesomeIcon icon={faLocationDot} />{" "}
-                            {countries.join(", ")}
-                        </span>
-                    )}
-                </button>
-                {thumbnailTabs.length > 0 && (
-                    <ul className="all-charts-row__thumbnails">
-                        {thumbnailTabs.map((tab) => (
-                            <li key={tab}>
-                                <button
-                                    type="button"
-                                    className={cx("all-charts-row__thumbnail", {
-                                        "all-charts-row__thumbnail--selected":
-                                            tab === displayedTab,
-                                    })}
-                                    aria-label={makeLabelForGrapherTab(tab, {
-                                        format: "long",
-                                    })}
-                                    aria-pressed={tab === displayedTab}
-                                    onClick={() => onThumbnailSelect(tab)}
-                                >
-                                    <img
-                                        src={
-                                            constructChartAndPreviewUrlsForTab({
-                                                hit: row,
-                                                tab,
-                                                entities: countries,
-                                                hasScatter:
-                                                    tab ===
-                                                    GRAPHER_TAB_NAMES.ScatterPlot,
-                                            }).previewUrl
-                                        }
-                                        loading="lazy"
-                                        alt=""
-                                    />
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
+                </span>
+                {row.source && (
+                    <span className="all-charts-row__source">
+                        <strong>Source:</strong> {row.source}
+                    </span>
                 )}
-            </div>
+                {countries.length > 0 && (
+                    <span className="all-charts-row__countries">
+                        <FontAwesomeIcon icon={faLocationDot} />{" "}
+                        {countries.join(", ")}
+                    </span>
+                )}
+            </button>
+            {thumbnailTabs.length > 0 && (
+                <ul className="all-charts-row__thumbnails">
+                    {thumbnailTabs.map((tab) => (
+                        <li key={tab}>
+                            <button
+                                type="button"
+                                className={cx("all-charts-row__thumbnail", {
+                                    "all-charts-row__thumbnail--selected":
+                                        tab === displayedTab,
+                                })}
+                                aria-label={makeLabelForGrapherTab(tab, {
+                                    format: "long",
+                                })}
+                                aria-pressed={tab === displayedTab}
+                                onClick={() => onThumbnailSelect(tab)}
+                            >
+                                <img
+                                    src={constructThumbnailUrlForTab({
+                                        hit: row,
+                                        tab,
+                                        entities: countries,
+                                        hasScatter:
+                                            tab ===
+                                            GRAPHER_TAB_NAMES.ScatterPlot,
+                                    })}
+                                    loading="lazy"
+                                    alt=""
+                                />
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     )
 }
