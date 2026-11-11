@@ -45,14 +45,13 @@ export const RERANK_MODELS = {
 } as const satisfies Record<string, RerankModelSpec>
 export type RerankModel = keyof typeof RERANK_MODELS
 
-// TODO: decide before deploying reranking to production. The calls used to go
-// through the `owid-search` AI Gateway (`{ gateway: { id: "owid-search" } }`
-// as ai.run's options), for per-call logs (latency, cost, errors) and a rate
-// limit that caps spend if the endpoint is abused. The hop cost ~50 ms per
-// call (paired timing against calling Workers AI directly, with a clef-flash
-// call taking ~200 ms), three calls per search with the vocabulary, so it's
-// off while we work on latency. Without it nothing caps spend: production
-// needs the gateway back or a WAF rate-limit rule on the endpoints.
+// The AI Gateway the calls go through, for per-call logs (latency, cost,
+// errors) and its rate limit, which caps spend if the endpoints are abused.
+// The limit is set in the gateway (5,000 calls a minute, ~20× a realistic
+// peak of the site's searches), not here. The hop costs ~50 ms per call
+// (paired timing against calling Workers AI directly); a WAF rate-limit rule
+// on the endpoints would cap spend without it, at the price of the logs.
+const RERANK_GATEWAY_ID = "owid-search"
 
 // A rerank slower than this keeps Algolia's order instead: the search must
 // not wait seconds for it. Decision models answer in a few hundred ms (OpenAI
@@ -181,7 +180,7 @@ export function topChoices(answer: unknown, n: number): string[] {
 }
 
 /**
- * One decision-model call: the answers to `questions`
+ * One decision-model call through the AI Gateway: the answers to `questions`
  * about `state`, keyed like `questions`. Throws on a failed call or a
  * response without answers.
  */
@@ -196,7 +195,7 @@ export async function runDecisionModel(
     const response = await ai.run(
         id,
         { ...(selector && { model: selector }), state, questions },
-        { signal }
+        { gateway: { id: RERANK_GATEWAY_ID }, signal }
     )
     // Jev wraps its answers in { state, result }; Clef returns them directly
     const body = isRecord(response.result) ? response.result : response

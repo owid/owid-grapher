@@ -31,7 +31,7 @@ CLOUDFLARE_ACCOUNT_ID=078fcdfed9955087315dd86792e71a7e
 
 `make setup.worktree` copies both into new worktrees' `.env` from the main checkout.
 
-The experimental reranking (`/api/search?rerank=jev` and `/api/search/rerank-charts`) also calls Workers AI with the same token, so it needs **Workers AI (Read)** on top. (It went through the `owid-search` AI Gateway until we turned that off to save ~50 ms per call; see the TODO in `api/search/rerank.ts` before deploying it to production.) Without it everything else works and reranked searches fall back to the unreranked order, with the error in the response's `rerank.error`.
+The experimental reranking (`/api/search?rerank=jev` and `/api/search/rerank-charts`) also calls Workers AI, through the `owid-search` AI Gateway (per-call logs and a rate limit that caps spend), with the same token, so it needs **Workers AI (Read)** and **AI Gateway (Read)** on top. Without it everything else works and reranked searches fall back to the unreranked order, with the error in the response's `rerank.error`.
 
 Note: the compatibility date is defined in [`wrangler.jsonc`](../wrangler.jsonc) at the repo root, which is the authoritative source for local development, previews and production alike (not the Cloudflare dashboard). The e2e tests carry their own copy in [`test/wrangler.e2e.jsonc`](./test/wrangler.e2e.jsonc) — keep the two in sync.
 
