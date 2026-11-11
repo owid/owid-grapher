@@ -381,7 +381,7 @@
       "entryFile": "bespoke/projects/income-distribution/src/index.tsx",
       "sidecarFile": "bespoke/projects/income-distribution/docs.md",
       "prose": {
-        "intro": "Income mountains: how the world's population is spread across income levels, from the World Bank's Poverty and Inequality Platform. The global view stacks every country by World Bank region, so the height of the mountain is the number of people living at each income. The selected-countries view draws chosen countries side by side, each normalised to the same area. Users can click the chart to draw a poverty line and see the share of people below it, and switch to their local currency and to incomes per month or year.\n\nThe global view, as it starts by default:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{}\n```\n\nA few countries compared, with a poverty line already drawn at $8.30 a day:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\nview: countries\ncountries: India, Brazil, Germany, userLocation\npovertyLine: 8.3\n{}\n{}\n```\n\nMonthly incomes in the user's own currency:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\ncurrency: userLocation\ntimeInterval: monthly\n{}\n{}\n```",
+        "intro": "Income mountains: how the world's population is spread across income levels, from the World Bank's Poverty and Inequality Platform. The global view stacks every country by World Bank region, so the height of the mountain is the number of people living at each income. The selected-countries view draws chosen countries side by side, each normalised to the same area. Users can add a poverty line, the World Bank's international one or their own, from the controls or by clicking the chart, drag it to see the share of people below it, and switch to their local currency and to incomes per month or year.\n\nThe global view, as it starts by default:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{}\n```\n\nA few countries compared, with a poverty line already drawn at $8.30 a day:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\nview: countries\ncountries: India, Brazil, Germany, userLocation\npovertyLine: 8.3\n{}\n{}\n```\n\nMonthly incomes in the user's own currency:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\ncurrency: userLocation\ntimeInterval: monthly\n{}\n{}\n```",
         "notes": "- `povertyLine` is always in international-$ per day, whatever `currency` and `timeInterval` say; the chart converts it.\n- Countries in `countries` that the data doesn't have are left out silently. `userLocation` is left out when the user's country can't be detected.\n- A custom `title` or `subtitle` hides the controls, as `hideControls` does."
       },
       "examples": [
@@ -449,7 +449,7 @@
           "name": "povertyLine",
           "type": "custom",
           "format": "A positive number, such as `8.3`",
-          "description": "Poverty line drawn first, in international-$ per day. If unset, the user can draw one by clicking the chart"
+          "description": "Poverty line drawn first, in international-$ per day; `3` is the World Bank's international poverty line. If unset, the chart starts without one, and the user can add one from the controls or by clicking the chart"
         },
         {
           "name": "timeInterval",
@@ -470,7 +470,7 @@
         {
           "name": "hideControls",
           "type": "boolean",
-          "description": "Hide the view, countries, time interval and currency controls, and the button that clears the poverty line"
+          "description": "Hide the view, countries, measured-in and poverty line controls, and the ways of removing the poverty line from the chart and its legend"
         }
       ]
     },

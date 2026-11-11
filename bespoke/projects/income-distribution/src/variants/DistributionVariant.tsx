@@ -31,7 +31,9 @@ import type {
 import type { IncomeDistributionConfig } from "../index.js"
 import {
     DEFAULT_COUNTRIES,
+    DEFAULT_CUSTOM_POVERTY_LINE,
     FIRST_NOWCAST_YEAR,
+    INT_POVERTY_LINE,
     INTERNATIONAL_DOLLAR,
     NARROW_BREAKPOINT,
     USER_LOCATION_SENTINEL,
@@ -47,10 +49,15 @@ import {
 } from "../core/data.js"
 import { buildChartModel } from "../core/chartModel.js"
 import { shareBelowLineForEntities } from "../core/density.js"
-import { resolveCurrency, timeIntervalNoun } from "../core/currency.js"
+import {
+    povertyLineMode as readPovertyLineMode,
+    resolveCurrency,
+    timeIntervalNoun,
+} from "../core/currency.js"
 import {
     Currency,
     IncomeDistributionYear,
+    PovertyLineMode,
     TIME_INTERVALS,
     TimeInterval,
     VIEWS,
@@ -287,10 +294,23 @@ function CaptionedDistributionVariant({
         [yearData, povertyLine, legendEntries]
     )
 
-    const togglePovertyLine = useCallback(
-        (income: number) =>
-            setPovertyLine(povertyLine === null ? income : null),
-        [povertyLine, setPovertyLine]
+    // The poverty line control isn't stored: it's read off the line, so a
+    // line moved off the international one turns into a custom one
+    const povertyLineMode = readPovertyLineMode(
+        povertyLine,
+        currency,
+        timeInterval
+    )
+    const setPovertyLineMode = useCallback(
+        (mode: PovertyLineMode) => {
+            if (mode === "off") setPovertyLine(null)
+            if (mode === "international") setPovertyLine(INT_POVERTY_LINE)
+            // Picking Custom starts the line somewhere other than the
+            // international line, ready to be dragged
+            if (mode === "custom" && povertyLineMode !== "custom")
+                setPovertyLine(DEFAULT_CUSTOM_POVERTY_LINE)
+        },
+        [povertyLineMode, setPovertyLine]
     )
     const clearPovertyLine = useCallback(
         () => setPovertyLine(null),
@@ -301,6 +321,7 @@ function CaptionedDistributionVariant({
     const shouldHideControls =
         config.hideControls || !!config.title || !!config.subtitle
     const hasNoCountries = view === "countries" && model.series.length === 0
+    const onClearPovertyLine = shouldHideControls ? undefined : clearPovertyLine
 
     const title = config.title ?? chartTitle(view, selectedCountries, year)
     const subtitle =
@@ -326,6 +347,8 @@ function CaptionedDistributionVariant({
                     setCurrency={setCurrency}
                     currencies={currencies}
                     suggestedCurrency={suggestedCurrency}
+                    povertyLineMode={povertyLineMode}
+                    setPovertyLineMode={setPovertyLineMode}
                     isNarrow={isNarrow}
                 />
             )}
@@ -341,11 +364,7 @@ function CaptionedDistributionVariant({
                             povertyLine={povertyLine}
                             currency={currency}
                             timeInterval={timeInterval}
-                            onClearPovertyLine={
-                                shouldHideControls
-                                    ? undefined
-                                    : clearPovertyLine
-                            }
+                            onClearPovertyLine={onClearPovertyLine}
                             isNarrow={isNarrow}
                         />
                     )}
@@ -365,7 +384,11 @@ function CaptionedDistributionVariant({
                                 currency={currency}
                                 timeInterval={timeInterval}
                                 povertyLine={povertyLine}
-                                onTogglePovertyLine={togglePovertyLine}
+                                isInternationalPovertyLine={
+                                    povertyLineMode === "international"
+                                }
+                                onSetPovertyLine={setPovertyLine}
+                                onClearPovertyLine={onClearPovertyLine}
                                 hoveredEntity={hoveredEntity}
                                 onHoverEntity={setHoveredEntity}
                                 isNarrow={isNarrow}

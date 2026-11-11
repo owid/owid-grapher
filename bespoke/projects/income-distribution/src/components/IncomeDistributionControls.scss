@@ -3,13 +3,9 @@
     max-width: 320px;
 }
 
-.income-distribution-controls__time-interval {
-    min-width: 120px;
-}
-
-.income-distribution-controls__currency {
-    flex: 1 1 200px;
-    max-width: 320px;
+.income-distribution-controls__units {
+    flex: 0 1 280px;
+    min-width: 200px;
 }
 
 // The switcher gives its items equal widths, which clips "Selected countries"

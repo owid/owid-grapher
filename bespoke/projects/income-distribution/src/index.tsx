@@ -69,7 +69,7 @@ export const CONFIG_SPEC = {
         format: "A positive number, such as `8.3`",
         parse: parsePositiveNumber,
         description:
-            "Poverty line drawn first, in international-$ per day. If unset, the user can draw one by clicking the chart",
+            "Poverty line drawn first, in international-$ per day; `3` is the World Bank's international poverty line. If unset, the chart starts without one, and the user can add one from the controls or by clicking the chart",
     },
     timeInterval: {
         type: "enum",
@@ -85,7 +85,7 @@ export const CONFIG_SPEC = {
     hideControls: {
         type: "boolean",
         description:
-            "Hide the view, countries, time interval and currency controls, and the button that clears the poverty line",
+            "Hide the view, countries, measured-in and poverty line controls, and the ways of removing the poverty line from the chart and its legend",
     },
 } as const satisfies BespokeConfigSpec
 

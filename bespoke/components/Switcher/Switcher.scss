@@ -82,3 +82,37 @@ $switcher-visual-gap: 1px;
 .switcher__item:has([data-hovered]) + .switcher__item::before {
     display: none;
 }
+
+// An item's optional hint. It sits outside .switcher__button, which clips its
+// contents. Styled like Grapher's control hints (the "grapher-dark" Tippy
+// theme in grapher/src/core/grapher.scss, used by ActionButtons): dark, above
+// the control, no arrow
+.switcher__hint {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    z-index: 10;
+    display: none;
+    transform: translateX(-50%);
+    padding: 8px;
+    border-radius: 4px;
+    background: $gray-90;
+    color: $white;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    letter-spacing: normal;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+// Touch screens keep :hover after a tap, which would leave the hint up
+@media (hover: hover) {
+    .switcher__item:hover .switcher__hint {
+        display: block;
+    }
+}
+
+.switcher__item:has([data-focus-visible]) .switcher__hint {
+    display: block;
+}

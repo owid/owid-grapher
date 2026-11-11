@@ -1,4 +1,4 @@
-Income mountains: how the world's population is spread across income levels, from the World Bank's Poverty and Inequality Platform. The global view stacks every country by World Bank region, so the height of the mountain is the number of people living at each income. The selected-countries view draws chosen countries side by side, each normalised to the same area. Users can click the chart to draw a poverty line and see the share of people below it, and switch to their local currency and to incomes per month or year.
+Income mountains: how the world's population is spread across income levels, from the World Bank's Poverty and Inequality Platform. The global view stacks every country by World Bank region, so the height of the mountain is the number of people living at each income. The selected-countries view draws chosen countries side by side, each normalised to the same area. Users can add a poverty line, the World Bank's international one or their own, from the controls or by clicking the chart, drag it to see the share of people below it, and switch to their local currency and to incomes per month or year.
 
 The global view, as it starts by default:
 

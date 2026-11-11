@@ -1,4 +1,3 @@
-import { useMemo } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faFlag, faGlobe } from "@fortawesome/free-solid-svg-icons"
 
@@ -8,22 +7,13 @@ import {
     LabeledControl,
 } from "../../../../components/Controls/Controls.js"
 import {
-    type BasicDropdownOption,
-    type DropdownCollection,
-    LabeledDropdown,
-} from "../../../../components/LabeledDropdown/LabeledDropdown.js"
-import {
     Switcher,
     SwitcherItem,
 } from "../../../../components/Switcher/Switcher.js"
 
-import {
-    INTERNATIONAL_DOLLAR,
-    TIME_INTERVAL_LABELS,
-} from "../core/constants.js"
-import { currencyKey, formatCurrencyLabel } from "../core/currency.js"
-import { Currency, TIME_INTERVALS, TimeInterval, View } from "../core/types.js"
+import { Currency, PovertyLineMode, TimeInterval, View } from "../core/types.js"
 import { CountryMultiSelect } from "./CountryMultiSelect.js"
+import { IncomeUnitPicker } from "./IncomeUnitPicker.js"
 
 export interface IncomeDistributionControlsProps {
     view: View
@@ -41,6 +31,9 @@ export interface IncomeDistributionControlsProps {
     currencies: Currency[] | undefined
     /** The reader's local currency, if known */
     suggestedCurrency?: Currency
+    /** Read off the poverty line, see `povertyLineMode` in core/currency.ts */
+    povertyLineMode: PovertyLineMode
+    setPovertyLineMode: (mode: PovertyLineMode) => void
     isNarrow: boolean
 }
 
@@ -65,9 +58,16 @@ const VIEW_ITEMS: SwitcherItem<View>[] = [
     },
 ]
 
-const TIME_INTERVAL_OPTIONS: BasicDropdownOption[] = TIME_INTERVALS.map(
-    (interval) => ({ value: interval, label: TIME_INTERVAL_LABELS[interval] })
-)
+const POVERTY_LINE_ITEMS: SwitcherItem<PovertyLineMode>[] = [
+    { key: "off", element: "Off", hint: "Remove poverty line" },
+    {
+        key: "international",
+        element: "International poverty line",
+        // Always in international-$ per day, whatever the chart is measured in
+        hint: "The extreme poverty line set by the World Bank, of $3 a day",
+    },
+    { key: "custom", element: "Custom", hint: "Select your own poverty line" },
+]
 
 export function IncomeDistributionControls({
     view,
@@ -81,6 +81,8 @@ export function IncomeDistributionControls({
     setCurrency,
     currencies,
     suggestedCurrency,
+    povertyLineMode,
+    setPovertyLineMode,
     isNarrow,
 }: IncomeDistributionControlsProps): React.ReactElement {
     return (
@@ -110,82 +112,32 @@ export function IncomeDistributionControls({
                         />
                     </LabeledControl>
                 )}
-            </ControlsRow>
-            <ControlsRow>
-                <LabeledDropdown
-                    className="income-distribution-controls__time-interval"
-                    label="Income per"
-                    options={TIME_INTERVAL_OPTIONS}
-                    selectedValue={timeInterval}
-                    onChange={(value) => {
-                        const interval = TIME_INTERVALS.find((t) => t === value)
-                        if (interval) setTimeInterval(interval)
-                    }}
-                />
-                <CurrencyDropdown
-                    currency={currency}
-                    setCurrency={setCurrency}
-                    currencies={currencies}
-                    suggestedCurrency={suggestedCurrency}
-                />
+                <LabeledControl
+                    label="Measured in"
+                    className="income-distribution-controls__units"
+                >
+                    <IncomeUnitPicker
+                        currency={currency}
+                        setCurrency={setCurrency}
+                        currencies={currencies}
+                        suggestedCurrency={suggestedCurrency}
+                        timeInterval={timeInterval}
+                        setTimeInterval={setTimeInterval}
+                        isNarrow={isNarrow}
+                    />
+                </LabeledControl>
+                <LabeledControl
+                    label="Poverty line"
+                    className="income-distribution-controls__switcher"
+                >
+                    <Switcher
+                        items={POVERTY_LINE_ITEMS}
+                        selectedKey={povertyLineMode}
+                        onChange={setPovertyLineMode}
+                        ariaLabel="Poverty line"
+                    />
+                </LabeledControl>
             </ControlsRow>
         </Controls>
-    )
-}
-
-function CurrencyDropdown({
-    currency,
-    setCurrency,
-    currencies,
-    suggestedCurrency,
-}: {
-    currency: Currency
-    setCurrency: (key: string) => void
-    currencies: Currency[] | undefined
-    suggestedCurrency?: Currency
-}): React.ReactElement {
-    const options = useMemo<DropdownCollection>(() => {
-        const intDollar: BasicDropdownOption = {
-            value: INTERNATIONAL_DOLLAR.code,
-            label: formatCurrencyLabel(INTERNATIONAL_DOLLAR),
-        }
-        if (!currencies?.length) return [intDollar]
-
-        const suggestedKey = suggestedCurrency?.countryCode
-        const toOption = (c: Currency): BasicDropdownOption => ({
-            value: currencyKey(c),
-            label: formatCurrencyLabel(c),
-        })
-        // Listbox ids must be unique, so the suggested row isn't repeated in
-        // the full list
-        const all = currencies
-            .filter((c) => c.countryCode !== suggestedKey)
-            .map(toOption)
-
-        return [
-            intDollar,
-            ...(suggestedCurrency && suggestedKey
-                ? [
-                      {
-                          label: "Suggested",
-                          options: [toOption(suggestedCurrency)],
-                      },
-                  ]
-                : []),
-            { label: "All countries", options: all },
-        ]
-    }, [currencies, suggestedCurrency])
-
-    return (
-        <LabeledDropdown
-            className="income-distribution-controls__currency"
-            label="Currency"
-            options={options}
-            selectedValue={currencyKey(currency)}
-            onChange={setCurrency}
-            placeholder="Select a currency…"
-            isSearchable
-            isLoading={currencies === undefined}
-        />
     )
 }

@@ -124,8 +124,10 @@ export function IncomeDistributionLegend({
             <div className="income-distribution-legend__header">
                 <span>
                     Share of population living on less than{" "}
-                    {formatIncome(povertyLine, currency, timeInterval)} a{" "}
-                    {timeIntervalNoun(timeInterval)}:
+                    {formatIncome(povertyLine, currency, timeInterval, {
+                        short: true,
+                    })}{" "}
+                    a {timeIntervalNoun(timeInterval)}:
                 </span>
                 {onClearPovertyLine && (
                     <button

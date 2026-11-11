@@ -5,6 +5,9 @@ import type { Currency, Region, TimeInterval } from "./types.js"
 /** The World Bank's international poverty line, in international-$ per day (2021 prices) */
 export const INT_POVERTY_LINE = 3
 
+/** Where a custom poverty line starts when picked from the controls, in international-$ per day */
+export const DEFAULT_CUSTOM_POVERTY_LINE = 10
+
 /**
  * The year shown when the config doesn't name one, as CONFIG_SPEC's default.
  * The feed has 1990–2026, the last years of which are World Bank nowcasts.

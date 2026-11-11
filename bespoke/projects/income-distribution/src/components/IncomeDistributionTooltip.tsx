@@ -26,16 +26,21 @@ export interface IncomeDistributionTooltipProps {
     containerBounds: Bounds
     /** Pinned to the bottom of the viewport on touch devices */
     isPinned: boolean
-    /** The line shares are computed against: the custom poverty line if set, else the income under the cursor */
+    /** The income under the cursor, which shares are computed against (the tooltip only shows while no poverty line is set) */
     line: number
     hoveredEntity: string | null
     yearData: IncomeDistributionYear
     year: number
     currency: Currency
     timeInterval: TimeInterval
-    hasPovertyLine: boolean
     /** Colour of the entity's swatch in the chart, for the value */
     color?: string
+    /**
+     * Show only the click hint, with no entity or share. Used in the
+     * selected-countries view over empty space, where a World figure
+     * wouldn't match anything drawn.
+     */
+    hintOnly?: boolean
 }
 
 export function IncomeDistributionTooltip({
@@ -48,8 +53,8 @@ export function IncomeDistributionTooltip({
     year,
     currency,
     timeInterval,
-    hasPovertyLine,
     color,
+    hintOnly = false,
 }: IncomeDistributionTooltipProps): React.ReactElement {
     const entity = hoveredEntity ?? WORLD_ENTITY_NAME
 
@@ -59,24 +64,27 @@ export function IncomeDistributionTooltip({
     )
 
     const verb = isTouchDevice() ? "Tap" : "Click"
-    const hint = hasPovertyLine
-        ? `${verb} to remove the poverty line`
-        : `${verb} to set a poverty line here`
+    const cardProps = {
+        id: "income-distribution-tooltip",
+        x: position.x,
+        y: position.y,
+        offsetX: 12,
+        offsetY: 12,
+        footer: [
+            {
+                icon: TooltipFooterIcon.None,
+                text: `${verb} to set a poverty line here`,
+            },
+        ],
+        style: { maxWidth: 280 },
+        containerBounds: isPinned ? undefined : containerBounds,
+        anchor: isPinned ? GrapherTooltipAnchor.Bottom : undefined,
+    }
+
+    if (hintOnly) return <TooltipCard {...cardProps} />
 
     return (
-        <TooltipCard
-            id="income-distribution-tooltip"
-            x={position.x}
-            y={position.y}
-            offsetX={12}
-            offsetY={12}
-            title={entity}
-            subtitle={year}
-            footer={[{ icon: TooltipFooterIcon.None, text: hint }]}
-            style={{ maxWidth: 280 }}
-            containerBounds={isPinned ? undefined : containerBounds}
-            anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
-        >
+        <TooltipCard {...cardProps} title={entity} subtitle={year}>
             <TooltipValue
                 label={`Share of population living on less than ${formatIncome(line, currency, timeInterval)} a ${timeIntervalNoun(timeInterval)}`}
                 value={share !== undefined ? formatShare(share) : undefined}

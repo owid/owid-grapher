@@ -1,4 +1,5 @@
 import { memo, useCallback, useId, useMemo, useRef, useState } from "react"
+import * as R from "remeda"
 import { scaleLinear, scaleLog } from "@visx/scale"
 import { area, curveMonotoneX } from "d3-shape"
 import type { ScaleLinear, ScaleLogarithmic } from "d3-scale"
@@ -30,11 +31,7 @@ import type {
     IncomeDistributionYear,
     TimeInterval,
 } from "../core/types.js"
-import {
-    INT_POVERTY_LINE,
-    WORLD_COLOR,
-    WORLD_ENTITY_NAME,
-} from "../core/constants.js"
+import { WORLD_COLOR, WORLD_ENTITY_NAME } from "../core/constants.js"
 import { IncomeDistributionTooltip } from "./IncomeDistributionTooltip.js"
 
 export interface IncomeDistributionChartProps {
@@ -44,10 +41,18 @@ export interface IncomeDistributionChartProps {
     year: number
     currency: Currency
     timeInterval: TimeInterval
-    /** Custom poverty line in int-$/day, null when unset */
+    /** Poverty line in int-$/day, null when unset */
     povertyLine: number | null
-    /** Called on click with the income under the cursor; the caller sets or clears the line */
-    onTogglePovertyLine: (income: number) => void
+    /** Whether the line reads as the international poverty line in the current units */
+    isInternationalPovertyLine: boolean
+    /**
+     * Called with the income to put the line at: on a click in the plot
+     * (which sets the line, or moves it there), and while it's dragged or
+     * moved with the arrow keys
+     */
+    onSetPovertyLine: (income: number) => void
+    /** Removes the line; without it the line has no × and ignores Delete */
+    onClearPovertyLine?: () => void
     /** Shared with the legend */
     hoveredEntity: string | null
     onHoverEntity: (key: string | null) => void
@@ -69,6 +74,10 @@ const DIMMED_OPACITY = 0.3
 
 /** A pointer that moves further than this between down and click was dragging */
 const DRAG_THRESHOLD = 5
+
+/** Arrow keys move the poverty line by this factor on the log axis; with Shift by the larger one */
+const KEYBOARD_STEP = 1.05
+const KEYBOARD_STEP_LARGE = 1.25
 
 export function IncomeDistributionChart(
     props: IncomeDistributionChartProps
@@ -107,7 +116,9 @@ function IncomeDistributionChartContent({
     currency,
     timeInterval,
     povertyLine,
-    onTogglePovertyLine,
+    isInternationalPovertyLine,
+    onSetPovertyLine,
+    onClearPovertyLine,
     hoveredEntity,
     onHoverEntity,
     isNarrow,
@@ -219,9 +230,17 @@ function IncomeDistributionChartContent({
         [xScale]
     )
 
+    // Set while the poverty line is being dragged; the drag handlers live on
+    // the line itself, which captures the pointer
+    const isDraggingRef = useRef(false)
+
+    // Where the hint of the × next to the poverty line's label goes, while
+    // the × is hovered or focused
+    const [clearHintAt, setClearHintAt] = useState<Position | null>(null)
+
     const handlePointerMove = useCallback(
         (event: React.PointerEvent<SVGSVGElement>) => {
-            if (event.pointerType !== "mouse") return
+            if (event.pointerType !== "mouse" || isDraggingRef.current) return
             setPointer(pointerStateFromEvent(event))
         },
         [pointerStateFromEvent]
@@ -252,9 +271,75 @@ function IncomeDistributionChartContent({
             )
                 return
             const state = pointerStateFromEvent(event)
-            if (state) onTogglePovertyLine(state.income)
+            if (state) onSetPovertyLine(state.income)
         },
-        [pointerStateFromEvent, onTogglePovertyLine]
+        [pointerStateFromEvent, onSetPovertyLine]
+    )
+
+    const [minIncome, maxIncome] = xScale.domain()
+    const clampIncome = useCallback(
+        (income: number) => R.clamp(income, { min: minIncome, max: maxIncome }),
+        [minIncome, maxIncome]
+    )
+    const handleLinePointerDown = useCallback(
+        (event: React.PointerEvent<SVGGElement>) => {
+            // Grabbing the line moves it; it mustn't also count as a click on the plot
+            event.stopPropagation()
+            event.currentTarget.setPointerCapture(event.pointerId)
+            isDraggingRef.current = true
+            setPointer(null)
+        },
+        []
+    )
+    const handleLinePointerMove = useCallback(
+        (event: React.PointerEvent<SVGGElement>) => {
+            if (!isDraggingRef.current) return
+            event.stopPropagation()
+            const state = pointerStateFromEvent(event)
+            if (state) onSetPovertyLine(clampIncome(state.income))
+        },
+        [pointerStateFromEvent, onSetPovertyLine, clampIncome]
+    )
+    const handleLinePointerUp = useCallback(
+        (event: React.PointerEvent<SVGGElement>) => {
+            if (!isDraggingRef.current) return
+            isDraggingRef.current = false
+            event.currentTarget.releasePointerCapture(event.pointerId)
+        },
+        []
+    )
+    const handleLineKeyDown = useCallback(
+        (event: React.KeyboardEvent<SVGGElement>) => {
+            if (povertyLine === null) return
+            if (
+                (event.key === "Delete" || event.key === "Backspace") &&
+                onClearPovertyLine
+            ) {
+                event.preventDefault()
+                onClearPovertyLine()
+                return
+            }
+            const step = event.shiftKey ? KEYBOARD_STEP_LARGE : KEYBOARD_STEP
+            const next =
+                event.key === "ArrowRight" || event.key === "ArrowUp"
+                    ? povertyLine * step
+                    : event.key === "ArrowLeft" || event.key === "ArrowDown"
+                      ? povertyLine / step
+                      : null
+            if (next === null) return
+            event.preventDefault()
+            onSetPovertyLine(clampIncome(next))
+        },
+        [povertyLine, onSetPovertyLine, onClearPovertyLine, clampIncome]
+    )
+    const clearPovertyLine = useMemo(
+        () =>
+            onClearPovertyLine &&
+            ((): void => {
+                setClearHintAt(null)
+                onClearPovertyLine()
+            }),
+        [onClearPovertyLine]
     )
 
     // Entity hover, delegated from the area paths via their data-key
@@ -313,7 +398,9 @@ function IncomeDistributionChartContent({
                 className="income-distribution-chart__svg"
                 width={width}
                 height={height}
-                role="img"
+                // Not "img", which would hide the poverty line's slider and
+                // its remove button from assistive tech
+                role="group"
                 aria-label={ariaLabel}
                 onPointerMove={handlePointerMove}
                 onPointerLeave={handlePointerLeave}
@@ -381,21 +468,22 @@ function IncomeDistributionChartContent({
                     </text>
                 ))}
 
-                <InternationalPovertyLine
-                    x={xScale(INT_POVERTY_LINE)}
-                    plotTop={plotTop}
-                    plotBottom={plotBottom}
-                    label={`International poverty line: ${formatIncome(INT_POVERTY_LINE, currency, timeInterval, { short: true })}`}
-                    showLabel={!isNarrow}
-                />
-
                 {povertyLine !== null && (
-                    <CustomPovertyLine
+                    <PovertyLine
                         x={xScale(povertyLine)}
                         plotTop={plotTop}
                         plotBottom={plotBottom}
                         width={width}
-                        label={`Poverty line: ${formatIncome(povertyLine, currency, timeInterval)}`}
+                        label={`${isInternationalPovertyLine ? "International poverty line" : "Poverty line"}: ${formatIncome(povertyLine, currency, timeInterval, { short: true })}`}
+                        valueNow={povertyLine}
+                        valueMin={minIncome}
+                        valueMax={maxIncome}
+                        onPointerDown={handleLinePointerDown}
+                        onPointerMove={handleLinePointerMove}
+                        onPointerUp={handleLinePointerUp}
+                        onKeyDown={handleLineKeyDown}
+                        onClear={clearPovertyLine}
+                        onClearHintChange={setClearHintAt}
                     />
                 )}
 
@@ -415,20 +503,33 @@ function IncomeDistributionChartContent({
                 )}
             </svg>
 
-            {pointer && (
+            {/* With a line set, its figure is fixed by the line and the
+                legend already shows it, so only the hover line previews
+                where a click would move the line */}
+            {pointer && povertyLine === null && (
                 <IncomeDistributionTooltip
                     position={pointer.position}
                     containerBounds={containerBounds}
                     isPinned={isPinned}
-                    line={povertyLine ?? pointer.income}
+                    line={pointer.income}
                     hoveredEntity={hoveredEntity}
                     yearData={yearData}
                     year={year}
                     currency={currency}
                     timeInterval={timeInterval}
-                    hasPovertyLine={povertyLine !== null}
                     color={tooltipColor}
+                    hintOnly={!isStacked && hoveredEntity === null}
                 />
+            )}
+
+            {clearHintAt && (
+                <div
+                    className="income-distribution-hint"
+                    style={{ left: clearHintAt.x, top: clearHintAt.y }}
+                    aria-hidden
+                >
+                    Remove poverty line
+                </div>
             )}
         </div>
     )
@@ -535,88 +636,167 @@ function XAxis({
     )
 }
 
-function InternationalPovertyLine({
-    x,
-    plotTop,
-    plotBottom,
-    label,
-    showLabel,
-}: {
-    x: number
-    plotTop: number
-    plotBottom: number
-    label: string
-    showLabel: boolean
-}): React.ReactElement {
-    return (
-        <g pointerEvents="none">
-            <line
-                x1={x}
-                x2={x}
-                y1={plotTop}
-                y2={plotBottom}
-                stroke={GRAY_60}
-                strokeWidth={1}
-                strokeDasharray="3,3"
-            />
-            {showLabel && (
-                <text
-                    transform={`translate(${x + 4}, ${plotTop + 2}) rotate(90)`}
-                    textAnchor="start"
-                    fontSize={10}
-                    fill={GRAPHER_LIGHT_TEXT}
-                >
-                    {label}
-                </text>
-            )}
-        </g>
-    )
-}
-
-function CustomPovertyLine({
+/**
+ * The poverty line, drawn like a pin: a dashed line topped by a ball, with
+ * its label beside the ball and a × that removes the line. The line and the
+ * ball are the grab target: drag to move the line, or focus it and use the
+ * arrow keys.
+ */
+function PovertyLine({
     x,
     plotTop,
     plotBottom,
     width,
     label,
+    valueNow,
+    valueMin,
+    valueMax,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+    onKeyDown,
+    onClear,
+    onClearHintChange,
 }: {
     x: number
     plotTop: number
     plotBottom: number
     width: number
     label: string
+    /** Int-$/day, for assistive tech */
+    valueNow: number
+    valueMin: number
+    valueMax: number
+    onPointerDown: (event: React.PointerEvent<SVGGElement>) => void
+    onPointerMove: (event: React.PointerEvent<SVGGElement>) => void
+    onPointerUp: (event: React.PointerEvent<SVGGElement>) => void
+    onKeyDown: (event: React.KeyboardEvent<SVGGElement>) => void
+    /** Without it, the line has no × */
+    onClear?: () => void
+    /** Where the × is while it's hovered or focused, for its hint; null after */
+    onClearHintChange: (position: Position | null) => void
 }): React.ReactElement {
     const fontSize = 12
-    const labelWidth = Bounds.forText(label, {
+    const ballRadius = 5
+    const ballY = plotTop
+    const gap = 6
+    const clearSize = 14
+    const clearSpace = onClear ? gap / 2 + clearSize : 0
+    const textWidth = Bounds.forText(label, {
         fontSize,
         fontWeight: 700,
     }).width
-    // Flip the label to the left of the line when it would overflow
-    const fitsRight = x + 5 + labelWidth <= width
+    // The label sits right of the ball, or left of it when it would overflow
+    const fitsRight = x + ballRadius + gap + textWidth + clearSpace <= width
+    const textX = fitsRight
+        ? x + ballRadius + gap
+        : x - ballRadius - gap - clearSpace
+    const clearX = fitsRight
+        ? textX + textWidth + gap / 2
+        : x - ballRadius - gap - clearSize
+    const clearCenterX = clearX + clearSize / 2
+    const clearHintPosition = { x: clearCenterX, y: ballY + clearSize / 2 + 4 }
+
     return (
-        <g pointerEvents="none">
-            <line
-                x1={x}
-                x2={x}
-                y1={plotTop}
-                y2={plotBottom}
-                stroke={GRAY_100}
-                strokeWidth={2}
-                strokeDasharray="5,4"
-            />
-            <text
-                x={fitsRight ? x + 5 : x - 5}
-                y={plotTop + 10}
-                textAnchor={fitsRight ? "start" : "end"}
-                fontSize={fontSize}
-                fontWeight={700}
-                fill={GRAY_100}
-                stroke={GRAPHER_BACKGROUND}
-                strokeWidth={3}
-                paintOrder="stroke"
+        <g>
+            <g
+                className="income-distribution-chart__poverty-line"
+                role="slider"
+                tabIndex={0}
+                aria-label="Poverty line"
+                aria-valuenow={valueNow}
+                aria-valuemin={valueMin}
+                aria-valuemax={valueMax}
+                aria-valuetext={label}
+                aria-orientation="horizontal"
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+                onPointerCancel={onPointerUp}
+                onClick={(event) => event.stopPropagation()}
+                onKeyDown={onKeyDown}
             >
-                {label}
-            </text>
+                {/* A wide invisible line, so the dashed one is easy to grab */}
+                <line
+                    x1={x}
+                    x2={x}
+                    y1={plotTop}
+                    y2={plotBottom}
+                    stroke="transparent"
+                    strokeWidth={16}
+                />
+                <line
+                    x1={x}
+                    x2={x}
+                    y1={plotTop}
+                    y2={plotBottom}
+                    stroke={GRAY_100}
+                    strokeWidth={2}
+                    strokeDasharray="5,4"
+                    pointerEvents="none"
+                />
+                <circle
+                    className="income-distribution-chart__poverty-line-ball"
+                    cx={x}
+                    cy={ballY}
+                    r={ballRadius}
+                    fill={GRAY_100}
+                    stroke={GRAPHER_BACKGROUND}
+                    strokeWidth={1.5}
+                />
+                <text
+                    x={textX}
+                    y={ballY}
+                    dominantBaseline="central"
+                    textAnchor={fitsRight ? "start" : "end"}
+                    fontSize={fontSize}
+                    fontWeight={700}
+                    fill={GRAY_100}
+                    stroke={GRAPHER_BACKGROUND}
+                    strokeWidth={3}
+                    paintOrder="stroke"
+                    pointerEvents="none"
+                >
+                    {label}
+                </text>
+            </g>
+            {onClear && (
+                <g
+                    className="income-distribution-chart__poverty-line-clear"
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Remove poverty line"
+                    // Keep the press from reaching the plot, which would set the line again
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onPointerEnter={() => onClearHintChange(clearHintPosition)}
+                    onPointerLeave={() => onClearHintChange(null)}
+                    onFocus={() => onClearHintChange(clearHintPosition)}
+                    onBlur={() => onClearHintChange(null)}
+                    onClick={(event) => {
+                        event.stopPropagation()
+                        onClear()
+                    }}
+                    onKeyDown={(event) => {
+                        if (event.key !== "Enter" && event.key !== " ") return
+                        event.preventDefault()
+                        onClear()
+                    }}
+                >
+                    <circle
+                        className="income-distribution-chart__poverty-line-clear-bg"
+                        cx={clearCenterX}
+                        cy={ballY}
+                        r={clearSize / 2}
+                    />
+                    <path
+                        d={`M ${clearCenterX - 3} ${ballY - 3} l 6 6 m 0 -6 l -6 6`}
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        strokeLinecap="round"
+                        pointerEvents="none"
+                    />
+                </g>
+            )}
         </g>
     )
 }
