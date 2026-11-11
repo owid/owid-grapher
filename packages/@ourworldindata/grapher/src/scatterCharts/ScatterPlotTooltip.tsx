@@ -29,6 +29,7 @@ import { FooterItem, TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import { ScatterSeries, SeriesPoint } from "./ScatterPlotChartConstants"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
 import { selectEntityAnnotationsForColumns } from "../annotations/EntityAnnotations"
+import { selectScatterTooltipAnnotationTexts } from "./ScatterUtils"
 
 export interface ScatterPlotTooltipProps {
     id: number
@@ -171,10 +172,18 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
         | undefined {
         const { target } = this.props.tooltipState
         if (!target) return undefined
-        return selectEntityAnnotationsForColumns(
-            this.rowColumns,
-            target.series.seriesName
-        )
+        const entityName = target.series.seriesName
+        if (this.chartState.manager.isRelativeMode)
+            return selectEntityAnnotationsForColumns(
+                this.rowColumns,
+                entityName
+            )
+        return selectScatterTooltipAnnotationTexts({
+            chartState: this.chartState,
+            rowColumns: this.rowColumns,
+            points: this.values,
+            entityName,
+        })
     }
 
     @computed private get footer(): FooterItem[] {

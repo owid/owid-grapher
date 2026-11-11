@@ -3,9 +3,11 @@ import * as R from "remeda"
 import {
     Bounds,
     ColumnSlug,
+    excludeUndefined,
     PointVector,
     ValueRange,
 } from "@ourworldindata/utils"
+import { EntityName } from "@ourworldindata/types"
 import {
     SCATTER_LABEL_FONT_SIZE_WHEN_HIDDEN_LINES,
     SCATTER_LINE_DEFAULT_WIDTH,
@@ -15,10 +17,19 @@ import {
     ScatterLabel,
     ScatterRenderPoint,
     ScatterRenderSeries,
+    SeriesPoint,
 } from "./ScatterPlotChartConstants"
-import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
+import {
+    joinEntityAnnotationTexts,
+    roundFontSize,
+    scaleFontSize,
+} from "../chart/ChartUtils"
+import {
+    selectEntityAnnotation,
+    selectEntityPointAnnotationsAtTimes,
+} from "../annotations/EntityAnnotations"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
-import { OwidTable } from "@ourworldindata/core-table"
+import { OwidColumn, OwidTable } from "@ourworldindata/core-table"
 
 export const labelPriority = (label: ScatterLabel): number => {
     let priority = label.fontSize
@@ -264,4 +275,61 @@ export function computeSizeDomain(
 ): ValueRange {
     const sizeValues = table.get(slug).values.filter(_.isNumber)
     return [0, _.max(sizeValues) ?? 1]
+}
+
+export function selectScatterTooltipAnnotationTexts({
+    chartState,
+    rowColumns,
+    points,
+    entityName,
+}: {
+    chartState: Pick<
+        ScatterPlotChartState,
+        "xColumn" | "yColumn" | "sizeColumn" | "colorColumn"
+    >
+    rowColumns: OwidColumn[]
+    points: SeriesPoint[]
+    entityName: EntityName
+}): Map<ColumnSlug, string> {
+    const rows = [
+        {
+            column: chartState.xColumn,
+            times: points.map((point) => point.time.x),
+        },
+        {
+            column: chartState.yColumn,
+            times: points.map((point) => point.time.y),
+        },
+        {
+            column: chartState.sizeColumn,
+            times: points.map((point) => point.timeValue),
+        },
+        {
+            column: chartState.colorColumn,
+            times: points.map((point) => point.timeValue),
+        },
+    ].filter((row) =>
+        rowColumns.some((column) => column.slug === row.column.slug)
+    )
+
+    const textBySlug = new Map<ColumnSlug, string>()
+    for (const { column, times } of rows) {
+        const showsSeveralTimes = new Set(times).size > 1
+        const text = joinEntityAnnotationTexts(
+            excludeUndefined([
+                ...selectEntityPointAnnotationsAtTimes({
+                    column,
+                    entityName,
+                    times,
+                }).map((annotation) =>
+                    showsSeveralTimes
+                        ? `${column.formatTime(annotation.time)}: ${annotation.text}`
+                        : annotation.text
+                ),
+                selectEntityAnnotation(column, entityName)?.text,
+            ])
+        )
+        if (text) textBySlug.set(column.slug, text)
+    }
+    return textBySlug
 }
