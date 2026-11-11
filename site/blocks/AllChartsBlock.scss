@@ -241,6 +241,59 @@ $all-charts-block-sticky-nav-clearance: 64px;
     background: $gray-10;
 }
 
+.all-charts-block__suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 8px;
+    min-height: 21px;
+    margin: -8px 0 16px;
+}
+
+.all-charts-block__suggestions-label {
+    @include overline-black-caps;
+    color: $blue-60;
+}
+
+.all-charts-block__suggestions-list {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.all-charts-block__suggestion:not(:first-child)::before {
+    content: ", ";
+    white-space: pre;
+    color: $blue-90;
+}
+
+.all-charts-block__suggestion-button {
+    @include body-3-medium;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $blue-90;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: none;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-50;
+        outline-offset: 2px;
+    }
+}
+
+@include sm-only {
+    .all-charts-block__suggestion:nth-child(n + 4) {
+        display: none;
+    }
+}
+
 @include md-down {
     .all-charts-block__search {
         position: sticky;
