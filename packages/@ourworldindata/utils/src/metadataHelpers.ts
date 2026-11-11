@@ -147,6 +147,7 @@ const getPhraseForProcessingLevel = (
             return "with major processing"
         case "minor":
             return "with minor processing"
+        case undefined:
         default:
             return "processed"
     }

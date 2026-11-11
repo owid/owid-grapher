@@ -109,6 +109,7 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Operation } from "../adminShared/SqlFilterSExpression.js"
 import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.mjs"
 import { SortableList } from "./SortableList.js"
+import "react-querybuilder/dist/query-builder.css"
 
 type Disposer = () => void
 

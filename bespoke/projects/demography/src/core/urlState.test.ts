@@ -4,6 +4,7 @@ import type { ScenarioParams } from "./model/scenarios"
 import {
     DEMOGRAPHY_COUNTRY_PARAM,
     DEMOGRAPHY_FERTILITY_PARAM,
+    DEMOGRAPHY_LEGACY_URL_PARAM_NAMES,
     DEMOGRAPHY_LIFE_EXPECTANCY_PARAM,
     DEMOGRAPHY_NET_MIGRATION_PARAM,
     DEMOGRAPHY_TAB_PARAM,
@@ -13,6 +14,7 @@ import {
     type SimulationUrlWriteState,
 } from "./urlState"
 import { END_YEAR } from "./constants"
+import { renameLegacyQueryParams } from "../../../../helpers/legacyUrlParams"
 
 const baselineScenarioParams: ScenarioParams = {
     fertilityRate: { 2030: 1.4, 2050: 1.5, 2100: 1.6 },
@@ -37,7 +39,7 @@ describe(parseSimulationUrlState, () => {
     it("parses country and assumption params", () => {
         expect(
             parseSimulationUrlState(
-                "?demographyCountry=JPN&demographyFertility=1.2,1.4,1.7&demographyLifeExpectancy=84,88,92&demographyNetMigration=-1,0,1"
+                "?country=JPN&fertility=1.2,1.4,1.7&lifeExpectancy=84,88,92&netMigration=-1,0,1"
             )
         ).toEqual({
             entityName: "Japan",
@@ -49,58 +51,57 @@ describe(parseSimulationUrlState, () => {
         })
     })
 
+    it("parses legacy prefixed param names once renamed", () => {
+        const legacyQuery =
+            "?demographyCountry=NGA&demographyFertility=1.2,1.4,1.7&demographyLifeExpectancy=84,88,92&demographyNetMigration=-1,0,1&demographyTab=lifeExpectancy&demographyYear=2050"
+        const currentQuery =
+            "?country=NGA&fertility=1.2,1.4,1.7&lifeExpectancy=84,88,92&netMigration=-1,0,1&tab=lifeExpectancy&year=2050"
+
+        const renamedQuery = renameLegacyQueryParams(
+            legacyQuery,
+            DEMOGRAPHY_LEGACY_URL_PARAM_NAMES
+        )
+
+        expect(parseSimulationUrlState(renamedQuery)).toEqual(
+            parseSimulationUrlState(currentQuery)
+        )
+        expect(parseSimulationUrlState(renamedQuery).entityName).toBe("Nigeria")
+    })
+
     it("accepts legacy URLs that use the country name", () => {
-        expect(
-            parseSimulationUrlState("?demographyCountry=Japan").entityName
-        ).toBe("Japan")
+        expect(parseSimulationUrlState("?country=Japan").entityName).toBe(
+            "Japan"
+        )
     })
 
     it("passes through entities not in Grapher's code lookup", () => {
-        expect(
-            parseSimulationUrlState("?demographyCountry=Atlantis").entityName
-        ).toBe("Atlantis")
+        expect(parseSimulationUrlState("?country=Atlantis").entityName).toBe(
+            "Atlantis"
+        )
     })
 
     it("skips empty and invalid assumption entries", () => {
         expect(
-            parseSimulationUrlState("?demographyFertility=1.2,nope,1.7")
+            parseSimulationUrlState("?fertility=1.2,nope,1.7")
                 .fertilityRateAssumptions
         ).toEqual({ 2030: 1.2, 2100: 1.7 })
     })
 
-    it("ignores Grapher's un-namespaced country param", () => {
-        expect(parseSimulationUrlState("?country=Japan").entityName).toBe(
-            undefined
-        )
-    })
-
     it("parses tab and year", () => {
-        const parsed = parseSimulationUrlState(
-            "?demographyTab=lifeExpectancy&demographyYear=2050"
-        )
+        const parsed = parseSimulationUrlState("?tab=lifeExpectancy&year=2050")
         expect(parsed.tab).toBe("lifeExpectancy")
         expect(parsed.year).toBe(2050)
     })
 
     it("rejects invalid tab values", () => {
-        expect(
-            parseSimulationUrlState("?demographyTab=garbage").tab
-        ).toBeUndefined()
+        expect(parseSimulationUrlState("?tab=garbage").tab).toBeUndefined()
     })
 
     it("rejects non-integer and out-of-range years", () => {
-        expect(
-            parseSimulationUrlState("?demographyYear=abc").year
-        ).toBeUndefined()
-        expect(
-            parseSimulationUrlState("?demographyYear=2050.5").year
-        ).toBeUndefined()
-        expect(
-            parseSimulationUrlState("?demographyYear=1800").year
-        ).toBeUndefined()
-        expect(
-            parseSimulationUrlState("?demographyYear=2200").year
-        ).toBeUndefined()
+        expect(parseSimulationUrlState("?year=abc").year).toBeUndefined()
+        expect(parseSimulationUrlState("?year=2050.5").year).toBeUndefined()
+        expect(parseSimulationUrlState("?year=1800").year).toBeUndefined()
+        expect(parseSimulationUrlState("?year=2200").year).toBeUndefined()
     })
 })
 

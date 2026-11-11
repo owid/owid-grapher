@@ -2,7 +2,10 @@ import * as React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import a from "indefinite"
-import { DataTableConfig } from "../dataTable/DataTableConstants"
+import {
+    DataTableConfig,
+    DataTableFilter,
+} from "../dataTable/DataTableConstants"
 import { SearchField } from "./SearchField"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 import { isAnyRegionPublisher } from "../core/RegionGroups"
@@ -10,6 +13,7 @@ import { match } from "ts-pattern"
 
 export interface DataTableSearchFieldManager {
     dataTableConfig: DataTableConfig
+    dataTableFilter: DataTableFilter
     isOnTableTab?: boolean
     entityType?: string
 }
@@ -32,10 +36,6 @@ export class DataTableSearchField extends React.Component<{
         return this.props.manager
     }
 
-    @computed private get config(): DataTableConfig {
-        return this.manager.dataTableConfig
-    }
-
     @computed private get shouldShow(): boolean {
         return !!this.manager.isOnTableTab
     }
@@ -45,9 +45,10 @@ export class DataTableSearchField extends React.Component<{
     }
 
     @computed private get placeholderEntityType(): string {
-        if (isAnyRegionPublisher(this.config.filter)) return "region"
+        const filter = this.manager.dataTableFilter
+        if (isAnyRegionPublisher(filter)) return "region"
 
-        return match(this.config.filter)
+        return match(filter)
             .with("all", () => this.entityType)
             .with("selection", () => this.entityType)
             .with("countries", () => "country")
@@ -67,10 +68,7 @@ export class DataTableSearchField extends React.Component<{
                 onChange={(value) => {
                     // Reset filter to "all" when user starts typing
                     // to allow searching across all entities
-                    if (
-                        value &&
-                        this.manager.dataTableConfig.filter !== "all"
-                    ) {
+                    if (value && this.manager.dataTableFilter !== "all") {
                         this.manager.dataTableConfig.filter = "all"
                     }
                     this.manager.dataTableConfig.search = value

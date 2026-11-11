@@ -23,6 +23,7 @@ import {
     EntityName,
     CoreColumnDef,
     OwidTableSlugs,
+    positiveModulo,
 } from "@ourworldindata/utils"
 import classnames from "clsx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
@@ -55,9 +56,6 @@ interface EntityOptionWithMetricValue {
     formattedValue: any
     localEntitiesIndex: number | undefined
 }
-
-/** Modulo that wraps negative numbers too */
-const mod = (n: number, m: number): number => ((n % m) + m) % m
 
 interface EntityPickerProps {
     manager: EntityPickerManager
@@ -336,7 +334,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
 
     private normalizeFocusIndex(index: number): number | undefined {
         if (this.searchResults.length === 0) return undefined
-        return mod(index, this.searchResults.length)
+        return positiveModulo(index, this.searchResults.length)
     }
 
     @computed private get focusedOption(): string | undefined {

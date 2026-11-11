@@ -1,7 +1,7 @@
 export function AnnouncementsIcon() {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 56 56">
-            <circle cx="28.0015" cy="28.0015" r="28.0015" fill="#DBE5F0" />
+        <svg fill="none" viewBox="0 0 56 56">
+            <circle cx="28.002" cy="28.002" r="28.002" fill="#dbe5f0" />
             <mask
                 id="a"
                 width="57"
@@ -10,7 +10,7 @@ export function AnnouncementsIcon() {
                 y="0"
                 maskUnits="userSpaceOnUse"
             >
-                <circle cx="28.0015" cy="28.0015" r="28.0015" fill="#DBE5F0" />
+                <circle cx="28.002" cy="28.002" r="28.002" fill="#dbe5f0" />
             </mask>
             <g mask="url(#a)">
                 <rect
@@ -19,7 +19,7 @@ export function AnnouncementsIcon() {
                     x="9.5"
                     y="16.5"
                     fill="#fff"
-                    stroke="#CEDEF0"
+                    stroke="#cedef0"
                     rx="2.5"
                 />
                 <circle cx="14.5" cy="23.5" r="2.5" fill="#355174" />
@@ -29,7 +29,7 @@ export function AnnouncementsIcon() {
                     height="5"
                     x="21"
                     y="21"
-                    fill="#98A9BD"
+                    fill="#98a9bd"
                     rx="1"
                 />
                 <rect
@@ -37,7 +37,7 @@ export function AnnouncementsIcon() {
                     height="5"
                     x="21"
                     y="45"
-                    fill="#98A9BD"
+                    fill="#98a9bd"
                     rx="1"
                 />
                 <rect
@@ -45,7 +45,7 @@ export function AnnouncementsIcon() {
                     height="14"
                     x="21"
                     y="28"
-                    fill="#C3D7EE"
+                    fill="#c3d7ee"
                     rx="1"
                 />
                 <rect
@@ -53,7 +53,7 @@ export function AnnouncementsIcon() {
                     height="14"
                     x="21"
                     y="52"
-                    fill="#C3D7EE"
+                    fill="#c3d7ee"
                     rx="1"
                 />
             </g>

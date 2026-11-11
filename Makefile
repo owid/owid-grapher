@@ -37,7 +37,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.worktree setup.worktree initiative wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s playwright playwright.ui playwright.standalone check-not-prod
+.PHONY: help up up.headless up.worktree setup.worktree sessions wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s playwright playwright.ui playwright.standalone check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -47,10 +47,10 @@ help:
 	@echo '  make up.headless            start dev environment without tmux (AI agents, cloud sandboxes, CI)'
 	@echo '  make up.worktree            start this git worktree'"'"'s dev environment next to your main one'
 	@echo '  make setup.worktree         only write this checkout'"'"'s .env (random free ports, own tmux session)'
-	@echo '  make initiative [INITIATIVE=x]  create worktree .worktrees/x (branch x off master) for a BMad initiative, set it up and open it in VS Code; asks for x when INITIATIVE is missing'
 	@echo '  make down                   stop any services still running'
 	@echo '  make down.headless          stop services started by make up.headless'
 	@echo '  make down.worktree          stop services started by make up.worktree (leaves MySQL up)'
+	@echo '  make sessions               list the running dev tmux sessions of all checkouts and worktrees'
 	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
 	@echo '  make refresh.private        (while up) download and load the private sidecar dump: admin keys + analytics (needs access)'
 	@echo '  make refresh.full           (while up) run refresh and refresh.private'
@@ -152,9 +152,6 @@ up.worktree: require.worktree setup.worktree wait.yarn-install node_modules
 setup.worktree:
 	@./devTools/docker/setup-worktree-env.sh
 
-initiative:
-	@./devTools/docker/create-initiative.sh "$(INITIATIVE)"
-
 # before `node_modules`, so a checkout mid-install (Orca's setup script) finishes
 # that install instead of make starting a second one next to it
 wait.yarn-install:
@@ -165,6 +162,9 @@ down.worktree:
 	@echo '==> Killing the $(TMUX_SESSION_NAME) tmux session'
 	@tmux kill-session -t =$(TMUX_SESSION_NAME) 2>/dev/null || echo '    (no such session, nothing to stop)'
 	@echo '==> Leaving MySQL up, your other checkouts share it (stop it with `make down`)'
+
+sessions:
+	@./devTools/docker/list-sessions.sh
 
 require.worktree: require.headless
 	@which tmux >/dev/null 2>&1 || (echo "ERROR: tmux is required."; exit 1)

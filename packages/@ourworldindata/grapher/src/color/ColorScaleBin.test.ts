@@ -269,7 +269,7 @@ describe(mergeCategoricalBinsByLabelAndColor, () => {
                 value: "b",
                 label: "Same label",
                 color: "green",
-                patternRef: "hatch",
+                fillPatternRef: "hatch",
             }),
         ]
         expect(mergeCategoricalBinsByLabelAndColor(bins)).toHaveLength(2)

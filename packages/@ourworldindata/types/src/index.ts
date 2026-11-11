@@ -141,6 +141,8 @@ export {
     type DumbbellTrendColorMap,
     DumbbellConnectorStyle,
     DumbbellValueLabelMode,
+    type SwimlaneChartConfigInterface,
+    SwimlaneSegmentLabelMode,
     type GlobeConfig,
     type ProjectionColumnInfo,
     GrapherVariant,
@@ -468,6 +470,10 @@ export {
     AnalyticsGrapherViewsTableName,
 } from "./dbTypes/AnalyticsGrapherViews.js"
 export {
+    type DbPlainAnalyticsPopularity,
+    AnalyticsPopularityTableName,
+} from "./dbTypes/AnalyticsPopularity.js"
+export {
     type DbInsertArchivedChartVersion,
     type DbPlainArchivedChartVersion,
     type DbEnrichedArchivedChartVersion,
@@ -601,10 +607,6 @@ export {
     type DbEnrichedImageWithUserId,
     type DbEnrichedImageWithPageviews,
     type DbInsertImage,
-    parseImageRow,
-    parseImageUpdatedAt,
-    serializeImageRow,
-    serializeImageUpdatedAt,
     ImagesTableName,
 } from "./dbTypes/Images.js"
 export {
@@ -868,10 +870,14 @@ export type {
     MultiDimDataPageProps,
     MultiDimPageCompanion,
     MultiDimPageCompanionView,
+    MultiDimExplorerPresentation,
     FaqEntryKeyedByGdocIdAndFragmentId,
     Choice,
     ChoicesEnriched,
+    Dimension,
     DimensionEnriched,
+    DimensionPresentation,
+    DimensionPresentationType,
     MultiDimDimensionChoices,
     ExplorerRedirectTarget,
     View,

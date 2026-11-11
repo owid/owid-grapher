@@ -22,7 +22,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
           cacheDependencyPath: bespoke/yarn.lock
@@ -41,7 +41,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
           cacheDependencyPath: bespoke/yarn.lock
@@ -60,7 +60,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
           cacheDependencyPath: bespoke/yarn.lock

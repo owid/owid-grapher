@@ -1,4 +1,4 @@
-import { OwidVariableRow, SeriesName, Time } from "@ourworldindata/types"
+import { Color, OwidVariableRow, SeriesName, Time } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Point } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState.js"
@@ -95,6 +95,7 @@ export interface StackedRawSeries<
 export interface StackedSeries<
     PositionType extends StackedPointPositionType,
 > extends ChartSeries {
+    color: Color
     points: StackedPoint<PositionType>[]
     columnSlug?: string
     isProjection?: boolean

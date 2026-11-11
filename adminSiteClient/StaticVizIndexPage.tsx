@@ -23,6 +23,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { makeImageSrc } from "./imagesHelpers.js"
+import { useListSearch } from "./useListSearch.js"
 
 // Thumbnail that opens the full-size image in a lightbox when clicked
 function PreviewImage({
@@ -206,10 +207,16 @@ function createColumns({
     ]
 }
 
+const searchedText = ({
+    name,
+    description,
+    createdBy,
+    updatedBy,
+}: DbEnrichedStaticViz) => [name, description, createdBy, updatedBy]
+
 export function StaticVizIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const queryClient = useQueryClient()
-    const [searchValue, setSearchValue] = useState("")
 
     const { data: staticVizResponse, isLoading } = useQuery({
         queryKey: ["static-viz"],
@@ -235,20 +242,11 @@ export function StaticVizIndexPage() {
         },
     })
 
-    const filteredLinkedStaticViz = useMemo(() => {
-        const linkedStaticViz = staticVizResponse || []
-        return linkedStaticViz.filter((item) => {
-            if (!searchValue) return true
-            const value = searchValue.toLowerCase()
-            const { name, description, createdBy, updatedBy } = item
-            return (
-                name.toLowerCase().includes(value) ||
-                description?.toLowerCase().includes(value) ||
-                createdBy?.toLowerCase().includes(value) ||
-                updatedBy?.toLowerCase().includes(value)
-            )
-        })
-    }, [staticVizResponse, searchValue])
+    const {
+        searchValue,
+        setSearchValue,
+        filtered: filteredLinkedStaticViz,
+    } = useListSearch(staticVizResponse, searchedText)
 
     const columns = useMemo(
         () => createColumns({ onDelete: deleteMutation.mutate }),

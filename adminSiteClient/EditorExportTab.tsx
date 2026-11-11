@@ -12,11 +12,8 @@ import { Section, Toggle } from "./Forms.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { ConfigEditor } from "./ConfigEditor.js"
-import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
-import { faHatWizard, faDownload } from "@fortawesome/free-solid-svg-icons"
-import { Button } from "antd"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import urljoin from "url-join"
 
 type ExportSettings = Required<
     Pick<
@@ -219,20 +216,6 @@ export class EditorExportTab extends Component<EditorExportTabProps> {
     }
 
     override render() {
-        const chartAnimationUrl = new URL(
-            urljoin(ETL_WIZARD_URL, "chart-animation")
-        )
-        if (this.grapherState.canonicalUrl)
-            chartAnimationUrl.searchParams.set(
-                "animation_chart_url",
-                this.grapherState.canonicalUrl
-            )
-        chartAnimationUrl.searchParams.set("animation_skip_button", "True")
-        // chartAnimationUrl.searchParams.set(
-        //     "animation_chart_tab",
-        //     this.grapher.tab ?? ""
-        // )
-
         return (
             <div className="EditorExportTab">
                 <Section name="Displayed elements">
@@ -337,25 +320,6 @@ export class EditorExportTab extends Component<EditorExportTabProps> {
                         </button>
                     </div>
                 </Section>
-
-                {/* Link to Wizard dataset preview */}
-                {this.grapherState.isPublished && (
-                    <Section name="Animate chart">
-                        <a
-                            href={chartAnimationUrl.toString()}
-                            target="_blank"
-                            className="btn btn-tertiary"
-                            rel="noopener"
-                        >
-                            <Button
-                                type="default"
-                                icon={<FontAwesomeIcon icon={faHatWizard} />}
-                            >
-                                Animate with Wizard
-                            </Button>
-                        </a>
-                    </Section>
-                )}
             </div>
         )
     }

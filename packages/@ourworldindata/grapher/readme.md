@@ -43,6 +43,8 @@ function LifeExpectancyChart() {
     useEffect(() => {
         const loader = GrapherLoader.fromApi({
             config: {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.012.json",
                 title: "Life expectancy",
                 selectedEntityNames: ["World", "Africa", "Europe"],
                 dimensions: [
@@ -57,6 +59,8 @@ function LifeExpectancyChart() {
     return <div style={{ aspectRatio: "850 / 600" }} ref={ref} />
 }
 ```
+
+The `$schema` field is optional, but recommended: it records which schema version the config was written against, and `GrapherLoader` migrates configs from older versions to the latest one, so they keep working when you update the package.
 
 For loading your own data (CSV or in-memory tables), providing source metadata, the standalone bundle for non-React pages, sizing, and the full `GrapherLoader` API, see the [documentation](https://docs.owid.io/projects/grapher/). A complete working example of all three data sources is in [`demo.html`](./demo.html) (`yarn startDemoServer`).
 
@@ -83,10 +87,11 @@ yarn build
 
 Two tools help verify the built package (both expect `yarn build` to have run first):
 
-- `yarn testPackage` verifies the package as it would be published. It first packs it to `dist-package/grapher.tgz` (`yarn testPackage:pack` — a `yarn pack`, which applies `publishConfig`, then runs two checks over that tarball, each of which can also run individually after a pack:
-    - `yarn testPackage:vitest` runs the smoke tests in `packageTest/`: they import both JS builds, mount a chart from the built code into a DOM, typecheck a simulated external consumer against the tarball's bundled type declarations — with `moduleResolution: bundler` and `nodenext`, plus a full check of the declaration bundle itself — and run a [publint](https://publint.dev) pass over the tarball's packaging metadata (with one known publint false positive excepted, documented in `packageTest/publint.packagetest.ts`). These tests are intentionally not part of the repo-wide `yarn test` since they depend on `dist/` and the packed tarball.
+- `yarn testPackage` verifies the package as it would be published. It first packs it to `dist-package/grapher.tgz` (`yarn testPackage:pack` — a `yarn pack`, which applies `publishConfig`, then runs three checks over that tarball, each of which can also run individually after a pack:
+    - `yarn testPackage:vitest` runs the smoke tests in `packageTest/`: they import both JS builds, mount a chart from the built code into a DOM, typecheck a simulated external consumer against the tarball's bundled type declarations — with `moduleResolution: bundler` and `nodenext`, plus a full check of the declaration bundle itself These tests are intentionally not part of the repo-wide `yarn test` since they depend on `dist/` and the packed tarball.
+    - `yarn testPackage:publint` runs the [publint](https://publint.dev) CLI over the tarball's packaging metadata (`exports`/`files` consistency, missing entry points, module format). `--strict` makes warnings fail as well as errors; suggestions are printed but don't fail.
     - `yarn testPackage:attw` runs an [`@arethetypeswrong/cli`](https://github.com/arethetypeswrong/arethetypeswrong.github.io) pass over the tarball's types/exports wiring. It checks the `esm-only` profile since the package ships no CJS, and excludes the `./grapher.css` entrypoint, which isn't a resolvable module.
-- `yarn startDemoServer` serves this directory on http://localhost:8433 via `http-server` and opens `/demo.html`, which shows the three `GrapherLoader` variants. It's a plain static server, so the demo page loads `dist/` exactly like a CDN consumer would.
+- `yarn startDemoServer` serves this directory on http://localhost:8433 via `http-server` and opens `/demo.html`, which shows the three `GrapherLoader` variants. `/demo-iframe.html` mounts charts inside `srcdoc` iframes, as some host sites do, to check grapher's iframe-specific behaviour (links, donate button) and the options that turn it off. It's a plain static server, so the demo page loads `dist/` exactly like a CDN consumer would.
 
 ### Documentation
 
@@ -97,7 +102,7 @@ The public docs site at [docs.owid.io/projects/grapher](https://docs.owid.io/pro
 Releases go to OWID's private registry at `https://packages.owid.io` (set as `publishConfig.registry`). From this directory, with the build verified (`yarn build` + `yarn testPackage`):
 
 ```bash
-yarn bumpp
+yarn release
 ```
 
-Once that commit & tag are pushed to `master`, a Buildkite pipeline runs a publish and will put the package release both onto our private npm registry, and will make the built files available on our Tailnet.
+`yarn release` runs `bumpp --pr`, which opens a PR with the version bump (`chore: release grapher@<version>`). Merge it as a squash or rebase, so the commit on `master` starts with `chore: release grapher@` (the PR title does by default): the Buildkite pipeline publishes the package when it sees that commit message. `.github/workflows/tag-package-releases.yml` also tags the merge commit `grapher@<version>`.

@@ -2,15 +2,17 @@ import { createRoot, Root } from "react-dom/client"
 import { useRef } from "react"
 import { useIsomorphicLayoutEffect } from "usehooks-ts"
 import {
-    GrapherInterface,
     OwidChartDimensionInterface,
     OwidColumnDef,
+    OwidTableSlugs,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { Grapher, GrapherProgrammaticInterface } from "./core/Grapher.js"
 import { GrapherState } from "./core/GrapherState.js"
 import { applyDimensionDisplayAndConversionFactor } from "./core/applyDisplayAndConversionFactor.js"
+import { appendSelectedEntityColors } from "./core/LegacyToOwidTable.js"
 import { fetchInputTableForConfig } from "./core/loadGrapherTableHelpers.js"
+import { migrateGrapherConfigToLatestVersion } from "./schema/migrations/migrate.js"
 import { useElementBounds } from "./hooks.js"
 
 const DEFAULT_DATA_API_URL = "https://api.ourworldindata.org/v1/indicators/"
@@ -18,7 +20,7 @@ const DEFAULT_DATA_API_URL = "https://api.ourworldindata.org/v1/indicators/"
 // --- Options types -----------------------------------------------------------
 
 interface GrapherApiOptionsBase {
-    config: GrapherInterface
+    config: GrapherProgrammaticInterface
 }
 
 /** Options for {@link GrapherLoader.fromTable}. */
@@ -51,7 +53,9 @@ export type FromCsvOptions = GrapherApiOptionsBase & {
 export interface FromApiOptions extends GrapherApiOptionsBase {
     /** The config must say which indicators to fetch: a `dimensions` array
      *  with at least a `y` entry (e.g. `{ property: "y", variableId: 1118466 }`). */
-    config: GrapherInterface & { dimensions: OwidChartDimensionInterface[] }
+    config: GrapherProgrammaticInterface & {
+        dimensions: OwidChartDimensionInterface[]
+    }
     /** Base URL for the OWID data API.
      *  Defaults to "https://api.ourworldindata.org/v1/indicators/" */
     dataApiUrl?: string
@@ -65,17 +69,42 @@ function defaultGrapherConfigOverrides(): Partial<GrapherProgrammaticInterface> 
     }
 }
 
+// If a $schema version is present in the config, ensure that we migrate it
+// up to the latest version.
+function migrateConfigIfVersioned<T extends GrapherProgrammaticInterface>(
+    config: T
+): T {
+    if (config.$schema === undefined) return config
+    return migrateGrapherConfigToLatestVersion(config) as T
+}
+
 // A config without `dimensions` or `ySlugs` auto-detects its y columns from
 // the table's numeric columns. Config-driven features (the sources modal, the
 // footer attribution line, the data download) don't take part in that
 // auto-detection, so mirror it in the config to make them see the same
 // columns — otherwise metadata passed via columnDefs would never show up.
 function deriveYSlugs(
-    config: GrapherInterface,
+    config: GrapherProgrammaticInterface,
     table: OwidTable
 ): string | undefined {
     if (config.ySlugs || config.dimensions?.length) return config.ySlugs
     return table.numericColumnSlugs.join(" ") || undefined
+}
+
+// Prepares a caller-provided table the way the data API path prepares fetched
+// indicators: applies each dimension's display and conversion factor, and adds
+// the entity color column that `selectedEntityColors` relies on — unless the
+// table already brings its own.
+function prepareInputTable(
+    table: OwidTable,
+    config: GrapherProgrammaticInterface
+): OwidTable {
+    const prepared = applyDimensionDisplayAndConversionFactor(
+        table,
+        config.dimensions ?? []
+    )
+    if (prepared.has(OwidTableSlugs.EntityColor)) return prepared
+    return appendSelectedEntityColors(prepared, config.selectedEntityColors)
 }
 
 // --- Internal React component ------------------------------------------------
@@ -223,15 +252,13 @@ export class GrapherLoader {
 
     /** Prepare a chart whose data comes from a pre-built OwidTable. */
     static fromTable(options: FromTableOptions): GrapherLoader {
-        const { config, data } = options
+        const { data } = options
+        const config = migrateConfigIfVersioned(options.config)
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
             ...config,
             ySlugs: deriveYSlugs(config, data),
-            table: applyDimensionDisplayAndConversionFactor(
-                data,
-                config.dimensions ?? []
-            ),
+            table: prepareInputTable(data, config),
             isConfigReady: true,
             isDataReady: true,
         })
@@ -241,15 +268,17 @@ export class GrapherLoader {
     /** Prepare a chart whose data comes from a CSV, either passed inline as a
      *  string or fetched from a URL. */
     static fromCsv(options: FromCsvOptions): GrapherLoader {
-        const { config, columnDefs } = options
+        const { columnDefs } = options
 
         // An inline CSV string can be parsed synchronously, making this
-        // equivalent to fromTable.
+        // equivalent to fromTable (which migrates the config itself).
         if (options.csv !== undefined)
             return GrapherLoader.fromTable({
-                config,
+                config: options.config,
                 data: new OwidTable(options.csv, columnDefs),
             })
+
+        const config = migrateConfigIfVersioned(options.config)
 
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
@@ -260,11 +289,7 @@ export class GrapherLoader {
         const ready = OwidTable.fromUrl(options.csvUrl, columnDefs).then(
             (table) => {
                 grapherState.ySlugs = deriveYSlugs(config, table)
-                grapherState.inputTable =
-                    applyDimensionDisplayAndConversionFactor(
-                        table,
-                        config.dimensions ?? []
-                    )
+                grapherState.inputTable = prepareInputTable(table, config)
                 grapherState.isDataReady = true
             }
         )
@@ -273,7 +298,8 @@ export class GrapherLoader {
 
     /** Prepare a chart whose data will be fetched from the OWID data API. */
     static fromApi(options: FromApiOptions): GrapherLoader {
-        const { config, dataApiUrl = DEFAULT_DATA_API_URL } = options
+        const { dataApiUrl = DEFAULT_DATA_API_URL } = options
+        const config = migrateConfigIfVersioned(options.config)
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
             ...config,

@@ -87,14 +87,14 @@ yarn build
 yarn testPackage
 ```
 
-`yarn testPackage` packs the package to `dist-package/gdoc-pipeline.tgz` (a `yarn pack`, which applies `publishConfig`) and then runs the smoke tests in `packageTest/`: they import the built bundle and run the pipeline end-to-end, assert the bundle is fully self-contained, typecheck a simulated external consumer against the tarball's bundled type declarations — with `moduleResolution: bundler` and `nodenext`, plus a full check of the declaration bundle itself — and run [publint](https://publint.dev) and [`@arethetypeswrong/cli`](https://github.com/arethetypeswrong/arethetypeswrong.github.io) passes over the tarball. These tests are intentionally not part of the repo-wide `yarn test` since they depend on `dist/` and the packed tarball.
+`yarn testPackage` packs the package to `dist-package/gdoc-pipeline.tgz` (a `yarn pack`, which applies `publishConfig`) and then runs the smoke tests in `packageTest/`: they import the built bundle and run the pipeline end-to-end, assert the bundle is fully self-contained, typecheck a simulated external consumer against the tarball's bundled type declarations — with `moduleResolution: bundler` and `nodenext`, plus a full check of the declaration bundle itself. Then the [publint](https://publint.dev) CLI (`yarn testPackage:publint`, `--strict` so warnings fail too) and [`@arethetypeswrong/cli`](https://github.com/arethetypeswrong/arethetypeswrong.github.io) (`yarn testPackage:attw`) check the tarball's packaging metadata and types wiring. These tests are intentionally not part of the repo-wide `yarn test` since they depend on `dist/` and the packed tarball.
 
 ### Publishing a release
 
 Releases go to OWID's private registry at `https://packages.owid.io` (set as `publishConfig.registry`). From this directory, with the build verified (`yarn build` + `yarn testPackage`):
 
 ```bash
-yarn bumpp
+yarn release
 ```
 
-Once that commit & tag (`gdoc-pipeline@<version>`) are pushed to `master`, a Buildkite pipeline runs the publish to the private npm registry.
+`yarn release` runs `bumpp --pr`, which opens a PR with the version bump (`chore: release gdoc-pipeline@<version>`). Merge it as a squash or rebase, so the commit on `master` starts with `chore: release gdoc-pipeline@` (the PR title does by default): the Buildkite pipeline publishes the package when it sees that commit message. `.github/workflows/tag-package-releases.yml` also tags the merge commit `gdoc-pipeline@<version>`.

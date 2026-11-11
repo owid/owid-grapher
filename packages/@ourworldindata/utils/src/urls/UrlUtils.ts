@@ -2,34 +2,39 @@ import { MultiDimDimensionChoices, QueryParams } from "@ourworldindata/types"
 import { omitUndefinedValues } from "../Util.js"
 
 /**
- * Converts a query string into an object of key-value pairs.
- * Handles URI-decoding of the values.
- * @param queryStr
- * @param doNotDecode Passing `true` will return a QueryParams object with URI-encoded values.
- *                    Only use when absolutely necessary, for example, to distinguish between
- *                    `+` and `%20` for legacy URLs.
+ * Converts a query string into an object of key-value pairs, with URI-decoded
+ * keys and values. A leading `?` is ignored, a repeated key keeps its last
+ * value, and a key without a value (`?foo`) maps to an empty string.
  */
-export const strToQueryParams = (
-    queryStr = "",
-    doNotDecode: boolean = false
-): QueryParams => {
+export const strToQueryParams = (queryStr = ""): QueryParams =>
+    Object.fromEntries(new URLSearchParams(queryStr))
+
+/**
+ * Like `strToQueryParams`, but leaves the values URI-encoded.
+ * Only use when absolutely necessary, for example, to distinguish between
+ * `+` and `%20` for legacy URLs.
+ */
+export const strToEncodedQueryParams = (queryStr = ""): QueryParams => {
     if (queryStr[0] === "?") queryStr = queryStr.substring(1)
 
-    const querySplit = queryStr.split("&").filter((s) => s)
     const params: QueryParams = {}
-
-    for (const param of querySplit) {
+    for (const param of queryStr.split("&").filter((s) => s)) {
         const [key, value] = param.split("=", 2)
-        const decodedKey = decodeURIComponent(key.replace(/\+/g, "%20"))
-        const decoded =
-            value !== undefined
-                ? decodeURIComponent(value.replace(/\+/g, "%20"))
-                : undefined
-
-        params[decodedKey] = doNotDecode ? value : decoded
+        params[safeDecodeURIComponent(key.replace(/\+/g, "%20"))] = value
     }
-
     return params
+}
+
+/**
+ * `decodeURIComponent` that returns the input unchanged instead of throwing
+ * on malformed escapes such as a lone `%`.
+ */
+export const safeDecodeURIComponent = (str: string): string => {
+    try {
+        return decodeURIComponent(str)
+    } catch {
+        return str
+    }
 }
 
 /**

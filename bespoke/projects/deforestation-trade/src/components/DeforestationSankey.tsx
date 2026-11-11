@@ -7,6 +7,7 @@ import {
     TooltipTable,
     TooltipValue,
 } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
+import { TooltipFooterIcon } from "@ourworldindata/grapher/src/tooltip/TooltipProps.js"
 
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import {
@@ -44,7 +45,9 @@ import {
     getGroupColor,
     getGroupDescription,
     getGroupLabel,
+    getGroupLabelColor,
     getGroupSentenceLabel,
+    GROUP_ICON_SIZE,
     GroupIcon,
     renderGroupIcon,
 } from "../core/commodityGroups.js"
@@ -68,8 +71,20 @@ const LABEL_NO_GROUPS = Infinity
 /** The note under the domestic production node's label */
 const DOMESTIC_ANNOTATION = "produced & consumed\ndomestically"
 
-/** Group icons in tooltips are bigger than the ones beside the chart's labels */
-const TOOLTIP_GROUP_ICON_SIZE = 28
+/** Tooltips are kept narrow, so the eye travels less from a row's name to its
+ *  value */
+const TOOLTIP_MAX_WIDTH = 280
+
+/** The commodity badge in a commodity tooltip's header */
+const TOOLTIP_BADGE_SIZE = 30
+const TOOLTIP_BADGE_GLYPH_SIZE = 16
+
+/** The commodity column's bands are as thin as the outer ones, with a sliver
+ *  of white on either side to keep them light */
+const COMMODITY_BAND = { width: 4, gap: 1 }
+
+/** A commodity's label while its ribbon is highlighted, and so opaque */
+const HIGHLIGHTED_LABEL_COLOR = "#fff"
 
 /** Links below this share of the chart's total are drawn extra faint */
 const LINK_LOW_VOLUME_THRESHOLD = 0.005
@@ -154,9 +169,11 @@ function DeforestationSankeyContent({
         [view, country, importRows, exportRows, formatValue, isNarrow]
     )
 
-    // Labelled commodity nodes carry their group's glyph next to the label.
-    // On narrow screens the glyph stands alone; the Sankey drops it on nodes
-    // too short to fit it.
+    // Labelled commodity nodes carry their group's glyph, inline with the
+    // label and in its colour, so it reads as part of the text. Where the
+    // label doesn't fit on its ribbon, the name goes alone, then the glyph.
+    // On narrow screens the glyph stands alone, as a badge on a white disc
+    // that invites a tap, where the node is tall enough for it.
     const nodes = useMemo<SankeyNode[]>(
         () =>
             graph.nodes.map((node) => {
@@ -170,10 +187,43 @@ function DeforestationSankeyContent({
                     }
                 const group = getGroupFromNodeId(node.id)
                 if (group === undefined) return node
-                if (node.label === "" && !isNarrow) return node
+                const labelColor = getGroupLabelColor(group)
+                if (node.label === "" && !isNarrow)
+                    return { ...node, labelColor }
+                if (isNarrow)
+                    return {
+                        ...node,
+                        labelColor,
+                        labelVariants: [
+                            {
+                                icon: renderGroupIcon(
+                                    group,
+                                    getGroupColor(group)
+                                ),
+                                iconStyle: "badge",
+                            },
+                        ],
+                    }
+                const inlineIcon = {
+                    // Drawn in the label's colour, whichever it is
+                    icon: renderGroupIcon(group, "currentColor", {
+                        glyphSize: GROUP_ICON_SIZE,
+                    }),
+                    iconStyle: "inline",
+                } as const
                 return {
                     ...node,
-                    icon: renderGroupIcon(group, getGroupColor(group)),
+                    labelColor,
+                    highlightedLabelColor: HIGHLIGHTED_LABEL_COLOR,
+                    labelVariants: [
+                        {
+                            label: node.label,
+                            valueLabel: node.valueLabel,
+                            ...inlineIcon,
+                        },
+                        { label: node.label, ...inlineIcon },
+                        inlineIcon,
+                    ],
                 }
             }),
         [graph.nodes, isNarrow]
@@ -339,6 +389,7 @@ function DeforestationSankeyContent({
                 nodes={nodes}
                 links={graph.links}
                 mergeParallelLinks
+                middleBand={COMMODITY_BAND}
                 width={width}
                 height={height}
                 // In production view the wide, simple ribbons are on the left
@@ -348,6 +399,7 @@ function DeforestationSankeyContent({
                 totalFlowVolume={graph.total}
                 linkLowVolumeThreshold={LINK_LOW_VOLUME_THRESHOLD}
                 nodePadding={SANKEY_NODE_PADDING}
+                tooltipMaxWidth={TOOLTIP_MAX_WIDTH}
                 fontSettings={
                     isNarrow ? MOBILE_FONT_SETTINGS : DEFAULT_FONT_SETTINGS
                 }
@@ -422,33 +474,30 @@ function makeNodeTooltip({
         const country = countryLabel
             ? articulateEntity(countryLabel)
             : undefined
-        const productionPurpose =
-            group === "Pasture"
-                ? "create pasture for cattle raised for beef"
-                : `produce ${commodity}`
+        // "Attributed to", as the source's model attributes the clearing to
+        // the commodities later produced on the land rather than observing it
         const headlineDescription = isPartnerSideIncoming
-            ? `of forest cleared worldwide to ${productionPurpose}${country ? `${group === "Pasture" ? " that's" : ""} consumed in ${country}` : ""}`
-            : `of forest cleared${country ? ` in ${country}` : ""} to ${productionPurpose}`
+            ? `of deforestation attributed to ${commodity}${country ? ` consumed in ${country}` : ""}`
+            : `of deforestation${country ? ` in ${country}` : ""} attributed to ${commodity}`
         return {
             title: getGroupLabel(group),
             subtitle,
+            headerAside: <GroupBadge group={group} />,
+            // What the commodity covers is a definition, so it goes in the
+            // small print, after the numbers
+            footer: description
+                ? [{ icon: TooltipFooterIcon.None, text: description }]
+                : undefined,
             content: (
                 <>
-                    {description && (
-                        <p className="deforestation-sankey__tooltip-description">
-                            {description}
-                        </p>
-                    )}
-                    <GroupLine group={group}>
-                        <div className="deforestation-sankey__tooltip-headline">
-                            <span className="deforestation-sankey__tooltip-headline-value">
-                                {formatHectares(value)}
-                            </span>
-                            <span className="deforestation-sankey__tooltip-headline-description">
-                                {headlineDescription}
-                            </span>
-                        </div>
-                    </GroupLine>
+                    <div className="deforestation-sankey__tooltip-headline">
+                        <span className="deforestation-sankey__tooltip-headline-value">
+                            {formatHectares(value)}
+                        </span>
+                        <span className="deforestation-sankey__tooltip-headline-description">
+                            {headlineDescription}
+                        </span>
+                    </div>
                     <PartnerShareTable
                         heading={
                             isPartnerSideIncoming
@@ -524,24 +573,32 @@ function makeNodeTooltip({
     }
 }
 
-/** A commodity group's icon beside the value line — the tooltip card's title
- *  is plain text, so this is where the icon goes */
-function GroupLine({
-    group,
-    children,
-}: {
-    group: string
-    children?: React.ReactNode
-}): React.ReactElement {
+/** A commodity group's glyph in white on a disc of the group's colour, for
+ *  the header of the group's tooltip */
+function GroupBadge({ group }: { group: string }): React.ReactElement {
+    const r = 0.5 * TOOLTIP_BADGE_SIZE
+    const glyphOffset = 0.5 * (TOOLTIP_BADGE_SIZE - TOOLTIP_BADGE_GLYPH_SIZE)
     return (
-        <div className="deforestation-sankey__tooltip-group">
-            <GroupIcon
-                group={group}
-                size={TOOLTIP_GROUP_ICON_SIZE}
-                className="deforestation-sankey__tooltip-group-icon"
-            />
-            {children}
-        </div>
+        <svg
+            className="deforestation-sankey__tooltip-badge"
+            width={TOOLTIP_BADGE_SIZE}
+            height={TOOLTIP_BADGE_SIZE}
+            viewBox={`0 0 ${TOOLTIP_BADGE_SIZE} ${TOOLTIP_BADGE_SIZE}`}
+            aria-hidden
+        >
+            <circle cx={r} cy={r} r={r} fill={getGroupColor(group)} />
+            <svg
+                x={glyphOffset}
+                y={glyphOffset}
+                width={TOOLTIP_BADGE_GLYPH_SIZE}
+                height={TOOLTIP_BADGE_GLYPH_SIZE}
+                viewBox={`0 0 ${GROUP_ICON_SIZE} ${GROUP_ICON_SIZE}`}
+            >
+                {renderGroupIcon(group, "#fff", {
+                    glyphSize: GROUP_ICON_SIZE,
+                })}
+            </svg>
+        </svg>
     )
 }
 
@@ -564,10 +621,13 @@ function CommodityBreakdownTable({
                                 <GroupIcon group={row.group} size={14} />
                             </td>
                             <td className="deforestation-sankey__commodity-table-name">
-                                {getGroupLabel(row.group)}
-                            </td>
-                            <td className="deforestation-sankey__commodity-table-value">
-                                {formatHectares(row.value)}
+                                <NameWithLeader
+                                    name={getGroupLabel(row.group)}
+                                    value={formatHectares(row.value, {
+                                        short: true,
+                                    })}
+                                    valueClassName="deforestation-sankey__commodity-table-value"
+                                />
                             </td>
                         </tr>
                     ))}
@@ -605,10 +665,13 @@ function PartnerShareTable({
                     {visible.map((row) => (
                         <tr key={row.name}>
                             <td className="deforestation-sankey__share-table-name">
-                                {row.name}
-                            </td>
-                            <td className="deforestation-sankey__share-table-value">
-                                {formatHectares(row.value, { short: true })}
+                                <NameWithLeader
+                                    name={row.name}
+                                    value={formatHectares(row.value, {
+                                        short: true,
+                                    })}
+                                    valueClassName="deforestation-sankey__share-table-value"
+                                />
                             </td>
                             <td className="deforestation-sankey__share-table-share">
                                 {total > 0
@@ -626,6 +689,27 @@ function PartnerShareTable({
                 </div>
             )}
         </>
+    )
+}
+
+/** A row's name and its value, joined by a dotted leader that fills the
+ *  space between them. They share a cell so the leader runs right up to
+ *  the value, which still lines up on the right with the other rows'. */
+function NameWithLeader({
+    name,
+    value,
+    valueClassName,
+}: {
+    name: string
+    value: string
+    valueClassName: string
+}): React.ReactElement {
+    return (
+        <span className="deforestation-sankey__leader-row">
+            <span>{name}</span>
+            <span className="deforestation-sankey__leader" aria-hidden />
+            <span className={valueClassName}>{value}</span>
+        </span>
     )
 }
 

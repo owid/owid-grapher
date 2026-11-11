@@ -1,6 +1,10 @@
 import { expect, it, describe } from "vitest"
 
-import { queryParamsToStr, strToQueryParams } from "./UrlUtils.js"
+import {
+    queryParamsToStr,
+    strToEncodedQueryParams,
+    strToQueryParams,
+} from "./UrlUtils.js"
 
 const testCases = [
     {
@@ -35,8 +39,15 @@ const testCases = [
         encodedQueryParams: { foo: "" },
     },
     {
+        // malformed percent-encoding that decodeURIComponent would throw on
+        queryStr: "?q=100%",
+        queryParams: { q: "100%" },
+        encodedQueryParams: { q: "100%" },
+        ignoreInToQueryStrTest: true,
+    },
+    {
         queryStr: "?foo",
-        queryParams: { foo: undefined },
+        queryParams: { foo: "" },
         encodedQueryParams: { foo: undefined },
         ignoreInToQueryStrTest: true,
     },
@@ -60,7 +71,7 @@ describe(strToQueryParams, () => {
             expect(strToQueryParams(testCase.queryStr)).toEqual(
                 testCase.queryParams
             )
-            expect(strToQueryParams(testCase.queryStr, true)).toEqual(
+            expect(strToEncodedQueryParams(testCase.queryStr)).toEqual(
                 testCase.encodedQueryParams
             )
         })

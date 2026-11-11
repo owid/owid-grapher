@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-je" viewBox="0 0 640 480">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
   <path fill="#fff" d="M0 0h640v480H0Z"/>
   <path d="m1.3-2.4 637.4 484.8m-637.4 0L638.7-2.4" color="#000" style="-inkscape-stroke:none" transform="matrix(.99998 0 0 .99028 0 2.3)"/>
   <path fill="#cf142b" d="M0-2.4v29.2L280.5 240 0 453.3v29h44L320 270l275.8 212.4H640V453L359.5 240 640 26.7v-29h-44L320 209.8 44-2.4Z" color="#000" style="-inkscape-stroke:none" transform="matrix(.99998 0 0 .99028 0 2.3)"/>

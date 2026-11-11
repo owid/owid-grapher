@@ -30,6 +30,8 @@ function levelToDesc(level?: KeyChartLevel): string {
             return "in the middle"
         case KeyChartLevel.Top:
             return "at the top"
+        case KeyChartLevel.None:
+        case undefined:
         default:
             return ""
     }

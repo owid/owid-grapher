@@ -35,6 +35,7 @@ nav = [
             ] },
             { "Types" = [
                 { "GrapherInterface" = "api/reference/interfaces/GrapherInterface.md" },
+                { "GrapherProgrammaticInterface" = "api/reference/interfaces/GrapherProgrammaticInterface.md" },
                 { "OwidChartDimensionInterface" = "api/reference/interfaces/OwidChartDimensionInterface.md" },
                 { "OwidColumnDef" = "api/reference/interfaces/OwidColumnDef.md" },
                 { "FromTableOptions" = "api/reference/interfaces/FromTableOptions.md" },

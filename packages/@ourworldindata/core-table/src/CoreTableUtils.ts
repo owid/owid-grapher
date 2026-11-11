@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import * as Papa from "papaparse"
+import { dsvFormat } from "d3-dsv"
 import * as R from "remeda"
 import { sampleFrom, slugifySameCase, ColumnSlug } from "@ourworldindata/utils"
 import {
@@ -625,17 +625,7 @@ export const trimMatrix = (matrix: CoreMatrix): CoreMatrix =>
 export const matrixToDelimited = (
     table: CoreMatrix,
     delimiter = "\t"
-): string => {
-    return table
-        .map((row: any) =>
-            row
-                .map((cell: any) =>
-                    cell === null || cell === undefined ? "" : cell
-                )
-                .join(delimiter)
-        )
-        .join("\n")
-}
+): string => dsvFormat(delimiter).formatRows(table)
 
 /**
  * An array object representing all parsed rows. The array is enhanced with a property listing
@@ -653,38 +643,32 @@ export const parseDelimited = (
     delimiter?: string,
     parseFn?: (rawRow: RawRow) => ParsedRow
 ): DSVParsedArray<Record<string, any>> => {
-    // Convert PapaParse result to D3 format for backwards compatibility
-    const papaParseToD3 = ({
-        data,
-        meta,
-    }: Papa.ParseResult<any>): DSVParsedArray<Record<string, any>> => {
-        const dsvParsed = data as DSVParsedArray<Record<string, any>>
-        dsvParsed.columns = meta.fields || []
+    // Use parseRows and build the row objects ourselves: d3-dsv's parse
+    // compiles its row converter with `new Function`, which a Content Security
+    // Policy without 'unsafe-eval' blocks — and Grapher may be embedded on sites
+    // with strict CSPs.
+    const [header = [], ...body] = dsvFormat(
+        delimiter ?? detectDelimiter(str)
+    ).parseRows(
+        // Strip the BOM before parsing so a quoted first header is recognized.
+        str.replace(/^\uFEFF/, ""),
+        // Skip empty lines before selecting the header, as well as in the body.
+        (values) => (values.length === 1 && values[0] === "" ? null : values)
+    )
+    const columns = header.map((name) => name.trim())
 
-        // Some downstream methods expect all rows to have fields for all columns,
-        // even if they are missing in that row. This loop ensures that.
-        for (const row of dsvParsed) {
-            for (const col of dsvParsed.columns) {
-                if (!(col in row)) row[col] = ""
-            }
-        }
-
-        return dsvParsed
+    const rows: Record<string, any>[] = []
+    for (const values of body) {
+        // Some downstream methods expect all rows to have fields for all
+        // columns, even if they are missing in that row
+        const row: Record<string, unknown> = {}
+        columns.forEach((col, index) => {
+            row[col] = values[index]?.trim() ?? ""
+        })
+        rows.push(parseFn ? (parseFn(row) as Record<string, any>) : row)
     }
 
-    const result = Papa.parse(str, {
-        delimiter: delimiter ?? detectDelimiter(str),
-        header: true,
-        skipEmptyLines: true,
-        transformHeader: (header: string) => header.trim(),
-        transform: (value: string) => value.trim(),
-    })
-
-    if (parseFn) {
-        result.data = result.data.map((rawRow) => parseFn(rawRow as RawRow))
-    }
-
-    return papaParseToD3(result)
+    return Object.assign(rows, { columns })
 }
 
 export const detectDelimiter = (str: string): "\t" | "," | " " =>
