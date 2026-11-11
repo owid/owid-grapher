@@ -1,3 +1,6 @@
+$all-charts-row-thumbnail-width: 158px;
+$all-charts-row-thumbnail-height: 84px;
+
 .all-charts-row {
     padding: 16px;
     border-left: 3px solid transparent;
@@ -86,7 +89,7 @@
 
 .all-charts-row__thumbnail img {
     display: block;
-    width: 158px;
-    height: 84px;
+    width: $all-charts-row-thumbnail-width;
+    height: $all-charts-row-thumbnail-height;
     object-fit: contain;
 }

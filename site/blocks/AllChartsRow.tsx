@@ -7,10 +7,6 @@ import {
 import { makeLabelForGrapherTab } from "@ourworldindata/grapher"
 import { constructChartAndPreviewUrlsForTab } from "../search/SearchChartHitSmallHelpers.js"
 
-const THUMBNAIL_WIDTH_PX = 158
-const THUMBNAIL_HEIGHT_PX = 84
-const MAX_THUMBNAILS = 3
-
 export interface TextPart {
     text: string
     isMatched: boolean
@@ -19,7 +15,7 @@ export interface TextPart {
 export interface AllChartsRowData extends SearchChartUrlTarget {
     titleParts: TextPart[]
     variantName?: string
-    sourcesLine?: string
+    source?: string
     availableTabs: GrapherTabName[]
 }
 
@@ -27,25 +23,20 @@ interface AllChartsRowProps {
     row: AllChartsRowData
     isSelected: boolean
     selectedTab?: GrapherTabName
+    thumbnailTabs: GrapherTabName[]
     countries: string[]
-    onSelect: (tab: GrapherTabName) => void
+    onSelect: (tab?: GrapherTabName) => void
 }
 
 export function AllChartsRow({
     row,
     isSelected,
     selectedTab,
+    thumbnailTabs,
     countries,
     onSelect,
 }: AllChartsRowProps) {
-    const thumbnailTabs = pickThumbnailTabs(row.availableTabs, {
-        hasCountries: countries.length > 0,
-    })
-
-    const displayedTab =
-        isSelected && selectedTab && thumbnailTabs.includes(selectedTab)
-            ? selectedTab
-            : thumbnailTabs[0]
+    const displayedTab = isSelected ? selectedTab : thumbnailTabs[0]
 
     return (
         <div
@@ -58,9 +49,7 @@ export function AllChartsRow({
                     type="button"
                     className="all-charts-row__select"
                     aria-pressed={isSelected}
-                    onClick={() =>
-                        onSelect(displayedTab ?? GRAPHER_TAB_NAMES.Table)
-                    }
+                    onClick={() => onSelect(displayedTab)}
                 >
                     <span className="all-charts-row__heading">
                         <span className="all-charts-row__title">
@@ -78,9 +67,9 @@ export function AllChartsRow({
                             </span>
                         )}
                     </span>
-                    {row.sourcesLine && (
+                    {row.source && (
                         <span className="all-charts-row__source">
-                            <strong>Source:</strong> {row.sourcesLine}
+                            <strong>Source:</strong> {row.source}
                         </span>
                     )}
                 </button>
@@ -113,8 +102,6 @@ export function AllChartsRow({
                                         }
                                         loading="lazy"
                                         alt=""
-                                        width={THUMBNAIL_WIDTH_PX}
-                                        height={THUMBNAIL_HEIGHT_PX}
                                     />
                                 </button>
                             </li>
@@ -124,22 +111,4 @@ export function AllChartsRow({
             </div>
         </div>
     )
-}
-
-function pickThumbnailTabs(
-    availableTabs: GrapherTabName[],
-    { hasCountries }: { hasCountries: boolean }
-): GrapherTabName[] {
-    const tabs = availableTabs
-        .filter((tab) => tab !== GRAPHER_TAB_NAMES.Table)
-        .slice(0, MAX_THUMBNAILS)
-
-    if (
-        hasCountries &&
-        tabs.length > 1 &&
-        tabs[0] === GRAPHER_TAB_NAMES.WorldMap
-    )
-        return [...tabs.slice(1), tabs[0]]
-
-    return tabs
 }

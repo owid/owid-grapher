@@ -89,7 +89,6 @@ function renderFeaturedViz({
                 linkedIndicators: {},
                 linkedDocuments: {},
                 imageMetadata: {},
-                relatedCharts: [],
                 tags: [],
                 bespokeMetadata,
             }}

@@ -29,7 +29,6 @@ const fragmentProps: OwidGdocPageProps = {
     linkedIndicators: {},
     linkedCallouts: {},
     imageMetadata: {},
-    relatedCharts: [],
 }
 
 describe(OwidGdoc, () => {

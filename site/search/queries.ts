@@ -72,6 +72,11 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
 } as const
 
+export const allChartsBlockQueryKeys = {
+    charts: (query: Omit<AllChartsBlockQuery, "page">) =>
+        [CHARTS_INDEX, "all-charts-block", query] as const,
+} as const
+
 export const latestPagesQueryKey = {
     latestPages: (topics: string[], latestType: LatestType | null) =>
         [

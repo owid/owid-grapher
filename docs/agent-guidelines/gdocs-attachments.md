@@ -17,7 +17,7 @@ All Google Doc subclasses inherit the attachment workflow from `GdocBase` (`db/m
     - Subclass overrides `_loadSubclassAttachments` to append type-specific data (e.g., donor names, homepage metrics, latest insights, author “latest work” tiles).
 3. `validate` runs after attachments are loaded so that missing metadata (images, authors, links, etc.) can trigger contextual errors.
 
-Because attachments are populated directly onto the `GdocBase` instance, they are automatically included in `extractGdocPageData` (`packages/@ourworldindata/utils/src/Util.ts:1314`), which shapes the payload handed to React pages.
+`extractGdocPageData` (`packages/@ourworldindata/utils/src/Util.ts`) shapes the payload handed to React pages. It picks attachment fields with an explicit `R.pick` list, so a new attachment field must be added there.
 
 ## How Pages Receive Attachments
 
@@ -30,7 +30,6 @@ Because attachments are populated directly onto the `GdocBase` instance, they ar
 
 Examples:
 
-- The “All Charts” block pulls `relatedCharts` and `tags` from the context to render the key-charts grid (`site/gdocs/components/AllCharts.tsx`).
 - The research-and-writing block reads `latestWorkLinks` to show author content (`site/gdocs/components/ResearchAndWriting.tsx`).
 - Homepage components depend on `homepageMetadata` and `latestDataInsights` to render counts and cards.
 
@@ -46,7 +45,7 @@ Pages that do not rely on Google Docs (e.g., WordPress articles) bypass this sys
 
 ## Subclass-specific Attachments
 
-- **`GdocPost`** uses `_loadSubclassAttachments` to fetch `relatedCharts` when the document contains an “all charts” block and has tags (`db/model/Gdoc/GdocPost.ts:140`). It also exposes parsed FAQ content through `_getSubclassEnrichedBlocks`.
+- **`GdocPost`** has no subclass attachments. It exposes parsed FAQ content through `_getSubclassEnrichedBlocks`.
 - **`GdocDataInsight`** fetches `latestDataInsights` plus their image metadata so that we can surface related insights or previews (`db/model/Gdoc/GdocDataInsight.ts:55`).
 - **`GdocHomepage`** collects site metrics (`homepageMetadata`) and recent insights each time the homepage is loaded (`db/model/Gdoc/GdocHomepage.ts:61`).
 - **`GdocAbout`** loads donor names when the document references a donors block (`db/model/Gdoc/GdocAbout.ts:20`).
@@ -73,7 +72,6 @@ Pages that do not rely on Google Docs (e.g., WordPress articles) bypass this sys
 | Grapher / Explorer charts | `loadLinkedCharts`                | **Per-slug lookup** (`Promise.all`)    |
 | Indicators                | `loadLinkedIndicators`            | Batched query using indicator IDs      |
 | Narrative charts          | `loadNarrativeChartsInfo`         | Single batched query                   |
-| Related charts            | `GdocPost.loadRelatedCharts`      | Batched query filtered by tags         |
 | Latest insights           | `getLatestDataInsights`           | Single query + batched image lookup    |
 | Author latest work        | `GdocAuthor.loadLatestWorkImages` | Single query for work + batched images |
 

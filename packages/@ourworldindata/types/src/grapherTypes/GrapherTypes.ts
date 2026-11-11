@@ -79,10 +79,10 @@ export enum ScaleType {
 }
 
 export enum KeyChartLevel {
-    None = 0, // not a key chart, will not show in the all charts block of the related topic page
-    Bottom = 1, // chart will show at the bottom of the all charts block
-    Middle = 2, // chart will show in the middle of the all charts block
-    Top = 3, // chart will show at the top of the all charts block
+    None = 0,
+    Bottom = 1,
+    Middle = 2,
+    Top = 3,
 }
 
 /**

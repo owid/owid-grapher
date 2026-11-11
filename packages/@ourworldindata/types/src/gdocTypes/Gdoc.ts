@@ -1,7 +1,6 @@
 import {
     GrapherChartOrMapType,
     GrapherTabConfigOption,
-    RelatedChart,
 } from "../grapherTypes/GrapherTypes.js"
 import { BespokeMetadata } from "../domainTypes/BespokeMetadata.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
@@ -152,7 +151,6 @@ export interface OwidGdocBaseInterface {
     linkedIndicators?: Record<number, LinkedIndicator>
     linkedCallouts?: LinkedCallouts
     imageMetadata?: Record<string, ImageMetadata>
-    relatedCharts?: RelatedChart[]
     tags?: MinimalTag[] | null
     errors?: OwidGdocErrorMessage[]
     breadcrumbs?: BreadcrumbItem[] | null

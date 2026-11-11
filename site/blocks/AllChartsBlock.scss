@@ -1,0 +1,111 @@
+$all-charts-block-height: 575px;
+
+.all-charts-block__count {
+    @include note-1-medium;
+    margin-left: 4px;
+    color: $blue-60;
+}
+
+.all-charts-block__list-wrapper {
+    position: relative;
+    height: $all-charts-block-height;
+}
+
+.all-charts-block__list-wrapper::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 143px;
+    @include fade-out-overlay(white, 0%);
+    pointer-events: none;
+}
+
+.all-charts-block .all-charts-block__list {
+    @include thin-scrollbar;
+    height: 100%;
+    margin: 0;
+    padding: 0 0 100px;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.all-charts-block__item {
+    border-bottom: 1px solid $blue-10;
+}
+
+.all-charts-block__sentinel {
+    height: 1px;
+}
+
+.all-charts-block__preview {
+    height: $all-charts-block-height;
+}
+
+.all-charts-block__preview .GrapherWithFallback {
+    height: 100%;
+}
+
+.all-charts-block__preview figure.chart.grapher-component,
+.all-charts-block__preview figure.chart.GrapherWithFallback__fallback {
+    @include figure-grapher-reset;
+    height: 100%;
+    margin: 0;
+}
+
+.all-charts-block__skeleton-row {
+    padding: 16px;
+    border-left: 3px solid transparent;
+}
+
+.all-charts-block__skeleton-row:first-child {
+    background: $gray-5;
+}
+
+.all-charts-block__skeleton-title {
+    width: 70%;
+    height: 22px;
+    background: $gray-10;
+}
+
+.all-charts-block__skeleton-source {
+    width: 50%;
+    height: 16px;
+    margin: 4px 0 12px;
+    background: $gray-10;
+}
+
+.all-charts-block__skeleton-preview {
+    background: $gray-10;
+}
+
+.all-charts-block__skeleton-row::after {
+    content: "";
+    display: block;
+    width: $all-charts-row-thumbnail-width;
+    height: $all-charts-row-thumbnail-height;
+    background: $gray-10;
+}
+
+.all-charts-block__error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: $all-charts-block-height;
+    background: $gray-5;
+}
+
+.all-charts-block__error .search-no-results {
+    display: block;
+    margin-top: 0;
+}
+
+.all-charts-block__error p {
+    margin: 0;
+}
+
+.all-charts-block__search-button {
+    display: inline-block;
+    margin-top: 16px;
+}
