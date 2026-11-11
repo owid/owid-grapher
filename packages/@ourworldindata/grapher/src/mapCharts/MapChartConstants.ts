@@ -1,6 +1,7 @@
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { Bounds, ColumnSlug } from "@ourworldindata/utils"
 import {
+    ChartLabelMode,
     Color,
     EntityName,
     MapRegionName,
@@ -101,6 +102,7 @@ export interface ChoroplethMapManager {
     globeController?: GlobeController
     selectionArray?: MapSelectionArray
     fontSize?: number
+    labelMode?: ChartLabelMode
     getHoverState?: (featureId: string) => InteractionState
     isSelected?: (featureId: string) => boolean
     onMapMouseOver?: (d: GeoFeature) => void
