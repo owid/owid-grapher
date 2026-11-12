@@ -1602,7 +1602,11 @@ export function makeMultiDimLinkedChart(
         // Same subtitle and thumbnail as the multi-dim's card on /explorers.
         ...(isMultiDimDataExplorer(config) && {
             subtitle: config.presentation.explorerSubtitle,
-            thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png`,
+            // Without a dynamic thumbnail URL (e.g. archive builds), omit the
+            // thumbnail so the default OWID thumbnail is shown instead.
+            ...(GRAPHER_DYNAMIC_THUMBNAIL_URL && {
+                thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png`,
+            }),
         }),
     }
 }
