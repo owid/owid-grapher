@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   find_todos:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     # don't run on draft PRs
     if: github.event.pull_request.draft == false
 

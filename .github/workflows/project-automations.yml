@@ -18,21 +18,21 @@ permissions: {}
 jobs:
   prio:
     name: Sync issue priority to project board
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: owid/actions/assign-priority@main
         with:
           PROJECT_ISSUES_TOKEN: ${{ secrets.PROJECT_ISSUES_TOKEN }}
   status:
     name: Set status based on event
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: owid/actions/set-project-status@main
         with:
           PROJECT_ISSUES_TOKEN: ${{ secrets.PROJECT_ISSUES_TOKEN }}
   needs_triage:
     name: Add "needs triage" label
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     if: github.event_name == 'issues' && github.event.action == 'opened'
     permissions:
       issues: write
@@ -44,7 +44,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
   staging_viz:
     name: Add "staging-viz" label to Sophia's PRs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     if: github.event_name == 'pull_request' && github.event.action == 'opened' && github.actor == 'sophiamersmann'
     permissions:
       pull-requests: write
@@ -55,7 +55,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
   site_label:
     name: Add "site" label to site team's issues
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     # To have your own new issues labelled "site", add your GitHub handle to
     # the list below.
     if: >

@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   destroy_staging:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - name: Check out repository
         uses: actions/checkout@v7.0.1
