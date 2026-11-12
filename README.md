@@ -71,7 +71,7 @@ All code is written in [TypeScript](https://www.typescriptlang.org/).
 
 If you want to enable pre-commit hooks, run `yarn husky`.
 
-GitHub Actions dependencies are locked in [`.github/workflows/actions.lock`](https://docs.github.com/actions/concepts/security/workflow-dependency-lockfiles). Reference actions by a full version tag (e.g. `actions/checkout@v7.0.1`) and, after adding or changing any `uses:`, run `gh actions-lock` (install once with `gh extension install github/gh-actions-lock`) and commit the updated lockfile.
+GitHub Actions dependencies are locked in [`.github/workflows/actions.lock`](https://docs.github.com/actions/concepts/security/workflow-dependency-lockfiles). Reference actions by a full version tag (e.g. `actions/checkout@v7.0.1`) and, after adding or changing any `uses:`, run `gh actions-lock` (install once with `gh extension install github/gh-actions-lock`) and commit the updated lockfile. CI verifies these lockfiles.
 
 [Visual Studio Code](https://code.visualstudio.com/) is recommended for autocompletion and other awesome editor analysis features enabled by static typing.
 

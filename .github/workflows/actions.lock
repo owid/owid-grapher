@@ -16,7 +16,6 @@ workflows:
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-node@v7.1.0'
         - 'lironer/bundlemon-action@v1.4.0'
-        - 'zizmorcore/zizmor-action@v0.8.1'
     '.github/workflows/codeql-analysis.yml':
         - 'actions/checkout@v7.0.1'
         - 'github/codeql-action@v4.39.3'
@@ -29,6 +28,9 @@ workflows:
     '.github/workflows/format.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-node@v7.1.0'
+    '.github/workflows/github-actions.yml':
+        - 'actions/checkout@v7.0.1'
+        - 'zizmorcore/zizmor-action@v0.8.1'
     '.github/workflows/npm-packages.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-node@v7.1.0'

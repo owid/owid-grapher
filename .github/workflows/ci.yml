@@ -185,19 +185,3 @@ jobs:
 
       - name: BundleMon
         uses: lironer/bundlemon-action@v1.4.0
-
-  zizmor:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Run zizmor
-        uses: zizmorcore/zizmor-action@v0.8.1
-        with:
-          # Avanced Security mode is a bit too complicated for our use case, but
-          # we might want to switch to it in the future.
-          advanced-security: false
