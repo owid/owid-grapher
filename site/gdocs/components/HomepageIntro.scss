@@ -41,6 +41,14 @@
     }
 }
 
+.homepage-intro__featured-tile img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1.91 / 1;
+    object-fit: cover;
+}
+
 .homepage-intro__featured-tile {
     display: block;
     width: 100%;
