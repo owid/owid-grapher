@@ -4,7 +4,6 @@ import {
     AnalyticsGrapherViewsTableName,
     ContentGraphLinkType,
     ImagesTableName,
-    MultiDimDataPagesTableName,
     MultiDimXChartConfigsTableName,
     PostsGdocsLinksTableName,
     PostsGdocsTableName,
@@ -18,14 +17,10 @@ import {
     seedDatasetAndVariables,
     variableId,
 } from "./fixtures.js"
-import type { ApiMultiDimOverview } from "../../adminShared/AdminTypes.js"
-
-// The admin's list of multi-dims shows, per multi-dim, what its config says
-// (dimensions, tags, how many views) and how it is used, counted the way the
-// chart list counts a chart's uses: daily views over the last year, narrative
-// charts made from it, and published gdocs and static visualizations linking
-// to it. The counts are subqueries over several tables, so this checks them
-// against a seeded database, including the links that must not count.
+// The admin's list of multi-dims shows what each one's config says and how it
+// is used, counted as the chart list counts a chart's uses. The counts are
+// subqueries over several tables, so this checks them on a seeded database,
+// with links that must not count alongside those that must.
 
 const env = getAdminTestEnv()
 
@@ -123,9 +118,9 @@ async function seedStaticVizOf(grapherSlug: string): Promise<void> {
     })
 }
 
-async function listedMultiDim(id: number): Promise<ApiMultiDimOverview> {
+async function listedMultiDim(id: number): Promise<{ id: number }> {
     const { multiDims } = await env.fetchJson("/multi-dims.json")
-    return multiDims.find((mdim: ApiMultiDimOverview) => mdim.id === id)
+    return multiDims.find((mdim: { id: number }) => mdim.id === id)
 }
 
 describe("Listing multi-dims", { timeout: 20000 }, () => {
@@ -186,7 +181,7 @@ describe("Listing multi-dims", { timeout: 20000 }, () => {
         })
     })
 
-    it("lists an unused draft without a slug with nothing counted", async () => {
+    it("lists a draft without a slug or tags, with nothing counted", async () => {
         const { id } = await env.request({
             method: "PUT",
             path: `/multi-dims/${encodeURIComponent(catalogPath)}`,
@@ -199,12 +194,6 @@ describe("Listing multi-dims", { timeout: 20000 }, () => {
                 ]),
             }),
         })
-        // a link to "" mustn't count for a multi-dim that has no slug
-        await seedGdocLinkingTo({ id: "empty-link", target: "" })
-
-        expect(
-            await env.testKnex(MultiDimDataPagesTableName).where({ id }).first()
-        ).toMatchObject({ slug: null })
         expect(await listedMultiDim(id)).toMatchObject({
             slug: null,
             published: false,

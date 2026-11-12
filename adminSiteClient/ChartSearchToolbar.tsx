@@ -22,9 +22,8 @@ interface ChartSearchToolbarProps {
     tags: readonly NameCount[]
     authors: readonly NameCount[]
     autoFocus?: boolean
-    /** The filters this list offers, as controls, suggestions and help */
+    /** The filters the list offers, if not all of them */
     facets?: readonly ChartSearchFacet[]
-    placeholder?: string
     /** Where plain words are looked for, as the help puts it */
     searchedIn?: string
 }
@@ -46,38 +45,30 @@ const WORD_HELP: SearchHelpRow[] = [
     { example: "-wind", meaning: 'Doesn\'t contain "wind"' },
 ]
 
-function filterHelp(facets: readonly ChartSearchFacet[]): SearchHelpRow[] {
-    return [
-        ...Object.entries(IS_VALUES)
-            .filter(([, { facet }]) => facets.includes(facet))
-            .map(([name, { label }]) => ({
-                example: `is:${name}`,
-                meaning: label,
-            })),
-        ...(facets.includes("tag")
-            ? [
-                  { example: "tag:Energy", meaning: 'Tagged "Energy"' },
-                  {
-                      example: "tag:ener",
-                      meaning: 'Any tag that starts with "ener"',
-                  },
-                  {
-                      example: 'tag:"Air Pollution"',
-                      meaning: "Quote a name that has spaces",
-                  },
-              ]
-            : []),
-        ...(facets.includes("author")
-            ? [
-                  {
-                      example: "author:ada",
-                      meaning:
-                          'Last edited or published by someone whose name starts with "ada"',
-                  },
-              ]
-            : []),
-    ]
-}
+const FILTER_HELP: (SearchHelpRow & { facet: ChartSearchFacet })[] = [
+    ...Object.entries(IS_VALUES).map(([name, { facet, label }]) => ({
+        facet,
+        example: `is:${name}`,
+        meaning: label,
+    })),
+    { facet: "tag", example: "tag:Energy", meaning: 'Tagged "Energy"' },
+    {
+        facet: "tag",
+        example: "tag:ener",
+        meaning: 'Any tag that starts with "ener"',
+    },
+    {
+        facet: "tag",
+        example: 'tag:"Air Pollution"',
+        meaning: "Quote a name that has spaces",
+    },
+    {
+        facet: "author",
+        example: "author:ada",
+        meaning:
+            'Last edited or published by someone whose name starts with "ada"',
+    },
+]
 
 const COMBINING_HELP: SearchHelpRow[] = [
     {
@@ -172,7 +163,6 @@ export function ChartSearchToolbar({
     authors,
     autoFocus,
     facets = ALL_CHART_SEARCH_FACETS,
-    placeholder = "Search, or filter: tag:Energy is:draft author:…",
     searchedIn = "the title, variant, notes, slug, id, chart type, tags and people",
 }: ChartSearchToolbarProps): React.ReactElement {
     const [typedQuery, setTypedQuery] = useState<string | undefined>()
@@ -264,7 +254,7 @@ export function ChartSearchToolbar({
                     popupMatchSelectWidth={500}
                 >
                     <Input
-                        placeholder={placeholder}
+                        placeholder={`Search, or filter: tag:Energy is:draft${facets.includes("author") ? " author:…" : ""}`}
                         allowClear
                         autoFocus={autoFocus}
                     />
@@ -273,7 +263,9 @@ export function ChartSearchToolbar({
                     <SearchHelpTable heading="Words" rows={WORD_HELP} />
                     <SearchHelpTable
                         heading="Filters"
-                        rows={filterHelp(facets)}
+                        rows={FILTER_HELP.filter((row) =>
+                            facets.includes(row.facet)
+                        )}
                     />
                     <SearchHelpTable
                         heading="Combining"
@@ -285,18 +277,16 @@ export function ChartSearchToolbar({
                 </SearchHelp>
             </div>
             <div className="chart-search__filters">
-                {facets.includes("status") && (
-                    <Select
-                        className="chart-search__filter"
-                        placeholder="Status"
-                        allowClear
-                        value={getFacetValues(query, "status")[0]}
-                        options={STATUS_OPTIONS}
-                        onChange={(value?: string) =>
-                            setSingleFacet("status", value)
-                        }
-                    />
-                )}
+                <Select
+                    className="chart-search__filter"
+                    placeholder="Status"
+                    allowClear
+                    value={getFacetValues(query, "status")[0]}
+                    options={STATUS_OPTIONS}
+                    onChange={(value?: string) =>
+                        setSingleFacet("status", value)
+                    }
+                />
                 {facets.includes("source") && (
                     <Select
                         className="chart-search__filter chart-search__filter--wide"
@@ -310,14 +300,12 @@ export function ChartSearchToolbar({
                         popupMatchSelectWidth={false}
                     />
                 )}
-                {facets.includes("tag") && (
-                    <NameFilter
-                        placeholder="Tags"
-                        names={tags}
-                        values={getFacetValues(query, "tag")}
-                        onChange={(values) => setFacet("tag", values)}
-                    />
-                )}
+                <NameFilter
+                    placeholder="Tags"
+                    names={tags}
+                    values={getFacetValues(query, "tag")}
+                    onChange={(values) => setFacet("tag", values)}
+                />
                 {facets.includes("author") && (
                     <NameFilter
                         placeholder="Authors"

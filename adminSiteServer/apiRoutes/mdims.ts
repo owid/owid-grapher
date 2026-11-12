@@ -36,7 +36,6 @@ import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import * as db from "../../db/db.js"
 import { getMultiDimViewRecords } from "../../baker/algolia/utils/mdimViews.js"
-import { ApiMultiDimOverview } from "../../adminShared/AdminTypes.js"
 import {
     validateNewGrapherSlug,
     validateMultiDimSlug,
@@ -365,18 +364,11 @@ async function createSlugChangeRedirect(
     })
 }
 
-/** A JSON column read as an array of strings, whether the driver parsed it or not */
-function stringArrayOf(value: unknown): string[] {
-    const parsed: unknown =
-        typeof value === "string" ? JSON.parse(value) : value
-    return Array.isArray(parsed) ? parsed.map(String) : []
-}
-
 export async function handleGetMultiDims(
     _req: Request,
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
-): Promise<{ multiDims: ApiMultiDimOverview[] }> {
+) {
     try {
         const results = await db.knexRaw<
             Pick<
@@ -384,19 +376,18 @@ export async function handleGetMultiDims(
                 "id" | "catalogPath" | "slug" | "updatedAt" | "published"
             > & {
                 title: string
-                dimensions: unknown
-                tags: unknown
+                dimensions: string | null
+                tags: string | null
                 mdimViews: number
-                viewsPerDay: number | string
-                narrativeChartsCount: number | string
-                referencesCount: number | string
+                viewsPerDay: string
+                narrativeChartsCount: number
+                referencesCount: number
             }
         >(
             trx,
-            // The counts mirror chart_references_view: published gdocs (minus
-            // fragments and about pages) and static visualizations linking to
-            // the multi-dim's slug, and the narrative charts made from any of
-            // its views. Explorers can't embed a multi-dim.
+            // The counts mirror chart_references_view's: narrative charts made
+            // from any of its views, and published gdocs (not fragments or
+            // about pages) and static visualizations that link to its slug
             `-- sql
             SELECT
                 mdp.id,
@@ -435,15 +426,11 @@ export async function handleGetMultiDims(
                 AND agv.day = (SELECT MAX(day) FROM analytics_grapher_views)
             )`
         )
-        const multiDims = results.map((row): ApiMultiDimOverview => ({
-            id: row.id,
-            catalogPath: row.catalogPath,
-            slug: row.slug,
-            title: row.title,
-            updatedAt: row.updatedAt.toISOString(),
+        const multiDims = results.map((row) => ({
+            ...row,
             published: Boolean(row.published),
-            dimensions: stringArrayOf(row.dimensions),
-            tags: stringArrayOf(row.tags),
+            dimensions: row.dimensions ? JSON.parse(row.dimensions) : [],
+            tags: row.tags ? JSON.parse(row.tags) : [],
             mdimViews: Number(row.mdimViews),
             viewsPerDay: Number(row.viewsPerDay),
             narrativeChartsCount: Number(row.narrativeChartsCount),

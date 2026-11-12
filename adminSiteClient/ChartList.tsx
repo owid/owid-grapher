@@ -13,6 +13,7 @@ import * as lodash from "lodash-es"
 import cx from "clsx"
 import {
     bind,
+    dayjs,
     DbChartTagJoin,
     TaggableType,
     copyToClipboard,
@@ -33,7 +34,7 @@ import {
 } from "./TagGraphMetadata.js"
 import { highlightFunctionForSearchWords } from "../adminShared/search.js"
 import {
-    CHART_LIST_SEARCH,
+    searchableChart,
     chartSearchFilter,
     chartSearchWordsToHighlight,
     countNames,
@@ -62,13 +63,6 @@ import {
 } from "../settings/clientSettings.mjs"
 import { deleteChart, References } from "./adminChartApi.js"
 import { getChartListItemEtlSource } from "./etlChartSync.js"
-import {
-    CountCell,
-    HeaderWithHelp,
-    Highlighter,
-    TimestampCell,
-} from "./ChartListCells.js"
-import { compareTimes, DESCEND_FIRST } from "./chartListSorting.js"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {
@@ -109,6 +103,10 @@ export interface ChartListItem {
 
 const DEFAULT_PAGE_SIZE = 50
 
+export type Highlighter = (
+    text: string | null | undefined
+) => string | React.ReactElement
+
 function showChartType(chart: ChartListItem): string {
     const chartType = chart.type
 
@@ -125,6 +123,10 @@ function showChartType(chart: ChartListItem): string {
         if (chart.hasMapTab) return `${displayType} + Map`
         else return displayType
     }
+}
+
+function compareTimes(a: string | undefined, b: string | undefined): number {
+    return new Date(a ?? 0).getTime() - new Date(b ?? 0).getTime()
 }
 
 /**
@@ -220,6 +222,56 @@ function PreviewCell({ chart }: { chart: ChartListItem }): React.ReactElement {
             />
         </Link>
     )
+}
+
+/** "1 year ago" rather than dayjs's "a year ago", so the times line up as numbers */
+function timeAgo(time: string): string {
+    return dayjs(time)
+        .fromNow()
+        .replace(/^an? (minute|hour|day|month|year) ago$/, "1 $1 ago")
+}
+
+// Exported for the multi-dims list, which reads like this one
+export function TimestampCell({
+    time,
+    by,
+    highlight,
+    onAuthorClick,
+}: {
+    time: string | undefined
+    by?: string
+    highlight?: Highlighter
+    onAuthorClick?: (author: string) => void
+}): React.ReactElement {
+    if (!time) return <span className="text-muted">—</span>
+    return (
+        <div className="chart-list__timestamp">
+            <Tooltip title={dayjs(time).format("D MMM YYYY, HH:mm")}>
+                <span className="chart-list__time">{timeAgo(time)}</span>
+            </Tooltip>
+            {by && (
+                <div>
+                    <button
+                        type="button"
+                        className="chart-list__author"
+                        title={`Only charts by ${by}`}
+                        onClick={() => onAuthorClick?.(by)}
+                    >
+                        {highlight ? highlight(by) : by}
+                    </button>
+                </div>
+            )}
+        </div>
+    )
+}
+
+export function CountCell({
+    count,
+}: {
+    count: number | null
+}): React.ReactElement {
+    if (!count) return <span className="text-muted">0</span>
+    return <>{count.toLocaleString()}</>
 }
 
 /** Saving tags mutates `chart.tags`, so this cell observes it on its own */
@@ -356,6 +408,21 @@ function inheritanceStatus(chart: ChartListItem): string {
     return chart.isInheritanceEnabled ? "enabled" : "disabled"
 }
 
+/** A header whose explanation shows on hovering its dotted-underlined text */
+export function HeaderWithHelp({
+    title,
+    help,
+}: {
+    title: string
+    help: string
+}): React.ReactElement {
+    return (
+        <Tooltip title={help}>
+            <span className="chart-list__header-help">{title}</span>
+        </Tooltip>
+    )
+}
+
 function createColumns({
     highlight,
     highlightAuthor,
@@ -373,6 +440,9 @@ function createColumns({
     onDelete: (chart: ChartListItem) => void
     onAuthorClick: (author: string) => void
 }): TableColumnsType<ChartListItem> {
+    // Counts are most useful largest first
+    const descendFirst: ("descend" | "ascend")[] = ["descend", "ascend"]
+
     return excludeUndefined([
         {
             key: "preview",
@@ -417,7 +487,7 @@ function createColumns({
             title: "Last updated",
             key: "lastEditedAt",
             sorter: (a, b) => compareTimes(a.lastEditedAt, b.lastEditedAt),
-            sortDirections: DESCEND_FIRST,
+            sortDirections: descendFirst,
             // the API lists charts most recently edited first
             defaultSortOrder: "descend",
             render: (_, chart) => (
@@ -433,7 +503,7 @@ function createColumns({
             title: "Published",
             key: "publishedAt",
             sorter: (a, b) => compareTimes(a.publishedAt, b.publishedAt),
-            sortDirections: DESCEND_FIRST,
+            sortDirections: descendFirst,
             render: (_, chart) => (
                 <TimestampCell
                     time={chart.publishedAt}
@@ -454,7 +524,7 @@ function createColumns({
             align: "right",
             sorter: (a, b) =>
                 (a.grapherViewsPerDay ?? 0) - (b.grapherViewsPerDay ?? 0),
-            sortDirections: DESCEND_FIRST,
+            sortDirections: descendFirst,
             render: (_, chart) => (
                 <CountCell count={chart.grapherViewsPerDay} />
             ),
@@ -465,7 +535,7 @@ function createColumns({
             align: "right",
             sorter: (a, b) =>
                 (a.narrativeChartsCount ?? 0) - (b.narrativeChartsCount ?? 0),
-            sortDirections: DESCEND_FIRST,
+            sortDirections: descendFirst,
             render: (_, chart) => (
                 <CountCell count={chart.narrativeChartsCount} />
             ),
@@ -481,7 +551,7 @@ function createColumns({
             align: "right",
             sorter: (a, b) =>
                 (a.referencesCount ?? 0) - (b.referencesCount ?? 0),
-            sortDirections: DESCEND_FIRST,
+            sortDirections: descendFirst,
             render: (_, chart) => <CountCell count={chart.referencesCount} />,
         },
     ])
@@ -673,11 +743,7 @@ class ChartTable extends React.Component<ChartTableProps> {
                 result: computed(() =>
                     query.trim()
                         ? charts.filter(
-                              chartSearchFilter(
-                                  query,
-                                  charts,
-                                  CHART_LIST_SEARCH
-                              )
+                              chartSearchFilter(query, charts, searchableChart)
                           )
                         : [...charts]
                 ),

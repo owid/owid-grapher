@@ -106,29 +106,11 @@
     cursor: help;
 }
 
-.chart-list__dimension-names {
-    margin: 0;
-    padding-left: 16px;
-}
-
-.chart-list__slug-field {
+// A multi-dim's slug, which its list edits
+.chart-list__slug-field .ant-typography {
     font-family: monospace;
     font-size: 0.85em;
     color: #777;
-
-    .ant-typography {
-        font-size: inherit;
-        color: #555;
-    }
-}
-
-.chart-list__slug-prefix {
-    color: #aaa;
-}
-
-.chart-list__no-slug.ant-typography {
-    color: #aaa;
-    font-style: italic;
 }
 
 // The page's own links, level with the search box

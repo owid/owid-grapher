@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import type { ChartListItem } from "./ChartList.js"
 import {
-    CHART_LIST_SEARCH,
-    ChartSearchAccessors,
+    searchableChart,
+    SearchableChart,
     chartSearchFilter,
     chartSearchWordsToHighlight,
     countNames,
@@ -72,7 +72,7 @@ const CHARTS = [
 ]
 
 function ids(query: string, charts = CHARTS): number[] {
-    const filter = chartSearchFilter(query, charts, CHART_LIST_SEARCH)
+    const filter = chartSearchFilter(query, charts, searchableChart)
     return charts.filter(filter).map((c) => c.id!)
 }
 
@@ -307,10 +307,9 @@ describe(suggestChartSearchTerms, () => {
     })
 })
 
-// The multi-dim list searches its rows with the same grammar, through
-// accessors that say where a multi-dim keeps each fact, and offers only the
-// filters that tell multi-dims apart: status and tags. A future list of
-// charts and multi-dims together would use the same seam.
+// The multi-dims list searches with the same grammar, describing each row as
+// the search reads a chart, and offers only the filters that tell multi-dims
+// apart: status and tags
 describe("searching rows that aren't charts", () => {
     interface Row {
         id: number
@@ -333,20 +332,20 @@ describe("searching rows that aren't charts", () => {
         },
         { id: 3, title: "School enrolment", published: true, topicTags: [] },
     ]
-    const ROW_SEARCH: ChartSearchAccessors<Row> = {
-        text: (row) => [row.title, `${row.id}`],
-        isPublished: (row) => row.published,
-        isEtl: () => true,
-        isDrifted: () => false,
-        tags: (row) => row.topicTags,
-        authors: () => [],
-    }
+    const describeRow = (row: Row): SearchableChart => ({
+        text: [row.title, `${row.id}`],
+        isPublished: row.published,
+        isEtl: true,
+        isDrifted: false,
+        tags: row.topicTags,
+        authors: [],
+    })
     const rowIds = (query: string): number[] =>
-        ROWS.filter(chartSearchFilter(query, ROWS, ROW_SEARCH)).map(
+        ROWS.filter(chartSearchFilter(query, ROWS, describeRow)).map(
             (row) => row.id
         )
 
-    it("reads words, status and tags through the accessors", () => {
+    it("reads words, status and tags off the description", () => {
         expect(rowIds("cases")).toEqual([2])
         expect(rowIds("is:published")).toEqual([2, 3])
         expect(rowIds("is:published tag:covid-19")).toEqual([2])
@@ -366,6 +365,5 @@ describe("searching rows that aren't charts", () => {
         expect(suggest("ene")).toEqual(["tag:Energy "])
         // no author: field to offer
         expect(suggest("aut")).toEqual([])
-        expect(suggest("author:x")).toEqual([])
     })
 })

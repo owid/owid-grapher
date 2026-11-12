@@ -38,7 +38,6 @@ export type ChartSearchFacet = IsFacet | "tag" | "author"
 
 type IsFacet = "status" | "source"
 
-/** Every filter, for a list that offers them all */
 export const ALL_CHART_SEARCH_FACETS: readonly ChartSearchFacet[] = [
     "status",
     "source",
@@ -47,75 +46,64 @@ export const ALL_CHART_SEARCH_FACETS: readonly ChartSearchFacet[] = [
 ]
 
 /**
- * What the search reads off a row. Charts and multi-dims are listed alike, but
- * keep these facts in different places, so each list says where.
+ * What the search reads off a listed chart. A multi-dim is listed like a
+ * chart, so its list describes it this way too.
  */
-export interface ChartSearchAccessors<Row> {
+export interface SearchableChart {
     /** What plain words are looked for in */
-    text: (row: Row) => (string | null | undefined)[]
-    isPublished: (row: Row) => boolean
-    isEtl: (row: Row) => boolean
+    text: (string | undefined)[]
+    isPublished: boolean
+    isEtl: boolean
     /** Created in ETL, then changed in the admin */
-    isDrifted: (row: Row) => boolean
-    tags: (row: Row) => readonly string[]
+    isDrifted: boolean
+    tags: string[]
     /** The people who last edited or published it */
-    authors: (row: Row) => readonly (string | null | undefined)[]
+    authors: string[]
 }
 
-export const CHART_LIST_SEARCH: ChartSearchAccessors<ChartListItem> = {
-    text: (chart) => [
-        chart.title,
-        chart.variantName,
-        chart.internalNotes,
-        chart.publishedBy,
-        chart.lastEditedBy,
-        `${chart.id}`,
-        chart.slug,
-        chart.hasChartTab !== false ? chart.type : undefined,
-        chart.hasMapTab ? "Map" : undefined,
-        ...chart.tags.map((tag) => tag.name),
-    ],
-    isPublished: (chart) => !!chart.isPublished,
-    isEtl: (chart) => chart.isEtlManaged,
-    isDrifted: (chart) => {
-        const etlSource = getChartListItemEtlSource(chart)
-        return !!etlSource && hasEtlDrift(etlSource.drift)
-    },
-    tags: (chart) => chart.tags.map((tag) => tag.name),
-    authors: (chart) => [chart.lastEditedBy, chart.publishedBy],
+export function searchableChart(chart: ChartListItem): SearchableChart {
+    const etlSource = getChartListItemEtlSource(chart)
+    return {
+        text: chartTextFields(chart),
+        isPublished: !!chart.isPublished,
+        isEtl: chart.isEtlManaged,
+        isDrifted: !!etlSource && hasEtlDrift(etlSource.drift),
+        tags: chart.tags.map((tag) => tag.name),
+        authors: [chart.lastEditedBy, chart.publishedBy],
+    }
 }
 
 interface IsValue {
     facet: IsFacet
     label: string
-    test: <Row>(access: ChartSearchAccessors<Row>, row: Row) => boolean
+    test: (chart: SearchableChart) => boolean
 }
 
 export const IS_VALUES = {
     published: {
         facet: "status",
         label: "Published",
-        test: (access, row) => access.isPublished(row),
+        test: (chart) => chart.isPublished,
     },
     draft: {
         facet: "status",
         label: "Draft",
-        test: (access, row) => !access.isPublished(row),
+        test: (chart) => !chart.isPublished,
     },
     etl: {
         facet: "source",
         label: "Created in ETL",
-        test: (access, row) => access.isEtl(row),
+        test: (chart) => chart.isEtl,
     },
     drifted: {
         facet: "source",
         label: "Created in ETL, then changed in the admin",
-        test: (access, row) => access.isDrifted(row),
+        test: (chart) => chart.isDrifted,
     },
     admin: {
         facet: "source",
         label: "Created in the admin",
-        test: (access, row) => !access.isEtl(row),
+        test: (chart) => !chart.isEtl,
     },
 } as const satisfies Record<string, IsValue>
 
@@ -142,10 +130,10 @@ function nameMatcher(
     }
 }
 
-interface ChartFilter<Row> {
+interface ChartFilter {
     facet: ChartSearchFacet
     negate: boolean
-    test: (row: Row) => boolean
+    test: (chart: SearchableChart) => boolean
 }
 
 function isTextTerm(term: SearchTerm): boolean {
@@ -160,61 +148,75 @@ function textWords(terms: SearchTerm[]): SearchWord[] {
     return terms.filter(isTextTerm).flatMap(textSearchWords)
 }
 
-function lowercaseNames(
-    names: readonly (string | null | undefined)[]
-): string[] {
-    return names.filter((name) => !!name).map((name) => name!.toLowerCase())
+function chartTextFields(chart: ChartListItem): (string | undefined)[] {
+    return [
+        chart.title,
+        chart.variantName,
+        chart.internalNotes,
+        chart.publishedBy,
+        chart.lastEditedBy,
+        `${chart.id}`,
+        chart.slug,
+        chart.hasChartTab !== false ? chart.type : undefined,
+        chart.hasMapTab ? "Map" : undefined,
+        ...chart.tags.map((tag) => tag.name),
+    ]
 }
 
 export function chartSearchFilter<Row>(
     query: string,
     rows: readonly Row[],
-    access: ChartSearchAccessors<Row>
+    describe: (row: Row) => SearchableChart
 ): (row: Row) => boolean {
     const terms = parseSearchQuery(query)
 
+    const charts = _.once(() => rows.map(describe))
     const tagNames = _.once(
-        () => new Set(rows.flatMap((row) => lowercaseNames(access.tags(row))))
+        () =>
+            new Set(
+                charts().flatMap((chart) =>
+                    chart.tags.map((tag) => tag.toLowerCase())
+                )
+            )
     )
     const authorNames = _.once(
         () =>
-            new Set(rows.flatMap((row) => lowercaseNames(access.authors(row))))
+            new Set(
+                charts()
+                    .flatMap((chart) => chart.authors)
+                    .filter(Boolean)
+                    .map((name) => name.toLowerCase())
+            )
     )
 
-    const filters: ChartFilter<Row>[] = []
+    const filters: ChartFilter[] = []
     for (const term of terms) {
         const facet = facetOfTerm(term)
         if (!facet || !term.value) continue
-        const add = (test: ChartFilter<Row>["test"]): void => {
+        const add = (test: ChartFilter["test"]): void => {
             filters.push({ facet, negate: term.negate, test })
         }
         switch (facet) {
             case "status":
-            case "source": {
-                const { test } = isValueOf(term.value)!
-                add((row) => test(access, row))
+            case "source":
+                add(isValueOf(term.value)!.test)
                 break
-            }
             case "tag": {
                 const matches = nameMatcher(term.value, tagNames)
-                add((row) => access.tags(row).some(matches))
+                add((chart) => chart.tags.some(matches))
                 break
             }
             case "author": {
                 const matches = nameMatcher(term.value, authorNames)
-                add((row) =>
-                    access
-                        .authors(row)
-                        .some((name) => matches(name ?? undefined))
-                )
+                add((chart) => chart.authors.some(matches))
                 break
             }
         }
     }
 
-    const matchesText = filterFunctionForSearchWords<Row>(
+    const matchesText = filterFunctionForSearchWords(
         textWords(terms),
-        access.text
+        (chart: SearchableChart) => chart.text
     )
     const facets = Object.values(
         _.groupBy(filters, (filter) => filter.facet)
@@ -223,14 +225,18 @@ export function chartSearchFilter<Row>(
         return { included, excluded }
     })
 
-    return (row) =>
-        matchesText(row) &&
-        facets.every(
-            ({ included, excluded }) =>
-                (included.length === 0 ||
-                    included.some((filter) => filter.test(row))) &&
-                excluded.every((filter) => !filter.test(row))
+    return (row) => {
+        const chart = describe(row)
+        return (
+            matchesText(chart) &&
+            facets.every(
+                ({ included, excluded }) =>
+                    (included.length === 0 ||
+                        included.some((filter) => filter.test(chart))) &&
+                    excluded.every((filter) => !filter.test(chart))
+            )
         )
+    }
 }
 
 export function chartSearchWordsToHighlight(query: string): {
@@ -465,15 +471,6 @@ function trailingPhrases(query: string): Phrase[] {
     ].filter((phrase) => phrase.value.trim().length >= MIN_SUGGESTION_LENGTH)
 }
 
-/** The `field:` terms a list offers, given its filters */
-export function fieldsOfFacets(
-    facets: readonly ChartSearchFacet[]
-): ChartSearchField[] {
-    return CHART_SEARCH_FIELDS.map((field) => field.name).filter((field) =>
-        facets.some((facet) => fieldOfFacet(facet) === field)
-    )
-}
-
 export function suggestChartSearchTerms(
     query: string,
     {
@@ -483,13 +480,10 @@ export function suggestChartSearchTerms(
     }: {
         tags: readonly NameCount[]
         authors: readonly NameCount[]
-        /** Only these are suggested, so a list never offers a filter it lacks */
+        /** The filters the list offers; no other is suggested */
         facets?: readonly ChartSearchFacet[]
     }
 ): ChartSearchSuggestion[] {
-    const offersNames = (facet: "tag" | "author"): boolean =>
-        facets.includes(facet)
-    const offeredFields = fieldsOfFacets(facets)
     const takenIn = (
         before: string,
         field: ChartSearchField
@@ -522,10 +516,10 @@ export function suggestChartSearchTerms(
     let phraseSuggestions: ChartSearchSuggestion[] = []
     for (const phrase of trailingPhrases(query)) {
         const before = query.slice(0, phrase.start)
-        const nameFacets = (
-            phrase.field ? [phrase.field] : (["tag", "author"] as const)
-        ).filter(offersNames)
-        phraseSuggestions = nameFacets.flatMap((facet) =>
+        const facets = phrase.field
+            ? [phrase.field]
+            : (["tag", "author"] as const)
+        phraseSuggestions = facets.flatMap((facet) =>
             nameSuggestions(
                 facet,
                 phrase.value,
@@ -560,7 +554,6 @@ export function suggestChartSearchTerms(
     switch (term.field) {
         case "tag":
         case "author":
-            if (!offersNames(term.field)) return []
             return nameSuggestions(
                 term.field,
                 term.value,
@@ -580,7 +573,7 @@ export function suggestChartSearchTerms(
     const fieldSuggestions: ChartSearchSuggestion[] =
         CHART_SEARCH_FIELDS.filter(
             (field) =>
-                offeredFields.includes(field.name) &&
+                facets.some((facet) => fieldOfFacet(facet) === field.name) &&
                 field.name.startsWith(term.value.toLowerCase())
         ).map((field) => ({
             resultingQuery: `${before}${term.negate ? "-" : ""}${field.name}:`,
@@ -592,17 +585,15 @@ export function suggestChartSearchTerms(
     const wordNameSuggestions =
         phraseSuggestions.length > 0
             ? []
-            : (["tag", "author"] as const)
-                  .filter(offersNames)
-                  .flatMap((facet) =>
-                      nameSuggestions(
-                          facet,
-                          term.value,
-                          MAX_NAMES.word,
-                          before,
-                          term.negate
-                      )
+            : (["tag", "author"] as const).flatMap((facet) =>
+                  nameSuggestions(
+                      facet,
+                      term.value,
+                      MAX_NAMES.word,
+                      before,
+                      term.negate
                   )
+              )
     return [
         ...phraseSuggestions,
         ...wordNameSuggestions,
@@ -613,7 +604,7 @@ export function suggestChartSearchTerms(
 
 export function countNames<Row>(
     rows: readonly Row[],
-    namesOf: (row: Row) => readonly (string | undefined | null)[]
+    namesOf: (row: Row) => (string | undefined | null)[]
 ): NameCount[] {
     const counts = new Map<string, number>()
     for (const row of rows)
