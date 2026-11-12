@@ -41,7 +41,13 @@ export function SidePanelTabs({
     entitySelector: React.ReactElement | null
 }) {
     const state = useSyncExternalStore(store.subscribe, store.getState)
-    const [hasSeenAi, setHasSeenAi] = useState(readSeen)
+    // A shared link opens straight on AI mode, which counts as seeing it
+    const [hasSeenAi, setHasSeenAi] = useState(() => {
+        if (readSeen()) return true
+        if (store.getState().tab !== "ai") return false
+        rememberSeen()
+        return true
+    })
     // Arrow keys move between the tabs, so only a click focuses the input
     const [focusAiInput, setFocusAiInput] = useState(false)
     const tabRefs = useRef<Record<PanelTab, HTMLButtonElement | null>>({

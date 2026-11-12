@@ -33,4 +33,17 @@ describe(costOf, () => {
         const { asRun, firstQuestion } = costsByModel(usage)["claude-haiku-5-5"]
         expect(firstQuestion!).toBeGreaterThan(4 * asRun!)
     })
+
+    it("writes the cache only once in a run with several calls", () => {
+        // Three calls (two searches, then the reply), each reading the prompt
+        const searched = {
+            ...usage,
+            cacheReadTokens: 3 * 9412,
+            firstCallCacheReadTokens: 9412,
+        }
+        expect(asFirstQuestion(searched)).toMatchObject({
+            cacheReadTokens: 2 * 9412,
+            cacheWriteTokens: 9412,
+        })
+    })
 })

@@ -31,18 +31,24 @@ const sidePanelFor = (store: PanelStore): SidePanel => ({
 
 export function createGrapherSidePanel(
     slug: string,
-    grapherState: GrapherState
+    grapherState: GrapherState,
+    /** A question from a shared link, asked once AI mode shows */
+    sharedQuery: string | null
 ): SidePanel {
     const start = snapshotGrapherState(grapherState)
     return sidePanelFor(
-        new PanelStore({
-            slug,
-            getQueryStr: () => grapherState.queryStr,
-            getTableSort: () =>
-                dataTableSortToViewSort(grapherState.dataTableSort),
-            applyView: (view) => applyViewToGrapherState(grapherState, view),
-            restoreStart: () => restoreGrapherState(grapherState, start),
-        })
+        new PanelStore(
+            {
+                slug,
+                getQueryStr: () => grapherState.queryStr,
+                getTableSort: () =>
+                    dataTableSortToViewSort(grapherState.dataTableSort),
+                applyView: (view) =>
+                    applyViewToGrapherState(grapherState, view),
+                restoreStart: () => restoreGrapherState(grapherState, start),
+            },
+            sharedQuery
+        )
     )
 }
 
@@ -58,32 +64,38 @@ export interface MdimPage {
     ) => void
 }
 
-export function createMdimSidePanel(page: MdimPage): SidePanel {
+export function createMdimSidePanel(
+    page: MdimPage,
+    sharedQuery: string | null
+): SidePanel {
     const { slug, grapherState, getChoices, switchView } = page
     const startChoices = getChoices()
     const start = snapshotGrapherState(grapherState)
     return sidePanelFor(
-        new PanelStore({
-            slug,
-            getQueryStr: () => {
-                const params = new URLSearchParams(getChoices())
-                for (const [key, value] of Object.entries(
-                    grapherState.changedParams
-                ))
-                    if (value !== undefined) params.set(key, value)
-                return "?" + params.toString()
+        new PanelStore(
+            {
+                slug,
+                getQueryStr: () => {
+                    const params = new URLSearchParams(getChoices())
+                    for (const [key, value] of Object.entries(
+                        grapherState.changedParams
+                    ))
+                        if (value !== undefined) params.set(key, value)
+                    return "?" + params.toString()
+                },
+                getTableSort: () =>
+                    dataTableSortToViewSort(grapherState.dataTableSort),
+                applyView: (view) => {
+                    if (!view.options) return
+                    applyTableSortToGrapherState(grapherState, view)
+                    switchView(view.options, viewToGrapherQueryParams(view))
+                },
+                restoreStart: () => {
+                    grapherState.dataTableSort = start.dataTableSort
+                    switchView(startChoices, start.params)
+                },
             },
-            getTableSort: () =>
-                dataTableSortToViewSort(grapherState.dataTableSort),
-            applyView: (view) => {
-                if (!view.options) return
-                applyTableSortToGrapherState(grapherState, view)
-                switchView(view.options, viewToGrapherQueryParams(view))
-            },
-            restoreStart: () => {
-                grapherState.dataTableSort = start.dataTableSort
-                switchView(startChoices, start.params)
-            },
-        })
+            sharedQuery
+        )
     )
 }

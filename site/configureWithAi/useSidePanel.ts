@@ -2,6 +2,7 @@ import { useEffect, useEffectEvent, useRef, useState } from "react"
 import { runInAction } from "mobx"
 import type { GrapherState } from "@ourworldindata/grapher"
 import type { MdimPage, SidePanel } from "./ConfigureWithAiForPage.js"
+import { sharedQueryFromUrl } from "./sharedQuery.js"
 
 type LoadedChunk = typeof import("./ConfigureWithAiForPage.js")
 
@@ -13,10 +14,17 @@ type LoadedChunk = typeof import("./ConfigureWithAiForPage.js")
  */
 export function useSidePanel(
     grapherState: GrapherState | null,
-    create: (chunk: LoadedChunk, grapherState: GrapherState) => SidePanel
+    create: (
+        chunk: LoadedChunk,
+        grapherState: GrapherState,
+        sharedQuery: string | null
+    ) => SidePanel
 ): SidePanel | null {
     const [panel, setPanel] = useState<SidePanel | null>(null)
     const onLoaded = useEffectEvent(create)
+    // Read as the page first renders, before an MDim page rewrites the URL;
+    // only the first panel installed asks it
+    const sharedQuery = useRef(sharedQueryFromUrl())
     // Not `!archiveContext`: live pages of archived charts carry one too,
     // pointing at their latest archived version
     const isEligible =
@@ -29,7 +37,12 @@ export function useSidePanel(
         import("./ConfigureWithAiForPage.js")
             .then((chunk) => {
                 if (isCancelled) return
-                const created = onLoaded(chunk, grapherState)
+                const created = onLoaded(
+                    chunk,
+                    grapherState,
+                    sharedQuery.current
+                )
+                sharedQuery.current = null
                 installed = created
                 runInAction(() => {
                     grapherState.sidePanelRenderer = created.renderer
@@ -68,14 +81,19 @@ export function useConfigureWithAiOnMdim(
     useEffect(() => {
         pageRef.current = page
     })
-    const panel = useSidePanel(page.grapherState, (chunk, grapherState) =>
-        chunk.createMdimSidePanel({
-            slug: page.slug,
-            grapherState,
-            getChoices: () => pageRef.current.getChoices(),
-            switchView: (choices, params) =>
-                pageRef.current.switchView(choices, params),
-        })
+    const panel = useSidePanel(
+        page.grapherState,
+        (chunk, grapherState, sharedQuery) =>
+            chunk.createMdimSidePanel(
+                {
+                    slug: page.slug,
+                    grapherState,
+                    getChoices: () => pageRef.current.getChoices(),
+                    switchView: (choices, params) =>
+                        pageRef.current.switchView(choices, params),
+                },
+                sharedQuery
+            )
     )
     useEffect(() => {
         panel?.store.setBusy(page.isBusy)
