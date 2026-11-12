@@ -17,7 +17,7 @@ import { LineChartProps } from "./LineChart.js"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
     CATEGORICAL_LEGEND_STYLE,
-    LINE_STYLE,
+    THUMBNAIL_LINE_STYLE,
     LINE_CHART_CLASS_NAME,
     LineChartManager,
     LineChartSeries,
@@ -774,6 +774,7 @@ export class LineChartThumbnail
                     lineStrokeWidth={1.5}
                     lineOutlineWidth={0}
                     isStatic={this.manager.isStatic}
+                    styleByEmphasis={THUMBNAIL_LINE_STYLE}
                 />
                 {this.visibleStartPoints.map((point, index) => (
                     <Dot key={index} point={point} radius={this.dotRadius} />
@@ -865,7 +866,7 @@ function Dot({
             cy={roundForSvg(point.y)}
             r={roundForSvg(radius)}
             fill={point.color}
-            opacity={LINE_STYLE[point.emphasis].opacity}
+            opacity={THUMBNAIL_LINE_STYLE[point.emphasis].opacity}
         />
     )
 }
