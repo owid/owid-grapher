@@ -1,5 +1,5 @@
 import { FunctionalRouter, HandlerResponse } from "./FunctionalRouter.js"
-import { Request } from "express"
+import { Request } from "./authentication.js"
 import * as db from "../db/db.js"
 
 export function getRouteWithROTransaction<T>(

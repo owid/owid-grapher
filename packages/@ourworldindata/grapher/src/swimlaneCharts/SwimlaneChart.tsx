@@ -139,8 +139,8 @@ export class SwimlaneChart
 
     @computed private get categoricalLegendBins(): CategoricalBin[] {
         return excludeUndefined([
-            this.noDataLegendBin,
             ...this.categoryLegendBins,
+            this.noDataLegendBin,
         ])
     }
 

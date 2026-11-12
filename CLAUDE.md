@@ -59,7 +59,7 @@ Key facts that span multiple directories:
     - `docs/agent-guidelines/gdocs-cms-pipeline.md` — the archieml pipeline from gdocs to the database
     - `docs/agent-guidelines/gdocs-class-hierarchy.md` — the gdoc types and how to create new ones
     - `docs/agent-guidelines/gdocs-attachments.md` — how attachments give rendering components their context
-- **`@ourworldindata/gdoc-pipeline` has an external consumer**: the [owid/gdocs-chrome-extension](https://github.com/owid/gdocs-chrome-extension) installs the published npm package, so it only picks up changes once a new version is released. If you change the package's API — the signature or behaviour of an exported gdoc processing function (`gdocToArchie`, `archieToEnriched`, `rawToEnriched`, `enrichedToRaw`, `rawToArchie`, `enrichedToMarkdown`, …) or the re-exported helpers — or add, change or remove a gdoc component (its raw/enriched types in `types/src/gdocTypes/`, parsing or serialization), tell the user in your final message that a new npm package version needs to be released (`yarn bumpp` in `packages/@ourworldindata/gdoc-pipeline`; see its `readme.md`). Don't bump the version yourself unless asked.
+- **`@ourworldindata/gdoc-pipeline` has an external consumer**: the [owid/gdocs-chrome-extension](https://github.com/owid/gdocs-chrome-extension) installs the published npm package, so it only picks up changes once a new version is released. If you change the package's API — the signature or behaviour of an exported gdoc processing function (`gdocToArchie`, `archieToEnriched`, `rawToEnriched`, `enrichedToRaw`, `rawToArchie`, `enrichedToMarkdown`, …) or the re-exported helpers — or add, change or remove a gdoc component (its raw/enriched types in `types/src/gdocTypes/`, parsing or serialization), tell the user in your final message that a new npm package version needs to be released (`yarn release` in `packages/@ourworldindata/gdoc-pipeline`; see its `readme.md`). Don't bump the version yourself unless asked.
 
 ## Database
 
@@ -70,7 +70,7 @@ Key facts that span multiple directories:
 
 ## Testing on staging
 
-Use the `test-on-staging` skill when checking a change on `staging-site-<branch>` — reading or patching a chart's config without a browser, the preview link to share, and Algolia/search caveats.
+Use the `test-on-staging` skill when checking a change on `staging-site-<branch>` or Labs — when a push is live there, reading or patching a chart's config without a browser, the preview link to share, and Algolia/search caveats.
 
 ## Team
 
@@ -137,7 +137,7 @@ When AI-authored text is posted through a **human's account**, it must be clearl
 
 - `docs/agent-guidelines/` holds in-depth docs written specifically for agents — check there first when working in those areas.
 - When creating new skills in `.claude/skills/`, include `metadata: { internal: true }` in the SKILL.md frontmatter unless explicitly asked for a public skill — this keeps external skill indexes from listing internal skills.
-- GitHub Actions references must stay pinned to commit SHAs (managed with pinact).
+- GitHub Actions dependencies are locked in `.github/workflows/actions.lock` (workflows reference full version tags, not SHAs). After adding or changing any `uses:` in `.github/workflows/` or `.github/actions/`, run `gh actions-lock` and commit the lockfile; never edit it by hand.
 
 ## Cloud sandbox sessions (claude.ai/code)
 

@@ -123,6 +123,7 @@ export class TooltipCard extends React.Component<
             titleAnnotation,
             subtitle,
             subtitleFormat,
+            headerAside,
             footer,
             dissolve,
             children,
@@ -167,6 +168,11 @@ export class TooltipCard extends React.Component<
                     >
                         {hasHeader && (
                             <div className="frontmatter">
+                                {headerAside && (
+                                    <div className="frontmatter-aside">
+                                        {headerAside}
+                                    </div>
+                                )}
                                 {title && (
                                     <div className="title">
                                         {title}{" "}

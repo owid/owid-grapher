@@ -1,11 +1,6 @@
-import {
-    AnnouncementLatestType,
-    LATEST_TYPE_LABELS,
-    OwidGdocAnnouncementInterface,
-} from "@ourworldindata/types"
+import { OwidGdocAnnouncementInterface } from "@ourworldindata/types"
 import {
     deriveAnnouncementLatestType,
-    formatAuthors,
     getPrefixedGdocPath,
     OwidGdocType,
 } from "@ourworldindata/utils"
@@ -20,20 +15,10 @@ import StandalonePostBody, {
     STANDALONE_POST_GRID_CLASSES,
 } from "../components/StandalonePostBody.js"
 import { announcementsToCarouselItems } from "../components/latestCarouselItems.js"
-import { CopySocialButton } from "../components/CopySocialButton.js"
-import { buildSocialText } from "../socialText.js"
 import {
     buildLatestPagePath,
     latestTypeLabelPlural,
 } from "../../latest/latestUtils.js"
-
-// Announcements posted on social media are data and topic updates; the other
-// kinds (website upgrades, general announcements) aren't, so they don't get
-// the button.
-const SOCIAL_LATEST_TYPES: readonly AnnouncementLatestType[] = [
-    "data-update",
-    "topic-update",
-]
 
 type AnnouncementProps = {
     className?: string
@@ -42,26 +27,14 @@ type AnnouncementProps = {
     "contentMd5" | "markdown" | "publicationContext" | "revisionId"
 >
 
-function buildAuthorsNote(
-    latestType: AnnouncementLatestType,
-    authors: string[]
-): string | undefined {
-    if (authors.length === 0) return undefined
-    const kicker = LATEST_TYPE_LABELS[latestType].toLowerCase()
-    return `This ${kicker} was led by ${formatAuthors(authors)}.`
-}
-
 export const AnnouncementPage = ({
     content,
     publishedAt,
     slug,
     tags,
 }: AnnouncementProps): React.ReactElement => {
-    const { linkedDocuments, latestAnnouncements } =
-        useContext(AttachmentsContext)
+    const { latestAnnouncements } = useContext(AttachmentsContext)
     const latestType = deriveAnnouncementLatestType(content.kicker)
-    const shouldShowCopySocialButton =
-        SOCIAL_LATEST_TYPES.includes(latestType) && content.body.length > 0
     const path = getPrefixedGdocPath("", {
         slug,
         content: { type: OwidGdocType.Announcement },
@@ -93,20 +66,6 @@ export const AnnouncementPage = ({
                             path={path}
                             trackNote="announcement_copy_link"
                         />
-                        {shouldShowCopySocialButton && (
-                            <CopySocialButton
-                                className="copy-link-button"
-                                text={buildSocialText({
-                                    title: content.title,
-                                    body: content.body,
-                                    authorsNote: buildAuthorsNote(
-                                        latestType,
-                                        content.authors
-                                    ),
-                                    linkedDocuments,
-                                })}
-                            />
-                        )}
                     </>
                 }
             />

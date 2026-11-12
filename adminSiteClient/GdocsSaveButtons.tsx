@@ -1,9 +1,6 @@
 import { Badge, Button, Modal, Space } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    faExclamationTriangle,
-    faBolt,
-} from "@fortawesome/free-solid-svg-icons"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 import { GdocsDiff } from "./GdocsDiff.js"
 import { OwidGdocErrorMessage, OwidGdoc } from "@ourworldindata/utils"
 
@@ -15,7 +12,6 @@ export const GdocsSaveButtons = ({
     hasErrors,
     hasWarnings,
     hasChanges,
-    isLightningUpdate,
     disableButtons,
     doPublish,
     saveDraft,
@@ -27,7 +23,6 @@ export const GdocsSaveButtons = ({
     hasErrors: boolean
     hasWarnings: boolean
     hasChanges: boolean
-    isLightningUpdate: boolean
     disableButtons: boolean
     setDiffOpen: (open: boolean) => void
     doPublish: VoidFunction
@@ -118,15 +113,7 @@ export const GdocsSaveButtons = ({
                                 : undefined
                         }
                     >
-                        {!published ? (
-                            "Publish"
-                        ) : isLightningUpdate ? (
-                            <>
-                                <FontAwesomeIcon icon={faBolt} /> Republish
-                            </>
-                        ) : (
-                            "Republish"
-                        )}
+                        {published ? "Republish" : "Publish"}
                     </Button>
                 </Badge>
             </Space>

@@ -23,6 +23,7 @@ import {
     formatDate,
     Url,
     getRegionByNameOrVariantName,
+    isMultiDimDataExplorer,
 } from "@ourworldindata/utils"
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import {
@@ -1416,8 +1417,10 @@ export class GdocBase implements OwidGdocBaseInterface {
 
     toJSON(): OwidGdoc {
         // TODO: this function is currently only used to shrink the object a bit
-        // that is used for the isLightningDeploy check (but not, for example, to
-        // shrink the object we send over the wire at the /gdoc/:id endpoint).
+        // into the plain object (without class members) that the publish
+        // handlers inspect to pick a publishing action and that the Algolia
+        // indexers read (but not, for example, to shrink the object we send
+        // over the wire at the /gdoc/:id endpoint).
         // My hunch is that we'll want to clean up the class instance vs objects
         // divergence a bit in the near future - until then this can stay as is.
         return _.omit(this, [
@@ -1596,5 +1599,10 @@ export function makeMultiDimLinkedChart(
         resolvedUrl,
         tags: config.topicTags ?? [],
         archivedPageVersion,
+        // Same subtitle and thumbnail as the multi-dim's card on /explorers.
+        ...(isMultiDimDataExplorer(config) && {
+            subtitle: config.presentation.explorerSubtitle,
+            thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png`,
+        }),
     }
 }

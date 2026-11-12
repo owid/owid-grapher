@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Input, Space } from "antd"
+import { Alert, Input, Space } from "antd"
 import type { VariableSearchBox } from "./variableSearchQuery.js"
 import { SearchHelp, SearchHelpTable } from "./SearchHelp.js"
 
@@ -28,8 +28,7 @@ export function VariableSearchToolbar({
                         a word. Use <code>"a phrase"</code> to keep words
                         together and <code>-word</code> to exclude. Regular
                         expressions work too, but read every indicator, so they
-                        are slow. The search is kept in the page URL, so a
-                        filtered list can be shared.
+                        are slow.
                     </p>
                     <SearchHelpTable
                         rows={search.fields.map((field) => ({
@@ -42,4 +41,45 @@ export function VariableSearchToolbar({
             {filters}
         </Space>
     )
+}
+
+/** Why a search returned nothing, or why it was slow */
+export function VariableSearchNotice({
+    regexError,
+    unindexedTerms = [],
+}: {
+    regexError?: string
+    unindexedTerms?: string[]
+}): React.ReactElement | null {
+    if (regexError)
+        return (
+            <Alert
+                type="warning"
+                showIcon
+                title={
+                    <>
+                        MySQL couldn't run this as a regular expression:{" "}
+                        {regexError}
+                    </>
+                }
+            />
+        )
+    if (unindexedTerms.length > 0)
+        return (
+            <Alert
+                type="info"
+                showIcon
+                title={
+                    <>
+                        {unindexedTerms.map((term) => `"${term}"`).join(", ")}{" "}
+                        can't use the search index — too short, a very common
+                        word, or a regular expression — so it's matched by
+                        reading every indicator the rest of the search leaves,
+                        which can take a few seconds. Another specific word
+                        usually narrows it.
+                    </>
+                }
+            />
+        )
+    return null
 }

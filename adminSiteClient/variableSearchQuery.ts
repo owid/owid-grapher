@@ -1,5 +1,3 @@
-import { useCallback } from "react"
-import { useHistory, useLocation } from "react-router-dom"
 import { parseIntOrUndefined } from "@ourworldindata/utils"
 import {
     parseSearchQuery,
@@ -14,7 +12,7 @@ import {
 
 // The search grammar and its fields are shared with the server, in
 // `adminShared/variableSearch.ts`. What lives here is only what the browser
-// needs on top of that: the box, the URL, and knowing which words to highlight.
+// needs on top of that: the box, links to a search, and knowing which words to highlight.
 
 export interface VariableSearchBox {
     value: string
@@ -24,6 +22,10 @@ export interface VariableSearchBox {
     /** The `field:value` terms, listed in a help popover. */
     fields?: readonly SearchFieldHelp[]
 }
+
+// A regex search over ~800k indicators takes seconds, so don't fire one off on
+// every keystroke
+export const SEARCH_DEBOUNCE_MS = 300
 
 export type SearchHighlighter = ReturnType<
     typeof highlightFunctionForSearchWords
@@ -141,44 +143,9 @@ export function searchWordsToHighlight(query: string): SearchWord[] {
     })
 }
 
-const SEARCH_PARAM = "search"
+export const SEARCH_PARAM = "search"
 
 /** A link to the same page searching for `value`, as kept by `useSearchQueryParam`. */
 export function searchHref(value: string): string {
     return `?${new URLSearchParams({ [SEARCH_PARAM]: value })}`
-}
-
-/**
- * Keeps the search in the URL, so a filtered list can be bookmarked, shared
- * and restored by the back button.
- */
-export function useSearchQueryParam(): [
-    string,
-    (value: string, options?: { push?: boolean }) => void,
-] {
-    const location = useLocation()
-    const history = useHistory()
-    const value = new URLSearchParams(location.search).get(SEARCH_PARAM) ?? ""
-
-    const setValue = useCallback(
-        (nextValue: string, options?: { push?: boolean }) => {
-            const params = new URLSearchParams(location.search)
-            if (nextValue) params.set(SEARCH_PARAM, nextValue)
-            else params.delete(SEARCH_PARAM)
-            const query = params.toString()
-            // `location.pathname` is relative to the router's basename, unlike
-            // `window.location.pathname`, which would double up the /admin prefix
-            const next = {
-                pathname: location.pathname,
-                search: query ? `?${query}` : "",
-            }
-            // Typing replaces, or every keystroke would be a step back; a link
-            // that narrows the search is a step, so Back returns from it
-            if (options?.push) history.push(next)
-            else history.replace(next)
-        },
-        [history, location.pathname, location.search]
-    )
-
-    return [value, setValue]
 }

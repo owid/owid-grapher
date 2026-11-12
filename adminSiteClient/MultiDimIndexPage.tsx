@@ -29,6 +29,7 @@ import {
 } from "../settings/clientSettings.mjs"
 import { dayjs, Json } from "@ourworldindata/utils"
 import { Link } from "./Link.js"
+import { useListSearch } from "./useListSearch.js"
 
 type ApiMultiDim = {
     id: number
@@ -149,7 +150,8 @@ function createColumns(
         unknown,
         { id: number; published: boolean },
         unknown
-    >
+    >,
+    deleteMutation: UseMutationResult<void, unknown, number, unknown>
 ): TableColumnsType<MultiDim> {
     return [
         {
@@ -267,10 +269,29 @@ function createColumns(
             key: "actions",
             width: 100,
             render: (_, record) =>
-                record.published && (
+                record.published ? (
                     <Link to={`/multi-dims/${record.id}`}>
                         <Button type="primary">Edit</Button>
                     </Link>
+                ) : (
+                    <Popconfirm
+                        title="Delete this multi-dim?"
+                        description="This deletes it and its views from the database. Also remove its step from the ETL, or the next ETL run will recreate it."
+                        onConfirm={() => deleteMutation.mutate(record.id)}
+                        okText="Delete"
+                        okButtonProps={{ danger: true }}
+                        cancelText="Cancel"
+                    >
+                        <Button
+                            danger
+                            loading={
+                                deleteMutation.isPending &&
+                                deleteMutation.variables === record.id
+                            }
+                        >
+                            Delete
+                        </Button>
+                    </Popconfirm>
                 ),
         },
     ]
@@ -299,11 +320,16 @@ async function patchMultiDim(admin: Admin, id: number, data: Json) {
     return deserializeMultiDim(multiDim)
 }
 
+async function deleteMultiDim(admin: Admin, id: number): Promise<void> {
+    await admin.requestJSON(`/api/multi-dims/${id}`, {}, "DELETE")
+}
+
+const searchedText = (mdim: MultiDim) => [mdim.title, mdim.slug]
+
 export function MultiDimIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [notificationApi, notificationContextHolder] =
         notification.useNotification()
-    const [search, setSearch] = useState("")
     const queryClient = useQueryClient()
 
     const { data } = useQuery({
@@ -339,19 +365,32 @@ export function MultiDimIndexPage() {
         },
     })
 
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => deleteMultiDim(admin, id),
+        onSuccess: async () => {
+            notificationApi.info({
+                title: "Multi-dim deleted",
+                placement: "bottomRight",
+            })
+            return queryClient.invalidateQueries({ queryKey: ["multiDims"] })
+        },
+    })
+
     const [showOnlyPublished, setShowOnlyPublished] = useState(false)
 
-    const filteredMdims = useMemo(() => {
-        const query = search.trim().toLowerCase()
-        return data?.filter((mdim) => {
-            if (showOnlyPublished && !mdim.published) return false
-            return [mdim.title, mdim.slug ?? ""].some((field) =>
-                field.toLowerCase().includes(query)
-            )
-        })
-    }, [data, search, showOnlyPublished])
+    const { searchValue, setSearchValue, filtered } = useListSearch(
+        data,
+        searchedText
+    )
+    const filteredMdims = useMemo(
+        () =>
+            showOnlyPublished
+                ? filtered.filter((mdim) => mdim.published)
+                : filtered,
+        [filtered, showOnlyPublished]
+    )
 
-    const columns = createColumns(slugMutation, publishMutation)
+    const columns = createColumns(slugMutation, publishMutation, deleteMutation)
 
     return (
         <AdminLayout title="Multidimensional Data Pages">
@@ -362,8 +401,8 @@ export function MultiDimIndexPage() {
                         <Space size="middle">
                             <Input
                                 placeholder="Search by title or slug"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
                                 style={{ width: 500 }}
                                 autoFocus
                             />

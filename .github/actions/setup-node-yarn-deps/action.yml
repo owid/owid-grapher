@@ -17,8 +17,12 @@ runs:
       run: corepack enable
       shell: bash
 
+    # zizmor can't see that composite actions are locked, but this one is only
+    # used from workflows in .github/workflows/actions.lock, which pins its
+    # transitive dependencies (gh actions-lock rewrites a SHA here to a tag).
+    # See https://docs.zizmor.sh/usage/#workflow-lockfiles
     - name: Use Node.js (.nvmrc)
-      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      uses: actions/setup-node@v7.1.0 # zizmor: ignore[unpinned-uses]
       with:
         node-version-file: ".nvmrc"
         cache: "yarn"

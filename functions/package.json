@@ -10,10 +10,10 @@
         "@ourworldindata/grapher": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
-        "@sentry/cloudflare": "^11.8.0",
+        "@sentry/cloudflare": "^11.11.0",
         "algoliasearch": "^5.57.0",
-        "cookie": "^2.0.1",
-        "entities": "^8.0.0",
+        "cookie": "^2.0.2",
+        "entities": "^9.0.0",
         "itty-router": "^5.0.23",
         "littlezipper": "^0.1.5",
         "lodash-es": "^4.18.1",
@@ -24,7 +24,7 @@
         "resvg-wasm": "patch:resvg-wasm@npm%3A0.5.0#~/.yarn/patches/resvg-wasm-npm-0.5.0-50778c75bc.patch",
         "stripe": "^14.20.0",
         "ts-pattern": "^5.8.0",
-        "uuid": "^14.0.0",
+        "uuid": "^14.0.3",
         "zod": "^4.6.7"
     },
     "devDependencies": {

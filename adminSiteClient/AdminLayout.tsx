@@ -3,6 +3,10 @@ import { observable, action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 
 import { Link } from "./Link.js"
+import {
+    VariableListLinkContext,
+    VariableListLinkProps,
+} from "./variableListLink.js"
 import { EditorFAQ } from "./EditorFAQ.js"
 import { AdminSidebar } from "./AdminSidebar.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -16,6 +20,10 @@ interface AdminLayoutProps {
     title?: string
     children: React.ReactNode
 }
+
+const renderRouterLink = (props: VariableListLinkProps): React.ReactElement => (
+    <Link {...props} />
+)
 
 @observer
 export class AdminLayout extends React.Component<AdminLayoutProps> {
@@ -116,7 +124,9 @@ export class AdminLayout extends React.Component<AdminLayoutProps> {
                     </ul>
                 </nav>
                 {showSidebar && <AdminSidebar />}
-                {this.props.children}
+                <VariableListLinkContext.Provider value={renderRouterLink}>
+                    {this.props.children}
+                </VariableListLinkContext.Provider>
             </div>
         )
     }

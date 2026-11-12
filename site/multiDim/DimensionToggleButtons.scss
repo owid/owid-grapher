@@ -1,0 +1,144 @@
+$toggle-group-height: 32px;
+// Toggle groups go full width at the same point as dropdowns
+// ($toggle-full-width-breakpoint, from DimensionDropdown.scss).
+
+.md-settings__toggle-group-options {
+    display: flex;
+    align-items: center;
+    height: $toggle-group-height;
+    padding: 1px;
+    background: white;
+    border: 1px solid $gray-10;
+    border-radius: 4px;
+    font: 500 13px/16px $lato;
+    letter-spacing: 0.01em;
+}
+
+// A disabled control keeps its normal look at half opacity, label included,
+// like a disabled dropdown.
+.md-settings__toggle-group[data-disabled] {
+    opacity: 0.5;
+}
+
+@media (width <= $toggle-full-width-breakpoint) {
+    .md-settings__toggle-group,
+    .md-settings__toggle-group-options {
+        width: 100%;
+    }
+}
+
+.md-settings__toggle-field {
+    display: flex;
+    position: relative;
+
+    @media (width <= $toggle-full-width-breakpoint) {
+        // Distribute the available width evenly between the segments and
+        // allow them to shrink below their content width, so long choice
+        // names get truncated instead of overflowing the container.
+        flex: 1;
+        min-width: 0;
+    }
+
+    &:has([data-disabled]) {
+        cursor: not-allowed;
+    }
+}
+
+// A field whose option is neither selected nor hovered.
+$plain-field: ":not(:has([data-selected], [data-hovered]))";
+
+// Thin separator bar between options, as in grapher's Tabs.scss, drawn only
+// between two plain options so that a selected or hovered one has no
+// separator on either side.
+.md-settings__toggle-field#{$plain-field}
+    + .md-settings__toggle-field#{$plain-field}::before {
+    content: "";
+    display: block;
+    width: 1px;
+    height: calc(100% - 12px);
+    position: absolute;
+    top: 6px;
+    left: 0;
+    background-color: $gray-20;
+}
+
+.md-settings__toggle {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    height: 28px;
+    padding: 0 16px;
+    border-radius: 3px;
+    // Reset the native button look; the site's global styles already take
+    // care of the margin and border.
+    background: none;
+    font: inherit;
+    letter-spacing: inherit;
+    color: $gray-70;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &[data-hovered]:not([data-selected]):not([data-disabled]) {
+        background: $gray-10;
+    }
+
+    &[data-selected] {
+        color: $blue-90;
+        background: $blue-20;
+        cursor: default;
+    }
+
+    // Without pointer events, the hover reaches the field (or the group) and
+    // its disabled reason tooltip.
+    &[data-disabled] {
+        pointer-events: none;
+    }
+
+    // The global focus ring sits outside the option, so stack the focused
+    // option above its neighbours, which would otherwise paint over the ring.
+    &:focus-visible {
+        position: relative;
+        z-index: 1;
+    }
+
+    @media (width <= $toggle-full-width-breakpoint) {
+        justify-content: center;
+        min-width: 0;
+    }
+}
+
+.md-settings__toggle-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// A single unavailable option in an otherwise enabled group fades just its
+// text. (In a disabled group, the whole group is already faded.)
+.md-settings__toggle-group:not([data-disabled])
+    .md-settings__toggle[data-disabled]
+    .md-settings__toggle-label {
+    opacity: 0.5;
+}
+
+// A hidden instance of a toggle group's options at their natural width, measured
+// to decide whether the toggle group fits the controls row (see
+// MeasuredDimensionToggleButtons). Fixed positioning keeps it out of the layout and out of
+// the page's scrollable area.
+.md-toggle-measure.md-settings__toggle-group-options {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: max-content;
+    visibility: hidden;
+    pointer-events: none;
+
+    // An intrinsic grid gives every mobile option the widest option's full
+    // width. Its total width is exactly what the equal-width control needs,
+    // so ResizeObserver can detect breakpoint changes without a JS query.
+    @media (width <= $toggle-full-width-breakpoint) {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+    }
+}

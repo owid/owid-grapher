@@ -34,6 +34,7 @@ import {
     Redirect,
     RouteComponentProps,
 } from "react-router-dom"
+import { CompatRouter } from "react-router-dom-v5-compat"
 import { LoadingBlocker, Modal } from "./Forms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { ExplorerCreatePage } from "./ExplorerCreatePage.js"
@@ -156,330 +157,346 @@ export class AdminApp extends React.Component<{
             <QueryClientProvider client={queryClient}>
                 <AdminAppContext.Provider value={this.childContext}>
                     <Router basename={admin.basePath}>
-                        <div className="AdminApp">
-                            <AdminErrorMessage admin={admin} />
-                            <AdminLoader admin={admin} />
-                            <Switch>
-                                <Route
-                                    exact
-                                    path="/charts/create"
-                                    render={({ location }) => {
-                                        const params = new URLSearchParams(
-                                            location.search
-                                        )
-                                        const configParam = params.get("config")
-                                        const grapherConfig = configParam
-                                            ? JSON.parse(configParam)
-                                            : undefined
-                                        return (
-                                            <ChartEditorPage
-                                                grapherConfig={grapherConfig}
-                                            />
-                                        )
-                                    }}
-                                />
-                                <Route
-                                    exact
-                                    path="/charts/:chartId/edit"
-                                    render={({ match }) => {
-                                        return (
-                                            <ChartEditorPage
-                                                key={match.params.chartId}
-                                                grapherId={parseInt(
-                                                    match.params.chartId
+                        {/* Lets admin pages use react-router v6 hooks, such as useSearchParams */}
+                        <CompatRouter>
+                            <div className="AdminApp">
+                                <AdminErrorMessage admin={admin} />
+                                <AdminLoader admin={admin} />
+                                <Switch>
+                                    <Route
+                                        exact
+                                        path="/charts/create"
+                                        render={({ location }) => {
+                                            const params = new URLSearchParams(
+                                                location.search
+                                            )
+                                            const configParam =
+                                                params.get("config")
+                                            const grapherConfig = configParam
+                                                ? JSON.parse(configParam)
+                                                : undefined
+                                            return (
+                                                <ChartEditorPage
+                                                    grapherConfig={
+                                                        grapherConfig
+                                                    }
+                                                />
+                                            )
+                                        }}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/charts/:chartId/edit"
+                                        render={({ match }) => {
+                                            return (
+                                                <ChartEditorPage
+                                                    key={match.params.chartId}
+                                                    grapherId={parseInt(
+                                                        match.params.chartId
+                                                    )}
+                                                />
+                                            )
+                                        }}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/charts"
+                                        component={ChartIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/gdocs-reference/:kind?/:id?/:bundle?"
+                                        component={GdocsReferencePage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/narrative-charts"
+                                        component={NarrativeChartIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/narrative-charts/create"
+                                        component={
+                                            CreateNarrativeChartEditorPage
+                                        }
+                                    />
+                                    <Route
+                                        exact
+                                        path="/narrative-charts/:narrativeChartId/edit"
+                                        render={({ match }) => (
+                                            <NarrativeChartEditorPage
+                                                narrativeChartId={parseInt(
+                                                    match.params
+                                                        .narrativeChartId
                                                 )}
                                             />
-                                        )
-                                    }}
-                                />
-                                <Route
-                                    exact
-                                    path="/charts"
-                                    component={ChartIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/gdocs-reference/:kind?/:id?/:bundle?"
-                                    component={GdocsReferencePage}
-                                />
-                                <Route
-                                    exact
-                                    path="/narrative-charts"
-                                    component={NarrativeChartIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/narrative-charts/create"
-                                    component={CreateNarrativeChartEditorPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/narrative-charts/:narrativeChartId/edit"
-                                    render={({ match }) => (
-                                        <NarrativeChartEditorPage
-                                            narrativeChartId={parseInt(
-                                                match.params.narrativeChartId
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/featured-metrics"
-                                    component={FeaturedMetricsPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/multi-dims"
-                                    component={MultiDimIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/multi-dims/:id"
-                                    render={({ match }) => (
-                                        <MultiDimDetailPage
-                                            id={parseInt(match.params.id)}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/multi-dim-redirects"
-                                    component={MultiDimRedirectsIndexPage}
-                                />
-                                <Route path="/dods" component={DodsIndexPage} />
-
-                                <Route
-                                    path="/images"
-                                    component={ImageIndexPage}
-                                />
-                                <Route
-                                    path="/files"
-                                    component={FilesIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/svgtester"
-                                    component={SvgTesterIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/svgtester/:suite"
-                                    render={({ match }) => (
-                                        <SvgTesterSuitePage
-                                            key={match.params.suite}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/static-viz"
-                                    component={StaticVizIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/static-viz/:staticVizId"
-                                    component={StaticVizEditPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/slideshows"
-                                    component={SlideshowsIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/slideshows/create"
-                                    component={SlideshowEditorPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/slideshows/:slideshowId/edit"
-                                    render={({ match }) => (
-                                        <SlideshowEditorPage
-                                            slideshowId={parseInt(
-                                                match.params.slideshowId
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path={`/${EXPLORERS_ROUTE_FOLDER}/:slug`}
-                                    render={({ match }) => (
-                                        <AdminLayout title="Create Explorer">
-                                            <ExplorerCreatePage
-                                                slug={match.params.slug}
-                                                manager={admin}
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/featured-metrics"
+                                        component={FeaturedMetricsPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/multi-dims"
+                                        component={MultiDimIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/multi-dims/:id"
+                                        render={({ match }) => (
+                                            <MultiDimDetailPage
+                                                id={parseInt(match.params.id)}
                                             />
-                                        </AdminLayout>
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path={`/${EXPLORERS_ROUTE_FOLDER}`}
-                                    render={() => (
-                                        <AdminLayout title="Explorers">
-                                            <ExplorersIndexPage />
-                                        </AdminLayout>
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path={`/bulk-grapher-config-editor`}
-                                    render={() => (
-                                        <BulkGrapherConfigEditorPage />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/users/:userId"
-                                    render={({ match }) => (
-                                        <UserEditPage
-                                            userId={parseInt(
-                                                match.params.userId
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/users"
-                                    component={UsersIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/variables/:variableId"
-                                    render={({ match }) => (
-                                        <VariableEditPage
-                                            variableId={parseInt(
-                                                match.params.variableId
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/variables"
-                                    component={VariablesIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/datasets/:datasetId"
-                                    render={({ match }) => (
-                                        <DatasetEditPage
-                                            datasetId={parseInt(
-                                                match.params.datasetId
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/datasets"
-                                    component={DatasetsIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/sources/:sourceId"
-                                    render={({ match }) => (
-                                        <SourceEditPage
-                                            sourceId={parseInt(
-                                                match.params.sourceId
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/redirects"
-                                    component={RedirectsIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/site-redirects"
-                                    component={SiteRedirectsIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/tags/:tagId"
-                                    render={({ match }) => (
-                                        <TagEditPage
-                                            tagId={parseInt(match.params.tagId)}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/tag-graph"
-                                    component={TagGraphPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/tags"
-                                    component={TagsIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/orphaned-articles"
-                                    component={OrphanedArticlesIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/gdocs/:id/preview"
-                                    render={(props: GdocsMatchProps) => (
-                                        <GdocsPreviewPage {...props} />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/gdocs/:id/coverage"
-                                    render={(props: GdocsMatchProps) => (
-                                        <GdocsCoverageMatrixPage {...props} />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/callout-functions"
-                                    component={CalloutFunctionsPage}
-                                />
-                                <Route
-                                    path="/gdocs"
-                                    render={(props: RouteComponentProps) => (
-                                        <GdocsIndexPage {...props} />
-                                    )}
-                                />
-                                <Route
-                                    path="/data-insights"
-                                    component={DataInsightIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/test"
-                                    component={TestIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/test-region-maps"
-                                    component={TestRegionMapsPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/deploys"
-                                    component={DeployStatusPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/explorer-tags"
-                                    component={ExplorerTagsPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/"
-                                    render={() => <Redirect to="/charts" />}
-                                />
-                                <Route component={NotFoundPage} />
-                            </Switch>
-                        </div>
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/multi-dim-redirects"
+                                        component={MultiDimRedirectsIndexPage}
+                                    />
+                                    <Route
+                                        path="/dods"
+                                        component={DodsIndexPage}
+                                    />
+
+                                    <Route
+                                        path="/images"
+                                        component={ImageIndexPage}
+                                    />
+                                    <Route
+                                        path="/files"
+                                        component={FilesIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/svgtester"
+                                        component={SvgTesterIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/svgtester/:suite"
+                                        render={({ match }) => (
+                                            <SvgTesterSuitePage
+                                                key={match.params.suite}
+                                            />
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/static-viz"
+                                        component={StaticVizIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/static-viz/:staticVizId"
+                                        component={StaticVizEditPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/slideshows"
+                                        component={SlideshowsIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/slideshows/create"
+                                        component={SlideshowEditorPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/slideshows/:slideshowId/edit"
+                                        render={({ match }) => (
+                                            <SlideshowEditorPage
+                                                slideshowId={parseInt(
+                                                    match.params.slideshowId
+                                                )}
+                                            />
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path={`/${EXPLORERS_ROUTE_FOLDER}/:slug`}
+                                        render={({ match }) => (
+                                            <AdminLayout title="Create Explorer">
+                                                <ExplorerCreatePage
+                                                    slug={match.params.slug}
+                                                    manager={admin}
+                                                />
+                                            </AdminLayout>
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path={`/${EXPLORERS_ROUTE_FOLDER}`}
+                                        render={() => (
+                                            <AdminLayout title="Explorers">
+                                                <ExplorersIndexPage />
+                                            </AdminLayout>
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path={`/bulk-grapher-config-editor`}
+                                        render={() => (
+                                            <BulkGrapherConfigEditorPage />
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/users/:userId"
+                                        render={({ match }) => (
+                                            <UserEditPage
+                                                userId={parseInt(
+                                                    match.params.userId
+                                                )}
+                                            />
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/users"
+                                        component={UsersIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/variables/:variableId"
+                                        render={({ match }) => (
+                                            <VariableEditPage
+                                                variableId={parseInt(
+                                                    match.params.variableId
+                                                )}
+                                            />
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/variables"
+                                        component={VariablesIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/datasets/:datasetId"
+                                        render={({ match }) => (
+                                            <DatasetEditPage
+                                                datasetId={parseInt(
+                                                    match.params.datasetId
+                                                )}
+                                            />
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/datasets"
+                                        component={DatasetsIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/sources/:sourceId"
+                                        render={({ match }) => (
+                                            <SourceEditPage
+                                                sourceId={parseInt(
+                                                    match.params.sourceId
+                                                )}
+                                            />
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/redirects"
+                                        component={RedirectsIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/site-redirects"
+                                        component={SiteRedirectsIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/tags/:tagId"
+                                        render={({ match }) => (
+                                            <TagEditPage
+                                                tagId={parseInt(
+                                                    match.params.tagId
+                                                )}
+                                            />
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/tag-graph"
+                                        component={TagGraphPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/tags"
+                                        component={TagsIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/orphaned-articles"
+                                        component={OrphanedArticlesIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/gdocs/:id/preview"
+                                        render={(props: GdocsMatchProps) => (
+                                            <GdocsPreviewPage {...props} />
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/gdocs/:id/coverage"
+                                        render={(props: GdocsMatchProps) => (
+                                            <GdocsCoverageMatrixPage
+                                                {...props}
+                                            />
+                                        )}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/callout-functions"
+                                        component={CalloutFunctionsPage}
+                                    />
+                                    <Route
+                                        path="/gdocs"
+                                        render={(
+                                            props: RouteComponentProps
+                                        ) => <GdocsIndexPage {...props} />}
+                                    />
+                                    <Route
+                                        path="/data-insights"
+                                        component={DataInsightIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/test"
+                                        component={TestIndexPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/test-region-maps"
+                                        component={TestRegionMapsPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/deploys"
+                                        component={DeployStatusPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/explorer-tags"
+                                        component={ExplorerTagsPage}
+                                    />
+                                    <Route
+                                        exact
+                                        path="/"
+                                        render={() => <Redirect to="/charts" />}
+                                    />
+                                    <Route component={NotFoundPage} />
+                                </Switch>
+                            </div>
+                        </CompatRouter>
                     </Router>
                 </AdminAppContext.Provider>
             </QueryClientProvider>

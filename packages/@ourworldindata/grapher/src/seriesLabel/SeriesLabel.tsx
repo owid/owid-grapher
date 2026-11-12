@@ -23,7 +23,7 @@ import { getDescriptionForKey, getRegionsForKey } from "./RegionTooltipData.js"
 const defaultColors: Record<TextRole, string> = {
     name: GRAPHER_DARK_TEXT,
     value: GRAPHER_DARK_TEXT,
-    regionPublisherSuffix: GRAPHER_LIGHT_TEXT,
+    suffix: GRAPHER_LIGHT_TEXT,
     regionIcon: GRAPHER_LIGHT_TEXT,
 }
 
@@ -123,7 +123,7 @@ export function SeriesLabel({
                     x={renderX}
                     y={renderY}
                     fragment={fragment}
-                    fill={colors.regionPublisherSuffix}
+                    fill={colors.suffix}
                     regionName={fragment.regionName}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}

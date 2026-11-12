@@ -598,7 +598,7 @@ abstract class AbstractAxis {
                 case AxisAlign.end:
                     return this.range[1]
                 case AxisAlign.middle:
-                default:
+                case undefined:
                     return (this.range[0] + this.range[1]) / 2
             }
         }

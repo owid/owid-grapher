@@ -42,7 +42,7 @@ export default defineConfig([
     {
         ...shared,
         ...dtsBundleOptions,
-        entry: { editor: "./src/editor.public.ts" },
+        entry: { editor: "./src/editor.public.tsx" },
         tsconfig: "../../../tsconfig.editor-dts.json",
     },
 ])

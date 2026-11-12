@@ -37,7 +37,6 @@ export {
     isMobile,
     isTouchDevice,
     type Json,
-    csvEscape,
     trimObject,
     fetchText,
     fetchJson,
@@ -70,6 +69,7 @@ export {
     getClosestTimePairs,
     omitUndefinedValues,
     isInIFrame,
+    isInSameOriginIFrame,
     openLinkInNewTabAttrs,
     differenceObj,
     findDOMParent,
@@ -257,6 +257,7 @@ export {
     getRegionAlternativeNames,
     mappableCountries,
     checkIsCountry,
+    checkIsCountryName,
     checkIsOwidContinent,
     checkIsIncomeGroup,
     checkIsAggregate,
@@ -271,6 +272,7 @@ export {
     getSiblingRegions,
     getContinentForCountry,
     articulateEntity,
+    checkHasDefiniteArticle,
 } from "./regions/index.js"
 export {
     instantiateProfile,
@@ -386,6 +388,8 @@ export {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
     getMultiDimPageTitle,
+    isMultiDimDataExplorer,
+    resolveDimensionPresentationType,
     searchParamsToMultiDimView,
 } from "./MultiDimDataPageConfig.js"
 

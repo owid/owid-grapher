@@ -25,6 +25,7 @@ import { redirectWithSourceExists } from "../../db/model/Redirect.js"
 import { buildQueryStrFromConfig } from "../../db/model/MultiDimRedirects.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
+    deleteUnpublishedMultiDim,
     upsertMultiDim,
     setMultiDimPublished,
     setMultiDimSlug,
@@ -510,6 +511,21 @@ export async function handlePatchMultiDim(
         )
     }
     return { success: true, multiDim }
+}
+
+export async function handleDeleteMultiDim(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const id = expectInt(req.params.id)
+    const multiDim = await getMultiDimDataPageById(trx, id)
+    if (!multiDim) {
+        throw new JsonError("Multi-dimensional data page not found", 404)
+    }
+    // No static build needed, since an unpublished multi-dim isn't baked
+    await deleteUnpublishedMultiDim(trx, multiDim)
+    return { success: true }
 }
 
 // Lists the redirects that target a path, so the admin can ask whether to

@@ -8,8 +8,8 @@
         "directory": "packages/@ourworldindata/grapher-editor"
     },
     "type": "module",
-    "main": "src/editor.public.ts",
-    "types": "src/editor.public.ts",
+    "main": "src/editor.public.tsx",
+    "types": "src/editor.public.tsx",
     "publishConfig": {
         "registry": "https://packages.owid.io",
         "main": "dist/editor.standalone.min.js",
@@ -52,12 +52,14 @@
         "dist/editor.d.ts.map"
     ],
     "scripts": {
+        "release": "bumpp",
         "build": "tsdown",
         "clean": "rm -rf dist dist-package",
         "startDemoServer": "http-server . -p 8434 -c-1 -o /demo.html",
-        "testPackage": "yarn testPackage:typecheck && yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:attw",
+        "testPackage": "yarn testPackage:typecheck && yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:publint && yarn testPackage:attw",
         "testPackage:pack": "yarn pack --out dist-package/grapher-editor.tgz",
         "testPackage:vitest": "vitest run --config vitest.package.config.ts",
+        "testPackage:publint": "publint run --strict dist-package/grapher-editor.tgz",
         "testPackage:attw": "attw --profile esm-only --exclude-entrypoints ./editor.css -- dist-package/grapher-editor.tgz",
         "testPackage:typecheck": "tsc -p tsconfig.json"
     },
@@ -74,11 +76,13 @@
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@react-aria/optimize-locales-plugin": "^2.1.0",
+        "@tanstack/react-query": "^5.90.6",
         "@tsdown/css": "^0.23.0",
         "@types/react": "^19.3.0",
         "@types/react-dom": "^19.3.0",
         "bumpp": "^12.2.0",
         "http-server": "^14.1.1",
+        "publint": "^0.3.23",
         "react": "^19.3.1",
         "react-dom": "^19.3.1",
         "sass": "^1.89.2",

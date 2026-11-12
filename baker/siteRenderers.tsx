@@ -7,6 +7,8 @@ import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.j
 import NotFoundPage from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
 import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
+import { ExplorerIndexItem } from "../site/ExplorerIndex.js"
+import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { SubscribePage } from "../site/SubscribePage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
 import { DatasetPage } from "../site/datasetPage/DatasetPage.js"
@@ -23,6 +25,7 @@ import {
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
+    EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     CLOUDFLARE_IMAGES_URL,
 } from "../settings/clientSettings.mjs"
@@ -33,6 +36,7 @@ import {
     OwidGdoc,
     TombstonePageData,
     flattenNonTopicNodes,
+    isMultiDimDataExplorer,
 } from "@ourworldindata/utils"
 import {
     ArchiveContext,
@@ -64,6 +68,7 @@ import {
     ExplorerProgram,
     ExplorerPageUrlMigrationSpec,
     ExplorerFullQueryParams,
+    EXPLORERS_ROUTE_FOLDER,
 } from "@ourworldindata/explorer"
 import { ExplorerPage } from "../site/ExplorerPage.js"
 import {
@@ -526,16 +531,40 @@ export const renderReusableBlock = async (
 export const renderExplorerIndexPage = async (
     knex: KnexReadonlyTransaction
 ): Promise<string> => {
-    const explorers = await getPublishedExplorersBySlug(knex, false).then(
-        (explorers) => {
-            return Object.values(explorers).sort((a, b) =>
-                a.title.localeCompare(b.title)
-            )
+    const explorers = await getPublishedExplorersBySlug(knex, false)
+    const explorerItems: ExplorerIndexItem[] = Object.values(explorers).map(
+        (explorer) => ({
+            slug: explorer.slug,
+            title: explorer.title,
+            subtitle: explorer.subtitle,
+            href: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${explorer.slug}`,
+            thumbnailUrl: `${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${explorer.slug}.png`,
+        })
+    )
+
+    // Multi-dim data pages that present themselves as data explorers are
+    // listed alongside the actual explorers, but live at their regular
+    // /grapher URLs.
+    const multiDims = await getAllPublishedMultiDimDataPages(knex)
+    const multiDimItems: ExplorerIndexItem[] = multiDims.flatMap(
+        ({ slug, config }) => {
+            if (!isMultiDimDataExplorer(config)) return []
+            return {
+                slug,
+                title: config.title.title,
+                subtitle: config.presentation.explorerSubtitle ?? "",
+                href: `${BAKED_GRAPHER_URL}/${slug}`,
+                thumbnailUrl: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png`,
+            }
         }
     )
 
+    const items = [...explorerItems, ...multiDimItems].sort((a, b) =>
+        a.title.localeCompare(b.title)
+    )
+
     return renderToHtmlPage(
-        <ExplorerIndexPage baseUrl={BAKED_BASE_URL} explorers={explorers} />
+        <ExplorerIndexPage baseUrl={BAKED_BASE_URL} items={items} />
     )
 }
 

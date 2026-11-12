@@ -12,7 +12,7 @@
     "author": "",
     "dependencies": {
         "@ourworldindata/types": "workspace:^",
-        "@sentry/browser": "^11.8.0",
+        "@sentry/browser": "^11.11.0",
         "@tippyjs/react": "^4.2.6",
         "algoliasearch": "^5.57.0",
         "core-js": "^3.49.0",
@@ -31,7 +31,7 @@
         "url-parse": "^1.5.10",
         "url-slug": "^4.0.1",
         "usehooks-ts": "^3.1.1",
-        "uuid": "^14.0.0"
+        "uuid": "^14.0.3"
     },
     "devDependencies": {
         "@types/d3-array": "^3.2.2",

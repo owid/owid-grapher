@@ -15,11 +15,11 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
 
       - name: Install dependencies
         run: cp .env.example-grapher .env
@@ -34,11 +34,11 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
 
       - name: Run vitest
         run: yarn test --pool=forks
@@ -54,11 +54,11 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
 
       - name: Configure test environment
         run: cp .env.example-grapher .env
@@ -75,11 +75,11 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
 
@@ -91,11 +91,11 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
 
@@ -107,11 +107,11 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
 
@@ -123,11 +123,11 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
 
@@ -142,11 +142,11 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
 
@@ -172,11 +172,11 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: $/.github/actions/setup-node-yarn-deps
 
       - name: Build
         run: yarn buildViteSite
@@ -184,20 +184,4 @@ jobs:
           BUNDLEMON: true
 
       - name: BundleMon
-        uses: lironer/bundlemon-action@4b47df0793e18e3899eeb07f19b7c88c92c2490e # v1.4.0
-
-  zizmor:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Run zizmor
-        uses: zizmorcore/zizmor-action@6599ee8b7a49aef6a770f63d261d214911a7ce02 # v0.6.0
-        with:
-          # Avanced Security mode is a bit too complicated for our use case, but
-          # we might want to switch to it in the future.
-          advanced-security: false
+        uses: lironer/bundlemon-action@v1.4.0

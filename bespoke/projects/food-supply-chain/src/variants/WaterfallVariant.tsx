@@ -1,0 +1,169 @@
+import { useMemo } from "react"
+import { QueryClientProvider } from "@tanstack/react-query"
+import { NuqsAdapter } from "nuqs/adapters/react"
+import { parseAsInteger, parseAsString, parseAsStringEnum } from "nuqs"
+import { findClosestTime } from "@ourworldindata/utils"
+import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
+
+import { Frame } from "../../../../components/Frame/Frame.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
+import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
+import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
+import { useUrlState } from "../../../../hooks/useUrlState.js"
+import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
+import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
+import {
+    findInitialCountry,
+    useResolveUserLocation,
+} from "../../../../hooks/useResolveUserLocation.js"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
+
+import { FoodSupplyChainControls } from "../components/FoodSupplyChainControls.js"
+import { FoodSupplyChainChart } from "../components/FoodSupplyChainChart.js"
+import type { FoodSupplyChainConfig } from "../index.js"
+import {
+    queryClient,
+    useEntityData,
+    useFoodSupplyChainMetadata,
+} from "../core/data.js"
+import { MEASURES, Measure } from "../core/types.js"
+import { buildSubtitle, buildTitle } from "../core/text.js"
+import { buildWaterfall, findExcludedStageKeys } from "../core/waterfall.js"
+
+const DEFAULT_ENTITY_NAME = WORLD_ENTITY_NAME
+const LATEST_YEAR = Infinity
+
+export function WaterfallVariant({
+    config,
+    urls,
+}: BespokeVariantProps<FoodSupplyChainConfig>): React.ReactElement {
+    return (
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <FetchingWaterfallVariant config={config} urls={urls} />
+            </QueryClientProvider>
+        </NuqsAdapter>
+    )
+}
+
+function FetchingWaterfallVariant({
+    config,
+    urls,
+}: {
+    config: FoodSupplyChainConfig
+    urls: BespokeComponentDataUrls
+}): React.ReactElement {
+    const initialCountryName = findInitialCountry(
+        config.country,
+        DEFAULT_ENTITY_NAME
+    )
+
+    const [countryName, setCountry] = useUrlState({
+        key: "country",
+        parser: parseAsString,
+        defaultValue: initialCountryName,
+    })
+    const [measure, setMeasure] = useUrlState({
+        key: "measure",
+        parser: parseAsStringEnum<Measure>([...MEASURES]),
+        defaultValue: config.measure,
+    })
+    const [selectedYear, setYear] = useUrlState({
+        key: "year",
+        parser: parseAsInteger,
+        defaultValue: config.year ?? LATEST_YEAR,
+    })
+
+    const { data: metadata, status: metadataStatus } =
+        useFoodSupplyChainMetadata(urls.metadataUrl)
+
+    const { isResolved: isCountryResolved } = useResolveUserLocation({
+        configCountry: config.country,
+        availableCountryNames: metadata?.entityNames,
+        urlStateKey: "country",
+        setCountry,
+    })
+
+    const availableCountryName = useAvailableEntityName(
+        countryName,
+        [initialCountryName, DEFAULT_ENTITY_NAME],
+        metadata && ((name) => metadata.entityNames.has(name))
+    )
+    const entity = metadata?.entityByName.get(availableCountryName)
+    const {
+        data: entityData,
+        dataEntity,
+        status: entityStatus,
+        isPlaceholderData,
+    } = useEntityData(entity, urls.dataUrl)
+    const isLoading = useDelayedLoading(isPlaceholderData)
+
+    const year = entityData
+        ? (findClosestTime(entityData.years, selectedYear) ?? selectedYear)
+        : selectedYear
+    const waterfall = useMemo(
+        () =>
+            metadata && entityData && dataEntity
+                ? buildWaterfall({
+                      metadata,
+                      entityData,
+                      measure,
+                      year,
+                      excludedStageKeys: findExcludedStageKeys(dataEntity.name),
+                  })
+                : undefined,
+        [metadata, entityData, dataEntity, measure, year]
+    )
+
+    const shouldHideControls =
+        config.hideControls || !!config.title || !!config.subtitle
+
+    if (metadataStatus === "pending")
+        return <ChartSkeleton className="food-supply-chain-chart-box" />
+    if (metadataStatus === "error" || !metadata)
+        return <ChartError className="food-supply-chain-chart-box" />
+    if (!entity) return <ChartError className="food-supply-chain-chart-box" />
+    if (entityStatus === "pending" || !isCountryResolved)
+        return <ChartSkeleton className="food-supply-chain-chart-box" />
+    if (entityStatus === "error" || !entityData || !dataEntity || !waterfall)
+        return <ChartError className="food-supply-chain-chart-box" />
+
+    return (
+        <>
+            {!shouldHideControls && (
+                <FoodSupplyChainControls
+                    metadata={metadata}
+                    entityName={entity.name}
+                    measure={measure}
+                    year={year}
+                    years={entityData.years}
+                    onEntityNameChange={setCountry}
+                    onMeasureChange={setMeasure}
+                    onYearChange={setYear}
+                />
+            )}
+            <BespokeMetadataProvider metadata={metadata.provenance}>
+                <Frame className="food-supply-chain-captioned-chart">
+                    <ChartHeader
+                        title={
+                            config.title ?? buildTitle(dataEntity.name, measure)
+                        }
+                        subtitle={
+                            config.subtitle ?? buildSubtitle(measure, year)
+                        }
+                    />
+                    <FoodSupplyChainChart
+                        waterfall={waterfall}
+                        isLoading={isLoading}
+                    />
+                    <ChartFooter source={metadata.sources.join("; ")} />
+                </Frame>
+            </BespokeMetadataProvider>
+        </>
+    )
+}

@@ -30,10 +30,8 @@ import {
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import {
-    checkHasChanges,
     getPublishingAction,
     GdocPublishingAction,
-    checkIsLightningUpdate,
 } from "../../adminSiteClient/gdocsDeploy.js"
 import {
     indexIndividualGdoc,
@@ -70,7 +68,6 @@ import {
     type AnyGdoc,
 } from "../../db/model/Gdoc/GdocFactory.js"
 import { refreshGdocComponentPreviews } from "../../db/model/Gdoc/componentPreviews/refreshGdocComponentPreviews.js"
-import { enqueueLightningChange } from "./routeUtils.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
@@ -318,7 +315,7 @@ function checkIsProfile(gdoc: { content: { type?: OwidGdocType } }): boolean {
  * Handles all four `GdocPublishingAction` cases
  * - SavingDraft (no action)
  * - Publishing (index and bake)
- * - Updating (index and bake (potentially via lightning deploy))
+ * - Updating (index and bake)
  * - Unpublishing (remove from index and bake)
  */
 async function indexAndBakeGdocIfNeccesary(
@@ -329,7 +326,6 @@ async function indexAndBakeGdocIfNeccesary(
 ) {
     const prevJson = prevGdoc.toJSON()
     const nextJson = nextGdoc.toJSON()
-    const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
     const action = getPublishingAction(prevJson, nextJson)
     const wasIndexedInPages =
         checkIsGdocPostExcludingFragments(prevJson) ||
@@ -372,15 +368,7 @@ async function indexAndBakeGdocIfNeccesary(
             if (isChronologicalPost) {
                 await indexIndividualGdocInChronological(nextJson, trx)
             }
-            if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
-                await enqueueLightningChange(
-                    user,
-                    `Lightning update ${nextJson.slug}`,
-                    nextJson.slug
-                )
-            } else {
-                await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
-            }
+            await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
         .with(GdocPublishingAction.Unpublishing, async () => {
             if (wasIndexedInPages) {

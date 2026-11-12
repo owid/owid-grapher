@@ -20,6 +20,7 @@ export { regions } from "./regions.js"
 
 export {
     checkIsCountry,
+    checkIsCountryName,
     checkIsAggregate,
     checkIsOwidContinent,
     checkIsIncomeGroup,
@@ -50,5 +51,6 @@ export {
     getCountryNamesForRegion,
     getRegionAlternativeNames,
     articulateEntity,
+    checkHasDefiniteArticle,
     getRegionByCode,
 } from "./regionsUtils.js"

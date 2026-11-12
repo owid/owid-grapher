@@ -202,14 +202,14 @@
 @import "./multiDim/MultiDim.scss";
 @import "./multiDim/MultiDimDataPageContent.scss";
 @import "./multiDim/DimensionDropdown.scss";
-@import "./multiDim/MultiDimDropdowns.scss";
+@import "./multiDim/DimensionToggleButtons.scss";
+@import "./multiDim/MultiDimControls.scss";
 @import "./multiDim/MultiDimDataPageSettingsPanel.scss";
 @import "./multiDim/MultiDimEmbedSettingsPanel.scss";
 @import "./GrapherImage.scss";
 @import "./KeyDataTable.scss";
 @import "./DownloadSection.scss";
 @import "./MetadataSection.scss";
-@import "./TopicTags.scss";
 
 @import "./gdocs/pages/Homepage.scss";
 @import "./gdocs/pages/Author.scss";
@@ -218,7 +218,6 @@
 @import "./gdocs/pages/FeaturedViz.scss";
 @import "./slideshows/SlideshowPage.scss";
 @import "./slideshows/SlideContent.scss";
-@import "./experiments.scss";
 
 @import "css/donate.scss";
 @import "./ThankYouPage.scss";
