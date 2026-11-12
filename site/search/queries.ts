@@ -10,10 +10,7 @@ import {
     TopicPageHit,
     FilterType,
     LatestType,
-    ProfileHit,
     PageChronologicalRecord,
-    DataInsightHit,
-    FlatArticleHit,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
@@ -25,17 +22,20 @@ import {
     CHARTS_INDEX,
     PAGES_INDEX,
     PAGES_CHRONOLOGICAL_INDEX,
-    DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
 } from "./searchUtils.js"
 import {
-    buildChartsFacetFilters,
-    searchSingleForHits,
-    searchSingleForHitsWithClosestMatches,
-    recommendTopicPages,
+    searchPageSection,
+    searchPageSectionToUrlParams,
     TOPIC_PAGE_TYPE_FILTER,
     MAX_FACET_VALUES,
+    SEARCH_PAGE_CHART_ATTRIBUTES,
+    type SearchPageSection,
+    type SearchPageSectionHits,
+    type SearchPageSectionRequest,
+    type SectionSearchResponse,
 } from "@ourworldindata/utils"
+import { SEARCH_SECTIONS_URL } from "../../settings/clientSettings.mjs"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
 function makeStateForKey(state: SearchState) {
@@ -113,7 +113,7 @@ export async function queryDataTopics(
         const facetFilters = [...countryFacetFilters, ...topicFacetFilters]
         return {
             indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
+            attributesToRetrieve: SEARCH_PAGE_CHART_ATTRIBUTES,
             query: state.query,
             facetFilters: facetFilters,
             highlightPreTag: "<mark>",
@@ -130,51 +130,45 @@ export async function queryDataTopics(
     }))
 }
 
+const SEARCH_INDEX_NAMES = { charts: CHARTS_INDEX, pages: PAGES_INDEX }
+
+/**
+ * Runs one section of the search page: through /api/search/sections when
+ * SEARCH_SECTIONS_URL is set and the search has a query, otherwise against
+ * Algolia from the browser. Both run searchPageSection, so they return the
+ * same results. Searches without a query ("browse" states, e.g. a topic
+ * filter alone) stay in the browser, where the search client sends them to
+ * the cached-queries proxy (see searchClients.ts).
+ */
+async function querySection<S extends SearchPageSection>(
+    liteSearchClient: LiteClient,
+    request: SearchPageSectionRequest<S>,
+    loadTagGraph: () => Promise<TagGraphRoot> = () =>
+        Promise.reject(new Error("No topic tag graph"))
+): Promise<SectionSearchResponse<SearchPageSectionHits[S]>> {
+    if (SEARCH_SECTIONS_URL && request.state.query.trim()) {
+        const url = `${SEARCH_SECTIONS_URL}?${searchPageSectionToUrlParams(request)}`
+        try {
+            const response = await fetch(url)
+            if (response.ok) return await response.json()
+            console.warn("Search section request failed:", response.status)
+        } catch (error) {
+            console.warn("Search section request failed:", error)
+        }
+        // Fall back to Algolia, so a failing endpoint never breaks search
+    }
+    return searchPageSection(liteSearchClient, request, {
+        indexNames: SEARCH_INDEX_NAMES,
+        loadTagGraph,
+    })
+}
+
 export async function queryCharts(
     liteSearchClient: LiteClient,
     state: SearchState,
     page: number = 0
 ) {
-    const datasetFacetFilters = [
-        ...formatDisjunctiveFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT),
-            "datasetProducts"
-        ),
-        ...formatDisjunctiveFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE),
-            "datasetNamespaces"
-        ),
-        ...formatDisjunctiveFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION),
-            "datasetVersions"
-        ),
-        ...formatDisjunctiveFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER),
-            "datasetProducers"
-        ),
-    ]
-    const facetFilters = buildChartsFacetFilters({
-        query: state.query,
-        filters: state.filters,
-        requireAllCountries: state.requireAllCountries,
-        datasetFacetFilters,
-    })
-
-    const searchParams = {
-        indexName: CHARTS_INDEX,
-        attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-        query: state.query,
-        facetFilters,
-        highlightPreTag: "<mark>",
-        highlightPostTag: "</mark>",
-        hitsPerPage: 9,
-        page,
-    }
-
-    return searchSingleForHitsWithClosestMatches<SearchChartHit>(
-        liteSearchClient,
-        searchParams
-    )
+    return querySection(liteSearchClient, { section: "charts", state, page })
 }
 
 export async function queryDataInsights(
@@ -183,50 +177,12 @@ export async function queryDataInsights(
     page: number = 0,
     hitsPerPage: number = 4
 ) {
-    const selectedCountryNames = getFilterNamesOfType(
-        state.filters,
-        FilterType.COUNTRY
-    )
-    const hasCountry = selectedCountryNames.size > 0
-    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
-    // Using the selected countries as query search terms until data insights
-    // are tagged with countries.
-    const query = [
-        state.query,
-        // Use advanced syntax to search for countries as exact phrases
-        ...selectedCountryNames.keys().map((c) => `"${c}"`),
-    ]
-        .filter(Boolean)
-        .join(" ")
-
-    const searchParams = {
-        indexName: PAGES_INDEX,
-        query,
-        filters: `type:${OwidGdocType.DataInsight}`,
-        facetFilters: formatTopicFacetFilters(selectedTopics),
-        // Do not search through the content of data insights in case there
-        // is a country filter present. This is to avoid returning data
-        // insights that might mention a country, but are not *about* that
-        // country (e.g. "Unlike Germany...").
-        ...(hasCountry && {
-            // a subset of searchableAttributes on the Pages index
-            restrictSearchableAttributes: ["title", "tags", "authors"],
-        }),
-        attributesToRetrieve: ["title", "thumbnailUrl", "date", "slug", "type"],
-        highlightPreTag: "<mark>",
-        highlightPostTag: "</mark>",
-        hitsPerPage,
+    return querySection(liteSearchClient, {
+        section: "data-insights",
+        state,
         page,
-    }
-
-    // Selected countries are part of the query, so the closest-matches
-    // fallback would drop them as optional words and show results that
-    // ignore the country filter. An empty section is the honest answer.
-    const search = hasCountry
-        ? searchSingleForHits
-        : searchSingleForHitsWithClosestMatches
-
-    return search<DataInsightHit>(liteSearchClient, searchParams)
+        hitsPerPage,
+    })
 }
 
 export async function queryArticles(
@@ -235,66 +191,13 @@ export async function queryArticles(
     offset: number = 0,
     length: number
 ) {
-    const selectedCountryNames = getFilterNamesOfType(
-        state.filters,
-        FilterType.COUNTRY
-    )
-    const hasCountry = selectedCountryNames.size > 0
-    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
-    const isFilterOnly = state.query.trim() === ""
-    // Using the selected countries as query search terms until articles
-    // are tagged with countries.
-    const query = [
-        state.query,
-        // Use advanced syntax to search for countries as exact phrases
-        ...selectedCountryNames.keys().map((c) => `"${c}"`),
-    ]
-        .filter(Boolean)
-        .join(" ")
-
-    const searchParams = {
-        indexName: PAGES_INDEX,
-        query,
-        filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
-        facetFilters: formatTopicFacetFilters(selectedTopics),
-        // Do not search through the content of articles in case there is a
-        // country filter present. This is to avoid returning articles that
-        // might mention a country, but are not *about* that country (e.g.
-        // "Unlike Germany...").
-        ...(hasCountry && {
-            // a subset of searchableAttributes on the Pages index
-            restrictSearchableAttributes: ["title", "tags", "authors"],
-        }),
-        attributesToRetrieve: [
-            "title",
-            "thumbnailUrl",
-            "date",
-            "slug",
-            "type",
-            isFilterOnly ? "excerpt" : "content",
-            "authors",
-        ],
-        highlightPreTag: "<mark>",
-        highlightPostTag: "</mark>",
+    return querySection(liteSearchClient, {
+        section: "articles",
+        state,
         offset,
         length,
-    }
-
-    // No closest-matches fallback with a country filter (see queryDataInsights)
-    const search = hasCountry
-        ? searchSingleForHits
-        : searchSingleForHitsWithClosestMatches
-
-    return search<FlatArticleHit>(liteSearchClient, searchParams)
+    })
 }
-
-const TOPIC_PAGE_ATTRIBUTES = [
-    "title",
-    "type",
-    "slug",
-    "excerpt",
-    "excerptLong",
-]
 
 /**
  * Topic pages to recommend for the current search (see recommendTopicPages
@@ -306,16 +209,12 @@ export async function queryTopicPages(
     tagGraph: TagGraphRoot,
     offset: number = 0,
     length: number
-): Promise<SearchResponse<TopicPageHit>> {
-    return recommendTopicPages<TopicPageHit>(liteSearchClient, {
-        chartsIndexName: CHARTS_INDEX,
-        pagesIndexName: PAGES_INDEX,
-        state,
-        loadTagGraph: () => Promise.resolve(tagGraph),
-        attributesToRetrieve: TOPIC_PAGE_ATTRIBUTES,
-        offset,
-        length,
-    })
+) {
+    return querySection(
+        liteSearchClient,
+        { section: "topic-pages", state, offset, length },
+        () => Promise.resolve(tagGraph)
+    )
 }
 
 export async function queryProfiles(
@@ -324,40 +223,12 @@ export async function queryProfiles(
     offset: number = 0,
     length: number
 ) {
-    const selectedCountryNames = getFilterNamesOfType(
-        state.filters,
-        FilterType.COUNTRY
-    )
-    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
-
-    const facetFilters = [
-        ...formatCountryFacetFilters(
-            selectedCountryNames,
-            state.requireAllCountries
-        ),
-        ...formatTopicFacetFilters(selectedTopics),
-    ]
-
-    const searchParams = {
-        indexName: PAGES_INDEX,
-        query: state.query,
-        filters: `type:${OwidGdocType.Profile}`,
-        facetFilters,
-        attributesToRetrieve: [
-            "title",
-            "thumbnailUrl",
-            "slug",
-            "excerpt",
-            "type",
-            "availableEntities",
-        ],
-        highlightPreTag: "<mark>",
-        highlightPostTag: "</mark>",
+    return querySection(liteSearchClient, {
+        section: "profiles",
+        state,
         offset,
         length,
-    }
-
-    return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
+    })
 }
 
 export interface LatestPagesResult {

@@ -10,8 +10,9 @@ import {
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     getFilterNamesOfType,
-    buildChartsFacetFilters,
-    searchSingleForHitsWithClosestMatches,
+    buildChartsSearch,
+    buildPagesSearch,
+    runSectionSearch,
     recommendTopicPages,
     MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
@@ -181,12 +182,6 @@ export async function searchCharts(
     hitsPerPage: number = 20,
     baseUrl: string = "https://ourworldindata.org"
 ): Promise<SearchApiResponse> {
-    const facetFilters = buildChartsFacetFilters({
-        query: state.query,
-        filters: state.filters,
-        requireAllCountries: state.requireAllCountries,
-    })
-
     const indexName = getIndexName(
         SearchIndexName.ExplorerViewsMdimViewsAndCharts,
         config.indexPrefix
@@ -194,18 +189,15 @@ export async function searchCharts(
 
     const client = createSearchClient(config)
 
-    const result = await searchSingleForHitsWithClosestMatches<SearchChartHit>(
+    // The search page's chart search, with the attributes API consumers get
+    const result = await runSectionSearch<SearchChartHit>(
         client,
-        {
+        buildChartsSearch(state, {
             indexName,
-            query: state.query,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            hitsPerPage,
             page,
-            ...(facetFilters.length > 0 && { facetFilters }),
-        }
+            hitsPerPage,
+            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
+        })
     )
 
     // If we got zero results and user is filtering by topic, check if the topic exists
@@ -275,23 +267,20 @@ export async function searchPages(
 ): Promise<SearchPagesApiResponse> {
     const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
 
-    // Build filters string for page types
-    const filters = pageTypes.map((type) => `type:${type}`).join(" OR ")
-
     const client = createSearchClient(config)
 
-    const result = await searchSingleForHitsWithClosestMatches<SearchPageHit>(
+    // The search page's article and data insight search, without its filters
+    const result = await runSectionSearch<SearchPageHit>(
         client,
-        {
-            indexName,
-            query,
-            filters,
-            attributesToRetrieve: PAGE_ATTRIBUTES,
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            offset,
-            length,
-        }
+        buildPagesSearch(
+            { query, filters: [], requireAllCountries: false },
+            {
+                indexName,
+                types: pageTypes,
+                attributesToRetrieve: PAGE_ATTRIBUTES,
+                pagination: { offset, length },
+            }
+        )
     )
 
     return {

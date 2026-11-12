@@ -162,6 +162,10 @@ For detailed API documentation, including all parameters, response schemas, and 
 
 A caching proxy for empty-query Algolia searches. The site routes Algolia multi-query requests where every query string is empty — the "browse" requests issued by default states like the search landing page or the empty autocomplete panel — to this endpoint (see `site/search/searchClients.ts`), which forwards them to Algolia and caches the response for a day — except for payloads touching the chronological pages index (which backs /latest and sorts by date), cached for only 15 minutes so newly published articles show up quickly. Requests containing a non-empty query are rejected with a 400 and should go to Algolia directly; the client falls back to a direct Algolia request whenever this endpoint fails or rejects.
 
+## `/api/search/sections`
+
+The search page's own endpoint: one result section (charts, data insights, articles, topic pages or profiles) of a search, as the page would query it from the browser. When `SEARCH_SECTIONS_URL` is set, the site sends each section with a typed query here instead of querying Algolia directly (see `querySection` in `site/search/queries.ts`), and falls back to Algolia when this endpoint fails. It runs the same `searchPageSection` from `@ourworldindata/utils` as the browser, so the results are identical, and returns Algolia's response unchanged, highlights included. Not a public API: its response follows the search page, unlike `/api/search`'s.
+
 ## `/deleted/:slug`
 
 This route is used to handle deleted pages. They are fully baked we just want them to return a 404 status code instead of a 200.

@@ -368,22 +368,6 @@ export const PAGES_INDEX = getIndexName(SearchIndexName.Pages)
 export const PAGES_CHRONOLOGICAL_INDEX = getIndexName(
     SearchIndexName.PagesChronological
 )
-export const DATA_CATALOG_ATTRIBUTES = [
-    "title",
-    "containerTitle",
-    "slug",
-    "availableEntities",
-    "originalAvailableEntities",
-    "variantName",
-    "titleVariant",
-    "type",
-    "queryParams",
-    "availableTabs",
-    "subtitle",
-    "chartConfigId",
-    "explorerType",
-]
-
 // Re-exported for existing importers; the actual definitions live in
 // @ourworldindata/utils so functions/api/search/searchApi.ts (which can't
 // import from site/) shares them too, keeping Algolia facetFilters identical

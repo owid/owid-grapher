@@ -121,6 +121,10 @@ sequenceDiagram
 
 The "Topic page" cards in the Research & Writing section are not a text search over topic pages. Topic pages consist mostly of charts and key indicators, whose text isn't indexed, so their records rarely contain the words a user searches for ("gdp" appears nowhere in the Economic Growth page's records) while long-form pages match on passing mentions. Instead, `queryTopicPages` looks at the best-ranked charts matching the query and shows the topic pages of their tags, weighted by chart rank (reciprocal rank, so a topic with hundreds of poorly-ranked matching explorer views can't outvote the charts at the top). Query words are matched as whole words first, falling back to Algolia's usual prefix matching only when that finds nothing, so "ai" means AI rather than the start of "air" or "aid". Text search over topic pages, without closest matches, is the fallback for empty queries and queries no chart matches. The implementation, fallback included (`recommendTopicPages` in `@ourworldindata/utils`), is shared with the public `/api/search` endpoint, which serves it as `type=topics`.
 
+#### Running sections in a function
+
+Each result section runs one search from `searchPageSection` in `@ourworldindata/utils` (see `querySection` in `queries.ts`). By default the browser runs it against Algolia. With `SEARCH_SECTIONS_URL` set, sections with a typed query send it to `/api/search/sections`, which runs the same function in a Cloudflare function and returns Algolia's response unchanged; the browser falls back to Algolia if that request fails. The section's follow-up searches (closest matches, topic page recommendations) then run next to Algolia instead of over the reader's connection, and a server-side step such as reranking can be added there. Searches without a query stay in the browser and go through the caching proxy below.
+
 #### Empty-query caching proxy
 
 Requests with empty queries are routed through a caching Cloudflare function (`functions/api/search/cached-queries.ts`) which caches them for 24h.

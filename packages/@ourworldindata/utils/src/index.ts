@@ -447,9 +447,36 @@ export {
 } from "./search/searchFacetFilters.js"
 
 export {
+    type SingleSearchRequest,
     searchSingleForHits,
     searchSingleForHitsWithClosestMatches,
 } from "./search/searchClosestMatches.js"
+
+export {
+    type SectionSearchState,
+    type SearchIndexNames,
+    type SectionSearch,
+    type SectionSearchResponse,
+    type SectionPagination,
+    type SearchPageSectionHits,
+    type SearchPageSection,
+    type SearchPageSectionRequest,
+    runSectionSearch,
+    buildChartsSearch,
+    buildPagesSearch,
+    buildArticlesSearch,
+    buildDataInsightsSearch,
+    buildProfilesSearch,
+    searchPageSection,
+    searchPageSectionToUrlParams,
+    searchUrlParamsToSectionState,
+    SEARCH_PAGE_SECTIONS,
+    SEARCH_PAGE_CHARTS_PER_PAGE,
+    SEARCH_PAGE_CHART_ATTRIBUTES,
+    SEARCH_PAGE_TOPIC_PAGE_ATTRIBUTES,
+    SEARCH_FILTER_URL_PARAMS,
+    SEARCH_URL_LIST_SEPARATOR,
+} from "./search/searchSections.js"
 
 export {
     TOPIC_PAGE_TYPE_FILTER,

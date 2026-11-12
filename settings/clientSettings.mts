@@ -82,6 +82,17 @@ export const ALGOLIA_CACHED_QUERIES_URL: string =
     process.env.ALGOLIA_CACHED_QUERIES_URL ??
     (ENV === "development" ? "" : `${BAKED_BASE_URL}/api/search/cached-queries`)
 
+// Endpoint of the Cloudflare function that runs the search page's result
+// sections (functions/api/search/sections.ts). When set, the search page
+// fetches each section with a typed query from there instead of querying
+// Algolia from the browser; when empty, it queries Algolia directly. On by
+// default on staging servers only, while it is being tried out.
+// Set it to http://localhost:8788/api/search/sections to test against
+// `yarn startLocalCloudflareFunctions`.
+export const SEARCH_SECTIONS_URL: string =
+    process.env.SEARCH_SECTIONS_URL ??
+    (ENV === "staging" ? `${BAKED_BASE_URL}/api/search/sections` : "")
+
 // Cloudflare Images has one store shared by all environments, so in development
 // images come from the production delivery URL unless set. `||` rather than `??`
 // because .env.example-full sets it to an empty value.
