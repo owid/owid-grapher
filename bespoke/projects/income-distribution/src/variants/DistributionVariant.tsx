@@ -420,9 +420,7 @@ function CaptionedDistributionVariant({
     )
 
     const title = config.title ?? chartTitle(view, selectedCountries)
-    const subtitle =
-        config.subtitle ??
-        chartSubtitle(year, currency, povertyLineMode === "international")
+    const subtitle = config.subtitle ?? chartSubtitle(year, currency)
 
     return (
         <div
@@ -563,7 +561,11 @@ function CaptionedDistributionVariant({
                     </div>
                     <ChartFooter
                         source={metadata.source}
-                        note={chartNote(currency, year)}
+                        note={chartNote(
+                            currency,
+                            year,
+                            povertyLineMode === "international"
+                        )}
                     />
                 </Frame>
             </BespokeMetadataProvider>
@@ -625,25 +627,27 @@ function formatCountryList(countries: string[]): string {
     return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
 }
 
-function chartSubtitle(
-    year: number,
-    currency: Currency,
-    isInternationalLine: boolean
-): string {
-    const units =
-        currency.code === INTERNATIONAL_DOLLAR.code
-            ? `Data for ${year}, measured in international dollars, which adjusts for differences in the cost of living between countries.`
-            : // The country stays: a currency shared by several countries (the euro) converts differently in each
-              `Data for ${year}, measured in ${currency.name} (${currency.countryName}), adjusted for differences in the cost of living.`
-    return isInternationalLine
-        ? `${units} The International Poverty Line is set by the World Bank as its definition of extreme poverty.`
-        : units
+function chartSubtitle(year: number, currency: Currency): string {
+    return currency.code === INTERNATIONAL_DOLLAR.code
+        ? `Data for ${year}, measured in international dollars, which adjusts for differences in the cost of living between countries.`
+        : // The country stays: a currency shared by several countries (the euro) converts differently in each
+          `Data for ${year}, measured in ${currency.name} (${currency.countryName}), adjusted for differences in the cost of living.`
 }
 
-function chartNote(currency: Currency, year: number): string {
+function chartNote(
+    currency: Currency,
+    year: number,
+    isInternationalLine: boolean
+): string {
     const sentences = [
         "Depending on the country, the data relates to income measured after taxes and benefits, or to consumption, per capita.",
     ]
+    // Below the plot rather than in the subtitle, so picking or dragging the
+    // line never reflows the chart above it
+    if (isInternationalLine)
+        sentences.push(
+            "The International Poverty Line is set by the World Bank as its definition of extreme poverty."
+        )
     if (year >= FIRST_NOWCAST_YEAR)
         sentences.push(
             `Figures for ${year} are World Bank nowcasts, which extrapolate the latest household surveys using economic growth.`
