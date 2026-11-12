@@ -88,9 +88,10 @@ export const ALGOLIA_CACHED_QUERIES_URL: string =
 // Algolia from the browser; when empty, it queries Algolia directly. On by
 // default on staging servers only, while it is being tried out.
 // Set it to http://localhost:8788/api/search/sections to test against
-// `yarn startLocalCloudflareFunctions`.
+// `yarn startLocalCloudflareFunctions`. `||` rather than `??` because
+// .env.example-full sets it to an empty value.
 export const SEARCH_SECTIONS_URL: string =
-    process.env.SEARCH_SECTIONS_URL ??
+    process.env.SEARCH_SECTIONS_URL ||
     (ENV === "staging" ? `${BAKED_BASE_URL}/api/search/sections` : "")
 
 // Cloudflare Images has one store shared by all environments, so in development
