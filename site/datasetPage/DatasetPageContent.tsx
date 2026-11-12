@@ -1158,6 +1158,11 @@ function ReuseSection({
                     permitted by them, and to credit the sources correctly.
                 </p>
             </SectionWithSideHeading>
+            {table.citation && (
+                <SectionWithSideHeading heading="How to cite this data">
+                    <CodeSnippet code={table.citation} theme="light" />
+                </SectionWithSideHeading>
+            )}
             <SectionWithSideHeading
                 heading="Download"
                 id={SECTION_IDS.download}
