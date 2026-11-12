@@ -43,8 +43,10 @@ export function AllCharts({
 }) {
     const { tags } = useContext(AttachmentsContext)
     const { gdocType } = useDocumentContext()
-    const topic = tags[0]?.name
-    const topicSlug = tags[0]?.slug
+
+    const firstTag = tags[0]
+    const firstTagSlug = firstTag?.slug
+    const topics = tags.map((tag) => tag.name)
 
     const { ref, isIntersecting } = useIntersectionObserver({
         rootMargin: ALL_CHARTS_PREFETCH_ROOT_MARGIN,
@@ -58,10 +60,7 @@ export function AllCharts({
     )
     const requestedQuery = debouncedQuery.trim()
 
-    const chartsQuery = {
-        topic: topic ?? "",
-        query: requestedQuery,
-    }
+    const chartsQuery = { topics, query: requestedQuery }
     const {
         data,
         isError,
@@ -72,7 +71,7 @@ export function AllCharts({
     } = useInfiniteQuery({
         queryKey: allChartsBlockQueryKeys.charts(chartsQuery),
         queryFn:
-            topic && isIntersecting
+            topics.length > 0 && isIntersecting
                 ? ({ pageParam }) =>
                       queryAllChartsBlock(getLiteSearchClient(), {
                           ...chartsQuery,
@@ -88,15 +87,15 @@ export function AllCharts({
     })
 
     const { data: suggestionKeywords } = useQuery({
-        queryKey: allChartsBlockQueryKeys.suggestions(topicSlug ?? ""),
+        queryKey: allChartsBlockQueryKeys.suggestions(firstTagSlug ?? ""),
         queryFn:
-            topicSlug && isIntersecting
-                ? () => fetchTopicSuggestions(topicSlug)
+            firstTagSlug && isIntersecting
+                ? () => fetchTopicSuggestions(firstTagSlug)
                 : skipToken,
         staleTime: Infinity,
     })
 
-    if (!topic) return null
+    if (!firstTag) return null
 
     const onQueryChange = (nextQuery: string): void => {
         setQuery(nextQuery)
@@ -111,7 +110,7 @@ export function AllCharts({
         setDebouncedQuery.flush()
     }
 
-    const heading = `${getTopicPageHeading("allCharts", gdocType)} on ${sentenceCaseIfNotTopicPage(topic, gdocType, false)}`
+    const heading = `${getTopicPageHeading("allCharts", gdocType)} on ${sentenceCaseIfNotTopicPage(firstTag.name, gdocType, false)}`
 
     if (!data && requestedQuery === "") {
         if (!isError)
@@ -133,7 +132,7 @@ export function AllCharts({
                 searchStatus="error"
                 noResultsHref={buildSearchHref({
                     resultType: SearchResultType.DATA,
-                    topic,
+                    topic: firstTag.name,
                 })}
             />
         )

@@ -546,7 +546,7 @@ export async function queryWritingTopics(
 }
 
 interface AllChartsBlockRequest {
-    topic: string
+    topics: string[]
     query: string
     page: number
 }
@@ -588,12 +588,12 @@ function parseAllChartsBlockQuery(query: string): {
 }
 
 function buildAllChartsBlockSearchParams({
-    topic,
+    topics,
     textQuery,
     countries,
     page,
 }: {
-    topic: string
+    topics: string[]
     textQuery: string
     countries: string[]
     page: number
@@ -602,7 +602,7 @@ function buildAllChartsBlockSearchParams({
         ...buildChartsFacetFilters({
             query: textQuery,
             filters: [
-                createTopicFilter(topic),
+                ...topics.map(createTopicFilter),
                 ...countries.map(createCountryFilter),
             ],
             requireAllCountries: true,
@@ -639,7 +639,7 @@ export async function queryAllChartsBlock(
     const response = await searchSingleForHits<SearchChartViewHit>(
         liteSearchClient,
         buildAllChartsBlockSearchParams({
-            topic: request.topic,
+            topics: request.topics,
             ...parsed,
             page: request.page,
         })
