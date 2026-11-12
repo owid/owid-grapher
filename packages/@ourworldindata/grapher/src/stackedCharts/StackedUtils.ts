@@ -16,7 +16,7 @@ import {
     StackedPointPositionType,
     StackedSeries,
     PlacedStackedBarSeries,
-    MIN_LABELED_BAND_HEIGHT_PX,
+    MIN_LABELED_BAND_HEIGHT_EM,
 } from "./StackedConstants"
 import { DualAxis } from "../axis/Axis"
 import { Time } from "@ourworldindata/types"
@@ -272,8 +272,15 @@ export function toPlacedStackedBarSeries(
  */
 export function toInitialAnchoredLabelSeries(
     labelsSeries: readonly Omit<InitialAnchoredLabelSeries, "position">[],
-    seriesByName: Map<SeriesName, StackedSeries<number>>,
-    dualAxis: DualAxis
+    {
+        seriesByName,
+        dualAxis,
+        fontSize,
+    }: {
+        seriesByName: Map<SeriesName, StackedSeries<number>>
+        dualAxis: DualAxis
+        fontSize: number
+    }
 ): InitialAnchoredLabelSeries[] {
     const anchoredSeries = labelsSeries.map((series) => ({
         ...series,
@@ -283,11 +290,12 @@ export function toInitialAnchoredLabelSeries(
         },
     }))
 
+    const minBandHeightPx = MIN_LABELED_BAND_HEIGHT_EM * fontSize
     const seriesWithTallBand = anchoredSeries.filter((series) => {
         const stackedSeries = seriesByName.get(series.seriesName)
         return (
             !!stackedSeries &&
-            isLastBandTallEnoughToLabel(stackedSeries, dualAxis)
+            measureLastBandHeightPx(stackedSeries, dualAxis) >= minBandHeightPx
         )
     })
     if (seriesWithTallBand.length > 0 || anchoredSeries.length === 0)
@@ -297,15 +305,6 @@ export function toInitialAnchoredLabelSeries(
         makeStackedLabelComparator(seriesByName)
     )[0]
     return [topRankedSeries]
-}
-
-function isLastBandTallEnoughToLabel(
-    series: StackedSeries<number>,
-    dualAxis: DualAxis
-): boolean {
-    return (
-        measureLastBandHeightPx(series, dualAxis) >= MIN_LABELED_BAND_HEIGHT_PX
-    )
 }
 
 export function makeStackedLabelComparator(
