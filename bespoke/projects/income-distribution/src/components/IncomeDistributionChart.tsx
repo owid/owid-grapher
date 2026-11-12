@@ -43,6 +43,10 @@ import {
     type LabelBox,
 } from "../core/curveLabels.js"
 import { placeRegionLabels, RegionBandPixels } from "../core/regionLabels.js"
+import {
+    layoutPovertyLineLabel,
+    POVERTY_LINE_LABEL,
+} from "../core/povertyLineLabel.js"
 import type {
     Currency,
     IncomeDistributionYear,
@@ -134,6 +138,8 @@ const MAX_COUNTRY_LABELS = 6
 const MAX_COUNTRY_LABELS_NARROW = 4
 /** Country labels stay this far below the plot's top, clear of the poverty line's label */
 const COUNTRY_LABEL_TOP_INSET = 9
+/** Room kept between the country labels and the poverty line's label, in px */
+const POVERTY_LINE_LABEL_MARGIN = 4
 /** Lato's capital height as a share of its font size, for centring the badge on the name */
 const COUNTRY_LABEL_CAP_HEIGHT_SHARE = 0.72
 
@@ -169,6 +175,14 @@ interface PointerState {
     income: number
     /** Relative to the chart container */
     position: Position
+}
+
+/** What the poverty line's label says, for the line at `income` (int-$/day) */
+interface PovertyLineText {
+    income: number
+    /** Bold first line; without it, `label` is the bold line */
+    title?: string
+    label: string
 }
 
 interface AxisTick {
@@ -269,6 +283,65 @@ function IncomeDistributionChartContent({
         })
     }, [model.regionBands, incomes, xScale, yScale, isNarrow])
 
+    // The international line is always $3 a day, whatever the chart is
+    // measured in: it's named on its own line, with $3 a day and the amount in
+    // the chosen units below
+    const povertyLineText = useMemo(
+        (): PovertyLineText | null =>
+            povertyLine === null
+                ? null
+                : isInternationalPovertyLine
+                  ? {
+                        income: povertyLine,
+                        title: "International poverty line",
+                        label: internationalPovertyLineAmount(
+                            currency,
+                            timeInterval
+                        ),
+                    }
+                  : {
+                        income: povertyLine,
+                        label: `Poverty line: ${formatIncome(povertyLine, currency, timeInterval, { short: true })}`,
+                    },
+        [povertyLine, isInternationalPovertyLine, currency, timeInterval]
+    )
+
+    // While the line is dragged, the country labels keep clear of its label
+    // where the drag started, and are laid out again once it ends: following
+    // the line would make them flicker in and out as it passes over them
+    const [dragStartLine, setDragStartLine] = useState<PovertyLineText | null>(
+        null
+    )
+    const lineForLabels = dragStartLine ?? povertyLineText
+    const hasClearButton = onClearPovertyLine !== undefined
+    const povertyLineLabelBox = useMemo((): LabelBox | undefined => {
+        if (isStacked || !lineForLabels) return undefined
+        const { box } = layoutPovertyLineLabel({
+            x: xScale(lineForLabels.income),
+            ballY: plotTop,
+            width,
+            title: lineForLabels.title,
+            label: lineForLabels.label,
+            hasClear: hasClearButton,
+            obstacles,
+        })
+        const m = POVERTY_LINE_LABEL_MARGIN
+        return {
+            left: box.left - m,
+            right: box.right + m,
+            top: box.top - m,
+            bottom: box.bottom + m,
+        }
+    }, [
+        isStacked,
+        lineForLabels,
+        xScale,
+        plotTop,
+        width,
+        hasClearButton,
+        obstacles,
+    ])
+
     const countryLabelFontSize = isNarrow
         ? COUNTRY_LABEL_FONT_SIZE_NARROW
         : COUNTRY_LABEL_FONT_SIZE
@@ -303,6 +376,7 @@ function IncomeDistributionChartContent({
             obstacles: [
                 ...(obstacles ?? []),
                 ...(legendBox ? [legendBox] : []),
+                ...(povertyLineLabelBox ? [povertyLineLabelBox] : []),
             ],
         }
         const layout = placeCurveLabels(candidates, options)
@@ -333,6 +407,7 @@ function IncomeDistributionChartContent({
         plotBottom,
         obstacles,
         legendBox,
+        povertyLineLabelBox,
         leftoverLegendTop,
         width,
     ])
@@ -471,9 +546,10 @@ function IncomeDistributionChartContent({
             event.stopPropagation()
             event.currentTarget.setPointerCapture(event.pointerId)
             isDraggingRef.current = true
+            setDragStartLine(povertyLineText)
             setPointer(null)
         },
-        []
+        [povertyLineText]
     )
     const handleLinePointerMove = useCallback(
         (event: React.PointerEvent<SVGGElement>) => {
@@ -488,6 +564,7 @@ function IncomeDistributionChartContent({
         (event: React.PointerEvent<SVGGElement>) => {
             if (!isDraggingRef.current) return
             isDraggingRef.current = false
+            setDragStartLine(null)
             event.currentTarget.releasePointerCapture(event.pointerId)
         },
         []
@@ -669,29 +746,15 @@ function IncomeDistributionChartContent({
                     </g>
                 )}
 
-                {povertyLine !== null && (
+                {povertyLine !== null && povertyLineText && (
                     <PovertyLine
                         x={xScale(povertyLine)}
                         plotTop={plotTop}
                         plotBottom={plotBottom}
                         width={width}
                         obstacles={obstacles}
-                        // The international line is always $3 a day, whatever
-                        // the chart is measured in: it's named on its own line,
-                        // with $3 a day and the amount in the chosen units below
-                        title={
-                            isInternationalPovertyLine
-                                ? "International poverty line"
-                                : undefined
-                        }
-                        label={
-                            isInternationalPovertyLine
-                                ? internationalPovertyLineAmount(
-                                      currency,
-                                      timeInterval
-                                  )
-                                : `Poverty line: ${formatIncome(povertyLine, currency, timeInterval, { short: true })}`
-                        }
+                        title={povertyLineText.title}
+                        label={povertyLineText.label}
                         valueNow={povertyLine}
                         valueMin={minIncome}
                         valueMax={maxIncome}
@@ -986,45 +1049,19 @@ function PovertyLine({
     /** Where the × is while it's hovered or focused, for its hint; null after */
     onClearHintChange: (position: Position | null) => void
 }): React.ReactElement {
-    const fontSize = 12
-    const ballRadius = 5
+    const { fontSize, ballRadius, clearSize, lineHeight } = POVERTY_LINE_LABEL
     const ballY = plotTop
-    const gap = 6
-    const clearSize = 14
-    const clearSpace = onClear ? gap / 2 + clearSize : 0
-    const lineHeight = 14
-    const titleWidth = Bounds.forText(title ?? label, {
-        fontSize,
-        fontWeight: 700,
-    }).width
-    const textWidth = title
-        ? Math.max(
-              titleWidth,
-              Bounds.forText(label, { fontSize, fontWeight: 400 }).width
-          )
-        : titleWidth
     // The label sits right of the ball, or left of it when it would overflow
     // or run into an obstacle (e.g. the button over the plot's corner)
-    const rightStart = x + ballRadius + gap
-    const rightEnd = rightStart + textWidth + clearSpace
-    const labelTop = ballY - clearSize / 2
-    const labelBottom = ballY + clearSize / 2 + (title ? lineHeight : 0)
-    const fitsRight =
-        rightEnd <= width &&
-        !(obstacles ?? []).some(
-            (box) =>
-                box.left < rightEnd &&
-                box.right > rightStart &&
-                box.top < labelBottom &&
-                box.bottom > labelTop
-        )
-    const textX = fitsRight
-        ? x + ballRadius + gap
-        : x - ballRadius - gap - clearSpace
-    const clearX = fitsRight
-        ? textX + titleWidth + gap / 2
-        : x - ballRadius - gap - clearSize
-    const clearCenterX = clearX + clearSize / 2
+    const { fitsRight, textX, clearCenterX } = layoutPovertyLineLabel({
+        x,
+        ballY,
+        width,
+        title,
+        label,
+        hasClear: !!onClear,
+        obstacles,
+    })
     const clearHintPosition = { x: clearCenterX, y: ballY + clearSize / 2 + 4 }
 
     return (
