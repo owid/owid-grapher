@@ -286,7 +286,7 @@ export function runSearchRequest<THit extends { slug: string }>(
     params: {
         indexNames: SearchIndexNames
         /** Only called by type=topics, once a chart matches. */
-        loadTagGraph: () => Promise<TagGraphRoot>
+        loadTagGraph?: () => Promise<TagGraphRoot>
     }
 ): Promise<SectionSearchResponse<THit>> {
     const { indexNames } = params
@@ -324,7 +324,9 @@ export function runSearchRequest<THit extends { slug: string }>(
                 chartsIndexName: indexNames.charts,
                 pagesIndexName: indexNames.pages,
                 state: request.state,
-                loadTagGraph: params.loadTagGraph,
+                loadTagGraph:
+                    params.loadTagGraph ??
+                    (() => Promise.reject(new Error("No topic tag graph"))),
                 attributesToRetrieve: TOPIC_PAGE_ATTRIBUTES,
                 offset: request.offset,
                 length: request.length,

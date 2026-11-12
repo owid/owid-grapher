@@ -114,15 +114,12 @@ function parseIntegerParam(
     return number >= min && number <= max ? number : null
 }
 
-// Algolia's client throws an ApiError with the HTTP status. A 4xx means
+// Algolia's client throws an ApiError with the HTTP status. A 400 means
 // Algolia refused this request (e.g. too many query words), not that
-// something is broken.
-const isAlgoliaClientError = (error: unknown): boolean =>
-    error instanceof Error &&
-    "status" in error &&
-    typeof error.status === "number" &&
-    error.status >= 400 &&
-    error.status < 500
+// something is broken. Other 4xx (a revoked key, rate limiting) are outages,
+// so they go to Sentry.
+const isAlgoliaBadRequest = (error: unknown): boolean =>
+    error instanceof Error && "status" in error && error.status === 400
 
 // Hints for parameters people carry over from the search page's URL.
 const PARAM_HINTS = new Map<string, string>([
@@ -147,13 +144,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
 
-        const typeParam = url.searchParams.get("type") || "charts"
-        if (!isSearchType(typeParam))
+        const searchType = url.searchParams.get("type") || "charts"
+        if (!isSearchType(searchType))
             return badRequest(
                 "Invalid type parameter",
                 `Type must be one of: ${SEARCH_TYPES.join(", ")}`
             )
-        const searchType = typeParam
 
         // utm_* tags are expected noise, not mistakes worth a warning
         const sentParams = [...new Set(url.searchParams.keys())]
@@ -361,7 +357,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // as 400 without being reported to Sentry.
         if (
             error instanceof SearchValidationError ||
-            isAlgoliaClientError(error)
+            isAlgoliaBadRequest(error)
         )
             return badRequest((error as Error).message)
 

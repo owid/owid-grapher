@@ -16,6 +16,7 @@ import {
     DEFAULT_PAGE_TYPES,
     type SearchRequest,
     type SectionSearchResponse,
+    type SectionSearchState,
 } from "@ourworldindata/utils"
 import {
     getIndexName,
@@ -72,12 +73,6 @@ export type EnrichedSearchPageHit = Omit<
     url: string
 }
 
-export interface SearchState {
-    query: string
-    filters: Filter[]
-    requireAllCountries: boolean
-}
-
 export interface SearchApiResponse {
     query: string
     results: EnrichedSearchChartHit[]
@@ -118,16 +113,13 @@ export interface SearchApiOptions {
      * as the search page renders them (highlights=true)
      */
     highlights?: boolean
-    /** Only called by type=topics, once a chart matches. */
-    loadTagGraph?: () => Promise<TagGraphRoot>
 }
 
 /** Runs one search through the search page's own code (runSearchRequest). */
 async function runSearch<THit extends { slug: string }>(
     config: AlgoliaConfig,
     request: SearchRequest,
-    loadTagGraph: () => Promise<TagGraphRoot> = () =>
-        Promise.reject(new Error("No topic tag graph"))
+    loadTagGraph?: () => Promise<TagGraphRoot>
 ): Promise<SectionSearchResponse<THit>> {
     const result = await runSearchRequest<THit>(
         createSearchClient(config),
@@ -214,7 +206,7 @@ async function assertTopicsExist(
 
 export async function searchCharts(
     config: AlgoliaConfig,
-    state: SearchState,
+    state: SectionSearchState,
     page: number = 0,
     hitsPerPage: number = 20,
     baseUrl: string = "https://ourworldindata.org",
@@ -253,7 +245,7 @@ export async function searchCharts(
 
 export async function searchPages(
     config: AlgoliaConfig,
-    state: SearchState,
+    state: SectionSearchState,
     offset: number = 0,
     length: number = 10,
     pageTypes: readonly string[] = DEFAULT_PAGE_TYPES,
@@ -281,7 +273,7 @@ export async function searchPages(
 /** Topic pages to recommend for a query, as on the site (see recommendTopicPages). */
 export async function searchTopicPages(
     config: AlgoliaConfig,
-    state: SearchState,
+    state: SectionSearchState,
     loadTagGraph: () => Promise<TagGraphRoot>,
     offset: number = 0,
     length: number = 10,
@@ -306,7 +298,7 @@ export async function searchTopicPages(
 /** Country profiles for the selected countries, as on the site. */
 export async function searchProfiles(
     config: AlgoliaConfig,
-    state: SearchState,
+    state: SectionSearchState,
     offset: number = 0,
     length: number = 10,
     baseUrl: string = "https://ourworldindata.org",

@@ -148,8 +148,7 @@ const CHARTS_PER_PAGE = 9
 async function querySection<THit extends { slug: string }>(
     liteSearchClient: LiteClient,
     request: SearchRequest,
-    loadTagGraph: () => Promise<TagGraphRoot> = () =>
-        Promise.reject(new Error("No topic tag graph"))
+    loadTagGraph?: () => Promise<TagGraphRoot>
 ): Promise<SectionSearchResponse<THit>> {
     if (SEARCH_API_URL && request.state.query.trim()) {
         const params = searchRequestToUrlParams(request)
