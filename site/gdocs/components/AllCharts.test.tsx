@@ -132,6 +132,25 @@ it("previews the first row on its first chart tab, and a thumbnail switches row 
     expect(screen.getByTestId("preview")).toHaveTextContent("beta?tab=line")
 })
 
+it("sends a thumbnail and the preview of its tab the same peer params", async () => {
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+
+    const alphaRow = await findRow("alpha")
+    const lineChartButton = within(alphaRow).getByRole("button", {
+        name: "Line chart",
+    })
+    fireEvent.click(lineChartButton)
+
+    const peerParams = "country=&peerCountries=dataRange&peerCount=4"
+    expect(lineChartButton.querySelector("img")?.getAttribute("src")).toContain(
+        `?tab=line&${peerParams}&`
+    )
+    expect(screen.getByTestId("preview").textContent).toBe(
+        `alpha?tab=line&${peerParams}`
+    )
+})
+
 it("shows the error panel, linking to the topic in search, when the first page fails", async () => {
     searchForHits.mockRejectedValueOnce(new Error("Algolia is down"))
     renderBlock()
@@ -250,9 +269,11 @@ it("filters by countries typed into the search and shows them on the rows, thumb
         ).toHaveTextContent("Spain")
     )
     const alphaRow = await findRow("alpha")
-    expect(alphaRow.querySelector("img")?.getAttribute("src")).toContain(
-        "country=~ESP"
-    )
+    const thumbnailSrc = alphaRow.querySelector("img")?.getAttribute("src")
+    expect(thumbnailSrc).toContain("country=~ESP")
+    expect(thumbnailSrc).not.toContain("peerCountries")
+    expect(thumbnailSrc).not.toContain("focus=")
+    expect(thumbnailSrc).not.toContain("time=")
     expect(screen.getByTestId("preview")).toHaveTextContent(
         "alpha?tab=line&country=~ESP"
     )
