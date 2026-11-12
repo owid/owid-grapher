@@ -14,6 +14,13 @@ export type PovertyLineMode = (typeof POVERTY_LINE_MODES)[number]
 export const TIME_INTERVALS = ["daily", "monthly", "yearly"] as const
 export type TimeInterval = (typeof TIME_INTERVALS)[number]
 
+/**
+ * What a country's household surveys measure: income (after taxes and
+ * benefits) or consumption, as PIP's `welfare_type`
+ */
+export const WELFARE_TYPES = ["income", "consumption"] as const
+export type WelfareType = (typeof WELFARE_TYPES)[number]
+
 /** The World Bank regions the feed assigns every country to */
 export const REGIONS = [
     "East Asia and Pacific",

@@ -10,8 +10,9 @@ import {
     timeIntervalNoun,
 } from "../core/currency.js"
 import { WORLD_ENTITY_NAME } from "../core/constants.js"
-import type { Currency, TimeInterval } from "../core/types.js"
+import type { Currency, TimeInterval, WelfareType } from "../core/types.js"
 import { formatLegendLabel, legendLabelLines } from "../core/legendLabels.js"
+import { WelfareBadge } from "./WelfareBadge.js"
 
 /** Length in px of a 100% bar in the overlay legend */
 const OVERLAY_BAR_MAX_WIDTH = 100
@@ -23,6 +24,8 @@ export interface LegendEntry {
     /** Display name; defaults to `key` */
     label?: string
     color: string
+    /** Countries only: shown as a badge after the name */
+    welfareType?: WelfareType
 }
 
 export interface IncomeDistributionLegendProps {
@@ -184,12 +187,21 @@ export function IncomeDistributionLegend({
                                         the box's width, stay narrow */}
                                     {legendLabelLines(
                                         entry.label ?? entry.key
-                                    ).map((line) => (
+                                    ).map((line, i, lines) => (
                                         <span
                                             key={line}
                                             className="income-distribution-legend__label-line"
                                         >
                                             {line}
+                                            {/* After the last line's last word */}
+                                            {i === lines.length - 1 &&
+                                                entry.welfareType && (
+                                                    <WelfareBadge
+                                                        welfareType={
+                                                            entry.welfareType
+                                                        }
+                                                    />
+                                                )}
                                         </span>
                                     ))}
                                 </span>
@@ -223,6 +235,9 @@ export function IncomeDistributionLegend({
                         <span className="income-distribution-legend__label">
                             {formatLegendLabel(entry.label ?? entry.key)}
                         </span>
+                        {entry.welfareType && (
+                            <WelfareBadge welfareType={entry.welfareType} />
+                        )}
                     </li>
                 ))}
             </ul>
@@ -261,6 +276,11 @@ export function IncomeDistributionLegend({
                         >
                             <span className="income-distribution-legend__label">
                                 {formatLegendLabel(entry.label ?? entry.key)}
+                                {entry.welfareType && (
+                                    <WelfareBadge
+                                        welfareType={entry.welfareType}
+                                    />
+                                )}
                             </span>
                             <span className="income-distribution-legend__bar-cell">
                                 <span className="income-distribution-legend__bar-track">

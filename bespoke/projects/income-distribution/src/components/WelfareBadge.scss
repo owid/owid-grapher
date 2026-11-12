@@ -1,0 +1,87 @@
+// The "I"/"C" badge after a country's name (WelfareBadge.tsx). Drawn like the
+// circled "S" Grapher's tooltips mark rounded values with
+// (.icon-circled-s in grapher/src/tooltip/Tooltip.scss): a thin grey ring
+// around a small grey letter. Ours is the ring's 12px size rather than the
+// superscript's 10px, since it sits on the line instead of above it and
+// holds a letter rather than an icon. $gray-70 is Grapher's $light-text, a
+// shade off the tooltip's local #787878
+.income-distribution-welfare-badge {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 12px;
+    height: 12px;
+    margin-left: 4px;
+    border: 1px solid $gray-70;
+    border-radius: 50%;
+    background: $white;
+    color: $gray-70;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: -1px; // small visual correction, as for .icon-circled-s
+    cursor: help;
+
+    &:hover,
+    &:focus-visible {
+        border-color: $gray-100;
+        color: $gray-100;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-30;
+        outline-offset: 1px;
+    }
+}
+
+// In a flex row the gap already separates it from the name
+.income-distribution-legend--swatches .income-distribution-welfare-badge {
+    margin-left: 0;
+}
+
+.income-distribution-welfare-badge-svg {
+    cursor: help;
+    outline: none;
+}
+
+.income-distribution-welfare-badge-svg__circle {
+    fill: $white;
+    pointer-events: visiblePainted;
+}
+
+.income-distribution-welfare-badge-svg:hover
+    .income-distribution-welfare-badge-svg__circle,
+.income-distribution-welfare-badge-svg:focus-visible
+    .income-distribution-welfare-badge-svg__circle {
+    stroke: $gray-100;
+}
+
+.income-distribution-welfare-badge-svg:focus-visible
+    .income-distribution-welfare-badge-svg__circle {
+    stroke: $blue-30;
+    stroke-width: 2px;
+}
+
+// The badge's explanation, a card like Grapher's details-on-demand tooltips
+// (.dod-container in components/src/detailsOnDemand.scss)
+.tippy-box[data-theme~="income-distribution-welfare"] .tippy-content {
+    padding: 0;
+}
+
+.income-distribution-welfare-tooltip {
+    padding: 16px;
+    @include body-3-regular;
+    font-size: 14px;
+}
+
+.income-distribution-welfare-tooltip__title {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.income-distribution-welfare-tooltip__body {
+    margin: 8px 0 0;
+    font-size: 14px;
+}

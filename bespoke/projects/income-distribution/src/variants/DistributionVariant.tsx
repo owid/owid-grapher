@@ -50,6 +50,7 @@ import {
 import { buildChartModel } from "../core/chartModel.js"
 import type { LabelBox } from "../core/curveLabels.js"
 import { shareBelowLineForEntities } from "../core/density.js"
+import { placeholderWelfareType } from "../core/welfareType.js"
 import {
     povertyLineMode as readPovertyLineMode,
     resolveCurrency,
@@ -295,16 +296,20 @@ function CaptionedDistributionVariant({
         [yearData, view, selectedCountries]
     )
 
-    const legendEntries = useMemo<LegendEntry[]>(
-        () =>
-            povertyLine !== null
-                ? [
-                      ...model.legend,
-                      { key: WORLD_ENTITY_NAME, color: WORLD_COLOR },
-                  ]
-                : model.legend,
-        [model.legend, povertyLine]
-    )
+    const legendEntries = useMemo<LegendEntry[]>(() => {
+        // Countries get a badge saying whether their surveys measure income
+        // or consumption; regions mix both, so the global view has none
+        const entries: LegendEntry[] =
+            view === "countries"
+                ? model.legend.map((entry) => ({
+                      ...entry,
+                      welfareType: placeholderWelfareType(entry.key),
+                  }))
+                : model.legend
+        return povertyLine !== null
+            ? [...entries, { key: WORLD_ENTITY_NAME, color: WORLD_COLOR }]
+            : entries
+    }, [model.legend, view, povertyLine])
 
     const sharesBelowLine = useMemo(
         () =>
