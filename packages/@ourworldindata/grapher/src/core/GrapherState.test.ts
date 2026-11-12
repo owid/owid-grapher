@@ -3231,9 +3231,11 @@ it("clears the peer params along with the other query params", () => {
     const grapher = new GrapherState({})
     grapher.populateFromQueryParams({
         peerCountries: PeerCountryStrategy.DefaultSelection,
+        peerCount: "6",
     })
 
     grapher.clearQueryParams()
 
     expect(grapher.peerCountryStrategy).toBeUndefined()
+    expect(grapher.peerCount).toBeUndefined()
 })
