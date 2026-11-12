@@ -151,11 +151,11 @@ export class StackedAreaChartThumbnail
     }): AnchoredLabelsState | undefined {
         if (this.labelsSeries.length === 0) return undefined
 
-        const series = toInitialAnchoredLabelSeries(
-            this.labelsSeries,
-            this.chartState.seriesByName,
-            dualAxis
-        )
+        const series = toInitialAnchoredLabelSeries(this.labelsSeries, {
+            seriesByName: this.chartState.seriesByName,
+            dualAxis,
+            fontSize: this.labelFontSettings.fontSize,
+        })
 
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
