@@ -23,17 +23,41 @@ export function combinedFactor(
  * currencies (en-US locale) and a plain "$" prefix for the international
  * dollar.
  */
+/**
+ * The amount `formatIncome` shows for a daily international-$ figure, in the
+ * chart's units: two significant figures, so e.g. 999.7 becomes 1k
+ */
+function displayedAmount(
+    dailyIntDollars: number,
+    currency: Currency,
+    interval: TimeInterval
+): number {
+    return roundSigFig(dailyIntDollars * combinedFactor(currency, interval), 2)
+}
+
+/**
+ * The daily international-$ value behind what `formatIncome` shows, so a
+ * share computed from it matches the amount on screen: a line dragged to
+ * $12.37 reads "$12", and 12 is what the share is taken against.
+ */
+export function roundIncomeAsDisplayed(
+    dailyIntDollars: number,
+    currency: Currency,
+    interval: TimeInterval
+): number {
+    return (
+        displayedAmount(dailyIntDollars, currency, interval) /
+        combinedFactor(currency, interval)
+    )
+}
+
 export function formatIncome(
     dailyIntDollars: number,
     currency: Currency,
     interval: TimeInterval,
     options: { short?: boolean } = {}
 ): string {
-    // Round first, so that e.g. 999.7 is classified (and shown) as 1k
-    const amount = roundSigFig(
-        dailyIntDollars * combinedFactor(currency, interval),
-        2
-    )
+    const amount = displayedAmount(dailyIntDollars, currency, interval)
     // Below 10, show cents ("$3.20"), unless a short label can do without
     const fractionDigits =
         amount >= 10 || (options.short && Number.isInteger(amount)) ? 0 : 2

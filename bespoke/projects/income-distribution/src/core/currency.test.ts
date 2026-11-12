@@ -10,6 +10,7 @@ import {
     isInternationalPovertyLine,
     povertyLineMode,
     resolveCurrency,
+    roundIncomeAsDisplayed,
     timeIntervalNoun,
 } from "./currency.js"
 import type { Currency } from "./types.js"
@@ -159,5 +160,27 @@ describe(povertyLineMode, () => {
         expect(povertyLineMode(12, INTERNATIONAL_DOLLAR, "daily")).toBe(
             "custom"
         )
+    })
+})
+
+describe(roundIncomeAsDisplayed, () => {
+    it("returns the daily int-$ value behind the two significant figures shown", () => {
+        expect(
+            roundIncomeAsDisplayed(12.37, INTERNATIONAL_DOLLAR, "daily")
+        ).toBe(12)
+        expect(
+            roundIncomeAsDisplayed(3.246, INTERNATIONAL_DOLLAR, "daily")
+        ).toBeCloseTo(3.2)
+    })
+
+    it("rounds in the chart's units, then converts back", () => {
+        // $3.00 a day is $91.25 a month, shown as $91
+        const monthly = roundIncomeAsDisplayed(
+            3,
+            INTERNATIONAL_DOLLAR,
+            "monthly"
+        )
+        expect(monthly * (365 / 12)).toBeCloseTo(91)
+        expect(monthly).toBeCloseTo(91 / (365 / 12))
     })
 })

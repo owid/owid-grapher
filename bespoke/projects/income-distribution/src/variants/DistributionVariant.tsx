@@ -54,6 +54,7 @@ import {
     povertyLineMode as readPovertyLineMode,
     resolveCurrency,
     timeIntervalNoun,
+    roundIncomeAsDisplayed,
 } from "../core/currency.js"
 import {
     Currency,
@@ -310,11 +311,16 @@ function CaptionedDistributionVariant({
             povertyLine !== null
                 ? shareBelowLineForEntities(
                       yearData,
-                      povertyLine,
+                      // Against the amount the reader sees, not the exact drag position
+                      roundIncomeAsDisplayed(
+                          povertyLine,
+                          currency,
+                          timeInterval
+                      ),
                       legendEntries.map((entry) => entry.key)
                   )
                 : undefined,
-        [yearData, povertyLine, legendEntries]
+        [yearData, povertyLine, currency, timeInterval, legendEntries]
     )
 
     // The poverty line control isn't stored: it's read off the line, so a

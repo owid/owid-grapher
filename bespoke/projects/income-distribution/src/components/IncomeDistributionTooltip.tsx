@@ -11,6 +11,7 @@ import {
     formatIncome,
     formatShare,
     timeIntervalNoun,
+    roundIncomeAsDisplayed,
 } from "../core/currency.js"
 import { WORLD_ENTITY_NAME } from "../core/constants.js"
 import type {
@@ -58,9 +59,15 @@ export function IncomeDistributionTooltip({
 }: IncomeDistributionTooltipProps): React.ReactElement {
     const entity = hoveredEntity ?? WORLD_ENTITY_NAME
 
+    // Against the amount the tooltip shows, not the exact pointer position
     const share = useMemo(
-        () => shareBelowLineForEntities(yearData, line, [entity]).get(entity),
-        [yearData, line, entity]
+        () =>
+            shareBelowLineForEntities(
+                yearData,
+                roundIncomeAsDisplayed(line, currency, timeInterval),
+                [entity]
+            ).get(entity),
+        [yearData, line, currency, timeInterval, entity]
     )
 
     const verb = isTouchDevice() ? "Tap" : "Click"
