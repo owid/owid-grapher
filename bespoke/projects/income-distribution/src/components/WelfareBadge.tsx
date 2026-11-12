@@ -42,6 +42,46 @@ function WelfareTooltipContent({
     )
 }
 
+/** The ring and its letter, centred on (`cx`, `cy`) */
+function WelfareBadgeGlyph({
+    letter,
+    cx,
+    cy,
+    dataKey,
+}: {
+    letter: string
+    cx: number
+    cy: number
+    dataKey?: string
+}): React.ReactElement {
+    return (
+        <>
+            <circle
+                className="income-distribution-welfare-badge-svg__circle"
+                data-key={dataKey}
+                cx={cx}
+                cy={cy}
+                // The stroke straddles the edge, so the ring stays 12px
+                r={(WELFARE_BADGE_SIZE - 1) / 2}
+            />
+            {/* The baseline sits a bit below the centre so Lato's capitals,
+                which have no descender, are centred (measured at 8×) */}
+            <text
+                className="income-distribution-welfare-badge-svg__letter"
+                x={cx}
+                y={cy}
+                dy="0.375em"
+                textAnchor="middle"
+                fontSize={WELFARE_BADGE_FONT_SIZE}
+                fontWeight={700}
+                pointerEvents="none"
+            >
+                {letter}
+            </text>
+        </>
+    )
+}
+
 /**
  * The "I" (income) or "C" (consumption) badge after a country's name in the
  * legend, explained in a tooltip on hover or focus
@@ -66,7 +106,19 @@ export function WelfareBadge({
                 aria-label={title}
                 tabIndex={0}
             >
-                {letter}
+                {/* Drawn as SVG like the badge on the curve labels, so the letter sits in the same spot in both */}
+                <svg
+                    width={WELFARE_BADGE_SIZE}
+                    height={WELFARE_BADGE_SIZE}
+                    viewBox={`0 0 ${WELFARE_BADGE_SIZE} ${WELFARE_BADGE_SIZE}`}
+                    aria-hidden
+                >
+                    <WelfareBadgeGlyph
+                        letter={letter}
+                        cx={WELFARE_BADGE_SIZE / 2}
+                        cy={WELFARE_BADGE_SIZE / 2}
+                    />
+                </svg>
             </span>
         </Tippy>
     )
@@ -104,27 +156,12 @@ export function SvgWelfareBadge({
                 aria-label={title}
                 tabIndex={0}
             >
-                <circle
-                    className="income-distribution-welfare-badge-svg__circle"
-                    data-key={dataKey}
+                <WelfareBadgeGlyph
+                    letter={letter}
                     cx={cx}
                     cy={cy}
-                    // The stroke straddles the edge, so the ring stays 12px
-                    r={(WELFARE_BADGE_SIZE - 1) / 2}
+                    dataKey={dataKey}
                 />
-                {/* Baseline 0.36em below the centre centres Lato's capitals */}
-                <text
-                    className="income-distribution-welfare-badge-svg__letter"
-                    x={cx}
-                    y={cy}
-                    dy="0.36em"
-                    textAnchor="middle"
-                    fontSize={WELFARE_BADGE_FONT_SIZE}
-                    fontWeight={700}
-                    pointerEvents="none"
-                >
-                    {letter}
-                </text>
             </g>
         </Tippy>
     )

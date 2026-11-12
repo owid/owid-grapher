@@ -5,36 +5,16 @@
 .income-distribution-welfare-badge {
     display: inline-flex;
     flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
     width: 12px;
     height: 12px;
     margin-left: 4px;
-    border: 1px solid $gray-70;
-    border-radius: 50%;
-    background: $white;
-    color: $gray-70;
-    font-size: 7.2px;
-    font-weight: 700;
-    // A line box exactly as tall as the ring's inside, so the capitals sit on
-    // its centre
-    line-height: 10px;
     vertical-align: -1px; // small visual correction, as for .icon-circled-s
     cursor: help;
-    transition:
-        border-color 150ms,
-        color 150ms;
+    outline: none;
 
-    &:hover,
-    &:focus-visible {
-        border-color: $gray-100;
-        color: $gray-100;
-    }
-
-    &:focus-visible {
-        outline: 2px solid $blue-30;
-        outline-offset: 1px;
+    svg {
+        display: block;
+        overflow: visible;
     }
 }
 
@@ -62,6 +42,10 @@
     transition: fill 150ms;
 }
 
+.income-distribution-welfare-badge:hover
+    .income-distribution-welfare-badge-svg__circle,
+.income-distribution-welfare-badge:focus-visible
+    .income-distribution-welfare-badge-svg__circle,
 .income-distribution-welfare-badge-svg:hover
     .income-distribution-welfare-badge-svg__circle,
 .income-distribution-welfare-badge-svg:focus-visible
@@ -69,6 +53,10 @@
     stroke: $gray-100;
 }
 
+.income-distribution-welfare-badge:hover
+    .income-distribution-welfare-badge-svg__letter,
+.income-distribution-welfare-badge:focus-visible
+    .income-distribution-welfare-badge-svg__letter,
 .income-distribution-welfare-badge-svg:hover
     .income-distribution-welfare-badge-svg__letter,
 .income-distribution-welfare-badge-svg:focus-visible
@@ -76,6 +64,8 @@
     fill: $gray-100;
 }
 
+.income-distribution-welfare-badge:focus-visible
+    .income-distribution-welfare-badge-svg__circle,
 .income-distribution-welfare-badge-svg:focus-visible
     .income-distribution-welfare-badge-svg__circle {
     stroke: $blue-30;

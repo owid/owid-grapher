@@ -54,7 +54,6 @@ import { placeholderWelfareType } from "../core/welfareType.js"
 import {
     povertyLineMode as readPovertyLineMode,
     resolveCurrency,
-    timeIntervalNoun,
     roundIncomeAsDisplayed,
 } from "../core/currency.js"
 import {
@@ -404,7 +403,8 @@ function CaptionedDistributionVariant({
 
     const title = config.title ?? chartTitle(view, selectedCountries)
     const subtitle =
-        config.subtitle ?? chartSubtitle(year, currency, timeInterval)
+        config.subtitle ??
+        chartSubtitle(year, currency, povertyLineMode === "international")
 
     return (
         <div
@@ -604,18 +604,21 @@ function formatCountryList(countries: string[]): string {
 function chartSubtitle(
     year: number,
     currency: Currency,
-    timeInterval: TimeInterval
+    isInternationalLine: boolean
 ): string {
-    const currencyLabel =
+    const units =
         currency.code === INTERNATIONAL_DOLLAR.code
-            ? "international-$"
-            : `${currency.name} (${currency.countryName})`
-    return `Data for ${year}. Incomes are measured in ${currencyLabel} per ${timeIntervalNoun(timeInterval)}, adjusted for inflation and for differences in the cost of living between countries.`
+            ? `Data for ${year}, measured in international dollars, which adjusts for differences in the cost of living between countries.`
+            : // The country stays: a currency shared by several countries (the euro) converts differently in each
+              `Data for ${year}, measured in ${currency.name} (${currency.countryName}), adjusted for differences in the cost of living.`
+    return isInternationalLine
+        ? `${units} The International Poverty Line is set by the World Bank as its definition of extreme poverty.`
+        : units
 }
 
 function chartNote(currency: Currency, year: number): string {
     const sentences = [
-        "Depending on the country and year, the data relates to income measured after taxes and benefits, or to consumption, per capita.",
+        "Depending on the country, the data relates to income measured after taxes and benefits, or to consumption, per capita.",
     ]
     if (year >= FIRST_NOWCAST_YEAR)
         sentences.push(
