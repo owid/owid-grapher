@@ -6,17 +6,18 @@ What makes a change risky in this repository. The `/owid-staff:rate-pr-risk` ski
 
 ### High: where we need to be careful
 
-- **Anything readers see.** A broken site, wrong data or a wrong chart is the worst outcome, most of all when nothing fails loudly. That covers the bake, shared site components, chart rendering, `functions/` on public routes, embeds, emails to readers and the public API.
-- **Foundations that other things will be built on.** A new data model, schema, API or shared abstraction is cheap to change now and expensive once tools depend on it, so it is worth getting right from the start. This includes the public API of our published packages (`@ourworldindata/grapher`, `gdoc-pipeline`, `grapher-editor`).
-- **Who can do what.** Authentication, permission checks, untrusted input, credentials with write access, and workflows that handle secrets.
-- **Data we can't bring back.** Code that deletes or rewrites stored data on its own (bake steps, sync jobs, bulk scripts), including content in Google Docs and files in R2.
+- **Anything readers see.** A broken site, wrong data or a wrong chart is the worst outcome. That covers the bake, `site/`, chart rendering, `functions/`, embeds, shared bespoke code, experiments, feeds and emails, the chart and search APIs, and migrations that edit published content.
+- **Foundations that other things will be built on.** A new data model, schema, API or shared abstraction is cheap to change now and expensive once tools depend on it. This includes what our published packages export (`@ourworldindata/grapher`, `gdoc-pipeline`, `grapher-editor`).
+- **Who can do what.** Authentication, permission checks, untrusted input, write credentials, and what CI workflows do with secrets.
+- **Data we can't bring back.** Code that deletes or rewrites stored data on its own (bake steps, sync jobs, `devTools/` scripts, migrations with an empty `down`), including Google Docs and R2.
 
 ### Medium
 
-- A reader-facing change that tests or the SVG diff mostly cover, or whose worst case is stale content (deploy triggering, release tooling).
-- Schema migrations: the database is backed up and a migration has a down step. A migration that drops or rewrites data is the exception.
-- Admin features that authors rely on daily, refactors of thinly tested code, and dependency bumps on the render or bake path.
+- A reader-facing change with evidence a reviewer can open: tests that pin the change, staging screenshots, or an SVG diff report (Grapher charts only) that shows only intended differences.
+- A change confined to one bespoke project, or whose worst case is stale content (deploy triggering).
+- Schema migrations: the database is backed up and `down` reverts them. Other repositories and the public data export read this schema; see `db/migration/CLAUDE.md`.
+- Admin features that authors use daily, refactors of thinly tested code, and dependency bumps on the render or bake path.
 
 ### Low
 
-Docs, tests, devTools, agent instructions, a single bespoke project, staff-only or feature-flagged UI, and rendering changes whose SVG diff the author has read.
+Docs, tests, agent instructions, read-only dev tooling, CI changes away from secrets and deploys, release version bumps, and other admin UI.
