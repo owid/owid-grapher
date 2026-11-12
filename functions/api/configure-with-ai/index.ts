@@ -2,11 +2,14 @@ import * as Sentry from "@sentry/cloudflare"
 import { StatusError } from "itty-router"
 import * as z from "zod"
 import { Env } from "../../_common/env.js"
-import { loadChartContext } from "./chartContext.js"
+import { loadChartContext, loadCombinationData } from "./chartContext.js"
 import { callClaude } from "./claude.js"
 import { costOf, costsByModel } from "./cost.js"
 import {
     buildPrompt,
+    CombinationData,
+    combinationKey,
+    combinationsToRank,
     parseJsonReply,
     requestSchema,
     sanitizeViews,
@@ -96,7 +99,29 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             )
             return json({ error: "invalid_json", runId, usage }, 502)
         }
-        const clean = sanitizeViews(reply, ctx)
+        // A ranking on a combination that isn't shown needs that combination's
+        // data; if it doesn't load, sanitizeViews falls back to sorting
+        const rankStarted = Date.now()
+        const combinations = new Map<string, CombinationData>()
+        await Promise.all(
+            combinationsToRank(reply, ctx).map(async (dims) => {
+                try {
+                    combinations.set(
+                        combinationKey(dims),
+                        await loadCombinationData(slug, dims, env)
+                    )
+                } catch (error) {
+                    console.error(error)
+                    Sentry.captureException(error)
+                }
+            })
+        )
+        const fullUsage = {
+            ...usage,
+            /** Time spent loading other combinations' data */
+            combinationsMs: Date.now() - rankStarted,
+        }
+        const clean = sanitizeViews(reply, ctx, combinations)
         // One JSON line per run; read them back with `pm2 logs site` on staging
         console.log(
             JSON.stringify({
@@ -106,10 +131,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                 query,
                 queryStr,
                 ...clean,
-                usage,
+                usage: fullUsage,
             })
         )
-        return json({ runId, ...clean, usage })
+        return json({ runId, ...clean, usage: fullUsage })
     } catch (error) {
         if (error instanceof StatusError && error.status === 404)
             return json({ error: "Chart not found" }, 404)

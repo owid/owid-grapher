@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest"
 import {
     buildPrompt,
+    combinationKey,
+    combinationsToRank,
     coverageLine,
     ChartContext,
     requestSchema,
@@ -433,7 +435,7 @@ describe("ranked views", () => {
                     {
                         label: "Table, lowest first",
                         tab: "table",
-                        entities: ["World"],
+                        entities: [],
                         time: null,
                         rank: {
                             order: "lowest",
@@ -473,7 +475,51 @@ describe("ranked views", () => {
 })
 
 describe("ranked views on another MDim combination", () => {
-    it("sorts a table but drops a line chart that has no countries", () => {
+    const rank = { order: "highest", n: 1, year: 2022, continent: null }
+    const options = { indicator: "thr", decile: "_1" }
+
+    it("asks for that combination's data, once per combination", () => {
+        const reply = {
+            views: [
+                { tab: "line", options, rank },
+                { tab: "table", options, rank },
+                // The combination shown and a view without a ranking need nothing
+                { tab: "line", options: mdim.current, rank },
+                { tab: "line", options },
+            ],
+        }
+        expect(combinationsToRank(reply, mdimChart)).toEqual([options])
+    })
+
+    it("ranks with that combination's data, keeping the countries the model named", () => {
+        // On this combination India is highest, unlike on the one shown
+        const thrData = {
+            ...data,
+            series: new Map<string, [number, number][]>([
+                ["Canada", [[2022, 1]]],
+                ["India", [[2022, 2]]],
+            ]),
+        }
+        const { views, dropped } = sanitizeViews(
+            {
+                views: [{ tab: "line", entities: ["World"], options, rank }],
+            },
+            mdimChart,
+            new Map([
+                [
+                    combinationKey(options),
+                    { data: thrData, mapTolerance: 0, columnTolerance: 0 },
+                ],
+            ])
+        )
+        expect(dropped).toEqual([])
+        expect(views[0]).toMatchObject({
+            entities: ["India", "World"],
+            facts: "Highest 1 of the 2 countries with data for 2022, plus World",
+        })
+    })
+
+    it("without that data, sorts a table but drops a line chart that has no countries", () => {
         const rank = { order: "highest", n: 10, year: 2022, continent: null }
         const options = { indicator: "thr", decile: "_1" }
         const { views, dropped } = sanitizeViews(

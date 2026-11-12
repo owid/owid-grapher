@@ -21,8 +21,10 @@ import {
 import { TWITTER_OPTIONS } from "../../_common/imageOptions.js"
 import {
     ChartContext,
+    CombinationData,
     EntityInfo,
     IndicatorSummary,
+    MdimChoices,
     MdimContext,
     SeriesPoint,
 } from "./viewfinder.js"
@@ -182,4 +184,31 @@ export async function loadChartContext(
     ])
     if (inputTable) grapherState.inputTable = inputTable
     return buildChartContext(grapherState, mdim)
+}
+
+/** Loads another MDim combination's data, for ranking countries on it */
+export async function loadCombinationData(
+    slug: string,
+    dims: MdimChoices,
+    env: Env
+): Promise<CombinationData> {
+    const { grapher } = await initGrapher(
+        { type: "slug", id: slug },
+        TWITTER_OPTIONS,
+        new URLSearchParams(dims),
+        env
+    )
+    const grapherState = grapher.grapherState
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapherState.dimensionConfigs,
+        selectedEntityColors: grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
+    if (inputTable) grapherState.inputTable = inputTable
+    const { summary, column } = summarizeFirstIndicator(grapherState)
+    return {
+        data: summary,
+        mapTolerance: grapherState.map.timeTolerance ?? column.tolerance,
+        columnTolerance: column.tolerance,
+    }
 }

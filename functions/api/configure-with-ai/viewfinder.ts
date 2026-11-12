@@ -93,6 +93,12 @@ export interface ChartContext {
     mdim?: MdimContext
 }
 
+/** An MDim combination's data, so code can rank countries on a combination that isn't shown */
+export type CombinationData = Pick<
+    ChartContext,
+    "data" | "mapTolerance" | "columnTolerance"
+>
+
 export interface ViewfinderView {
     label: string
     note: string | null
@@ -283,6 +289,44 @@ export function optionsOf(dims: MdimChoices): MdimChoices {
     return options
 }
 
+/** Identifies a combination by the options that apply to it, whatever their order */
+export function combinationKey(dims: MdimChoices): string {
+    const options = optionsOf(dims)
+    return JSON.stringify(
+        Object.keys(options)
+            .sort()
+            .map((key) => [key, options[key]])
+    )
+}
+
+/** The combinations other than the one shown that the reply ranks countries on, so their data can be loaded */
+export function combinationsToRank(
+    raw: unknown,
+    ctx: ChartContext
+): MdimChoices[] {
+    if (!ctx.mdim || !ctx.canSelectEntities) return []
+    const reply = (raw && typeof raw === "object" ? raw : {}) as Record<
+        string,
+        unknown
+    >
+    const shown = combinationKey(ctx.mdim.current)
+    const found = new Map<string, MdimChoices>()
+    for (const item of Array.isArray(reply.views)
+        ? reply.views.slice(0, 4)
+        : []) {
+        const v = (item && typeof item === "object" ? item : {}) as Record<
+            string,
+            unknown
+        >
+        if (!parseRankRule(v.rank)) continue
+        const target = findMdimView(v.options, ctx.mdim)
+        if (!target) continue
+        const key = combinationKey(target.dims)
+        if (key !== shown) found.set(key, target.dims)
+    }
+    return [...found.values()]
+}
+
 export function findMdimView(
     options: unknown,
     mdim: MdimContext
@@ -452,7 +496,7 @@ Rules:
 - "interpretation": one short sentence (max 20 words) on how you understood the request. Only shown when no views are returned: then say what's missing or why it can't be shown, not just what was asked.
 - "searchQuery": when this chart can't answer but another of our charts might, a short search for that data in plain words (e.g. "cumulative CO2 emissions" for "show cumulative emissions"), else null.
 ${md ? `- "options": one combination from the list above, as an object with exactly its keys, e.g. ${optStr(md.views[0].dims)}. Read the options' descriptions and pick the measure that matches what was asked.\n- "tab" must be one of that combination's tabs.` : `- "tab" must be one of: ${tabs.join(", ")}.`}
-- "rank": for any view that ranks or picks the top or bottom countries ("highest", "10 lowest", "worst in Europe", "fallen most since 1990"). "by" is "value" (the value in "year"), "change" or "relativeChange" (from "from" to "year"; "lowest" = the largest falls, "highest" = the largest rises). A ranking of change shows best as a slope chart, a line chart or a table. Code then picks the countries from the full data, so leave "entities" [] and don't name countries in the label. "n" is at most ${MAX_RANKED}; for more, rank in a table without "rank" instead, and don't quote counts of countries in the note (code adds them). "year" must be one most of them have data for (see the coverage line); "continent" one of ${CONTINENTS.join(", ")}, or null for the world. The table and bar chart show that year; a table shows only the ranked countries, sorted. Code adds a line saying how the countries were picked, so the note only gives the reason for the choice.${md ? " Only with the combination currently shown (its data is the one above)." : ""} Otherwise null.
+- "rank": for any view that ranks or picks the top or bottom countries ("highest", "10 lowest", "worst in Europe", "fallen most since 1990"). "by" is "value" (the value in "year"), "change" or "relativeChange" (from "from" to "year"; "lowest" = the largest falls, "highest" = the largest rises). A ranking of change shows best as a slope chart, a line chart or a table. Code then picks the countries from the full data, so don't name them in the label; "entities" lists only countries to show next to them, such as one the request compares against (else []). "n" is at most ${MAX_RANKED}; for more, rank in a table without "rank" instead, and don't quote counts of countries in the note (code adds them). "year" must be one most of them have data for (see the coverage line); "continent" one of ${CONTINENTS.join(", ")}, or null for the world. The table and bar chart show that year; a table shows only the ranked countries, sorted. Code adds a line saying how the countries were picked, so the note only gives the reason for the choice.${md ? " It works on any combination: code ranks with that combination's own data." : ""} Otherwise null.
 - "entities": exact names from the data above.${ctx.canSelectEntities ? "" : " This chart's countries are fixed: always use [], and don't promise a selection in the label."} Use [] to keep the chart's default selection. Countries only, unless the reader asks about regions.
 - "time": "YYYY" for one year, "YYYY..YYYY" for a range, or null for the default. Use years that have data for the entities shown.
 - When the request refines what's currently shown (e.g. "add Canada", "only since 2000", "as a map"), keep the current tab, countries, time and table sort, and change only what the request asks for.
@@ -484,7 +528,12 @@ const TIME_PATTERN =
     /^(-?\d{1,4}|earliest|latest)(\.\.(-?\d{1,4}|earliest|latest))?$/
 
 /** Checks the model's reply against what this chart allows; anything else is dropped */
-export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
+export function sanitizeViews(
+    raw: unknown,
+    ctx: ChartContext,
+    /** Data of other MDim combinations, by combinationKey, for ranking on them */
+    combinations: ReadonlyMap<string, CombinationData> = new Map()
+): SanitizedReply {
     const reply = (raw && typeof raw === "object" ? raw : {}) as Record<
         string,
         unknown
@@ -556,14 +605,16 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
             v.tableFilter === "selection" ? ("selection" as const) : null
         let facts: string | null = null
         const rule = ctx.canSelectEntities ? parseRankRule(v.rank) : undefined
-        // The ranking can only use the data of the combination shown
-        const ranksShownData =
+        // The ranking uses the data of the view's own combination
+        const rankData: CombinationData | undefined =
             !ctx.mdim ||
-            JSON.stringify(optionsOf(options ?? {})) ===
-                JSON.stringify(optionsOf(ctx.mdim.current))
-        if (rule && !ranksShownData) {
-            // Without that combination's data code can't pick the countries,
-            // but a table or a map can still show the ranking by sorting
+            combinationKey(options ?? {}) === combinationKey(ctx.mdim.current)
+                ? ctx
+                : combinations.get(combinationKey(options ?? {}))
+        if (rule && !rankData) {
+            // Without that combination's data (its load failed) code can't
+            // pick the countries, but a table or a map can still show the
+            // ranking by sorting
             if (tab === "table" || tab === "map") {
                 time = String(rule.year)
                 tableFilter = null
@@ -577,12 +628,17 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
                 continue
             }
         }
-        if (rule && ranksShownData) {
+        if (rule && rankData) {
             const tolerance =
-                tab === "map" ? ctx.mapTolerance : ctx.columnTolerance
-            const ranked = rankEntities(ctx.data, rule, tolerance)
-            entities.splice(0, entities.length, ...ranked.entities)
-            facts = ranked.facts
+                tab === "map" ? rankData.mapTolerance : rankData.columnTolerance
+            const ranked = rankEntities(rankData.data, rule, tolerance)
+            // Countries the model named, such as one the request compares
+            // against, are shown next to the ranked ones
+            const named = entities.filter((e) => !ranked.entities.includes(e))
+            entities.splice(0, entities.length, ...ranked.entities, ...named)
+            facts = named.length
+                ? `${ranked.facts}, plus ${named.join(", ")}`
+                : ranked.facts
             const range =
                 rule.from !== null ? `${rule.from}..${rule.year}` : null
             if (range && tab !== "map" && tab !== "discrete-bar") time = range
