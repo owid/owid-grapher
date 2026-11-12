@@ -1,6 +1,3 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faGlobe } from "@fortawesome/free-solid-svg-icons"
-
 import {
     Controls,
     ControlsRow,
@@ -36,6 +33,29 @@ export interface IncomeDistributionControlsProps {
  * Two overlapping distributions, one filled and one outlined, sized like the
  * globe next to it and coloured by the switcher through currentColor
  */
+/** A mountain of stacked bands, echoing the global view's stacked regions */
+function StackedMountainIcon(): React.ReactElement {
+    return (
+        <svg
+            className="income-distribution-controls__view-icon"
+            viewBox="0 0 22 14"
+            aria-hidden
+        >
+            <path
+                d="M1 13 C5 13 7 1 11 1 S17 13 21 13 Z"
+                fill="currentColor"
+                opacity={0.35}
+            />
+            <path
+                d="M1 13 C5 13 7 5 11 5 S17 13 21 13 Z"
+                fill="currentColor"
+                opacity={0.6}
+            />
+            <path d="M1 13 C5 13 7 9 11 9 S17 13 21 13 Z" fill="currentColor" />
+        </svg>
+    )
+}
+
 function TwoDistributionsIcon(): React.ReactElement {
     return (
         <svg
@@ -64,7 +84,7 @@ const VIEW_ITEMS: SwitcherItem<View>[] = [
         key: "global",
         element: (
             <>
-                <FontAwesomeIcon icon={faGlobe} size="sm" aria-hidden />
+                <StackedMountainIcon />
                 Global
             </>
         ),
