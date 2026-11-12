@@ -16,7 +16,7 @@ export interface RegionLabel {
     fontSize: number
 }
 
-const DEFAULT_FONT_SIZES = [16, 15, 14, 13, 12, 11, 10, 9] as const
+const DEFAULT_FONT_SIZES = [14, 13, 12, 11, 10, 9] as const
 const DEFAULT_CHAR_WIDTH_RATIO = 0.55
 
 /** Share of the inscribed circle's diameter a label may use, for breathing room */

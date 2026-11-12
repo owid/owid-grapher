@@ -23,21 +23,21 @@ describe(placeRegionLabels, () => {
     it("centres the label in a roomy band at the largest font size", () => {
         const [label] = placeRegionLabels([rectangle(400, 100, 100)])
         expect(label.region).toBe("South Asia")
-        expect(label.fontSize).toBe(16)
+        expect(label.fontSize).toBe(14)
         expect(label.x).toBeCloseTo(200, -1)
         expect(label.y).toBeCloseTo(150, -1)
     })
 
     it("picks a font size no taller than the band allows", () => {
         const [label] = placeRegionLabels([rectangle(400, 0, 16)])
-        expect(label.fontSize).toBeLessThan(16)
+        expect(label.fontSize).toBeLessThan(14)
         // Half the band's height, less the comfort margin
         expect(label.fontSize).toBeLessThanOrEqual(16 * 0.75)
     })
 
     it("shrinks the label to fit a narrow band", () => {
-        // "South Asia" at 16px is ~90px wide, which with the comfort margin
-        // needs a band ~120px wide; 80px fits a smaller size only
+        // "South Asia" at 14px is ~75px wide, which with the comfort margin
+        // needs a band ~100px wide; 80px fits a smaller size only
         const [label] = placeRegionLabels([rectangle(80, 0, 100)])
         expect(label.fontSize).toBeLessThan(13)
         expect(label.fontSize).toBeGreaterThanOrEqual(9)
