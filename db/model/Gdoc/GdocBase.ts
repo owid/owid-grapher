@@ -1605,7 +1605,7 @@ export function makeMultiDimLinkedChart(
             // Without a dynamic thumbnail URL (e.g. archive builds), omit the
             // thumbnail so the default OWID thumbnail is shown instead.
             ...(GRAPHER_DYNAMIC_THUMBNAIL_URL && {
-                thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png`,
+                thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png${queryStr ? `?${queryStr}` : ""}`,
             }),
         }),
     }
