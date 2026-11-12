@@ -38,7 +38,7 @@ jobs:
       issues: write
     steps:
       - name: Label issue
-        uses: andymckay/labeler@e6c4322d0397f3240f0e7e30a33b5c5df2d39e90 # 1.0.4
+        uses: andymckay/labeler@1.0.4
         with:
           add-labels: "needs triage"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -49,7 +49,7 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: andymckay/labeler@e6c4322d0397f3240f0e7e30a33b5c5df2d39e90 # 1.0.4
+      - uses: andymckay/labeler@1.0.4
         with:
           add-labels: "staging-viz"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -64,7 +64,7 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: andymckay/labeler@e6c4322d0397f3240f0e7e30a33b5c5df2d39e90 # 1.0.4
+      - uses: andymckay/labeler@1.0.4
         with:
           add-labels: "site"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
