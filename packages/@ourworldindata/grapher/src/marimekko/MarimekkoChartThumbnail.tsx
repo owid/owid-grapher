@@ -1,5 +1,4 @@
 import React from "react"
-import * as _ from "lodash-es"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -28,6 +27,7 @@ import {
 } from "./MarimekkoChartHelpers"
 import { MarimekkoInternalLabels } from "./MarimekkoInternalLabels"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
+import { InteractionState } from "../interaction/InteractionState"
 
 const LABEL_PADDING = 4
 
@@ -115,8 +115,17 @@ export class MarimekkoChartThumbnail
         })
     }
 
+    /** Only focus mutes the other bars, not selection */
     @computed private get renderSeries(): RenderMarimekkoSeries[] {
-        return toRenderMarimekkoSeries(this.placedSeries)
+        const { focusArray } = this.chartState
+        const focusedSeries = this.placedSeries.map((series) => ({
+            ...series,
+            focus: new InteractionState(
+                focusArray.has(series.entityName),
+                focusArray.hasFocusedSeries
+            ),
+        }))
+        return toRenderMarimekkoSeries(focusedSeries)
     }
 
     @computed private get placedSeriesByEntityName(): Map<
@@ -130,10 +139,9 @@ export class MarimekkoChartThumbnail
 
     @computed private get labelledEntityNames(): EntityName[] {
         const { selectionArray, focusArray } = this.chartState
-        return _.uniq([
-            ...selectionArray.selectedEntityNames,
-            ...focusArray.seriesNames,
-        ])
+        return focusArray.hasFocusedSeries
+            ? focusArray.seriesNames
+            : selectionArray.selectedEntityNames
     }
 
     @computed private get shouldShowLabels(): boolean {
