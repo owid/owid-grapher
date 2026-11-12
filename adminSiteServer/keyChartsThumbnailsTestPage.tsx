@@ -67,15 +67,27 @@ export function addKeyChartsThumbnailsRoutes(router: Router): void {
     getPlainRouteWithROTransaction(
         router,
         "/key-charts-thumbnails",
-        async (_req, res, trx) => {
+        async (req, res, trx) => {
             topicChartsCache ??= await findTopicCharts(trx)
             res.send(
                 renderToHtmlPage(
-                    <KeyChartsThumbnailsTestPage topics={topicChartsCache} />
+                    <KeyChartsThumbnailsTestPage
+                        topics={topicChartsCache}
+                        countries={parseCountries(req.query.countries)}
+                    />
                 )
             )
         }
     )
+}
+
+/** Comma-separated entity names from the query string */
+function parseCountries(param: unknown): string[] {
+    if (typeof param !== "string") return []
+    return param
+        .split(",")
+        .map((name) => name.trim())
+        .filter((name) => name !== "")
 }
 
 async function findTopicCharts(
@@ -190,10 +202,6 @@ function pickChartsWithVariedTabs(
 
 type MakeGrapherParams = (tab: GrapherTabName) => GrapherQueryParams
 
-/** The all-charts block's grapher params when no country is picked */
-const makeAllChartsGrapherParams: MakeGrapherParams = (tab) =>
-    toAllChartsGrapherParams({ tab, countries: [] })
-
 /** Only the tab, so the author's selection shows */
 const makeTabOnlyGrapherParams: MakeGrapherParams = (tab) =>
     toGrapherQueryParams({ tab })
@@ -219,9 +227,13 @@ function makeThumbnailUrl(
 
 function KeyChartsThumbnailsTestPage({
     topics,
+    countries,
 }: {
     topics: TopicCharts[]
+    countries: string[]
 }): React.ReactElement {
+    const makeAllChartsGrapherParams: MakeGrapherParams = (tab) =>
+        toAllChartsGrapherParams({ tab, countries })
     return (
         <html>
             <head>
@@ -245,6 +257,18 @@ function KeyChartsThumbnailsTestPage({
                         right, the same request with only the tab, which shows
                         the author's selection.
                     </p>
+                    <form className="countries" method="get">
+                        <label>
+                            Picked countries{" "}
+                            <input
+                                type="text"
+                                name="countries"
+                                defaultValue={countries.join(", ")}
+                                placeholder="Kenya, Spain"
+                            />
+                        </label>
+                        <button type="submit">Apply</button>
+                    </form>
                 </header>
                 <div className="comparison-heads">
                     <span>All-charts block</span>
@@ -328,6 +352,8 @@ body { margin: 0; font-family: Lato, sans-serif; background: #fff; color: #1d3d6
 header { padding: 16px 24px; border-bottom: 1px solid #dbe5f0; }
 header h1 { font-family: "Playfair Display", serif; font-weight: 600; font-size: 20px; margin: 0 0 4px; }
 .note { font-size: 13px; color: #577291; margin: 0; max-width: 900px; }
+.countries { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-size: 13px; }
+.countries input { font: inherit; padding: 2px 6px; width: 240px; }
 main { padding: 0 24px 24px; }
 .topic__title { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #577291; margin: 24px 0 0; }
 .chart { padding: 14px 0; border-bottom: 1px solid #dbe5f0; }
