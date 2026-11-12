@@ -35,6 +35,7 @@ import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
+import { addDataRangePeersTestRoutes } from "./dataRangePeersTestPage.js"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"
@@ -42,6 +43,8 @@ const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"
 const explorerAdminServer = new ExplorerAdminServer()
 
 const testPageRouter = Router()
+
+addDataRangePeersTestRoutes(testPageRouter)
 
 interface ChartItem {
     id: number
