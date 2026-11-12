@@ -133,9 +133,12 @@ describe("grapher config endpoint with local R2 bindings", () => {
 
     it("returns 404 when config is missing from both buckets", async () => {
         const response = await server.fetch(
-            "/grapher/definitely-not-a-real-chart.config.json"
+            "/grapher/definitely-not-a-real-chart.config.json",
+            { headers: { Origin: "https://example.com" } }
         )
         expect(response.status).toBe(404)
+        // Error responses must stay readable by cross-origin clients
+        expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*")
     })
 
     it("sets no-cache when nocache query param is present", async () => {

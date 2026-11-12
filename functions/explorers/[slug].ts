@@ -1,6 +1,7 @@
 import { Env, Etag, extensions } from "../_common/env.js"
 import { getRedirectForExplorerUrl } from "../_common/redirectTools.js"
-import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
+import { IRequestStrict, Router, error, cors } from "itty-router"
+import { errorToResponse } from "../_common/errorHandling.js"
 import { rewriteMetaTags } from "../_common/grapherTools.js"
 import {
     fetchCsvForExplorerView,
@@ -32,6 +33,7 @@ const router = Router<
     [URL, Env, Etag, EventContext<unknown, any, Record<string, unknown>>]
 >({
     before: [preflight, checkForRedirect],
+    catch: errorToResponse,
     finally: [corsify],
 })
 router
@@ -148,21 +150,14 @@ async function handleHtmlPageRequest(
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
-    context.passThroughOnException()
     const { request, env } = context
     const url = new URL(request.url)
 
-    return router
-        .fetch(
-            request,
-            url,
-            { ...env, url },
-            request.headers.get("if-none-match"),
-            context
-        )
-        .catch((e) => {
-            console.log("Handling error", e)
-            if (e instanceof StatusError) return error(e.status, e.message)
-            return error(500, e)
-        })
+    return router.fetch(
+        request,
+        url,
+        { ...env, url },
+        request.headers.get("if-none-match"),
+        context
+    )
 }

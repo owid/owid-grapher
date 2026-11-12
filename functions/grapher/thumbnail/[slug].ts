@@ -60,5 +60,4 @@ export const onRequestGet: PagesFunction = async (ctx) => {
             } else resp.headers.set("Cache-Control", "no-cache")
             return resp
         })
-        .catch((e) => error(500, e))
 }

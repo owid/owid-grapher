@@ -1,6 +1,7 @@
 import { Env, extensions } from "../../_common/env.js"
 import { fetchGrapherConfig } from "../../_common/grapherTools.js"
-import { IRequestStrict, Router, error, StatusError, cors } from "itty-router"
+import { IRequestStrict, Router, error, cors } from "itty-router"
+import { errorToResponse } from "../../_common/errorHandling.js"
 import { handleThumbnailRequest } from "../../_common/reusableHandlers.js"
 
 const { preflight, corsify } = cors({
@@ -9,6 +10,7 @@ const { preflight, corsify } = cors({
 
 const router = Router<IRequestStrict, [URL, Env, string]>({
     before: [preflight],
+    catch: errorToResponse,
     finally: [corsify],
 })
 
@@ -48,21 +50,13 @@ export const onRequest: PagesFunction = async (context) => {
     const { request, env } = context
     const url = new URL(request.url)
 
-    return router
-        .fetch(
-            request,
-            url,
-            { ...env, url },
-            request.headers.get("if-none-match"),
-            context
-        )
-        .catch((e) => {
-            if (e instanceof StatusError) {
-                return error(e.status, e.message)
-            }
-
-            return error(500, e)
-        })
+    return router.fetch(
+        request,
+        url,
+        { ...env, url },
+        request.headers.get("if-none-match"),
+        context
+    )
 }
 
 async function handleConfigRequest(

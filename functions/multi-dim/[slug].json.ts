@@ -1,4 +1,5 @@
 import { cors, IRequestStrict, Router } from "itty-router"
+import { errorToResponse } from "../_common/errorHandling.js"
 import { Env } from "../_common/env.js"
 import { fetchUnparsedGrapherConfig } from "../_common/grapherTools.js"
 
@@ -8,6 +9,7 @@ const { preflight, corsify } = cors({
 
 const router = Router<IRequestStrict, [Env, Params]>({
     before: [preflight],
+    catch: errorToResponse,
     finally: [corsify],
 })
 
