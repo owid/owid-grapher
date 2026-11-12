@@ -32,6 +32,7 @@ import type {
 } from "../core/chartModel.js"
 import {
     combinedFactor,
+    formatCurrencyLabel,
     formatIncome,
     timeIntervalNoun,
 } from "../core/currency.js"
@@ -119,7 +120,10 @@ export interface IncomeDistributionChartProps {
     onUnlabelledCountriesChange?: (keys: string[]) => void
 }
 
-const MARGIN = { top: 10, right: 16, bottom: 32, left: 16 }
+// The bottom holds the tick labels and, under them, the axis label, which
+// takes two lines on narrow charts
+const MARGIN = { top: 10, right: 16, bottom: 58, left: 16 }
+const MARGIN_BOTTOM_NARROW = 72
 
 /** Multiples of each power of ten that get a tick */
 const TICK_MULTIPLIERS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -224,7 +228,10 @@ function IncomeDistributionChartContent({
     const plotLeft = MARGIN.left
     const plotRight = Math.max(width - MARGIN.right, plotLeft + 1)
     const plotTop = MARGIN.top
-    const plotBottom = Math.max(height - MARGIN.bottom, plotTop + 1)
+    const plotBottom = Math.max(
+        height - (isNarrow ? MARGIN_BOTTOM_NARROW : MARGIN.bottom),
+        plotTop + 1
+    )
     const tickFontSize = isNarrow ? 11 : 12
 
     const incomes = model.grid.incomes
@@ -704,7 +711,16 @@ function IncomeDistributionChartContent({
                     xScale={xScale}
                     plotTop={plotTop}
                     plotBottom={plotBottom}
+                    plotLeft={plotLeft}
+                    plotRight={plotRight}
                     fontSize={tickFontSize}
+                    isNarrow={isNarrow}
+                    per={noun}
+                    currencyLabel={
+                        currency.code === INTERNATIONAL_DOLLAR.code
+                            ? "international-$"
+                            : formatCurrencyLabel(currency)
+                    }
                 />
 
                 <g
@@ -956,16 +972,52 @@ function XAxis({
     xScale,
     plotTop,
     plotBottom,
+    plotLeft,
+    plotRight,
     fontSize,
+    isNarrow,
+    per,
+    currencyLabel,
 }: {
     ticks: AxisTick[]
     xScale: ScaleLogarithmic<number, number>
     plotTop: number
     plotBottom: number
+    plotLeft: number
+    plotRight: number
     fontSize: number
+    /** Narrow charts split the axis label onto two lines */
+    isNarrow: boolean
+    /** "day", "month" or "year" */
+    per: string
+    /** "international-$" or "Euro (Germany)" */
+    currencyLabel: string
 }): React.ReactElement {
     return (
         <g className="income-distribution-chart__axis" pointerEvents="none">
+            {/* Under the tick labels, centred on the plot */}
+            <text
+                className="income-distribution-chart__axis-label"
+                x={(plotLeft + plotRight) / 2}
+                y={plotBottom + 36}
+                dy="0.71em"
+                textAnchor="middle"
+                fontSize={fontSize}
+                fill={GRAPHER_LIGHT_TEXT}
+            >
+                {isNarrow ? (
+                    <>
+                        <tspan x={(plotLeft + plotRight) / 2}>
+                            Income or consumption per {per} in {currencyLabel}
+                        </tspan>
+                        <tspan x={(plotLeft + plotRight) / 2} dy="1.25em">
+                            logarithmic scale
+                        </tspan>
+                    </>
+                ) : (
+                    `Income or consumption per ${per} in ${currencyLabel} — logarithmic scale`
+                )}
+            </text>
             {ticks.map((tick) => {
                 const x = xScale(tick.value)
                 const isLabelled = tick.label !== undefined
