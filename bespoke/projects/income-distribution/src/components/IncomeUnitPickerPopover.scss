@@ -22,21 +22,35 @@
     width: 290px;
 }
 
+// One 16px gutter throughout; sections are separated by the divider
 .income-distribution-unit-picker__panel {
-    padding: 4px 0 8px;
+    padding: 14px 0 16px;
+    font-size: 13px;
+    line-height: 1.35;
+
+    // The shared dropdown heading, on the panel's gutter
+    .group-heading {
+        margin: 0 16px 8px;
+    }
 }
 
 .income-distribution-unit-picker__intro {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin: 2px 8px 8px;
+    gap: 8px;
+    margin: 0 16px 10px;
     font-size: 12px;
-    line-height: 1.4;
+    line-height: 1.45;
     color: $gray-70;
 
     p {
         margin: 0;
+    }
+
+    // "Convert to:" introduces the options below, so it reads as a label
+    p:last-child {
+        margin-top: 2px;
+        color: $gray-90;
     }
 }
 
@@ -45,7 +59,7 @@
     grid-template-columns: 16px minmax(0, 1fr);
     gap: 10px;
     align-items: start;
-    padding: 8px 16px;
+    padding: 9px 16px;
     cursor: pointer;
     color: $gray-90;
 
@@ -61,18 +75,23 @@
 }
 
 .income-distribution-unit-picker__choice-input {
-    margin: 1px 0 0;
+    width: 16px;
+    height: 16px;
+    margin: 0;
     accent-color: $active-text;
 }
 
 .income-distribution-unit-picker__choice-label {
     display: block;
+    font-weight: 500;
+    line-height: 16px; // the radio's height, so the two line up
 }
 
 .income-distribution-unit-picker__choice-detail {
     display: block;
-    margin-top: 2px;
+    margin-top: 3px;
     font-size: 12px;
+    line-height: 1.4;
     color: $gray-70;
 }
 
@@ -81,12 +100,15 @@
     color: $gray-70;
 }
 
+// Indented to the options' text column
 .income-distribution-unit-picker__other {
-    margin: 4px 8px 0 34px;
+    margin: 8px 16px 0 42px;
 }
 
 .income-distribution-unit-picker__search {
-    margin: 0 0 4px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 0 6px;
 }
 
 .income-distribution-unit-picker__listbox {
@@ -102,7 +124,7 @@
 }
 
 .income-distribution-unit-picker__option {
-    padding: 7px 12px;
+    padding: 7px 10px;
     cursor: pointer;
     outline: none;
 
@@ -118,13 +140,13 @@
 }
 
 .income-distribution-unit-picker__empty {
-    padding: 7px 12px;
+    padding: 7px 10px;
     color: $gray-70;
 }
 
 .income-distribution-unit-picker__divider {
-    margin: 8px 8px 0;
-    border-top: 1px solid $gray-10;
+    margin: 14px 16px;
+    border-top: 1px solid $gray-20;
 }
 
 .income-distribution-unit-picker__interval {
