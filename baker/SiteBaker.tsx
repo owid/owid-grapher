@@ -109,11 +109,8 @@ import { getDods, getParsedDodsDictionary } from "../db/model/Dod.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../db/model/ArchivedMultiDimVersion.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
+import { fetchDatasetPageKeys } from "./datasetPage/datasetPageFiles.js"
 import { PostArchivalManifest } from "../serverUtils/archivalUtils.js"
-
-// PLACEHOLDER: the dataset pages to bake, as "<namespace>/<short_name>". A
-// hard-coded list while dataset pages are a prototype.
-const DATASET_PAGES_TO_BAKE = ["energy/owid_energy"]
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -967,7 +964,16 @@ export class SiteBaker {
         // Dataset pages are a prototype, so they're only baked outside
         // production (e.g. on staging servers)
         if (ENV !== "production") {
-            for (const key of DATASET_PAGES_TO_BAKE) {
+            // Which datasets have a page is decided in the ETL, which publishes the list
+            let datasetPageKeys: string[] = []
+            try {
+                datasetPageKeys = await fetchDatasetPageKeys()
+            } catch (e) {
+                await logErrorAndMaybeCaptureInSentry(
+                    new Error(`Error reading the list of dataset pages: ${e}`)
+                )
+            }
+            for (const key of datasetPageKeys) {
                 const [namespace, shortName] = key.split("/")
                 try {
                     const page = await renderDatasetPage(

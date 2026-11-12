@@ -161,3 +161,42 @@ export async function fetchDatasetPageFiles(
     }
     return undefined
 }
+
+/**
+ * The datasets listed in a sitemap that the ETL publishes at `baseUrl`, as
+ * "<namespace>/<short_name>". The sitemap has one address per dataset page,
+ * e.g. "<baseUrl>/energy/owid_energy/".
+ */
+export function parseDatasetPageKeys(
+    sitemapXml: string,
+    baseUrl: string
+): string[] {
+    const prefix = `${baseUrl.replace(/\/+$/, "")}/`
+    const keys: string[] = []
+    for (const match of sitemapXml.matchAll(/<loc>([^<]+)<\/loc>/g)) {
+        const url = match[1].trim()
+        if (!url.startsWith(prefix)) continue
+        const key = url.slice(prefix.length).replace(/\/+$/, "")
+        if (/^[\w-]+\/[\w-]+$/.test(key)) keys.push(key)
+    }
+    return keys
+}
+
+/**
+ * The datasets that have a page, as "<namespace>/<short_name>". Which datasets
+ * have one is decided in the ETL, by each dataset's metadata: this reads the
+ * list the ETL publishes for this environment and the one for production.
+ */
+export async function fetchDatasetPageKeys(): Promise<string[]> {
+    const keys = new Set<string>()
+    for (const baseUrl of [DATASET_PAGES_URL, PRODUCTION_DATASET_PAGES_URL]) {
+        const sitemapUrl = `${baseUrl.replace(/\/+$/, "")}/sitemap.xml`
+        const response = await fetch(sitemapUrl)
+        if (response.status === 404) continue
+        if (!response.ok)
+            throw new Error(`Failed to fetch ${sitemapUrl}: ${response.status}`)
+        for (const key of parseDatasetPageKeys(await response.text(), baseUrl))
+            keys.add(key)
+    }
+    return [...keys].sort()
+}
