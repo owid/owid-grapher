@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   zizmor:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     steps:
       - name: Clone repository
@@ -32,7 +32,7 @@ jobs:
   # Fails when .github/workflows/actions.lock is out of sync with the workflows
   # or a locked pin no longer verifies upstream. Run `gh actions-lock` to fix.
   actions-lockfile:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     env:
       GH_TOKEN: ${{ github.token }}
 
