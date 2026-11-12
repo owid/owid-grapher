@@ -1,0 +1,63 @@
+// Cross-document view transitions
+// ===============================
+//
+// When navigating between pages of the site, the browser keeps a snapshot of
+// the old page and animates it into the new one instead of flashing to white.
+// The old content fades out quickly and the new content fades in while rising
+// a few pixels; the site header stays put, so the page feels like it swaps its
+// content rather than reloading.
+//
+// This is progressive enhancement: browsers without cross-document view
+// transitions (see docs/browser-support.md) ignore all of it and navigate as
+// usual. The browser only runs these for same-origin navigations (link clicks,
+// back/forward), never for reloads, and the new page must opt in too, which it
+// does by loading this same stylesheet.
+
+@media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+        navigation: auto;
+    }
+}
+
+// The header looks the same on every page, so don't animate it at all. This
+// keeps it still while the content below it changes, and stops it from
+// sliding in from above when the old page was scrolled past it.
+.site-header {
+    view-transition-name: site-header;
+}
+
+::view-transition-group(site-header) {
+    animation: none;
+}
+
+::view-transition-old(site-header) {
+    display: none;
+}
+
+::view-transition-new(site-header) {
+    animation: none;
+}
+
+// The page content: a quick fade out, then a short fade-and-rise in. Kept
+// brief so navigation never feels slower than without the transition.
+::view-transition-old(root) {
+    animation: var(--duration-press) ease-in both view-transition-fade-out;
+}
+
+::view-transition-new(root) {
+    animation: var(--duration-panel) var(--ease-out) both
+        view-transition-fade-rise-in;
+}
+
+@keyframes view-transition-fade-out {
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes view-transition-fade-rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
