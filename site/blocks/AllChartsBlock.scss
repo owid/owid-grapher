@@ -257,6 +257,13 @@ $all-charts-block-search-height: 44px;
     margin: -8px 0 16px;
 }
 
+.all-charts-block__skeleton-suggestions {
+    align-self: center;
+    width: 50%;
+    height: 16px;
+    background: $gray-10;
+}
+
 .all-charts-block__suggestions-label {
     @include overline-black-caps;
     color: $blue-60;

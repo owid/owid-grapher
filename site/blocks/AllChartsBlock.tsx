@@ -383,10 +383,22 @@ export function AllChartsBlockSkeleton({
             ref={ref}
         >
             <AllChartsHeading id={id} heading={heading} />
-            <div className="all-charts-block__skeleton-search animate-pulse" />
-            <div className="all-charts-block__suggestions" aria-hidden />
+            <AllChartsSearchSkeleton />
+            <AllChartsSuggestionsSkeleton />
             <AllChartsResultsSkeleton />
         </section>
+    )
+}
+
+function AllChartsSearchSkeleton(): React.ReactElement {
+    return <div className="all-charts-block__skeleton-search animate-pulse" />
+}
+
+function AllChartsSuggestionsSkeleton(): React.ReactElement {
+    return (
+        <div className="all-charts-block__suggestions" aria-hidden>
+            <div className="all-charts-block__skeleton-suggestions animate-pulse" />
+        </div>
     )
 }
 
