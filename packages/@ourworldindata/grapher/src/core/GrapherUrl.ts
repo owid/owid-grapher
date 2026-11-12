@@ -78,6 +78,7 @@ export const grapherConfigToQueryParams = (
         overlay: undefined,
         tableFilter: undefined,
         tableSearch: undefined,
+        peerCount: undefined,
     }
 
     // Drop undefined values and convert all to string
@@ -102,6 +103,7 @@ export const grapherObjectToQueryParams = (
             | "showSelectionOnlyInTable"
             // Excluded because it shouldn't be persisted in the URL
             | "peerCountries"
+            | "peerCount"
         >,
         string | undefined
     > = {
