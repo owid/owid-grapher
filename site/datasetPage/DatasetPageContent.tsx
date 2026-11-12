@@ -52,6 +52,9 @@ const SECTION_IDS = {
 /** Lists longer than this scroll inside their card */
 const MAX_UNSCROLLED_ITEMS = 10
 
+/** An indicator lists this many of its charts, and the rest on request */
+const MAX_INDICATOR_CHARTS = 5
+
 declare global {
     interface Window {
         [DATASET_PAGE_PROPS_KEY]?: DatasetPageProps
@@ -488,6 +491,10 @@ function IndicatorDetails({
         .filter(({ chart }) =>
             chart.indicatorShortNames.includes(indicator.shortName)
         )
+    const [showAllCharts, setShowAllCharts] = useState(false)
+    const visibleCharts = showAllCharts
+        ? indicatorCharts
+        : indicatorCharts.slice(0, MAX_INDICATOR_CHARTS)
     return (
         <div className="dataset-page__details">
             {indicator.descriptionLong && (
@@ -553,7 +560,7 @@ function IndicatorDetails({
                         Charts with this indicator:
                     </h4>
                     <ul className="dataset-page__details-sources">
-                        {indicatorCharts.map(({ chart, chartIndex }) => (
+                        {visibleCharts.map(({ chart, chartIndex }) => (
                             <li key={chart.grapherPath}>
                                 <a
                                     href={`#${SECTION_IDS.charts}`}
@@ -568,6 +575,15 @@ function IndicatorDetails({
                             </li>
                         ))}
                     </ul>
+                    {visibleCharts.length < indicatorCharts.length && (
+                        <button
+                            type="button"
+                            className="dataset-page__show-all"
+                            onClick={() => setShowAllCharts(true)}
+                        >
+                            Show all {indicatorCharts.length} charts
+                        </button>
+                    )}
                 </>
             )}
         </div>
