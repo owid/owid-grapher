@@ -1,15 +1,20 @@
-import { expect, it, describe } from "vitest"
+import { expect, it, describe, onTestFinished, vi } from "vitest"
 import * as R from "remeda"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
-import { ColumnTypeNames, TimeInterval } from "@ourworldindata/types"
+import {
+    AdditionalGrapherDataFetchFn,
+    ColumnTypeNames,
+    PeerCountryStrategy,
+    TimeInterval,
+} from "@ourworldindata/types"
 import {
     findClosestByValue,
-    findDataRangePeers,
     findSpreadByValue,
     findLatestValuesInWindow,
     type LatestValue,
     findLatestValueWindow,
     selectParentRegionsAsPeers,
+    selectPeerCountries,
 } from "./PeerCountrySelection.js"
 
 describe(findClosestByValue, () => {
@@ -137,139 +142,6 @@ describe(selectParentRegionsAsPeers, () => {
 
         // Should return empty since neither World nor parent regions are available
         expect(result).toEqual([])
-    })
-})
-
-describe(findDataRangePeers, () => {
-    it("is deterministic by default", () => {
-        const values = new Map([
-            ["A", 10],
-            ["B", 20],
-            ["C", 30],
-            ["D", 40],
-            ["E", 50],
-            ["F", 60],
-            ["G", 70],
-            ["H", 80],
-            ["I", 90],
-            ["J", 100],
-        ])
-        const population = new Map<string, number>()
-
-        const peers1 = findDataRangePeers({ values, population })
-        const peers2 = findDataRangePeers({ values, population })
-
-        expect(peers1).toEqual(peers2)
-    })
-
-    it("picks most populous country in each bucket when not randomized", () => {
-        // 10 countries, 5 buckets of 2 each
-        const values = new Map([
-            ["SmallCountry1", 10],
-            ["Germany", 20], // Bucket 1: Germany is more populous
-            ["SmallCountry2", 30],
-            ["France", 40], // Bucket 2: France is more populous
-            ["SmallCountry3", 50],
-            ["Brazil", 60], // Bucket 3: Brazil is more populous
-            ["SmallCountry4", 70],
-            ["Japan", 80], // Bucket 4: Japan is more populous
-            ["SmallCountry5", 90],
-            ["USA", 100], // Bucket 5: USA is more populous
-        ])
-        const population = new Map([
-            ["SmallCountry1", 100_000],
-            ["Germany", 84_000_000],
-            ["SmallCountry2", 200_000],
-            ["France", 67_000_000],
-            ["SmallCountry3", 300_000],
-            ["Brazil", 214_000_000],
-            ["SmallCountry4", 400_000],
-            ["Japan", 125_000_000],
-            ["SmallCountry5", 500_000],
-            ["USA", 330_000_000],
-        ])
-
-        const peers = findDataRangePeers({ values, population })
-
-        // Should pick the most populous country from each bucket
-        expect(peers).toEqual(["Germany", "France", "Brazil", "Japan", "USA"])
-    })
-
-    it("respects targetCount parameter", () => {
-        const values = new Map([
-            ["A", 10],
-            ["B", 20],
-            ["C", 30],
-            ["D", 40],
-            ["E", 50],
-            ["F", 60],
-        ])
-        const population = new Map<string, number>()
-
-        const peers = findDataRangePeers({ values, population, targetCount: 3 })
-
-        expect(peers).toHaveLength(3)
-    })
-
-    it("handles case where there are fewer entities than buckets", () => {
-        const values = new Map([
-            ["A", 10],
-            ["B", 20],
-            ["C", 30],
-        ])
-        const population = new Map<string, number>()
-
-        // Default is 5 buckets, but only 3 entities
-        const result = findDataRangePeers({ values, population })
-
-        // Should return all 3 entities (one per non-empty bucket)
-        expect(result).toHaveLength(3)
-        expect(result).toContain("A")
-        expect(result).toContain("B")
-        expect(result).toContain("C")
-    })
-
-    it("doesn't include target country or another country in the same bucket", () => {
-        // 10 countries split into 5 buckets of 2:
-        // Bucket 1: [A=10, B=20], Bucket 2: [C=30, Target=40],
-        // Bucket 3: [E=50, F=60], Bucket 4: [G=70, H=80], Bucket 5: [I=90, J=100]
-        const values = new Map([
-            ["A", 10],
-            ["B", 20],
-            ["C", 30],
-            ["Target", 40],
-            ["E", 50],
-            ["F", 60],
-            ["G", 70],
-            ["H", 80],
-            ["I", 90],
-            ["J", 100],
-        ])
-        const population = new Map([
-            ["A", 1_000_000],
-            ["B", 2_000_000],
-            ["C", 50_000_000],
-            ["Target", 10_000_000],
-            ["E", 3_000_000],
-            ["F", 4_000_000],
-            ["G", 5_000_000],
-            ["H", 6_000_000],
-            ["I", 7_000_000],
-            ["J", 8_000_000],
-        ])
-
-        // Without targetCountry: picks most populous from all 5 buckets,
-        // including C (most populous in bucket 2)
-        const peers = findDataRangePeers({ values, population })
-        expect(peers).toEqual(["B", "C", "F", "H", "J"])
-
-        // With targetCountry: skips the bucket containing Target (C)
-        const peersForTarget = findDataRangePeers({
-            values,
-            population,
-            targetCountry: "Target",
-        })
-        expect(peersForTarget).toEqual(["B", "F", "H", "J"])
     })
 })
 
@@ -763,7 +635,7 @@ describe(findSpreadByValue, () => {
         ).toEqual([])
     })
 
-    it("draws each bin's pick weighted by population from the given random source", () => {
+    it("draws each bin's pick weighted by population when randomized", () => {
         // Each bin weighs its members 1, 2 and 3, so the draws 0.1, 0.4 and 0.3 land on
         // the 1st, 2nd and 2nd member. The most populous would be Nigeria, Italy and Japan.
         const candidates = latest([
@@ -783,15 +655,19 @@ describe(findSpreadByValue, () => {
                 (index % 3) + 1,
             ])
         )
-        const draws = [0.1, 0.4, 0.3]
-        let drawIndex = 0
+        const randomSpy = vi
+            .spyOn(Math, "random")
+            .mockReturnValueOnce(0.1)
+            .mockReturnValueOnce(0.4)
+            .mockReturnValueOnce(0.3)
+        onTestFinished(() => randomSpy.mockRestore())
 
         expect(
             findSpreadByValue({
                 candidates,
                 population,
                 targetCount: 3,
-                random: () => draws[drawIndex++],
+                randomize: true,
             })
         ).toEqual(["Chad", "France", "China"])
     })
@@ -829,5 +705,93 @@ describe(findSpreadByValue, () => {
                 targetCount: 3,
             })
         ).toEqual(["Chad", "Germany", "India"])
+    })
+})
+
+describe(selectPeerCountries, () => {
+    describe("with the dataRange strategy", () => {
+        const dataColumn = makeColumn(
+            COUNTRIES.map((name, index): Row => [name, 2020, (index + 1) * 10])
+        )
+        // Within each pair of neighbors (one bin of five), the odd-indexed country is more populous
+        const populationRows = COUNTRIES.map((entity, index) => ({
+            entity,
+            value: index % 2 === 1 ? 2_000_000 : 1_000_000,
+        }))
+        const additionalDataLoaderFn = (async () =>
+            populationRows) as unknown as AdditionalGrapherDataFetchFn
+
+        const selectByDataRange = (
+            params: {
+                targetCountry?: string
+                randomize?: boolean
+            } = {}
+        ): Promise<string[]> =>
+            selectPeerCountries({
+                peerCountryStrategy: PeerCountryStrategy.DataRange,
+                availableEntities: COUNTRIES,
+                dataColumn,
+                endTime: 2020,
+                isSingleTimeChart: false,
+                additionalDataLoaderFn,
+                ...params,
+            })
+
+        it("picks the most populous country in each value bin", async () => {
+            expect(await selectByDataRange()).toEqual([
+                "Germany",
+                "Spain",
+                "Norway",
+                "Finland",
+                "Austria",
+            ])
+        })
+
+        it("skips the target's bin and leaves the target out of the result", async () => {
+            // Italy (value 30) shares a bin with Spain
+            const peers = await selectByDataRange({ targetCountry: "Italy" })
+
+            expect(peers).toEqual(["Germany", "Norway", "Finland", "Austria"])
+        })
+
+        it("draws a random pick per bin when randomized", async () => {
+            // A draw of 0 lands on each bin's less populous member
+            const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0)
+            onTestFinished(() => randomSpy.mockRestore())
+
+            expect(await selectByDataRange({ randomize: true })).toEqual([
+                "France",
+                "Italy",
+                "Poland",
+                "Sweden",
+                "Denmark",
+            ])
+        })
+
+        it("ranks countries whose latest value is a few years before the end year", async () => {
+            const peers = await selectPeerCountries({
+                peerCountryStrategy: PeerCountryStrategy.DataRange,
+                availableEntities: COUNTRIES,
+                dataColumn: makeColumn([
+                    ...COUNTRIES.slice(0, 9).map((name, index): Row => [
+                        name,
+                        2016,
+                        (index + 1) * 10,
+                    ]),
+                    [COUNTRIES[9], 2020, 100],
+                ]),
+                endTime: 2020,
+                isSingleTimeChart: false,
+                additionalDataLoaderFn,
+            })
+
+            expect(peers).toEqual([
+                "Germany",
+                "Spain",
+                "Norway",
+                "Finland",
+                "Austria",
+            ])
+        })
     })
 })
