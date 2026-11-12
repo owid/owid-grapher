@@ -61,6 +61,7 @@ describe(toAllChartsGrapherParams, () => {
                 country: "~KEN",
                 peerCountries: "auto",
                 peerCount: "3",
+                focus: "~KEN",
             },
         },
         {
@@ -72,6 +73,7 @@ describe(toAllChartsGrapherParams, () => {
                 country: "KEN~ESP",
                 peerCountries: "auto",
                 peerCount: "4",
+                focus: "KEN~ESP",
             },
         },
         {
@@ -81,10 +83,10 @@ describe(toAllChartsGrapherParams, () => {
             expected: { tab: "line", country: "KEN~ESP~ITA~FRA" },
         },
         {
-            name: "shows only the picked country on a marimekko",
+            name: "focuses the picked country on a marimekko",
             tab: GRAPHER_TAB_NAMES.Marimekko,
             countries: ["Kenya"],
-            expected: { tab: "marimekko", country: "~KEN" },
+            expected: { tab: "marimekko", country: "~KEN", focus: "~KEN" },
         },
         {
             name: "shows only the picked country on the map",

@@ -1,3 +1,4 @@
+import { generateFocusedSeriesNamesParam } from "@ourworldindata/grapher"
 import {
     GRAPHER_TAB_NAMES,
     PeerCountryStrategy,
@@ -14,7 +15,7 @@ type EntitySelectionRule =
       }
     | {
           withoutPickedCountry: "dataRangePeers"
-          withPickedCountry: "pickedOnly" | "peers"
+          withPickedCountry: "pickedFocused" | "peers"
           maxEntities: number
       }
     | {
@@ -31,7 +32,7 @@ const ENTITY_SELECTION_BY_TAB: Record<GrapherTabName, EntitySelectionRule> = {
     [GRAPHER_TAB_NAMES.StackedDiscreteBar]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "peers", maxEntities: 6 },
     [GRAPHER_TAB_NAMES.Dumbbell]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "peers", maxEntities: 6 },
     [GRAPHER_TAB_NAMES.Swimlane]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "peers", maxEntities: 6 },
-    [GRAPHER_TAB_NAMES.Marimekko]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "pickedOnly", maxEntities: 3 },
+    [GRAPHER_TAB_NAMES.Marimekko]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "pickedFocused", maxEntities: 3 },
     [GRAPHER_TAB_NAMES.ScatterPlot]: { withoutPickedCountry: "defaultSelection", withPickedCountry: "pickedOnly" },
     [GRAPHER_TAB_NAMES.StackedArea]: { withoutPickedCountry: "defaultSelection", withPickedCountry: "pickedOnly" },
     [GRAPHER_TAB_NAMES.StackedBar]: { withoutPickedCountry: "defaultSelection", withPickedCountry: "pickedOnly" },
@@ -58,7 +59,7 @@ function toPeerQueryParams(
 ): GrapherQueryParams {
     return pickedCountries.length === 0
         ? toPeerQueryParamsWithoutPickedCountry(rule)
-        : toPeerQueryParamsWithPickedCountry(rule, pickedCountries.length)
+        : toPeerQueryParamsWithPickedCountry(rule, pickedCountries)
 }
 
 function toPeerQueryParamsWithoutPickedCountry(
@@ -76,15 +77,22 @@ function toPeerQueryParamsWithoutPickedCountry(
 
 function toPeerQueryParamsWithPickedCountry(
     rule: EntitySelectionRule,
-    pickedCount: number
+    pickedCountries: string[]
 ): GrapherQueryParams {
     return match(rule)
         .with({ withPickedCountry: "peers" }, (rule) => {
-            const peerCount = rule.maxEntities - pickedCount
+            const peerCount = rule.maxEntities - pickedCountries.length
             return peerCount > 0
-                ? { peerCountries: "auto", peerCount: String(peerCount) }
+                ? {
+                      peerCountries: "auto",
+                      peerCount: String(peerCount),
+                      focus: generateFocusedSeriesNamesParam(pickedCountries),
+                  }
                 : {}
         })
         .with({ withPickedCountry: "pickedOnly" }, () => ({}))
+        .with({ withPickedCountry: "pickedFocused" }, () => ({
+            focus: generateFocusedSeriesNamesParam(pickedCountries),
+        }))
         .exhaustive()
 }
