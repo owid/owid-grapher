@@ -65,6 +65,7 @@ import {
     TimeInterval,
     VIEWS,
     View,
+    WelfareType,
 } from "../core/types.js"
 import { IncomeDistributionControls } from "../components/IncomeDistributionControls.js"
 import { CountryMultiSelect } from "../components/CountryMultiSelect.js"
@@ -262,6 +263,10 @@ function CaptionedDistributionVariant({
     const isNarrow = width > 0 && width < NARROW_BREAKPOINT
 
     const [hoveredEntity, setHoveredEntity] = useState<string | null>(null)
+    // Countries view: a welfare type hovered in the legend's key highlights
+    // every country of that type
+    const [hoveredWelfareType, setHoveredWelfareType] =
+        useState<WelfareType | null>(null)
     // The countries the chart couldn't label directly, which the overlay
     // legend then lists; none until it says otherwise, so the legend doesn't
     // flash up on load
@@ -433,6 +438,8 @@ function CaptionedDistributionVariant({
                                     entries={legendEntries}
                                     hoveredEntity={hoveredEntity}
                                     onHoverEntity={setHoveredEntity}
+                                    hoveredWelfareType={hoveredWelfareType}
+                                    onHoverWelfareType={setHoveredWelfareType}
                                     sharesBelowLine={sharesBelowLine}
                                     povertyLine={povertyLine}
                                     currency={currency}
@@ -475,6 +482,12 @@ function CaptionedDistributionVariant({
                                             entries={overlayLegendEntries}
                                             hoveredEntity={hoveredEntity}
                                             onHoverEntity={setHoveredEntity}
+                                            hoveredWelfareType={
+                                                hoveredWelfareType
+                                            }
+                                            onHoverWelfareType={
+                                                setHoveredWelfareType
+                                            }
                                             sharesBelowLine={sharesBelowLine}
                                             povertyLine={povertyLine}
                                             currency={currency}
@@ -509,6 +522,7 @@ function CaptionedDistributionVariant({
                                 onClearPovertyLine={onClearPovertyLine}
                                 hoveredEntity={hoveredEntity}
                                 onHoverEntity={setHoveredEntity}
+                                hoveredWelfareType={hoveredWelfareType}
                                 isNarrow={isNarrow}
                                 obstacles={chartObstacles}
                                 legendBox={

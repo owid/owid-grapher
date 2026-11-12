@@ -1,5 +1,5 @@
 import { Tippy } from "@ourworldindata/utils"
-import { GRAY_70 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import { GRAPHER_BACKGROUND } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import type { WelfareType } from "../core/types.js"
@@ -104,15 +104,12 @@ export function SvgWelfareBadge({
                 aria-label={title}
                 tabIndex={0}
             >
-                {/* The 1px stroke straddles the radius, so the badge is WELFARE_BADGE_SIZE across */}
                 <circle
                     className="income-distribution-welfare-badge-svg__circle"
                     data-key={dataKey}
                     cx={cx}
                     cy={cy}
-                    r={(WELFARE_BADGE_SIZE - 1) / 2}
-                    stroke={GRAY_70}
-                    strokeWidth={1}
+                    r={WELFARE_BADGE_SIZE / 2}
                 />
                 {/* Baseline 0.36em below the centre centres Lato's capitals */}
                 <text
@@ -122,7 +119,7 @@ export function SvgWelfareBadge({
                     textAnchor="middle"
                     fontSize={WELFARE_BADGE_FONT_SIZE}
                     fontWeight={700}
-                    fill={GRAY_70}
+                    fill={GRAPHER_BACKGROUND}
                     pointerEvents="none"
                 >
                     {letter}

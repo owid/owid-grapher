@@ -267,3 +267,59 @@
 .income-distribution-legend__label-line {
     display: block;
 }
+
+// The key to the welfare badges, after the countries (see keyTypes in
+// IncomeDistributionLegend.tsx). Hovering an entry highlights its countries
+.income-distribution-legend__key-entry {
+    transition: opacity 150ms;
+}
+
+.income-distribution-legend__key-entry--dimmed {
+    opacity: 0.4;
+}
+
+.income-distribution-legend__key-label {
+    color: $light-text;
+}
+
+.income-distribution-legend__key-entry .income-distribution-welfare-badge {
+    margin-left: 0;
+}
+
+// Overlay: one row per type, its badge in the swatch column. Ranked rows use
+// `order`, so the key keeps to the end with a larger one
+.income-distribution-legend--overlay .income-distribution-legend__key-entry {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    order: 1000;
+    padding: 2px 0;
+}
+
+.income-distribution-legend--overlay
+    .income-distribution-legend__key-entry--first {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid $gray-10;
+}
+
+// Inline: the types side by side, on a line of their own
+.income-distribution-legend__key {
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    order: 1000;
+}
+
+.income-distribution-legend--shares .income-distribution-legend__key {
+    grid-column: 1 / -1;
+    margin-top: 6px;
+}
+
+.income-distribution-legend__key .income-distribution-legend__key-entry {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}

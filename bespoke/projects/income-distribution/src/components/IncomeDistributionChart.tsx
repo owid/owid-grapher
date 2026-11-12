@@ -51,8 +51,12 @@ import type {
     Currency,
     IncomeDistributionYear,
     TimeInterval,
+    WelfareType,
 } from "../core/types.js"
-import { placeholderWelfareType } from "../core/welfareType.js"
+import {
+    placeholderWelfareType,
+    WELFARE_TYPE_BADGES,
+} from "../core/welfareType.js"
 import {
     INT_POVERTY_LINE,
     INTERNATIONAL_DOLLAR,
@@ -88,6 +92,8 @@ export interface IncomeDistributionChartProps {
     /** Shared with the legend */
     hoveredEntity: string | null
     onHoverEntity: (key: string | null) => void
+    /** Countries view: highlights every country of this welfare type (hovered in the legend's key) */
+    hoveredWelfareType?: WelfareType | null
     isNarrow: boolean
     /**
      * Boxes over the plot (in the chart's own coordinates) that the country
@@ -203,6 +209,7 @@ function IncomeDistributionChartContent({
     onClearPovertyLine,
     hoveredEntity,
     onHoverEntity,
+    hoveredWelfareType = null,
     isNarrow,
     obstacles,
     legendBox,
@@ -429,8 +436,21 @@ function IncomeDistributionChartContent({
         [model.series]
     )
 
-    // Series the hovered entity covers: itself, or the countries of a hovered region
+    // Series the hovered entity covers: itself, or the countries of a hovered
+    // region; or, in the countries view, those of a hovered welfare type
     const highlightedKeys = useMemo(() => {
+        if (hoveredWelfareType !== null && !isStacked) {
+            const keys = new Set(
+                model.series
+                    .filter(
+                        (series) =>
+                            placeholderWelfareType(series.key) ===
+                            hoveredWelfareType
+                    )
+                    .map((series) => series.key)
+            )
+            return keys.size > 0 ? keys : undefined
+        }
         if (hoveredEntity === null) return undefined
         const keys = new Set(
             model.series
@@ -442,7 +462,7 @@ function IncomeDistributionChartContent({
                 .map((series) => series.key)
         )
         return keys.size > 0 ? keys : undefined
-    }, [model.series, hoveredEntity])
+    }, [model.series, hoveredEntity, hoveredWelfareType, isStacked])
 
     const [pointer, setPointer] = useState<PointerState | null>(null)
     const svgRef = useRef<SVGSVGElement>(null)
@@ -1238,7 +1258,9 @@ function PointerLine({
  * Mirrors the overlay legend's swatch rows (IncomeDistributionLegend.scss):
  * 10px 12px padding, a 1px border, rows of 12px text at 1.25 line height with
  * 2px padding above and below, a 10px swatch and a 6px gap before the label,
- * which is capped at 260px and ends in the welfare badge
+ * which is capped at 260px and ends in the welfare badge. Below the
+ * countries, a row per welfare type keys the badges, after a 4px margin, 6px
+ * padding and a 1px border
  */
 const LEFTOVER_LEGEND = {
     paddingX: 12 + 1,
@@ -1246,6 +1268,7 @@ const LEFTOVER_LEGEND = {
     rowHeight: 12 * 1.25 + 4,
     markWidth: 10 + 6,
     badgeWidth: WELFARE_BADGE_GAP + WELFARE_BADGE_SIZE,
+    keySeparator: 4 + 6 + 1,
     fontSize: 12,
     maxLabelWidth: 260,
     /** For rounding and font differences */
@@ -1261,24 +1284,34 @@ function estimateLeftoverLegendBox(
     { top, right }: { top: number; right: number }
 ): LabelBox | undefined {
     if (keys.length === 0) return undefined
-    const labelWidth = Math.min(
-        Math.max(
-            ...keys.map(
-                (key) =>
-                    Bounds.forText(key, { fontSize: LEFTOVER_LEGEND.fontSize })
-                        .width + LEFTOVER_LEGEND.badgeWidth
-            )
+    const keyTypes = R.unique(keys.map(placeholderWelfareType))
+    const labels = [
+        ...keys.map(
+            (key) =>
+                Bounds.forText(key, { fontSize: LEFTOVER_LEGEND.fontSize })
+                    .width + LEFTOVER_LEGEND.badgeWidth
         ),
+        ...keyTypes.map(
+            (type) =>
+                Bounds.forText(WELFARE_TYPE_BADGES[type].title, {
+                    fontSize: LEFTOVER_LEGEND.fontSize,
+                }).width
+        ),
+    ]
+    const labelWidth = Math.min(
+        Math.max(...labels),
         LEFTOVER_LEGEND.maxLabelWidth
     )
     const width =
         2 * LEFTOVER_LEGEND.paddingX +
-        LEFTOVER_LEGEND.markWidth +
+        // The key's badges widen the swatch column
+        Math.max(LEFTOVER_LEGEND.markWidth, WELFARE_BADGE_SIZE + 6) +
         labelWidth +
         LEFTOVER_LEGEND.slack
     const height =
         2 * LEFTOVER_LEGEND.paddingY +
-        keys.length * LEFTOVER_LEGEND.rowHeight +
+        (keys.length + keyTypes.length) * LEFTOVER_LEGEND.rowHeight +
+        LEFTOVER_LEGEND.keySeparator +
         LEFTOVER_LEGEND.slack
     return { left: right - width, right, top, bottom: top + height }
 }
