@@ -261,6 +261,23 @@ describe("unknown data callout functions", () => {
         expect(getCalloutErrors(gdoc)).toEqual([])
     })
 
+    it("reports an unknown function in a nested data-callout only once", () => {
+        const [innerCallout] =
+            makeDataCalloutGdoc("In $latestYear(x).").content.body!
+        const gdoc = makeGdoc([
+            {
+                type: "data-callout",
+                url: "https://ourworldindata.org/grapher/co2?country=FRA",
+                content: [innerCallout],
+                parseErrors: [],
+            },
+        ])
+
+        expect(getCalloutErrors(gdoc)).toEqual([
+            'Unknown data callout function "$latestYear(...)". Valid functions: $latestTime, $latestValue, $latestValueWithUnit.',
+        ])
+    })
+
     it("does not flag dollar amounts followed by parentheses", () => {
         const gdoc = makeDataCalloutGdoc("It cost $5 (approx) or $5(approx).")
 

@@ -19,6 +19,7 @@ import {
     OwidEnrichedGdocBlock,
     CALLOUT_FUNCTIONS,
     CalloutFunction,
+    Span,
     traverseEnrichedBlock,
 } from "@ourworldindata/utils"
 
@@ -88,6 +89,20 @@ function getUnknownCalloutFunctionErrors(
     block: OwidEnrichedGdocBlock
 ): OwidGdocErrorMessage[] {
     if (block.type !== "data-callout") return []
+    // A nested data-callout is visited and checked on its own by
+    // getParseFindings, so leave its spans out here to avoid reporting the
+    // same unknown function twice.
+    const nestedCalloutSpans = new Set<Span>()
+    for (const child of block.content) {
+        traverseEnrichedBlock(child, (node) => {
+            if (node.type !== "data-callout") return
+            traverseEnrichedBlock(
+                node,
+                () => undefined,
+                (span) => nestedCalloutSpans.add(span)
+            )
+        })
+    }
     const unknownNames = new Set<string>()
     for (const child of block.content) {
         traverseEnrichedBlock(
@@ -95,6 +110,7 @@ function getUnknownCalloutFunctionErrors(
             () => undefined,
             (span) => {
                 if (span.spanType !== "span-simple-text") return
+                if (nestedCalloutSpans.has(span)) return
                 for (const [, name] of span.text.matchAll(
                     CALLOUT_TOKEN_REGEX
                 )) {
