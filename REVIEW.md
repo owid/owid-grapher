@@ -4,7 +4,7 @@ How pull requests in this repository get reviewed. Written for authors, reviewer
 
 ## Risk
 
-The author reviews every PR in full before merging it, also when an agent wrote the code. An agent never merges. Each PR also gets a risk tier, which says whether a second person should review it and tells that reviewer how much time to spend.
+The author reviews every PR in full before merging it, also when an agent wrote the code. An agent never merges. A PR can also get a risk tier, which says whether a second person should review it and tells that reviewer how much time to spend.
 
 | Tier           | Second review | What the reviewer does                                            |
 | -------------- | ------------- | ----------------------------------------------------------------- |
@@ -68,4 +68,4 @@ Docs, tests, devTools, agent instructions (including ones that describe a pipeli
 
 ### Rating a PR
 
-Rate before opening the PR, and again when later commits change what it touches. The `/owid-staff:rate-pr-risk` skill does this with a fresh agent, which matters because the session that wrote the code tends to rate its own work as safe. Without the skill, apply this section yourself: answer the three questions in a sentence each, pick the tier, and write the Risk line.
+Rating is opt-in for now: nothing rates a PR unless its owner asks. Run the `/owid-staff:rate-pr-risk` skill on the PR. It rates with a fresh agent, which matters because the session that wrote the change tends to rate its own work as safe. Rate again when later commits change what the PR touches.
