@@ -56,7 +56,7 @@ export const CONFIG_SPEC = {
         format: "Comma-separated country names, such as `China, India, userLocation`",
         parse: parseCountryList,
         description:
-            "Countries of the compare-countries view. `userLocation` adds the user's country. Defaults to China, the United States, India, Nigeria and the user's country",
+            "Countries of the compare-countries view, up to 8. `userLocation` adds the user's country. Defaults to China, the United States, India, Nigeria and the user's country",
     },
     year: {
         type: "integer",

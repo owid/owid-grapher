@@ -28,6 +28,7 @@ import {
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
+import { MAX_SELECTED_COUNTRIES } from "../core/constants.js"
 
 // The popover portals into the light DOM, where none of this bundle's styles
 // reach, so everything inside it is either a global grapher-dropdown class or
@@ -139,11 +140,24 @@ function CountryListBox({
         () => new Set(selectedCountries),
         [selectedCountries]
     )
+    // At the cap, the rest can't be picked until one is removed
+    const isFull = selectedCountries.length >= MAX_SELECTED_COUNTRIES
+    const disabledKeys = useMemo(
+        () =>
+            isFull
+                ? new Set(
+                      availableCountries.filter(
+                          (name) => !selectedKeys.has(name)
+                      )
+                  )
+                : undefined,
+        [isFull, availableCountries, selectedKeys]
+    )
 
     const handleSelectionChange = useCallback(
         (keys: Selection) => {
             if (keys === "all") {
-                onChange(availableCountries)
+                onChange(availableCountries.slice(0, MAX_SELECTED_COUNTRIES))
                 return
             }
             const next = new Set(
@@ -153,7 +167,7 @@ function CountryListBox({
             const kept = selectedCountries.filter((name) => next.has(name))
             const keptSet = new Set(kept)
             const added = [...next].filter((name) => !keptSet.has(name))
-            onChange([...kept, ...added])
+            onChange([...kept, ...added].slice(0, MAX_SELECTED_COUNTRIES))
         },
         [availableCountries, selectedCountries, onChange]
     )
@@ -197,11 +211,26 @@ function CountryListBox({
                     Clear selection
                 </Button>
             )}
+            {isFull && (
+                <div
+                    role="status"
+                    style={{
+                        padding: "8px 16px",
+                        borderBottom: `1px solid ${GRAY_10}`,
+                        color: GRAY_70,
+                        fontSize: 12,
+                    }}
+                >
+                    Up to {MAX_SELECTED_COUNTRIES} countries can be compared.
+                    Remove one to add another.
+                </div>
+            )}
             <ListBox
                 className="grapher-dropdown-listbox"
                 aria-label="Countries"
                 selectionMode="multiple"
                 selectedKeys={selectedKeys}
+                disabledKeys={disabledKeys}
                 onSelectionChange={handleSelectionChange}
                 style={{ maxHeight }}
             >
@@ -210,15 +239,16 @@ function CountryListBox({
                         key={name}
                         id={name}
                         textValue={name}
-                        style={({ isHovered, isFocused }) => ({
+                        style={({ isHovered, isFocused, isDisabled }) => ({
                             display: "flex",
                             alignItems: "center",
                             gap: 8,
                             padding: "8px 16px",
-                            cursor: "pointer",
+                            cursor: isDisabled ? "default" : "pointer",
+                            opacity: isDisabled ? 0.45 : undefined,
                             outline: "none",
                             background:
-                                isHovered || isFocused
+                                (isHovered || isFocused) && !isDisabled
                                     ? OPTION_HOVER_FILL
                                     : undefined,
                         })}

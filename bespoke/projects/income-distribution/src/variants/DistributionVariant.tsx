@@ -35,6 +35,7 @@ import {
     FIRST_NOWCAST_YEAR,
     INT_POVERTY_LINE,
     INTERNATIONAL_DOLLAR,
+    MAX_SELECTED_COUNTRIES,
     NARROW_BREAKPOINT,
     USER_LOCATION_SENTINEL,
     WORLD_COLOR,
@@ -191,7 +192,8 @@ function FetchingDistributionVariant({
                     : [name]
             ),
             R.filter((name) => yearData.byName.has(name)),
-            R.unique()
+            R.unique(),
+            R.take(MAX_SELECTED_COUNTRIES)
         )
     }, [countries, userCountryInfo, yearData])
 

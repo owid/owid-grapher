@@ -33,6 +33,9 @@ export const DEFAULT_COUNTRIES = [
     USER_LOCATION_SENTINEL,
 ]
 
+/** How many countries the compare view takes; more than that is unreadable */
+export const MAX_SELECTED_COUNTRIES = 8
+
 /** The whole stack, used for a legend row and share-below-line totals */
 export const WORLD_ENTITY_NAME = "World"
 
