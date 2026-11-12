@@ -1,4 +1,5 @@
 import React from "react"
+import * as R from "remeda"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { scaleLinear } from "d3-scale"
@@ -39,6 +40,12 @@ const DOT_RADIUS = 3.5
 const SPACE_BETWEEN_DOT_AND_LABEL = 4
 
 const LABEL_PADDING = DOT_RADIUS + SPACE_BETWEEN_DOT_AND_LABEL
+
+/** Up to this share of the width, the narrower side mirrors the wider side's padding */
+const MAX_MIRRORED_PADDING_SHARE = 0.15
+
+/** Widest the slope area gets, as a multiple of its height */
+const MAX_SLOPE_AREA_ASPECT_RATIO = 1.25
 
 type SeriesLabelText = "name" | "value"
 
@@ -117,11 +124,24 @@ export class SlopeChartThumbnail
             left > 0 ? left + LABEL_PADDING : 0, // start labels plus padding
             this.xStartPadding
         )
+        const widerPadding = Math.max(leftPadding, rightPadding)
+        const maxMirroredPadding =
+            MAX_MIRRORED_PADDING_SHARE * this.bounds.width
+        const mirrorPadding = (ownPadding: number): number =>
+            R.clamp(maxMirroredPadding, { min: ownPadding, max: widerPadding })
 
-        return this.bounds
+        const paddedBounds = this.bounds
             .padBottom(this.xMarksHeight)
-            .padRight(rightPadding)
-            .padLeft(leftPadding)
+            .padRight(mirrorPadding(rightPadding))
+            .padLeft(mirrorPadding(leftPadding))
+
+        const excessWidth = Math.max(
+            0,
+            paddedBounds.width -
+                MAX_SLOPE_AREA_ASPECT_RATIO * paddedBounds.height
+        )
+
+        return paddedBounds.padWidth(excessWidth / 2)
     }
 
     /**
