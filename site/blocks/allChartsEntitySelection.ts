@@ -2,6 +2,7 @@ import { generateFocusedSeriesNamesParam } from "@ourworldindata/grapher"
 import {
     GRAPHER_TAB_NAMES,
     PeerCountryStrategy,
+    type PeerCountryStrategyQueryParam,
     type GrapherQueryParams,
     type GrapherTabName,
 } from "@ourworldindata/types"
@@ -23,6 +24,11 @@ type EntitySelectionRule =
           withPickedCountry: "peers"
           maxEntities: number
       }
+    | {
+          withoutPickedCountry: "defaultSelectionPeers"
+          withPickedCountry: "defaultSelectionPeers"
+          maxEntities: number
+      }
 
 // oxfmt-ignore
 const ENTITY_SELECTION_BY_TAB: Record<GrapherTabName, EntitySelectionRule> = {
@@ -31,7 +37,7 @@ const ENTITY_SELECTION_BY_TAB: Record<GrapherTabName, EntitySelectionRule> = {
     [GRAPHER_TAB_NAMES.DiscreteBar]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "peers", maxEntities: 6 },
     [GRAPHER_TAB_NAMES.StackedDiscreteBar]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "peers", maxEntities: 6 },
     [GRAPHER_TAB_NAMES.Dumbbell]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "peers", maxEntities: 6 },
-    [GRAPHER_TAB_NAMES.Swimlane]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "peers", maxEntities: 6 },
+    [GRAPHER_TAB_NAMES.Swimlane]: { withoutPickedCountry: "defaultSelectionPeers", withPickedCountry: "defaultSelectionPeers", maxEntities: 6 },
     [GRAPHER_TAB_NAMES.Marimekko]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "pickedFocused", maxEntities: 3 },
     [GRAPHER_TAB_NAMES.ScatterPlot]: { withoutPickedCountry: "defaultSelection", withPickedCountry: "pickedOnly" },
     [GRAPHER_TAB_NAMES.StackedArea]: { withoutPickedCountry: "defaultSelection", withPickedCountry: "pickedOnly" },
@@ -71,6 +77,11 @@ function toPeerQueryParamsWithoutPickedCountry(
             peerCountries: PeerCountryStrategy.DataRange,
             peerCount: String(rule.maxEntities),
         }))
+        .with({ withoutPickedCountry: "defaultSelectionPeers" }, (rule) => ({
+            country: "",
+            peerCountries: PeerCountryStrategy.DefaultSelection,
+            peerCount: String(rule.maxEntities),
+        }))
         .with({ withoutPickedCountry: "defaultSelection" }, () => ({}))
         .exhaustive()
 }
@@ -79,20 +90,26 @@ function toPeerQueryParamsWithPickedCountry(
     rule: EntitySelectionRule,
     pickedCountries: string[]
 ): GrapherQueryParams {
-    return match(rule)
-        .with({ withPickedCountry: "peers" }, (rule) => {
-            const peerCount = rule.maxEntities - pickedCountries.length
-            return peerCount > 0
-                ? {
-                      peerCountries: "auto",
-                      peerCount: String(peerCount),
-                      focus: generateFocusedSeriesNamesParam(pickedCountries),
-                  }
-                : {}
-        })
-        .with({ withPickedCountry: "pickedOnly" }, () => ({}))
-        .with({ withPickedCountry: "pickedFocused" }, () => ({
-            focus: generateFocusedSeriesNamesParam(pickedCountries),
-        }))
+    const focus = generateFocusedSeriesNamesParam(pickedCountries)
+
+    if (rule.withPickedCountry === "pickedOnly") return {}
+    if (rule.withPickedCountry === "pickedFocused") return { focus }
+
+    const peerCount = rule.maxEntities - pickedCountries.length
+    if (peerCount <= 0) return {}
+
+    const peerCountries = match(rule.withPickedCountry)
+        .returnType<PeerCountryStrategyQueryParam>()
+        .with("peers", () => "auto")
+        .with(
+            "defaultSelectionPeers",
+            () => PeerCountryStrategy.DefaultSelection
+        )
         .exhaustive()
+
+    return {
+        peerCountries,
+        peerCount: String(peerCount),
+        focus,
+    }
 }

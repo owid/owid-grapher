@@ -47,6 +47,29 @@ describe(toAllChartsGrapherParams, () => {
             },
         },
         {
+            name: "caps the author's selection on a swimlane",
+            tab: GRAPHER_TAB_NAMES.Swimlane,
+            countries: [],
+            expected: {
+                tab: "swimlane",
+                country: "",
+                peerCountries: "defaultSelection",
+                peerCount: "6",
+            },
+        },
+        {
+            name: "adds the author's selection next to a picked country on a swimlane",
+            tab: GRAPHER_TAB_NAMES.Swimlane,
+            countries: ["Germany"],
+            expected: {
+                tab: "swimlane",
+                country: "~DEU",
+                peerCountries: "defaultSelection",
+                peerCount: "5",
+                focus: "~DEU",
+            },
+        },
+        {
             name: "keeps the author's selection on the map",
             tab: GRAPHER_TAB_NAMES.WorldMap,
             countries: [],
