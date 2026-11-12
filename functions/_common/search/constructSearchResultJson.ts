@@ -36,6 +36,7 @@ import {
     PeerCountryStrategy,
 } from "@ourworldindata/types"
 import { constructSearchResultDataTableContent } from "./constructSearchResultDataTableContent"
+import { runInAction } from "mobx"
 import {
     buildChartHitDataDisplayProps,
     getTableColumnCountForGridSlotKey,
@@ -81,6 +82,95 @@ export async function constructSearchResultJson(
         numDataTableRowsPerColumn: number
     }
 ): Promise<GrapherSearchResultJson | undefined> {
+    const prepared = runInAction(() =>
+        prepareSearchResultLayout(grapherState, {
+            variant,
+            pickedEntities,
+            displayEntities,
+            sortedTabs,
+            numDataTableRowsPerColumn,
+        })
+    )
+    if (!prepared) return undefined
+    const { layout, dataTableContent, dataDisplayProps, pickedTimeBounds } =
+        prepared
+
+    // Some charts and preview thumbnails need specific grapher query params
+    const enrichedLayout = await runInAction(() =>
+        Promise.all(
+            layout.map(async ({ slotKey, grapherTab }) => {
+                const { chartParams, previewParams } =
+                    await getGrapherQueryParamsForTab({
+                        grapherState,
+                        tab: grapherTab,
+                        timeBounds: pickedTimeBounds,
+                    })
+
+                return omitUndefinedValues({
+                    slotKey,
+                    grapherTab,
+                    chartParams,
+                    previewParams,
+                })
+            })
+        )
+    )
+
+    return runInAction(() => {
+        const grapherParams = {
+            ...grapherState.changedParams,
+            // Explicitly set time as query parameter in case it differs from the original chart.
+            // This can happen when projections have been removed from the chart.
+            time: formatGrapherTimeRangeParam(grapherState, [
+                grapherState.startTime,
+                grapherState.endTime,
+            ]),
+        }
+
+        const unit = grapherState.transformedTable.get(
+            grapherState.yColumnSlug
+        ).unit
+        const strippedUnit = unit ? stripOuterParentheses(unit) : undefined
+
+        return omitUndefinedValues({
+            title: grapherState.title,
+            subtitle: stripMarkdown(grapherState.subtitle),
+            source: stripMarkdown(grapherState.sourcesLine),
+            grapherQueryParams: grapherParams,
+            layout: enrichedLayout,
+            dataTable: dataTableContent,
+            valueDisplay: dataDisplayProps,
+            entityType: grapherState.entityType,
+            entityTypePlural: grapherState.entityTypePlural,
+            unit: strippedUnit,
+            numAvailableEntities: grapherState.availableEntityNames.length,
+        })
+    })
+}
+
+function prepareSearchResultLayout(
+    grapherState: GrapherState,
+    {
+        variant,
+        pickedEntities,
+        displayEntities,
+        sortedTabs,
+        numDataTableRowsPerColumn,
+    }: {
+        variant: RichDataVariant
+        pickedEntities: EntityName[]
+        displayEntities: EntityName[]
+        sortedTabs: GrapherTabName[]
+        numDataTableRowsPerColumn: number
+    }
+):
+    | {
+          layout: LayoutSlot<GridSlotKey>[]
+          dataTableContent: SearchChartHitDataTableProps
+          dataDisplayProps?: SearchChartHitDataDisplayProps
+          pickedTimeBounds: TimeBounds
+      }
+    | undefined {
     // Prepare data for the big data value display
     const entityForDataDisplay = pickedEntities[0] ?? WORLD_ENTITY_NAME
     const shouldShowDataDisplay = variant !== RichDataVariant.Large
@@ -156,53 +246,7 @@ export async function constructSearchResultJson(
     if (!dataTableContent) return undefined
     if (!layout) return undefined
 
-    // Some charts and preview thumbnails need specific grapher query params
-    const enrichedLayout = await Promise.all(
-        layout.map(async ({ slotKey, grapherTab }) => {
-            const { chartParams, previewParams } =
-                await getGrapherQueryParamsForTab({
-                    grapherState,
-                    tab: grapherTab,
-                    timeBounds: pickedTimeBounds,
-                })
-
-            return omitUndefinedValues({
-                slotKey,
-                grapherTab,
-                chartParams,
-                previewParams,
-            })
-        })
-    )
-
-    const grapherParams = {
-        ...grapherState.changedParams,
-        // Explicitly set time as query parameter in case it differs from the original chart.
-        // This can happen when projections have been removed from the chart.
-        time: formatGrapherTimeRangeParam(grapherState, [
-            grapherState.startTime,
-            grapherState.endTime,
-        ]),
-    }
-
-    const unit = grapherState.transformedTable.get(
-        grapherState.yColumnSlug
-    ).unit
-    const strippedUnit = unit ? stripOuterParentheses(unit) : undefined
-
-    return omitUndefinedValues({
-        title: grapherState.title,
-        subtitle: stripMarkdown(grapherState.subtitle),
-        source: stripMarkdown(grapherState.sourcesLine),
-        grapherQueryParams: grapherParams,
-        layout: enrichedLayout,
-        dataTable: dataTableContent,
-        valueDisplay: dataDisplayProps,
-        entityType: grapherState.entityType,
-        entityTypePlural: grapherState.entityTypePlural,
-        unit: strippedUnit,
-        numAvailableEntities: grapherState.availableEntityNames.length,
-    })
+    return { layout, dataTableContent, dataDisplayProps, pickedTimeBounds }
 }
 
 export function getSortedGrapherTabsForChartHit(
@@ -298,28 +342,30 @@ export async function pickDisplayEntities(
     // the only chart types where all entities are plotted by default
     if (chartType === ScatterPlot || chartType === Marimekko) {
         const pickEntitiesForScatterOrMarimekko = () =>
-            match(chartType)
-                .with(ScatterPlot, () => {
-                    const chartState =
-                        grapherState.chartState as ScatterPlotChartState
-                    return pickDisplayEntitiesForScatterPlot({
-                        grapherState,
-                        chartState,
-                        catalogUrl,
-                        entity: pickedEntities[0],
+            runInAction(() =>
+                match(chartType)
+                    .with(ScatterPlot, () => {
+                        const chartState =
+                            grapherState.chartState as ScatterPlotChartState
+                        return pickDisplayEntitiesForScatterPlot({
+                            grapherState,
+                            chartState,
+                            catalogUrl,
+                            entity: pickedEntities[0],
+                        })
                     })
-                })
-                .with(Marimekko, () => {
-                    const chartState =
-                        grapherState.chartState as MarimekkoChartState
-                    return pickDisplayEntitiesForMarimekko({
-                        grapherState,
-                        chartState,
-                        catalogUrl,
-                        entity: pickedEntities[0],
+                    .with(Marimekko, () => {
+                        const chartState =
+                            grapherState.chartState as MarimekkoChartState
+                        return pickDisplayEntitiesForMarimekko({
+                            grapherState,
+                            chartState,
+                            catalogUrl,
+                            entity: pickedEntities[0],
+                        })
                     })
-                })
-                .exhaustive()
+                    .exhaustive()
+            )
 
         // Find entities for comparison and combine them with the picked entities
         if (pickedEntities.length > 0) {
@@ -1051,10 +1097,12 @@ export async function selectPeerEntitiesForSearch({
             grapherState.peerCountryStrategy ?? PeerCountryStrategy.DataRange
 
         // For countries, use Grapher's peer selection logic
-        return selectPeerCountriesForGrapher(grapherState, {
-            targetCountry: targetEntity,
-            peerCountryStrategy,
-        })
+        return runInAction(() =>
+            selectPeerCountriesForGrapher(grapherState, {
+                targetCountry: targetEntity,
+                peerCountryStrategy,
+            })
+        )
     } else {
         // For aggregate regions, add sibling regions
         return findAvailableSiblingRegions({ targetRegion, availableEntities })
