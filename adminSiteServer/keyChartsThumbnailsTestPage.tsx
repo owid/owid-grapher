@@ -11,6 +11,7 @@ import {
     DbRawChartConfig,
     GRAPHER_TAB_NAMES,
     GrapherInterface,
+    type GrapherQueryParams,
     GrapherVariant,
     type GrapherTabName,
 } from "@ourworldindata/types"
@@ -19,6 +20,7 @@ import * as db from "../db/db.js"
 import { parseAndMigrateChartConfig } from "../db/model/ChartConfigs.js"
 import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
+import { toAllChartsGrapherParams } from "../site/blocks/allChartsGrapherParams.js"
 import { toGrapherQueryParams } from "../site/search/searchUtils.js"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import { KEY_CHARTS_BY_TOPIC } from "./keyChartsByTopic.js"
@@ -31,13 +33,7 @@ const ALL_CHARTS_THUMBNAIL_REQUEST: ImageRequest = {
     labelMode: ChartLabelMode.Names,
     size: { kind: "explicit", fontSize: 18 },
     includeDetails: false,
-    context: "all-charts-block",
 }
-
-const NO_CONTEXT_THUMBNAIL_REQUEST: ImageRequest = R.omit(
-    ALL_CHARTS_THUMBNAIL_REQUEST,
-    ["context"]
-)
 
 /** Charts too atypical for their chart type to stand in for it */
 const EXCLUDED_FROM_EVERY_CHART_TYPE = new Set([
@@ -192,16 +188,29 @@ function pickChartsWithVariedTabs(
     return picked
 }
 
-/** The image URL AllChartsRow requests for a chart hit, uncached */
+type MakeGrapherParams = (tab: GrapherTabName) => GrapherQueryParams
+
+/** The all-charts block's grapher params when no country is picked */
+const makeAllChartsGrapherParams: MakeGrapherParams = (tab) =>
+    toAllChartsGrapherParams({ tab, countries: [] })
+
+/** Only the tab, so the author's selection shows */
+const makeTabOnlyGrapherParams: MakeGrapherParams = (tab) =>
+    toGrapherQueryParams({ tab })
+
+/** A thumbnail URL as AllChartsRow builds it for a chart hit, uncached */
 function makeThumbnailUrl(
     slug: string,
     tab: GrapherTabName,
-    imageRequest: ImageRequest
+    makeGrapherParams: MakeGrapherParams
 ): string {
-    const grapherQueryStr = queryParamsToStr(
-        toGrapherQueryParams({ tab })
-    ).replace(/^\?/, "")
-    const imageQueryStr = serializeImageRequest(imageRequest).toString()
+    const grapherQueryStr = queryParamsToStr(makeGrapherParams(tab)).replace(
+        /^\?/,
+        ""
+    )
+    const imageQueryStr = serializeImageRequest(
+        ALL_CHARTS_THUMBNAIL_REQUEST
+    ).toString()
     const queryStr = [grapherQueryStr, imageQueryStr, "nocache"]
         .filter((part) => part)
         .join("&")
@@ -233,12 +242,13 @@ function KeyChartsThumbnailsTestPage({
                         shown yet, with the all-charts block's thumbnail for
                         each of a chart's tabs, from{" "}
                         <code>{GRAPHER_DYNAMIC_THUMBNAIL_URL}</code>. On the
-                        right, the same request without <code>imContext</code>.
+                        right, the same request with only the tab, which shows
+                        the author's selection.
                     </p>
                 </header>
                 <div className="comparison-heads">
-                    <span>With imContext</span>
-                    <span>Without imContext</span>
+                    <span>All-charts block</span>
+                    <span>Author's selection</span>
                 </div>
                 <main>
                     {topics.map(({ topic, charts }) => (
@@ -264,14 +274,14 @@ function KeyChartsThumbnailsTestPage({
                                     <div className="chart__comparison">
                                         <ThumbnailRow
                                             chart={chart}
-                                            imageRequest={
-                                                ALL_CHARTS_THUMBNAIL_REQUEST
+                                            makeGrapherParams={
+                                                makeAllChartsGrapherParams
                                             }
                                         />
                                         <ThumbnailRow
                                             chart={chart}
-                                            imageRequest={
-                                                NO_CONTEXT_THUMBNAIL_REQUEST
+                                            makeGrapherParams={
+                                                makeTabOnlyGrapherParams
                                             }
                                         />
                                     </div>
@@ -287,15 +297,15 @@ function KeyChartsThumbnailsTestPage({
 
 function ThumbnailRow({
     chart,
-    imageRequest,
+    makeGrapherParams,
 }: {
     chart: TabsChart
-    imageRequest: ImageRequest
+    makeGrapherParams: MakeGrapherParams
 }): React.ReactElement {
     return (
         <div className="chart__tabs">
             {chart.tabs.map((tab) => {
-                const url = makeThumbnailUrl(chart.slug, tab, imageRequest)
+                const url = makeThumbnailUrl(chart.slug, tab, makeGrapherParams)
                 return (
                     <a
                         key={tab}
