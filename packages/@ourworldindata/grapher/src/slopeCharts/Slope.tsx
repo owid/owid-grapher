@@ -1,6 +1,10 @@
 import { PointVector, makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { RenderSlopeChartSeries } from "./SlopeChartConstants"
-import { LINE_STYLE } from "../lineCharts/LineChartConstants.js"
+import {
+    LINE_STYLE,
+    LineStyleConfig,
+} from "../lineCharts/LineChartConstants.js"
+import { Emphasis } from "../interaction/Emphasis.js"
 import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
 
 interface SlopeProps {
@@ -9,6 +13,7 @@ interface SlopeProps {
     strokeWidth?: number
     outlineWidth?: number
     outlineStroke?: string
+    styleByEmphasis?: Record<Emphasis, LineStyleConfig>
 }
 
 export function Slope({
@@ -17,10 +22,11 @@ export function Slope({
     strokeWidth = 2,
     outlineWidth = 0.5,
     outlineStroke = GRAPHER_BACKGROUND,
+    styleByEmphasis = LINE_STYLE,
 }: SlopeProps) {
     const { displayName, startPoint, endPoint } = series
 
-    const style = LINE_STYLE[series.emphasis]
+    const style = styleByEmphasis[series.emphasis]
     const lineWidth = style.strokeWidthFactor * strokeWidth
 
     return (

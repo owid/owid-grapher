@@ -1,5 +1,5 @@
 import { Emphasis } from "../interaction/Emphasis.js"
-import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants.js"
+import { GRAPHER_THUMBNAIL_OPACITY_MUTED } from "../core/GrapherConstants.js"
 
 export interface AnchoredLabelStyleConfig {
     opacity: number
@@ -14,7 +14,7 @@ export const ANCHORED_LABEL_STYLE: Record<Emphasis, AnchoredLabelStyleConfig> =
         [Emphasis.Default]: DEFAULT_ANCHORED_LABEL_STYLE,
         [Emphasis.Elevated]: DEFAULT_ANCHORED_LABEL_STYLE,
         [Emphasis.Highlighted]: DEFAULT_ANCHORED_LABEL_STYLE,
-        [Emphasis.Muted]: { opacity: GRAPHER_OPACITY_MUTED },
+        [Emphasis.Muted]: { opacity: GRAPHER_THUMBNAIL_OPACITY_MUTED },
     }
 
 /** Slack for floating-point error in label position comparisons */

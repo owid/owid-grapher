@@ -5,7 +5,10 @@ import { Color } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState"
 import { Emphasis } from "../interaction/Emphasis"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
-import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants"
+import {
+    GRAPHER_OPACITY_MUTED,
+    GRAPHER_THUMBNAIL_OPACITY_MUTED,
+} from "../core/GrapherConstants"
 
 export const LINE_CHART_CLASS_NAME = "LineChart"
 
@@ -50,6 +53,14 @@ export const LINE_STYLE: Record<Emphasis, LineStyleConfig> = {
         strokeWidthFactor: 0.66,
         opacity: GRAPHER_OPACITY_MUTED,
         showOutline: false,
+    },
+}
+
+export const THUMBNAIL_LINE_STYLE: Record<Emphasis, LineStyleConfig> = {
+    ...LINE_STYLE,
+    [Emphasis.Muted]: {
+        ...LINE_STYLE[Emphasis.Muted],
+        opacity: GRAPHER_THUMBNAIL_OPACITY_MUTED,
     },
 }
 
