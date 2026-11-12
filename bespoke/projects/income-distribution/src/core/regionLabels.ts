@@ -27,6 +27,13 @@ const SEARCH_ROWS = 40
 /** Columns of the band thinner than this (px) aren't considered at all */
 const MIN_COLUMN_HEIGHT = 10
 /**
+ * Among the spots with at least this share of the roomiest spot's clearance,
+ * the one nearest the band's centre of area wins, so a label sits over the
+ * bulk of its region rather than wherever a tall, narrow peak leaves most
+ * room
+ */
+const NEAR_BEST_CLEARANCE = 0.8
+/**
  * Longest outline segment (px, in aspect-scaled space) before it's split, so
  * that the nearest outline vertex is a good stand-in for the nearest edge
  */
@@ -74,7 +81,8 @@ export function placeRegionLabels(
  *
  * Dividing x by the aspect ratio turns a text-shaped rectangle into a square,
  * so plain Euclidean distance to the outline then measures how well a label
- * fits.
+ * fits. Of the spots that are nearly as roomy as the roomiest, the one
+ * closest to the band's centre of area is returned.
  */
 function findLabelSpot(
     band: RegionBandPixels,
@@ -87,7 +95,11 @@ function findLabelSpot(
 
     let outline: Float64Array | undefined
     let delaunay: Delaunay<number> | undefined
-    let best: { x: number; y: number; distSq: number } | undefined
+    const candidates: { x: number; y: number; distSq: number }[] = []
+    // Centre of area, accumulated per searched column
+    let areaSum = 0
+    let areaX = 0
+    let areaY = 0
 
     for (let col = 1; col < SEARCH_COLUMNS; col++) {
         // Interpolate the band's edges at this column
@@ -102,6 +114,9 @@ function findLabelSpot(
 
         const height = bottom - top
         if (height <= MIN_COLUMN_HEIGHT) continue
+        areaSum += height
+        areaX += height * x
+        areaY += (height * (top + bottom)) / 2
 
         // Only triangulate once a column is worth searching
         outline ??= traceOutline(band, xScale)
@@ -112,12 +127,33 @@ function findLabelSpot(
             const nearest = delaunay.find(x * xScale, y)
             const dx = x * xScale - outline[nearest * 2]
             const dy = y - outline[nearest * 2 + 1]
-            const distSq = dx * dx + dy * dy
-            if (!best || distSq > best.distSq) best = { x, y, distSq }
+            candidates.push({ x, y, distSq: dx * dx + dy * dy })
+        }
+    }
+    if (candidates.length === 0) return undefined
+
+    const bestDistSq = Math.max(...candidates.map((c) => c.distSq))
+    const minDistSq = bestDistSq * NEAR_BEST_CLEARANCE ** 2
+    const centreX = areaX / areaSum
+    const centreY = areaY / areaSum
+    let nearest = candidates[0]
+    let nearestDist = Infinity
+    for (const candidate of candidates) {
+        if (candidate.distSq < minDistSq) continue
+        const dx = (candidate.x - centreX) * xScale
+        const dy = candidate.y - centreY
+        const dist = dx * dx + dy * dy
+        if (dist < nearestDist) {
+            nearest = candidate
+            nearestDist = dist
         }
     }
 
-    return best && { x: best.x, y: best.y, clearance: Math.sqrt(best.distSq) }
+    return {
+        x: nearest.x,
+        y: nearest.y,
+        clearance: Math.sqrt(nearest.distSq),
+    }
 }
 
 /**
