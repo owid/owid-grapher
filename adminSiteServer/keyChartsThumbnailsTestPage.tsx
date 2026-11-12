@@ -34,6 +34,11 @@ const ALL_CHARTS_THUMBNAIL_REQUEST: ImageRequest = {
     context: "all-charts-block",
 }
 
+const NO_CONTEXT_THUMBNAIL_REQUEST: ImageRequest = R.omit(
+    ALL_CHARTS_THUMBNAIL_REQUEST,
+    ["context"]
+)
+
 /** Charts too atypical for their chart type to stand in for it */
 const EXCLUDED_FROM_EVERY_CHART_TYPE = new Set([
     // A scatter plot with time on the x-axis
@@ -188,13 +193,15 @@ function pickChartsWithVariedTabs(
 }
 
 /** The image URL AllChartsRow requests for a chart hit, uncached */
-function makeThumbnailUrl(slug: string, tab: GrapherTabName): string {
+function makeThumbnailUrl(
+    slug: string,
+    tab: GrapherTabName,
+    imageRequest: ImageRequest
+): string {
     const grapherQueryStr = queryParamsToStr(
         toGrapherQueryParams({ tab })
     ).replace(/^\?/, "")
-    const imageQueryStr = serializeImageRequest(
-        ALL_CHARTS_THUMBNAIL_REQUEST
-    ).toString()
+    const imageQueryStr = serializeImageRequest(imageRequest).toString()
     const queryStr = [grapherQueryStr, imageQueryStr, "nocache"]
         .filter((part) => part)
         .join("&")
@@ -225,9 +232,14 @@ function KeyChartsThumbnailsTestPage({
                         {CHARTS_PER_TOPIC - 1} more that add the most tabs not
                         shown yet, with the all-charts block's thumbnail for
                         each of a chart's tabs, from{" "}
-                        <code>{GRAPHER_DYNAMIC_THUMBNAIL_URL}</code>.
+                        <code>{GRAPHER_DYNAMIC_THUMBNAIL_URL}</code>. On the
+                        right, the same request without <code>imContext</code>.
                     </p>
                 </header>
+                <div className="comparison-heads">
+                    <span>With imContext</span>
+                    <span>Without imContext</span>
+                </div>
                 <main>
                     {topics.map(({ topic, charts }) => (
                         <section key={topic} className="topic">
@@ -249,32 +261,19 @@ function KeyChartsThumbnailsTestPage({
                                             </span>
                                         )}
                                     </h3>
-                                    <div className="chart__tabs">
-                                        {chart.tabs.map((tab) => {
-                                            const url = makeThumbnailUrl(
-                                                chart.slug,
-                                                tab
-                                            )
-                                            return (
-                                                <a
-                                                    key={tab}
-                                                    className="cell"
-                                                    href={url}
-                                                    target="_blank"
-                                                    rel="noopener"
-                                                    title={makeLabelForGrapherTab(
-                                                        tab,
-                                                        { format: "long" }
-                                                    )}
-                                                >
-                                                    <img
-                                                        src={url}
-                                                        loading="lazy"
-                                                        alt=""
-                                                    />
-                                                </a>
-                                            )
-                                        })}
+                                    <div className="chart__comparison">
+                                        <ThumbnailRow
+                                            chart={chart}
+                                            imageRequest={
+                                                ALL_CHARTS_THUMBNAIL_REQUEST
+                                            }
+                                        />
+                                        <ThumbnailRow
+                                            chart={chart}
+                                            imageRequest={
+                                                NO_CONTEXT_THUMBNAIL_REQUEST
+                                            }
+                                        />
                                     </div>
                                 </section>
                             ))}
@@ -283,6 +282,34 @@ function KeyChartsThumbnailsTestPage({
                 </main>
             </body>
         </html>
+    )
+}
+
+function ThumbnailRow({
+    chart,
+    imageRequest,
+}: {
+    chart: TabsChart
+    imageRequest: ImageRequest
+}): React.ReactElement {
+    return (
+        <div className="chart__tabs">
+            {chart.tabs.map((tab) => {
+                const url = makeThumbnailUrl(chart.slug, tab, imageRequest)
+                return (
+                    <a
+                        key={tab}
+                        className="cell"
+                        href={url}
+                        target="_blank"
+                        rel="noopener"
+                        title={makeLabelForGrapherTab(tab, { format: "long" })}
+                    >
+                        <img src={url} loading="lazy" alt="" />
+                    </a>
+                )
+            })}
+        </div>
     )
 }
 
@@ -298,7 +325,10 @@ main { padding: 0 24px 24px; }
 .chart__title a { color: #002147; text-decoration: none; }
 .chart__title a:hover { text-decoration: underline; }
 .chart__variant { font-family: Lato, sans-serif; font-weight: 400; font-size: 12px; color: #577291; }
-.chart__tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.comparison-heads, .chart__comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.comparison-heads { position: sticky; top: 0; z-index: 1; background: #fff; padding: 8px 24px; border-bottom: 1px solid #dbe5f0; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #577291; }
+.chart__tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-content: flex-start; }
+.chart__tabs + .chart__tabs { padding-left: 24px; border-left: 1px solid #dbe5f0; }
 .cell { display: block; background: #fff; border: 1px solid #c7d3e0; }
 .cell:hover { border-color: #577291; }
 .cell img { display: block; width: ${THUMBNAIL_WIDTH_PX}px; height: ${THUMBNAIL_HEIGHT_PX}px; object-fit: contain; }
