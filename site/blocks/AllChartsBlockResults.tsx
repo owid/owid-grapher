@@ -18,6 +18,7 @@ import {
     GrapherTabName,
     ChartLabelMode,
     GrapherVariant,
+    type GrapherQueryParams,
 } from "@ourworldindata/types"
 import { queryParamsToStr, Url } from "@ourworldindata/utils"
 import { GrapherWithFallback } from "../GrapherWithFallback.js"
@@ -26,12 +27,12 @@ import { useDocumentContext } from "../gdocs/DocumentContext.js"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import {
     constructChartUrl,
-    toGrapherQueryParams,
     constructPreviewUrl,
 } from "../search/searchUtils.js"
 import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
 import type { AllChartsBlockHit } from "../search/queries.js"
+import { toAllChartsBlockGrapherParams } from "./allChartsBlockEntitySelection.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     makeLabelForGrapherTab,
@@ -43,8 +44,8 @@ const MAX_THUMBNAILS = 3
 const PREVIEW_GRAPHER_CONFIG = { enableKeyboardShortcuts: false }
 const ALL_CHARTS_BLOCK_THUMBNAIL_REQUEST: ImageRequest = {
     variant: GrapherVariant.Thumbnail,
-    labelMode: ChartLabelMode.All,
-    size: { kind: "explicit" },
+    labelMode: ChartLabelMode.Names,
+    size: { kind: "explicit", fontSize: 18 },
     includeDetails: false,
 }
 
@@ -228,6 +229,14 @@ function AllChartsBlockListItem({
     const itemRef = useRef<HTMLLIElement>(null)
     const inlinePreviewId = useId()
     const thumbnailTabs = pickThumbnailTabs(hit.availableTabs)
+    const thumbnails: AllChartsBlockThumbnail[] = thumbnailTabs.map((tab) => ({
+        tab,
+        grapherParams: toAllChartsBlockGrapherParams({
+            tab,
+            countries,
+            target: "thumbnail",
+        }),
+    }))
 
     const select = (
         tab: GrapherTabName | undefined,
@@ -253,7 +262,7 @@ function AllChartsBlockListItem({
                         ? selectedTab
                         : getDefaultTab(thumbnailTabs, countries)
                 }
-                thumbnailTabs={thumbnailTabs}
+                thumbnails={thumbnails}
                 countries={countries}
                 inlinePreviewId={isNarrow ? inlinePreviewId : undefined}
                 onTitleSelect={() => {
@@ -277,11 +286,16 @@ function AllChartsBlockListItem({
     )
 }
 
+interface AllChartsBlockThumbnail {
+    tab: GrapherTabName
+    grapherParams: GrapherQueryParams
+}
+
 interface AllChartsBlockRowProps {
     hit: AllChartsBlockHit
     isSelected: boolean
     displayedTab: GrapherTabName
-    thumbnailTabs: GrapherTabName[]
+    thumbnails: AllChartsBlockThumbnail[]
     countries: string[]
     inlinePreviewId?: string
     onTitleSelect: () => void
@@ -292,7 +306,7 @@ function AllChartsBlockRow({
     hit,
     isSelected,
     displayedTab,
-    thumbnailTabs,
+    thumbnails,
     countries,
     inlinePreviewId,
     onTitleSelect,
@@ -340,9 +354,9 @@ function AllChartsBlockRow({
                     </span>
                 )}
             </button>
-            {thumbnailTabs.length > 0 && (
+            {thumbnails.length > 0 && (
                 <ul className="all-charts-block-row__thumbnails">
-                    {thumbnailTabs.map((tab) => (
+                    {thumbnails.map(({ tab, grapherParams }) => (
                         <li key={tab}>
                             <button
                                 type="button"
@@ -364,10 +378,7 @@ function AllChartsBlockRow({
                                 <img
                                     src={constructPreviewUrl({
                                         hit,
-                                        grapherParams: toGrapherQueryParams({
-                                            tab,
-                                            entities: countries,
-                                        }),
+                                        grapherParams,
                                         imageRequest:
                                             ALL_CHARTS_BLOCK_THUMBNAIL_REQUEST,
                                     })}
@@ -492,7 +503,11 @@ function AllChartsBlockPreview({
     countries: string[]
 }): React.ReactElement {
     const { isPreviewing } = useDocumentContext()
-    const grapherParams = toGrapherQueryParams({ tab, entities: countries })
+    const grapherParams = toAllChartsBlockGrapherParams({
+        tab,
+        countries,
+        target: "preview",
+    })
     return match(hit)
         .with({ type: ChartRecordType.Chart }, (chartHit) => (
             <GrapherWithFallback
