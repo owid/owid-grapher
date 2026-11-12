@@ -565,6 +565,21 @@ $dataset-page-row-border: $blue-20;
     }
 }
 
+// A quiet, link-like button that shows the rest of a list, and hides it again
+.dataset-page__toggle-link {
+    @include body-3-regular;
+    @include owid-link-90;
+    & {
+        display: block;
+        margin-top: 8px;
+        padding: 0;
+        background: none;
+        border: none;
+        font-family: inherit;
+        cursor: pointer;
+    }
+}
+
 // The heading of a second list (the charts, below the sources) gets the same
 // space above it as the first one
 .dataset-page__details-sources + .dataset-page__details-heading {

@@ -613,13 +613,15 @@ function IndicatorDetails({
                             </li>
                         ))}
                     </ul>
-                    {visibleCharts.length < indicatorCharts.length && (
+                    {indicatorCharts.length > MAX_INDICATOR_CHARTS && (
                         <button
                             type="button"
-                            className="dataset-page__show-all"
-                            onClick={() => setShowAllCharts(true)}
+                            className="dataset-page__toggle-link"
+                            onClick={() => setShowAllCharts(!showAllCharts)}
                         >
-                            Show all {indicatorCharts.length} charts
+                            {showAllCharts
+                                ? "Show fewer charts"
+                                : `Show all ${indicatorCharts.length} charts`}
                         </button>
                     )}
                 </>
@@ -1106,13 +1108,19 @@ function ChangelogSection({ dataset }: { dataset: DatasetPageData }) {
                         </div>
                     ))}
                 </div>
-                {entries.length < dataset.changelog.length && (
+                {dataset.changelog.length > MAX_CHANGELOG_ENTRIES && (
                     <button
                         type="button"
-                        className="dataset-page__show-all"
-                        onClick={() => setShowAll(true)}
+                        className="dataset-page__toggle-link"
+                        onClick={() => {
+                            // Hiding the older entries makes the page shorter, so stay at the changelog
+                            if (showAll) scrollToSection(SECTION_IDS.changelog)
+                            setShowAll(!showAll)
+                        }}
                     >
-                        Show all {dataset.changelog.length} entries
+                        {showAll
+                            ? "Show fewer entries"
+                            : `Show all ${dataset.changelog.length} entries`}
                     </button>
                 )}
             </SectionWithSideHeading>
