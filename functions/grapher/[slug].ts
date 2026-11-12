@@ -21,18 +21,13 @@ import {
     MULTI_DIM_COMPANION_FILE_SUFFIX,
     MultiDimPageCompanion,
 } from "@ourworldindata/types"
-import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
+import { StatusError, error } from "itty-router"
 import { errorToResponse } from "../_common/errorHandling.js"
+import { createRouter } from "../_common/router.js"
 
-const { preflight, corsify } = cors({
-    allowMethods: ["GET", "OPTIONS", "HEAD"],
-})
-
-const router = Router<
-    IRequestStrict,
+const router = createRouter<
     [URL, Env, Etag, EventContext<unknown, any, Record<string, unknown>>]
 >({
-    before: [preflight],
     catch: async (e, _request, url, env) => {
         // Only check _grapherRedirects.json for redirects if a 404 occurs.
         // Otherwise, skip the extra fetch in the happy path.
@@ -43,7 +38,6 @@ const router = Router<
         }
         return errorToResponse(e)
     },
-    finally: [corsify],
 })
 router
     .get(

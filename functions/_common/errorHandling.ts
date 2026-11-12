@@ -12,9 +12,8 @@ import { Env } from "./env.js"
  * exception just to return a 500: the Sentry plugin only sees exceptions that
  * propagate, so that would hide the failure.
  *
- * Routers pass `errorToResponse` as their `catch` option instead of letting
- * exceptions reach this middleware, so that their `finally` handlers (e.g.
- * `corsify`) also apply to error responses.
+ * Routers (see createRouter) apply `errorToResponse` themselves, so that
+ * their `finally` handlers (e.g. `corsify`) also apply to error responses.
  */
 export const errorResponseMiddleware: PagesFunction<Env> = async (context) => {
     try {
