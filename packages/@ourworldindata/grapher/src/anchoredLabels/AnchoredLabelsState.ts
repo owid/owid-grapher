@@ -1,12 +1,7 @@
 import * as R from "remeda"
 import { computed, makeObservable } from "mobx"
-import {
-    Bounds,
-    PadObject,
-    RequiredBy,
-    VerticalAlign,
-} from "@ourworldindata/utils"
-import { TextWrap } from "@ourworldindata/components"
+import { Bounds, PadObject, RequiredBy } from "@ourworldindata/utils"
+import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import {
     InitialAnchoredLabelSeries,
     SizedAnchoredLabelSeries,
@@ -47,9 +42,6 @@ interface AnchoredLabelsOptions {
     /** Minimum space between labels */
     minSpacing?: { horizontal: number; vertical: number }
 
-    /** Controls how the label is aligned relative to the y-position */
-    verticalAlign?: VerticalAlign
-
     /** Controls how labels are anchored at their x position */
     textAnchor?: "start" | "end"
 
@@ -83,7 +75,6 @@ export class AnchoredLabelsState {
         lineHeight: 1,
         maxWidth: Infinity,
         minSpacing: { horizontal: 4, vertical: 2 },
-        verticalAlign: VerticalAlign.middle,
         fontWeight: 400,
         textAnchor: "start",
         labelPadding: 4,
@@ -137,25 +128,19 @@ export class AnchoredLabelsState {
 
     @computed
     private get sizedSeries(): SizedAnchoredLabelSeries[] {
-        const {
-            fontSize,
-            fontWeight,
-            maxWidth,
-            verticalAlign,
-            lineHeight,
-            textAnchor,
-        } = this.options
+        const { fontSize, fontWeight, maxWidth, lineHeight, textAnchor } =
+            this.options
 
         return this.initialSeries.map((series) => {
             const { label, position } = series
 
-            const textWrap = new TextWrap({
+            const seriesLabel = new SeriesLabelState({
                 text: label,
                 maxWidth,
                 fontSize,
                 fontWeight,
                 lineHeight,
-                verticalAlign,
+                textAnchor,
             })
 
             const isLeftAnchored = textAnchor === "start"
@@ -170,17 +155,17 @@ export class AnchoredLabelsState {
             const boundsPosition = {
                 x: isLeftAnchored
                     ? textPosition.x
-                    : textPosition.x - textWrap.width,
-                y: textPosition.y - textWrap.height / 2,
+                    : textPosition.x - seriesLabel.width,
+                y: textPosition.y - seriesLabel.height / 2,
             }
             const bounds = new Bounds(
                 boundsPosition.x,
                 boundsPosition.y,
-                textWrap.width,
-                textWrap.height
+                seriesLabel.width,
+                seriesLabel.height
             )
 
-            return { ...series, textWrap, bounds, textPosition }
+            return { ...series, seriesLabel, bounds, textPosition }
         })
     }
 
@@ -360,7 +345,9 @@ export class AnchoredLabelsState {
     }
 
     @computed get width(): number {
-        const labelWidths = this.series.map((series) => series.textWrap.width)
+        const labelWidths = this.series.map(
+            (series) => series.seriesLabel.width
+        )
         const maxLabelWidth = R.firstBy(labelWidths, [R.identity(), "desc"])
         return maxLabelWidth ?? 0
     }
