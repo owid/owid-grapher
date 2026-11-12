@@ -209,3 +209,78 @@ describe(getErrors, () => {
         expect(embedError).toBeUndefined()
     })
 })
+
+describe("unknown data callout functions", () => {
+    function makeDataCalloutGdoc(text: string): OwidGdocPostInterface {
+        return makeGdoc([
+            {
+                type: "data-callout",
+                url: "https://ourworldindata.org/grapher/co2?country=CAN",
+                content: [
+                    {
+                        type: "text",
+                        value: [{ spanType: "span-simple-text", text }],
+                        parseErrors: [],
+                    },
+                ],
+                parseErrors: [],
+            },
+        ])
+    }
+
+    function getCalloutErrors(gdoc: OwidGdocPostInterface): string[] {
+        return getErrors(gdoc)
+            .filter((error) => error.message.includes("data callout function"))
+            .map((error) => error.message)
+    }
+
+    it("blocks publish when a data-callout uses a function name that doesn't exist", () => {
+        const gdoc = makeDataCalloutGdoc(
+            "In $latestYear(consumption_emissions), emissions were high."
+        )
+
+        const errors = getErrors(gdoc).filter((error) =>
+            error.message.includes("data callout function")
+        )
+
+        expect(errors).toEqual([
+            {
+                property: "body",
+                type: OwidGdocErrorMessageType.Error,
+                message:
+                    'Unknown data callout function "$latestYear(...)". Valid functions: $latestTime, $latestValue, $latestValueWithUnit.',
+            },
+        ])
+    })
+
+    it("accepts every valid callout function", () => {
+        const gdoc = makeDataCalloutGdoc(
+            "In $latestTime(x), it was $latestValue(x) or $latestValueWithUnit(x)."
+        )
+
+        expect(getCalloutErrors(gdoc)).toEqual([])
+    })
+
+    it("reports an unknown function in a nested data-callout only once", () => {
+        const [innerCallout] =
+            makeDataCalloutGdoc("In $latestYear(x).").content.body!
+        const gdoc = makeGdoc([
+            {
+                type: "data-callout",
+                url: "https://ourworldindata.org/grapher/co2?country=FRA",
+                content: [innerCallout],
+                parseErrors: [],
+            },
+        ])
+
+        expect(getCalloutErrors(gdoc)).toEqual([
+            'Unknown data callout function "$latestYear(...)". Valid functions: $latestTime, $latestValue, $latestValueWithUnit.',
+        ])
+    })
+
+    it("does not flag dollar amounts followed by parentheses", () => {
+        const gdoc = makeDataCalloutGdoc("It cost $5 (approx) or $5(approx).")
+
+        expect(getCalloutErrors(gdoc)).toEqual([])
+    })
+})

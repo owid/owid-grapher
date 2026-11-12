@@ -17,6 +17,10 @@ import {
     OwidGdocFeaturedVizInterface,
     getFilenameExtension,
     OwidEnrichedGdocBlock,
+    CALLOUT_FUNCTIONS,
+    CalloutFunction,
+    Span,
+    traverseEnrichedBlock,
 } from "@ourworldindata/utils"
 
 // Hostnames that are only reachable by OWID staff (e.g. because they sit
@@ -72,6 +76,65 @@ function getEmbedUrlErrors(
             type: OwidGdocErrorMessageType.Error,
             message: `This gdoc contains an embed pointing at an internal admin URL (${url}) — this will be blocked by Cloudflare Access for readers. Use the public URL instead.`,
         }))
+}
+
+// Anything shaped like a callout token, e.g. `$latestYear(`. Inside a
+// data-callout, the parser only turns names from CALLOUT_FUNCTIONS into
+// callouts and leaves any other name as literal text on the page, so we flag
+// those. Requiring a letter right after the `$` and no space before the `(`
+// keeps prices like "$5 (approx)" out.
+const CALLOUT_TOKEN_REGEX = /\$([A-Za-z][A-Za-z0-9_]*)\(/g
+
+function getUnknownCalloutFunctionErrors(
+    block: OwidEnrichedGdocBlock
+): OwidGdocErrorMessage[] {
+    if (block.type !== "data-callout") return []
+    // A nested data-callout is visited and checked on its own by
+    // getParseFindings, so leave its spans out here to avoid reporting the
+    // same unknown function twice.
+    const nestedCalloutSpans = new Set<Span>()
+    for (const child of block.content) {
+        traverseEnrichedBlock(child, (node) => {
+            if (node.type !== "data-callout") return
+            traverseEnrichedBlock(
+                node,
+                () => undefined,
+                (span) => nestedCalloutSpans.add(span)
+            )
+        })
+    }
+    const unknownNames = new Set<string>()
+    for (const child of block.content) {
+        traverseEnrichedBlock(
+            child,
+            () => undefined,
+            (span) => {
+                if (span.spanType !== "span-simple-text") return
+                if (nestedCalloutSpans.has(span)) return
+                for (const [, name] of span.text.matchAll(
+                    CALLOUT_TOKEN_REGEX
+                )) {
+                    if (!CALLOUT_FUNCTIONS.includes(name as CalloutFunction))
+                        unknownNames.add(name)
+                }
+            }
+        )
+    }
+    const validNames = CALLOUT_FUNCTIONS.map((name) => `$${name}`).join(", ")
+    return [...unknownNames].map((name) => ({
+        property: "body" as const,
+        type: OwidGdocErrorMessageType.Error,
+        message: `Unknown data callout function "$${name}(...)". Valid functions: ${validNames}.`,
+    }))
+}
+
+function getBodyNodeErrors(
+    block: OwidEnrichedGdocBlock
+): OwidGdocErrorMessage[] {
+    return [
+        ...getEmbedUrlErrors(block),
+        ...getUnknownCalloutFunctionErrors(block),
+    ]
 }
 
 function validateTitle(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
@@ -134,10 +197,10 @@ function validateBody(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
     } else {
         // Findings the parser recorded while parsing, transcribed by the same
         // shared function the writing-reference generator uses. The embed
-        // check rides along on that traversal rather than walking the body
-        // again — getErrors re-runs on every edit to the settings form.
+        // and callout checks ride along on that traversal rather than walking
+        // the body again — getErrors re-runs on every edit to the settings form.
         errors.push(
-            ...getParseFindings({ body: gdoc.content.body }, getEmbedUrlErrors)
+            ...getParseFindings({ body: gdoc.content.body }, getBodyNodeErrors)
         )
     }
 }
