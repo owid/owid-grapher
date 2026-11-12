@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { type LiteClient } from "algoliasearch/lite"
 import {
     FilterType,
-    SearchIndexName,
     TagGraphRoot,
     TagGraphRootName,
 } from "@ourworldindata/types"
@@ -12,7 +11,7 @@ import {
     type SearchPageSectionRequest,
 } from "@ourworldindata/utils"
 import type { Env } from "../../_common/env.js"
-import { getIndexName } from "./algoliaClient.js"
+import { getSearchIndexNames } from "./algoliaClient.js"
 import { onRequestGet } from "./sections.js"
 
 // The search page runs a section either in the browser (searchPageSection
@@ -198,13 +197,7 @@ describe("/api/search/sections", () => {
                 browser.client,
                 sectionRequest,
                 {
-                    indexNames: {
-                        charts: getIndexName(
-                            SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-                            undefined
-                        ),
-                        pages: getIndexName(SearchIndexName.Pages, undefined),
-                    },
+                    indexNames: getSearchIndexNames(undefined),
                     loadTagGraph: async () => tagGraph,
                 }
             )
@@ -230,5 +223,19 @@ describe("/api/search/sections", () => {
 
         expect(response.status).toBe(400)
         expect(fakeAlgolia.requests).toEqual([])
+    })
+
+    it("passes on Algolia refusing a request as a 400", async () => {
+        const refusal = Object.assign(new Error("Too many words"), {
+            status: 400,
+        })
+        fakeAlgolia.client.searchForHits = vi.fn().mockRejectedValue(refusal)
+
+        const response = await callEndpoint(
+            new URLSearchParams("section=charts&q=gdp&page=0")
+        )
+
+        expect(response.status).toBe(400)
+        expect(await response.json()).toEqual({ error: "Too many words" })
     })
 })

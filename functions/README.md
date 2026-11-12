@@ -164,7 +164,7 @@ A caching proxy for empty-query Algolia searches. The site routes Algolia multi-
 
 ## `/api/search/sections`
 
-The search page's own endpoint: one result section (charts, data insights, articles, topic pages or profiles) of a search, as the page would query it from the browser. When `SEARCH_SECTIONS_URL` is set, the site sends each section with a typed query here instead of querying Algolia directly (see `querySection` in `site/search/queries.ts`), and falls back to Algolia when this endpoint fails. It runs the same `searchPageSection` from `@ourworldindata/utils` as the browser, so the results are identical, and returns Algolia's response unchanged, highlights included. Not a public API: its response follows the search page, unlike `/api/search`'s.
+The search page's own endpoint: one result section (charts, data insights, articles, topic pages or profiles) of a search, as the page would query it from the browser. When `SEARCH_SECTIONS_URL` is set, the site sends each section with a typed query here instead of querying Algolia directly (see `querySection` in `site/search/queries.ts`), and falls back to Algolia when this endpoint fails. It runs the same `searchPageSection` from `@ourworldindata/utils` as the browser, so the results are identical, and returns the response the browser would have got: Algolia's shape, highlights included. Not a public API: its response follows the search page, unlike `/api/search`'s.
 
 ## `/deleted/:slug`
 

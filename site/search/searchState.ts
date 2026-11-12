@@ -9,22 +9,19 @@ import {
     SearchActions,
 } from "@ourworldindata/types"
 import {
-    deserializeSet,
     createTopicFilter,
     createCountryFilter,
-    createDatasetProductsFilter,
-    createDatasetNamespaceFilter,
-    createDatasetVersionFilter,
-    createDatasetProducerFilter,
     isValidResultType,
-    serializeSet,
-    getFilterNamesOfType,
     extractFiltersFromQuery,
     splitIntoWords,
     removeMatchedWordsWithStopWords,
     createFilter,
     SEARCH_BASE_PATH,
 } from "./searchUtils.js"
+import {
+    searchStateToUrlParams,
+    searchUrlParamsToSectionState,
+} from "@ourworldindata/utils"
 import { useMemo, useEffect, useCallback } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
 
@@ -249,63 +246,22 @@ export function searchParamsToState(
     eligibleRegionNames: string[],
     eligibleTopicsAndAreas: string[]
 ): SearchState {
-    const topicsSet = deserializeSet(searchParams.get("topics")).intersection(
-        new Set(eligibleTopicsAndAreas)
-    )
-    const countriesSet = deserializeSet(
-        searchParams.get("countries")
-    ).intersection(new Set(eligibleRegionNames))
-    const datasetsSet = new Set(
-        deserializeSet(searchParams.get("datasetProducts"))
-            .keys()
-            .filter(Boolean)
-    )
-    const namespacesSet = new Set(
-        deserializeSet(searchParams.get("datasetNamespaces"))
-            .keys()
-            .filter(Boolean)
-    )
-    const versionsSet = new Set(
-        deserializeSet(searchParams.get("datasetVersions"))
-            .keys()
-            .filter(Boolean)
-    )
-    const producersSet = new Set(
-        deserializeSet(searchParams.get("datasetProducers"))
-            .keys()
-            .filter(Boolean)
-    )
-
-    const filters: Filter[] = [
-        ...topicsSet.keys().map((topic) => createTopicFilter(topic)),
-
-        ...countriesSet.keys().map((country) => createCountryFilter(country)),
-
-        ...datasetsSet
-            .keys()
-            .map((dataset) => createDatasetProductsFilter(dataset)),
-
-        ...namespacesSet
-            .keys()
-            .map((namespace) => createDatasetNamespaceFilter(namespace)),
-
-        ...versionsSet
-            .keys()
-            .map((version) => createDatasetVersionFilter(version)),
-
-        ...producersSet
-            .keys()
-            .map((producer) => createDatasetProducerFilter(producer)),
-    ]
-
-    const resultTypeParam = searchParams.get("resultType") ?? undefined
+    const { query, filters, requireAllCountries } =
+        searchUrlParamsToSectionState(searchParams)
+    // Topics and countries that don't exist (e.g. "countries=Franc") are dropped
+    const eligibleNames: Partial<Record<FilterType, Set<string>>> = {
+        [FilterType.TOPIC]: new Set(eligibleTopicsAndAreas),
+        [FilterType.COUNTRY]: new Set(eligibleRegionNames),
+    }
+    const resultTypeParam =
+        searchParams.get(SearchUrlParam.RESULT_TYPE) ?? undefined
 
     return {
-        query: searchParams.get("q") ?? DEFAULT_SEARCH_STATE.query,
-        filters,
-        requireAllCountries:
-            searchParams.get("requireAllCountries") === "true" ||
-            DEFAULT_SEARCH_STATE.requireAllCountries,
+        query,
+        filters: filters.filter(
+            (filter) => eligibleNames[filter.type]?.has(filter.name) ?? true
+        ),
+        requireAllCountries,
         resultType: isValidResultType(resultTypeParam)
             ? resultTypeParam
             : DEFAULT_SEARCH_STATE.resultType,
@@ -316,57 +272,7 @@ export function searchParamsToState(
  * Converts SearchState to URLSearchParams, only including non-default values.
  */
 export function stateToSearchParams(state: SearchState): URLSearchParams {
-    const params = new URLSearchParams()
-
-    if (state.query) {
-        params.set(SearchUrlParam.QUERY, state.query)
-    }
-
-    const topics = serializeSet(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC)
-    )
-    if (topics) {
-        params.set(SearchUrlParam.TOPIC, topics)
-    }
-
-    const countries = serializeSet(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY)
-    )
-    if (countries) {
-        params.set(SearchUrlParam.COUNTRY, countries)
-    }
-
-    const datasets = serializeSet(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT)
-    )
-    if (datasets) {
-        params.set(SearchUrlParam.DATASET_PRODUCT, datasets)
-    }
-
-    const namespaces = serializeSet(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE)
-    )
-    if (namespaces) {
-        params.set(SearchUrlParam.DATASET_NAMESPACE, namespaces)
-    }
-
-    const versions = serializeSet(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION)
-    )
-    if (versions) {
-        params.set(SearchUrlParam.DATASET_VERSION, versions)
-    }
-
-    const producers = serializeSet(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER)
-    )
-    if (producers) {
-        params.set(SearchUrlParam.DATASET_PRODUCER, producers)
-    }
-
-    if (state.requireAllCountries) {
-        params.set(SearchUrlParam.REQUIRE_ALL_COUNTRIES, "true")
-    }
+    const params = searchStateToUrlParams(state)
 
     // Only include resultType if not the default
     if (state.resultType !== DEFAULT_SEARCH_STATE.resultType) {

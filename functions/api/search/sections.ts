@@ -1,5 +1,4 @@
 import * as Sentry from "@sentry/cloudflare"
-import { SearchIndexName } from "@ourworldindata/types"
 import {
     SEARCH_PAGE_SECTIONS,
     searchPageSection,
@@ -13,7 +12,7 @@ import { fetchTagGraph } from "../../_common/search/tagGraph.js"
 import {
     createSearchClient,
     getAlgoliaConfig,
-    getIndexName,
+    getSearchIndexNames,
 } from "./algoliaClient.js"
 
 /**
@@ -22,11 +21,11 @@ import {
  * The site sends each section's search here (see querySection in
  * site/search/queries.ts) when SEARCH_SECTIONS_URL is set, instead of
  * querying Algolia from the browser. This runs the same searchPageSection the
- * browser would, so the results are identical, and returns Algolia's response
- * as is: the search page renders its highlights and snippets.
+ * browser would and returns its response as the browser would get it:
+ * Algolia's shape, highlights and snippets included, which the page renders.
  *
- * This is the search page's endpoint, not a public API: its response is
- * Algolia's, and it changes with the page. /api/search is the public one.
+ * This is the search page's endpoint, not a public API: its response follows
+ * Algolia's and changes with the page. /api/search is the public one.
  *
  * Parameters: `section` (one of SEARCH_PAGE_SECTIONS), the search page's own
  * state parameters (`q`, `topics`, `countries`, `requireAllCountries`,
@@ -48,6 +47,22 @@ const HEADERS = {
 }
 
 class InvalidRequestError extends Error {}
+
+// Algolia's client throws an ApiError with the HTTP status. A 4xx means
+// Algolia refused this request (e.g. too many query words), not that
+// something is broken.
+const isAlgoliaClientError = (error: unknown): boolean =>
+    error instanceof Error &&
+    "status" in error &&
+    typeof error.status === "number" &&
+    error.status >= 400 &&
+    error.status < 500
+
+const badRequest = (message: string): Response =>
+    new Response(JSON.stringify({ error: message }), {
+        status: 400,
+        headers: HEADERS,
+    })
 
 const isSection = (value: string | null): value is SearchPageSection =>
     (SEARCH_PAGE_SECTIONS as readonly (string | null)[]).includes(value)
@@ -134,10 +149,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         sectionRequest = parseSectionRequest(url.searchParams)
     } catch (error) {
         if (!(error instanceof InvalidRequestError)) throw error
-        return new Response(JSON.stringify({ error: error.message }), {
-            status: 400,
-            headers: HEADERS,
-        })
+        return badRequest(error.message)
     }
 
     try {
@@ -147,16 +159,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             createSearchClient(config),
             sectionRequest,
             {
-                indexNames: {
-                    charts: getIndexName(
-                        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-                        config.indexPrefix
-                    ),
-                    pages: getIndexName(
-                        SearchIndexName.Pages,
-                        config.indexPrefix
-                    ),
-                },
+                indexNames: getSearchIndexNames(config.indexPrefix),
                 loadTagGraph: () => fetchTagGraph(env, baseUrl),
             }
         )
@@ -168,6 +171,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             },
         })
     } catch (error) {
+        if (isAlgoliaClientError(error))
+            return badRequest((error as Error).message)
         console.error("Search sections error:", error)
         Sentry.captureException(error)
         return new Response(

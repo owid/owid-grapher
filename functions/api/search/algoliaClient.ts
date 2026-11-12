@@ -1,6 +1,8 @@
 import { liteClient, type LiteClient } from "algoliasearch/lite"
 import { createNullCache } from "@algolia/client-common"
 import { createFetchRequester } from "@algolia/requester-fetch"
+import { SearchIndexName } from "@ourworldindata/types"
+import type { SearchIndexNames } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
 
 export interface AlgoliaConfig {
@@ -32,6 +34,19 @@ export function getIndexName(
         return `${indexPrefix}-${index}`
     }
     return index
+}
+
+/** The chart and page indices the search page queries. */
+export function getSearchIndexNames(
+    indexPrefix: string | undefined
+): SearchIndexNames {
+    return {
+        charts: getIndexName(
+            SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+            indexPrefix
+        ),
+        pages: getIndexName(SearchIndexName.Pages, indexPrefix),
+    }
 }
 
 // The same algoliasearch client the site uses. It needs an explicit fetch()

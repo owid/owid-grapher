@@ -123,7 +123,7 @@ The "Topic page" cards in the Research & Writing section are not a text search o
 
 #### Running sections in a function
 
-Each result section runs one search from `searchPageSection` in `@ourworldindata/utils` (see `querySection` in `queries.ts`). By default the browser runs it against Algolia. With `SEARCH_SECTIONS_URL` set, sections with a typed query send it to `/api/search/sections`, which runs the same function in a Cloudflare function and returns Algolia's response unchanged; the browser falls back to Algolia if that request fails. The section's follow-up searches (closest matches, topic page recommendations) then run next to Algolia instead of over the reader's connection, and a server-side step such as reranking can be added there. Searches without a query stay in the browser and go through the caching proxy below.
+Each result section runs one search from `searchPageSection` in `@ourworldindata/utils` (see `querySection` in `queries.ts`). By default the browser runs it against Algolia. With `SEARCH_SECTIONS_URL` set, sections with a typed query send it to `/api/search/sections`, which runs the same function in a Cloudflare function and returns the response the browser would have got (Algolia's shape, highlights included); the browser falls back to Algolia if that request fails. The section's follow-up searches (closest matches, topic page recommendations) then run next to Algolia instead of over the reader's connection, and a server-side step such as reranking can be added there. Searches without a query stay in the browser and go through the caching proxy below.
 
 #### Empty-query caching proxy
 

@@ -71,10 +71,18 @@ export function runSectionSearch<THit>(
         : searchSingleForHits<THit>(liteSearchClient, search.request)
 }
 
+interface PagePagination {
+    page: number
+    hitsPerPage: number
+}
+
+interface OffsetPagination {
+    offset: number
+    length: number
+}
+
 /** Algolia's page-based or offset-based pagination. */
-export type SectionPagination =
-    | { page: number; hitsPerPage: number }
-    | { offset: number; length: number }
+type SectionPagination = PagePagination | OffsetPagination
 
 const HIGHLIGHT_TAGS = {
     highlightPreTag: "<mark>",
@@ -98,7 +106,7 @@ export const SEARCH_PAGE_CHART_ATTRIBUTES = [
     "explorerType",
 ]
 
-export const SEARCH_PAGE_TOPIC_PAGE_ATTRIBUTES = [
+const SEARCH_PAGE_TOPIC_PAGE_ATTRIBUTES = [
     "title",
     "type",
     "slug",
@@ -201,9 +209,9 @@ export function buildPagesSearch(
     }
 }
 
-export function buildArticlesSearch(
+function buildArticlesSearch(
     state: SectionSearchState,
-    params: { indexName: string; offset: number; length: number }
+    params: { indexName: string } & OffsetPagination
 ): SectionSearch {
     const isFilterOnly = state.query.trim() === ""
     return buildPagesSearch(state, {
@@ -222,9 +230,9 @@ export function buildArticlesSearch(
     })
 }
 
-export function buildDataInsightsSearch(
+function buildDataInsightsSearch(
     state: SectionSearchState,
-    params: { indexName: string; page: number; hitsPerPage: number }
+    params: { indexName: string } & PagePagination
 ): SectionSearch {
     return buildPagesSearch(state, {
         indexName: params.indexName,
@@ -234,9 +242,9 @@ export function buildDataInsightsSearch(
     })
 }
 
-export function buildProfilesSearch(
+function buildProfilesSearch(
     state: SectionSearchState,
-    params: { indexName: string; offset: number; length: number }
+    params: { indexName: string } & OffsetPagination
 ): SectionSearch {
     return {
         request: {
@@ -288,15 +296,15 @@ export const SEARCH_PAGE_SECTIONS: readonly SearchPageSection[] = [
 ]
 
 /** How many charts the search page's Data section shows per page. */
-export const SEARCH_PAGE_CHARTS_PER_PAGE = 9
+const SEARCH_PAGE_CHARTS_PER_PAGE = 9
 
 /** The pagination each section's search takes. */
 interface SearchPageSectionPagination {
-    charts: { page: number }
-    "data-insights": { page: number; hitsPerPage: number }
-    articles: { offset: number; length: number }
-    "topic-pages": { offset: number; length: number }
-    profiles: { offset: number; length: number }
+    charts: Pick<PagePagination, "page">
+    "data-insights": PagePagination
+    articles: OffsetPagination
+    "topic-pages": OffsetPagination
+    profiles: OffsetPagination
 }
 
 /** One section's search, as the search page asks for it. */
@@ -380,7 +388,7 @@ export async function searchPageSection<S extends SearchPageSection>(
 }
 
 /** The URL parameter of each filter type, as on the search page's URL. */
-export const SEARCH_FILTER_URL_PARAMS = [
+const SEARCH_FILTER_URL_PARAMS = [
     [FilterType.TOPIC, SearchUrlParam.TOPIC],
     [FilterType.COUNTRY, SearchUrlParam.COUNTRY],
     [FilterType.DATASET_PRODUCT, SearchUrlParam.DATASET_PRODUCT],
@@ -390,18 +398,16 @@ export const SEARCH_FILTER_URL_PARAMS = [
 ] as const
 
 /** Separates the values of a multi-valued filter parameter. */
-export const SEARCH_URL_LIST_SEPARATOR = "~"
+const SEARCH_URL_LIST_SEPARATOR = "~"
 
 /**
- * The URL parameters of /api/search/sections for one section's search. The
- * search state uses the search page's own parameter names; the function
- * parses them back in functions/api/search/sections.ts.
+ * The search page's URL parameters for a search state, leaving out defaults.
+ * The search page's own URL and /api/search/sections both use them.
  */
-export function searchPageSectionToUrlParams<S extends SearchPageSection>(
-    request: SearchPageSectionRequest<S>
+export function searchStateToUrlParams(
+    state: SectionSearchState
 ): URLSearchParams {
-    const params = new URLSearchParams({ section: request.section })
-    const { state } = request
+    const params = new URLSearchParams()
     if (state.query) params.set(SearchUrlParam.QUERY, state.query)
     for (const [filterType, param] of SEARCH_FILTER_URL_PARAMS) {
         const names = getFilterNamesOfType(state.filters, filterType)
@@ -410,24 +416,23 @@ export function searchPageSectionToUrlParams<S extends SearchPageSection>(
     }
     if (state.requireAllCountries)
         params.set(SearchUrlParam.REQUIRE_ALL_COUNTRIES, "true")
-    if ("page" in request) params.set("page", String(request.page))
-    if ("hitsPerPage" in request)
-        params.set("hitsPerPage", String(request.hitsPerPage))
-    if ("offset" in request) {
-        params.set("offset", String(request.offset))
-        params.set("length", String(request.length))
-    }
     return params
 }
 
-/** The search state behind a set of search URL parameters, unvalidated. */
+/**
+ * The search state behind the search page's URL parameters. Filter values
+ * aren't checked against the topics and countries that exist.
+ */
 export function searchUrlParamsToSectionState(
     params: URLSearchParams
 ): SectionSearchState {
     const filters: Filter[] = SEARCH_FILTER_URL_PARAMS.flatMap(
         ([filterType, param]) =>
-            (params.get(param) ?? "")
-                .split(SEARCH_URL_LIST_SEPARATOR)
+            [
+                ...new Set(
+                    (params.get(param) ?? "").split(SEARCH_URL_LIST_SEPARATOR)
+                ),
+            ]
                 .filter(Boolean)
                 .map((name) => ({ type: filterType, name }))
     )
@@ -437,4 +442,24 @@ export function searchUrlParamsToSectionState(
         requireAllCountries:
             params.get(SearchUrlParam.REQUIRE_ALL_COUNTRIES) === "true",
     }
+}
+
+/**
+ * The URL parameters of /api/search/sections for one section's search: the
+ * section, its search state as on the search page's URL, and its pagination.
+ * The function parses them back in functions/api/search/sections.ts.
+ */
+export function searchPageSectionToUrlParams<S extends SearchPageSection>(
+    request: SearchPageSectionRequest<S>
+): URLSearchParams {
+    const params = searchStateToUrlParams(request.state)
+    params.set("section", request.section)
+    if ("page" in request) params.set("page", String(request.page))
+    if ("hitsPerPage" in request)
+        params.set("hitsPerPage", String(request.hitsPerPage))
+    if ("offset" in request) {
+        params.set("offset", String(request.offset))
+        params.set("length", String(request.length))
+    }
+    return params
 }
