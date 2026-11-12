@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, assert } from "vitest"
 import { onRequestGet } from "./index.js"
 import * as searchApi from "./searchApi.js"
 import type { Env } from "../../_common/env.js"
+import { DEFAULT_PAGE_TYPES } from "@ourworldindata/utils"
 
 // Mock the searchApi module
 vi.mock(import("./searchApi.js"), async (importOriginal) => {
@@ -11,7 +12,15 @@ vi.mock(import("./searchApi.js"), async (importOriginal) => {
         searchCharts: vi.fn(),
         searchPages: vi.fn(),
         searchTopicPages: vi.fn(),
+        searchProfiles: vi.fn(),
     }
+})
+
+// A text search without filters
+const textSearch = (query: string) => ({
+    query,
+    filters: [],
+    requireAllCountries: false,
 })
 
 describe("Search API endpoint", () => {
@@ -117,11 +126,12 @@ describe("Search API endpoint", () => {
 
             expect(mockSearchPages).toHaveBeenCalledWith(
                 expect.anything(),
-                "test",
+                textSearch("test"),
                 20, // page 2 * hitsPerPage 10 = offset 20
                 10,
-                undefined,
-                "http://localhost"
+                DEFAULT_PAGE_TYPES,
+                "http://localhost",
+                { highlights: false }
             )
         })
 
@@ -143,11 +153,12 @@ describe("Search API endpoint", () => {
 
             expect(mockSearchPages).toHaveBeenCalledWith(
                 expect.anything(),
-                "climate",
+                textSearch("climate"),
                 0, // default page 0
                 20, // default hitsPerPage 20
-                undefined,
-                "http://localhost"
+                DEFAULT_PAGE_TYPES,
+                "http://localhost",
+                { highlights: false }
             )
         })
     })
@@ -171,11 +182,12 @@ describe("Search API endpoint", () => {
 
             expect(mockSearchPages).toHaveBeenCalledWith(
                 expect.anything(),
-                "malaria",
+                textSearch("malaria"),
                 0,
                 20,
                 ["data-insight"],
-                "http://localhost"
+                "http://localhost",
+                { highlights: false }
             )
         })
 
@@ -197,11 +209,12 @@ describe("Search API endpoint", () => {
 
             expect(mockSearchPages).toHaveBeenCalledWith(
                 expect.anything(),
-                "malaria",
+                textSearch("malaria"),
                 0,
                 20,
                 ["article", "about-page"],
-                "http://localhost"
+                "http://localhost",
+                { highlights: false }
             )
         })
 
@@ -306,7 +319,7 @@ describe("Search API endpoint", () => {
             ])
         })
 
-        it("warns when type=pages is sent a filter only charts and topics read", async () => {
+        it("warns when type=pages is sent a filter pages can't honor", async () => {
             vi.spyOn(searchApi, "searchPages").mockResolvedValue({
                 query: "vaccines",
                 results: [],
@@ -315,8 +328,9 @@ describe("Search API endpoint", () => {
                 length: 20,
             })
 
+            // Pages aren't tagged with countries, so "all of them" means nothing
             const request = new Request(
-                "http://localhost/api/search?q=vaccines&type=pages&pageTypes=topic-page&topics=Health"
+                "http://localhost/api/search?q=vaccines&type=pages&countries=France~Spain&requireAllCountries=true"
             )
             const response = await onRequestGet({
                 request,
@@ -328,8 +342,77 @@ describe("Search API endpoint", () => {
                 typeof body === "object" && body !== null && "warnings" in body
             )
             expect(body.warnings).toEqual([
-                'Ignored parameter "topics": it applies only to type=charts and type=topics.',
+                'Ignored parameter "requireAllCountries": it applies only to type=charts, type=topics and type=profiles.',
             ])
+        })
+
+        it("filters type=pages by topic and country, as the search page does", async () => {
+            const mockSearchPages = vi
+                .spyOn(searchApi, "searchPages")
+                .mockResolvedValue({
+                    query: "vaccines",
+                    results: [],
+                    nbHits: 0,
+                    offset: 0,
+                    length: 20,
+                })
+
+            const request = new Request(
+                "http://localhost/api/search?q=vaccines&type=pages&topics=Vaccination~Health&countries=France"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(await response.json()).not.toHaveProperty("warnings")
+            expect(mockSearchPages).toHaveBeenCalledWith(
+                expect.anything(),
+                {
+                    query: "vaccines",
+                    filters: [
+                        { type: "topic", name: "Vaccination" },
+                        { type: "topic", name: "Health" },
+                        { type: "country", name: "France" },
+                    ],
+                    requireAllCountries: false,
+                },
+                0,
+                20,
+                DEFAULT_PAGE_TYPES,
+                "http://localhost",
+                { highlights: false }
+            )
+        })
+
+        it("takes offset and length over page and hitsPerPage, and passes highlights on", async () => {
+            const mockSearchProfiles = vi
+                .spyOn(searchApi, "searchProfiles")
+                .mockResolvedValue({
+                    query: "france",
+                    results: [],
+                    nbHits: 0,
+                    offset: 2,
+                    length: 6,
+                })
+
+            const request = new Request(
+                "http://localhost/api/search?q=france&type=profiles&page=3&offset=2&length=6&highlights=true"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(200)
+            expect(mockSearchProfiles).toHaveBeenCalledWith(
+                expect.anything(),
+                textSearch("france"),
+                2,
+                6,
+                "http://localhost",
+                { highlights: true }
+            )
         })
 
         it("treats a parameter named after an Object property as unknown", async () => {
@@ -471,7 +554,8 @@ describe("Search API endpoint", () => {
                 expect.any(Function),
                 0,
                 20,
-                "http://localhost"
+                "http://localhost",
+                { highlights: false }
             )
             expect(mockSearchPages).not.toHaveBeenCalled()
 
@@ -495,11 +579,12 @@ describe("Search API endpoint", () => {
 
             expect(mockSearchPages).toHaveBeenCalledWith(
                 expect.anything(),
-                "gdp",
+                textSearch("gdp"),
                 0,
                 20,
                 ["topic-page"],
-                "http://localhost"
+                "http://localhost",
+                { highlights: false }
             )
             expect(mockSearchTopicPages).not.toHaveBeenCalled()
         })

@@ -3,6 +3,13 @@ import { searchCharts, searchPages, searchTopicPages } from "./searchApi.js"
 import { FilterType, OwidGdocType, TagGraphRoot } from "@ourworldindata/types"
 import type { AlgoliaConfig } from "./algoliaClient.js"
 
+// A text search without filters
+const textSearch = (query: string) => ({
+    query,
+    filters: [],
+    requireAllCountries: false,
+})
+
 describe("searchCharts with real Algolia", () => {
     // Real Algolia credentials for testing
     const algoliaConfig: AlgoliaConfig = {
@@ -273,7 +280,7 @@ describe("searchPages with real Algolia", () => {
     it("searches for 'banana production' pages", async () => {
         const result = await searchPages(
             algoliaConfig,
-            "banana production",
+            textSearch("banana production"),
             0,
             5
         )
@@ -301,7 +308,12 @@ describe("searchPages with real Algolia", () => {
     })
 
     it("performs basic page search", async () => {
-        const result = await searchPages(algoliaConfig, "climate change", 0, 5)
+        const result = await searchPages(
+            algoliaConfig,
+            textSearch("climate change"),
+            0,
+            5
+        )
 
         expect(result.query).toBe("climate change")
         expect(result.results.length).toBeGreaterThan(0)
@@ -316,8 +328,18 @@ describe("searchPages with real Algolia", () => {
     })
 
     it("handles pagination with offset", async () => {
-        const page1 = await searchPages(algoliaConfig, "health", 0, 3)
-        const page2 = await searchPages(algoliaConfig, "health", 3, 3)
+        const page1 = await searchPages(
+            algoliaConfig,
+            textSearch("health"),
+            0,
+            3
+        )
+        const page2 = await searchPages(
+            algoliaConfig,
+            textSearch("health"),
+            3,
+            3
+        )
 
         expect(page1.offset).toBe(0)
         expect(page1.length).toBe(3)
@@ -332,9 +354,13 @@ describe("searchPages with real Algolia", () => {
     })
 
     it("filters by page types", async () => {
-        const result = await searchPages(algoliaConfig, "about", 0, 5, [
-            "about-page",
-        ])
+        const result = await searchPages(
+            algoliaConfig,
+            textSearch("about"),
+            0,
+            5,
+            ["about-page"]
+        )
 
         expect(result.results.length).toBeGreaterThan(0)
         // All results should be about-pages
@@ -347,9 +373,13 @@ describe("searchPages with real Algolia", () => {
         // data-insights bake to /data-insights/<slug> (see
         // getPrefixedGdocPath), different from the bare /<slug> used by
         // article/about-page.
-        const diResult = await searchPages(algoliaConfig, "co2", 0, 5, [
-            "data-insight",
-        ])
+        const diResult = await searchPages(
+            algoliaConfig,
+            textSearch("co2"),
+            0,
+            5,
+            ["data-insight"]
+        )
         expect(diResult.results.length).toBeGreaterThan(0)
         diResult.results.forEach((page) => {
             expect(page.type).toBe("data-insight")
@@ -360,7 +390,12 @@ describe("searchPages with real Algolia", () => {
     })
 
     it("removes internal Algolia fields from results", async () => {
-        const result = await searchPages(algoliaConfig, "population", 0, 1)
+        const result = await searchPages(
+            algoliaConfig,
+            textSearch("population"),
+            0,
+            1
+        )
 
         expect(result.results.length).toBeGreaterThan(0)
 
@@ -379,7 +414,7 @@ describe("searchPages with real Algolia", () => {
     it("returns empty results for nonsense query", async () => {
         const result = await searchPages(
             algoliaConfig,
-            "xyzabc123nonsense456",
+            textSearch("xyzabc123nonsense456"),
             0,
             10
         )
@@ -393,7 +428,7 @@ describe("searchPages with real Algolia", () => {
         const stagingUrl = "https://staging-pr-123.owid.io"
         const result = await searchPages(
             algoliaConfig,
-            "climate change",
+            textSearch("climate change"),
             0,
             3,
             ["article", "about-page"],

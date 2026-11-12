@@ -8,6 +8,9 @@ import {
     SearchChartHit,
     StackedArticleHit,
     TopicPageHit,
+    DataInsightHit,
+    FlatArticleHit,
+    ProfileHit,
     FilterType,
     LatestType,
     PageChronologicalRecord,
@@ -25,17 +28,17 @@ import {
     formatDisjunctiveFacetFilters,
 } from "./searchUtils.js"
 import {
-    searchPageSection,
-    searchPageSectionToUrlParams,
+    runSearchRequest,
+    searchRequestToUrlParams,
+    fromSearchApiResponse,
     TOPIC_PAGE_TYPE_FILTER,
     MAX_FACET_VALUES,
-    SEARCH_PAGE_CHART_ATTRIBUTES,
-    type SearchPageSection,
-    type SearchPageSectionHits,
-    type SearchPageSectionRequest,
+    SEARCH_CHART_ATTRIBUTES,
+    DEFAULT_PAGE_TYPES,
+    type SearchRequest,
     type SectionSearchResponse,
 } from "@ourworldindata/utils"
-import { SEARCH_SECTIONS_URL } from "../../settings/clientSettings.mjs"
+import { SEARCH_API_URL } from "../../settings/clientSettings.mjs"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
 function makeStateForKey(state: SearchState) {
@@ -113,7 +116,7 @@ export async function queryDataTopics(
         const facetFilters = [...countryFacetFilters, ...topicFacetFilters]
         return {
             indexName: CHARTS_INDEX,
-            attributesToRetrieve: SEARCH_PAGE_CHART_ATTRIBUTES,
+            attributesToRetrieve: SEARCH_CHART_ATTRIBUTES,
             query: state.query,
             facetFilters: facetFilters,
             highlightPreTag: "<mark>",
@@ -132,32 +135,37 @@ export async function queryDataTopics(
 
 const SEARCH_INDEX_NAMES = { charts: CHARTS_INDEX, pages: PAGES_INDEX }
 
+const CHARTS_PER_PAGE = 9
+
 /**
- * Runs one section of the search page: through /api/search/sections when
- * SEARCH_SECTIONS_URL is set and the search has a query, otherwise against
- * Algolia from the browser. Both run searchPageSection, so they return the
- * same results. Searches without a query ("browse" states, e.g. a topic
- * filter alone) stay in the browser, where the search client sends them to
- * the cached-queries proxy (see searchClients.ts).
+ * Runs one search of the search page: through /api/search when SEARCH_API_URL
+ * is set and the search has a query, otherwise against Algolia from the
+ * browser. Both run runSearchRequest, so they return the same results.
+ * Searches without a query ("browse" states, e.g. a topic filter alone) stay
+ * in the browser, where the search client sends them to the cached-queries
+ * proxy (see searchClients.ts).
  */
-async function querySection<S extends SearchPageSection>(
+async function querySection<THit extends { slug: string }>(
     liteSearchClient: LiteClient,
-    request: SearchPageSectionRequest<S>,
+    request: SearchRequest,
     loadTagGraph: () => Promise<TagGraphRoot> = () =>
         Promise.reject(new Error("No topic tag graph"))
-): Promise<SectionSearchResponse<SearchPageSectionHits[S]>> {
-    if (SEARCH_SECTIONS_URL && request.state.query.trim()) {
-        const url = `${SEARCH_SECTIONS_URL}?${searchPageSectionToUrlParams(request)}`
+): Promise<SectionSearchResponse<THit>> {
+    if (SEARCH_API_URL && request.state.query.trim()) {
+        const params = searchRequestToUrlParams(request)
+        // Keep Algolia's objectID and highlights, which the page renders
+        params.set("highlights", "true")
         try {
-            const response = await fetch(url)
-            if (response.ok) return await response.json()
-            console.warn("Search section request failed:", response.status)
+            const response = await fetch(`${SEARCH_API_URL}?${params}`)
+            if (response.ok)
+                return fromSearchApiResponse<THit>(await response.json())
+            console.warn("Search API request failed:", response.status)
         } catch (error) {
-            console.warn("Search section request failed:", error)
+            console.warn("Search API request failed:", error)
         }
         // Fall back to Algolia, so a failing endpoint never breaks search
     }
-    return searchPageSection(liteSearchClient, request, {
+    return runSearchRequest<THit>(liteSearchClient, request, {
         indexNames: SEARCH_INDEX_NAMES,
         loadTagGraph,
     })
@@ -168,7 +176,12 @@ export async function queryCharts(
     state: SearchState,
     page: number = 0
 ) {
-    return querySection(liteSearchClient, { section: "charts", state, page })
+    return querySection<SearchChartHit>(liteSearchClient, {
+        type: "charts",
+        state,
+        page,
+        hitsPerPage: CHARTS_PER_PAGE,
+    })
 }
 
 export async function queryDataInsights(
@@ -176,13 +189,22 @@ export async function queryDataInsights(
     state: SearchState,
     page: number = 0,
     hitsPerPage: number = 4
-) {
-    return querySection(liteSearchClient, {
-        section: "data-insights",
+): Promise<SectionSearchResponse<DataInsightHit>> {
+    // Searched by offset like all page searches; the section pages through
+    // them by page number
+    const response = await querySection<DataInsightHit>(liteSearchClient, {
+        type: "pages",
         state,
+        pageTypes: [OwidGdocType.DataInsight],
+        offset: page * hitsPerPage,
+        length: hitsPerPage,
+    })
+    return {
+        ...response,
         page,
         hitsPerPage,
-    })
+        nbPages: Math.ceil((response.nbHits ?? 0) / hitsPerPage),
+    }
 }
 
 export async function queryArticles(
@@ -191,9 +213,10 @@ export async function queryArticles(
     offset: number = 0,
     length: number
 ) {
-    return querySection(liteSearchClient, {
-        section: "articles",
+    return querySection<FlatArticleHit>(liteSearchClient, {
+        type: "pages",
         state,
+        pageTypes: DEFAULT_PAGE_TYPES,
         offset,
         length,
     })
@@ -210,9 +233,9 @@ export async function queryTopicPages(
     offset: number = 0,
     length: number
 ) {
-    return querySection(
+    return querySection<TopicPageHit>(
         liteSearchClient,
-        { section: "topic-pages", state, offset, length },
+        { type: "topics", state, offset, length },
         () => Promise.resolve(tagGraph)
     )
 }
@@ -223,8 +246,8 @@ export async function queryProfiles(
     offset: number = 0,
     length: number
 ) {
-    return querySection(liteSearchClient, {
-        section: "profiles",
+    return querySection<ProfileHit>(liteSearchClient, {
+        type: "profiles",
         state,
         offset,
         length,

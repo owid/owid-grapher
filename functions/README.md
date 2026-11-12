@@ -154,17 +154,15 @@ GET /api/detect-country
 
 ## `/api/search`
 
-This route provides a search API for charts, pages (articles, about pages) and topics. `type=topics` returns topic recommendations derived from the best-ranked matching charts, the same way the site's search page does (see "Topic page recommendations" in `site/search/README.md`); it reads the baked `/topicTagGraph.json` to map chart tags to topic pages.
+This route provides a search API for charts, pages (articles, about pages, data insights, …), topics and country profiles. `type=topics` returns topic recommendations derived from the best-ranked matching charts, the same way the site's search page does (see "Topic page recommendations" in `site/search/README.md`); it reads the baked `/topicTagGraph.json` to map chart tags to topic pages.
+
+It is a public API, and it also serves the site's search page: when `SEARCH_API_URL` is set, the page sends each result section with a typed query here, with `highlights=true` so the hits keep Algolia's highlight and snippet fields (see `querySection` in `site/search/queries.ts`). Both sides build their Algolia requests with `runSearchRequest` from `@ourworldindata/utils`, so the page gets the results it would have got querying Algolia from the browser.
 
 For detailed API documentation, including all parameters, response schemas, and examples, see [search-api.openapi.yaml](../docs/search-api.openapi.yaml).
 
 ## `/api/search/cached-queries`
 
 A caching proxy for empty-query Algolia searches. The site routes Algolia multi-query requests where every query string is empty — the "browse" requests issued by default states like the search landing page or the empty autocomplete panel — to this endpoint (see `site/search/searchClients.ts`), which forwards them to Algolia and caches the response for a day — except for payloads touching the chronological pages index (which backs /latest and sorts by date), cached for only 15 minutes so newly published articles show up quickly. Requests containing a non-empty query are rejected with a 400 and should go to Algolia directly; the client falls back to a direct Algolia request whenever this endpoint fails or rejects.
-
-## `/api/search/sections`
-
-The search page's own endpoint: one result section (charts, data insights, articles, topic pages or profiles) of a search, as the page would query it from the browser. When `SEARCH_SECTIONS_URL` is set, the site sends each section with a typed query here instead of querying Algolia directly (see `querySection` in `site/search/queries.ts`), and falls back to Algolia when this endpoint fails. It runs the same `searchPageSection` from `@ourworldindata/utils` as the browser, so the results are identical, and returns the response the browser would have got: Algolia's shape, highlights included. Not a public API: its response follows the search page, unlike `/api/search`'s.
 
 ## `/deleted/:slug`
 

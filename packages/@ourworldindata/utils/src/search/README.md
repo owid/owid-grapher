@@ -69,7 +69,7 @@ The two that answer queries, and so owe each other the contract above:
 - `site/search/queries.ts` — the search page's Algolia queries
 - `functions/api/search/searchApi.ts` — the public `/api/search` endpoint
 
-The search page's sections are `searchPageSection` in `searchSections.ts`. The site runs it either in the browser or through `functions/api/search/sections.ts`, which runs the same function at the edge, so the two can differ only in how the request travels (`searchPageSectionToUrlParams` and back), not in what is asked of Algolia. `/api/search` builds its chart and page searches from the same builders.
+Both run their searches through `runSearchRequest` in `searchSections.ts`. The site runs it either in the browser or through `/api/search` (with `highlights=true`), which runs the same function at the edge, so the two can differ only in how the request travels (`searchRequestToUrlParams`, parsed back in `functions/api/search/index.ts`), not in what is asked of Algolia.
 
 Two more depend on this layer without being query surfaces of their own:
 

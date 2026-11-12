@@ -1,15 +1,10 @@
 import {
-    DataInsightHit,
     Filter,
     FilterType,
-    FlatArticleHit,
     OwidGdocType,
-    ProfileHit,
-    SearchChartHit,
     SearchState,
     SearchUrlParam,
     TagGraphRoot,
-    TopicPageHit,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
@@ -29,12 +24,12 @@ import { recommendTopicPages } from "./searchTopicPages.js"
 
 // Shared by the site's search page and /api/search — see ./README.md.
 //
-// The searches behind the search page's result sections. The page runs them
-// either from the browser, against Algolia, or through
-// /api/search/sections, which runs these same functions in a Cloudflare
-// function; /api/search builds its chart and page searches from them too.
+// The searches /api/search answers, which are also the searches behind the
+// search page's result sections. The page runs them either from the browser,
+// against Algolia, or through /api/search, which runs these same functions in
+// a Cloudflare function.
 
-/** The parts of the search state a section's search depends on. */
+/** The parts of the search state a search depends on. */
 export type SectionSearchState = Pick<
     SearchState,
     "query" | "filters" | "requireAllCountries"
@@ -81,16 +76,16 @@ interface OffsetPagination {
     length: number
 }
 
-/** Algolia's page-based or offset-based pagination. */
-type SectionPagination = PagePagination | OffsetPagination
-
 const HIGHLIGHT_TAGS = {
     highlightPreTag: "<mark>",
     highlightPostTag: "</mark>",
 }
 
-/** The chart attributes the search page renders. */
-export const SEARCH_PAGE_CHART_ATTRIBUTES = [
+// Each search type retrieves the attributes both the search page and API
+// consumers use, so the two ask Algolia for the same thing.
+
+/** The chart attributes of type=charts. */
+export const SEARCH_CHART_ATTRIBUTES = [
     "title",
     "containerTitle",
     "slug",
@@ -104,14 +99,30 @@ export const SEARCH_PAGE_CHART_ATTRIBUTES = [
     "subtitle",
     "chartConfigId",
     "explorerType",
+    "publishedAt",
+    "updatedAt",
 ]
 
-const SEARCH_PAGE_TOPIC_PAGE_ATTRIBUTES = [
+const PAGE_ATTRIBUTES = [
     "title",
+    "thumbnailUrl",
+    "date",
+    "slug",
     "type",
+    "content",
+    "authors",
+    "modifiedDate",
+]
+
+const TOPIC_PAGE_ATTRIBUTES = [...PAGE_ATTRIBUTES, "excerpt", "excerptLong"]
+
+const PROFILE_ATTRIBUTES = [
+    "title",
+    "thumbnailUrl",
     "slug",
     "excerpt",
-    "excerptLong",
+    "type",
+    "availableEntities",
 ]
 
 const DATASET_FILTERS = [
@@ -123,12 +134,7 @@ const DATASET_FILTERS = [
 
 export function buildChartsSearch(
     state: SectionSearchState,
-    params: {
-        indexName: string
-        page: number
-        hitsPerPage: number
-        attributesToRetrieve?: string[]
-    }
+    params: { indexName: string } & PagePagination
 ): SectionSearch {
     const datasetFacetFilters = DATASET_FILTERS.flatMap(
         ([filterType, attribute]) =>
@@ -140,8 +146,7 @@ export function buildChartsSearch(
     return {
         request: {
             indexName: params.indexName,
-            attributesToRetrieve:
-                params.attributesToRetrieve ?? SEARCH_PAGE_CHART_ATTRIBUTES,
+            attributesToRetrieve: SEARCH_CHART_ATTRIBUTES,
             query: state.query,
             facetFilters: buildChartsFacetFilters({
                 ...state,
@@ -155,18 +160,13 @@ export function buildChartsSearch(
     }
 }
 
-/**
- * A text search over gdocs of the given types: the search page's articles and
- * data insights, and /api/search's type=pages.
- */
-export function buildPagesSearch(
+/** A text search over gdocs of the given types (type=pages). */
+function buildPagesSearch(
     state: SectionSearchState,
     params: {
         indexName: string
-        types: readonly string[]
-        attributesToRetrieve: string[]
-        pagination: SectionPagination
-    }
+        pageTypes: readonly string[]
+    } & OffsetPagination
 ): SectionSearch {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
@@ -188,7 +188,9 @@ export function buildPagesSearch(
         request: {
             indexName: params.indexName,
             query,
-            filters: params.types.map((type) => `type:${type}`).join(" OR "),
+            filters: params.pageTypes
+                .map((type) => `type:${type}`)
+                .join(" OR "),
             facetFilters: formatTopicFacetFilters(selectedTopics),
             // Do not search through the content of pages in case there is a
             // country filter present. This is to avoid returning pages that
@@ -198,9 +200,15 @@ export function buildPagesSearch(
                 // a subset of searchableAttributes on the Pages index
                 restrictSearchableAttributes: ["title", "tags", "authors"],
             }),
-            attributesToRetrieve: params.attributesToRetrieve,
+            attributesToRetrieve: [
+                ...PAGE_ATTRIBUTES,
+                // Without a query there's nothing to snippet `content` for,
+                // so the search page shows the excerpt instead.
+                ...(state.query.trim() === "" ? ["excerpt"] : []),
+            ],
             ...HIGHLIGHT_TAGS,
-            ...params.pagination,
+            offset: params.offset,
+            length: params.length,
         },
         // Selected countries are part of the query, so the closest-matches
         // fallback would drop them as optional words and show results that
@@ -209,39 +217,7 @@ export function buildPagesSearch(
     }
 }
 
-function buildArticlesSearch(
-    state: SectionSearchState,
-    params: { indexName: string } & OffsetPagination
-): SectionSearch {
-    const isFilterOnly = state.query.trim() === ""
-    return buildPagesSearch(state, {
-        indexName: params.indexName,
-        types: [OwidGdocType.Article, OwidGdocType.AboutPage],
-        attributesToRetrieve: [
-            "title",
-            "thumbnailUrl",
-            "date",
-            "slug",
-            "type",
-            isFilterOnly ? "excerpt" : "content",
-            "authors",
-        ],
-        pagination: { offset: params.offset, length: params.length },
-    })
-}
-
-function buildDataInsightsSearch(
-    state: SectionSearchState,
-    params: { indexName: string } & PagePagination
-): SectionSearch {
-    return buildPagesSearch(state, {
-        indexName: params.indexName,
-        types: [OwidGdocType.DataInsight],
-        attributesToRetrieve: ["title", "thumbnailUrl", "date", "slug", "type"],
-        pagination: { page: params.page, hitsPerPage: params.hitsPerPage },
-    })
-}
-
+/** Country profiles for the selected countries and topics (type=profiles). */
 function buildProfilesSearch(
     state: SectionSearchState,
     params: { indexName: string } & OffsetPagination
@@ -260,14 +236,7 @@ function buildProfilesSearch(
                     getFilterNamesOfType(state.filters, FilterType.TOPIC)
                 ),
             ],
-            attributesToRetrieve: [
-                "title",
-                "thumbnailUrl",
-                "slug",
-                "excerpt",
-                "type",
-                "availableEntities",
-            ],
+            attributesToRetrieve: PROFILE_ATTRIBUTES,
             ...HIGHLIGHT_TAGS,
             offset: params.offset,
             length: params.length,
@@ -276,113 +245,89 @@ function buildProfilesSearch(
     }
 }
 
-/** The hit type each search page section returns. */
-export interface SearchPageSectionHits {
-    charts: SearchChartHit
-    "data-insights": DataInsightHit
-    articles: FlatArticleHit
-    "topic-pages": TopicPageHit
-    profiles: ProfileHit
-}
+/** The page types type=pages searches unless asked for others. */
+export const DEFAULT_PAGE_TYPES: readonly string[] = [
+    OwidGdocType.Article,
+    OwidGdocType.AboutPage,
+]
 
-export type SearchPageSection = keyof SearchPageSectionHits
+/**
+ * One search as /api/search takes it. Charts paginate by page; the others by
+ * offset, since the search page shows a different number of results first
+ * than on "show more".
+ */
+export type SearchRequest =
+    | ({ type: "charts"; state: SectionSearchState } & PagePagination)
+    | ({
+          type: "pages"
+          state: SectionSearchState
+          pageTypes: readonly string[]
+      } & OffsetPagination)
+    | ({ type: "topics"; state: SectionSearchState } & OffsetPagination)
+    | ({ type: "profiles"; state: SectionSearchState } & OffsetPagination)
 
-export const SEARCH_PAGE_SECTIONS: readonly SearchPageSection[] = [
+export type SearchType = SearchRequest["type"]
+
+export const SEARCH_TYPES: readonly SearchType[] = [
     "charts",
-    "data-insights",
-    "articles",
-    "topic-pages",
+    "pages",
+    "topics",
     "profiles",
 ]
 
-/** How many charts the search page's Data section shows per page. */
-const SEARCH_PAGE_CHARTS_PER_PAGE = 9
-
-/** The pagination each section's search takes. */
-interface SearchPageSectionPagination {
-    charts: Pick<PagePagination, "page">
-    "data-insights": PagePagination
-    articles: OffsetPagination
-    "topic-pages": OffsetPagination
-    profiles: OffsetPagination
-}
-
-/** One section's search, as the search page asks for it. */
-export type SearchPageSectionRequest<
-    S extends SearchPageSection = SearchPageSection,
-> = {
-    [K in S]: {
-        section: K
-        state: SectionSearchState
-    } & SearchPageSectionPagination[K]
-}[S]
-
 /**
- * Runs one section of the search page. The site calls this in the browser and
- * /api/search/sections calls it in a function, so both answer a section with
- * the same Algolia requests.
+ * Runs one search. The site calls this in the browser and /api/search calls
+ * it in a function, so both send Algolia the same requests. The caller names
+ * the hit type it expects.
  */
-export async function searchPageSection<S extends SearchPageSection>(
+export function runSearchRequest<THit extends { slug: string }>(
     liteSearchClient: LiteClient,
-    request: SearchPageSectionRequest<S>,
+    request: SearchRequest,
     params: {
         indexNames: SearchIndexNames
-        /** Only called by the topic pages section, once a chart matches. */
+        /** Only called by type=topics, once a chart matches. */
         loadTagGraph: () => Promise<TagGraphRoot>
     }
-): Promise<SectionSearchResponse<SearchPageSectionHits[S]>> {
-    // Narrowing `request` doesn't narrow S, so the hit type is asserted here
-    // once; SearchPageSectionHits says which hits each section's search
-    // returns.
-    type Hit = SearchPageSectionHits[S]
+): Promise<SectionSearchResponse<THit>> {
     const { indexNames } = params
-    const req = request as SearchPageSectionRequest
-    switch (req.section) {
+    switch (request.type) {
         case "charts":
-            return runSectionSearch<Hit>(
+            return runSectionSearch<THit>(
                 liteSearchClient,
-                buildChartsSearch(req.state, {
+                buildChartsSearch(request.state, {
                     indexName: indexNames.charts,
-                    page: req.page,
-                    hitsPerPage: SEARCH_PAGE_CHARTS_PER_PAGE,
+                    page: request.page,
+                    hitsPerPage: request.hitsPerPage,
                 })
             )
-        case "data-insights":
-            return runSectionSearch<Hit>(
+        case "pages":
+            return runSectionSearch<THit>(
                 liteSearchClient,
-                buildDataInsightsSearch(req.state, {
+                buildPagesSearch(request.state, {
                     indexName: indexNames.pages,
-                    page: req.page,
-                    hitsPerPage: req.hitsPerPage,
-                })
-            )
-        case "articles":
-            return runSectionSearch<Hit>(
-                liteSearchClient,
-                buildArticlesSearch(req.state, {
-                    indexName: indexNames.pages,
-                    offset: req.offset,
-                    length: req.length,
+                    pageTypes: request.pageTypes,
+                    offset: request.offset,
+                    length: request.length,
                 })
             )
         case "profiles":
-            return runSectionSearch<Hit>(
+            return runSectionSearch<THit>(
                 liteSearchClient,
-                buildProfilesSearch(req.state, {
+                buildProfilesSearch(request.state, {
                     indexName: indexNames.pages,
-                    offset: req.offset,
-                    length: req.length,
+                    offset: request.offset,
+                    length: request.length,
                 })
             )
-        case "topic-pages":
-            return recommendTopicPages<Hit>(liteSearchClient, {
+        case "topics":
+            return recommendTopicPages<THit>(liteSearchClient, {
                 chartsIndexName: indexNames.charts,
                 pagesIndexName: indexNames.pages,
-                state: req.state,
+                state: request.state,
                 loadTagGraph: params.loadTagGraph,
-                attributesToRetrieve: SEARCH_PAGE_TOPIC_PAGE_ATTRIBUTES,
-                offset: req.offset,
-                length: req.length,
+                attributesToRetrieve: TOPIC_PAGE_ATTRIBUTES,
+                offset: request.offset,
+                length: request.length,
             })
     }
 }
@@ -402,7 +347,7 @@ const SEARCH_URL_LIST_SEPARATOR = "~"
 
 /**
  * The search page's URL parameters for a search state, leaving out defaults.
- * The search page's own URL and /api/search/sections both use them.
+ * The search page's own URL and /api/search both use them.
  */
 export function searchStateToUrlParams(
     state: SectionSearchState
@@ -430,7 +375,9 @@ export function searchUrlParamsToSectionState(
         ([filterType, param]) =>
             [
                 ...new Set(
-                    (params.get(param) ?? "").split(SEARCH_URL_LIST_SEPARATOR)
+                    (params.get(param) ?? "")
+                        .split(SEARCH_URL_LIST_SEPARATOR)
+                        .map((name) => name.trim())
                 ),
             ]
                 .filter(Boolean)
@@ -445,21 +392,49 @@ export function searchUrlParamsToSectionState(
 }
 
 /**
- * The URL parameters of /api/search/sections for one section's search: the
- * section, its search state as on the search page's URL, and its pagination.
- * The function parses them back in functions/api/search/sections.ts.
+ * The /api/search parameters for a search; functions/api/search/index.ts
+ * parses them back.
  */
-export function searchPageSectionToUrlParams<S extends SearchPageSection>(
-    request: SearchPageSectionRequest<S>
+export function searchRequestToUrlParams(
+    request: SearchRequest
 ): URLSearchParams {
     const params = searchStateToUrlParams(request.state)
-    params.set("section", request.section)
-    if ("page" in request) params.set("page", String(request.page))
-    if ("hitsPerPage" in request)
+    params.set("type", request.type)
+    if (request.type === "pages")
+        params.set("pageTypes", request.pageTypes.join(","))
+    if (request.type === "charts") {
+        params.set("page", String(request.page))
         params.set("hitsPerPage", String(request.hitsPerPage))
-    if ("offset" in request) {
+    } else {
         params.set("offset", String(request.offset))
         params.set("length", String(request.length))
     }
     return params
+}
+
+/** The parts of an /api/search response (with highlights=true) the search page reads. */
+export interface SearchApiHitsResponse<THit> {
+    results: THit[]
+    nbHits: number
+    page?: number
+    nbPages?: number
+    hitsPerPage?: number
+    closestMatches?: boolean
+}
+
+/**
+ * An /api/search response in the shape of the Algolia response the search
+ * page reads: its hits, nbHits, page, nbPages and closestMatches.
+ */
+export function fromSearchApiResponse<THit>(
+    response: SearchApiHitsResponse<THit>
+): SectionSearchResponse<THit> {
+    return {
+        hits: response.results,
+        nbHits: response.nbHits,
+        page: response.page,
+        nbPages: response.nbPages,
+        hitsPerPage: response.hitsPerPage,
+        closestMatches: response.closestMatches,
+    } as SectionSearchResponse<THit>
 }

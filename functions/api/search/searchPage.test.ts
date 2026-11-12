@@ -2,23 +2,28 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { type LiteClient } from "algoliasearch/lite"
 import {
     FilterType,
+    OwidGdocType,
     TagGraphRoot,
     TagGraphRootName,
 } from "@ourworldindata/types"
 import {
-    searchPageSection,
-    searchPageSectionToUrlParams,
-    type SearchPageSectionRequest,
+    DEFAULT_PAGE_TYPES,
+    fromSearchApiResponse,
+    runSearchRequest,
+    searchRequestToUrlParams,
+    type SearchApiHitsResponse,
+    type SearchRequest,
 } from "@ourworldindata/utils"
 import type { Env } from "../../_common/env.js"
 import { getSearchIndexNames } from "./algoliaClient.js"
-import { onRequestGet } from "./sections.js"
+import { onRequestGet } from "./index.js"
 
-// The search page runs a section either in the browser (searchPageSection
-// against Algolia) or through this endpoint. These tests run both against
-// the same fake Algolia and check that they send Algolia the same requests
-// and return the same response, i.e. that a section's search survives the
-// trip through the URL unchanged.
+// The search page runs each of its searches either in the browser
+// (runSearchRequest against Algolia) or through /api/search with
+// highlights=true. These tests run both against the same fake Algolia and
+// check that they send Algolia the same requests and that the page gets the
+// same response either way, i.e. that a search survives the trip through
+// the URL unchanged.
 
 const tagGraph: TagGraphRoot = {
     id: 0,
@@ -106,7 +111,7 @@ const env = {
 
 const callEndpoint = (params: URLSearchParams): Promise<Response> =>
     onRequestGet({
-        request: new Request(`http://localhost/api/search/sections?${params}`),
+        request: new Request(`http://localhost/api/search?${params}`),
         env,
     } as unknown as Parameters<typeof onRequestGet>[0]) as Promise<Response>
 
@@ -114,17 +119,17 @@ const state = (
     query: string,
     filters: { type: FilterType; name: string }[] = [],
     requireAllCountries = false
-): SearchPageSectionRequest["state"] => ({
+): SearchRequest["state"] => ({
     query,
     filters,
     requireAllCountries,
 })
 
-const SECTION_REQUESTS: [string, SearchPageSectionRequest][] = [
+const SEARCH_PAGE_REQUESTS: [string, SearchRequest][] = [
     [
         "charts with every kind of filter, second page",
         {
-            section: "charts",
+            type: "charts",
             state: state(
                 "gdp per capita",
                 [
@@ -140,24 +145,27 @@ const SECTION_REQUESTS: [string, SearchPageSectionRequest][] = [
                 true
             ),
             page: 1,
+            hitsPerPage: 9,
         },
     ],
     [
         "data insights with a country",
         {
-            section: "data-insights",
+            type: "pages",
             state: state('co₂ & "emissions"', [
                 { type: FilterType.COUNTRY, name: "Germany" },
             ]),
-            page: 0,
-            hitsPerPage: 4,
+            pageTypes: [OwidGdocType.DataInsight],
+            offset: 4,
+            length: 4,
         },
     ],
     [
         "articles that need closest matches",
         {
-            section: "articles",
+            type: "pages",
             state: state("nothing matches growth"),
+            pageTypes: DEFAULT_PAGE_TYPES,
             offset: 0,
             length: 4,
         },
@@ -165,7 +173,7 @@ const SECTION_REQUESTS: [string, SearchPageSectionRequest][] = [
     [
         "topic pages recommended from charts",
         {
-            section: "topic-pages",
+            type: "topics",
             state: state("growth"),
             offset: 2,
             length: 6,
@@ -174,7 +182,7 @@ const SECTION_REQUESTS: [string, SearchPageSectionRequest][] = [
     [
         "profiles for a country",
         {
-            section: "profiles",
+            type: "profiles",
             state: state("france", [
                 { type: FilterType.COUNTRY, name: "France" },
             ]),
@@ -184,40 +192,67 @@ const SECTION_REQUESTS: [string, SearchPageSectionRequest][] = [
     ],
 ]
 
-describe("/api/search/sections", () => {
+describe("the search page's searches through /api/search", () => {
     beforeEach(() => {
         fakeAlgolia = recordingClient()
     })
 
-    it.each(SECTION_REQUESTS)(
+    it.each(SEARCH_PAGE_REQUESTS)(
         "answers %s as the browser would",
-        async (_name, sectionRequest) => {
+        async (_name, searchRequest) => {
             const browser = recordingClient()
-            const browserResult = await searchPageSection(
+            const browserResult = await runSearchRequest<{ slug: string }>(
                 browser.client,
-                sectionRequest,
+                searchRequest,
                 {
                     indexNames: getSearchIndexNames(undefined),
                     loadTagGraph: async () => tagGraph,
                 }
             )
 
-            const response = await callEndpoint(
-                searchPageSectionToUrlParams(sectionRequest)
-            )
+            const params = searchRequestToUrlParams(searchRequest)
+            params.set("highlights", "true")
+            const response = await callEndpoint(params)
 
             expect(response.status).toBe(200)
             expect(fakeAlgolia.requests).toEqual(browser.requests)
-            expect(await response.json()).toEqual(browserResult)
+            // The page gets the browser's hits, with their URL added
+            const pageResult = fromSearchApiResponse(
+                await response.json<SearchApiHitsResponse<{ slug: string }>>()
+            )
+            expect(pageResult).toEqual({
+                hits: browserResult.hits.map((hit) => ({
+                    ...hit,
+                    url: expect.any(String),
+                })),
+                nbHits: browserResult.nbHits,
+                // Charts page by page, the rest by offset
+                ...(searchRequest.type === "charts"
+                    ? {
+                          page: browserResult.page,
+                          nbPages: browserResult.nbPages,
+                          hitsPerPage: searchRequest.hitsPerPage,
+                      }
+                    : {
+                          page: undefined,
+                          nbPages: undefined,
+                          hitsPerPage: undefined,
+                      }),
+                closestMatches: browserResult.closestMatches,
+            })
         }
     )
 
     it.each([
-        ["an unknown section", "section=everything&q=gdp&page=0"],
-        ["no pagination", "section=articles&q=gdp"],
-        ["a negative page", "section=charts&q=gdp&page=-1"],
-        ["too many hits", "section=data-insights&q=gdp&page=0&hitsPerPage=500"],
-        ["an oversized query", `section=charts&page=0&q=${"a".repeat(513)}`],
+        ["an unknown type", "type=everything&q=gdp"],
+        ["a negative offset", "type=pages&q=gdp&offset=-1"],
+        ["a non-numeric page", "type=charts&q=gdp&page=two"],
+        ["too many hits", "type=pages&q=gdp&length=500"],
+        ["an oversized query", `type=charts&q=${"a".repeat(513)}`],
+        [
+            "too many filters",
+            `q=gdp&countries=${Array.from({ length: 51 }, (_, i) => `C${i}`).join("~")}`,
+        ],
     ])("rejects %s", async (_name, query) => {
         const response = await callEndpoint(new URLSearchParams(query))
 
@@ -232,7 +267,7 @@ describe("/api/search/sections", () => {
         fakeAlgolia.client.searchForHits = vi.fn().mockRejectedValue(refusal)
 
         const response = await callEndpoint(
-            new URLSearchParams("section=charts&q=gdp&page=0")
+            new URLSearchParams("type=charts&q=gdp")
         )
 
         expect(response.status).toBe(400)

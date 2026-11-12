@@ -6,18 +6,20 @@ import {
     SearchChartHit,
     OwidGdocType,
     TagGraphRoot,
+    TopicPageHit,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     getFilterNamesOfType,
-    buildChartsSearch,
-    buildPagesSearch,
-    runSectionSearch,
-    recommendTopicPages,
+    runSearchRequest,
     MAX_FACET_VALUES,
+    DEFAULT_PAGE_TYPES,
+    type SearchRequest,
+    type SectionSearchResponse,
 } from "@ourworldindata/utils"
 import {
     getIndexName,
+    getSearchIndexNames,
     createSearchClient,
     AlgoliaConfig,
 } from "./algoliaClient.js"
@@ -88,11 +90,16 @@ export interface SearchApiResponse {
     closestMatches?: boolean
 }
 
-/** A type=topics response: page results that are never closest matches. */
+/**
+ * A type=topics or type=profiles response: page results that are never
+ * closest matches.
+ */
 export type SearchTopicsApiResponse = Omit<
     SearchPagesApiResponse,
     "closestMatches"
 > & { closestMatches?: never }
+
+export type SearchProfilesApiResponse = SearchTopicsApiResponse
 
 export interface SearchPagesApiResponse {
     query: string
@@ -105,21 +112,51 @@ export interface SearchPagesApiResponse {
     closestMatches?: boolean
 }
 
-// Minimal set of attributes needed by the MCP server and other API consumers
-const DATA_CATALOG_ATTRIBUTES = [
-    "title",
-    "containerTitle",
-    "slug",
-    "subtitle",
-    "variantName",
-    "type",
-    "queryParams",
-    "availableEntities",
-    "originalAvailableEntities",
-    "availableTabs",
-    "publishedAt",
-    "updatedAt",
-]
+export interface SearchApiOptions {
+    /**
+     * Keep Algolia's objectID and highlight and snippet fields on each result,
+     * as the search page renders them (highlights=true)
+     */
+    highlights?: boolean
+    /** Only called by type=topics, once a chart matches. */
+    loadTagGraph?: () => Promise<TagGraphRoot>
+}
+
+/** Runs one search through the search page's own code (runSearchRequest). */
+async function runSearch<THit extends { slug: string }>(
+    config: AlgoliaConfig,
+    request: SearchRequest,
+    loadTagGraph: () => Promise<TagGraphRoot> = () =>
+        Promise.reject(new Error("No topic tag graph"))
+): Promise<SectionSearchResponse<THit>> {
+    const result = await runSearchRequest<THit>(
+        createSearchClient(config),
+        request,
+        { indexNames: getSearchIndexNames(config.indexPrefix), loadTagGraph }
+    )
+    // If we got zero results and user is filtering by topic, check if the topic exists
+    if (!result.nbHits) await assertTopicsExist(config, request.state.filters)
+    return result
+}
+
+/**
+ * A hit as the API returns it: without Algolia's internal fields (objectID,
+ * _highlightResult, _snippetResult, _rankingInfo) unless asked for
+ * highlights, and with its URL.
+ */
+function presentHit<THit extends object>(
+    hit: THit,
+    url: string,
+    options: SearchApiOptions
+): THit & { url: string } {
+    if (options.highlights) return { ...hit, url }
+    const cleanHit = Object.fromEntries(
+        Object.entries(hit).filter(
+            ([key]) => key !== "objectID" && !key.startsWith("_")
+        )
+    ) as THit
+    return { ...cleanHit, url }
+}
 
 /**
  * Fetches available topics from Algolia
@@ -180,63 +217,32 @@ export async function searchCharts(
     state: SearchState,
     page: number = 0,
     hitsPerPage: number = 20,
-    baseUrl: string = "https://ourworldindata.org"
+    baseUrl: string = "https://ourworldindata.org",
+    options: SearchApiOptions = {}
 ): Promise<SearchApiResponse> {
-    const indexName = getIndexName(
-        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-        config.indexPrefix
-    )
+    const result = await runSearch<SearchChartHit>(config, {
+        type: "charts",
+        state,
+        page,
+        hitsPerPage,
+    })
 
-    const client = createSearchClient(config)
-
-    // The search page's chart search, with the attributes API consumers get
-    const result = await runSectionSearch<SearchChartHit>(
-        client,
-        buildChartsSearch(state, {
-            indexName,
-            page,
-            hitsPerPage,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-        })
-    )
-
-    // If we got zero results and user is filtering by topic, check if the topic exists
-    if (result.nbHits === 0) await assertTopicsExist(config, state.filters)
-
-    // Clean up the hits and add URL
-    const cleanedHits = result.hits.map((hit): EnrichedSearchChartHit => {
-        // Pick only the attributes we want to return to avoid spurious properties
-        const cleanHit: any = {}
-        for (const attr of DATA_CATALOG_ATTRIBUTES) {
-            if (attr in hit) {
-                cleanHit[attr] = (hit as any)[attr]
-            }
-        }
-
-        // Construct URL based on type
-        let url: string
-        if (cleanHit.type === ChartRecordType.ExplorerView) {
-            // Explorer views: /explorers/{slug}{queryParams}
-            const queryParams = cleanHit.queryParams || ""
-            url = `${baseUrl}/explorers/${cleanHit.slug}${queryParams}`
-        } else if (cleanHit.type === ChartRecordType.MultiDimView) {
-            // Multi-dimensional views: /grapher/{slug}{queryParams}
-            const queryParams = cleanHit.queryParams || ""
-            url = `${baseUrl}/grapher/${cleanHit.slug}${queryParams}`
-        } else {
-            // Regular charts: /grapher/{slug}
-            url = `${baseUrl}/grapher/${cleanHit.slug}`
-        }
-
-        return {
-            ...(cleanHit as SearchChartHit),
-            url,
-        }
+    const results = result.hits.map((hit): EnrichedSearchChartHit => {
+        const queryParams = ("queryParams" in hit && hit.queryParams) || ""
+        // Explorer views: /explorers/{slug}{queryParams}; multi-dimensional
+        // views: /grapher/{slug}{queryParams}; charts: /grapher/{slug}
+        const url =
+            hit.type === ChartRecordType.ExplorerView
+                ? `${baseUrl}/explorers/${hit.slug}${queryParams}`
+                : hit.type === ChartRecordType.MultiDimView
+                  ? `${baseUrl}/grapher/${hit.slug}${queryParams}`
+                  : `${baseUrl}/grapher/${hit.slug}`
+        return presentHit(hit, url, options)
     })
 
     return {
         query: state.query,
-        results: cleanedHits,
+        results,
         nbHits: result.nbHits ?? 0,
         page: result.page ?? page,
         nbPages: result.nbPages ?? 0,
@@ -245,47 +251,26 @@ export async function searchCharts(
     }
 }
 
-// Minimal set of attributes needed for page search
-const PAGE_ATTRIBUTES = [
-    "title",
-    "thumbnailUrl",
-    "date",
-    "slug",
-    "type",
-    "content",
-    "authors",
-    "modifiedDate",
-]
-
 export async function searchPages(
     config: AlgoliaConfig,
-    query: string,
+    state: SearchState,
     offset: number = 0,
     length: number = 10,
-    pageTypes: string[] = ["article", "about-page"],
-    baseUrl: string = "https://ourworldindata.org"
+    pageTypes: readonly string[] = DEFAULT_PAGE_TYPES,
+    baseUrl: string = "https://ourworldindata.org",
+    options: SearchApiOptions = {}
 ): Promise<SearchPagesApiResponse> {
-    const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
-
-    const client = createSearchClient(config)
-
-    // The search page's article and data insight search, without its filters
-    const result = await runSectionSearch<SearchPageHit>(
-        client,
-        buildPagesSearch(
-            { query, filters: [], requireAllCountries: false },
-            {
-                indexName,
-                types: pageTypes,
-                attributesToRetrieve: PAGE_ATTRIBUTES,
-                pagination: { offset, length },
-            }
-        )
-    )
+    const result = await runSearch<SearchPageHit>(config, {
+        type: "pages",
+        state,
+        pageTypes,
+        offset,
+        length,
+    })
 
     return {
-        query,
-        results: enrichPageHits(result.hits, baseUrl),
+        query: state.query,
+        results: presentPageHits(result.hits, baseUrl, options),
         nbHits: result.nbHits ?? 0,
         offset,
         length,
@@ -300,60 +285,67 @@ export async function searchTopicPages(
     loadTagGraph: () => Promise<TagGraphRoot>,
     offset: number = 0,
     length: number = 10,
-    baseUrl: string = "https://ourworldindata.org"
+    baseUrl: string = "https://ourworldindata.org",
+    options: SearchApiOptions = {}
 ): Promise<SearchTopicsApiResponse> {
-    const client = createSearchClient(config)
-
-    const result = await recommendTopicPages<SearchPageHit>(client, {
-        chartsIndexName: getIndexName(
-            SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-            config.indexPrefix
-        ),
-        pagesIndexName: getIndexName(SearchIndexName.Pages, config.indexPrefix),
-        state,
-        loadTagGraph,
-        attributesToRetrieve: PAGE_ATTRIBUTES,
-        offset,
-        length,
-    })
-    if (!result.nbHits) await assertTopicsExist(config, state.filters)
+    const result = await runSearch<TopicPageHit>(
+        config,
+        { type: "topics", state, offset, length },
+        loadTagGraph
+    )
 
     return {
         query: state.query,
-        results: enrichPageHits(result.hits, baseUrl),
+        results: presentPageHits(result.hits, baseUrl, options),
         nbHits: result.nbHits ?? 0,
         offset,
         length,
     }
 }
 
-/** Strips Algolia's internal attributes from page hits and adds the page URL. */
-function enrichPageHits(
-    hits: SearchPageHit[],
-    baseUrl: string
-): EnrichedSearchPageHit[] {
-    return hits.map((hit): EnrichedSearchPageHit => {
-        const {
-            _highlightResult,
-            _snippetResult,
-            objectID: _objectID,
-            ...cleanHit
-        } = hit as any
-
-        // Construct URL based on slug + type: different gdoc types bake to
-        // different path prefixes (e.g. data-insights -> /data-insights/,
-        // profiles -> /profile/) — getCanonicalUrl/getPrefixedGdocPath is the
-        // single source of truth the baker itself uses, so newly-exposed
-        // pageTypes (beyond the original article/about-page) resolve to
-        // working links instead of a bare `${baseUrl}/${slug}` guess.
-        const url = getCanonicalUrl(baseUrl, {
-            slug: cleanHit.slug,
-            content: { type: cleanHit.type as OwidGdocType },
-        })
-
-        return {
-            ...cleanHit,
-            url,
-        }
+/** Country profiles for the selected countries, as on the site. */
+export async function searchProfiles(
+    config: AlgoliaConfig,
+    state: SearchState,
+    offset: number = 0,
+    length: number = 10,
+    baseUrl: string = "https://ourworldindata.org",
+    options: SearchApiOptions = {}
+): Promise<SearchProfilesApiResponse> {
+    const result = await runSearch<SearchPageHit>(config, {
+        type: "profiles",
+        state,
+        offset,
+        length,
     })
+
+    return {
+        query: state.query,
+        results: presentPageHits(result.hits, baseUrl, options),
+        nbHits: result.nbHits ?? 0,
+        offset,
+        length,
+    }
+}
+
+/** Adds each page hit's URL (see presentHit). */
+function presentPageHits(
+    hits: { slug: string; type: string }[],
+    baseUrl: string,
+    options: SearchApiOptions
+): EnrichedSearchPageHit[] {
+    return hits.map(
+        (hit) =>
+            // Different gdoc types bake to different path prefixes (e.g.
+            // data-insights -> /data-insights/, profiles -> /profile/), and
+            // getCanonicalUrl is what the baker itself uses
+            presentHit(
+                hit,
+                getCanonicalUrl(baseUrl, {
+                    slug: hit.slug,
+                    content: { type: hit.type as OwidGdocType },
+                }),
+                options
+            ) as EnrichedSearchPageHit
+    )
 }
