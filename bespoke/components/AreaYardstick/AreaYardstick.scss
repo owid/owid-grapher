@@ -1,0 +1,89 @@
+// Underlined like a details-on-demand term, so readers know it explains
+// itself on hover
+.area-yardstick__trigger {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    cursor: help;
+
+    &:focus-visible {
+        outline: 2px solid $blue-30;
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+}
+
+.area-yardstick {
+    padding: 6px 4px;
+    font-family: $sans-serif-font-stack;
+    font-size: 0.875rem;
+    line-height: 1.35;
+    color: $dark-text;
+    text-align: left;
+
+    strong {
+        font-weight: 700;
+    }
+}
+
+.area-yardstick__heading {
+    margin: 0 0 6px;
+    font-weight: 700;
+}
+
+.area-yardstick__list {
+    margin: 0;
+    padding: 0 0 0 16px;
+}
+
+.area-yardstick__item {
+    margin: 2px 0;
+}
+
+.area-yardstick__to-scale {
+    margin: 12px 0 0;
+
+    svg {
+        display: block;
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+.area-yardstick__square--area {
+    fill: $vermillion;
+    fill-opacity: 0.8;
+}
+
+.area-yardstick__square--reference {
+    fill: $gray-10;
+    stroke: $gray-60;
+    stroke-width: 1;
+}
+
+.area-yardstick__square-label {
+    font-size: 11px;
+    fill: $light-text;
+}
+
+.area-yardstick__to-scale-caption {
+    margin-top: 2px;
+    font-size: 0.6875rem;
+    color: $light-text;
+    text-align: center;
+}
+
+.area-hint {
+    margin: 2px 0 0;
+    font-size: 0.75rem;
+    font-style: italic;
+    color: $light-text;
+}
+
+.area-yardstick__conversion,
+.area-yardstick__note {
+    margin: 8px 0 0;
+    font-size: 0.75rem;
+    color: $light-text;
+}

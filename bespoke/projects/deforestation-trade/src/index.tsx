@@ -41,7 +41,7 @@ export const CONFIG_SPEC = {
     title: {
         type: "string",
         description:
-            "Chart title, replacing the generated one. Also hides the controls",
+            'Chart title, replacing the generated one. Also hides the controls. Write {total} where the chart\'s total area should go, e.g. "{total} of forest were cleared…"; it is formatted in hectares and explained with relatable comparisons on hover',
     },
     subtitle: {
         type: "string",
