@@ -38,6 +38,7 @@ The areas listed below are prompts for these questions, not verdicts. Each comes
 - **Evidence lowers it by one.** A byte-identical bake diff, a compile-time exhaustiveness check or an SVG diff the author has read lowers real risk. Name the evidence in the Risk line, along with what it doesn't cover, so the reviewer tests the gaps.
 - **Safety that the diff can't show doesn't lower it.** If the change is only safe because of something outside the repository (a service account's permissions, DNS records, a pipeline in another repository, a claim about production rows), that is not a mitigation the rater can count. It becomes a reviewer-focus item instead.
 - **The riskiest part sets the tier.** A PR that mixes docs with a removed guard is rated on the guard.
+- **Whose code it is.** Know who wrote and maintains the code the PR changes, and whether that is the PR's author. A change to code someone else knows better is more likely to miss something the diff doesn't show, so it tips a borderline tier up, and the Risk line names that person as the one to ask.
 - **Rate against the base branch.** A PR into an unreleased feature branch reaches nobody on merge, and is usually low. The risk is judged again when the feature branch merges.
 
 ### Areas where a mistake is usually expensive (high)
