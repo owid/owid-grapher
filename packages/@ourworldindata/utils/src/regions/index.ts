@@ -20,6 +20,7 @@ export { regions } from "./regions.js"
 
 export {
     checkIsCountry,
+    checkIsCountryName,
     checkIsAggregate,
     checkIsOwidContinent,
     checkIsIncomeGroup,

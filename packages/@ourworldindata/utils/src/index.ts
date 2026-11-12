@@ -257,6 +257,7 @@ export {
     getRegionAlternativeNames,
     mappableCountries,
     checkIsCountry,
+    checkIsCountryName,
     checkIsOwidContinent,
     checkIsIncomeGroup,
     checkIsAggregate,

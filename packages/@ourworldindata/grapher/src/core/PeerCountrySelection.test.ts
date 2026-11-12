@@ -5,7 +5,9 @@ import { ColumnTypeNames, TimeInterval } from "@ourworldindata/types"
 import {
     findClosestByValue,
     findDataRangePeers,
+    findSpreadByValue,
     findLatestValuesInWindow,
+    type LatestValue,
     findLatestValueWindow,
     selectParentRegionsAsPeers,
 } from "./PeerCountrySelection.js"
@@ -570,5 +572,262 @@ describe(findLatestValuesInWindow, () => {
                 window: [2020, 2020],
             }).map(({ entityName }) => entityName)
         ).toEqual(["France", "Spain", "Italy"])
+    })
+})
+
+describe(findSpreadByValue, () => {
+    const latest = (entries: [string, number][]): LatestValue[] =>
+        entries.map(([entityName, value]) => ({
+            entityName,
+            value,
+            time: 2020,
+        }))
+
+    const POPULATION = new Map([
+        ["Iceland", 0.4],
+        ["Chad", 18],
+        ["Germany", 84],
+        ["Nigeria", 220],
+        ["India", 1400],
+        ["China", 1410],
+        ["World", 8000],
+        ["Asia", 4700],
+    ])
+
+    it("puts each value in the bin of its nearest center", () => {
+        // Centers are 0, 50 and 100. India (30) is nearer 50 than 0, so it shares Germany's bin, not Chad's.
+        const candidates = latest([
+            ["Chad", 0],
+            ["India", 30],
+            ["Germany", 45],
+            ["China", 100],
+        ])
+
+        expect(
+            findSpreadByValue({
+                candidates,
+                population: POPULATION,
+                targetCount: 3,
+            })
+        ).toEqual(["Chad", "India", "China"])
+    })
+
+    it("fills bins that no value falls into with the remaining country nearest each bin's center", () => {
+        // Bin centers are 1, 34, 67 and 100, so only the first and last bins have members.
+        // Iceland is nearest 34 and, once it is picked, Germany is nearest 67, though Nigeria is more populous.
+        const candidates = latest([
+            ["Chad", 1],
+            ["Nigeria", 3],
+            ["Germany", 4],
+            ["India", 5],
+            ["Iceland", 15],
+            ["China", 100],
+        ])
+
+        expect(
+            findSpreadByValue({
+                candidates,
+                population: POPULATION,
+                targetCount: 4,
+            })
+        ).toEqual(["Germany", "India", "Iceland", "China"])
+    })
+
+    it("breaks population ties by name, whatever the input order", () => {
+        // Nigeria and Iceland share the upper bin; Nigeria comes first by value, Iceland by name
+        const candidates = latest([
+            ["Chad", 0],
+            ["Nigeria", 8],
+            ["Iceland", 10],
+        ])
+        const permutations = [
+            [0, 1, 2],
+            [0, 2, 1],
+            [1, 0, 2],
+            [1, 2, 0],
+            [2, 0, 1],
+            [2, 1, 0],
+        ]
+
+        for (const permutation of permutations) {
+            expect(
+                findSpreadByValue({
+                    candidates: permutation.map((index) => candidates[index]),
+                    population: new Map(),
+                    targetCount: 2,
+                })
+            ).toEqual(["Chad", "Iceland"])
+        }
+    })
+
+    it("puts a value halfway between two centers in the upper bin", () => {
+        // Iceland is equidistant from both centers (0 and 10), joins Nigeria's bin and beats it by name
+        const candidates = latest([
+            ["Chad", 0],
+            ["Iceland", 5],
+            ["Nigeria", 10],
+        ])
+
+        expect(
+            findSpreadByValue({
+                candidates,
+                population: new Map(),
+                targetCount: 2,
+            })
+        ).toEqual(["Chad", "Iceland"])
+    })
+
+    it("spreads equal values over the most populous candidates", () => {
+        const candidates = latest([
+            ["Chad", 50],
+            ["Germany", 50],
+            ["Iceland", 50],
+            ["India", 50],
+            ["Nigeria", 50],
+        ])
+
+        expect(
+            findSpreadByValue({
+                candidates,
+                population: POPULATION,
+                targetCount: 3,
+            })
+        ).toEqual(["Germany", "India", "Nigeria"])
+    })
+
+    it("keeps a less populous target in the bin it falls into", () => {
+        const candidates = latest([
+            ["Chad", 0],
+            ["Germany", 1],
+            ["India", 9],
+            ["Iceland", 10],
+        ])
+
+        expect(
+            findSpreadByValue({
+                candidates,
+                population: POPULATION,
+                targetCount: 2,
+                targetCountry: "Chad",
+            })
+        ).toEqual(["Chad", "India"])
+        expect(
+            findSpreadByValue({
+                candidates,
+                population: POPULATION,
+                targetCount: 2,
+            })
+        ).toEqual(["Germany", "India"])
+    })
+
+    it("ignores a target that is not among the candidates", () => {
+        const candidates = latest([
+            ["Chad", 0],
+            ["Germany", 1],
+            ["India", 9],
+            ["Iceland", 10],
+        ])
+
+        expect(
+            findSpreadByValue({
+                candidates,
+                population: POPULATION,
+                targetCount: 2,
+                targetCountry: "China",
+            })
+        ).toEqual(["Germany", "India"])
+    })
+
+    it("returns all candidates in value order when there are fewer than requested", () => {
+        const candidates = latest([
+            ["India", 9],
+            ["Chad", 0],
+        ])
+
+        expect(
+            findSpreadByValue({
+                candidates,
+                population: POPULATION,
+                targetCount: 5,
+            })
+        ).toEqual(["Chad", "India"])
+    })
+
+    it("returns nothing for a target count of zero", () => {
+        expect(
+            findSpreadByValue({
+                candidates: latest([["Chad", 0]]),
+                population: POPULATION,
+                targetCount: 0,
+            })
+        ).toEqual([])
+    })
+
+    it("draws each bin's pick weighted by population from the given random source", () => {
+        // Each bin weighs its members 1, 2 and 3, so the draws 0.1, 0.4 and 0.3 land on
+        // the 1st, 2nd and 2nd member. The most populous would be Nigeria, Italy and Japan.
+        const candidates = latest([
+            ["Chad", 0],
+            ["Iceland", 1],
+            ["Nigeria", 2],
+            ["Germany", 50],
+            ["France", 51],
+            ["Italy", 52],
+            ["India", 100],
+            ["China", 101],
+            ["Japan", 102],
+        ])
+        const population = new Map(
+            candidates.map(({ entityName }, index) => [
+                entityName,
+                (index % 3) + 1,
+            ])
+        )
+        const draws = [0.1, 0.4, 0.3]
+        let drawIndex = 0
+
+        expect(
+            findSpreadByValue({
+                candidates,
+                population,
+                targetCount: 3,
+                random: () => draws[drawIndex++],
+            })
+        ).toEqual(["Chad", "France", "China"])
+    })
+
+    it("falls back to all entities when no candidate is a country", () => {
+        const candidates = latest([
+            ["Africa", 1],
+            ["Asia", 1.5],
+            ["Europe", 3],
+            ["World", 4.5],
+            ["High-income countries", 5],
+        ])
+
+        expect(
+            findSpreadByValue({
+                candidates,
+                population: POPULATION,
+                targetCount: 3,
+            })
+        ).toEqual(["Asia", "Europe", "World"])
+    })
+
+    it("never picks an aggregate when enough countries are available", () => {
+        const candidates = latest([
+            ["Chad", 1],
+            ["Germany", 2],
+            ["World", 5],
+            ["India", 10],
+        ])
+
+        expect(
+            findSpreadByValue({
+                candidates,
+                population: POPULATION,
+                targetCount: 3,
+            })
+        ).toEqual(["Chad", "Germany", "India"])
     })
 })
