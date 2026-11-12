@@ -623,3 +623,26 @@ describe(makeCharts, () => {
         ])
     })
 })
+
+describe("makeDatasetPageData, owner", () => {
+    it("carries the owner's photo when there is one", () => {
+        const dataset = makeDatasetPageData(
+            makeFiles(manifestWithoutNewFields),
+            [noCharts, noCharts],
+            "https://example.org/photo.jpg"
+        )
+        expect(dataset.managedBy).toEqual({
+            name: "First Owner",
+            url: "https://ourworldindata.org/team/first-owner",
+            imageUrl: "https://example.org/photo.jpg",
+        })
+    })
+
+    it("has no owner when the manifest lists none", () => {
+        const dataset = makeDatasetWithoutCharts({
+            ...manifestWithoutNewFields,
+            owners: undefined,
+        })
+        expect(dataset.managedBy).toBeUndefined()
+    })
+})

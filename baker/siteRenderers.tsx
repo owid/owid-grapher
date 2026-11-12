@@ -67,7 +67,9 @@ import {
     getHomepageId,
     getPublishedExplorersBySlug,
     generateTopicTagGraph,
+    getImageMetadataByFilenames,
 } from "../db/db.js"
+import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import { formatUrls } from "../site/formatting.js"
 
@@ -603,10 +605,30 @@ export const renderDatasetPage = async (
             await getChartsForDatasetPageTable(knex, catalogPathsByColumn)
         )
     }
-    const dataset = makeDatasetPageData(files, chartLookups)
+    const ownerName = files.manifest.owners?.[0]?.name
+    const ownerImageUrl = ownerName
+        ? await getAuthorImageUrl(knex, ownerName)
+        : undefined
+    const dataset = makeDatasetPageData(files, chartLookups, ownerImageUrl)
     return renderToHtmlPage(
         <DatasetPage dataset={dataset} baseUrl={BAKED_BASE_URL} />
     )
+}
+
+/** The photo of a team member, from their published author page, if they have one */
+async function getAuthorImageUrl(
+    knex: KnexReadonlyTransaction,
+    name: string
+): Promise<string | undefined> {
+    const [author] = await getMinimalAuthorsByNames(knex, [name])
+    if (!author?.featuredImage) return undefined
+    const images = await getImageMetadataByFilenames(knex, [
+        author.featuredImage,
+    ])
+    const cloudflareId = images[author.featuredImage]?.cloudflareId
+    return cloudflareId
+        ? `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=96`
+        : undefined
 }
 
 export const renderSubscribePage = async (): Promise<string> => {

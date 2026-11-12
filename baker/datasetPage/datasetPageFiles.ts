@@ -63,7 +63,7 @@ export interface DatasetPageManifest {
     /** File name of the JSON-LD metadata */
     jsonld?: string
     /** The first owner is the accountable one */
-    owners: DatasetPageManifestOwner[]
+    owners?: DatasetPageManifestOwner[]
     topics: string[]
     explore_url: string
     /** Newest first */

@@ -331,12 +331,22 @@ function DatasetHeader({
                         <span className="dataset-page__byline-label">
                             Managed by:
                         </span>
-                        <span className="dataset-page__avatar" aria-hidden>
-                            {dataset.managedBy.name
-                                .split(" ")
-                                .map((part) => part[0])
-                                .join("")}
-                        </span>
+                        {dataset.managedBy.imageUrl ? (
+                            <img
+                                className="dataset-page__avatar"
+                                src={dataset.managedBy.imageUrl}
+                                alt=""
+                                width={24}
+                                height={24}
+                            />
+                        ) : (
+                            <span className="dataset-page__avatar" aria-hidden>
+                                {dataset.managedBy.name
+                                    .split(" ")
+                                    .map((part) => part[0])
+                                    .join("")}
+                            </span>
+                        )}
                         {dataset.managedBy.url ? (
                             <a href={dataset.managedBy.url}>
                                 {dataset.managedBy.name}

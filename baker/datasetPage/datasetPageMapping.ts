@@ -330,20 +330,23 @@ export function makeDatasetTable(
 /** `chartLookups` are in the order of the manifest's tables */
 export function makeDatasetPageData(
     files: DatasetPageFiles,
-    chartLookups: DatasetPageChartLookup[]
+    chartLookups: DatasetPageChartLookup[],
+    ownerImageUrl?: string
 ): DatasetPageData {
     const { manifest } = files
     if (files.tables.length === 0)
         throw new Error(
             `The manifest of ${manifest.catalog_path} has no tables`
         )
-    const [owner] = manifest.owners
+    const [owner] = manifest.owners ?? []
     const stepPath = manifest.catalog_path.split("/").slice(0, -1).join("/")
     return {
         slug: `${manifest.namespace}/${manifest.short_name}`,
         title: manifest.title,
         description: manifest.description,
-        managedBy: owner ? { name: owner.name, url: owner.url } : undefined,
+        managedBy: owner
+            ? { name: owner.name, url: owner.url, imageUrl: ownerImageUrl }
+            : undefined,
         lastUpdated: formatVersionDate(manifest.version),
         nextUpdate: getNextUpdate(
             manifest.version,

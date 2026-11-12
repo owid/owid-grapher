@@ -114,6 +114,8 @@ export interface DatasetPageData {
     managedBy?: {
         name: string
         url?: string
+        /** Photo from the owner's team page, if they have one */
+        imageUrl?: string
     }
     /** e.g. "September 10, 2026" */
     lastUpdated?: string
