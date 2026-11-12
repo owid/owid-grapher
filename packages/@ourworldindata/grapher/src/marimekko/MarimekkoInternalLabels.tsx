@@ -8,6 +8,8 @@ import { DualAxis } from "../axis/Axis"
 import { Bounds, roundForSvg } from "@ourworldindata/utils"
 import { Halo } from "@ourworldindata/components"
 
+const LABEL_LEFT_PADDING = 2
+
 interface MarimekkoInternalLabelsProps {
     series: PlacedMarimekkoSeries[]
     focusedEntityNames?: ReadonlySet<string>
@@ -42,7 +44,7 @@ export class MarimekkoInternalLabels extends React.Component<MarimekkoInternalLa
             .map((series) => {
                 if (series.yPoint === undefined) return undefined
 
-                const x = series.barX
+                const x = series.barX + LABEL_LEFT_PADDING
                 const y =
                     series.barY - series.barHeight - this.props.labelPadding
 
