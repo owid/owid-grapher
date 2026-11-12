@@ -362,12 +362,20 @@ mockSiteRouter.get("/subscribe", async (req, res) =>
     res.send(await renderSubscribePage())
 )
 
-// Prototype of a page for a whole dataset, rendered from mock data
-mockSiteRouter.get("/datasets/:slug", async (req, res) => {
-    const page = renderDatasetPage(req.params.slug)
-    if (!page) throw new JsonError("No such dataset", 404)
-    res.send(page)
-})
+// Prototype of a page for a whole dataset, e.g. /datasets/energy/owid_energy
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/datasets/:namespace/:shortName",
+    async (req, res, trx) => {
+        const page = await renderDatasetPage(
+            trx,
+            req.params.namespace,
+            req.params.shortName
+        )
+        if (!page) throw new JsonError("No such dataset", 404)
+        res.send(page)
+    }
+)
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,

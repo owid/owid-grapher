@@ -1,7 +1,7 @@
-// Types for the dataset page prototype. These describe a whole published
-// dataset (one wide table), not a single indicator or chart. The shape is
-// intentionally standalone for now: once the page is wired up to real data
-// it should be derived from the ETL catalog / variables metadata instead.
+// Types for the dataset page: a page about a whole published dataset, built
+// from the page files the ETL publishes for it (see
+// baker/datasetPage/datasetPageFiles.ts). A dataset has one or more tables;
+// the page currently shows the first one.
 
 export interface DatasetIndicator {
     /** Column name in the downloaded table, e.g. `biofuel_elec_per_capita` */
@@ -12,9 +12,10 @@ export interface DatasetIndicator {
     unit?: string
     /** e.g. "1900–2025" */
     dateRange?: string
-    /** Longer description (simple markdown) shown when the row is expanded */
+    /** Longer description (markdown) shown when the row is expanded */
     descriptionLong?: string
-    sourceNames?: string[]
+    /** Labels of the sources, as in DatasetSource.title */
+    sourceNames: string[]
 }
 
 export interface DatasetIndicatorGroup {
@@ -31,19 +32,19 @@ export interface DatasetChartView {
 
 export interface DatasetChart {
     title: string
-    /** Path + query relative to /grapher, e.g. "energy-mix?metric=total" */
+    /** Slug and optional query, relative to the grapher base URL, e.g. "energy-mix?metric=total" */
     grapherPath: string
-    isMultiDim?: boolean
+    isMultiDim: boolean
     sourceText: string
     views: DatasetChartView[]
-    /** Short names of the dataset's indicators that this chart uses */
+    /** Columns of the table that the chart (or any view of a multi-dim) uses */
     indicatorShortNames: string[]
 }
 
 export interface DatasetSource {
     title: string
     producer: string
-    year: number
+    year?: number
     url: string
     /** Simple markdown */
     description: string
@@ -68,49 +69,60 @@ export interface DatasetRelatedResearch {
     imageUrl: string
 }
 
+export type DatasetDownloadFormat = "csv" | "xlsx" | "parquet"
+
 export interface DatasetDownloadFile {
-    format: "csv" | "excel" | "parquet"
-    label: string
-    size: string
-    note?: string
+    format: DatasetDownloadFormat
+    sizeBytes: number
     latestUrl: string
-    versionedUrl: string
+    /** The same file of this version, if it is published */
+    versionedUrl?: string
 }
 
 export interface DatasetAuxiliaryFile {
     label: string
     latestUrl: string
-    versionedUrl: string
+    versionedUrl?: string
+}
+
+export interface DatasetTable {
+    name: string
+    title: string
+    /** Markdown */
+    description?: string
+    numRows: number
+    numColumns: number
+    /** Number of columns that aren't part of the primary key */
+    numIndicators: number
+    /** Columns that identify a row, e.g. ["country", "year"], if known */
+    primaryKey?: string[]
+    /** e.g. "1900–2025" */
+    dateRange?: string
+    citation?: string
+    indicatorGroups: DatasetIndicatorGroup[]
+    sources: DatasetSource[]
+    charts: DatasetChart[]
+    downloads: DatasetDownloadFile[]
+    auxiliaryFiles: DatasetAuxiliaryFile[]
 }
 
 export interface DatasetPageData {
+    /** e.g. "energy/owid_energy" */
     slug: string
     title: string
-    shortTitle: string
     description: string
-    /** Paragraphs of simple markdown */
-    about: string[]
-    managedBy: {
+    managedBy?: {
         name: string
-        url: string
-        /** Square photo, shown as a round avatar */
-        imageUrl?: string
+        url?: string
     }
-    dateRange: string
-    lastUpdated: string
-    nextUpdate: string
+    /** e.g. "September 10, 2026" */
+    lastUpdated?: string
+    nextUpdate?: string
     version: string
-    numRows: number
-    indicatorGroups: DatasetIndicatorGroup[]
-    charts: DatasetChart[]
+    tables: DatasetTable[]
     relatedResearch: DatasetRelatedResearch[]
-    sources: DatasetSource[]
-    processingDescription: string
     changelog: DatasetChangelogEntry[]
-    downloads: DatasetDownloadFile[]
-    auxiliaryFiles: DatasetAuxiliaryFile[]
     sourceCodeUrl: string
-    readmeUrl: string
-    jsonLdUrl: string
-    license: { name: string; url: string }
+    readmeUrl?: string
+    jsonLdUrl?: string
 }

@@ -11,7 +11,6 @@ import { stringify } from "safe-stable-stringify"
 import * as db from "../db/db.js"
 import { BASE_DIR } from "../settings/serverSettings.js"
 import { ENV } from "../settings/clientSettings.mjs"
-import { MOCK_DATASETS } from "../site/datasetPage/energyDatasetMock.js"
 
 import {
     renderFrontPage,
@@ -111,6 +110,10 @@ import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/Archive
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../db/model/ArchivedMultiDimVersion.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
 import { PostArchivalManifest } from "../serverUtils/archivalUtils.js"
+
+// PLACEHOLDER: the dataset pages to bake, as "<namespace>/<short_name>". A
+// hard-coded list while dataset pages are a prototype.
+const DATASET_PAGES_TO_BAKE = ["energy/owid_energy"]
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -961,16 +964,27 @@ export class SiteBaker {
             `${this.bakedSiteDir}/subscribe.html`,
             await renderSubscribePage()
         )
-        // Prototype dataset pages are built from mock data, so they're only
-        // baked outside production (e.g. on staging servers)
+        // Dataset pages are a prototype, so they're only baked outside
+        // production (e.g. on staging servers)
         if (ENV !== "production") {
-            for (const slug of Object.keys(MOCK_DATASETS)) {
-                const page = renderDatasetPage(slug)
-                if (page)
-                    await this.stageWrite(
-                        `${this.bakedSiteDir}/datasets/${slug}.html`,
-                        page
+            for (const key of DATASET_PAGES_TO_BAKE) {
+                const [namespace, shortName] = key.split("/")
+                try {
+                    const page = await renderDatasetPage(
+                        knex,
+                        namespace,
+                        shortName
                     )
+                    if (page)
+                        await this.stageWrite(
+                            `${this.bakedSiteDir}/datasets/${key}.html`,
+                            page
+                        )
+                } catch (e) {
+                    await logErrorAndMaybeCaptureInSentry(
+                        new Error(`Error baking the dataset page ${key}: ${e}`)
+                    )
+                }
             }
         }
         await this.stageWrite(

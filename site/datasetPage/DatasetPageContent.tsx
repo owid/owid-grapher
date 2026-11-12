@@ -19,20 +19,24 @@ import {
     SimpleMarkdownText,
 } from "@ourworldindata/components"
 import {
+    BAKED_GRAPHER_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
+} from "../../settings/clientSettings.mjs"
+import {
     DatasetChart,
-    DatasetDownloadFile,
+    DatasetDownloadFormat,
     DatasetIndicator,
     DatasetIndicatorGroup,
     DatasetPageData,
     DatasetSource,
+    DatasetTable,
 } from "./datasetPageTypes.js"
 
 export const DATASET_PAGE_CONTENT_ROOT_ID = "dataset-page-root"
 export const DATASET_PAGE_PROPS_KEY = "_OWID_DATASET_PAGE_PROPS"
 
-// The prototype embeds charts from the live site so that it works without a
-// local database that has the energy charts in it.
-const PROTOTYPE_GRAPHER_BASE_URL = "https://ourworldindata.org/grapher"
+const PROCESSING_DESCRIPTION =
+    "Preparing this data involves several processing steps. Depending on the data, this can include standardizing country names and world region definitions, converting units, calculating derived indicators such as per capita measures, and adding or adapting metadata such as the name or the description given to an indicator. An indicator can therefore draw on more than one source, for example when we stitch together data from different periods by different producers, or when we calculate per capita measures using population data from a second source."
 
 const SECTION_IDS = {
     about: "about",
@@ -70,7 +74,8 @@ function grapherUrl(
     for (const [key, value] of Object.entries(params)) {
         searchParams.set(key, value)
     }
-    return `${PROTOTYPE_GRAPHER_BASE_URL}/${slug}?${searchParams.toString()}`
+    const queryStr = searchParams.toString()
+    return `${BAKED_GRAPHER_URL}/${slug}${queryStr ? `?${queryStr}` : ""}`
 }
 
 function chartThumbnailUrl(grapherPath: string, tab: string): string {
@@ -78,7 +83,7 @@ function chartThumbnailUrl(grapherPath: string, tab: string): string {
     const searchParams = new URLSearchParams(query)
     searchParams.set("tab", tab)
     searchParams.set("imType", "thumbnail")
-    return `${PROTOTYPE_GRAPHER_BASE_URL}/${slug}.png?${searchParams.toString()}`
+    return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png?${searchParams.toString()}`
 }
 
 function matchesQuery(
@@ -100,10 +105,36 @@ function scrollToSection(id: string): void {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
 }
 
-const FORMAT_ICONS: Record<DatasetDownloadFile["format"], IconDefinition> = {
+const FORMAT_ICONS: Record<DatasetDownloadFormat, IconDefinition> = {
     csv: faFileCsv,
-    excel: faFileExcel,
+    xlsx: faFileExcel,
     parquet: faLayerGroup,
+}
+
+const FORMAT_NAMES: Record<DatasetDownloadFormat, string> = {
+    csv: "CSV",
+    xlsx: "Excel",
+    parquet: "Parquet",
+}
+
+/** e.g. 9081888 -> "9.1 MB" */
+function formatFileSize(sizeBytes: number): string {
+    if (sizeBytes < 1e3) return `${sizeBytes} B`
+    if (sizeBytes < 1e6) return `${Math.round(sizeBytes / 1e3)} KB`
+    return `${(sizeBytes / 1e6).toFixed(1)} MB`
+}
+
+/** e.g. ["country", "year"] -> "country and year" */
+function joinWithAnd(items: string[]): string {
+    if (items.length <= 2) return items.join(" and ")
+    return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`
+}
+
+/** What a row of the table is, for the download sections */
+function describeTableRows(table: DatasetTable): string {
+    if (!table.primaryKey)
+        return "The whole table, with every indicator as a column."
+    return `One row per ${joinWithAnd(table.primaryKey)}, with every indicator as a column.`
 }
 
 // ---------------------------------------------------------------------------
@@ -272,18 +303,19 @@ function SectionWithSideHeading({
 
 function DatasetHeader({
     dataset,
-    numIndicators,
+    table,
 }: {
     dataset: DatasetPageData
-    numIndicators: number
+    table: DatasetTable
 }) {
-    const producers = [...new Set(dataset.sources.map((s) => s.producer))]
-    const highlightedProducers = ["Ember", "Smil"].filter((p) =>
-        producers.includes(p)
-    )
-    const numOtherSources = dataset.sources.length - highlightedProducers.length
+    // The first two producers, in the order of the sources list
+    const producers = [...new Set(table.sources.map((s) => s.producer))]
+    const shownProducers = producers.slice(0, 2)
+    const numOtherSources = table.sources.filter(
+        (source) => !shownProducers.includes(source.producer)
+    ).length
     // Parquet is only offered further down, with the other download options
-    const quickDownloads = dataset.downloads.filter(
+    const quickDownloads = table.downloads.filter(
         (file) => file.format !== "parquet"
     )
 
@@ -294,66 +326,87 @@ function DatasetHeader({
                 <p className="dataset-page__description">
                     {dataset.description}
                 </p>
-                <p className="dataset-page__byline">
-                    <span className="dataset-page__byline-label">
-                        Managed by:
-                    </span>
-                    {dataset.managedBy.imageUrl ? (
-                        <img
-                            className="dataset-page__avatar"
-                            src={dataset.managedBy.imageUrl}
-                            alt=""
-                            width={24}
-                            height={24}
-                        />
-                    ) : (
+                {dataset.managedBy && (
+                    <p className="dataset-page__byline">
+                        <span className="dataset-page__byline-label">
+                            Managed by:
+                        </span>
                         <span className="dataset-page__avatar" aria-hidden>
                             {dataset.managedBy.name
                                 .split(" ")
                                 .map((part) => part[0])
                                 .join("")}
                         </span>
-                    )}
-                    <a href={dataset.managedBy.url}>{dataset.managedBy.name}</a>
-                </p>
-                <p className="dataset-page__byline">
-                    <span className="dataset-page__byline-label">Sources:</span>
-                    {highlightedProducers.join(", ")}, and{" "}
-                    <a
-                        href={`#${SECTION_IDS.sources}`}
-                        onClick={(e) => {
-                            e.preventDefault()
-                            scrollToSection(SECTION_IDS.sources)
-                        }}
-                    >
-                        {numOtherSources} more sources
-                    </a>
-                </p>
+                        {dataset.managedBy.url ? (
+                            <a href={dataset.managedBy.url}>
+                                {dataset.managedBy.name}
+                            </a>
+                        ) : (
+                            dataset.managedBy.name
+                        )}
+                    </p>
+                )}
+                {shownProducers.length > 0 && (
+                    <p className="dataset-page__byline">
+                        <span className="dataset-page__byline-label">
+                            Sources:
+                        </span>
+                        {numOtherSources > 0 ? (
+                            <>
+                                {shownProducers.join(", ")}, and{" "}
+                                <a
+                                    href={`#${SECTION_IDS.sources}`}
+                                    onClick={(e) => {
+                                        e.preventDefault()
+                                        scrollToSection(SECTION_IDS.sources)
+                                    }}
+                                >
+                                    {numOtherSources} more{" "}
+                                    {numOtherSources === 1
+                                        ? "source"
+                                        : "sources"}
+                                </a>
+                            </>
+                        ) : (
+                            shownProducers.join(" and ")
+                        )}
+                    </p>
+                )}
                 <dl className="dataset-page__key-info">
-                    <div>
-                        <dt>Date range</dt>
-                        <dd>{dataset.dateRange}</dd>
-                    </div>
+                    {table.dateRange && (
+                        <div>
+                            <dt>Date range</dt>
+                            <dd>{table.dateRange}</dd>
+                        </div>
+                    )}
                     <div>
                         <dt>Number of indicators</dt>
                         <dd>
                             <a href={`#${SECTION_IDS.indicators}`}>
-                                {numIndicators} indicators
+                                {table.numIndicators} indicators
                             </a>
                         </dd>
                     </div>
-                    <div>
-                        <dt>Last updated</dt>
-                        <dd>
-                            <a href={`#${SECTION_IDS.changelog}`}>
-                                {dataset.lastUpdated}
-                            </a>
-                        </dd>
-                    </div>
-                    <div>
-                        <dt>Next expected update</dt>
-                        <dd>{dataset.nextUpdate}</dd>
-                    </div>
+                    {dataset.lastUpdated && (
+                        <div>
+                            <dt>Last updated</dt>
+                            <dd>
+                                {dataset.changelog.length > 0 ? (
+                                    <a href={`#${SECTION_IDS.changelog}`}>
+                                        {dataset.lastUpdated}
+                                    </a>
+                                ) : (
+                                    dataset.lastUpdated
+                                )}
+                            </dd>
+                        </div>
+                    )}
+                    {dataset.nextUpdate && (
+                        <div>
+                            <dt>Next expected update</dt>
+                            <dd>{dataset.nextUpdate}</dd>
+                        </div>
+                    )}
                 </dl>
             </div>
             <aside className="dataset-page__quick-download col-start-10 span-cols-4 col-md-start-2 span-md-cols-12">
@@ -362,8 +415,7 @@ function DatasetHeader({
                     Download the dataset
                 </h2>
                 <p className="dataset-page__quick-download-description">
-                    One row per country (or region) and year, with every
-                    indicator as a column.
+                    {describeTableRows(table)}
                 </p>
                 <div className="dataset-page__quick-download-buttons">
                     {quickDownloads.map((file) => (
@@ -376,11 +428,10 @@ function DatasetHeader({
                         >
                             <span>
                                 <span className="dataset-page__quick-download-label">
-                                    {file.label}
+                                    Download {FORMAT_NAMES[file.format]}
                                 </span>{" "}
                                 <span className="dataset-page__quick-download-meta">
-                                    {file.size}
-                                    {file.note && `, ${file.note}`}
+                                    {formatFileSize(file.sizeBytes)}
                                 </span>
                             </span>
                             <FontAwesomeIcon icon={faDownload} />
@@ -392,7 +443,6 @@ function DatasetHeader({
                         Advanced download
                     </a>
                     <a href={`#${SECTION_IDS.reuse}`}>How to cite</a>
-                    <a href={dataset.license.url}>{dataset.license.name}</a>
                 </div>
             </aside>
         </header>
@@ -530,18 +580,18 @@ function IndicatorGroup({
 }
 
 function IndicatorsSection({
-    dataset,
+    table,
     onSourceClick,
 }: {
-    dataset: DatasetPageData
+    table: DatasetTable
     onSourceClick: (sourceIndex: number) => void
 }) {
     const [query, setQuery] = useState("")
     const sourceIndexByTitle = useMemo(
-        () => new Map(dataset.sources.map((source, i) => [source.title, i])),
-        [dataset.sources]
+        () => new Map(table.sources.map((source, i) => [source.title, i])),
+        [table.sources]
     )
-    const hasResults = dataset.indicatorGroups.some((group) =>
+    const hasResults = table.indicatorGroups.some((group) =>
         group.indicators.some((indicator) =>
             matchesQuery(
                 query,
@@ -559,14 +609,14 @@ function IndicatorsSection({
             id={SECTION_IDS.indicators}
         >
             <h2 className="dataset-page__section-title">
-                Indicators in the {dataset.shortTitle} dataset
+                Indicators in this dataset
             </h2>
             <SearchInput
                 value={query}
                 onChange={setQuery}
                 placeholder="Search for an indicator name, title, unit, source, or producer…"
             />
-            {dataset.indicatorGroups.map((group) => (
+            {table.indicatorGroups.map((group) => (
                 <IndicatorGroup
                     key={group.id}
                     group={group}
@@ -652,7 +702,7 @@ function ChartListItem({
     )
 }
 
-function ChartsSection({ dataset }: { dataset: DatasetPageData }) {
+function ChartsSection({ table }: { table: DatasetTable }) {
     const [query, setQuery] = useState("")
     const [selection, setSelection] = useState<ChartSelection>({
         chartIndex: 0,
@@ -661,19 +711,22 @@ function ChartsSection({ dataset }: { dataset: DatasetPageData }) {
 
     const filteredCharts = useMemo(
         () =>
-            dataset.charts
+            table.charts
                 .map((chart, index) => ({ chart, index }))
                 .filter(({ chart }) =>
                     matchesQuery(query, chart.title, chart.sourceText)
                 ),
-        [dataset.charts, query]
+        [table.charts, query]
     )
 
-    const selectedChart = dataset.charts[selection.chartIndex]
+    if (table.charts.length === 0) return null
+
+    const selectedChart = table.charts[selection.chartIndex]
     const selectedView = selectedChart.views[selection.viewIndex]
-    const iframeSrc = grapherUrl(selectedChart.grapherPath, {
-        tab: selectedView.tab,
-    })
+    const iframeSrc = grapherUrl(
+        selectedChart.grapherPath,
+        selectedView ? { tab: selectedView.tab } : {}
+    )
 
     return (
         <section
@@ -681,7 +734,7 @@ function ChartsSection({ dataset }: { dataset: DatasetPageData }) {
             id={SECTION_IDS.charts}
         >
             <h2 className="dataset-page__section-title">
-                Charts based on the {dataset.shortTitle} dataset
+                Charts based on this dataset
             </h2>
             <SearchInput
                 className="dataset-page__search--wide"
@@ -773,9 +826,11 @@ function formatSourceDate(isoDate: string): string {
 function SourceDetails({ source }: { source: DatasetSource }) {
     return (
         <div className="dataset-page__details">
-            <div className="dataset-page__details-text">
-                <SimpleMarkdownText text={source.description} />
-            </div>
+            {source.description && (
+                <div className="dataset-page__details-text">
+                    <SimpleMarkdownText text={source.description} />
+                </div>
+            )}
             <dl className="dataset-page__source-grid">
                 <div>
                     <dt>Producer</dt>
@@ -793,16 +848,20 @@ function SourceDetails({ source }: { source: DatasetSource }) {
                         <dd>{formatSourceDate(source.dateAccessed)}</dd>
                     </div>
                 )}
-                <div>
-                    <dt>Retrieved from</dt>
-                    <dd>
-                        <a href={source.url}>{source.url}</a>
-                    </dd>
-                </div>
-                <div className="dataset-page__source-grid-full">
-                    <dt>Citation</dt>
-                    <dd>{source.citation}</dd>
-                </div>
+                {source.url && (
+                    <div>
+                        <dt>Retrieved from</dt>
+                        <dd>
+                            <a href={source.url}>{source.url}</a>
+                        </dd>
+                    </div>
+                )}
+                {source.citation && (
+                    <div className="dataset-page__source-grid-full">
+                        <dt>Citation</dt>
+                        <dd>{source.citation}</dd>
+                    </div>
+                )}
             </dl>
             {source.downloadUrl && (
                 <a
@@ -819,11 +878,11 @@ function SourceDetails({ source }: { source: DatasetSource }) {
 }
 
 function SourcesAndProcessingSection({
-    dataset,
+    table,
     openSource,
     onToggleSource,
 }: {
-    dataset: DatasetPageData
+    table: DatasetTable
     openSource: number | undefined
     onToggleSource: (sourceIndex: number, isOpen: boolean) => void
 }) {
@@ -841,7 +900,7 @@ function SourcesAndProcessingSection({
             >
                 <CardList
                     className="dataset-page__sources"
-                    items={dataset.sources.map((source, index) => (
+                    items={table.sources.map((source, index) => (
                         <ExpandableRow
                             key={source.title}
                             id={sourceAnchorId(index)}
@@ -849,7 +908,11 @@ function SourcesAndProcessingSection({
                             isOpen={openSource === index}
                             onToggle={(isOpen) => onToggleSource(index, isOpen)}
                             title={source.title}
-                            subtitle={`${source.producer}, ${source.year}`}
+                            subtitle={
+                                source.year
+                                    ? `${source.producer}, ${source.year}`
+                                    : source.producer
+                            }
                         >
                             <SourceDetails source={source} />
                         </ExpandableRow>
@@ -858,7 +921,7 @@ function SourcesAndProcessingSection({
             </SectionWithSideHeading>
             <SectionWithSideHeading heading="How we process data">
                 <p className="dataset-page__body-text">
-                    {dataset.processingDescription}
+                    {PROCESSING_DESCRIPTION}
                 </p>
                 <a
                     className="dataset-page__arrow-link"
@@ -873,6 +936,7 @@ function SourcesAndProcessingSection({
 }
 
 function ChangelogSection({ dataset }: { dataset: DatasetPageData }) {
+    if (dataset.changelog.length === 0) return null
     return (
         <section
             className="dataset-page__section dataset-page__section--changelog dataset-page__section--bordered col-start-2 span-cols-12"
@@ -911,29 +975,35 @@ function ChangelogSection({ dataset }: { dataset: DatasetPageData }) {
 
 type LinkVersion = "latest" | "version"
 
-function DownloadSection({ dataset }: { dataset: DatasetPageData }) {
+function DownloadSection({
+    dataset,
+    table,
+}: {
+    dataset: DatasetPageData
+    table: DatasetTable
+}) {
     const [linkVersion, setLinkVersion] = useState<LinkVersion>("latest")
-    const urlFor = (file: { latestUrl: string; versionedUrl: string }) =>
-        linkVersion === "latest" ? file.latestUrl : file.versionedUrl
-    const numColumns = dataset.indicatorGroups.reduce(
-        (sum, group) => sum + group.indicators.length,
-        0
+
+    const files = [
+        ...table.downloads.map((file) => ({
+            label: `${FORMAT_NAMES[file.format]} file`,
+            latestUrl: file.latestUrl,
+            versionedUrl: file.versionedUrl,
+        })),
+        ...table.auxiliaryFiles,
+    ]
+    const latestLinks = files.map((file) => ({
+        label: file.label,
+        url: file.latestUrl,
+    }))
+    // Files of this version are only listed if they are published
+    const versionedLinks = files.flatMap((file) =>
+        file.versionedUrl ? [{ label: file.label, url: file.versionedUrl }] : []
     )
 
-    const fileLinks = [
-        ...dataset.downloads.map((file) => ({
-            label: `${file.format === "csv" ? "CSV" : file.format === "excel" ? "Excel" : "Parquet"} file`,
-            url: urlFor(file),
-        })),
-        ...dataset.auxiliaryFiles.map((file) => ({
-            label: file.label,
-            url: urlFor(file),
-        })),
-    ]
-
-    const renderLinks = () => (
+    const renderLinks = (links: { label: string; url: string }[]) => (
         <ul className="dataset-page__file-links">
-            {fileLinks.map((link) => (
+            {links.map((link) => (
                 <li key={link.label}>
                     <a href={link.url} download>
                         <FontAwesomeIcon icon={faDownload} />
@@ -949,14 +1019,13 @@ function DownloadSection({ dataset }: { dataset: DatasetPageData }) {
             <div className="dataset-page__download-block">
                 <h4 className="dataset-page__overline">Quick download</h4>
                 <p className="dataset-page__body-text dataset-page__body-text--tight">
-                    One row per country (or region) and year, with every
-                    indicator as a column.
+                    {describeTableRows(table)}
                     <br />
-                    {dataset.numRows.toLocaleString("en-US")} rows ×{" "}
-                    {numColumns} columns
+                    {table.numRows.toLocaleString("en-US")} rows ×{" "}
+                    {table.numColumns} columns
                 </p>
                 <div className="dataset-page__download-buttons">
-                    {dataset.downloads.map((file) => (
+                    {table.downloads.map((file) => (
                         <a
                             key={file.format}
                             className="dataset-page__download-button"
@@ -971,11 +1040,10 @@ function DownloadSection({ dataset }: { dataset: DatasetPageData }) {
                             </span>
                             <span className="dataset-page__download-button-text">
                                 <span className="dataset-page__download-button-title">
-                                    {file.label}
+                                    Download {FORMAT_NAMES[file.format]}
                                 </span>
                                 <span className="dataset-page__download-button-meta">
-                                    {file.note ? `${file.note} ` : ""}
-                                    {file.size}
+                                    {formatFileSize(file.sizeBytes)}
                                 </span>
                             </span>
                             <FontAwesomeIcon icon={faDownload} />
@@ -1003,21 +1071,23 @@ function DownloadSection({ dataset }: { dataset: DatasetPageData }) {
                         </>
                     }
                 />
-                {linkVersion === "latest" && renderLinks()}
-                <RadioButton
-                    className="dataset-page__radio"
-                    group="dataset-link-version"
-                    checked={linkVersion === "version"}
-                    onChange={() => setLinkVersion("version")}
-                    label={
-                        <>
-                            Get links to <strong>this version</strong> (
-                            {dataset.version}). They always give you the same
-                            data, even if there are newer releases.
-                        </>
-                    }
-                />
-                {linkVersion === "version" && renderLinks()}
+                {linkVersion === "latest" && renderLinks(latestLinks)}
+                {versionedLinks.length > 0 && (
+                    <RadioButton
+                        className="dataset-page__radio"
+                        group="dataset-link-version"
+                        checked={linkVersion === "version"}
+                        onChange={() => setLinkVersion("version")}
+                        label={
+                            <>
+                                Get links to <strong>this version</strong> (
+                                {dataset.version}). They always give you the
+                                same data, even if there are newer releases.
+                            </>
+                        }
+                    />
+                )}
+                {linkVersion === "version" && renderLinks(versionedLinks)}
             </div>
 
             <div className="dataset-page__download-block">
@@ -1038,25 +1108,41 @@ function DownloadSection({ dataset }: { dataset: DatasetPageData }) {
                             theme="light"
                         />
                     </div>
-                    <div>
-                        <p className="dataset-page__code-label">
-                            This page as a text file (README, Markdown)
-                        </p>
-                        <CodeSnippet code={dataset.readmeUrl} theme="light" />
-                    </div>
-                    <div>
-                        <p className="dataset-page__code-label">
-                            Machine-readable metadata (JSON-LD)
-                        </p>
-                        <CodeSnippet code={dataset.jsonLdUrl} theme="light" />
-                    </div>
+                    {dataset.readmeUrl && (
+                        <div>
+                            <p className="dataset-page__code-label">
+                                This page as a text file (README, Markdown)
+                            </p>
+                            <CodeSnippet
+                                code={dataset.readmeUrl}
+                                theme="light"
+                            />
+                        </div>
+                    )}
+                    {dataset.jsonLdUrl && (
+                        <div>
+                            <p className="dataset-page__code-label">
+                                Machine-readable metadata (JSON-LD)
+                            </p>
+                            <CodeSnippet
+                                code={dataset.jsonLdUrl}
+                                theme="light"
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
         </>
     )
 }
 
-function ReuseSection({ dataset }: { dataset: DatasetPageData }) {
+function ReuseSection({
+    dataset,
+    table,
+}: {
+    dataset: DatasetPageData
+    table: DatasetTable
+}) {
     return (
         <section
             className="dataset-page__section dataset-page__section--bordered col-start-2 span-cols-12"
@@ -1076,7 +1162,7 @@ function ReuseSection({ dataset }: { dataset: DatasetPageData }) {
                 heading="Download"
                 id={SECTION_IDS.download}
             >
-                <DownloadSection dataset={dataset} />
+                <DownloadSection dataset={dataset} table={table} />
             </SectionWithSideHeading>
         </section>
     )
@@ -1106,50 +1192,48 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
         setScrollTarget(undefined)
     }, [scrollTarget])
 
-    // Support linking directly to a source, e.g. /datasets/energy#source-3
+    // The page shows the first table for now
+    const table = dataset.tables[0]
+
+    // Support linking directly to a source, e.g. /datasets/energy/owid_energy#source-3
     useEffect(() => {
         const match = window.location.hash.match(/^#source-(\d+)$/)
         if (!match) return
         const sourceIndex = Number(match[1])
-        if (sourceIndex < dataset.sources.length) revealSource(sourceIndex)
+        if (sourceIndex < table.sources.length) revealSource(sourceIndex)
         // oxlint-disable-next-line react-hooks/exhaustive-deps -- only on mount
     }, [])
 
-    const numIndicators = dataset.indicatorGroups.reduce(
-        (sum, group) => sum + group.indicators.length,
-        0
-    )
-
     return (
         <div className="dataset-page">
-            <DatasetHeader dataset={dataset} numIndicators={numIndicators} />
+            <DatasetHeader dataset={dataset} table={table} />
             <div className="grid grid-cols-12-full-width">
-                <section
-                    className="dataset-page__about col-start-2 span-cols-8 span-md-cols-12"
-                    id={SECTION_IDS.about}
-                >
-                    {dataset.about.map((paragraph) => (
-                        <SimpleMarkdownText key={paragraph} text={paragraph} />
-                    ))}
-                </section>
+                {table.description && (
+                    <section
+                        className="dataset-page__about col-start-2 span-cols-8 span-md-cols-12"
+                        id={SECTION_IDS.about}
+                    >
+                        <SimpleMarkdownText text={table.description} />
+                    </section>
+                )}
                 {/* Full-width gray band behind the indicator cards */}
                 <div className="dataset-page__indicators-band span-cols-14 grid grid-cols-12-full-width">
                     <IndicatorsSection
-                        dataset={dataset}
+                        table={table}
                         onSourceClick={revealSource}
                     />
                 </div>
-                <ChartsSection dataset={dataset} />
+                <ChartsSection table={table} />
                 <RelatedResearchSection dataset={dataset} />
             </div>
             <div className="dataset-page__band grid grid-cols-12-full-width">
                 <SourcesAndProcessingSection
-                    dataset={dataset}
+                    table={table}
                     openSource={openSource}
                     onToggleSource={toggleSource}
                 />
                 <ChangelogSection dataset={dataset} />
-                <ReuseSection dataset={dataset} />
+                <ReuseSection dataset={dataset} table={table} />
             </div>
         </div>
     )

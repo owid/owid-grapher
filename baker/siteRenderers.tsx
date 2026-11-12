@@ -12,7 +12,15 @@ import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.j
 import { SubscribePage } from "../site/SubscribePage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
 import { DatasetPage } from "../site/datasetPage/DatasetPage.js"
-import { MOCK_DATASETS } from "../site/datasetPage/energyDatasetMock.js"
+import { fetchDatasetPageFiles } from "./datasetPage/datasetPageFiles.js"
+import {
+    getColumnCatalogPaths,
+    makeDatasetPageData,
+} from "./datasetPage/datasetPageMapping.js"
+import {
+    DatasetPageChartLookup,
+    getChartsForDatasetPageTable,
+} from "../db/model/DatasetPageCharts.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import ReactDOMServer from "react-dom/server"
@@ -569,12 +577,33 @@ export const renderExplorerIndexPage = async (
 }
 
 /**
- * Prototype: renders a dataset page from mock data. Returns undefined if
- * there's no mock dataset with that slug.
+ * Prototype: renders the page of a dataset from the page files the ETL
+ * publishes for it, with the charts that use its indicators. Returns undefined
+ * if the dataset has no page files.
  */
-export const renderDatasetPage = (slug: string): string | undefined => {
-    const dataset = MOCK_DATASETS[slug]
-    if (!dataset) return undefined
+export const renderDatasetPage = async (
+    knex: KnexReadonlyTransaction,
+    namespace: string,
+    shortName: string
+): Promise<string | undefined> => {
+    // Both end up in the URL the files are fetched from
+    const isValidPart = (part: string): boolean => /^[\w-]+$/.test(part)
+    if (!isValidPart(namespace) || !isValidPart(shortName)) return undefined
+
+    const files = await fetchDatasetPageFiles(namespace, shortName)
+    if (!files) return undefined
+    const chartLookups: DatasetPageChartLookup[] = []
+    for (const filesTable of files.tables) {
+        const catalogPathsByColumn = getColumnCatalogPaths(
+            files.manifest.catalog_path,
+            filesTable.manifestTable,
+            filesTable.codebook.map((row) => row.column)
+        )
+        chartLookups.push(
+            await getChartsForDatasetPageTable(knex, catalogPathsByColumn)
+        )
+    }
+    const dataset = makeDatasetPageData(files, chartLookups)
     return renderToHtmlPage(
         <DatasetPage dataset={dataset} baseUrl={BAKED_BASE_URL} />
     )
