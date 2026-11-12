@@ -33,7 +33,7 @@ import {
     RichDataVariant,
 } from "./search/constructSearchResultJson.js"
 import { checkCache } from "./reusableHandlers.js"
-import { runInAction } from "mobx"
+import { reaction, runInAction } from "mobx"
 import { slugify } from "@ourworldindata/utils"
 
 export async function fetchMetadataForGrapher(
@@ -384,26 +384,33 @@ export async function assembleSearchResultData(
         catalogUrl: string
     }
 ): Promise<GrapherSearchResultJson | undefined> {
-    const sortedTabs = runInAction(() => {
-        // Find Grapher tabs to display and bring them in the right order
-        const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
+    // Observing the base table keeps it cached between the batches below
+    const stopObservingTable = reaction(() => grapherState.table, _.noop)
 
-        // Ensure the primary tab is currently active
-        configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
+    try {
+        const sortedTabs = runInAction(() => {
+            // Find Grapher tabs to display and bring them in the right order
+            const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
 
-        return sortedTabs
-    })
+            // Ensure the primary tab is currently active
+            configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
 
-    // Choose the entities to display
-    const displayEntities = await runInAction(() =>
-        pickDisplayEntities(grapherState, args)
-    )
+            return sortedTabs
+        })
 
-    return constructSearchResultJson(grapherState, {
-        ...args,
-        sortedTabs,
-        displayEntities,
-    })
+        // Choose the entities to display
+        const displayEntities = await runInAction(() =>
+            pickDisplayEntities(grapherState, args)
+        )
+
+        return await constructSearchResultJson(grapherState, {
+            ...args,
+            sortedTabs,
+            displayEntities,
+        })
+    } finally {
+        stopObservingTable()
+    }
 }
 
 export function assembleSearchResultDataTable(grapherState: GrapherState) {
