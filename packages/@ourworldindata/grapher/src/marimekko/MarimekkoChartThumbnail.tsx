@@ -54,14 +54,8 @@ export class MarimekkoChartThumbnail
     }
 
     @computed get innerBounds(): Bounds {
-        return (
-            this.bounds
-                // Allow internal labels to eat into the thumbnail padding
-                .padTop(this.labelHeight ? this.labelHeight - 6 : 0)
-                // Add some bottom padding since the y-axis tick labels are
-                // center-aligned and eat into the thumbnail padding
-                .padBottom(this.shouldShowVerticalAxis ? 6 : 0)
-        )
+        // Allow internal labels to eat into the thumbnail padding
+        return this.bounds.padTop(this.labelHeight ? this.labelHeight - 6 : 0)
     }
 
     @computed get fontSize(): number {
@@ -76,16 +70,9 @@ export class MarimekkoChartThumbnail
         return this.shouldShowLabels ? this.labelFontSize + LABEL_PADDING : 0
     }
 
-    @computed private get shouldShowVerticalAxis(): boolean {
-        return getVisibleLabels(this.manager.labelMode).axisText
-    }
-
     @computed private get yAxisConfig(): AxisConfig {
         const { yAxisConfig } = this.manager
-        const custom = {
-            hideGridlines: true,
-            hideAxis: !this.shouldShowVerticalAxis,
-        }
+        const custom = { hideAxis: true, hideGridlines: true }
         return new AxisConfig({ ...yAxisConfig, ...custom }, this)
     }
 
