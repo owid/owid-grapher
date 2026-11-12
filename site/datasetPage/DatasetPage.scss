@@ -565,6 +565,12 @@ $dataset-page-row-border: $blue-20;
     }
 }
 
+// The heading of a second list (the charts, below the sources) gets the same
+// space above it as the first one
+.dataset-page__details-sources + .dataset-page__details-heading {
+    margin-top: 16px;
+}
+
 .dataset-page__details-sources {
     list-style: none;
     margin: 0;
