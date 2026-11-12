@@ -181,7 +181,6 @@ export type { SwimlaneChartState } from "./swimlaneCharts/SwimlaneChartState"
 export {
     selectPeerCountriesForGrapher,
     selectPeerCountries,
-    isValidPeerCountryStrategyQueryParam,
     prepareEntitiesForPeerSelection,
 } from "./core/PeerCountrySelection.js"
 
