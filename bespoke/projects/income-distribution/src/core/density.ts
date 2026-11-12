@@ -223,3 +223,31 @@ export function shareBelowLineForEntities(
     }
     return result
 }
+
+/**
+ * Number of people living below `line` (int-$/day) for each requested
+ * entity — a country name, a region name or WORLD_ENTITY_NAME: the sum of
+ * each member country's population times its share below the line. Unknown
+ * entities and empty regions are left out of the result.
+ */
+export function peopleBelowLineForEntities(
+    year: IncomeDistributionYear,
+    line: number,
+    entities: string[]
+): Map<string, number> {
+    const result = new Map<string, number>()
+    for (const entity of entities) {
+        const country = year.byName.get(entity)
+        const members = country
+            ? [country]
+            : entity === WORLD_ENTITY_NAME
+              ? year.countries
+              : year.countries.filter((c) => c.region === entity)
+        if (members.length === 0) continue
+        result.set(
+            entity,
+            R.sumBy(members, (c) => c.population * shareBelowLine(c, line))
+        )
+    }
+    return result
+}

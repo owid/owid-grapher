@@ -49,7 +49,10 @@ import {
 } from "../core/data.js"
 import { buildChartModel } from "../core/chartModel.js"
 import type { LabelBox } from "../core/curveLabels.js"
-import { shareBelowLineForEntities } from "../core/density.js"
+import {
+    peopleBelowLineForEntities,
+    shareBelowLineForEntities,
+} from "../core/density.js"
 import { placeholderWelfareType } from "../core/welfareType.js"
 import {
     povertyLineMode as readPovertyLineMode,
@@ -59,6 +62,7 @@ import {
 import {
     Currency,
     IncomeDistributionYear,
+    LegendMeasure,
     PovertyLineMode,
     TIME_INTERVALS,
     TimeInterval,
@@ -315,21 +319,37 @@ function CaptionedDistributionVariant({
             : entries
     }, [model.legend, view, povertyLine])
 
+    // Shares and counts are taken against the amount the reader sees, not
+    // the exact drag position
+    const displayedPovertyLine =
+        povertyLine !== null
+            ? roundIncomeAsDisplayed(povertyLine, currency, timeInterval)
+            : null
     const sharesBelowLine = useMemo(
         () =>
-            povertyLine !== null
+            displayedPovertyLine !== null
                 ? shareBelowLineForEntities(
                       yearData,
-                      // Against the amount the reader sees, not the exact drag position
-                      roundIncomeAsDisplayed(
-                          povertyLine,
-                          currency,
-                          timeInterval
-                      ),
+                      displayedPovertyLine,
                       legendEntries.map((entry) => entry.key)
                   )
                 : undefined,
-        [yearData, povertyLine, currency, timeInterval, legendEntries]
+        [yearData, displayedPovertyLine, legendEntries]
+    )
+    // With a line set, the legend's heading switches its bars between the
+    // share of population below the line and the number of people. Only the
+    // bars change, not the plot, so it isn't kept in the URL
+    const [legendMeasure, setLegendMeasure] = useState<LegendMeasure>("share")
+    const peopleBelowLine = useMemo(
+        () =>
+            displayedPovertyLine !== null && legendMeasure === "people"
+                ? peopleBelowLineForEntities(
+                      yearData,
+                      displayedPovertyLine,
+                      legendEntries.map((entry) => entry.key)
+                  )
+                : undefined,
+        [yearData, displayedPovertyLine, legendMeasure, legendEntries]
     )
 
     // The poverty line control isn't stored: it's read off the line, so a
@@ -441,6 +461,9 @@ function CaptionedDistributionVariant({
                                     hoveredWelfareType={hoveredWelfareType}
                                     onHoverWelfareType={setHoveredWelfareType}
                                     sharesBelowLine={sharesBelowLine}
+                                    measure={legendMeasure}
+                                    onMeasureChange={setLegendMeasure}
+                                    peopleBelowLine={peopleBelowLine}
                                     povertyLine={povertyLine}
                                     currency={currency}
                                     timeInterval={timeInterval}
@@ -489,6 +512,9 @@ function CaptionedDistributionVariant({
                                                 setHoveredWelfareType
                                             }
                                             sharesBelowLine={sharesBelowLine}
+                                            measure={legendMeasure}
+                                            onMeasureChange={setLegendMeasure}
+                                            peopleBelowLine={peopleBelowLine}
                                             povertyLine={povertyLine}
                                             currency={currency}
                                             timeInterval={timeInterval}

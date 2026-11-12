@@ -6,6 +6,10 @@ export type VariantName = "distribution"
 export const VIEWS = ["global", "countries"] as const
 export type View = (typeof VIEWS)[number]
 
+/** What the legend's bars show when a poverty line is set */
+export const LEGEND_MEASURES = ["share", "people"] as const
+export type LegendMeasure = (typeof LEGEND_MEASURES)[number]
+
 /** No poverty line, the World Bank's international one, or one the reader set */
 export const POVERTY_LINE_MODES = ["off", "international", "custom"] as const
 export type PovertyLineMode = (typeof POVERTY_LINE_MODES)[number]

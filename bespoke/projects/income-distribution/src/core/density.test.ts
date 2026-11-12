@@ -13,6 +13,7 @@ import {
     DENSITY_GRID,
     estimateLogDensity,
     shareBelowLine,
+    peopleBelowLineForEntities,
     shareBelowLineForEntities,
     stackSeries,
 } from "./density.js"
@@ -149,5 +150,46 @@ describe(shareBelowLineForEntities, () => {
             "North America",
         ])
         expect(shares.size).toBe(0)
+    })
+})
+
+describe(peopleBelowLineForEntities, () => {
+    const line = 5
+    const middleland = YEAR.byName.get("Middleland")!
+    const poorland = YEAR.byName.get("Poorland")!
+    const richland = YEAR.byName.get("Richland")!
+
+    it("multiplies each country's population by its share below the line, summed over regions and the world", () => {
+        const people = peopleBelowLineForEntities(YEAR, line, [
+            "Middleland",
+            "Sub-Saharan Africa",
+            WORLD_ENTITY_NAME,
+        ])
+        const poor = 100 * shareBelowLine(poorland, line)
+        const rich = 50 * shareBelowLine(richland, line)
+        const middle = 300 * shareBelowLine(middleland, line)
+        expect(people.get("Middleland")).toBeCloseTo(middle)
+        expect(people.get("Sub-Saharan Africa")).toBeCloseTo(poor + rich)
+        expect(people.get(WORLD_ENTITY_NAME)).toBeCloseTo(poor + rich + middle)
+    })
+
+    it("agrees with the population-weighted share", () => {
+        const shares = shareBelowLineForEntities(YEAR, line, [
+            WORLD_ENTITY_NAME,
+        ])
+        const people = peopleBelowLineForEntities(YEAR, line, [
+            WORLD_ENTITY_NAME,
+        ])
+        expect(people.get(WORLD_ENTITY_NAME)).toBeCloseTo(
+            shares.get(WORLD_ENTITY_NAME)! * 450
+        )
+    })
+
+    it("leaves out entities it doesn't know, including empty regions", () => {
+        const people = peopleBelowLineForEntities(YEAR, line, [
+            "Atlantis",
+            "North America",
+        ])
+        expect(people.size).toBe(0)
     })
 })

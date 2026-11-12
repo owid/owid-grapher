@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { Fragment, useMemo } from "react"
 import cx from "clsx"
 import * as R from "remeda"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -6,13 +6,16 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons"
 
 import {
     formatIncome,
+    formatPeople,
     formatShare,
     timeIntervalNoun,
 } from "../core/currency.js"
-import { WORLD_ENTITY_NAME } from "../core/constants.js"
+import { SHORT_REGION_NAMES, WORLD_ENTITY_NAME } from "../core/constants.js"
 import {
+    LEGEND_MEASURES,
     WELFARE_TYPES,
     type Currency,
+    type LegendMeasure,
     type TimeInterval,
     type WelfareType,
 } from "../core/types.js"
@@ -22,8 +25,19 @@ import { WelfareBadge } from "./WelfareBadge.js"
 
 /** Length in px of a 100% bar in the overlay legend */
 const OVERLAY_BAR_MAX_WIDTH = 100
+/**
+ * Length in px of the longest bar in the overlay legend's number-of-people
+ * mode: shorter than a 100% share's, so with a wider value like "820 million"
+ * the box keeps about the same width when the measure switches
+ */
+const OVERLAY_PEOPLE_BAR_MAX_WIDTH = 72
 /** The shortest bar, so a share near zero still shows its colour */
 const OVERLAY_BAR_MIN_WIDTH = 2
+
+const MEASURE_LABELS: Record<LegendMeasure, string> = {
+    share: "Share of population",
+    people: "Number of people",
+}
 
 export interface LegendEntry {
     key: string
@@ -49,6 +63,15 @@ export interface IncomeDistributionLegendProps {
      * entries sort by it descending; World is appended by the caller
      */
     sharesBelowLine?: Map<string, number>
+    /**
+     * What the bars show when a poverty line is set: the share of each
+     * entry's population below it, or the number of people (from
+     * `peopleBelowLine`, falling back to the shares while that's missing)
+     */
+    measure?: LegendMeasure
+    /** When set, the heading starts with a switch between the two measures */
+    onMeasureChange?: (measure: LegendMeasure) => void
+    peopleBelowLine?: Map<string, number>
     povertyLine: number | null
     currency: Currency
     timeInterval: TimeInterval
@@ -70,6 +93,9 @@ export function IncomeDistributionLegend({
     hoveredWelfareType = null,
     onHoverWelfareType,
     sharesBelowLine,
+    measure = "share",
+    onMeasureChange,
+    peopleBelowLine,
     povertyLine,
     currency,
     timeInterval,
@@ -78,18 +104,51 @@ export function IncomeDistributionLegend({
     layout = "inline",
 }: IncomeDistributionLegendProps): React.ReactElement {
     const shares = povertyLine !== null ? sharesBelowLine : undefined
+    const showPeople =
+        shares !== undefined &&
+        measure === "people" &&
+        peopleBelowLine !== undefined
+    // What the bars show, and what the rows are ranked by
+    const values = showPeople ? peopleBelowLine : shares
 
     // Rows render in the stable `entries` order and are ranked with CSS
     // `order`: re-sorting the DOM would move nodes, which cancels a bar's
     // running width transition and makes it snap
     const rankOf = useMemo(() => {
-        if (!shares) return undefined
+        if (!values) return undefined
         const ranked = R.sortBy(entries, [
-            (entry) => shares.get(entry.key) ?? -1,
+            (entry) => values.get(entry.key) ?? -1,
             "desc",
         ])
         return new Map(ranked.map((entry, rank) => [entry.key, rank]))
-    }, [entries, shares])
+    }, [entries, values])
+
+    // Counts are scaled to the largest one shown, usually the World's
+    const maxPeople = useMemo(
+        () =>
+            showPeople
+                ? Math.max(
+                      ...entries.map(
+                          (entry) => peopleBelowLine.get(entry.key) ?? 0
+                      ),
+                      1
+                  )
+                : 1,
+        [showPeople, entries, peopleBelowLine]
+    )
+    /** An entry's bar length as a fraction (0–1) of the longest possible one */
+    const barFraction = (key: string): number =>
+        R.clamp(
+            showPeople
+                ? (peopleBelowLine.get(key) ?? 0) / maxPeople
+                : (shares?.get(key) ?? 0),
+            { min: 0, max: 1 }
+        )
+    const formatValue = (key: string): string => {
+        const value = values?.get(key)
+        if (value === undefined) return "–"
+        return showPeople ? formatPeople(value) : formatShare(value)
+    }
 
     // Only dim when the hovered entity is one of ours; a hovered country in
     // the region legend leaves the legend as it is
@@ -167,16 +226,51 @@ export function IncomeDistributionLegend({
             </li>
         ) : null
 
-    const shareHeading =
+    const lineText =
         povertyLine !== null ? (
             <>
-                Share of population living on less than{" "}
+                living on less than{" "}
                 {formatIncome(povertyLine, currency, timeInterval, {
                     short: true,
                 })}{" "}
-                a {timeIntervalNoun(timeInterval)}:
+                a {timeIntervalNoun(timeInterval)}
             </>
         ) : null
+    // With a switch, the heading's start is the control: "Share of population
+    // | Number of people", then "living on less than…" on the next line
+    const shareHeading = onMeasureChange ? (
+        <>
+            <span
+                className="income-distribution-legend__measure"
+                role="group"
+                aria-label="Show in the bars"
+            >
+                {LEGEND_MEASURES.map((key, i) => (
+                    <Fragment key={key}>
+                        {i > 0 && (
+                            <span
+                                className="income-distribution-legend__measure-divider"
+                                aria-hidden
+                            />
+                        )}
+                        <button
+                            type="button"
+                            className="income-distribution-legend__measure-option"
+                            aria-pressed={measure === key}
+                            onClick={() => onMeasureChange(key)}
+                        >
+                            {MEASURE_LABELS[key]}
+                        </button>
+                    </Fragment>
+                ))}
+            </span>
+            {lineText}
+        </>
+    ) : (
+        <>
+            {MEASURE_LABELS.share} {lineText}:
+        </>
+    )
 
     if (layout === "overlay") {
         const showShares = shares !== undefined && povertyLine !== null
@@ -185,7 +279,11 @@ export function IncomeDistributionLegend({
                 className={cx(
                     "income-distribution-legend",
                     "income-distribution-legend--overlay",
-                    { "income-distribution-legend--overlay-shares": showShares }
+                    {
+                        "income-distribution-legend--overlay-shares":
+                            showShares,
+                        "income-distribution-legend--people": showPeople,
+                    }
                 )}
             >
                 {showShares && (
@@ -206,9 +304,14 @@ export function IncomeDistributionLegend({
                 )}
                 <ul className="income-distribution-legend__rows">
                     {entries.map((entry) => {
-                        const share = showShares
-                            ? shares.get(entry.key)
+                        // With the bars, names keep to one line, so long
+                        // ones are shortened
+                        const shortName = showShares
+                            ? SHORT_REGION_NAMES.get(entry.key)
                             : undefined
+                        const labelLines = shortName
+                            ? [shortName]
+                            : legendLabelLines(entry.label ?? entry.key)
                         return (
                             <li
                                 key={entry.key}
@@ -219,37 +322,39 @@ export function IncomeDistributionLegend({
                                 <span className="income-distribution-legend__mark">
                                     {showShares && (
                                         <span className="income-distribution-legend__value">
-                                            {share !== undefined
-                                                ? formatShare(share)
-                                                : "–"}
+                                            {formatValue(entry.key)}
                                         </span>
                                     )}
-                                    {/* The swatch is the bar: it grows from a square to the share's length */}
+                                    {/* The swatch is the bar: it grows from a square to the value's length */}
                                     <span
                                         className="income-distribution-legend__swatch"
                                         style={{
                                             backgroundColor: entry.color,
                                             width: showShares
-                                                ? R.clamp(
-                                                      (share ?? 0) *
-                                                          OVERLAY_BAR_MAX_WIDTH,
-                                                      {
-                                                          min: OVERLAY_BAR_MIN_WIDTH,
-                                                          max: OVERLAY_BAR_MAX_WIDTH,
-                                                      }
+                                                ? Math.max(
+                                                      barFraction(entry.key) *
+                                                          (showPeople
+                                                              ? OVERLAY_PEOPLE_BAR_MAX_WIDTH
+                                                              : OVERLAY_BAR_MAX_WIDTH),
+                                                      OVERLAY_BAR_MIN_WIDTH
                                                   )
                                                 : undefined,
                                         }}
                                     />
                                 </span>
-                                <span className="income-distribution-legend__label">
+                                <span
+                                    className="income-distribution-legend__label"
+                                    title={
+                                        shortName
+                                            ? (entry.label ?? entry.key)
+                                            : undefined
+                                    }
+                                >
                                     {/* One block per preferred line, so a
                                         broken label is only as wide as its
                                         longest line and the rows, which set
                                         the box's width, stay narrow */}
-                                    {legendLabelLines(
-                                        entry.label ?? entry.key
-                                    ).map((line, i, lines) => (
+                                    {labelLines.map((line, i, lines) => (
                                         <span
                                             key={line}
                                             className="income-distribution-legend__label-line"
@@ -327,7 +432,10 @@ export function IncomeDistributionLegend({
             className={cx(
                 "income-distribution-legend",
                 "income-distribution-legend--shares",
-                { "income-distribution-legend--narrow": isNarrow }
+                {
+                    "income-distribution-legend--narrow": isNarrow,
+                    "income-distribution-legend--people": showPeople,
+                }
             )}
         >
             <div className="income-distribution-legend__header">
@@ -344,7 +452,6 @@ export function IncomeDistributionLegend({
             </div>
             <ul className="income-distribution-legend__bars">
                 {entries.map((entry) => {
-                    const share = shares.get(entry.key)
                     return (
                         <li
                             key={entry.key}
@@ -366,14 +473,12 @@ export function IncomeDistributionLegend({
                                         className="income-distribution-legend__bar"
                                         style={{
                                             backgroundColor: entry.color,
-                                            width: `${R.clamp((share ?? 0) * 100, { min: 0, max: 100 })}%`,
+                                            width: `${barFraction(entry.key) * 100}%`,
                                         }}
                                     />
                                 </span>
                                 <span className="income-distribution-legend__value">
-                                    {share !== undefined
-                                        ? formatShare(share)
-                                        : "–"}
+                                    {formatValue(entry.key)}
                                 </span>
                             </span>
                         </li>

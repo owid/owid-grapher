@@ -62,6 +62,21 @@ export const TIME_INTERVAL_LABELS: Record<TimeInterval, string> = {
     yearly: "Year",
 }
 
+/**
+ * One-line names for the overlay legend's bar list, where a two-line name
+ * would make the rows taller and the box wider; the swatch legend without a
+ * line keeps the full name
+ */
+export const SHORT_REGION_NAMES: ReadonlyMap<string, string> = new Map<
+    Region,
+    string
+>([
+    [
+        "Middle East, North Africa, Afghanistan and Pakistan",
+        "Middle East, North Africa…",
+    ],
+])
+
 export const REGION_COLORS: Record<Region, string> = {
     "East Asia and Pacific": OwidDistinctColors.Turquoise,
     "Europe and Central Asia": OwidDistinctColors.Denim,

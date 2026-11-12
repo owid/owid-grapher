@@ -6,6 +6,7 @@ import {
     currencyKey,
     formatCurrencyLabel,
     formatIncome,
+    formatPeople,
     formatShare,
     isInternationalPovertyLine,
     povertyLineMode,
@@ -182,5 +183,19 @@ describe(roundIncomeAsDisplayed, () => {
         )
         expect(monthly * (365 / 12)).toBeCloseTo(91)
         expect(monthly).toBeCloseTo(91 / (365 / 12))
+    })
+})
+
+describe(formatPeople, () => {
+    it.each([
+        [3_712_000_000, "3.7 billion"],
+        [999_600_000, "1 billion"],
+        [567_000_000, "570 million"],
+        [4_870_000, "4.9 million"],
+        [849_000, "850,000"],
+        [1234, "1,200"],
+        [0, "0"],
+    ])("formats %d as %s", (count, expected) => {
+        expect(formatPeople(count)).toBe(expected)
     })
 })

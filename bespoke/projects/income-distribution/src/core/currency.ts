@@ -142,6 +142,17 @@ export function formatShare(share: number): string {
     return rounded >= 100 ? ">99%" : `${rounded}%`
 }
 
+/**
+ * A number of people to two significant figures: "3.7 billion",
+ * "570 million", "4.9 million", "850,000"
+ */
+export function formatPeople(count: number): string {
+    const rounded = roundSigFig(count, 2)
+    if (rounded >= 1e9) return `${roundSigFig(rounded / 1e9, 2)} billion`
+    if (rounded >= 1e6) return `${roundSigFig(rounded / 1e6, 2)} million`
+    return Math.round(rounded).toLocaleString("en-US")
+}
+
 /** Label for a currency in a dropdown or sentence: "International-$" or "Euro (Germany)" */
 export function formatCurrencyLabel(currency: Currency): string {
     if (currency.code === INTERNATIONAL_DOLLAR.code) return "International-$"
