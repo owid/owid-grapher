@@ -28,7 +28,7 @@ import {
     makeLabelForGrapherTab,
     ChartDimension,
     SelectionArray,
-    selectPeerCountries,
+    selectPeers,
     prepareEntitiesForPeerSelection,
     VALID_CHART_TYPE_COMBINATIONS,
 } from "@ourworldindata/grapher"
@@ -198,7 +198,7 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
 
         // Use the data range strategy to pick default countries
         const availableEntities = prepareEntitiesForPeerSelection(grapherState)
-        return selectPeerCountries({
+        return selectPeers({
             peerCountryStrategy: PeerCountryStrategy.DataRange,
             availableEntities,
             dataColumn: dataColumn,

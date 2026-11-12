@@ -245,7 +245,7 @@ import { FacetChartManager } from "../facet/FacetChartConstants.js"
 import { EntitySelectorModalManager } from "../modal/EntitySelectorModal.js"
 import { SettingsMenuManager } from "../controls/SettingsMenu.js"
 import { SlopeChartManager } from "../slopeCharts/SlopeChartConstants.js"
-import { selectPeerCountriesForGrapher } from "./PeerCountrySelection.js"
+import { selectPeersForGrapherWithGuards } from "./PeerSelection.js"
 
 // The admin client sets `window.admin`. It's typed here locally instead of
 // via a `declare global` Window augmentation: that augmentation would end up
@@ -343,6 +343,9 @@ export class GrapherState
 
     /** Strategy for selecting peer countries for comparison */
     peerCountryStrategy: PeerCountryStrategy | undefined = undefined
+
+    /** Number of entities added by peer selection; the strategy's default if undefined */
+    peerCount: number | undefined = undefined
 
     /** Whether the user can change countries, add additional ones or neither */
     addCountryMode = EntitySelectionMode.MultipleEntities
@@ -704,6 +707,7 @@ export class GrapherState
             hideScatterLabels: observable.ref,
             scatterPointLabelStrategy: observable,
             peerCountryStrategy: observable.ref,
+            peerCount: observable.ref,
             compareEndPointsOnly: observable.ref,
             matchingEntitiesOnly: observable.ref,
             hideTotalValueLabel: observable.ref,
@@ -1412,9 +1416,11 @@ export class GrapherState
         }
 
         // Peer countries
+        if (parsed.peerCount.status === "valid")
+            this.peerCount = parsed.peerCount.value
         if (parsed.peerCountries.status === "valid") {
             if (parsed.peerCountries.value === "auto") {
-                this.peerCountryStrategy ??= PeerCountryStrategy.Neighbors
+                this.peerCountryStrategy ??= PeerCountryStrategy.DataRange
             } else {
                 this.peerCountryStrategy = parsed.peerCountries.value
             }
@@ -3506,10 +3512,7 @@ export class GrapherState
     @computed private get canApplyPeerCountries(): boolean {
         return (
             this.peerCountryStrategy !== undefined &&
-            this.availableEntityNames.length > 0 &&
-            // Only apply peer countries if it's unambiguous
-            // which entity is the target entity
-            this.selection.numSelectedEntities === 1
+            this.availableEntityNames.length > 0
         )
     }
 
@@ -3532,7 +3535,7 @@ export class GrapherState
         // Create and cache the promise immediately so that concurrent calls
         // will find and wait for this same promise
         this.peerCountriesPromise = (async (): Promise<void> => {
-            const peerCountries = await selectPeerCountriesForGrapher(this)
+            const peerCountries = await selectPeersForGrapherWithGuards(this)
             this.selection.addToSelection(peerCountries)
         })()
 

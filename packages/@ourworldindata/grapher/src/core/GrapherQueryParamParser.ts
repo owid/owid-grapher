@@ -13,7 +13,10 @@ import {
     isValidPeerCountryStrategyQueryParam,
     VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS,
 } from "@ourworldindata/types"
-import { parseFloatOrUndefined } from "@ourworldindata/utils"
+import {
+    parseFloatOrUndefined,
+    parseIntOrUndefined,
+} from "@ourworldindata/utils"
 import { parseGlobeRotation } from "./GrapherUrl.js"
 import {
     getEntityNamesParam,
@@ -376,6 +379,15 @@ function parsePeerCountriesParam(
     )
 }
 
+function parsePeerCountParam(value: string | undefined): ParsedParam<number> {
+    if (value === undefined) return missing()
+
+    const parsed = parseIntOrUndefined(value)
+    if (parsed !== undefined && parsed > 0) return valid(parsed)
+
+    return invalid(value, `Expected a positive integer, got "${value}"`)
+}
+
 /** Maps each GrapherQueryParams key to its parsed value type */
 type ParsedValueTypeMap = {
     tab: GrapherTabConfigOption
@@ -400,6 +412,7 @@ type ParsedValueTypeMap = {
     tableFilter: DataTableFilter
     tableSearch: string
     peerCountries: PeerCountryStrategyQueryParam
+    peerCount: number
 }
 
 // Compile-time check: ensures ParsedValueTypeMap has all keys from GrapherQueryParams.
@@ -449,6 +462,7 @@ export function parseGrapherQueryParams(
         tableFilter: parseTableFilterParam(params.tableFilter),
         tableSearch: parseTableSearchParam(params.tableSearch),
         peerCountries: parsePeerCountriesParam(params.peerCountries),
+        peerCount: parsePeerCountParam(params.peerCount),
     }
 }
 

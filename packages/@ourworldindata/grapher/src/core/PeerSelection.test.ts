@@ -4,8 +4,13 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     AdditionalGrapherDataFetchFn,
     ColumnTypeNames,
+    EntitySelectionMode,
+    FacetStrategy,
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     PeerCountryStrategy,
     TimeInterval,
+    type EntityName,
 } from "@ourworldindata/types"
 import {
     findClosestByValue,
@@ -14,8 +19,13 @@ import {
     type LatestValue,
     findLatestValueWindow,
     selectParentRegionsAsPeers,
-    selectPeerCountries,
-} from "./PeerCountrySelection.js"
+    selectPeers,
+    selectPeersForGrapher,
+    selectPeersForGrapherWithGuards,
+} from "./PeerSelection.js"
+import { parseGrapherQueryParams } from "./GrapherQueryParamParser.js"
+import { GrapherState } from "./GrapherState.js"
+import type { GrapherProgrammaticInterface } from "./Grapher.js"
 
 describe(findClosestByValue, () => {
     it("finds entities with values closest to target using logarithmic distance", () => {
@@ -88,7 +98,7 @@ describe(findClosestByValue, () => {
 describe(selectParentRegionsAsPeers, () => {
     it("returns World and parent regions for a country", () => {
         const result = selectParentRegionsAsPeers({
-            targetCountry: "Germany",
+            targetEntity: "Germany",
             availableEntities: [
                 "Germany",
                 "World",
@@ -108,7 +118,7 @@ describe(selectParentRegionsAsPeers, () => {
 
     it("only returns entities that are available", () => {
         const result = selectParentRegionsAsPeers({
-            targetCountry: "France",
+            targetEntity: "France",
             availableEntities: ["France", "World", "Africa"], // Missing Europe
         })
 
@@ -118,7 +128,7 @@ describe(selectParentRegionsAsPeers, () => {
 
     it("returns empty array for non-existent entity", () => {
         const result = selectParentRegionsAsPeers({
-            targetCountry: "NonExistentCountry",
+            targetEntity: "NonExistentCountry",
             availableEntities: ["World", "Europe"],
         })
 
@@ -127,7 +137,7 @@ describe(selectParentRegionsAsPeers, () => {
 
     it("includes World even when no parent regions are available", () => {
         const result = selectParentRegionsAsPeers({
-            targetCountry: "Brazil",
+            targetEntity: "Brazil",
             availableEntities: ["Brazil", "World"], // No South America or other parent regions
         })
 
@@ -136,7 +146,7 @@ describe(selectParentRegionsAsPeers, () => {
 
     it("returns empty array when World is not available", () => {
         const result = selectParentRegionsAsPeers({
-            targetCountry: "Germany",
+            targetEntity: "Germany",
             availableEntities: ["Germany", "Asia"], // No World or relevant parent regions
         })
 
@@ -185,6 +195,13 @@ const COUNTRIES = [
     "Denmark",
     "Austria",
 ]
+
+// Within each pair of neighbors (one bin of five), the odd-indexed country is more populous
+const loadAlternatingPopulation = (async () =>
+    COUNTRIES.map((entity, index) => ({
+        entity,
+        value: index % 2 === 1 ? 2_000_000 : 1_000_000,
+    }))) as unknown as AdditionalGrapherDataFetchFn
 
 /** Ten countries, each with one value the given number of years before 2020 */
 const countriesWithYearsBeforeEnd = (yearsBeforeEnd: number[]): Row[] =>
@@ -708,26 +725,21 @@ describe(findSpreadByValue, () => {
     })
 })
 
-describe(selectPeerCountries, () => {
+describe(selectPeers, () => {
     describe("with the dataRange strategy", () => {
         const dataColumn = makeColumn(
             COUNTRIES.map((name, index): Row => [name, 2020, (index + 1) * 10])
         )
-        // Within each pair of neighbors (one bin of five), the odd-indexed country is more populous
-        const populationRows = COUNTRIES.map((entity, index) => ({
-            entity,
-            value: index % 2 === 1 ? 2_000_000 : 1_000_000,
-        }))
-        const additionalDataLoaderFn = (async () =>
-            populationRows) as unknown as AdditionalGrapherDataFetchFn
+        const additionalDataLoaderFn = loadAlternatingPopulation
 
         const selectByDataRange = (
             params: {
-                targetCountry?: string
+                targetEntity?: string
                 randomize?: boolean
+                targetCount?: number
             } = {}
         ): Promise<string[]> =>
-            selectPeerCountries({
+            selectPeers({
                 peerCountryStrategy: PeerCountryStrategy.DataRange,
                 availableEntities: COUNTRIES,
                 dataColumn,
@@ -738,7 +750,7 @@ describe(selectPeerCountries, () => {
             })
 
         it("picks the most populous country in each value bin", async () => {
-            expect(await selectByDataRange()).toEqual([
+            expect(await selectByDataRange({ targetCount: 5 })).toEqual([
                 "Germany",
                 "Spain",
                 "Norway",
@@ -749,7 +761,7 @@ describe(selectPeerCountries, () => {
 
         it("skips the target's bin and leaves the target out of the result", async () => {
             // Italy (value 30) shares a bin with Spain
-            const peers = await selectByDataRange({ targetCountry: "Italy" })
+            const peers = await selectByDataRange({ targetEntity: "Italy" })
 
             expect(peers).toEqual(["Germany", "Norway", "Finland", "Austria"])
         })
@@ -759,17 +771,13 @@ describe(selectPeerCountries, () => {
             const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0)
             onTestFinished(() => randomSpy.mockRestore())
 
-            expect(await selectByDataRange({ randomize: true })).toEqual([
-                "France",
-                "Italy",
-                "Poland",
-                "Sweden",
-                "Denmark",
-            ])
+            expect(
+                await selectByDataRange({ randomize: true, targetCount: 5 })
+            ).toEqual(["France", "Italy", "Poland", "Sweden", "Denmark"])
         })
 
         it("ranks countries whose latest value is a few years before the end year", async () => {
-            const peers = await selectPeerCountries({
+            const peers = await selectPeers({
                 peerCountryStrategy: PeerCountryStrategy.DataRange,
                 availableEntities: COUNTRIES,
                 dataColumn: makeColumn([
@@ -783,6 +791,7 @@ describe(selectPeerCountries, () => {
                 endTime: 2020,
                 isSingleTimeChart: false,
                 additionalDataLoaderFn,
+                targetCount: 5,
             })
 
             expect(peers).toEqual([
@@ -795,3 +804,343 @@ describe(selectPeerCountries, () => {
         })
     })
 })
+
+describe("peer selection for non-country targets", () => {
+    const REGIONS = [
+        "Europe",
+        "Asia",
+        "Africa",
+        "Oceania",
+        "North America",
+        "South America",
+    ]
+    const regionColumn = makeColumn(
+        REGIONS.map((name, index): Row => [name, 2020, (index + 1) * 10])
+    )
+    const additionalDataLoaderFn = (async () =>
+        REGIONS.map((entity, index) => ({
+            entity,
+            value: 1_000_000 + index,
+        }))) as unknown as AdditionalGrapherDataFetchFn
+    const loadPeersOfEurope = (async (key: string) =>
+        key === "neighbors"
+            ? [{ entity: "Europe", value: COUNTRIES }]
+            : ["Europe", ...COUNTRIES].map((entity) => ({
+                  entity,
+                  value: 1_000_000,
+              }))) as unknown as AdditionalGrapherDataFetchFn
+
+    it.each([
+        PeerCountryStrategy.Neighbors,
+        PeerCountryStrategy.Population,
+        PeerCountryStrategy.GdpPerCapita,
+        PeerCountryStrategy.ParentRegions,
+    ] as const)(
+        "rejects a region target with the %s strategy",
+        async (strategy) => {
+            const peers = await selectPeers({
+                peerCountryStrategy: strategy,
+                targetEntity: "Europe",
+                availableEntities: [...REGIONS, "World", ...COUNTRIES],
+                additionalDataLoaderFn: loadPeersOfEurope,
+            })
+            expect(peers).toEqual([])
+        }
+    )
+
+    it("picks a region target's peers by value with the dataRange strategy", async () => {
+        const peers = await selectPeers({
+            peerCountryStrategy: PeerCountryStrategy.DataRange,
+            targetEntity: "Europe",
+            availableEntities: REGIONS,
+            dataColumn: regionColumn,
+            endTime: 2020,
+            isSingleTimeChart: false,
+            additionalDataLoaderFn,
+            targetCount: 3,
+        })
+        expect(peers).toHaveLength(3)
+        expect(peers).not.toContain("Europe")
+        expect(REGIONS).toEqual(expect.arrayContaining(peers))
+    })
+})
+
+describe("peerCount query param", () => {
+    it("parses a positive integer", () => {
+        expect(parseGrapherQueryParams({ peerCount: "3" }).peerCount).toEqual({
+            status: "valid",
+            value: 3,
+        })
+    })
+
+    it("is missing when absent and invalid for anything else", () => {
+        expect(parseGrapherQueryParams({}).peerCount.status).toBe("missing")
+        for (const value of ["0", "-2", "abc", ""])
+            expect(
+                parseGrapherQueryParams({ peerCount: value }).peerCount.status
+            ).toBe("invalid")
+    })
+})
+
+const DATA_RANGE_SPREAD = ["Germany", "Spain", "Norway", "Finland", "Austria"]
+const DATA_RANGE_PEERS_OF_ITALY = ["Germany", "Norway", "Finland", "Austria"]
+
+describe(selectPeersForGrapherWithGuards, () => {
+    it("adds nothing for the none strategy", async () => {
+        const grapherState = makeGrapherState({
+            queryStr: "?country=~ITA",
+            peerCountryStrategy: PeerCountryStrategy.None,
+        })
+        expect(await selectPeersForGrapherWithGuards(grapherState)).toEqual([])
+    })
+
+    it("adds nothing when the selection is disabled", async () => {
+        const grapherState = makeGrapherState({
+            queryStr: "?country=~ITA",
+            addCountryMode: EntitySelectionMode.Disabled,
+        })
+        expect(await selectPeersForGrapherWithGuards(grapherState)).toEqual([])
+    })
+
+    it("adds peers of the first available selected entity", async () => {
+        const grapherState = makeGrapherState({
+            queryStr: "?country=Atlantis~ITA",
+        })
+        expect(await selectPeersForGrapherWithGuards(grapherState)).toEqual(
+            DATA_RANGE_PEERS_OF_ITALY
+        )
+    })
+
+    it("takes the first peerCount entities of the default selection, selected ones included", async () => {
+        const grapherState = makeGrapherState({
+            queryStr: "?country=FRA~DEU",
+            peerCountryStrategy: PeerCountryStrategy.DefaultSelection,
+            selectedEntityNames: ["Germany", "Norway", "Italy", "Spain"],
+            peerCount: 2,
+        })
+        expect(await selectPeersForGrapherWithGuards(grapherState)).toEqual([
+            "Germany",
+            "Norway",
+        ])
+    })
+
+    it("spreads over a selection with no available entity", async () => {
+        const grapherState = makeGrapherState({
+            queryStr: "?country=~Atlantis",
+            selectedEntityNames: ["Norway"],
+            peerCount: 5,
+        })
+        expect(await selectPeersForGrapherWithGuards(grapherState)).toEqual(
+            DATA_RANGE_SPREAD
+        )
+    })
+
+    it("spreads over an empty selection", async () => {
+        const grapherState = makeGrapherState({
+            queryStr: "?country=",
+            selectedEntityNames: ["Norway"],
+            peerCount: 5,
+        })
+        expect(await selectPeersForGrapherWithGuards(grapherState)).toEqual(
+            DATA_RANGE_SPREAD
+        )
+    })
+
+    it("restores the author's selection when an empty selection gets no spread", async () => {
+        const grapherState = makeGrapherState({
+            queryStr: "?country=",
+            selectedEntityNames: ["Norway"],
+            additionalDataLoaderFn: undefined,
+        })
+        expect(await selectPeersForGrapherWithGuards(grapherState)).toEqual([
+            "Norway",
+        ])
+    })
+
+    it.each<{ name: string; config: GrapherProgrammaticInterface }>([
+        {
+            name: "single-entity mode",
+            config: { addCountryMode: EntitySelectionMode.SingleEntity },
+        },
+        {
+            name: "a faceted chart",
+            config: {
+                queryStr: "?country=ITA~FRA",
+                selectedFacetStrategy: FacetStrategy.entity,
+            },
+        },
+        {
+            name: "a chart that plots one series per column",
+            config: { ySlugs: "value other" },
+        },
+        {
+            name: "a stacked area chart",
+            config: { chartTypes: [GRAPHER_CHART_TYPES.StackedArea] },
+        },
+        {
+            name: "a stacked bar chart",
+            config: { chartTypes: [GRAPHER_CHART_TYPES.StackedBar] },
+        },
+        {
+            name: "the map tab",
+            config: { hasMapTab: true, tab: GRAPHER_TAB_CONFIG_OPTIONS.map },
+        },
+    ])("adds nothing to a selection in $name", async ({ config }) => {
+        const grapherState = makeGrapherState({
+            queryStr: "?country=~ITA",
+            selectedEntityNames: ["Norway"],
+            ...config,
+        })
+        expect(await selectPeersForGrapherWithGuards(grapherState)).toEqual([])
+    })
+
+    it.each<{ name: string; config: GrapherProgrammaticInterface }>([
+        {
+            name: "a stacked area chart",
+            config: { chartTypes: [GRAPHER_CHART_TYPES.StackedArea] },
+        },
+        {
+            name: "the map tab",
+            config: { hasMapTab: true, tab: GRAPHER_TAB_CONFIG_OPTIONS.map },
+        },
+    ])(
+        "restores the author's selection for an empty selection in $name",
+        async ({ config }) => {
+            const grapherState = makeGrapherState({
+                queryStr: "?country=",
+                selectedEntityNames: ["Norway"],
+                ...config,
+            })
+            expect(await selectPeersForGrapherWithGuards(grapherState)).toEqual(
+                ["Norway"]
+            )
+        }
+    )
+})
+
+describe(selectPeersForGrapher, () => {
+    it("targets the single selected entity with the chart's strategy", async () => {
+        const grapherState = makeGrapherState({ queryStr: "?country=~ITA" })
+        expect(await selectPeersForGrapher(grapherState)).toEqual(
+            DATA_RANGE_PEERS_OF_ITALY
+        )
+    })
+
+    it("needs a target when several entities are selected", async () => {
+        const grapherState = makeGrapherState({ queryStr: "?country=ITA~FRA" })
+        expect(await selectPeersForGrapher(grapherState)).toEqual([])
+        expect(
+            await selectPeersForGrapher(grapherState, {
+                targetEntity: "Italy",
+            })
+        ).toEqual(DATA_RANGE_PEERS_OF_ITALY)
+    })
+
+    it("spreads without a target", async () => {
+        const grapherState = makeGrapherState({ queryStr: "?country=" })
+        expect(
+            await selectPeersForGrapher(grapherState, { targetCount: 5 })
+        ).toEqual(DATA_RANGE_SPREAD)
+    })
+})
+
+describe("peer params in the URL", () => {
+    it("adds peers of the selected entity before a static render", async () => {
+        const grapherState = makeGrapherState({
+            queryStr: "?country=~ITA&peerCountries=dataRange",
+        })
+        expect(await renderSelection(grapherState)).toEqual([
+            "Italy",
+            ...DATA_RANGE_PEERS_OF_ITALY,
+        ])
+    })
+
+    it("spreads over an empty country param", async () => {
+        const grapherState = makeGrapherState({
+            queryStr: "?country=&peerCountries=dataRange&peerCount=5",
+            selectedEntityNames: ["Norway"],
+        })
+        expect(await renderSelection(grapherState)).toEqual(DATA_RANGE_SPREAD)
+    })
+
+    it("adds peerCount entities and leaves both params out of the URL it writes", async () => {
+        const grapherState = makeGrapherState({
+            queryStr:
+                "?country=~FRA&peerCountries=defaultSelection&peerCount=2",
+            selectedEntityNames: ["Germany", "Norway", "Italy"],
+        })
+        expect(await renderSelection(grapherState)).toEqual([
+            "France",
+            "Germany",
+            "Norway",
+        ])
+        expect(grapherState.changedParams).not.toHaveProperty("peerCountries")
+        expect(grapherState.changedParams).not.toHaveProperty("peerCount")
+    })
+
+    it("falls back to dataRange for auto when the chart has no strategy", async () => {
+        const grapherState = makeGrapherState({
+            queryStr: "?country=~ITA&peerCountries=auto",
+            peerCountryStrategy: undefined,
+        })
+        expect(await renderSelection(grapherState)).toEqual([
+            "Italy",
+            ...DATA_RANGE_PEERS_OF_ITALY,
+        ])
+    })
+
+    it("keeps the chart's strategy for auto", async () => {
+        const grapherState = makeGrapherState({
+            queryStr: "?country=~ITA&peerCountries=auto",
+            peerCountryStrategy: PeerCountryStrategy.DefaultSelection,
+            selectedEntityNames: ["Germany"],
+        })
+        expect(await renderSelection(grapherState)).toEqual([
+            "Italy",
+            "Germany",
+        ])
+    })
+})
+
+function makeGrapherState({
+    peerCount,
+    ...config
+}: GrapherProgrammaticInterface & { peerCount?: number }): GrapherState {
+    const table = new OwidTable(
+        [
+            ["entityName", "year", "value", "other"],
+            ...COUNTRIES.map((name, index) => [
+                name,
+                2020,
+                (index + 1) * 10,
+                index,
+            ]),
+        ],
+        [
+            { slug: "year", type: ColumnTypeNames.Year },
+            { slug: "value", type: ColumnTypeNames.Numeric },
+            { slug: "other", type: ColumnTypeNames.Numeric },
+        ]
+    )
+    const grapherState = new GrapherState({
+        table,
+        chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+        ySlugs: "value",
+        peerCountryStrategy: PeerCountryStrategy.DataRange,
+        additionalDataLoaderFn: loadAlternatingPopulation,
+        ...config,
+    })
+    if (peerCount !== undefined) grapherState.peerCount = peerCount
+    return grapherState
+}
+
+async function renderSelection(
+    grapherState: GrapherState
+): Promise<EntityName[]> {
+    let renderedSelection: EntityName[] = []
+    await grapherState.generateStaticSvg(() => {
+        renderedSelection = [...grapherState.selection.selectedEntityNames]
+        return ""
+    })
+    return renderedSelection
+}
