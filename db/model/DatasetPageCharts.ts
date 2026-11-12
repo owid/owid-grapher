@@ -73,6 +73,8 @@ export interface DatasetPageChartMatch {
 }
 
 export interface DatasetPageMultiDimViewMatch {
+    /** The title of the view's chart */
+    title: string
     /** e.g. "metric=total&source=coal" */
     queryStr: string
     chartTypes: GrapherChartType[]
@@ -250,9 +252,10 @@ async function getPublishedMultiDimsUsingVariables(
     )
     if (matched.length === 0) return []
 
-    // The tabs of each view are in its rendered config
+    // The title and the tabs of each view are in its rendered config
     const viewConfigRows = await knexRaw<{
         chartConfigId: string
+        title: string | null
         chartTypes: string | null
         hasMapTab: string | null
     }>(
@@ -260,6 +263,7 @@ async function getPublishedMultiDimsUsingVariables(
         `-- sql
             SELECT
                 mx.chartConfigId,
+                cc.config ->> "$.title" AS title,
                 cc.config ->> "$.chartTypes" AS chartTypes,
                 cc.config ->> "$.hasMapTab" AS hasMapTab
             FROM multi_dim_x_chart_configs mx
@@ -283,6 +287,9 @@ async function getPublishedMultiDimsUsingVariables(
                     `No chart config ${view.fullConfigId} for a view of the multi-dim ${multiDim.slug}`
                 )
             return {
+                title:
+                    viewConfig.title ??
+                    getMultiDimPageTitle(multiDim.config.title),
                 queryStr: multiDimDimensionsToViewQueryStr(view.dimensions),
                 ...parseTabFields(viewConfig),
                 columns,

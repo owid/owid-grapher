@@ -30,6 +30,16 @@ export interface DatasetChartView {
     label: string
 }
 
+/** A view of a multi-dim that uses the table's indicators */
+export interface DatasetMultiDimView {
+    title: string
+    /** Slug and query, relative to the grapher base URL, e.g. "energy-mix?metric=total&source=coal" */
+    grapherPath: string
+    views: DatasetChartView[]
+    /** Columns of the table that the view uses */
+    indicatorShortNames: string[]
+}
+
 export interface DatasetChart {
     title: string
     /** Slug and optional query, relative to the grapher base URL, e.g. "energy-mix?metric=total" */
@@ -39,6 +49,8 @@ export interface DatasetChart {
     views: DatasetChartView[]
     /** Columns of the table that the chart (or any view of a multi-dim) uses */
     indicatorShortNames: string[]
+    /** For a multi-dim: its views that use the table's indicators, in the order of its config */
+    multiDimViews?: DatasetMultiDimView[]
 }
 
 export interface DatasetSource {

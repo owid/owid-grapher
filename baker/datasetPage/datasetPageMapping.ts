@@ -197,6 +197,14 @@ export function makeCharts(
             sourceText: makeChartSourceText(indicators, multiDim.columns),
             views: makeChartViews(firstView.chartTypes, firstView.hasMapTab),
             indicatorShortNames: multiDim.columns,
+            multiDimViews: multiDim.views.map((view) => ({
+                title: view.title,
+                grapherPath: view.queryStr
+                    ? `${multiDim.slug}?${view.queryStr}`
+                    : multiDim.slug,
+                views: makeChartViews(view.chartTypes, view.hasMapTab),
+                indicatorShortNames: view.columns,
+            })),
         }
     })
     const charts = lookup.charts.map((chart) => ({

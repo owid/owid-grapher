@@ -473,6 +473,17 @@ function DatasetHeader({
 // ---------------------------------------------------------------------------
 // Indicators
 
+/** A chart, or a view of a multi-dim, that uses an indicator */
+interface IndicatorChart {
+    key: string
+    title: string
+    /** For a view of a multi-dim: the title of the multi-dim */
+    multiDimTitle?: string
+    /** Position of the chart, or of the multi-dim, in the charts section */
+    chartIndex: number
+    multiDimViewIndex?: number
+}
+
 function IndicatorDetails({
     indicator,
     charts,
@@ -485,15 +496,34 @@ function IndicatorDetails({
     charts: DatasetChart[]
     sourceIndexByTitle: Map<string, number>
     onSourceClick: (sourceIndex: number) => void
-    onChartClick: (chartIndex: number) => void
+    onChartClick: (chartIndex: number, multiDimViewIndex?: number) => void
 }) {
     const sourceNames = indicator.sourceNames ?? []
-    // The charts that use this indicator, with their position in the charts section
-    const indicatorCharts = charts
-        .map((chart, chartIndex) => ({ chart, chartIndex }))
-        .filter(({ chart }) =>
-            chart.indicatorShortNames.includes(indicator.shortName)
-        )
+    // The charts that use this indicator, with their position in the charts
+    // section. For a multi-dim, these are its views that use the indicator.
+    const indicatorCharts = charts.flatMap(
+        (chart, chartIndex): IndicatorChart[] => {
+            if (chart.multiDimViews)
+                return chart.multiDimViews
+                    .map((view, multiDimViewIndex) => ({
+                        view,
+                        multiDimViewIndex,
+                    }))
+                    .filter(({ view }) =>
+                        view.indicatorShortNames.includes(indicator.shortName)
+                    )
+                    .map(({ view, multiDimViewIndex }) => ({
+                        key: view.grapherPath,
+                        title: view.title,
+                        multiDimTitle: chart.title,
+                        chartIndex,
+                        multiDimViewIndex,
+                    }))
+            if (!chart.indicatorShortNames.includes(indicator.shortName))
+                return []
+            return [{ key: chart.grapherPath, title: chart.title, chartIndex }]
+        }
+    )
     const [showAllCharts, setShowAllCharts] = useState(false)
     const visibleCharts = showAllCharts
         ? indicatorCharts
@@ -563,16 +593,21 @@ function IndicatorDetails({
                         Charts with this indicator:
                     </h4>
                     <ul className="dataset-page__details-sources">
-                        {visibleCharts.map(({ chart, chartIndex }) => (
-                            <li key={chart.grapherPath}>
+                        {visibleCharts.map((chart) => (
+                            <li key={chart.key}>
                                 <a
                                     href={`#${SECTION_IDS.charts}`}
                                     onClick={(e) => {
                                         e.preventDefault()
-                                        onChartClick(chartIndex)
+                                        onChartClick(
+                                            chart.chartIndex,
+                                            chart.multiDimViewIndex
+                                        )
                                     }}
                                 >
                                     {chart.title}
+                                    {chart.multiDimTitle &&
+                                        ` (${chart.multiDimTitle})`}
                                     <FontAwesomeIcon icon={faArrowDown} />
                                 </a>
                             </li>
@@ -606,7 +641,7 @@ function IndicatorGroup({
     charts: DatasetChart[]
     sourceIndexByTitle: Map<string, number>
     onSourceClick: (sourceIndex: number) => void
-    onChartClick: (chartIndex: number) => void
+    onChartClick: (chartIndex: number, multiDimViewIndex?: number) => void
 }) {
     // Only one indicator per group is open at a time
     const [openIndicator, setOpenIndicator] = useState<string | undefined>()
@@ -660,7 +695,7 @@ function IndicatorsSection({
 }: {
     table: DatasetTable
     onSourceClick: (sourceIndex: number) => void
-    onChartClick: (chartIndex: number) => void
+    onChartClick: (chartIndex: number, multiDimViewIndex?: number) => void
 }) {
     const [query, setQuery] = useState("")
     const sourceIndexByTitle = useMemo(
@@ -717,7 +752,10 @@ function IndicatorsSection({
 
 interface ChartSelection {
     chartIndex: number
+    /** The tab, among those of the chart or of the selected multi-dim view */
     viewIndex: number
+    /** Set when one view of a multi-dim was picked from an indicator; otherwise the multi-dim shows its first view */
+    multiDimViewIndex?: number
 }
 
 function ChartListItem({
@@ -807,9 +845,15 @@ function ChartsSection({
     if (table.charts.length === 0) return null
 
     const selectedChart = table.charts[selection.chartIndex]
-    const selectedView = selectedChart.views[selection.viewIndex]
+    // What the preview shows: the chart, or one view of a multi-dim when it was picked from an indicator
+    const selectedMultiDimView =
+        selection.multiDimViewIndex !== undefined
+            ? selectedChart.multiDimViews?.[selection.multiDimViewIndex]
+            : undefined
+    const preview = selectedMultiDimView ?? selectedChart
+    const selectedView = preview.views[selection.viewIndex]
     const iframeSrc = grapherUrl(
-        selectedChart.grapherPath,
+        preview.grapherPath,
         selectedView ? { tab: selectedView.tab } : {}
     )
 
@@ -837,7 +881,13 @@ function ChartsSection({
                                     id={chartItemId(index)}
                                     chart={chart}
                                     isSelected={selection.chartIndex === index}
-                                    selectedViewIndex={selection.viewIndex}
+                                    // The thumbnails are those of the multi-dim's first view
+                                    selectedViewIndex={
+                                        selection.multiDimViewIndex ===
+                                        undefined
+                                            ? selection.viewIndex
+                                            : undefined
+                                    }
                                     onSelect={(viewIndex) =>
                                         onSelect({
                                             chartIndex: index,
@@ -858,7 +908,7 @@ function ChartsSection({
                         key={iframeSrc}
                         className="dataset-page__chart-iframe"
                         src={iframeSrc}
-                        title={selectedChart.title}
+                        title={preview.title}
                         loading="lazy"
                         allow="web-share; clipboard-write"
                     />
@@ -1305,8 +1355,11 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
     // Set when a chart is clicked in an indicator; we scroll to it once it is selected
     const [chartToReveal, setChartToReveal] = useState<number | undefined>()
 
-    const revealChart = (chartIndex: number): void => {
-        setChartSelection({ chartIndex, viewIndex: 0 })
+    const revealChart = (
+        chartIndex: number,
+        multiDimViewIndex?: number
+    ): void => {
+        setChartSelection({ chartIndex, viewIndex: 0, multiDimViewIndex })
         setChartToReveal(chartIndex)
     }
 

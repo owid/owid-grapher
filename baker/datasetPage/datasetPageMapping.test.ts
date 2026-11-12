@@ -575,12 +575,14 @@ describe(makeCharts, () => {
                 title: "Energy mix",
                 views: [
                     {
+                        title: "Primary energy from coal",
                         queryStr: "metric=total&source=coal",
                         chartTypes: ["StackedArea"],
                         hasMapTab: false,
                         columns: ["coal_energy_twh"],
                     },
                     {
+                        title: "Share of primary energy from coal",
                         queryStr: "metric=share&source=coal",
                         chartTypes: ["LineChart"],
                         hasMapTab: true,
@@ -605,6 +607,24 @@ describe(makeCharts, () => {
                     "Energy Institute – Statistical Review of World Energy (2026); Smil – Energy Transitions (2017); Ember – Yearly Electricity Data (2026)",
                 views: [{ tab: "stacked-area", label: "Area chart" }],
                 indicatorShortNames: ["coal_energy_twh", "coal_elec_twh"],
+                // Every matching view, so that an indicator can link to the exact one
+                multiDimViews: [
+                    {
+                        title: "Primary energy from coal",
+                        grapherPath: "energy-mix?metric=total&source=coal",
+                        views: [{ tab: "stacked-area", label: "Area chart" }],
+                        indicatorShortNames: ["coal_energy_twh"],
+                    },
+                    {
+                        title: "Share of primary energy from coal",
+                        grapherPath: "energy-mix?metric=share&source=coal",
+                        views: [
+                            { tab: "map", label: "World map" },
+                            { tab: "line", label: "Line chart" },
+                        ],
+                        indicatorShortNames: ["coal_elec_twh"],
+                    },
+                ],
             },
             {
                 title: "Coal consumption",
