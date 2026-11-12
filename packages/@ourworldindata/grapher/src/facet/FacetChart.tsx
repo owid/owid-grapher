@@ -685,8 +685,24 @@ export class FacetChart
                 selection: [seriesName],
                 seriesStrategy: SeriesStrategy.column,
             }
+            if (this.focusArray.has(seriesName))
+                manager.focusArray = this.columnFocusArray
             return { seriesName, manager }
         })
+    }
+
+    /**
+     * The focus without its entity names, for the facets of focused entities.
+     * Entity facets name their series after columns, so an entity name in the
+     * shared focus mutes every series of every facet.
+     */
+    @computed private get columnFocusArray(): FocusArray {
+        const { selectedSet } = this.selectionArray
+        return new FocusArray().add(
+            ...this.focusArray.seriesNames.filter(
+                (name) => !selectedSet.has(name)
+            )
+        )
     }
 
     @computed private get columnFacets(): FacetSeries[] {
