@@ -24,13 +24,6 @@
     "SQL-Formatter-VSCode.ignoreTabSettings": true,
     "SQL-Formatter-VSCode.tabSizeOverride": 2,
     "SQL-Formatter-VSCode.dialect": "mysql",
-    "[typescriptreact]": {
-        "editor.defaultFormatter": "oxc.oxc-vscode"
-    },
-    "[typescript]": {
-        "editor.defaultFormatter": "oxc.oxc-vscode"
-    },
-    "[github-actions-workflow]": {
-        "editor.defaultFormatter": "oxc.oxc-vscode"
-    }
+    "js/ts.experimental.useTsgo": true,
+    "js/ts.tsdk.path": "node_modules/typescript"
 }
