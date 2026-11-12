@@ -15,6 +15,7 @@ import {
     DEFAULT_MARKER_RADIUS,
     DEFAULT_STROKE_WIDTH,
     LINE_STYLE,
+    LineStyleConfig,
     PlacedLineChartSeries,
     RenderLineChartSeries,
 } from "./LineChartConstants"
@@ -33,6 +34,7 @@ export interface LinesProps {
     markerRadius?: number
     isStatic?: boolean
     multiColor?: boolean
+    styleByEmphasis?: Record<Emphasis, LineStyleConfig>
 }
 
 @observer
@@ -52,6 +54,10 @@ export class Lines extends React.Component<LinesProps> {
 
     @computed private get markerRadius(): number {
         return this.props.markerRadius ?? DEFAULT_MARKER_RADIUS
+    }
+
+    @computed private get styleByEmphasis(): Record<Emphasis, LineStyleConfig> {
+        return this.props.styleByEmphasis ?? LINE_STYLE
     }
 
     @computed private get baseStrokeWidth(): number {
@@ -104,7 +110,7 @@ export class Lines extends React.Component<LinesProps> {
         if (series.plotMarkersOnly) return
         const { isProjection } = series
 
-        const style = LINE_STYLE[series.emphasis]
+        const style = this.styleByEmphasis[series.emphasis]
 
         const color = series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR
 
@@ -170,7 +176,7 @@ export class Lines extends React.Component<LinesProps> {
 
         if (hideMarkers && !forceMarkers) return
 
-        const opacity = LINE_STYLE[series.emphasis].opacity
+        const opacity = this.styleByEmphasis[series.emphasis].opacity
 
         const outlineColor = series.plotMarkersOnly
             ? this.outlineColor

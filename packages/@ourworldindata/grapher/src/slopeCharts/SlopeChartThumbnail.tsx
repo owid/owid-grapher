@@ -33,6 +33,7 @@ import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { resolveEmphasis } from "../interaction/Emphasis.js"
+import { THUMBNAIL_LINE_STYLE } from "../lineCharts/LineChartConstants.js"
 
 const DOT_RADIUS = 3.5
 const SPACE_BETWEEN_DOT_AND_LABEL = 4
@@ -499,6 +500,7 @@ export class SlopeChartThumbnail
                             dotRadius={DOT_RADIUS}
                             strokeWidth={1.5}
                             outlineWidth={0}
+                            styleByEmphasis={THUMBNAIL_LINE_STYLE}
                         />
                     ))}
                 </g>
