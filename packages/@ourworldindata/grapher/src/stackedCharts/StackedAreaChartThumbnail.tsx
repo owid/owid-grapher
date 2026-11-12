@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import { type StackedAreaChartProps } from "./StackedAreaChart.js"
-import { Bounds, excludeUndefined } from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -135,19 +135,13 @@ export class StackedAreaChartThumbnail
         )
             return []
 
-        return excludeUndefined(
-            this.chartState.series.map((series, seriesIndex) => {
-                const { seriesName, shortEntityName, color, focus } = series
-
-                // Don't label background series
-                if (focus?.background) return undefined
-
-                const value = this.chartState.midpoints[seriesIndex]
-                const label = shortEntityName ?? seriesName
-
-                return { seriesName, value, label, color }
-            })
-        )
+        return this.chartState.series.map((series, seriesIndex) => {
+            const { seriesName, shortEntityName, color, focus } = series
+            const value = this.chartState.midpoints[seriesIndex]
+            const label = shortEntityName ?? seriesName
+            const emphasis = resolveEmphasis({ focus })
+            return { seriesName, value, label, color, emphasis }
+        })
     }
 
     private makeAnchoredLabelsState({
