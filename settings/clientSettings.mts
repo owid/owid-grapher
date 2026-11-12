@@ -85,8 +85,8 @@ export const ALGOLIA_CACHED_QUERIES_URL: string =
 // Endpoint of the Cloudflare function that runs the search page's result
 // sections (functions/api/search/sections.ts). When set, the search page
 // fetches each section with a typed query from there instead of querying
-// Algolia from the browser; when empty, it queries Algolia directly. On by
-// default on staging servers only, while it is being tried out.
+// Algolia from the browser. Unset or empty, it defaults to on for staging
+// servers only, while it is being tried out, and off elsewhere.
 // Set it to http://localhost:8788/api/search/sections to test against
 // `yarn startLocalCloudflareFunctions`. `||` rather than `??` because
 // .env.example-full sets it to an empty value.

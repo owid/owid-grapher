@@ -108,7 +108,7 @@ const callEndpoint = (params: URLSearchParams): Promise<Response> =>
     onRequestGet({
         request: new Request(`http://localhost/api/search/sections?${params}`),
         env,
-    } as any) as Promise<Response>
+    } as unknown as Parameters<typeof onRequestGet>[0]) as Promise<Response>
 
 const state = (
     query: string,
