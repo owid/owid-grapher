@@ -54,11 +54,7 @@ import {
     shareBelowLineForEntities,
 } from "../core/density.js"
 import { placeholderWelfareType } from "../core/welfareType.js"
-import {
-    povertyLineMode as readPovertyLineMode,
-    resolveCurrency,
-    roundIncomeAsDisplayed,
-} from "../core/currency.js"
+import { resolveCurrency, roundIncomeAsDisplayed } from "../core/currency.js"
 import {
     Currency,
     IncomeDistributionYear,
@@ -352,13 +348,15 @@ function CaptionedDistributionVariant({
         [yearData, displayedPovertyLine, legendMeasure, legendEntries]
     )
 
-    // The poverty line control isn't stored: it's read off the line, so a
-    // line moved off the international one turns into a custom one
-    const povertyLineMode = readPovertyLineMode(
-        povertyLine,
-        currency,
-        timeInterval
-    )
+    // The poverty line control isn't stored: it's read off the line. Only
+    // the exact international line, as picked from the control, counts as
+    // International; a line dragged or clicked to about $3 stays Custom
+    const povertyLineMode: PovertyLineMode =
+        povertyLine === null
+            ? "off"
+            : povertyLine === INT_POVERTY_LINE
+              ? "international"
+              : "custom"
     const setPovertyLineMode = useCallback(
         (mode: PovertyLineMode) => {
             if (mode === "off") setPovertyLine(null)

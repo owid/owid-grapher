@@ -8,8 +8,6 @@ import {
     formatIncome,
     formatPeople,
     formatShare,
-    isInternationalPovertyLine,
-    povertyLineMode,
     resolveCurrency,
     roundIncomeAsDisplayed,
     timeIntervalNoun,
@@ -121,46 +119,6 @@ describe(resolveCurrency, () => {
     it("falls back to the international dollar for unknown keys or a missing list", () => {
         expect(resolveCurrency("XYZ", [EURO])).toBe(INTERNATIONAL_DOLLAR)
         expect(resolveCurrency("DEU", undefined)).toBe(INTERNATIONAL_DOLLAR)
-    })
-})
-
-describe(isInternationalPovertyLine, () => {
-    it("matches the line at $3 a day", () => {
-        expect(
-            isInternationalPovertyLine(3, INTERNATIONAL_DOLLAR, "daily")
-        ).toBe(true)
-        expect(
-            isInternationalPovertyLine(3.2, INTERNATIONAL_DOLLAR, "daily")
-        ).toBe(false)
-    })
-
-    it("counts a line that reads as $3 a day in the current units", () => {
-        // A line dragged to $90.94 a month still reads as "$91", as $3 a day does
-        expect(
-            isInternationalPovertyLine(2.99, INTERNATIONAL_DOLLAR, "monthly")
-        ).toBe(true)
-        // $3.02 a day is $92 a month, which isn't
-        expect(
-            isInternationalPovertyLine(3.02, INTERNATIONAL_DOLLAR, "monthly")
-        ).toBe(false)
-    })
-
-    it("compares in the displayed currency", () => {
-        // €1.50 a day at 0.5 EUR per int-$, however the int-$ amount rounds
-        expect(isInternationalPovertyLine(3.05, EURO, "daily")).toBe(true)
-        expect(isInternationalPovertyLine(3.2, EURO, "daily")).toBe(false)
-    })
-})
-
-describe(povertyLineMode, () => {
-    it("is off without a line, else international or custom", () => {
-        expect(povertyLineMode(null, INTERNATIONAL_DOLLAR, "daily")).toBe("off")
-        expect(povertyLineMode(3, INTERNATIONAL_DOLLAR, "daily")).toBe(
-            "international"
-        )
-        expect(povertyLineMode(12, INTERNATIONAL_DOLLAR, "daily")).toBe(
-            "custom"
-        )
     })
 })
 

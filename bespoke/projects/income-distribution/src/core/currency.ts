@@ -1,11 +1,7 @@
 import { roundSigFig } from "@ourworldindata/utils"
 
-import {
-    INT_POVERTY_LINE,
-    INTERNATIONAL_DOLLAR,
-    TIME_INTERVAL_FACTORS,
-} from "./constants.js"
-import type { Currency, PovertyLineMode, TimeInterval } from "./types.js"
+import { INTERNATIONAL_DOLLAR, TIME_INTERVAL_FACTORS } from "./constants.js"
+import type { Currency, TimeInterval } from "./types.js"
 
 /** Multiplier taking a daily international-$ amount to `currency` per `interval` */
 export function combinedFactor(
@@ -178,32 +174,4 @@ export function resolveCurrency(
     return (
         currencies?.find((c) => c.countryCode === key) ?? INTERNATIONAL_DOLLAR
     )
-}
-
-/**
- * Whether a poverty line reads as the international poverty line in the
- * current units, e.g. a line dragged to "$91" a month in international-$.
- * Compares what the reader sees, so a line a fraction off still counts.
- */
-export function isInternationalPovertyLine(
-    line: number,
-    currency: Currency,
-    interval: TimeInterval
-): boolean {
-    return (
-        formatIncome(line, currency, interval) ===
-        formatIncome(INT_POVERTY_LINE, currency, interval)
-    )
-}
-
-/** What the poverty line control shows for `line`: it isn't stored, but read off the line */
-export function povertyLineMode(
-    line: number | null,
-    currency: Currency,
-    interval: TimeInterval
-): PovertyLineMode {
-    if (line === null) return "off"
-    return isInternationalPovertyLine(line, currency, interval)
-        ? "international"
-        : "custom"
 }
