@@ -55,6 +55,9 @@ const MAX_UNSCROLLED_ITEMS = 10
 /** An indicator lists this many of its charts, and the rest on request */
 const MAX_INDICATOR_CHARTS = 5
 
+/** The changelog shows this many of its latest entries, and the rest on request */
+const MAX_CHANGELOG_ENTRIES = 5
+
 declare global {
     interface Window {
         [DATASET_PAGE_PROPS_KEY]?: DatasetPageProps
@@ -1019,7 +1022,12 @@ function SourcesAndProcessingSection({
 }
 
 function ChangelogSection({ dataset }: { dataset: DatasetPageData }) {
+    const [showAll, setShowAll] = useState(false)
     if (dataset.changelog.length === 0) return null
+    // The entries come newest first
+    const entries = showAll
+        ? dataset.changelog
+        : dataset.changelog.slice(0, MAX_CHANGELOG_ENTRIES)
     return (
         <section
             className="dataset-page__section dataset-page__section--changelog dataset-page__section--bordered col-start-2 span-cols-12"
@@ -1027,7 +1035,7 @@ function ChangelogSection({ dataset }: { dataset: DatasetPageData }) {
         >
             <SectionWithSideHeading heading="Changelog" headingLevel={2}>
                 <div className="dataset-page__changelog">
-                    {dataset.changelog.map((entry) => (
+                    {entries.map((entry) => (
                         <div
                             key={entry.date}
                             className="dataset-page__changelog-entry"
@@ -1048,6 +1056,15 @@ function ChangelogSection({ dataset }: { dataset: DatasetPageData }) {
                         </div>
                     ))}
                 </div>
+                {entries.length < dataset.changelog.length && (
+                    <button
+                        type="button"
+                        className="dataset-page__show-all"
+                        onClick={() => setShowAll(true)}
+                    >
+                        Show all {dataset.changelog.length} entries
+                    </button>
+                )}
             </SectionWithSideHeading>
         </section>
     )
