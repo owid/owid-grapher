@@ -47,7 +47,12 @@ import type {
     IncomeDistributionYear,
     TimeInterval,
 } from "../core/types.js"
-import { WORLD_COLOR, WORLD_ENTITY_NAME } from "../core/constants.js"
+import {
+    INT_POVERTY_LINE,
+    INTERNATIONAL_DOLLAR,
+    WORLD_COLOR,
+    WORLD_ENTITY_NAME,
+} from "../core/constants.js"
 import { IncomeDistributionTooltip } from "./IncomeDistributionTooltip.js"
 
 export interface IncomeDistributionChartProps {
@@ -289,14 +294,17 @@ function IncomeDistributionChartContent({
         }
         const layout = placeCurveLabels(candidates, options)
         if (leftoverLegendTop === undefined) return layout
-        // The box only lists what's left over, so its size depends on the
-        // labels: place them as if it weren't there, then hide the ones it
+        // The box lists every country once any label had to be left out, so
+        // place the labels as if it weren't there, then hide the ones it
         // ends up covering
-        return hideLabelsUnderBox(layout, (keys) =>
-            estimateLeftoverLegendBox(keys, {
-                top: leftoverLegendTop,
-                right: width - MARGIN.right,
-            })
+        const allKeys = model.series.map((series) => series.key)
+        return hideLabelsUnderBox(layout, (dropped) =>
+            dropped.length === 0
+                ? undefined
+                : estimateLeftoverLegendBox(allKeys, {
+                      top: leftoverLegendTop,
+                      right: width - MARGIN.right,
+                  })
         )
     }, [
         isStacked,
@@ -636,7 +644,22 @@ function IncomeDistributionChartContent({
                         plotBottom={plotBottom}
                         width={width}
                         obstacles={obstacles}
-                        label={`${isInternationalPovertyLine ? "International poverty line" : "Poverty line"}: ${formatIncome(povertyLine, currency, timeInterval, { short: true })}`}
+                        // The international line is always $3 a day, whatever
+                        // the chart is measured in: it's named on its own line,
+                        // with $3 a day and the amount in the chosen units below
+                        title={
+                            isInternationalPovertyLine
+                                ? "International poverty line"
+                                : undefined
+                        }
+                        label={
+                            isInternationalPovertyLine
+                                ? internationalPovertyLineAmount(
+                                      currency,
+                                      timeInterval
+                                  )
+                                : `Poverty line: ${formatIncome(povertyLine, currency, timeInterval, { short: true })}`
+                        }
                         valueNow={povertyLine}
                         valueMin={minIncome}
                         valueMax={maxIncome}
@@ -844,6 +867,23 @@ function XAxis({
 }
 
 /**
+ * "$3 a day", plus the same amount in the chart's units when those differ,
+ * e.g. "$3 a day or €79 per month"
+ */
+function internationalPovertyLineAmount(
+    currency: Currency,
+    timeInterval: TimeInterval
+): string {
+    const perDay = `$${INT_POVERTY_LINE} a day`
+    if (currency.code === INTERNATIONAL_DOLLAR.code && timeInterval === "daily")
+        return perDay
+    const converted = formatIncome(INT_POVERTY_LINE, currency, timeInterval, {
+        short: true,
+    })
+    return `${perDay} or ${converted} per ${timeIntervalNoun(timeInterval)}`
+}
+
+/**
  * The poverty line, drawn like a pin: a dashed line topped by a ball, with
  * its label beside the ball and a × that removes the line. The line and the
  * ball are the grab target: drag to move the line, or focus it and use the
@@ -855,6 +895,7 @@ function PovertyLine({
     plotBottom,
     width,
     obstacles,
+    title,
     label,
     valueNow,
     valueMin,
@@ -872,6 +913,8 @@ function PovertyLine({
     width: number
     /** Boxes the label stays clear of by moving left of the ball */
     obstacles?: LabelBox[]
+    /** Bold first line; without it, `label` is the bold line */
+    title?: string
     label: string
     /** Int-$/day, for assistive tech */
     valueNow: number
@@ -892,16 +935,23 @@ function PovertyLine({
     const gap = 6
     const clearSize = 14
     const clearSpace = onClear ? gap / 2 + clearSize : 0
-    const textWidth = Bounds.forText(label, {
+    const lineHeight = 14
+    const titleWidth = Bounds.forText(title ?? label, {
         fontSize,
         fontWeight: 700,
     }).width
+    const textWidth = title
+        ? Math.max(
+              titleWidth,
+              Bounds.forText(label, { fontSize, fontWeight: 400 }).width
+          )
+        : titleWidth
     // The label sits right of the ball, or left of it when it would overflow
     // or run into an obstacle (e.g. the button over the plot's corner)
     const rightStart = x + ballRadius + gap
     const rightEnd = rightStart + textWidth + clearSpace
     const labelTop = ballY - clearSize / 2
-    const labelBottom = ballY + clearSize / 2
+    const labelBottom = ballY + clearSize / 2 + (title ? lineHeight : 0)
     const fitsRight =
         rightEnd <= width &&
         !(obstacles ?? []).some(
@@ -915,7 +965,7 @@ function PovertyLine({
         ? x + ballRadius + gap
         : x - ballRadius - gap - clearSpace
     const clearX = fitsRight
-        ? textX + textWidth + gap / 2
+        ? textX + titleWidth + gap / 2
         : x - ballRadius - gap - clearSize
     const clearCenterX = clearX + clearSize / 2
     const clearHintPosition = { x: clearCenterX, y: ballY + clearSize / 2 + 4 }
@@ -930,7 +980,7 @@ function PovertyLine({
                 aria-valuenow={valueNow}
                 aria-valuemin={valueMin}
                 aria-valuemax={valueMax}
-                aria-valuetext={label}
+                aria-valuetext={title ? `${title}, ${label}` : label}
                 aria-orientation="horizontal"
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
@@ -980,8 +1030,24 @@ function PovertyLine({
                     paintOrder="stroke"
                     pointerEvents="none"
                 >
-                    {label}
+                    {title ?? label}
                 </text>
+                {title && (
+                    <text
+                        x={textX}
+                        y={ballY + lineHeight}
+                        dominantBaseline="central"
+                        textAnchor={fitsRight ? "start" : "end"}
+                        fontSize={fontSize}
+                        fill={GRAY_100}
+                        stroke={GRAPHER_BACKGROUND}
+                        strokeWidth={3}
+                        paintOrder="stroke"
+                        pointerEvents="none"
+                    >
+                        {label}
+                    </text>
+                )}
             </g>
             {onClear && (
                 <g

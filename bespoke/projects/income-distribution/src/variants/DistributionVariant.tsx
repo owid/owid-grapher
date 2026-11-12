@@ -359,15 +359,11 @@ function CaptionedDistributionVariant({
         (view === "global" ||
             povertyLine !== null ||
             unlabelledCountries.length > 0)
-    // Countries view without a line: the overlay legend is a sidebar for the
-    // countries left without a label, not a repeat of every one
+    // Countries view without a line: the overlay legend only appears when a
+    // country couldn't be labelled, and then lists every country
     const listsLeftovers =
         view === "countries" && povertyLine === null && !isNarrow
-    const overlayLegendEntries = useMemo(() => {
-        if (!listsLeftovers) return legendEntries
-        const leftovers = new Set(unlabelledCountries)
-        return legendEntries.filter((entry) => leftovers.has(entry.key))
-    }, [listsLeftovers, legendEntries, unlabelledCountries])
+    const overlayLegendEntries = legendEntries
     // Where that legend starts: below the button, else below the poverty
     // line's label (see .income-distribution-captioned-chart__overlays)
     const leftoverLegendTop = listsLeftovers
