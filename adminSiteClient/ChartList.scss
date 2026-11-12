@@ -126,6 +126,17 @@
     font-style: italic;
 }
 
+// The publish switch, then when and by whom
+.chart-list__published {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    .ant-switch {
+        margin-top: 2px;
+    }
+}
+
 .chart-list__timestamp {
     min-width: 90px;
     line-height: 1.35;

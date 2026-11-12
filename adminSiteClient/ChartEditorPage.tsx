@@ -42,6 +42,7 @@ import {
     Log,
     makeChartBaseConfig,
     References,
+    unpublishConfirmMessage,
 } from "./adminChartApi.js"
 import {
     adminOriginUrlSuggestions,
@@ -423,11 +424,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                     () => (grapherState.isPublished = wasPublished)
                 )
                 if (wasPublished) {
-                    const message =
-                        this.references &&
-                        getFullReferencesCount(this.references) > 0
-                            ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Try to remove the chart anyway?"
-                            : "Are you sure you want to unpublish this chart?"
+                    const message = unpublishConfirmMessage(this.references)
                     if (!window.confirm(message)) return
                     runInAction(() => (grapherState.isPublished = undefined))
                     void editor.saveGrapher({ onError: rollBack })
