@@ -1,5 +1,4 @@
 import { Tippy } from "@ourworldindata/utils"
-import { GRAPHER_BACKGROUND } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import type { WelfareType } from "../core/types.js"
@@ -12,7 +11,8 @@ import { WELFARE_TYPE_BADGES } from "../core/welfareType.js"
 export const WELFARE_BADGE_SIZE = 12
 export const WELFARE_BADGE_GAP = 4
 /** Font size of the badge's letter in px */
-const WELFARE_BADGE_FONT_SIZE = 9
+// 0.6 of the badge, as the glyph in Grapher's .icon-circled-s
+const WELFARE_BADGE_FONT_SIZE = 7.2
 
 /** Shown on hover and focus; like Grapher's details-on-demand tooltips */
 const TIPPY_PROPS: Partial<React.ComponentProps<typeof Tippy>> = {
@@ -109,17 +109,18 @@ export function SvgWelfareBadge({
                     data-key={dataKey}
                     cx={cx}
                     cy={cy}
-                    r={WELFARE_BADGE_SIZE / 2}
+                    // The stroke straddles the edge, so the ring stays 12px
+                    r={(WELFARE_BADGE_SIZE - 1) / 2}
                 />
                 {/* Baseline 0.36em below the centre centres Lato's capitals */}
                 <text
+                    className="income-distribution-welfare-badge-svg__letter"
                     x={cx}
                     y={cy}
                     dy="0.36em"
                     textAnchor="middle"
                     fontSize={WELFARE_BADGE_FONT_SIZE}
                     fontWeight={700}
-                    fill={GRAPHER_BACKGROUND}
                     pointerEvents="none"
                 >
                     {letter}
