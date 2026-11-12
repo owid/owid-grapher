@@ -386,8 +386,9 @@ export async function handleGetMultiDims(
         >(
             trx,
             // The counts mirror chart_references_view's: narrative charts made
-            // from any of its views, and published gdocs (not fragments or
-            // about pages) and static visualizations that link to its slug
+            // from any of its views, published gdocs (not fragments or about
+            // pages) linking to its slug or to one that redirects to it, and
+            // static visualizations of it
             `-- sql
             SELECT
                 mdp.id,
@@ -411,10 +412,17 @@ export async function handleGetMultiDims(
                     SELECT COUNT(DISTINCT pgl.sourceId)
                     FROM posts_gdocs_links pgl
                     JOIN posts_gdocs pg ON pg.id = pgl.sourceId
-                    WHERE pgl.target = mdp.slug
-                        AND pgl.linkType = 'grapher'
+                    WHERE pgl.linkType = 'grapher'
                         AND pg.published = TRUE
                         AND pg.type NOT IN ('fragment', 'about-page')
+                        AND (
+                            pgl.target = mdp.slug
+                            OR pgl.target IN (
+                                SELECT REPLACE(mdr.source, '/grapher/', '')
+                                FROM ${MultiDimRedirectsTableName} mdr
+                                WHERE mdr.multiDimId = mdp.id
+                            )
+                        )
                 ) + (
                     SELECT COUNT(*)
                     FROM static_viz sv

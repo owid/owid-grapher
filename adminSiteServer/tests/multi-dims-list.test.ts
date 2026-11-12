@@ -4,6 +4,7 @@ import {
     AnalyticsGrapherViewsTableName,
     ContentGraphLinkType,
     ImagesTableName,
+    MultiDimRedirectsTableName,
     MultiDimXChartConfigsTableName,
     PostsGdocsLinksTableName,
     PostsGdocsTableName,
@@ -153,8 +154,17 @@ describe("Listing multi-dims", { timeout: 20000 }, () => {
             views_365d: 3650,
         })
         await seedNarrativeChartFromAView()
-        // Two references: a published article and a static visualization
+        // Three references: a published article, one linking to an old slug
+        // that now redirects here, and a static visualization
         await seedGdocLinkingTo({ id: "published-article", target: SLUG })
+        await env.testKnex(MultiDimRedirectsTableName).insert({
+            source: "/grapher/old-energy-use",
+            multiDimId: id,
+        })
+        await seedGdocLinkingTo({
+            id: "article-with-old-link",
+            target: "old-energy-use",
+        })
         await seedStaticVizOf(SLUG)
         // None of these count: a draft, a fragment, and an explorer that
         // happens to share the slug
@@ -177,7 +187,7 @@ describe("Listing multi-dims", { timeout: 20000 }, () => {
         expect(await listedMultiDim(id)).toMatchObject({
             viewsPerDay: 10,
             narrativeChartsCount: 1,
-            referencesCount: 2,
+            referencesCount: 3,
         })
     })
 
