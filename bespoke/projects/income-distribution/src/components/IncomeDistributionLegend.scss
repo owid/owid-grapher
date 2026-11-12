@@ -294,6 +294,17 @@
     gap: 6px;
 }
 
+// With the bars, the mark column is as wide as the longest possible value
+// plus a full-length bar, so the names don't shift as the line moves
+.income-distribution-legend--overlay-shares .income-distribution-legend__mark {
+    width: 140px; // "100%" + gap + 100px bar
+}
+
+.income-distribution-legend--overlay-shares.income-distribution-legend--people
+    .income-distribution-legend__mark {
+    width: 152px; // "820 million" + gap + 72px bar
+}
+
 .income-distribution-legend--overlay .income-distribution-legend__swatch {
     transition: width 300ms cubic-bezier(0.23, 1, 0.32, 1);
 
