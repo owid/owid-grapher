@@ -294,6 +294,11 @@ function IncomeDistributionChartContent({
             fontSizes: isNarrow
                 ? REGION_LABEL_FONT_SIZES_NARROW
                 : REGION_LABEL_FONT_SIZES,
+            // Measured rather than estimated from the character count, so
+            // the label is as large as its band really allows
+            measureAspect: (label) =>
+                Bounds.forText(label, { fontSize: 16, fontWeight: 700 }).width /
+                16,
         })
     }, [model.regionBands, incomes, xScale, yScale, isNarrow])
 

@@ -27,13 +27,6 @@ const SEARCH_ROWS = 40
 /** Columns of the band thinner than this (px) aren't considered at all */
 const MIN_COLUMN_HEIGHT = 10
 /**
- * Among the spots with at least this share of the roomiest spot's clearance,
- * the one nearest the band's centre of area wins, so a label sits over the
- * bulk of its region rather than wherever a tall, narrow peak leaves most
- * room
- */
-const NEAR_BEST_CLEARANCE = 0.8
-/**
  * Longest outline segment (px, in aspect-scaled space) before it's split, so
  * that the nearest outline vertex is a good stand-in for the nearest edge
  */
@@ -54,40 +47,44 @@ export function placeRegionLabels(
         fontSizes?: readonly number[]
         /** Approximate glyph width as a fraction of font size, default 0.55 */
         charWidthRatio?: number
+        /**
+         * The label's width as a multiple of its font size, measured; more
+         * exact than `charWidthRatio`, which it replaces when given
+         */
+        measureAspect?: (label: string) => number
     } = {}
 ): RegionLabel[] {
     const fontSizes = [...(options.fontSizes ?? DEFAULT_FONT_SIZES)].sort(
         (a, b) => b - a
     )
     const charWidthRatio = options.charWidthRatio ?? DEFAULT_CHAR_WIDTH_RATIO
+    const aspectOf = (label: string): number =>
+        options.measureAspect?.(label) ?? label.length * charWidthRatio
 
     const labels: RegionLabel[] = []
     for (const band of bands) {
-        const spot = findLabelSpot(band, band.region.length * charWidthRatio)
-        if (!spot) continue
-        const maxFontSize = spot.clearance * 2 * COMFORT_MARGIN
-        const fontSize = fontSizes.find((size) => size <= maxFontSize)
-        if (fontSize !== undefined)
-            labels.push({ region: band.region, x: spot.x, y: spot.y, fontSize })
+        const spot = findLabelSpot(band, aspectOf(band.region), fontSizes)
+        if (spot) labels.push({ region: band.region, ...spot })
     }
     return labels
 }
 
 /**
- * The point of the band where a label of the given aspect ratio
- * (width/height) has the most room, and how much: `clearance` is the radius
- * of the largest circle around it in aspect-scaled space, i.e. in units of
- * label height.
+ * Where to put a label of the given aspect ratio (width/height) in the band,
+ * and at which of `fontSizes` (largest first): the largest size that fits
+ * anywhere, placed at the spot nearest the band's centre of area among those
+ * that fit it, so a label sits over the bulk of its region rather than
+ * wherever a tall, narrow peak happens to leave the most room.
  *
  * Dividing x by the aspect ratio turns a text-shaped rectangle into a square,
  * so plain Euclidean distance to the outline then measures how well a label
- * fits. Of the spots that are nearly as roomy as the roomiest, the one
- * closest to the band's centre of area is returned.
+ * fits: half that distance, scaled back, bounds the font size.
  */
 function findLabelSpot(
     band: RegionBandPixels,
-    textAspect: number
-): { x: number; y: number; clearance: number } | undefined {
+    textAspect: number,
+    fontSizes: readonly number[]
+): { x: number; y: number; fontSize: number } | undefined {
     const { points } = band
     const n = points.length
     if (n < 2 || textAspect <= 0) return undefined
@@ -132,8 +129,17 @@ function findLabelSpot(
     }
     if (candidates.length === 0) return undefined
 
-    const bestDistSq = Math.max(...candidates.map((c) => c.distSq))
-    const minDistSq = bestDistSq * NEAR_BEST_CLEARANCE ** 2
+    // The largest size that fits anywhere
+    const bestClearance = Math.sqrt(
+        Math.max(...candidates.map((c) => c.distSq))
+    )
+    const fontSize = fontSizes.find(
+        (size) => size <= bestClearance * 2 * COMFORT_MARGIN
+    )
+    if (fontSize === undefined) return undefined
+
+    // Of the spots that fit it, the one nearest the band's centre of area
+    const minDistSq = (fontSize / (2 * COMFORT_MARGIN)) ** 2
     const centreX = areaX / areaSum
     const centreY = areaY / areaSum
     let nearest = candidates[0]
@@ -149,11 +155,7 @@ function findLabelSpot(
         }
     }
 
-    return {
-        x: nearest.x,
-        y: nearest.y,
-        clearance: Math.sqrt(nearest.distSq),
-    }
+    return { x: nearest.x, y: nearest.y, fontSize }
 }
 
 /**
