@@ -46,6 +46,7 @@ import { ChartSearchToolbar } from "./ChartSearchToolbar.js"
 import {
     Button,
     Dropdown,
+    Switch,
     Table,
     TableColumnsType,
     Tooltip,
@@ -61,7 +62,11 @@ import {
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../settings/clientSettings.mjs"
-import { deleteChart, References } from "./adminChartApi.js"
+import {
+    deleteChart,
+    References,
+    unpublishConfirmMessage,
+} from "./adminChartApi.js"
 import { getChartListItemEtlSource } from "./etlChartSync.js"
 
 // These properties are coming from OldChart.ts
@@ -383,10 +388,17 @@ function ActionsCell({
                         />
                     </Tooltip>
                 </Dropdown>
-                <Tooltip title="Delete">
+                <Tooltip
+                    title={
+                        chart.isPublished
+                            ? "Unpublish it to delete it"
+                            : "Delete"
+                    }
+                >
                     <Button
                         size="small"
                         danger
+                        disabled={chart.isPublished}
                         aria-label="Delete"
                         icon={<FontAwesomeIcon icon={faTrashCan} />}
                         onClick={() => onDelete(chart)}
@@ -431,6 +443,7 @@ function createColumns({
     showInheritanceColumn,
     onDelete,
     onAuthorClick,
+    onTogglePublished,
 }: {
     highlight: Highlighter
     highlightAuthor: Highlighter
@@ -439,6 +452,7 @@ function createColumns({
     showInheritanceColumn: boolean
     onDelete: (chart: ChartListItem) => void
     onAuthorClick: (author: string) => void
+    onTogglePublished: (chart: ChartListItem) => void
 }): TableColumnsType<ChartListItem> {
     // Counts are most useful largest first
     const descendFirst: ("descend" | "ascend")[] = ["descend", "ascend"]
@@ -505,12 +519,19 @@ function createColumns({
             sorter: (a, b) => compareTimes(a.publishedAt, b.publishedAt),
             sortDirections: descendFirst,
             render: (_, chart) => (
-                <TimestampCell
-                    time={chart.publishedAt}
-                    by={chart.publishedBy}
-                    highlight={highlightAuthor}
-                    onAuthorClick={onAuthorClick}
-                />
+                <div className="chart-list__published">
+                    <Switch
+                        size="small"
+                        checked={!!chart.isPublished}
+                        onChange={() => onTogglePublished(chart)}
+                    />
+                    <TimestampCell
+                        time={chart.publishedAt}
+                        by={chart.publishedBy}
+                        highlight={highlightAuthor}
+                        onAuthorClick={onAuthorClick}
+                    />
+                </div>
             ),
         },
         {
@@ -617,6 +638,47 @@ export class ChartList extends React.Component<ChartListProps> {
         })
     }
 
+    /** Publishes or unpublishes it as the editor does, with its warnings */
+    @bind async onTogglePublished(chart: ChartListItem) {
+        const { admin } = this.context
+        const publish = !chart.isPublished
+        const message = publish
+            ? `Publish chart at ${BAKED_GRAPHER_URL}/${chart.slug}?`
+            : unpublishConfirmMessage(await this.fetchRefs(chart.id))
+        if (!window.confirm(message)) return
+
+        const patch: GrapherInterface = await admin.getJSON(
+            `/api/charts/${chart.id}.patchConfig.json`
+        )
+        const json = await admin.requestJSON(
+            `/api/charts/${chart.id}`,
+            publish
+                ? {
+                      ...patch,
+                      isPublished: true,
+                      slug: patch.slug ?? chart.slug,
+                  }
+                : lodash.omit(patch, "isPublished"),
+            "PUT"
+        )
+        if (!json.success) return
+
+        // A new row rather than an edit to it, so the table renders it again
+        const now = new Date().toISOString()
+        runInAction(() => {
+            const { charts } = this.props
+            charts[charts.indexOf(chart)] = {
+                ...chart,
+                isPublished: publish,
+                lastEditedAt: now,
+                lastEditedBy: admin.username,
+                ...(publish
+                    ? { publishedAt: now, publishedBy: admin.username }
+                    : {}),
+            }
+        })
+    }
+
     @bind async getTags() {
         const json = await this.context.admin.getJSON("/api/tags.json")
         runInAction(() => (this.availableTags = json.tags))
@@ -700,6 +762,7 @@ export class ChartList extends React.Component<ChartListProps> {
                     onPageChange={this.onPageChange}
                     onDelete={this.onDeleteChart}
                     onAuthorClick={this.onAuthorClick}
+                    onTogglePublished={this.onTogglePublished}
                 />
             </div>
         )
@@ -716,6 +779,7 @@ interface ChartTableProps {
     onPageChange: (page: number, pageSize: number) => void
     onDelete: (chart: ChartListItem) => void
     onAuthorClick: (author: string) => void
+    onTogglePublished: (chart: ChartListItem) => void
 }
 
 function DeferredChartTable(props: ChartTableProps): React.ReactElement {
@@ -769,6 +833,7 @@ class ChartTable extends React.Component<ChartTableProps> {
             showInheritanceColumn,
             onDelete: this.props.onDelete,
             onAuthorClick: this.props.onAuthorClick,
+            onTogglePublished: this.props.onTogglePublished,
         })
 
         return (
