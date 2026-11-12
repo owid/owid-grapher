@@ -101,6 +101,11 @@ function sourceAnchorId(sourceIndex: number): string {
     return `source-${sourceIndex}`
 }
 
+/** Id of a chart's entry in the list of the charts section */
+function chartItemId(chartIndex: number): string {
+    return `chart-item-${chartIndex}`
+}
+
 function scrollToSection(id: string): void {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
 }
@@ -464,14 +469,25 @@ function DatasetHeader({
 
 function IndicatorDetails({
     indicator,
+    charts,
     sourceIndexByTitle,
     onSourceClick,
+    onChartClick,
 }: {
     indicator: DatasetIndicator
+    /** All the charts of the table */
+    charts: DatasetChart[]
     sourceIndexByTitle: Map<string, number>
     onSourceClick: (sourceIndex: number) => void
+    onChartClick: (chartIndex: number) => void
 }) {
     const sourceNames = indicator.sourceNames ?? []
+    // The charts that use this indicator, with their position in the charts section
+    const indicatorCharts = charts
+        .map((chart, chartIndex) => ({ chart, chartIndex }))
+        .filter(({ chart }) =>
+            chart.indicatorShortNames.includes(indicator.shortName)
+        )
     return (
         <div className="dataset-page__details">
             {indicator.descriptionLong && (
@@ -531,6 +547,29 @@ function IndicatorDetails({
                     </ul>
                 </>
             )}
+            {indicatorCharts.length > 0 && (
+                <>
+                    <h4 className="dataset-page__details-heading">
+                        Charts with this indicator:
+                    </h4>
+                    <ul className="dataset-page__details-sources">
+                        {indicatorCharts.map(({ chart, chartIndex }) => (
+                            <li key={chart.grapherPath}>
+                                <a
+                                    href={`#${SECTION_IDS.charts}`}
+                                    onClick={(e) => {
+                                        e.preventDefault()
+                                        onChartClick(chartIndex)
+                                    }}
+                                >
+                                    {chart.title}
+                                    <FontAwesomeIcon icon={faArrowDown} />
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </>
+            )}
         </div>
     )
 }
@@ -538,13 +577,17 @@ function IndicatorDetails({
 function IndicatorGroup({
     group,
     query,
+    charts,
     sourceIndexByTitle,
     onSourceClick,
+    onChartClick,
 }: {
     group: DatasetIndicatorGroup
     query: string
+    charts: DatasetChart[]
     sourceIndexByTitle: Map<string, number>
     onSourceClick: (sourceIndex: number) => void
+    onChartClick: (chartIndex: number) => void
 }) {
     // Only one indicator per group is open at a time
     const [openIndicator, setOpenIndicator] = useState<string | undefined>()
@@ -579,8 +622,10 @@ function IndicatorGroup({
                     >
                         <IndicatorDetails
                             indicator={indicator}
+                            charts={charts}
                             sourceIndexByTitle={sourceIndexByTitle}
                             onSourceClick={onSourceClick}
+                            onChartClick={onChartClick}
                         />
                     </ExpandableRow>
                 ))}
@@ -592,9 +637,11 @@ function IndicatorGroup({
 function IndicatorsSection({
     table,
     onSourceClick,
+    onChartClick,
 }: {
     table: DatasetTable
     onSourceClick: (sourceIndex: number) => void
+    onChartClick: (chartIndex: number) => void
 }) {
     const [query, setQuery] = useState("")
     const sourceIndexByTitle = useMemo(
@@ -631,8 +678,10 @@ function IndicatorsSection({
                     key={group.id}
                     group={group}
                     query={query}
+                    charts={table.charts}
                     sourceIndexByTitle={sourceIndexByTitle}
                     onSourceClick={onSourceClick}
+                    onChartClick={onChartClick}
                 />
             ))}
             {!hasResults && (
@@ -653,11 +702,13 @@ interface ChartSelection {
 }
 
 function ChartListItem({
+    id,
     chart,
     isSelected,
     selectedViewIndex,
     onSelect,
 }: {
+    id: string
     chart: DatasetChart
     isSelected: boolean
     selectedViewIndex?: number
@@ -665,6 +716,7 @@ function ChartListItem({
 }) {
     return (
         <li
+            id={id}
             className={cx("dataset-page__chart-item", {
                 "dataset-page__chart-item--selected": isSelected,
             })}
@@ -712,12 +764,16 @@ function ChartListItem({
     )
 }
 
-function ChartsSection({ table }: { table: DatasetTable }) {
+function ChartsSection({
+    table,
+    selection,
+    onSelect,
+}: {
+    table: DatasetTable
+    selection: ChartSelection
+    onSelect: (selection: ChartSelection) => void
+}) {
     const [query, setQuery] = useState("")
-    const [selection, setSelection] = useState<ChartSelection>({
-        chartIndex: 0,
-        viewIndex: 0,
-    })
 
     const filteredCharts = useMemo(
         () =>
@@ -759,11 +815,12 @@ function ChartsSection({ table }: { table: DatasetTable }) {
                             {filteredCharts.map(({ chart, index }) => (
                                 <ChartListItem
                                     key={chart.grapherPath}
+                                    id={chartItemId(index)}
                                     chart={chart}
                                     isSelected={selection.chartIndex === index}
                                     selectedViewIndex={selection.viewIndex}
                                     onSelect={(viewIndex) =>
-                                        setSelection({
+                                        onSelect({
                                             chartIndex: index,
                                             viewIndex,
                                         })
@@ -1207,6 +1264,29 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
         setScrollTarget(undefined)
     }, [scrollTarget])
 
+    // The chart shown in the charts section
+    const [chartSelection, setChartSelection] = useState<ChartSelection>({
+        chartIndex: 0,
+        viewIndex: 0,
+    })
+    // Set when a chart is clicked in an indicator; we scroll to it once it is selected
+    const [chartToReveal, setChartToReveal] = useState<number | undefined>()
+
+    const revealChart = (chartIndex: number): void => {
+        setChartSelection({ chartIndex, viewIndex: 0 })
+        setChartToReveal(chartIndex)
+    }
+
+    useEffect(() => {
+        if (chartToReveal === undefined) return
+        // Bring the chart's entry into view inside its list, then go to the section
+        document
+            .getElementById(chartItemId(chartToReveal))
+            ?.scrollIntoView({ block: "nearest" })
+        scrollToSection(SECTION_IDS.charts)
+        setChartToReveal(undefined)
+    }, [chartToReveal])
+
     // The page shows the first table for now
     const table = dataset.tables[0]
 
@@ -1236,9 +1316,14 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
                     <IndicatorsSection
                         table={table}
                         onSourceClick={revealSource}
+                        onChartClick={revealChart}
                     />
                 </div>
-                <ChartsSection table={table} />
+                <ChartsSection
+                    table={table}
+                    selection={chartSelection}
+                    onSelect={setChartSelection}
+                />
                 <RelatedResearchSection dataset={dataset} />
             </div>
             <div className="dataset-page__band grid grid-cols-12-full-width">
