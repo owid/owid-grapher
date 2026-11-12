@@ -10,7 +10,6 @@ import {
     PlacedSlopeChartSeries,
     RenderSlopeChartSeries,
     SlopeChartManager,
-    SlopeChartSeries,
 } from "./SlopeChartConstants"
 import {
     getXAxisConfigSettings,
@@ -33,6 +32,7 @@ import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsType
 import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
+import { resolveEmphasis } from "../interaction/Emphasis.js"
 
 const DOT_RADIUS = 3.5
 const SPACE_BETWEEN_DOT_AND_LABEL = 4
@@ -236,13 +236,6 @@ export class SlopeChartThumbnail
         )
     }
 
-    @computed private get labelCandidateSeries(): SlopeChartSeries[] {
-        // If any series is focused, only show the labels for those
-        return this.chartState.isFocusModeActive
-            ? this.chartState.series.filter((series) => series.focus?.active)
-            : this.chartState.series
-    }
-
     @computed private get labelsRange(): [number, number] {
         const {
             xMarksHeight,
@@ -262,15 +255,16 @@ export class SlopeChartThumbnail
         const { end } = this.seriesLabelText
         if (!this.manager.showSeriesLabels || !end) return []
 
-        return this.labelCandidateSeries.map((series) => {
-            const { seriesName, displayName, color } = series
+        return this.chartState.series.map((series) => {
+            const { seriesName, displayName, color, focus } = series
 
             const lastPoint = series.end
             const value = lastPoint?.value ?? 0
 
             const label = end === "name" ? displayName : this.formatLabel(value)
 
-            return { seriesName, value, label, color }
+            const emphasis = resolveEmphasis({ focus })
+            return { seriesName, value, label, color, emphasis }
         })
     }
 
@@ -313,7 +307,9 @@ export class SlopeChartThumbnail
         start?: SeriesLabelText
         end?: SeriesLabelText
     } {
-        const { endLabelNames, values } = getVisibleLabels(this.manager.labelMode)
+        const { endLabelNames, values } = getVisibleLabels(
+            this.manager.labelMode
+        )
         return {
             start: values ? (endLabelNames ? "name" : "value") : undefined,
             end: values ? "value" : endLabelNames ? "name" : undefined,
@@ -331,14 +327,15 @@ export class SlopeChartThumbnail
         const { start } = this.seriesLabelText
         if (!this.manager.showSeriesLabels || !start) return []
 
-        return this.labelCandidateSeries.map((series) => {
-            const { seriesName, displayName, color } = series
+        return this.chartState.series.map((series) => {
+            const { seriesName, displayName, color, focus } = series
             const firstPoint = series.start
             const value = firstPoint?.value ?? 0
             const label =
                 start === "name" ? displayName : this.formatLabel(value)
 
-            return { seriesName, value, label, color }
+            const emphasis = resolveEmphasis({ focus })
+            return { seriesName, value, label, color, emphasis }
         })
     }
 

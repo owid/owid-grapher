@@ -11,7 +11,7 @@ import {
     FontSettings,
 } from "../core/GrapherConstants"
 import { getVisibleLabels, scaleFontSize } from "../chart/ChartUtils"
-import { Bounds, excludeUndefined } from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Time } from "@ourworldindata/types"
@@ -137,19 +137,13 @@ export class StackedBarChartThumbnail
         )
             return []
 
-        return excludeUndefined(
-            this.chartState.series.map((series, seriesIndex) => {
-                const { seriesName, shortEntityName, color, focus } = series
-
-                // Don't label background series
-                if (focus?.background) return undefined
-
-                const value = this.chartState.midpoints[seriesIndex]
-                const label = shortEntityName ?? seriesName
-
-                return { seriesName, value, label, color }
-            })
-        )
+        return this.chartState.series.map((series, seriesIndex) => {
+            const { seriesName, shortEntityName, color, focus } = series
+            const value = this.chartState.midpoints[seriesIndex]
+            const label = shortEntityName ?? seriesName
+            const emphasis = resolveEmphasis({ focus })
+            return { seriesName, value, label, color, emphasis }
+        })
     }
 
     private makeAnchoredLabelsState({

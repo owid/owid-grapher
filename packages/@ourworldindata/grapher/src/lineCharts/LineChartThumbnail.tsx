@@ -298,12 +298,6 @@ export class LineChartThumbnail
                 (series) => series.isProjection
             )
 
-        // If any series is focused, only show the labels for the focused ones
-        if (this.chartState.isFocusModeActive)
-            labelCandidateSeries = labelCandidateSeries.filter(
-                (series) => series.focus.active
-            )
-
         // Keep one series per name, the one with the most recent data
         // (series are sorted by time)
         const seriesByName = Map.groupBy(
@@ -416,12 +410,6 @@ export class LineChartThumbnail
                 (series) => !series.isProjection
             )
 
-        // If any series is focused, only show the labels for the focused ones
-        if (this.chartState.isFocusModeActive)
-            labelCandidateSeries = labelCandidateSeries.filter(
-                (series) => series.focus.active
-            )
-
         // Keep one series per name, the one with the earliest data
         // (series are sorted by time)
         const seriesByName = Map.groupBy(
@@ -448,7 +436,9 @@ export class LineChartThumbnail
         start?: SeriesLabelText
         end?: SeriesLabelText
     } {
-        const { endLabelNames, values } = getVisibleLabels(this.manager.labelMode)
+        const { endLabelNames, values } = getVisibleLabels(
+            this.manager.labelMode
+        )
         return {
             start: values ? (endLabelNames ? "name" : "value") : undefined,
             end: values ? "value" : endLabelNames ? "name" : undefined,
