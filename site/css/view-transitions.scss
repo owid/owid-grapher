@@ -3,9 +3,9 @@
 //
 // When navigating between pages of the site, the browser keeps a snapshot of
 // the old page and animates it into the new one instead of flashing to white.
-// The old content fades out quickly and the new content fades in while rising
-// a few pixels; the site header stays put, so the page feels like it swaps its
-// content rather than reloading.
+// Whatever differs between the pages crossfades, while whatever they share
+// (the site header, an about page's title) stays put, so the page feels like
+// it swaps its content rather than reloading.
 //
 // This is progressive enhancement: browsers without cross-document view
 // transitions (see docs/browser-support.md) ignore all of it and navigate as
@@ -38,26 +38,8 @@
     animation: none;
 }
 
-// The page content: a quick fade out, then a short fade-and-rise in. Kept
-// brief so navigation never feels slower than without the transition.
-::view-transition-old(root) {
-    animation: var(--duration-press) ease-in both view-transition-fade-out;
-}
-
-::view-transition-new(root) {
-    animation: var(--duration-panel) var(--ease-out) both
-        view-transition-fade-rise-in;
-}
-
-@keyframes view-transition-fade-out {
-    to {
-        opacity: 0;
-    }
-}
-
-@keyframes view-transition-fade-rise-in {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-}
+// The page content uses the browser's default crossfade (250ms). The old and
+// new snapshots are blended with `plus-lighter`, so anything identical on both
+// pages (e.g. the title and tab nav shared by all about pages) stays perfectly
+// still and only what actually changes fades. Don't add movement (a slide or
+// rise) to the root, or that shared content visibly jumps.
