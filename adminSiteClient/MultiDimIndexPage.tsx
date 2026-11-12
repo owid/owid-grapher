@@ -201,8 +201,10 @@ function SlugField({
 }
 
 /**
- * Title with the draft flag, then id, dimensions and views, catalog path, slug
- * and tags. Drafts are greyed out, as in the chart list.
+ * Title with the draft flag, then id, dimensions and views, slug and tags.
+ * Like a chart's slug, the catalog path isn't shown, to save room, but is
+ * there on hovering the title, searchable, and in the Copy menu.
+ * Drafts are greyed out, as in the chart list.
  */
 function MultiDimCell({
     mdim,
@@ -229,11 +231,12 @@ function MultiDimCell({
                         href={urljoin(BAKED_GRAPHER_URL, mdim.slug)}
                         target="_blank"
                         rel="noopener"
+                        title={mdim.catalogPath}
                     >
                         {title}
                     </a>
                 ) : (
-                    <span>{title}</span>
+                    <span title={mdim.catalogPath}>{title}</span>
                 )}
             </div>
             <div className="chart-list__meta">
@@ -246,9 +249,6 @@ function MultiDimCell({
                         {plural(mdim.mdimViews, "view")}
                     </span>
                 </Tooltip>
-            </div>
-            <div className="chart-list__catalog-path" title={mdim.catalogPath}>
-                {highlight(mdim.catalogPath)}
             </div>
             <SlugField mdim={mdim} slugMutation={slugMutation} />
             {mdim.tags.length > 0 && (

@@ -111,18 +111,6 @@
     padding-left: 16px;
 }
 
-// A multi-dim's ETL catalog path; long ones are cut off, hover for all of it
-.chart-list__catalog-path {
-    margin-top: 2px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 420px;
-    font-family: monospace;
-    font-size: 0.85em;
-    color: #777;
-}
-
 .chart-list__slug-field {
     font-family: monospace;
     font-size: 0.85em;
