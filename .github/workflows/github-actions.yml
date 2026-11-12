@@ -44,5 +44,5 @@ jobs:
 
       - name: Verify actions.lock is complete and up to date
         run: |
-          gh extension install github/gh-actions-lock
+          gh extension install github/gh-actions-lock --pin v0.4.1
           gh actions-lock --verify
