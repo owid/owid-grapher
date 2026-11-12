@@ -38,6 +38,28 @@ export const SAMPLE_COUNT_OPTIONS = [5, 10, 20]
 
 const LABEL_MODES = Object.values(ChartLabelMode)
 
+interface ThumbnailSize {
+    label: string
+    fontSize: number
+    displayWidthPx: number
+}
+
+const THUMBNAIL_SIZES = {
+    default: {
+        label: "Default size",
+        fontSize: THUMBNAIL_FONT_SIZE,
+        displayWidthPx: GRAPHER_THUMBNAIL_WIDTH,
+    },
+    /** Mirrors `ALL_CHARTS_THUMBNAIL_REQUEST` in site/blocks/AllChartsRow.tsx and the image width in AllChartsRow.scss */
+    "all-charts": {
+        label: "All-charts block size",
+        fontSize: 18,
+        displayWidthPx: 158,
+    },
+} satisfies Record<string, ThumbnailSize>
+
+type ThumbnailSizeId = keyof typeof THUMBNAIL_SIZES
+
 export interface SampleOptions {
     countPerSection: number
     seed: number
@@ -91,6 +113,7 @@ export function addThumbnailTestRoutes(router: Router): void {
                         focus={focus}
                         shouldCompareWithLive={req.query.compare === "1"}
                         scale={readScaleParam(req.query.scale)}
+                        sizeId={readSizeParam(req.query.size)}
                     />
                 )
             )
@@ -106,7 +129,11 @@ export function addThumbnailTestRoutes(router: Router): void {
             )
             const idPrefix = `${req.params.slug}-${hashQueryStr(params.toString())}`
             const labelMode = readLabelModeParam(params.get("imLabels"))
+            const fontSize =
+                readPositiveIntParam(params.get("imFontSize")) ??
+                THUMBNAIL_FONT_SIZE
             params.delete("imLabels")
+            params.delete("imFontSize")
             try {
                 const { config } = await getChartConfigBySlug(
                     trx,
@@ -117,7 +144,7 @@ export function addThumbnailTestRoutes(router: Router): void {
                     labelMode,
                     widthPx: GRAPHER_THUMBNAIL_WIDTH,
                     heightPx: GRAPHER_THUMBNAIL_HEIGHT,
-                    fontSize: THUMBNAIL_FONT_SIZE,
+                    fontSize,
                 })
                 res.setHeader("Content-Type", "image/svg+xml")
                 res.send(prefixSvgIds(svg, idPrefix))
@@ -184,6 +211,7 @@ function ThumbnailTestPage({
     focus,
     shouldCompareWithLive,
     scale,
+    sizeId,
 }: {
     sections: ThumbnailTestSection[]
     sectionId?: string
@@ -192,13 +220,16 @@ function ThumbnailTestPage({
     focus?: string
     shouldCompareWithLive: boolean
     scale: number
+    sizeId: ThumbnailSizeId
 }): React.ReactElement {
+    const size = THUMBNAIL_SIZES[sizeId]
+    const zoom = (scale * size.displayWidthPx) / GRAPHER_THUMBNAIL_WIDTH
     const style = PAGE_STYLE.replaceAll(
         "{{width}}",
         String(GRAPHER_THUMBNAIL_WIDTH)
     )
         .replaceAll("{{height}}", String(GRAPHER_THUMBNAIL_HEIGHT))
-        .replaceAll("{{scale}}", String(scale))
+        .replaceAll("{{zoom}}", String(zoom))
     return (
         <html>
             <head>
@@ -279,12 +310,22 @@ function ThumbnailTestPage({
                         <option value="1.5">1.5×</option>
                         <option value="2">2×</option>
                     </select>
+                    <select name="size" defaultValue={sizeId}>
+                        {Object.entries(THUMBNAIL_SIZES).map(
+                            ([id, { label }]) => (
+                                <option key={id} value={id}>
+                                    {label}
+                                </option>
+                            )
+                        )}
+                    </select>
                 </form>
                 {sections.map((section) => (
                     <ThumbnailTestSectionView
                         key={section.id}
                         section={section}
                         shouldCompareWithLive={shouldCompareWithLive}
+                        fontSize={size.fontSize}
                     />
                 ))}
                 <script dangerouslySetInnerHTML={{ __html: PAGE_SCRIPT }} />
@@ -296,9 +337,11 @@ function ThumbnailTestPage({
 function ThumbnailTestSectionView({
     section,
     shouldCompareWithLive,
+    fontSize,
 }: {
     section: ThumbnailTestSection
     shouldCompareWithLive: boolean
+    fontSize: number
 }): React.ReactElement {
     return (
         <section className="section">
@@ -332,7 +375,7 @@ function ThumbnailTestSectionView({
                             {shouldCompareWithLive && (
                                 <img
                                     className="thumbnail"
-                                    src={makeLivePngUrl(testCase)}
+                                    src={makeLivePngUrl(testCase, fontSize)}
                                     loading="lazy"
                                     alt=""
                                 />
@@ -341,7 +384,11 @@ function ThumbnailTestSectionView({
                                 <div
                                     key={labelMode}
                                     className="thumbnail thumbnail--local"
-                                    data-src={makeSvgUrl(testCase, labelMode)}
+                                    data-src={makeSvgUrl(
+                                        testCase,
+                                        labelMode,
+                                        fontSize
+                                    )}
                                 />
                             ))}
                         </a>
@@ -388,7 +435,7 @@ body {
 }
 
 .column-heading {
-    width: calc({{width}}px * {{scale}});
+    width: calc({{width}}px * {{zoom}});
     margin-bottom: 8px;
     color: #6e7581;
     font-size: 12px;
@@ -402,7 +449,7 @@ body {
 
 .card__label {
     display: block;
-    max-width: calc({{width}}px * {{scale}});
+    max-width: calc({{width}}px * {{zoom}});
     margin-bottom: 6px;
     overflow: hidden;
     font-weight: 700;
@@ -419,7 +466,7 @@ body {
 .thumbnail {
     width: {{width}}px;
     height: {{height}}px;
-    zoom: {{scale}};
+    zoom: {{zoom}};
     background: #fff;
     outline: 1px solid #d0d3d8;
 }
@@ -534,6 +581,10 @@ export function readScaleParam(value: unknown): number {
     return Number.isFinite(scale) && scale > 0 ? scale : 1
 }
 
+function readSizeParam(value: unknown): ThumbnailSizeId {
+    return value === "all-charts" ? value : "default"
+}
+
 function readLabelModeParam(value: string | null): ChartLabelMode {
     return (
         LABEL_MODES.find((labelMode) => labelMode === value) ??
@@ -543,10 +594,12 @@ function readLabelModeParam(value: string | null): ChartLabelMode {
 
 function makeSvgUrl(
     { slug, queryStr }: ThumbnailTestCase,
-    labelMode: ChartLabelMode
+    labelMode: ChartLabelMode,
+    fontSize: number
 ): string {
     const params = new URLSearchParams(queryStr)
     params.set("imLabels", labelMode)
+    params.set("imFontSize", String(fontSize))
     return `/admin/test/thumbnails/${slug}.svg?${params}`
 }
 
@@ -554,8 +607,9 @@ export function makeLiveUrl({ slug, queryStr }: ThumbnailTestCase): string {
     return `${LIVE_BASE_URL}/grapher/${slug}${queryStr ? `?${queryStr}` : ""}`
 }
 
-function makeLivePngUrl(testCase: ThumbnailTestCase): string {
+function makeLivePngUrl(testCase: ThumbnailTestCase, fontSize: number): string {
     const params = new URLSearchParams(testCase.queryStr)
     params.set("imType", "thumbnail")
+    params.set("imFontSize", String(fontSize))
     return `${LIVE_BASE_URL}/grapher/${testCase.slug}.png?${params}`
 }
