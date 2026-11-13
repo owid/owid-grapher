@@ -21,6 +21,7 @@ import {
 } from "../../blocks/AllChartsBlock.js"
 import {
     allChartsBlockQueryKeys,
+    endsWithPartialCountryName,
     queryAllChartsBlock,
 } from "../../search/queries.js"
 import { getLiteSearchClient } from "../../search/searchClients.js"
@@ -86,6 +87,16 @@ export function AllCharts({
         },
     })
 
+    const [lastDataWithHits, setLastDataWithHits] = useState(data)
+    if (data !== lastDataWithHits && data?.pages[0]?.nbHits)
+        setLastDataWithHits(data)
+
+    const isWaitingForCountryName =
+        data?.pages[0]?.nbHits === 0 &&
+        lastDataWithHits !== undefined &&
+        endsWithPartialCountryName(data.pages[0].query)
+    const shownData = isWaitingForCountryName ? lastDataWithHits : data
+
     const { data: suggestionKeywords } = useQuery({
         queryKey: allChartsBlockQueryKeys.suggestions(firstTagSlug ?? ""),
         queryFn:
@@ -138,7 +149,7 @@ export function AllCharts({
         )
     }
 
-    const firstPage = data?.pages[0]
+    const firstPage = shownData?.pages[0]
     const fetchedQuery = firstPage?.query ?? requestedQuery
 
     return (
@@ -147,7 +158,7 @@ export function AllCharts({
             id={id}
             heading={heading}
             hitCount={firstPage?.nbHits}
-            hits={(data?.pages ?? []).flatMap((page) => page.hits)}
+            hits={(shownData?.pages ?? []).flatMap((page) => page.hits)}
             countries={firstPage?.countries ?? []}
             searchStatus={data ? undefined : isError ? "error" : "pending"}
             search={{
@@ -162,7 +173,7 @@ export function AllCharts({
                 onSuggestionSelect,
             }}
             onLoadMore={
-                hasNextPage && !isFetchNextPageError
+                hasNextPage && !isFetchNextPageError && !isWaitingForCountryName
                     ? () => {
                           if (!isFetchingNextPage) void fetchNextPage()
                       }

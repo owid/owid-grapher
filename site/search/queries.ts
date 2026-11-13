@@ -587,6 +587,24 @@ function parseAllChartsBlockQuery(query: string): {
     }
 }
 
+const MIN_PARTIAL_COUNTRY_NAME_LENGTH = 2
+
+const getLowercaseRegionNames = lazy(() =>
+    listedRegionsNames().map((name) => name.toLowerCase())
+)
+
+export function endsWithPartialCountryName(query: string): boolean {
+    const words = query.trim().toLowerCase().split(/\s+/)
+    const regionNames = getLowercaseRegionNames()
+    return words.some((_, index) => {
+        const tail = words.slice(index).join(" ")
+        return (
+            tail.length >= MIN_PARTIAL_COUNTRY_NAME_LENGTH &&
+            regionNames.some((name) => name !== tail && name.startsWith(tail))
+        )
+    })
+}
+
 function buildAllChartsBlockSearchParams({
     topics,
     textQuery,

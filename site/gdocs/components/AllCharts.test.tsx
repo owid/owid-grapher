@@ -179,6 +179,29 @@ it("shows the no-results panel with a search link carrying the query", async () 
     expect(screen.getByText("(0 charts)")).toBeVisible()
 })
 
+it("keeps the previous results while a country name is unfinished", async () => {
+    searchForHits.mockImplementation(
+        async ([{ page, query }]: [{ page: number; query: string }]) =>
+            query === ""
+                ? makeResponse(page, PAGES[page])
+                : makeResponse(page, [], 0)
+    )
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    fireEvent.change(screen.getByRole("textbox"), {
+        target: { value: "united k" },
+    })
+    await vi.waitFor(() => expect(requestedQueries()).toContain("united k"))
+    await flushEffects()
+
+    expect(screen.getByText("Title of alpha")).toBeVisible()
+    expect(
+        screen.queryByText("There are no results for this query.")
+    ).toBeNull()
+})
+
 it("returns to the first page without a request when the input is cleared", async () => {
     renderBlock()
     fireIntersectionObserversMatching("section")
