@@ -1,0 +1,180 @@
+// Grid layout of the homepage data insights experiment, modelled on
+// .search-data-insights-results__hits and .search-data-insight-hit.
+//
+// TODO: if this layout wins the experiment, deduplicate it with search:
+// extract a shared DataInsightCard (href, date, title, and the image as a
+// slot, since search renders a plain <img> from the Algolia thumbnailUrl and
+// this renders <Image> from gdoc attachments). Keep the containers separate:
+// search is a wrapping grid with an infinite-scroll trigger, this is a
+// scrollable row with arrow buttons and a "See all" card.
+
+.latest-data-insights-grid {
+    // A query container so the cards and the arrow buttons can be sized
+    // from its width (cqw).
+    container-type: inline-size;
+    position: relative;
+    margin: 0 0 24px 0;
+    // Four cards in view on desktop, two on medium screens. On mobile the
+    // row runs to the right edge of the screen (span-sm-cols-13) so the next
+    // card peeks in as a swipe affordance.
+    --latest-data-insights-grid-card-width: calc(
+        (100cqw - 3 * var(--grid-gap)) / 4
+    );
+
+    @include md-down {
+        --latest-data-insights-grid-card-width: calc(
+            (100cqw - var(--grid-gap)) / 2
+        );
+    }
+
+    @include sm-only {
+        --latest-data-insights-grid-card-width: 76vw;
+    }
+}
+
+.latest-data-insights-grid__items {
+    display: flex;
+    gap: var(--grid-gap);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    // Without JS there are no arrow buttons, so keep a thin scrollbar as a
+    // scroll affordance on larger screens, like .latest-carousel.
+    scrollbar-width: thin;
+
+    @include sm-only {
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+}
+
+html.js-enabled .latest-data-insights-grid__items {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.latest-data-insights-grid__item {
+    flex: 0 0 var(--latest-data-insights-grid-card-width);
+    scroll-snap-align: start;
+}
+
+.latest-data-insights-grid__item--see-all {
+    @include sm-up {
+        display: none;
+    }
+
+    @include sm-only {
+        // Stretch the button to a card's size, like the carousel's
+        // .latest-carousel__card--see-all.
+        display: flex;
+        // Keep the button off the screen edge at the end of the scroller.
+        margin-right: var(--grid-gap);
+    }
+}
+
+.latest-data-insights-grid__see-all {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.latest-data-insights-grid__card {
+    display: flex;
+    flex-direction: column;
+    color: $blue-90;
+
+    &:hover {
+        .latest-data-insights-grid__title {
+            text-decoration: underline;
+        }
+    }
+}
+
+.latest-data-insights-grid__thumbnail {
+    aspect-ratio: 1;
+    // Otherwise a tall image stretches the square: as a flex item with an
+    // aspect ratio, its minimum height is its content's.
+    min-height: 0;
+    border: 1px solid $blue-10;
+    margin-bottom: 16px;
+
+    picture {
+        display: block;
+        height: 100%;
+    }
+
+    img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+}
+
+// Tall images fill the square's width and are cropped from the bottom, so
+// the chart title at the top stays visible. Wide images stay letterboxed:
+// cropping them would cut off the sides of the chart.
+.latest-data-insights-grid__thumbnail--tall img {
+    object-fit: cover;
+    object-position: top;
+}
+
+.latest-data-insights-grid__date {
+    @include h6-black-caps;
+    color: $blue-60;
+    margin: 0 0 4px 0;
+}
+
+.latest-data-insights-grid__title {
+    @include body-1-bold;
+    color: $blue-90;
+    margin: 0;
+}
+
+// Positioned like .latest-carousel__control-button, but centred on the
+// square thumbnails rather than on the whole card.
+.latest-data-insights-grid__control-button {
+    --button-size: 40px;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: calc(
+        var(--latest-data-insights-grid-card-width) / 2 - var(--button-size) / 2
+    );
+    z-index: 1;
+    width: var(--button-size);
+    height: var(--button-size);
+    padding: 0;
+    border-radius: 50%;
+
+    // Swiped on medium and small screens, like the carousel.
+    @include md-down {
+        display: none;
+    }
+}
+
+.latest-data-insights-grid__control-button--prev {
+    left: 8px;
+
+    @include xlg-up {
+        left: -60px;
+    }
+}
+
+.latest-data-insights-grid__control-button--next {
+    right: 8px;
+
+    @include xlg-up {
+        right: -60px;
+    }
+}

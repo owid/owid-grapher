@@ -36,6 +36,7 @@ export default function LatestCarousel({
     seeAllText,
     theme = "blue",
     tall = false,
+    cardTrackNote,
 }: {
     className?: string
     items: LatestCarouselItem[]
@@ -44,6 +45,8 @@ export default function LatestCarousel({
     theme?: LatestCarouselTheme
     /** Room for 4:5 thumbnails on small screens, e.g. data update charts. */
     tall?: boolean
+    /** data-track-note for clicks on the cards. */
+    cardTrackNote?: string
 }) {
     const scrollerRef = useRef<HTMLUListElement>(null)
     const [selectedIndex, setSelectedIndex] = useState(0)
@@ -113,6 +116,7 @@ export default function LatestCarousel({
                         body={item.body}
                         publishedAt={item.publishedAt}
                         href={item.href}
+                        trackNote={cardTrackNote}
                     />
                 ))}
                 {/* Only shown on small screens (see CSS). */}
@@ -131,6 +135,9 @@ export default function LatestCarousel({
                         href={seeAllHref}
                         text={seeAllText}
                         theme="outline-vermillion"
+                        dataTrackNote={
+                            cardTrackNote && `${cardTrackNote}_see_all`
+                        }
                     />
                 </li>
             </ul>
@@ -201,6 +208,7 @@ const CarouselCard = memo(function CarouselCard({
     body,
     publishedAt,
     href,
+    trackNote,
 }: {
     index: number
     isSnapped: boolean
@@ -209,6 +217,7 @@ const CarouselCard = memo(function CarouselCard({
     body: OwidEnrichedGdocBlock[]
     publishedAt?: Date
     href: string
+    trackNote?: string
 }) {
     const titleId = `latest-carousel__card-title-${index}`
     const firstImageBlock = findThumbnailImageBlock(body)
@@ -223,6 +232,7 @@ const CarouselCard = memo(function CarouselCard({
                 className="latest-carousel__card__link"
                 href={href}
                 aria-labelledby={titleId}
+                data-track-note={trackNote}
             >
                 {firstImageBlock && (
                     <Image

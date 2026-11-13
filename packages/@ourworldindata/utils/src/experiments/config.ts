@@ -3,6 +3,8 @@ import {
     DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM,
     DATA_PAGE_METADATA_V2_EXPERIMENT_ID,
     EXPERIMENT_PREFIX,
+    LATEST_DATA_INSIGHTS_ARMS,
+    LATEST_DATA_INSIGHTS_EXPERIMENT_ID,
     LATEST_STICKY_FILTERS_ARMS,
     LATEST_STICKY_FILTERS_EXPERIMENT_ID,
 } from "./constants.js"
@@ -260,6 +262,19 @@ export const experiments: Experiment[] = [
             { id: LATEST_STICKY_FILTERS_ARMS.fullySticky, fraction: 1 / 3 },
         ],
         paths: ["/latest"],
+    }),
+    // Compare two layouts of the latest data insights on the homepage and at
+    // the bottom of data insight pages: (A) the current carousel and (B) the
+    // /search grid of thumbnails and titles. "/" matches every path, so a
+    // visitor keeps their arm across both pages.
+    new Experiment({
+        id: LATEST_DATA_INSIGHTS_EXPERIMENT_ID,
+        expires: "2027-01-10T00:00:00.000Z",
+        arms: [
+            { id: LATEST_DATA_INSIGHTS_ARMS.carousel, fraction: 1 / 2 },
+            { id: LATEST_DATA_INSIGHTS_ARMS.titles, fraction: 1 / 2 },
+        ],
+        paths: ["/"],
     }),
 ]
 

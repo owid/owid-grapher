@@ -24,3 +24,17 @@ export const LATEST_STICKY_FILTERS_ARMS = {
     revealOnScrollUp: "reveal-on-scroll-up",
     fullySticky: "fully-sticky",
 } as const
+
+// Raw id (without the `exp-` prefix) of the latest data insights layout
+// experiment (homepage and data insight pages). Shared between the experiment
+// config and the component that renders one layout per arm
+// (site/gdocs/components/LatestDataInsightsExperiment).
+export const LATEST_DATA_INSIGHTS_EXPERIMENT_ID = "latest-data-insights-v1"
+export const LATEST_DATA_INSIGHTS_ARMS = {
+    /** A: the current carousel. */
+    carousel: "carousel",
+    /** B: grid of thumbnail + date + title, as on /search. */
+    titles: "titles",
+} as const
+export type LatestDataInsightsArm =
+    (typeof LATEST_DATA_INSIGHTS_ARMS)[keyof typeof LATEST_DATA_INSIGHTS_ARMS]
