@@ -13,18 +13,23 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Button } from "@ourworldindata/components"
 import {
+    ChartRecordType,
     GRAPHER_PREVIEW_CLASS,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
-    SearchChartViewHit,
 } from "@ourworldindata/types"
-import { commafyNumber, queryParamsToStr } from "@ourworldindata/utils"
+import { commafyNumber, queryParamsToStr, Url } from "@ourworldindata/utils"
 import { GrapherWithFallback } from "../GrapherWithFallback.js"
+import { MultiDimEmbed } from "../MultiDimEmbed.js"
 import { useDocumentContext } from "../gdocs/DocumentContext.js"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
-import { toGrapherQueryParams } from "../search/searchUtils.js"
+import {
+    constructChartUrl,
+    toGrapherQueryParams,
+} from "../search/searchUtils.js"
 import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
+import type { AllChartsHit } from "../search/queries.js"
 import { AllChartsRow } from "./AllChartsRow.js"
 
 const SKELETON_ROW_COUNT = 6
@@ -44,7 +49,7 @@ export interface AllChartsBlockSearch {
 
 interface AllChartsSelection {
     fetchedQuery: string
-    slug: string
+    id: string
     tab?: GrapherTabName
 }
 
@@ -64,7 +69,7 @@ export function AllChartsBlock({
     id: string
     heading: string
     hitCount?: number
-    hits: SearchChartViewHit[]
+    hits: AllChartsHit[]
     countries: string[]
     search?: AllChartsBlockSearch
     onLoadMore?: () => void
@@ -110,7 +115,7 @@ function AllChartsResults({
     isLoadingMore,
 }: {
     fetchedQuery: string
-    hits: SearchChartViewHit[]
+    hits: AllChartsHit[]
     countries: string[]
     onLoadMore?: () => void
     isLoadingMore?: boolean
@@ -122,9 +127,9 @@ function AllChartsResults({
             : undefined
 
     const selectedHit =
-        hits.find((hit) => hit.slug === selection?.slug) ?? hits[0]
+        hits.find((hit) => hit.objectID === selection?.id) ?? hits[0]
     const selectedTab =
-        (selection?.slug === selectedHit.slug && selection.tab) ||
+        (selection?.id === selectedHit.objectID && selection.tab) ||
         getDefaultTab(pickThumbnailTabs(selectedHit.availableTabs), countries)
 
     const isNarrow = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
@@ -139,7 +144,7 @@ function AllChartsResults({
                 selectedTab={selectedTab}
                 isNarrow={isNarrow}
                 onSelect={(hit, tab) =>
-                    setSelection({ fetchedQuery, slug: hit.slug, tab })
+                    setSelection({ fetchedQuery, id: hit.objectID, tab })
                 }
                 onLoadMore={onLoadMore}
                 isLoadingMore={isLoadingMore}
@@ -147,7 +152,7 @@ function AllChartsResults({
             {!isNarrow && (
                 <div className="all-charts-block__preview span-cols-7">
                     <AllChartsPreview
-                        slug={selectedHit.slug}
+                        hit={selectedHit}
                         tab={selectedTab}
                         countries={countries}
                     />
@@ -167,12 +172,12 @@ function AllChartsList({
     onLoadMore,
     isLoadingMore,
 }: {
-    hits: SearchChartViewHit[]
+    hits: AllChartsHit[]
     countries: string[]
-    selectedHit: SearchChartViewHit
+    selectedHit: AllChartsHit
     selectedTab: GrapherTabName
     isNarrow: boolean
-    onSelect: (hit: SearchChartViewHit, tab: GrapherTabName | undefined) => void
+    onSelect: (hit: AllChartsHit, tab: GrapherTabName | undefined) => void
     onLoadMore?: () => void
     isLoadingMore?: boolean
 }): React.ReactElement {
@@ -228,7 +233,7 @@ function AllChartsItem({
     isNarrow,
     onSelect,
 }: {
-    hit: SearchChartViewHit
+    hit: AllChartsHit
     countries: string[]
     isSelected: boolean
     selectedTab: GrapherTabName
@@ -276,7 +281,7 @@ function AllChartsItem({
                     id={inlinePreviewId}
                 >
                     <AllChartsPreview
-                        slug={hit.slug}
+                        hit={hit}
                         tab={selectedTab}
                         countries={countries}
                     />
@@ -513,29 +518,44 @@ function AllChartsPanel({
 }
 
 function AllChartsPreview({
-    slug,
+    hit,
     tab,
     countries,
 }: {
-    slug: string
+    hit: AllChartsHit
     tab: GrapherTabName
     countries: string[]
 }): React.ReactElement {
     const { isPreviewing } = useDocumentContext()
-    return (
-        <GrapherWithFallback
-            key={`${slug}:${tab}:${countries.join("|")}`}
-            slug={slug}
-            queryStr={queryParamsToStr(
-                toGrapherQueryParams({ tab, entities: countries })
-            )}
-            className={GRAPHER_PREVIEW_CLASS}
-            isEmbeddedInAnOwidPage
-            isEmbeddedInADataPage={false}
-            config={PREVIEW_GRAPHER_CONFIG}
-            isPreviewing={isPreviewing}
-        />
-    )
+    const grapherParams = toGrapherQueryParams({ tab, entities: countries })
+    switch (hit.type) {
+        case ChartRecordType.Chart:
+            return (
+                <GrapherWithFallback
+                    key={`${hit.slug}:${tab}:${countries.join("|")}`}
+                    slug={hit.slug}
+                    queryStr={queryParamsToStr(grapherParams)}
+                    className={GRAPHER_PREVIEW_CLASS}
+                    isEmbeddedInAnOwidPage
+                    isEmbeddedInADataPage={false}
+                    config={PREVIEW_GRAPHER_CONFIG}
+                    isPreviewing={isPreviewing}
+                />
+            )
+        case ChartRecordType.MultiDimView: {
+            const url = Url.fromURL(
+                constructChartUrl({ hit, grapherParams })
+            ).updateQueryParams({ hideControls: "true" }).fullUrl
+            return (
+                <MultiDimEmbed
+                    key={url}
+                    url={url}
+                    chartConfig={PREVIEW_GRAPHER_CONFIG}
+                    isPreviewing={isPreviewing}
+                />
+            )
+        }
+    }
 }
 
 function AllChartsHeading({

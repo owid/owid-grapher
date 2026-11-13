@@ -62,6 +62,13 @@ $all-charts-row-thumbnail-gap: 8px;
     color: $blue-60;
 }
 
+.all-charts-row__label {
+    @include h6-black-caps;
+    margin-left: 4px;
+    white-space: nowrap;
+    color: $blue-60;
+}
+
 .all-charts-row__source {
     @include note-1-regular;
     display: block;

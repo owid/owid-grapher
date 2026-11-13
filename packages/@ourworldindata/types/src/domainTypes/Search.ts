@@ -80,6 +80,7 @@ export interface ChartRecord {
     chartConfigId?: string
     slug: string
     queryParams?: string
+    isDataExplorer?: boolean
     title: string
     containerTitle?: string
     subtitle: string | undefined
@@ -164,10 +165,11 @@ type SearchExplorerViewHit = BaseSearchChartHit & {
     queryParams: string
 }
 
-type SearchMultiDimViewHit = BaseSearchChartHit & {
+export type SearchMultiDimViewHit = BaseSearchChartHit & {
     type: ChartRecordType.MultiDimView
     queryParams: string
     chartConfigId: string
+    isDataExplorer?: boolean
 }
 
 /**

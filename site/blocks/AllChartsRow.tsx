@@ -1,12 +1,13 @@
 import cx from "clsx"
-import { GrapherTabName, SearchChartViewHit } from "@ourworldindata/types"
+import { ChartRecordType, GrapherTabName } from "@ourworldindata/types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
 import { makeLabelForGrapherTab } from "@ourworldindata/grapher"
 import { constructThumbnailUrlForTab } from "../search/SearchChartHitSmallHelpers.js"
+import type { AllChartsHit } from "../search/queries.js"
 
 interface AllChartsRowProps {
-    hit: SearchChartViewHit
+    hit: AllChartsHit
     isSelected: boolean
     displayedTab: GrapherTabName
     thumbnailTabs: GrapherTabName[]
@@ -48,6 +49,13 @@ export function AllChartsRow({
                 <span className="all-charts-row__heading">
                     <span className="all-charts-row__title">
                         {hit.title}
+                        {hit.type === ChartRecordType.MultiDimView &&
+                            hit.isDataExplorer && (
+                                <span className="all-charts-row__label">
+                                    {/* Glues the label to the title's last word */}
+                                    &nbsp;Data explorer
+                                </span>
+                            )}
                     </span>
                     {hit.variantName && (
                         <span className="all-charts-row__variant">
