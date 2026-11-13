@@ -46,9 +46,7 @@ export function AllChartsRow({
                 onClick={onTitleSelect}
             >
                 <span className="all-charts-row__heading">
-                    <span className="all-charts-row__title">
-                        {hit.title}
-                    </span>
+                    <span className="all-charts-row__title">{hit.title}</span>
                     {hit.variantName && (
                         <span className="all-charts-row__variant">
                             {hit.variantName}
