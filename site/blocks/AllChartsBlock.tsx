@@ -43,6 +43,7 @@ export interface AllChartsBlockSearch {
 }
 
 interface AllChartsSelection {
+    fetchedQuery: string
     slug: string
     tab?: GrapherTabName
 }
@@ -90,7 +91,7 @@ export function AllChartsBlock({
                 />
             ) : (
                 <AllChartsResults
-                    key={fetchedQuery}
+                    fetchedQuery={fetchedQuery}
                     hits={hits}
                     countries={countries}
                     onLoadMore={onLoadMore}
@@ -102,17 +103,23 @@ export function AllChartsBlock({
 }
 
 function AllChartsResults({
+    fetchedQuery,
     hits,
     countries,
     onLoadMore,
     isLoadingMore,
 }: {
+    fetchedQuery: string
     hits: SearchChartViewHit[]
     countries: string[]
     onLoadMore?: () => void
     isLoadingMore?: boolean
 }): React.ReactElement {
-    const [selection, setSelection] = useState<AllChartsSelection>()
+    const [storedSelection, setSelection] = useState<AllChartsSelection>()
+    const selection =
+        storedSelection?.fetchedQuery === fetchedQuery
+            ? storedSelection
+            : undefined
 
     const selectedHit =
         hits.find((hit) => hit.slug === selection?.slug) ?? hits[0]
@@ -125,12 +132,15 @@ function AllChartsResults({
     return (
         <div className="grid grid-cols-12">
             <AllChartsList
+                key={fetchedQuery}
                 hits={hits}
                 countries={countries}
                 selectedHit={selectedHit}
                 selectedTab={selectedTab}
                 isNarrow={isNarrow}
-                onSelect={(hit, tab) => setSelection({ slug: hit.slug, tab })}
+                onSelect={(hit, tab) =>
+                    setSelection({ fetchedQuery, slug: hit.slug, tab })
+                }
                 onLoadMore={onLoadMore}
                 isLoadingMore={isLoadingMore}
             />
