@@ -31,8 +31,8 @@ export const WELFARE_TYPE_DETAILS: Record<
         title: "Income data",
         description: [
             "The World Bank relies on household surveys that measure either income or consumption, depending on the country.",
-            "For these countries, the data is based on household income: wages and other earnings, after taxes and benefits.",
-            "Income and consumption are not perfectly comparable; income data tends to show more inequality.",
+            "For the countries where it measures income, the data is based on disposable household income: wages, self-employment and other earnings, after taxes and benefits.",
+            "Income and consumption data are not perfectly comparable; because high earners save a larger share of their money and low earners can have temporary drops in earnings, income data tends to show more inequality.",
         ],
     },
     consumption: {
@@ -40,8 +40,8 @@ export const WELFARE_TYPE_DETAILS: Record<
         title: "Consumption data",
         description: [
             "The World Bank relies on household surveys that measure either income or consumption, depending on the country.",
-            "For these countries, the data is based on household consumption: what households spend on goods and services, which leaves out savings and debts.",
-            "Income and consumption are not perfectly comparable; consumption data tends to be more evenly spread and show less inequality.",
+            "For the countries where it measures consumption, the data is based on household consumption: the value of goods and services households actually consume (whether purchased or home-produced), which leaves out savings.",
+            "Income and consumption data are not perfectly comparable; because households often dip into savings or borrow during tough times to keep their daily living standards steady, consumption data tends to be more evenly spread and show less inequality.",
         ],
     },
 }
