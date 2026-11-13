@@ -291,6 +291,7 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
         case SiteFooterContext.searchPage:
         case SiteFooterContext.subscribePage:
         case SiteFooterContext.slideshowPage:
+        case SiteFooterContext.datasetPage:
         case undefined:
             console.error(
                 `runSiteFooterScriptsForArchive: context ${context} not supported`
