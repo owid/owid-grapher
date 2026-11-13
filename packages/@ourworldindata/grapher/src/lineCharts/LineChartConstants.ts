@@ -1,11 +1,19 @@
 import { ChartManager } from "../chart/ChartManager"
-import { CoreValueType, EntityName, Time } from "@ourworldindata/types"
+import {
+    ColumnSlug,
+    CoreValueType,
+    EntityName,
+    ProjectionColumnInfo,
+    SeriesName,
+    Time,
+} from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState"
 import { Emphasis } from "../interaction/Emphasis"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants"
+import { PointAnnotation } from "../annotations/EntityAnnotations"
 
 export const LINE_CHART_CLASS_NAME = "LineChart"
 
@@ -90,12 +98,27 @@ export interface LineChartSeries extends ChartSeries {
     plotMarkersOnly?: boolean
     points: LinePoint[]
     entityName: EntityName
+    columnSlug: ColumnSlug
     columnName: string
     focus: InteractionState
+    pointAnnotations: PointAnnotation[]
+}
+
+export interface PlacedPointAnnotation {
+    annotation: PointAnnotation
+    point: PlacedPoint
+}
+
+export interface RenderPointAnnotation extends PlacedPointAnnotation {
+    key: string
+    seriesName: SeriesName
+    emphasis: Emphasis
+    isTooltipOpen: boolean
 }
 
 export interface PlacedLineChartSeries extends LineChartSeries {
     placedPoints: PlacedPoint[]
+    placedPointAnnotations: PlacedPointAnnotation[]
 }
 
 export interface RenderLineChartSeries extends PlacedLineChartSeries {
@@ -108,4 +131,20 @@ export interface LineChartManager extends ChartManager {
     lineStrokeWidth?: number
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
     hasScatter?: boolean // x-axis config is ignored if a secondary scatter plot is present
+    projectionColumnInfoBySlug?: Map<ColumnSlug, ProjectionColumnInfo>
 }
+
+export type AnnotationTooltipState =
+    | { kind: "idle" }
+    | { kind: "labelOpen"; seriesName: SeriesName; hasAnnotations: boolean }
+    | { kind: "markerOpen"; seriesName: SeriesName; time: Time }
+
+export type AnnotationTooltipEvent =
+    | {
+          type: "labelTooltipShow"
+          seriesName: SeriesName
+          hasAnnotations: boolean
+      }
+    | { type: "labelTooltipHide"; seriesName: SeriesName }
+    | { type: "markerClick"; seriesName: SeriesName; time: Time }
+    | { type: "markerTooltipClose" }

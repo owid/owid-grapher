@@ -17,6 +17,13 @@ import { ParsedLabel, parseLabel } from "../core/RegionGroups.js"
 import { FontSettings } from "../core/GrapherConstants.js"
 import { hasTooltipData, TooltipKey } from "./RegionTooltipData.js"
 
+const INFO_ICON_GAP = 4
+
+export interface SeriesLabelAnnotation {
+    heading?: string
+    text: string
+}
+
 export interface SeriesLabelStateOptions {
     text: string
     maxWidth: number
@@ -27,6 +34,8 @@ export interface SeriesLabelStateOptions {
     formattedValue?: string
     placeFormattedValueInNewLine?: boolean
     showRegionTooltip?: boolean
+    annotations?: SeriesLabelAnnotation[]
+    canShowInfoIcon?: boolean
 }
 
 export type TextRole = "name" | "value" | "suffix"
@@ -39,7 +48,7 @@ export interface TextSpan {
 
 export type SpanLine = TextSpan[]
 
-interface RegionTooltipTarget {
+export interface RegionTooltipTarget {
     tooltipKey: TooltipKey
     regionName: EntityName
 }
@@ -47,7 +56,6 @@ interface RegionTooltipTarget {
 interface TextFragment extends TextSpan {
     type: "text"
     width: number
-    regionTooltip?: RegionTooltipTarget
 }
 
 interface SpaceFragment {
@@ -61,10 +69,19 @@ type ContentLine = ContentFragment[]
 
 export type PositionedTextFragment = TextFragment & Point
 
-export type RegionTooltipFragment = RequiredBy<
-    PositionedTextFragment,
-    "regionTooltip"
->
+type TooltipTargetRole = Extract<TextRole, "name" | "suffix">
+
+export interface SeriesLabelTooltipContent {
+    annotations?: SeriesLabelAnnotation[]
+    regionTooltip?: RegionTooltipTarget
+}
+
+export interface SeriesLabelTooltipTarget {
+    role: TooltipTargetRole
+    fragments: PositionedTextFragment[]
+    textBounds: Bounds
+    content: SeriesLabelTooltipContent
+}
 
 /**
  * Computes layout and positioning for a series label typically rendered
@@ -83,6 +100,8 @@ export class SeriesLabelState {
         lineHeight: 1.1,
         placeFormattedValueInNewLine: false,
         showRegionTooltip: false,
+        annotations: [],
+        canShowInfoIcon: false,
         textAnchor: "start",
     } as const satisfies Partial<SeriesLabelStateOptions>
 
@@ -200,10 +219,6 @@ export class SeriesLabelState {
         if (!this.parsedText.suffix) return undefined
 
         const fontSettings = { ...this.fontSettings, fontWeight: 400 }
-        const regionTooltip = this.parsedText.publisherKey
-            ? this.regionTooltipTarget
-            : undefined
-
         const suffixWrap = new TextWrap({
             text: `(${this.parsedText.suffix})`,
             maxWidth: this.options.maxWidth,
@@ -217,7 +232,6 @@ export class SeriesLabelState {
                 text: line.text,
                 width: line.width,
                 fontWeight: fontSettings.fontWeight,
-                regionTooltip,
             },
         ])
     }
@@ -296,10 +310,6 @@ export class SeriesLabelState {
             fontSettings: { fontWeight },
         } = this
 
-        const regionTooltip = this.parsedText.publisherKey
-            ? undefined
-            : this.regionTooltipTarget
-
         // Map each line of the name to a fragment
         const lines: ContentLine[] = nameWrap.lines.map((line) => [
             {
@@ -308,7 +318,6 @@ export class SeriesLabelState {
                 text: line.text,
                 width: line.width,
                 fontWeight: nameWrap.fontWeight ?? fontWeight,
-                regionTooltip,
             },
         ])
 
@@ -325,15 +334,36 @@ export class SeriesLabelState {
         return lines
     }
 
-    @computed get hasRegionTooltip(): boolean {
-        return this.regionTooltipFragments.length > 0
+    @computed get width(): number {
+        if (!this.options.canShowInfoIcon) return this.textWidth
+        const infoIconRight = this.infoIconCenterOffset.x + this.infoIconRadius
+        return Math.max(this.textWidth, infoIconRight)
     }
 
-    @computed get width(): number {
+    @computed private get textWidth(): number {
         const lineWidths = this.contentLines.map((line) =>
             _.sumBy(line, (fragment) => fragment.width)
         )
         return lineWidths.length > 0 ? Math.max(...lineWidths) : 0
+    }
+
+    @computed get infoIconRadius(): number {
+        return this.options.fontSize / 2
+    }
+
+    @computed get infoIconCenterOffset(): Point {
+        const { contentLines, singleLineHeight, infoIconRadius } = this
+        const lastLine = contentLines[contentLines.length - 1]
+        const lastLineWidth =
+            this.options.textAnchor === "end"
+                ? 0
+                : _.sumBy(lastLine, (fragment) => fragment.width)
+        return {
+            x: lastLineWidth + INFO_ICON_GAP + infoIconRadius,
+            y:
+                (contentLines.length - 1) * singleLineHeight +
+                singleLineHeight / 2,
+        }
     }
 
     @computed get height(): number {
@@ -356,11 +386,62 @@ export class SeriesLabelState {
         )
     }
 
-    @computed get regionTooltipFragments(): RegionTooltipFragment[] {
-        return this.positionedFragments.filter(
-            (fragment): fragment is RegionTooltipFragment =>
-                fragment.regionTooltip !== undefined
+    @computed get tooltipTargets(): SeriesLabelTooltipTarget[] {
+        return excludeUndefined([
+            this.nameTooltipTarget,
+            this.suffixTooltipTarget,
+        ])
+    }
+
+    @computed private get nameTooltipTarget():
+        | SeriesLabelTooltipTarget
+        | undefined {
+        return this.makeTooltipTarget("name", {
+            annotations: this.options.annotations,
+            regionTooltip: this.parsedText.publisherKey
+                ? undefined
+                : this.regionTooltipTarget,
+        })
+    }
+
+    @computed private get suffixTooltipTarget():
+        | SeriesLabelTooltipTarget
+        | undefined {
+        if (!this.parsedText.publisherKey) return undefined
+        return this.makeTooltipTarget("suffix", {
+            regionTooltip: this.regionTooltipTarget,
+        })
+    }
+
+    private makeTooltipTarget(
+        role: TooltipTargetRole,
+        { annotations, regionTooltip }: SeriesLabelTooltipContent
+    ): SeriesLabelTooltipTarget | undefined {
+        if (!annotations?.length && !regionTooltip) return undefined
+
+        const fragments = this.positionedFragments.filter(
+            (fragment) => fragment.role === role
         )
+        if (fragments.length === 0) return undefined
+
+        const { fontSize } = this.fontSettings
+        const textBounds = Bounds.merge(
+            fragments.map(
+                (fragment) =>
+                    new Bounds(
+                        fragment.x,
+                        fragment.y - fontSize,
+                        fragment.width,
+                        fontSize
+                    )
+            )
+        )
+        return {
+            role,
+            fragments,
+            textBounds,
+            content: { annotations, regionTooltip },
+        }
     }
 }
 
