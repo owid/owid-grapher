@@ -602,6 +602,99 @@ describe("Search API endpoint", () => {
         })
     })
 
+    describe("rerank parameter", () => {
+        const pool = {
+            query: "birth rate",
+            results: ["a", "b", "c"].map((slug) => ({
+                slug,
+                title: slug,
+                type: "chart",
+            })),
+            nbHits: 3,
+            page: 0,
+            nbPages: 1,
+            hitsPerPage: 30,
+        } as searchApi.SearchApiResponse
+        const envWithAi = {
+            ...mockEnv,
+            AI: {
+                run: vi.fn().mockResolvedValue({
+                    answers: {
+                        best_result: {
+                            type: "choice",
+                            probabilities: { r01: 0.1, r02: 0.2, r03: 0.7 },
+                        },
+                        any_relevant: { type: "noul", noul: 0.9 },
+                    },
+                }),
+            },
+        } as unknown as Env
+
+        const get = (query: string, env: Env = envWithAi) =>
+            onRequestGet({
+                request: new Request(`http://localhost/api/search?${query}`),
+                env,
+            } as any)
+
+        it("reranks the top hits fetched as one page-0 pool, returning the requested page size", async () => {
+            const mockSearchCharts = vi
+                .spyOn(searchApi, "searchCharts")
+                .mockResolvedValue(pool)
+
+            const response = await get("q=birth+rate&rerank=jev&hitsPerPage=2")
+            const body = (await response.json()) as {
+                results: { slug: string }[]
+                rerank: unknown
+            }
+
+            expect(mockSearchCharts).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({ query: "birth rate" }),
+                0,
+                30,
+                expect.any(String)
+            )
+            expect(body.results.map((r) => r.slug)).toEqual(["c", "b"])
+            expect(body.rerank).toMatchObject({
+                model: "jev",
+                anyRelevant: 0.9,
+            })
+        })
+
+        it.each([
+            [
+                "an unknown model",
+                "q=gdp&rerank=gpt",
+                envWithAi,
+                /Invalid rerank value "gpt"/,
+            ],
+            [
+                "a deployment without the AI binding",
+                "q=gdp&rerank=jev",
+                mockEnv,
+                /not available/,
+            ],
+            [
+                "a page other than 0",
+                "q=gdp&rerank=jev&page=1",
+                envWithAi,
+                /page=0/,
+            ],
+        ])(
+            "rejects %s with a 400, without searching",
+            async (_, query, env, message) => {
+                const mockSearchCharts = vi.spyOn(searchApi, "searchCharts")
+
+                const response = await get(query, env)
+
+                expect(response.status).toBe(400)
+                const body = (await response.json()) as { error: string }
+                expect(body.error).toMatch(message)
+                expect(mockSearchCharts).not.toHaveBeenCalled()
+            }
+        )
+    })
+
     describe("response format", () => {
         it("returns successful response with correct headers", async () => {
             vi.spyOn(searchApi, "searchCharts").mockResolvedValue({

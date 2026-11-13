@@ -37,6 +37,12 @@ import {
     MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
+import {
+    searchChartsReranked,
+    searchPagesReranked,
+    shouldRerankCharts,
+    shouldRerankPages,
+} from "./rerank.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
@@ -171,10 +177,11 @@ export async function queryCharts(
         page,
     }
 
-    return searchSingleForHitsWithClosestMatches<SearchChartHit>(
-        liteSearchClient,
-        searchParams
-    )
+    const search = shouldRerankCharts(state.query, page)
+        ? searchChartsReranked
+        : searchSingleForHitsWithClosestMatches
+
+    return search<SearchChartHit>(liteSearchClient, searchParams)
 }
 
 export async function queryDataInsights(
@@ -226,7 +233,13 @@ export async function queryDataInsights(
         ? searchSingleForHits
         : searchSingleForHitsWithClosestMatches
 
-    return search<DataInsightHit>(liteSearchClient, searchParams)
+    return shouldRerankPages(state.query, page * hitsPerPage)
+        ? searchPagesReranked<DataInsightHit>(
+              search,
+              liteSearchClient,
+              searchParams
+          )
+        : search<DataInsightHit>(liteSearchClient, searchParams)
 }
 
 export async function queryArticles(
@@ -285,7 +298,13 @@ export async function queryArticles(
         ? searchSingleForHits
         : searchSingleForHitsWithClosestMatches
 
-    return search<FlatArticleHit>(liteSearchClient, searchParams)
+    return shouldRerankPages(state.query, offset)
+        ? searchPagesReranked<FlatArticleHit>(
+              search,
+              liteSearchClient,
+              searchParams
+          )
+        : search<FlatArticleHit>(liteSearchClient, searchParams)
 }
 
 const TOPIC_PAGE_ATTRIBUTES = [

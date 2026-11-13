@@ -27,6 +27,7 @@ import {
 } from "./searchUtils.js"
 import { useMemo, useEffect, useCallback } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
+import { withRerankParams } from "./rerank.js"
 
 export const DEFAULT_SEARCH_STATE: SearchState = {
     query: "",
@@ -70,7 +71,9 @@ export function useSearchParamsState(
     useEffect(() => {
         if (urlNeedsSanitization(searchParams, state)) {
             // replace current entry in browser history to keep it clean.
-            setSearchParams(stateToSearchParams(state), { replace: true })
+            setSearchParams(withRerankParams(stateToSearchParams(state)), {
+                replace: true,
+            })
         }
     }, [searchParams, state, setSearchParams])
 
@@ -88,7 +91,10 @@ export function useSearchParamsState(
                 eligibleRegionNames,
                 synonymMap
             )
-            setSearchParams(stateToSearchParams(stateWithAutoFilters), options)
+            setSearchParams(
+                withRerankParams(stateToSearchParams(stateWithAutoFilters)),
+                options
+            )
         },
         [setSearchParams, state, eligibleRegionNames, synonymMap]
     )
@@ -231,7 +237,7 @@ export function useSearchParamsState(
             },
 
             reset: () => {
-                setSearchParams(new URLSearchParams())
+                setSearchParams(withRerankParams(new URLSearchParams()))
             },
         }),
         [updateParams, setSearchParams]
@@ -397,13 +403,14 @@ export function buildSearchHrefForCard(
 
 /**
  * Checks if URL params need sanitization (i.e., contain invalid values that
- * were filtered out during parsing).
+ * were filtered out during parsing). The experimental rerank opt-in counts as
+ * valid, so it stays in the URL.
  */
 export function urlNeedsSanitization(
     searchParams: URLSearchParams,
     state: SearchState
 ): boolean {
-    const sanitizedParams = stateToSearchParams(state)
+    const sanitizedParams = withRerankParams(stateToSearchParams(state))
     return searchParams.toString() !== sanitizedParams.toString()
 }
 

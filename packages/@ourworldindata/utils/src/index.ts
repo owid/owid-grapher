@@ -451,6 +451,7 @@ export {
 export {
     searchSingleForHits,
     searchSingleForHitsWithClosestMatches,
+    type SingleSearchRequest,
 } from "./search/searchClosestMatches.js"
 
 export {
@@ -459,6 +460,8 @@ export {
 } from "./search/searchTopicPages.js"
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
+
+export { RERANK_PAGES, RERANK_POOL_SIZE } from "./search/searchRerank.js"
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"

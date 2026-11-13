@@ -2,6 +2,16 @@ import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "./algoliaClient.js"
 import {
+    isRerankModel,
+    RERANK_MODELS,
+    RERANK_POOL_SIZE,
+    rerankCharts,
+    rerankPages,
+    RerankModel,
+    timed,
+    type SearchTimings,
+} from "./rerank.js"
+import {
     searchCharts,
     searchPages,
     searchTopicPages,
@@ -11,6 +21,15 @@ import {
     SearchTopicsApiResponse,
     SearchValidationError,
 } from "./searchApi.js"
+import {
+    appendVocabularyHits,
+    pickTopicsByEmbedding,
+    pickVocabularyTopics,
+    VOCABULARY_HITS_PER_TERM,
+    type VocabularyInfo,
+    type VocabularyTopicPick,
+    vocabularyTopicNote,
+} from "./vocabulary.js"
 import {
     FilterType,
     Filter,
@@ -45,6 +64,8 @@ const KNOWN_PARAMS = new Set<string>([
     "pageTypes",
     "page",
     "hitsPerPage",
+    "rerank",
+    "vocab",
 ])
 
 // The parameters only some search types read. A request that sends one to a
@@ -56,6 +77,8 @@ const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
     [SearchUrlParam.TOPIC, ["charts", "topics"]],
     [SearchUrlParam.REQUIRE_ALL_COUNTRIES, ["charts", "topics"]],
     ["pageTypes", ["pages"]],
+    ["rerank", ["charts", "pages"]],
+    ["vocab", ["charts", "pages"]],
 ])
 
 // type=topics filters by country only when charts match a query, so never
@@ -89,6 +112,51 @@ async function fetchTagGraph(env: Env, baseUrl: string): Promise<TagGraphRoot> {
             `Failed to fetch /topicTagGraph.json: ${response.status}`
         )
     return response.json()
+}
+
+/**
+ * The experimental `rerank` param of a charts or pages search (see
+ * rerank.ts). It reorders the top RERANK_POOL_SIZE hits, so it serves page 0
+ * only. With `vocab=1`, the pool also gets the top results of the query's
+ * vocabulary topics (see vocabulary.ts): for charts picked by static
+ * embedding, for pages by a decision model call.
+ */
+function parseRerank(
+    value: string | null,
+    vocab: string | null,
+    env: Env,
+    page: number
+):
+    | {
+          model: RerankModel
+          ai: Ai
+          vocab: boolean
+      }
+    | undefined {
+    if (vocab && vocab !== "1")
+        throw new SearchValidationError(
+            `Invalid vocab value "${vocab}". Use vocab=1`
+        )
+    if (vocab && !value)
+        throw new SearchValidationError("vocab=1 needs a rerank")
+    if (!value) return undefined
+    if (!isRerankModel(value))
+        throw new SearchValidationError(
+            `Invalid rerank value "${value}". Valid values: ${Object.keys(RERANK_MODELS).join(", ")}`
+        )
+    if (!env.AI)
+        throw new SearchValidationError(
+            "rerank is not available on this deployment"
+        )
+    if (page !== 0)
+        throw new SearchValidationError(
+            "rerank only supports page=0: it reorders the top results"
+        )
+    return {
+        model: value,
+        ai: env.AI,
+        vocab: !!vocab,
+    }
 }
 
 const hasSearchEnvVars = (env: Env): boolean => {
@@ -247,6 +315,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
 
+        const rerank =
+            searchType === "charts" || searchType === "pages"
+                ? parseRerank(
+                      url.searchParams.get("rerank"),
+                      url.searchParams.get("vocab"),
+                      env,
+                      page
+                  )
+                : undefined
+
         // Build filters array
         const filters: Filter[] = []
 
@@ -288,11 +366,200 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
 
+        // A search already filtered to a topic gets no vocabulary hits: the
+        // reader chose the topic
+        const searchChartsReranked = async (
+            rerank: NonNullable<ReturnType<typeof parseRerank>>
+        ): Promise<
+            SearchApiResponse & {
+                vocabulary?: VocabularyInfo
+                timings: SearchTimings
+            }
+        > => {
+            const started = Date.now()
+            const expand = rerank.vocab && !topicParam?.trim()
+            const [{ value: pool, ms: poolMs }, vocabulary] = await Promise.all(
+                [
+                    timed(() =>
+                        searchCharts(
+                            algoliaConfig,
+                            searchState,
+                            0,
+                            Math.max(RERANK_POOL_SIZE, hitsPerPage),
+                            baseUrl
+                        )
+                    ),
+                    expand
+                        ? pickTopicsByEmbedding(query, (p) =>
+                              context.waitUntil(p)
+                          )
+                        : undefined,
+                ]
+            )
+            if (!vocabulary) {
+                const reranked = await rerankCharts(
+                    rerank.ai,
+                    rerank.model,
+                    pool,
+                    hitsPerPage
+                )
+                return {
+                    ...reranked,
+                    timings: {
+                        pool: poolMs,
+                        rerank: reranked.rerank.latencyMs,
+                        total: Date.now() - started,
+                    },
+                }
+            }
+            const termSearchesStarted = Date.now()
+            // An empty search within a topic: its charts in Algolia's
+            // default order
+            const { hits: results, via } = await appendVocabularyHits(
+                pool.results,
+                vocabulary.terms,
+                async (pick) =>
+                    (
+                        await searchCharts(
+                            algoliaConfig,
+                            {
+                                ...searchState,
+                                query: "",
+                                filters: [
+                                    ...filters,
+                                    {
+                                        type: FilterType.TOPIC,
+                                        name: pick.topic,
+                                    },
+                                ],
+                            },
+                            0,
+                            VOCABULARY_HITS_PER_TERM,
+                            baseUrl
+                        )
+                    ).results,
+                (hit) => hit.url
+            )
+            const termSearchesMs = Date.now() - termSearchesStarted
+            const reranked = await rerankCharts(
+                rerank.ai,
+                rerank.model,
+                {
+                    ...pool,
+                    results,
+                    nbHits: Math.max(pool.nbHits, results.length),
+                },
+                hitsPerPage,
+                (hit) => {
+                    const pick = via.get(hit.url)
+                    return pick && vocabularyTopicNote(pick)
+                }
+            )
+            return {
+                ...reranked,
+                vocabulary,
+                timings: {
+                    pool: poolMs,
+                    vocabulary: vocabulary.latencyMs,
+                    termSearches: termSearchesMs,
+                    rerank: reranked.rerank.latencyMs,
+                    total: Date.now() - started,
+                },
+            }
+        }
+
+        const searchPagesReranked = async (
+            rerank: NonNullable<ReturnType<typeof parseRerank>>
+        ): Promise<
+            SearchPagesApiResponse & {
+                vocabulary?: VocabularyInfo
+                timings: SearchTimings
+            }
+        > => {
+            const started = Date.now()
+            const [{ value: pool, ms: poolMs }, vocabulary] = await Promise.all(
+                [
+                    timed(() =>
+                        searchPages(
+                            algoliaConfig,
+                            query,
+                            0,
+                            Math.max(RERANK_POOL_SIZE, hitsPerPage),
+                            pageTypes, // undefined -> searchPages()'s own default
+                            baseUrl,
+                            ["excerpt"]
+                        )
+                    ),
+                    rerank.vocab
+                        ? pickVocabularyTopics(rerank.ai, rerank.model, query)
+                        : undefined,
+                ]
+            )
+            // Pages carry the charts' topic tags, so the query's vocabulary
+            // topics find pages a keyword search misses: Algolia wants every
+            // query word in a page, which leaves many searches a handful of
+            // hits. An empty search within a topic yields its pages in
+            // Algolia's default order.
+            const termSearchesStarted = Date.now()
+            const { hits: results, via } = vocabulary
+                ? await appendVocabularyHits(
+                      pool.results,
+                      vocabulary.terms,
+                      async (term) =>
+                          (
+                              await searchPages(
+                                  algoliaConfig,
+                                  "",
+                                  0,
+                                  VOCABULARY_HITS_PER_TERM,
+                                  pageTypes,
+                                  baseUrl,
+                                  ["excerpt"],
+                                  term.topic
+                              )
+                          ).results,
+                      (hit) => hit.url
+                  )
+                : {
+                      hits: pool.results,
+                      via: new Map<string, VocabularyTopicPick>(),
+                  }
+            const termSearchesMs = Date.now() - termSearchesStarted
+            const reranked = await rerankPages(
+                rerank.ai,
+                rerank.model,
+                {
+                    ...pool,
+                    results,
+                    nbHits: Math.max(pool.nbHits, results.length),
+                },
+                hitsPerPage,
+                (hit) => {
+                    const pick = via.get(hit.url)
+                    return pick && vocabularyTopicNote(pick)
+                }
+            )
+            return {
+                ...reranked,
+                ...(vocabulary && { vocabulary }),
+                timings: {
+                    pool: poolMs,
+                    ...(vocabulary && {
+                        vocabulary: vocabulary.latencyMs,
+                        termSearches: termSearchesMs,
+                    }),
+                    rerank: reranked.rerank.latencyMs,
+                    total: Date.now() - started,
+                },
+            }
+        }
+
         const search = (): Promise<
             SearchApiResponse | SearchPagesApiResponse | SearchTopicsApiResponse
         > => {
             switch (searchType) {
                 case "charts":
+                    if (rerank) return searchChartsReranked(rerank)
                     return searchCharts(
                         algoliaConfig,
                         searchState,
@@ -301,6 +568,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                         baseUrl
                     )
                 case "pages":
+                    if (rerank) return searchPagesReranked(rerank)
                     return searchPages(
                         algoliaConfig,
                         query,
