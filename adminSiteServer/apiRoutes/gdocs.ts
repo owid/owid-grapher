@@ -16,13 +16,10 @@ import {
     RedirectsTableName,
     OwidGdocType,
     GdocComponentPreviewRefreshResult,
-    OwidGdoc,
-    OwidGdocBaseInterface,
     OwidGdocErrorMessageType,
 } from "@ourworldindata/types"
 import {
     checkIsChronologicalGdoc,
-    checkIsGdocPostExcludingFragments,
     checkShouldDataCalloutRender,
     getEntitiesForProfile,
     makeCalloutGrapherStateKey,
@@ -42,7 +39,7 @@ import {
     getPreprocessedIndexableText,
     indexIndividualProfile,
     removeIndividualProfileFromIndex,
-    type IndexableInPagesGdoc,
+    checkIsIndexableInPages,
 } from "../../baker/algolia/utils/pages.js"
 import {
     indexIndividualGdocInChronological,
@@ -314,17 +311,6 @@ function checkIsProfile(gdoc: { content: { type?: OwidGdocType } }): boolean {
     return gdoc.content.type === OwidGdocType.Profile
 }
 
-/** Gdoc types indexed in pages via `indexIndividualGdoc` (profiles are handled separately) */
-function checkIsIndexedInPages(
-    gdoc: OwidGdoc | OwidGdocBaseInterface
-): gdoc is IndexableInPagesGdoc {
-    return (
-        checkIsGdocPostExcludingFragments(gdoc) ||
-        gdoc.content.type === OwidGdocType.DataInsight ||
-        gdoc.content.type === OwidGdocType.FeaturedViz
-    )
-}
-
 /**
  * Handles all four `GdocPublishingAction` cases
  * - SavingDraft (no action)
@@ -341,8 +327,8 @@ async function indexAndBakeGdocIfNecessary(
     const prevJson = prevGdoc.toJSON()
     const nextJson = nextGdoc.toJSON()
     const action = getPublishingAction(prevJson, nextJson)
-    const wasIndexedInPages = checkIsIndexedInPages(prevJson)
-    const shouldIndexInPages = checkIsIndexedInPages(nextJson)
+    const wasIndexedInPages = checkIsIndexableInPages(prevJson)
+    const shouldIndexInPages = checkIsIndexableInPages(nextJson)
     const wasProfile = checkIsProfile(prevJson)
     const isProfile = checkIsProfile(nextJson)
     const wasChronologicalPost = checkIsChronologicalGdoc(prevJson)
@@ -596,7 +582,7 @@ export async function deleteGdoc(
         .where({ gdocId: id })
         .delete()
     if (gdoc.published) {
-        if (checkIsIndexedInPages(gdoc)) {
+        if (checkIsIndexableInPages(gdoc)) {
             await removeIndividualGdocFromIndex(gdoc)
         }
         if (checkIsProfile(gdoc)) {
@@ -707,7 +693,7 @@ export async function getPreviewGdocIndexRecords(
             return payload
         }
 
-        if (!checkIsIndexedInPages(gdocJson)) {
+        if (!checkIsIndexableInPages(gdocJson)) {
             const payload: PagesIndexRecordsResponse = {
                 records: [],
                 count: 0,

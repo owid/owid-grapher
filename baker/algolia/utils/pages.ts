@@ -56,11 +56,41 @@ import {
 } from "../../../db/model/Gdoc/dataCallouts.js"
 
 /** Gdoc types that get records in the pages index, apart from profiles,
- *  which have their own indexing path */
+ *  which have their own indexing path. */
 export type IndexableInPagesGdoc =
-    | OwidGdocPostInterface
+    | (OwidGdocPostInterface & {
+          content: {
+              type:
+                  | OwidGdocType.Article
+                  | OwidGdocType.TopicPage
+                  | OwidGdocType.LinearTopicPage
+          }
+      })
+    | OwidGdocAboutInterface
     | OwidGdocDataInsightInterface
     | OwidGdocFeaturedVizInterface
+
+const PAGES_INDEX_TYPES_RECORD: Record<
+    NonNullable<IndexableInPagesGdoc["content"]["type"]>,
+    true
+> = {
+    [OwidGdocType.Article]: true,
+    [OwidGdocType.TopicPage]: true,
+    [OwidGdocType.LinearTopicPage]: true,
+    [OwidGdocType.AboutPage]: true,
+    [OwidGdocType.DataInsight]: true,
+    [OwidGdocType.FeaturedViz]: true,
+}
+
+const PAGES_INDEX_TYPES = Object.keys(
+    PAGES_INDEX_TYPES_RECORD
+) as OwidGdocType[]
+
+export function checkIsIndexableInPages(gdoc: {
+    content: { type?: OwidGdocType }
+}): gdoc is IndexableInPagesGdoc {
+    return PAGES_INDEX_TYPES.includes(gdoc.content.type as OwidGdocType)
+}
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -231,10 +261,7 @@ function flattenToSingleLine(chunk: string): string {
 }
 
 const getPostImportance = (
-    gdoc:
-        | OwidGdocAboutInterface
-        | IndexableInPagesGdoc
-        | OwidGdocProfileInterface
+    gdoc: IndexableInPagesGdoc | OwidGdocProfileInterface
 ): number => {
     return (
         match(gdoc.content.type)
@@ -249,7 +276,6 @@ const getPostImportance = (
                 P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
                 () => 3
             )
-            .with(P.union(OwidGdocType.Fragment, undefined), () => 0)
             .with(OwidGdocType.DataInsight, () => 0)
             // Only the featured-viz search returns featured-viz pages, so
             // this number never ranks them against other page types.
@@ -424,18 +450,9 @@ async function generateProfileRecords(
 export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const gdocs = (await db
-        .getPublishedGdocsWithTags(
-            knex,
-            [
-                OwidGdocType.Article,
-                OwidGdocType.LinearTopicPage,
-                OwidGdocType.TopicPage,
-                OwidGdocType.AboutPage,
-                OwidGdocType.DataInsight,
-                OwidGdocType.FeaturedViz,
-            ],
-            { excludeDeprecated: true }
-        )
+        .getPublishedGdocsWithTags(knex, PAGES_INDEX_TYPES, {
+            excludeDeprecated: true,
+        })
         .then((gdocs) => gdocs.map(gdocFromJSON))) as IndexableInPagesGdoc[]
 
     // Only load linkedCallouts — the sole attachment that affects indexed
