@@ -52,10 +52,6 @@ $all-charts-row-thumbnail-gap: 8px;
     color: $blue-90;
 }
 
-.all-charts-row__title strong {
-    font-weight: 700;
-}
-
 .all-charts-row__variant {
     @include label-2-regular;
     flex: 1 1 0;

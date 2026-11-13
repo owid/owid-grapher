@@ -622,10 +622,8 @@ function buildAllChartsBlockSearchParams({
             "availableTabs",
             "source",
         ],
-        attributesToHighlight: ["title"],
+        attributesToHighlight: [],
         attributesToSnippet: [],
-        highlightPreTag: "<mark>",
-        highlightPostTag: "</mark>",
         hitsPerPage: ALL_CHARTS_BLOCK_HITS_PER_PAGE,
         page,
     }

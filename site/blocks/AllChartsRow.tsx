@@ -1,5 +1,4 @@
 import cx from "clsx"
-import { Highlight } from "react-instantsearch"
 import { GrapherTabName, SearchChartViewHit } from "@ourworldindata/types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
@@ -48,11 +47,7 @@ export function AllChartsRow({
             >
                 <span className="all-charts-row__heading">
                     <span className="all-charts-row__title">
-                        <Highlight
-                            hit={hit}
-                            attribute="title"
-                            highlightedTagName="strong"
-                        />
+                        {hit.title}
                     </span>
                     {hit.variantName && (
                         <span className="all-charts-row__variant">
