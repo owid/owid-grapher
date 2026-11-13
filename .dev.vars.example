@@ -33,6 +33,9 @@ CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE=
 # indices with a public key that forces analytics off, as in .env.example-full
 ALGOLIA_ID=ASCB5XMYF2
 ALGOLIA_SEARCH_KEY=ODZiMDkyMGRiNGU4MmU4MWZhYzUxNTNhZjY1NWI1NTY3ZTE2MmZhOGZhZDVlMTUxOWY1MGRkYTRlNWY1YzlmOGFuYWx5dGljcz1mYWxzZSZjbGlja0FuYWx5dGljcz1mYWxzZQ==
+# optional; base URL of a server that speaks the Algolia REST API, used instead
+# of Algolia (e.g. http://127.0.0.1:8799 for https://github.com/owid/local-algolia)
+ALGOLIA_HOST=
 
 # optional
 SLACK_BOT_OAUTH_TOKEN=

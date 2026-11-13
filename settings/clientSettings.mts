@@ -72,6 +72,9 @@ export const ALGOLIA_ID: string = process.env.ALGOLIA_ID ?? ""
 export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""
 export const ALGOLIA_INDEX_PREFIX: string =
     process.env.ALGOLIA_INDEX_PREFIX ?? ""
+// Base URL of a server that speaks the Algolia REST API, e.g. a local stand-in.
+// When empty, calls go to Algolia itself.
+export const ALGOLIA_HOST: string = process.env.ALGOLIA_HOST ?? ""
 
 // Endpoint of the Cloudflare function that proxies empty-query Algolia
 // searches and caches their results aggressively (see

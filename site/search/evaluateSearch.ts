@@ -2,8 +2,12 @@
  * Simulate searches against our Algolia index and evaluate the results.
  */
 
-import { fetchWithRetry } from "@ourworldindata/utils"
 import {
+    fetchWithRetry,
+    getAlgoliaHostClientOptions,
+} from "@ourworldindata/utils"
+import {
+    ALGOLIA_HOST,
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.mjs"
@@ -70,7 +74,11 @@ const evaluateArticleSearch = async (name: string): Promise<SearchResults> => {
     const indexName = PAGES_INDEX
 
     // make a search client
-    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+    const client = algoliasearch(
+        ALGOLIA_ID,
+        ALGOLIA_SEARCH_KEY,
+        getAlgoliaHostClientOptions(ALGOLIA_HOST)
+    )
 
     // run the evaluation
     const results = await simulateQueries(client, indexName, ds.queries)

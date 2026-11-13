@@ -6,9 +6,13 @@ import {
     type Response,
 } from "@algolia/client-common"
 import { createFetchRequester } from "@algolia/requester-fetch"
-import { isEmptyQuerySearchPayload } from "@ourworldindata/utils"
+import {
+    getAlgoliaHostClientOptions,
+    isEmptyQuerySearchPayload,
+} from "@ourworldindata/utils"
 import {
     ALGOLIA_CACHED_QUERIES_URL,
+    ALGOLIA_HOST,
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.mjs"
@@ -66,6 +70,7 @@ export const getLiteSearchClient = (): LiteClient => {
         liteSearchClient = liteClient(ALGOLIA_ID, ALGOLIA_SEARCH_KEY, {
             requester: createCachingRequester(),
             responsesCache: createNullCache(),
+            ...getAlgoliaHostClientOptions(ALGOLIA_HOST),
         })
     }
     return liteSearchClient
@@ -82,7 +87,11 @@ let autocompleteSearchClient: LiteClient | null = null
  */
 export const getAutocompleteSearchClient = (): LiteClient => {
     if (!autocompleteSearchClient) {
-        autocompleteSearchClient = liteClient(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+        autocompleteSearchClient = liteClient(
+            ALGOLIA_ID,
+            ALGOLIA_SEARCH_KEY,
+            getAlgoliaHostClientOptions(ALGOLIA_HOST)
+        )
     }
     return autocompleteSearchClient
 }

@@ -459,6 +459,11 @@ export {
 } from "./search/searchTopicPages.js"
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
+export {
+    type AlgoliaHostOption,
+    getAlgoliaBaseUrl,
+    getAlgoliaHostClientOptions,
+} from "./search/algoliaHost.js"
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
