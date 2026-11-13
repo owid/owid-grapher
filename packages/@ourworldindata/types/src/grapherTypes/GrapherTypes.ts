@@ -769,6 +769,7 @@ export type GrapherQueryParams = {
     tableFilter?: string
     tableSearch?: string
     peerCountries?: string
+    peerCount?: string
 }
 
 export type LegacyGrapherQueryParams = GrapherQueryParams & {
@@ -811,6 +812,7 @@ const GRAPHER_ALL_QUERY_PARAMS: Required<LegacyGrapherQueryParams> = {
     tableFilter: "",
     tableSearch: "",
     peerCountries: "",
+    peerCount: "",
 }
 
 export const GRAPHER_QUERY_PARAM_KEYS = Object.keys(

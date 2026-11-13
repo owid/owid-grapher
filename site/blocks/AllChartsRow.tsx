@@ -1,16 +1,37 @@
 import cx from "clsx"
-import { ChartRecordType, GrapherTabName } from "@ourworldindata/types"
+import {
+    ChartLabelMode,
+    ChartRecordType,
+    GrapherTabName,
+    GrapherVariant,
+    type GrapherQueryParams,
+} from "@ourworldindata/types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
-import { makeLabelForGrapherTab } from "@ourworldindata/grapher"
-import { constructThumbnailUrlForTab } from "../search/SearchChartHitSmallHelpers.js"
+import {
+    makeLabelForGrapherTab,
+    type ImageRequest,
+} from "@ourworldindata/grapher"
+import { constructPreviewUrl } from "../search/searchUtils.js"
 import type { AllChartsHit } from "../search/queries.js"
+
+const ALL_CHARTS_THUMBNAIL_REQUEST: ImageRequest = {
+    variant: GrapherVariant.Thumbnail,
+    labelMode: ChartLabelMode.Names,
+    size: { kind: "explicit", fontSize: 18 },
+    includeDetails: false,
+}
+
+export interface AllChartsThumbnail {
+    tab: GrapherTabName
+    grapherParams: GrapherQueryParams
+}
 
 interface AllChartsRowProps {
     hit: AllChartsHit
     isSelected: boolean
     displayedTab: GrapherTabName
-    thumbnailTabs: GrapherTabName[]
+    thumbnails: AllChartsThumbnail[]
     countries: string[]
     inlinePreviewId?: string
     onTitleSelect: () => void
@@ -21,7 +42,7 @@ export function AllChartsRow({
     hit,
     isSelected,
     displayedTab,
-    thumbnailTabs,
+    thumbnails,
     countries,
     inlinePreviewId,
     onTitleSelect,
@@ -75,9 +96,9 @@ export function AllChartsRow({
                     </span>
                 )}
             </button>
-            {thumbnailTabs.length > 0 && (
+            {thumbnails.length > 0 && (
                 <ul className="all-charts-row__thumbnails">
-                    {thumbnailTabs.map((tab) => (
+                    {thumbnails.map(({ tab, grapherParams }) => (
                         <li key={tab}>
                             <button
                                 type="button"
@@ -94,10 +115,11 @@ export function AllChartsRow({
                                 }
                             >
                                 <img
-                                    src={constructThumbnailUrlForTab({
+                                    src={constructPreviewUrl({
                                         hit,
-                                        tab,
-                                        entities: countries,
+                                        grapherParams,
+                                        imageRequest:
+                                            ALL_CHARTS_THUMBNAIL_REQUEST,
                                     })}
                                     loading="lazy"
                                     alt=""

@@ -3154,3 +3154,47 @@ describe("showLegend", () => {
         ).toBe(false)
     })
 })
+
+describe("removeInvalidFocusedSeriesNames", () => {
+    const table = SynthesizeGDPTable({ entityNames: ["France", "Spain"] })
+
+    it("drops a focused entity when the series are indicators", () => {
+        const grapher = new GrapherState({
+            table,
+            ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
+            selectedEntityNames: ["France"],
+            focusedSeriesNames: ["France"],
+        })
+
+        grapher.removeInvalidFocusedSeriesNames()
+
+        expect(grapher.focusArray.seriesNames).toEqual([])
+    })
+
+    it("keeps focused series that are plotted and drops the rest", () => {
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            selectedEntityNames: ["France", "Spain"],
+            focusedSeriesNames: ["France", "Canada"],
+        })
+
+        grapher.removeInvalidFocusedSeriesNames()
+
+        expect(grapher.focusArray.seriesNames).toEqual(["France"])
+    })
+
+    it("leaves focus alone before the data is ready", () => {
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            selectedEntityNames: ["France"],
+            focusedSeriesNames: ["Canada"],
+        })
+        grapher.isDataReady = false
+
+        grapher.removeInvalidFocusedSeriesNames()
+
+        expect(grapher.focusArray.seriesNames).toEqual(["Canada"])
+    })
+})

@@ -23,14 +23,12 @@ import { GrapherWithFallback } from "../GrapherWithFallback.js"
 import { MultiDimEmbed } from "../MultiDimEmbed.js"
 import { useDocumentContext } from "../gdocs/DocumentContext.js"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
-import {
-    constructChartUrl,
-    toGrapherQueryParams,
-} from "../search/searchUtils.js"
+import { constructChartUrl } from "../search/searchUtils.js"
 import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
 import type { AllChartsHit } from "../search/queries.js"
-import { AllChartsRow } from "./AllChartsRow.js"
+import { AllChartsRow, type AllChartsThumbnail } from "./AllChartsRow.js"
+import { toAllChartsGrapherParams } from "./allChartsEntitySelection.js"
 
 const SKELETON_ROW_COUNT = 6
 const MAX_THUMBNAILS = 3
@@ -243,6 +241,14 @@ function AllChartsItem({
     const itemRef = useRef<HTMLLIElement>(null)
     const inlinePreviewId = useId()
     const thumbnailTabs = pickThumbnailTabs(hit.availableTabs)
+    const thumbnails: AllChartsThumbnail[] = thumbnailTabs.map((tab) => ({
+        tab,
+        grapherParams: toAllChartsGrapherParams({
+            tab,
+            countries,
+            target: "thumbnail",
+        }),
+    }))
 
     const select = (
         tab: GrapherTabName | undefined,
@@ -267,7 +273,7 @@ function AllChartsItem({
                         ? selectedTab
                         : getDefaultTab(thumbnailTabs, countries)
                 }
-                thumbnailTabs={thumbnailTabs}
+                thumbnails={thumbnails}
                 countries={countries}
                 inlinePreviewId={isNarrow ? inlinePreviewId : undefined}
                 onTitleSelect={() => {
@@ -527,7 +533,11 @@ function AllChartsPreview({
     countries: string[]
 }): React.ReactElement {
     const { isPreviewing } = useDocumentContext()
-    const grapherParams = toGrapherQueryParams({ tab, entities: countries })
+    const grapherParams = toAllChartsGrapherParams({
+        tab,
+        countries,
+        target: "preview",
+    })
     switch (hit.type) {
         case ChartRecordType.Chart:
             return (
