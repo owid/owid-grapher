@@ -21,6 +21,7 @@ import {
     getParentRegions,
     getRegionByName,
     getTimeInterval,
+    findClosestTime,
     isSubYearly,
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
@@ -112,9 +113,6 @@ export async function selectPeersForGrapherWithGuards(
         addCountryMode,
         peerCountryStrategy: strategy,
         peerCount: targetCount,
-        activeChartType: chartType,
-        chartState: { seriesStrategy = SeriesStrategy.entity },
-        isFaceted,
     } = grapherState
 
     if (
@@ -124,24 +122,14 @@ export async function selectPeersForGrapherWithGuards(
     )
         return []
 
-    const availableEntities = new Set(grapherState.availableEntityNames)
-    const selectedEntities = grapherState.selection.selectedEntityNames.filter(
-        (name) => availableEntities.has(name)
-    )
+    const selectedEntities = findAvailableSelectedEntities(grapherState)
 
     const fallbackPeers =
         selectedEntities.length === 0
             ? grapherState.authorsVersion.selectedEntityNames
             : []
 
-    const canAddPeers =
-        chartType !== undefined &&
-        addCountryMode === EntitySelectionMode.MultipleEntities &&
-        seriesStrategy === SeriesStrategy.entity &&
-        !isFaceted &&
-        chartType !== GRAPHER_CHART_TYPES.StackedArea &&
-        chartType !== GRAPHER_CHART_TYPES.StackedBar
-    if (!canAddPeers) return fallbackPeers
+    if (!canAddPeersToGrapher(grapherState)) return fallbackPeers
 
     const peers = await selectPeersForGrapher(grapherState, {
         peerCountryStrategy: strategy,
@@ -149,6 +137,74 @@ export async function selectPeersForGrapherWithGuards(
         targetCount,
     })
     return peers.length > 0 ? peers : fallbackPeers
+}
+
+/**
+ * The time a single-time chart should move to before peers are picked: the
+ * target's latest time, when it has no value near the end handle
+ */
+export function findPeerTargetTimeForGrapher(
+    grapherState: GrapherState
+): Time | undefined {
+    const { peerCountryStrategy: strategy } = grapherState
+    if (
+        strategy === undefined ||
+        strategy === PeerCountryStrategy.None ||
+        grapherState.hideTimeline ||
+        !grapherState.isSingleTimeSelectionActive ||
+        !canAddPeersToGrapher(grapherState)
+    )
+        return undefined
+
+    const [targetEntity] = findAvailableSelectedEntities(grapherState)
+    const column = grapherState.table.get(grapherState.yColumnSlug)
+    if (targetEntity === undefined || column.isMissing || column.isEmpty)
+        return undefined
+
+    const endTime = findClosestTime(
+        column.uniqTimesAsc,
+        grapherState.endHandleTimeBound
+    )
+    if (endTime === undefined) return undefined
+
+    const [latestTargetValue] = findLatestValues({
+        column,
+        entityNames: [targetEntity],
+        timeRange: [-Infinity, endTime],
+    })
+    if (latestTargetValue === undefined) return undefined
+    const latestTargetTime = latestTargetValue.time
+
+    const isTargetPlottedAtEndTime =
+        endTime - latestTargetTime <= column.tolerance
+    return isTargetPlottedAtEndTime ? undefined : latestTargetTime
+}
+
+function canAddPeersToGrapher(grapherState: GrapherState): boolean {
+    const {
+        addCountryMode,
+        activeChartType: chartType,
+        chartState: { seriesStrategy = SeriesStrategy.entity },
+        isFaceted,
+    } = grapherState
+
+    return (
+        chartType !== undefined &&
+        addCountryMode === EntitySelectionMode.MultipleEntities &&
+        seriesStrategy === SeriesStrategy.entity &&
+        !isFaceted &&
+        chartType !== GRAPHER_CHART_TYPES.StackedArea &&
+        chartType !== GRAPHER_CHART_TYPES.StackedBar
+    )
+}
+
+function findAvailableSelectedEntities(
+    grapherState: GrapherState
+): EntityName[] {
+    const availableEntityNames = new Set(grapherState.availableEntityNames)
+    return grapherState.selection.selectedEntityNames.filter((name) =>
+        availableEntityNames.has(name)
+    )
 }
 
 /**
@@ -171,10 +227,7 @@ export async function selectPeersForGrapher(
         targetCount?: number
     } = {}
 ): Promise<EntityName[]> {
-    const availableEntityNames = new Set(grapherState.availableEntityNames)
-    const selectedEntities = grapherState.selection.selectedEntityNames.filter(
-        (name) => availableEntityNames.has(name)
-    )
+    const selectedEntities = findAvailableSelectedEntities(grapherState)
     if (!requestedTargetEntity && selectedEntities.length > 1) return []
 
     const targetEntity: EntityName | undefined =
@@ -188,6 +241,12 @@ export async function selectPeersForGrapher(
         requestedStrategy ?? grapherState.peerCountryStrategy
     if (!peerCountryStrategy) return []
 
+    const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
+    const endTime = findClosestTime(
+        dataColumn.uniqTimesAsc,
+        grapherState.endHandleTimeBound
+    )
+
     return selectPeers({
         peerCountryStrategy,
         targetEntity,
@@ -195,8 +254,8 @@ export async function selectPeersForGrapher(
         defaultSelection,
         availableEntities,
         additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
-        dataColumn: grapherState.table.get(grapherState.yColumnSlug),
-        endTime: grapherState.endTime,
+        dataColumn,
+        endTime,
         isSingleTimeChart: grapherState.isSingleTimeSelectionActive,
     })
 }
@@ -311,8 +370,16 @@ export function prepareEntitiesForPeerSelection(
     const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
     if (!isDataColumnAvailable(dataColumn)) return relevantEntities
 
+    const startTime = findClosestTime(
+        dataColumn.uniqTimesAsc,
+        grapherState.startHandleTimeBound
+    )
+    const endTime = findClosestTime(
+        dataColumn.uniqTimesAsc,
+        grapherState.endHandleTimeBound
+    )
     const requiredTimes = grapherState.isOnSlopeChartTab
-        ? excludeUndefined([grapherState.startTime, grapherState.endTime])
+        ? excludeUndefined([startTime, endTime])
         : []
 
     if (requiredTimes.length === 0) return relevantEntities
