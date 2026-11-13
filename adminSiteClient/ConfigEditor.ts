@@ -286,9 +286,7 @@ export class ConfigEditor {
             return grapherState.focusArray.seriesNames
         }
 
-        const availableSeriesNames = grapherState.focusableSeriesNames
-        const focusedSeriesNames = grapherState.focusArray.seriesNames
-        return _.difference(focusedSeriesNames, availableSeriesNames)
+        return grapherState.invalidFocusedSeriesNames
     }
 
     @computed get invalidSelectedEntityNames(): SeriesName[] {
