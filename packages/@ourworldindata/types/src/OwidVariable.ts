@@ -1,5 +1,7 @@
 import { z } from "zod/mini"
 import type { OwidOrigin } from "./OwidOrigin.js"
+import type { EntityName } from "./domainTypes/CoreTableTypes.js"
+import type { Time } from "./grapherTypes/GrapherTypes.js"
 import type { SchemaFor } from "./domainTypes/Various.js"
 import { OwidSource } from "./OwidSource.js"
 import { OwidVariableDisplayConfigInterface } from "./OwidVariableDisplayConfigInterface.js"
@@ -64,6 +66,7 @@ export interface OwidVariableWithSource {
     nonRedistributable?: boolean
     source?: OwidSource
     origins?: OwidOrigin[]
+    annotations?: OwidVariableAnnotation[] | null
     schemaVersion?: number
     processingLevel?: OwidProcessingLevel
     presentation?: OwidVariablePresentation
@@ -114,6 +117,13 @@ export const OwidLicenseSchema = z.object({
     name: z.string(),
     url: z.string(),
 } satisfies SchemaFor<OwidLicense>)
+
+export interface OwidVariableAnnotation {
+    text: string
+    entities?: EntityName[]
+    time?: Time | string
+    timeEnd?: Time | string
+}
 
 export interface OwidVariablePresentation {
     titlePublic?: string
