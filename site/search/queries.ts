@@ -28,7 +28,6 @@ import {
     formatDisjunctiveFacetFilters,
 } from "./searchUtils.js"
 import {
-    runSearchRequest,
     searchRequestToUrlParams,
     fromSearchApiResponse,
     TOPIC_PAGE_TYPE_FILTER,
@@ -133,45 +132,27 @@ export async function queryDataTopics(
     }))
 }
 
-const SEARCH_INDEX_NAMES = { charts: CHARTS_INDEX, pages: PAGES_INDEX }
-
 const CHARTS_PER_PAGE = 9
 
 /**
- * Runs one search of the search page: through /api/search when SEARCH_API_URL
- * is set and the search has a query, otherwise against Algolia from the
- * browser. Both run runSearchRequest, so they return the same results.
- * Searches without a query ("browse" states, e.g. a topic filter alone) stay
- * in the browser, where the search client sends them to the cached-queries
- * proxy (see searchClients.ts).
- * A failed API request throws, like a failed Algolia search.
+ * Runs one result section of the search page through /api/search, which
+ * builds its Algolia requests with runSearchRequest (@ourworldindata/utils).
+ * A failed request throws, like a failed Algolia search.
  */
 async function querySection<THit extends { slug: string }>(
-    liteSearchClient: LiteClient,
-    request: SearchRequest,
-    loadTagGraph?: () => Promise<TagGraphRoot>
+    request: SearchRequest
 ): Promise<SectionSearchResponse<THit>> {
-    if (SEARCH_API_URL && request.state.query.trim()) {
-        const params = searchRequestToUrlParams(request)
-        // Keep Algolia's objectID and highlights, which the page renders
-        params.set("highlights", "true")
-        const response = await fetch(`${SEARCH_API_URL}?${params}`)
-        if (!response.ok)
-            throw new Error(`Search API request failed: ${response.status}`)
-        return fromSearchApiResponse<THit>(await response.json())
-    }
-    return runSearchRequest<THit>(liteSearchClient, request, {
-        indexNames: SEARCH_INDEX_NAMES,
-        loadTagGraph,
-    })
+    const params = searchRequestToUrlParams(request)
+    // Keep Algolia's objectID and highlights, which the page renders
+    params.set("highlights", "true")
+    const response = await fetch(`${SEARCH_API_URL}?${params}`)
+    if (!response.ok)
+        throw new Error(`Search API request failed: ${response.status}`)
+    return fromSearchApiResponse<THit>(await response.json())
 }
 
-export async function queryCharts(
-    liteSearchClient: LiteClient,
-    state: SearchState,
-    page: number = 0
-) {
-    return querySection<SearchChartHit>(liteSearchClient, {
+export async function queryCharts(state: SearchState, page: number = 0) {
+    return querySection<SearchChartHit>({
         type: "charts",
         state,
         page,
@@ -180,14 +161,13 @@ export async function queryCharts(
 }
 
 export async function queryDataInsights(
-    liteSearchClient: LiteClient,
     state: SearchState,
     page: number = 0,
     hitsPerPage: number = 4
 ): Promise<SectionSearchResponse<DataInsightHit>> {
     // Searched by offset like all page searches; the section pages through
     // them by page number
-    const response = await querySection<DataInsightHit>(liteSearchClient, {
+    const response = await querySection<DataInsightHit>({
         type: "pages",
         state,
         pageTypes: [OwidGdocType.DataInsight],
@@ -203,12 +183,11 @@ export async function queryDataInsights(
 }
 
 export async function queryArticles(
-    liteSearchClient: LiteClient,
     state: SearchState,
     offset: number = 0,
     length: number
 ) {
-    return querySection<FlatArticleHit>(liteSearchClient, {
+    return querySection<FlatArticleHit>({
         type: "pages",
         state,
         pageTypes: DEFAULT_PAGE_TYPES,
@@ -219,29 +198,22 @@ export async function queryArticles(
 
 /**
  * Topic pages to recommend for the current search (see recommendTopicPages
- * in @ourworldindata/utils, which /api/search?type=topics shares).
+ * in @ourworldindata/utils, which /api/search?type=topics runs).
  */
 export async function queryTopicPages(
-    liteSearchClient: LiteClient,
     state: SearchState,
-    tagGraph: TagGraphRoot,
     offset: number = 0,
     length: number
 ) {
-    return querySection<TopicPageHit>(
-        liteSearchClient,
-        { type: "topics", state, offset, length },
-        () => Promise.resolve(tagGraph)
-    )
+    return querySection<TopicPageHit>({ type: "topics", state, offset, length })
 }
 
 export async function queryProfiles(
-    liteSearchClient: LiteClient,
     state: SearchState,
     offset: number = 0,
     length: number
 ) {
-    return querySection<ProfileHit>(liteSearchClient, {
+    return querySection<ProfileHit>({
         type: "profiles",
         state,
         offset,

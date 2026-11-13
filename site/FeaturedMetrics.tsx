@@ -4,7 +4,6 @@ import { SearchChartHitComponent } from "./search/SearchChartHitComponent.js"
 import { createTopicFilter, SEARCH_BASE_PATH } from "./search/searchUtils.js"
 import { stateToSearchParams } from "./search/searchState.js"
 import { queryCharts, searchQueryKeys } from "./search/queries.js"
-import { getLiteSearchClient } from "./search/searchClients.js"
 import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js"
 import { Button } from "@ourworldindata/components"
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
@@ -27,7 +26,6 @@ export const FeaturedMetrics = ({
     topicName,
     className,
 }: FeaturedMetricsProps) => {
-    const liteSearchClient = getLiteSearchClient()
     const { gdocType } = useDocumentContext()
     const headingFragment = getTopicPageHeading("featuredData", gdocType)
     const headingCaseCorrected = `${headingFragment} on ${sentenceCaseIfNotTopicPage(topicName, gdocType, false)}`
@@ -43,7 +41,7 @@ export const FeaturedMetrics = ({
         // reusing the same query key function as search for simplicity but
         // would technically collide if using the same query client instance
         queryKey: searchQueryKeys.charts(searchState),
-        queryFn: () => queryCharts(liteSearchClient, searchState, 0),
+        queryFn: () => queryCharts(searchState, 0),
         enabled: Boolean(topicName),
     })
 

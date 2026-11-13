@@ -9,9 +9,14 @@ export interface AlgoliaConfig {
     appId: string
     apiKey: string
     indexPrefix?: string
+    /**
+     * The reader's IP, forwarded to Algolia so its analytics tell readers
+     * apart (and attribute countries) as when the browser queries it directly
+     */
+    readerIp?: string
 }
 
-export function getAlgoliaConfig(env: Env): AlgoliaConfig {
+export function getAlgoliaConfig(env: Env, request?: Request): AlgoliaConfig {
     const appId = env.ALGOLIA_ID
     const apiKey = env.ALGOLIA_SEARCH_KEY
 
@@ -23,6 +28,7 @@ export function getAlgoliaConfig(env: Env): AlgoliaConfig {
         appId,
         apiKey,
         indexPrefix: env.ALGOLIA_INDEX_PREFIX,
+        readerIp: request?.headers.get("CF-Connecting-IP") ?? undefined,
     }
 }
 
@@ -56,8 +62,21 @@ export function getSearchIndexNames(
 // We disable the cache here because we don't need it with a single search per
 // request, which also makes the client safe to hoist to module scope.
 export function createSearchClient(config: AlgoliaConfig): LiteClient {
+    const fetchRequester = createFetchRequester()
+    const { readerIp } = config
     return liteClient(config.appId, config.apiKey, {
-        requester: createFetchRequester(),
+        requester: readerIp
+            ? {
+                  send: (request) =>
+                      fetchRequester.send({
+                          ...request,
+                          headers: {
+                              ...request.headers,
+                              "X-Forwarded-For": readerIp,
+                          },
+                      }),
+              }
+            : fetchRequester,
         responsesCache: createNullCache(),
     })
 }

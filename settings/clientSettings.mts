@@ -82,16 +82,16 @@ export const ALGOLIA_CACHED_QUERIES_URL: string =
     process.env.ALGOLIA_CACHED_QUERIES_URL ??
     (ENV === "development" ? "" : `${BAKED_BASE_URL}/api/search/cached-queries`)
 
-// The search API (functions/api/search/index.ts). When set, the search page
-// fetches each result section with a typed query from there instead of
-// querying Algolia from the browser. Unset or empty, it defaults to on for
-// staging servers only, while it is being tried out, and off elsewhere.
-// Set it to http://localhost:8788/api/search to test against
-// `yarn startLocalCloudflareFunctions`. `||` rather than `??` because
-// .env.example-full sets it to an empty value.
+// The search API (functions/api/search/index.ts), which runs the search
+// page's result sections. The admin server doesn't serve Cloudflare functions,
+// so in development it is production's unless set (e.g. to the local
+// functions server, http://localhost:<WRANGLER_PORT>/api/search). `||`
+// rather than `??` because .env.example-full sets it to an empty value.
 export const SEARCH_API_URL: string =
     process.env.SEARCH_API_URL ||
-    (ENV === "staging" ? `${BAKED_BASE_URL}/api/search` : "")
+    (ENV === "development"
+        ? "https://ourworldindata.org/api/search"
+        : `${BAKED_BASE_URL}/api/search`)
 
 // Cloudflare Images has one store shared by all environments, so in development
 // images come from the production delivery URL unless set. `||` rather than `??`

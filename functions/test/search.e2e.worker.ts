@@ -8,15 +8,11 @@ import type { Env } from "../_common/env.js"
 export default {
     async fetch(request: Request, env: Env, ctx: ExecutionContext) {
         const url = new URL(request.url)
+        const context = { request, env, waitUntil: ctx.waitUntil.bind(ctx) }
         if (url.pathname === "/api/search") {
-            return searchOnRequestGet({ request, env } as never)
+            return searchOnRequestGet(context as never)
         }
         if (url.pathname === "/api/search/cached-queries") {
-            const context = {
-                request,
-                env,
-                waitUntil: ctx.waitUntil.bind(ctx),
-            }
             if (request.method === "POST")
                 return cachedQueriesOnRequestPost(context as never)
             if (request.method === "OPTIONS")

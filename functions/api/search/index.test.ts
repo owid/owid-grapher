@@ -29,8 +29,15 @@ describe("Search API endpoint", () => {
         ALGOLIA_SEARCH_KEY: "test-api-key",
     } as Env
 
+    // The edge cache searches without a query go through
+    const mockCache = { match: vi.fn(), put: vi.fn() }
+    const waitUntil = vi.fn()
+
     beforeEach(() => {
         vi.clearAllMocks()
+        mockCache.match.mockResolvedValue(undefined)
+        mockCache.put.mockResolvedValue(undefined)
+        vi.stubGlobal("caches", { default: mockCache })
     })
 
     describe("type parameter validation", () => {
@@ -47,7 +54,7 @@ describe("Search API endpoint", () => {
                 })
 
             const request = new Request("http://localhost/api/search?q=test")
-            await onRequestGet({ request, env: mockEnv } as any)
+            await onRequestGet({ request, env: mockEnv, waitUntil } as any)
 
             expect(mockSearchCharts).toHaveBeenCalled()
         })
@@ -67,7 +74,7 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=test&type=charts"
             )
-            await onRequestGet({ request, env: mockEnv } as any)
+            await onRequestGet({ request, env: mockEnv, waitUntil } as any)
 
             expect(mockSearchCharts).toHaveBeenCalled()
         })
@@ -86,7 +93,7 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=test&type=pages"
             )
-            await onRequestGet({ request, env: mockEnv } as any)
+            await onRequestGet({ request, env: mockEnv, waitUntil } as any)
 
             expect(mockSearchPages).toHaveBeenCalled()
         })
@@ -98,6 +105,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(400)
@@ -122,7 +130,7 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=test&type=pages&page=2&hitsPerPage=10"
             )
-            await onRequestGet({ request, env: mockEnv } as any)
+            await onRequestGet({ request, env: mockEnv, waitUntil } as any)
 
             expect(mockSearchPages).toHaveBeenCalledWith(
                 expect.anything(),
@@ -149,7 +157,7 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=climate&type=pages"
             )
-            await onRequestGet({ request, env: mockEnv } as any)
+            await onRequestGet({ request, env: mockEnv, waitUntil } as any)
 
             expect(mockSearchPages).toHaveBeenCalledWith(
                 expect.anything(),
@@ -178,7 +186,7 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=malaria&type=pages&pageTypes=data-insight"
             )
-            await onRequestGet({ request, env: mockEnv } as any)
+            await onRequestGet({ request, env: mockEnv, waitUntil } as any)
 
             expect(mockSearchPages).toHaveBeenCalledWith(
                 expect.anything(),
@@ -205,7 +213,7 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=malaria&type=pages&pageTypes=article,%20about-page"
             )
-            await onRequestGet({ request, env: mockEnv } as any)
+            await onRequestGet({ request, env: mockEnv, waitUntil } as any)
 
             expect(mockSearchPages).toHaveBeenCalledWith(
                 expect.anything(),
@@ -227,6 +235,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(400)
@@ -258,6 +267,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(200)
@@ -282,6 +292,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(200)
@@ -307,6 +318,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(200)
@@ -335,6 +347,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             const body = await response.json()
@@ -363,6 +376,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(await response.json()).not.toHaveProperty("warnings")
@@ -402,6 +416,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(200)
@@ -426,6 +441,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(200)
@@ -455,6 +471,7 @@ describe("Search API endpoint", () => {
                 const response = await onRequestGet({
                     request: new Request(`http://localhost/api/search?${qs}`),
                     env: mockEnv,
+                    waitUntil,
                 } as any)
                 const body = await response.json()
                 assert(typeof body === "object" && body !== null)
@@ -506,6 +523,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(200)
@@ -542,7 +560,11 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=gdp&type=topics&countries=France"
             )
-            await onRequestGet({ request, env: envWithAssets } as any)
+            await onRequestGet({
+                request,
+                env: envWithAssets,
+                waitUntil,
+            } as any)
 
             expect(mockSearchTopicPages).toHaveBeenCalledWith(
                 expect.anything(),
@@ -575,7 +597,11 @@ describe("Search API endpoint", () => {
             const request = new Request(
                 "http://localhost/api/search?q=gdp&type=pages&pageTypes=topic-page"
             )
-            await onRequestGet({ request, env: envWithAssets } as any)
+            await onRequestGet({
+                request,
+                env: envWithAssets,
+                waitUntil,
+            } as any)
 
             expect(mockSearchPages).toHaveBeenCalledWith(
                 expect.anything(),
@@ -598,6 +624,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(400)
@@ -613,6 +640,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(400)
@@ -628,6 +656,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(400)
@@ -643,6 +672,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(400)
@@ -662,6 +692,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: envWithoutId,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(500)
@@ -681,6 +712,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: envWithoutKey,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(500)
@@ -702,6 +734,7 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(200)
@@ -723,12 +756,80 @@ describe("Search API endpoint", () => {
             const response = await onRequestGet({
                 request,
                 env: mockEnv,
+                waitUntil,
             } as any)
 
             expect(response.status).toBe(400)
             expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
                 "*"
             )
+        })
+    })
+
+    describe("edge cache", () => {
+        const chartsResponse = {
+            query: "",
+            results: [],
+            nbHits: 0,
+            page: 0,
+            nbPages: 0,
+            hitsPerPage: 20,
+        }
+
+        it("caches a search without a query for a day", async () => {
+            vi.spyOn(searchApi, "searchCharts").mockResolvedValue(
+                chartsResponse
+            )
+            const url = "http://localhost/api/search?topics=Energy"
+            const response = await onRequestGet({
+                request: new Request(url),
+                env: mockEnv,
+                waitUntil,
+            } as any)
+
+            expect(response.headers.get("Cache-Control")).toBe(
+                "public, max-age=86400"
+            )
+            expect(mockCache.put).toHaveBeenCalledWith(
+                url,
+                expect.any(Response)
+            )
+        })
+
+        it("serves a cached search without a query without searching", async () => {
+            const searchCharts = vi.spyOn(searchApi, "searchCharts")
+            mockCache.match.mockResolvedValue(
+                new Response(JSON.stringify(chartsResponse))
+            )
+            const response = await onRequestGet({
+                request: new Request(
+                    "http://localhost/api/search?topics=Energy"
+                ),
+                env: mockEnv,
+                waitUntil,
+            } as any)
+
+            expect(await response.json()).toEqual(chartsResponse)
+            expect(searchCharts).not.toHaveBeenCalled()
+        })
+
+        // So that Algolia's analytics see every search readers type
+        it("leaves a search with a query to the browser cache", async () => {
+            vi.spyOn(searchApi, "searchCharts").mockResolvedValue({
+                ...chartsResponse,
+                query: "gdp",
+            })
+            const response = await onRequestGet({
+                request: new Request("http://localhost/api/search?q=gdp"),
+                env: mockEnv,
+                waitUntil,
+            } as any)
+
+            expect(response.headers.get("Cache-Control")).toBe(
+                "public, max-age=600"
+            )
+            expect(mockCache.match).not.toHaveBeenCalled()
+            expect(mockCache.put).not.toHaveBeenCalled()
         })
     })
 })

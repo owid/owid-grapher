@@ -18,12 +18,11 @@ import type { Env } from "../../_common/env.js"
 import { getSearchIndexNames } from "./algoliaClient.js"
 import { onRequestGet } from "./index.js"
 
-// The search page runs each of its searches either in the browser
-// (runSearchRequest against Algolia) or through /api/search with
-// highlights=true. These tests run both against the same fake Algolia and
-// check that they send Algolia the same requests and that the page gets the
-// same response either way, i.e. that a search survives the trip through
-// the URL unchanged.
+// The search page sends each of its searches (a SearchRequest) to
+// /api/search with highlights=true. These tests check that a search survives
+// the trip through the URL unchanged: the endpoint sends the fake Algolia the
+// requests runSearchRequest sends for the original SearchRequest, and the
+// page gets back the hits runSearchRequest returns.
 
 const tagGraph: TagGraphRoot = {
     id: 0,
@@ -113,6 +112,7 @@ const callEndpoint = (params: URLSearchParams): Promise<Response> =>
     onRequestGet({
         request: new Request(`http://localhost/api/search?${params}`),
         env,
+        waitUntil: vi.fn(),
     } as unknown as Parameters<typeof onRequestGet>[0]) as Promise<Response>
 
 const state = (
@@ -195,14 +195,17 @@ const SEARCH_PAGE_REQUESTS: [string, SearchRequest][] = [
 describe("the search page's searches through /api/search", () => {
     beforeEach(() => {
         fakeAlgolia = recordingClient()
+        vi.stubGlobal("caches", {
+            default: { match: vi.fn(async () => undefined), put: vi.fn() },
+        })
     })
 
     it.each(SEARCH_PAGE_REQUESTS)(
-        "answers %s as the browser would",
+        "answers %s as runSearchRequest does",
         async (_name, searchRequest) => {
-            const browser = recordingClient()
-            const browserResult = await runSearchRequest<{ slug: string }>(
-                browser.client,
+            const direct = recordingClient()
+            const directResult = await runSearchRequest<{ slug: string }>(
+                direct.client,
                 searchRequest,
                 {
                     indexNames: getSearchIndexNames(undefined),
@@ -215,22 +218,22 @@ describe("the search page's searches through /api/search", () => {
             const response = await callEndpoint(params)
 
             expect(response.status).toBe(200)
-            expect(fakeAlgolia.requests).toEqual(browser.requests)
-            // The page gets the browser's hits, with their URL added
+            expect(fakeAlgolia.requests).toEqual(direct.requests)
+            // The page gets the same hits, with their URL added
             const pageResult = fromSearchApiResponse(
                 await response.json<SearchApiHitsResponse<{ slug: string }>>()
             )
             expect(pageResult).toEqual({
-                hits: browserResult.hits.map((hit) => ({
+                hits: directResult.hits.map((hit) => ({
                     ...hit,
                     url: expect.any(String),
                 })),
-                nbHits: browserResult.nbHits,
+                nbHits: directResult.nbHits,
                 // Charts page by page, the rest by offset
                 ...(searchRequest.type === "charts"
                     ? {
-                          page: browserResult.page,
-                          nbPages: browserResult.nbPages,
+                          page: directResult.page,
+                          nbPages: directResult.nbPages,
                           hitsPerPage: searchRequest.hitsPerPage,
                       }
                     : {
@@ -238,7 +241,7 @@ describe("the search page's searches through /api/search", () => {
                           nbPages: undefined,
                           hitsPerPage: undefined,
                       }),
-                closestMatches: browserResult.closestMatches,
+                closestMatches: directResult.closestMatches,
             })
         }
     )

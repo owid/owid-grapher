@@ -66,10 +66,10 @@ declared filterable, and because slugs are not unique across gdoc types.
 
 The two that answer queries, and so owe each other the contract above:
 
-- `site/search/queries.ts` — the search page's Algolia queries
+- `site/search/queries.ts` — the search page's queries, through `/api/search` for its result sections
 - `functions/api/search/searchApi.ts` — the public `/api/search` endpoint
 
-Both run their searches through `runSearchRequest` in `searchSections.ts`. The site runs it either in the browser or through `/api/search` (with `highlights=true`), which runs the same function at the edge, so the two can differ only in how the request travels (`searchRequestToUrlParams`, parsed back in `functions/api/search/index.ts`), not in what is asked of Algolia.
+`/api/search` runs every search through `runSearchRequest` in `searchSections.ts`. The search page builds the same `SearchRequest` and sends it there (`searchRequestToUrlParams`, parsed back in `functions/api/search/index.ts`), so the only way the two can disagree is in that round trip.
 
 Two more depend on this layer without being query surfaces of their own:
 

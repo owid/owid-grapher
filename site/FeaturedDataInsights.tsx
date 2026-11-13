@@ -7,7 +7,6 @@ import {
 } from "@ourworldindata/types"
 import { createTopicFilter } from "./search/searchUtils.js"
 import { queryDataInsights, searchQueryKeys } from "./search/queries.js"
-import { getLiteSearchClient } from "./search/searchClients.js"
 import { SearchDataInsightsResultsSkeleton } from "./search/SearchDataInsightsResultsSkeleton.js"
 import { SearchDataInsightHit } from "./search/SearchDataInsightHit.js"
 import { Button } from "@ourworldindata/components"
@@ -30,7 +29,6 @@ export const FeaturedDataInsights = ({
     topicName,
     className,
 }: FeaturedDataInsightsProps) => {
-    const liteSearchClient = getLiteSearchClient()
     const { gdocType } = useDocumentContext()
     const headingFragment = getTopicPageHeading("dataInsights", gdocType)
     const headingCaseCorrected = `${headingFragment} on ${sentenceCaseIfNotTopicPage(topicName, gdocType, false)}`
@@ -50,12 +48,7 @@ export const FeaturedDataInsights = ({
         // would technically collide if using the same query client instance
         queryKey: searchQueryKeys.dataInsights(searchState),
         queryFn: () =>
-            queryDataInsights(
-                liteSearchClient,
-                searchState,
-                0,
-                MAX_DATA_INSIGHTS_RESULTS
-            ),
+            queryDataInsights(searchState, 0, MAX_DATA_INSIGHTS_RESULTS),
         enabled: Boolean(topicName),
     })
 

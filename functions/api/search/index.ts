@@ -22,6 +22,14 @@ import {
     type SearchType,
 } from "@ourworldindata/utils"
 
+// Searches without a query (the search page's browse states, featured
+// charts and data insights on other pages) don't depend on reader input, so
+// they are cached at the edge for a day, as in cached-queries.ts. Searches
+// with a query are only cached by the browser, so Algolia's analytics still
+// see each of them.
+const QUERYLESS_CACHE_MAX_AGE_SECONDS = 60 * 60 * 24
+const CACHE_MAX_AGE_SECONDS = 60 * 10
+
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
 const MAX_PAGE = 1000
@@ -290,7 +298,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         }
 
         // Get Algolia config
-        const algoliaConfig = getAlgoliaConfig(env)
+        const algoliaConfig = getAlgoliaConfig(env, request)
 
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
@@ -342,16 +350,32 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     )
             }
         }
+        const cache = caches.default
+        const cachedResponse = queryless
+            ? await cache.match(request.url)
+            : undefined
+        if (cachedResponse) return cachedResponse
+
         const results = await search()
 
-        return new Response(JSON.stringify({ ...results, warnings }, null, 2), {
-            status: 200,
-            headers: {
-                "Content-Type": "application/json",
-                "Cache-Control": "public, max-age=600", // 10 minutes
-                "Access-Control-Allow-Origin": "*", // Allow CORS for API usage
-            },
-        })
+        const response = new Response(
+            JSON.stringify({ ...results, warnings }, null, 2),
+            {
+                status: 200,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Cache-Control": `public, max-age=${queryless ? QUERYLESS_CACHE_MAX_AGE_SECONDS : CACHE_MAX_AGE_SECONDS}`,
+                    "Access-Control-Allow-Origin": "*", // Allow CORS for API usage
+                },
+            }
+        )
+        if (queryless)
+            context.waitUntil(
+                cache.put(request.url, response.clone()).catch((error) => {
+                    console.error("Failed to cache search response:", error)
+                })
+            )
+        return response
     } catch (error) {
         // Client validation errors (e.g. invalid topic name) are returned
         // as 400 without being reported to Sentry.

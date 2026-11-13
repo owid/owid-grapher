@@ -166,13 +166,10 @@ export const SearchWritingResults = ({
     showProfiles?: boolean
 }) => {
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
-    const { topicTagGraph } = useSearchContext()
 
     const profilesQuery = useInfiniteSearchOffset({
         queryKey: (state) => searchQueryKeys.profiles(state),
-        queryFn: (liteSearchClient, state, offset, length) => {
-            return queryProfiles(liteSearchClient, state, offset, length)
-        },
+        queryFn: queryProfiles,
         firstPageSize: 2,
         laterPageSize: 4,
         enabled: showProfiles,
@@ -183,9 +180,7 @@ export const SearchWritingResults = ({
 
     const articlesQuery = useInfiniteSearchOffset({
         queryKey: (state) => searchQueryKeys.articles(state),
-        queryFn: (liteSearchClient, state, offset, length) => {
-            return queryArticles(liteSearchClient, state, offset, length)
-        },
+        queryFn: queryArticles,
         firstPageSize: 4 - profileSlots,
         laterPageSize: 6,
         enabled: profilesRequestDone,
@@ -199,15 +194,7 @@ export const SearchWritingResults = ({
 
     const topicsQuery = useInfiniteSearchOffset({
         queryKey: (state) => searchQueryKeys.topicPages(state),
-        queryFn: (liteSearchClient, state, offset, length) => {
-            return queryTopicPages(
-                liteSearchClient,
-                state,
-                topicTagGraph,
-                offset,
-                length
-            )
-        },
+        queryFn: queryTopicPages,
         firstPageSize: topicFirstPageSize,
         laterPageSize: noArticles ? 6 : 4,
         enabled: hasTopicPages && dependenciesLoaded,
