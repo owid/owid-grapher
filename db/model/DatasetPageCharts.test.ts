@@ -5,6 +5,7 @@ import { catalogPathMatches, parseCatalogPath } from "./DatasetPageCharts.js"
 // A dataset page finds the charts that use its indicators by comparing catalog
 // paths part by part. These tests pin down the path format and the matching
 // rule: every part must be equal, except the version when the pattern has "*".
+// The column may also be the one an indicator with dimensions was made from.
 
 describe(parseCatalogPath, () => {
     it("splits a path into its six parts", () => {
@@ -101,5 +102,40 @@ describe(catalogPathMatches, () => {
             "grapher/energy/2026-06-30/energy_mix/energy_mix#coal_twh__sex_male"
         )!
         expect(catalogPathMatches(pattern, longer)).toBe(false)
+    })
+
+    describe("with an indicator of a table with dimensions", () => {
+        // One of the many indicators made from the column "thr"
+        const indicator = parseCatalogPath(
+            "grapher/wb/2026-09-22/world_bank_pip/incomes#thr__ppp_version_2017__decile_1"
+        )!
+
+        it("matches the column the indicator was made from", () => {
+            const pattern = parseCatalogPath(
+                "grapher/wb/*/world_bank_pip/incomes#thr"
+            )!
+            expect(catalogPathMatches(pattern, indicator, "thr")).toBe(true)
+        })
+
+        it("still matches the indicator's own name", () => {
+            const pattern = parseCatalogPath(
+                "grapher/wb/*/world_bank_pip/incomes#thr__ppp_version_2017__decile_1"
+            )!
+            expect(catalogPathMatches(pattern, indicator, "thr")).toBe(true)
+        })
+
+        it("doesn't match another column of the table", () => {
+            const pattern = parseCatalogPath(
+                "grapher/wb/*/world_bank_pip/incomes#avg"
+            )!
+            expect(catalogPathMatches(pattern, indicator, "thr")).toBe(false)
+        })
+
+        it("doesn't match the same column of another table", () => {
+            const pattern = parseCatalogPath(
+                "grapher/wb/*/world_bank_pip/poverty#thr"
+            )!
+            expect(catalogPathMatches(pattern, indicator, "thr")).toBe(false)
+        })
     })
 })

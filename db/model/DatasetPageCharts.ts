@@ -44,10 +44,14 @@ export function parseCatalogPath(path: string): CatalogPathParts | undefined {
  * Compares every part exactly, except the version when the pattern's version
  * is "*". (Exact comparison on purpose: column names are full of underscores,
  * which are wildcards in SQL LIKE patterns.)
+ *
+ * A table with dimensions makes many indicators from one column, so the
+ * pattern's column also matches the column the candidate was made from.
  */
 export function catalogPathMatches(
     pattern: CatalogPathParts,
-    candidate: CatalogPathParts
+    candidate: CatalogPathParts,
+    candidateOriginalColumn?: string
 ): boolean {
     return (
         pattern.channel === candidate.channel &&
@@ -55,7 +59,8 @@ export function catalogPathMatches(
         (pattern.version === "*" || pattern.version === candidate.version) &&
         pattern.dataset === candidate.dataset &&
         pattern.table === candidate.table &&
-        pattern.column === candidate.column
+        (pattern.column === candidate.column ||
+            pattern.column === candidateOriginalColumn)
     )
 }
 
@@ -125,10 +130,19 @@ export async function getColumnsByVariableId(
     const columnsByVariableId = new Map<number, Set<string>>()
     for (const patterns of patternsByDataset.values()) {
         const { namespace, dataset } = patterns[0].pattern
-        const candidates = await knexRaw<{ id: number; catalogPath: string }>(
+        // For an indicator of a table with dimensions, the ETL records the
+        // column it was made from
+        const candidates = await knexRaw<{
+            id: number
+            catalogPath: string
+            originalColumn: string | null
+        }>(
             knex,
             `-- sql
-                SELECT v.id, v.catalogPath
+                SELECT
+                    v.id,
+                    v.catalogPath,
+                    v.dimensions ->> "$.originalShortName" AS originalColumn
                 FROM variables v
                 JOIN datasets d ON d.id = v.datasetId
                 WHERE d.isArchived = 0
@@ -141,8 +155,12 @@ export async function getColumnsByVariableId(
         for (const candidate of candidates) {
             const candidateParts = parseCatalogPath(candidate.catalogPath)
             if (!candidateParts) continue
+            const originalColumn = candidate.originalColumn ?? undefined
             for (const { pattern, column } of patterns) {
-                if (!catalogPathMatches(pattern, candidateParts)) continue
+                if (
+                    !catalogPathMatches(pattern, candidateParts, originalColumn)
+                )
+                    continue
                 const columns =
                     columnsByVariableId.get(candidate.id) ?? new Set()
                 columns.add(column)
