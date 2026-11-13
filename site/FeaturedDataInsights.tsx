@@ -18,7 +18,8 @@ import {
     getTopicPageHeading,
 } from "@ourworldindata/utils"
 
-const MAX_DATA_INSIGHTS_RESULTS = 1000 // setting to maximum allowed to get all results
+// The most /api/search returns in one request; no topic has nearly as many
+const MAX_DATA_INSIGHTS_RESULTS = 100
 
 export type FeaturedDataInsightsProps = {
     topicName: string
