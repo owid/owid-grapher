@@ -1,0 +1,20 @@
+{
+    "master": "2e9520097e",
+    "features": [
+        {
+            "number": 7480,
+            "title": "Viewfinder — set up a chart's view by describing it",
+            "author": "Marigold"
+        },
+        {
+            "number": 7608,
+            "title": "AI search — AI-assisted search on /search",
+            "author": "Marigold"
+        },
+        {
+            "number": 7609,
+            "title": "Viewfinder + cross-site search — also points to other pages on the site",
+            "author": "Marigold"
+        }
+    ]
+}
