@@ -5,6 +5,8 @@ export interface SwitcherItem<Key extends string = string> {
     key: Key
     element: React.ReactNode
     ariaLabel?: string
+    /** Shown straight away in a small dark tooltip above the item, on hover or keyboard focus */
+    hint?: string
 }
 
 export function Switcher<Key extends string = string>({
@@ -43,6 +45,11 @@ export function Switcher<Key extends string = string>({
                     <RadioButton className="switcher__button">
                         {item.element}
                     </RadioButton>
+                    {item.hint && (
+                        <span className="switcher__hint" aria-hidden>
+                            {item.hint}
+                        </span>
+                    )}
                 </RadioField>
             ))}
         </RadioGroup>

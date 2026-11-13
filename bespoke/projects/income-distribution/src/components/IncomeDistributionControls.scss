@@ -1,0 +1,21 @@
+.income-distribution-controls__units {
+    flex: 0 1 280px;
+    min-width: 200px;
+}
+
+// The switcher gives its items equal widths, which clips "Compare countries"
+// next to "Global"; let each item take the width of its label instead
+.income-distribution-controls__switcher .switcher__item {
+    flex: 0 1 auto;
+}
+
+.income-distribution-controls__switcher .switcher__button {
+    padding: 0 12px;
+}
+
+// Matches the globe icon next to it (FontAwesome, size="sm")
+.income-distribution-controls__view-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 12px;
+}

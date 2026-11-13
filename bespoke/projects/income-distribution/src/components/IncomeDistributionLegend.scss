@@ -1,0 +1,341 @@
+.income-distribution-legend {
+    font-size: 12px;
+    color: $dark-text;
+    user-select: none;
+}
+
+.income-distribution-legend--swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.income-distribution-legend--swatches .income-distribution-legend__entry {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.income-distribution-legend__entry {
+    transition: opacity 150ms;
+}
+
+.income-distribution-legend__entry--dimmed {
+    opacity: 0.4;
+}
+
+.income-distribution-legend__entry--world .income-distribution-legend__label {
+    font-weight: 700;
+}
+
+.income-distribution-legend__swatch {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.income-distribution-legend__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: $gray-100;
+}
+
+.income-distribution-legend__clear {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 12px;
+    color: $light-text;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+        color: $dark-text;
+    }
+}
+
+// The start of the heading when a poverty line is set: a light text switch,
+// "Share of population | Number of people", on a line of its own above
+// "living on less than…". No box, so it reads as the bars' title: the picked
+// option is dark, the other faded, with a faint rule between them
+.income-distribution-legend__measure {
+    display: flex;
+    align-items: center;
+    width: max-content;
+    margin-bottom: 2px;
+    white-space: nowrap;
+}
+
+.income-distribution-legend__measure-option {
+    padding: 0;
+    border: none;
+    border-radius: 2px;
+    background: none;
+    color: $gray-100;
+    font: inherit;
+    font-weight: 700;
+    opacity: 0.45;
+    cursor: pointer;
+    transition: opacity 150ms;
+
+    &:hover {
+        opacity: 0.8;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    &[aria-pressed="true"] {
+        opacity: 1;
+        text-decoration: none;
+        cursor: default;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-30;
+        outline-offset: 1px;
+    }
+}
+
+.income-distribution-legend__measure-divider {
+    align-self: stretch;
+    width: 1px;
+    margin: 2px 8px;
+    background: $gray-30;
+}
+
+.income-distribution-legend__bars {
+    display: grid;
+    grid-template-columns: max-content minmax(120px, 1fr);
+    column-gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+// Rows share the grid's columns; padding rather than row-gap so hovering
+// doesn't flicker in the gaps
+.income-distribution-legend--shares .income-distribution-legend__entry {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    padding: 2px 0;
+}
+
+.income-distribution-legend__bar-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.income-distribution-legend__bar-track {
+    flex: 1;
+    height: 10px;
+}
+
+.income-distribution-legend__bar {
+    display: block;
+    min-width: 1px;
+    height: 100%;
+    border-radius: 0 2px 2px 0;
+    transition: width 300ms cubic-bezier(0.23, 1, 0.32, 1);
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}
+
+.income-distribution-legend__value {
+    flex-shrink: 0;
+    min-width: 40px;
+    font-variant-numeric: tabular-nums;
+}
+
+// Room for "820 million", so every bar's track starts in the same place
+.income-distribution-legend--shares.income-distribution-legend--people
+    .income-distribution-legend__value {
+    min-width: 72px;
+}
+
+.income-distribution-legend--narrow .income-distribution-legend__bars {
+    grid-template-columns: 1fr;
+}
+
+.income-distribution-legend--narrow.income-distribution-legend--shares
+    .income-distribution-legend__entry {
+    grid-template-columns: 1fr;
+    row-gap: 2px;
+    padding: 3px 0;
+}
+
+// Floats over the plot's top-right corner, which the mountains leave mostly
+// empty (see showOverlayLegend in DistributionVariant.tsx); it's positioned by
+// .income-distribution-captioned-chart__overlays. It stays put when a line is
+// set, so the plot never moves
+.income-distribution-legend--overlay {
+    position: relative;
+    padding: 10px 12px;
+    border: 1px solid $blue-20;
+    background: rgba($white, 0.95);
+}
+
+// With a poverty line, the box has a shaded header band, like the chart
+// tooltip's, holding the measure switch and "living on less than…",
+// left-aligned; below it, on white, the bar list packs to the left too. The
+// box is as wide as the wider of the two
+.income-distribution-legend--overlay-shares {
+    padding: 0 0 10px;
+}
+
+.income-distribution-legend--overlay .income-distribution-legend__header {
+    display: block;
+    margin: 0 0 8px;
+    // Room on the right for the × in the corner
+    padding: 8px 34px 8px 12px;
+    background: $gray-10;
+    font-size: 13px;
+    line-height: 1.35;
+    white-space: nowrap;
+}
+
+.income-distribution-legend--overlay-shares .income-distribution-legend__rows {
+    padding: 0 12px;
+}
+
+.income-distribution-legend__close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    color: $gray-70;
+    font-size: 13px;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background: $gray-20;
+        color: $gray-100;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-30;
+        outline-offset: 0;
+    }
+
+    // The same instant hint as the × next to the poverty line's label
+    // (.income-distribution-hint in IncomeDistributionChart.scss)
+    &::after {
+        content: attr(data-hint);
+        position: absolute;
+        top: calc(100% + 4px);
+        right: 0;
+        display: none;
+        padding: 4px 8px;
+        border: 1px solid $gray-20;
+        border-radius: 4px;
+        background: $white;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        color: $gray-100;
+        font-size: 12px;
+        line-height: 1.3;
+        white-space: nowrap;
+        pointer-events: none;
+    }
+
+    &:hover::after,
+    &:focus-visible::after {
+        display: block;
+    }
+}
+
+// Two columns, the colour mark and the label. With a poverty line the mark
+// column widens to hold the share and its bar, which grows leftwards from
+// where the square was, so the labels stay in one column throughout
+.income-distribution-legend__rows {
+    display: grid;
+    grid-template-columns: max-content minmax(0, max-content);
+    column-gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+// Rows share the grid's columns; padding rather than row-gap so hovering
+// doesn't flicker in the gaps
+.income-distribution-legend--overlay .income-distribution-legend__entry {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    padding: 2px 0;
+}
+
+.income-distribution-legend__mark {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+// With the bars, the mark column is as wide as the longest possible value
+// plus a full-length bar, so the names don't shift as the line moves
+.income-distribution-legend--overlay-shares .income-distribution-legend__mark {
+    width: 140px; // "100%" + gap + 100px bar
+}
+
+.income-distribution-legend--overlay-shares.income-distribution-legend--people
+    .income-distribution-legend__mark {
+    width: 152px; // "820 million" + gap + 72px bar
+}
+
+.income-distribution-legend--overlay .income-distribution-legend__swatch {
+    transition: width 300ms cubic-bezier(0.23, 1, 0.32, 1);
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}
+
+.income-distribution-legend--overlay .income-distribution-legend__value {
+    min-width: 0;
+    white-space: nowrap;
+    color: $light-text;
+}
+
+.income-distribution-legend--overlay .income-distribution-legend__label {
+    line-height: 1.25;
+}
+
+// The labels set the box's width, so long region names would make it wide;
+// cap them instead
+.income-distribution-legend--overlay .income-distribution-legend__label {
+    max-width: 260px;
+}
+
+// With the bars, names stay on one line (long ones are shortened, see
+// SHORT_REGION_NAMES)
+.income-distribution-legend--overlay-shares .income-distribution-legend__label {
+    max-width: none;
+    white-space: nowrap;
+}
+
+.income-distribution-legend__label-line {
+    display: block;
+}

@@ -1,0 +1,104 @@
+// Positioning context for the tooltip, which sits next to the SVG
+.income-distribution-chart {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.income-distribution-chart__svg {
+    display: block;
+    overflow: visible;
+    cursor: crosshair;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.income-distribution-chart__areas--highlight {
+    pointer-events: none;
+}
+
+.income-distribution-chart__region-label {
+    fill: $white;
+    font-weight: 700;
+    stroke: $gray-100;
+    stroke-opacity: 0.25;
+    stroke-width: 2px;
+    paint-order: stroke;
+    pointer-events: none;
+}
+
+// Only the names themselves take the pointer (to highlight their curve), so
+// the labels' boxes don't get in the way of the plot
+.income-distribution-chart__country-labels {
+    pointer-events: none;
+}
+
+.income-distribution-chart__country-label {
+    stroke: $white;
+    stroke-width: 3px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+    pointer-events: visiblePainted;
+}
+
+// The poverty line is dragged with the pointer, or moved with the arrow keys
+// once focused (see PovertyLine in IncomeDistributionChart.tsx)
+.income-distribution-chart__poverty-line {
+    cursor: ew-resize;
+    // Dragging the line on touch screens mustn't scroll the page
+    touch-action: none;
+    outline: none;
+}
+
+.income-distribution-chart__poverty-line:focus-visible
+    .income-distribution-chart__poverty-line-ball {
+    stroke: $blue-30;
+    stroke-width: 3px;
+}
+
+.income-distribution-chart__poverty-line-clear {
+    color: $gray-70;
+    cursor: pointer;
+    outline: none;
+}
+
+.income-distribution-chart__poverty-line-clear-bg {
+    fill: $white;
+}
+
+.income-distribution-chart__poverty-line-clear:hover,
+.income-distribution-chart__poverty-line-clear:focus-visible {
+    color: $gray-100;
+}
+
+.income-distribution-chart__poverty-line-clear:hover
+    .income-distribution-chart__poverty-line-clear-bg,
+.income-distribution-chart__poverty-line-clear:focus-visible
+    .income-distribution-chart__poverty-line-clear-bg {
+    fill: $gray-10;
+}
+
+// The hint below the × next to the poverty line's label. Styled like a
+// Grapher tooltip and shown straight away on hover or focus, which a native
+// title wouldn't be
+.income-distribution-hint {
+    position: absolute;
+    z-index: 3;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    border: 1px solid $gray-20;
+    border-radius: 4px;
+    background: $white;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    color: $gray-100;
+    font-size: 12px;
+    line-height: 1.3;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+// The tooltip is absolutely positioned without a z-index of its own, which
+// would leave it under the overlay legend (z-index 2) when the two meet
+.income-distribution-chart .tooltip-container > .Tooltip {
+    z-index: 3;
+}

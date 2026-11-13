@@ -1,0 +1,31 @@
+// Details on demand for income and consumption (WelfareDetails.tsx), like
+// OWID's .dod-span and .dod-container (detailsOnDemand.scss in
+// @ourworldindata/components). Also rendered inside the country picker's
+// light-DOM popover, via CountryMultiSelectPopover.scss.
+
+.income-distribution-dod-span {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+    cursor: help;
+}
+
+.tippy-box[data-theme~="income-distribution-dod"] .tippy-content {
+    padding: 0;
+}
+
+.income-distribution-dod-card {
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.55;
+    text-align: left;
+}
+
+.income-distribution-dod-card__title {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.income-distribution-dod-card__body {
+    margin: 8px 0 0;
+}
