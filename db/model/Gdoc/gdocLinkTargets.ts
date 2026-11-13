@@ -31,6 +31,12 @@ export type GdocLinkTarget =
           multiDim: DbEnrichedMultiDimDataPage
           /** Set when the link's slug redirects to the multi-dim */
           redirect?: MultiDimRedirectTarget
+          /**
+           * Only set when drafts were requested. Like draft charts, the
+           * article treats links to unpublished multi-dims as broken, since
+           * the site only serves published ones.
+           */
+          isDraft?: true
       }
     | { type: "explorer"; explorer: MinimalExplorerInfo }
 
@@ -70,8 +76,9 @@ async function getDraftChartIdsBySlug(
  * - `/explorers/` links: an explorer that now redirects to a multi-dim goes
  *   there, then published explorers.
  *
- * With `includeDraftCharts`, `/grapher/` slugs that resolve to nothing else
- * fall back to a draft chart with that slug.
+ * Only published multi-dims count. With `includeDrafts`, unpublished
+ * multi-dims count too, and `/grapher/` slugs that resolve to nothing else fall
+ * back to a draft chart with that slug; both are marked `isDraft`.
  *
  * Multi-dim redirects that depend on the source's query params resolve to one
  * representative target (see getMultiDimRedirectTargets).
@@ -82,7 +89,7 @@ export async function resolveGdocLinkTargets(
         grapherSlugs,
         explorerSlugs,
     }: { grapherSlugs: string[]; explorerSlugs: string[] },
-    { includeDraftCharts = false }: { includeDraftCharts?: boolean } = {}
+    { includeDrafts = false }: { includeDrafts?: boolean } = {}
 ): Promise<GdocLinkTargets> {
     grapherSlugs = _.uniq(grapherSlugs)
     explorerSlugs = _.uniq(explorerSlugs)
@@ -114,17 +121,26 @@ export async function resolveGdocLinkTargets(
         let multiDim = multiDimsBySlug.get(slug)
         if (!multiDim) {
             multiDim = getMultiDimDataPageBySlug(knex, slug, {
-                onlyPublished: false,
+                onlyPublished: !includeDrafts,
             })
             multiDimsBySlug.set(slug, multiDim)
         }
         return multiDim
     }
+    const makeMultiDimTarget = (
+        multiDim: DbEnrichedMultiDimDataPage,
+        redirect?: MultiDimRedirectTarget
+    ): GdocLinkTarget => ({
+        type: "multiDim",
+        multiDim,
+        ...(redirect ? { redirect } : {}),
+        ...(multiDim.published ? {} : { isDraft: true as const }),
+    })
     const resolveRedirect = async (
         redirect: MultiDimRedirectTarget
     ): Promise<GdocLinkTarget | undefined> => {
         const multiDim = await getMultiDim(redirect.targetSlug)
-        return multiDim ? { type: "multiDim", multiDim, redirect } : undefined
+        return multiDim ? makeMultiDimTarget(multiDim, redirect) : undefined
     }
 
     const unresolvedGrapherSlugs: string[] = []
@@ -139,8 +155,8 @@ export async function resolveGdocLinkTargets(
                 target = { type: "chart", chartId }
             } else {
                 const multiDim = await getMultiDim(slug)
-                if (multiDim) target = { type: "multiDim", multiDim }
-                else if (includeDraftCharts) unresolvedGrapherSlugs.push(slug)
+                if (multiDim) target = makeMultiDimTarget(multiDim)
+                else if (includeDrafts) unresolvedGrapherSlugs.push(slug)
             }
             if (target) targets.grapher.set(slug, target)
         })

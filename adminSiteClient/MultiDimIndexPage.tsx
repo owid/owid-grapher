@@ -40,26 +40,47 @@ type ApiMultiDim = {
     published: boolean
     mdimViews: number
     pageviews: number
+    defaultViewConfigId: string | null
 }
 
 type MultiDim = Omit<ApiMultiDim, "updatedAt"> & {
     updatedAt: Date
 }
 
-function PreviewLink({
+/**
+ * Like charts, a published multi-dim's thumbnail comes by slug, as on the
+ * public site. An unpublished one isn't served by slug, but its default view's
+ * config is in R2 by its uuid, which renders the same image.
+ */
+function getThumbnailPath({
     slug,
-    catalogPath,
+    published,
+    defaultViewConfigId,
+}: Pick<MultiDim, "slug" | "published" | "defaultViewConfigId">):
+    | string
+    | undefined {
+    if (published && slug) return `/${slug}.png`
+    if (defaultViewConfigId) return `/by-uuid/${defaultViewConfigId}.png`
+    return undefined
+}
+
+function PreviewLink({
+    multiDim,
 }: {
-    slug: string | null
-    catalogPath: string
+    multiDim: Pick<
+        MultiDim,
+        "slug" | "published" | "defaultViewConfigId" | "catalogPath"
+    >
 }) {
     const [status, setStatus] = useState<"loading" | "success" | "error">(
         "loading"
     )
+    const { catalogPath } = multiDim
+    const thumbnailPath = getThumbnailPath(multiDim)
 
     const content = (
         <>
-            {slug ? (
+            {thumbnailPath ? (
                 <>
                     {status !== "success" && (
                         <div className="multi-dim-preview">
@@ -75,7 +96,7 @@ function PreviewLink({
                         }}
                         src={urljoin(
                             GRAPHER_DYNAMIC_THUMBNAIL_URL,
-                            `/${slug}.png?imHeight=400`
+                            `${thumbnailPath}?imHeight=400`
                         )}
                         alt=""
                         onLoad={() => setStatus("success")}
@@ -160,12 +181,7 @@ function createColumns(
             width: 100,
             key: "thumbnail",
             render: (_, record) => {
-                return (
-                    <PreviewLink
-                        slug={record.slug}
-                        catalogPath={record.catalogPath}
-                    />
-                )
+                return <PreviewLink multiDim={record} />
             },
         },
         {
