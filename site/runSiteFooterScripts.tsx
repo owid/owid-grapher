@@ -35,9 +35,15 @@ import {
 import { BrowserRouter } from "react-router-dom-v5-compat"
 import { REDUCED_TRACKING } from "../settings/clientSettings.mjs"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
-import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
+import {
+    OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
+    PREFERENCES_PAGE_ROOT_ID,
+    SUBSCRIBE_PAGE_ROOT_ID,
+} from "@ourworldindata/types"
+import { SubscribeFlow } from "./Newsletter/SubscribeFlow.js"
+import { EmailNotificationsPreferencesForm } from "./Newsletter/EmailNotificationsPreferencesForm.js"
+import { MailchimpSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
-import { SUBSCRIBE_PAGE_FORM_CONTAINER_ID } from "@ourworldindata/types"
 import UserSurvey from "./gdocs/components/UserSurvey.js"
 import {
     SlideshowPresentation,
@@ -57,14 +63,34 @@ function runSearchPage() {
 }
 
 function hydrateSubscribePage() {
-    const newsletterContainer = document.getElementById(
-        SUBSCRIBE_PAGE_FORM_CONTAINER_ID
-    )
+    // The whole <main> is hydrated, not just the form: submitting it replaces
+    // the hero and aside with the confirmation screen.
+    const root = document.getElementById(SUBSCRIBE_PAGE_ROOT_ID)
+    if (root) {
+        hydrateRoot(root, <SubscribeFlow />)
+    }
+}
 
-    if (newsletterContainer) {
+function renderEmailNotificationsPreferencesPage() {
+    // The page bakes an empty <main>: every screen is client-driven (the mode
+    // depends on the token in the URL fragment), so it is rendered rather than
+    // hydrated.
+    const root = document.getElementById(PREFERENCES_PAGE_ROOT_ID)
+    if (root) {
+        createRoot(root).render(<EmailNotificationsPreferencesForm />)
+    }
+}
+
+// Baked instead of the new form when the EmailNotifications feature flag is
+// off.
+function hydrateOldSubscribePage() {
+    const container = document.getElementById(
+        OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID
+    )
+    if (container) {
         hydrateRoot(
-            newsletterContainer,
-            <NewsletterSubscriptionForm
+            container,
+            <MailchimpSubscriptionForm
                 context={NewsletterSubscriptionContext.SubscribePage}
             />
         )
@@ -182,12 +208,18 @@ function runSiteNavigation({
     }
 }
 
-function runSiteTools() {
+function runSiteTools({
+    hideNewsletterSubscription,
+}: { hideNewsletterSubscription?: boolean } = {}) {
     if (isInIFrame()) return
     const siteToolsElem = document.querySelector(`.${SITE_TOOLS_ROOT_CLASS}`)
     if (siteToolsElem) {
         const root = createRoot(siteToolsElem)
-        root.render(<SiteTools />)
+        root.render(
+            <SiteTools
+                hideNewsletterSubscription={hideNewsletterSubscription}
+            />
+        )
     }
 }
 
@@ -352,6 +384,8 @@ export const runSiteFooterScripts = async (
         // falls through
         case SiteFooterContext.subscribePage:
             hydrateSubscribePage()
+            renderEmailNotificationsPreferencesPage()
+            hydrateOldSubscribePage()
         // falls through
         case SiteFooterContext.default:
         case undefined:
@@ -359,7 +393,12 @@ export const runSiteFooterScripts = async (
             // - embedding charts through MultiEmbedderSingleton.embedAll()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             MultiEmbedderSingleton.embedAll(isPreviewing)
-            runSiteTools()
+            // The subscribe and preferences pages are themselves the signup, so
+            // the floating subscribe button would only duplicate them.
+            runSiteTools({
+                hideNewsletterSubscription:
+                    context === SiteFooterContext.subscribePage,
+            })
             runCookiePreferencesManager()
             void runDetailsOnDemand()
             break

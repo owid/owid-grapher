@@ -191,6 +191,7 @@ export interface MultiDimDataPageProps {
     initialViewDimensions?: MultiDimDimensionChoices
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
+    topicArea?: string
     relatedResearchCandidates: DataPageRelatedResearch[]
     imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean

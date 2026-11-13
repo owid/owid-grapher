@@ -162,6 +162,126 @@ For detailed API documentation, including all parameters, response schemas, and 
 
 A caching proxy for empty-query Algolia searches. The site routes Algolia multi-query requests where every query string is empty — the "browse" requests issued by default states like the search landing page or the empty autocomplete panel — to this endpoint (see `site/search/searchClients.ts`), which forwards them to Algolia and caches the response for a day — except for payloads touching the chronological pages index (which backs /latest and sorts by date), cached for only 15 minutes so newly published articles show up quickly. Requests containing a non-empty query are rejected with a 400 and should go to Algolia directly; the client falls back to a direct Algolia request whenever this endpoint fails or rejects.
 
+## Email notifications
+
+The email-notifications system lets readers subscribe to updates selected by
+topic, content type, and frequency. It spans Cloudflare Pages Functions, a
+dedicated D1 database, a scheduled sender, Postmark, and Mailchimp.
+
+### Data ownership and invariants
+
+Each system has a deliberately narrow responsibility:
+
+| System           | Responsibility                                                                                                          |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| D1               | Subscription intent, notification preferences, sent-message metadata, Postmark suppression mirror, and webhook receipts |
+| Postmark         | Sending notification email and enforcing broadcast-stream suppressions                                                  |
+| Mailchimp        | The separate OWID Brief subscription                                                                                    |
+| Scheduled sender | Selecting new content and producing daily or weekly notification emails                                                 |
+
+The central modeling rule is that **subscription intent and deliverability are
+different state**: `users.emailNotificationsStatus` records whether the reader
+wants email notifications, while `postmark_suppressions` mirrors Postmark's
+suppression state. An address must be subscribed and unsuppressed to receive a
+scheduled message. A hard bounce suppresses an address without changing the
+reader's intent, and reactivating an address in Postmark restores deliverability
+but doesn't opt the reader back in. Only an explicit resubscription through an OWID form removes a
+suppression, and the reader is marked subscribed only once Postmark accepts the
+removal.
+
+Every address submitted through the subscription form has a D1 `users` row so
+it can use the unified preferences page, even if it's only subscribed to the
+Brief. The Brief's subscription state is never copied to D1; Mailchimp remains
+its source of truth.
+
+### User flows and trust boundaries
+
+The public subscribe form is single opt-in. Because it requires no inbox-ownership token, an existing
+reader's selections may be broadened but not narrowed; narrowing preferences
+requires a short-lived magic link proving current control of the inbox. The
+form gives the same response for new and existing addresses, and a welcome
+email lets the owner notice and undo an unwanted submission.
+
+Every subscribe API request requires a `captchaToken`, verified server-side with
+Turnstile (action `subscribe`) before any database or email side effects. Both
+signup forms use the existing `TURNSTILE_SITE_KEY`; the Functions environment
+must have its matching `TURNSTILE_SECRET_KEY`. Local development must use a
+matching Cloudflare test secret for the development test site key. Tokens are
+single-use, so failed submissions refresh the challenge before retrying. An
+optional `website` honeypot silently discards filled submissions with the normal
+success response. It is only a supplementary filter, not proof of humanity.
+
+Permanent tokens in email footers can only unsubscribe or request a
+short-lived preferences link. Requesting a link for an unknown address gives
+the same public response without sending email, so the endpoint can't be used
+to enumerate addresses or send arbitrary mail.
+
+Brief signups follow Mailchimp's rules for the address's existing status (see
+`functions/_common/mailchimp.ts`). The public form never reveals that status.
+
+| Route                                       | Role                                                                      |
+| ------------------------------------------- | ------------------------------------------------------------------------- |
+| `/api/email-notifications/subscribe`        | Public entry point for subscribing                                        |
+| `/api/email-notifications/request-link`     | Exchanges a limited permanent token or known email for inbox verification |
+| `/api/email-notifications/preferences`      | Reads and changes preferences after inbox verification                    |
+| `/api/email-notifications/unsubscribe`      | Removes subscription intent without requiring a login                     |
+| `/api/email-notifications/postmark-webhook` | Authenticated provider-to-provider synchronization                        |
+
+### Postmark synchronization
+
+Postmark webhooks project provider state into D1: deliveries update message
+state, and broadcast subscription changes maintain the suppression mirror. Only
+a recipient's own unsubscribe changes their Follow Topics intent. Webhook
+delivery is at least once, so processing is idempotent (see
+`functions/_common/postmarkWebhook.ts`).
+
+Postmark doesn't sign webhooks. Configure HTTP Basic Authentication and enable
+Delivery and Subscription Change for the broadcast message stream.
+
+### Sending
+
+`yarn sendEmailNotifications <daily|weekly>` runs outside Cloudflare. It reads
+eligible subscribers from D1 and newly published content from MySQL, and sends
+one Postmark [bulk](https://postmarkapp.com/developer/api/bulk-email) request
+per group of subscribers who get the same items.
+
+Useful development options:
+
+- `--local` uses the local Wrangler D1 database.
+- `--dry-run` renders messages to `.email-notifications-preview/` without
+  sending them.
+
+### Monitoring
+
+- Webhook processing failures are reported to Sentry.
+- Each send run reports to Sentry if no webhook has arrived since the previous
+  send, which catches webhooks not reaching us at all (e.g. a mismatched
+  secret).
+- Known gap: if a single subscription-change webhook is lost, D1 keeps the
+  reader subscribed while Postmark keeps skipping them, and nothing alerts.
+
+### Configuration and local development
+
+The D1 binding is `EMAIL_NOTIFICATIONS_DB`; migrations live in
+`d1/email-notifications/migrations`. Apply them locally with:
+
+```bash
+npx wrangler d1 migrations apply owid-email-notifications-staging --local
+```
+
+Run the Functions server alongside the site with:
+
+```bash
+yarn startLocalCloudflareFunctions
+```
+
+To inspect outgoing email locally, run `yarn postmarkCatcher` and point
+`POSTMARK_API_BASE_URL` at `http://localhost:8025`. A
+`POSTMARK_SERVER_TOKEN` value is still required because missing production
+configuration must fail loudly.
+
+The OWID Brief integration likewise requires `MAILCHIMP_API_KEY`.
+
 ## `/deleted/:slug`
 
 This route is used to handle deleted pages. They are fully baked we just want them to return a 404 status code instead of a 200.
@@ -279,8 +399,6 @@ The thank-you webhook can subscribe donors to a Mailchimp newsletter list. To te
 
 1. Set up the following environment variables in your `.dev.vars`:
     - `MAILCHIMP_API_KEY`: You can find this in 1Password.
-    - `MAILCHIMP_API_SERVER`: The server prefix for our Mailchimp account (e.g., "us1"). You can find this in the URL when you log into Mailchimp (e.g., `https://us1.admin.mailchimp.com`).
-    - `MAILCHIMP_DONOR_LIST_ID`: The ID of the donor newsletter Mailchimp list you want to subscribe donors to. You can find this in 1Password.
 
 2. Run the Stripe client as described in the preceding section.
 

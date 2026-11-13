@@ -20,7 +20,7 @@ function makeSlugKey(slug: string, bucketPath = "v1"): string {
     ].join("/")
 }
 
-async function clearBuckets() {
+async function clearBuckets(): Promise<void> {
     const response = await server.fetch("/__test__/clear-r2", {
         method: "POST",
     })

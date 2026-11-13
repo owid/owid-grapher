@@ -1,6 +1,10 @@
 import { expect, it, describe } from "vitest"
 
-import { splitDescriptionKey } from "./datapageUtils.js"
+import {
+    countDescriptionKeyBullets,
+    isDescriptionColumnShorter,
+    splitDescriptionKey,
+} from "./datapageUtils.js"
 
 describe(splitDescriptionKey, () => {
     it("returns empty strings for empty input", () => {
@@ -158,5 +162,48 @@ describe(splitDescriptionKey, () => {
             preview: long,
             remainder: "",
         })
+    })
+})
+
+describe(countDescriptionKeyBullets, () => {
+    it("counts nothing in prose", () => {
+        expect(countDescriptionKeyBullets("A single paragraph.")).toEqual(0)
+        expect(countDescriptionKeyBullets("")).toEqual(0)
+    })
+
+    it("counts the bullets of a list", () => {
+        expect(countDescriptionKeyBullets("- one\n- two\n- three")).toEqual(3)
+    })
+
+    it("counts numbered and loose lists too", () => {
+        expect(countDescriptionKeyBullets("1. one\n\n2. two")).toEqual(2)
+    })
+
+    it("doesn't count nested bullets or intro paragraphs", () => {
+        const text = [
+            "Some intro.",
+            "",
+            "- one",
+            "  - one a",
+            "  - one b",
+            "- two",
+        ].join("\n")
+        expect(countDescriptionKeyBullets(text)).toEqual(2)
+    })
+})
+
+describe(isDescriptionColumnShorter, () => {
+    const bullets = (n: number): string =>
+        Array.from({ length: n }, (_, i) => `- bullet ${i}`).join("\n")
+
+    it("is shorter without a descriptionKey or below five bullets", () => {
+        expect(isDescriptionColumnShorter(undefined)).toBe(true)
+        expect(isDescriptionColumnShorter("Prose only.")).toBe(true)
+        expect(isDescriptionColumnShorter(bullets(4))).toBe(true)
+    })
+
+    it("is taller from five bullets", () => {
+        expect(isDescriptionColumnShorter(bullets(5))).toBe(false)
+        expect(isDescriptionColumnShorter(bullets(12))).toBe(false)
     })
 })

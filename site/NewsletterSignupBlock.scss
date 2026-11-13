@@ -4,7 +4,8 @@
     margin-bottom: 24px;
     align-self: start;
 
-    .newsletter-subscription-header {
+    // Mailchimp layout only; the panel brings its own header styling.
+    &:not(.newsletter-signup-panel) .newsletter-subscription-header {
         .newsletter-subscription-header__icon {
             height: 48px;
             width: 48px;
@@ -19,7 +20,8 @@
         }
     }
 
-    .newsletter-subscription-form {
+    .newsletter-subscription-form,
+    .newsletter-signup-form {
         @include lg-up {
             padding-bottom: 16px;
             border-bottom: 1px solid $blue-20;

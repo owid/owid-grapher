@@ -1,4 +1,8 @@
 import * as Sentry from "@sentry/cloudflare"
+import {
+    MAILCHIMP_API_SERVER,
+    MAILCHIMP_DONOR_LIST_ID,
+} from "@ourworldindata/types"
 import { Stripe } from "stripe"
 import { Env } from "../_common/env.js"
 import {
@@ -138,7 +142,7 @@ async function subscribeToNewsletter(env: Env, email: string): Promise<void> {
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("")
     const response = await fetch(
-        `https://${env.MAILCHIMP_API_SERVER}.api.mailchimp.com/3.0/lists/${env.MAILCHIMP_DONOR_LIST_ID}/members/${subscriberHash}`,
+        `https://${MAILCHIMP_API_SERVER}.api.mailchimp.com/3.0/lists/${MAILCHIMP_DONOR_LIST_ID}/members/${subscriberHash}`,
         {
             method: "PUT",
             headers: {

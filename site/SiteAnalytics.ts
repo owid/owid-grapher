@@ -43,6 +43,21 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
+    /**
+     * A subscribe request the API rejected, including the 4xx responses that
+     * are kept out of Sentry (an expired captcha token, for instance), so that
+     * real people failing to subscribe show up somewhere. The message is the
+     * API's reader-facing text and carries no address.
+     */
+    logNewsletterSubscribeError(context: string, message: string) {
+        this.logToGA({
+            event: EventCategory.SiteError,
+            eventAction: "newsletter_subscribe_failed",
+            eventTarget: `Subscribe [${context}]`,
+            eventContext: message,
+        })
+    }
+
     logInstantSearchClick({
         query,
         url,
