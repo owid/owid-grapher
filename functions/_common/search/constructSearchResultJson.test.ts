@@ -7,6 +7,9 @@ import {
     DimensionProperty,
     GRAPHER_CHART_TYPES,
     PeerCountryStrategy,
+    AdditionalGrapherDataFetchFn,
+    ColumnTypeNames,
+    GrapherSearchResultJson,
 } from "@ourworldindata/types"
 import {
     GrapherState,
@@ -14,6 +17,7 @@ import {
     WORLD_ENTITY_NAME,
 } from "@ourworldindata/grapher"
 import {
+    OwidTable,
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
@@ -21,6 +25,9 @@ import {
     selectRegionGroupByPriority,
     getSortedGrapherTabsForChartHit,
     pickDisplayEntities,
+    configureGrapherStateTab,
+    constructSearchResultJson,
+    RichDataVariant,
 } from "./constructSearchResultJson.js"
 
 describe(getSortedGrapherTabsForChartHit, () => {
@@ -307,6 +314,124 @@ describe(pickDisplayEntities, () => {
 
             expect(displayEntities).toEqual([...pickedEntities, "World"])
         })
+    })
+})
+
+describe("bar chart peers for a target with only old data", () => {
+    const COUNTRIES = [
+        "France",
+        "Germany",
+        "Italy",
+        "Spain",
+        "Poland",
+        "Norway",
+        "Sweden",
+        "Finland",
+    ]
+
+    /** Italy's last value is in 2010; every other country goes on to 2020 */
+    const ITALY_ENDS_EARLY = new OwidTable(
+        [
+            ["entityName", "year", "value"],
+            ...COUNTRIES.map((name, index) => [name, 2010, index * 10]),
+            ...COUNTRIES.filter((name) => name !== "Italy").map(
+                (name, index) => [name, 2020, index * 15]
+            ),
+        ],
+        [
+            { slug: "year", type: ColumnTypeNames.Year },
+            { slug: "value", type: ColumnTypeNames.Numeric, tolerance: 5 },
+        ]
+    )
+
+    const loadPopulation = (async () =>
+        COUNTRIES.map((entity, index) => ({
+            entity,
+            value: (index + 1) * 1_000_000,
+        }))) as unknown as AdditionalGrapherDataFetchFn
+
+    const makeGrapherState = (
+        overrides: GrapherProgrammaticInterface
+    ): GrapherState =>
+        new GrapherState({
+            table: ITALY_ENDS_EARLY,
+            ySlugs: "value",
+            addCountryMode: EntitySelectionMode.MultipleEntities,
+            peerCountryStrategy: PeerCountryStrategy.DataRange,
+            additionalDataLoaderFn: loadPopulation,
+            ...overrides,
+        })
+
+    async function buildSearchResult(
+        grapherState: GrapherState,
+        pickedEntities: string[]
+    ): Promise<GrapherSearchResultJson | undefined> {
+        const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
+        configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
+        const displayEntities = await pickDisplayEntities(grapherState, {
+            pickedEntities,
+            catalogUrl: "",
+        })
+        return constructSearchResultJson(grapherState, {
+            variant: RichDataVariant.Medium,
+            pickedEntities,
+            displayEntities,
+            sortedTabs,
+            numDataTableRowsPerColumn: 4,
+        })
+    }
+
+    const findBarSlot = (result?: GrapherSearchResultJson) =>
+        result?.layout.find(
+            (slot) => slot.grapherTab === GRAPHER_TAB_NAMES.DiscreteBar
+        )
+
+    it("moves a line chart's bar slot to the target's latest year", async () => {
+        const grapherState = makeGrapherState({
+            chartTypes: [
+                GRAPHER_CHART_TYPES.LineChart,
+                GRAPHER_CHART_TYPES.DiscreteBar,
+            ],
+        })
+
+        const result = await buildSearchResult(grapherState, ["Italy"])
+
+        const barParams = findBarSlot(result)?.previewParams
+        expect(barParams?.time).toBe("2010")
+        expect(barParams?.focus).toBe("~ITA")
+        expect(barParams?.country?.split("~")).toContain("ITA")
+        expect(findBarSlot(result)?.chartParams).toEqual(barParams)
+    })
+
+    it("moves a bar chart to the target's latest year", async () => {
+        const grapherState = makeGrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+        })
+
+        const result = await buildSearchResult(grapherState, ["Italy"])
+
+        expect(result?.grapherQueryParams.time).toBe("2010..2010")
+        expect(result?.grapherQueryParams.country?.split("~")).toContain(
+            "ITA"
+        )
+        const plottedEntityNames = grapherState.chartState.series.map(
+            (series) => series.seriesName
+        )
+        expect(plottedEntityNames).toContain("Italy")
+        expect(plottedEntityNames.length).toBeGreaterThan(1)
+    })
+
+    it("keeps the latest year for a target with recent data", async () => {
+        const grapherState = makeGrapherState({
+            chartTypes: [
+                GRAPHER_CHART_TYPES.LineChart,
+                GRAPHER_CHART_TYPES.DiscreteBar,
+            ],
+        })
+
+        const result = await buildSearchResult(grapherState, ["France"])
+
+        expect(findBarSlot(result)?.previewParams?.time).toBeUndefined()
     })
 })
 
