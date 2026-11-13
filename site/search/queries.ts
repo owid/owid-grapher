@@ -18,7 +18,16 @@ import {
     PageChronologicalRecord,
     DataInsightHit,
     FlatArticleHit,
+    type GrapherInterface,
+    type MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
+import { toPlaintext } from "@ourworldindata/components"
+import { fetchInputTableForConfig, GrapherState } from "@ourworldindata/grapher"
+import {
+    DATA_API_URL,
+    GRAPHER_DYNAMIC_CONFIG_URL,
+    MULTI_DIM_DYNAMIC_CONFIG_URL,
+} from "../../settings/clientSettings.mjs"
 import { type SearchResponse } from "algoliasearch"
 import {
     type LiteClient,
@@ -47,6 +56,8 @@ import {
     MAX_FACET_VALUES,
     lazy,
     listedRegionsNames,
+    fetchJson,
+    isMultiDimDataExplorer,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 import { applyAutomaticFilters } from "./searchState.js"
@@ -647,6 +658,7 @@ function buildAllChartsBlockSearchParams({
             "availableTabs",
             "source",
             "isDataExplorer",
+            "chartConfigId",
         ],
         attributesToHighlight: [],
         attributesToSnippet: [],
@@ -671,9 +683,49 @@ export async function queryAllChartsBlock(
     return {
         query: request.query,
         countries: parsed.countries,
-        hits: response.hits,
+        hits: await Promise.all(response.hits.map(fillMissingHitFields)),
         nbHits: response.nbHits ?? 0,
         page: response.page ?? request.page,
         nbPages: response.nbPages ?? 0,
     }
+}
+
+// TEMP thumbnail-test-page: the prod index has no `source` or
+// `isDataExplorer`, so compute them client-side as the baker does. Do not merge.
+async function fillMissingHitFields(hit: AllChartsHit): Promise<AllChartsHit> {
+    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
+    const needsSource = hit.source === undefined
+    const needsIsDataExplorer =
+        isMultiDimView && hit.isDataExplorer === undefined
+    if (!needsSource && !needsIsDataExplorer) return hit
+    try {
+        const configUrl = isMultiDimView
+            ? `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${hit.chartConfigId}.config.json`
+            : `${GRAPHER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json`
+        const [source, isDataExplorer] = await Promise.all([
+            needsSource ? fetchSourcesLine(configUrl) : hit.source,
+            needsIsDataExplorer
+                ? fetchJson<MultiDimDataPageConfigEnriched>(
+                      `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${hit.slug}.json`
+                  ).then(isMultiDimDataExplorer)
+                : undefined,
+        ])
+        return isMultiDimView
+            ? { ...hit, source, isDataExplorer }
+            : { ...hit, source }
+    } catch (error) {
+        console.error(`Couldn't fill fields for ${hit.slug}`, error)
+        return hit
+    }
+}
+
+async function fetchSourcesLine(configUrl: string): Promise<string> {
+    const config = await fetchJson<GrapherInterface>(configUrl)
+    const table = await fetchInputTableForConfig({
+        dimensions: config.dimensions,
+        dataApiUrl: DATA_API_URL,
+        loadMetadataOnly: true,
+    })
+    const grapherState = new GrapherState({ ...config, table })
+    return toPlaintext(grapherState.sourcesLine)
 }

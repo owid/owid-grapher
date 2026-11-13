@@ -180,6 +180,7 @@ export type { SwimlaneChartState } from "./swimlaneCharts/SwimlaneChartState"
 
 export {
     selectPeersForGrapher,
+    findPeerTargetTime,
     selectPeers,
     prepareEntitiesForPeerSelection,
 } from "./core/PeerSelection.js"

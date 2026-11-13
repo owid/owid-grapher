@@ -141,7 +141,7 @@ export async function selectPeersForGrapherWithGuards(
 
 /**
  * The time a single-time chart should move to before peers are picked: the
- * target's latest time, when it has no value near the end handle
+ * selected target's latest time, when it has no value near the end handle
  */
 export function findPeerTargetTimeForGrapher(
     grapherState: GrapherState
@@ -150,16 +150,29 @@ export function findPeerTargetTimeForGrapher(
     if (
         strategy === undefined ||
         strategy === PeerCountryStrategy.None ||
-        grapherState.hideTimeline ||
         !grapherState.isSingleTimeSelectionActive ||
         !canAddPeersToGrapher(grapherState)
     )
         return undefined
 
     const [targetEntity] = findAvailableSelectedEntities(grapherState)
+    if (targetEntity === undefined) return undefined
+
+    return findPeerTargetTime(grapherState, targetEntity)
+}
+
+/**
+ * The target's latest time, when it has no value near the end handle and the
+ * timeline is visible
+ */
+export function findPeerTargetTime(
+    grapherState: GrapherState,
+    targetEntity: EntityName
+): Time | undefined {
+    if (grapherState.hideTimeline) return undefined
+
     const column = grapherState.table.get(grapherState.yColumnSlug)
-    if (targetEntity === undefined || column.isMissing || column.isEmpty)
-        return undefined
+    if (column.isMissing || column.isEmpty) return undefined
 
     const endTime = findClosestTime(
         column.uniqTimesAsc,
@@ -221,10 +234,13 @@ export async function selectPeersForGrapher(
         peerCountryStrategy: requestedStrategy,
         targetEntity: requestedTargetEntity,
         targetCount,
+        endTime: requestedEndTime,
     }: {
         peerCountryStrategy?: PeerCountryStrategy
         targetEntity?: EntityName
         targetCount?: number
+        /** Picks peers at this time instead of the end handle's */
+        endTime?: Time
     } = {}
 ): Promise<EntityName[]> {
     const selectedEntities = findAvailableSelectedEntities(grapherState)
@@ -242,10 +258,9 @@ export async function selectPeersForGrapher(
     if (!peerCountryStrategy) return []
 
     const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
-    const endTime = findClosestTime(
-        dataColumn.uniqTimesAsc,
-        grapherState.endHandleTimeBound
-    )
+    const endTime =
+        requestedEndTime ??
+        findClosestTime(dataColumn.uniqTimesAsc, grapherState.endHandleTimeBound)
 
     return selectPeers({
         peerCountryStrategy,
