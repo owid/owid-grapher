@@ -3,6 +3,7 @@ import * as R from "remeda"
 import { match } from "ts-pattern"
 import {
     selectPeersForGrapher,
+    findPeerTargetTime,
     constructGrapherValuesJson,
     generateFocusedSeriesNamesParam,
     generateSelectedEntityNamesParam,
@@ -107,6 +108,7 @@ export async function constructSearchResultJson(
                         grapherState,
                         tab: grapherTab,
                         timeBounds: pickedTimeBounds,
+                        pickedEntity: pickedEntities[0],
                     })
 
                 return omitUndefinedValues({
@@ -324,6 +326,9 @@ export async function pickDisplayEntities(
     /** Find comparison entities and add them to the ones picked by the user */
     const enrichPickedEntities = async () => {
         if (pickedEntities.length === 0) return defaultEntities
+
+        if (chartType === GRAPHER_CHART_TYPES.DiscreteBar)
+            moveEndHandleToPeerTargetTime(grapherState, pickedEntities[0])
 
         const comparisonEntities = await selectPeersForSearch({
             grapherState,
@@ -876,10 +881,12 @@ async function getGrapherQueryParamsForTab({
     grapherState,
     tab,
     timeBounds,
+    pickedEntity,
 }: {
     grapherState: GrapherState
     tab: GrapherTabName
     timeBounds?: TimeBounds
+    pickedEntity?: EntityName
 }): Promise<{
     chartParams?: GrapherQueryParams
     previewParams?: GrapherQueryParams
@@ -888,7 +895,10 @@ async function getGrapherQueryParamsForTab({
     const params = await match(tab)
         .with(
             GRAPHER_TAB_NAMES.DiscreteBar,
-            async () => await getGrapherQueryParamsForDiscreteBar(grapherState)
+            async () =>
+                await getGrapherQueryParamsForDiscreteBar(grapherState, {
+                    pickedEntity,
+                })
         )
         .with(GRAPHER_TAB_NAMES.Marimekko, () =>
             getGrapherQueryParamsForMarimekko(grapherState)
@@ -946,7 +956,8 @@ function getGrapherQueryParamsForMarimekko(
 }
 
 async function getGrapherQueryParamsForDiscreteBar(
-    grapherState: GrapherState
+    grapherState: GrapherState,
+    { pickedEntity }: { pickedEntity?: EntityName }
 ): Promise<
     | { chartParams?: GrapherQueryParams; previewParams?: GrapherQueryParams }
     | undefined
@@ -959,28 +970,44 @@ async function getGrapherQueryParamsForDiscreteBar(
         grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
     if (hasSingleSeriesPerFacet) overwriteParams.facet = FacetStrategy.none
 
-    // Add comparison entities to discrete bar charts if
-    // only a single entity is currently selected
     const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
     const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
     const selectedEntities = grapherState.selection.selectedEntityNames
+    const targetEntity =
+        pickedEntity ??
+        (selectedEntities.length === 1 ? selectedEntities[0] : undefined)
     if (
-        !grapherState.isFaceted &&
-        isEntityStrategy &&
-        selectedEntities.length === 1
-    ) {
+        grapherState.isFaceted ||
+        !isEntityStrategy ||
+        targetEntity === undefined ||
+        !selectedEntities.includes(targetEntity)
+    )
+        return { chartParams: overwriteParams, previewParams: overwriteParams }
+
+    const targetTime = findPeerTargetTime(grapherState, targetEntity)
+
+    // Add comparison entities if only a single entity is selected, and pick
+    // them again at the target's time if the bars move there
+    if (selectedEntities.length === 1 || targetTime !== undefined) {
         const comparisonEntities = await selectPeersForSearch({
             grapherState,
-            targetEntity: selectedEntities[0],
+            targetEntity,
+            endTime: targetTime,
         })
         if (comparisonEntities.length > 1) {
             overwriteParams.country = generateSelectedEntityNamesParam(
-                _.uniq([...selectedEntities, ...comparisonEntities])
+                _.uniq([targetEntity, ...comparisonEntities])
             )
-            overwriteParams.focus =
-                generateFocusedSeriesNamesParam(selectedEntities)
+            overwriteParams.focus = generateFocusedSeriesNamesParam([
+                targetEntity,
+            ])
         }
     }
+
+    const isTargetAmongOtherBars =
+        selectedEntities.length > 1 || overwriteParams.country !== undefined
+    if (targetTime !== undefined && isTargetAmongOtherBars)
+        overwriteParams.time = formatGrapherTimeParam(grapherState, targetTime)
 
     return { chartParams: overwriteParams, previewParams: overwriteParams }
 }
@@ -1084,9 +1111,12 @@ function findTableSlotKey(
 export async function selectPeersForSearch({
     grapherState,
     targetEntity,
+    endTime,
 }: {
     grapherState: GrapherState
     targetEntity: EntityName
+    /** Picks country peers at this time instead of the end handle's */
+    endTime?: Time
 }): Promise<EntityName[]> {
     const availableEntities = grapherState.availableEntityNames
 
@@ -1110,6 +1140,7 @@ export async function selectPeersForSearch({
             selectPeersForGrapher(grapherState, {
                 targetEntity,
                 peerCountryStrategy,
+                endTime,
             })
         )
     } else {
@@ -1183,6 +1214,21 @@ export function selectRegionGroupByPriority(
     }
 
     return []
+}
+
+/**
+ * Moves a single-time chart to the target's latest time when the target has no
+ * value near the end handle
+ */
+function moveEndHandleToPeerTargetTime(
+    grapherState: GrapherState,
+    targetEntity: EntityName
+): void {
+    const targetTime = findPeerTargetTime(grapherState, targetEntity)
+    if (targetTime === undefined) return
+    runInAction(() => {
+        grapherState.timelineHandleTimeBounds = [targetTime, targetTime]
+    })
 }
 
 /**
