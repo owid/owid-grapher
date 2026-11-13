@@ -25,6 +25,7 @@ import IndicatorMetadataBox from "./IndicatorMetadataBox.js"
 import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
+import { WithConfigureWithAi } from "./configureWithAi/index.js"
 
 declare global {
     interface Window {
@@ -146,17 +147,19 @@ export const DataPageV2Content = ({
                             data-dod-track-note="grapher"
                         >
                             {grapherConfig.slug && (
-                                <GrapherWithFallback
-                                    slug={grapherConfig.slug}
-                                    config={mergedGrapherConfig}
-                                    useProvidedConfigOnly
-                                    id="explore-the-data"
-                                    queryStr={queryStr}
-                                    enablePopulatingUrlParams
-                                    isEmbeddedInADataPage={true}
-                                    isEmbeddedInAnOwidPage={false}
-                                    isPreviewing={isPreviewing}
-                                />
+                                <WithConfigureWithAi slug={grapherConfig.slug}>
+                                    <GrapherWithFallback
+                                        slug={grapherConfig.slug}
+                                        config={mergedGrapherConfig}
+                                        useProvidedConfigOnly
+                                        id="explore-the-data"
+                                        queryStr={queryStr}
+                                        enablePopulatingUrlParams
+                                        isEmbeddedInADataPage={true}
+                                        isEmbeddedInAnOwidPage={false}
+                                        isPreviewing={isPreviewing}
+                                    />
+                                </WithConfigureWithAi>
                             )}
                             {!useNewDatapageDesign && (
                                 <AboutThisData

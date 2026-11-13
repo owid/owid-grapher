@@ -2044,10 +2044,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/api@npm:^1.4.1, @opentelemetry/api@npm:^1.9.1":
+"@opentelemetry/api@npm:^1.4.1":
   version: 1.10.0
   resolution: "@opentelemetry/api@npm:1.10.0"
   checksum: 10/630356af2c4caa2e15a102060360fac708651a9e21f45a9035a6c846dd01e51ff4cc2d28fadc471d4dcdf6997561163631ab69c2efa7604ad2307529e22b593f
+  languageName: node
+  linkType: hard
+
+"@opentelemetry/api@npm:^1.9.1":
+  version: 1.9.1
+  resolution: "@opentelemetry/api@npm:1.9.1"
+  checksum: 10/b26032739d3c54ca99b5a2920844a1fbd4c3ee383cacbb0915e8c706a2626fe91e96feaa6e893397abe0545dc8d0a765b220aa18a31b1773176eeaf3a225e10e
   languageName: node
   linkType: hard
 
@@ -2981,6 +2988,15 @@ __metadata:
   dependencies:
     tinyexec: "npm:^1.2.4"
   checksum: 10/f1348e48c5926bfeab37b155670c774e89896d9b337f24b8802279fd52e0ae178d2c8207da54e29011ddeb75bbb3daaf75627f886ba1df25d7be5dfca84b9a28
+  languageName: node
+  linkType: hard
+
+"@pydantic/genai-prices@npm:0.1.13":
+  version: 0.1.13
+  resolution: "@pydantic/genai-prices@npm:0.1.13"
+  bin:
+    genai-prices: dist/cli.js
+  checksum: 10/e7f99bc7aee8ffbc776eefb7bd00b428826021911e6bdaadea7efd97eaaa0bea7c21a3fd24336bd148cd901b6f8125c0cf428b12ba7e85815ae002ee56a9a588
   languageName: node
   linkType: hard
 
@@ -10731,6 +10747,7 @@ __metadata:
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
+    "@pydantic/genai-prices": "npm:0.1.13"
     "@sentry/cloudflare": "npm:^11.11.0"
     "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.3.0"
