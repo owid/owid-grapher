@@ -9,8 +9,10 @@ $all-charts-row-thumbnail-gap: 8px;
     border-left: $all-charts-row-accent-width solid transparent;
 }
 
-.all-charts-row:hover {
-    background: $blue-5;
+@media (hover: hover) {
+    .all-charts-row:hover {
+        background: $blue-5;
+    }
 }
 
 .all-charts-row--selected {
@@ -119,7 +121,8 @@ $all-charts-row-thumbnail-gap: 8px;
 }
 
 @include md-down {
-    .all-charts-row--selected {
+    .all-charts-row--selected,
+    .all-charts-row--selected:hover {
         background: none;
         border-left-color: transparent;
     }
