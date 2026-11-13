@@ -245,7 +245,10 @@ import { FacetChartManager } from "../facet/FacetChartConstants.js"
 import { EntitySelectorModalManager } from "../modal/EntitySelectorModal.js"
 import { SettingsMenuManager } from "../controls/SettingsMenu.js"
 import { SlopeChartManager } from "../slopeCharts/SlopeChartConstants.js"
-import { selectPeersForGrapherWithGuards } from "./PeerSelection.js"
+import {
+    findPeerTargetTimeForGrapher,
+    selectPeersForGrapherWithGuards,
+} from "./PeerSelection.js"
 
 // The admin client sets `window.admin`. It's typed here locally instead of
 // via a `declare global` Window augmentation: that augmentation would end up
@@ -3535,6 +3538,7 @@ export class GrapherState
         // Create and cache the promise immediately so that concurrent calls
         // will find and wait for this same promise
         this.peerCountriesPromise = (async (): Promise<void> => {
+            this.moveEndHandleToPeerTargetTime()
             const peerCountries = await selectPeersForGrapherWithGuards(this)
             this.selection.addToSelection(peerCountries)
         })()
@@ -3546,6 +3550,11 @@ export class GrapherState
             // so future calls will trigger a new operation if needed
             this.peerCountriesPromise = undefined
         }
+    }
+
+    @action.bound private moveEndHandleToPeerTargetTime(): void {
+        const targetTime = findPeerTargetTimeForGrapher(this)
+        if (targetTime !== undefined) this.endHandleTimeBound = targetTime
     }
 
     @computed get regionGroups(): RegionGroup[] {
