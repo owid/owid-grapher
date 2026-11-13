@@ -58,6 +58,9 @@ const MAX_INDICATOR_CHARTS = 5
 /** The changelog shows this many of its latest entries, and the rest on request */
 const MAX_CHANGELOG_ENTRIES = 5
 
+/** The related research shows this many of its most viewed items, and the rest on request */
+const MAX_RELATED_RESEARCH = 6
+
 declare global {
     interface Window {
         [DATASET_PAGE_PROPS_KEY]?: DatasetPageProps
@@ -924,14 +927,19 @@ function ChartsSection({
 // Related research
 
 function RelatedResearchSection({ dataset }: { dataset: DatasetPageData }) {
+    const [showAll, setShowAll] = useState(false)
     if (dataset.relatedResearch.length === 0) return null
+    // The items come most viewed first
+    const items = showAll
+        ? dataset.relatedResearch
+        : dataset.relatedResearch.slice(0, MAX_RELATED_RESEARCH)
     return (
         <section className="dataset-page__section dataset-page__section--research dataset-page__section--bordered col-start-2 span-cols-12">
             <h2 className="dataset-page__section-title">
                 Related research and writing
             </h2>
             <div className="dataset-page__research grid span-cols-12">
-                {dataset.relatedResearch.map((item) => (
+                {items.map((item) => (
                     <a
                         key={item.url}
                         href={item.url}
@@ -949,6 +957,17 @@ function RelatedResearchSection({ dataset }: { dataset: DatasetPageData }) {
                     </a>
                 ))}
             </div>
+            {dataset.relatedResearch.length > MAX_RELATED_RESEARCH && (
+                <button
+                    type="button"
+                    className="dataset-page__toggle-link dataset-page__toggle-link--research"
+                    onClick={() => setShowAll(!showAll)}
+                >
+                    {showAll
+                        ? "Show fewer articles"
+                        : `Show all ${dataset.relatedResearch.length} articles`}
+                </button>
+            )}
         </section>
     )
 }

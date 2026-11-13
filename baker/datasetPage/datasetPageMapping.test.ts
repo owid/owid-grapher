@@ -7,6 +7,7 @@ import {
     getTableDateRange,
     makeCharts,
     makeDatasetPageData,
+    makeRelatedResearch,
 } from "./datasetPageMapping.js"
 import {
     DatasetPageCodebookRow,
@@ -664,5 +665,60 @@ describe("makeDatasetPageData, owner", () => {
             owners: undefined,
         })
         expect(dataset.managedBy).toBeUndefined()
+    })
+})
+
+describe(makeRelatedResearch, () => {
+    const BASE_URL = "https://ourworldindata.org"
+
+    it("makes one card per page, in the order given", () => {
+        const cards = makeRelatedResearch(
+            [
+                {
+                    slug: "energy-mix",
+                    title: "Energy Mix",
+                    excerpt: "Where our energy comes from.",
+                    featuredImage: "energy-mix.png",
+                },
+                {
+                    slug: "carbon-price",
+                    title: "The argument for a carbon price",
+                },
+            ],
+            { "energy-mix.png": "https://example.org/energy-mix/w=192" },
+            BASE_URL
+        )
+        expect(cards).toEqual([
+            {
+                title: "Energy Mix",
+                description: "Where our energy comes from.",
+                url: "https://ourworldindata.org/energy-mix",
+                imageUrl: "https://example.org/energy-mix/w=192",
+            },
+            {
+                // A page without an excerpt or an image still gets a card
+                title: "The argument for a carbon price",
+                description: "",
+                url: "https://ourworldindata.org/carbon-price",
+                imageUrl: "https://ourworldindata.org/default-thumbnail.png",
+            },
+        ])
+    })
+
+    it("uses the default image when the featured image has no address", () => {
+        const [card] = makeRelatedResearch(
+            [
+                {
+                    slug: "energy-mix",
+                    title: "Energy Mix",
+                    featuredImage: "gone.png",
+                },
+            ],
+            {},
+            BASE_URL
+        )
+        expect(card.imageUrl).toEqual(
+            "https://ourworldindata.org/default-thumbnail.png"
+        )
     })
 })

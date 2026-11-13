@@ -16,10 +16,12 @@ import { fetchDatasetPageFiles } from "./datasetPage/datasetPageFiles.js"
 import {
     getColumnCatalogPaths,
     makeDatasetPageData,
+    makeRelatedResearch,
 } from "./datasetPage/datasetPageMapping.js"
 import {
     DatasetPageChartLookup,
     getChartsForDatasetPageTable,
+    getPagesEmbeddingCharts,
 } from "../db/model/DatasetPageCharts.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
@@ -609,7 +611,26 @@ export const renderDatasetPage = async (
     const ownerImageUrl = ownerName
         ? await getAuthorImageUrl(knex, ownerName)
         : undefined
-    const dataset = makeDatasetPageData(files, chartLookups, ownerImageUrl)
+    // The articles and topic pages that embed the charts of any of the tables
+    const relatedPages = await getPagesEmbeddingCharts(knex, {
+        charts: chartLookups.flatMap((lookup) => lookup.charts),
+        multiDims: chartLookups.flatMap((lookup) => lookup.multiDims),
+    })
+    const featuredImages = await getImageMetadataByFilenames(
+        knex,
+        _.uniq(relatedPages.flatMap((page) => page.featuredImage ?? []))
+    )
+    const featuredImageUrls: Record<string, string> = {}
+    for (const [filename, image] of Object.entries(featuredImages))
+        if (image.cloudflareId)
+            featuredImageUrls[filename] =
+                `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/w=192`
+    const dataset = makeDatasetPageData(
+        files,
+        chartLookups,
+        ownerImageUrl,
+        makeRelatedResearch(relatedPages, featuredImageUrls, BAKED_BASE_URL)
+    )
     return renderToHtmlPage(
         <DatasetPage dataset={dataset} baseUrl={BAKED_BASE_URL} />
     )

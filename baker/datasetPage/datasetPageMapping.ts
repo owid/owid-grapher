@@ -1,4 +1,5 @@
 import {
+    DEFAULT_THUMBNAIL_FILENAME,
     GRAPHER_TAB_NAMES,
     GrapherChartType,
     GrapherTabName,
@@ -11,6 +12,7 @@ import {
 import {
     CatalogPathsByColumn,
     DatasetPageChartLookup,
+    DatasetPageRelatedPage,
 } from "../../db/model/DatasetPageCharts.js"
 import {
     DatasetAuxiliaryFile,
@@ -21,6 +23,7 @@ import {
     DatasetIndicator,
     DatasetIndicatorGroup,
     DatasetPageData,
+    DatasetRelatedResearch,
     DatasetSource,
     DatasetTable,
 } from "../../site/datasetPage/datasetPageTypes.js"
@@ -335,11 +338,31 @@ export function makeDatasetTable(
     }
 }
 
+/**
+ * The cards of the pages that embed the dataset's charts. `imageUrls` has the
+ * address of a page's featured image, by file name.
+ */
+export function makeRelatedResearch(
+    pages: DatasetPageRelatedPage[],
+    imageUrls: Record<string, string>,
+    baseUrl: string
+): DatasetRelatedResearch[] {
+    return pages.map((page) => ({
+        title: page.title,
+        description: page.excerpt ?? "",
+        url: `${baseUrl}/${page.slug}`,
+        imageUrl:
+            (page.featuredImage && imageUrls[page.featuredImage]) ||
+            `${baseUrl}/${DEFAULT_THUMBNAIL_FILENAME}`,
+    }))
+}
+
 /** `chartLookups` are in the order of the manifest's tables */
 export function makeDatasetPageData(
     files: DatasetPageFiles,
     chartLookups: DatasetPageChartLookup[],
-    ownerImageUrl?: string
+    ownerImageUrl?: string,
+    relatedResearch: DatasetRelatedResearch[] = []
 ): DatasetPageData {
     const { manifest } = files
     if (files.tables.length === 0)
@@ -364,7 +387,7 @@ export function makeDatasetPageData(
         tables: files.tables.map((filesTable, i) =>
             makeDatasetTable(files, filesTable, chartLookups[i])
         ),
-        relatedResearch: [],
+        relatedResearch,
         changelog: manifest.changelog ?? [],
         sourceCodeUrl: `https://github.com/owid/etl/tree/master/etl/steps/data/${stepPath}/`,
         readmeUrl: getFileUrl(files, manifest.readme),

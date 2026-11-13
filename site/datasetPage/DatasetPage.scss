@@ -802,6 +802,11 @@ $dataset-page-row-border: $blue-20;
     }
 }
 
+// Below the cards, with the same gap as between two rows of cards
+.dataset-page__toggle-link--research {
+    margin-top: 24px;
+}
+
 .dataset-page__research-title {
     @include h3-bold;
     & {

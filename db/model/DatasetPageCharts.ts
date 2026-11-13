@@ -1,6 +1,7 @@
 import {
     GrapherChartType,
     IndicatorsAfterPreProcessing,
+    OwidGdocType,
     View,
 } from "@ourworldindata/types"
 import {
@@ -336,4 +337,108 @@ export async function getChartsForDatasetPageTable(
             columnsByVariableId
         ),
     }
+}
+
+/** An article or topic page that embeds a chart or multi-dim of a dataset page */
+export interface DatasetPageRelatedPage {
+    /** e.g. "energy-mix" */
+    slug: string
+    title: string
+    excerpt?: string
+    /** File name of the page's featured image */
+    featuredImage?: string
+}
+
+/**
+ * The published articles and topic pages that embed one of the charts or
+ * multi-dims (any of its views), most viewed first. Country profiles are
+ * left out, and so are posts tagged "Announcements", which embed charts only
+ * as examples.
+ */
+export async function getPagesEmbeddingCharts(
+    knex: KnexReadonlyTransaction,
+    lookup: DatasetPageChartLookup
+): Promise<DatasetPageRelatedPage[]> {
+    const chartIds = lookup.charts.map((chart) => chart.chartId)
+    // A page may still embed a chart by one of its old slugs, unless a
+    // published chart now uses that slug
+    const oldSlugRows =
+        chartIds.length === 0
+            ? []
+            : await knexRaw<{ slug: string }>(
+                  knex,
+                  `-- sql
+                      SELECT csr.slug
+                      FROM chart_slug_redirects csr
+                      WHERE csr.chart_id IN (?)
+                          AND NOT EXISTS (
+                              SELECT 1
+                              FROM chart_configs cc
+                              JOIN charts c ON c.configId = cc.id
+                              WHERE cc.slug = csr.slug
+                                  AND cc.config ->> "$.isPublished" = "true"
+                          )
+                  `,
+                  [chartIds]
+              )
+    const targetSlugs = [
+        ...lookup.charts.map((chart) => chart.slug),
+        ...oldSlugRows.map((row) => row.slug),
+        ...lookup.multiDims.map((multiDim) => multiDim.slug),
+    ]
+    if (targetSlugs.length === 0) return []
+
+    const rows = await knexRaw<{
+        slug: string
+        title: string
+        excerpt: string | null
+        featuredImage: string | null
+    }>(
+        knex,
+        `-- sql
+            SELECT
+                p.slug,
+                p.content ->> "$.title" AS title,
+                p.content ->> "$.excerpt" AS excerpt,
+                p.content ->> '$."featured-image"' AS featuredImage,
+                COALESCE(MAX(pv.views_365d), 0) AS pageviews
+            FROM posts_gdocs p
+            LEFT JOIN analytics_pageviews pv
+                ON pv.url = CONCAT("https://ourworldindata.org/", p.slug)
+            WHERE p.published = 1
+                AND p.type IN (?)
+                AND p.id IN (
+                    SELECT pl.sourceId
+                    FROM posts_gdocs_links pl
+                    WHERE pl.linkType = "grapher"
+                        AND pl.componentType = "chart"
+                        AND pl.target IN (?)
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM posts_gdocs_x_tags pt
+                    JOIN tags t ON t.id = pt.tagId
+                    WHERE pt.gdocId = p.id AND t.name = "Announcements"
+                )
+            GROUP BY p.id
+            ORDER BY pageviews DESC, p.slug
+        `,
+        [
+            [
+                OwidGdocType.Article,
+                OwidGdocType.TopicPage,
+                OwidGdocType.LinearTopicPage,
+            ],
+            targetSlugs,
+        ]
+    )
+    // A missing JSON value comes back as null or as the text "null"
+    const textOrUndefined = (value: string | null): string | undefined =>
+        value && value !== "null" ? value : undefined
+    return rows.map((row) => ({
+        slug: row.slug,
+        title: row.title,
+        excerpt: textOrUndefined(row.excerpt),
+        featuredImage: textOrUndefined(row.featuredImage),
+    }))
 }
