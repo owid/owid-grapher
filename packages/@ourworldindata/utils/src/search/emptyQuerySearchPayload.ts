@@ -12,6 +12,8 @@
  * (`functions/api/search/cached-queries.ts`).
  */
 
+import { PINNED_SEARCHES_ATTRIBUTE } from "./pinnedSearch.js"
+
 // Attributes that make a request depend on user input. Depending on the
 // client, these live at the top level of each request (algoliasearch v5), in
 // a `params` object (autocomplete), or in a URL-encoded `params` string
@@ -24,7 +26,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 // The featured-viz request (`queryFeaturedViz`) leaves `query` empty and puts
 // the reader's search in a filter on this attribute, so it depends on user
 // input too.
-const PINNED_SEARCH_FILTER = "pinnedForSearches:"
+const PINNED_SEARCH_FILTER = `${PINNED_SEARCHES_ATTRIBUTE}:`
 
 const hasPinnedSearchFilter = (params: Record<string, unknown>): boolean =>
     typeof params.filters === "string" &&

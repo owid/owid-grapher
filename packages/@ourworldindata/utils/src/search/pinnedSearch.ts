@@ -1,3 +1,13 @@
+import type { PageRecord } from "@ourworldindata/types"
+
+/**
+ * The pages-index attribute holding the searches a featured viz is pinned
+ * for. The site filters on it, and the cached-queries proxy looks for it to
+ * keep those requests out of its cache, so both must use this constant.
+ */
+export const PINNED_SEARCHES_ATTRIBUTE =
+    "pinnedForSearches" satisfies keyof PageRecord
+
 /**
  * The form a search takes when it's compared against the searches a page is
  * pinned for. The indexer, the clash checks and the site all compare in this

@@ -460,6 +460,7 @@ export {
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
 
 export {
+    PINNED_SEARCHES_ATTRIBUTE,
     normalizePinnedSearch,
     parsePinnedSearches,
 } from "./search/pinnedSearch.js"
