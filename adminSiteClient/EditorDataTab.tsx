@@ -693,8 +693,9 @@ export class FocusSection extends React.Component<{
             availableSeriesNameSet
         ).sort()
 
-        const invalidFocusedSeriesNames =
-            focusedSeriesNameSet.difference(seriesNameSet)
+        const invalidFocusedSeriesNames = new Set(
+            grapherState.invalidFocusedSeriesNames
+        )
 
         return (
             <Section name="Data to highlight">
