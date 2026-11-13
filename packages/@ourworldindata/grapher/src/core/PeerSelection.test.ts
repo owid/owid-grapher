@@ -1029,18 +1029,19 @@ describe(selectPeersForGrapher, () => {
     it("needs a target when several entities are selected", async () => {
         const grapherState = makeGrapherState({ queryStr: "?country=ITA~FRA" })
         expect(await selectPeersForGrapher(grapherState)).toEqual([])
-        expect(
-            await selectPeersForGrapher(grapherState, {
-                targetEntity: "Italy",
-            })
-        ).toEqual(DATA_RANGE_PEERS_OF_ITALY)
+
+        const peers = await selectPeersForGrapher(grapherState, {
+            targetEntity: "Italy",
+        })
+        expect(peers).toEqual(DATA_RANGE_PEERS_OF_ITALY)
     })
 
     it("spreads without a target", async () => {
         const grapherState = makeGrapherState({ queryStr: "?country=" })
-        expect(
-            await selectPeersForGrapher(grapherState, { targetCount: 5 })
-        ).toEqual(DATA_RANGE_SPREAD)
+        const peers = await selectPeersForGrapher(grapherState, {
+            targetCount: 5,
+        })
+        expect(peers).toEqual(DATA_RANGE_SPREAD)
     })
 })
 
@@ -1099,6 +1100,142 @@ describe("peer params in the URL", () => {
             "Italy",
             "Germany",
         ])
+    })
+})
+
+describe("peers on a bar chart whose year moves with the selection", () => {
+    const BAR_CHART_QUERY =
+        "?tab=discrete-bar&country=~ITA&peerCountries=dataRange&peerCount=3"
+    const RECENT_COUNTRIES = ["France", "Germany", "Spain", "Poland"]
+
+    /** Italy's last value is in 2010; four other countries go on to 2020 */
+    const ITALY_ENDS_EARLY: Row[] = [
+        ...COUNTRIES.map((name, index): Row => [name, 2010, index * 10]),
+        ...RECENT_COUNTRIES.map((name): Row => [
+            name,
+            2020,
+            COUNTRIES.indexOf(name) * 10,
+        ]),
+    ]
+
+    /** Italy's last value is two years before the latest; five countries stop six years before it */
+    const ITALY_RECENT: Row[] = [
+        ...COUNTRIES.filter(
+            (name) => name !== "Italy" && !RECENT_COUNTRIES.includes(name)
+        ).map((name, index): Row => [name, 2014, index * 10]),
+        ["Italy", 2018, 25],
+        ...RECENT_COUNTRIES.map((name, index): Row => [name, 2020, index * 15]),
+    ]
+
+    const makeTable = (rows: Row[]): OwidTable =>
+        new OwidTable(
+            [["entityName", "year", "value"], ...rows],
+            [
+                { slug: "year", type: ColumnTypeNames.Year },
+                {
+                    slug: "value",
+                    type: ColumnTypeNames.Numeric,
+                    tolerance: 5,
+                },
+            ]
+        )
+
+    const makeBarChartState = (
+        config: GrapherProgrammaticInterface
+    ): GrapherState =>
+        new GrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+            ySlugs: "value",
+            additionalDataLoaderFn: loadAlternatingPopulation,
+            queryStr: BAR_CHART_QUERY,
+            ...config,
+        })
+
+    const plottedEntityNames = (grapherState: GrapherState): EntityName[] =>
+        grapherState.chartState.series.map((series) => series.seriesName)
+
+    it("stays at the target's latest year when it has no recent value", async () => {
+        const grapherState = makeBarChartState({
+            table: makeTable(ITALY_ENDS_EARLY),
+        })
+
+        const selection = await renderSelection(grapherState)
+
+        expect(selection).toHaveLength(4)
+        expect(selection).toContain("Italy")
+        expect(grapherState.endTime).toBe(2010)
+        expect(plottedEntityNames(grapherState).toSorted()).toEqual(
+            selection.toSorted()
+        )
+    })
+
+    it("stays at the target's latest year with peers picked by any strategy", async () => {
+        const grapherState = makeBarChartState({
+            table: makeTable(ITALY_ENDS_EARLY),
+            queryStr:
+                "?tab=discrete-bar&country=~ITA&peerCountries=defaultSelection",
+            selectedEntityNames: ["France", "Germany"],
+        })
+
+        expect(await renderSelection(grapherState)).toEqual([
+            "Italy",
+            "France",
+            "Germany",
+        ])
+        expect(grapherState.endTime).toBe(2010)
+        expect(plottedEntityNames(grapherState)).toContain("Italy")
+    })
+
+    it("keeps the year when the timeline is hidden", async () => {
+        const grapherState = makeBarChartState({
+            table: makeTable(ITALY_ENDS_EARLY),
+            hideTimeline: true,
+        })
+
+        await renderSelection(grapherState)
+
+        expect(grapherState.endTime).toBe(2020)
+    })
+
+    it("keeps the year when the target's data is before the timeline's start", async () => {
+        const grapherState = makeBarChartState({
+            table: makeTable(ITALY_ENDS_EARLY),
+            timelineMinTime: 2015,
+        })
+
+        await renderSelection(grapherState)
+
+        expect(grapherState.endTime).toBe(2020)
+    })
+
+    it("picks peers at the latest year when the target has a value near it", async () => {
+        const grapherState = makeBarChartState({
+            table: makeTable(ITALY_RECENT),
+        })
+
+        const selection = await renderSelection(grapherState)
+
+        expect(selection).toHaveLength(4)
+        expect(["Italy", ...RECENT_COUNTRIES]).toEqual(
+            expect.arrayContaining(selection)
+        )
+        expect(grapherState.endTime).toBe(2020)
+        expect(plottedEntityNames(grapherState).toSorted()).toEqual(
+            selection.toSorted()
+        )
+    })
+
+    it("picks the same peers when the table arrives before the data is marked ready", async () => {
+        const readyFirst = makeBarChartState({
+            table: makeTable(ITALY_ENDS_EARLY),
+        })
+        const tableFirst = makeBarChartState({ isDataReady: false })
+        tableFirst.inputTable = makeTable(ITALY_ENDS_EARLY)
+        tableFirst.isDataReady = true
+
+        expect(await renderSelection(tableFirst)).toEqual(
+            await renderSelection(readyFirst)
+        )
     })
 })
 
