@@ -27,7 +27,11 @@ import { StackedAreas } from "./StackedAreas"
 import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsTypes.js"
 import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
-import { resolveCollision, toPlacedStackedAreaSeries } from "./StackedUtils"
+import {
+    toInitialAnchoredLabelSeries,
+    makeStackedLabelComparator,
+    toPlacedStackedAreaSeries,
+} from "./StackedUtils"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { resolveEmphasis } from "../interaction/Emphasis.js"
 
@@ -109,17 +113,7 @@ export class StackedAreaChartThumbnail
     }
 
     @computed private get labelsRange(): [number, number] {
-        const {
-            horizontalAxisPart,
-            manager: { chartAreaPadding = 0 },
-        } = this
-
-        return this.bounds
-            .expand({
-                top: chartAreaPadding,
-                bottom: chartAreaPadding + horizontalAxisPart.height,
-            })
-            .yRange()
+        return this.bounds.expand(this.manager.chartAreaPadding ?? 0).yRange()
     }
 
     @computed private get labelsMaxWidth(): number {
@@ -155,35 +149,19 @@ export class StackedAreaChartThumbnail
     }): AnchoredLabelsState | undefined {
         if (this.labelsSeries.length === 0) return undefined
 
-        const series = this.labelsSeries.map((series) => {
-            const position = {
-                x: dualAxis.bounds.right,
-                y: dualAxis.verticalAxis.place(series.value),
-            }
-
-            return { ...series, position }
-        })
+        const series = toInitialAnchoredLabelSeries(
+            this.labelsSeries,
+            this.chartState.seriesByName,
+            dualAxis
+        )
 
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
             maxWidth: this.labelsMaxWidth,
             labelPadding: LEGEND_PADDING,
-            yRange: this.labelsRange,
-            resolveCollision: (
-                s1: InitialAnchoredLabelSeries,
-                s2: InitialAnchoredLabelSeries
-            ): InitialAnchoredLabelSeries => {
-                const series1 = this.chartState.seriesByName.get(s1.seriesName)
-                const series2 = this.chartState.seriesByName.get(s2.seriesName)
-
-                if (!series1 || !series2) return s1 // no preference
-
-                const picked = resolveCollision(series1, series2)
-                if (picked?.seriesName === s1.seriesName) return s1
-                if (picked?.seriesName === s2.seriesName) return s2
-
-                return s1 // no preference
-            },
+            xRange: dualAxis.bounds.xRange(),
+            yRanges: { edge: this.labelsRange },
+            compare: makeStackedLabelComparator(this.chartState.seriesByName),
         })
     }
 
