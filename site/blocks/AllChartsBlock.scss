@@ -256,12 +256,13 @@ $all-charts-block-search-height: 44px;
 }
 
 .all-charts-block__suggestions {
+    @include note-12-medium;
     display: flex;
-    flex-wrap: wrap;
     align-items: baseline;
-    gap: 0 8px;
-    min-height: 21px;
+    gap: 8px;
+    min-height: 16px;
     margin: -8px 0 16px;
+    color: $blue-90;
 }
 
 .all-charts-block__skeleton-suggestions {
@@ -272,30 +273,35 @@ $all-charts-block-search-height: 44px;
 }
 
 .all-charts-block__suggestions-label {
-    @include overline-black-caps;
+    @include h6-black-caps;
+    flex: none;
     color: $blue-60;
 }
 
 .all-charts-block__suggestions-list {
-    display: flex;
-    flex-wrap: wrap;
+    flex: 1 1 0;
+    min-width: 0;
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.all-charts-block__suggestion:not(:first-child)::before {
+.all-charts-block__suggestion {
+    display: inline;
+    white-space: nowrap;
+}
+
+.all-charts-block__suggestion:not(:last-child)::after {
     content: ", ";
-    white-space: pre;
-    color: $blue-90;
+    white-space: normal;
 }
 
 .all-charts-block__suggestion-button {
-    @include body-3-medium;
     padding: 0;
     border: 0;
     background: none;
-    color: $blue-90;
+    color: inherit;
+    font: inherit;
     text-decoration: underline;
     cursor: pointer;
 
@@ -312,6 +318,10 @@ $all-charts-block-search-height: 44px;
 @include sm-only {
     .all-charts-block__suggestion:nth-child(n + 4) {
         display: none;
+    }
+
+    .all-charts-block__suggestion:nth-child(3)::after {
+        content: none;
     }
 
     .all-charts-block__search {
