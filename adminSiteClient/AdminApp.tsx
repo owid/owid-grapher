@@ -462,7 +462,9 @@ export class AdminApp extends React.Component<{
                                     <Route
                                         exact
                                         path="/email-notifications-preview"
-                                        component={EmailNotificationsPreviewPage}
+                                        component={
+                                            EmailNotificationsPreviewPage
+                                        }
                                     />
                                     <Route
                                         path="/gdocs"

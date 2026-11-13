@@ -254,7 +254,6 @@ export async function renderMultiDimDataPageFromConfig({
     // PRIMARY TOPIC
     const primaryTopic = await getPrimaryTopic(knex, config.topicTags)
 
-
     const topicArea = db.getTopicAreaNameForTagNames(
         config.topicTags ?? [],
         tagHierarchiesByChildName ??
