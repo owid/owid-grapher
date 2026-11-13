@@ -126,6 +126,7 @@ export function useInfiniteSearchOffset<THit>({
     queryKey,
     queryFn,
     firstPageSize,
+    firstPageFetchSize = firstPageSize,
     laterPageSize,
     enabled = true,
 }: {
@@ -135,7 +136,14 @@ export function useInfiniteSearchOffset<THit>({
         offset: number,
         length: number
     ) => Promise<SearchResponse<THit>>
+    /** How many hits the first page shows. Later pages start after them. */
     firstPageSize: number
+    /**
+     * How many hits the first page requests, when the number it shows depends
+     * on other queries running at the same time: the first page is requested
+     * at its largest size and cut down to `firstPageSize` once that is known.
+     */
+    firstPageFetchSize?: number
     laterPageSize: number
     enabled?: boolean
 }) {
@@ -152,7 +160,11 @@ export function useInfiniteSearchOffset<THit>({
                 laterPageSize
             )
 
-            return queryFn(state, offset, length)
+            return queryFn(
+                state,
+                offset,
+                pageParam === 0 ? firstPageFetchSize : length
+            )
         },
         getNextPageParam: (lastPage, allPages) => {
             const currentPageIndex = allPages.length - 1
@@ -172,7 +184,10 @@ export function useInfiniteSearchOffset<THit>({
         initialPageParam: 0,
     })
 
-    const hits = query.data?.pages.flatMap((page) => page.hits) || []
+    const pages = (query.data?.pages ?? []).map((page, i) =>
+        i === 0 ? { ...page, hits: page.hits.slice(0, firstPageSize) } : page
+    )
+    const hits = pages.flatMap((page) => page.hits)
     const totalResults = query.data?.pages[0]?.nbHits || 0
     // Set by the closest-matches fallback in queries.ts: the section shows
     // relaxed ("did you mean"-style) results because the exact search was empty.
@@ -183,6 +198,7 @@ export function useInfiniteSearchOffset<THit>({
 
     return {
         ...query,
+        pages,
         hits,
         totalResults,
         isClosestMatches,
