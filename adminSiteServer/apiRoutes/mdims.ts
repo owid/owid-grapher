@@ -300,15 +300,24 @@ export async function handleGetMultiDims(
             Pick<
                 DbPlainMultiDimDataPage,
                 "id" | "catalogPath" | "slug" | "updatedAt" | "published"
-            > & { title: string; pageviews: number; mdimViews: number }
+            > & {
+                title: string
+                pageviews: number
+                mdimViews: number
+                defaultViewConfigId: string | null
+            }
         >(
             trx,
+            // With no dimension params, searchParamsToMultiDimView fills each
+            // dimension from the first available view, so the default view
+            // (the one a multi-dim's thumbnail shows) is always the first one.
             `-- sql
             SELECT
                 mdp.id,
                 mdp.catalogPath,
                 mdp.slug,
                 mdp.config->>'$.title.title' as title,
+                mdp.config->>'$.views[0].fullConfigId' as defaultViewConfigId,
                 mdp.updatedAt,
                 mdp.published,
                 COALESCE(agv.views_14d, 0) as pageviews,
