@@ -146,9 +146,11 @@ const CHARTS_PER_PAGE = 9
  * proxy (see searchClients.ts).
  *
  * With SEARCH_API_URL set, the API is the only path for typed searches: a
- * failed request throws, React Query retries it, and the page then shows its
- * search error state (useHasSearchError). Sentry sees the function's 500s
- * and, once the retries run out, the failed query (see queryClient.ts).
+ * failed request throws and React Query retries it, then the section shows
+ * nothing, as for a failed Algolia search, and the page shows its search
+ * error state (useHasSearchError) when no section has results. Sentry sees
+ * the function's 500s and, once the retries run out, the failed query (see
+ * queryClient.ts).
  */
 async function querySection<THit extends { slug: string }>(
     liteSearchClient: LiteClient,
