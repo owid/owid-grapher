@@ -33,6 +33,7 @@ import {
     RichDataVariant,
 } from "./search/constructSearchResultJson.js"
 import { checkCache } from "./reusableHandlers.js"
+import { reaction, runInAction } from "mobx"
 import { slugify } from "@ourworldindata/utils"
 
 export async function fetchMetadataForGrapher(
@@ -55,10 +56,12 @@ export async function fetchMetadataForGrapher(
     })
     if (inputTable) grapher.grapherState.inputTable = inputTable
 
-    const fullMetadata = assembleMetadata(
-        grapher.grapherState,
-        searchParams ?? new URLSearchParams(""),
-        multiDimAvailableDimensions
+    const fullMetadata = runInAction(() =>
+        assembleMetadata(
+            grapher.grapherState,
+            searchParams ?? new URLSearchParams(""),
+            multiDimAvailableDimensions
+        )
     )
 
     return Response.json(fullMetadata)
@@ -85,12 +88,11 @@ export async function fetchZipForGrapher(
     if (inputTable) grapher.grapherState.inputTable = inputTable
     ensureDownloadOfDataAllowed(grapher.grapherState)
     const effectiveSearchParams = searchParams ?? new URLSearchParams("")
-    const metadata = assembleMetadata(
-        grapher.grapherState,
-        effectiveSearchParams
-    )
-    const readme = assembleReadme(grapher.grapherState, effectiveSearchParams)
-    const csv = assembleCsv(grapher.grapherState, effectiveSearchParams)
+    const { metadata, readme, csv } = runInAction(() => ({
+        metadata: assembleMetadata(grapher.grapherState, effectiveSearchParams),
+        readme: assembleReadme(grapher.grapherState, effectiveSearchParams),
+        csv: assembleCsv(grapher.grapherState, effectiveSearchParams),
+    }))
     console.log("Fetched the parts, creating zip file")
 
     // Use the slugified display title as filename for multi-dims
@@ -196,10 +198,12 @@ export async function fetchReadmeForGrapher(
     })
     if (inputTable) grapher.grapherState.inputTable = inputTable
 
-    const readme = assembleReadme(
-        grapher.grapherState,
-        searchParams ?? new URLSearchParams(""),
-        multiDimAvailableDimensions
+    const readme = runInAction(() =>
+        assembleReadme(
+            grapher.grapherState,
+            searchParams ?? new URLSearchParams(""),
+            multiDimAvailableDimensions
+        )
     )
     return new Response(readme, {
         headers: {
@@ -263,7 +267,9 @@ export async function fetchDataValuesForGrapher(
     if (entityNames && entityNames.length > 0)
         grapher.grapherState.selection.setSelectedEntities(entityNames)
 
-    const dataValues = assembleDataValues(grapher.grapherState, entityName)
+    const dataValues = runInAction(() =>
+        assembleDataValues(grapher.grapherState, entityName)
+    )
 
     const cacheControl = shouldCache ? "max-age=3600" : "no-cache"
     const response = Response.json(dataValues, {
@@ -378,20 +384,33 @@ export async function assembleSearchResultData(
         catalogUrl: string
     }
 ): Promise<GrapherSearchResultJson | undefined> {
-    // Find Grapher tabs to display and bring them in the right order
-    const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
+    // Observing the base table keeps it cached between the batches below
+    const stopObservingTable = reaction(() => grapherState.table, _.noop)
 
-    // Ensure the primary tab is currently active
-    configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
+    try {
+        const sortedTabs = runInAction(() => {
+            // Find Grapher tabs to display and bring them in the right order
+            const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
 
-    // Choose the entities to display
-    const displayEntities = await pickDisplayEntities(grapherState, args)
+            // Ensure the primary tab is currently active
+            configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
 
-    return constructSearchResultJson(grapherState, {
-        ...args,
-        sortedTabs,
-        displayEntities,
-    })
+            return sortedTabs
+        })
+
+        // Choose the entities to display
+        const displayEntities = await runInAction(() =>
+            pickDisplayEntities(grapherState, args)
+        )
+
+        return await constructSearchResultJson(grapherState, {
+            ...args,
+            sortedTabs,
+            displayEntities,
+        })
+    } finally {
+        stopObservingTable()
+    }
 }
 
 export function assembleSearchResultDataTable(grapherState: GrapherState) {
