@@ -156,7 +156,7 @@ GET /api/detect-country
 
 This route provides a search API for charts, pages (articles, about pages, data insights, …), topics and country profiles. `type=topics` returns topic recommendations derived from the best-ranked matching charts, the same way the site's search page does (see "Topic page recommendations" in `site/search/README.md`); it reads the baked `/topicTagGraph.json` to map chart tags to topic pages.
 
-It is a public API, and it also serves the site's search page: when `SEARCH_API_URL` is set, the page sends each result section with a typed query here, with `highlights=true` so the hits keep Algolia's highlight and snippet fields (see `querySection` in `site/search/queries.ts`). Both sides build their Algolia requests with `runSearchRequest` from `@ourworldindata/utils`, so the page gets the results it would have got querying Algolia from the browser.
+It is a public API, and it also serves the site's search page: when `SEARCH_API_URL` is set, the page sends each result section with a typed query here, with `highlights=true` so the hits keep Algolia's highlight and snippet fields (see `querySection` in `site/search/queries.ts`). Both sides build their Algolia requests with `runSearchRequest` from `@ourworldindata/utils`, so the page gets the results it would have got querying Algolia from the browser. The page doesn't fall back to Algolia when this route fails: it shows its search error state once React Query's retries run out, and Sentry sees the route's 500s.
 
 For detailed API documentation, including all parameters, response schemas, and examples, see [search-api.openapi.yaml](../docs/search-api.openapi.yaml).
 
