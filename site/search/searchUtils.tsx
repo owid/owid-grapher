@@ -22,6 +22,7 @@ import {
     Ngram,
     WordPositioned,
     ScoredFilterPositioned,
+    SearchFacetFilters,
 } from "@ourworldindata/types"
 import {
     Url,
@@ -41,6 +42,7 @@ import {
     formatCountryFacetFilters,
     formatTopicFacetFilters,
     normalizePinnedSearch,
+    PINNED_SEARCHES_ATTRIBUTE,
 } from "@ourworldindata/utils"
 import {
     generateSelectedEntityNamesParam,
@@ -375,28 +377,32 @@ export const PAGES_CHRONOLOGICAL_INDEX = getIndexName(
  *  text-matched pages. Each has its own autocomplete source. */
 export const AUTOCOMPLETE_PAGES_FILTER = `NOT type:${OwidGdocType.Profile} AND NOT type:${OwidGdocType.FeaturedViz}`
 
+const FEATURED_VIZ_TYPE_FILTER = `type:${OwidGdocType.FeaturedViz}`
+
 /**
- * The pages-index filter for the featured viz to show, or null when there is
- * nothing to match on. The reader's words must be one of the searches a page
- * is pinned for, matched whole: a text search would show a featured viz on
- * any shared word. A selected topic narrows to pages tagged with it, and is
- * enough on its own when no words are typed.
+ * Filters for the featured viz search queries.
+ *
+ * Finds featured viz pages pinned for the reader's exact search and tagged
+ * with the selected topic. Either one can be empty.
+ *
+ * Keep the pinned search in `filters`. The cached-queries proxy looks for it
+ * there to skip its cache (`isEmptyQuerySearchPayload`).
  */
-export function getFeaturedVizFilter(
+export function getFeaturedVizFilters(
     query: string,
     topic?: string
-): string | null {
+): { filters: string; facetFilters: SearchFacetFilters } | null {
     const words = normalizePinnedSearch(query)
     if (!words && !topic) return null
-    return [
-        `type:${OwidGdocType.FeaturedViz}`,
-        // Normalization strips quotes, so the value can't break out of them
-        words && `pinnedForSearches:"${words}"`,
-        topic && `tags:${JSON.stringify(topic)}`,
-    ]
-        .filter(Boolean)
-        .join(" AND ")
+    return {
+        filters: words
+            ? // Normalization strips quotes, so the words can't break out of them
+              `${FEATURED_VIZ_TYPE_FILTER} AND ${PINNED_SEARCHES_ATTRIBUTE}:"${words}"`
+            : FEATURED_VIZ_TYPE_FILTER,
+        facetFilters: topic ? formatTopicFacetFilters(new Set([topic])) : [],
+    }
 }
+
 export const DATA_CATALOG_ATTRIBUTES = [
     "title",
     "containerTitle",

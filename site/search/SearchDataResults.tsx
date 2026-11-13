@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import {
-    getFeaturedVizFilterForState,
+    getFeaturedVizFiltersForState,
     queryCharts,
     queryFeaturedViz,
     searchQueryKeys,
@@ -31,7 +31,7 @@ export const SearchDataResults = ({
     const featuredVizQuery = useQuery({
         queryKey: searchQueryKeys.featuredViz(state),
         queryFn: () => queryFeaturedViz(liteSearchClient, state),
-        enabled: getFeaturedVizFilterForState(state) !== null,
+        enabled: getFeaturedVizFiltersForState(state) !== null,
     })
     const featuredVizHit = featuredVizQuery.data
 

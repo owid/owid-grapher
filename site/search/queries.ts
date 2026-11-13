@@ -28,7 +28,7 @@ import {
     PAGES_CHRONOLOGICAL_INDEX,
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
-    getFeaturedVizFilter,
+    getFeaturedVizFilters,
 } from "./searchUtils.js"
 import {
     buildChartsFacetFilters,
@@ -70,7 +70,7 @@ export const searchQueryKeys = {
         [
             PAGES_INDEX,
             "featured-viz",
-            getFeaturedVizFilterForState(state),
+            getFeaturedVizFiltersForState(state),
         ] as const,
 } as const
 
@@ -370,11 +370,11 @@ export async function queryProfiles(
     return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
 }
 
-export function getFeaturedVizFilterForState(
+export function getFeaturedVizFiltersForState(
     state: SearchState
-): string | null {
+): ReturnType<typeof getFeaturedVizFilters> {
     const [topic] = getFilterNamesOfType(state.filters, FilterType.TOPIC)
-    return getFeaturedVizFilter(state.query, topic)
+    return getFeaturedVizFilters(state.query, topic)
 }
 
 /**
@@ -387,13 +387,13 @@ export async function queryFeaturedViz(
     liteSearchClient: LiteClient,
     state: SearchState
 ): Promise<FeaturedVizHit | null> {
-    const filters = getFeaturedVizFilterForState(state)
+    const filters = getFeaturedVizFiltersForState(state)
     if (!filters) return null
 
     const searchParams = {
         indexName: PAGES_INDEX,
         query: "",
-        filters,
+        ...filters,
         distinct: true,
         hitsPerPage: 1,
         attributesToRetrieve: [

@@ -32,7 +32,7 @@ import {
     PAGES_INDEX,
     CHARTS_INDEX,
     AUTOCOMPLETE_PAGES_FILTER,
-    getFeaturedVizFilter,
+    getFeaturedVizFilters,
     suggestFiltersFromQuerySuffix,
     getFilterIcon,
     getItemUrlForFilter,
@@ -310,7 +310,7 @@ const createFeaturedVizSource = (
     onSelect: makeAlgoliaOnSelect(searchSource),
     getItemUrl: algoliaGetItemUrl,
     getItems({ query }) {
-        const filters = getFeaturedVizFilter(query)
+        const filters = getFeaturedVizFilters(query)
         if (!liteSearchClient || !filters) return []
 
         return getAlgoliaResults<BaseItem>({
@@ -321,7 +321,7 @@ const createFeaturedVizSource = (
                     params: {
                         query: "",
                         hitsPerPage: 1,
-                        filters,
+                        ...filters,
                         ...ALGOLIA_PAGES_ITEM_PARAMS,
                     },
                 },

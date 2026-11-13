@@ -59,8 +59,8 @@ describe(queryFeaturedViz, () => {
         expect(request).toMatchObject({
             indexName: PAGES_INDEX,
             query: "",
-            filters:
-                'type:featured-viz AND pinnedForSearches:"cause of death" AND tags:"Health"',
+            filters: 'type:featured-viz AND pinnedForSearches:"cause of death"',
+            facetFilters: [["tags:Health"]],
             hitsPerPage: 1,
         })
         expect(JSON.stringify(request)).not.toContain("France")
@@ -77,9 +77,10 @@ describe(queryFeaturedViz, () => {
         )
 
         const [[request]] = searchForHits.mock.calls[0]
-        expect(request.filters).toBe(
-            'type:featured-viz AND tags:"Child & Infant Mortality"'
-        )
+        expect(request.filters).toBe("type:featured-viz")
+        expect(request.facetFilters).toEqual([
+            ["tags:Child & Infant Mortality"],
+        ])
     })
 
     it("asks nothing when the query is only punctuation", async () => {
