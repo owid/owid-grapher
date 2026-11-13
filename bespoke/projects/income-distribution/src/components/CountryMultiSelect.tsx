@@ -221,7 +221,7 @@ function CountryListBox({
                         fontSize: 12,
                     }}
                 >
-                    Up to {MAX_SELECTED_COUNTRIES} countries can be compared.
+                    You can select up to {MAX_SELECTED_COUNTRIES} countries.
                     Remove one to add another.
                 </div>
             )}
