@@ -7,7 +7,7 @@ import {
     ExplorerChoiceParams,
 } from "@ourworldindata/explorer"
 import { renderSvgToPng } from "./grapherRenderer.js"
-import { error, png } from "itty-router"
+import { error, png, StatusError } from "itty-router"
 import { createZip, UncompressedFile } from "littlezipper"
 import { Bounds, slugify, Url } from "@ourworldindata/utils"
 import {
@@ -42,6 +42,13 @@ async function initGrapherForExplorerView(
 }> {
     const url = env.url
     const explorerPage = await env.ASSETS.fetch(url, { redirect: "manual" })
+    // Redirects have already been checked in the router, so this is an
+    // explorer that doesn't exist
+    if (explorerPage.status === 404) throw new StatusError(404)
+    if (!explorerPage.ok)
+        throw new Error(
+            `Unexpected status ${explorerPage.status} fetching explorer page ${url.pathname}`
+        )
 
     const html = await explorerPage.text()
     const queryStr = url.searchParams.toString()
@@ -84,28 +91,23 @@ export async function handleThumbnailRequestForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    try {
-        const explorerEnv = stripUrlExtensionFromEnv(env, `.${extension}`)
-        const { grapherState } = await initGrapherForExplorerView(
-            explorerEnv,
-            options
-        )
-        const svg = await grapherState.generateStaticSvg(
-            ReactDOMServer.renderToStaticMarkup
-        )
-        if (extension === "svg") {
-            return new Response(svg, {
-                headers: {
-                    "Content-Type": "image/svg+xml",
-                    "Cache-Control": "public, max-age=600",
-                },
-            })
-        } else {
-            return png(await renderSvgToPng(svg, options))
-        }
-    } catch (e) {
-        console.error(e)
-        return error(500, e instanceof Error ? e.message : String(e))
+    const explorerEnv = stripUrlExtensionFromEnv(env, `.${extension}`)
+    const { grapherState } = await initGrapherForExplorerView(
+        explorerEnv,
+        options
+    )
+    const svg = await grapherState.generateStaticSvg(
+        ReactDOMServer.renderToStaticMarkup
+    )
+    if (extension === "svg") {
+        return new Response(svg, {
+            headers: {
+                "Content-Type": "image/svg+xml",
+                "Cache-Control": "public, max-age=600",
+            },
+        })
+    } else {
+        return png(await renderSvgToPng(svg, options))
     }
 }
 
@@ -115,22 +117,17 @@ export async function handleConfigRequestForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    try {
-        const explorerEnv = stripUrlExtensionFromEnv(env, extensions.configJson)
-        const { grapherState } = await initGrapherForExplorerView(
-            explorerEnv,
-            options
-        )
+    const explorerEnv = stripUrlExtensionFromEnv(env, extensions.configJson)
+    const { grapherState } = await initGrapherForExplorerView(
+        explorerEnv,
+        options
+    )
 
-        const config = grapherState.object
-        return new Response(JSON.stringify(config), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-        })
-    } catch (e) {
-        console.error(e)
-        return error(500, e instanceof Error ? e.message : String(e))
-    }
+    const config = grapherState.object
+    return new Response(JSON.stringify(config), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+    })
 }
 
 export async function fetchCsvForExplorerView(
@@ -139,28 +136,23 @@ export async function fetchCsvForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    try {
-        const explorerEnv = stripUrlExtensionFromEnv(env, extensions.csv)
-        const { grapherState } = await initGrapherForExplorerView(
-            explorerEnv,
-            options
-        )
+    const explorerEnv = stripUrlExtensionFromEnv(env, extensions.csv)
+    const { grapherState } = await initGrapherForExplorerView(
+        explorerEnv,
+        options
+    )
 
-        console.log("checking if download is allowed")
-        ensureDownloadOfDataAllowed(grapherState)
-        console.log("data download is allowed")
+    console.log("checking if download is allowed")
+    ensureDownloadOfDataAllowed(grapherState)
+    console.log("data download is allowed")
 
-        const csv = assembleCsv(
-            grapherState,
-            searchParams ?? new URLSearchParams("")
-        )
-        return new Response(csv, {
-            headers: { "Content-Type": "text/csv" },
-        })
-    } catch (e) {
-        console.error(e)
-        return error(500, e instanceof Error ? e.message : String(e))
-    }
+    const csv = assembleCsv(
+        grapherState,
+        searchParams ?? new URLSearchParams("")
+    )
+    return new Response(csv, {
+        headers: { "Content-Type": "text/csv" },
+    })
 }
 
 export async function fetchMetadataForExplorerView(
@@ -169,18 +161,13 @@ export async function fetchMetadataForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    try {
-        const explorerEnv = stripUrlExtensionFromEnv(env, extensions.metadata)
-        const { grapherState } = await initGrapherForExplorerView(
-            explorerEnv,
-            options
-        )
-        const metadata = assembleMetadata(grapherState, searchParams)
-        return Response.json(metadata)
-    } catch (e) {
-        console.error(e)
-        return error(500, e instanceof Error ? e.message : String(e))
-    }
+    const explorerEnv = stripUrlExtensionFromEnv(env, extensions.metadata)
+    const { grapherState } = await initGrapherForExplorerView(
+        explorerEnv,
+        options
+    )
+    const metadata = assembleMetadata(grapherState, searchParams)
+    return Response.json(metadata)
 }
 
 export async function fetchReadmeForExplorerView(
@@ -189,20 +176,15 @@ export async function fetchReadmeForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    try {
-        const explorerEnv = stripUrlExtensionFromEnv(env, extensions.readme)
-        const { grapherState } = await initGrapherForExplorerView(
-            explorerEnv,
-            options
-        )
-        const readme = assembleReadme(grapherState, searchParams)
-        return new Response(readme, {
-            headers: { "Content-Type": "text/markdown; charset=utf-8" },
-        })
-    } catch (e) {
-        console.error(e)
-        return error(500, e instanceof Error ? e.message : String(e))
-    }
+    const explorerEnv = stripUrlExtensionFromEnv(env, extensions.readme)
+    const { grapherState } = await initGrapherForExplorerView(
+        explorerEnv,
+        options
+    )
+    const readme = assembleReadme(grapherState, searchParams)
+    return new Response(readme, {
+        headers: { "Content-Type": "text/markdown; charset=utf-8" },
+    })
 }
 
 export async function fetchZipForExplorerView(
@@ -211,42 +193,37 @@ export async function fetchZipForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    try {
-        const explorerEnv = stripUrlExtensionFromEnv(env, extensions.zip)
-        const { grapherState } = await initGrapherForExplorerView(
-            explorerEnv,
-            options
-        )
+    const explorerEnv = stripUrlExtensionFromEnv(env, extensions.zip)
+    const { grapherState } = await initGrapherForExplorerView(
+        explorerEnv,
+        options
+    )
 
-        ensureDownloadOfDataAllowed(grapherState)
-        const metadata = assembleMetadata(grapherState, searchParams)
-        const readme = assembleReadme(grapherState, searchParams)
-        const csv = assembleCsv(grapherState, searchParams)
-        console.log("Fetched the parts, creating zip file")
+    ensureDownloadOfDataAllowed(grapherState)
+    const metadata = assembleMetadata(grapherState, searchParams)
+    const readme = assembleReadme(grapherState, searchParams)
+    const csv = assembleCsv(grapherState, searchParams)
+    console.log("Fetched the parts, creating zip file")
 
-        const filename = slugify(grapherState.effectiveTitle)
+    const filename = slugify(grapherState.effectiveTitle)
 
-        const zipContent: UncompressedFile[] = [
-            {
-                path: `${filename}.metadata.json`,
-                data: JSON.stringify(metadata, undefined, 2),
-            },
-            { path: `${filename}.csv`, data: csv },
-            { path: "readme.md", data: readme },
-        ]
-        const content = await createZip(zipContent)
-        console.log("Generated content, returning response")
+    const zipContent: UncompressedFile[] = [
+        {
+            path: `${filename}.metadata.json`,
+            data: JSON.stringify(metadata, undefined, 2),
+        },
+        { path: `${filename}.csv`, data: csv },
+        { path: "readme.md", data: readme },
+    ]
+    const content = await createZip(zipContent)
+    console.log("Generated content, returning response")
 
-        return new Response(content, {
-            headers: {
-                "Content-Type": "application/zip",
-                "Content-Disposition": `attachment; filename="${filename}.zip"`,
-            },
-        })
-    } catch (e) {
-        console.error(e)
-        return error(500, e instanceof Error ? e.message : String(e))
-    }
+    return new Response(content, {
+        headers: {
+            "Content-Type": "application/zip",
+            "Content-Disposition": `attachment; filename="${filename}.zip"`,
+        },
+    })
 }
 
 export async function fetchDataValuesForExplorerView(
@@ -267,36 +244,31 @@ export async function fetchDataValuesForExplorerView(
     const entityName = findEntityForExtractingDataValues(url.searchParams)
     prepareSearchParamsBeforeExtractingDataValues(url.searchParams, entityName)
 
-    try {
-        const { grapherState } = await initGrapherForExplorerView(
-            explorerEnv,
-            options
-        )
+    const { grapherState } = await initGrapherForExplorerView(
+        explorerEnv,
+        options
+    )
 
-        // Make sure the country query param is respected since Grapher ignores
-        // the country param if entity selection is disabled
-        const entityNames = getEntityNamesParam(
-            searchParams.get("country") ?? undefined
-        )
-        if (entityNames && entityNames.length > 0)
-            grapherState.selection.setSelectedEntities(entityNames)
+    // Make sure the country query param is respected since Grapher ignores
+    // the country param if entity selection is disabled
+    const entityNames = getEntityNamesParam(
+        searchParams.get("country") ?? undefined
+    )
+    if (entityNames && entityNames.length > 0)
+        grapherState.selection.setSelectedEntities(entityNames)
 
-        const dataValues = assembleDataValues(grapherState, entityName)
+    const dataValues = assembleDataValues(grapherState, entityName)
 
-        const cacheControl = shouldCache ? "max-age=3600" : "no-cache"
-        const response = Response.json(dataValues, {
-            headers: { "Cache-Control": cacheControl },
-        })
+    const cacheControl = shouldCache ? "max-age=3600" : "no-cache"
+    const response = Response.json(dataValues, {
+        headers: { "Cache-Control": cacheControl },
+    })
 
-        // Cache the response
-        if (shouldCache)
-            ctx.waitUntil(caches.default.put(ctx.request, response.clone()))
+    // Cache the response
+    if (shouldCache)
+        ctx.waitUntil(caches.default.put(ctx.request, response.clone()))
 
-        return response
-    } catch (e) {
-        console.error(e)
-        return error(500, e instanceof Error ? e.message : String(e))
-    }
+    return response
 }
 
 export async function fetchSearchResultDataForExplorerView(
@@ -335,46 +307,38 @@ export async function fetchSearchResultDataForExplorerView(
         searchParams.get("numDataTableRowsPerColumn")
     )
 
-    try {
-        const explorerEnv = stripUrlExtensionFromEnv(
-            env,
-            extensions.searchResult
-        )
-        const options = extractOptions(searchParams)
-        const { grapherState } = await initGrapherForExplorerView(
-            explorerEnv,
-            options
-        )
+    const explorerEnv = stripUrlExtensionFromEnv(env, extensions.searchResult)
+    const options = extractOptions(searchParams)
+    const { grapherState } = await initGrapherForExplorerView(
+        explorerEnv,
+        options
+    )
 
-        // Optionally ignore projected data if requested
-        const shouldIgnoreProjections = searchParams.has("ignoreProjections")
-        if (shouldIgnoreProjections) dropProjectionColumns(grapherState)
+    // Optionally ignore projected data if requested
+    const shouldIgnoreProjections = searchParams.has("ignoreProjections")
+    if (shouldIgnoreProjections) dropProjectionColumns(grapherState)
 
-        const catalogUrl = env.CATALOG_URL
-        const searchResult = await assembleSearchResultData(grapherState, {
-            variant,
-            pickedEntities,
-            numDataTableRowsPerColumn,
-            catalogUrl,
-        })
+    const catalogUrl = env.CATALOG_URL
+    const searchResult = await assembleSearchResultData(grapherState, {
+        variant,
+        pickedEntities,
+        numDataTableRowsPerColumn,
+        catalogUrl,
+    })
 
-        if (searchResult === undefined)
-            return error(500, "Unable to generate search result data")
+    if (searchResult === undefined)
+        throw new Error("Unable to generate search result data")
 
-        const cacheControl = shouldCache ? "max-age=3600" : "no-cache"
-        const response = Response.json(searchResult, {
-            headers: { "Cache-Control": cacheControl },
-        })
+    const cacheControl = shouldCache ? "max-age=3600" : "no-cache"
+    const response = Response.json(searchResult, {
+        headers: { "Cache-Control": cacheControl },
+    })
 
-        // Cache the response
-        if (shouldCache)
-            ctx.waitUntil(caches.default.put(ctx.request, response.clone()))
+    // Cache the response
+    if (shouldCache)
+        ctx.waitUntil(caches.default.put(ctx.request, response.clone()))
 
-        return response
-    } catch (e) {
-        console.error(e)
-        return error(500, e instanceof Error ? e.message : String(e))
-    }
+    return response
 }
 
 function stripUrlExtensionFromEnv(env: Env, extension: string): Env {

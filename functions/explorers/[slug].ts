@@ -1,6 +1,7 @@
 import { Env, Etag, extensions } from "../_common/env.js"
 import { getRedirectForExplorerUrl } from "../_common/redirectTools.js"
-import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
+import { IRequestStrict, error } from "itty-router"
+import { createRouter } from "../_common/router.js"
 import { rewriteMetaTags } from "../_common/grapherTools.js"
 import {
     fetchCsvForExplorerView,
@@ -13,10 +14,6 @@ import {
     handleThumbnailRequestForExplorerView,
 } from "../_common/explorerHandlers.js"
 
-const { preflight, corsify } = cors({
-    allowMethods: ["GET", "OPTIONS", "HEAD"],
-})
-
 // An explorer redirect can be conditional on the incoming query params, AND we can't use the "put it into _redirects for one week" approach we do for other redirects, because we need to handle query params always.
 // So instead, we check for redirects _for every incoming request_, unlike what we do for charts where we only check when the initial request is 404-ing.
 async function checkForRedirect(
@@ -27,13 +24,9 @@ async function checkForRedirect(
     return getRedirectForExplorerUrl(env, url)
 }
 
-const router = Router<
-    IRequestStrict,
+const router = createRouter<
     [URL, Env, Etag, EventContext<unknown, any, Record<string, unknown>>]
->({
-    before: [preflight, checkForRedirect],
-    finally: [corsify],
-})
+>({ before: [checkForRedirect] })
 router
     .get(
         `/explorers/:slug${extensions.configJson}`,
@@ -148,21 +141,14 @@ async function handleHtmlPageRequest(
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
-    context.passThroughOnException()
     const { request, env } = context
     const url = new URL(request.url)
 
-    return router
-        .fetch(
-            request,
-            url,
-            { ...env, url },
-            request.headers.get("if-none-match"),
-            context
-        )
-        .catch((e) => {
-            console.log("Handling error", e)
-            if (e instanceof StatusError) return error(e.status, e.message)
-            return error(500, e)
-        })
+    return router.fetch(
+        request,
+        url,
+        { ...env, url },
+        request.headers.get("if-none-match"),
+        context
+    )
 }
