@@ -454,6 +454,26 @@ export {
 } from "./search/searchClosestMatches.js"
 
 export {
+    type SectionSearchState,
+    type SearchIndexNames,
+    type SectionSearch,
+    type SectionSearchResponse,
+    type SearchRequest,
+    type SearchType,
+    runSectionSearch,
+    buildChartsSearch,
+    runSearchRequest,
+    searchStateToUrlParams,
+    searchUrlParamsToSectionState,
+    searchRequestToUrlParams,
+    fromSearchApiResponse,
+    type SearchApiHitsResponse,
+    SEARCH_TYPES,
+    DEFAULT_PAGE_TYPES,
+    SEARCH_CHART_ATTRIBUTES,
+} from "./search/searchSections.js"
+
+export {
     TOPIC_PAGE_TYPE_FILTER,
     recommendTopicPages,
 } from "./search/searchTopicPages.js"
