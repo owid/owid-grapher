@@ -22,6 +22,7 @@ const INFO_ICON_GAP = 4
 export interface SeriesLabelAnnotation {
     heading?: string
     text: string
+    timeScope: "point" | "range"
 }
 
 export interface SeriesLabelStateOptions {
@@ -36,6 +37,7 @@ export interface SeriesLabelStateOptions {
     showRegionTooltip?: boolean
     annotations?: SeriesLabelAnnotation[]
     canShowInfoIcon?: boolean
+    hasAnnotationMarkers?: boolean
 }
 
 export type TextRole = "name" | "value" | "suffix"
@@ -102,6 +104,7 @@ export class SeriesLabelState {
         showRegionTooltip: false,
         annotations: [],
         canShowInfoIcon: false,
+        hasAnnotationMarkers: false,
         textAnchor: "start",
     } as const satisfies Partial<SeriesLabelStateOptions>
 
@@ -345,6 +348,10 @@ export class SeriesLabelState {
             _.sumBy(line, (fragment) => fragment.width)
         )
         return lineWidths.length > 0 ? Math.max(...lineWidths) : 0
+    }
+
+    @computed get hasAnnotationMarkers(): boolean {
+        return this.options.hasAnnotationMarkers
     }
 
     @computed get infoIconRadius(): number {
