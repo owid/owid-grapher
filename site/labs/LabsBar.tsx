@@ -44,8 +44,10 @@ function loadFeedback(): ReturnType<typeof Sentry.getFeedback> {
             showEmail: false,
             formTitle: "Feedback on Labs",
             submitButtonLabel: "Send feedback",
+            // The feedback carries the page URL and the session's replay, so
+            // senders needn't repeat them
             messagePlaceholder:
-                "What worked, what didn't, what you expected instead",
+                "What worked, what didn't, what you expected instead.\n\nNo need to describe the page or your steps: we get the page and a replay of what you clicked and typed.",
             successMessageText: "Thanks, we'll read it.",
         })
     )
