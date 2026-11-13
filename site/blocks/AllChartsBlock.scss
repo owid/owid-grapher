@@ -1,6 +1,7 @@
 $all-charts-block-height: 575px;
 $all-charts-block-inline-preview-height: 520px;
-$all-charts-block-sticky-nav-clearance: 64px;
+$all-charts-block-sticky-nav-height: 56px;
+$all-charts-block-sticky-nav-height-sm: 48px;
 $all-charts-block-search-height: 44px;
 
 .all-charts-block__count {
@@ -36,7 +37,13 @@ $all-charts-block-search-height: 44px;
 
 .all-charts-block__item {
     border-bottom: 1px solid $blue-10;
-    scroll-margin-top: $all-charts-block-sticky-nav-clearance;
+    scroll-margin-top: $all-charts-block-sticky-nav-height +
+        $all-charts-block-search-height;
+}
+
+.all-charts-block .all-charts-row__thumbnail {
+    scroll-margin-top: $all-charts-block-sticky-nav-height +
+        $all-charts-block-search-height + $all-charts-row-padding;
 }
 
 .all-charts-block__skeleton-inline-preview {
@@ -160,7 +167,7 @@ $all-charts-block-search-height: 44px;
 
     .all-charts-block__search {
         position: sticky;
-        top: 56px;
+        top: $all-charts-block-sticky-nav-height;
         z-index: 1;
     }
 }
@@ -308,6 +315,16 @@ $all-charts-block-search-height: 44px;
     }
 
     .all-charts-block__search {
-        top: 48px;
+        top: $all-charts-block-sticky-nav-height-sm;
+    }
+
+    .all-charts-block__item {
+        scroll-margin-top: $all-charts-block-sticky-nav-height-sm +
+            $all-charts-block-search-height;
+    }
+
+    .all-charts-block .all-charts-row__thumbnail {
+        scroll-margin-top: $all-charts-block-sticky-nav-height-sm +
+            $all-charts-block-search-height + $all-charts-row-padding;
     }
 }

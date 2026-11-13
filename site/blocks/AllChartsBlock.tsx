@@ -241,11 +241,10 @@ function AllChartsItem({
 
     const select = (
         tab: GrapherTabName | undefined,
-        shouldScrollToRow: boolean
+        scrollTarget: HTMLElement | null
     ): void => {
         flushSync(() => onSelect(tab))
-        if (isNarrow && shouldScrollToRow)
-            itemRef.current?.scrollIntoView({ block: "start" })
+        if (isNarrow) scrollTarget?.scrollIntoView({ block: "start" })
     }
 
     return (
@@ -267,9 +266,9 @@ function AllChartsItem({
                 countries={countries}
                 inlinePreviewId={isNarrow ? inlinePreviewId : undefined}
                 onTitleSelect={() => {
-                    if (!isSelected) select(undefined, true)
+                    if (!isSelected) select(undefined, itemRef.current)
                 }}
-                onThumbnailSelect={(tab) => select(tab, true)}
+                onThumbnailSelect={(tab, thumbnail) => select(tab, thumbnail)}
             />
             {isNarrow && isSelected && (
                 <div

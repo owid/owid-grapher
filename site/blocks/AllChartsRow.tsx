@@ -14,7 +14,7 @@ interface AllChartsRowProps {
     countries: string[]
     inlinePreviewId?: string
     onTitleSelect: () => void
-    onThumbnailSelect: (tab: GrapherTabName) => void
+    onThumbnailSelect: (tab: GrapherTabName, thumbnail: HTMLElement) => void
 }
 
 export function AllChartsRow({
@@ -86,7 +86,9 @@ export function AllChartsRow({
                                     format: "long",
                                 })}
                                 aria-pressed={tab === displayedTab}
-                                onClick={() => onThumbnailSelect(tab)}
+                                onClick={(event) =>
+                                    onThumbnailSelect(tab, event.currentTarget)
+                                }
                             >
                                 <img
                                     src={constructThumbnailUrlForTab({
