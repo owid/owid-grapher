@@ -3,7 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { scaleLinear } from "d3-scale"
 import { ChartInterface } from "../chart/ChartInterface"
-import { SideWidths } from "@ourworldindata/types"
+import { ChartLabelMode, SideWidths } from "@ourworldindata/types"
 import { SlopeChartState } from "./SlopeChartState.js"
 import { type SlopeChartProps } from "./SlopeChart.js"
 import {
@@ -290,7 +290,7 @@ export class SlopeChartThumbnail
     }
 
     @computed private get shouldShowValueLabelsOnly(): boolean {
-        return !!this.manager.useMinimalLabeling
+        return this.manager.labelMode === ChartLabelMode.Values
     }
 
     @computed private get startLabelsMaxWidth(): number | undefined {

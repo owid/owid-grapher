@@ -904,6 +904,15 @@ export enum GrapherVariant {
     Thumbnail = "thumbnail",
 }
 
+/** Which labels a chart draws inside its chart area */
+export enum ChartLabelMode {
+    /** Every label, value and legend */
+    All = "all",
+    Values = "values",
+    Names = "names",
+    None = "none",
+}
+
 export interface ChartRedirect {
     id: number
     slug: string

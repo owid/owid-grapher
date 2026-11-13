@@ -10,7 +10,7 @@ import {
     getRelativeMouse,
     roundForSvg,
 } from "@ourworldindata/utils"
-import { SideWidths, Time } from "@ourworldindata/types"
+import { ChartLabelMode, SideWidths, Time } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LineChartState } from "./LineChartState"
 import { LineChartProps } from "./LineChart.js"
@@ -430,7 +430,7 @@ export class LineChartThumbnail
     }
 
     @computed private get shouldShowValueLabelsOnly(): boolean {
-        return !!this.manager.useMinimalLabeling
+        return this.manager.labelMode === ChartLabelMode.Values
     }
 
     @computed private get startLabelsMaxWidth(): number | undefined {

@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import { expect, it, describe } from "vitest"
 import {
+    ChartLabelMode,
     GRAPHER_CHART_TYPES,
     EntitySelectionMode,
     GRAPHER_TAB_CONFIG_OPTIONS,
@@ -3121,5 +3122,17 @@ describe("time and year url params", () => {
                 expect(grapher.changedParams.time).toEqual(query)
             })
         })
+    })
+})
+
+describe("showLegend", () => {
+    it("shows the legend by default", () => {
+        expect(new GrapherState({}).showLegend).toBe(true)
+    })
+
+    it("hides the legend when the chart shows values only", () => {
+        expect(
+            new GrapherState({ labelMode: ChartLabelMode.Values }).showLegend
+        ).toBe(false)
     })
 })

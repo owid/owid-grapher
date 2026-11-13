@@ -4,11 +4,7 @@ import cx from "clsx"
 import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { match } from "ts-pattern"
-import {
-    GRAPHER_THUMBNAIL_HEIGHT,
-    GRAPHER_THUMBNAIL_WIDTH,
-    mapGrapherTabNameToQueryParam,
-} from "@ourworldindata/grapher"
+import { mapGrapherTabNameToQueryParam } from "@ourworldindata/grapher"
 import {
     EntityName,
     GRAPHER_TAB_NAMES,
@@ -16,37 +12,30 @@ import {
     GridSlotKey,
     LargeVariantGridSlotKey,
     MediumVariantGridSlotKey,
-    LayoutSlot,
     GrapherSearchResultJson,
     GrapherQueryParams,
     ChartRecordType,
     SearchChartHit,
     SearchChartHitComponentProps,
-    SearchChartHitComponentVariant,
 } from "@ourworldindata/types"
 import { Button } from "@ourworldindata/components"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import {
     constructChartUrl,
-    constructPreviewUrl,
     constructSearchResultUrl,
     pickEntitiesForChartHit,
 } from "./searchUtils.js"
 import {
     getTotalColumnCount,
     makeSlotClassNames,
-    getPreviewType,
-    calculateScatterPreviewImageDimensions,
+    constructPreviewUrlForTab,
 } from "./SearchChartHitRichDataHelpers.js"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import { CaptionedTable } from "./SearchChartHitCaptionedTable.js"
 import { CaptionedThumbnail } from "./SearchChartHitCaptionedThumbnail.js"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
 import { SearchChartHitRichDataFallback } from "./SearchChartHitRichDataFallback.js"
-import {
-    PreviewVariant,
-    RichDataComponentVariant,
-} from "./SearchChartHitRichDataTypes.js"
+import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 import { chartHitQueryKeys } from "./queries.js"
 import { fetchJson } from "@ourworldindata/utils"
@@ -480,99 +469,4 @@ function constructChartUrlForTab({
         hit,
         grapherParams: R.omit(grapherParams, omitParamsForChartUrl),
     })
-}
-
-function constructPreviewUrlForTab({
-    hit,
-    grapherQueryParams,
-    variant,
-    layout,
-    slotIndex,
-    isMediumScreen,
-    hasScatter,
-}: {
-    hit: SearchChartHit
-    grapherQueryParams: GrapherQueryParams
-    variant: SearchChartHitComponentVariant
-    layout: LayoutSlot[]
-    slotIndex: number
-    isMediumScreen: boolean
-    hasScatter: boolean
-}): { previewUrl: string; imageWidth?: number; imageHeight?: number } {
-    const { grapherTab, previewParams } = layout[slotIndex]
-
-    // Always use the complete version on smaller screens since
-    // the table might not be visible
-    const isPrimaryTab = slotIndex === 0
-    const previewType = isMediumScreen
-        ? { variant: PreviewVariant.Thumbnail, isMinimal: false }
-        : getPreviewType(variant, { isPrimaryTab })
-
-    // Use Grapher's changedParams to construct preview URL.
-    // We override the tab parameter because the GrapherState is currently set to
-    // the first tab of the chart, but we need to generate URLs for the specific
-    // tab being rendered in this preview.
-    const grapherParams = {
-        ...grapherQueryParams,
-        tab: mapGrapherTabNameToQueryParam(grapherTab),
-    }
-
-    const { width: imageWidth, height: imageHeight } =
-        previewType.variant === PreviewVariant.Large
-            ? calculateLargePreviewImageDimensions(layout)
-            : hasScatter
-              ? calculateScatterPreviewImageDimensions()
-              : {}
-
-    // Use a smaller font size for chart types where labels or legends would
-    // otherwise be too overpowering in thumbnail previews. Otherwise, rely on
-    // the default
-    const tabsWithSmallerFont: GrapherTabName[] = [
-        GRAPHER_TAB_NAMES.WorldMap,
-        GRAPHER_TAB_NAMES.DiscreteBar,
-        GRAPHER_TAB_NAMES.StackedDiscreteBar,
-        GRAPHER_TAB_NAMES.Swimlane,
-        GRAPHER_TAB_NAMES.Dumbbell,
-    ]
-    const fontSize =
-        previewType.variant === PreviewVariant.Thumbnail &&
-        tabsWithSmallerFont.includes(grapherTab)
-            ? 12
-            : undefined
-
-    const previewUrl = constructPreviewUrl({
-        hit,
-        grapherParams: {
-            ...grapherParams,
-            ...previewParams,
-        },
-        variant: previewType.variant,
-        isMinimal: previewType.isMinimal,
-        fontSize,
-        imageWidth,
-        imageHeight,
-    })
-
-    return { previewUrl, imageWidth, imageHeight }
-}
-
-function calculateLargePreviewImageDimensions(layout: LayoutSlot[]): {
-    width: number
-    height: number
-} {
-    const slots = layout.map(({ slotKey }) => slotKey)
-
-    if (slots.length <= 2) {
-        return {
-            width: 4 * GRAPHER_THUMBNAIL_WIDTH,
-            height: 4 * GRAPHER_THUMBNAIL_HEIGHT,
-        }
-    }
-
-    // The large chart must be a little taller to match the combined height of
-    // both thumbnails plus the vertical spacing and caption text between them.
-    return {
-        width: 4 * GRAPHER_THUMBNAIL_WIDTH,
-        height: 4 * GRAPHER_THUMBNAIL_HEIGHT + 4 * 16, // Magic number
-    }
 }
