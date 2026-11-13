@@ -3,6 +3,7 @@ import { useMemo, useRef, useState } from "react"
 import * as _ from "lodash-es"
 import { AutoComplete, Button, Input, Select } from "antd"
 import {
+    ALL_CHART_SEARCH_FACETS,
     ChartSearchFacet,
     getFacetValues,
     hasChartFilters,
@@ -21,6 +22,10 @@ interface ChartSearchToolbarProps {
     tags: readonly NameCount[]
     authors: readonly NameCount[]
     autoFocus?: boolean
+    /** The filters the list offers, if not all of them */
+    facets?: readonly ChartSearchFacet[]
+    /** Where plain words are looked for, as the help puts it */
+    searchedIn?: string
 }
 
 function optionsOfIsFacet(
@@ -40,18 +45,25 @@ const WORD_HELP: SearchHelpRow[] = [
     { example: "-wind", meaning: 'Doesn\'t contain "wind"' },
 ]
 
-const FILTER_HELP: SearchHelpRow[] = [
-    ...Object.entries(IS_VALUES).map(([name, { label }]) => ({
+const FILTER_HELP: (SearchHelpRow & { facet: ChartSearchFacet })[] = [
+    ...Object.entries(IS_VALUES).map(([name, { facet, label }]) => ({
+        facet,
         example: `is:${name}`,
         meaning: label,
     })),
-    { example: "tag:Energy", meaning: 'Tagged "Energy"' },
-    { example: "tag:ener", meaning: 'Any tag that starts with "ener"' },
+    { facet: "tag", example: "tag:Energy", meaning: 'Tagged "Energy"' },
     {
+        facet: "tag",
+        example: "tag:ener",
+        meaning: 'Any tag that starts with "ener"',
+    },
+    {
+        facet: "tag",
         example: 'tag:"Air Pollution"',
         meaning: "Quote a name that has spaces",
     },
     {
+        facet: "author",
         example: "author:ada",
         meaning:
             'Last edited or published by someone whose name starts with "ada"',
@@ -150,14 +162,16 @@ export function ChartSearchToolbar({
     tags,
     authors,
     autoFocus,
+    facets = ALL_CHART_SEARCH_FACETS,
+    searchedIn = "the title, variant, notes, slug, id, chart type, tags and people",
 }: ChartSearchToolbarProps): React.ReactElement {
     const [typedQuery, setTypedQuery] = useState<string | undefined>()
     const suggestions = useMemo(
         () =>
             query === typedQuery
-                ? suggestChartSearchTerms(query, { tags, authors })
+                ? suggestChartSearchTerms(query, { tags, authors, facets })
                 : [],
-        [query, typedQuery, tags, authors]
+        [query, typedQuery, tags, authors, facets]
     )
     // An option's value is its index, not the query it leads to: the select
     // highlights an option whose value begins with what was typed, so `is:dr`
@@ -240,21 +254,25 @@ export function ChartSearchToolbar({
                     popupMatchSelectWidth={500}
                 >
                     <Input
-                        placeholder="Search, or filter: tag:Energy is:draft author:…"
+                        placeholder={`Search, or filter: tag:Energy is:draft${facets.includes("author") ? " author:…" : ""}`}
                         allowClear
                         autoFocus={autoFocus}
                     />
                 </AutoComplete>
                 <SearchHelp>
                     <SearchHelpTable heading="Words" rows={WORD_HELP} />
-                    <SearchHelpTable heading="Filters" rows={FILTER_HELP} />
+                    <SearchHelpTable
+                        heading="Filters"
+                        rows={FILTER_HELP.filter((row) =>
+                            facets.includes(row.facet)
+                        )}
+                    />
                     <SearchHelpTable
                         heading="Combining"
                         rows={COMBINING_HELP}
                     />
                     <p className="search-help__note">
-                        Words are looked for in the title, variant, notes, slug,
-                        id, chart type, tags and people.
+                        Words are looked for in {searchedIn}.
                     </p>
                 </SearchHelp>
             </div>
@@ -269,29 +287,33 @@ export function ChartSearchToolbar({
                         setSingleFacet("status", value)
                     }
                 />
-                <Select
-                    className="chart-search__filter chart-search__filter--wide"
-                    placeholder="Source"
-                    allowClear
-                    value={getFacetValues(query, "source")[0]}
-                    options={SOURCE_OPTIONS}
-                    onChange={(value?: string) =>
-                        setSingleFacet("source", value)
-                    }
-                    popupMatchSelectWidth={false}
-                />
+                {facets.includes("source") && (
+                    <Select
+                        className="chart-search__filter chart-search__filter--wide"
+                        placeholder="Source"
+                        allowClear
+                        value={getFacetValues(query, "source")[0]}
+                        options={SOURCE_OPTIONS}
+                        onChange={(value?: string) =>
+                            setSingleFacet("source", value)
+                        }
+                        popupMatchSelectWidth={false}
+                    />
+                )}
                 <NameFilter
                     placeholder="Tags"
                     names={tags}
                     values={getFacetValues(query, "tag")}
                     onChange={(values) => setFacet("tag", values)}
                 />
-                <NameFilter
-                    placeholder="Authors"
-                    names={authors}
-                    values={getFacetValues(query, "author")}
-                    onChange={(values) => setFacet("author", values)}
-                />
+                {facets.includes("author") && (
+                    <NameFilter
+                        placeholder="Authors"
+                        names={authors}
+                        values={getFacetValues(query, "author")}
+                        onChange={(values) => setFacet("author", values)}
+                    />
+                )}
                 {hasChartFilters(query) && (
                     <Button type="link" onClick={() => onQueryChange("")}>
                         Clear all

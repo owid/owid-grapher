@@ -34,6 +34,7 @@ import {
 } from "./TagGraphMetadata.js"
 import { highlightFunctionForSearchWords } from "../adminShared/search.js"
 import {
+    searchableChart,
     chartSearchFilter,
     chartSearchWordsToHighlight,
     countNames,
@@ -102,7 +103,7 @@ export interface ChartListItem {
 
 const DEFAULT_PAGE_SIZE = 50
 
-type Highlighter = (
+export type Highlighter = (
     text: string | null | undefined
 ) => string | React.ReactElement
 
@@ -230,16 +231,17 @@ function timeAgo(time: string): string {
         .replace(/^an? (minute|hour|day|month|year) ago$/, "1 $1 ago")
 }
 
-function TimestampCell({
+// Exported for the multi-dims list, which reads like this one
+export function TimestampCell({
     time,
     by,
     highlight,
     onAuthorClick,
 }: {
     time: string | undefined
-    by: string | undefined
-    highlight: Highlighter
-    onAuthorClick: (author: string) => void
+    by?: string
+    highlight?: Highlighter
+    onAuthorClick?: (author: string) => void
 }): React.ReactElement {
     if (!time) return <span className="text-muted">—</span>
     return (
@@ -253,9 +255,9 @@ function TimestampCell({
                         type="button"
                         className="chart-list__author"
                         title={`Only charts by ${by}`}
-                        onClick={() => onAuthorClick(by)}
+                        onClick={() => onAuthorClick?.(by)}
                     >
-                        {highlight(by)}
+                        {highlight ? highlight(by) : by}
                     </button>
                 </div>
             )}
@@ -263,7 +265,11 @@ function TimestampCell({
     )
 }
 
-function CountCell({ count }: { count: number | null }): React.ReactElement {
+export function CountCell({
+    count,
+}: {
+    count: number | null
+}): React.ReactElement {
     if (!count) return <span className="text-muted">0</span>
     return <>{count.toLocaleString()}</>
 }
@@ -403,7 +409,7 @@ function inheritanceStatus(chart: ChartListItem): string {
 }
 
 /** A header whose explanation shows on hovering its dotted-underlined text */
-function HeaderWithHelp({
+export function HeaderWithHelp({
     title,
     help,
 }: {
@@ -736,7 +742,9 @@ class ChartTable extends React.Component<ChartTableProps> {
                 charts,
                 result: computed(() =>
                     query.trim()
-                        ? charts.filter(chartSearchFilter(query, charts))
+                        ? charts.filter(
+                              chartSearchFilter(query, charts, searchableChart)
+                          )
                         : [...charts]
                 ),
             }

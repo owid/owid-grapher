@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import type { ChartListItem } from "./ChartList.js"
 import {
+    searchableChart,
+    SearchableChart,
     chartSearchFilter,
     chartSearchWordsToHighlight,
     countNames,
@@ -70,7 +72,7 @@ const CHARTS = [
 ]
 
 function ids(query: string, charts = CHARTS): number[] {
-    const filter = chartSearchFilter(query, charts)
+    const filter = chartSearchFilter(query, charts, searchableChart)
     return charts.filter(filter).map((c) => c.id!)
 }
 
@@ -302,5 +304,66 @@ describe(suggestChartSearchTerms, () => {
         expect(suggest("")).toEqual([])
         expect(suggest("solar ")).toEqual([])
         expect(suggest("en")).toEqual([])
+    })
+})
+
+// The multi-dims list searches with the same grammar, describing each row as
+// the search reads a chart, and offers only the filters that tell multi-dims
+// apart: status and tags
+describe("searching rows that aren't charts", () => {
+    interface Row {
+        id: number
+        title: string
+        published: boolean
+        topicTags: string[]
+    }
+    const ROWS: Row[] = [
+        {
+            id: 1,
+            title: "Energy prices",
+            published: false,
+            topicTags: ["Energy"],
+        },
+        {
+            id: 2,
+            title: "Covid cases",
+            published: true,
+            topicTags: ["COVID-19"],
+        },
+        { id: 3, title: "School enrolment", published: true, topicTags: [] },
+    ]
+    const describeRow = (row: Row): SearchableChart => ({
+        text: [row.title, `${row.id}`],
+        isPublished: row.published,
+        isEtl: true,
+        isDrifted: false,
+        tags: row.topicTags,
+        authors: [],
+    })
+    const rowIds = (query: string): number[] =>
+        ROWS.filter(chartSearchFilter(query, ROWS, describeRow)).map(
+            (row) => row.id
+        )
+
+    it("reads words, status and tags off the description", () => {
+        expect(rowIds("cases")).toEqual([2])
+        expect(rowIds("is:published")).toEqual([2, 3])
+        expect(rowIds("is:published tag:covid-19")).toEqual([2])
+        expect(rowIds("-tag:Energy")).toEqual([2, 3])
+    })
+
+    it("suggests only the filters the list offers", () => {
+        const suggest = (query: string): string[] =>
+            suggestChartSearchTerms(query, {
+                tags: countNames(ROWS, (row) => row.topicTags),
+                authors: [],
+                facets: ["status", "tag"],
+            }).map((s) => s.resultingQuery)
+
+        // no is:etl, is:drifted or is:admin: every row is from ETL
+        expect(suggest("is:")).toEqual(["is:published ", "is:draft "])
+        expect(suggest("ene")).toEqual(["tag:Energy "])
+        // no author: field to offer
+        expect(suggest("aut")).toEqual([])
     })
 })
