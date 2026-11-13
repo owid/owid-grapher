@@ -78,9 +78,9 @@ paths:
       description: |
         Returns a PNG or SVG image of the chart.
 
-        Three params pick the picture. `imVariant` sets the frame and how much chart furniture is drawn, `imLabels` sets which text is drawn, and `imPreset`, `imWidth` and `imHeight` set the size. Some examples:
+        Three params describe the image, and each makes one decision. `imVariant` controls how the chart is drawn, such as the frame, gridlines and line weights. `imLabels` controls which text is drawn. `imPreset` sets a fixed size for a known destination, and `imWidth` and `imHeight` set any other size. Some examples:
 
-        - `?imPreset=og`: the captioned chart at the Open Graph size, as used for social previews
+        - `?imPreset=og`: the captioned chart at the Open Graph size
         - `?imVariant=uncaptioned&imWidth=1200&imHeight=800`: the chart without title, subtitle or footer
         - `?imVariant=simplified`: a 1200×640 thumbnail with fewer gridlines and thinner lines
         - `?imVariant=simplified&imLabels=values`: the same thumbnail with values and no legend
@@ -678,11 +678,11 @@ components:
       name: imVariant
       in: query
       description: |
-        Frame and chart furniture of the image.
+        Controls how the chart is drawn: the frame, gridlines, line weights and so on.
 
         - `captioned`: the full chart with title, subtitle and footer
         - `uncaptioned`: the full chart without title, subtitle or footer
-        - `simplified`: a thumbnail without caption. Line, slope, stacked bar, stacked area, Marimekko and scatter charts drop most gridlines, show only the axis endpoints and draw thinner lines. It lays out at a quarter of the PNG size, 300×160 by default.
+        - `simplified`: a thumbnail without caption, with fewer gridlines and thinner lines. It draws the chart at a quarter of the PNG size, 300×160 by default, and scales it up.
       schema:
         type: string
         enum: [captioned, uncaptioned, simplified]
@@ -706,9 +706,9 @@ components:
       description: |
         Fixed image size for a known destination. A preset sets the size and font, so it can't be combined with `imWidth`, `imHeight`, `imFontSize` or `imDetails`, and it's only allowed with `imVariant=captioned`.
 
-        - `og`: 1200×628 PNG for Open Graph (Facebook, LinkedIn, Slack, WhatsApp, Signal), laid out at 800×418
+        - `og`: 1200×628 PNG for Open Graph (Facebook, LinkedIn, Slack, WhatsApp, Signal), drawn at 800×418 and scaled up
         - `twitter`: 800×418 PNG
-        - `square`: 2160×2160 PNG, laid out at 540×540
+        - `square`: 2160×2160 PNG, drawn at 540×540 and scaled up
       schema:
         type: string
         enum: [og, twitter, square]
@@ -718,7 +718,7 @@ components:
       name: imWidth
       in: query
       description: |
-        Width of the PNG in pixels. If only one of `imWidth` and `imHeight` is given, the other follows an 850:600 aspect ratio. The aspect ratio is clamped between 1:2 and 2:1, and the PNG is capped at 12,750,000 pixels (4250×3000). The chart lays out at about 850×600 and scales to the requested size, so the SVG's viewBox can differ from these numbers. With `imVariant=simplified` the default is 1200 and the chart lays out at a quarter of the width.
+        Width of the PNG in pixels. If only one of `imWidth` and `imHeight` is given, the other follows an 850:600 aspect ratio. The aspect ratio is clamped between 1:2 and 2:1, and the PNG is capped at 12,750,000 pixels (4250×3000). The chart is drawn at about 850×600 and scaled to the requested size, so the SVG's viewBox can differ from these numbers. With `imVariant=simplified` the default is 1200 and the chart is drawn at a quarter of the width.
       schema:
         type: integer
         minimum: 1
