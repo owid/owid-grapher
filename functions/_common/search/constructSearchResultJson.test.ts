@@ -411,9 +411,7 @@ describe("bar chart peers for a target with only old data", () => {
         const result = await buildSearchResult(grapherState, ["Italy"])
 
         expect(result?.grapherQueryParams.time).toBe("2010..2010")
-        expect(result?.grapherQueryParams.country?.split("~")).toContain(
-            "ITA"
-        )
+        expect(result?.grapherQueryParams.country?.split("~")).toContain("ITA")
         const plottedEntityNames = grapherState.chartState.series.map(
             (series) => series.seriesName
         )

@@ -260,7 +260,10 @@ export async function selectPeersForGrapher(
     const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
     const endTime =
         requestedEndTime ??
-        findClosestTime(dataColumn.uniqTimesAsc, grapherState.endHandleTimeBound)
+        findClosestTime(
+            dataColumn.uniqTimesAsc,
+            grapherState.endHandleTimeBound
+        )
 
     return selectPeers({
         peerCountryStrategy,
