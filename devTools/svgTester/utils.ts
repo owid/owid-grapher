@@ -50,8 +50,101 @@ import * as R from "remeda"
 import ReactDOMServer from "react-dom/server"
 import pMap from "p-map"
 
-export const TEST_SUITE_DESCRIPTION =
-    "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers. 'mdims' for all multi-dim views. 'thumbnails' for thumbnail versions (300x160) of all published graphers."
+export type SvgRenderVariant = "default" | "thumbnail" | "mobile"
+
+const PHONE_WIDTH_PX = 375
+const ARTICLE_GUTTER_PX = 16
+const ARTICLE_CHART_HEIGHT_PX = 575
+const PHONE_ARTICLE_CHART_BOUNDS = new Bounds(
+    0,
+    0,
+    PHONE_WIDTH_PX - 2 * ARTICLE_GUTTER_PX,
+    ARTICLE_CHART_HEIGHT_PX
+)
+
+const SVG_RENDER_VARIANT_OPTIONS: Record<
+    SvgRenderVariant,
+    Partial<GrapherProgrammaticInterface>
+> = {
+    default: {},
+    thumbnail: {
+        staticBounds: new Bounds(
+            0,
+            0,
+            GRAPHER_THUMBNAIL_WIDTH,
+            GRAPHER_THUMBNAIL_HEIGHT
+        ),
+        variant: GrapherVariant.Thumbnail,
+        baseFontSize: 14,
+    },
+    mobile: {
+        bounds: PHONE_ARTICLE_CHART_BOUNDS,
+        staticBounds: PHONE_ARTICLE_CHART_BOUNDS,
+        isStaticLayoutResponsive: true,
+    },
+}
+
+interface SvgTesterSuiteSettings {
+    description: string
+    configsSuite: SvgTesterSuite
+    isManifestRequired: boolean
+    shouldTestAllViews: boolean
+    shouldTestAllTabs: boolean
+    renderVariant: SvgRenderVariant
+}
+
+export const SVG_TESTER_SUITE_SETTINGS: Record<
+    SvgTesterSuite,
+    SvgTesterSuiteSettings
+> = {
+    graphers: {
+        description: "default Grapher views",
+        configsSuite: "graphers",
+        isManifestRequired: false,
+        shouldTestAllViews: false,
+        shouldTestAllTabs: false,
+        renderVariant: "default",
+    },
+    "grapher-views": {
+        description: "all views of a subset of Graphers",
+        configsSuite: "graphers",
+        isManifestRequired: true,
+        shouldTestAllViews: true,
+        shouldTestAllTabs: false,
+        renderVariant: "default",
+    },
+    mdims: {
+        description: "all multi-dim views",
+        configsSuite: "mdims",
+        isManifestRequired: false,
+        shouldTestAllViews: false,
+        shouldTestAllTabs: false,
+        renderVariant: "default",
+    },
+    thumbnails: {
+        description: "thumbnail versions (300x160) of the most-viewed Graphers",
+        configsSuite: "graphers",
+        isManifestRequired: true,
+        shouldTestAllViews: false,
+        shouldTestAllTabs: true,
+        renderVariant: "thumbnail",
+    },
+    mobile: {
+        description:
+            "phone-width (343x575) renderings of the most-viewed Graphers",
+        configsSuite: "graphers",
+        isManifestRequired: true,
+        shouldTestAllViews: false,
+        shouldTestAllTabs: true,
+        renderVariant: "mobile",
+    },
+}
+
+export const TEST_SUITE_DESCRIPTION = `Test suite to run: ${Object.entries(
+    SVG_TESTER_SUITE_SETTINGS
+)
+    .map(([suite, settings]) => `'${suite}' for ${settings.description}`)
+    .join(", ")}.`
 
 const CONFIG_EXTENSION = ".json"
 const RESULTS_FILENAME = "results.csv"
@@ -550,7 +643,7 @@ export async function renderSvg({
 }: {
     dir: JobDirectory
     queryStr?: string
-    variant?: "default" | "thumbnail"
+    variant?: SvgRenderVariant
 }): Promise<[string, SvgRecord, string]> {
     currentViewId = dir.viewId
     const configAndData = await loadGrapherConfigAndData(dir.configPath)
@@ -571,19 +664,7 @@ export async function renderSvg({
         ...configAndData.config,
         adminBaseUrl: "https://ourworldindata.org",
         bakedGrapherURL: "https://ourworldindata.org/grapher",
-    }
-
-    // Apply thumbnail settings if variant is thumbnail
-    if (variant === "thumbnail") {
-        const thumbnailBounds = new Bounds(
-            0,
-            0,
-            GRAPHER_THUMBNAIL_WIDTH,
-            GRAPHER_THUMBNAIL_HEIGHT
-        )
-        config.staticBounds = thumbnailBounds
-        config.variant = GrapherVariant.Thumbnail
-        config.baseFontSize = 14
+        ...SVG_RENDER_VARIANT_OPTIONS[variant],
     }
 
     const grapher = initGrapherForSvgExport(
@@ -687,7 +768,7 @@ export interface RenderSvgAndSaveJobDescription {
     dir: JobDirectory
     outDir: string
     queryStr?: string
-    variant?: "default" | "thumbnail"
+    variant?: SvgRenderVariant
 }
 export async function renderSvgAndSave(
     jobDescription: RenderSvgAndSaveJobDescription
@@ -803,7 +884,7 @@ export interface RenderJobDescription {
     referenceDir: string
     outDir: string
     queryStr?: string
-    variant?: "default" | "thumbnail"
+    variant?: SvgRenderVariant
     rmOnError?: boolean
 }
 
@@ -1159,14 +1240,9 @@ export interface GrapherViewsManifest {
     slugs: string[]
 }
 
-// grapher-views and thumbnails have no data/ of their own - they re-test charts
-// the graphers suite already dumped.
 function configsDirForSuite(testSuite: SvgTesterSuite): string {
-    const suiteOwningTheConfigs =
-        testSuite === "grapher-views" || testSuite === "thumbnails"
-            ? "graphers"
-            : testSuite
-    return path.join(SVG_TESTER_REPO_PATH, suiteOwningTheConfigs, "configs")
+    const { configsSuite } = SVG_TESTER_SUITE_SETTINGS[testSuite]
+    return path.join(SVG_TESTER_REPO_PATH, configsSuite, "configs")
 }
 
 // Load manifest from a specific path
@@ -1196,9 +1272,7 @@ export async function loadManifestViewIds(
     const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
     const configsDir = configsDirForSuite(testSuite)
 
-    // grapher-views and thumbnails are defined by their manifest: without one
-    // they would fall back to every chart in the graphers suite.
-    if (testSuite === "grapher-views" || testSuite === "thumbnails") {
+    if (SVG_TESTER_SUITE_SETTINGS[testSuite].isManifestRequired) {
         const defaultManifestName = "top.manifest.json"
         const manifestName = options.manifestName ?? defaultManifestName
         const manifestPath = path.join(testSuiteDir, manifestName)

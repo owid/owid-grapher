@@ -18,6 +18,7 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
     try {
         // Test suite
         const testSuite = args.testSuite as SvgTesterSuite
+        const settings = utils.SVG_TESTER_SUITE_SETTINGS[testSuite]
 
         // Input and output directories
         const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
@@ -41,8 +42,8 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
         // Chart configurations to test
         const grapherQueryString = args.queryStr
         const shouldTestAllChartViews =
-            args.allViews ?? testSuite === "grapher-views"
-        const shouldTestAllTabs = args.allTabs ?? testSuite === "thumbnails"
+            args.allViews ?? settings.shouldTestAllViews
+        const shouldTestAllTabs = args.allTabs ?? settings.shouldTestAllTabs
 
         // Other options
         const isolate = args.isolate
@@ -72,7 +73,7 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
             }
         )
 
-        const variant = testSuite === "thumbnails" ? "thumbnail" : "default"
+        const variant = settings.renderVariant
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
             chartViewsToGenerate.map((chart: utils.ChartWithQueryStr) => ({

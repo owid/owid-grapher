@@ -86,6 +86,29 @@ async function getMostViewedGraphersPerChartType(
     return relevantGraphers
 }
 
+async function writeTopGraphersManifest(
+    testSuite: SvgTesterSuite,
+    testSuiteDir: string
+): Promise<void> {
+    await knexReadonlyTransaction(
+        assertAnalyticsPageviewsPopulated,
+        TransactionCloseMode.Close
+    )
+    const charts = await knexReadonlyTransaction(
+        getMostViewedGraphersPerChartType,
+        TransactionCloseMode.Close
+    )
+
+    const slugs = charts.map((chart) => chart.id)
+
+    const manifest: utils.GrapherViewsManifest = { slugs }
+    const manifestPath = path.join(testSuiteDir, "top.manifest.json")
+    await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2))
+
+    console.log(`Wrote manifest for ${slugs.length} charts to ${manifestPath}`)
+    console.log(`Note: ${testSuite} reuses data from the graphers suite`)
+}
+
 async function getAllPublishedGraphers(
     trx: KnexReadonlyTransaction
 ): Promise<ChartInfo[]> {
@@ -171,72 +194,9 @@ async function main(args: ReturnType<typeof parseArguments>) {
                 )
                 await saveGrapherSchemaAndData(charts, outDir, { concurrency })
             })
-            .with("thumbnails", async () => {
-                // Thumbnails uses a manifest to specify which charts to test
-                // The actual data is read from the graphers suite
-                await knexReadonlyTransaction(
-                    assertAnalyticsPageviewsPopulated,
-                    TransactionCloseMode.Close
-                )
-                const charts = await knexReadonlyTransaction(
-                    getMostViewedGraphersPerChartType,
-                    TransactionCloseMode.Close
-                )
-
-                // Extract slugs
-                const slugs = charts.map((chart) => chart.id)
-
-                // Write manifest file
-                const manifest: utils.GrapherViewsManifest = { slugs }
-                const manifestPath = path.join(
-                    testSuiteDir,
-                    "top.manifest.json"
-                )
-                await fs.writeFile(
-                    manifestPath,
-                    JSON.stringify(manifest, null, 2)
-                )
-
-                console.log(
-                    `Wrote manifest for ${slugs.length} charts to ${manifestPath}`
-                )
-                console.log(
-                    "Note: thumbnails reuses data from the graphers suite"
-                )
-            })
-            .with("grapher-views", async () => {
-                // Grapher-views uses a manifest to specify which charts to test
-                // The actual data is read from the graphers suite
-                await knexReadonlyTransaction(
-                    assertAnalyticsPageviewsPopulated,
-                    TransactionCloseMode.Close
-                )
-                const charts = await knexReadonlyTransaction(
-                    getMostViewedGraphersPerChartType,
-                    TransactionCloseMode.Close
-                )
-
-                // Extract slugs
-                const slugs = charts.map((chart) => chart.id)
-
-                // Write manifest file
-                const manifest: utils.GrapherViewsManifest = { slugs }
-                const manifestPath = path.join(
-                    testSuiteDir,
-                    "top.manifest.json"
-                )
-                await fs.writeFile(
-                    manifestPath,
-                    JSON.stringify(manifest, null, 2)
-                )
-
-                console.log(
-                    `Wrote manifest for ${slugs.length} charts to ${manifestPath}`
-                )
-                console.log(
-                    "Note: grapher-views reuses data from the graphers suite"
-                )
-            })
+            .with("thumbnails", "grapher-views", "mobile", () =>
+                writeTopGraphersManifest(testSuite, testSuiteDir)
+            )
             .with("mdims", async () => {
                 const mdimViews = await knexReadonlyTransaction(
                     getAllPublishedMultiDimViews,
