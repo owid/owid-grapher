@@ -301,33 +301,35 @@ function AllChartsSearchInput({
     const inputRef = useRef<HTMLInputElement>(null)
     return (
         <>
-            <div className="all-charts-block__search" role="search">
-                <FontAwesomeIcon
-                    className="all-charts-block__search-icon"
-                    icon={faMagnifyingGlass}
-                />
-                <input
-                    ref={inputRef}
-                    type="text"
-                    className="all-charts-block__search-input"
-                    aria-label="Search charts on this topic"
-                    placeholder={SEARCH_PLACEHOLDER}
-                    value={query}
-                    onChange={(event) => onQueryChange(event.target.value)}
-                />
-                {query !== "" && (
-                    <button
-                        type="button"
-                        className="all-charts-block__search-clear"
-                        aria-label="Clear search"
-                        onClick={() => {
-                            onQueryChange("")
-                            inputRef.current?.focus()
-                        }}
-                    >
-                        <FontAwesomeIcon icon={faCircleXmark} />
-                    </button>
-                )}
+            <div className="all-charts-block__sticky-search">
+                <div className="all-charts-block__search" role="search">
+                    <FontAwesomeIcon
+                        className="all-charts-block__search-icon"
+                        icon={faMagnifyingGlass}
+                    />
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        className="all-charts-block__search-input"
+                        aria-label="Search charts on this topic"
+                        placeholder={SEARCH_PLACEHOLDER}
+                        value={query}
+                        onChange={(event) => onQueryChange(event.target.value)}
+                    />
+                    {query !== "" && (
+                        <button
+                            type="button"
+                            className="all-charts-block__search-clear"
+                            aria-label="Clear search"
+                            onClick={() => {
+                                onQueryChange("")
+                                inputRef.current?.focus()
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faCircleXmark} />
+                        </button>
+                    )}
+                </div>
             </div>
             <AllChartsSuggestions
                 terms={suggestedTerms}

@@ -3,6 +3,9 @@ $all-charts-block-inline-preview-height: 520px;
 $all-charts-block-sticky-nav-height: 56px;
 $all-charts-block-sticky-nav-height-sm: 48px;
 $all-charts-block-search-height: 48px;
+$all-charts-block-sticky-search-padding: 12px;
+$all-charts-block-sticky-search-height: $all-charts-block-search-height + 2 *
+    $all-charts-block-sticky-search-padding;
 
 .all-charts-block__count {
     @include note-1-medium;
@@ -12,6 +15,7 @@ $all-charts-block-search-height: 48px;
 
 .all-charts-block__list-wrapper {
     position: relative;
+    isolation: isolate;
     height: $all-charts-block-height;
 }
 
@@ -38,12 +42,12 @@ $all-charts-block-search-height: 48px;
 .all-charts-block__item {
     border-bottom: 1px solid $blue-10;
     scroll-margin-top: $all-charts-block-sticky-nav-height +
-        $all-charts-block-search-height;
+        $all-charts-block-sticky-search-height;
 }
 
 .all-charts-block .all-charts-row__thumbnail {
     scroll-margin-top: $all-charts-block-sticky-nav-height +
-        $all-charts-block-search-height + $all-charts-row-padding;
+        $all-charts-block-sticky-search-height + $all-charts-row-padding;
 }
 
 .all-charts-block__skeleton-inline-preview {
@@ -108,6 +112,10 @@ $all-charts-block-search-height: 48px;
     background: $gray-10;
 }
 
+.all-charts-block__sticky-search {
+    margin-bottom: $all-charts-block-sticky-search-padding;
+}
+
 @include md-down {
     .all-charts-block__list-wrapper {
         height: auto;
@@ -165,10 +173,13 @@ $all-charts-block-search-height: 48px;
         @include body-2-regular;
     }
 
-    .all-charts-block__search {
+    .all-charts-block__sticky-search {
         position: sticky;
         top: $all-charts-block-sticky-nav-height;
         z-index: 1;
+        margin: (-$all-charts-block-sticky-search-padding) 0 0;
+        padding: $all-charts-block-sticky-search-padding 0;
+        background: white;
     }
 }
 
@@ -199,7 +210,6 @@ $all-charts-block-search-height: 48px;
     align-items: center;
     gap: 8px;
     height: $all-charts-block-search-height;
-    margin-bottom: 16px;
     padding: 0 7px 0 15px;
     background: white;
     border: 1px solid $blue-20;
@@ -258,7 +268,7 @@ $all-charts-block-search-height: 48px;
 
 .all-charts-block__skeleton-search {
     height: $all-charts-block-search-height;
-    margin-bottom: 16px;
+    margin-bottom: $all-charts-block-sticky-search-padding;
     background: $gray-10;
 }
 
@@ -268,7 +278,7 @@ $all-charts-block-search-height: 48px;
     align-items: baseline;
     gap: 8px;
     min-height: 16px;
-    margin: -8px 0 16px;
+    margin: 0 0 16px;
     color: $blue-90;
 }
 
@@ -331,8 +341,11 @@ $all-charts-block-search-height: 48px;
         content: none;
     }
 
-    .all-charts-block__search {
+    .all-charts-block__sticky-search {
         top: $all-charts-block-sticky-nav-height-sm;
+    }
+
+    .all-charts-block__search {
         padding-left: 12px;
     }
 
@@ -343,11 +356,11 @@ $all-charts-block-search-height: 48px;
 
     .all-charts-block__item {
         scroll-margin-top: $all-charts-block-sticky-nav-height-sm +
-            $all-charts-block-search-height;
+            $all-charts-block-sticky-search-height;
     }
 
     .all-charts-block .all-charts-row__thumbnail {
         scroll-margin-top: $all-charts-block-sticky-nav-height-sm +
-            $all-charts-block-search-height + $all-charts-row-padding;
+            $all-charts-block-sticky-search-height + $all-charts-row-padding;
     }
 }
