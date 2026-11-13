@@ -648,7 +648,7 @@ export class GrapherState
 
     slideShow: SlideShowController<any> | undefined = undefined
 
-    private shouldApplyPeerCountries: boolean = false
+    shouldApplyPeerCountries: boolean = false
 
     /**
      * Cached promise for peer country application to prevent duplicate operations.
@@ -755,6 +755,7 @@ export class GrapherState
             entitySelectorState: observable,
             isConfigReady: observable,
             isDataReady: observable,
+            shouldApplyPeerCountries: observable.ref,
             canHideExternalControlsInEmbed: observable.ref,
             recommendedIframeEmbedHeight: observable.ref,
             hideExternalControlsInEmbedUrl: observable.ref,
@@ -944,7 +945,7 @@ export class GrapherState
         if (this.shouldApplyPeerCountries) {
             void this.applyPeerCountriesIfNeeded().finally(() => {
                 // Ensure peer countries are only applied once on table load
-                this.shouldApplyPeerCountries = false
+                runInAction(() => (this.shouldApplyPeerCountries = false))
             })
         }
     }
@@ -1432,7 +1433,7 @@ export class GrapherState
             if (this.availableEntityNames.length > 0) {
                 this.shouldApplyPeerCountries = true
                 void this.applyPeerCountriesIfNeeded().finally(() => {
-                    this.shouldApplyPeerCountries = false
+                    runInAction(() => (this.shouldApplyPeerCountries = false))
                 })
             } else {
                 this.shouldApplyPeerCountries = true
