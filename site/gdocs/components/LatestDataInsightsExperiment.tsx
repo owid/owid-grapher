@@ -10,6 +10,7 @@ import {
 } from "./latestDataInsightsExperimentUtils.js"
 import LatestCarousel, { LatestCarouselItem } from "./LatestCarousel.js"
 import LatestDataInsightsGrid from "./LatestDataInsightsGrid.js"
+import LatestDataInsightsArmSwitcher from "./LatestDataInsightsArmSwitcher.js"
 
 /**
  * The latest data insights in both layouts of the data insights experiment
@@ -39,6 +40,7 @@ export default function LatestDataInsightsExperiment({
 
     return (
         <>
+            <LatestDataInsightsArmSwitcher />
             <LatestCarousel
                 className={cx(
                     LATEST_DATA_INSIGHTS_ARM_CLASS_NAMES.carousel,
