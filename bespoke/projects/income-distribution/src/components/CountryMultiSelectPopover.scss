@@ -1,0 +1,12 @@
+// Styles for CountryMultiSelect's popover. react-aria portals it into the
+// light DOM, where the bundle's shadow-root stylesheet doesn't reach, so this
+// file is imported with ?inline and rendered as a <style> inside the popover
+// (as IncomeUnitPickerPopover.scss). It carries the details-on-demand cards
+// of the options' "Income data" / "Consumption data" labels, which mount
+// inside the popover; the rest of the popover is styled inline or by the
+// global grapher-dropdown-* classes.
+
+@import "tippy.js/dist/tippy.css";
+@import "tippy.js/themes/light.css";
+
+@import "./WelfareDetails.scss";

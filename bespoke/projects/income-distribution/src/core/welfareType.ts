@@ -17,8 +17,25 @@ export function placeholderWelfareType(countryName: string): WelfareType {
     return WELFARE_TYPES[hash >>> 31]
 }
 
-/** What a country's household surveys measure, for the reader */
-export const WELFARE_TYPE_LABELS: Record<WelfareType, string> = {
-    income: "Income data",
-    consumption: "Consumption data",
+/**
+ * What a country's household surveys measure, for the reader: the phrase a
+ * sentence uses for it (`term`), and the details-on-demand card behind that
+ * phrase and behind the picker's label (`title`, `description`)
+ */
+export const WELFARE_TYPE_DETAILS: Record<
+    WelfareType,
+    { term: string; title: string; description: string }
+> = {
+    income: {
+        term: "income after taxes and benefits",
+        title: "Income data",
+        description:
+            "What people earn, after taxes and benefits, per person. Income data tends to show more inequality than consumption data.",
+    },
+    consumption: {
+        term: "consumption",
+        title: "Consumption data",
+        description:
+            "What people spend on goods and services, per person. Consumption data tends to show less inequality than income data.",
+    },
 }

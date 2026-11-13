@@ -57,6 +57,7 @@ import { placeholderWelfareType } from "../core/welfareType.js"
 import {
     formatCountryList,
     welfareTypeSentence,
+    type WelfareSentenceSegment,
 } from "../core/welfareSentence.js"
 import { resolveCurrency, roundIncomeAsDisplayed } from "../core/currency.js"
 import {
@@ -72,6 +73,7 @@ import {
 import { IncomeDistributionControls } from "../components/IncomeDistributionControls.js"
 import { CountryMultiSelect } from "../components/CountryMultiSelect.js"
 import { IncomeDistributionChart } from "../components/IncomeDistributionChart.js"
+import { WelfareSentence } from "../components/WelfareDetails.js"
 import {
     IncomeDistributionLegend,
     LegendEntry,
@@ -419,7 +421,7 @@ function CaptionedDistributionVariant({
     const title = config.title ?? chartTitle(view, selectedCountries)
     const subtitle = config.subtitle ?? chartSubtitle(year, currency)
     // Countries view: which of the countries drawn report income and which
-    // consumption, as the note's first sentence leaves it open
+    // consumption, in place of the note's general sentence on the two
     const welfareSentence =
         view === "countries"
             ? welfareTypeSentence(
@@ -630,12 +632,15 @@ function chartNote(
     year: number,
     isInternationalLine: boolean,
     /** Countries view: which of the countries shown report which (welfareTypeSentence) */
-    welfareSentence?: string
-): string {
-    const sentences = [
-        "Depending on the country, the data relates to income measured after taxes and benefits, or to consumption, per capita.",
-    ]
-    if (welfareSentence) sentences.push(welfareSentence)
+    welfareSentence?: WelfareSentenceSegment[]
+): React.ReactNode {
+    // The countries' own sentence says what each reports, so it replaces
+    // the general one
+    const sentences = welfareSentence
+        ? []
+        : [
+              "Depending on the country, the data relates to income measured after taxes and benefits, or to consumption, per capita.",
+          ]
     // Below the plot rather than in the subtitle, so picking or dragging the
     // line never reflows the chart above it
     if (isInternationalLine)
@@ -650,5 +655,11 @@ function chartNote(
         sentences.push(
             "Incomes in local currencies are converted from international-$ using PPP conversion factors and adjusted for inflation to the latest year available."
         )
-    return sentences.join(" ")
+    if (!welfareSentence) return sentences.join(" ")
+    return (
+        <>
+            <WelfareSentence segments={welfareSentence} />
+            {sentences.map((sentence) => ` ${sentence}`).join("")}
+        </>
+    )
 }
