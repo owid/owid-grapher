@@ -142,7 +142,6 @@ export function makeAttachments(hit: PageChronologicalRecord) {
         // unnecessarily. If a future card type needs them, add them to
         // PageChronologicalRecord and to the indexer in pagesChronological.ts.
         linkedIndicators: {},
-        relatedCharts: [],
         tags: [],
     }
 }

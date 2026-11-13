@@ -512,7 +512,6 @@ async function getTombstoneAttachments(
         linkedCharts: {},
         linkedDocuments,
         linkedIndicators: {},
-        relatedCharts: [],
         tags: [],
     }
 }

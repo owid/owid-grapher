@@ -84,33 +84,19 @@
       "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/AllCharts.ts",
       "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/AllCharts.md",
       "prose": {
-        "intro": "Shows all Grapher charts that share a tag with the current article. \"Key\ncharts\" (those pinned via the admin) appear at the top; the `[.top]`\nsection lets you override or extend that ordering for this article.\n\n```archie\n{.all-charts}\nheading: Interactive charts on homelessness\n[.top]\nurl: https://ourworldindata.org/grapher/homelessness-rate-point-in-time-count\nurl: https://ourworldindata.org/grapher/homelessness-rate-flow-count\n[]\n{}\n```",
+        "intro": "Lists every chart tagged with the document's first topic tag. The block needs\na tag on the document (set in the gdocs admin index). The block is written empty and nothing is\nconfigurable from the doc.\n\nThe charts come from Algolia, the site search's charts index, ordered by search score.\n\nThe heading reads \"All charts on <tag name> (N charts)\". Each row shows the chart title, variant and source line. It also\nshows up to three tab thumbnails that switch the live chart preview.\n\n```archie\n{.all-charts}\n{}\n```",
         "whenToUse": "- Topic pages that should surface every chart associated with the topic.",
-        "whenNotToUse": "- You want to hand-pick a small number of related charts — use\n  `{.chart-rows}` or `{.additional-charts}`.",
-        "notes": "The tag is set on the document in the gdocs admin index. URLs listed under\n`[.top]` must belong to charts that share that tag."
+        "whenNotToUse": "- You want to hand-pick a small number of related charts — use\n  `{.chart-rows}` or `{.additional-charts}`."
       },
       "examples": [
         {
-          "archie": "{.all-charts}\nheading: Interactive charts on homelessness\n[.top]\nurl: https://ourworldindata.org/grapher/homelessness-rate-point-in-time-count\nurl: https://ourworldindata.org/grapher/homelessness-rate-flow-count\n[]\n{}",
+          "archie": "{.all-charts}\n{}",
           "flavour": "archie",
           "section": "intro",
           "position": 0
         }
       ],
-      "props": [
-        {
-          "name": "heading",
-          "type": "string",
-          "optional": false,
-          "description": "The section's heading text. When the document has a tag, the page shows \"Key Charts on <tag name>\" instead and this text is only used as a fallback for untagged docs. Required; without it the block is dropped."
-        },
-        {
-          "name": "top",
-          "type": "{ url: string }[]",
-          "optional": false,
-          "description": "Charts to pin at the front of the listing, authored as a `[.top]` … `[]` section with one `url:` line per chart (a Grapher URL). Listed charts appear first, in the order given, ahead of the admin-pinned key charts. Omitted, the admin's key-chart ordering is used unchanged; an entry that isn't a `url:` line drops the block."
-        }
-      ],
+      "props": [],
       "valueProps": [],
       "related": [
         {

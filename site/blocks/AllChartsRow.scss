@@ -1,0 +1,140 @@
+$all-charts-row-thumbnail-width: 158px;
+$all-charts-row-thumbnail-height: 84px;
+$all-charts-row-padding: 16px;
+$all-charts-row-accent-width: 3px;
+$all-charts-row-thumbnail-gap: 8px;
+
+.all-charts-row {
+    padding: $all-charts-row-padding;
+    border-left: $all-charts-row-accent-width solid transparent;
+}
+
+@media (hover: hover) {
+    .all-charts-row:hover {
+        background: $blue-5;
+    }
+}
+
+.all-charts-row--selected {
+    background: $blue-5;
+    border-left-color: $blue-40;
+}
+
+.all-charts-row__select {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.all-charts-row__heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 6px;
+}
+
+.all-charts-row__title {
+    @include h4-semibold;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    min-width: 0;
+    margin: 0;
+    line-height: 1.25;
+    color: $blue-90;
+}
+
+.all-charts-row__variant {
+    @include label-2-regular;
+    flex: 1 1 0;
+    min-width: min(6em, 100%);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: $blue-60;
+}
+
+.all-charts-row__source {
+    @include note-1-regular;
+    display: block;
+    margin-top: 4px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: $blue-60;
+}
+
+.all-charts-row__countries {
+    @include note-1-regular;
+    display: block;
+    margin-top: 2px;
+    font-weight: bold;
+    color: $blue-60;
+
+    .svg-inline--fa {
+        margin-right: 4px;
+    }
+}
+
+.all-charts-row__thumbnails {
+    display: flex;
+    gap: $all-charts-row-thumbnail-gap;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.all-charts-row__thumbnail {
+    display: block;
+    padding: 0;
+    border: 1px solid $blue-10;
+    background: white;
+    cursor: pointer;
+}
+
+.all-charts-row__thumbnail:hover {
+    background: $accent-pale-blue;
+}
+
+.all-charts-row__thumbnail--selected {
+    border-color: $blue-30;
+}
+
+.all-charts-row__thumbnail img {
+    display: block;
+    width: $all-charts-row-thumbnail-width;
+    height: $all-charts-row-thumbnail-height;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+}
+
+@include md-down {
+    .all-charts-row--selected,
+    .all-charts-row--selected:hover {
+        background: none;
+        border-left-color: transparent;
+    }
+
+    .all-charts-row__thumbnails {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .all-charts-row__thumbnail {
+        width: 100%;
+    }
+
+    .all-charts-row__thumbnail img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 158 / 84;
+    }
+}

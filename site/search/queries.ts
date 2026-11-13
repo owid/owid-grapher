@@ -6,6 +6,9 @@ import {
     TagGraphRoot,
     SearchState,
     SearchChartHit,
+    SearchResultType,
+    type SearchChartViewHit,
+    ChartRecordType,
     StackedArticleHit,
     TopicPageHit,
     FilterType,
@@ -16,7 +19,11 @@ import {
     FlatArticleHit,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
-import { type LiteClient } from "algoliasearch/lite"
+import {
+    type LiteClient,
+    type SearchForHitsOptions,
+    type SearchParamsObject,
+} from "algoliasearch/lite"
 import {
     getFilterNamesOfType,
     formatCountryFacetFilters,
@@ -27,6 +34,8 @@ import {
     PAGES_CHRONOLOGICAL_INDEX,
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
+    createCountryFilter,
+    createTopicFilter,
 } from "./searchUtils.js"
 import {
     buildChartsFacetFilters,
@@ -35,8 +44,12 @@ import {
     recommendTopicPages,
     TOPIC_PAGE_TYPE_FILTER,
     MAX_FACET_VALUES,
+    lazy,
+    listedRegionsNames,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
+import { applyAutomaticFilters } from "./searchState.js"
+import { buildSynonymMap } from "./synonymUtils.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
@@ -62,6 +75,13 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+} as const
+
+export const allChartsBlockQueryKeys = {
+    charts: (request: Omit<AllChartsBlockRequest, "page">) =>
+        [CHARTS_INDEX, "all-charts-block", request] as const,
+    suggestions: (topicSlug: string) =>
+        ["topic-vocabulary", topicSlug] as const,
 } as const
 
 export const latestPagesQueryKey = {
@@ -523,4 +543,129 @@ export async function queryWritingTopics(
             totalCount: (articles.nbHits ?? 0) + (topicPages.nbHits ?? 0),
         }
     })
+}
+
+interface AllChartsBlockRequest {
+    topics: string[]
+    query: string
+    page: number
+}
+
+interface AllChartsBlockPage {
+    query: string
+    countries: string[]
+    hits: SearchChartViewHit[]
+    nbHits: number
+    page: number
+    nbPages: number
+}
+
+const ALL_CHARTS_BLOCK_HITS_PER_PAGE = 20
+const MAX_ALL_CHARTS_BLOCK_COUNTRIES = 4
+
+const getSynonymMap = lazy(() => buildSynonymMap())
+
+function parseAllChartsBlockQuery(query: string): {
+    textQuery: string
+    countries: string[]
+} {
+    const state = applyAutomaticFilters(
+        {
+            query,
+            filters: [],
+            requireAllCountries: true,
+            resultType: SearchResultType.DATA,
+        },
+        listedRegionsNames(),
+        getSynonymMap()
+    )
+    return {
+        textQuery: state.query,
+        countries: [
+            ...getFilterNamesOfType(state.filters, FilterType.COUNTRY),
+        ].slice(0, MAX_ALL_CHARTS_BLOCK_COUNTRIES),
+    }
+}
+
+const MIN_PARTIAL_COUNTRY_NAME_LENGTH = 2
+
+const getLowercaseRegionNames = lazy(() =>
+    listedRegionsNames().map((name) => name.toLowerCase())
+)
+
+export function endsWithPartialCountryName(query: string): boolean {
+    const words = query.trim().toLowerCase().split(/\s+/)
+    const regionNames = getLowercaseRegionNames()
+    return words.some((_, index) => {
+        const tail = words.slice(index).join(" ")
+        return (
+            tail.length >= MIN_PARTIAL_COUNTRY_NAME_LENGTH &&
+            regionNames.some((name) => name !== tail && name.startsWith(tail))
+        )
+    })
+}
+
+function buildAllChartsBlockSearchParams({
+    topics,
+    textQuery,
+    countries,
+    page,
+}: {
+    topics: string[]
+    textQuery: string
+    countries: string[]
+    page: number
+}): SearchParamsObject & SearchForHitsOptions {
+    const facetFilters = [
+        ...buildChartsFacetFilters({
+            query: textQuery,
+            filters: [
+                ...topics.map(createTopicFilter),
+                ...countries.map(createCountryFilter),
+            ],
+            requireAllCountries: true,
+        }),
+        `type:${ChartRecordType.Chart}`,
+    ]
+
+    return {
+        indexName: CHARTS_INDEX,
+        query: textQuery,
+        facetFilters,
+        attributesToRetrieve: [
+            "title",
+            "slug",
+            "variantName",
+            "type",
+            "availableTabs",
+            "source",
+        ],
+        attributesToHighlight: [],
+        attributesToSnippet: [],
+        hitsPerPage: ALL_CHARTS_BLOCK_HITS_PER_PAGE,
+        page,
+    }
+}
+
+export async function queryAllChartsBlock(
+    liteSearchClient: LiteClient,
+    request: AllChartsBlockRequest
+): Promise<AllChartsBlockPage> {
+    const parsed = parseAllChartsBlockQuery(request.query)
+    const response = await searchSingleForHits<SearchChartViewHit>(
+        liteSearchClient,
+        buildAllChartsBlockSearchParams({
+            topics: request.topics,
+            ...parsed,
+            page: request.page,
+        })
+    )
+    return {
+        query: request.query,
+        countries: parsed.countries,
+        hits: response.hits,
+        nbHits: response.nbHits ?? 0,
+        page: response.page ?? request.page,
+        nbPages: response.nbPages ?? 0,
+    }
 }
