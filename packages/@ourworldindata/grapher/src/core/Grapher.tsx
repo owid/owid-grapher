@@ -747,7 +747,8 @@ export class Grapher extends React.Component<GrapherProps> {
                 () =>
                     this.grapherState.isReady &&
                     !this.grapherState.shouldApplyPeerCountries,
-                () =>
+                () => {
+                    this.grapherState.removeInvalidFocusedSeriesNames()
                     this.grapherState.disposers.push(
                         reaction(
                             () => [
@@ -761,6 +762,7 @@ export class Grapher extends React.Component<GrapherProps> {
                             { equals: comparer.structural }
                         )
                     )
+                }
             )
         )
     }

@@ -1631,6 +1631,18 @@ export class GrapherState
         return this.chartSeriesNames
     }
 
+    @computed get invalidFocusedSeriesNames(): SeriesName[] {
+        if (!this.isReady) return []
+        return _.difference(
+            this.focusArray.seriesNames,
+            this.focusableSeriesNames
+        )
+    }
+
+    @action.bound removeInvalidFocusedSeriesNames(): void {
+        this.focusArray.remove(...this.invalidFocusedSeriesNames)
+    }
+
     @computed get isStatic(): boolean {
         return this.isExportingToSvgOrPng
     }
@@ -3136,6 +3148,8 @@ export class GrapherState
         // Wait for peer country application if requested but not yet applied
         if (this.shouldApplyPeerCountries)
             await this.applyPeerCountriesIfNeeded()
+
+        this.removeInvalidFocusedSeriesNames()
 
         // Temporarily set isExportingToSvgOrPng to true
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
