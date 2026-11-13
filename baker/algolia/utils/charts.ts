@@ -22,6 +22,7 @@ import {
     maybeAddChangeInPrefix,
     processAvailableEntities,
     parseJsonStringArray,
+    buildSourcesLineFromConfig,
 } from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
@@ -272,6 +273,10 @@ async function buildChartRecord(
         variantName: chart.config.variantName ?? "",
         titleVariant: chart.titleVariant || undefined,
         subtitle: plaintextSubtitle,
+        source: await buildSourcesLineFromConfig(
+            chart.config,
+            context.loadIndicatorMetadata
+        ),
         availableEntities: chart.entityNames,
         numDimensions: parseInt(chart.numDimensions),
         availableTabs: grapherState.availableTabs,
@@ -313,7 +318,7 @@ export const getChartsRecords = async (
     const recordsOrNull = await pMap(
         parsedCharts,
         (chart) => buildChartRecord(knex, chart, context),
-        { concurrency: 10 }
+        { concurrency: 20 }
     )
 
     return excludeNullish(recordsOrNull)
