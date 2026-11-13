@@ -10,6 +10,8 @@ import ProgressBar from "progress"
 import { stringify } from "safe-stable-stringify"
 import * as db from "../db/db.js"
 import { BASE_DIR } from "../settings/serverSettings.js"
+import { ENV } from "../settings/clientSettings.mjs"
+import { MOCK_DATASETS } from "../site/datasetPage/energyDatasetMock.js"
 
 import {
     renderFrontPage,
@@ -28,6 +30,7 @@ import {
     renderExplorerIndexPage,
     renderLatestPage,
     renderSubscribePage,
+    renderDatasetPage,
 } from "../baker/siteRenderers.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import {
@@ -958,6 +961,18 @@ export class SiteBaker {
             `${this.bakedSiteDir}/subscribe.html`,
             await renderSubscribePage()
         )
+        // Prototype dataset pages are built from mock data, so they're only
+        // baked outside production (e.g. on staging servers)
+        if (ENV !== "production") {
+            for (const slug of Object.keys(MOCK_DATASETS)) {
+                const page = renderDatasetPage(slug)
+                if (page)
+                    await this.stageWrite(
+                        `${this.bakedSiteDir}/datasets/${slug}.html`,
+                        page
+                    )
+            }
+        }
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/custom.html`,
             renderDynamicCollectionPage()
