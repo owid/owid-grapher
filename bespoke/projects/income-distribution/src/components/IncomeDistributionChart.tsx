@@ -58,6 +58,7 @@ import {
     WORLD_COLOR,
     WORLD_ENTITY_NAME,
 } from "../core/constants.js"
+import { displayEntityName, displayRegionName } from "../core/legendLabels.js"
 import { IncomeDistributionTooltip } from "./IncomeDistributionTooltip.js"
 
 export interface IncomeDistributionChartProps {
@@ -281,8 +282,10 @@ function IncomeDistributionChartContent({
             // Measured rather than estimated from the character count, so
             // the label is as large as its band really allows
             measureAspect: (label) =>
-                Bounds.forText(label, { fontSize: 16, fontWeight: 700 }).width /
-                16,
+                Bounds.forText(displayEntityName(label), {
+                    fontSize: 16,
+                    fontWeight: 700,
+                }).width / 16,
         })
     }, [model.regionBands, incomes, xScale, yScale, isNarrow])
 
@@ -716,7 +719,7 @@ function IncomeDistributionChartContent({
                         textAnchor="middle"
                         dominantBaseline="central"
                     >
-                        {label.region}
+                        {displayRegionName(label.region)}
                     </text>
                 ))}
 

@@ -14,6 +14,7 @@ import {
     roundIncomeAsDisplayed,
 } from "../core/currency.js"
 import { WORLD_ENTITY_NAME } from "../core/constants.js"
+import { displayEntityName } from "../core/legendLabels.js"
 import type {
     Currency,
     IncomeDistributionYear,
@@ -91,7 +92,11 @@ export function IncomeDistributionTooltip({
     if (hintOnly) return <TooltipCard {...cardProps} />
 
     return (
-        <TooltipCard {...cardProps} title={entity} subtitle={year}>
+        <TooltipCard
+            {...cardProps}
+            title={displayEntityName(entity)}
+            subtitle={year}
+        >
             <TooltipValue
                 label={`Share of population living on less than ${formatIncome(line, currency, timeInterval)} a ${timeIntervalNoun(timeInterval)}`}
                 value={share !== undefined ? formatShare(share) : undefined}

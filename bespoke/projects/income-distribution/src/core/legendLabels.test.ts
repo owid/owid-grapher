@@ -9,13 +9,19 @@ describe(formatLegendLabel, () => {
         )
         expect(label.split(" ")).toEqual([
             "Middle East, North Africa,",
-            "Afghanistan and Pakistan",
+            "Afghanistan & Pakistan",
         ])
     })
 
-    it("leaves other labels alone", () => {
+    it('shortens a region\'s "and" to "&" and leaves other labels alone', () => {
+        expect(formatLegendLabel("East Asia and Pacific")).toBe(
+            "East Asia & Pacific"
+        )
         expect(formatLegendLabel("Sub-Saharan Africa")).toBe(
             "Sub-Saharan Africa"
+        )
+        expect(formatLegendLabel("Trinidad and Tobago")).toBe(
+            "Trinidad and Tobago"
         )
     })
 })
@@ -26,7 +32,7 @@ describe(legendLabelLines, () => {
             legendLabelLines(
                 "Middle East, North Africa, Afghanistan and Pakistan"
             )
-        ).toEqual(["Middle East, North Africa,", "Afghanistan and Pakistan"])
+        ).toEqual(["Middle East, North Africa,", "Afghanistan & Pakistan"])
     })
 
     it("keeps other labels on one line", () => {
