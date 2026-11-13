@@ -5,10 +5,13 @@ import { v7 as uuidv7 } from "uuid"
 import {
     Dimension,
     MultiDimDataPageConfigEnriched,
+    ViewEnriched,
 } from "@ourworldindata/types"
 import {
     MultiDimDataPageConfig,
+    MultiDimViewNotFoundError,
     resolveDimensionPresentationType,
+    searchParamsToMultiDimView,
 } from "./MultiDimDataPageConfig.js"
 
 it("fromObject", () => {
@@ -223,5 +226,72 @@ describe(resolveDimensionPresentationType, () => {
                 3
             )
         ).toBe("dropdown")
+    })
+})
+
+describe(searchParamsToMultiDimView, () => {
+    // Every view except asylum seekers broken down by age exists
+    const view = (metric: string, age: string): ViewEnriched => ({
+        dimensions: { metric, age },
+        indicators: { y: [{ id: 1 }] },
+        fullConfigId: `${metric}-${age}`,
+    })
+    const config: MultiDimDataPageConfigEnriched = {
+        title: { title: "Refugees and asylum seekers" },
+        dimensions: [
+            {
+                slug: "metric",
+                name: "Metric",
+                choices: [
+                    { slug: "refugees", name: "Refugees" },
+                    { slug: "asylum_seekers", name: "Asylum seekers" },
+                ],
+            },
+            {
+                slug: "age",
+                name: "Age",
+                choices: [
+                    { slug: "all_ages", name: "All ages" },
+                    { slug: "children", name: "Children" },
+                ],
+            },
+        ],
+        views: [
+            view("refugees", "all_ages"),
+            view("refugees", "children"),
+            view("asylum_seekers", "all_ages"),
+        ],
+    }
+    const resolve = (queryStr: string): string =>
+        searchParamsToMultiDimView(config, new URLSearchParams(queryStr))
+            .fullConfigId
+
+    it("resolves to the default view without dimension params", () => {
+        expect(resolve("")).toBe("refugees-all_ages")
+        expect(resolve("tab=map")).toBe("refugees-all_ages")
+    })
+
+    it("resolves a fully specified view", () => {
+        expect(resolve("metric=refugees&age=children")).toBe(
+            "refugees-children"
+        )
+    })
+
+    // E.g. a URL from before the age dimension was added, which used to
+    // match several views and fail
+    it("fills in dimensions missing from the URL", () => {
+        expect(resolve("metric=refugees")).toBe("refugees-all_ages")
+        expect(resolve("metric=asylum_seekers")).toBe("asylum_seekers-all_ages")
+        expect(resolve("age=children")).toBe("refugees-children")
+        expect(resolve("metric=refugees&age=")).toBe("refugees-all_ages")
+    })
+
+    it("rejects choices that don't select an existing view", () => {
+        expect(() => resolve("metric=nonexistent")).toThrow(
+            MultiDimViewNotFoundError
+        )
+        expect(() => resolve("metric=asylum_seekers&age=children")).toThrow(
+            MultiDimViewNotFoundError
+        )
     })
 })

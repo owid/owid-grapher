@@ -389,6 +389,7 @@ export {
     extractMultiDimChoicesFromSearchParams,
     getMultiDimPageTitle,
     isMultiDimDataExplorer,
+    MultiDimViewNotFoundError,
     resolveDimensionPresentationType,
     searchParamsToMultiDimView,
 } from "./MultiDimDataPageConfig.js"
