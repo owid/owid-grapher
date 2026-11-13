@@ -11,6 +11,18 @@ import { ExplorerIndexItem } from "../site/ExplorerIndex.js"
 import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { SubscribePage } from "../site/SubscribePage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
+import { DatasetPage } from "../site/datasetPage/DatasetPage.js"
+import { fetchDatasetPageFiles } from "./datasetPage/datasetPageFiles.js"
+import {
+    getColumnCatalogPaths,
+    makeDatasetPageData,
+    makeRelatedResearch,
+} from "./datasetPage/datasetPageMapping.js"
+import {
+    DatasetPageChartLookup,
+    getChartsForDatasetPageTable,
+    getPagesEmbeddingCharts,
+} from "../db/model/DatasetPageCharts.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import ReactDOMServer from "react-dom/server"
@@ -57,7 +69,9 @@ import {
     getHomepageId,
     getPublishedExplorersBySlug,
     generateTopicTagGraph,
+    getImageMetadataByFilenames,
 } from "../db/db.js"
+import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import { formatUrls } from "../site/formatting.js"
 
@@ -564,6 +578,78 @@ export const renderExplorerIndexPage = async (
     return renderToHtmlPage(
         <ExplorerIndexPage baseUrl={BAKED_BASE_URL} items={items} />
     )
+}
+
+/**
+ * Prototype: renders the page of a dataset from the page files the ETL
+ * publishes for it, with the charts that use its indicators. Returns undefined
+ * if the dataset has no page files.
+ */
+export const renderDatasetPage = async (
+    knex: KnexReadonlyTransaction,
+    namespace: string,
+    shortName: string
+): Promise<string | undefined> => {
+    // Both end up in the URL the files are fetched from
+    const isValidPart = (part: string): boolean => /^[\w-]+$/.test(part)
+    if (!isValidPart(namespace) || !isValidPart(shortName)) return undefined
+
+    const files = await fetchDatasetPageFiles(namespace, shortName)
+    if (!files) return undefined
+    const chartLookups: DatasetPageChartLookup[] = []
+    for (const filesTable of files.tables) {
+        const catalogPathsByColumn = getColumnCatalogPaths(
+            files.manifest.catalog_path,
+            filesTable.manifestTable,
+            filesTable.codebook.map((row) => row.column)
+        )
+        chartLookups.push(
+            await getChartsForDatasetPageTable(knex, catalogPathsByColumn)
+        )
+    }
+    const ownerName = files.manifest.owners?.[0]?.name
+    const ownerImageUrl = ownerName
+        ? await getAuthorImageUrl(knex, ownerName)
+        : undefined
+    // The articles and topic pages that embed the charts of any of the tables
+    const relatedPages = await getPagesEmbeddingCharts(knex, {
+        charts: chartLookups.flatMap((lookup) => lookup.charts),
+        multiDims: chartLookups.flatMap((lookup) => lookup.multiDims),
+    })
+    const featuredImages = await getImageMetadataByFilenames(
+        knex,
+        _.uniq(relatedPages.flatMap((page) => page.featuredImage ?? []))
+    )
+    const featuredImageUrls: Record<string, string> = {}
+    for (const [filename, image] of Object.entries(featuredImages))
+        if (image.cloudflareId)
+            featuredImageUrls[filename] =
+                `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/w=192`
+    const dataset = makeDatasetPageData(
+        files,
+        chartLookups,
+        ownerImageUrl,
+        makeRelatedResearch(relatedPages, featuredImageUrls, BAKED_BASE_URL)
+    )
+    return renderToHtmlPage(
+        <DatasetPage dataset={dataset} baseUrl={BAKED_BASE_URL} />
+    )
+}
+
+/** The photo of a team member, from their published author page, if they have one */
+async function getAuthorImageUrl(
+    knex: KnexReadonlyTransaction,
+    name: string
+): Promise<string | undefined> {
+    const [author] = await getMinimalAuthorsByNames(knex, [name])
+    if (!author?.featuredImage) return undefined
+    const images = await getImageMetadataByFilenames(knex, [
+        author.featuredImage,
+    ])
+    const cloudflareId = images[author.featuredImage]?.cloudflareId
+    return cloudflareId
+        ? `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=96`
+        : undefined
 }
 
 export const renderSubscribePage = async (): Promise<string> => {

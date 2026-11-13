@@ -10,6 +10,7 @@ import ProgressBar from "progress"
 import { stringify } from "safe-stable-stringify"
 import * as db from "../db/db.js"
 import { BASE_DIR } from "../settings/serverSettings.js"
+import { ENV } from "../settings/clientSettings.mjs"
 
 import {
     renderFrontPage,
@@ -28,6 +29,7 @@ import {
     renderExplorerIndexPage,
     renderLatestPage,
     renderSubscribePage,
+    renderDatasetPage,
 } from "../baker/siteRenderers.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import {
@@ -107,6 +109,7 @@ import { getDods, getParsedDodsDictionary } from "../db/model/Dod.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../db/model/ArchivedMultiDimVersion.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
+import { fetchDatasetPageKeys } from "./datasetPage/datasetPageFiles.js"
 import { PostArchivalManifest } from "../serverUtils/archivalUtils.js"
 
 type PrefetchedAttachments = {
@@ -958,6 +961,38 @@ export class SiteBaker {
             `${this.bakedSiteDir}/subscribe.html`,
             await renderSubscribePage()
         )
+        // Dataset pages are a prototype, so they're only baked outside
+        // production (e.g. on staging servers)
+        if (ENV !== "production") {
+            // Which datasets have a page is decided in the ETL, which publishes the list
+            let datasetPageKeys: string[] = []
+            try {
+                datasetPageKeys = await fetchDatasetPageKeys()
+            } catch (e) {
+                await logErrorAndMaybeCaptureInSentry(
+                    new Error(`Error reading the list of dataset pages: ${e}`)
+                )
+            }
+            for (const key of datasetPageKeys) {
+                const [namespace, shortName] = key.split("/")
+                try {
+                    const page = await renderDatasetPage(
+                        knex,
+                        namespace,
+                        shortName
+                    )
+                    if (page)
+                        await this.stageWrite(
+                            `${this.bakedSiteDir}/datasets/${key}.html`,
+                            page
+                        )
+                } catch (e) {
+                    await logErrorAndMaybeCaptureInSentry(
+                        new Error(`Error baking the dataset page ${key}: ${e}`)
+                    )
+                }
+            }
+        }
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/custom.html`,
             renderDynamicCollectionPage()

@@ -65,6 +65,13 @@ export const ADMIN_BASE_URL: string =
 export const DATA_API_URL: string =
     process.env.DATA_API_URL ?? "https://api.ourworldindata.org/v1/indicators"
 
+// Where the ETL of this environment publishes the files dataset pages are built
+// from, e.g. "https://api-staging.owid.io/user/v1/dataset-pages". Defaults to the
+// "dataset-pages" folder next to DATA_API_URL's "indicators".
+export const DATASET_PAGES_URL: string =
+    process.env.DATASET_PAGES_URL ||
+    DATA_API_URL.replace(/\/indicators\/?$/, "/dataset-pages")
+
 export const CATALOG_URL: string =
     process.env.CATALOG_URL ?? "https://catalog.ourworldindata.org"
 

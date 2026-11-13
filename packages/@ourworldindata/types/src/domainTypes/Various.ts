@@ -50,6 +50,7 @@ export enum SiteFooterContext {
     searchPage = "search-page",
     subscribePage = "subscribe-page",
     slideshowPage = "slideshow-page",
+    datasetPage = "dataset-page",
 }
 
 export interface GitCommit {
