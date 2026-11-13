@@ -21,7 +21,6 @@ import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
-import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import { combineStatuses } from "../../../../helpers/queryStatus.js"
 import type {
     BespokeComponentDataUrls,
@@ -55,6 +54,10 @@ import {
     shareBelowLineForEntities,
 } from "../core/density.js"
 import { placeholderWelfareType } from "../core/welfareType.js"
+import {
+    formatCountryList,
+    welfareTypeSentence,
+} from "../core/welfareSentence.js"
 import { resolveCurrency, roundIncomeAsDisplayed } from "../core/currency.js"
 import {
     Currency,
@@ -65,7 +68,6 @@ import {
     TimeInterval,
     VIEWS,
     View,
-    WelfareType,
 } from "../core/types.js"
 import { IncomeDistributionControls } from "../components/IncomeDistributionControls.js"
 import { CountryMultiSelect } from "../components/CountryMultiSelect.js"
@@ -264,10 +266,6 @@ function CaptionedDistributionVariant({
     const isNarrow = width > 0 && width < NARROW_BREAKPOINT
 
     const [hoveredEntity, setHoveredEntity] = useState<string | null>(null)
-    // Countries view: a welfare type hovered in the legend's key highlights
-    // every country of that type
-    const [hoveredWelfareType, setHoveredWelfareType] =
-        useState<WelfareType | null>(null)
     // The countries the chart couldn't label directly, which the overlay
     // legend then lists; none until it says otherwise, so the legend doesn't
     // flash up on load
@@ -302,20 +300,16 @@ function CaptionedDistributionVariant({
         [yearData, view, selectedCountries]
     )
 
-    const legendEntries = useMemo<LegendEntry[]>(() => {
-        // Countries get a badge saying whether their surveys measure income
-        // or consumption; regions mix both, so the global view has none
-        const entries: LegendEntry[] =
-            view === "countries"
-                ? model.legend.map((entry) => ({
-                      ...entry,
-                      welfareType: placeholderWelfareType(entry.key),
-                  }))
-                : model.legend
-        return povertyLine !== null
-            ? [...entries, { key: WORLD_ENTITY_NAME, color: WORLD_COLOR }]
-            : entries
-    }, [model.legend, view, povertyLine])
+    const legendEntries = useMemo<LegendEntry[]>(
+        () =>
+            povertyLine !== null
+                ? [
+                      ...model.legend,
+                      { key: WORLD_ENTITY_NAME, color: WORLD_COLOR },
+                  ]
+                : model.legend,
+        [model.legend, povertyLine]
+    )
 
     // Shares and counts are taken against the amount the reader sees, not
     // the exact drag position
@@ -417,12 +411,22 @@ function CaptionedDistributionVariant({
             availableCountries={availableCountries}
             selectedCountries={selectedCountries}
             onChange={setSelectedCountries}
+            welfareTypeOf={placeholderWelfareType}
             isNarrow={isNarrow}
         />
     )
 
     const title = config.title ?? chartTitle(view, selectedCountries)
     const subtitle = config.subtitle ?? chartSubtitle(year, currency)
+    // Countries view: which of the countries drawn report income and which
+    // consumption, as the note's first sentence leaves it open
+    const welfareSentence =
+        view === "countries"
+            ? welfareTypeSentence(
+                  model.series.map((series) => series.key),
+                  placeholderWelfareType
+              )
+            : undefined
 
     return (
         <div
@@ -456,8 +460,6 @@ function CaptionedDistributionVariant({
                                     entries={legendEntries}
                                     hoveredEntity={hoveredEntity}
                                     onHoverEntity={setHoveredEntity}
-                                    hoveredWelfareType={hoveredWelfareType}
-                                    onHoverWelfareType={setHoveredWelfareType}
                                     sharesBelowLine={sharesBelowLine}
                                     measure={legendMeasure}
                                     onMeasureChange={setLegendMeasure}
@@ -503,12 +505,6 @@ function CaptionedDistributionVariant({
                                             entries={overlayLegendEntries}
                                             hoveredEntity={hoveredEntity}
                                             onHoverEntity={setHoveredEntity}
-                                            hoveredWelfareType={
-                                                hoveredWelfareType
-                                            }
-                                            onHoverWelfareType={
-                                                setHoveredWelfareType
-                                            }
                                             sharesBelowLine={sharesBelowLine}
                                             measure={legendMeasure}
                                             onMeasureChange={setLegendMeasure}
@@ -546,7 +542,6 @@ function CaptionedDistributionVariant({
                                 onClearPovertyLine={onClearPovertyLine}
                                 hoveredEntity={hoveredEntity}
                                 onHoverEntity={setHoveredEntity}
-                                hoveredWelfareType={hoveredWelfareType}
                                 isNarrow={isNarrow}
                                 obstacles={chartObstacles}
                                 legendBox={
@@ -566,7 +561,8 @@ function CaptionedDistributionVariant({
                         note={chartNote(
                             currency,
                             year,
-                            povertyLineMode === "international"
+                            povertyLineMode === "international",
+                            welfareSentence
                         )}
                     />
                 </Frame>
@@ -622,13 +618,6 @@ function chartTitle(view: View, selectedCountries: string[]): string {
     return `How is income distributed in ${formatCountryList(selectedCountries)}?`
 }
 
-/** "A", "A and B", "A, B and C" */
-function formatCountryList(countries: string[]): string {
-    const names = countries.map((name) => formatEntityNameForSentence(name))
-    if (names.length <= 1) return names.join("")
-    return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
-}
-
 function chartSubtitle(year: number, currency: Currency): string {
     return currency.code === INTERNATIONAL_DOLLAR.code
         ? `Data for ${year}, measured in international dollars, which adjusts for differences in the cost of living between countries.`
@@ -639,11 +628,14 @@ function chartSubtitle(year: number, currency: Currency): string {
 function chartNote(
     currency: Currency,
     year: number,
-    isInternationalLine: boolean
+    isInternationalLine: boolean,
+    /** Countries view: which of the countries shown report which (welfareTypeSentence) */
+    welfareSentence?: string
 ): string {
     const sentences = [
         "Depending on the country, the data relates to income measured after taxes and benefits, or to consumption, per capita.",
     ]
+    if (welfareSentence) sentences.push(welfareSentence)
     // Below the plot rather than in the subtitle, so picking or dragging the
     // line never reflows the chart above it
     if (isInternationalLine)

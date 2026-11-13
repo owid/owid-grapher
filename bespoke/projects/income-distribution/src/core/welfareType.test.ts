@@ -34,8 +34,8 @@ describe(placeholderWelfareType, () => {
         expect(second).toEqual(first)
     })
 
-    // Pinned, so a change to the hash (which would reshuffle the badges
-    // readers have seen) is deliberate
+    // Pinned, so a change to the hash (which would reshuffle the labels
+    // users have seen) is deliberate
     it("doesn't change between sessions", () => {
         expect(
             ["China", "United States", "India", "Germany"].map(

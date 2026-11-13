@@ -13,15 +13,11 @@ import {
 import { SHORT_REGION_NAMES, WORLD_ENTITY_NAME } from "../core/constants.js"
 import {
     LEGEND_MEASURES,
-    WELFARE_TYPES,
     type Currency,
     type LegendMeasure,
     type TimeInterval,
-    type WelfareType,
 } from "../core/types.js"
-import { WELFARE_TYPE_BADGES } from "../core/welfareType.js"
 import { formatLegendLabel, legendLabelLines } from "../core/legendLabels.js"
-import { WelfareBadge } from "./WelfareBadge.js"
 
 /** Length in px of a 100% bar in the overlay legend */
 const OVERLAY_BAR_MAX_WIDTH = 100
@@ -44,20 +40,12 @@ export interface LegendEntry {
     /** Display name; defaults to `key` */
     label?: string
     color: string
-    /** Countries only: shown as a badge after the name */
-    welfareType?: WelfareType
 }
 
 export interface IncomeDistributionLegendProps {
     entries: LegendEntry[]
     hoveredEntity: string | null
     onHoverEntity: (key: string | null) => void
-    /**
-     * Hovered in the key the legend ends with when its entries have welfare
-     * types: the entries of that type stay full and the rest dim
-     */
-    hoveredWelfareType?: WelfareType | null
-    onHoverWelfareType?: (type: WelfareType | null) => void
     /**
      * When set, each entry shows its share of population below the line, and
      * entries sort by it descending; World is appended by the caller
@@ -90,8 +78,6 @@ export function IncomeDistributionLegend({
     entries,
     hoveredEntity,
     onHoverEntity,
-    hoveredWelfareType = null,
-    onHoverWelfareType,
     sharesBelowLine,
     measure = "share",
     onMeasureChange,
@@ -175,56 +161,8 @@ export function IncomeDistributionLegend({
             "income-distribution-legend__entry--world":
                 entry.key === WORLD_ENTITY_NAME,
             "income-distribution-legend__entry--dimmed":
-                (hasHoveredEntry && entry.key !== hoveredEntity) ||
-                (hoveredWelfareType !== null &&
-                    entry.welfareType !== hoveredWelfareType),
+                hasHoveredEntry && entry.key !== hoveredEntity,
         })
-
-    // The key to the badges, listing only the types some entry has, so a key
-    // entry never points at nothing
-    const keyTypes = WELFARE_TYPES.filter((type) =>
-        entries.some((entry) => entry.welfareType === type)
-    )
-    const keyEntryProps = (
-        type: WelfareType
-    ): Pick<
-        React.HTMLAttributes<HTMLElement>,
-        "onPointerEnter" | "onPointerLeave" | "onFocus" | "onBlur"
-    > => ({
-        onPointerEnter: (event) => {
-            if (event.pointerType === "mouse") onHoverWelfareType?.(type)
-        },
-        onPointerLeave: (event) => {
-            if (event.pointerType === "mouse") onHoverWelfareType?.(null)
-        },
-        // The badge inside is focusable
-        onFocus: () => onHoverWelfareType?.(type),
-        onBlur: () => onHoverWelfareType?.(null),
-    })
-    const keyEntryClassName = (type: WelfareType, first: boolean): string =>
-        cx("income-distribution-legend__key-entry", {
-            "income-distribution-legend__key-entry--first": first,
-            "income-distribution-legend__key-entry--dimmed":
-                hoveredWelfareType !== null && type !== hoveredWelfareType,
-        })
-    // Inline layouts: one row of key entries after the list's own rows
-    const inlineKey =
-        keyTypes.length > 0 ? (
-            <li className="income-distribution-legend__key">
-                {keyTypes.map((type) => (
-                    <span
-                        key={type}
-                        className={keyEntryClassName(type, false)}
-                        {...keyEntryProps(type)}
-                    >
-                        <WelfareBadge welfareType={type} />
-                        <span className="income-distribution-legend__key-label">
-                            {WELFARE_TYPE_BADGES[type].title}
-                        </span>
-                    </span>
-                ))}
-            </li>
-        ) : null
 
     const lineText =
         povertyLine !== null ? (
@@ -354,42 +292,18 @@ export function IncomeDistributionLegend({
                                         broken label is only as wide as its
                                         longest line and the rows, which set
                                         the box's width, stay narrow */}
-                                    {labelLines.map((line, i, lines) => (
+                                    {labelLines.map((line) => (
                                         <span
                                             key={line}
                                             className="income-distribution-legend__label-line"
                                         >
                                             {line}
-                                            {/* After the last line's last word */}
-                                            {i === lines.length - 1 &&
-                                                entry.welfareType && (
-                                                    <WelfareBadge
-                                                        welfareType={
-                                                            entry.welfareType
-                                                        }
-                                                    />
-                                                )}
                                         </span>
                                     ))}
                                 </span>
                             </li>
                         )
                     })}
-                    {/* The key's rows line their badges up with the swatches */}
-                    {keyTypes.map((type, i) => (
-                        <li
-                            key={type}
-                            className={keyEntryClassName(type, i === 0)}
-                            {...keyEntryProps(type)}
-                        >
-                            <span className="income-distribution-legend__mark">
-                                <WelfareBadge welfareType={type} />
-                            </span>
-                            <span className="income-distribution-legend__key-label">
-                                {WELFARE_TYPE_BADGES[type].title}
-                            </span>
-                        </li>
-                    ))}
                 </ul>
             </div>
         )
@@ -417,12 +331,8 @@ export function IncomeDistributionLegend({
                         <span className="income-distribution-legend__label">
                             {formatLegendLabel(entry.label ?? entry.key)}
                         </span>
-                        {entry.welfareType && (
-                            <WelfareBadge welfareType={entry.welfareType} />
-                        )}
                     </li>
                 ))}
-                {inlineKey}
             </ul>
         )
     }
@@ -461,11 +371,6 @@ export function IncomeDistributionLegend({
                         >
                             <span className="income-distribution-legend__label">
                                 {formatLegendLabel(entry.label ?? entry.key)}
-                                {entry.welfareType && (
-                                    <WelfareBadge
-                                        welfareType={entry.welfareType}
-                                    />
-                                )}
                             </span>
                             <span className="income-distribution-legend__bar-cell">
                                 <span className="income-distribution-legend__bar-track">
@@ -484,7 +389,6 @@ export function IncomeDistributionLegend({
                         </li>
                     )
                 })}
-                {inlineKey}
             </ul>
         </div>
     )

@@ -29,6 +29,8 @@ import {
 
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 import { MAX_SELECTED_COUNTRIES } from "../core/constants.js"
+import type { WelfareType } from "../core/types.js"
+import { WELFARE_TYPE_LABELS } from "../core/welfareType.js"
 
 // The popover portals into the light DOM, where none of this bundle's styles
 // reach, so everything inside it is either a global grapher-dropdown class or
@@ -42,6 +44,8 @@ export interface CountryMultiSelectProps {
     availableCountries: string[]
     selectedCountries: string[]
     onChange: (names: string[]) => void
+    /** When set, each option says after the name whether the country's data measures income or consumption */
+    welfareTypeOf?: (name: string) => WelfareType
     isNarrow: boolean
 }
 
@@ -49,6 +53,7 @@ export function CountryMultiSelect({
     availableCountries,
     selectedCountries,
     onChange,
+    welfareTypeOf,
     isNarrow,
 }: CountryMultiSelectProps): React.ReactElement {
     const [isOpen, setIsOpen] = useState(false)
@@ -88,13 +93,15 @@ export function CountryMultiSelect({
             <Popover
                 className="grapher-dropdown-menu"
                 placement="bottom end"
-                style={{ minWidth: 240 }}
+                // Wider with the welfare type, so long names keep to one line
+                style={{ minWidth: welfareTypeOf ? 320 : 240 }}
             >
                 <CountryListBox
                     availableCountries={availableCountries}
                     selectedCountries={selectedCountries}
                     pinnedCountries={pinnedCountries}
                     onChange={onChange}
+                    welfareTypeOf={welfareTypeOf}
                     maxHeight={isNarrow ? 280 : 400}
                 />
             </Popover>
@@ -107,12 +114,14 @@ function CountryListBox({
     selectedCountries,
     pinnedCountries,
     onChange,
+    welfareTypeOf,
     maxHeight,
 }: {
     availableCountries: string[]
     selectedCountries: string[]
     pinnedCountries: string[]
     onChange: (names: string[]) => void
+    welfareTypeOf?: (name: string) => WelfareType
     maxHeight: number
 }): React.ReactElement {
     const { data: userCountryInfo } = useUserCountryInformation()
@@ -256,7 +265,23 @@ function CountryListBox({
                         {({ isSelected }) => (
                             <>
                                 <CheckboxIndicator isSelected={isSelected} />
-                                {name}
+                                <span style={{ flex: "1 1 auto" }}>{name}</span>
+                                {welfareTypeOf && (
+                                    <span
+                                        style={{
+                                            flex: "0 0 auto",
+                                            marginLeft: 8,
+                                            color: GRAY_70,
+                                            fontSize: 12,
+                                        }}
+                                    >
+                                        {
+                                            WELFARE_TYPE_LABELS[
+                                                welfareTypeOf(name)
+                                            ]
+                                        }
+                                    </span>
+                                )}
                             </>
                         )}
                     </ListBoxItem>

@@ -17,21 +17,8 @@ export function placeholderWelfareType(countryName: string): WelfareType {
     return WELFARE_TYPES[hash >>> 31]
 }
 
-/** The badge next to a country's name, and its explanation */
-export const WELFARE_TYPE_BADGES: Record<
-    WelfareType,
-    { letter: string; title: string; description: string }
-> = {
-    income: {
-        letter: "I",
-        title: "Income data",
-        description:
-            "This country's household surveys measure income: what people earn, after taxes and benefits, per person. Income data tends to show more inequality than consumption data.",
-    },
-    consumption: {
-        letter: "C",
-        title: "Consumption data",
-        description:
-            "This country's household surveys measure consumption: what people spend on goods and services, per person. Consumption data tends to show less inequality than income data.",
-    },
+/** What a country's household surveys measure, for the reader */
+export const WELFARE_TYPE_LABELS: Record<WelfareType, string> = {
+    income: "Income data",
+    consumption: "Consumption data",
 }

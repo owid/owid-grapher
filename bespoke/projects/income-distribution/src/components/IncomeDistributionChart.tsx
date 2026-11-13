@@ -25,7 +25,6 @@ import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils
 
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
-import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import type {
     ChartSeries,
     IncomeDistributionChartModel,
@@ -52,12 +51,7 @@ import type {
     Currency,
     IncomeDistributionYear,
     TimeInterval,
-    WelfareType,
 } from "../core/types.js"
-import {
-    placeholderWelfareType,
-    WELFARE_TYPE_BADGES,
-} from "../core/welfareType.js"
 import {
     INT_POVERTY_LINE,
     INTERNATIONAL_DOLLAR,
@@ -65,11 +59,6 @@ import {
     WORLD_ENTITY_NAME,
 } from "../core/constants.js"
 import { IncomeDistributionTooltip } from "./IncomeDistributionTooltip.js"
-import {
-    SvgWelfareBadge,
-    WELFARE_BADGE_GAP,
-    WELFARE_BADGE_SIZE,
-} from "./WelfareBadge.js"
 
 export interface IncomeDistributionChartProps {
     model: IncomeDistributionChartModel
@@ -93,8 +82,6 @@ export interface IncomeDistributionChartProps {
     /** Shared with the legend */
     hoveredEntity: string | null
     onHoverEntity: (key: string | null) => void
-    /** Countries view: highlights every country of this welfare type (hovered in the legend's key) */
-    hoveredWelfareType?: WelfareType | null
     isNarrow: boolean
     /**
      * Boxes over the plot (in the chart's own coordinates) that the country
@@ -150,8 +137,6 @@ const MAX_COUNTRY_LABELS_NARROW = 4
 const COUNTRY_LABEL_TOP_INSET = 9
 /** Room kept between the country labels and the poverty line's label, in px */
 const POVERTY_LINE_LABEL_MARGIN = 4
-/** Lato's capital height as a share of its font size, for centring the badge on the name */
-const COUNTRY_LABEL_CAP_HEIGHT_SHARE = 0.72
 
 const FADED_OPACITY = 0.35
 const DIMMED_OPACITY = 0.3
@@ -213,7 +198,6 @@ function IncomeDistributionChartContent({
     onClearPovertyLine,
     hoveredEntity,
     onHoverEntity,
-    hoveredWelfareType = null,
     isNarrow,
     obstacles,
     legendBox,
@@ -368,14 +352,10 @@ function IncomeDistributionChartContent({
         if (isStacked) return undefined
         const candidates = model.series.map((s): CurveLabelCandidate => ({
             key: s.key,
-            // The name and the welfare badge after it
-            width:
-                Bounds.forText(s.key, {
-                    fontSize: countryLabelFontSize,
-                    fontWeight: COUNTRY_LABEL_FONT_WEIGHT,
-                }).width +
-                WELFARE_BADGE_GAP +
-                WELFARE_BADGE_SIZE,
+            width: Bounds.forText(s.key, {
+                fontSize: countryLabelFontSize,
+                fontWeight: COUNTRY_LABEL_FONT_WEIGHT,
+            }).width,
             points: incomes.map((income, i) => ({
                 x: xScale(income),
                 y: yScale(s.y1[i]),
@@ -449,20 +429,8 @@ function IncomeDistributionChartContent({
     )
 
     // Series the hovered entity covers: itself, or the countries of a hovered
-    // region; or, in the countries view, those of a hovered welfare type
+    // region
     const highlightedKeys = useMemo(() => {
-        if (hoveredWelfareType !== null && !isStacked) {
-            const keys = new Set(
-                model.series
-                    .filter(
-                        (series) =>
-                            placeholderWelfareType(series.key) ===
-                            hoveredWelfareType
-                    )
-                    .map((series) => series.key)
-            )
-            return keys.size > 0 ? keys : undefined
-        }
         if (hoveredEntity === null) return undefined
         const keys = new Set(
             model.series
@@ -474,7 +442,7 @@ function IncomeDistributionChartContent({
                 .map((series) => series.key)
         )
         return keys.size > 0 ? keys : undefined
-    }, [model.series, hoveredEntity, hoveredWelfareType, isStacked])
+    }, [model.series, hoveredEntity])
 
     const [pointer, setPointer] = useState<PointerState | null>(null)
     const svgRef = useRef<SVGSVGElement>(null)
@@ -489,16 +457,6 @@ function IncomeDistributionChartContent({
     const { ref: chartRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
         pointer !== null,
         dismissPointer
-    )
-    // For the welfare badges' tooltips, which must mount in the shadow root
-    const { ref: tippyContainerRef, getTippyContainer } =
-        useTippyContainer<HTMLDivElement>()
-    const setChartNode = useCallback(
-        (node: HTMLDivElement | null) => {
-            chartRef.current = node
-            tippyContainerRef.current = node
-        },
-        [chartRef, tippyContainerRef]
     )
 
     const pointerStateFromEvent = useCallback(
@@ -524,11 +482,6 @@ function IncomeDistributionChartContent({
     const handlePointerMove = useCallback(
         (event: React.PointerEvent<SVGSVGElement>) => {
             if (event.pointerType !== "mouse" || isDraggingRef.current) return
-            // The badge has a tooltip of its own
-            if (isOnWelfareBadge(event.target)) {
-                setPointer(null)
-                return
-            }
             setPointer(pointerStateFromEvent(event))
         },
         [pointerStateFromEvent]
@@ -543,7 +496,6 @@ function IncomeDistributionChartContent({
     const handlePointerDown = useCallback(
         (event: React.PointerEvent<SVGSVGElement>) => {
             pointerDownRef.current = { x: event.clientX, y: event.clientY }
-            if (isOnWelfareBadge(event.target)) return
             if (event.pointerType !== "mouse")
                 setPointer(pointerStateFromEvent(event))
         },
@@ -553,8 +505,6 @@ function IncomeDistributionChartContent({
         (event: React.MouseEvent<SVGSVGElement>) => {
             const start = pointerDownRef.current
             pointerDownRef.current = null
-            // A tap on a badge shows its explanation, not a poverty line
-            if (isOnWelfareBadge(event.target)) return
             if (
                 start &&
                 Math.hypot(event.clientX - start.x, event.clientY - start.y) >
@@ -685,7 +635,7 @@ function IncomeDistributionChartContent({
         : `Distribution of income per ${noun} in ${year} in ${model.legend.map((entry) => entry.key).join(", ")}, on a logarithmic income axis.`
 
     return (
-        <div ref={setChartNode} className="income-distribution-chart">
+        <div ref={chartRef} className="income-distribution-chart">
             <svg
                 ref={svgRef}
                 className="income-distribution-chart__svg"
@@ -782,7 +732,6 @@ function IncomeDistributionChartContent({
                             colors={seriesColors}
                             fontSize={countryLabelFontSize}
                             highlightedKeys={highlightedKeys}
-                            getTippyContainer={getTippyContainer}
                         />
                     </g>
                 )}
@@ -839,11 +788,6 @@ function IncomeDistributionChartContent({
                     currency={currency}
                     timeInterval={timeInterval}
                     color={tooltipColor}
-                    welfareType={
-                        !isStacked && hoveredEntity !== null
-                            ? placeholderWelfareType(hoveredEntity)
-                            : undefined
-                    }
                     hintOnly={!isStacked && hoveredEntity === null}
                 />
             )}
@@ -908,22 +852,19 @@ const AreaLayer = memo(function AreaLayer({
 })
 
 /**
- * The country names above their curves, in the curves' colours, each
- * followed by its welfare badge. Memoised like AreaLayer, so pointer moves
- * don't redraw them.
+ * The country names above their curves, in the curves' colours. Memoised
+ * like AreaLayer, so pointer moves don't redraw them.
  */
 const CountryLabelLayer = memo(function CountryLabelLayer({
     labels,
     colors,
     fontSize,
     highlightedKeys,
-    getTippyContainer,
 }: {
     labels: CurveLabelLayout["labels"]
     colors: Map<string, string>
     fontSize: number
     highlightedKeys: Set<string> | undefined
-    getTippyContainer: () => Element
 }): React.ReactElement {
     return (
         <>
@@ -932,40 +873,23 @@ const CountryLabelLayer = memo(function CountryLabelLayer({
                 const isDimmed =
                     highlightedKeys !== undefined &&
                     !highlightedKeys.has(label.key)
-                // The box's bottom is the text's descent line
-                const baseline = label.y - 0.25 * fontSize
-                // The badge ends the box and the name ends a gap before it,
-                // so the two stay exactly that far apart whatever the text
-                // measured as
-                const badgeCx = label.box.right - WELFARE_BADGE_SIZE / 2
-                const textEnd =
-                    label.box.right - WELFARE_BADGE_SIZE - WELFARE_BADGE_GAP
                 return (
-                    <g key={label.key} opacity={isDimmed ? DIMMED_OPACITY : 1}>
-                        <text
-                            data-key={label.key}
-                            className="income-distribution-chart__country-label"
-                            x={textEnd}
-                            y={baseline}
-                            textAnchor="end"
-                            fontSize={fontSize}
-                            fontWeight={COUNTRY_LABEL_FONT_WEIGHT}
-                            fill={darkenColorForText(color)}
-                        >
-                            {label.key}
-                        </text>
-                        <SvgWelfareBadge
-                            welfareType={placeholderWelfareType(label.key)}
-                            cx={badgeCx}
-                            // Level with the middle of the name's capitals
-                            cy={
-                                baseline -
-                                (COUNTRY_LABEL_CAP_HEIGHT_SHARE * fontSize) / 2
-                            }
-                            dataKey={label.key}
-                            getTippyContainer={getTippyContainer}
-                        />
-                    </g>
+                    <text
+                        key={label.key}
+                        data-key={label.key}
+                        className="income-distribution-chart__country-label"
+                        x={label.x}
+                        y={label.y}
+                        // The box's bottom is the text's descent line
+                        dy="-0.25em"
+                        textAnchor="middle"
+                        fontSize={fontSize}
+                        fontWeight={COUNTRY_LABEL_FONT_WEIGHT}
+                        fill={darkenColorForText(color)}
+                        opacity={isDimmed ? DIMMED_OPACITY : 1}
+                    >
+                        {label.key}
+                    </text>
                 )
             })}
         </>
@@ -1315,17 +1239,13 @@ function PointerLine({
  * Mirrors the overlay legend's swatch rows (IncomeDistributionLegend.scss):
  * 10px 12px padding, a 1px border, rows of 12px text at 1.25 line height with
  * 2px padding above and below, a 10px swatch and a 6px gap before the label,
- * which is capped at 260px and ends in the welfare badge. Below the
- * countries, a row per welfare type keys the badges, after a 4px margin, 6px
- * padding and a 1px border
+ * which is capped at 260px
  */
 const LEFTOVER_LEGEND = {
     paddingX: 12 + 1,
     paddingY: 10 + 1,
     rowHeight: 12 * 1.25 + 4,
     markWidth: 10 + 6,
-    badgeWidth: WELFARE_BADGE_GAP + WELFARE_BADGE_SIZE,
-    keySeparator: 4 + 6 + 1,
     fontSize: 12,
     maxLabelWidth: 260,
     /** For rounding and font differences */
@@ -1341,34 +1261,24 @@ function estimateLeftoverLegendBox(
     { top, right }: { top: number; right: number }
 ): LabelBox | undefined {
     if (keys.length === 0) return undefined
-    const keyTypes = R.unique(keys.map(placeholderWelfareType))
-    const labels = [
-        ...keys.map(
-            (key) =>
-                Bounds.forText(key, { fontSize: LEFTOVER_LEGEND.fontSize })
-                    .width + LEFTOVER_LEGEND.badgeWidth
-        ),
-        ...keyTypes.map(
-            (type) =>
-                Bounds.forText(WELFARE_TYPE_BADGES[type].title, {
-                    fontSize: LEFTOVER_LEGEND.fontSize,
-                }).width
-        ),
-    ]
     const labelWidth = Math.min(
-        Math.max(...labels),
+        Math.max(
+            ...keys.map(
+                (key) =>
+                    Bounds.forText(key, { fontSize: LEFTOVER_LEGEND.fontSize })
+                        .width
+            )
+        ),
         LEFTOVER_LEGEND.maxLabelWidth
     )
     const width =
         2 * LEFTOVER_LEGEND.paddingX +
-        // The key's badges widen the swatch column
-        Math.max(LEFTOVER_LEGEND.markWidth, WELFARE_BADGE_SIZE + 6) +
+        LEFTOVER_LEGEND.markWidth +
         labelWidth +
         LEFTOVER_LEGEND.slack
     const height =
         2 * LEFTOVER_LEGEND.paddingY +
-        (keys.length + keyTypes.length) * LEFTOVER_LEGEND.rowHeight +
-        LEFTOVER_LEGEND.keySeparator +
+        keys.length * LEFTOVER_LEGEND.rowHeight +
         LEFTOVER_LEGEND.slack
     return { left: right - width, right, top, bottom: top + height }
 }
@@ -1427,14 +1337,6 @@ function computeAxisTicks(
         }
     }
     return ticks
-}
-
-/** Whether a pointer event landed on a country label's welfare badge */
-function isOnWelfareBadge(target: EventTarget): boolean {
-    return (
-        target instanceof Element &&
-        target.closest(".income-distribution-welfare-badge-svg") !== null
-    )
 }
 
 /** The series a delegated pointer event landed on, from the path's data attribute */

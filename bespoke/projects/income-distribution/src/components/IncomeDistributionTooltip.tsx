@@ -18,9 +18,7 @@ import type {
     Currency,
     IncomeDistributionYear,
     TimeInterval,
-    WelfareType,
 } from "../core/types.js"
-import { WELFARE_TYPE_BADGES } from "../core/welfareType.js"
 
 export interface IncomeDistributionTooltipProps {
     /** Relative to the chart container */
@@ -38,8 +36,6 @@ export interface IncomeDistributionTooltipProps {
     timeInterval: TimeInterval
     /** Colour of the entity's swatch in the chart, for the value */
     color?: string
-    /** Countries view: what the hovered country's surveys measure, named in the subtitle */
-    welfareType?: WelfareType
     /**
      * Show only the click hint, with no entity or share. Used in the
      * compare-countries view over empty space, where a World figure
@@ -59,7 +55,6 @@ export function IncomeDistributionTooltip({
     currency,
     timeInterval,
     color,
-    welfareType,
     hintOnly = false,
 }: IncomeDistributionTooltipProps): React.ReactElement {
     const entity = hoveredEntity ?? WORLD_ENTITY_NAME
@@ -96,15 +91,7 @@ export function IncomeDistributionTooltip({
     if (hintOnly) return <TooltipCard {...cardProps} />
 
     return (
-        <TooltipCard
-            {...cardProps}
-            title={entity}
-            subtitle={
-                welfareType
-                    ? `${year} · ${WELFARE_TYPE_BADGES[welfareType].title}`
-                    : year
-            }
-        >
+        <TooltipCard {...cardProps} title={entity} subtitle={year}>
             <TooltipValue
                 label={`Share of population living on less than ${formatIncome(line, currency, timeInterval)} a ${timeIntervalNoun(timeInterval)}`}
                 value={share !== undefined ? formatShare(share) : undefined}
