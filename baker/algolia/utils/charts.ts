@@ -276,7 +276,7 @@ async function buildChartRecord(
         updatedAt: chart.updatedAt,
         tags: topicTags,
         keyChartForTags: chart.keyChartForTags,
-        titleLength: chart.config.title?.length ?? 0,
+        titleLength: title.length,
         numRelatedArticles,
 
         views_7d,
