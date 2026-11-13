@@ -2,7 +2,7 @@ $all-charts-block-height: 575px;
 $all-charts-block-inline-preview-height: 520px;
 $all-charts-block-sticky-nav-height: 56px;
 $all-charts-block-sticky-nav-height-sm: 48px;
-$all-charts-block-search-height: 44px;
+$all-charts-block-search-height: 48px;
 
 .all-charts-block__count {
     @include note-1-medium;
@@ -200,9 +200,9 @@ $all-charts-block-search-height: 44px;
     gap: 8px;
     height: $all-charts-block-search-height;
     margin-bottom: 16px;
-    padding: 0 12px;
+    padding: 0 7px 0 15px;
     background: white;
-    border: 1px solid $gray-10;
+    border: 1px solid $blue-20;
     transition: box-shadow var(--duration-hover) ease;
 }
 
@@ -211,6 +211,7 @@ $all-charts-block-search-height: 44px;
 }
 
 .all-charts-block__search-icon {
+    margin-right: 4px;
     color: $blue-50;
 }
 
@@ -238,10 +239,16 @@ $all-charts-block-search-height: 44px;
 }
 
 .all-charts-block__search-clear {
+    display: flex;
+    flex: none;
+    justify-content: center;
+    align-items: center;
+    width: 24px;
+    height: 24px;
     padding: 0;
     border: 0;
     background: none;
-    color: $blue-60;
+    color: $blue-50;
     cursor: pointer;
 
     &:hover {
@@ -326,6 +333,12 @@ $all-charts-block-search-height: 44px;
 
     .all-charts-block__search {
         top: $all-charts-block-sticky-nav-height-sm;
+        padding-left: 12px;
+    }
+
+    .all-charts-block__search-icon {
+        margin-right: 2px;
+        font-size: 14px;
     }
 
     .all-charts-block__item {
