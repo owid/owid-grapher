@@ -33,6 +33,7 @@ import {
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     getShortNameForEntity,
+    getVisibleLabels,
     isToleranceDistanceValid,
     makeSelectionArray,
     sortByConfig,
@@ -150,6 +151,8 @@ export class DumbbellChartState implements ChartState {
     }
 
     @computed get valueLabelMode(): DumbbellValueLabelMode {
+        if (!getVisibleLabels(this.manager.labelMode).values)
+            return DumbbellValueLabelMode.None
         return (
             this.manager.dumbbell?.valueLabelMode ??
             DUMBBELL_CHART_CONFIG_DEFAULTS.valueLabelMode

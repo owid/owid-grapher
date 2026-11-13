@@ -1,16 +1,16 @@
 import React from "react"
+import * as R from "remeda"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { scaleLinear } from "d3-scale"
 import { ChartInterface } from "../chart/ChartInterface"
-import { ChartLabelMode, SideWidths } from "@ourworldindata/types"
+import { SideWidths } from "@ourworldindata/types"
 import { SlopeChartState } from "./SlopeChartState.js"
 import { type SlopeChartProps } from "./SlopeChart.js"
 import {
     PlacedSlopeChartSeries,
     RenderSlopeChartSeries,
     SlopeChartManager,
-    SlopeChartSeries,
 } from "./SlopeChartConstants"
 import {
     getXAxisConfigSettings,
@@ -24,7 +24,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
 } from "../core/GrapherConstants"
-import { scaleFontSize } from "../chart/ChartUtils"
+import { getVisibleLabels, scaleFontSize } from "../chart/ChartUtils"
 import { Bounds, SeriesName } from "@ourworldindata/utils"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Slope } from "./Slope"
@@ -33,11 +33,21 @@ import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsType
 import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
+import { resolveEmphasis } from "../interaction/Emphasis.js"
+import { THUMBNAIL_LINE_STYLE } from "../lineCharts/LineChartConstants.js"
 
 const DOT_RADIUS = 3.5
 const SPACE_BETWEEN_DOT_AND_LABEL = 4
 
 const LABEL_PADDING = DOT_RADIUS + SPACE_BETWEEN_DOT_AND_LABEL
+
+/** Up to this share of the width, the narrower side mirrors the wider side's padding */
+const MAX_MIRRORED_PADDING_SHARE = 0.15
+
+/** Widest the slope area gets, as a multiple of its height */
+const MAX_SLOPE_AREA_ASPECT_RATIO = 1.25
+
+type SeriesLabelText = "name" | "value"
 
 @observer
 export class SlopeChartThumbnail
@@ -78,12 +88,14 @@ export class SlopeChartThumbnail
     }
 
     @computed private get xStartMarkWidth(): number {
+        if (this.xAxisConfig.hideTickLabels) return 0
         return Bounds.forText(this.formattedStartTime, {
             fontSize: this.xMarkFontSize,
         }).width
     }
 
     @computed private get xEndMarkWidth(): number {
+        if (this.xAxisConfig.hideTickLabels) return 0
         return Bounds.forText(this.formattedEndTime, {
             fontSize: this.xMarkFontSize,
         }).width
@@ -94,21 +106,42 @@ export class SlopeChartThumbnail
         return this.xMarkFontSize
     }
 
+    @computed private get xStartPadding(): number {
+        return Math.max(0.5 * this.xStartMarkWidth, DOT_RADIUS)
+    }
+
+    @computed private get xEndPadding(): number {
+        return Math.max(0.5 * this.xEndMarkWidth, DOT_RADIUS)
+    }
+
     @computed get innerBounds(): Bounds {
         const { left, right } = this.effectiveLabelWidths
         const rightPadding = Math.max(
             right > 0 ? right + LABEL_PADDING : 0, // end labels plus padding
-            0.5 * this.xEndMarkWidth // half the width of the end time label (since it's centered)
+            this.xEndPadding
         )
         const leftPadding = Math.max(
             left > 0 ? left + LABEL_PADDING : 0, // start labels plus padding
-            0.5 * this.xStartMarkWidth // half the width of the start time label (since it's centered)
+            this.xStartPadding
+        )
+        const widerPadding = Math.max(leftPadding, rightPadding)
+        const maxMirroredPadding =
+            MAX_MIRRORED_PADDING_SHARE * this.bounds.width
+        const mirrorPadding = (ownPadding: number): number =>
+            R.clamp(maxMirroredPadding, { min: ownPadding, max: widerPadding })
+
+        const paddedBounds = this.bounds
+            .padBottom(this.xMarksHeight)
+            .padRight(mirrorPadding(rightPadding))
+            .padLeft(mirrorPadding(leftPadding))
+
+        const excessWidth = Math.max(
+            0,
+            paddedBounds.width -
+                MAX_SLOPE_AREA_ASPECT_RATIO * paddedBounds.height
         )
 
-        return this.bounds
-            .padBottom(this.xMarksHeight)
-            .padRight(rightPadding)
-            .padLeft(leftPadding)
+        return paddedBounds.padWidth(excessWidth / 2)
     }
 
     /**
@@ -141,7 +174,12 @@ export class SlopeChartThumbnail
             startTime: this.chartState.startTime,
             endTime: this.chartState.endTime,
         })
-        return new AxisConfig({ ...xAxisConfig, ...overrides }, this)
+        const { axisText } = getVisibleLabels(this.manager.labelMode)
+        const labelModeOverrides = axisText ? {} : { hideTickLabels: true }
+        return new AxisConfig(
+            { ...xAxisConfig, ...overrides, ...labelModeOverrides },
+            this
+        )
     }
 
     @computed get yDomain(): [number, number] {
@@ -219,13 +257,6 @@ export class SlopeChartThumbnail
         )
     }
 
-    @computed private get labelCandidateSeries(): SlopeChartSeries[] {
-        // If any series is focused, only show the labels for those
-        return this.chartState.isFocusModeActive
-            ? this.chartState.series.filter((series) => series.focus?.active)
-            : this.chartState.series
-    }
-
     @computed private get labelsRange(): [number, number] {
         const {
             xMarksHeight,
@@ -242,17 +273,19 @@ export class SlopeChartThumbnail
         InitialAnchoredLabelSeries,
         "position"
     >[] {
-        if (!this.manager.showSeriesLabels) return []
+        const { end } = this.seriesLabelText
+        if (!this.manager.showSeriesLabels || !end) return []
 
-        return this.labelCandidateSeries.map((series) => {
-            const { seriesName, color } = series
+        return this.chartState.series.map((series) => {
+            const { seriesName, displayName, color, focus } = series
 
             const lastPoint = series.end
             const value = lastPoint?.value ?? 0
 
-            const label = this.formatLabel(value)
+            const label = end === "name" ? displayName : this.formatLabel(value)
 
-            return { seriesName, value, label, color }
+            const emphasis = resolveEmphasis({ focus })
+            return { seriesName, value, label, color, emphasis }
         })
     }
 
@@ -263,7 +296,8 @@ export class SlopeChartThumbnail
         yAxis: VerticalAxis
         xRange: [number, number]
     }): AnchoredLabelsState | undefined {
-        if (!this.manager.showSeriesLabels) return undefined
+        if (!this.manager.showSeriesLabels || !this.seriesLabelText.end)
+            return undefined
 
         const series = this.endLabelsSeries.map((series) => {
             const position = {
@@ -276,6 +310,7 @@ export class SlopeChartThumbnail
 
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
+            maxWidth: this.labelsMaxWidth(this.seriesLabelText.end),
             xRange,
             labelPadding: LABEL_PADDING,
             yRanges: { edge: this.labelsRange },
@@ -289,31 +324,39 @@ export class SlopeChartThumbnail
         })
     }
 
-    @computed private get shouldShowValueLabelsOnly(): boolean {
-        return this.manager.labelMode === ChartLabelMode.Values
+    @computed private get seriesLabelText(): {
+        start?: SeriesLabelText
+        end?: SeriesLabelText
+    } {
+        const { endLabelNames, values } = getVisibleLabels(
+            this.manager.labelMode
+        )
+        return {
+            start: values ? (endLabelNames ? "name" : "value") : undefined,
+            end: values ? "value" : endLabelNames ? "name" : undefined,
+        }
     }
 
-    @computed private get startLabelsMaxWidth(): number | undefined {
-        return this.shouldShowValueLabelsOnly
-            ? undefined
-            : 0.25 * this.bounds.width
+    private labelsMaxWidth(text?: SeriesLabelText): number {
+        return text === "name" ? 0.25 * this.bounds.width : Infinity
     }
 
     @computed private get startLabelsSeries(): Omit<
         InitialAnchoredLabelSeries,
         "position"
     >[] {
-        if (!this.manager.showSeriesLabels) return []
+        const { start } = this.seriesLabelText
+        if (!this.manager.showSeriesLabels || !start) return []
 
-        return this.labelCandidateSeries.map((series) => {
-            const { seriesName, displayName, color } = series
+        return this.chartState.series.map((series) => {
+            const { seriesName, displayName, color, focus } = series
             const firstPoint = series.start
             const value = firstPoint?.value ?? 0
-            const label = this.shouldShowValueLabelsOnly
-                ? this.formatLabel(value)
-                : displayName
+            const label =
+                start === "name" ? displayName : this.formatLabel(value)
 
-            return { seriesName, value, label, color }
+            const emphasis = resolveEmphasis({ focus })
+            return { seriesName, value, label, color, emphasis }
         })
     }
 
@@ -326,7 +369,8 @@ export class SlopeChartThumbnail
         xRange: [number, number]
         visibleEndLabels: Set<SeriesName>
     }): AnchoredLabelsState | undefined {
-        if (!this.manager.showSeriesLabels) return undefined
+        if (!this.manager.showSeriesLabels || !this.seriesLabelText.start)
+            return undefined
 
         const series = this.startLabelsSeries.map((series) => {
             const position = {
@@ -340,7 +384,7 @@ export class SlopeChartThumbnail
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
             textAnchor: "end",
-            maxWidth: this.startLabelsMaxWidth,
+            maxWidth: this.labelsMaxWidth(this.seriesLabelText.start),
             xRange,
             labelPadding: LABEL_PADDING,
             yRanges: { edge: this.labelsRange },
@@ -387,8 +431,8 @@ export class SlopeChartThumbnail
         // time marks, but not for labels (which is what we're estimating)
         const preliminaryBounds = this.bounds
             .padBottom(this.xMarksHeight)
-            .padRight(0.5 * this.xEndMarkWidth)
-            .padLeft(0.5 * this.xStartMarkWidth)
+            .padRight(this.xEndPadding)
+            .padLeft(this.xStartPadding)
 
         const preliminaryYAxis = this.chartState.toVerticalAxis(
             this.yAxisConfig,
@@ -437,12 +481,9 @@ export class SlopeChartThumbnail
     @computed get contentInset(): SideWidths | undefined {
         if (this.chartState.errorInfo.reason) return undefined
         const { bounds } = this
-        const hideTimeLabels = this.xAxisConfig.hideTickLabels
-        const startOverflow = hideTimeLabels ? 0 : 0.5 * this.xStartMarkWidth
-        const endOverflow = hideTimeLabels ? 0 : 0.5 * this.xEndMarkWidth
         return {
-            left: this.startX - startOverflow - bounds.left,
-            right: bounds.right - (this.endX + endOverflow),
+            left: this.startX - 0.5 * this.xStartMarkWidth - bounds.left,
+            right: bounds.right - (this.endX + 0.5 * this.xEndMarkWidth),
         }
     }
 
@@ -479,6 +520,7 @@ export class SlopeChartThumbnail
                             dotRadius={DOT_RADIUS}
                             strokeWidth={1.5}
                             outlineWidth={0}
+                            styleByEmphasis={THUMBNAIL_LINE_STYLE}
                         />
                     ))}
                 </g>

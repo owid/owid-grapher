@@ -128,6 +128,24 @@ describe("hideDownloadButton", () => {
     })
 })
 
+describe("showLegend under each label mode", () => {
+    it.each([ChartLabelMode.Values, ChartLabelMode.Names, ChartLabelMode.None])(
+        "is false for %s",
+        (labelMode) => {
+            const grapher = new GrapherState({})
+            grapher.labelMode = labelMode
+            expect(grapher.showLegend).toBe(false)
+        }
+    )
+
+    it("follows hideLegend for All", () => {
+        const grapher = new GrapherState({})
+        expect(grapher.showLegend).toBe(true)
+        grapher.hideLegend = true
+        expect(grapher.showLegend).toBe(false)
+    })
+})
+
 describe("hideControlsRow", () => {
     it("respects the explicit hideControlsRow config", () => {
         const grapher = new GrapherState({ hideControlsRow: true })

@@ -222,6 +222,16 @@ describe(AnchoredLabelsState, () => {
         expect(state.width).toBeLessThan(makeState([long]).width)
     })
 
+    it("splits a parenthetical suffix off the name in regular weight", () => {
+        const label = makeSeries("Africa (WHO)")
+        const [placed] = makeState([label], { fontWeight: 700 }).series
+
+        expect(placed.seriesLabel.spanLines.flat()).toEqual([
+            { role: "name", text: "Africa", fontWeight: 700 },
+            { role: "suffix", text: " (WHO)", fontWeight: 400 },
+        ])
+    })
+
     describe("nudging in-chart labels", () => {
         const edge = makeSeries("Edge", undefined, { x: 100, y: 0 })
         const blocker = makeSeries("Blocker", Emphasis.Highlighted, {

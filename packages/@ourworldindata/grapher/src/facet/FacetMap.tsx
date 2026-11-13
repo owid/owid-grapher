@@ -18,11 +18,12 @@ import {
     ChartErrorInfo,
     GRAPHER_MAP_TYPE,
     GrapherInteractionEvent,
+    GrapherVariant,
     MapRegionName,
     Time,
 } from "@ourworldindata/types"
-import { calculateAspectRatio } from "./FacetChartUtils"
-import { scaleFontSize } from "../chart/ChartUtils"
+import { calculateAspectRatio, getFacetLabelFontSize } from "./FacetChartUtils"
+import { getVisibleLabels, scaleFontSize } from "../chart/ChartUtils"
 import {
     FacetMapManager,
     MapFacetSeries,
@@ -131,7 +132,11 @@ export class FacetMap
         return (
             this.bounds
                 // Make space for facet labels
-                .padTop(this.labelHeight + this.labelPadding)
+                .padTop(
+                    this.shouldShowFacetTitles
+                        ? this.labelHeight + this.labelPadding
+                        : 0
+                )
                 // Make space for the legend
                 .padBottom(
                     this.legendHeight +
@@ -207,18 +212,42 @@ export class FacetMap
 
     @computed private get facetGridPadding(): SplitBoundsPadding {
         return {
-            rowPadding: Math.round(this.labelHeight + this.labelPadding),
+            rowPadding: Math.round(
+                this.shouldShowFacetTitles
+                    ? this.labelHeight + this.labelPadding
+                    : this.labelHeight
+            ),
             columnPadding: Math.round(this.labelHeight),
             outerPadding: 0,
         }
     }
 
+    @computed private get shouldShowFacetTitles(): boolean {
+        return getVisibleLabels(this.manager.labelMode).rowLabelNames
+    }
+
+    @computed private get shouldShowLegend(): boolean {
+        return getVisibleLabels(this.manager.labelMode).legends
+    }
+
+    @computed private get facetTitleFontSize(): number {
+        if (this.manager.variant !== GrapherVariant.Thumbnail)
+            return this.facetFontSize
+
+        const { rows, columns } = this.getGridParams(this.bounds)
+        return getFacetLabelFontSize({
+            cellWidth: this.bounds.width / columns,
+            cellHeight: this.bounds.height / rows,
+            baseFontSize: this.fontSize,
+        })
+    }
+
     @computed private get labelHeight(): number {
-        return this.facetFontSize
+        return this.facetTitleFontSize
     }
 
     @computed private get labelPadding(): number {
-        return 0.5 * this.facetFontSize
+        return 0.5 * this.facetTitleFontSize
     }
 
     @computed get series(): MapFacetSeries[] {
@@ -286,6 +315,7 @@ export class FacetMap
                 transformedTable: transformedTableFromGrapher,
                 fontSize: facetFontSize,
                 showLegend: false,
+                labelMode: this.manager.labelMode,
                 isStatic,
                 mapColumnSlug,
                 mapConfig,
@@ -427,6 +457,7 @@ export class FacetMap
     @computed private get categoryLegendState():
         | HorizontalCategoricalColorLegendState
         | undefined {
+        if (!this.shouldShowLegend) return undefined
         if (this.categoricalLegendData.length <= 1) return undefined
         return new HorizontalCategoricalColorLegendState(
             this.categoricalLegendData,
@@ -441,6 +472,7 @@ export class FacetMap
     @computed private get numericLegendState():
         | HorizontalNumericColorLegendState
         | undefined {
+        if (!this.shouldShowLegend) return undefined
         if (this.numericLegendData.length <= 1) return undefined
         return new HorizontalNumericColorLegendState(this.numericLegendData, {
             baseFontSize: this.fontSize,
@@ -604,7 +636,7 @@ export class FacetMap
     }
 
     override render(): React.ReactElement {
-        const { facetFontSize } = this
+        const { facetTitleFontSize } = this
         return (
             <>
                 {this.renderMapLegend()}
@@ -614,15 +646,17 @@ export class FacetMap
 
                     return (
                         <React.Fragment key={seriesName}>
-                            <text
-                                {...this.getLabelPosition(series)}
-                                fill={GRAPHER_DARK_TEXT}
-                                fontSize={facetFontSize}
-                                textAnchor="middle"
-                                style={{ fontWeight: 700 }}
-                            >
-                                {seriesName}
-                            </text>
+                            {this.shouldShowFacetTitles && (
+                                <text
+                                    {...this.getLabelPosition(series)}
+                                    fill={GRAPHER_DARK_TEXT}
+                                    fontSize={facetTitleFontSize}
+                                    textAnchor="middle"
+                                    style={{ fontWeight: 700 }}
+                                >
+                                    {seriesName}
+                                </text>
+                            )}
                             <g id={makeFigmaId(seriesName)}>
                                 <ChartComponent
                                     manager={series.manager}

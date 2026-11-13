@@ -16,6 +16,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     DumbbellValueLabelMode,
+    GrapherVariant,
     TickFormattingOptions,
 } from "@ourworldindata/types"
 import { action, computed, observable, makeObservable } from "mobx"
@@ -64,7 +65,12 @@ import {
     toLeftRight,
 } from "./DumbbellChartHelpers"
 import { AnimatedRows } from "../animation/AnimatedRows"
-import { roundFontSize, scaleFontSize, textWidth } from "../chart/ChartUtils.js"
+import {
+    getVisibleLabels,
+    roundFontSize,
+    scaleFontSize,
+    textWidth,
+} from "../chart/ChartUtils.js"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
 import { HorizontalLabelPair } from "../horizontalLabelPair/HorizontalLabelPair.js"
@@ -243,11 +249,17 @@ export class DumbbellChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
+        const { axisText } = getVisibleLabels(this.manager.labelMode)
+        const shouldHideTickLabels = !axisText || this.isThumbnail
+        const tickLabelOverrides = shouldHideTickLabels
+            ? { hideTickLabels: true }
+            : {}
         return new AxisConfig(
             {
                 ...this.manager.yAxisConfig,
-                hideGridlines: false,
+                hideGridlines: this.isThumbnail,
                 shouldOffsetTickLabelAtStart: false,
+                ...tickLabelOverrides,
             },
             this
         )
@@ -298,7 +310,20 @@ export class DumbbellChart
         })
     }
 
+    @computed private get isThumbnail(): boolean {
+        return this.manager.variant === GrapherVariant.Thumbnail
+    }
+
+    @computed private get shouldShowBackgroundLines(): boolean {
+        return !this.isThumbnail
+    }
+
+    @computed private get shouldShowEntityLabels(): boolean {
+        return getVisibleLabels(this.manager.labelMode).rowLabelNames
+    }
+
     @computed private get entityLabelMaxWidth(): number {
+        if (!this.shouldShowEntityLabels) return 0
         const labelsWidths = this.sizedSeries.flatMap((series) => [
             series.label?.width ?? 0,
             series.annotationTextWrap?.width ?? 0,
@@ -675,6 +700,8 @@ export class DumbbellChart
                             connectorStyle={this.chartState.connectorStyle}
                             range={this.xRange}
                             valueLabelStyle={this.valueLabelStyle}
+                            showEntityLabel={this.shouldShowEntityLabels}
+                            showBackgroundLine={this.shouldShowBackgroundLines}
                             y={series.y}
                         />
                     ))}
@@ -723,6 +750,8 @@ export class DumbbellChart
                             connectorStyle={connectorStyle}
                             range={xRange}
                             valueLabelStyle={valueLabelStyle}
+                            showEntityLabel={this.shouldShowEntityLabels}
+                            showBackgroundLine={this.shouldShowBackgroundLines}
                             y={0}
                             onInfoTooltipShow={this.dismissTooltip}
                         />
@@ -782,7 +811,9 @@ function DumbbellChartAxis({
                 axis={axis}
                 tickColor={GRAPHER_LIGHT_TEXT}
             />
-            <HorizontalAxisGridLines bounds={dataBounds} axis={axis} />
+            {!axis.hideGridlines && (
+                <HorizontalAxisGridLines bounds={dataBounds} axis={axis} />
+            )}
             {axis.contains(0) && (
                 <HorizontalAxisZeroLine
                     bounds={dataBounds}

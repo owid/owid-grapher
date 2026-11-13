@@ -123,6 +123,46 @@ it("respects minSize unless hidden", () => {
     expect(hiddenAxis.size).toEqual(0)
 })
 
+it("gives back the tick label height when tick labels are hidden on a horizontal axis", () => {
+    const config: AxisConfigInterface = { min: 0, max: 100 }
+
+    const axis = new AxisConfig(config).toHorizontalAxis()
+    const hiddenAxis = new AxisConfig({
+        ...config,
+        hideTickLabels: true,
+    }).toHorizontalAxis()
+
+    expect(axis.height).toBeGreaterThan(0)
+    expect(hiddenAxis.height).toEqual(0)
+})
+
+it("leaves only the title space when tick labels are hidden on a horizontal axis", () => {
+    const hiddenAxis = new AxisConfig({
+        min: 0,
+        max: 100,
+        label: "Axis title",
+        hideTickLabels: true,
+    }).toHorizontalAxis()
+
+    expect(hiddenAxis.labelOffset).toBeGreaterThan(0)
+    expect(hiddenAxis.height).toEqual(hiddenAxis.labelOffset)
+})
+
+it("gives back the tick label width when tick labels are hidden on a vertical axis", () => {
+    const config: AxisConfigInterface = { min: 0, max: 100 }
+
+    const axis = new AxisConfig(config).toVerticalAxis()
+    axis.range = [0, 500]
+    const hiddenAxis = new AxisConfig({
+        ...config,
+        hideTickLabels: true,
+    }).toVerticalAxis()
+    hiddenAxis.range = [0, 500]
+
+    expect(axis.width).toBeGreaterThan(0)
+    expect(hiddenAxis.width).toEqual(0)
+})
+
 it("respects maxTicks parameter", () => {
     const config: AxisConfigInterface = {
         min: 0,

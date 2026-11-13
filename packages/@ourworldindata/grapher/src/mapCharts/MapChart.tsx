@@ -60,6 +60,7 @@ import {
 } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
+    ChartLabelMode,
     Color,
     ColumnSlug,
     EntityName,
@@ -327,6 +328,10 @@ export class MapChart
 
     @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed get labelMode(): ChartLabelMode | undefined {
+        return this.manager.labelMode
     }
 
     // On narrow screens and small static exports (e.g. thumbnails), the width

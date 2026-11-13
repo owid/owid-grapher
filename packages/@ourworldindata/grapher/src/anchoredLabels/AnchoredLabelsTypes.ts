@@ -1,7 +1,7 @@
-import { TextWrap } from "@ourworldindata/components"
 import { Color, SeriesName } from "@ourworldindata/types"
 import { Bounds, Point } from "@ourworldindata/utils"
 import { Emphasis } from "../interaction/Emphasis.js"
+import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 
 export interface InitialAnchoredLabelSeries {
     seriesName: SeriesName
@@ -14,7 +14,7 @@ export interface InitialAnchoredLabelSeries {
 
 export interface SizedAnchoredLabelSeries extends InitialAnchoredLabelSeries {
     textPosition: Point
-    textWrap: TextWrap
+    seriesLabel: SeriesLabelState
     bounds: Bounds
 }
 

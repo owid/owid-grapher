@@ -23,7 +23,11 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
 } from "../core/GrapherConstants"
-import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
+import {
+    getVisibleLabels,
+    roundFontSize,
+    scaleFontSize,
+} from "../chart/ChartUtils"
 import { enrichSeriesWithLabels } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import {
     HorizontalAxisComponent,
@@ -322,16 +326,29 @@ export class StackedDiscreteBarChart
         })
     }
 
+    @computed private get shouldShowEntityLabels(): boolean {
+        return getVisibleLabels(this.manager.labelMode).rowLabelNames
+    }
+
     @computed private get labelWidth(): number {
+        if (!this.shouldShowEntityLabels) return 0
         return _.max(this.sizedRows.map((d) => d.label.width)) ?? 0
     }
 
+    @computed private get shouldShowValueLabels(): boolean {
+        return getVisibleLabels(this.manager.labelMode).values
+    }
+
     @computed private get showTotalValueLabel(): boolean {
-        return !this.manager.isRelativeMode && !this.manager.hideTotalValueLabel
+        return (
+            this.shouldShowValueLabels &&
+            !this.manager.isRelativeMode &&
+            !this.manager.hideTotalValueLabel
+        )
     }
 
     @computed private get showHorizontalAxis(): boolean {
-        return !this.showTotalValueLabel
+        return this.shouldShowValueLabels && !this.showTotalValueLabel
     }
 
     // The amount of space we need to allocate for total value labels on the right
@@ -683,6 +700,8 @@ export class StackedDiscreteBarChart
                             barHeight={this.barHeight}
                             labelFontSize={this.labelFontSize}
                             showTotalValueLabel={this.showTotalValueLabel}
+                            showSegmentValueLabels={this.shouldShowValueLabels}
+                            showEntityLabel={this.shouldShowEntityLabels}
                             formatValueForLabel={this.formatValueForLabel}
                             onEntityMouseEnter={this.onEntityMouseEnter}
                             onEntityMouseLeave={this.onEntityMouseLeave}
@@ -722,6 +741,8 @@ export class StackedDiscreteBarChart
                             labelFontSize={this.labelFontSize}
                             yAxis={this.yAxis}
                             showTotalValueLabel={this.showTotalValueLabel}
+                            showSegmentValueLabels={this.shouldShowValueLabels}
+                            showEntityLabel={this.shouldShowEntityLabels}
                             formatValueForLabel={this.formatValueForLabel}
                             onEntityMouseEnter={this.onEntityMouseEnter}
                             onEntityMouseLeave={this.onEntityMouseLeave}

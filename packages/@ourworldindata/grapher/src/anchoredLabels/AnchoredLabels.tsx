@@ -1,8 +1,9 @@
 import React from "react"
+import { makeFigmaId } from "@ourworldindata/utils"
 import { AnchoredLabelsState } from "./AnchoredLabelsState"
 import { darkenColorForText } from "../color/ColorUtils.js"
-import { Halo, TextWrapSvg } from "@ourworldindata/components"
 import { Emphasis } from "../interaction/Emphasis.js"
+import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 import { ANCHORED_LABEL_STYLE } from "./AnchoredLabelsConstants.js"
 
 export function AnchoredLabels({
@@ -19,15 +20,17 @@ export function AnchoredLabels({
                         key={series.seriesName}
                         opacity={ANCHORED_LABEL_STYLE[emphasis].opacity}
                     >
-                        <Halo id={series.seriesName} fontSize={state.fontSize}>
-                            <TextWrapSvg
-                                textWrap={series.textWrap}
-                                x={series.textPosition.x}
-                                y={series.textPosition.y}
-                                textAnchor={state.textAnchor}
-                                fill={darkenColorForText(series.color)}
-                            />
-                        </Halo>
+                        <SeriesLabel
+                            state={series.seriesLabel}
+                            id={makeFigmaId("label", series.seriesName)}
+                            x={series.textPosition.x}
+                            y={
+                                series.textPosition.y -
+                                series.seriesLabel.height / 2
+                            }
+                            color={{ name: darkenColorForText(series.color) }}
+                            outline
+                        />
                     </g>
                 )
             })}

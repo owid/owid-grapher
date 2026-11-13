@@ -24,6 +24,8 @@ export function DumbbellChartRow({
     y,
     range,
     valueLabelStyle,
+    showEntityLabel,
+    showBackgroundLine,
     onInfoTooltipShow,
 }: {
     series: RenderDumbbellSeries
@@ -32,6 +34,8 @@ export function DumbbellChartRow({
     y: number
     range: [number, number]
     valueLabelStyle: FontSettings
+    showEntityLabel: boolean
+    showBackgroundLine: boolean
     onInfoTooltipShow?: () => void
 }): React.ReactElement {
     const style = DUMBBELL_STYLE[series.emphasis]
@@ -48,16 +52,18 @@ export function DumbbellChartRow({
             style={{ pointerEvents: "none" }}
         >
             {/* Gray background line spanning the full chart width */}
-            <line
-                id={makeFigmaId("background-line")}
-                x1={roundForSvg(range[0])}
-                x2={roundForSvg(range[1])}
-                stroke={TICK_COLOR}
-                strokeDasharray={GRID_LINE_DASH_PATTERN}
-            />
+            {showBackgroundLine && (
+                <line
+                    id={makeFigmaId("background-line")}
+                    x1={roundForSvg(range[0])}
+                    x2={roundForSvg(range[1])}
+                    stroke={TICK_COLOR}
+                    strokeDasharray={GRID_LINE_DASH_PATTERN}
+                />
+            )}
 
             {/* Entity label */}
-            {series.label && (
+            {showEntityLabel && (
                 <SeriesLabel
                     state={series.label}
                     x={series.labelPosition.x}
@@ -68,7 +74,8 @@ export function DumbbellChartRow({
             )}
 
             {/* Entity annotation */}
-            {series.annotationTextWrap &&
+            {showEntityLabel &&
+                series.annotationTextWrap &&
                 series.annotationPosition !== undefined && (
                     <TextWrapSvg
                         textWrap={series.annotationTextWrap}
