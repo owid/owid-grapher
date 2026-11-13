@@ -4,6 +4,7 @@ import { LatestArticleHit } from "./LatestArticleHit.js"
 import { LatestDataInsightHit } from "./LatestDataInsightHit.js"
 import { LatestAnnouncementHit } from "./LatestAnnouncementHit.js"
 import { LatestDataUpdateHit } from "./LatestDataUpdateHit.js"
+import { LatestNewsletterHit } from "./LatestNewsletterHit.js"
 import { match } from "ts-pattern"
 
 type LatestHitProps = {
@@ -63,5 +64,8 @@ export const LatestHit = ({
             { type: OwidGdocType.LinearTopicPage },
             () => null
         )
+        .with({ type: "newsletter" }, (hit) => (
+            <LatestNewsletterHit hit={hit} position={position} />
+        ))
         .exhaustive()
 }

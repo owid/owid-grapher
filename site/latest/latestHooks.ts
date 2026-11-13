@@ -103,6 +103,7 @@ function getProbeHref(hit: PageChronologicalRecord): string | null {
         .with(
             { type: OwidGdocType.TopicPage },
             { type: OwidGdocType.LinearTopicPage },
+            { type: "newsletter" },
             () => null
         )
         .exhaustive()

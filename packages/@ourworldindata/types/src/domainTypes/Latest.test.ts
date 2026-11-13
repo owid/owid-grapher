@@ -44,6 +44,12 @@ describe("chronological page record schema", () => {
                 ...baseRecord,
                 type: OwidGdocType.LinearTopicPage,
             },
+            {
+                ...baseRecord,
+                type: "newsletter",
+                latestType: "newsletter",
+                url: "https://mailchi.mp/ourworldindata/owid-brief-2026-05-08",
+            },
         ]
 
         for (const record of records) {

@@ -26,6 +26,7 @@ export const LATEST_TYPE_VALUES = [
     "topic-update",
     "website-upgrade",
     "announcement",
+    "newsletter",
 ] as const
 export type LatestType = (typeof LATEST_TYPE_VALUES)[number]
 
@@ -51,6 +52,7 @@ export const LATEST_TYPE_LABELS: Record<LatestType, string> = {
     "topic-update": "Topic update",
     "website-upgrade": "Website upgrade",
     announcement: "Announcement",
+    newsletter: "Newsletter",
 }
 
 export const LATEST_PATH = "/latest"
@@ -236,6 +238,27 @@ export type PageChronologicalLinearTopicPageRecord = z.infer<
     typeof PageChronologicalLinearTopicPageRecordSchema
 >
 
+// Newsletter
+
+// The only variant that isn't a gdoc: an issue of The OWID Brief, sourced from
+// Mailchimp. It has no page on the site, so the record carries the URL of the
+// issue's archive page for the card to link to.
+const PageChronologicalNewsletterRecordPayloadSchema = z.strictObject({
+    type: z.literal("newsletter"),
+    latestType: z.literal("newsletter"),
+    url: z.string(),
+})
+export type PageChronologicalNewsletterRecordPayload = z.infer<
+    typeof PageChronologicalNewsletterRecordPayloadSchema
+>
+const PageChronologicalNewsletterRecordSchema = z.strictObject({
+    ...ChronologicalRecordBaseShape,
+    ...PageChronologicalNewsletterRecordPayloadSchema.shape,
+})
+export type PageChronologicalNewsletterRecord = z.infer<
+    typeof PageChronologicalNewsletterRecordSchema
+>
+
 /* Chronological record unions */
 
 // Lightweight record for the chronological pages index (one per page, no
@@ -247,6 +270,7 @@ export const PageChronologicalRecordSchema = z.discriminatedUnion("type", [
     PageChronologicalAnnouncementRecordSchema,
     PageChronologicalTopicPageRecordSchema,
     PageChronologicalLinearTopicPageRecordSchema,
+    PageChronologicalNewsletterRecordSchema,
 ])
 
 export type PageChronologicalRecord = z.infer<
@@ -257,6 +281,7 @@ export type LatestPageChronologicalRecord =
     | PageChronologicalArticleRecord
     | PageChronologicalDataInsightRecord
     | PageChronologicalAnnouncementRecord
+    | PageChronologicalNewsletterRecord
 
 export type PageChronologicalRecordVariantPayload =
     | PageChronologicalDataInsightRecordPayload
@@ -264,6 +289,7 @@ export type PageChronologicalRecordVariantPayload =
     | PageChronologicalAnnouncementRecordPayload
     | PageChronologicalTopicPageRecordPayload
     | PageChronologicalLinearTopicPageRecordPayload
+    | PageChronologicalNewsletterRecordPayload
 
 export type PageChronologicalLinkedAttachments = Pick<
     PageChronologicalArticleRecord,

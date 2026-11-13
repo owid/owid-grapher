@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import * as db from "../../../db/db.js"
+import type { SearchClient } from "algoliasearch"
 import {
     OwidGdocType,
     checkIsChronologicalGdoc,
@@ -31,6 +32,7 @@ import { getAlgoliaClient } from "../configureAlgolia.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
 import { ALGOLIA_INDEXING } from "../../../settings/serverSettings.js"
 import { getThumbnailUrl, getExcerptFromGdoc } from "./pages.js"
+import { getOwidBriefRecords } from "./owidBrief.js"
 import { match, P } from "ts-pattern"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 
@@ -436,5 +438,56 @@ export async function getPagesChronologicalRecords(
         if (record) records.push(record)
     }
 
+    // A Mailchimp outage shouldn't block reindexing everything else. The
+    // scheduled indexer puts back any issues that are missing.
+    try {
+        records.push(...(await getOwidBriefRecords()))
+    } catch (e) {
+        await logErrorAndMaybeCaptureInSentry(e)
+    }
+
     return records
+}
+
+/** Returns the subset of `objectIDs` that aren't yet present in `indexName`. */
+export async function getUnindexedObjectIds(
+    client: SearchClient,
+    indexName: string,
+    objectIDs: string[]
+): Promise<string[]> {
+    if (!objectIDs.length) return []
+    const { results } = await client.getObjects<{ objectID: string } | null>({
+        requests: objectIDs.map((objectID) => ({
+            indexName,
+            objectID,
+            attributesToRetrieve: ["objectID"],
+        })),
+    })
+    // `results` is aligned positionally with the requests; a null means the
+    // object isn't in the index.
+    return objectIDs.filter((_, i) => results[i] === null)
+}
+
+/** Index the issues of The OWID Brief that aren't in the index yet. */
+export async function indexMissingOwidBriefsInChronological(
+    client: SearchClient,
+    indexName: string
+): Promise<void> {
+    const records = await getOwidBriefRecords()
+    const missingIds = new Set(
+        await getUnindexedObjectIds(
+            client,
+            indexName,
+            records.map((record) => record.objectID)
+        )
+    )
+    console.log(
+        `${records.length} issues of The OWID Brief, ${missingIds.size} missing from ${indexName}.`
+    )
+    if (!missingIds.size) return
+
+    await client.saveObjects({
+        indexName,
+        objects: records.filter((record) => missingIds.has(record.objectID)),
+    })
 }
