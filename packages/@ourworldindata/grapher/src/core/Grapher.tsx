@@ -9,6 +9,7 @@ import {
     reaction,
     makeObservable,
     comparer,
+    when,
 } from "mobx"
 import {
     bind,
@@ -776,21 +777,29 @@ export class Grapher extends React.Component<GrapherProps> {
         // Make it easy to exit focus mode by clearing it when the selection
         // or view changes. This is disabled in the admin to avoid clearing
         // focus when authors are editing the chart
-        if (!this.grapherState.isAdmin) {
-            this.grapherState.disposers.push(
-                reaction(
-                    () => [
-                        this.grapherState.facetStrategy,
-                        this.grapherState.selection.selectedEntityNames,
-                        this.grapherState.activeTab,
-                    ],
-                    () => this.grapherState.focusArray.clear(),
-                    // Use structural comparison to detect changes in array
-                    // contents, not just reference
-                    { equals: comparer.structural }
-                )
+        if (this.grapherState.isAdmin) return
+
+        this.grapherState.disposers.push(
+            when(
+                () =>
+                    this.grapherState.isReady &&
+                    !this.grapherState.shouldApplyPeerCountries,
+                () =>
+                    this.grapherState.disposers.push(
+                        reaction(
+                            () => [
+                                this.grapherState.facetStrategy,
+                                this.grapherState.selection.selectedEntityNames,
+                                this.grapherState.activeTab,
+                            ],
+                            () => this.grapherState.focusArray.clear(),
+                            // Use structural comparison to detect changes in array
+                            // contents, not just reference
+                            { equals: comparer.structural }
+                        )
+                    )
             )
-        }
+        )
     }
 
     override componentDidMount(): void {
