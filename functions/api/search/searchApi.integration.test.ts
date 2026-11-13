@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest"
-import { searchCharts, searchPages, searchTopicPages } from "./searchApi.js"
+import {
+    searchCharts,
+    searchPages,
+    searchProfiles,
+    searchTopicPages,
+} from "./searchApi.js"
 import { FilterType, OwidGdocType, TagGraphRoot } from "@ourworldindata/types"
 import type { AlgoliaConfig } from "./algoliaClient.js"
 
@@ -541,5 +546,21 @@ describe("searchTopicPages with real Algolia", () => {
         expect(page1.results.map((p) => p.slug)).not.toContain(
             page2.results[0].slug
         )
+    })
+})
+
+describe("searchProfiles with real Algolia", () => {
+    const algoliaConfig: AlgoliaConfig = {
+        appId: "ASCB5XMYF2",
+        apiKey: "bafe9c4659e5657bf750a38fbee5c269",
+        indexPrefix: undefined,
+    }
+
+    // A text search alone, without a country filter, as an API client sends it
+    it("finds profiles by text without a country filter", async () => {
+        const result = await searchProfiles(algoliaConfig, textSearch("france"))
+
+        expect(result.nbHits).toBeGreaterThan(0)
+        expect(result.results[0].type).toBe(OwidGdocType.Profile)
     })
 })

@@ -50,7 +50,9 @@ paths:
       parameters:
         - name: q
           in: query
-          description: Search query text
+          description: |
+            Search query text, of up to 512 bytes (Algolia's limit; longer
+            queries return a 400)
           required: false
           schema:
             type: string
@@ -140,8 +142,9 @@ paths:
           description: |
             If `true`, results keep Algolia's `objectID`, `_highlightResult`
             and `_snippetResult` fields, which mark where the query matched
-            (the site's search page uses them). Otherwise those fields are
-            removed.
+            (the site's search page uses them), and any other field starting
+            with `_` that Algolia returns, such as `_rankingInfo`. Otherwise
+            those fields are removed.
           required: false
           schema:
             type: boolean
@@ -167,7 +170,7 @@ paths:
           in: query
           description: |
             Topic names separated by `~` (tilde); results must be tagged with
-            all of them. A name that isn't a topic returns a 400 when nothing
+            at least one of them. A name that isn't a topic returns a 400 when nothing
             matches.
 
             [View all available topics](https://datasette-public.owid.io/owid/tags?slug__notnull=1&_sort=createdAt)

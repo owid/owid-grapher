@@ -10,7 +10,7 @@ import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
 import {
     buildChartsFacetFilters,
-    formatCountryFacetFilters,
+    formatConjunctiveFacetFilters,
     formatDisjunctiveFacetFilters,
     formatTopicFacetFilters,
     getFilterNamesOfType,
@@ -228,9 +228,14 @@ function buildProfilesSearch(
             query: state.query,
             filters: `type:${OwidGdocType.Profile}`,
             facetFilters: [
-                ...formatCountryFacetFilters(
+                // Not formatCountryFacetFilters: without countries it adds a
+                // charts-index facet that no page record has, so a profile
+                // search without countries would find nothing
+                ...(state.requireAllCountries
+                    ? formatConjunctiveFacetFilters
+                    : formatDisjunctiveFacetFilters)(
                     getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-                    state.requireAllCountries
+                    "availableEntities"
                 ),
                 ...formatTopicFacetFilters(
                     getFilterNamesOfType(state.filters, FilterType.TOPIC)
