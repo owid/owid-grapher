@@ -144,13 +144,7 @@ const CHARTS_PER_PAGE = 9
  * Searches without a query ("browse" states, e.g. a topic filter alone) stay
  * in the browser, where the search client sends them to the cached-queries
  * proxy (see searchClients.ts).
- *
- * With SEARCH_API_URL set, the API is the only path for typed searches: a
- * failed request throws and React Query retries it, then the section shows
- * nothing, as for a failed Algolia search, and the page shows its search
- * error state (useHasSearchError) when no section has results. Sentry sees
- * the function's 500s and, once the retries run out, the failed query (see
- * queryClient.ts).
+ * A failed API request throws, like a failed Algolia search.
  */
 async function querySection<THit extends { slug: string }>(
     liteSearchClient: LiteClient,
