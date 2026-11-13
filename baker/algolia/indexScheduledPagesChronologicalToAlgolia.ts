@@ -3,7 +3,6 @@
 import "../../serverUtils/instrument.js"
 
 import { runSentryScript } from "../../serverUtils/sentryTracing.js"
-import { SearchClient } from "algoliasearch"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
@@ -15,6 +14,7 @@ import {
 import { checkIsChronologicalGdoc } from "@ourworldindata/utils"
 import { getAndLoadGdocById } from "../../db/model/Gdoc/GdocFactory.js"
 import {
+    getUnindexedObjectIds,
     indexIndividualGdocInChronological,
     indexMissingOwidBriefsInChronological,
 } from "./utils/pagesChronological.js"
@@ -72,26 +72,7 @@ const indexScheduledPagesChronologicalToAlgolia = async () => {
         }
     }, db.TransactionCloseMode.Close)
 
-    await indexMissingOwidBriefsInChronological()
-}
-
-/** Returns the subset of `objectIDs` that aren't yet present in `indexName`. */
-async function getUnindexedObjectIds(
-    client: SearchClient,
-    indexName: string,
-    objectIDs: string[]
-): Promise<string[]> {
-    if (!objectIDs.length) return []
-    const { results } = await client.getObjects<{ objectID: string } | null>({
-        requests: objectIDs.map((objectID) => ({
-            indexName,
-            objectID,
-            attributesToRetrieve: ["objectID"],
-        })),
-    })
-    // `results` is aligned positionally with the requests; a null means the
-    // object isn't in the index.
-    return objectIDs.filter((_, i) => results[i] === null)
+    await indexMissingOwidBriefsInChronological(client, indexName)
 }
 
 void runSentryScript(

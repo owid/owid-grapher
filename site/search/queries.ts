@@ -2,7 +2,6 @@ import * as R from "remeda"
 import {
     EntityName,
     LATEST_FEED_TYPE_VALUES,
-    NEWSLETTER_RECORD_TYPE,
     OwidGdocType,
     TagGraphRoot,
     SearchState,
@@ -431,7 +430,7 @@ export interface LatestPagesResult {
 
 // The type guard that excludes topic pages and linear topic pages (indexed
 // for the atom feed but hidden from /latest).
-const LATEST_BASE_FILTER = [...LATEST_FEED_TYPE_VALUES, NEWSLETTER_RECORD_TYPE]
+const LATEST_BASE_FILTER = [...LATEST_FEED_TYPE_VALUES, "newsletter"]
     .map((t) => `type:${t}`)
     .join(" OR ")
 
