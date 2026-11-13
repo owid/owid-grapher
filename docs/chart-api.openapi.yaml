@@ -695,7 +695,7 @@ components:
       name: imLabels
       in: query
       description: |
-        Text drawn in the chart. `values` shows values and drops legends, for an image that sits next to a table naming the series. `names` shows names, such as line labels and facet titles, and drops values and legends. `none` draws no text at all. Only `all` is allowed with `imVariant=captioned`, and `names` and `none` only with `imVariant=simplified`.
+        Controls which text is drawn. `values` shows values and drops legends. `names` shows names, such as line labels and facet titles, and drops values and legends. `none` draws no text at all. Only `all` is allowed with `imVariant=captioned`, and `names` and `none` only with `imVariant=simplified`.
       schema:
         type: string
         enum: [all, values, names, none]
