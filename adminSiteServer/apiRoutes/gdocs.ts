@@ -16,11 +16,10 @@ import {
     RedirectsTableName,
     OwidGdocType,
     GdocComponentPreviewRefreshResult,
+    OwidGdocErrorMessageType,
 } from "@ourworldindata/types"
 import {
     checkIsChronologicalGdoc,
-    checkIsDataInsight,
-    checkIsGdocPostExcludingFragments,
     checkShouldDataCalloutRender,
     getEntitiesForProfile,
     makeCalloutGrapherStateKey,
@@ -40,6 +39,7 @@ import {
     getPreprocessedIndexableText,
     indexIndividualProfile,
     removeIndividualProfileFromIndex,
+    checkIsIndexableInPages,
 } from "../../baker/algolia/utils/pages.js"
 import {
     indexIndividualGdocInChronological,
@@ -318,7 +318,7 @@ function checkIsProfile(gdoc: { content: { type?: OwidGdocType } }): boolean {
  * - Updating (index and bake)
  * - Unpublishing (remove from index and bake)
  */
-async function indexAndBakeGdocIfNeccesary(
+async function indexAndBakeGdocIfNecessary(
     trx: db.KnexReadWriteTransaction,
     user: Required<DbInsertUser>,
     prevGdoc: AnyGdoc,
@@ -327,12 +327,8 @@ async function indexAndBakeGdocIfNeccesary(
     const prevJson = prevGdoc.toJSON()
     const nextJson = nextGdoc.toJSON()
     const action = getPublishingAction(prevJson, nextJson)
-    const wasIndexedInPages =
-        checkIsGdocPostExcludingFragments(prevJson) ||
-        checkIsDataInsight(prevJson)
-    const shouldIndexInPages =
-        checkIsGdocPostExcludingFragments(nextJson) ||
-        checkIsDataInsight(nextJson)
+    const wasIndexedInPages = checkIsIndexableInPages(prevJson)
+    const shouldIndexInPages = checkIsIndexableInPages(nextJson)
     const wasProfile = checkIsProfile(prevJson)
     const isProfile = checkIsProfile(nextJson)
     const wasChronologicalPost = checkIsChronologicalGdoc(prevJson)
@@ -395,6 +391,25 @@ async function validateSlugCollisionsIfPublishing(
     if (hasSlugCollision) {
         throw new JsonError(
             `You are attempting to publish a Google Doc with a slug that already exists: "${gdoc.slug}"`
+        )
+    }
+}
+
+// A pinned-search clash is a validation error on the gdoc (GdocFeaturedViz),
+// which disables Publish in the admin. The admin decides that from errors it
+// loaded earlier, so another featured viz may have taken the search since.
+// `loadState` has just validated the gdoc again, so reject on its errors.
+function validatePinnedSearchesIfPublishing(gdoc: AnyGdoc): void {
+    if (!gdoc.published) return
+
+    const clashes = gdoc.errors.filter(
+        (error) =>
+            error.property === "pinned-for-searches" &&
+            error.type === OwidGdocErrorMessageType.Error
+    )
+    if (clashes.length > 0) {
+        throw new JsonError(
+            `You are attempting to publish a featured viz pinned for searches that another published featured viz is already pinned for. ${clashes.map((clash) => clash.message).join(" ")}`
         )
     }
 }
@@ -483,6 +498,7 @@ export async function createOrUpdateGdoc(
     await nextGdoc.loadState(trx)
 
     await validateSlugCollisionsIfPublishing(trx, nextGdoc)
+    validatePinnedSearchesIfPublishing(nextGdoc)
 
     // Create redirect if slug changed on a published gdoc
     await createRedirectForSlugChangeIfNeeded(trx, prevGdoc, nextGdoc)
@@ -499,7 +515,7 @@ export async function createOrUpdateGdoc(
     )
 
     const upserted = await upsertGdoc(trx, nextGdoc)
-    await indexAndBakeGdocIfNeccesary(trx, res.locals.user, prevGdoc, nextGdoc)
+    await indexAndBakeGdocIfNecessary(trx, res.locals.user, prevGdoc, nextGdoc)
 
     return upserted
 }
@@ -566,10 +582,7 @@ export async function deleteGdoc(
         .where({ gdocId: id })
         .delete()
     if (gdoc.published) {
-        if (
-            checkIsGdocPostExcludingFragments(gdoc) ||
-            gdoc.content.type === OwidGdocType.DataInsight
-        ) {
+        if (checkIsIndexableInPages(gdoc)) {
             await removeIndividualGdocFromIndex(gdoc)
         }
         if (checkIsProfile(gdoc)) {
@@ -680,11 +693,7 @@ export async function getPreviewGdocIndexRecords(
             return payload
         }
 
-        // Only generate records for posts (excluding fragments)
-        if (
-            !checkIsGdocPostExcludingFragments(gdocJson) &&
-            !checkIsDataInsight(gdocJson)
-        ) {
+        if (!checkIsIndexableInPages(gdocJson)) {
             const payload: PagesIndexRecordsResponse = {
                 records: [],
                 count: 0,

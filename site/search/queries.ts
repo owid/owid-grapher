@@ -14,6 +14,7 @@ import {
     PageChronologicalRecord,
     DataInsightHit,
     FlatArticleHit,
+    FeaturedVizHit,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
@@ -27,6 +28,7 @@ import {
     PAGES_CHRONOLOGICAL_INDEX,
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
+    getFeaturedVizFilters,
 } from "./searchUtils.js"
 import {
     buildChartsFacetFilters,
@@ -62,6 +64,14 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+    // Only what queryFeaturedViz depends on. Country filters and case changes
+    // don't change the result, so they shouldn't send a new uncached request.
+    featuredViz: (state: SearchState) =>
+        [
+            PAGES_INDEX,
+            "featured-viz",
+            getFeaturedVizFiltersForState(state),
+        ] as const,
 } as const
 
 export const latestPagesQueryKey = {
@@ -358,6 +368,49 @@ export async function queryProfiles(
     }
 
     return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
+}
+
+export function getFeaturedVizFiltersForState(
+    state: SearchState
+): ReturnType<typeof getFeaturedVizFilters> {
+    const [topic] = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+    return getFeaturedVizFilters(state.query, topic)
+}
+
+/**
+ * The featured viz at the top of the Data results, or null. Country filters
+ * don't narrow it. When several pages match, as when two featured viz share
+ * a topic, the pages index's ranking picks the most viewed one, as in the
+ * autocomplete.
+ */
+export async function queryFeaturedViz(
+    liteSearchClient: LiteClient,
+    state: SearchState
+): Promise<FeaturedVizHit | null> {
+    const filters = getFeaturedVizFiltersForState(state)
+    if (!filters) return null
+
+    const searchParams = {
+        indexName: PAGES_INDEX,
+        query: "",
+        ...filters,
+        distinct: true,
+        hitsPerPage: 1,
+        attributesToRetrieve: [
+            "title",
+            "slug",
+            "type",
+            "thumbnailUrl",
+            "authors",
+            "excerpt",
+        ],
+    }
+
+    const response = await searchSingleForHits<FeaturedVizHit>(
+        liteSearchClient,
+        searchParams
+    )
+    return response.hits[0] ?? null
 }
 
 export interface LatestPagesResult {

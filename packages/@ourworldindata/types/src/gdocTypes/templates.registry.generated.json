@@ -2037,6 +2037,13 @@
         "description": "Set to true to hide the \"Cite this work\" section at the end of the page and the page citation in the methods box."
       },
       {
+        "name": "pinned-for-searches",
+        "type": "string[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Comma-separated searches this featured viz is pinned for, e.g. \"population, world population\". The featured viz shows as a card at the top of the Data search results when a reader's whole search matches one of these. The card also shows, pins or not, when a reader picks one of the featured viz's topics and types nothing."
+      },
+      {
         "name": "body",
         "type": "OwidEnrichedGdocBlock[]",
         "optional": false,

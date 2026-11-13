@@ -6,8 +6,10 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocFeaturedVizContent,
     OwidGdocFeaturedVizInterface,
+    OwidGdocType,
     excludeNullish,
     fetchJson,
+    parsePinnedSearches,
     shouldRenderBespokeMetadata,
 } from "@ourworldindata/utils"
 import {
@@ -23,8 +25,57 @@ import { BESPOKE_COMPONENT_REGISTRY } from "../../../bespoke/shared/bespokeCompo
 import { resolveBespokeComponentUrls } from "../../../bespoke/shared/bespokeComponentUrls.js"
 import { BESPOKE_DATA_URL } from "../../../settings/clientSettings.mjs"
 import { GdocBase } from "./GdocBase.js"
+import * as db from "../../db.js"
 
 const METADATA_FETCH_TIMEOUT_MS = 10_000
+
+interface PinnedSearchClash {
+    search: string
+    slug: string
+}
+
+/** The searches this gdoc is pinned for that another published featured viz
+ *  is already pinned for, each with that other page's slug. */
+async function getPinnedSearchClashes(
+    knex: db.KnexReadonlyTransaction,
+    gdoc: { id: string; content: { "pinned-for-searches"?: string[] } }
+): Promise<PinnedSearchClash[]> {
+    const searches = gdoc.content["pinned-for-searches"] ?? []
+    if (searches.length === 0) return []
+
+    const others = await db.knexRaw<{
+        slug: string
+        pinnedForSearches: string
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            slug,
+            content ->> '$."pinned-for-searches"' AS pinnedForSearches
+        FROM posts_gdocs
+        WHERE type = ?
+        AND published = TRUE
+        AND id != ?
+        AND content ->> '$."pinned-for-searches"' IS NOT NULL`,
+        [OwidGdocType.FeaturedViz, gdoc.id]
+    )
+
+    return others.flatMap((other) => {
+        const otherSearches = new Set<string>(
+            JSON.parse(other.pinnedForSearches)
+        )
+        return searches
+            .filter((search) => otherSearches.has(search))
+            .map((search) => ({ search, slug: other.slug }))
+    })
+}
+
+function describePinnedSearchClash({
+    search,
+    slug,
+}: PinnedSearchClash): string {
+    return `"${search}" is already pinned to the published featured viz "${slug}". A search can show only one featured viz.`
+}
 
 export class GdocFeaturedViz
     extends GdocBase
@@ -64,6 +115,15 @@ export class GdocFeaturedViz
             content.acknowledgements = parseAcknowledgements(
                 content.acknowledgements
             )
+        }
+
+        const pinnedForSearches = content["pinned-for-searches"]
+        if (
+            typeof pinnedForSearches === "string" ||
+            Array.isArray(pinnedForSearches)
+        ) {
+            content["pinned-for-searches"] =
+                parsePinnedSearches(pinnedForSearches)
         }
     }
 
@@ -107,8 +167,30 @@ export class GdocFeaturedViz
         this.bespokeMetadata = parsed.data
     }
 
-    override _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
+    override _validateSubclass = async (
+        knex: db.KnexReadonlyTransaction
+    ): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
+
+        if ((this.content["pinned-for-searches"] ?? []).length === 0) {
+            const hasTags = (this.tags ?? []).length > 0
+            const noPinsMessage = hasTags
+                ? "No pinned searches are set, so this featured viz only shows as a card in the Data search results when a reader picks one of its topics and types nothing."
+                : "No pinned searches or topic tags are set, so this featured viz won't show as a card in the Data search results. Add pinned searches, a topic tag, or both."
+            errors.push({
+                property: "pinned-for-searches",
+                message: `${noPinsMessage} To get suggestions, copy this into Claude Code: /suggest-pinned-searches https://docs.google.com/document/d/${this.id}/edit`,
+                type: OwidGdocErrorMessageType.Warning,
+            })
+        }
+
+        for (const clash of await getPinnedSearchClashes(knex, this)) {
+            errors.push({
+                property: "pinned-for-searches",
+                message: describePinnedSearchClash(clash),
+                type: OwidGdocErrorMessageType.Error,
+            })
+        }
 
         // Only top-level bespoke-component blocks count: the page renders the
         // first one on its blue band, and it can't do that for a block nested

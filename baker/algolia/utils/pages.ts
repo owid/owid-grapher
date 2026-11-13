@@ -19,11 +19,14 @@ import {
     articulateEntity,
     getPrefixedGdocPath,
     getFeaturedImageFilename,
+    checkIsFeaturedViz,
+    checkIsGdocPostExcludingFragments,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import {
     PageRecord,
     OwidGdocProfileInterface,
+    OwidGdocFeaturedVizInterface,
     OwidGdoc,
 } from "@ourworldindata/types"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
@@ -51,6 +54,43 @@ import {
     prepareCalloutTablesForProfile,
     checkShouldProfileRender,
 } from "../../../db/model/Gdoc/dataCallouts.js"
+
+/** Gdoc types that get records in the pages index, apart from profiles,
+ *  which have their own indexing path. */
+export type IndexableInPagesGdoc =
+    | (OwidGdocPostInterface & {
+          content: {
+              type:
+                  | OwidGdocType.Article
+                  | OwidGdocType.TopicPage
+                  | OwidGdocType.LinearTopicPage
+          }
+      })
+    | OwidGdocAboutInterface
+    | OwidGdocDataInsightInterface
+    | OwidGdocFeaturedVizInterface
+
+const PAGES_INDEX_TYPES_RECORD: Record<
+    NonNullable<IndexableInPagesGdoc["content"]["type"]>,
+    true
+> = {
+    [OwidGdocType.Article]: true,
+    [OwidGdocType.TopicPage]: true,
+    [OwidGdocType.LinearTopicPage]: true,
+    [OwidGdocType.AboutPage]: true,
+    [OwidGdocType.DataInsight]: true,
+    [OwidGdocType.FeaturedViz]: true,
+}
+
+const PAGES_INDEX_TYPES = Object.keys(
+    PAGES_INDEX_TYPES_RECORD
+) as OwidGdocType[]
+
+export function checkIsIndexableInPages(gdoc: {
+    content: { type?: OwidGdocType }
+}): gdoc is IndexableInPagesGdoc {
+    return PAGES_INDEX_TYPES.includes(gdoc.content.type as OwidGdocType)
+}
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -138,8 +178,9 @@ function filterSpansForExcerptLong(span: Span): Span | null {
 }
 
 function getExcerptLongFromGdoc(
-    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
+    gdoc: IndexableInPagesGdoc
 ): string[] | undefined {
+    if (!checkIsGdocPostExcludingFragments(gdoc)) return
     if (
         gdoc.content.type !== OwidGdocType.TopicPage &&
         // Most (all?) linear topic pages currently don't have an intro block,
@@ -202,10 +243,7 @@ function stripNonSearchableCharacters(content: string): string {
 /** Build indexable body text with linked-callout resolution and lightweight
  *  cleanup (remove non-searchable symbols), while preserving paragraph breaks. */
 export function getPreprocessedIndexableText<
-    IndexableGdoc extends
-        | OwidGdocPostInterface
-        | OwidGdocDataInsightInterface
-        | OwidGdocProfileInterface,
+    IndexableGdoc extends IndexableInPagesGdoc | OwidGdocProfileInterface,
 >(
     body: IndexableGdoc["content"]["body"] | undefined,
     linkedCallouts: IndexableGdoc["linkedCallouts"]
@@ -223,28 +261,31 @@ function flattenToSingleLine(chunk: string): string {
 }
 
 const getPostImportance = (
-    gdoc:
-        | OwidGdocAboutInterface
-        | OwidGdocDataInsightInterface
-        | OwidGdocPostInterface
-        | OwidGdocProfileInterface
+    gdoc: IndexableInPagesGdoc | OwidGdocProfileInterface
 ): number => {
-    return match(gdoc.content.type)
-        .with(OwidGdocType.Article, () =>
-            "deprecation-notice" in gdoc.content ? -0.5 : 0
-        )
-        .with(P.union(OwidGdocType.AboutPage, OwidGdocType.Profile), () => 1)
-        .with(
-            P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
-            () => 3
-        )
-        .with(P.union(OwidGdocType.Fragment, undefined), () => 0)
-        .with(OwidGdocType.DataInsight, () => 0)
-        .exhaustive()
+    return (
+        match(gdoc.content.type)
+            .with(OwidGdocType.Article, () =>
+                "deprecation-notice" in gdoc.content ? -0.5 : 0
+            )
+            .with(
+                P.union(OwidGdocType.AboutPage, OwidGdocType.Profile),
+                () => 1
+            )
+            .with(
+                P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
+                () => 3
+            )
+            .with(OwidGdocType.DataInsight, () => 0)
+            // Only the featured-viz search returns featured-viz pages, so
+            // this number never ranks them against other page types.
+            .with(OwidGdocType.FeaturedViz, () => 0)
+            .exhaustive()
+    )
 }
 
 async function generateGdocRecords(
-    gdocs: (OwidGdocPostInterface | OwidGdocDataInsightInterface)[],
+    gdocs: IndexableInPagesGdoc[],
     pageviews: Record<string, RawPageview>,
     cloudflareImagesByFilename: Record<string, DbEnrichedImage>,
     knex: db.KnexReadonlyTransaction
@@ -307,6 +348,9 @@ async function generateGdocRecords(
                 authors: gdoc.content.authors,
                 thumbnailUrl,
                 availableEntities: [],
+                pinnedForSearches: checkIsFeaturedViz(gdoc)
+                    ? gdoc.content["pinned-for-searches"]
+                    : undefined,
             }
             const score = computePageScore(record)
             records.push({ ...record, score })
@@ -406,21 +450,10 @@ async function generateProfileRecords(
 export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const gdocs = (await db
-        .getPublishedGdocsWithTags(
-            knex,
-            [
-                OwidGdocType.Article,
-                OwidGdocType.LinearTopicPage,
-                OwidGdocType.TopicPage,
-                OwidGdocType.AboutPage,
-                OwidGdocType.DataInsight,
-            ],
-            { excludeDeprecated: true }
-        )
-        .then((gdocs) => gdocs.map(gdocFromJSON))) as (
-        | OwidGdocPostInterface
-        | OwidGdocDataInsightInterface
-    )[]
+        .getPublishedGdocsWithTags(knex, PAGES_INDEX_TYPES, {
+            excludeDeprecated: true,
+        })
+        .then((gdocs) => gdocs.map(gdocFromJSON))) as IndexableInPagesGdoc[]
 
     // Only load linkedCallouts — the sole attachment that affects indexed
     // text (via span-callout resolution in enrichedBlocksToIndexableText).
@@ -503,7 +536,7 @@ async function getExistingRecordsForPath(
  *   same slug while resolving to different pages (e.g. a data insight and an article) - see #6591.
  */
 export async function indexIndividualGdoc(
-    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
+    gdoc: IndexableInPagesGdoc,
     knex: db.KnexReadonlyTransaction,
     indexedSlug: string
 ) {
@@ -599,7 +632,7 @@ export async function indexIndividualGdoc(
  * Get Algolia records for a single gdoc
  */
 export async function getIndividualGdocRecords(
-    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
+    gdoc: IndexableInPagesGdoc,
     knex: db.KnexReadonlyTransaction,
     indexedSlug?: string
 ) {

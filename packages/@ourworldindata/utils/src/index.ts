@@ -460,6 +460,12 @@ export {
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
 
+export {
+    PINNED_SEARCHES_ATTRIBUTE,
+    normalizePinnedSearch,
+    parsePinnedSearches,
+} from "./search/pinnedSearch.js"
+
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
 
