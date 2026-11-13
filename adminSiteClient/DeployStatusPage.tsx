@@ -2,17 +2,29 @@ import { Component } from "react"
 import { observer } from "mobx-react"
 import { action, observable, runInAction, makeObservable } from "mobx"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCheckCircle } from "@fortawesome/free-solid-svg-icons"
-
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { Deploy, DeployStatus } from "@ourworldindata/utils"
+import { DeployBuild, DEPLOY_REQUEST_WINDOW_MS } from "@ourworldindata/utils"
 import { Timeago } from "./Forms.js"
 
-const statusLabel: Record<DeployStatus, string> = {
-    [DeployStatus.queued]: "Next up",
-    [DeployStatus.pending]: "Deploying",
+type DeployStateKind = "waiting" | "deploying" | "deployed" | "failed" | "other"
+
+// Buildkite's build states, grouped the way an editor cares about them
+const stateKinds: Record<string, DeployStateKind> = {
+    creating: "waiting",
+    scheduled: "waiting",
+    running: "deploying",
+    failing: "deploying",
+    passed: "deployed",
+    failed: "failed",
+}
+
+const stateLabels: Record<DeployStateKind, string> = {
+    waiting: "Waiting",
+    deploying: "Deploying",
+    deployed: "Deployed",
+    failed: "Failed",
+    other: "Didn't run",
 }
 
 @observer
@@ -20,15 +32,14 @@ export class DeployStatusPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    deploys: Deploy[] = []
+    builds: DeployBuild[] = []
     canManuallyDeploy = true
-    refreshIntervalId?: number
 
     constructor(props: Record<string, never>) {
         super(props)
 
         makeObservable(this, {
-            deploys: observable,
+            builds: observable,
             canManuallyDeploy: observable,
             handleVisibilityChange: action.bound,
         })
@@ -65,65 +76,58 @@ export class DeployStatusPage extends Component {
                                 await this.getData()
                             }}
                         >
-                            Manually enqueue a deploy
+                            Deploy now
                         </button>
                     </div>
-                    {this.deploys.length > 0 ? (
+                    <p>
+                        Every published change goes live with a deploy that
+                        rebakes the whole site, which takes a few minutes. A
+                        change starts a deploy right away; changes made in the{" "}
+                        {DEPLOY_REQUEST_WINDOW_MS / 60_000} minutes after that
+                        go out together in the next one.
+                    </p>
+                    {this.builds.length > 0 ? (
                         <table className="DeploysTable">
                             <thead>
                                 <tr>
                                     <th>Status</th>
-                                    <th>Note</th>
-                                    <th>Author</th>
-                                    <th>Time</th>
+                                    <th>Changes</th>
+                                    <th>Requested</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {this.deploys.map((deploy) =>
-                                    deploy.changes.map((change, i) => (
-                                        <tr key={`${deploy.status}-${i}`}>
+                                {this.builds.map((build) => {
+                                    const kind =
+                                        stateKinds[build.state] ?? "other"
+                                    return (
+                                        <tr key={build.number}>
                                             <td
-                                                className={`cell-status cell-status--${deploy.status}`}
+                                                className={`cell-status cell-status--${kind}`}
                                             >
-                                                {statusLabel[deploy.status]}
+                                                <a
+                                                    href={build.webUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    {stateLabels[kind]}
+                                                </a>
                                             </td>
                                             <td className="cell-message">
-                                                {change.message}
-                                            </td>
-                                            <td className="cell-author">
-                                                {change.authorName}
+                                                {build.message}
                                             </td>
                                             <td className="cell-time">
                                                 <Timeago
-                                                    time={change.timeISOString}
+                                                    time={build.createdAt}
                                                 />
                                             </td>
                                         </tr>
-                                    ))
-                                )}
+                                    )
+                                })}
                             </tbody>
                         </table>
                     ) : (
-                        <div className="all-published-notice">
-                            <p>
-                                <span className="icon">
-                                    <FontAwesomeIcon icon={faCheckCircle} />
-                                </span>{" "}
-                                All changes are successfully deployed.
-                            </p>
-                        </div>
+                        <p>No deploys yet.</p>
                     )}
-                    <p>
-                        Past deploys can be found in the{" "}
-                        <a
-                            href="https://buildkite.com/our-world-in-data/owid-deploy-content-master/builds?branch=master"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Buildkite pipeline
-                        </a>
-                        .
-                    </p>
                 </main>
             </AdminLayout>
         )
@@ -135,18 +139,27 @@ export class DeployStatusPage extends Component {
 
     @action.bound async triggerDeploy() {
         const { admin } = this.context
-        await admin.rawRequest("/api/deploy", undefined, "PUT")
+        // A failed request shows requestJSON's error modal
+        const json = await admin.requestJSON<{
+            success: boolean
+            message?: string
+        }>("/api/deploy", {}, "PUT")
+        if (!json.success)
+            admin.setErrorMessage({
+                title: "No deploy requested",
+                content: json.message ?? "Unknown error",
+            })
     }
 
     async getData() {
         const { admin } = this.context
         if (admin.currentRequests.length > 0) return
 
-        const json = await admin.getJSON<{ deploys: Deploy[] }>(
+        const json = await admin.getJSON<{ builds: DeployBuild[] }>(
             "/api/deploys.json"
         )
         runInAction(() => {
-            this.deploys = json.deploys
+            this.builds = json.builds
         })
     }
 }

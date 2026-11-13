@@ -15,11 +15,6 @@ async function getJobProcessor() {
     return await import("../../jobQueue/explorerJobProcessor.js")
 }
 
-// Avoid file side effects from deploy queue
-vi.mock(import("../../baker/GrapherBakingUtils.js"), () => ({
-    triggerStaticBuild: vi.fn(async () => undefined),
-}))
-
 const env = getAdminTestEnv()
 
 async function processUntilNoQueued(slug: string, max = 5): Promise<void> {
