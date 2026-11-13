@@ -1,8 +1,4 @@
-import {
-    NEWSLETTER_RECORD_TYPE,
-    PageChronologicalNewsletterRecord,
-    PageChronologicalRecordSchema,
-} from "@ourworldindata/types"
+import { PageChronologicalNewsletterRecord } from "@ourworldindata/types"
 import {
     MAILCHIMP_API_KEY,
     MAILCHIMP_API_SERVER,
@@ -19,7 +15,6 @@ export interface MailchimpCampaign {
         title?: string
         // Empty for A/B-tested ("variate") campaigns
         subject_line?: string
-        preview_text?: string
     }
     variate_settings?: {
         subject_lines?: string[]
@@ -38,7 +33,6 @@ const CAMPAIGN_FIELDS = [
     "campaigns.long_archive_url",
     "campaigns.settings.title",
     "campaigns.settings.subject_line",
-    "campaigns.settings.preview_text",
     "campaigns.variate_settings.subject_lines",
 ]
 
@@ -73,24 +67,10 @@ function getCampaignSubjectLine(campaign: MailchimpCampaign): string {
 export function buildOwidBriefRecord(
     campaign: MailchimpCampaign
 ): PageChronologicalNewsletterRecord | null {
-    const date = new Date(campaign.send_time).toISOString()
-    const record: PageChronologicalNewsletterRecord = {
-        objectID: getOwidBriefObjectID(campaign.id),
-        slug: campaign.id,
-        title: getCampaignSubjectLine(campaign),
-        excerpt: campaign.settings.preview_text ?? "",
-        date,
-        modifiedDate: date,
-        authors: [],
-        tags: [],
-        thumbnailUrl: "",
-        type: NEWSLETTER_RECORD_TYPE,
-        latestType: "newsletter",
-        url: campaign.long_archive_url,
-    }
-
-    const parsed = PageChronologicalRecordSchema.safeParse(record)
-    if (!parsed.success || !record.title || !record.url) {
+    const title = getCampaignSubjectLine(campaign)
+    const url = campaign.long_archive_url
+    const sentAt = new Date(campaign.send_time)
+    if (!title || !url || Number.isNaN(sentAt.getTime())) {
         void logErrorAndMaybeCaptureInSentry(
             new Error(
                 `Invalid pages-chronological record for Mailchimp campaign ${campaign.id} (${campaign.settings.title})`
@@ -98,7 +78,22 @@ export function buildOwidBriefRecord(
         )
         return null
     }
-    return record
+
+    const date = sentAt.toISOString()
+    return {
+        objectID: getOwidBriefObjectID(campaign.id),
+        slug: campaign.id,
+        title,
+        excerpt: "",
+        date,
+        modifiedDate: date,
+        authors: [],
+        tags: [],
+        thumbnailUrl: "",
+        type: "newsletter",
+        latestType: "newsletter",
+        url,
+    }
 }
 
 async function fetchSentCampaigns(): Promise<MailchimpCampaign[]> {

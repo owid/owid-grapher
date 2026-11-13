@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import * as db from "../../../db/db.js"
+import type { SearchClient } from "algoliasearch"
 import {
     OwidGdocType,
     checkIsChronologicalGdoc,
@@ -448,34 +449,45 @@ export async function getPagesChronologicalRecords(
     return records
 }
 
-/** Index the issues of The OWID Brief that aren't in the index yet. */
-export async function indexMissingOwidBriefsInChronological(): Promise<void> {
-    if (!ALGOLIA_INDEXING) return
-
-    const client = getAlgoliaClient()
-    if (!client) {
-        console.error(
-            "Failed indexing The OWID Brief to pages-chronological (Algolia client not initialized)"
-        )
-        return
-    }
-
-    const records = await getOwidBriefRecords()
-    if (!records.length) return
-
-    const indexName = getIndexName(SearchIndexName.PagesChronological)
+/** Returns the subset of `objectIDs` that aren't yet present in `indexName`. */
+export async function getUnindexedObjectIds(
+    client: SearchClient,
+    indexName: string,
+    objectIDs: string[]
+): Promise<string[]> {
+    if (!objectIDs.length) return []
     const { results } = await client.getObjects<{ objectID: string } | null>({
-        requests: records.map((record) => ({
+        requests: objectIDs.map((objectID) => ({
             indexName,
-            objectID: record.objectID,
+            objectID,
             attributesToRetrieve: ["objectID"],
         })),
     })
-    const missing = records.filter((_, i) => results[i] === null)
-    console.log(
-        `${records.length} issues of The OWID Brief, ${missing.length} missing from ${indexName}.`
-    )
-    if (!missing.length) return
+    // `results` is aligned positionally with the requests; a null means the
+    // object isn't in the index.
+    return objectIDs.filter((_, i) => results[i] === null)
+}
 
-    await client.saveObjects({ indexName, objects: missing })
+/** Index the issues of The OWID Brief that aren't in the index yet. */
+export async function indexMissingOwidBriefsInChronological(
+    client: SearchClient,
+    indexName: string
+): Promise<void> {
+    const records = await getOwidBriefRecords()
+    const missingIds = new Set(
+        await getUnindexedObjectIds(
+            client,
+            indexName,
+            records.map((record) => record.objectID)
+        )
+    )
+    console.log(
+        `${records.length} issues of The OWID Brief, ${missingIds.size} missing from ${indexName}.`
+    )
+    if (!missingIds.size) return
+
+    await client.saveObjects({
+        indexName,
+        objects: records.filter((record) => missingIds.has(record.objectID)),
+    })
 }

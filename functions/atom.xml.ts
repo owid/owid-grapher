@@ -31,7 +31,7 @@ const FEED_ATTRIBUTES = [
 
 // Newsletters are indexed for /latest but left out of the feed: an issue
 // mostly links back to work the feed has already carried.
-const FEED_LATEST_TYPE_VALUES = LATEST_TYPE_VALUES.filter(
+const ATOM_FEED_TYPE_VALUES = LATEST_TYPE_VALUES.filter(
     (type) => type !== "newsletter"
 )
 
@@ -57,7 +57,7 @@ async function queryChronologicalPages(
 
     const filters = latestTypes?.length
         ? latestTypes.map((type) => `latestType:${type}`).join(" OR ")
-        : undefined
+        : "NOT type:newsletter"
     const facetFilters = topicFacetFilters.length
         ? topicFacetFilters
         : undefined
@@ -193,7 +193,7 @@ function parseLatestTypes(param: string | null): LatestType[] | undefined {
         .split("~")
         .map((t) => t.trim())
         .filter((t): t is LatestType =>
-            (FEED_LATEST_TYPE_VALUES as readonly string[]).includes(t)
+            (ATOM_FEED_TYPE_VALUES as readonly string[]).includes(t)
         )
 }
 
@@ -215,7 +215,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
         if (typeParam && latestTypes?.length === 0) {
             return new Response(
-                `Invalid type parameter. Allowed types: ${FEED_LATEST_TYPE_VALUES.join(", ")}`,
+                `Invalid type parameter. Allowed types: ${ATOM_FEED_TYPE_VALUES.join(", ")}`,
                 { status: 400, headers: { "Content-Type": "text/plain" } }
             )
         }

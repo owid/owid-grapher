@@ -243,10 +243,8 @@ export type PageChronologicalLinearTopicPageRecord = z.infer<
 // The only variant that isn't a gdoc: an issue of The OWID Brief, sourced from
 // Mailchimp. It has no page on the site, so the record carries the URL of the
 // issue's archive page for the card to link to.
-export const NEWSLETTER_RECORD_TYPE = "newsletter"
-
 const PageChronologicalNewsletterRecordPayloadSchema = z.strictObject({
-    type: z.literal(NEWSLETTER_RECORD_TYPE),
+    type: z.literal("newsletter"),
     latestType: z.literal("newsletter"),
     url: z.string(),
 })

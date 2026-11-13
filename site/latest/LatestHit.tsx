@@ -1,8 +1,5 @@
 import { OwidGdocType } from "@ourworldindata/utils"
-import {
-    NEWSLETTER_RECORD_TYPE,
-    PageChronologicalRecord,
-} from "@ourworldindata/types"
+import { PageChronologicalRecord } from "@ourworldindata/types"
 import { LatestArticleHit } from "./LatestArticleHit.js"
 import { LatestDataInsightHit } from "./LatestDataInsightHit.js"
 import { LatestAnnouncementHit } from "./LatestAnnouncementHit.js"
@@ -67,7 +64,7 @@ export const LatestHit = ({
             { type: OwidGdocType.LinearTopicPage },
             () => null
         )
-        .with({ type: NEWSLETTER_RECORD_TYPE }, (hit) => (
+        .with({ type: "newsletter" }, (hit) => (
             <LatestNewsletterHit hit={hit} position={position} />
         ))
         .exhaustive()
