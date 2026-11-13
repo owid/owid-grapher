@@ -233,7 +233,7 @@ function KeyChartsThumbnailsTestPage({
     countries: string[]
 }): React.ReactElement {
     const makeAllChartsGrapherParams: MakeGrapherParams = (tab) =>
-        toAllChartsGrapherParams({ tab, countries })
+        toAllChartsGrapherParams({ tab, countries, target: "thumbnail" })
     return (
         <html>
             <head>
