@@ -243,7 +243,11 @@ function AllChartsItem({
     const thumbnailTabs = pickThumbnailTabs(hit.availableTabs)
     const thumbnails: AllChartsThumbnail[] = thumbnailTabs.map((tab) => ({
         tab,
-        grapherParams: toAllChartsGrapherParams({ tab, countries }),
+        grapherParams: toAllChartsGrapherParams({
+            tab,
+            countries,
+            target: "thumbnail",
+        }),
     }))
 
     const select = (
@@ -529,7 +533,11 @@ function AllChartsPreview({
     countries: string[]
 }): React.ReactElement {
     const { isPreviewing } = useDocumentContext()
-    const grapherParams = toAllChartsGrapherParams({ tab, countries })
+    const grapherParams = toAllChartsGrapherParams({
+        tab,
+        countries,
+        target: "preview",
+    })
     switch (hit.type) {
         case ChartRecordType.Chart:
             return (

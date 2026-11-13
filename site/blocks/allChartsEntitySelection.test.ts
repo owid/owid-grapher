@@ -11,6 +11,7 @@ describe(toAllChartsGrapherParams, () => {
         name: string
         tab: GrapherTabName
         countries: string[]
+        target?: "thumbnail" | "preview"
         expected: GrapherQueryParams
     }>([
         {
@@ -117,7 +118,35 @@ describe(toAllChartsGrapherParams, () => {
             countries: ["Kenya"],
             expected: { tab: "map", country: "~KEN" },
         },
-    ])("$name", ({ tab, countries, expected }) => {
-        expect(toAllChartsGrapherParams({ tab, countries })).toEqual(expected)
+        {
+            name: "selects nothing in a marimekko preview",
+            tab: GRAPHER_TAB_NAMES.Marimekko,
+            countries: [],
+            target: "preview",
+            expected: { tab: "marimekko", country: "" },
+        },
+        {
+            name: "focuses the picked country in a marimekko preview",
+            tab: GRAPHER_TAB_NAMES.Marimekko,
+            countries: ["Kenya"],
+            target: "preview",
+            expected: { tab: "marimekko", country: "~KEN", focus: "~KEN" },
+        },
+        {
+            name: "spreads four countries over a line chart preview",
+            tab: GRAPHER_TAB_NAMES.LineChart,
+            countries: [],
+            target: "preview",
+            expected: {
+                tab: "line",
+                country: "",
+                peerCountries: "dataRange",
+                peerCount: "4",
+            },
+        },
+    ])("$name", ({ tab, countries, target = "thumbnail", expected }) => {
+        expect(toAllChartsGrapherParams({ tab, countries, target })).toEqual(
+            expected
+        )
     })
 })

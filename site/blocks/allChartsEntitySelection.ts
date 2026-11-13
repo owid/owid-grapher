@@ -17,6 +17,7 @@ type EntitySelectionRule =
     | {
           withoutPickedCountry: "dataRangePeers"
           withPickedCountry: "pickedFocused" | "peers"
+          hasEmptyPreviewWithoutPickedCountry?: boolean
           maxEntities: number
       }
     | {
@@ -38,7 +39,7 @@ const ENTITY_SELECTION_BY_TAB: Record<GrapherTabName, EntitySelectionRule> = {
     [GRAPHER_TAB_NAMES.StackedDiscreteBar]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "peers", maxEntities: 6 },
     [GRAPHER_TAB_NAMES.Dumbbell]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "peers", maxEntities: 6 },
     [GRAPHER_TAB_NAMES.Swimlane]: { withoutPickedCountry: "defaultSelectionPeers", withPickedCountry: "defaultSelectionPeers", maxEntities: 6 },
-    [GRAPHER_TAB_NAMES.Marimekko]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "pickedFocused", maxEntities: 3 },
+    [GRAPHER_TAB_NAMES.Marimekko]: { withoutPickedCountry: "dataRangePeers", withPickedCountry: "pickedFocused", maxEntities: 3, hasEmptyPreviewWithoutPickedCountry: true },
     [GRAPHER_TAB_NAMES.ScatterPlot]: { withoutPickedCountry: "defaultSelection", withPickedCountry: "pickedOnly" },
     [GRAPHER_TAB_NAMES.StackedArea]: { withoutPickedCountry: "defaultSelection", withPickedCountry: "pickedOnly" },
     [GRAPHER_TAB_NAMES.StackedBar]: { withoutPickedCountry: "defaultSelection", withPickedCountry: "pickedOnly" },
@@ -49,34 +50,42 @@ const ENTITY_SELECTION_BY_TAB: Record<GrapherTabName, EntitySelectionRule> = {
 export function toAllChartsGrapherParams({
     tab,
     countries,
+    target,
 }: {
     tab: GrapherTabName
     countries: string[]
+    target: "thumbnail" | "preview"
 }): GrapherQueryParams {
     return {
         ...toGrapherQueryParams({ tab, entities: countries }),
-        ...toPeerQueryParams(ENTITY_SELECTION_BY_TAB[tab], countries),
+        ...toPeerQueryParams(ENTITY_SELECTION_BY_TAB[tab], countries, target),
     }
 }
 
 function toPeerQueryParams(
     rule: EntitySelectionRule,
-    pickedCountries: string[]
+    pickedCountries: string[],
+    target: "thumbnail" | "preview"
 ): GrapherQueryParams {
     return pickedCountries.length === 0
-        ? toPeerQueryParamsWithoutPickedCountry(rule)
+        ? toPeerQueryParamsWithoutPickedCountry(rule, target)
         : toPeerQueryParamsWithPickedCountry(rule, pickedCountries)
 }
 
 function toPeerQueryParamsWithoutPickedCountry(
-    rule: EntitySelectionRule
+    rule: EntitySelectionRule,
+    target: "thumbnail" | "preview"
 ): GrapherQueryParams {
     return match(rule)
-        .with({ withoutPickedCountry: "dataRangePeers" }, (rule) => ({
-            country: "",
-            peerCountries: PeerCountryStrategy.DataRange,
-            peerCount: String(rule.maxEntities),
-        }))
+        .with({ withoutPickedCountry: "dataRangePeers" }, (rule) =>
+            target === "preview" && rule.hasEmptyPreviewWithoutPickedCountry
+                ? { country: "" }
+                : {
+                      country: "",
+                      peerCountries: PeerCountryStrategy.DataRange,
+                      peerCount: String(rule.maxEntities),
+                  }
+        )
         .with({ withoutPickedCountry: "defaultSelectionPeers" }, (rule) => ({
             country: "",
             peerCountries: PeerCountryStrategy.DefaultSelection,
