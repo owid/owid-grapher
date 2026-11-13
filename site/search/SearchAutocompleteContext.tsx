@@ -6,11 +6,15 @@ export interface SearchAutocompleteContextType {
     setActiveIndex: (index: number) => void
     suggestions: Filter[]
     setSuggestions: (suggestions: Filter[]) => void
+    // The suggestions plus the "Try AI search" row after them, which is only
+    // shown with suggestions
+    itemCount: number
     showSuggestions: boolean
     setShowSuggestions: (isOpen: boolean) => void
     onSelectActiveItem: () => void
+    // The handler gets no filter for the AI search row
     registerSelectionHandler: (
-        handler: (filter: Filter, index: number) => void
+        handler: (filter: Filter | undefined, index: number) => void
     ) => void
 }
 
