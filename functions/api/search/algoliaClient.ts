@@ -14,6 +14,17 @@ export interface AlgoliaConfig {
      * apart (and attribute countries) as when the browser queries it directly
      */
     readerIp?: string
+    /** DIAGNOSTIC: every Algolia attempt this request made */
+    attempts?: AlgoliaAttempt[]
+}
+
+export interface AlgoliaAttempt {
+    host: string
+    ms: number
+    status: number
+    timedOut: boolean
+    serverMs?: number
+    processingMs?: number
 }
 
 export function getAlgoliaConfig(env: Env, request?: Request): AlgoliaConfig {
@@ -63,20 +74,46 @@ export function getSearchIndexNames(
 // request, which also makes the client safe to hoist to module scope.
 export function createSearchClient(config: AlgoliaConfig): LiteClient {
     const fetchRequester = createFetchRequester()
-    const { readerIp } = config
+    const { readerIp, attempts } = config
     return liteClient(config.appId, config.apiKey, {
-        requester: readerIp
-            ? {
-                  send: (request) =>
-                      fetchRequester.send({
-                          ...request,
-                          headers: {
-                              ...request.headers,
-                              "X-Forwarded-For": readerIp,
-                          },
-                      }),
-              }
-            : fetchRequester,
+        requester: {
+            send: async (request) => {
+                const t0 = Date.now()
+                const response = await fetchRequester.send({
+                    ...request,
+                    headers: readerIp
+                        ? { ...request.headers, "X-Forwarded-For": readerIp }
+                        : request.headers,
+                })
+                const ms = Date.now() - t0
+                let serverMs: number | undefined
+                let processingMs: number | undefined
+                try {
+                    const body = JSON.parse(response.content) as {
+                        results?: {
+                            serverTimeMS?: number
+                            processingTimeMS?: number
+                        }[]
+                        serverTimeMS?: number
+                        processingTimeMS?: number
+                    }
+                    const first = body.results?.[0] ?? body
+                    serverMs = first.serverTimeMS
+                    processingMs = first.processingTimeMS
+                } catch {
+                    // Not JSON (a timeout or network error)
+                }
+                attempts?.push({
+                    host: new URL(request.url).host,
+                    ms,
+                    status: response.status,
+                    timedOut: response.isTimedOut,
+                    serverMs,
+                    processingMs,
+                })
+                return response
+            },
+        },
         responsesCache: createNullCache(),
     })
 }
