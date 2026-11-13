@@ -25,11 +25,25 @@
     color: $blue-60;
 }
 
+// short latest-edition link in compact forms, hidden on the /subscribe page
+// in favour of the longer example link below
+.newsletter-subscription-form__latest {
+    white-space: nowrap;
+
+    a {
+        @include owid-link-60;
+    }
+}
+
 // hidden by default, shown on the /subscribe page
 .newsletter-subscription-form__example-link {
-    @include owid-link-60;
     display: none;
     padding: 0 0.5rem;
+    color: $blue-60;
+
+    a {
+        @include owid-link-60;
+    }
 }
 
 .newsletter-subscription-form__alert {
