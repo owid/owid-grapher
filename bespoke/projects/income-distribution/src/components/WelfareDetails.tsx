@@ -29,7 +29,14 @@ export function WelfareDetailsCard({
     return (
         <div className="income-distribution-dod-card">
             <div className="income-distribution-dod-card__title">{title}</div>
-            <p className="income-distribution-dod-card__body">{description}</p>
+            {description.map((paragraph) => (
+                <p
+                    key={paragraph}
+                    className="income-distribution-dod-card__body"
+                >
+                    {paragraph}
+                </p>
+            ))}
         </div>
     )
 }

@@ -24,18 +24,24 @@ export function placeholderWelfareType(countryName: string): WelfareType {
  */
 export const WELFARE_TYPE_DETAILS: Record<
     WelfareType,
-    { term: string; title: string; description: string }
+    { term: string; title: string; description: string[] }
 > = {
     income: {
         term: "income after taxes and benefits",
         title: "Income data",
-        description:
-            "The World Bank relies on household surveys that measure either income or consumption, depending on the country. For these countries, the data is based on household income: wages and other earnings, after taxes and benefits. Income and consumption are not perfectly comparable; income data tends to show more inequality.",
+        description: [
+            "The World Bank relies on household surveys that measure either income or consumption, depending on the country.",
+            "For these countries, the data is based on household income: wages and other earnings, after taxes and benefits.",
+            "Income and consumption are not perfectly comparable; income data tends to show more inequality.",
+        ],
     },
     consumption: {
         term: "consumption",
         title: "Consumption data",
-        description:
-            "The World Bank relies on household surveys that measure either income or consumption, depending on the country. For these countries, the data is based on household consumption: what households spend on goods and services, which leaves out savings and debts. Income and consumption are not perfectly comparable; consumption data tends to be more evenly spread and show less inequality.",
+        description: [
+            "The World Bank relies on household surveys that measure either income or consumption, depending on the country.",
+            "For these countries, the data is based on household consumption: what households spend on goods and services, which leaves out savings and debts.",
+            "Income and consumption are not perfectly comparable; consumption data tends to be more evenly spread and show less inequality.",
+        ],
     },
 }
