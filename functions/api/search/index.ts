@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
-import { getAlgoliaConfig, type AlgoliaAttempt } from "./algoliaClient.js"
+import { getAlgoliaConfig } from "./algoliaClient.js"
 import { fetchTagGraph } from "../../_common/search/tagGraph.js"
 import {
     searchCharts,
@@ -32,10 +32,6 @@ const CACHE_MAX_AGE_SECONDS = 60 * 10
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
-// DIAGNOSTIC: isolate age and request count for Server-Timing
-// (Date.now() at module scope is 0 in Workers, so set on first request)
-let isolateStart: number | undefined
-let isolateRequests = 0
 const MAX_PAGE = 1000
 const MAX_OFFSET = MAX_PAGE * MAX_HITS_PER_PAGE
 // Algolia rejects queries longer than 512 bytes
@@ -303,12 +299,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
         // Get Algolia config
         const algoliaConfig = getAlgoliaConfig(env, request)
-        // DIAGNOSTIC: report Algolia attempts and isolate age via Server-Timing
-        const attempts: AlgoliaAttempt[] = []
-        algoliaConfig.attempts = attempts
-        isolateRequests++
-        isolateStart ??= Date.now()
-        const requestStart = Date.now()
 
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
@@ -367,7 +357,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         if (cachedResponse) return cachedResponse
 
         const results = await search()
-        const totalMs = Date.now() - requestStart
 
         const response = new Response(
             JSON.stringify({ ...results, warnings }, null, 2),
@@ -377,14 +366,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     "Content-Type": "application/json",
                     "Cache-Control": `public, max-age=${queryless ? QUERYLESS_CACHE_MAX_AGE_SECONDS : CACHE_MAX_AGE_SECONDS}`,
                     "Access-Control-Allow-Origin": "*", // Allow CORS for API usage
-                    "Server-Timing": [
-                        `handler;dur=${totalMs}`,
-                        ...attempts.map(
-                            (a, i) =>
-                                `algolia${i};dur=${a.ms};desc="${a.host} status=${a.status} timedOut=${a.timedOut} server=${a.serverMs ?? ""} processing=${a.processingMs ?? ""}"`
-                        ),
-                        `isolate;desc="age=${Math.round((Date.now() - (isolateStart ?? 0)) / 1000)}s req=${isolateRequests} colo=${(request as { cf?: { colo?: string } }).cf?.colo ?? ""}"`,
-                    ].join(", "),
                 },
             }
         )
