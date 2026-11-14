@@ -5,10 +5,8 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocType,
     OwidEnrichedGdocBlock,
-    RelatedChart,
     OwidGdocMinimalPostInterface,
     OwidGdocBaseInterface,
-    ArchiveContext,
 } from "@ourworldindata/types"
 import { excludeNullish, generateToc } from "@ourworldindata/utils"
 import {
@@ -20,8 +18,6 @@ import {
     parseLatestFeedExcerpt,
 } from "@ourworldindata/gdoc-pipeline"
 import { GdocBase } from "./GdocBase.js"
-import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
-import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     declare content: OwidGdocPostContent
@@ -38,7 +34,6 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         return gdoc
     }
     override linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
-    relatedCharts: RelatedChart[] = []
 
     protected override typeSpecificFilenames(): string[] {
         return excludeNullish([
@@ -182,51 +177,5 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         }
 
         return errors
-    }
-
-    override _loadSubclassAttachments: (
-        knex: KnexReadonlyTransaction
-    ) => Promise<void> = (knex: KnexReadonlyTransaction): Promise<void> =>
-        this.loadRelatedCharts(knex)
-
-    async loadRelatedCharts(
-        knex: KnexReadonlyTransaction,
-        archivedVersions?: Record<number, ArchiveContext | undefined>
-    ): Promise<void> {
-        if (!this.tags?.length || !this.hasAllChartsBlock) return
-
-        const relatedCharts = await knexRaw<{
-            chartId: number
-            slug: string
-            title: string
-            variantName: string
-            keyChartLevel: number
-        }>(
-            knex,
-            `-- sql
-                SELECT DISTINCT
-                    charts.id AS chartId,
-                    chart_configs.slug,
-                    chart_configs.config->>"$.title" AS title,
-                    chart_configs.config->>"$.variantName" AS variantName,
-                    chart_tags.keyChartLevel
-                FROM charts
-                JOIN chart_configs ON charts.configId=chart_configs.id
-                INNER JOIN chart_tags ON charts.id=chart_tags.chartId
-                WHERE chart_tags.tagId IN (?)
-                    AND chart_configs.config->>"$.isPublished" = "true"
-                ORDER BY title ASC
-            `,
-            [this.tags.map((tag) => tag.id)]
-        )
-        archivedVersions ??= await getLatestArchivedChartPageVersionsIfEnabled(
-            knex,
-            relatedCharts.map((c) => c.chartId)
-        )
-
-        this.relatedCharts = relatedCharts.map((chart) => ({
-            ...chart,
-            archiveContext: archivedVersions[chart.chartId] || undefined,
-        }))
     }
 }

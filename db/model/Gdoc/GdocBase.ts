@@ -588,15 +588,6 @@ export class GdocBase implements OwidGdocBaseInterface {
                     componentType: block.type,
                 }),
             ])
-            .with({ type: "all-charts" }, (block) =>
-                block.top.map((item) =>
-                    createLinkFromUrl({
-                        url: item.url,
-                        sourceId: this.id,
-                        componentType: block.type,
-                    })
-                )
-            )
             .with({ type: "recirc" }, (block) => {
                 const links: DbInsertPostGdocLink[] = []
 
@@ -861,6 +852,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     type: P.union(
                         "additional-charts",
                         "align",
+                        "all-charts",
                         "aside",
                         "blockquote",
                         "callout",
