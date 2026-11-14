@@ -1,4 +1,5 @@
 import ReactDOMServer from "react-dom/server"
+import { runInAction } from "mobx"
 import { Env, extensions } from "./env.js"
 import { extractOptions, ImageOptions } from "./imageOptions.js"
 import {
@@ -175,7 +176,9 @@ export async function fetchMetadataForExplorerView(
             explorerEnv,
             options
         )
-        const metadata = assembleMetadata(grapherState, searchParams)
+        const metadata = runInAction(() =>
+            assembleMetadata(grapherState, searchParams)
+        )
         return Response.json(metadata)
     } catch (e) {
         console.error(e)
@@ -195,7 +198,9 @@ export async function fetchReadmeForExplorerView(
             explorerEnv,
             options
         )
-        const readme = assembleReadme(grapherState, searchParams)
+        const readme = runInAction(() =>
+            assembleReadme(grapherState, searchParams)
+        )
         return new Response(readme, {
             headers: { "Content-Type": "text/markdown; charset=utf-8" },
         })
@@ -219,9 +224,11 @@ export async function fetchZipForExplorerView(
         )
 
         ensureDownloadOfDataAllowed(grapherState)
-        const metadata = assembleMetadata(grapherState, searchParams)
-        const readme = assembleReadme(grapherState, searchParams)
-        const csv = assembleCsv(grapherState, searchParams)
+        const { metadata, readme, csv } = runInAction(() => ({
+            metadata: assembleMetadata(grapherState, searchParams),
+            readme: assembleReadme(grapherState, searchParams),
+            csv: assembleCsv(grapherState, searchParams),
+        }))
         console.log("Fetched the parts, creating zip file")
 
         const filename = slugify(grapherState.effectiveTitle)
@@ -281,7 +288,9 @@ export async function fetchDataValuesForExplorerView(
         if (entityNames && entityNames.length > 0)
             grapherState.selection.setSelectedEntities(entityNames)
 
-        const dataValues = assembleDataValues(grapherState, entityName)
+        const dataValues = runInAction(() =>
+            assembleDataValues(grapherState, entityName)
+        )
 
         const cacheControl = shouldCache ? "max-age=3600" : "no-cache"
         const response = Response.json(dataValues, {
