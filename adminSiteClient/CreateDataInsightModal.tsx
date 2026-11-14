@@ -1074,7 +1074,7 @@ function makePngUrlForNarrativeChart(
     configId: string,
     { cache = false } = {}
 ): string {
-    const searchParams = new URLSearchParams({ imType: "square" })
+    const searchParams = new URLSearchParams({ imPreset: "square" })
     if (!cache) {
         searchParams.append("nocache", "true")
 
@@ -1092,7 +1092,7 @@ function makePngUrlForGrapherOrExplorer(
     const url = new URL(urlString)
 
     // update search params
-    url.searchParams.append("imType", "square")
+    url.searchParams.append("imPreset", "square")
     if (!cache) {
         url.searchParams.append("nocache", "true")
 

@@ -34,6 +34,7 @@ import {
     ArchiveContext,
     AdditionalGrapherDataFetchFn,
     GrapherVariant,
+    ChartLabelMode,
     Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -99,7 +100,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     /** @internal */
     variant?: GrapherVariant
     /** @internal */
-    useMinimalLabeling?: boolean
+    labelMode?: ChartLabelMode
 
     /** Hide the title. */
     hideTitle?: boolean

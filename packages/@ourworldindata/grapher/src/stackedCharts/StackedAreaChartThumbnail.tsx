@@ -18,7 +18,7 @@ import {
     HorizontalAxisComponent,
     VerticalAxisZeroLine,
 } from "../axis/AxisViews"
-import { Time } from "@ourworldindata/types"
+import { ChartLabelMode, Time } from "@ourworldindata/types"
 import {
     PlacedStackedAreaSeries,
     RenderStackedAreaSeries,
@@ -124,7 +124,10 @@ export class StackedAreaChartThumbnail
         InitialAnchoredLabelSeries,
         "position"
     >[] {
-        if (!this.manager.showSeriesLabels || this.manager.useMinimalLabeling)
+        if (
+            !this.manager.showSeriesLabels ||
+            this.manager.labelMode === ChartLabelMode.Values
+        )
             return []
 
         return excludeUndefined(

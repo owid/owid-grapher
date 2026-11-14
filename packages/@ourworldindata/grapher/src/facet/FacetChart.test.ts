@@ -11,6 +11,7 @@ import {
 } from "@ourworldindata/core-table"
 import { FacetChartManager, FacetChartProps } from "./FacetChartConstants"
 import {
+    ChartLabelMode,
     GRAPHER_CHART_TYPES,
     FacetAxisDomain,
     FacetStrategy,
@@ -268,5 +269,38 @@ describe("global legend", () => {
         expect(
             getColorMap(chart["intermediateChartInstances"][1] as LineChart)
         ).toEqual(colors)
+    })
+})
+
+describe("line chart facets", () => {
+    const table = SynthesizeGDPTable({
+        timeRange: [2000, 2010],
+        entityCount: 6,
+    })
+
+    function placeFacets(bounds: Bounds): FacetChart["placedSeries"] {
+        const { chart } = makeFacetChart(
+            table,
+            { facetStrategy: FacetStrategy.entity },
+            { bounds, chartTypeName: GRAPHER_CHART_TYPES.LineChart }
+        )
+        return chart.placedSeries
+    }
+
+    it("show values and series labels when the facets are small", () => {
+        const facets = placeFacets(new Bounds(0, 0, 300, 200))
+
+        for (const facet of facets) {
+            expect(facet.manager.labelMode).toBe(ChartLabelMode.Values)
+            expect(facet.manager.showSeriesLabels).toBe(true)
+        }
+    })
+
+    it("show all text when the facets are large", () => {
+        const facets = placeFacets(new Bounds(0, 0, 1200, 900))
+
+        for (const facet of facets) {
+            expect(facet.manager.labelMode).toBe(ChartLabelMode.All)
+        }
     })
 })

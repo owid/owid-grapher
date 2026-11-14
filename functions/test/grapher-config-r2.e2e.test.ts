@@ -152,4 +152,12 @@ describe("grapher config endpoint with local R2 bindings", () => {
         expect(response.status).toBe(200)
         expect(response.headers.get("Cache-Control")).toBe("no-cache")
     })
+
+    it("rejects an illegal image request before fetching the config", async () => {
+        const response = await server.fetch(
+            "/grapher/definitely-not-a-real-chart.png?imVariant=simplified&imDetails=1"
+        )
+        expect(response.status).toBe(400)
+        expect(await response.text()).toContain("imDetails")
+    })
 })
