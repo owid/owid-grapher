@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as db from "../../../db/db.js"
 import {
     ChartsIndexingContext,
@@ -7,6 +8,7 @@ import {
     MultiDimXChartConfigsTableName,
 } from "@ourworldindata/types"
 import { getChartRedirectSlugsByChartId } from "./charts.js"
+import { getVariableMetadata } from "../../../db/model/Variable.js"
 import {
     getChartViewsMap,
     getMaxChartViewsFromMultiDimPredecessors,
@@ -26,6 +28,9 @@ export async function createBaseIndexingContext(
     return {
         topicHierarchies,
         chartViewsMap,
+        loadIndicatorMetadata: _.memoize((indicatorId: number) =>
+            getVariableMetadata(indicatorId)
+        ),
     }
 }
 
