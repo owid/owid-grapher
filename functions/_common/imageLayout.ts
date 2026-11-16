@@ -27,6 +27,9 @@ const MAX_NUM_PNG_PIXELS = 4250 * 3000
 const THUMBNAIL_PNG_SCALE = 4
 const THUMBNAIL_FONT_SIZE = 14
 
+const MIN_DERIVED_FONT_SIZE = 10
+const SVG_HEIGHT_IN_FONT_SIZES = 25
+
 const PRESET_LAYOUTS: Record<ImageSizePreset, ImageLayout> = {
     twitter: {
         pngWidth: 800,
@@ -89,7 +92,10 @@ function resolveGenericLayout(size: ExplicitImageSize): ImageLayout {
         fontSize:
             size.fontSize ??
             (svgHeight !== DEFAULT_HEIGHT
-                ? Math.max(10, svgHeight / 25)
+                ? Math.max(
+                      MIN_DERIVED_FONT_SIZE,
+                      svgHeight / SVG_HEIGHT_IN_FONT_SIZES
+                  )
                 : undefined),
     }
 }
