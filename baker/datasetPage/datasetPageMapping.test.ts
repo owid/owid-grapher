@@ -595,53 +595,64 @@ describe(makeCharts, () => {
         ],
     }
 
-    it("makes one entry per multi-dim, showing its first matching view, then one per chart", () => {
+    it("makes one entry per chart and per view of a multi-dim, sorted by title", () => {
         // The indicators of the main table, as the page builds them
         const indicators = makeDatasetWithoutCharts(manifestWithoutNewFields)
             .tables[0].indicatorGroups[0].indicators
-        expect(makeCharts(lookup, indicators)).toEqual([
-            {
-                title: "Energy mix",
-                grapherPath: "energy-mix?metric=total&source=coal",
-                isMultiDim: true,
-                sourceText:
-                    "Energy Institute – Statistical Review of World Energy (2026); Smil – Energy Transitions (2017); Ember – Yearly Electricity Data (2026)",
-                views: [{ tab: "stacked-area", label: "Area chart" }],
-                indicatorShortNames: ["coal_energy_twh", "coal_elec_twh"],
-                // Every matching view, so that an indicator can link to the exact one
-                multiDimViews: [
-                    {
-                        title: "Primary energy from coal",
-                        grapherPath: "energy-mix?metric=total&source=coal",
-                        views: [{ tab: "stacked-area", label: "Area chart" }],
-                        indicatorShortNames: ["coal_energy_twh"],
-                    },
-                    {
-                        title: "Share of primary energy from coal",
-                        grapherPath: "energy-mix?metric=share&source=coal",
-                        views: [
-                            { tab: "map", label: "World map" },
-                            { tab: "line", label: "Line chart" },
-                        ],
-                        indicatorShortNames: ["coal_elec_twh"],
-                    },
-                ],
-            },
-            {
-                title: "Coal consumption",
-                grapherPath: "coal-consumption",
-                isMultiDim: false,
-                // In table order, not in the order the columns were matched
-                sourceText:
-                    "Energy Institute – Statistical Review of World Energy (2026); Smil – Energy Transitions (2017); Ember – Yearly Electricity Data (2026)",
-                views: [
-                    { tab: "map", label: "World map" },
-                    { tab: "line", label: "Line chart" },
-                    { tab: "discrete-bar", label: "Bar chart" },
-                ],
-                indicatorShortNames: ["coal_elec_twh", "coal_energy_twh"],
-            },
+        const charts = makeCharts(lookup, indicators)
+        // The multi-dim itself is not listed: each of its views is a chart of its own
+        expect(
+            charts.map((chart) => [
+                chart.title,
+                chart.grapherPath,
+                chart.isMultiDimView,
+            ])
+        ).toEqual([
+            ["Coal consumption", "coal-consumption", false],
+            [
+                "Primary energy from coal",
+                "energy-mix?metric=total&source=coal",
+                true,
+            ],
+            [
+                "Share of primary energy from coal",
+                "energy-mix?metric=share&source=coal",
+                true,
+            ],
         ])
+        expect(charts.map((chart) => chart.views)).toEqual([
+            [
+                { tab: "map", label: "World map" },
+                { tab: "line", label: "Line chart" },
+                { tab: "discrete-bar", label: "Bar chart" },
+            ],
+            [{ tab: "stacked-area", label: "Area chart" }],
+            [
+                { tab: "map", label: "World map" },
+                { tab: "line", label: "Line chart" },
+            ],
+        ])
+        expect(charts.map((chart) => chart.indicatorShortNames)).toEqual([
+            ["coal_elec_twh", "coal_energy_twh"],
+            ["coal_energy_twh"],
+            ["coal_elec_twh"],
+        ])
+    })
+
+    it("gives each entry the sources of the columns it uses, in table order", () => {
+        const indicators = makeDatasetWithoutCharts(manifestWithoutNewFields)
+            .tables[0].indicatorGroups[0].indicators
+        const sourcesOf = (column: string): string[] =>
+            indicators.find((indicator) => indicator.shortName === column)!
+                .sourceNames
+        const [chart, view] = makeCharts(lookup, indicators)
+        // The chart uses two columns, the view one
+        expect(view.sourceText).toEqual(sourcesOf("coal_energy_twh").join("; "))
+        for (const source of [
+            ...sourcesOf("coal_elec_twh"),
+            ...sourcesOf("coal_energy_twh"),
+        ])
+            expect(chart.sourceText).toContain(source)
     })
 })
 

@@ -760,13 +760,6 @@ $dataset-page-row-border: $blue-20;
     }
 }
 
-.dataset-page__chart-item-note {
-    @include body-3-medium;
-    & {
-        font-family: $sans-serif-font-stack;
-    }
-}
-
 .dataset-page__chart-item-source {
     @include note-1-regular;
     & {

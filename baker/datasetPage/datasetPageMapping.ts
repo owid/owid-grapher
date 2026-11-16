@@ -182,44 +182,38 @@ function makeChartSourceText(
     return [...new Set(sourceNames)].join("; ")
 }
 
-/** One entry per multi-dim (showing its first view that uses the table) and one per standalone chart */
+/**
+ * One entry per chart and per view of a multi-dim that uses the table, sorted
+ * by title. A multi-dim is not listed as such: each of its views is a chart of
+ * its own.
+ */
 export function makeCharts(
     lookup: DatasetPageChartLookup,
     indicators: DatasetIndicator[]
 ): DatasetChart[] {
-    const byTitle = (a: DatasetChart, b: DatasetChart): number =>
-        a.title.localeCompare(b.title)
-
-    const multiDims = lookup.multiDims.map((multiDim) => {
-        const [firstView] = multiDim.views
-        return {
-            title: multiDim.title,
-            grapherPath: firstView.queryStr
-                ? `${multiDim.slug}?${firstView.queryStr}`
+    const multiDimViews = lookup.multiDims.flatMap((multiDim) =>
+        multiDim.views.map((view) => ({
+            title: view.title,
+            grapherPath: view.queryStr
+                ? `${multiDim.slug}?${view.queryStr}`
                 : multiDim.slug,
-            isMultiDim: true,
-            sourceText: makeChartSourceText(indicators, multiDim.columns),
-            views: makeChartViews(firstView.chartTypes, firstView.hasMapTab),
-            indicatorShortNames: multiDim.columns,
-            multiDimViews: multiDim.views.map((view) => ({
-                title: view.title,
-                grapherPath: view.queryStr
-                    ? `${multiDim.slug}?${view.queryStr}`
-                    : multiDim.slug,
-                views: makeChartViews(view.chartTypes, view.hasMapTab),
-                indicatorShortNames: view.columns,
-            })),
-        }
-    })
+            isMultiDimView: true,
+            sourceText: makeChartSourceText(indicators, view.columns),
+            views: makeChartViews(view.chartTypes, view.hasMapTab),
+            indicatorShortNames: view.columns,
+        }))
+    )
     const charts = lookup.charts.map((chart) => ({
         title: chart.title,
         grapherPath: chart.slug,
-        isMultiDim: false,
+        isMultiDimView: false,
         sourceText: makeChartSourceText(indicators, chart.columns),
         views: makeChartViews(chart.chartTypes, chart.hasMapTab),
         indicatorShortNames: chart.columns,
     }))
-    return [...multiDims.sort(byTitle), ...charts.sort(byTitle)]
+    return [...multiDimViews, ...charts].sort((a, b) =>
+        a.title.localeCompare(b.title)
+    )
 }
 
 function makeSource(
