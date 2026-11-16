@@ -92,11 +92,9 @@ const searchBox = (): HTMLInputElement =>
     screen.getByPlaceholderText("Search indicators...")
 
 const isTicked = (name: string): boolean =>
-    (
-        within(
-            document.querySelector<HTMLElement>(".VariableSelector__results")!
-        ).getByLabelText(name) as HTMLInputElement
-    ).checked
+    within(
+        document.querySelector<HTMLElement>(".VariableSelector__results")!
+    ).getByLabelText<HTMLInputElement>(name).checked
 
 const selectedNames = (): string[] =>
     [...document.querySelectorAll(".VariableSelector__selected-item")].map(
