@@ -1,12 +1,7 @@
 import * as _ from "lodash-es"
 import { match } from "ts-pattern"
-import parse from "s-expression"
 import pointer from "json8-pointer"
-// This type models what we get from the s-expression library. This library
-// transforms lists in S-Expressions into array, strings inside double quotes
-// as String (note the uppercase! It really uses the rarely used String object) and
-// all other tokes like numbers or symbols as normal string.
-export type SExprAtom = string | String | SExprAtom[] // eslint-disable-line @typescript-eslint/no-wrapper-object-types
+import { parseSExpression, type SExpr } from "./parseSExpression.js"
 
 export type JSONPreciselyTyped =
     | string
@@ -558,7 +553,7 @@ const operationFactoryMap = new Map<string, OperationInfo>([
 ])
 
 export function parseOperationRecursive(
-    sExpr: SExprAtom | undefined,
+    sExpr: SExpr | undefined,
     context: OperationContext
 ): Operation | undefined {
     if (sExpr === undefined) return undefined
@@ -566,16 +561,16 @@ export function parseOperationRecursive(
         if (sExpr.length === 0) return undefined
         else {
             const firstElement = sExpr[0]
-            // The first element of a list in an SExpression has to be a function. In our
-            // parser this means that it has to be of type string which is what symbols end up as
-            // (actual verbatim strings that are quoted are String instances and nested lists are arrays)
-            if (typeof firstElement !== "string")
+            // The first element of a list in an SExpression has to be a function,
+            // i.e. a symbol (not a quoted string or a nested list)
+            if (Array.isArray(firstElement) || firstElement.type !== "symbol")
                 throw Error(
-                    `First element in list was not a symbol! ${firstElement}`
+                    `First element in list was not a symbol! ${JSON.stringify(firstElement)}`
                 )
-            const op = operationFactoryMap.get(firstElement)
+            const functionName = firstElement.value
+            const op = operationFactoryMap.get(functionName)
             if (op === undefined)
-                throw Error(`Unknown function ${firstElement}!`)
+                throw Error(`Unknown function ${functionName}!`)
 
             // Check if the arity matches the number of arguments
             const expectedArgs = arityToNumberMap.get(op.arity)
@@ -590,7 +585,7 @@ export function parseOperationRecursive(
                 parsedArgs.length !== expectedArgs
             )
                 throw Error(
-                    `Function ${firstElement} expected ${expectedArgs} arguments but got ${parsedArgs.length}`
+                    `Function ${functionName} expected ${expectedArgs} arguments but got ${parsedArgs.length}`
                 )
 
             // Check if the types of the arguments match the expected type for this operation unless the operation accepts type "any"
@@ -603,43 +598,34 @@ export function parseOperationRecursive(
                 )
             )
                 throw Error(
-                    `Operation ${firstElement} expected arguments of type ${op.operandsType} but not all arguments were of that type`
+                    `Operation ${functionName} expected arguments of type ${op.operandsType} but not all arguments were of that type`
                 )
 
             // All checks passed, construct and return the Operator
             return op.ctor(parsedArgs, context)
         }
     }
-    // our s-expression parser library turns quoted strings like "hello" into String instances to
-    // differentiate them from unquoted symbols
-    else if (sExpr instanceof String) {
-        if (sExpr === "") return undefined
-        else return new StringAtom(sExpr.valueOf())
-    } else if (typeof sExpr === "string") {
-        const num: number = Number.parseFloat(sExpr)
-        if (sExpr === "") return undefined
-        else if (sExpr === "true") return new BooleanAtom(true)
-        else if (sExpr === "false") return new BooleanAtom(false)
+    // Quoted strings like "hello" are string literals
+    else if (sExpr.type === "string") return new StringAtom(sExpr.value)
+    // Everything else is a symbol: a boolean, number, column name or JSON pointer
+    else {
+        const symbol = sExpr.value
+        const num: number = Number.parseFloat(symbol)
+        if (symbol === "true") return new BooleanAtom(true)
+        else if (symbol === "false") return new BooleanAtom(false)
         // Handling NaN correctly throught the entire DSL is hard - let's see if we can just drop it
-        else if (sExpr === "NaN") return undefined
+        else if (symbol === "NaN") return undefined
         else if (!Number.isNaN(num)) return new NumberAtom(num)
-        else if (SqlColumnName.isValidSqlColumnName(sExpr, context))
-            return new SqlColumnName(sExpr, context)
-        else return new JsonPointerSymbol(sExpr, context) // this will throw if the symbol is not a JsonPointer which is the only valid symbol we know of
-    } else throw Error(`Unexpected type in parseToOperation: ${sExpr}!`)
+        else if (SqlColumnName.isValidSqlColumnName(symbol, context))
+            return new SqlColumnName(symbol, context)
+        else return new JsonPointerSymbol(symbol, context) // this will throw if the symbol is not a JsonPointer which is the only valid symbol we know of
+    }
 }
 
 export function parseToOperation(
     sexpressionString: string,
     context: OperationContext
 ): Operation | undefined {
-    // Use the s-expression library to turn character strings with parens into
-    // nested arrays. The parsed datastructure is thus (potentially nested) arrays
-    // that contain either string primitives or String instances. This is a bit odd
-    // but useful - the latter is used to represent quoted strings, the primitive
-    // string is used for everything, which means numbers, booleans and symbols.
-    //
-    const sExpr = parse(sexpressionString) as SExprAtom
-    const result = parseOperationRecursive(sExpr, context)
-    return result
+    const sExpr = parseSExpression(sexpressionString)
+    return parseOperationRecursive(sExpr, context)
 }

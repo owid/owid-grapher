@@ -8591,7 +8591,6 @@ __metadata:
     remeda: "npm:^2.52.0"
     rolldown: "npm:^1.2.1"
     rxjs: "npm:^7.8.2"
-    s-expression: "npm:^3.1.1"
     safe-stable-stringify: "npm:^2.4.1"
     sass: "npm:^1.89.2"
     schema-dts: "npm:^2.1.0"
@@ -12130,13 +12129,6 @@ __metadata:
   dependencies:
     tslib: "npm:^2.1.0"
   checksum: 10/03dff09191356b2b87d94fbc1e97c4e9eb3c09d4452399dddd451b09c2f1ba8d56925a40af114282d7bc0c6fe7514a2236ca09f903cf70e4bbf156650dddb49d
-  languageName: node
-  linkType: hard
-
-"s-expression@npm:^3.1.1":
-  version: 3.1.1
-  resolution: "s-expression@npm:3.1.1"
-  checksum: 10/6dbc9ccd29daf5f4ed518e968a8ad07af1dd7825623f9378cb818b62aa3695b9bafeeef98da49e8ea62b4eb0a58ee42f50ff755f6e698dd9214f5426e378b81b
   languageName: node
   linkType: hard
 
