@@ -565,21 +565,6 @@ $dataset-page-row-border: $blue-20;
     }
 }
 
-// A quiet, link-like button that shows the rest of a list, and hides it again
-.dataset-page__toggle-link {
-    @include body-3-regular;
-    @include owid-link-90;
-    & {
-        display: block;
-        margin-top: 8px;
-        padding: 0;
-        background: none;
-        border: none;
-        font-family: inherit;
-        cursor: pointer;
-    }
-}
-
 // The heading of a second list (the charts, below the sources) gets the same
 // space above it as the first one
 .dataset-page__details-sources + .dataset-page__details-heading {
@@ -603,6 +588,44 @@ $dataset-page-row-border: $blue-20;
     svg {
         font-size: 0.75em;
         margin-left: 6px;
+    }
+}
+
+// The charts of an indicator: a small thumbnail and the title, one chart per row
+.dataset-page__details-charts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li + li {
+        margin-top: 8px;
+    }
+
+    a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: $blue-60;
+        text-decoration: none;
+
+        // These links jump to the charts section, so they never look visited
+        &:visited {
+            color: $blue-60;
+        }
+
+        &:hover span {
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+    }
+
+    img {
+        flex-shrink: 0;
+        width: 76px;
+        height: 46px;
+        background: $white;
+        border: 1px solid $blue-20;
+        object-fit: cover;
     }
 }
 

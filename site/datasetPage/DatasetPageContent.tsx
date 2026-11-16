@@ -88,10 +88,10 @@ function grapherUrl(
     return `${BAKED_GRAPHER_URL}/${slug}${queryStr ? `?${queryStr}` : ""}`
 }
 
-function chartThumbnailUrl(grapherPath: string, tab: string): string {
+function chartThumbnailUrl(grapherPath: string, tab?: string): string {
     const [slug, query = ""] = grapherPath.split("?")
     const searchParams = new URLSearchParams(query)
-    searchParams.set("tab", tab)
+    if (tab) searchParams.set("tab", tab)
     searchParams.set("imType", "thumbnail")
     return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png?${searchParams.toString()}`
 }
@@ -481,6 +481,8 @@ function DatasetHeader({
 interface IndicatorChart {
     key: string
     title: string
+    /** The thumbnail of the chart's first tab */
+    thumbnailUrl: string
     /** For a view of a multi-dim: the title of the multi-dim */
     multiDimTitle?: string
     /** Position of the chart, or of the multi-dim, in the charts section */
@@ -519,13 +521,27 @@ function IndicatorDetails({
                     .map(({ view, multiDimViewIndex }) => ({
                         key: view.grapherPath,
                         title: view.title,
+                        thumbnailUrl: chartThumbnailUrl(
+                            view.grapherPath,
+                            view.views[0]?.tab
+                        ),
                         multiDimTitle: chart.title,
                         chartIndex,
                         multiDimViewIndex,
                     }))
             if (!chart.indicatorShortNames.includes(indicator.shortName))
                 return []
-            return [{ key: chart.grapherPath, title: chart.title, chartIndex }]
+            return [
+                {
+                    key: chart.grapherPath,
+                    title: chart.title,
+                    thumbnailUrl: chartThumbnailUrl(
+                        chart.grapherPath,
+                        chart.views[0]?.tab
+                    ),
+                    chartIndex,
+                },
+            ]
         }
     )
     const [showAllCharts, setShowAllCharts] = useState(false)
@@ -596,7 +612,7 @@ function IndicatorDetails({
                     <h4 className="dataset-page__details-heading">
                         Charts with this indicator:
                     </h4>
-                    <ul className="dataset-page__details-sources">
+                    <ul className="dataset-page__details-charts">
                         {visibleCharts.map((chart) => (
                             <li key={chart.key}>
                                 <a
@@ -609,24 +625,33 @@ function IndicatorDetails({
                                         )
                                     }}
                                 >
-                                    {chart.title}
-                                    {chart.multiDimTitle &&
-                                        ` (${chart.multiDimTitle})`}
-                                    <FontAwesomeIcon icon={faArrowDown} />
+                                    <img
+                                        src={chart.thumbnailUrl}
+                                        alt=""
+                                        loading="lazy"
+                                    />
+                                    <span>
+                                        {chart.title}
+                                        {chart.multiDimTitle &&
+                                            ` (${chart.multiDimTitle})`}
+                                    </span>
                                 </a>
                             </li>
                         ))}
                     </ul>
                     {indicatorCharts.length > MAX_INDICATOR_CHARTS && (
-                        <button
-                            type="button"
-                            className="dataset-page__toggle-link"
+                        <Button
+                            className="dataset-page__expand-button"
+                            theme="solid-light-blue"
+                            icon={showAllCharts ? faMinus : faPlus}
+                            iconPosition="left"
+                            text={
+                                showAllCharts
+                                    ? "Show fewer charts"
+                                    : `Show all ${indicatorCharts.length} charts`
+                            }
                             onClick={() => setShowAllCharts(!showAllCharts)}
-                        >
-                            {showAllCharts
-                                ? "Show fewer charts"
-                                : `Show all ${indicatorCharts.length} charts`}
-                        </button>
+                        />
                     )}
                 </>
             )}
