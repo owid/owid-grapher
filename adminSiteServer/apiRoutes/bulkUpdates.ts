@@ -44,7 +44,9 @@ export async function getChartBulkUpdate(
     if (filter !== undefined && typeof filter !== "string")
         throw new JsonError("The filter parameter must be a single string", 400)
     const filterSExpr =
-        filter !== undefined ? parseToOperation(filter, context) : undefined
+        typeof filter === "string"
+            ? parseToOperation(filter, context)
+            : undefined
 
     const offset = parseIntOrUndefined(req.query.offset as string) ?? 0
 
