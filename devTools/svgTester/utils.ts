@@ -52,7 +52,7 @@ import pMap from "p-map"
 
 export type SvgRenderVariant = "default" | "thumbnail" | "mobile"
 
-const PHONE_WIDTH_PX = 375
+const PHONE_WIDTH_PX = 360
 const ARTICLE_GUTTER_PX = 16
 const ARTICLE_CHART_HEIGHT_PX = 575
 const PHONE_ARTICLE_CHART_BOUNDS = new Bounds(
@@ -131,7 +131,7 @@ export const SVG_TESTER_SUITE_SETTINGS: Record<
     },
     mobile: {
         description:
-            "phone-width (343x575) renderings of the most-viewed Graphers",
+            "phone-width (328x575) renderings of the most-viewed Graphers",
         configsSuite: "graphers",
         isManifestRequired: true,
         shouldTestAllViews: false,

@@ -57,7 +57,7 @@ For the most-viewed graphers, creates a manifest file listing which charts to te
 
 #### Mobile
 
-Uses the same most-viewed graphers as thumbnails, through its own `top.manifest.json`, and reads its data from the graphers suite. Every available tab is rendered at 343x575, the size of an article chart on a 375px-wide phone (16px gutters, 575px chart height).
+Uses the same most-viewed graphers as thumbnails, through its own `top.manifest.json`, and reads its data from the graphers suite. Every available tab is rendered at 328x575, the size of an article chart on a 360px-wide phone (16px gutters, 575px chart height).
 
 A static export normally switches off grapher's narrow-screen breakpoints and sizes its fonts from the export bounds. This suite sets `isStaticLayoutResponsive`, so the SVG gets the breakpoints and 14px base font a phone gets.
 
