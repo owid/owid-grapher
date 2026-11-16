@@ -322,6 +322,15 @@
     }
 }
 
+// Retrieved on, Retrieved from and Citation stacked in one column
+.indicator-metadata-box .indicator-sources .source-key-data-blocks {
+    grid-template-columns: minmax(0, 1fr);
+
+    .source-key-data--span-2 {
+        grid-column: auto;
+    }
+}
+
 // Free-form markdown: paragraphs a blank line (1.5em) apart, headings right
 // above their paragraph
 .indicator-metadata-box .indicator-metadata-box__producer-docs,
