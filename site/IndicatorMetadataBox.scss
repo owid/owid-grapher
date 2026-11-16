@@ -207,6 +207,11 @@
 // Above phone width, a long value wraps under its label rather than in a
 // column beside it
 @include sm-up {
+    // Managed by and Data source share a baseline when they share a line
+    .indicator-metadata-box .metadata-box-key-data {
+        align-items: baseline;
+    }
+
     .indicator-metadata-box
         .metadata-box-key-data__row:not(
             .metadata-box-key-data__row--full-width
