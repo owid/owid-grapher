@@ -56,6 +56,9 @@ const MAX_UNSCROLLED_ITEMS = 10
 /** An indicator lists this many of its charts, and the rest on request */
 const MAX_INDICATOR_CHARTS = 5
 
+/** A chart in the charts section shows this many previews, one per tab */
+const MAX_CHART_PREVIEWS = 3
+
 /** The changelog shows this many of its latest entries, and the rest on request */
 const MAX_CHANGELOG_ENTRIES = 5
 
@@ -829,24 +832,30 @@ function ChartListItem({
                 </span>
             </button>
             <div className="dataset-page__chart-thumbnails">
-                {chart.views.map((view, viewIndex) => (
-                    <button
-                        key={view.tab}
-                        type="button"
-                        className={cx("dataset-page__chart-thumbnail", {
-                            "dataset-page__chart-thumbnail--selected":
-                                isSelected && selectedViewIndex === viewIndex,
-                        })}
-                        aria-label={`${chart.title}: ${view.label}`}
-                        onClick={() => onSelect(viewIndex)}
-                    >
-                        <img
-                            src={chartThumbnailUrl(chart.grapherPath, view.tab)}
-                            alt=""
-                            loading="lazy"
-                        />
-                    </button>
-                ))}
+                {chart.views
+                    .slice(0, MAX_CHART_PREVIEWS)
+                    .map((view, viewIndex) => (
+                        <button
+                            key={view.tab}
+                            type="button"
+                            className={cx("dataset-page__chart-thumbnail", {
+                                "dataset-page__chart-thumbnail--selected":
+                                    isSelected &&
+                                    selectedViewIndex === viewIndex,
+                            })}
+                            aria-label={`${chart.title}: ${view.label}`}
+                            onClick={() => onSelect(viewIndex)}
+                        >
+                            <img
+                                src={chartThumbnailUrl(
+                                    chart.grapherPath,
+                                    view.tab
+                                )}
+                                alt=""
+                                loading="lazy"
+                            />
+                        </button>
+                    ))}
             </div>
         </li>
     )
@@ -1424,10 +1433,13 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
 
     useEffect(() => {
         if (chartToReveal === undefined) return
-        // Bring the chart's entry into view inside its list, then go to the section
-        document
-            .getElementById(chartItemId(chartToReveal))
-            ?.scrollIntoView({ block: "nearest" })
+        // Put the chart's entry at the top of its scrolling list, then go to the section
+        const item = document.getElementById(chartItemId(chartToReveal))
+        const list = item?.closest(".dataset-page__chart-list-wrapper")
+        if (item && list)
+            list.scrollTop +=
+                item.getBoundingClientRect().top -
+                list.getBoundingClientRect().top
         scrollToSection(SECTION_IDS.charts)
         setChartToReveal(undefined)
     }, [chartToReveal])
