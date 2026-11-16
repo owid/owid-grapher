@@ -3895,6 +3895,11 @@ export class GrapherState
         this.dataTableConfig.search = authorsVersion.dataTableConfig.search
         this.dataTableSort = undefined
         this.mapConfig.globe.isActive = authorsVersion.mapConfig.globe.isActive
+        this.mapConfig.globe.rotation = authorsVersion.mapConfig.globe.rotation
+        this.mapConfig.globe.zoom = authorsVersion.mapConfig.globe.zoom
+        this.selectedFacetStrategy = authorsVersion.selectedFacetStrategy
+        this.yAxis.facetDomain = authorsVersion.yAxis.facetDomain
+        this.peerCountryStrategy = authorsVersion.peerCountryStrategy
         this.clearSelection()
         this.clearFocus()
         this.mapConfig.selection.clearSelection()

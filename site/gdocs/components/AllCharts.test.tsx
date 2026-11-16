@@ -222,6 +222,26 @@ it("filters by countries typed into the search and shows them on the rows, thumb
     )
 })
 
+it("keeps the same chart preview while its tab and countries change", async () => {
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    const preview = await screen.findByTestId("preview")
+    expect(preview).toHaveTextContent("alpha?tab=map")
+
+    const alphaRow = await findRow("alpha")
+    fireEvent.click(
+        within(alphaRow).getByRole("button", { name: "Slope chart" })
+    )
+    expect(preview).toHaveTextContent("alpha?tab=slope")
+
+    fireEvent.change(screen.getByRole("textbox"), {
+        target: { value: "spain" },
+    })
+    await vi.waitFor(() => expect(preview).toHaveTextContent("country=~ESP"))
+
+    expect(screen.getByTestId("preview")).toBe(preview)
+})
+
 it("shows the first five suggestions, and hides the one being searched for", async () => {
     renderBlock()
     fireIntersectionObserversMatching("section")

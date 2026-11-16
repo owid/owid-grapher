@@ -20,6 +20,7 @@ import {
     GrapherTabName,
     MultipleOwidVariableDataDimensionsMap,
     CoreValueType,
+    PeerCountryStrategy,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -3207,4 +3208,15 @@ describe("showLegend", () => {
             new GrapherState({ labelMode: ChartLabelMode.Values }).showLegend
         ).toBe(false)
     })
+})
+
+it("clears the peer params along with the other query params", () => {
+    const grapher = new GrapherState({})
+    grapher.populateFromQueryParams({
+        peerCountries: PeerCountryStrategy.DefaultSelection,
+    })
+
+    grapher.clearQueryParams()
+
+    expect(grapher.peerCountryStrategy).toBeUndefined()
 })
