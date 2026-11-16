@@ -129,22 +129,30 @@ export function serializeImageRequest(request: ImageRequest): URLSearchParams {
 }
 
 class ImageRequestParseError extends Error {
-    constructor(readonly details: ImageRequestError) {
-        super(`${details.param}: ${details.reason}`)
-    }
-}
+    readonly details: ImageRequestError
 
-function fail(param: string, reason: string): never {
-    throw new ImageRequestParseError({ param, reason })
+    constructor(param: string, reason: string) {
+        super(`${param}: ${reason}`)
+        this.details = { param, reason }
+    }
 }
 
 function parseImageRequestOrThrow(params: URLSearchParams): ImageRequest {
     if (params.has("imType") && params.has("imVariant"))
-        fail("imType", "cannot be combined with imVariant")
+        throw new ImageRequestParseError(
+            "imType",
+            "cannot be combined with imVariant"
+        )
     if (params.has("imType") && params.has("imPreset"))
-        fail("imType", "cannot be combined with imPreset")
+        throw new ImageRequestParseError(
+            "imType",
+            "cannot be combined with imPreset"
+        )
     if (params.has("imMinimal") && params.has("imLabels"))
-        fail("imMinimal", "cannot be combined with imLabels")
+        throw new ImageRequestParseError(
+            "imMinimal",
+            "cannot be combined with imLabels"
+        )
 
     const legacyType = parseLegacyType(params.get("imType"))
     const variant =
@@ -165,22 +173,44 @@ function parseImageRequestOrThrow(params: URLSearchParams): ImageRequest {
 
     if (preset) {
         if (width !== undefined)
-            fail("imWidth", "not allowed with a preset size")
+            throw new ImageRequestParseError(
+                "imWidth",
+                "not allowed with a preset size"
+            )
         if (height !== undefined)
-            fail("imHeight", "not allowed with a preset size")
+            throw new ImageRequestParseError(
+                "imHeight",
+                "not allowed with a preset size"
+            )
         if (fontSize !== undefined)
-            fail("imFontSize", "not allowed with a preset size")
-        if (includeDetails) fail("imDetails", "not allowed with a preset size")
+            throw new ImageRequestParseError(
+                "imFontSize",
+                "not allowed with a preset size"
+            )
+        if (includeDetails)
+            throw new ImageRequestParseError(
+                "imDetails",
+                "not allowed with a preset size"
+            )
         if (variant !== GrapherVariant.Default)
-            fail("imPreset", `not allowed with imVariant=${variantToken}`)
+            throw new ImageRequestParseError(
+                "imPreset",
+                `not allowed with imVariant=${variantToken}`
+            )
     }
 
     if (includeDetails && variant !== GrapherVariant.Default)
-        fail("imDetails", `not allowed with imVariant=${variantToken}`)
+        throw new ImageRequestParseError(
+            "imDetails",
+            `not allowed with imVariant=${variantToken}`
+        )
 
     const variantWithLabelMode = { variant, labelMode }
     if (!isLabelModeAllowed(variantWithLabelMode))
-        fail(labelParam, `not allowed with imVariant=${variantToken}`)
+        throw new ImageRequestParseError(
+            labelParam,
+            `not allowed with imVariant=${variantToken}`
+        )
 
     const explicitSize: ExplicitImageSize = {
         kind: "explicit",
@@ -229,14 +259,19 @@ function parseVariant(token: string | null): GrapherVariant | undefined {
     const variant = Object.values(GrapherVariant).find(
         (variant) => URL_TOKEN_BY_VARIANT[variant] === token
     )
-    if (variant === undefined) fail("imVariant", `unknown value "${token}"`)
+    if (variant === undefined)
+        throw new ImageRequestParseError(
+            "imVariant",
+            `unknown value "${token}"`
+        )
     return variant
 }
 
 function parsePreset(value: string | null): ImageSizePreset | undefined {
     if (value === null) return undefined
     const preset = SIZE_PRESETS.find((preset) => preset === value)
-    if (preset === undefined) fail("imPreset", `unknown value "${value}"`)
+    if (preset === undefined)
+        throw new ImageRequestParseError("imPreset", `unknown value "${value}"`)
     return preset
 }
 
@@ -245,7 +280,8 @@ function parseLabelMode(value: string | null): ChartLabelMode {
     const labelMode = Object.values(ChartLabelMode).find(
         (mode) => mode === value
     )
-    if (labelMode === undefined) fail("imLabels", `unknown value "${value}"`)
+    if (labelMode === undefined)
+        throw new ImageRequestParseError("imLabels", `unknown value "${value}"`)
     return labelMode
 }
 
@@ -254,7 +290,8 @@ function parseLegacyType(
 ): { variant: GrapherVariant; preset?: ImageSizePreset } | undefined {
     if (value === null) return undefined
     const legacyType = LEGACY_IMAGE_TYPES.get(value)
-    if (legacyType === undefined) fail("imType", `unknown value "${value}"`)
+    if (legacyType === undefined)
+        throw new ImageRequestParseError("imType", `unknown value "${value}"`)
     return legacyType
 }
 
@@ -267,7 +304,7 @@ function parseLegacyMinimal(value: string | null): ChartLabelMode {
 function parseFlag(param: string, value: string | null): boolean {
     if (value === null || value === "0") return false
     if (value === "1") return true
-    return fail(param, `expected 0 or 1, got "${value}"`)
+    throw new ImageRequestParseError(param, `expected 0 or 1, got "${value}"`)
 }
 
 function parsePositiveInteger(
@@ -278,6 +315,9 @@ function parsePositiveInteger(
     if (value === null) return undefined
     const number = Number(value)
     if (!/^\d+$/.test(value) || !Number.isSafeInteger(number) || number <= 0)
-        fail(param, `expected a positive integer, got "${value}"`)
+        throw new ImageRequestParseError(
+            param,
+            `expected a positive integer, got "${value}"`
+        )
     return number
 }
