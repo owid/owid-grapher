@@ -123,6 +123,8 @@ export function serializeImageRequest(request: ImageRequest): URLSearchParams {
 
     if (request.includeDetails) params.set("imDetails", "1")
 
+    params.sort()
+
     return params
 }
 
