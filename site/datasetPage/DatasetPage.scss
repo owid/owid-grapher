@@ -595,6 +595,11 @@ $dataset-page-row-border: $blue-20;
         margin-top: 6px;
     }
 
+    // A lighter blue than the page's other links
+    a {
+        @include owid-link-60;
+    }
+
     svg {
         font-size: 0.75em;
         margin-left: 6px;
