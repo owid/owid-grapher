@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { match } from "ts-pattern"
-import pointer from "json8-pointer"
+import { pointerParse } from "@hyperjump/json-pointer"
 import { parseSExpression, type SExpr } from "./parseSExpression.js"
 
 export type JSONPreciselyTyped =
@@ -133,7 +133,7 @@ export class StringAtom extends StringOperation {
 }
 
 function jsonPointerToJsonPath(jsonpointer: string): string {
-    const pointerFragments = pointer.decode(jsonpointer)
+    const pointerFragments = pointerParse(jsonpointer)
     let path = "$"
     for (const fragment of pointerFragments) {
         const number = Number.parseInt(fragment)
