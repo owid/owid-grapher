@@ -18,6 +18,9 @@ export interface DatasetIndicator {
     sourceNames: string[]
 }
 
+/** The id of the group with the columns that identify a row (e.g. country and year) */
+export const INDEX_COLUMNS_GROUP_ID = "index-columns"
+
 export interface DatasetIndicatorGroup {
     id: string
     title: string

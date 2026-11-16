@@ -26,6 +26,7 @@ import {
     DatasetRelatedResearch,
     DatasetSource,
     DatasetTable,
+    INDEX_COLUMNS_GROUP_ID,
 } from "../../site/datasetPage/datasetPageTypes.js"
 import {
     DatasetPageCodebookRow,
@@ -141,7 +142,7 @@ export function makeIndicatorGroups(
         return [{ id: "indicators", title: "Indicators", indicators }]
     return [
         {
-            id: "index-columns",
+            id: INDEX_COLUMNS_GROUP_ID,
             title: "Index columns",
             indicators: indicators.filter((indicator) =>
                 primaryKey.includes(indicator.shortName)

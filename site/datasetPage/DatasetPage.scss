@@ -345,6 +345,32 @@ $dataset-page-row-border: $blue-20;
     margin-top: 32px;
 }
 
+// The index columns: a name and a one-line description each, with nothing to open
+.dataset-page__index-columns {
+    margin: 0;
+
+    > div + div {
+        margin-top: 12px;
+    }
+
+    dt {
+        @include body-2-regular;
+        & {
+            line-height: 22px;
+            color: $blue-90;
+        }
+    }
+
+    dd {
+        @include label-2-medium;
+        & {
+            margin: 0;
+            line-height: 16px;
+            color: $blue-50;
+        }
+    }
+}
+
 .dataset-page__rows {
     list-style: none;
     margin: 0;

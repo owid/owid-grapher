@@ -31,6 +31,7 @@ import {
     DatasetPageData,
     DatasetSource,
     DatasetTable,
+    INDEX_COLUMNS_GROUP_ID,
 } from "./datasetPageTypes.js"
 
 export const DATASET_PAGE_CONTENT_ROOT_ID = "dataset-page-root"
@@ -690,6 +691,29 @@ function IndicatorGroup({
         )
     )
     if (indicators.length === 0) return null
+
+    // The index columns have nothing to open, so they are a plain list
+    if (group.id === INDEX_COLUMNS_GROUP_ID)
+        return (
+            <div className="dataset-page__indicator-group">
+                <h3 className="dataset-page__group-title">{group.title}</h3>
+                <dl className="dataset-page__index-columns">
+                    {indicators.map((indicator) => (
+                        <div key={indicator.shortName}>
+                            <dt>{indicator.title}</dt>
+                            {indicator.description && (
+                                <dd>
+                                    <SimpleMarkdownText
+                                        text={indicator.description}
+                                        useParagraphs={false}
+                                    />
+                                </dd>
+                            )}
+                        </div>
+                    ))}
+                </dl>
+            </div>
+        )
 
     return (
         <div className="dataset-page__indicator-group">
