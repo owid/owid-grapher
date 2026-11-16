@@ -39,10 +39,12 @@ export async function getChartBulkUpdate(
         whitelistedColumnNamesAndTypes:
             chartBulkUpdateAllowedColumnNamesAndTypes,
     }
+    const { filter } = req.query
+    // A repeated query param (`?filter=a&filter=b`) arrives as an array
+    if (filter !== undefined && typeof filter !== "string")
+        throw new JsonError("The filter parameter must be a single string", 400)
     const filterSExpr =
-        req.query.filter !== undefined
-            ? parseToOperation(req.query.filter as string, context)
-            : undefined
+        filter !== undefined ? parseToOperation(filter, context) : undefined
 
     const offset = parseIntOrUndefined(req.query.offset as string) ?? 0
 
