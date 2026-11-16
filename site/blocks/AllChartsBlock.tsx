@@ -524,7 +524,6 @@ function AllChartsPreview({
     const { isPreviewing } = useDocumentContext()
     return (
         <GrapherWithFallback
-            key={`${slug}:${tab}:${countries.join("|")}`}
             slug={slug}
             queryStr={queryParamsToStr(
                 toGrapherQueryParams({ tab, entities: countries })
