@@ -339,6 +339,12 @@
         @include body-3-bold;
         color: $blue-90;
         margin: 1.5em 0 0;
+
+        // An answer that opens with one (from a flattened expandable
+        // paragraph) already has the blank line from the toggle's padding
+        &:first-child {
+            margin-top: 0;
+        }
     }
 }
 
