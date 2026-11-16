@@ -229,33 +229,33 @@ function parseVariant(token: string | null): GrapherVariant | undefined {
     const variant = Object.values(GrapherVariant).find(
         (variant) => URL_TOKEN_BY_VARIANT[variant] === token
     )
-    return variant ?? fail("imVariant", `unknown value "${token}"`)
+    if (variant === undefined) fail("imVariant", `unknown value "${token}"`)
+    return variant
 }
 
 function parsePreset(value: string | null): ImageSizePreset | undefined {
     if (value === null) return undefined
-    return (
-        SIZE_PRESETS.find((preset) => preset === value) ??
-        fail("imPreset", `unknown value "${value}"`)
-    )
+    const preset = SIZE_PRESETS.find((preset) => preset === value)
+    if (preset === undefined) fail("imPreset", `unknown value "${value}"`)
+    return preset
 }
 
 function parseLabelMode(value: string | null): ChartLabelMode {
     if (value === null) return ChartLabelMode.All
-    return (
-        Object.values(ChartLabelMode).find((mode) => mode === value) ??
-        fail("imLabels", `unknown value "${value}"`)
+    const labelMode = Object.values(ChartLabelMode).find(
+        (mode) => mode === value
     )
+    if (labelMode === undefined) fail("imLabels", `unknown value "${value}"`)
+    return labelMode
 }
 
 function parseLegacyType(
     value: string | null
 ): { variant: GrapherVariant; preset?: ImageSizePreset } | undefined {
     if (value === null) return undefined
-    return (
-        LEGACY_IMAGE_TYPES.get(value) ??
-        fail("imType", `unknown value "${value}"`)
-    )
+    const legacyType = LEGACY_IMAGE_TYPES.get(value)
+    if (legacyType === undefined) fail("imType", `unknown value "${value}"`)
+    return legacyType
 }
 
 function parseLegacyMinimal(value: string | null): ChartLabelMode {
