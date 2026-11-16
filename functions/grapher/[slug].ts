@@ -21,18 +21,23 @@ import {
     MULTI_DIM_COMPANION_FILE_SUFFIX,
     MultiDimPageCompanion,
 } from "@ourworldindata/types"
-import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
+import { StatusError, error } from "itty-router"
+import { errorToResponse } from "../_common/errorHandling.js"
+import { createRouter } from "../_common/router.js"
 
-const { preflight, corsify } = cors({
-    allowMethods: ["GET", "OPTIONS", "HEAD"],
-})
-
-const router = Router<
-    IRequestStrict,
+const router = createRouter<
     [URL, Env, Etag, EventContext<unknown, any, Record<string, unknown>>]
 >({
-    before: [preflight],
-    finally: [corsify],
+    catch: async (e, _request, url, env) => {
+        // Only check _grapherRedirects.json for redirects if a 404 occurs.
+        // Otherwise, skip the extra fetch in the happy path.
+        if (e instanceof StatusError && e.status === 404) {
+            console.log("Handling 404 for", url.pathname)
+            const redirect = await getRedirectForUrl(env, url)
+            return redirect || error(404, "Not found")
+        }
+        return errorToResponse(e)
+    },
 })
 router
     .get(
@@ -116,32 +121,16 @@ router
     .all("*", () => error(404, "Route not defined"))
 
 export const onRequest: PagesFunction<Env> = async (context) => {
-    // Makes it so that if there's an error, we will just deliver the original page before the HTML rewrite.
-    // Only caveat is that redirects will not be taken into account for some reason; but on the other hand the worker is so simple that it's unlikely to fail.
-    context.passThroughOnException()
     const { request, env } = context
     const url = new URL(request.url)
 
-    return router
-        .fetch(
-            request,
-            url,
-            { ...env, url },
-            request.headers.get("if-none-match"),
-            context
-        )
-        .catch(async (e) => {
-            // Only check _grapherRedirects.json for redirects if a 404 occurs.
-            // Otherwise, skip the extra fetch in the happy path.
-            console.log("Handling error", e)
-            if (e instanceof StatusError && e.status === 404) {
-                console.log("Handling 404 for", url.pathname)
-                const redirect = await getRedirectForUrl(env, url)
-                return redirect || error(404, "Not found")
-            } else if (e instanceof StatusError) {
-                return error(e.status, e.message)
-            } else return error(500, e)
-        })
+    return router.fetch(
+        request,
+        url,
+        { ...env, url },
+        request.headers.get("if-none-match"),
+        context
+    )
 }
 
 async function handleHtmlPageRequest(
