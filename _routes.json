@@ -4,6 +4,7 @@
     "exclude": [
         "/grapher/_grapherRedirects.json",
         "/grapher/*.multi-dim.json",
+        "/grapher/thumbnail/*",
         "/explorers/_explorerRedirects.json",
         "/topicTagGraph.json",
         "/dods.json",
