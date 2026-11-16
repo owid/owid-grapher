@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 import parse from "s-expression"
-import pointer from "json8-pointer"
+import { pointerParse } from "@hyperjump/json-pointer"
 // This type models what we get from the s-expression library. This library
 // transforms lists in S-Expressions into array, strings inside double quotes
 // as String (note the uppercase! It really uses the rarely used String object) and
@@ -138,7 +138,7 @@ export class StringAtom extends StringOperation {
 }
 
 function jsonPointerToJsonPath(jsonpointer: string): string {
-    const pointerFragments = pointer.decode(jsonpointer)
+    const pointerFragments = pointerParse(jsonpointer)
     let path = "$"
     for (const fragment of pointerFragments) {
         const number = Number.parseInt(fragment)

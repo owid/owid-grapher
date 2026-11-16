@@ -1592,6 +1592,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hyperjump/json-pointer@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@hyperjump/json-pointer@npm:2.0.1"
+  checksum: 10/da62be52159f5b908ab3a8b7278eb216476f611d66bdeddacf394fe3c13bdd84305ce0e25e2dc690c8daa0410e3aba15711346249766fb63d548ae8232b95988
+  languageName: node
+  linkType: hard
+
 "@img/colour@npm:^1.1.0":
   version: 1.1.0
   resolution: "@img/colour@npm:1.1.0"
@@ -8472,6 +8479,7 @@ __metadata:
     "@googleapis/docs": "npm:^14.1.1"
     "@googleapis/drive": "npm:^27.0.0"
     "@handsontable/react-wrapper": "npm:^18.1.2"
+    "@hyperjump/json-pointer": "npm:^2.0.1"
     "@marsidev/react-turnstile": "npm:^1.5.2"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
@@ -8557,7 +8565,6 @@ __metadata:
     husky: "npm:^9.0.11"
     ini: "npm:^7.0.0"
     jose: "npm:^6.2.15"
-    json8-pointer: "npm:^1.0.6"
     knex: "npm:^3.3.0"
     lint-staged: "npm:^17.6.0"
     lodash-es: "npm:^4.18.1"
@@ -9317,13 +9324,6 @@ __metadata:
   dependencies:
     string-convert: "npm:^0.2.0"
   checksum: 10/0ad2f6a268308beeaf3077652b5ae2b0701ef357840e1542cc838198424a79af21dad759595e2cce8cd9b154e0b0f758c217adea4b3dfbaafff3ff9bf82394a1
-  languageName: node
-  linkType: hard
-
-"json8-pointer@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "json8-pointer@npm:1.0.6"
-  checksum: 10/86c32f50994e10375717747f95493248edc9d4a69a160230962a7fad976844a1a55e6bf9692f141e22fcca1355a1b159bb1fd81d8e875c4279f9ae98d6063555
   languageName: node
   linkType: hard
 
