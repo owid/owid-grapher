@@ -322,6 +322,21 @@
     }
 }
 
+// Headings inside an FAQ answer sit below the question, like headings in the
+// box's other free text (e.g. share-of-population-in-extreme-poverty)
+.indicator-metadata-box .metadata-box-section--faqs .ExpandableToggle__content {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @include body-3-bold;
+        color: $blue-90;
+        margin: 1.5em 0 0;
+    }
+}
+
 // Retrieved on, Retrieved from and Citation stacked in one column
 .indicator-metadata-box .indicator-sources .source-key-data-blocks {
     grid-template-columns: minmax(0, 1fr);
