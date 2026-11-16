@@ -14,6 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import {
+    Button,
     CodeSnippet,
     RadioButton,
     SimpleMarkdownText,
@@ -958,15 +959,18 @@ function RelatedResearchSection({ dataset }: { dataset: DatasetPageData }) {
                 ))}
             </div>
             {dataset.relatedResearch.length > MAX_RELATED_RESEARCH && (
-                <button
-                    type="button"
-                    className="dataset-page__toggle-link dataset-page__toggle-link--research"
+                <Button
+                    className="dataset-page__expand-button"
+                    theme="solid-light-blue"
+                    icon={showAll ? faMinus : faPlus}
+                    iconPosition="left"
+                    text={
+                        showAll
+                            ? "Show fewer articles"
+                            : `Show all ${dataset.relatedResearch.length} articles`
+                    }
                     onClick={() => setShowAll(!showAll)}
-                >
-                    {showAll
-                        ? "Show fewer articles"
-                        : `Show all ${dataset.relatedResearch.length} articles`}
-                </button>
+                />
             )}
         </section>
     )
@@ -1128,19 +1132,22 @@ function ChangelogSection({ dataset }: { dataset: DatasetPageData }) {
                     ))}
                 </div>
                 {dataset.changelog.length > MAX_CHANGELOG_ENTRIES && (
-                    <button
-                        type="button"
-                        className="dataset-page__toggle-link"
+                    <Button
+                        className="dataset-page__expand-button"
+                        theme="solid-light-blue"
+                        icon={showAll ? faMinus : faPlus}
+                        iconPosition="left"
+                        text={
+                            showAll
+                                ? "Show fewer entries"
+                                : `Show all ${dataset.changelog.length} entries`
+                        }
                         onClick={() => {
                             // Hiding the older entries makes the page shorter, so stay at the changelog
                             if (showAll) scrollToSection(SECTION_IDS.changelog)
                             setShowAll(!showAll)
                         }}
-                    >
-                        {showAll
-                            ? "Show fewer entries"
-                            : `Show all ${dataset.changelog.length} entries`}
-                    </button>
+                    />
                 )}
             </SectionWithSideHeading>
         </section>

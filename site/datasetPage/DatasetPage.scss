@@ -802,8 +802,13 @@ $dataset-page-row-border: $blue-20;
     }
 }
 
+// The button that shows the rest of a list, and hides it again
+.dataset-page__expand-button {
+    margin-top: 16px;
+}
+
 // Below the cards, with the same gap as between two rows of cards
-.dataset-page__toggle-link--research {
+.dataset-page__research + .dataset-page__expand-button {
     margin-top: 24px;
 }
 
