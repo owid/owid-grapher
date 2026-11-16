@@ -1,5 +1,8 @@
 import { expect, describe, it } from "vitest"
 import { TextWrapGroup } from "@ourworldindata/components"
+import { Bounds } from "@ourworldindata/utils"
+import { GrapherState } from "../core/GrapherState"
+import { GrapherProgrammaticInterface } from "../core/Grapher"
 import { Header, StaticHeader } from "./Header"
 import { HeaderManager } from "./HeaderManager"
 
@@ -110,25 +113,38 @@ describe("live header line heights", () => {
     })
 })
 
-describe("static header line heights", () => {
-    it.each<[string, HeaderManager, LineHeights]>([
+describe("static export header line heights", () => {
+    it.each<[string, Bounds, GrapherProgrammaticInterface, LineHeights]>([
         [
             "fixed layout",
-            { isLayoutFixed: true },
+            new Bounds(0, 0, 850, 600),
+            {},
             { title: 1.2, subtitle: 1.2 },
         ],
         [
             "fixed small layout",
-            { isLayoutFixed: true, isStaticAndSmall: true },
+            new Bounds(0, 0, 328, 575),
+            {},
             { title: 1.1, subtitle: 1.2 },
         ],
         [
-            "responsive layout",
-            { isMedium: true, isSmall: true },
+            "responsive layout at phone width",
+            new Bounds(0, 0, 328, 575),
+            { isStaticLayoutResponsive: true },
             { title: 1.1, subtitle: 1.2 },
         ],
-    ])("%s", (_, manager, expected) => {
-        const header = new StaticHeader({ manager, targetX: 0, targetY: 0 })
+    ])("%s", (_, bounds, options, expected) => {
+        const grapher = new GrapherState({
+            bounds,
+            staticBounds: bounds,
+            ...options,
+        })
+        grapher.isExportingToSvgOrPng = true
+        const header = new StaticHeader({
+            manager: grapher,
+            targetX: 0,
+            targetY: 0,
+        })
         expect(readLineHeights(header)).toEqual(expected)
     })
 })
