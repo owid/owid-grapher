@@ -34,7 +34,7 @@ describe(serializeImageRequest, () => {
         expect(serializeImageRequest(parse("")).toString()).toBe("")
     })
 
-    it("writes params in a fixed order", () => {
+    it("writes params in alphabetical order", () => {
         const request: ImageRequest = {
             variant: GrapherVariant.Thumbnail,
             labelMode: ChartLabelMode.Values,
@@ -42,7 +42,7 @@ describe(serializeImageRequest, () => {
             size: { kind: "explicit", width: 1200, height: 640, fontSize: 12 },
         }
         expect(serializeImageRequest(request).toString()).toBe(
-            "imVariant=simplified&imLabels=values&imWidth=1200&imHeight=640&imFontSize=12"
+            "imFontSize=12&imHeight=640&imLabels=values&imVariant=simplified&imWidth=1200"
         )
     })
 
@@ -51,7 +51,7 @@ describe(serializeImageRequest, () => {
             serializeImageRequest(
                 parse("imType=uncaptioned&imMinimal=1&imFontSize=16")
             ).toString()
-        ).toBe("imVariant=uncaptioned&imLabels=values&imFontSize=16")
+        ).toBe("imFontSize=16&imLabels=values&imVariant=uncaptioned")
     })
 
     it.each<ImageRequest>([
