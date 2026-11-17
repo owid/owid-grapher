@@ -43,7 +43,7 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
         const grapherQueryString = args.queryStr
         const shouldTestAllChartViews =
             args.allViews ?? settings.shouldTestAllViews
-        const shouldTestAllTabs = args.allTabs ?? settings.shouldTestAllTabs
+        const tabSelection = args.tabs ?? settings.tabSelection
 
         // Other options
         const isolate = args.isolate
@@ -69,7 +69,7 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
             {
                 queryStr: grapherQueryString,
                 shouldTestAllViews: shouldTestAllChartViews,
-                shouldTestAllTabs,
+                tabSelection,
             }
         )
 
@@ -182,10 +182,11 @@ function parseArguments() {
                 description:
                     "For each Grapher, generate SVGs for all possible chart configurations. Default depends on the test suite.",
             },
-            allTabs: {
-                type: "boolean",
+            tabs: {
+                type: "string",
+                choices: utils.SVG_TESTER_TAB_SELECTIONS,
                 description:
-                    "For each Grapher, generate thumbnail SVGs for all available tabs. Default depends on the test suite.",
+                    "Which tabs to generate SVGs for per Grapher: its default tab, the tab of its first chart type, or every available tab. Default depends on the test suite.",
             },
             manifest: {
                 type: "string",

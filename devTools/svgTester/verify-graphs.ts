@@ -46,7 +46,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         const grapherQueryString = args.queryStr
         const shouldTestAllChartViews =
             args.allViews ?? settings.shouldTestAllViews
-        const shouldTestAllTabs = args.allTabs ?? settings.shouldTestAllTabs
+        const tabSelection = args.tabs ?? settings.tabSelection
 
         // Other options
         const rmOnError = args.rmOnError
@@ -78,7 +78,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
             {
                 queryStr: grapherQueryString,
                 shouldTestAllViews: shouldTestAllChartViews,
-                shouldTestAllTabs,
+                tabSelection,
             }
         )
 
@@ -297,10 +297,11 @@ function parseArguments() {
                 description:
                     "For each Grapher, verify SVGs for all possible chart configurations. Default depends on the test suite.",
             },
-            allTabs: {
-                type: "boolean",
+            tabs: {
+                type: "string",
+                choices: utils.SVG_TESTER_TAB_SELECTIONS,
                 description:
-                    "For each Grapher, verify thumbnail SVGs for all available tabs. Default depends on the test suite.",
+                    "Which tabs to verify SVGs for per Grapher: its default tab, the tab of its first chart type, or every available tab. Default depends on the test suite.",
             },
             manifest: {
                 type: "string",
