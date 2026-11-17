@@ -33,7 +33,7 @@ const CONTENT_TYPE_CARDS: Record<
     article: {
         icon: faBook,
         description:
-            "Longer-form narrative pieces. Published twice a month approximately.",
+            "Longer-form narrative pieces. Published every week approximately.",
     },
     "data-insight": {
         icon: faLightbulb,
@@ -43,7 +43,7 @@ const CONTENT_TYPE_CARDS: Record<
     "data-update": {
         icon: faChartLine,
         description:
-            "Major updates to the datasets behind our work. Published once or twice a week.",
+            "Major updates to the datasets behind our work. Published about once a week.",
     },
     announcement: {
         icon: faNewspaper,
