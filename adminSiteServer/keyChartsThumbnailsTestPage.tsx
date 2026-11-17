@@ -27,7 +27,7 @@ import { KEY_CHARTS_BY_TOPIC } from "./keyChartsByTopic.js"
 
 const CHARTS_PER_TOPIC = 4
 
-/** Mirrors `ALL_CHARTS_THUMBNAIL_REQUEST` in site/blocks/AllChartsRow.tsx */
+/** Mirrors `ALL_CHARTS_THUMBNAIL_REQUEST` in site/blocks/AllChartsResults.tsx */
 const ALL_CHARTS_THUMBNAIL_REQUEST: ImageRequest = {
     variant: GrapherVariant.Thumbnail,
     labelMode: ChartLabelMode.Names,
@@ -41,7 +41,7 @@ const EXCLUDED_FROM_EVERY_CHART_TYPE = new Set([
     "computation-used-to-train-notable-artificial-intelligence-systems",
 ])
 
-/** $all-charts-row-thumbnail-width and -height in AllChartsRow.scss */
+/** $all-charts-row-thumbnail-width and -height in AllChartsResults.scss */
 const THUMBNAIL_WIDTH_PX = 158
 const THUMBNAIL_HEIGHT_PX = 84
 
