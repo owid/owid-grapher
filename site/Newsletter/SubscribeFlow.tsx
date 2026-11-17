@@ -35,14 +35,7 @@ export const SubscribeFlow = () => {
             </SiteQueryClientProvider>
         ))
         .with({ name: "success" }, ({ subscription }) => (
-            <SubscribePageConfirmation
-                heading={
-                    // Stay neutral: the public API hides whether confirmation is needed.
-                    subscription.followTopics
-                        ? "You are now subscribed"
-                        : "Thanks for signing up"
-                }
-            >
+            <SubscribePageConfirmation heading="You are now subscribed">
                 <SubscribedText subscription={subscription} />
                 <Button
                     className="subscribe-page__confirmation-action"
@@ -56,28 +49,30 @@ export const SubscribeFlow = () => {
         .exhaustive()
 }
 
-/**
- * Covers both immediate and double-opt-in Brief signups without exposing the
- * address's Mailchimp history.
- */
 const SubscribedText = ({
     subscription: { email, followTopics, subscribeToOwidBrief },
 }: {
     subscription: Subscription
 }) => (
     <>
-        {followTopics && (
-            <p className="subscribe-page__confirmation-text">
-                We have subscribed <strong>{email}</strong> to topic
-                notifications and sent a confirmation email with a summary of
-                your preferences.
-            </p>
-        )}
+        <p className="subscribe-page__confirmation-text">
+            We have subscribed <strong>{email}</strong> to{" "}
+            {followTopics && subscribeToOwidBrief
+                ? "topic notifications and The OWID Brief"
+                : followTopics
+                  ? "topic notifications"
+                  : "The OWID Brief"}
+            {followTopics
+                ? ", and sent a confirmation email with a summary of your preferences."
+                : "."}
+        </p>
+        {/* The public API doesn't say whether Mailchimp needs a re-subscriber
+            to confirm (so it doesn't reveal the address's history), hence the
+            hedge for everyone who picked the Brief. */}
         {subscribeToOwidBrief && (
             <p className="subscribe-page__confirmation-text">
-                We have added <strong>{email}</strong> to The OWID Brief. If you
-                had unsubscribed from it before, you will first receive an email
-                asking you to confirm your subscription.
+                If you unsubscribed from The OWID Brief before, Mailchimp will
+                email you to confirm.
             </p>
         )}
     </>
