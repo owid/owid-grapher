@@ -55,11 +55,13 @@ export type SvgRenderVariant = "default" | "thumbnail" | "mobile"
 const PHONE_WIDTH_PX = 360
 const ARTICLE_GUTTER_PX = 16
 const ARTICLE_CHART_HEIGHT_PX = 575
-const PHONE_ARTICLE_CHART_BOUNDS = new Bounds(
+/** Median height a live chart's controls row, timeline and taller footer take from the plot */
+const LIVE_CHART_CONTROLS_HEIGHT_PX = 110
+const PHONE_CHART_BOUNDS = new Bounds(
     0,
     0,
     PHONE_WIDTH_PX - 2 * ARTICLE_GUTTER_PX,
-    ARTICLE_CHART_HEIGHT_PX
+    ARTICLE_CHART_HEIGHT_PX - LIVE_CHART_CONTROLS_HEIGHT_PX
 )
 
 const SVG_RENDER_VARIANT_OPTIONS: Record<
@@ -78,8 +80,8 @@ const SVG_RENDER_VARIANT_OPTIONS: Record<
         baseFontSize: 14,
     },
     mobile: {
-        bounds: PHONE_ARTICLE_CHART_BOUNDS,
-        staticBounds: PHONE_ARTICLE_CHART_BOUNDS,
+        bounds: PHONE_CHART_BOUNDS,
+        staticBounds: PHONE_CHART_BOUNDS,
         isStaticLayoutResponsive: true,
     },
 }
@@ -131,7 +133,7 @@ export const SVG_TESTER_SUITE_SETTINGS: Record<
     },
     mobile: {
         description:
-            "phone-width (328x575) renderings of the most-viewed Graphers",
+            "phone-width (328x465) renderings of the most-viewed Graphers",
         configsSuite: "graphers",
         isManifestRequired: true,
         shouldTestAllViews: false,

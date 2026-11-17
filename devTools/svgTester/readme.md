@@ -57,11 +57,11 @@ For the most-viewed graphers, creates a manifest file listing which charts to te
 
 #### Mobile
 
-Uses the same most-viewed graphers as thumbnails, through its own `top.manifest.json`, and reads its data from the graphers suite. Every available tab is rendered at 328x575, the size of an article chart on a 360px-wide phone (16px gutters, 575px chart height).
+Uses the same most-viewed graphers as thumbnails, through its own `top.manifest.json`, and reads its data from the graphers suite. Every available tab is rendered at 328x465. The width is an article chart on a 360px-wide phone (16px gutters). The height is the article chart's 575px less the 110px that a live chart's controls row, timeline and taller footer typically take, so the plot gets about the room it has on a phone.
 
 A static export normally switches off grapher's narrow-screen breakpoints and sizes its fonts from the export bounds. This suite sets `isStaticLayoutResponsive`, so the SVG gets the breakpoints and 14px base font a phone gets.
 
-The SVG still can't show everything a phone shows. It has no HTML controls (tabs, timeline, entity selector), no tooltips, and the static footer instead of the live one. The chart area is also taller than on a phone, because the static layout doesn't reserve room for the controls row and the timeline.
+The SVG still can't show everything a phone shows. It has no HTML controls (tabs, timeline, entity selector), no tooltips, and the static footer instead of the live one. The 110px is a median: charts without a timeline get up to about 50px less plot height than on a phone, and charts with both a timeline and controls up to about 40px more.
 
 The manifest is required, as for thumbnails.
 
