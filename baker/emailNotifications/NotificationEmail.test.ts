@@ -188,10 +188,28 @@ const ITEMS: NotificationEmailItem[] = [
         topicLabel: "Malaria",
         authors: ["Saloni Dattani"],
         excerpt: "Our malaria topic page now covers the new vaccines.",
+        // Topic updates usually close with a cta, then an image.
         body: [
             textBlock([simpleText("The topic page now covers the vaccines.")]),
             textBlock([simpleText("We have also refreshed every chart.")]),
+            {
+                type: "cta",
+                text: "Explore our work on malaria",
+                url: `${BASE_URL}/malaria`,
+                parseErrors: [],
+            },
+            {
+                type: "image",
+                filename: "malaria.png",
+                alt: "Malaria deaths by world region",
+                size: BlockSize.Wide,
+                hasOutline: true,
+                parseErrors: [],
+            },
         ],
+        imageUrlsByFilename: {
+            "malaria.png": "https://images.ourworldindata.org/mal/w=1200",
+        },
     },
 ]
 
@@ -297,6 +315,67 @@ describe(renderNotificationEmail, () => {
         ).toHaveLength(2)
     })
 
+    it("puts a byline after the cta but before the images that close the body", async () => {
+        const { html } = await renderFixture()
+        const topicUpdate = html.slice(
+            html.indexOf(
+                "updated our work on malaria",
+                html.indexOf("<!--body-->")
+            )
+        )
+        const bylineIndex = topicUpdate.indexOf("Saloni Dattani")
+        expect(bylineIndex).toBeGreaterThan(
+            topicUpdate.indexOf("Explore our work on malaria")
+        )
+        expect(bylineIndex).toBeLessThan(
+            topicUpdate.indexOf("https://images.ourworldindata.org/mal/w=1200")
+        )
+    })
+
+    it("puts an announcement's byline before its last image, as on /latest", async () => {
+        const { html } = await renderFixture([
+            {
+                type: "announcement",
+                latestType: "announcement",
+                slug: "image-then-cta",
+                title: "An announcement with its call to action last",
+                url: `${BASE_URL}/image-then-cta`,
+                publishedAt: new Date("2026-08-02T09:00:00Z"),
+                topicNames: [],
+                authors: ["Max Roser"],
+                body: [
+                    textBlock([simpleText("Our new book is out.")]),
+                    {
+                        type: "image",
+                        filename: "book.png",
+                        alt: "The book's cover",
+                        size: BlockSize.Wide,
+                        hasOutline: false,
+                        parseErrors: [],
+                    },
+                    {
+                        type: "cta",
+                        text: "Pre-order the book",
+                        url: `${BASE_URL}/book`,
+                        parseErrors: [],
+                    },
+                ],
+                imageUrlsByFilename: {
+                    "book.png": "https://images.ourworldindata.org/book/w=1200",
+                },
+            },
+        ])
+        const body = html.slice(html.indexOf("<!--body-->"))
+        const bylineIndex = body.indexOf("Max Roser")
+        expect(bylineIndex).toBeGreaterThan(
+            body.indexOf("Our new book is out.")
+        )
+        expect(bylineIndex).toBeLessThan(
+            body.indexOf("https://images.ourworldindata.org/book/w=1200")
+        )
+        expect(bylineIndex).toBeLessThan(body.indexOf("Pre-order the book"))
+    })
+
     it("closes a data update with its byline", async () => {
         const { html } = await renderFixture()
         const dataUpdate = itemHtml(
@@ -375,6 +454,18 @@ describe(renderNotificationEmail, () => {
         )
         expect(insight.indexOf("Hannah Ritchie")).toBeGreaterThan(
             insight.indexOf("Explore this data in our interactive chart")
+        )
+    })
+
+    it("closes an article with its byline, after its link", async () => {
+        const { html } = await renderFixture()
+        const article = itemHtml(
+            html,
+            "What has driven deforestation in the 21st century?",
+            "We've rebuilt our site search"
+        )
+        expect(article.indexOf("Hannah Ritchie")).toBeGreaterThan(
+            article.indexOf("Read the article")
         )
     })
 
