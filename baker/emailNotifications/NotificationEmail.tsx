@@ -297,17 +297,6 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
                 />
             ))}
             <ItemTitle item={item} />
-            {item.authors.length > 0 && (
-                <Text
-                    style={{
-                        ...BODY_TEXT,
-                        color: COLORS.muted,
-                        fontStyle: "italic",
-                    }}
-                >
-                    {formatAuthors(item.authors)}
-                </Text>
-            )}
             {body.slice(splitIndex).map((block, index) => (
                 <Block
                     key={index}
@@ -315,6 +304,8 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
                     imageUrlsByFilename={imageUrlsByFilename}
                 />
             ))}
+            {/* The byline closes the insight, after its call to action. */}
+            <ItemAuthors item={item} />
         </Section>
     )
 }
