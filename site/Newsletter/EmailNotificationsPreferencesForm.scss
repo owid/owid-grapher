@@ -22,6 +22,11 @@
     text-decoration: underline;
     cursor: pointer;
 
+    &:hover:not(:disabled) {
+        color: $accent-vermillion;
+        text-decoration: none;
+    }
+
     &:disabled {
         color: $gray-30;
         cursor: default;
