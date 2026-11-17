@@ -517,6 +517,11 @@ $dataset-page-row-border: $blue-20;
     p {
         margin: 0 0 8px;
     }
+
+    // The same space between bullets as in the key information of data pages
+    li + li {
+        margin-top: 1em;
+    }
 }
 
 .dataset-page__details-meta {
@@ -580,7 +585,7 @@ $dataset-page-row-border: $blue-20;
     }
 
     &:hover {
-        background: $white;
+        background: $blue-20;
     }
 }
 

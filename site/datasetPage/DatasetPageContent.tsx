@@ -340,7 +340,7 @@ function DatasetHeader({
 
     return (
         <header className="dataset-page__header grid grid-cols-12-full-width">
-            <div className="dataset-page__header-main col-start-2 span-cols-8 span-md-cols-12">
+            <div className="dataset-page__header-main col-start-2 span-cols-8 col-md-start-2 span-md-cols-12">
                 <h1 className="dataset-page__title">{dataset.title}</h1>
                 <p className="dataset-page__description">
                     {dataset.description}
@@ -743,7 +743,7 @@ function IndicatorsSection({
     )
     return (
         <section
-            className="dataset-page__section col-start-2 span-cols-8 span-md-cols-12"
+            className="dataset-page__section col-start-2 span-cols-8 col-md-start-2 span-md-cols-12"
             id={SECTION_IDS.indicators}
         >
             <h2 className="dataset-page__section-title">
@@ -1435,7 +1435,7 @@ export function DatasetPageContent({ dataset }: DatasetPageProps) {
             <div className="grid grid-cols-12-full-width">
                 {table.description && (
                     <section
-                        className="dataset-page__about col-start-2 span-cols-8 span-md-cols-12"
+                        className="dataset-page__about col-start-2 span-cols-8 col-md-start-2 span-md-cols-12"
                         id={SECTION_IDS.about}
                     >
                         <SimpleMarkdownText text={table.description} />
