@@ -47,8 +47,8 @@ export const SubscribeFlow = () => {
                 <Button
                     className="subscribe-page__confirmation-action"
                     theme="outline-vermillion"
-                    href="/preferences"
-                    text="Update your preferences"
+                    href="/latest"
+                    text="Read our latest work"
                     icon={null}
                 />
             </SubscribePageConfirmation>
