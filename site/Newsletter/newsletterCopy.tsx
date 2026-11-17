@@ -3,7 +3,7 @@ export const OWID_BRIEF_CADENCE = "Twice a month"
 export const OWID_BRIEF_DESCRIPTION =
     "Stay up to date with our latest work plus curated highlights from across Our World in Data, twice a month."
 
-export const FOLLOW_TOPICS_TITLE = "Follow Topics"
+export const FOLLOW_TOPICS_TITLE = "Follow topics"
 export const FOLLOW_TOPICS_CADENCE = "Daily or weekly"
 export const FOLLOW_TOPICS_DESCRIPTION =
     "Receive updates on the topics you follow as we publish them, at your preferred frequency."
