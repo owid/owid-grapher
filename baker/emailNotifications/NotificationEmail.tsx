@@ -206,7 +206,7 @@ function ReadMoreLink({ href, label }: { href: string; label: string }) {
                     textDecoration: "none",
                 }}
             >
-                {label} →
+                <u>{label}</u> →
             </Link>
         </Text>
     )
@@ -414,7 +414,7 @@ function Block({
                             textDecoration: "none",
                         }}
                     >
-                        {block.text} →
+                        <u>{block.text}</u> →
                     </Link>
                 </Text>
             )
