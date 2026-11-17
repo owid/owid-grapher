@@ -371,6 +371,12 @@ $svg-tester-error-frame: #dda4a0;
     width: 100%;
 }
 
+// The mobile suite's render size, set in devTools/svgTester/utils.ts
+.SvgTesterInteractive--phone iframe {
+    height: 575px;
+    width: 328px;
+}
+
 // Shrink-wrap the image: the divider and the drag area are positioned as a
 // percentage of this box, while clip-path is a percentage of the image, so the
 // two only line up if the box is exactly the image's width.
