@@ -20,7 +20,7 @@ import * as db from "../db/db.js"
 import { parseAndMigrateChartConfig } from "../db/model/ChartConfigs.js"
 import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
-import { toAllChartsGrapherParams } from "../site/blocks/allChartsEntitySelection.js"
+import { toAllChartsBlockGrapherParams } from "../site/blocks/allChartsEntitySelection.js"
 import { toGrapherQueryParams } from "../site/search/searchUtils.js"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import { KEY_CHARTS_BY_TOPIC } from "./keyChartsByTopic.js"
@@ -233,7 +233,7 @@ function KeyChartsThumbnailsTestPage({
     countries: string[]
 }): React.ReactElement {
     const makeAllChartsGrapherParams: MakeGrapherParams = (tab) =>
-        toAllChartsGrapherParams({ tab, countries, target: "thumbnail" })
+        toAllChartsBlockGrapherParams({ tab, countries, target: "thumbnail" })
     return (
         <html>
             <head>
