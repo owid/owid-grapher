@@ -1,0 +1,7 @@
+.all-charts-block-heading {
+    .all-charts-block-heading__count {
+        @include note-1-medium;
+        margin-left: 4px;
+        color: $blue-60;
+    }
+}

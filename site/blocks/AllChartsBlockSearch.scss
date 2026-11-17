@@ -1,0 +1,98 @@
+$all-charts-block-sticky-nav-height: 56px;
+$all-charts-block-sticky-nav-height-sm: 48px;
+$all-charts-block-search-field-height: 48px;
+$all-charts-block-search-padding: 12px;
+$all-charts-block-search-height: $all-charts-block-search-field-height + 2 *
+    $all-charts-block-search-padding;
+
+.all-charts-block-search {
+    margin-bottom: $all-charts-block-search-padding;
+
+    @include md-down {
+        position: sticky;
+        top: $all-charts-block-sticky-nav-height;
+        z-index: 1;
+        margin: (-$all-charts-block-search-padding) 0 0;
+        padding: $all-charts-block-search-padding 0;
+        background: white;
+    }
+
+    @include sm-only {
+        top: $all-charts-block-sticky-nav-height-sm;
+    }
+
+    .all-charts-block-search__field {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: $all-charts-block-search-field-height;
+        padding: 0 7px 0 15px;
+        background: white;
+        border: 1px solid $blue-20;
+        transition: box-shadow var(--duration-hover) ease;
+
+        &:focus-within {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        @include sm-only {
+            padding-left: 12px;
+        }
+    }
+
+    .all-charts-block-search__icon {
+        margin-right: 4px;
+        color: $blue-50;
+
+        @include sm-only {
+            margin-right: 2px;
+            font-size: 14px;
+        }
+    }
+
+    .all-charts-block-search__input {
+        @include body-3-regular;
+        flex: 1;
+        min-width: 0;
+        border: 0;
+        background: transparent;
+        color: $blue-90;
+        appearance: none;
+
+        &:focus {
+            outline: none;
+        }
+
+        &::-webkit-search-cancel-button {
+            appearance: none;
+        }
+
+        &::placeholder {
+            color: $blue-50;
+            text-overflow: ellipsis;
+        }
+
+        @include sm-only {
+            // Prevents auto-zoom on Safari
+            font-size: 16px;
+        }
+    }
+
+    .all-charts-block-search__clear {
+        display: flex;
+        flex: none;
+        justify-content: center;
+        align-items: center;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: $blue-50;
+        cursor: pointer;
+
+        &:hover {
+            color: $blue-90;
+        }
+    }
+}

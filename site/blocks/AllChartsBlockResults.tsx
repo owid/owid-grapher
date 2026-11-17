@@ -1,108 +1,94 @@
 import * as React from "react"
-import { useEffect, useId, useRef, useState } from "react"
+import { useId, useRef, useState } from "react"
 import { flushSync } from "react-dom"
 import cx from "clsx"
 import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 import {
     IconDefinition,
-    faCircleXmark,
     faExclamationTriangle,
-    faMagnifyingGlass,
     faSearch,
+    faLocationDot,
 } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Button } from "@ourworldindata/components"
 import {
     GRAPHER_PREVIEW_CLASS,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
     SearchChartViewHit,
+    ChartLabelMode,
+    GrapherVariant,
 } from "@ourworldindata/types"
-import { commafyNumber, queryParamsToStr } from "@ourworldindata/utils"
+import { queryParamsToStr } from "@ourworldindata/utils"
 import { GrapherWithFallback } from "../GrapherWithFallback.js"
 import { useDocumentContext } from "../gdocs/DocumentContext.js"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
-import { toGrapherQueryParams } from "../search/searchUtils.js"
+import {
+    toGrapherQueryParams,
+    constructPreviewUrl,
+} from "../search/searchUtils.js"
 import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
-import { AllChartsRow } from "./AllChartsRow.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+    makeLabelForGrapherTab,
+    type ImageRequest,
+} from "@ourworldindata/grapher"
 
 const SKELETON_ROW_COUNT = 6
 const MAX_THUMBNAILS = 3
 const PREVIEW_GRAPHER_CONFIG = { enableKeyboardShortcuts: false }
-const SEARCH_PLACEHOLDER =
-    "Search indicators by name, keyword, country, or source…"
-
-export interface AllChartsBlockSearch {
-    query: string
-    fetchedQuery: string
-    onQueryChange: (query: string) => void
-    suggestedTerms: string[]
-    isLoadingSuggestions: boolean
-    onSuggestionSelect: (term: string) => void
+const ALL_CHARTS_BLOCK_THUMBNAIL_REQUEST: ImageRequest = {
+    variant: GrapherVariant.Thumbnail,
+    labelMode: ChartLabelMode.All,
+    size: { kind: "explicit" },
+    includeDetails: false,
 }
 
-interface AllChartsSelection {
+interface AllChartsBlockSelection {
     fetchedQuery: string
     slug: string
     tab?: GrapherTabName
 }
 
-export function AllChartsBlock({
-    id,
-    heading,
-    hitCount,
+export function AllChartsBlockResults({
+    status,
     hits,
     countries,
-    search,
+    fetchedQuery,
     onLoadMore,
     isLoadingMore,
-    searchStatus,
     noResultsHref,
-    className,
 }: {
-    id: string
-    heading: string
-    hitCount?: number
+    status?: "pending" | "error"
     hits: SearchChartViewHit[]
     countries: string[]
-    search?: AllChartsBlockSearch
+    fetchedQuery: string
     onLoadMore?: () => void
     isLoadingMore?: boolean
-    searchStatus?: "pending" | "error"
     noResultsHref: string
-    className?: string
 }): React.ReactElement {
-    const fetchedQuery = search?.fetchedQuery ?? ""
+    if (status === "pending") return <AllChartsBlockResultsSkeleton />
+    if (status === "error")
+        return <AllChartsBlockErrorMessage searchHref={noResultsHref} />
+    if (hits.length === 0)
+        return (
+            <AllChartsBlockNoResults
+                hasQuery={fetchedQuery !== ""}
+                searchHref={noResultsHref}
+            />
+        )
     return (
-        <section
-            className={cx(className, "needs-dividers", "all-charts-block")}
-        >
-            <AllChartsHeading id={id} heading={heading} hitCount={hitCount} />
-            {search && <AllChartsSearchInput search={search} />}
-            {searchStatus === "pending" ? (
-                <AllChartsResultsSkeleton />
-            ) : searchStatus === "error" ? (
-                <AllChartsErrorPanel searchHref={noResultsHref} />
-            ) : hits.length === 0 ? (
-                <AllChartsNoResults
-                    hasQuery={fetchedQuery !== ""}
-                    searchHref={noResultsHref}
-                />
-            ) : (
-                <AllChartsResults
-                    fetchedQuery={fetchedQuery}
-                    hits={hits}
-                    countries={countries}
-                    onLoadMore={onLoadMore}
-                    isLoadingMore={isLoadingMore}
-                />
-            )}
-        </section>
+        <AllChartsBlockResultsGrid
+            fetchedQuery={fetchedQuery}
+            hits={hits}
+            countries={countries}
+            onLoadMore={onLoadMore}
+            isLoadingMore={isLoadingMore}
+        />
     )
 }
 
-function AllChartsResults({
+function AllChartsBlockResultsGrid({
     fetchedQuery,
     hits,
     countries,
@@ -115,7 +101,7 @@ function AllChartsResults({
     onLoadMore?: () => void
     isLoadingMore?: boolean
 }): React.ReactElement {
-    const [storedSelection, setSelection] = useState<AllChartsSelection>()
+    const [storedSelection, setSelection] = useState<AllChartsBlockSelection>()
     const selection =
         storedSelection?.fetchedQuery === fetchedQuery
             ? storedSelection
@@ -124,14 +110,14 @@ function AllChartsResults({
     const selectedHit =
         hits.find((hit) => hit.slug === selection?.slug) ?? hits[0]
     const selectedTab =
-        (selection?.slug === selectedHit.slug && selection.tab) ||
+        selection?.tab ??
         getDefaultTab(pickThumbnailTabs(selectedHit.availableTabs), countries)
 
     const isNarrow = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
 
     return (
-        <div className="grid grid-cols-12">
-            <AllChartsList
+        <div className="all-charts-block-results grid grid-cols-12">
+            <AllChartsBlockList
                 key={fetchedQuery}
                 hits={hits}
                 countries={countries}
@@ -145,8 +131,8 @@ function AllChartsResults({
                 isLoadingMore={isLoadingMore}
             />
             {!isNarrow && (
-                <div className="all-charts-block__preview span-cols-7">
-                    <AllChartsPreview
+                <div className="all-charts-block-results__preview span-cols-7">
+                    <AllChartsBlockPreview
                         slug={selectedHit.slug}
                         tab={selectedTab}
                         countries={countries}
@@ -157,7 +143,7 @@ function AllChartsResults({
     )
 }
 
-function AllChartsList({
+function AllChartsBlockList({
     hits,
     countries,
     selectedHit,
@@ -179,18 +165,18 @@ function AllChartsList({
     const [listElement, setListElement] = useState<HTMLUListElement | null>(
         null
     )
-    const { ref: sentinelRef, isIntersecting: isSentinelVisible } =
-        useIntersectionObserver({ root: listElement })
-
-    useEffect(() => {
-        if (onLoadMore && isSentinelVisible) onLoadMore()
-    }, [onLoadMore, isSentinelVisible])
+    const { ref: sentinelRef } = useIntersectionObserver({
+        root: listElement,
+        onChange: (isIntersecting) => {
+            if (isIntersecting) onLoadMore?.()
+        },
+    })
 
     return (
-        <div className="all-charts-block__list-wrapper span-cols-5 span-md-cols-12">
-            <ul className="all-charts-block__list" ref={setListElement}>
+        <div className="all-charts-block-results__list-wrapper span-cols-5 span-md-cols-12">
+            <ul className="all-charts-block-results__list" ref={setListElement}>
                 {hits.map((hit) => (
-                    <AllChartsItem
+                    <AllChartsBlockListItem
                         key={hit.objectID}
                         hit={hit}
                         countries={countries}
@@ -202,7 +188,7 @@ function AllChartsList({
                 ))}
                 {onLoadMore && (
                     <li
-                        className="all-charts-block__sentinel"
+                        className="all-charts-block-results__sentinel"
                         ref={sentinelRef}
                         aria-hidden
                     />
@@ -210,7 +196,7 @@ function AllChartsList({
             </ul>
             {onLoadMore && (
                 <SearchHorizontalDivider
-                    className="all-charts-block__show-more"
+                    className="all-charts-block-results__show-more"
                     hasButton
                     isLoading={isLoadingMore}
                     onClick={onLoadMore}
@@ -220,7 +206,7 @@ function AllChartsList({
     )
 }
 
-function AllChartsItem({
+function AllChartsBlockListItem({
     hit,
     countries,
     isSelected,
@@ -249,12 +235,12 @@ function AllChartsItem({
 
     return (
         <li
-            className={cx("all-charts-block__item", {
-                "all-charts-block__item--selected": isSelected,
+            className={cx("all-charts-block-results__item", {
+                "all-charts-block-results__item--selected": isSelected,
             })}
             ref={itemRef}
         >
-            <AllChartsRow
+            <AllChartsBlockRow
                 hit={hit}
                 isSelected={isSelected}
                 displayedTab={
@@ -272,10 +258,10 @@ function AllChartsItem({
             />
             {isNarrow && isSelected && (
                 <div
-                    className="all-charts-block__inline-preview"
+                    className="all-charts-block-results__inline-preview"
                     id={inlinePreviewId}
                 >
-                    <AllChartsPreview
+                    <AllChartsBlockPreview
                         slug={hit.slug}
                         tab={selectedTab}
                         countries={countries}
@@ -286,165 +272,144 @@ function AllChartsItem({
     )
 }
 
-function AllChartsSearchInput({
-    search,
-}: {
-    search: AllChartsBlockSearch
-}): React.ReactElement {
-    const {
-        query,
-        onQueryChange,
-        suggestedTerms,
-        isLoadingSuggestions,
-        onSuggestionSelect,
-    } = search
-    const inputRef = useRef<HTMLInputElement>(null)
-    return (
-        <>
-            <div className="all-charts-block__sticky-search">
-                <div className="all-charts-block__search" role="search">
-                    <FontAwesomeIcon
-                        className="all-charts-block__search-icon"
-                        icon={faMagnifyingGlass}
-                    />
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        className="all-charts-block__search-input"
-                        aria-label="Search charts on this topic"
-                        placeholder={SEARCH_PLACEHOLDER}
-                        value={query}
-                        onChange={(event) => onQueryChange(event.target.value)}
-                    />
-                    {query !== "" && (
-                        <button
-                            type="button"
-                            className="all-charts-block__search-clear"
-                            aria-label="Clear search"
-                            onClick={() => {
-                                onQueryChange("")
-                                inputRef.current?.focus()
-                            }}
-                        >
-                            <FontAwesomeIcon icon={faCircleXmark} />
-                        </button>
-                    )}
-                </div>
-            </div>
-            <AllChartsSuggestions
-                terms={suggestedTerms}
-                isLoading={isLoadingSuggestions}
-                onSelect={(term) => {
-                    onSuggestionSelect(term)
-                    inputRef.current?.focus()
-                }}
-            />
-        </>
-    )
+interface AllChartsBlockRowProps {
+    hit: SearchChartViewHit
+    isSelected: boolean
+    displayedTab: GrapherTabName
+    thumbnailTabs: GrapherTabName[]
+    countries: string[]
+    inlinePreviewId?: string
+    onTitleSelect: () => void
+    onThumbnailSelect: (tab: GrapherTabName, thumbnail: HTMLElement) => void
 }
 
-function AllChartsSuggestions({
-    terms,
-    isLoading,
-    onSelect,
-}: {
-    terms: string[]
-    isLoading: boolean
-    onSelect: (term: string) => void
-}): React.ReactElement | null {
-    if (isLoading)
-        return <div className="all-charts-block__suggestions" aria-hidden />
-    if (terms.length === 0) return null
-    return (
-        <div className="all-charts-block__suggestions">
-            <span className="all-charts-block__suggestions-label">
-                Suggested:
-            </span>
-            <ul className="all-charts-block__suggestions-list">
-                {terms.map((term) => (
-                    <li key={term} className="all-charts-block__suggestion">
-                        <button
-                            type="button"
-                            className="all-charts-block__suggestion-button"
-                            onClick={() => onSelect(term)}
-                        >
-                            {term}
-                        </button>
-                    </li>
-                ))}
-            </ul>
-        </div>
-    )
-}
+function AllChartsBlockRow({
+    hit,
+    isSelected,
+    displayedTab,
+    thumbnailTabs,
+    countries,
+    inlinePreviewId,
+    onTitleSelect,
+    onThumbnailSelect,
+}: AllChartsBlockRowProps): React.ReactElement {
+    const selectStateProps = inlinePreviewId
+        ? {
+              "aria-expanded": isSelected,
+              "aria-controls": isSelected ? inlinePreviewId : undefined,
+              "aria-disabled": isSelected,
+          }
+        : { "aria-pressed": isSelected }
 
-export function AllChartsBlockSkeleton({
-    id,
-    heading,
-    className,
-    ref,
-}: {
-    id: string
-    heading: string
-    className?: string
-    ref?: React.Ref<HTMLElement>
-}): React.ReactElement {
     return (
-        <section
-            className={cx(className, "needs-dividers", "all-charts-block")}
-            ref={ref}
+        <div
+            className={cx("all-charts-block-row", {
+                "all-charts-block-row--selected": isSelected,
+            })}
         >
-            <AllChartsHeading id={id} heading={heading} />
-            <AllChartsSearchSkeleton />
-            <AllChartsSuggestionsSkeleton />
-            <AllChartsResultsSkeleton />
-        </section>
-    )
-}
-
-function AllChartsSearchSkeleton(): React.ReactElement {
-    return <div className="all-charts-block__skeleton-search animate-pulse" />
-}
-
-function AllChartsSuggestionsSkeleton(): React.ReactElement {
-    return (
-        <div className="all-charts-block__suggestions" aria-hidden>
-            <div className="all-charts-block__skeleton-suggestions animate-pulse" />
+            <button
+                type="button"
+                className="all-charts-block-row__select"
+                {...selectStateProps}
+                onClick={onTitleSelect}
+            >
+                <span className="all-charts-block-row__heading">
+                    <span className="all-charts-block-row__title">
+                        {hit.title}
+                    </span>
+                    {hit.variantName && (
+                        <span className="all-charts-block-row__variant">
+                            {hit.variantName}
+                        </span>
+                    )}
+                </span>
+                {hit.source && (
+                    <span className="all-charts-block-row__source">
+                        <strong>Source:</strong> {hit.source}
+                    </span>
+                )}
+                {countries.length > 0 && (
+                    <span className="all-charts-block-row__countries">
+                        <FontAwesomeIcon icon={faLocationDot} />{" "}
+                        {countries.join(", ")}
+                    </span>
+                )}
+            </button>
+            {thumbnailTabs.length > 0 && (
+                <ul className="all-charts-block-row__thumbnails">
+                    {thumbnailTabs.map((tab) => (
+                        <li key={tab}>
+                            <button
+                                type="button"
+                                className={cx(
+                                    "all-charts-block-row__thumbnail",
+                                    {
+                                        "all-charts-block-row__thumbnail--selected":
+                                            tab === displayedTab,
+                                    }
+                                )}
+                                aria-label={makeLabelForGrapherTab(tab, {
+                                    format: "long",
+                                })}
+                                aria-pressed={tab === displayedTab}
+                                onClick={(event) =>
+                                    onThumbnailSelect(tab, event.currentTarget)
+                                }
+                            >
+                                <img
+                                    src={constructPreviewUrl({
+                                        hit,
+                                        grapherParams: toGrapherQueryParams({
+                                            tab,
+                                            entities: countries,
+                                        }),
+                                        imageRequest:
+                                            ALL_CHARTS_BLOCK_THUMBNAIL_REQUEST,
+                                    })}
+                                    loading="lazy"
+                                    alt=""
+                                />
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     )
 }
 
-function AllChartsResultsSkeleton(): React.ReactElement {
+function AllChartsBlockResultsSkeleton(): React.ReactElement {
     return (
-        <div className="grid grid-cols-12">
-            <div className="all-charts-block__list-wrapper span-cols-5 span-md-cols-12">
-                <ul className="all-charts-block__list animate-pulse">
+        <div className="all-charts-block-results grid grid-cols-12">
+            <div className="all-charts-block-results__list-wrapper span-cols-5 span-md-cols-12">
+                <ul className="all-charts-block-results__list animate-pulse">
                     {Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
                         <li
-                            className="all-charts-block__item all-charts-block__skeleton-row"
+                            className="all-charts-block-results__item all-charts-block-results__skeleton-row"
                             key={index}
                         >
-                            <div className="all-charts-block__skeleton-title" />
-                            <div className="all-charts-block__skeleton-source" />
-                            <div className="all-charts-block__skeleton-thumbnail" />
+                            <div className="all-charts-block-results__skeleton-title" />
+                            <div className="all-charts-block-results__skeleton-source" />
+                            <div className="all-charts-block-results__skeleton-thumbnail" />
                             {index === 0 && (
-                                <div className="all-charts-block__skeleton-inline-preview" />
+                                <div className="all-charts-block-results__skeleton-inline-preview" />
                             )}
                         </li>
                     ))}
                 </ul>
             </div>
-            <div className="all-charts-block__preview all-charts-block__skeleton-preview animate-pulse span-cols-7 span-md-cols-12" />
+            <div className="all-charts-block-results__preview all-charts-block-results__skeleton-preview animate-pulse span-cols-7 span-md-cols-12" />
         </div>
     )
 }
 
-function AllChartsErrorPanel({
+function AllChartsBlockErrorMessage({
     searchHref,
 }: {
     searchHref: string
 }): React.ReactElement {
     return (
-        <AllChartsPanel
+        <AllChartsBlockMessage
             icon={faExclamationTriangle}
             heading="We couldn't load the charts on this topic."
             text="Try reloading the page, or search all our charts."
@@ -453,7 +418,7 @@ function AllChartsErrorPanel({
     )
 }
 
-function AllChartsNoResults({
+function AllChartsBlockNoResults({
     hasQuery,
     searchHref,
 }: {
@@ -461,7 +426,7 @@ function AllChartsNoResults({
     searchHref: string
 }): React.ReactElement {
     return (
-        <AllChartsPanel
+        <AllChartsBlockMessage
             icon={faSearch}
             heading={
                 hasQuery
@@ -478,7 +443,7 @@ function AllChartsNoResults({
     )
 }
 
-function AllChartsPanel({
+function AllChartsBlockMessage({
     icon,
     heading,
     text,
@@ -490,14 +455,14 @@ function AllChartsPanel({
     href: string
 }): React.ReactElement {
     return (
-        <div className="all-charts-block__panel">
+        <div className="all-charts-block-results all-charts-block-results--message">
             <SearchNoResults
                 heading={heading}
                 subtitle={
                     <>
                         <p className="body-3-medium">{text}</p>
                         <Button
-                            className="all-charts-block__search-button"
+                            className="all-charts-block-results__search-button"
                             theme="solid-vermillion"
                             text="Search all charts"
                             href={href}
@@ -512,7 +477,7 @@ function AllChartsPanel({
     )
 }
 
-function AllChartsPreview({
+function AllChartsBlockPreview({
     slug,
     tab,
     countries,
@@ -534,28 +499,6 @@ function AllChartsPreview({
             config={PREVIEW_GRAPHER_CONFIG}
             isPreviewing={isPreviewing}
         />
-    )
-}
-
-function AllChartsHeading({
-    id,
-    heading,
-    hitCount,
-}: {
-    id: string
-    heading: string
-    hitCount?: number
-}): React.ReactElement {
-    return (
-        <h1 className="article-block__heading h1-semibold" id={id}>
-            <span>{heading}</span>
-            {hitCount !== undefined && (
-                <span className="all-charts-block__count">
-                    {`(${commafyNumber(hitCount)} ${hitCount === 1 ? "chart" : "charts"})`}
-                </span>
-            )}
-            <a className="deep-link" aria-labelledby={id} href={`#${id}`} />
-        </h1>
     )
 }
 
