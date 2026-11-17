@@ -227,6 +227,7 @@ function TeaserBody({ item }: { item: NotificationEmailItem }) {
                     <ReadMoreLink href={item.url} label="Read more" />
                 </>
             )}
+            <ItemAuthors item={item} />
         </>
     )
 }
