@@ -425,7 +425,7 @@ $sdgColors: (
     // because it is otherwise inherited from the (light-text) page.
     .donate-footer,
     .pcrm,
-    .notice {
+    .notice:not(.FeedbackForm .notice) {
         @include light-theme-tokens;
         @each $name in ("vermillion", "vermillion-text", "amber", "amber-110") {
             @include use-dark-token($name);
@@ -437,7 +437,7 @@ $sdgColors: (
     // text on it is darkened too, to keep the same contrast
     .donate-footer,
     .pcrm,
-    .notice,
+    .notice:not(.FeedbackForm .notice),
     .cookie-notice {
         @include use-dark-token("text-on-amber", $as: "blue-90");
         @include use-dark-token("text-on-amber", $as: "blue-95");

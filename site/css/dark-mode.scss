@@ -437,3 +437,58 @@ $dark-footnote-bg: #eef1f5;
         color: dark-token("blue-60");
     }
 }
+
+/* Site tools pop-ups (bottom right: newsletter sign-up, feedback form) and
+   the feedback form wherever it appears. Their box has a hardcoded near-white
+   background (popover-box-styles mixin) and #333/#555 text, while the
+   contents follow the dark tokens. On dark the box is a raised navy surface. */
+:root[data-theme="dark"] {
+    .site-tools .box,
+    .FeedbackForm {
+        color: $blue-90;
+        background: dark-token("surface-raised");
+        box-shadow:
+            0 0 0 1px dark-token("blue-30"),
+            0 16px 48px rgba(0, 0, 0, 0.6);
+    }
+
+    .FeedbackForm {
+        label {
+            color: $blue-70;
+        }
+
+        input,
+        textarea {
+            color: $blue-90;
+            background-color: $white;
+            border-color: $blue-30;
+
+            &:focus {
+                border-color: $blue-60;
+            }
+        }
+
+        .notice,
+        .topic-notice {
+            color: $blue-90;
+            background-color: $blue-10;
+        }
+
+        > .footer {
+            box-shadow: 0 -1px 0 dark-token("blue-30");
+        }
+    }
+
+    /* Pop-up buttons (incl. the round site tools toggles) hover to $blue-90,
+       which is a pale gray under white text on dark */
+    .site-tools__button:hover,
+    .site-tools .box button:not(.close):hover,
+    .FeedbackForm button:not(.close):hover {
+        background-color: dark-token("solid-fill");
+    }
+
+    .site-tools .box button:not(.close),
+    .FeedbackForm button:not(.close) {
+        background-color: dark-token("solid-fill-deep");
+    }
+}
