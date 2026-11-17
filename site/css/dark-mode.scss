@@ -399,3 +399,41 @@ $dark-footnote-bg: #eef1f5;
 :root[data-theme="dark"] .md-menu {
     color: $text-color;
 }
+
+/* Homepage hero search. The hero keeps light-theme tokens (it's a navy brand
+   surface), which left the search field pure white. On dark it's a dark navy
+   field a step above the hero, with light text. The suggestion panel that
+   opens from it is already a raised dark surface (see Search autocomplete). */
+:root[data-theme="dark"] .article-block__homepage-search {
+    #autocomplete {
+        @include dark-theme-tokens;
+    }
+
+    #autocomplete,
+    .aa-Form,
+    .aa-DetachedSearchButton,
+    .aa-DetachedSearchButtonIcon {
+        background-color: dark-token("blue-10");
+    }
+
+    .aa-Form,
+    .aa-DetachedSearchButton {
+        border: 1px solid dark-token("blue-30");
+    }
+
+    .aa-Input,
+    .aa-DetachedSearchButtonQuery {
+        color: dark-token("blue-90");
+    }
+
+    .aa-Input::placeholder,
+    .aa-DetachedSearchButtonPlaceholder {
+        color: dark-token("blue-60");
+    }
+
+    .aa-DetachedSearchButtonIcon svg,
+    .aa-SubmitIcon {
+        fill: dark-token("blue-60");
+        color: dark-token("blue-60");
+    }
+}
