@@ -206,15 +206,33 @@ function ReadMoreLink({ href, label }: { href: string; label: string }) {
 }
 
 function TeaserBody({ item }: { item: NotificationEmailItem }) {
-    const body = item.body ?? []
+    const fullBody = item.body ?? []
+    const imageUrlsByFilename = item.imageUrlsByFilename ?? {}
+    // A data update leads with its chart, as on /latest, wherever the body
+    // places it: otherwise a lone update shows only text above the fold, and
+    // consecutive items run image into image.
+    const leadImageIndex =
+        item.latestType === "data-update"
+            ? fullBody.findIndex((block) => block.type === "image")
+            : -1
+    const leadImage =
+        leadImageIndex === -1 ? undefined : fullBody[leadImageIndex]
+    const body = fullBody.filter((_, index) => index !== leadImageIndex)
     return (
         <>
+            {leadImage && (
+                <Block
+                    block={leadImage}
+                    imageUrlsByFilename={imageUrlsByFilename}
+                    imageHref={item.url}
+                />
+            )}
             <ItemTitle item={item} />
             {body.map((block, index) => (
                 <Block
                     key={index}
                     block={block}
-                    imageUrlsByFilename={item.imageUrlsByFilename ?? {}}
+                    imageUrlsByFilename={imageUrlsByFilename}
                 />
             ))}
             {body.length === 0 && (
