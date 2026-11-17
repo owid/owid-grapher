@@ -36,8 +36,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
     return makeHtmlResponse(
         renderActionPage({
-            title: "Unsubscribe from Our World in Data updates",
-            message: `Click below to stop receiving Follow Topics notifications at ${_.escape(user.email)}. Your OWID Brief subscription is managed separately by Mailchimp.`,
+            title: "Unsubscribe from topic notifications",
+            message: `Click below to stop receiving topic notifications at ${_.escape(user.email)}.`,
             button: {
                 label: "Unsubscribe",
                 action: UNSUBSCRIBE_PATH,
@@ -67,7 +67,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return makeHtmlResponse(
         renderMessagePage({
             title: "You've been unsubscribed",
-            message: `${_.escape(email)} won't receive any more Follow Topics notifications from us. The OWID Brief is managed separately by Mailchimp. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
+            message: `${_.escape(email)} won't receive any more topic notifications from us. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
         })
     )
 }
@@ -76,7 +76,7 @@ function alreadyUnsubscribedResponse(email: string): Response {
     return makeHtmlResponse(
         renderMessagePage({
             title: "Already unsubscribed",
-            message: `${_.escape(email)} is not receiving Follow Topics notifications from us. The OWID Brief is managed separately by Mailchimp. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
+            message: `${_.escape(email)} is not receiving topic notifications from us. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
         })
     )
 }
