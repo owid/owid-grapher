@@ -480,3 +480,19 @@ $sdgColors: (
         @include light-theme-tokens;
     }
 }
+
+// "Dark 2": the chart itself stays light, but the controls around it (explorer
+// header, control bar and country list; the grapher side panel; dropdown
+// menus) use the dark tokens. Nested chart roots re-declare the light tokens,
+// so the chart inside an explorer stays light.
+:root[data-theme="dark"][data-chart-controls="dark"] {
+    .Explorer,
+    .GrapherComponent .side-panel,
+    .grapher-dropdown-menu {
+        @include dark-theme-tokens;
+    }
+
+    .Explorer .GrapherComponent {
+        @include light-theme-tokens;
+    }
+}

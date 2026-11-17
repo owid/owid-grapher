@@ -6,7 +6,8 @@
  * plus a small floating Light / Dark switcher to compare the two.
  *
  *   light – today's site
- *   dark  – dark site; charts stay light "islands"
+ *   dark   – dark site; charts and their controls stay light "islands"
+ *   dark-2 – dark site; charts stay light, their surrounding controls are dark
  *
  * Override per page with `?theme=dark`. The choice is kept in localStorage
  * under "owid-theme".
@@ -18,7 +19,7 @@
 
 const themeScript = `(function () {
     var KEY = "owid-theme";
-    var MODES = ["light", "dark"];
+    var MODES = ["light", "dark", "dark-2"];
     var mql = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 
     function normalize(v) {
@@ -46,9 +47,11 @@ const themeScript = `(function () {
 
     function apply() {
         var root = document.documentElement;
-        root.setAttribute("data-theme", mode);
+        root.setAttribute("data-theme", mode === "light" ? "light" : "dark");
         // Charts stay light in the dark theme
         root.setAttribute("data-chart-theme", "light");
+        // Dark 2: the controls around the chart are dark too
+        root.setAttribute("data-chart-controls", mode === "dark-2" ? "dark" : "light");
     }
 
     apply();
@@ -60,7 +63,7 @@ const themeScript = `(function () {
         render();
     };
 
-    var LABELS = { light: "Light", dark: "Dark" };
+    var LABELS = { light: "Light", dark: "Dark", "dark-2": "Dark 2" };
 
     var el;
     function render() {

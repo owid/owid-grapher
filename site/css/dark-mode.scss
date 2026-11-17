@@ -492,3 +492,33 @@ $dark-footnote-bg: #eef1f5;
         background-color: dark-token("solid-fill-deep");
     }
 }
+
+/* "Dark 2": controls around the chart are dark, the chart stays light */
+:root[data-theme="dark"][data-chart-controls="dark"] {
+    /* The explorer is no longer one light card */
+    .Explorer {
+        background-color: transparent;
+        padding: 0;
+        color: $text-color;
+    }
+
+    .ExplorerControlBar .SelectedOption {
+        color: $blue-90;
+    }
+
+    /* The chart box takes the page color around its (white) chart area, so a
+       side panel next to the chart reads as part of the page */
+    .GrapherComponent:has(.side-panel) {
+        background-color: dark-token("white");
+        border-color: dark-token("blue-20");
+    }
+
+    .GrapherComponent .side-panel {
+        color: $text-color;
+        background-color: $white;
+    }
+
+    .grapher-dropdown-menu {
+        color: $text-color;
+    }
+}
