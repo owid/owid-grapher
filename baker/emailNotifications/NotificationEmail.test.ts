@@ -4,7 +4,10 @@ import {
     EmailNotificationsSubscriber,
     NotificationEmailItem,
 } from "./emailNotificationsUtils.js"
-import { renderNotificationEmail } from "./NotificationEmail.js"
+import {
+    makeNotificationEmailSubject,
+    renderNotificationEmail,
+} from "./NotificationEmail.js"
 
 // Unit tests checking basic rendering, and article and announcement-specific behaviours.
 // Also snapshot tests to check for regressions. The snapshot reference is:
@@ -222,6 +225,19 @@ describe(renderNotificationEmail, () => {
     it("renders the plain-text alternative", async () => {
         const { text } = await renderFixture()
         expect(text).toMatchSnapshot()
+    })
+
+    it("puts a lone item's title in the subject, or the first title and a count", async () => {
+        expect(
+            makeNotificationEmailSubject([{ title: "Cereal yields rose" }])
+        ).toBe("Cereal yields rose")
+        expect(
+            makeNotificationEmailSubject([
+                { title: "Cereal yields rose" },
+                { title: "Guinea worm is nearly gone" },
+                { title: "We rebuilt search" },
+            ])
+        ).toBe("New on OWID: Cereal yields rose and 2 more")
     })
 
     it("includes the subscriber's preferences link", async () => {
