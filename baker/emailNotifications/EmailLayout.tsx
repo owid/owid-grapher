@@ -163,8 +163,8 @@ export type EmailHeaderVariant = "update" | "generic"
 const HEADER_IMAGES: Record<EmailHeaderVariant, { file: string; alt: string }> =
     {
         update: {
-            file: "owid-email-update-header.png",
-            alt: "Our World in Data Update",
+            file: "owid-email-whats-new-header.png",
+            alt: "What's New on Our World in Data",
         },
         generic: {
             file: "owid-email-generic-header.png",
