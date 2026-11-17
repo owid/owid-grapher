@@ -50,7 +50,7 @@ const THUMBNAIL_SIZES = {
         fontSize: THUMBNAIL_FONT_SIZE,
         displayWidthPx: GRAPHER_THUMBNAIL_WIDTH,
     },
-    /** Mirrors `ALL_CHARTS_THUMBNAIL_REQUEST` in site/blocks/AllChartsResults.tsx and the image width in AllChartsResults.scss */
+    /** Mirrors `ALL_CHARTS_BLOCK_THUMBNAIL_REQUEST` in site/blocks/AllChartsBlockResults.tsx and the image width in AllChartsBlockResults.scss */
     "all-charts": {
         label: "All-charts block size",
         fontSize: 18,

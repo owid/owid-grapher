@@ -20,15 +20,15 @@ import * as db from "../db/db.js"
 import { parseAndMigrateChartConfig } from "../db/model/ChartConfigs.js"
 import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
-import { toAllChartsBlockGrapherParams } from "../site/blocks/allChartsEntitySelection.js"
+import { toAllChartsBlockGrapherParams } from "../site/blocks/allChartsBlockEntitySelection.js"
 import { toGrapherQueryParams } from "../site/search/searchUtils.js"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import { KEY_CHARTS_BY_TOPIC } from "./keyChartsByTopic.js"
 
 const CHARTS_PER_TOPIC = 4
 
-/** Mirrors `ALL_CHARTS_THUMBNAIL_REQUEST` in site/blocks/AllChartsResults.tsx */
-const ALL_CHARTS_THUMBNAIL_REQUEST: ImageRequest = {
+/** Mirrors `ALL_CHARTS_BLOCK_THUMBNAIL_REQUEST` in site/blocks/AllChartsBlockResults.tsx */
+const ALL_CHARTS_BLOCK_THUMBNAIL_REQUEST: ImageRequest = {
     variant: GrapherVariant.Thumbnail,
     labelMode: ChartLabelMode.Names,
     size: { kind: "explicit", fontSize: 18 },
@@ -41,7 +41,7 @@ const EXCLUDED_FROM_EVERY_CHART_TYPE = new Set([
     "computation-used-to-train-notable-artificial-intelligence-systems",
 ])
 
-/** $all-charts-row-thumbnail-width and -height in AllChartsResults.scss */
+/** $all-charts-block-row-thumbnail-width and -height in AllChartsBlockResults.scss */
 const THUMBNAIL_WIDTH_PX = 158
 const THUMBNAIL_HEIGHT_PX = 84
 
@@ -206,7 +206,7 @@ type MakeGrapherParams = (tab: GrapherTabName) => GrapherQueryParams
 const makeTabOnlyGrapherParams: MakeGrapherParams = (tab) =>
     toGrapherQueryParams({ tab })
 
-/** A thumbnail URL as AllChartsRow builds it for a chart hit, uncached */
+/** A thumbnail URL as AllChartsBlockRow builds it for a chart hit, uncached */
 function makeThumbnailUrl(
     slug: string,
     tab: GrapherTabName,
@@ -217,7 +217,7 @@ function makeThumbnailUrl(
         ""
     )
     const imageQueryStr = serializeImageRequest(
-        ALL_CHARTS_THUMBNAIL_REQUEST
+        ALL_CHARTS_BLOCK_THUMBNAIL_REQUEST
     ).toString()
     const queryStr = [grapherQueryStr, imageQueryStr, "nocache"]
         .filter((part) => part)
