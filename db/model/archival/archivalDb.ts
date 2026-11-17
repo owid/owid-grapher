@@ -215,8 +215,9 @@ export const getMultiDimChecksumsFromDb = async (
     }
 
     // Sorted here rather than with ORDER BY: filtered by slug, MySQL has to
-    // filesort, and a filesort holds each row's full config in the 256 KB sort
-    // buffer, so two configs over that size fail with ER_OUT_OF_SORTMEMORY.
+    // filesort, and a filesort holds each row's full config in the sort buffer
+    // (sort_buffer_size, 256 KB by default), so a result with one config over
+    // that size fails with ER_OUT_OF_SORTMEMORY as soon as it has a second row.
     const multiDimPages = _.sortBy(await multiDimPagesQuery, (p) => p.id)
 
     if (multiDimPages.length === 0) return []
