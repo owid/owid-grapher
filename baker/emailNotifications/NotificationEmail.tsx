@@ -133,7 +133,7 @@ function Kicker({ item, now }: { item: NotificationEmailItem; now: Date }) {
                     {LATEST_TYPE_LABELS[item.latestType]}
                     {item.topicLabel && (
                         <>
-                            {" — "}
+                            {" – "}
                             <span style={{ color: COLORS.text }}>
                                 {item.topicLabel}
                             </span>
