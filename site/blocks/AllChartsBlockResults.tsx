@@ -2,6 +2,7 @@ import * as React from "react"
 import { useId, useRef, useState } from "react"
 import { flushSync } from "react-dom"
 import cx from "clsx"
+import { match } from "ts-pattern"
 import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 import {
     IconDefinition,
@@ -491,22 +492,21 @@ function AllChartsBlockPreview({
 }): React.ReactElement {
     const { isPreviewing } = useDocumentContext()
     const grapherParams = toGrapherQueryParams({ tab, entities: countries })
-    switch (hit.type) {
-        case ChartRecordType.Chart:
-            return (
-                <GrapherWithFallback
-                    slug={hit.slug}
-                    queryStr={queryParamsToStr(grapherParams)}
-                    className={GRAPHER_PREVIEW_CLASS}
-                    isEmbeddedInAnOwidPage
-                    isEmbeddedInADataPage={false}
-                    config={PREVIEW_GRAPHER_CONFIG}
-                    isPreviewing={isPreviewing}
-                />
-            )
-        case ChartRecordType.MultiDimView: {
+    return match(hit)
+        .with({ type: ChartRecordType.Chart }, (chartHit) => (
+            <GrapherWithFallback
+                slug={chartHit.slug}
+                queryStr={queryParamsToStr(grapherParams)}
+                className={GRAPHER_PREVIEW_CLASS}
+                isEmbeddedInAnOwidPage
+                isEmbeddedInADataPage={false}
+                config={PREVIEW_GRAPHER_CONFIG}
+                isPreviewing={isPreviewing}
+            />
+        ))
+        .with({ type: ChartRecordType.MultiDimView }, (viewHit) => {
             const url = Url.fromURL(
-                constructChartUrl({ hit, grapherParams })
+                constructChartUrl({ hit: viewHit, grapherParams })
             ).updateQueryParams({ hideControls: "true" }).fullUrl
             return (
                 <MultiDimEmbed
@@ -514,13 +514,13 @@ function AllChartsBlockPreview({
                     url={url}
                     chartConfig={{
                         ...PREVIEW_GRAPHER_CONFIG,
-                        hideExploreTheDataButton: !hit.isDataExplorer,
+                        hideExploreTheDataButton: !viewHit.isDataExplorer,
                     }}
                     isPreviewing={isPreviewing}
                 />
             )
-        }
-    }
+        })
+        .exhaustive()
 }
 
 function getDefaultTab(
