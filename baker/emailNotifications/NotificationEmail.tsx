@@ -21,7 +21,6 @@ import {
     FOOTER_LINK_STYLE,
     FOOTER_TEXT_STYLE,
     IMAGE_LINK_STYLE,
-    SERIF_FONT,
     Spacer,
 } from "./EmailLayout.js"
 import { RenderedEmail, renderEmail } from "./renderEmail.js"
@@ -150,21 +149,15 @@ function Kicker({ item, now }: { item: NotificationEmailItem; now: Date }) {
     )
 }
 
-function ItemTitle({
-    item,
-    serif,
-}: {
-    item: NotificationEmailItem
-    serif?: boolean
-}) {
+function ItemTitle({ item }: { item: NotificationEmailItem }) {
     return (
         <Heading
             as="h2"
             style={{
                 margin: "0 0 8px",
-                fontFamily: serif ? SERIF_FONT : BODY_FONT,
-                fontSize: serif ? 24 : 20,
-                lineHeight: serif ? "32px" : "24px",
+                fontFamily: BODY_FONT,
+                fontSize: 20,
+                lineHeight: "24px",
                 fontWeight: 700,
                 color: COLORS.text,
             }}
@@ -261,7 +254,7 @@ function ArticleCard({ item }: { item: NotificationEmailItem }) {
                     />
                 </Link>
             )}
-            <ItemTitle item={item} serif />
+            <ItemTitle item={item} />
             <ItemAuthors item={item} />
             {item.excerptBlocks ? (
                 item.excerptBlocks.map((block, index) => (
