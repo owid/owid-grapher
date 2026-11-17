@@ -45,12 +45,11 @@ export function WelcomeEmail({
             <EmailContent>
                 <EmailTitle>You're subscribed</EmailTitle>
                 <Text style={{ ...BODY_TEXT, margin: "0 0 16px" }}>
-                    Thanks for subscribing to email updates from Our World in
-                    Data! You're all set — you'll receive an email when we
-                    publish new work matching your preferences.
+                    You'll receive an email when we publish new work matching
+                    your preferences.
                 </Text>
                 <Text style={{ ...BODY_TEXT, margin: "0 0 16px" }}>
-                    These are your notification preferences:
+                    Your notification preferences:
                 </Text>
                 <Section
                     className="card"
@@ -76,10 +75,9 @@ export function WelcomeEmail({
                     </Link>{" "}
                     or{" "}
                     <Link href={unsubscribeUrl} style={BODY_LINK_STYLE}>
-                        unsubscribe from Follow Topics
+                        unsubscribe from topic notifications
                     </Link>{" "}
-                    at any time — these links are also in the footer of every
-                    Follow Topics email we send.
+                    at any time.
                 </Text>
             </EmailContent>
             <EmailFooter>
