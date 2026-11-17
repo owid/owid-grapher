@@ -260,6 +260,18 @@ describe(renderNotificationEmail, () => {
         expect(html).not.toContain("Read more")
     })
 
+    it("closes a data update with its byline", async () => {
+        const { html } = await renderFixture()
+        const dataUpdate = itemHtml(
+            html,
+            "How close is the world to eradicating guinea worm disease?",
+            "Cereal yields have increased in all regions"
+        )
+        expect(dataUpdate.indexOf("Saloni Dattani")).toBeGreaterThan(
+            dataUpdate.indexOf("Explore our data on guinea worm")
+        )
+    })
+
     it("falls back to the excerpt for an announcement with no body", async () => {
         const { html } = await renderFixture([
             {
