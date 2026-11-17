@@ -87,6 +87,10 @@
     span {
         text-decoration: underline;
     }
+
+    &:hover span {
+        text-decoration: none;
+    }
 }
 
 .newsletter-preference-fields__cards {
