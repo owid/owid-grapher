@@ -68,8 +68,9 @@ const SubscribedText = ({
     <>
         {followTopics && (
             <p className="subscribe-page__confirmation-text">
-                We have sent a confirmation email to <strong>{email}</strong>{" "}
-                with a summary of your preferences.
+                We have subscribed <strong>{email}</strong> to topic
+                notifications and sent a confirmation email with a summary of
+                your preferences.
             </p>
         )}
         {subscribeToOwidBrief && (
