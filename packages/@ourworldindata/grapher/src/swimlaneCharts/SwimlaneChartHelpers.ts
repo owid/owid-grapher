@@ -7,7 +7,7 @@ import { FocusArray } from "../focus/FocusArray"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
 import { OWID_ERROR_COLOR } from "../color/ColorConstants"
-import { formatTimeSpan, textWidth } from "../chart/ChartUtils"
+import { textWidth } from "../chart/ChartUtils"
 import {
     ROW_SPACING_FACTOR,
     MAX_HEIGHT_PER_SERIES,
@@ -138,7 +138,8 @@ export function formatSegmentDuration({
         segment.startTime,
         segment.endTime
     )
-    return formatTimeSpan(timeCount, timeColumn.timeInterval)
+    const interval = timeColumn.timeInterval
+    return timeCount === 1 ? `1 ${interval}` : `${timeCount} ${interval}s`
 }
 
 export function computeHeightPerSeries({
