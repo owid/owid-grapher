@@ -6,7 +6,6 @@ import {
     TagGraphRoot,
     SearchState,
     SearchChartHit,
-    SearchResultType,
     type SearchChartViewHit,
     ChartRecordType,
     StackedArticleHit,
@@ -20,11 +19,7 @@ import {
     FeaturedVizHit,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
-import {
-    type LiteClient,
-    type SearchForHitsOptions,
-    type SearchParamsObject,
-} from "algoliasearch/lite"
+import { type LiteClient } from "algoliasearch/lite"
 import {
     getFilterNamesOfType,
     formatCountryFacetFilters,
@@ -46,12 +41,9 @@ import {
     recommendTopicPages,
     TOPIC_PAGE_TYPE_FILTER,
     MAX_FACET_VALUES,
-    lazy,
-    listedRegionsNames,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
-import { applyAutomaticFilters } from "./searchState.js"
-import { buildSynonymMap } from "./synonymUtils.js"
+import { parseAllChartsBlockQuery } from "./searchState.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
@@ -88,10 +80,9 @@ export const searchQueryKeys = {
 } as const
 
 export const allChartsBlockQueryKeys = {
-    charts: (request: Omit<AllChartsBlockRequest, "page">) =>
-        [CHARTS_INDEX, "all-charts-block", request] as const,
-    suggestions: (topicSlug: string) =>
-        ["topic-vocabulary", topicSlug] as const,
+    charts: (topics: string[], query: string) =>
+        [CHARTS_INDEX, "all-charts-block", { topics, query }] as const,
+    topicVocabulary: () => ["topic-vocabulary"] as const,
 } as const
 
 export const latestPagesQueryKey = {
@@ -598,59 +589,13 @@ export async function queryWritingTopics(
     })
 }
 
-interface AllChartsBlockRequest {
-    topics: string[]
-    query: string
+export async function queryAllChartsBlock(
+    liteSearchClient: LiteClient,
+    topics: string[],
+    query: string,
     page: number
-}
-
-interface AllChartsBlockPage {
-    query: string
-    countries: string[]
-    hits: SearchChartViewHit[]
-    nbHits: number
-    page: number
-    nbPages: number
-}
-
-const ALL_CHARTS_BLOCK_HITS_PER_PAGE = 20
-const MAX_ALL_CHARTS_BLOCK_COUNTRIES = 4
-
-const getSynonymMap = lazy(() => buildSynonymMap())
-
-function parseAllChartsBlockQuery(query: string): {
-    textQuery: string
-    countries: string[]
-} {
-    const state = applyAutomaticFilters(
-        {
-            query,
-            filters: [],
-            requireAllCountries: true,
-            resultType: SearchResultType.DATA,
-        },
-        listedRegionsNames(),
-        getSynonymMap()
-    )
-    return {
-        textQuery: state.query,
-        countries: [
-            ...getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        ].slice(0, MAX_ALL_CHARTS_BLOCK_COUNTRIES),
-    }
-}
-
-function buildAllChartsBlockSearchParams({
-    topics,
-    textQuery,
-    countries,
-    page,
-}: {
-    topics: string[]
-    textQuery: string
-    countries: string[]
-    page: number
-}): SearchParamsObject & SearchForHitsOptions {
+) {
+    const { textQuery, countries } = parseAllChartsBlockQuery(query)
     const facetFilters = [
         ...buildChartsFacetFilters({
             query: textQuery,
@@ -663,7 +608,7 @@ function buildAllChartsBlockSearchParams({
         `type:${ChartRecordType.Chart}`,
     ]
 
-    return {
+    const searchParams = {
         indexName: CHARTS_INDEX,
         query: textQuery,
         facetFilters,
@@ -677,30 +622,13 @@ function buildAllChartsBlockSearchParams({
         ],
         attributesToHighlight: [],
         attributesToSnippet: [],
-        hitsPerPage: ALL_CHARTS_BLOCK_HITS_PER_PAGE,
+        hitsPerPage: 20,
         page,
     }
-}
 
-export async function queryAllChartsBlock(
-    liteSearchClient: LiteClient,
-    request: AllChartsBlockRequest
-): Promise<AllChartsBlockPage> {
-    const parsed = parseAllChartsBlockQuery(request.query)
     const response = await searchSingleForHits<SearchChartViewHit>(
         liteSearchClient,
-        buildAllChartsBlockSearchParams({
-            topics: request.topics,
-            ...parsed,
-            page: request.page,
-        })
+        searchParams
     )
-    return {
-        query: request.query,
-        countries: parsed.countries,
-        hits: response.hits,
-        nbHits: response.nbHits ?? 0,
-        page: response.page ?? request.page,
-        nbPages: response.nbPages ?? 0,
-    }
+    return { response, query, countries }
 }

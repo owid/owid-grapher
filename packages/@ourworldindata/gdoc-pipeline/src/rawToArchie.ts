@@ -27,7 +27,6 @@ import {
     RawBlockStickyRightContainer,
     RawBlockText,
     RawBlockAdditionalCharts,
-    RawBlockAllCharts,
     RawBlockCallout,
     RawBlockKeyInsights,
     RawBlockResearchAndWriting,
@@ -658,9 +657,11 @@ function* rawBlockExpanderToArchieMLString(
     yield "{}"
 }
 
-function* rawBlockAllChartsToArchieMLString(
-    _block: RawBlockAllCharts
-): Generator<string, void, undefined> {
+function* rawBlockAllChartsToArchieMLString(): Generator<
+    string,
+    void,
+    undefined
+> {
     yield "{.all-charts}"
     yield "{}"
 }
