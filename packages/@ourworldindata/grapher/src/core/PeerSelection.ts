@@ -130,13 +130,120 @@ export async function selectPeersForGrapherWithGuards(
         targetEntity: selectedEntities[0],
         targetCount,
     })
+
     return peers.length > 0 ? peers : fallbackPeers
 }
 
 /**
- * The time a single-time chart should move to before peers are picked: the
- * selected target's latest time, when it has no value near the end handle
+ * Selects peers for a grapher based on the configured strategy.
+ *
+ * If targetEntity is provided in options, it will be used directly.
+ * Otherwise, the target is the single available selected entity, and no
+ * available selection means no target, which only the data range and default
+ * selection strategies support.
  */
+export async function selectPeersForGrapher(
+    grapherState: GrapherState,
+    {
+        peerCountryStrategy: requestedStrategy,
+        targetEntity: requestedTargetEntity,
+        targetCount,
+        endTime: requestedEndTime,
+    }: {
+        peerCountryStrategy?: PeerCountryStrategy
+        targetEntity?: EntityName
+        targetCount?: number
+        endTime?: Time
+    } = {}
+): Promise<EntityName[]> {
+    const selectedEntities = findAvailableSelectedEntities(grapherState)
+    if (!requestedTargetEntity && selectedEntities.length > 1) return []
+
+    const targetEntity: EntityName | undefined =
+        requestedTargetEntity ?? selectedEntities[0]
+
+    const isUnselected = (entityName: EntityName): boolean =>
+        !grapherState.selection.has(entityName)
+    const defaultSelection =
+        grapherState.authorsVersion.selectedEntityNames.filter(isUnselected)
+    const availableEntities =
+        prepareEntitiesForPeerSelection(grapherState).filter(isUnselected)
+    if (availableEntities.length === 0) return []
+
+    const peerCountryStrategy =
+        requestedStrategy ?? grapherState.peerCountryStrategy
+    if (!peerCountryStrategy) return []
+
+    const additionalDataLoaderFn = grapherState.additionalDataLoaderFn
+
+    const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
+    const endTime =
+        requestedEndTime ??
+        findClosestTime(
+            dataColumn.uniqTimesAsc,
+            grapherState.endHandleTimeBound
+        )
+    const isSingleTimeChart = grapherState.isSingleTimeSelectionActive
+
+    return selectPeers({
+        peerCountryStrategy,
+        targetEntity,
+        targetCount,
+        defaultSelection,
+        availableEntities,
+        additionalDataLoaderFn,
+        dataColumn,
+        endTime,
+        isSingleTimeChart,
+    })
+}
+
+/** Selects peers based on the specified strategy and target entity */
+export async function selectPeers(
+    params: SelectPeersParams
+): Promise<EntityName[]> {
+    return match(params)
+        .with({ peerCountryStrategy: PeerCountryStrategy.None }, () => [])
+        .with(
+            { peerCountryStrategy: PeerCountryStrategy.DefaultSelection },
+            ({ defaultSelection, targetCount }) =>
+                targetCount === undefined
+                    ? defaultSelection
+                    : R.take(defaultSelection, targetCount)
+        )
+        .with(
+            { peerCountryStrategy: PeerCountryStrategy.ParentRegions },
+            (params) => selectParentRegionsAsPeers(params)
+        )
+        .with(
+            { peerCountryStrategy: PeerCountryStrategy.GdpPerCapita },
+            async (params) =>
+                selectPeerCountriesByClosestValue({
+                    catalogKey: "gdp",
+                    maxPeerRatio: 1.25,
+                    ...params,
+                })
+        )
+        .with(
+            { peerCountryStrategy: PeerCountryStrategy.Population },
+            async (params) =>
+                selectPeerCountriesByClosestValue({
+                    catalogKey: "population",
+                    maxPeerRatio: 1.5,
+                    ...params,
+                })
+        )
+        .with(
+            { peerCountryStrategy: PeerCountryStrategy.DataRange },
+            async (params) => selectPeerCountriesByDataRange(params)
+        )
+        .with(
+            { peerCountryStrategy: PeerCountryStrategy.Neighbors },
+            async (params) => selectNeighborsAsPeers(params)
+        )
+        .exhaustive()
+}
+
 export function findPeerTargetTimeForGrapher(
     grapherState: GrapherState
 ): Time | undefined {
@@ -155,10 +262,6 @@ export function findPeerTargetTimeForGrapher(
     return findPeerTargetTime(grapherState, targetEntity)
 }
 
-/**
- * The target's latest time, when it has no value near the end handle and the
- * timeline is visible
- */
 export function findPeerTargetTime(
     grapherState: GrapherState,
     targetEntity: EntityName
@@ -212,114 +315,6 @@ function findAvailableSelectedEntities(
     return grapherState.selection.selectedEntityNames.filter((name) =>
         availableEntityNames.has(name)
     )
-}
-
-/**
- * Selects peers for a grapher based on the configured strategy.
- *
- * If targetEntity is provided in options, it will be used directly.
- * Otherwise, the target is the single available selected entity, and no
- * available selection means no target, which only the data range and default
- * selection strategies support.
- */
-export async function selectPeersForGrapher(
-    grapherState: GrapherState,
-    {
-        peerCountryStrategy: requestedStrategy,
-        targetEntity: requestedTargetEntity,
-        targetCount,
-        endTime: requestedEndTime,
-    }: {
-        peerCountryStrategy?: PeerCountryStrategy
-        targetEntity?: EntityName
-        targetCount?: number
-        /** Picks peers at this time instead of the end handle's */
-        endTime?: Time
-    } = {}
-): Promise<EntityName[]> {
-    const selectedEntities = findAvailableSelectedEntities(grapherState)
-    if (!requestedTargetEntity && selectedEntities.length > 1) return []
-
-    const targetEntity: EntityName | undefined =
-        requestedTargetEntity ?? selectedEntities[0]
-
-    const isUnselected = (entityName: EntityName): boolean =>
-        !grapherState.selection.has(entityName)
-    const defaultSelection =
-        grapherState.authorsVersion.selectedEntityNames.filter(isUnselected)
-    const availableEntities =
-        prepareEntitiesForPeerSelection(grapherState).filter(isUnselected)
-    if (availableEntities.length === 0) return []
-
-    const peerCountryStrategy =
-        requestedStrategy ?? grapherState.peerCountryStrategy
-    if (!peerCountryStrategy) return []
-
-    const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
-    const endTime =
-        requestedEndTime ??
-        findClosestTime(
-            dataColumn.uniqTimesAsc,
-            grapherState.endHandleTimeBound
-        )
-
-    return selectPeers({
-        peerCountryStrategy,
-        targetEntity,
-        targetCount,
-        defaultSelection,
-        availableEntities,
-        additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
-        dataColumn,
-        endTime,
-        isSingleTimeChart: grapherState.isSingleTimeSelectionActive,
-    })
-}
-
-/** Selects peers based on the specified strategy and target entity */
-export async function selectPeers(
-    params: SelectPeersParams
-): Promise<EntityName[]> {
-    return match(params)
-        .with({ peerCountryStrategy: PeerCountryStrategy.None }, () => [])
-        .with(
-            { peerCountryStrategy: PeerCountryStrategy.DefaultSelection },
-            ({ defaultSelection, targetCount }) =>
-                targetCount === undefined
-                    ? defaultSelection
-                    : R.take(defaultSelection, targetCount)
-        )
-        .with(
-            { peerCountryStrategy: PeerCountryStrategy.ParentRegions },
-            (params) => selectParentRegionsAsPeers(params)
-        )
-        .with(
-            { peerCountryStrategy: PeerCountryStrategy.GdpPerCapita },
-            async (params) =>
-                selectPeerCountriesByClosestValue({
-                    catalogKey: "gdp",
-                    maxPeerRatio: 1.25,
-                    ...params,
-                })
-        )
-        .with(
-            { peerCountryStrategy: PeerCountryStrategy.Population },
-            async (params) =>
-                selectPeerCountriesByClosestValue({
-                    catalogKey: "population",
-                    maxPeerRatio: 1.5,
-                    ...params,
-                })
-        )
-        .with(
-            { peerCountryStrategy: PeerCountryStrategy.DataRange },
-            async (params) => selectPeerCountriesByDataRange(params)
-        )
-        .with(
-            { peerCountryStrategy: PeerCountryStrategy.Neighbors },
-            async (params) => selectNeighborsAsPeers(params)
-        )
-        .exhaustive()
 }
 
 function isDataLoaderAvailable(
@@ -582,6 +577,7 @@ async function selectPeerCountriesByDataRange({
         targetCountry: targetEntity,
         randomize,
     })
+
     return R.take(
         spread.filter((entityName) => entityName !== targetEntity),
         targetCount
