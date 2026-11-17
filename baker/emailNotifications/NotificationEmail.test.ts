@@ -260,6 +260,27 @@ describe(renderNotificationEmail, () => {
         expect(html).not.toContain("Read more")
     })
 
+    it("leads a data update with its chart, wherever the body places it", async () => {
+        const { html } = await renderFixture()
+        const bodyStart = html.indexOf("<!--body-->")
+        const imageIndex = html.indexOf(
+            "https://images.ourworldindata.org/ghi/w=1200",
+            bodyStart
+        )
+        const titleIndex = html.indexOf(
+            "How close is the world to eradicating guinea worm disease?",
+            bodyStart
+        )
+        expect(imageIndex).toBeGreaterThan(-1)
+        expect(imageIndex).toBeLessThan(titleIndex)
+        // Shown once, not again at its place in the body.
+        expect(
+            html
+                .slice(bodyStart)
+                .split("https://images.ourworldindata.org/ghi/w=1200")
+        ).toHaveLength(2)
+    })
+
     it("closes a data update with its byline", async () => {
         const { html } = await renderFixture()
         const dataUpdate = itemHtml(
