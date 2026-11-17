@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`renderNotificationEmail > renders every content type 1`] = `
-"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html dir="ltr" lang="en"><head><link rel="preload" as="image" href="https://ourworldindata.org/owid-email-update-header.png"/><link rel="preload" as="image" href="https://images.ourworldindata.org/ghi/w=1200"/><link rel="preload" as="image" href="https://images.ourworldindata.org/abc/w=1200"/><link rel="preload" as="image" href="https://images.ourworldindata.org/def/w=1200"/><meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/><meta name="x-apple-disable-message-reformatting"/><title>Your weekly update from Our World in Data</title><style>
+"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html dir="ltr" lang="en"><head><link rel="preload" as="image" href="https://ourworldindata.org/owid-email-update-header.png"/><link rel="preload" as="image" href="https://images.ourworldindata.org/ghi/w=1200"/><link rel="preload" as="image" href="https://images.ourworldindata.org/abc/w=1200"/><link rel="preload" as="image" href="https://images.ourworldindata.org/def/w=1200"/><meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/><meta name="x-apple-disable-message-reformatting"/><title>New on OWID: How close is the world to eradicating guinea worm disease? and 4 more</title><style>
 @media only screen and (max-width: 480px) {
     .content {
         padding-left: 16px !important;
