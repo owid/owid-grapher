@@ -135,6 +135,18 @@ export function DataPageContent({
         useState<MultiDimDataPageInitialViewData | null>(
             initialViewData ?? null
         )
+    // The view that varDatapageData belongs to. Used as a `key` to remount
+    // the view-specific sections instead of patching their text in place:
+    // browser translation (e.g. Chrome's) replaces React's text nodes with its
+    // own <font> elements, so in-place updates would leave the old, translated
+    // text behind and the descriptions would pile up. Set together with the
+    // data, not derived from the current settings, because the data arrives
+    // asynchronously after the settings change.
+    const [datapageViewId, setDatapageViewId] = useState<string | undefined>(
+        () =>
+            initialViewDimensions &&
+            config.findViewByDimensions(initialViewDimensions)?.fullConfigId
+    )
     const isClient = useIsClient()
 
     // Workaround to prevent a race condition when switching between views.
@@ -220,6 +232,7 @@ export function DataPageContent({
                         ...getDatapageDataV2(mergedMetadata, grapherConfig),
                         faqs: mergedMetadata.presentation?.faqs ?? [],
                     })
+                    setDatapageViewId(grapherConfigUuid)
 
                     const grapherConfigWithBase = {
                         ...grapherConfig,
@@ -501,6 +514,7 @@ export function DataPageContent({
                         </div>
                         {varDatapageData && (
                             <AboutThisData
+                                key={datapageViewId}
                                 datapageData={varDatapageData}
                                 hasFaq={!!faqEntriesForView?.length}
                             />
@@ -516,6 +530,7 @@ export function DataPageContent({
                 </div>
                 {varDatapageData && (
                     <MetadataSection
+                        key={datapageViewId}
                         attributionShort={varDatapageData.attributionShort}
                         attributions={varDatapageData.attributions}
                         canonicalUrl={canonicalUrl}
