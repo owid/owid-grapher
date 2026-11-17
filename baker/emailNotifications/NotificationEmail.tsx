@@ -25,7 +25,6 @@ import {
 } from "./EmailLayout.js"
 import { RenderedEmail, renderEmail } from "./renderEmail.js"
 import {
-    EmailNotificationsFrequency,
     LATEST_TYPE_LABELS,
     OwidEnrichedGdocBlock,
     Span,
@@ -37,15 +36,18 @@ import {
     formatItemDate,
 } from "./emailNotificationsUtils.js"
 
-const FREQUENCY_LABELS: Record<EmailNotificationsFrequency, string> = {
-    daily: "daily",
-    weekly: "weekly",
-}
-
-function makeNotificationEmailSubject(
-    frequency: EmailNotificationsFrequency
+/**
+ * Leads with what's new rather than a generic "update", which reads like a
+ * terms-of-service notice and gets cut off on mobile.
+ */
+export function makeNotificationEmailSubject(
+    items: Pick<NotificationEmailItem, "title">[]
 ): string {
-    return `Your ${FREQUENCY_LABELS[frequency]} update from Our World in Data`
+    const [first, ...rest] = items
+    // Only the admin preview renders an email with no items.
+    if (!first) return "New on OWID"
+    if (rest.length === 0) return first.title
+    return `New on OWID: ${first.title} and ${rest.length} more`
 }
 
 export interface NotificationEmailProps {
@@ -61,7 +63,7 @@ export function renderNotificationEmail(
     props: NotificationEmailProps
 ): Promise<RenderedEmail> {
     return renderEmail(
-        makeNotificationEmailSubject(props.subscriber.frequency),
+        makeNotificationEmailSubject(props.items),
         <NotificationEmail {...props} />
     )
 }
@@ -76,7 +78,7 @@ function NotificationEmail({
     const updatePreferencesUrl = `${apiBaseUrl}/request-link?token=${subscriber.token}`
     return (
         <EmailLayout
-            title={makeNotificationEmailSubject(subscriber.frequency)}
+            title={makeNotificationEmailSubject(items)}
             preview={items.map((item) => item.title).join(" · ")}
             baseUrl={baseUrl}
             header="update"
