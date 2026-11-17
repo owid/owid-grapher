@@ -770,7 +770,10 @@ function DifferenceCard({
                 <SvgTesterDiff beforeUrl={beforeUrl} afterUrl={afterUrl} />
             )}
             {mode === "interactive" && (
-                <SvgTesterInteractive chartPath={chartPath(entry)} />
+                <SvgTesterInteractive
+                    chartPath={chartPath(entry)}
+                    isPhoneWidth={suite === "mobile"}
+                />
             )}
         </section>
     )
@@ -969,9 +972,19 @@ function SvgTesterDiff({
 }
 
 /** The two interactive charts as iframes, side by side */
-function SvgTesterInteractive({ chartPath }: { chartPath: string }) {
+function SvgTesterInteractive({
+    chartPath,
+    isPhoneWidth,
+}: {
+    chartPath: string
+    isPhoneWidth: boolean
+}) {
     return (
-        <div className="SvgTesterInteractive">
+        <div
+            className={cx("SvgTesterInteractive", {
+                "SvgTesterInteractive--phone": isPhoneWidth,
+            })}
+        >
             <figure className="SvgTesterInteractive__pane">
                 <figcaption>Production</figcaption>
                 <iframe

@@ -137,7 +137,7 @@ When AI-authored text is posted through a **human's account**, it must be clearl
 
 - `docs/agent-guidelines/` holds in-depth docs written specifically for agents — check there first when working in those areas.
 - When creating new skills in `.claude/skills/`, include `metadata: { internal: true }` in the SKILL.md frontmatter unless explicitly asked for a public skill — this keeps external skill indexes from listing internal skills.
-- GitHub Actions references must stay pinned to commit SHAs (managed with pinact).
+- GitHub Actions dependencies are locked in `.github/workflows/actions.lock` (workflows reference full version tags, not SHAs). After adding or changing any `uses:` in `.github/workflows/` or `.github/actions/`, run `gh actions-lock` and commit the lockfile; never edit it by hand.
 
 ## Cloud sandbox sessions (claude.ai/code)
 

@@ -97,6 +97,14 @@ export const getCloudflarePagesRedirects = async (
         // Example: https://assets.ourworldindata.org/grapher/exports/absolute-change-co2.svg
         "/grapher/exports/* https://ourworldindata.org/grapher/:splat 301",
 
+        // Deprecated grapher image route, replaced by /grapher/:slug.(png|svg)
+        // in August 2024 but still requested by image search and link previews.
+        // The old route served SVG when the path had no extension, so the
+        // extension-less rule must come after the .png and .svg ones.
+        "/grapher/thumbnail/:slug.png /grapher/:slug.png 301",
+        "/grapher/thumbnail/:slug.svg /grapher/:slug.svg 301",
+        "/grapher/thumbnail/:slug /grapher/:slug.svg 301",
+
         // Old country profiles
         // Example: /co2/country/canada --> /profile/co2/canada
         "/:slug/country/:country /profile/:slug/:country 301",

@@ -382,9 +382,13 @@ export async function handleGetMultiDims(
                 viewsPerDay: string
                 narrativeChartsCount: number
                 referencesCount: number
+                defaultViewConfigId: string | null
             }
         >(
             trx,
+            // With no dimension params, searchParamsToMultiDimView fills each
+            // dimension from the first available view, so the default view
+            // (the one a multi-dim's thumbnail shows) is always the first one.
             // The counts mirror chart_references_view's: narrative charts made
             // from any of its views, published gdocs (not fragments or about
             // pages) linking to its slug or to one that redirects to it, and
@@ -397,6 +401,7 @@ export async function handleGetMultiDims(
                 mdp.config->>'$.title.title' as title,
                 mdp.config->'$.dimensions[*].name' as dimensions,
                 mdp.config->'$.topicTags' as tags,
+                mdp.config->>'$.views[0].fullConfigId' as defaultViewConfigId,
                 mdp.updatedAt,
                 mdp.published,
                 COALESCE(JSON_LENGTH(mdp.config, '$.views'), 0) as mdimViews,

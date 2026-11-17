@@ -222,6 +222,11 @@ export const incomeGroupsByCode = lazy(
 export const getRegionByName = (name: string): Region | undefined =>
     regionsByName()[name]
 
+export function checkIsCountryName(name: string): boolean {
+    const region = getRegionByName(name)
+    return region !== undefined && checkIsCountry(region)
+}
+
 export const getRegionBySlug = (slug: string): Region | undefined =>
     regionsBySlug()[slug]
 
