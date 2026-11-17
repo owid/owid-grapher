@@ -192,6 +192,18 @@ const ITEMS: NotificationEmailItem[] = [
     },
 ]
 
+/**
+ * The rendered HTML of one item, from its title up to the next item's title.
+ * Searches past the preview text, which lists every title up front.
+ */
+const itemHtml = (html: string, title: string, nextTitle: string): string => {
+    const bodyStart = html.indexOf("<!--body-->")
+    return html.slice(
+        html.indexOf(title, bodyStart),
+        html.indexOf(nextTitle, bodyStart)
+    )
+}
+
 const renderFixture = (items = ITEMS) =>
     renderNotificationEmail({
         subscriber: SUBSCRIBER,
@@ -303,6 +315,18 @@ describe(renderNotificationEmail, () => {
         )
         expect(imageIndex).toBeGreaterThan(-1)
         expect(imageIndex).toBeLessThan(titleIndex)
+    })
+
+    it("closes a data insight with its byline, after the cta", async () => {
+        const { html } = await renderFixture()
+        const insight = itemHtml(
+            html,
+            "Cereal yields have increased in all regions",
+            "What has driven deforestation in the 21st century?"
+        )
+        expect(insight.indexOf("Hannah Ritchie")).toBeGreaterThan(
+            insight.indexOf("Explore this data in our interactive chart")
+        )
     })
 
     it("renders the data insight's cta block with the arrow treatment", async () => {
