@@ -209,13 +209,15 @@ export const getMultiDimChecksumsFromDb = async (
     )
         .select("id", "slug", "config", "configMd5")
         .where("published", true)
-        .orderBy("id")
 
     if (slugs) {
         multiDimPagesQuery.whereIn("slug", slugs)
     }
 
-    const multiDimPages = await multiDimPagesQuery
+    // Sorted here rather than with ORDER BY: filtered by slug, MySQL has to
+    // filesort, and a filesort holds each row's full config in the 256 KB sort
+    // buffer, so two configs over that size fail with ER_OUT_OF_SORTMEMORY.
+    const multiDimPages = _.sortBy(await multiDimPagesQuery, (p) => p.id)
 
     if (multiDimPages.length === 0) return []
 
