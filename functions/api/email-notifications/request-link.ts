@@ -132,7 +132,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             renderMessagePage({
                 title: "Check your inbox",
                 message:
-                    "If that address is subscribed to email notifications, a link to update its preferences is on its way. The link is valid for 30 minutes.",
+                    "If your address is subscribed to email notifications, a link to update your preferences is on its way. The link is valid for 30 minutes.",
             })
         )
     } catch (error) {
