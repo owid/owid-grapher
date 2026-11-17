@@ -408,7 +408,7 @@ describe(renderNotificationEmail, () => {
         expect(html).toContain("An article with nothing optional set")
         // The only image is the header wordmark.
         expect(html.match(/<img/g)).toHaveLength(1)
-        expect(html).toContain("owid-email-update-header.png")
+        expect(html).toContain("owid-email-whats-new-header.png")
     })
 
     it("stays well clear of Gmail's ~102KB clipping threshold", async () => {
