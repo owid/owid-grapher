@@ -1,0 +1,100 @@
+$featured-viz-background-color: #fff7eb;
+$featured-viz-label-color: #916c00;
+// At and below this width, the thumbnail stacks above the text
+$featured-viz-stack-breakpoint: 400px;
+
+.search-featured-viz-hit {
+    display: block;
+    // Same spacing below as .search-data-results__hit
+    margin: 16px 0;
+    padding: 16px;
+    background-color: $featured-viz-background-color;
+    text-decoration: none;
+
+    @include sm-only {
+        margin: 8px 0;
+        padding: 12px;
+    }
+
+    &:hover {
+        .search-featured-viz-hit__title {
+            text-decoration: underline;
+        }
+    }
+}
+
+.search-featured-viz-hit__label {
+    @include h6-black-caps;
+    color: $featured-viz-label-color;
+    margin-bottom: 8px;
+}
+
+.search-featured-viz-hit__label-icon {
+    margin-right: 6px;
+}
+
+.search-featured-viz-hit__content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+
+    @include sm-only {
+        gap: 12px;
+    }
+
+    // Stack the thumbnail above the text, like the home page's featured
+    // tiles. Only on narrow phones: above 400px, a full-width thumbnail is
+    // huge.
+    @media (width <= $featured-viz-stack-breakpoint) {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+.search-featured-viz-hit__image {
+    flex-shrink: 0;
+    // Same size as the article thumbnails in Research & Writing
+    width: 84px;
+    height: 64px;
+    object-fit: cover;
+    background-color: $white;
+
+    @media (width <= $featured-viz-stack-breakpoint) {
+        width: 100%;
+        height: auto;
+    }
+}
+
+.search-featured-viz-hit__text {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-featured-viz-hit__title {
+    @include h3-bold;
+    color: $blue-90;
+    margin: 0 0 2px 0;
+
+    @include sm-only {
+        font-size: 16px;
+    }
+}
+
+.search-featured-viz-hit__authors {
+    @include body-3-medium;
+    color: $blue-60;
+    margin: 0 0 2px 0;
+}
+
+.search-featured-viz-hit__excerpt {
+    @include body-3-medium;
+    color: $blue-90;
+    margin: 0;
+    display: -webkit-box;
+    overflow: hidden;
+    // see https://github.com/owid/owid-grapher/issues/4982
+    overflow-wrap: anywhere;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
