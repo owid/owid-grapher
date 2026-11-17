@@ -52,6 +52,14 @@ import pMap from "p-map"
 
 export type SvgRenderVariant = "default" | "thumbnail" | "mobile"
 
+/** Which tabs to render per chart, where primaryChart is the tab of the first chart type */
+export const SVG_TESTER_TAB_SELECTIONS = [
+    "default",
+    "primaryChart",
+    "all",
+] as const
+export type SvgTesterTabSelection = (typeof SVG_TESTER_TAB_SELECTIONS)[number]
+
 const PHONE_WIDTH_PX = 360
 const ARTICLE_GUTTER_PX = 16
 const ARTICLE_CHART_HEIGHT_PX = 575
@@ -91,7 +99,7 @@ interface SvgTesterSuiteSettings {
     configsSuite: SvgTesterSuite
     isManifestRequired: boolean
     shouldTestAllViews: boolean
-    shouldTestAllTabs: boolean
+    tabSelection: SvgTesterTabSelection
     renderVariant: SvgRenderVariant
 }
 
@@ -104,7 +112,7 @@ export const SVG_TESTER_SUITE_SETTINGS: Record<
         configsSuite: "graphers",
         isManifestRequired: false,
         shouldTestAllViews: false,
-        shouldTestAllTabs: false,
+        tabSelection: "default",
         renderVariant: "default",
     },
     "grapher-views": {
@@ -112,7 +120,7 @@ export const SVG_TESTER_SUITE_SETTINGS: Record<
         configsSuite: "graphers",
         isManifestRequired: true,
         shouldTestAllViews: true,
-        shouldTestAllTabs: false,
+        tabSelection: "default",
         renderVariant: "default",
     },
     mdims: {
@@ -120,7 +128,7 @@ export const SVG_TESTER_SUITE_SETTINGS: Record<
         configsSuite: "mdims",
         isManifestRequired: false,
         shouldTestAllViews: false,
-        shouldTestAllTabs: false,
+        tabSelection: "default",
         renderVariant: "default",
     },
     thumbnails: {
@@ -128,7 +136,7 @@ export const SVG_TESTER_SUITE_SETTINGS: Record<
         configsSuite: "graphers",
         isManifestRequired: true,
         shouldTestAllViews: false,
-        shouldTestAllTabs: true,
+        tabSelection: "all",
         renderVariant: "thumbnail",
     },
     mobile: {
@@ -137,7 +145,7 @@ export const SVG_TESTER_SUITE_SETTINGS: Record<
         configsSuite: "graphers",
         isManifestRequired: true,
         shouldTestAllViews: false,
-        shouldTestAllTabs: true,
+        tabSelection: "primaryChart",
         renderVariant: "mobile",
     },
 }
@@ -422,7 +430,7 @@ export async function findChartViewsToGenerate(
     options: {
         queryStr?: string
         shouldTestAllViews?: boolean
-        shouldTestAllTabs?: boolean
+        tabSelection?: SvgTesterTabSelection
     }
 ): Promise<ChartWithQueryStr[]> {
     // pMap keeps the input order, so the job list stays deterministic
@@ -436,13 +444,24 @@ export async function findChartViewsToGenerate(
             const chartType =
                 grapherConfig.chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
 
-            // If shouldTestAllTabs is true, generate entries for each available tab
-            if (options.shouldTestAllTabs) {
+            if (options.tabSelection === "all") {
                 return getAvailableTabsFromConfig(grapherConfig).map((tab) => ({
                     viewId,
                     chartType: tab,
                     queryStr: `tab=${mapGrapherTabNameToQueryParam(tab)}`,
                 }))
+            }
+
+            // An empty chartTypes means a map-only chart, which keeps its default tab
+            const hasChartTab = grapherConfig.chartTypes?.length !== 0
+            if (options.tabSelection === "primaryChart" && hasChartTab) {
+                return [
+                    {
+                        viewId,
+                        chartType,
+                        queryStr: `tab=${mapGrapherTabNameToQueryParam(chartType)}`,
+                    },
+                ]
             }
 
             // Existing behavior for shouldTestAllViews and queryStr

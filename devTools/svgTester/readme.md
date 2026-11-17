@@ -14,7 +14,7 @@ The SVG tester supports multiple test suites:
 - **grapher-views**: All possible chart configurations for each grapher (different tabs, etc.)
 - **mdims**: Multi-dimensional data pages with multiple views
 - **thumbnails**: Thumbnail versions of the most viewed graphers. For each chart, all available tabs are tested.
-- **mobile**: The most viewed graphers as they look on a phone. For each chart, all available tabs are tested.
+- **mobile**: The most viewed graphers as they look on a phone. Each chart is tested on the tab of its first chart type.
 
 ## Make a reference set of SVGs
 
@@ -57,7 +57,7 @@ For the most-viewed graphers, creates a manifest file listing which charts to te
 
 #### Mobile
 
-Uses the same most-viewed graphers as thumbnails, through its own `top.manifest.json`, and reads its data from the graphers suite. Every available tab is rendered at 328x465. The width is an article chart on a 360px-wide phone (16px gutters). The height is the article chart's 575px less the 110px that a live chart's controls row, timeline and taller footer typically take, so the plot gets about the room it has on a phone.
+Uses the same most-viewed graphers as thumbnails, through its own `top.manifest.json`, and reads its data from the graphers suite. Each chart is rendered on the tab of its first chart type, so a chart that opens on the map is still tested as a chart. Map-only charts keep their default tab. Charts render at 328x465. The width is an article chart on a 360px-wide phone (16px gutters). The height is the article chart's 575px less the 110px that a live chart's controls row, timeline and taller footer typically take, so the plot gets about the room it has on a phone.
 
 A static export normally switches off grapher's narrow-screen breakpoints and sizes its fonts from the export bounds. This suite sets `isStaticLayoutResponsive`, so the SVG gets the breakpoints and 14px base font a phone gets.
 
