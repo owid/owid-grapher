@@ -71,14 +71,14 @@ const PreferencesScreen = ({ children }: { children: React.ReactNode }) => (
     </>
 )
 
-const LinkSentScreen = () => (
+const LinkSentScreen = ({ email }: { email?: string }) => (
     <PreferencesScreen>
         <div className="newsletter-form__success">
             <h3 className="h3-bold">Check your inbox</h3>
             <p>
-                If that address is subscribed to email notifications, a link to
-                update its preferences is on its way. The link is valid for 30
-                minutes.
+                If {email ? <strong>{email}</strong> : "your address"} is
+                subscribed to email notifications, a link to update your
+                preferences is on its way. The link is valid for 30 minutes.
             </p>
         </div>
     </PreferencesScreen>
@@ -110,7 +110,7 @@ const EnterEmailScreen = () => {
     const [email, setEmail] = useState("")
     const requestLink = useRequestLinkMutation()
 
-    if (requestLink.isSuccess) return <LinkSentScreen />
+    if (requestLink.isSuccess) return <LinkSentScreen email={email.trim()} />
 
     const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
