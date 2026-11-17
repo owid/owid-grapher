@@ -1,4 +1,5 @@
 import { useContext, useState } from "react"
+import cx from "clsx"
 import {
     keepPreviousData,
     skipToken,
@@ -15,10 +16,9 @@ import {
 import { SearchResultType } from "@ourworldindata/types"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { useDocumentContext } from "../DocumentContext.js"
-import {
-    AllChartsBlock,
-    AllChartsBlockSkeleton,
-} from "../../blocks/AllChartsBlock.js"
+import { AllChartsBlockHeading } from "../../blocks/AllChartsBlockHeading.js"
+import { AllChartsBlockSearch } from "../../blocks/AllChartsBlockSearch.js"
+import { AllChartsBlockResults } from "../../blocks/AllChartsBlockResults.js"
 import {
     allChartsBlockQueryKeys,
     queryAllChartsBlock,
@@ -26,7 +26,7 @@ import {
 import { getLiteSearchClient } from "../../search/searchClients.js"
 import { buildSearchHref } from "../../search/searchState.js"
 
-const ALL_CHARTS_PREFETCH_ROOT_MARGIN = "100% 0px"
+type TopicVocabulary = Partial<Record<string, { keywords: string[] }>>
 
 const TOPIC_VOCABULARY_URL =
     "https://files.ourworldindata.org/topic_vocabulary.json"
@@ -45,11 +45,11 @@ export function AllCharts({
     const { gdocType } = useDocumentContext()
 
     const firstTag = tags[0]
-    const firstTagSlug = firstTag?.slug
+    const firstTagSlug = firstTag.slug
     const topics = tags.map((tag) => tag.name)
 
     const { ref, isIntersecting } = useIntersectionObserver({
-        rootMargin: ALL_CHARTS_PREFETCH_ROOT_MARGIN,
+        rootMargin: "100% 0px",
         freezeOnceVisible: true,
     })
 
@@ -59,55 +59,49 @@ export function AllCharts({
         SEARCH_DEBOUNCE_MS
     )
     const requestedQuery = debouncedQuery.trim()
+    const shouldFetch = topics.length > 0 && isIntersecting
 
-    const chartsQuery = { topics, query: requestedQuery }
-    const {
-        data,
-        isError,
-        hasNextPage,
-        isFetchingNextPage,
-        isFetchNextPageError,
-        fetchNextPage,
-    } = useInfiniteQuery({
-        queryKey: allChartsBlockQueryKeys.charts(chartsQuery),
-        queryFn:
-            topics.length > 0 && isIntersecting
+    const { data, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
+        useInfiniteQuery({
+            queryKey: allChartsBlockQueryKeys.charts(topics, requestedQuery),
+            queryFn: shouldFetch
                 ? ({ pageParam }) =>
-                      queryAllChartsBlock(getLiteSearchClient(), {
-                          ...chartsQuery,
-                          page: pageParam,
-                      })
+                      queryAllChartsBlock(
+                          getLiteSearchClient(),
+                          topics,
+                          requestedQuery,
+                          pageParam
+                      )
                 : skipToken,
-        placeholderData: keepPreviousData,
-        initialPageParam: 0,
-        getNextPageParam: (lastPage) => {
-            const { page, nbPages } = lastPage
-            return page < nbPages - 1 ? page + 1 : undefined
-        },
-    })
+            placeholderData: keepPreviousData,
+            initialPageParam: 0,
+            getNextPageParam: (lastPage) => {
+                const { page = 0, nbPages = 1 } = lastPage.response
+                return page < nbPages - 1 ? page + 1 : undefined
+            },
+        })
 
-    const { data: suggestionKeywords } = useQuery({
-        queryKey: allChartsBlockQueryKeys.suggestions(firstTagSlug ?? ""),
-        queryFn:
-            firstTagSlug && isIntersecting
-                ? () => fetchTopicSuggestions(firstTagSlug)
+    const { data: suggestionKeywords, isPending: isLoadingSuggestions } =
+        useQuery({
+            queryKey: allChartsBlockQueryKeys.topicVocabulary(),
+            queryFn: shouldFetch
+                ? () => fetchJson<TopicVocabulary>(TOPIC_VOCABULARY_URL)
                 : skipToken,
-        staleTime: Infinity,
-    })
+            select: (vocabulary) =>
+                (firstTagSlug && vocabulary[firstTagSlug]?.keywords) || [],
+            staleTime: Infinity,
+            retry: false,
+        })
 
-    if (!firstTag) return null
-
-    const onQueryChange = (nextQuery: string): void => {
+    const applyQuery = (nextQuery: string): void => {
         setQuery(nextQuery)
-        if (nextQuery.trim() !== "") return
-        setDebouncedQuery("")
+        setDebouncedQuery(nextQuery)
         setDebouncedQuery.flush()
     }
 
-    const onSuggestionSelect = (term: string): void => {
-        setQuery(term)
-        setDebouncedQuery(term)
-        setDebouncedQuery.flush()
+    const onQueryChange = (nextQuery: string): void => {
+        if (nextQuery.trim() === "") applyQuery(nextQuery)
+        else setQuery(nextQuery)
     }
 
     const heading = `${getTopicPageHeading("allCharts", gdocType)} on ${sentenceCaseIfNotTopicPage(firstTag.name, gdocType, false)}`
@@ -119,73 +113,41 @@ export function AllCharts({
             ? { resultType: SearchResultType.DATA, query: fetchedQuery }
             : { resultType: SearchResultType.DATA, topic: firstTag.name }
     )
-
-    if (!data && requestedQuery === "") {
-        if (!isError)
-            return (
-                <AllChartsBlockSkeleton
-                    ref={ref}
-                    className={className}
-                    id={id}
-                    heading={heading}
-                />
-            )
-        return (
-            <AllChartsBlock
-                className={className}
-                id={id}
-                heading={heading}
-                hits={[]}
-                countries={[]}
-                searchStatus="error"
-                noResultsHref={noResultsHref}
-            />
-        )
+    const hits = data?.pages.flatMap((page) => page.response.hits) ?? []
+    const searchStatus = data ? undefined : isError ? "error" : "pending"
+    const suggestedTerms = pickVisibleSuggestions(
+        suggestionKeywords ?? [],
+        query
+    )
+    const onLoadMore = (): void => {
+        if (!isFetchingNextPage) void fetchNextPage()
     }
 
     return (
-        <AllChartsBlock
-            className={className}
-            id={id}
-            heading={heading}
-            hitCount={firstPage?.nbHits}
-            hits={(data?.pages ?? []).flatMap((page) => page.hits)}
-            countries={firstPage?.countries ?? []}
-            searchStatus={data ? undefined : isError ? "error" : "pending"}
-            search={{
-                query,
-                fetchedQuery,
-                onQueryChange,
-                suggestedTerms: pickVisibleSuggestions(
-                    suggestionKeywords ?? [],
-                    query
-                ),
-                isLoadingSuggestions: suggestionKeywords === undefined,
-                onSuggestionSelect,
-            }}
-            onLoadMore={
-                hasNextPage && !isFetchNextPageError
-                    ? () => {
-                          if (!isFetchingNextPage) void fetchNextPage()
-                      }
-                    : undefined
-            }
-            isLoadingMore={isFetchingNextPage}
-            noResultsHref={noResultsHref}
-        />
+        <section className={cx(className, "needs-dividers")} ref={ref}>
+            <AllChartsBlockHeading
+                id={id}
+                heading={heading}
+                hitCount={firstPage?.response.nbHits}
+            />
+            <AllChartsBlockSearch
+                query={query}
+                onQueryChange={onQueryChange}
+                suggestedTerms={suggestedTerms}
+                isLoadingSuggestions={isLoadingSuggestions}
+                onSuggestionSelect={applyQuery}
+            />
+            <AllChartsBlockResults
+                status={searchStatus}
+                hits={hits}
+                countries={firstPage?.countries ?? []}
+                fetchedQuery={fetchedQuery}
+                onLoadMore={hasNextPage ? onLoadMore : undefined}
+                isLoadingMore={isFetchingNextPage}
+                noResultsHref={noResultsHref}
+            />
+        </section>
     )
-}
-
-async function fetchTopicSuggestions(topicSlug: string): Promise<string[]> {
-    try {
-        const vocabulary =
-            await fetchJson<Partial<Record<string, { keywords: string[] }>>>(
-                TOPIC_VOCABULARY_URL
-            )
-        return vocabulary[topicSlug]?.keywords ?? []
-    } catch {
-        return []
-    }
 }
 
 function pickVisibleSuggestions(keywords: string[], query: string): string[] {

@@ -1,17 +1,16 @@
-const GDOC_ATTACHMENT_PROPERTIES = [
+// Non-deterministic values which shouldn't be displayed in the diff viewer
+// Errors are already shown in the settings drawer, so we don't show those either
+export const GDOC_DIFF_OMITTABLE_PROPERTIES = [
+    "errors",
+    // These are attachments loaded from what the gdoc references, so changes
+    // to them already show up as changes to its content and we don't need to
+    // show these objects in the diff also
     "imageMetadata",
     "linkedCharts",
     "linkedDocuments",
     "linkedNarrativeCharts",
     "linkedStaticViz",
     "linkedCallouts",
-]
-
-// Non-deterministic values which shouldn't be displayed in the diff viewer
-// Errors are already shown in the settings drawer, so we don't show those either
-export const GDOC_DIFF_OMITTABLE_PROPERTIES = [
-    "errors",
-    ...GDOC_ATTACHMENT_PROPERTIES,
 ]
 
 // Version-agnostic catalog paths for the indicators we use as defaults when

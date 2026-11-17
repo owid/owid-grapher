@@ -86,11 +86,13 @@ it("loads the next page at the end of the list and stops after the last one", as
     fireIntersectionObserversMatching("section")
     await screen.findByText("Title of alpha")
 
-    fireIntersectionObserversMatching(".all-charts-block__sentinel")
+    fireIntersectionObserversMatching(".all-charts-block-results__sentinel")
 
     expect(await screen.findByText("Title of gamma")).toBeVisible()
     expect(requestedPages()).toEqual([0, 1])
-    expect(document.querySelector(".all-charts-block__sentinel")).toBeNull()
+    expect(
+        document.querySelector(".all-charts-block-results__sentinel")
+    ).toBeNull()
 })
 
 it("shows at most three thumbnails, skipping Table", async () => {
@@ -139,7 +141,7 @@ it("keeps the loaded rows and stops loading when a later page fails", async () =
     renderBlock()
     fireIntersectionObserversMatching("section")
     await screen.findByText("Title of alpha")
-    fireIntersectionObserversMatching(".all-charts-block__sentinel")
+    fireIntersectionObserversMatching(".all-charts-block-results__sentinel")
     await flushEffects()
 
     expect(requestedPages()).toEqual([0, 1])
@@ -154,7 +156,9 @@ it("requests the typed query after the debounce and resets selection to the firs
     fireEvent.click(within(betaRow).getByRole("button", { name: "Line chart" }))
     expect(screen.getByTestId("preview")).toHaveTextContent("beta?tab=line")
 
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "air" } })
+    fireEvent.change(screen.getByRole("searchbox"), {
+        target: { value: "air" },
+    })
     expect(requestedQueries()).toEqual([""])
 
     expect(await screen.findByText("Title of delta")).toBeVisible()
@@ -167,7 +171,9 @@ it("shows the no-results panel with a search link carrying the query", async () 
     fireIntersectionObserversMatching("section")
     await screen.findByText("Title of alpha")
 
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "gas" } })
+    fireEvent.change(screen.getByRole("searchbox"), {
+        target: { value: "gas" },
+    })
 
     const searchLink = await screen.findByRole("link", {
         name: /Search all charts/,
@@ -179,27 +185,47 @@ it("shows the no-results panel with a search link carrying the query", async () 
     expect(screen.getByText("(0 charts)")).toBeVisible()
 })
 
-it("returns to the first page without a request when the input is cleared", async () => {
-    renderBlock()
-    fireIntersectionObserversMatching("section")
-    await screen.findByText("Title of alpha")
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "gas" } })
-    await screen.findByRole("link", { name: /Search all charts/ })
+it.each([
+    {
+        action: "the clear button",
+        clear: (): void => {
+            fireEvent.click(
+                screen.getByRole("button", { name: "Clear search" })
+            )
+        },
+    },
+    {
+        action: "Escape",
+        clear: (): void => {
+            fireEvent.keyDown(screen.getByRole("searchbox"), { key: "Escape" })
+        },
+    },
+])(
+    "returns to the first page without a request when $action clears the input",
+    async ({ clear }) => {
+        renderBlock()
+        fireIntersectionObserversMatching("section")
+        await screen.findByText("Title of alpha")
+        fireEvent.change(screen.getByRole("searchbox"), {
+            target: { value: "gas" },
+        })
+        await screen.findByRole("link", { name: /Search all charts/ })
 
-    fireEvent.click(screen.getByRole("button", { name: "Clear search" }))
+        clear()
 
-    expect(await screen.findByText("Title of alpha")).toBeVisible()
-    await flushEffects()
-    expect(requestedQueries()).toEqual(["", "gas"])
-    expect(screen.getByRole("textbox")).toHaveValue("")
-})
+        expect(await screen.findByText("Title of alpha")).toBeVisible()
+        await flushEffects()
+        expect(requestedQueries()).toEqual(["", "gas"])
+        expect(screen.getByRole("searchbox")).toHaveValue("")
+    }
+)
 
 it("filters by countries typed into the search and shows them on the rows, thumbnails and preview", async () => {
     renderBlock()
     fireIntersectionObserversMatching("section")
     await screen.findByText("Title of alpha")
 
-    fireEvent.change(screen.getByRole("textbox"), {
+    fireEvent.change(screen.getByRole("searchbox"), {
         target: { value: "spain" },
     })
 
@@ -210,7 +236,7 @@ it("filters by countries typed into the search and shows them on the rows, thumb
     )
     await vi.waitFor(() =>
         expect(
-            document.querySelector(".all-charts-row__countries")
+            document.querySelector(".all-charts-block-row__countries")
         ).toHaveTextContent("Spain")
     )
     const alphaRow = await findRow("alpha")
@@ -234,7 +260,7 @@ it("keeps the same chart preview while its tab and countries change", async () =
     )
     expect(preview).toHaveTextContent("alpha?tab=slope")
 
-    fireEvent.change(screen.getByRole("textbox"), {
+    fireEvent.change(screen.getByRole("searchbox"), {
         target: { value: "spain" },
     })
     await vi.waitFor(() => expect(preview).toHaveTextContent("country=~ESP"))
@@ -258,8 +284,8 @@ it("shows the first five suggestions, and hides the one being searched for", asy
 
     fireEvent.click(screen.getByRole("button", { name: "relative poverty" }))
 
-    expect(screen.getByRole("textbox")).toHaveValue("relative poverty")
-    expect(screen.getByRole("textbox")).toHaveFocus()
+    expect(screen.getByRole("searchbox")).toHaveValue("relative poverty")
+    expect(screen.getByRole("searchbox")).toHaveFocus()
     await flushEffects()
     expect(requestedQueries()).toEqual(["", "relative poverty"])
     expect(getSuggestions()).toEqual([
@@ -270,7 +296,7 @@ it("shows the first five suggestions, and hides the one being searched for", asy
         "national poverty lines",
     ])
 
-    fireEvent.change(screen.getByRole("textbox"), {
+    fireEvent.change(screen.getByRole("searchbox"), {
         target: { value: "gdp per capita" },
     })
 
@@ -301,7 +327,7 @@ it.each([
     await screen.findByText("Title of alpha")
     await flushEffects()
 
-    expect(document.querySelector(".all-charts-block__suggestions")).toBeNull()
+    expect(document.querySelector(".all-charts-block-suggestions")).toBeNull()
 })
 
 function stubVocabulary(vocabulary: object): void {
@@ -313,7 +339,7 @@ function stubVocabulary(vocabulary: object): void {
 
 function getSuggestions(): string[] {
     return Array.from(
-        document.querySelectorAll(".all-charts-block__suggestion-button")
+        document.querySelectorAll(".all-charts-block-suggestions__button")
     ).map((button) => button.textContent ?? "")
 }
 
@@ -333,7 +359,7 @@ function makeResponse(page: number, slugs: string[], nbHits = 3): unknown {
 
 async function findRow(slug: string): Promise<HTMLElement> {
     const title = await screen.findByText(`Title of ${slug}`)
-    return title.closest(".all-charts-row") as HTMLElement
+    return title.closest(".all-charts-block-row") as HTMLElement
 }
 
 function requestedPages(): number[] {

@@ -68,33 +68,16 @@ export function constructChartAndPreviewUrlsForTab({
     entities?: EntityName[]
     hasScatter?: boolean
 }): { chartUrl: string; previewUrl: string } {
+    const grapherParams = toGrapherQueryParams({ entities, tab })
+
     const chartUrl = constructChartUrl({
         hit,
-        grapherParams: toGrapherQueryParams({ entities, tab }),
+        grapherParams,
     })
-    const previewUrl = constructThumbnailUrlForTab({
-        hit,
-        tab,
-        entities,
-        hasScatter,
-    })
-    return { chartUrl, previewUrl }
-}
 
-export function constructThumbnailUrlForTab({
-    hit,
-    tab,
-    entities,
-    hasScatter = false,
-}: {
-    hit: SearchChartHit
-    tab: GrapherTabName
-    entities?: EntityName[]
-    hasScatter?: boolean
-}): string {
-    return constructPreviewUrl({
+    const previewUrl = constructPreviewUrl({
         hit,
-        grapherParams: toGrapherQueryParams({ entities, tab }),
+        grapherParams,
         imageRequest: {
             variant: GrapherVariant.Thumbnail,
             labelMode: ChartLabelMode.All,
@@ -105,4 +88,6 @@ export function constructThumbnailUrlForTab({
             includeDetails: false,
         },
     })
+
+    return { chartUrl, previewUrl }
 }

@@ -25,6 +25,8 @@ import {
     createFilter,
     SEARCH_BASE_PATH,
 } from "./searchUtils.js"
+import { listedRegionsNames } from "@ourworldindata/utils"
+import { getSynonymMap } from "./synonymUtils.js"
 import { useMemo, useEffect, useCallback } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
 
@@ -391,10 +393,7 @@ export function buildSearchHref({
         requireAllCountries: false,
         resultType,
     })
-    const paramsString = params.toString()
-    return paramsString
-        ? `${SEARCH_BASE_PATH}?${paramsString}`
-        : SEARCH_BASE_PATH
+    return `${SEARCH_BASE_PATH}?${params.toString()}`
 }
 
 /**
@@ -470,4 +469,24 @@ export function applyAutomaticFilters(
     )
 
     return replaceQueryWordsWithFilters(state, countryMatches)
+}
+
+export function parseAllChartsBlockQuery(query: string): {
+    textQuery: string
+    countries: string[]
+} {
+    const state = applyAutomaticFilters(
+        {
+            query,
+            filters: [],
+            requireAllCountries: true,
+            resultType: SearchResultType.DATA,
+        },
+        listedRegionsNames(),
+        getSynonymMap()
+    )
+    return {
+        textQuery: state.query,
+        countries: [...getFilterNamesOfType(state.filters, FilterType.COUNTRY)],
+    }
 }
