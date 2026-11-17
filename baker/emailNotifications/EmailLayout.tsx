@@ -25,7 +25,6 @@ export const COLORS = {
 }
 
 export const BODY_FONT = "Arial, Helvetica, sans-serif"
-export const SERIF_FONT = '"Times New Roman", serif'
 
 export const CONTAINER_WIDTH = 632
 export const CONTENT_PADDING = 40
