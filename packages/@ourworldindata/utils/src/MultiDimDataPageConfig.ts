@@ -20,6 +20,18 @@ import {
 import * as _ from "lodash-es"
 import { merge } from "./Util"
 
+/**
+ * How filterToAvailableChoices treats choices that don't lead to an
+ * available view:
+ * - `find-closest` replaces them with the closest available choice, so the
+ *   result always selects a view. Used by the client when navigating.
+ * - `fill-unspecified` keeps the given choices as they are and only fills in
+ *   dimensions without a choice, so the result may not select any view.
+ *   Useful for resolving URLs, where a wrong choice shouldn't silently
+ *   resolve to a different view.
+ */
+type FilterToAvailableChoicesMode = "find-closest" | "fill-unspecified"
+
 interface FilterToAvailableResult {
     selectedChoices: MultiDimDimensionChoices
     dimensionsWithAvailableChoices: Record<string, DimensionEnriched>
@@ -97,14 +109,18 @@ export class MultiDimDataPageConfig {
      * - If there is at least one available view for choices[leftmost, ..., cur], continue.
      * - Otherwise, for dimension `cur`, find the first choice that has at least one available view.
      *
+     * With `mode: "fill-unspecified"`, the given choices are never adapted; only dimensions
+     * without a choice (missing or empty) are filled in as above.
+     *
      * The method returns two values:
-     * - `selectedChoices` is the updated version of the input `selectedChoices`, where choices have been adapted to make sure there are available views. It is fully-qualified, i.e. it has choices for all dimensions.
+     * - `selectedChoices` is the updated version of the input `selectedChoices`, where choices have been adapted to make sure there are available views. It is fully-qualified, i.e. it has choices for all dimensions. In `fill-unspecified` mode, it can instead select no view, and dimensions right of a choice that matches no view are left out.
      * - `dimensionsWithAvailableChoices` indicates for each dimension which choices are available, and excludes the ones that are excluded by choices left of it.
      *
      * - @marcelgerber, 2024-07-22
      */
     filterToAvailableChoices(
-        selectedChoices: MultiDimDimensionChoices
+        selectedChoices: MultiDimDimensionChoices,
+        { mode = "find-closest" }: { mode?: FilterToAvailableChoicesMode } = {}
     ): FilterToAvailableResult {
         const updatedSelectedChoices: MultiDimDimensionChoices = {}
         const dimensionsWithAvailableChoices: Record<
@@ -117,13 +133,14 @@ export class MultiDimDataPageConfig {
             const availableViewsBeforeSelection = this.filterViewsByDimensions(
                 updatedSelectedChoices
             )
+            const choice = selectedChoices[currentDimSlug]
             if (
-                selectedChoices[currentDimSlug] &&
-                currentDim.choicesBySlug[selectedChoices[currentDimSlug]]
+                choice &&
+                (mode === "fill-unspecified" ||
+                    currentDim.choicesBySlug[choice])
             ) {
-                updatedSelectedChoices[currentDimSlug] =
-                    selectedChoices[currentDimSlug]
-            } else {
+                updatedSelectedChoices[currentDimSlug] = choice
+            } else if (availableViewsBeforeSelection.length > 0) {
                 updatedSelectedChoices[currentDimSlug] =
                     availableViewsBeforeSelection[0].dimensions[currentDimSlug]
             }
@@ -131,7 +148,10 @@ export class MultiDimDataPageConfig {
             const availableViewsAfterSelection = this.filterViewsByDimensions(
                 updatedSelectedChoices
             )
-            if (availableViewsAfterSelection.length === 0) {
+            if (
+                mode === "find-closest" &&
+                availableViewsAfterSelection.length === 0
+            ) {
                 // If there are no views available after this selection, choose the first available view before this choice and update to its choice
                 updatedSelectedChoices[currentDimSlug] =
                     availableViewsBeforeSelection[0].dimensions[currentDimSlug]
@@ -307,23 +327,32 @@ export const extractMultiDimChoicesFromSearchParams = (
     return dimensionChoices
 }
 
+/** The search params don't select an existing view of a multi-dim. */
+export class MultiDimViewNotFoundError extends Error {}
+
+/**
+ * Resolve the view selected by a multi-dim URL's search params. Dimensions
+ * missing from the URL are filled in the way the client does it (see
+ * filterToAvailableChoices), so e.g. a URL from before a dimension was added
+ * still resolves. Dimensions present in the URL must match a view exactly.
+ */
 export function searchParamsToMultiDimView(
     config: MultiDimDataPageConfigEnriched,
     searchParams: URLSearchParams
 ): ViewEnriched {
     const multiDimConfig = MultiDimDataPageConfig.fromObject(config)
-    let dimensions = extractMultiDimChoicesFromSearchParams(
+    const urlChoices = extractMultiDimChoicesFromSearchParams(
         searchParams,
         multiDimConfig
     )
-    if (_.isEmpty(dimensions)) {
-        // Get the default dimensions.
-        dimensions = multiDimConfig.getDefaultSelectedChoices()
-    }
-    const view = multiDimConfig.findViewByDimensions(dimensions)
+    const { selectedChoices } = multiDimConfig.filterToAvailableChoices(
+        urlChoices,
+        { mode: "fill-unspecified" }
+    )
+    const view = multiDimConfig.findViewByDimensions(selectedChoices)
     if (!view) {
-        throw new Error(
-            `No view found for dimensions ${JSON.stringify(dimensions)}`
+        throw new MultiDimViewNotFoundError(
+            `No view found for dimensions ${JSON.stringify(urlChoices)}`
         )
     }
     return view

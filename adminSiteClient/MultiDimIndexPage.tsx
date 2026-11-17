@@ -69,6 +69,7 @@ type ApiMultiDim = {
     viewsPerDay: number
     narrativeChartsCount: number
     referencesCount: number
+    defaultViewConfigId: string | null
 }
 
 type MultiDim = Omit<ApiMultiDim, "updatedAt"> & {
@@ -87,12 +88,26 @@ type DeleteMutation = UseMutationResult<void, unknown, number, unknown>
 const DESCEND_FIRST: ("descend" | "ascend")[] = ["descend", "ascend"]
 
 /**
- * Its thumbnail comes by slug, which works for a draft too: setting a slug
- * puts the config where thumbnails are rendered from. A draft links to its
- * admin preview.
+ * Like charts, a published multi-dim's thumbnail comes by slug, as on the
+ * public site. An unpublished one isn't served by slug, but its default view's
+ * config is in R2 by its uuid, which renders the same image.
  */
+function getThumbnailPath({
+    slug,
+    published,
+    defaultViewConfigId,
+}: Pick<MultiDim, "slug" | "published" | "defaultViewConfigId">):
+    | string
+    | undefined {
+    if (published && slug) return `/${slug}.png`
+    if (defaultViewConfigId) return `/by-uuid/${defaultViewConfigId}.png`
+    return undefined
+}
+
+/** Its thumbnail (see getThumbnailPath). A draft links to its admin preview. */
 function PreviewCell({ mdim }: { mdim: MultiDim }) {
     const [hasFailed, setHasFailed] = useState(false)
+    const thumbnailPath = getThumbnailPath(mdim)
     const href =
         mdim.published && mdim.slug
             ? urljoin(BAKED_GRAPHER_URL, mdim.slug)
@@ -102,12 +117,9 @@ function PreviewCell({ mdim }: { mdim: MultiDim }) {
               )
     return (
         <a href={href} target="_blank" rel="noopener">
-            {mdim.slug && !hasFailed ? (
+            {thumbnailPath && !hasFailed ? (
                 <img
-                    src={urljoin(
-                        GRAPHER_DYNAMIC_THUMBNAIL_URL,
-                        `/${mdim.slug}.png`
-                    )}
+                    src={urljoin(GRAPHER_DYNAMIC_THUMBNAIL_URL, thumbnailPath)}
                     height={600}
                     width={850}
                     loading="lazy"

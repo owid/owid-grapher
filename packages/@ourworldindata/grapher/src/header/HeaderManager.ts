@@ -25,5 +25,6 @@ export interface HeaderManager {
     hideTitle?: boolean
     hideSubtitle?: boolean
     isStaticAndSmall?: boolean
+    isLayoutFixed?: boolean
     detailsMarkerInSvg?: DetailsMarker
 }
