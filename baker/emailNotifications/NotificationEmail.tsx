@@ -174,13 +174,19 @@ function ItemTitle({ item }: { item: NotificationEmailItem }) {
     )
 }
 
-function ItemAuthors({ item }: { item: NotificationEmailItem }) {
+function ItemAuthors({
+    item,
+    hasBlocksBelow = false,
+}: {
+    item: NotificationEmailItem
+    hasBlocksBelow?: boolean
+}) {
     if (item.authors.length === 0) return null
     return (
         <Text
             style={{
                 ...BODY_TEXT,
-                margin: "0 0 8px",
+                margin: hasBlocksBelow ? "0 0 16px" : 0,
                 fontStyle: "italic",
                 color: COLORS.muted,
             }}
@@ -190,9 +196,22 @@ function ItemAuthors({ item }: { item: NotificationEmailItem }) {
     )
 }
 
-function ReadMoreLink({ href, label }: { href: string; label: string }) {
+function ReadMoreLink({
+    href,
+    label,
+    hasBylineBelow,
+}: {
+    href: string
+    label: string
+    hasBylineBelow: boolean
+}) {
     return (
-        <Text style={{ ...BODY_TEXT, margin: 0 }}>
+        <Text
+            style={{
+                ...BODY_TEXT,
+                margin: hasBylineBelow ? "0 0 16px" : 0,
+            }}
+        >
             <Link
                 href={href}
                 style={{
@@ -205,6 +224,40 @@ function ReadMoreLink({ href, label }: { href: string; label: string }) {
             </Link>
         </Text>
     )
+}
+
+interface BylineSplit {
+    beforeByline: OwidEnrichedGdocBlock[]
+    afterByline: OwidEnrichedGdocBlock[]
+}
+
+const splitAt = (
+    blocks: OwidEnrichedGdocBlock[],
+    index: number
+): BylineSplit => ({
+    beforeByline: blocks.slice(0, index),
+    afterByline: blocks.slice(index),
+})
+
+/**
+ * Put the byline after the text (which usually ends in its call to action),
+ * ahead of any images that close the body
+ */
+function splitBeforeTrailingImages(
+    blocks: OwidEnrichedGdocBlock[]
+): BylineSplit {
+    const lastNonImage = blocks.findLastIndex((block) => block.type !== "image")
+    return splitAt(blocks, lastNonImage + 1)
+}
+
+/**
+ * Put the byline just before the body's last image, or at the end when it
+ * has none, matching an announcement's layout on /latest
+ * (AnnouncementContent.scss)
+ */
+function splitBeforeLastImage(blocks: OwidEnrichedGdocBlock[]): BylineSplit {
+    const lastImage = blocks.findLastIndex((block) => block.type === "image")
+    return splitAt(blocks, lastImage === -1 ? blocks.length : lastImage)
 }
 
 function TeaserBody({ item }: { item: NotificationEmailItem }) {
@@ -220,6 +273,10 @@ function TeaserBody({ item }: { item: NotificationEmailItem }) {
     const leadImage =
         leadImageIndex === -1 ? undefined : fullBody[leadImageIndex]
     const body = fullBody.filter((_, index) => index !== leadImageIndex)
+    const { beforeByline, afterByline } =
+        item.latestType === "announcement" || item.latestType === "topic-update"
+            ? splitBeforeLastImage(body)
+            : splitBeforeTrailingImages(body)
     return (
         <>
             {leadImage && (
@@ -230,7 +287,7 @@ function TeaserBody({ item }: { item: NotificationEmailItem }) {
                 />
             )}
             <ItemTitle item={item} />
-            {body.map((block, index) => (
+            {beforeByline.map((block, index) => (
                 <Block
                     key={index}
                     block={block}
@@ -244,10 +301,21 @@ function TeaserBody({ item }: { item: NotificationEmailItem }) {
                             {item.excerpt}
                         </Text>
                     )}
-                    <ReadMoreLink href={item.url} label="Read more" />
+                    <ReadMoreLink
+                        href={item.url}
+                        label="Read more"
+                        hasBylineBelow={item.authors.length > 0}
+                    />
                 </>
             )}
-            <ItemAuthors item={item} />
+            <ItemAuthors item={item} hasBlocksBelow={afterByline.length > 0} />
+            {afterByline.map((block, index) => (
+                <Block
+                    key={index}
+                    block={block}
+                    imageUrlsByFilename={imageUrlsByFilename}
+                />
+            ))}
         </>
     )
 }
@@ -276,7 +344,6 @@ function ArticleCard({ item }: { item: NotificationEmailItem }) {
                 </Link>
             )}
             <ItemTitle item={item} />
-            <ItemAuthors item={item} />
             {item.excerptBlocks ? (
                 item.excerptBlocks.map((block, index) => (
                     <Text
@@ -291,7 +358,12 @@ function ArticleCard({ item }: { item: NotificationEmailItem }) {
                     {item.excerpt}
                 </Text>
             ) : null}
-            <ReadMoreLink href={item.url} label="Read the article" />
+            <ReadMoreLink
+                href={item.url}
+                label="Read the article"
+                hasBylineBelow={item.authors.length > 0}
+            />
+            <ItemAuthors item={item} />
         </Section>
     )
 }
@@ -302,6 +374,9 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
     const firstNonImage = body.findIndex((block) => block.type !== "image")
     const splitIndex = firstNonImage === -1 ? body.length : firstNonImage
     const imageUrlsByFilename = item.imageUrlsByFilename ?? {}
+    const { beforeByline, afterByline } = splitBeforeTrailingImages(
+        body.slice(splitIndex)
+    )
     return (
         <Section
             className="card"
@@ -318,15 +393,21 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
                 />
             ))}
             <ItemTitle item={item} />
-            {body.slice(splitIndex).map((block, index) => (
+            {beforeByline.map((block, index) => (
                 <Block
                     key={index}
                     block={block}
                     imageUrlsByFilename={imageUrlsByFilename}
                 />
             ))}
-            {/* The byline closes the insight, after its call to action. */}
-            <ItemAuthors item={item} />
+            <ItemAuthors item={item} hasBlocksBelow={afterByline.length > 0} />
+            {afterByline.map((block, index) => (
+                <Block
+                    key={index}
+                    block={block}
+                    imageUrlsByFilename={imageUrlsByFilename}
+                />
+            ))}
         </Section>
     )
 }
