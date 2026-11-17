@@ -452,8 +452,8 @@ const PreferencesEditor = ({
                 {subscribedToOwidBrief === null && (
                     <div className="newsletter-form__alert">
                         We couldn't load your OWID Brief subscription. You can
-                        still update Follow Topics, or try again later to manage
-                        the Brief.
+                        still update your topic notifications, or try again
+                        later to manage the Brief.
                     </div>
                 )}
                 <ErrorAlert error={update.error} />
