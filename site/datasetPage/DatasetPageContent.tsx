@@ -343,7 +343,10 @@ function DatasetHeader({
             <div className="dataset-page__header-main col-start-2 span-cols-8 col-md-start-2 span-md-cols-12">
                 <h1 className="dataset-page__title">{dataset.title}</h1>
                 <p className="dataset-page__description">
-                    {dataset.description}
+                    <SimpleMarkdownText
+                        text={dataset.description}
+                        useParagraphs={false}
+                    />
                 </p>
                 {dataset.managedBy && (
                     <p className="dataset-page__byline">

@@ -381,10 +381,27 @@ export async function getPagesEmbeddingCharts(
                   `,
                   [chartIds]
               )
+    const multiDimIds = lookup.multiDims.map((multiDim) => multiDim.multiDimId)
+    // A page may also embed a multi-dim by the slug of a chart that now
+    // redirects to it
+    const redirectedSlugRows =
+        multiDimIds.length === 0
+            ? []
+            : await knexRaw<{ slug: string }>(
+                  knex,
+                  `-- sql
+                      SELECT REPLACE(mdr.source, '/grapher/', '') AS slug
+                      FROM multi_dim_redirects mdr
+                      WHERE mdr.multiDimId IN (?)
+                          AND mdr.source LIKE '/grapher/%'
+                  `,
+                  [multiDimIds]
+              )
     const targetSlugs = [
         ...lookup.charts.map((chart) => chart.slug),
         ...oldSlugRows.map((row) => row.slug),
         ...lookup.multiDims.map((multiDim) => multiDim.slug),
+        ...redirectedSlugRows.map((row) => row.slug),
     ]
     if (targetSlugs.length === 0) return []
 
