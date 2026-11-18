@@ -1,5 +1,6 @@
 import { useContext, useState } from "react"
 import cx from "clsx"
+import * as R from "remeda"
 import {
     keepPreviousData,
     skipToken,
@@ -11,6 +12,8 @@ import {
     ALL_CHARTS_ID,
     fetchJson,
     getTopicPageHeading,
+    getUserCountryInformation,
+    listedRegionsNames,
     sentenceCaseIfNotTopicPage,
 } from "@ourworldindata/utils"
 import { SearchResultType } from "@ourworldindata/types"
@@ -26,11 +29,20 @@ import {
 import { getLiteSearchClient } from "../../search/searchClients.js"
 import { buildSearchHref } from "../../search/searchState.js"
 
-type TopicVocabulary = Partial<Record<string, { keywords: string[] }>>
+type TopicVocabulary = Partial<
+    Record<string, { keywords: string[]; countries?: string[] }>
+>
 
 const TOPIC_VOCABULARY_URL =
     "https://files.ourworldindata.org/topic_vocabulary.json"
-const MAX_SUGGESTIONS = 5
+const SUGGESTION_SLOTS = [
+    "keyword",
+    "keyword",
+    "country",
+    "keyword",
+    "country",
+    "keyword",
+] as const
 
 const SEARCH_DEBOUNCE_MS = 200
 
@@ -81,17 +93,27 @@ export function AllCharts({
             },
         })
 
-    const { data: suggestionKeywords, isPending: isLoadingSuggestions } =
+    const { data: topicSuggestions, isPending: isLoadingSuggestions } =
         useQuery({
             queryKey: allChartsBlockQueryKeys.topicVocabulary(),
             queryFn: shouldFetch
                 ? () => fetchJson<TopicVocabulary>(TOPIC_VOCABULARY_URL)
                 : skipToken,
             select: (vocabulary) =>
-                (firstTagSlug && vocabulary[firstTagSlug]?.keywords) || [],
+                firstTagSlug ? vocabulary[firstTagSlug] : undefined,
             staleTime: Infinity,
             retry: false,
         })
+
+    const { data: detectedCountryName } = useQuery({
+        queryKey: allChartsBlockQueryKeys.userCountry(),
+        queryFn: async () => {
+            const name = (await getUserCountryInformation())?.name
+            return name && listedRegionsNames().includes(name) ? name : null
+        },
+        staleTime: Infinity,
+        retry: false,
+    })
 
     const applyQuery = (nextQuery: string): void => {
         setQuery(nextQuery)
@@ -115,10 +137,12 @@ export function AllCharts({
     )
     const hits = data?.pages.flatMap((page) => page.response.hits) ?? []
     const searchStatus = data ? undefined : isError ? "error" : "pending"
-    const suggestedTerms = pickVisibleSuggestions(
-        suggestionKeywords ?? [],
-        query
-    )
+    const suggestedTerms = pickSuggestions({
+        keywords: topicSuggestions?.keywords ?? [],
+        countries: topicSuggestions?.countries ?? [],
+        detectedCountryName: detectedCountryName ?? undefined,
+        query,
+    })
     const onLoadMore = (): void => {
         if (!isFetchingNextPage) void fetchNextPage()
     }
@@ -150,9 +174,42 @@ export function AllCharts({
     )
 }
 
-function pickVisibleSuggestions(keywords: string[], query: string): string[] {
+function pickSuggestions({
+    keywords,
+    countries,
+    detectedCountryName,
+    query,
+}: {
+    keywords: string[]
+    countries: string[]
+    detectedCountryName?: string
+    query: string
+}): string[] {
     const normalizedQuery = query.trim().toLowerCase()
-    return keywords
-        .filter((keyword) => keyword.toLowerCase() !== normalizedQuery)
-        .slice(0, MAX_SUGGESTIONS)
+    const pools = {
+        keyword: dedupeAndDropQuery(keywords, normalizedQuery),
+        country: dedupeAndDropQuery(
+            detectedCountryName
+                ? [detectedCountryName, ...countries]
+                : countries,
+            normalizedQuery
+        ),
+    }
+    if (pools.country.length === 0)
+        return pools.keyword.slice(0, SUGGESTION_SLOTS.length)
+
+    const nextIndexes = { keyword: 0, country: 0 }
+
+    return SUGGESTION_SLOTS.map(
+        (slot) => pools[slot][nextIndexes[slot]++]
+    ).filter(R.isDefined)
+}
+
+function dedupeAndDropQuery(
+    terms: string[],
+    normalizedQuery: string
+): string[] {
+    return R.uniqueBy(terms, (term) => term.toLowerCase()).filter(
+        (term) => term.toLowerCase() !== normalizedQuery
+    )
 }

@@ -5,13 +5,23 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { afterEach, beforeEach, expect, it, vi } from "vitest"
-import { ChartRecordType, OwidGdocType } from "@ourworldindata/types"
+import {
+    ChartRecordType,
+    OwidGdocType,
+    type UserCountryInformation,
+} from "@ourworldindata/types"
 import { AttachmentsContext, Attachments } from "../AttachmentsContext.js"
 import { DocumentContext } from "../DocumentContext.js"
 import type { GrapherWithFallbackProps } from "../../GrapherWithFallback.js"
 import { AllCharts } from "./AllCharts.js"
 
 const searchForHits = vi.hoisted(() => vi.fn())
+const getUserCountryInformation = vi.hoisted(() => vi.fn())
+
+vi.mock(import("@ourworldindata/utils"), async (importOriginal) => ({
+    ...(await importOriginal()),
+    getUserCountryInformation,
+}))
 
 vi.mock(import("../../search/searchClients.js"), async (importOriginal) => {
     const actual = await importOriginal()
@@ -51,6 +61,8 @@ beforeEach(() => {
     observers.clear()
     vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver)
     stubVocabulary({ poverty: { keywords: POVERTY_KEYWORDS } })
+    getUserCountryInformation.mockReset()
+    getUserCountryInformation.mockResolvedValue(undefined)
     searchForHits.mockReset()
     searchForHits.mockImplementation(
         async ([{ page, query }]: [{ page: number; query: string }]) =>
@@ -268,7 +280,7 @@ it("keeps the same chart preview while its tab and countries change", async () =
     expect(screen.getByTestId("preview")).toBe(preview)
 })
 
-it("shows the first five suggestions, and hides the one being searched for", async () => {
+it("shows the first six suggestions, and hides the one being searched for", async () => {
     renderBlock()
     fireIntersectionObserversMatching("section")
     await screen.findByText("Title of alpha")
@@ -280,6 +292,7 @@ it("shows the first five suggestions, and hides the one being searched for", asy
         "relative poverty",
         "multidimensional poverty",
         "consumption",
+        "national poverty lines",
     ])
 
     fireEvent.click(screen.getByRole("button", { name: "relative poverty" }))
@@ -294,6 +307,7 @@ it("shows the first five suggestions, and hides the one being searched for", asy
         "multidimensional poverty",
         "consumption",
         "national poverty lines",
+        "consumer price index",
     ])
 
     fireEvent.change(screen.getByRole("searchbox"), {
@@ -306,8 +320,124 @@ it("shows the first five suggestions, and hides the one being searched for", asy
         "multidimensional poverty",
         "consumption",
         "national poverty lines",
+        "consumer price index",
     ])
 })
+
+it("interleaves the topic's countries with its keywords", async () => {
+    stubVocabulary({
+        poverty: {
+            keywords: POVERTY_KEYWORDS,
+            countries: ["Nigeria", "India", "Brazil"],
+        },
+    })
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    await screen.findByRole("button", { name: "Nigeria" })
+    expect(getSuggestions()).toEqual([
+        "GDP per capita",
+        "extreme poverty",
+        "Nigeria",
+        "relative poverty",
+        "India",
+        "multidimensional poverty",
+    ])
+})
+
+it("puts the reader's detected country first among the countries", async () => {
+    const spain: UserCountryInformation = {
+        name: "Spain",
+        code: "ESP",
+        short_code: "ES",
+        slug: "spain",
+        regions: null,
+    }
+    getUserCountryInformation.mockResolvedValue(spain)
+    stubVocabulary({
+        poverty: {
+            keywords: POVERTY_KEYWORDS,
+            countries: ["Nigeria", "India", "Brazil"],
+        },
+    })
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    await screen.findByRole("button", { name: "Spain" })
+    expect(getSuggestions()).toEqual([
+        "GDP per capita",
+        "extreme poverty",
+        "Spain",
+        "relative poverty",
+        "Nigeria",
+        "multidimensional poverty",
+    ])
+})
+
+it("fills a clicked country's slot with the next country", async () => {
+    stubVocabulary({
+        poverty: {
+            keywords: POVERTY_KEYWORDS,
+            countries: ["Nigeria", "India", "Brazil"],
+        },
+    })
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Nigeria" }))
+
+    expect(screen.getByRole("searchbox")).toHaveValue("Nigeria")
+    await vi.waitFor(() =>
+        expect(requestedFacetFilters().at(-1)).toContain(
+            "availableEntities:Nigeria"
+        )
+    )
+    expect(getSuggestions()).toEqual([
+        "GDP per capita",
+        "extreme poverty",
+        "India",
+        "relative poverty",
+        "Brazil",
+        "multidimensional poverty",
+    ])
+})
+
+it.each([
+    { scenario: "no country", detected: undefined },
+    { scenario: "null", detected: null },
+    {
+        scenario: "a country the search can't filter by",
+        detected: { name: "Curacao" },
+    },
+])(
+    "shows only the topic's countries when detection resolves $scenario",
+    async ({ detected }) => {
+        getUserCountryInformation.mockResolvedValue(detected)
+        stubVocabulary({
+            poverty: {
+                keywords: POVERTY_KEYWORDS,
+                countries: ["Nigeria", "India"],
+            },
+        })
+        renderBlock()
+        fireIntersectionObserversMatching("section")
+        await screen.findByText("Title of alpha")
+
+        await screen.findByRole("button", { name: "Nigeria" })
+        await flushEffects()
+        expect(getSuggestions()).toEqual([
+            "GDP per capita",
+            "extreme poverty",
+            "Nigeria",
+            "relative poverty",
+            "India",
+            "multidimensional poverty",
+        ])
+    }
+)
 
 it.each([
     {
