@@ -10,20 +10,38 @@ import {
     DatasetPageContent,
     DatasetPageProps,
 } from "./DatasetPageContent.js"
+import { makeDatasetPageJsonLd } from "./datasetPageJsonLd.js"
 
 export function DatasetPage({
     dataset,
     baseUrl,
-}: DatasetPageProps & { baseUrl: string }) {
+    jsonLd,
+}: DatasetPageProps & {
+    baseUrl: string
+    /** The dataset's Schema.org JSON-LD, so that search engines can list it */
+    jsonLd?: Record<string, unknown>
+}) {
     const props: DatasetPageProps = { dataset }
+    const canonicalUrl = `${baseUrl}/datasets/${dataset.slug}`
     return (
         <Html>
             <Head
-                canonicalUrl={`${baseUrl}/datasets/${dataset.slug}`}
+                canonicalUrl={canonicalUrl}
                 pageTitle={dataset.title}
                 pageDesc={dataset.description}
                 baseUrl={baseUrl}
-            />
+            >
+                {jsonLd && (
+                    <script
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{
+                            __html: serializeJSONForInlineScript(
+                                makeDatasetPageJsonLd(jsonLd, canonicalUrl)
+                            ),
+                        }}
+                    />
+                )}
+            </Head>
             <body>
                 <SiteHeader />
                 <main>

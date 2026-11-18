@@ -632,7 +632,11 @@ export const renderDatasetPage = async (
         makeRelatedResearch(relatedPages, featuredImageUrls, BAKED_BASE_URL)
     )
     return renderToHtmlPage(
-        <DatasetPage dataset={dataset} baseUrl={BAKED_BASE_URL} />
+        <DatasetPage
+            dataset={dataset}
+            baseUrl={BAKED_BASE_URL}
+            jsonLd={files.jsonLd}
+        />
     )
 }
 

@@ -115,6 +115,8 @@ export interface DatasetPageFiles {
     manifest: DatasetPageManifest
     /** In the order of the manifest's tables */
     tables: DatasetPageFilesTable[]
+    /** The dataset's Schema.org JSON-LD, which the ETL leaves out when the metadata isn't complete enough for it */
+    jsonLd?: Record<string, unknown>
 }
 
 const PRODUCTION_DATASET_PAGES_URL = "https://catalog.ourworldindata.org"
@@ -157,7 +159,10 @@ export async function fetchDatasetPageFiles(
                 ),
             }))
         )
-        return { folderUrl, manifest, tables }
+        const jsonLd = manifest.jsonld
+            ? JSON.parse(await fetchText(`${folderUrl}/${manifest.jsonld}`))
+            : undefined
+        return { folderUrl, manifest, tables, jsonLd }
     }
     return undefined
 }
