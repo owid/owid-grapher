@@ -43,4 +43,19 @@ describe("Admin.requestJSON", () => {
         )
         expect(admin.errorMessage?.title).toContain("(502)")
     })
+
+    it("keeps the server's message when a failed response carries an error", async () => {
+        stubFetch(
+            400,
+            JSON.stringify({
+                error: { message: "Invalid request: slug", status: 400 },
+            })
+        )
+        const admin = makeAdmin()
+        await expect(admin.getJSON("/api/charts.json")).rejects.toMatchObject({
+            message: "Invalid request: slug",
+            status: 400,
+        })
+        expect(admin.errorMessage?.content).toContain("Invalid request: slug")
+    })
 })
