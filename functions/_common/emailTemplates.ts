@@ -1,5 +1,8 @@
 import * as _ from "lodash-es"
 import welcome from "./emailTemplates/welcome.json"
+import welcomeWithBrief from "./emailTemplates/welcomeWithBrief.json"
+import welcomeBriefOnly from "./emailTemplates/welcomeBriefOnly.json"
+import subscriptionUpdated from "./emailTemplates/subscriptionUpdated.json"
 import magicLink from "./emailTemplates/magicLink.json"
 
 export interface EmailTemplate {
@@ -8,10 +11,13 @@ export interface EmailTemplate {
     text: string
 }
 
-export const EMAIL_TEMPLATES = { welcome, magicLink } satisfies Record<
-    string,
-    EmailTemplate
->
+export const EMAIL_TEMPLATES = {
+    welcome,
+    welcomeWithBrief,
+    welcomeBriefOnly,
+    subscriptionUpdated,
+    magicLink,
+} satisfies Record<string, EmailTemplate>
 
 const PLACEHOLDER = /{{(\w+)}}/g
 

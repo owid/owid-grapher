@@ -5,10 +5,11 @@ import {
     EMAIL_TRANSACTIONAL_FROM_ADDRESS,
     EmailNotificationsPreferences,
 } from "@ourworldindata/types"
-import { JsonError } from "@ourworldindata/utils"
+import { formatInlineList, JsonError } from "@ourworldindata/utils"
 import * as _ from "lodash-es"
 import { EMAIL_TEMPLATES, renderEmailTemplate } from "./emailTemplates.js"
 import { Env } from "./env.js"
+import { SubscribeEmail } from "./subscribeEmail.js"
 import { logErrorAndCaptureInSentry } from "./errorLog.js"
 import { getPostmarkClient } from "./postmarkClient.js"
 
@@ -38,12 +39,11 @@ function getSiteBaseUrl(env: Env, origin: string): string {
 }
 
 /**
- * Welcome email sent on every subscribe-form submission: signup is single
- * opt-in, so the subscription is already active when this is sent. For an
- * existing address the preferences shown are the merged result. Carries the
- * permanent per-user token's footer links for updating or unsubscribing from
- * these notifications — for an address submitted by someone else, this email is
- * also what lets the owner notice and undo the change.
+ * Send the email `chooseSubscribeEmail` picked for a subscribe-form
+ * submission. Signup is single opt-in, so the subscription is already active
+ * when this is sent. The email carries the permanent per-user token's links
+ * for updating preferences or unsubscribing — for an address submitted by
+ * someone else, it is also what lets the owner notice and undo the change.
  */
 export async function sendWelcomeEmail(
     env: Env,
@@ -51,41 +51,53 @@ export async function sendWelcomeEmail(
     props: {
         userId: number
         to: string
-        preferences: EmailNotificationsPreferences
         userToken: string
+        email: SubscribeEmail
     }
 ): Promise<void> {
-    const { preferences } = props
+    const { email } = props
     const { subject, html, text } = renderEmailTemplate(
-        EMAIL_TEMPLATES.welcome,
+        EMAIL_TEMPLATES[email.template],
         {
             email: props.to,
-            topics:
-                preferences.topicTags.length > 0
-                    ? preferences.topicTags.join(", ")
-                    : "All topics",
-            contentTypes: preferences.contentTypes
-                .map(
-                    (contentType) =>
-                        EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS[contentType]
-                )
-                .join(", "),
-            frequency: `At most ${EMAIL_NOTIFICATIONS_FREQUENCY_LABELS[
-                preferences.frequency
-            ].toLowerCase()}`,
+            ...(email.template !== "welcomeBriefOnly" &&
+                formatPreferencesForEmail(email.preferences)),
             siteBaseUrl: getSiteBaseUrl(env, origin),
             updatePreferencesUrl: `${origin}/api/email-notifications/request-link?token=${props.userToken}`,
             unsubscribeUrl: `${origin}/api/email-notifications/unsubscribe?token=${props.userToken}`,
         }
     )
+    const isWelcome = email.template !== "subscriptionUpdated"
     await sendPostmarkEmail(env, {
         to: props.to,
         subject,
-        tag: "email-notifications-welcome",
+        tag: isWelcome
+            ? "email-notifications-welcome"
+            : "email-notifications-subscription-updated",
         htmlBody: html,
         textBody: text,
     })
-    console.log(`Welcome email sent userId=${props.userId}`)
+    console.log(`Email ${email.template} sent userId=${props.userId}`)
+}
+
+function formatPreferencesForEmail(
+    preferences: EmailNotificationsPreferences
+): { topics: string; contentTypes: string; frequency: string } {
+    return {
+        topics:
+            preferences.topicTags.length > 0
+                ? formatInlineList(preferences.topicTags)
+                : "All topics",
+        contentTypes: formatInlineList(
+            preferences.contentTypes.map(
+                (contentType) =>
+                    EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS[contentType]
+            )
+        ),
+        frequency: `At most ${EMAIL_NOTIFICATIONS_FREQUENCY_LABELS[
+            preferences.frequency
+        ].toLowerCase()}`,
+    }
 }
 
 /**
