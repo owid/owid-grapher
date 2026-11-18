@@ -83,6 +83,7 @@ export const allChartsBlockQueryKeys = {
     charts: (topics: string[], query: string) =>
         [CHARTS_INDEX, "all-charts-block", { topics, query }] as const,
     topicVocabulary: () => ["topic-vocabulary"] as const,
+    userCountry: () => ["user-country"] as const,
 } as const
 
 export const latestPagesQueryKey = {
