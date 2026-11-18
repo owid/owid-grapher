@@ -269,9 +269,14 @@ export default function MultiDim({
                     // we call adjustStateForTab to make adjustments that ensure the new view
                     // is sensible (e.g. updating the time selection when switching from a
                     // single-time chart like a discrete bar chart to a multi-time chart like
-                    // a line chart).
+                    // a line chart). Guided updates skip this: their state is the view's
+                    // config plus the link's params, with nothing carried over from the
+                    // previous tab.
                     const currentTab = grapherState.activeTab
-                    if (previousTab !== currentTab)
+                    if (
+                        viewParams.source !== "guidedChart" &&
+                        previousTab !== currentTab
+                    )
                         grapherState.adjustStateForTab(currentTab)
                 })
             })
