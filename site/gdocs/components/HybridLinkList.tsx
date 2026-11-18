@@ -57,7 +57,7 @@ function HybridGdocLink(props: HybridLinkProps) {
             >
                 <Thumbnail
                     thumbnail={linkedDocument["featured-image"]}
-                    className="hybrid-link-thumbnail hybrid-link-thumbnail--article"
+                    className="hybrid-link-thumbnail"
                 />
                 <div className="hybrid-link-item-text">
                     <h4>{title}</h4>
@@ -104,7 +104,7 @@ function HybridExternalLink(props: HybridLinkProps) {
                 {props.thumbnail && (
                     <Thumbnail
                         thumbnail={props.thumbnail}
-                        className="hybrid-link-thumbnail"
+                        className="hybrid-link-thumbnail hybrid-link-thumbnail--external"
                     />
                 )}
                 <div className="hybrid-link-item-text">
