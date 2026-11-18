@@ -308,10 +308,8 @@ const createBaseRecord = (
 
     const viewGrapherId = matrix.selectedRow.grapherId
 
-    const explorerType = getExplorerType(viewGrapherId, yVariableIds)
-
     return {
-        explorerType,
+        explorerType: getExplorerType(program),
         availableEntities: [],
         viewTitle,
         viewSubtitle: matrix.selectedRow.subtitle,

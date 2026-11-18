@@ -1,4 +1,8 @@
 import { ExplorerType, OwidColumnDef } from "@ourworldindata/types"
+import {
+    ExplorerChartCreationMode,
+    ExplorerProgram,
+} from "@ourworldindata/explorer"
 import { ExplorerViewBaseRecord } from "./types.js"
 
 /**
@@ -6,6 +10,15 @@ import { ExplorerViewBaseRecord } from "./types.js"
  * different views of the same indicator in indicator-based explorers
  */
 const TRANSFORM_DUPLICATE_ID_REGEX = /duplicate (\d+)$/
+
+const EXPLORER_TYPE_BY_CHART_CREATION_MODE: Record<
+    ExplorerChartCreationMode,
+    ExplorerType
+> = {
+    [ExplorerChartCreationMode.FromGrapherId]: ExplorerType.Grapher,
+    [ExplorerChartCreationMode.FromVariableIds]: ExplorerType.Indicator,
+    [ExplorerChartCreationMode.FromExplorerTableColumnSlugs]: ExplorerType.Csv,
+}
 
 export function getDuplicateTransformationRows(
     columnDefs: OwidColumnDef[]
@@ -15,13 +28,8 @@ export function getDuplicateTransformationRows(
     )
 }
 
-export function getExplorerType(
-    viewGrapherId: number | undefined,
-    yVariableIds: Array<number | string>
-): ExplorerType {
-    if (viewGrapherId !== undefined) return ExplorerType.Grapher
-    if (yVariableIds.length > 0) return ExplorerType.Indicator
-    return ExplorerType.Csv
+export function getExplorerType(program: ExplorerProgram): ExplorerType {
+    return EXPLORER_TYPE_BY_CHART_CREATION_MODE[program.chartCreationMode]
 }
 
 /**
@@ -31,13 +39,11 @@ export function getExplorerType(
  * directly in yVariableIds. (e.g. https://github.com/owid/owid-content/commit/6f17c705d331a13380e9a52f3d319c9a51054625)
  *
  * This function extracts those IDs from "duplicate" transforms and adds them to the appropriate base records.
- * Since a record's explorer type depends on its yVariableIds, it is recomputed
- * too: a record that looked CSV-based before can turn out to be indicator-based.
  *
  * Example:
- * - Base record: { explorerType: "csv", ySlugs: ["gdp"], yVariableIds: [] }
+ * - Base record: { ySlugs: ["gdp"], yVariableIds: [] }
  * - Transform: { slug: "gdp", transform: "duplicate 1234" }
- * - Result: { explorerType: "indicator", ySlugs: ["gdp"], yVariableIds: [1234] }
+ * - Result: { ySlugs: ["gdp"], yVariableIds: [1234] }
  */
 export function addDuplicateYVariableIds(
     baseRecords: ExplorerViewBaseRecord[],
@@ -56,15 +62,13 @@ export function addDuplicateYVariableIds(
     )
 
     return baseRecords.map((record) => {
-        const duplicateIds = record.ySlugs
+        const yVariableIds = record.ySlugs
             .map((slug) => slugToVariableId.get(slug))
             .filter((id): id is number => !!id)
-        const yVariableIds = [...record.yVariableIds, ...duplicateIds]
 
         return {
             ...record,
-            explorerType: getExplorerType(record.viewGrapherId, yVariableIds),
-            yVariableIds,
+            yVariableIds: [...record.yVariableIds, ...yVariableIds],
         }
     })
 }
