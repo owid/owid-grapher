@@ -11,7 +11,7 @@ import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
 import {
     LATEST_HIT_GRID_CLASSES,
-    findThumbnailImageBlock,
+    splitLeadImage,
     makeAttachments,
 } from "./latestUtils.js"
 import { useLatestContext } from "./LatestContext.js"
@@ -41,8 +41,9 @@ export const LatestDataUpdateHit = ({
         content: { type: OwidGdocType.Announcement },
     })
     const isLikelyBaked = useIsLikelyBaked(hit)
-    const firstImage = findThumbnailImageBlock(hit.body)
-    const otherBlocks = hit.body.filter((block) => block !== firstImage)
+    const { leadImage: firstImage, rest: otherBlocks } = splitLeadImage(
+        hit.body
+    )
     const titleId = `latest-hit-${hit.slug}-title`
     const Card = isExpanded ? "div" : "a"
 
