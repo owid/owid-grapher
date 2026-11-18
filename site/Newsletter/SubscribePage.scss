@@ -32,7 +32,7 @@
     }
 
     .subscribe-page__aside {
-        @include sm-only {
+        @include md-down {
             margin-top: 24px;
         }
     }
