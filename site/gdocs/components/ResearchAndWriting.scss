@@ -101,22 +101,17 @@ $rw-margin-bottom-grid-cell: 4px;
     }
 
     figure {
-        padding-bottom: calc(100% / 1.91);
         width: 100%;
         display: block;
-        box-sizing: border-box;
-        position: relative;
-        overflow: hidden;
         margin: 0 0 12px;
     }
 
     img {
-        object-fit: cover;
-        height: 100%;
+        display: block;
         width: 100%;
-        position: absolute;
-        left: 0;
-        top: 0;
+        height: auto;
+        aspect-ratio: $featured-image-aspect-ratio;
+        object-fit: cover;
     }
 }
 

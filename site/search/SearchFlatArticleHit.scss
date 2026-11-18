@@ -23,7 +23,7 @@
 .search-flat-article-hit__image {
     width: 84px;
     height: auto;
-    aspect-ratio: 1.91 / 1;
+    aspect-ratio: $featured-image-aspect-ratio;
     object-fit: cover;
 }
 

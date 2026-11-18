@@ -67,7 +67,7 @@
         overflow: hidden;
         width: 100%;
         height: auto;
-        aspect-ratio: 1.91 / 1;
+        aspect-ratio: $featured-image-aspect-ratio;
         object-fit: cover;
     }
 }
