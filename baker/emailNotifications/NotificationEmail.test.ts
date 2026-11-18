@@ -315,7 +315,7 @@ describe(renderNotificationEmail, () => {
         ).toHaveLength(2)
     })
 
-    it("puts a byline after the cta but before the images that close the body", async () => {
+    it("puts a byline after the cta but before the image that closes the body", async () => {
         const { html } = await renderFixture()
         const topicUpdate = html.slice(
             html.indexOf(
