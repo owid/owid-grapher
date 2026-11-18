@@ -130,7 +130,7 @@ function Kicker({ item, now }: { item: NotificationEmailItem; now: Date }) {
     }
     return (
         <Row>
-            <Column>
+            <Column style={{ verticalAlign: "top" }}>
                 <Text style={kickerStyle}>
                     {LATEST_TYPE_LABELS[item.latestType]}
                     {item.topicLabel && (
@@ -143,7 +143,14 @@ function Kicker({ item, now }: { item: NotificationEmailItem; now: Date }) {
                     )}
                 </Text>
             </Column>
-            <Column style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+            <Column
+                style={{
+                    textAlign: "right",
+                    whiteSpace: "nowrap",
+                    verticalAlign: "top",
+                    paddingLeft: 12,
+                }}
+            >
                 <Text style={kickerStyle}>
                     {formatItemDate(item.publishedAt, now)}
                 </Text>
