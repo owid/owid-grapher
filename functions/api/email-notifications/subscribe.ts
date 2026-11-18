@@ -28,6 +28,7 @@ import {
     findLocalSuppressionState,
     markReactivatedLocally,
 } from "../../_common/postmarkSuppressions.js"
+import { chooseSubscribeEmail } from "../../_common/subscribeEmail.js"
 
 export const onRequestOptions = handleOptionsRequest
 
@@ -62,9 +63,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         // Mailchimp runs before the remaining writes and welcome email because
         // it is idempotent. Do not expose active vs pending: this tokenless
         // endpoint must not reveal the address's Mailchimp history.
+        const origin = new URL(request.url).origin
+        // Whether the Brief subscription is active, so the welcome email only
+        // promises the Brief when the address will actually get it. A pending
+        // opt-in still needs Mailchimp's confirmation (which isn't resent to an
+        // already-pending member), and a cleaned address is rejected.
+        let isBriefActive = false
         if (data.subscribeToOwidBrief) {
             try {
-                await enableOwidBriefSubscription(env, email)
+                isBriefActive =
+                    (await enableOwidBriefSubscription(env, email)) === "active"
             } catch (error) {
                 // Keep the response independent of the address's history. A
                 // cleaned address could not receive confirmation anyway.
@@ -73,6 +81,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             }
         }
 
+        let preferences: EmailNotificationsPreferences | null = null
         if (data.notifications) {
             // Signup is single opt-in: the submission takes effect
             // immediately and the welcome email confirms it. For an address
@@ -85,8 +94,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             // welcome email's footer links let the address's owner undo a
             // submission they didn't make. The response is identical whether
             // the email was already known or not, and both branches send
-            // exactly one email.
-            const origin = new URL(request.url).origin
+            // exactly one email: the full welcome until it has been sent to
+            // the address once, a short confirmation after that.
             const postmarkSuppression = await findLocalSuppressionState(
                 db,
                 email
@@ -99,17 +108,25 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                     postmarkSuppression.postmarkChangedAt
                 )
             }
-            const preferences = await resubscribeUser(
-                db,
-                user,
-                data.notifications
-            )
+            preferences = await resubscribeUser(db, user, data.notifications)
+        }
+
+        const subscribeEmail = chooseSubscribeEmail({
+            preferences,
+            isWelcomeEmailSent: user.welcomeEmailSentAt !== null,
+            isBriefActive,
+        })
+        if (subscribeEmail) {
             await sendWelcomeEmail(env, origin, {
                 userId: user.id,
                 to: email,
-                preferences,
                 userToken: user.token,
+                email: subscribeEmail,
             })
+            // Recorded only after the send, so a retry after a failed send
+            // still gets the full welcome.
+            if (subscribeEmail.template !== "subscriptionUpdated")
+                await markWelcomeEmailSent(db, user.id)
         }
 
         return makeJsonResponse({ ok: true }, 200)
@@ -135,6 +152,22 @@ interface EmailNotificationsUser {
     id: number
     email: string
     token: string
+    welcomeEmailSentAt: string | null
+}
+
+async function markWelcomeEmailSent(
+    db: D1Database,
+    userId: number
+): Promise<void> {
+    await db
+        .prepare(
+            `UPDATE users
+             SET welcomeEmailSentAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+                 updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+             WHERE id = ?1`
+        )
+        .bind(userId)
+        .run()
 }
 
 async function ensureUserIdentity(
@@ -150,7 +183,10 @@ async function ensureUserIdentity(
         .bind(email, crypto.randomUUID())
         .run()
     const user = await db
-        .prepare(`SELECT id, email, token FROM users WHERE email = ?1`)
+        .prepare(
+            `SELECT id, email, token, welcomeEmailSentAt
+             FROM users WHERE email = ?1`
+        )
         .bind(email)
         .first<EmailNotificationsUser>()
     if (!user) {
