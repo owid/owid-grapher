@@ -199,8 +199,11 @@ its source of truth.
 The public subscribe form is single opt-in. Because it requires no inbox-ownership token, an existing
 reader's selections may be broadened but not narrowed; narrowing preferences
 requires a short-lived magic link proving current control of the inbox. The
-form gives the same response for new and existing addresses, and a welcome
-email lets the owner notice and undo an unwanted submission.
+form gives the same response for new and existing addresses. Each address gets
+a full welcome email once (tracked by `users.welcomeEmailSentAt`, including for
+existing Mailchimp subscribers); later notifications submissions get a short
+confirmation, which lets the owner notice and undo an unwanted submission (see
+`chooseSubscribeEmail`).
 
 Every subscribe API request requires a `captchaToken`, verified server-side with
 Turnstile (action `subscribe`) before any database or email side effects. Both
