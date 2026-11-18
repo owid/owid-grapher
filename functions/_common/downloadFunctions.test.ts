@@ -10,7 +10,7 @@ import { assembleSearchResultData } from "./downloadFunctions.js"
 import { RichDataVariant } from "./search/constructSearchResultJson.js"
 
 // The image renderer imports font binaries that Vite can't load in tests
-vi.mock("./grapherRenderer.js", () => ({}))
+vi.mock(import("./grapherRenderer.js"), () => ({}))
 
 /**
  * The worker reads GrapherState computeds from plain functions with nothing
