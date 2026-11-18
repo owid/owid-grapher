@@ -13,7 +13,7 @@ Why Not Parallel Yet
 
 - Fixed server port: the admin app binds to a fixed port (8765). Running multiple files in parallel would cause port conflicts.
 - Shared database instance: table-wide cleanup in one test could remove rows that another test needs if they run concurrently.
-- Side effects: deploy queue writes to files and the async job queue touches shared tables; tests would need stricter scoping.
+- Side effects: the async job queue touches shared tables; tests would need stricter scoping.
 
 What’s Needed To Parallelize
 

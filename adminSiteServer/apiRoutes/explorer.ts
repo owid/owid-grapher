@@ -12,7 +12,7 @@ import * as db from "../../db/db.js"
 
 import { upsertExplorer, getExplorerBySlug } from "../../db/model/Explorer.js"
 import { enqueueJob, updateExplorerRefreshStatus } from "../../db/model/Jobs.js"
-import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
+import { enqueueDeployChange } from "../../baker/DeployUtils.js"
 import { getExplorerViewRecords } from "../../baker/algolia/utils/explorerViews.js"
 
 function validateExplorerSlug(slug: string): void {
@@ -163,7 +163,7 @@ export async function handleDeleteExplorer(
     }
 
     if (explorer.isPublished) {
-        await triggerStaticBuild(user, `Unpublishing explorer ${slug}`)
+        enqueueDeployChange(trx, user, `Unpublishing explorer ${slug}`)
     }
 
     return { success: true }

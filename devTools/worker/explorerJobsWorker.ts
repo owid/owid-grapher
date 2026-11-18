@@ -7,6 +7,7 @@ import {
 import { claimNextQueuedJob, markJobFailed } from "../../db/model/Jobs.js"
 import { DbPlainJob } from "@ourworldindata/types"
 import { knexReadWriteTransaction } from "../../db/db.js"
+import { exit } from "../../db/cleanup.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
@@ -129,19 +130,18 @@ async function workerLoop(): Promise<void> {
     }
 }
 
-// Handle graceful shutdown
+// Graceful shutdown: db/cleanup.ts also listens for SIGINT/SIGTERM and runs
+// its exit handlers (e.g. sending held deploy requests) before exiting
 process.on("SIGINT", () => {
     console.log(
         `[${new Date().toISOString()}] Received SIGINT, shutting down gracefully...`
     )
-    process.exit(0)
 })
 
 process.on("SIGTERM", () => {
     console.log(
         `[${new Date().toISOString()}] Received SIGTERM, shutting down gracefully...`
     )
-    process.exit(0)
 })
 
 export async function processOneJob(): Promise<boolean> {
@@ -180,7 +180,8 @@ if (require.main === module) {
                 console.log(
                     `[${new Date().toISOString()}] Single job processing completed, exiting`
                 )
-                process.exit(0)
+                // Waits for the job's deploy request before exiting
+                return exit()
             })
             .catch((error) => {
                 console.error(

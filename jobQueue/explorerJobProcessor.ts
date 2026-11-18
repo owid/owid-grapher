@@ -12,7 +12,7 @@ import {
     saveGrapherConfigToR2ByUuid,
     deleteGrapherConfigFromR2ByUuid,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
-import { triggerStaticBuild } from "../baker/GrapherBakingUtils.js"
+import { enqueueDeployChange } from "../baker/DeployUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import pMap from "p-map"
 import { DbPlainJob } from "@ourworldindata/types"
@@ -219,7 +219,8 @@ export async function processExplorerViewsJob(
                     .first()
 
                 if (explorerWithUser) {
-                    await triggerStaticBuild(
+                    enqueueDeployChange(
+                        trx,
                         explorerWithUser,
                         `Publishing explorer ${slug}`
                     )

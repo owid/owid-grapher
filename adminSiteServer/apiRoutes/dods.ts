@@ -1,4 +1,4 @@
-import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
+import { enqueueDeployChange } from "../../baker/DeployUtils.js"
 import * as db from "../../db/db.js"
 import * as dodDb from "../../db/model/Dod.js"
 import { createDodLinkFromUrl } from "../../db/model/Link.js"
@@ -112,7 +112,7 @@ export async function updateDod(
         const dod = await trx(DodsTableName).first().where({ id })
 
         await updateLinksFromInsertedDod(trx, id)
-        await triggerStaticBuild(res.locals.user, `Dod ${id} updated`)
+        enqueueDeployChange(trx, res.locals.user, `Dod ${id} updated`)
 
         return { success: true, dod }
     } catch (error) {
@@ -139,7 +139,7 @@ export async function deleteDod(
 
         // dod links are deleted automatically by ON DELETE CASCADE
         await trx(DodsTableName).delete().where({ id })
-        await triggerStaticBuild(res.locals.user, `Dod ${id} deleted`)
+        enqueueDeployChange(trx, res.locals.user, `Dod ${id} deleted`)
 
         return { success: true }
     } catch (error) {
@@ -179,7 +179,7 @@ export async function createDod(
 
         const id = result[0]
         await updateLinksFromInsertedDod(trx, id)
-        await triggerStaticBuild(res.locals.user, `Dod ${name} created`)
+        enqueueDeployChange(trx, res.locals.user, `Dod ${name} created`)
 
         return { success: true, id }
     } catch (error) {
