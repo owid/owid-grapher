@@ -20,7 +20,6 @@ import {
     ContentGraphLinkType,
     CoreRow,
     MinimalExplorerInfo,
-    OwidColumnDef,
     ChartRecordType,
     ExplorerType,
     IndexingContext,
@@ -58,59 +57,11 @@ import {
     uniqNonEmptyStrings,
 } from "./shared.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
-
-/**
- * Matches "duplicate 1234", to catch the (hacky) rows that are using the `duplicate` transformation to create
- * different views of the same indicator in indicator-based explorers
- */
-const TRANSFORM_DUPLICATE_ID_REGEX = /duplicate (\d+)$/
-
-function getDuplicateTransformationRows(columnDefs: OwidColumnDef[]) {
-    return columnDefs.filter((row) =>
-        row.transform?.match(TRANSFORM_DUPLICATE_ID_REGEX)
-    )
-}
-
-/**
- * Enhances explorer records by adding missing yVariableIds from transform definitions.
- *
- * Some indicator explorers have their variable IDs defined in the transforms column rather than
- * directly in yVariableIds. (e.g. https://github.com/owid/owid-content/commit/6f17c705d331a13380e9a52f3d319c9a51054625)
- *
- * This function extracts those IDs from "duplicate" transforms and adds them to the appropriate base records.
- *
- * Example:
- * - Base record: { ySlugs: ["gdp"], yVariableIds: [] }
- * - Transform: { slug: "gdp", transform: "duplicate 1234" }
- * - Result: { ySlugs: ["gdp"], yVariableIds: [1234] }
- */
-function addDuplicateYVariableIds(
-    baseRecords: ExplorerViewBaseRecord[],
-    duplicateTransforms: OwidColumnDef[]
-): ExplorerViewBaseRecord[] {
-    // e.g. { "gdp" => 1234 }
-    const slugToVariableId = duplicateTransforms.reduce(
-        (map, { slug, transform }) => {
-            const match = transform?.match(TRANSFORM_DUPLICATE_ID_REGEX)
-            if (match) {
-                map.set(slug, parseInt(match[1]))
-            }
-            return map
-        },
-        new Map<string, number>()
-    )
-
-    return baseRecords.map((record) => {
-        const yVariableIds = record.ySlugs
-            .map((slug) => slugToVariableId.get(slug))
-            .filter((id): id is number => !!id)
-
-        return {
-            ...record,
-            yVariableIds: [...record.yVariableIds, ...yVariableIds],
-        }
-    })
-}
+import {
+    addDuplicateYVariableIds,
+    getDuplicateTransformationRows,
+    getExplorerType,
+} from "./explorerViewsLogic.js"
 
 // Creates a search-ready string from a choice.
 // Special handling is pretty much only necessary for checkboxes: If they are not ticked, then their name is not included.
@@ -357,12 +308,7 @@ const createBaseRecord = (
 
     const viewGrapherId = matrix.selectedRow.grapherId
 
-    const explorerType =
-        viewGrapherId !== undefined
-            ? ExplorerType.Grapher
-            : yVariableIds.length > 0
-              ? ExplorerType.Indicator
-              : ExplorerType.Csv
+    const explorerType = getExplorerType(viewGrapherId, yVariableIds)
 
     return {
         explorerType,
