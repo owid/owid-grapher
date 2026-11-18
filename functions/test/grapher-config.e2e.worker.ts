@@ -34,15 +34,12 @@ async function deleteAllObjects(bucket: R2Bucket): Promise<void> {
 }
 
 function makeGrapherContext(request: Request, env: Env) {
-    const envWithAssets = {
+    const envWithAssets: Env = {
         ...env,
         ASSETS: {
             fetch: async () => new Response("Not found", { status: 404 }),
-            connect: () => {
-                throw new Error("ASSETS.connect is not implemented in tests")
-            },
         },
-    } as unknown as Env
+    }
 
     const context = {
         request,
