@@ -15,9 +15,9 @@ What makes a change risky in this repository. The `/owid-staff:rate-pr-risk` ski
 
 - A reader-facing change with evidence a reviewer can open: tests that pin the change, staging screenshots, or an SVG diff report (Grapher charts only) that shows only intended differences.
 - A change confined to one bespoke project, or whose worst case is stale content (deploy triggering).
-- Schema migrations: the database is backed up and `down` reverts them. Other repositories and the public data export read this schema; see `db/migration/CLAUDE.md`.
-- Admin features that authors use daily, refactors of thinly tested code, and dependency bumps on the render or bake path.
+- Schema migrations that extend existing tables: the database is backed up and `down` reverts them. Other repositories and the public data export read this schema; see `db/migration/CLAUDE.md`.
+- Admin features that authors use daily, refactors of thinly tested code, dependency bumps on the render or bake path, and CI changes that skip or weaken required checks (tests, typecheck, lint).
 
 ### Low
 
-Docs, tests, agent instructions, read-only dev tooling, CI changes away from secrets and deploys, release version bumps, and other admin UI.
+Docs, tests, agent instructions, read-only dev tooling, CI changes away from secrets, deploys and required checks, release version bumps, and other admin UI.
