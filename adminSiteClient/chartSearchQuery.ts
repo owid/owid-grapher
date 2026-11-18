@@ -170,7 +170,16 @@ export function chartSearchFilter<Row>(
 ): (row: Row) => boolean {
     const terms = parseSearchQuery(query)
 
-    const charts = _.once(() => rows.map(describe))
+    const described = new Map<Row, SearchableChart>()
+    const describeOnce = (row: Row): SearchableChart => {
+        let chart = described.get(row)
+        if (!chart) {
+            chart = describe(row)
+            described.set(row, chart)
+        }
+        return chart
+    }
+    const charts = _.once(() => rows.map(describeOnce))
     const tagNames = _.once(
         () =>
             new Set(
@@ -226,7 +235,7 @@ export function chartSearchFilter<Row>(
     })
 
     return (row) => {
-        const chart = describe(row)
+        const chart = describeOnce(row)
         return (
             matchesText(chart) &&
             facets.every(

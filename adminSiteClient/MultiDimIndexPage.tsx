@@ -51,9 +51,6 @@ import {
 import { plural } from "./variableSearchQuery.js"
 import { useSearchQueryParam } from "./useSearchQueryParam.js"
 
-// Listed the way charts are (ChartList.tsx), with the same cells and search,
-// as a step towards one list in which a multi-dim is a chart with dimensions
-
 type ApiMultiDim = {
     id: number
     catalogPath: string
@@ -82,14 +79,19 @@ type SlugMutation = UseMutationResult<
     { id: number; slug: string },
     unknown
 >
+type PublishMutation = UseMutationResult<
+    MultiDim,
+    unknown,
+    { id: number; published: boolean },
+    unknown
+>
 type DeleteMutation = UseMutationResult<void, unknown, number, unknown>
 
 /** Counts are most useful largest first */
 const DESCEND_FIRST: ("descend" | "ascend")[] = ["descend", "ascend"]
 
 /**
- * Like charts, a published multi-dim's thumbnail comes by slug, as on the
- * public site. An unpublished one isn't served by slug, but its default view's
+ * A published multi-dim's thumbnail comes by slug, as on the public site. An unpublished one isn't served by slug, but its default view's
  * config is in R2 by its uuid, which renders the same image.
  */
 function getThumbnailPath({
@@ -104,17 +106,23 @@ function getThumbnailPath({
     return undefined
 }
 
+/** Its public URL, if it is published */
+function liveUrl(mdim: MultiDim): string | undefined {
+    return mdim.published && mdim.slug
+        ? urljoin(BAKED_GRAPHER_URL, mdim.slug)
+        : undefined
+}
+
 /** Its thumbnail (see getThumbnailPath). A draft links to its admin preview. */
 function PreviewCell({ mdim }: { mdim: MultiDim }) {
     const [hasFailed, setHasFailed] = useState(false)
     const thumbnailPath = getThumbnailPath(mdim)
     const href =
-        mdim.published && mdim.slug
-            ? urljoin(BAKED_GRAPHER_URL, mdim.slug)
-            : urljoin(
-                  ADMIN_BASE_URL,
-                  `/admin/grapher/${encodeURIComponent(mdim.catalogPath)}`
-              )
+        liveUrl(mdim) ??
+        urljoin(
+            ADMIN_BASE_URL,
+            `/admin/grapher/${encodeURIComponent(mdim.catalogPath)}`
+        )
     return (
         <a href={href} target="_blank" rel="noopener">
             {thumbnailPath && !hasFailed ? (
@@ -138,9 +146,8 @@ function PreviewCell({ mdim }: { mdim: MultiDim }) {
 }
 
 /**
- * As a chart's cell: title with the draft flag, then id with its dimensions
- * (where a chart shows its type) and views, the slug and the tags. Like a
- * chart's slug, the catalog path is on hovering the title.
+ * Title with the draft flag, then id with its dimensions and views, the slug
+ * and the tags. The catalog path is on hovering the title.
  */
 function MultiDimCell({
     mdim,
@@ -152,6 +159,7 @@ function MultiDimCell({
     slugMutation: SlugMutation
 }) {
     const title = highlight(mdim.title)
+    const href = liveUrl(mdim)
     return (
         <div
             className={cx("chart-list__chart", {
@@ -162,12 +170,8 @@ function MultiDimCell({
                 {!mdim.published && (
                     <span className="chart-list__draft-label">Draft</span>
                 )}
-                {mdim.published && mdim.slug ? (
-                    <a
-                        href={urljoin(BAKED_GRAPHER_URL, mdim.slug)}
-                        target="_blank"
-                        rel="noopener"
-                    >
+                {href ? (
+                    <a href={href} target="_blank" rel="noopener">
                         {title}
                     </a>
                 ) : (
@@ -206,20 +210,12 @@ function MultiDimCell({
     )
 }
 
-type CopyOptionKey = "admin-url" | "live-url" | "catalog-path"
-
-async function copyOption(mdim: MultiDim, key: CopyOptionKey) {
-    const text =
-        key === "admin-url"
-            ? `[${mdim.title}](${ADMIN_BASE_URL}/admin/multi-dims/${mdim.id})`
-            : key === "live-url"
-              ? `[${mdim.title}](${urljoin(BAKED_GRAPHER_URL, mdim.slug ?? "")})`
-              : mdim.catalogPath
+async function copyText(text: string): Promise<void> {
     if (await copyToClipboard(text)) void message.success("Copied")
     else void message.error("Couldn't copy to the clipboard")
 }
 
-/** Edit over Copy and Delete, as for charts. Only a draft can be deleted. */
+/** Edit over Copy and Delete. Only a draft can be deleted. */
 function ActionsCell({
     mdim,
     deleteMutation,
@@ -227,6 +223,22 @@ function ActionsCell({
     mdim: MultiDim
     deleteMutation: DeleteMutation
 }) {
+    const href = liveUrl(mdim)
+    const copyItems = excludeUndefined([
+        {
+            key: "admin-url",
+            label: "Admin URL as Markdown",
+            text: `[${mdim.title}](${ADMIN_BASE_URL}/admin/multi-dims/${mdim.id})`,
+        },
+        href
+            ? {
+                  key: "live-url",
+                  label: "Live URL as Markdown",
+                  text: `[${mdim.title}](${href})`,
+              }
+            : undefined,
+        { key: "catalog-path", label: "Catalog path", text: mdim.catalogPath },
+    ])
     const deleteButton = (
         <Button
             size="small"
@@ -255,21 +267,13 @@ function ActionsCell({
                 <Dropdown
                     trigger={["click"]}
                     menu={{
-                        items: excludeUndefined([
-                            {
-                                key: "admin-url",
-                                label: "Admin URL as Markdown",
-                            },
-                            mdim.published && mdim.slug
-                                ? {
-                                      key: "live-url",
-                                      label: "Live URL as Markdown",
-                                  }
-                                : undefined,
-                            { key: "catalog-path", label: "Catalog path" },
-                        ]),
+                        items: copyItems.map(({ key, label }) => ({
+                            key,
+                            label,
+                        })),
                         onClick: (e) => {
-                            void copyOption(mdim, e.key as CopyOptionKey)
+                            const item = copyItems.find((i) => i.key === e.key)
+                            if (item) void copyText(item.text)
                         },
                     }}
                 >
@@ -309,12 +313,7 @@ function SlugField({
 }: {
     id: number
     slug: string | null
-    slugMutation: UseMutationResult<
-        MultiDim,
-        unknown,
-        { id: number; slug: string },
-        unknown
-    >
+    slugMutation: SlugMutation
 }) {
     const copyable = slug
         ? {
@@ -338,19 +337,9 @@ function SlugField({
 }
 
 function createColumns(
-    slugMutation: UseMutationResult<
-        MultiDim,
-        unknown,
-        { id: number; slug: string },
-        unknown
-    >,
-    publishMutation: UseMutationResult<
-        MultiDim,
-        unknown,
-        { id: number; published: boolean },
-        unknown
-    >,
-    deleteMutation: UseMutationResult<void, unknown, number, unknown>,
+    slugMutation: SlugMutation,
+    publishMutation: PublishMutation,
+    deleteMutation: DeleteMutation,
     highlight: Highlighter
 ): TableColumnsType<MultiDim> {
     return [
@@ -564,7 +553,7 @@ export function MultiDimIndexPage() {
         () => countNames(mdims, (mdim) => mdim.tags),
         [mdims]
     )
-    // The table follows a step behind the search box, as for charts
+    // The table follows a step behind the search box
     const query = useDeferredValue(searchValue)
     const filteredMdims = useMemo(
         () => mdims.filter(chartSearchFilter(query, mdims, searchableMultiDim)),

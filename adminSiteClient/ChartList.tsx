@@ -231,17 +231,12 @@ function timeAgo(time: string): string {
         .replace(/^an? (minute|hour|day|month|year) ago$/, "1 $1 ago")
 }
 
-// Exported for the multi-dims list, which reads like this one
 export function TimestampCell({
     time,
-    by,
-    highlight,
-    onAuthorClick,
+    children,
 }: {
     time: string | undefined
-    by?: string
-    highlight?: Highlighter
-    onAuthorClick?: (author: string) => void
+    children?: React.ReactNode
 }): React.ReactElement {
     if (!time) return <span className="text-muted">—</span>
     return (
@@ -249,19 +244,37 @@ export function TimestampCell({
             <Tooltip title={dayjs(time).format("D MMM YYYY, HH:mm")}>
                 <span className="chart-list__time">{timeAgo(time)}</span>
             </Tooltip>
+            {children}
+        </div>
+    )
+}
+
+function AuthoredTimestampCell({
+    time,
+    by,
+    highlight,
+    onAuthorClick,
+}: {
+    time: string | undefined
+    by: string | undefined
+    highlight: Highlighter
+    onAuthorClick: (author: string) => void
+}): React.ReactElement {
+    return (
+        <TimestampCell time={time}>
             {by && (
                 <div>
                     <button
                         type="button"
                         className="chart-list__author"
                         title={`Only charts by ${by}`}
-                        onClick={() => onAuthorClick?.(by)}
+                        onClick={() => onAuthorClick(by)}
                     >
-                        {highlight ? highlight(by) : by}
+                        {highlight(by)}
                     </button>
                 </div>
             )}
-        </div>
+        </TimestampCell>
     )
 }
 
@@ -491,7 +504,7 @@ function createColumns({
             // the API lists charts most recently edited first
             defaultSortOrder: "descend",
             render: (_, chart) => (
-                <TimestampCell
+                <AuthoredTimestampCell
                     time={chart.lastEditedAt}
                     by={chart.lastEditedBy}
                     highlight={highlightAuthor}
@@ -505,7 +518,7 @@ function createColumns({
             sorter: (a, b) => compareTimes(a.publishedAt, b.publishedAt),
             sortDirections: descendFirst,
             render: (_, chart) => (
-                <TimestampCell
+                <AuthoredTimestampCell
                     time={chart.publishedAt}
                     by={chart.publishedBy}
                     highlight={highlightAuthor}
