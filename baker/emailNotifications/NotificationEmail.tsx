@@ -30,6 +30,7 @@ import {
     Span,
 } from "@ourworldindata/types"
 import { formatAuthors } from "@ourworldindata/utils"
+import { splitLeadImage } from "../../site/latest/latestUtils.js"
 import {
     EmailNotificationsSubscriber,
     NotificationEmailItem,
@@ -226,57 +227,31 @@ function ReadMoreLink({
     )
 }
 
-interface BylineSplit {
-    beforeByline: OwidEnrichedGdocBlock[]
-    afterByline: OwidEnrichedGdocBlock[]
-}
-
-const splitAt = (
-    blocks: OwidEnrichedGdocBlock[],
-    index: number
-): BylineSplit => ({
-    beforeByline: blocks.slice(0, index),
-    afterByline: blocks.slice(index),
-})
-
-/**
- * Put the byline after the text (which usually ends in its call to action),
- * ahead of any images that close the body
- */
-function splitBeforeTrailingImages(
-    blocks: OwidEnrichedGdocBlock[]
-): BylineSplit {
-    const lastNonImage = blocks.findLastIndex((block) => block.type !== "image")
-    return splitAt(blocks, lastNonImage + 1)
-}
-
 /**
  * Put the byline just before the body's last image, or at the end when it
  * has none, matching an announcement's layout on /latest
  * (AnnouncementContent.scss)
  */
-function splitBeforeLastImage(blocks: OwidEnrichedGdocBlock[]): BylineSplit {
+function splitBeforeLastImage(blocks: OwidEnrichedGdocBlock[]): {
+    beforeByline: OwidEnrichedGdocBlock[]
+    afterByline: OwidEnrichedGdocBlock[]
+} {
     const lastImage = blocks.findLastIndex((block) => block.type === "image")
-    return splitAt(blocks, lastImage === -1 ? blocks.length : lastImage)
+    const index = lastImage === -1 ? blocks.length : lastImage
+    return {
+        beforeByline: blocks.slice(0, index),
+        afterByline: blocks.slice(index),
+    }
 }
 
 function TeaserBody({ item }: { item: NotificationEmailItem }) {
-    const fullBody = item.body ?? []
     const imageUrlsByFilename = item.imageUrlsByFilename ?? {}
-    // A data update leads with its chart, as on /latest, wherever the body
-    // places it: otherwise a lone update shows only text above the fold, and
-    // consecutive items run image into image.
-    const leadImageIndex =
+    // A data update leads with its chart, as on /latest
+    const { leadImage, rest: body } =
         item.latestType === "data-update"
-            ? fullBody.findIndex((block) => block.type === "image")
-            : -1
-    const leadImage =
-        leadImageIndex === -1 ? undefined : fullBody[leadImageIndex]
-    const body = fullBody.filter((_, index) => index !== leadImageIndex)
-    const { beforeByline, afterByline } =
-        item.latestType === "announcement" || item.latestType === "topic-update"
-            ? splitBeforeLastImage(body)
-            : splitBeforeTrailingImages(body)
+            ? splitLeadImage(item.body ?? [])
+            : { leadImage: undefined, rest: item.body ?? [] }
+    const { beforeByline, afterByline } = splitBeforeLastImage(body)
     return (
         <>
             {leadImage && (
@@ -369,45 +344,31 @@ function ArticleCard({ item }: { item: NotificationEmailItem }) {
 }
 
 function DataInsightCard({ item }: { item: NotificationEmailItem }) {
-    const body = item.body ?? []
-    // Render the image (which is by convention always first)
-    const firstNonImage = body.findIndex((block) => block.type !== "image")
-    const splitIndex = firstNonImage === -1 ? body.length : firstNonImage
+    const { leadImage, rest } = splitLeadImage(item.body ?? [])
     const imageUrlsByFilename = item.imageUrlsByFilename ?? {}
-    const { beforeByline, afterByline } = splitBeforeTrailingImages(
-        body.slice(splitIndex)
-    )
     return (
         <Section
             className="card"
             style={{ backgroundColor: COLORS.card, padding: 24 }}
         >
-            {body.slice(0, splitIndex).map((block, index) => (
+            {leadImage && (
                 <Block
-                    key={index}
-                    block={block}
+                    block={leadImage}
                     imageUrlsByFilename={imageUrlsByFilename}
                     // The chart above the title links to the insight, as the
                     // title itself does.
                     imageHref={item.url}
                 />
-            ))}
+            )}
             <ItemTitle item={item} />
-            {beforeByline.map((block, index) => (
+            {rest.map((block, index) => (
                 <Block
                     key={index}
                     block={block}
                     imageUrlsByFilename={imageUrlsByFilename}
                 />
             ))}
-            <ItemAuthors item={item} hasBlocksBelow={afterByline.length > 0} />
-            {afterByline.map((block, index) => (
-                <Block
-                    key={index}
-                    block={block}
-                    imageUrlsByFilename={imageUrlsByFilename}
-                />
-            ))}
+            <ItemAuthors item={item} />
         </Section>
     )
 }
