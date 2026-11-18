@@ -52,11 +52,16 @@ export function deriveLatestType(gdoc: LatestFeedGdoc): LatestType {
 export const latestTypeLabelPlural = (type: LatestType): string =>
     `${LATEST_TYPE_LABELS[type]}s`
 
-/** First image block, returned by identity so callers can remove it from the body. */
-export function findThumbnailImageBlock(
-    blocks: OwidEnrichedGdocBlock[]
-): EnrichedBlockImage | undefined {
-    return blocks.find((block) => block.type === "image")
+/** Split off the first image block, which cards show as their lead image. */
+export function splitLeadImage(blocks: OwidEnrichedGdocBlock[]): {
+    leadImage?: EnrichedBlockImage
+    rest: OwidEnrichedGdocBlock[]
+} {
+    const leadImage = blocks.find((block) => block.type === "image")
+    return {
+        leadImage,
+        rest: blocks.filter((block) => block !== leadImage),
+    }
 }
 
 /**

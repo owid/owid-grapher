@@ -6,7 +6,7 @@ import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"
 import AvatarByline from "../gdocs/components/AvatarByline.js"
 import CopyLinkButton from "../gdocs/components/CopyLinkButton.js"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
-import { findThumbnailImageBlock, makeAttachments } from "./latestUtils.js"
+import { splitLeadImage, makeAttachments } from "./latestUtils.js"
 
 /** Full insight in a six-column reading card. Navigation uses body and author links. */
 export const LatestDataInsightExpanded = ({
@@ -16,8 +16,9 @@ export const LatestDataInsightExpanded = ({
     hit: PageChronologicalDataInsightRecord
     selectedTopic?: string
 }) => {
-    const firstImage = findThumbnailImageBlock(hit.body)
-    const otherBlocks = hit.body.filter((block) => block !== firstImage)
+    const { leadImage: firstImage, rest: otherBlocks } = splitLeadImage(
+        hit.body
+    )
     const titleId = `latest-hit-${hit.slug}-title`
 
     return (
