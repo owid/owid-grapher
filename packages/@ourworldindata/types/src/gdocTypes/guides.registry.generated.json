@@ -77,6 +77,32 @@
     ]
   },
   {
+    "id": "featured-viz-in-search",
+    "title": "Getting a featured viz into search",
+    "category": "Publishing",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/featured-viz-in-search.md",
+    "description": "A featured-viz page can show as a card at the top of the Data results in site search. It shows for the exact searches you pin it to, and when a reader picks one of its topics without typing anything. Getting a {template:featured-viz} page there takes four steps.",
+    "prose": {
+      "intro": "A featured-viz page can show as a card at the top of the Data results in\nsite search. It shows for the exact searches you pin it to, and when a\nreader picks one of its topics without typing anything. Getting a\n`{template:featured-viz}` page there takes four steps.",
+      "notes": "## 1. Make the page\n\nWrite the page as a `{template:featured-viz}` gdoc, with the viz as the\nfirst `{.bespoke-component}` block in the body. Search builds the card from\nthe front matter, so fill in `title`, `authors`, `excerpt` and\n`featured-image`.\n\nOpen the page's preview in the admin (see\n`{guide:previewing-and-publishing}`) and click the settings icon. Until the\npage has pins, the panel warns \"No pinned searches are set\" and gives you a\nline to copy.\n\n## 2. Ask Claude for pins\n\nPaste that line into Claude Code:\n\n`/suggest-pinned-searches https://docs.google.com/document/d/<GDOC_ID>/edit`\n\nClaude reads every search typed on the site at least 1,000 times in the last\n12 months. It marks each one that fits your page \"yes\", \"maybe\" or \"no\",\nwith a one-line reason and the number of searches. It also flags searches\nalready pinned to another published page. Claude only suggests. Keep the\nsearches you agree with and drop the rest.\n\nThe command needs the Metabase connector in Claude Code. If it's missing,\nClaude says so and stops.\n\n## 3. Paste the pins into the gdoc\n\nAdd one line to the front matter, with the searches separated by commas:\n\n`pinned-for-searches: migration, immigration`\n\nCase and punctuation don't matter, so a pin on `co2 emissions` also matches\na reader typing \"CO2 Emissions\". A pin has to match the reader's whole\nsearch, though. `migration` doesn't match \"migration to europe\".\n\n## 4. Publish\n\nPublish (or republish) the page from the admin. It goes into the search\nindex right away. Search for one of your pins on the site, and the card\nshows at the top of the Data results. Autocomplete suggests the page too.\n\n## Side quest: tag a topic\n\nIn the admin's [Google Docs list](https://admin.owid.io/admin/gdocs), use \"Edit tags\" on the page's row to give\nit a topic. When a reader picks that topic and types nothing, the most-viewed\nfeatured viz with that tag shows as the card, even without pins. The site\ncaches topic results for up to a day, so a new or changed tag can take that\nlong to show.\n\n## Side quest: find rarer searches\n\nClaude only looks at searches typed at least 1,000 times a year. To see\nrarer ones, open the Metabase question\n[Top site searches, last 12 months](http://metabase.owid.io/question/2017)\nand lower \"Min Searches\".\n\n## Side quest: when a pin is already taken\n\nOne search can show only one featured viz. If another published page\nalready has one of your pins, the admin blocks publishing and names that\npage in the error. Drop the pin from one of the two pages, then publish again.\n\nA page with no pins and no topic tag never shows in search. A page with a\ntopic tag but no pins only shows when a reader browses that topic.\n\nSearch uses hand-picked pins rather than matching the page's text. The\n[search replay report](http://vibe.owid.io/reports/featured-viz-search-replay/)\ntested text matching on real site searches. Matching on the whole page\nshowed wrong cards too often, and matching on fewer fields lost good ones."
+    },
+    "examples": [],
+    "related": [
+      {
+        "kind": "template",
+        "id": "featured-viz"
+      },
+      {
+        "kind": "component",
+        "id": "bespoke-component"
+      },
+      {
+        "kind": "guide",
+        "id": "previewing-and-publishing"
+      }
+    ]
+  },
+  {
     "id": "headings-and-structure",
     "title": "Headings and structure",
     "category": "Structure",
