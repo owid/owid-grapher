@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { useIntersectionObserver, useIsClient } from "usehooks-ts"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
@@ -36,18 +37,23 @@ export function MultiDimEmbed({
         enabled: hasBeenVisible,
     })
 
+    const multiDimConfig = useMemo(
+        () => (config ? MultiDimDataPageConfig.fromObject(config) : undefined),
+        [config]
+    )
+
     if (!slug) {
         return <div>Error: No slug found in URL</div>
     }
 
-    const shouldRenderMultiDim = isClient && hasBeenVisible && config
+    const shouldRenderMultiDim = isClient && hasBeenVisible && multiDimConfig
 
     return (
         <div className="multi-dim-embed" ref={ref}>
             {shouldRenderMultiDim ? (
                 <MultiDim
                     slug={slug}
-                    config={MultiDimDataPageConfig.fromObject(config)}
+                    config={multiDimConfig}
                     localGrapherConfig={chartConfig}
                     queryStr={queryStr}
                     isPreviewing={isPreviewing}

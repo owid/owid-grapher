@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useId, useRef, useState } from "react"
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { flushSync } from "react-dom"
 import cx from "clsx"
 import { match } from "ts-pattern"
@@ -24,6 +24,7 @@ import { queryParamsToStr, Url } from "@ourworldindata/utils"
 import { GrapherWithFallback } from "../GrapherWithFallback.js"
 import { MultiDimEmbed } from "../MultiDimEmbed.js"
 import { useDocumentContext } from "../gdocs/DocumentContext.js"
+import { useMobxStateToReactState } from "../hooks.js"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import {
     constructChartUrl,
@@ -35,13 +36,26 @@ import type { AllChartsBlockHit } from "../search/queries.js"
 import { toAllChartsBlockGrapherParams } from "./allChartsBlockEntitySelection.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
+    GuidedChartContext,
+    applyGuidedChartQueryParams,
     makeLabelForGrapherTab,
+    type GrapherState,
+    type GuidedChartContextValue,
+    type GuidedChartMultiDimRegistration,
     type ImageRequest,
 } from "@ourworldindata/grapher"
 
 const SKELETON_ROW_COUNT = 6
 const MAX_THUMBNAILS = 3
 const PREVIEW_GRAPHER_CONFIG = { enableKeyboardShortcuts: false }
+const MULTI_DIM_PREVIEW_GRAPHER_CONFIG = {
+    ...PREVIEW_GRAPHER_CONFIG,
+    hideExploreTheDataButton: true,
+}
+const DATA_EXPLORER_PREVIEW_GRAPHER_CONFIG = {
+    ...PREVIEW_GRAPHER_CONFIG,
+    hideExploreTheDataButton: false,
+}
 const ALL_CHARTS_BLOCK_THUMBNAIL_REQUEST: ImageRequest = {
     variant: GrapherVariant.Thumbnail,
     labelMode: ChartLabelMode.Names,
@@ -119,32 +133,64 @@ function AllChartsBlockResultsGrid({
         getDefaultTab(pickThumbnailTabs(selectedHit.availableTabs), countries)
 
     const isNarrow = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
+    const preview = useAllChartsBlockPreviewControl()
+
+    const appliedQueryRef = useRef(fetchedQuery)
+    useEffect(() => {
+        if (appliedQueryRef.current === fetchedQuery) return
+        appliedQueryRef.current = fetchedQuery
+        preview.apply(
+            selectedHit,
+            toAllChartsBlockGrapherParams({
+                tab: selectedTab,
+                countries,
+                target: "preview",
+            })
+        )
+    })
+
+    const onSelect = (
+        hit: AllChartsBlockHit,
+        tab: GrapherTabName | undefined
+    ): void => {
+        setSelection({ fetchedQuery, id: hit.objectID, tab })
+        if (hit === selectedHit && tab)
+            preview.apply(
+                hit,
+                toAllChartsBlockGrapherParams({
+                    tab,
+                    countries,
+                    target: "preview",
+                })
+            )
+    }
 
     return (
-        <div className="all-charts-block-results grid grid-cols-12">
-            <AllChartsBlockList
-                key={fetchedQuery}
-                hits={hits}
-                countries={countries}
-                selectedHit={selectedHit}
-                selectedTab={selectedTab}
-                isNarrow={isNarrow}
-                onSelect={(hit, tab) =>
-                    setSelection({ fetchedQuery, id: hit.objectID, tab })
-                }
-                onLoadMore={onLoadMore}
-                isLoadingMore={isLoadingMore}
-            />
-            {!isNarrow && (
-                <div className="all-charts-block-results__preview span-cols-7">
-                    <AllChartsBlockPreview
-                        hit={selectedHit}
-                        tab={selectedTab}
-                        countries={countries}
-                    />
-                </div>
-            )}
-        </div>
+        <GuidedChartContext.Provider value={preview.contextValue}>
+            <div className="all-charts-block-results grid grid-cols-12">
+                <AllChartsBlockList
+                    key={fetchedQuery}
+                    hits={hits}
+                    countries={countries}
+                    selectedHit={selectedHit}
+                    selectedTab={selectedTab}
+                    previewTab={preview.activeTab}
+                    isNarrow={isNarrow}
+                    onSelect={onSelect}
+                    onLoadMore={onLoadMore}
+                    isLoadingMore={isLoadingMore}
+                />
+                {!isNarrow && (
+                    <div className="all-charts-block-results__preview span-cols-7">
+                        <AllChartsBlockPreview
+                            hit={selectedHit}
+                            tab={selectedTab}
+                            countries={countries}
+                        />
+                    </div>
+                )}
+            </div>
+        </GuidedChartContext.Provider>
     )
 }
 
@@ -153,6 +199,7 @@ function AllChartsBlockList({
     countries,
     selectedHit,
     selectedTab,
+    previewTab,
     isNarrow,
     onSelect,
     onLoadMore,
@@ -162,6 +209,7 @@ function AllChartsBlockList({
     countries: string[]
     selectedHit: AllChartsBlockHit
     selectedTab: GrapherTabName
+    previewTab?: GrapherTabName
     isNarrow: boolean
     onSelect: (hit: AllChartsBlockHit, tab: GrapherTabName | undefined) => void
     onLoadMore?: () => void
@@ -187,6 +235,7 @@ function AllChartsBlockList({
                         countries={countries}
                         isSelected={hit === selectedHit}
                         selectedTab={selectedTab}
+                        previewTab={previewTab}
                         isNarrow={isNarrow}
                         onSelect={(tab) => onSelect(hit, tab)}
                     />
@@ -216,6 +265,7 @@ function AllChartsBlockListItem({
     countries,
     isSelected,
     selectedTab,
+    previewTab,
     isNarrow,
     onSelect,
 }: {
@@ -223,6 +273,7 @@ function AllChartsBlockListItem({
     countries: string[]
     isSelected: boolean
     selectedTab: GrapherTabName
+    previewTab?: GrapherTabName
     isNarrow: boolean
     onSelect: (tab: GrapherTabName | undefined) => void
 }): React.ReactElement {
@@ -258,7 +309,7 @@ function AllChartsBlockListItem({
                 isSelected={isSelected}
                 displayedTab={
                     isSelected
-                        ? selectedTab
+                        ? (previewTab ?? selectedTab)
                         : getDefaultTab(thumbnailTabs, countries)
                 }
                 thumbnails={thumbnails}
@@ -525,12 +576,13 @@ function AllChartsBlockPreview({
             ).updateQueryParams({ hideControls: "true" }).fullUrl
             return (
                 <MultiDimEmbed
-                    key={url}
+                    key={viewHit.objectID}
                     url={url}
-                    chartConfig={{
-                        ...PREVIEW_GRAPHER_CONFIG,
-                        hideExploreTheDataButton: !viewHit.isDataExplorer,
-                    }}
+                    chartConfig={
+                        viewHit.isDataExplorer
+                            ? DATA_EXPLORER_PREVIEW_GRAPHER_CONFIG
+                            : MULTI_DIM_PREVIEW_GRAPHER_CONFIG
+                    }
                     isPreviewing={isPreviewing}
                 />
             )
@@ -553,4 +605,56 @@ function pickThumbnailTabs(availableTabs: GrapherTabName[]): GrapherTabName[] {
     return availableTabs
         .filter((tab) => tab !== GRAPHER_TAB_NAMES.Table)
         .slice(0, MAX_THUMBNAILS)
+}
+
+function useAllChartsBlockPreviewControl(): {
+    contextValue: GuidedChartContextValue
+    activeTab: GrapherTabName | undefined
+    apply: (hit: AllChartsBlockHit, grapherParams: GrapherQueryParams) => void
+} {
+    const [grapherState, setGrapherState] = useState<GrapherState | null>(null)
+    const multiDimRef = useRef<GuidedChartMultiDimRegistration | null>(null)
+
+    const contextValue = useMemo<GuidedChartContextValue>(
+        () => ({
+            registerGrapherState: (state) => {
+                setGrapherState(state)
+                return () => {
+                    multiDimRef.current = null
+                    setGrapherState((current) =>
+                        current === state ? null : current
+                    )
+                }
+            },
+            registerMultiDim: (registration) => {
+                multiDimRef.current = registration
+            },
+        }),
+        []
+    )
+
+    const activeTab = useMobxStateToReactState(
+        useCallback(
+            () =>
+                grapherState?.isConfigReady
+                    ? grapherState.activeTab
+                    : undefined,
+            [grapherState]
+        )
+    )
+
+    const apply = (
+        hit: AllChartsBlockHit,
+        grapherParams: GrapherQueryParams
+    ): void => {
+        if (!grapherState) return
+        applyGuidedChartQueryParams({
+            grapherState,
+            multiDim: multiDimRef.current ?? undefined,
+            queryParams: Url.fromURL(constructChartUrl({ hit, grapherParams }))
+                .queryParams,
+        })
+    }
+
+    return { contextValue, activeTab, apply }
 }
