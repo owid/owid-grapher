@@ -1,23 +1,18 @@
-import { runInAction } from "mobx"
-import {
-    EnrichedBlockGuidedChart,
-    GrapherQueryParams,
-    MultiDimDimensionChoices,
-} from "@ourworldindata/types"
+import { EnrichedBlockGuidedChart } from "@ourworldindata/types"
 import { Container } from "./layout.js"
 import { useRef, useCallback, useState } from "react"
-import {
-    MultiDimDataPageConfig,
-    Url,
-    extractMultiDimChoicesFromSearchParams,
-} from "@ourworldindata/utils"
+import { Url } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import {
     GuidedChartContext,
     GrapherState,
+    applyGuidedChartQueryParams,
     buildArchiveGuidedChartSrc,
 } from "@ourworldindata/grapher"
-import type { ArchiveGuidedChartRegistration } from "@ourworldindata/grapher"
+import type {
+    ArchiveGuidedChartRegistration,
+    GuidedChartMultiDimRegistration,
+} from "@ourworldindata/grapher"
 import { SiteAnalytics } from "../../SiteAnalytics.js"
 import { useAriaAnnouncer } from "../../AriaAnnouncerUtils.js"
 import { getPrefersReducedMotion } from "@ourworldindata/components"
@@ -38,14 +33,8 @@ export default function GuidedChart({
 }) {
     const stateRef = useRef<GrapherState | null>(null)
     const chartRef = useRef<HTMLDivElement | null>(null)
-    const [multiDimData, setMultiDimData] = useState<{
-        config: MultiDimDataPageConfig
-        onSettingsChange: (
-            newSettings: MultiDimDimensionChoices,
-            queryParams: GrapherQueryParams
-        ) => void
-        grapherContainerRef: React.RefObject<HTMLDivElement | null>
-    } | null>(null)
+    const [multiDimData, setMultiDimData] =
+        useState<GuidedChartMultiDimRegistration | null>(null)
     const { announce } = useAriaAnnouncer()
     const archiveChartRegistrationRef =
         useRef<ArchiveGuidedChartRegistration | null>(null)
@@ -99,28 +88,11 @@ export default function GuidedChart({
                 const grapherState = stateRef.current
                 if (!grapherState) return
 
-                // If the chart is a MultiDim, we have to update its settings directly
-                if (multiDimData) {
-                    const searchParams = new URLSearchParams()
-                    Object.entries(url.queryParams).forEach(([key, value]) => {
-                        if (value !== undefined) {
-                            searchParams.set(key, value)
-                        }
-                    })
-                    const choices = extractMultiDimChoicesFromSearchParams(
-                        searchParams,
-                        multiDimData.config
-                    )
-                    // MultiDim must set the query params itself only after it
-                    // sets the config of the selected view.
-                    multiDimData.onSettingsChange(choices, url.queryParams)
-                } else {
-                    // Update the grapher state with the new params (e.g. countries, tab, etc)
-                    runInAction(() => {
-                        grapherState.clearQueryParams()
-                        grapherState.populateFromQueryParams(url.queryParams)
-                    })
-                }
+                applyGuidedChartQueryParams({
+                    grapherState,
+                    multiDim: multiDimData ?? undefined,
+                    queryParams: url.queryParams,
+                })
                 didUpdateChart = true
             }
 
@@ -165,16 +137,7 @@ export default function GuidedChart({
                 registerChartElement,
                 onGuidedChartLinkClick: handleGuidedChartLinkClick,
                 registerArchiveChart,
-                registerMultiDim: (registrationData: {
-                    config: MultiDimDataPageConfig
-                    onSettingsChange: (
-                        newSettings: MultiDimDimensionChoices,
-                        queryParams: GrapherQueryParams
-                    ) => void
-                    grapherContainerRef: React.RefObject<HTMLDivElement | null>
-                }) => {
-                    setMultiDimData(registrationData)
-                },
+                registerMultiDim: setMultiDimData,
             }}
         >
             <ArticleBlocks
