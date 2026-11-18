@@ -65,9 +65,15 @@
     img {
         display: block;
         overflow: hidden;
-        width: 100%;
-        height: auto;
-        aspect-ratio: $featured-image-aspect-ratio;
-        object-fit: cover;
     }
+}
+
+// Only article featured images are cropped. Images editors pick for
+// external links keep their own shape, and chart thumbnails are already
+// rendered at this shape.
+.hybrid-link-thumbnail--article img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: $featured-image-aspect-ratio;
+    object-fit: cover;
 }
