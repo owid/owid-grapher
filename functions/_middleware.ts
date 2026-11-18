@@ -4,9 +4,12 @@ import { Env } from "./_common/env.js"
 import { analyticsMiddleware } from "./_common/analytics.js"
 import { asnDataLayerMiddleware } from "./_common/asnDataLayer.js"
 import { experimentsMiddleware } from "./_common/experiments.js"
+import { stallDiagMiddleware } from "./_common/stallDiag.js"
 
 export const onRequest = [
-    // Make sure Sentry is the first middleware.
+    // Outermost, so its timestamps bracket the whole chain.
+    stallDiagMiddleware,
+    // Make sure Sentry is the first of the real middlewares.
     Sentry.sentryPagesPlugin<Env>((context) => ({
         dataCollection: SENTRY_DATA_COLLECTION,
         dsn: context.env.SENTRY_DSN,
