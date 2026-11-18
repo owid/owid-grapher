@@ -1,4 +1,9 @@
-import { newContext, type Context } from "resvg-wasm"
+import type { Context } from "resvg-wasm"
+
+// Diagnostic (branch stall-diag-nowasm, not for merge): resvg is stubbed so the
+// bundle carries no wasm module, isolating its share of the cold-start cost.
+const newContext = (): Promise<Context> =>
+    Promise.reject(new Error("resvg is stubbed on this diagnostic branch"))
 import { TimeLogger } from "./timeLogger.js"
 import { png } from "itty-router"
 
