@@ -585,8 +585,13 @@ export const getMultiDimDataExplorerCount = (
             COUNT(*) AS count
         FROM ${MultiDimDataPagesTableName}
         WHERE published = TRUE
-            AND config ->> "$.presentation.pageType" = ?`,
-        [pageType]
+            AND config ->> "$.presentation.pageType" = ?
+            -- Like explorers, unlisted ones aren't listed on /explorers
+            AND NOT JSON_CONTAINS(
+                COALESCE(config -> "$.topicTags", JSON_ARRAY()),
+                JSON_QUOTE(?)
+            )`,
+        [pageType, "Unlisted"]
     ).then((res) => Number(res?.count ?? 0))
 }
 

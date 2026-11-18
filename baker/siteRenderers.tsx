@@ -542,11 +542,12 @@ export const renderExplorerIndexPage = async (
 
     // Multi-dim data pages that present themselves as data explorers are
     // listed alongside the actual explorers, but live at their regular
-    // /grapher URLs.
+    // /grapher URLs. Like explorers, those tagged "Unlisted" are left out.
     const multiDims = await getAllPublishedMultiDimDataPages(knex)
     const multiDimItems: ExplorerIndexItem[] = multiDims.flatMap(
         ({ slug, config }) => {
             if (!isMultiDimDataExplorer(config)) return []
+            if (config.topicTags?.includes("Unlisted")) return []
             return {
                 slug,
                 title: config.title.title,

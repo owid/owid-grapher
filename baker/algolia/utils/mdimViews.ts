@@ -212,6 +212,10 @@ async function getMultiDimDataPagesWithInheritedTags(
         }
         const multiDimWithSlug = multiDim as PublishedMultiDimWithSlug
         const tags = multiDim.config.topicTags ?? []
+        if (tags.includes("Unlisted")) {
+            // We don't index unlisted multi-dims, as with charts and explorers
+            continue
+        }
         if (tags.length === 0) {
             await logErrorAndMaybeCaptureInSentry(
                 new Error(`MultiDim "${multiDim.slug}" has no tags.`)
