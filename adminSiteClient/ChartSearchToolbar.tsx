@@ -22,9 +22,7 @@ interface ChartSearchToolbarProps {
     tags: readonly NameCount[]
     authors: readonly NameCount[]
     autoFocus?: boolean
-    /** The filters the list offers, if not all of them */
     facets?: readonly ChartSearchFacet[]
-    /** Where plain words are looked for, as the help puts it */
     searchedIn?: string
 }
 

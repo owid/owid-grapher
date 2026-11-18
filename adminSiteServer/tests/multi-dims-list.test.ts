@@ -18,10 +18,6 @@ import {
     seedDatasetAndVariables,
     variableId,
 } from "./fixtures.js"
-// The admin's list of multi-dims shows what each one's config says and how it
-// is used, counted as the chart list counts a chart's uses. The counts are
-// subqueries over several tables, so this checks them on a seeded database,
-// with links that must not count alongside those that must.
 
 const env = getAdminTestEnv()
 
@@ -71,7 +67,6 @@ async function seedNarrativeChartFromAView(): Promise<void> {
     })
 }
 
-/** A gdoc with one link to `target` */
 async function seedGdocLinkingTo({
     id,
     target,
@@ -138,7 +133,7 @@ describe("Listing multi-dims", { timeout: 20000 }, () => {
             slug: SLUG,
             title: "Energy use",
             published: true,
-            dimensions: ["Metric"],
+            dimensionNames: ["Metric"],
             tags: ["Energy", "Climate Change"],
             mdimViews: 2,
         })
@@ -154,8 +149,6 @@ describe("Listing multi-dims", { timeout: 20000 }, () => {
             views_365d: 3650,
         })
         await seedNarrativeChartFromAView()
-        // Three references: a published article, one linking to an old slug
-        // that now redirects here, and a static visualization
         await seedGdocLinkingTo({ id: "published-article", target: SLUG })
         await env.testKnex(MultiDimRedirectsTableName).insert({
             source: "/grapher/old-energy-use",
@@ -166,8 +159,16 @@ describe("Listing multi-dims", { timeout: 20000 }, () => {
             target: "old-energy-use",
         })
         await seedStaticVizOf(SLUG)
-        // None of these count: a draft, a fragment, and an explorer that
-        // happens to share the slug
+
+        expect(await listedMultiDim(id)).toMatchObject({
+            viewsPerDay: 10,
+            narrativeChartsCount: 1,
+            referencesCount: 3,
+        })
+    })
+
+    it("doesn't count drafts, fragments or explorer links as references", async () => {
+        const id = await createMultiDim()
         await seedGdocLinkingTo({
             id: "draft-article",
             target: SLUG,
@@ -184,11 +185,7 @@ describe("Listing multi-dims", { timeout: 20000 }, () => {
             linkType: ContentGraphLinkType.Explorer,
         })
 
-        expect(await listedMultiDim(id)).toMatchObject({
-            viewsPerDay: 10,
-            narrativeChartsCount: 1,
-            referencesCount: 3,
-        })
+        expect(await listedMultiDim(id)).toMatchObject({ referencesCount: 0 })
     })
 
     it("lists a draft without a slug or tags, with nothing counted", async () => {

@@ -9,7 +9,6 @@
     opacity: 0.6;
 }
 
-// Where there is no thumbnail to show, the same size as one
 .chart-list__preview--empty {
     display: flex;
     align-items: center;
@@ -93,7 +92,6 @@
     padding: 0 5px;
 }
 
-// A multi-dim's dimensions, where a chart's meta line shows its type
 .chart-list__dimensions {
     display: inline-block;
     padding: 0 6px;
@@ -106,14 +104,12 @@
     cursor: help;
 }
 
-// A multi-dim's slug, which its list edits
 .chart-list__slug-field .ant-typography {
     font-family: monospace;
     font-size: 0.85em;
     color: #777;
 }
 
-// The page's own links, level with the search box
 .chart-list__page-links {
     padding-top: 5px;
     white-space: nowrap;

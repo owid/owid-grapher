@@ -45,26 +45,19 @@ export const ALL_CHART_SEARCH_FACETS: readonly ChartSearchFacet[] = [
     "author",
 ]
 
-/**
- * What the search reads off a listed chart. A multi-dim is listed like a
- * chart, so its list describes it this way too.
- */
 export interface SearchableChart {
-    /** What plain words are looked for in */
-    text: (string | undefined)[]
+    searchedText: (string | undefined)[]
     isPublished: boolean
     isEtl: boolean
-    /** Created in ETL, then changed in the admin */
     isDrifted: boolean
     tags: string[]
-    /** The people who last edited or published it */
     authors: string[]
 }
 
 export function searchableChart(chart: ChartListItem): SearchableChart {
     const etlSource = getChartListItemEtlSource(chart)
     return {
-        text: chartTextFields(chart),
+        searchedText: chartTextFields(chart),
         isPublished: !!chart.isPublished,
         isEtl: chart.isEtlManaged,
         isDrifted: !!etlSource && hasEtlDrift(etlSource.drift),
@@ -225,7 +218,7 @@ export function chartSearchFilter<Row>(
 
     const matchesText = filterFunctionForSearchWords(
         textWords(terms),
-        (chart: SearchableChart) => chart.text
+        (chart: SearchableChart) => chart.searchedText
     )
     const facets = Object.values(
         _.groupBy(filters, (filter) => filter.facet)
@@ -489,7 +482,6 @@ export function suggestChartSearchTerms(
     }: {
         tags: readonly NameCount[]
         authors: readonly NameCount[]
-        /** The filters the list offers; no other is suggested */
         facets?: readonly ChartSearchFacet[]
     }
 ): ChartSearchSuggestion[] {

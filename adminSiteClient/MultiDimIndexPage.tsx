@@ -59,9 +59,7 @@ type ApiMultiDim = {
     updatedAt: string
     published: boolean
     mdimViews: number
-    /** The names of its dimensions */
-    dimensions: string[]
-    /** Its topic tags, as named in its ETL config */
+    dimensionNames: string[]
     tags: string[]
     viewsPerDay: number
     narrativeChartsCount: number
@@ -87,7 +85,6 @@ type PublishMutation = UseMutationResult<
 >
 type DeleteMutation = UseMutationResult<void, unknown, number, unknown>
 
-/** Counts are most useful largest first */
 const DESCEND_FIRST: ("descend" | "ascend")[] = ["descend", "ascend"]
 
 /**
@@ -106,14 +103,12 @@ function getThumbnailPath({
     return undefined
 }
 
-/** Its public URL, if it is published */
 function liveUrl(mdim: MultiDim): string | undefined {
     return mdim.published && mdim.slug
         ? urljoin(BAKED_GRAPHER_URL, mdim.slug)
         : undefined
 }
 
-/** Its thumbnail (see getThumbnailPath). A draft links to its admin preview. */
 function PreviewCell({ mdim }: { mdim: MultiDim }) {
     const [hasFailed, setHasFailed] = useState(false)
     const thumbnailPath = getThumbnailPath(mdim)
@@ -145,10 +140,6 @@ function PreviewCell({ mdim }: { mdim: MultiDim }) {
     )
 }
 
-/**
- * Title with the draft flag, then id with its dimensions and views, the slug
- * and the tags. The catalog path is on hovering the title.
- */
 function MultiDimCell({
     mdim,
     highlight,
@@ -181,9 +172,9 @@ function MultiDimCell({
             <div className="chart-list__meta">
                 <span>#{highlight(`${mdim.id}`)}</span>
                 <span className="chart-list__meta-separator">·</span>
-                <Tooltip title={mdim.dimensions.join(", ")}>
+                <Tooltip title={mdim.dimensionNames.join(", ")}>
                     <span className="chart-list__dimensions">
-                        {plural(mdim.dimensions.length, "dimension")}
+                        {plural(mdim.dimensionNames.length, "dimension")}
                     </span>
                 </Tooltip>
                 <span className="chart-list__meta-separator">·</span>
@@ -197,7 +188,6 @@ function MultiDimCell({
                 />
             </div>
             {mdim.tags.length > 0 && (
-                // Set in its ETL config, so shown, not edited
                 <div className="chart-list__tags">
                     {mdim.tags.map((tag) => (
                         <span key={tag} className="TagBadge">
@@ -215,7 +205,6 @@ async function copyText(text: string): Promise<void> {
     else void message.error("Couldn't copy to the clipboard")
 }
 
-/** Edit over Copy and Delete. Only a draft can be deleted. */
 function ActionsCell({
     mdim,
     deleteMutation,
@@ -473,18 +462,16 @@ async function deleteMultiDim(admin: Admin, id: number): Promise<void> {
     await admin.requestJSON(`/api/multi-dims/${id}`, {}, "DELETE")
 }
 
-// Every multi-dim comes from ETL and has no admin author, so the search
-// offers neither the source nor the author filter
 const FACETS: readonly ChartSearchFacet[] = ["status", "tag"]
 
 function searchableMultiDim(mdim: MultiDim): SearchableChart {
     return {
-        text: [
+        searchedText: [
             mdim.title,
             mdim.slug ?? undefined,
             mdim.catalogPath,
             `${mdim.id}`,
-            ...mdim.dimensions,
+            ...mdim.dimensionNames,
             ...mdim.tags,
         ],
         isPublished: mdim.published,
@@ -553,18 +540,20 @@ export function MultiDimIndexPage() {
         () => countNames(mdims, (mdim) => mdim.tags),
         [mdims]
     )
-    // The table follows a step behind the search box
-    const query = useDeferredValue(searchValue)
+    const deferredQuery = useDeferredValue(searchValue)
     const filteredMdims = useMemo(
-        () => mdims.filter(chartSearchFilter(query, mdims, searchableMultiDim)),
-        [query, mdims]
+        () =>
+            mdims.filter(
+                chartSearchFilter(deferredQuery, mdims, searchableMultiDim)
+            ),
+        [deferredQuery, mdims]
     )
     const highlight = useMemo(
         () =>
             highlightFunctionForSearchWords(
-                chartSearchWordsToHighlight(query).inText
+                chartSearchWordsToHighlight(deferredQuery).inText
             ),
-        [query]
+        [deferredQuery]
     )
 
     const columns = createColumns(
@@ -631,7 +620,9 @@ export function MultiDimIndexPage() {
                         placement: ["topStart", "bottomEnd"],
                         showTotal: (total, [from, to]) =>
                             `${from}–${to} of ${plural(total, "multi-dim")}` +
-                            (query.trim() ? ` (${mdims.length} total)` : ""),
+                            (deferredQuery.trim()
+                                ? ` (${mdims.length} total)`
+                                : ""),
                     }}
                 />
             </main>

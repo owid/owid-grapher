@@ -376,7 +376,7 @@ export async function handleGetMultiDims(
                 "id" | "catalogPath" | "slug" | "updatedAt" | "published"
             > & {
                 title: string
-                dimensions: string
+                dimensionNames: string
                 tags: string
                 mdimViews: number
                 viewsPerDay: string
@@ -389,17 +389,13 @@ export async function handleGetMultiDims(
             // With no dimension params, searchParamsToMultiDimView fills each
             // dimension from the first available view, so the default view
             // (the one a multi-dim's thumbnail shows) is always the first one.
-            // The counts mirror chart_references_view's: narrative charts made
-            // from any of its views, published gdocs (not fragments or about
-            // pages) linking to its slug or to one that redirects to it, and
-            // static visualizations of it
             `-- sql
             SELECT
                 mdp.id,
                 mdp.catalogPath,
                 mdp.slug,
                 mdp.config->>'$.title.title' as title,
-                COALESCE(mdp.config->'$.dimensions[*].name', JSON_ARRAY()) as dimensions,
+                COALESCE(mdp.config->'$.dimensions[*].name', JSON_ARRAY()) as dimensionNames,
                 COALESCE(mdp.config->'$.topicTags', JSON_ARRAY()) as tags,
                 mdp.config->>'$.views[0].fullConfigId' as defaultViewConfigId,
                 mdp.updatedAt,
@@ -443,7 +439,7 @@ export async function handleGetMultiDims(
         const multiDims = results.map((row) => ({
             ...row,
             published: Boolean(row.published),
-            dimensions: JSON.parse(row.dimensions),
+            dimensionNames: JSON.parse(row.dimensionNames),
             tags: JSON.parse(row.tags),
             mdimViews: Number(row.mdimViews),
             viewsPerDay: Number(row.viewsPerDay),
