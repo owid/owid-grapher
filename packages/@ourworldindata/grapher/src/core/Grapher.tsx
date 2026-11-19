@@ -776,9 +776,6 @@ export class Grapher extends React.Component<GrapherProps> {
     }
 
     private clearFocusMode(): void {
-        // Make it easy to exit focus mode by clearing it when the selection
-        // or view changes. This is disabled in the admin to avoid clearing
-        // focus when authors are editing the chart
         if (this.grapherState.isAdmin) return
 
         this.grapherState.disposers.push(

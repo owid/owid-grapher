@@ -43,6 +43,7 @@ interface SelectDefaultEntitiesAsPeersParams {
 interface SelectParentRegionsAsPeersParams {
     targetEntity?: EntityName
     availableEntities: EntityName[]
+    targetCount?: number
 }
 
 interface SelectByClosestValueParams {
@@ -109,17 +110,10 @@ interface ValueBin {
 export async function selectPeersForGrapherWithGuards(
     grapherState: GrapherState
 ): Promise<EntityName[]> {
-    const {
-        addCountryMode,
-        peerCountryStrategy: strategy,
-        peerCount: targetCount,
-    } = grapherState
+    const { peerCountryStrategy: strategy, peerCount: targetCount } =
+        grapherState
 
-    if (
-        strategy === undefined ||
-        strategy === PeerCountryStrategy.None ||
-        addCountryMode === EntitySelectionMode.Disabled
-    )
+    if (strategy === undefined || strategy === PeerCountryStrategy.None)
         return []
 
     const selectedEntities = findAvailableSelectedEntities(grapherState)
@@ -232,9 +226,13 @@ export async function selectPeersForGrapher(
 
     const targetEntity: EntityName | undefined =
         requestedTargetEntity ?? selectedEntities[0]
-    const defaultSelection = grapherState.authorsVersion.selectedEntityNames
 
-    const availableEntities = prepareEntitiesForPeerSelection(grapherState)
+    const isUnselected = (entityName: EntityName): boolean =>
+        !grapherState.selection.has(entityName)
+    const defaultSelection =
+        grapherState.authorsVersion.selectedEntityNames.filter(isUnselected)
+    const availableEntities =
+        prepareEntitiesForPeerSelection(grapherState).filter(isUnselected)
     if (availableEntities.length === 0) return []
 
     const peerCountryStrategy =
@@ -398,6 +396,7 @@ export function prepareEntitiesForPeerSelection(
 export function selectParentRegionsAsPeers({
     targetEntity,
     availableEntities,
+    targetCount,
 }: SelectParentRegionsAsPeersParams): EntityName[] {
     if (targetEntity === undefined || !checkIsCountryName(targetEntity))
         return []
@@ -438,7 +437,8 @@ export function selectParentRegionsAsPeers({
         if (aggregate) peers.add(aggregate.name)
     }
 
-    return Array.from(peers)
+    const peerList = Array.from(peers)
+    return targetCount === undefined ? peerList : R.take(peerList, targetCount)
 }
 
 /** Finds countries with similar values to the target country */
@@ -534,15 +534,19 @@ async function selectPeerCountriesByDataRange({
     randomize = false,
 }: SelectByDataRangeParams): Promise<EntityName[]> {
     if (!isDataColumnAvailable(dataColumn)) return []
+    const entityNames =
+        targetEntity === undefined
+            ? availableEntities
+            : [targetEntity, ...availableEntities]
     const window = findLatestValueWindow({
         column: dataColumn,
-        entityNames: availableEntities,
+        entityNames,
         endTime,
         isSingleTimeChart,
     })
     const candidates = findLatestValuesInWindow({
         column: dataColumn,
-        entityNames: availableEntities,
+        entityNames,
         window,
     })
     if (candidates.length === 0) return []

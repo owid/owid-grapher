@@ -347,7 +347,7 @@ export class GrapherState
     /** Strategy for selecting peer countries for comparison */
     peerCountryStrategy: PeerCountryStrategy | undefined = undefined
 
-    /** Number of entities added by peer selection; the strategy's default if undefined */
+    /** Maximum number of peers to add to the selection */
     peerCount: number | undefined = undefined
 
     /** Whether the user can change countries, add additional ones or neither */
