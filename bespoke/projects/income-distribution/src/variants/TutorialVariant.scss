@@ -8,6 +8,9 @@
         ". controls"
         "rail chart";
     column-gap: 32px;
+    // The same gap as between sibling frames (.frame + .frame), which the
+    // grid's wrappers break
+    row-gap: 16px;
 }
 
 .income-distribution-tutorial__controls {
