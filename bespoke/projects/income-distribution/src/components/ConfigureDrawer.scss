@@ -1,0 +1,130 @@
+$configure-drawer-duration: 200ms;
+
+// Narrow charts: takes the controls card's place above the chart
+.income-distribution-configure-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    margin-bottom: 16px;
+    padding: 8px 16px 8px 12px;
+    border: none;
+    border-radius: 4px;
+    background: $blue-70;
+    color: $white;
+    font: 500 14px/21px $sans-serif-font-stack;
+    cursor: pointer;
+
+    &[data-hovered] {
+        background: $blue-60;
+    }
+
+    &[data-focus-visible] {
+        outline: 2px solid $blue-30;
+        outline-offset: 2px;
+    }
+}
+
+.income-distribution-configure-button__icon {
+    width: 16px;
+    height: 16px;
+}
+
+// The scrim, covering the viewport; the sheet sits at its bottom
+.income-distribution-configure-drawer {
+    position: fixed;
+    inset: 0;
+    // Above the site's sticky header, as its mobile menu is
+    z-index: $zindex-site-header + 1;
+    background-color: $overlay-scrim;
+    transition: opacity $configure-drawer-duration ease-out;
+
+    &[data-entering],
+    &[data-exiting] {
+        opacity: 0;
+
+        .income-distribution-configure-drawer__sheet {
+            transform: translateY(100%);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+
+        .income-distribution-configure-drawer__sheet {
+            transition: none;
+        }
+
+        &[data-entering],
+        &[data-exiting] {
+            .income-distribution-configure-drawer__sheet {
+                transform: none;
+            }
+        }
+    }
+}
+
+.income-distribution-configure-drawer__sheet {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+    border-radius: 4px 4px 0 0;
+    background: $white;
+    box-shadow:
+        0 -7px 8px rgba(0, 0, 0, 0.06),
+        0 -2px 32px rgba(0, 0, 0, 0.04),
+        0 0 64px rgba(0, 0, 0, 0.03);
+    color: $dark-text;
+    transition: transform $configure-drawer-duration ease-out;
+}
+
+.income-distribution-configure-drawer__dialog {
+    padding: 16px;
+    overflow-y: auto;
+    outline: none;
+}
+
+.income-distribution-configure-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+// As the controls' labels (.labeled-control__label)
+.income-distribution-configure-drawer__title {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: $gray-70;
+    text-transform: uppercase;
+}
+
+.income-distribution-configure-drawer__close {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid $gray-20;
+    border-radius: 50%;
+    background: $white;
+    color: $gray-80;
+    font-size: 13px;
+    cursor: pointer;
+
+    &[data-hovered] {
+        background: $gray-10;
+    }
+
+    &[data-focus-visible] {
+        outline: 2px solid $blue-30;
+        outline-offset: 1px;
+    }
+}

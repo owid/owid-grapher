@@ -70,7 +70,11 @@ import {
     VIEWS,
     View,
 } from "../core/types.js"
-import { IncomeDistributionControls } from "../components/IncomeDistributionControls.js"
+import {
+    IncomeDistributionControls,
+    IncomeDistributionControlsProps,
+} from "../components/IncomeDistributionControls.js"
+import { ConfigureDrawer } from "../components/ConfigureDrawer.js"
 import { CountryMultiSelect } from "../components/CountryMultiSelect.js"
 import { IncomeDistributionChart } from "../components/IncomeDistributionChart.js"
 import { WelfareSentence } from "../components/WelfareDetails.js"
@@ -264,7 +268,7 @@ function CaptionedDistributionVariant({
     setTimeInterval: (interval: TimeInterval) => void
     setCurrency: (key: string) => void
 }): React.ReactElement {
-    const { width, ref } = useContainerWidth()
+    const { width, node, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < NARROW_BREAKPOINT
 
     const [hoveredEntity, setHoveredEntity] = useState<string | null>(null)
@@ -418,6 +422,20 @@ function CaptionedDistributionVariant({
         />
     )
 
+    const controlsProps: IncomeDistributionControlsProps = {
+        view,
+        setView,
+        timeInterval,
+        setTimeInterval,
+        currency,
+        setCurrency,
+        currencies,
+        suggestedCurrency,
+        povertyLineMode,
+        setPovertyLineMode,
+        isNarrow,
+    }
+
     const title = config.title ?? chartTitle(view, selectedCountries)
     const subtitle = config.subtitle ?? chartSubtitle(year, currency)
     // Countries view: which of the countries drawn report income and which
@@ -437,21 +455,19 @@ function CaptionedDistributionVariant({
                 "income-distribution--narrow": isNarrow,
             })}
         >
-            {!shouldHideControls && (
-                <IncomeDistributionControls
-                    view={view}
-                    setView={setView}
-                    timeInterval={timeInterval}
-                    setTimeInterval={setTimeInterval}
-                    currency={currency}
-                    setCurrency={setCurrency}
-                    currencies={currencies}
-                    suggestedCurrency={suggestedCurrency}
-                    povertyLineMode={povertyLineMode}
-                    setPovertyLineMode={setPovertyLineMode}
-                    isNarrow={isNarrow}
-                />
-            )}
+            {!shouldHideControls &&
+                (isNarrow ? (
+                    // Narrow charts keep the controls in a bottom sheet,
+                    // behind a button
+                    <ConfigureDrawer container={node}>
+                        <IncomeDistributionControls
+                            {...controlsProps}
+                            layout="drawer"
+                        />
+                    </ConfigureDrawer>
+                ) : (
+                    <IncomeDistributionControls {...controlsProps} />
+                ))}
             <BespokeMetadataProvider metadata={metadata.bespokeMetadata}>
                 <Frame className="income-distribution-captioned-chart">
                     <ChartHeader title={title} subtitle={subtitle} />

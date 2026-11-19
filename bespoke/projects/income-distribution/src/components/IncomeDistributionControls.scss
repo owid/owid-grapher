@@ -19,3 +19,27 @@
     width: 18px;
     height: 12px;
 }
+
+// The narrow chart's bottom sheet: every control full-width, one below the
+// other, without the card's frame
+.income-distribution-controls--drawer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .labeled-control {
+        flex: none;
+        width: 100%;
+        min-width: 0;
+    }
+
+    // The view's two options share the width equally; the poverty line's
+    // grow from their labels' widths, which differ too much to split evenly
+    .income-distribution-controls__view .switcher__item {
+        flex: 1 1 0;
+    }
+
+    .income-distribution-controls__poverty-line .switcher__item {
+        flex: 1 1 auto;
+    }
+}

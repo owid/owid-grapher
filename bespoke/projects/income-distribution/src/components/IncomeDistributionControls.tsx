@@ -1,3 +1,5 @@
+import cx from "clsx"
+
 import {
     Controls,
     ControlsRow,
@@ -27,6 +29,11 @@ export interface IncomeDistributionControlsProps {
     povertyLineMode: PovertyLineMode
     setPovertyLineMode: (mode: PovertyLineMode) => void
     isNarrow: boolean
+    /**
+     * `card` sits above the chart in a frame of its own; `drawer` stacks the
+     * controls full-width, for the narrow chart's bottom sheet
+     */
+    layout?: "card" | "drawer"
 }
 
 /**
@@ -123,47 +130,65 @@ export function IncomeDistributionControls({
     povertyLineMode,
     setPovertyLineMode,
     isNarrow,
+    layout = "card",
 }: IncomeDistributionControlsProps): React.ReactElement {
+    const controls = (
+        <>
+            <LabeledControl
+                label="View"
+                className={cx(
+                    "income-distribution-controls__switcher",
+                    "income-distribution-controls__view"
+                )}
+            >
+                <Switcher
+                    items={VIEW_ITEMS}
+                    selectedKey={view}
+                    onChange={setView}
+                    ariaLabel="View"
+                />
+            </LabeledControl>
+            <LabeledControl
+                label="Measured in"
+                className="income-distribution-controls__units"
+            >
+                <IncomeUnitPicker
+                    currency={currency}
+                    setCurrency={setCurrency}
+                    currencies={currencies}
+                    suggestedCurrency={suggestedCurrency}
+                    timeInterval={timeInterval}
+                    setTimeInterval={setTimeInterval}
+                    isNarrow={isNarrow}
+                />
+            </LabeledControl>
+            <LabeledControl
+                label="Poverty line"
+                className={cx(
+                    "income-distribution-controls__switcher",
+                    "income-distribution-controls__poverty-line"
+                )}
+            >
+                <Switcher
+                    items={POVERTY_LINE_ITEMS}
+                    selectedKey={povertyLineMode}
+                    onChange={setPovertyLineMode}
+                    ariaLabel="Poverty line"
+                />
+            </LabeledControl>
+        </>
+    )
+
+    if (layout === "drawer")
+        return (
+            <div className="income-distribution-controls income-distribution-controls--drawer">
+                {controls}
+            </div>
+        )
+
     return (
         <Controls className="income-distribution-controls">
-            <ControlsRow>
-                <LabeledControl
-                    label="View"
-                    className="income-distribution-controls__switcher"
-                >
-                    <Switcher
-                        items={VIEW_ITEMS}
-                        selectedKey={view}
-                        onChange={setView}
-                        ariaLabel="View"
-                    />
-                </LabeledControl>
-                <LabeledControl
-                    label="Measured in"
-                    className="income-distribution-controls__units"
-                >
-                    <IncomeUnitPicker
-                        currency={currency}
-                        setCurrency={setCurrency}
-                        currencies={currencies}
-                        suggestedCurrency={suggestedCurrency}
-                        timeInterval={timeInterval}
-                        setTimeInterval={setTimeInterval}
-                        isNarrow={isNarrow}
-                    />
-                </LabeledControl>
-                <LabeledControl
-                    label="Poverty line"
-                    className="income-distribution-controls__switcher"
-                >
-                    <Switcher
-                        items={POVERTY_LINE_ITEMS}
-                        selectedKey={povertyLineMode}
-                        onChange={setPovertyLineMode}
-                        ariaLabel="Poverty line"
-                    />
-                </LabeledControl>
-            </ControlsRow>
+            <ControlsRow>{controls}</ControlsRow>
         </Controls>
     )
 }
