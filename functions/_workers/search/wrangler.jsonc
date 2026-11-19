@@ -1,48 +1,58 @@
 // Standalone Worker for the search endpoints (see index.ts for why).
-// Local:  yarn wrangler dev --config functions/_workers/search/wrangler.jsonc
-// Deploy: yarn wrangler deploy --config functions/_workers/search/wrangler.jsonc --env production
+// Local:    yarn wrangler dev --config functions/_workers/search/wrangler.jsonc
+// Preview:  yarn wrangler versions upload --config functions/_workers/search/wrangler.jsonc --preview-alias <branch>
+// Deploy:   yarn wrangler deploy --config functions/_workers/search/wrangler.jsonc --env production
 //
-// Set the same values as the Pages project's production environment, once,
-// with `wrangler secret put <NAME> --env production`:
-// required: ALGOLIA_ID, ALGOLIA_SEARCH_KEY, SENTRY_DSN,
+// Secrets are set once per Worker with `wrangler secret put <NAME> [--env production]`:
+// required: ALGOLIA_ID, ALGOLIA_SEARCH_KEY; on production also SENTRY_DSN,
 // CLOUDFLARE_GOOGLE_ANALYTICS_MEASUREMENT_PROTOCOL_KEY, CLOUDFLARE_GOOGLE_ANALYTICS_MEASUREMENT_ID;
 // optional, only if Pages sets them: ALGOLIA_INDEX_PREFIX, ALGOLIA_HOST.
 {
     "$schema": "../../../node_modules/wrangler/config-schema.json",
-    // Production is a separate Worker (env.production.name), so a deploy
-    // without --env production can't overwrite it with development vars.
-    "name": "owid-search-api-dev",
+    // The top level is the Worker for Cloudflare previews: each preview deploy
+    // uploads a version with the branch as its alias, served at
+    // https://<branch>-owid-search-api-preview.owid.workers.dev, which the
+    // preview's pages call instead of their own /api/search. Uploading a
+    // version doesn't change what the Worker itself serves. Production is a
+    // separate Worker (env.production.name), so a command without
+    // --env production can't touch it.
+    "name": "owid-search-api-preview",
     "main": "./index.ts",
     // Same as the Pages project's (wrangler.jsonc at the repo root), so the
     // handlers run under the same runtime semantics in both places.
     "compatibility_date": "2025-05-05",
     // Sentry v11 requires Node.js compatibility.
     "compatibility_flags": ["nodejs_compat"],
-    "workers_dev": false,
+    "workers_dev": true,
+    "preview_urls": true,
+    // Served without running the Worker: a robots.txt that keeps crawlers off
+    // the workers.dev URLs.
+    "assets": { "directory": "./public" },
     // `vars` aren't inherited by environments, so production repeats them.
     "vars": {
-        "ENV": "development",
+        "ENV": "staging",
         "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE": "0"
     },
     "env": {
         "production": {
             "name": "owid-search-api",
+            "workers_dev": false,
+            "preview_urls": false,
             "vars": {
                 "ENV": "production",
                 "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE": "0.01"
             },
-            // Deploying attaches these routes, so the first deploy is the
+            // Deploying attaches this route, so the first deploy is the
             // cutover. To check first that a Worker route wins over the Pages
             // project on this hostname, deploy once with a probe path the
             // Worker answers with a plain-text 404:
             //   ... --env production --route ourworldindata.org/api/search/worker-probe
             //
-            // Route patterns match the query string too, so the later
-            // /api/search route needs a trailing wildcard:
-            // "ourworldindata.org/api/search*".
+            // Route patterns match the query string too, hence the trailing
+            // wildcard. It covers /api/search/cached-queries.
             "routes": [
                 {
-                    "pattern": "ourworldindata.org/api/search/cached-queries",
+                    "pattern": "ourworldindata.org/api/search*",
                     "zone_name": "ourworldindata.org"
                 }
             ]

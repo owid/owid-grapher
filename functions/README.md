@@ -164,7 +164,7 @@ For detailed API documentation, including all parameters, response schemas, and 
 
 A caching proxy for empty-query Algolia searches. The site routes Algolia multi-query requests where every query string is empty — the "browse" requests issued by default states like the search landing page or the empty autocomplete panel — to this endpoint (see `site/search/searchClients.ts`), which forwards them to Algolia and caches the response for a day — except for payloads touching the chronological pages index (which backs /latest and sorts by date), cached for only 15 minutes so newly published articles show up quickly. Requests containing a non-empty query are rejected with a 400 and should go to Algolia directly; the client falls back to a direct Algolia request whenever this endpoint fails or rejects.
 
-On production, this endpoint is served by a standalone Worker (`_workers/search/`, deployed by ops right after the Pages deploy) rather than by Pages Functions, so its requests don't pay the Pages bundle's cold start (#7855). Previews and staging serve it from Pages Functions as before; the handler code is the same.
+On production and Cloudflare previews, this endpoint and `/api/search` are served by a standalone Worker (`_workers/search/`) rather than by Pages Functions, so their requests don't pay the Pages bundle's cold start (#7855). Production deploys it on a zone route right after the Pages deploy; each preview uploads a version under its branch alias (`https://<branch>-owid-search-api-preview.owid.workers.dev`) and its pages call that URL. `wrangler pages dev` (local, staging servers) serves both from Pages Functions; the handler code is the same.
 
 ## `/deleted/:slug`
 

@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/cloudflare"
 import { analyticsMiddleware } from "../../_common/analytics.js"
+import { isolateDiagMiddleware } from "../../_common/isolateDiag.js"
 import { Env } from "../../_common/env.js"
 import { sentryOptions } from "../../_common/sentry.js"
 import * as cachedQueries from "../../api/search/cached-queries.js"
@@ -13,8 +14,9 @@ import * as search from "../../api/search/index.js"
 //
 // The handlers are the Pages Functions themselves, called through a minimal
 // Pages context, so there is one implementation. The Pages routes stay in
-// place and keep serving previews and staging, where this Worker's production
-// route doesn't apply.
+// place for `wrangler pages dev` (local development and staging servers).
+// Cloudflare previews call this Worker's per-branch preview URL instead (see
+// wrangler.jsonc).
 
 type Handler = PagesFunction<Env>
 
@@ -77,15 +79,20 @@ async function handle(
         passThroughOnException: () => ctx.passThroughOnException(),
     }
     // Same per-request middleware as in Pages, minus the HTML-only ones
-    // (experiments, ASN data layer): sampled GA4 invocation events.
-    return analyticsMiddleware({
+    // (experiments, ASN data layer): the opt-in isolate stamp and sampled GA4
+    // invocation events.
+    return isolateDiagMiddleware({
         ...context,
         next: async () =>
-            handler({
+            analyticsMiddleware({
                 ...context,
-                next: async () => {
-                    throw new Error("Search handlers don't call next()")
-                },
+                next: async () =>
+                    handler({
+                        ...context,
+                        next: async () => {
+                            throw new Error("Search handlers don't call next()")
+                        },
+                    }),
             }),
     })
 }
