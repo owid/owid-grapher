@@ -543,7 +543,7 @@ describe("makeDatasetPageData, for a manifest with the new fields", () => {
         ).toEqual([
             { title: "Index columns", columns: ["country", "year"] },
             {
-                title: "Indicators",
+                title: "Indicator columns",
                 columns: ["coal_energy_twh", "coal_elec_twh"],
             },
         ])

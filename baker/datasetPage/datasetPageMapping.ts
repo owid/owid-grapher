@@ -150,7 +150,7 @@ export function makeIndicatorGroups(
         },
         {
             id: "indicators",
-            title: "Indicators",
+            title: "Indicator columns",
             indicators: indicators.filter(
                 (indicator) => !primaryKey.includes(indicator.shortName)
             ),
