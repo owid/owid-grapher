@@ -35,11 +35,12 @@ Note: the compatibility date is defined in [`wrangler.jsonc`](../wrangler.jsonc)
 
 3. _Refer to each function's "Development" section below for further instructions._
 
-## Chart rendering as a separate module
+## Cold starts
 
-The handlers of the routes that render charts (`/grapher/*`, `/explorers/*`, `/multi-dim/*`) pull in the grapher and explorer libraries and React SSR, most of the bundle. They're loaded on first use through `_common/loadRenderRoutes.ts`. In a regular build that only defers evaluating them, because wrangler bundles all of `functions/` into one script, which every new isolate parses in full.
+Every new isolate parses the whole Functions script and evaluates its top level before it serves its first request, which is what makes some requests slow ([#7855](https://github.com/owid/owid-grapher/issues/7855)). Two things keep that down:
 
-`yarn buildPagesWorker <dir>` builds `functions/` into `<dir>/_worker.js/`, a Pages "advanced mode" Worker in which those handlers are a separate module, `renderRoutes.js`. A new isolate then neither parses nor evaluates them unless it serves a render route. `wrangler pages deploy <dir>` deploys `_worker.js/` instead of building `functions/`. Cloudflare previews are deployed this way; production and `wrangler pages dev` still build `functions/` as usual. See [#7855](https://github.com/owid/owid-grapher/issues/7855).
+- The handlers of the routes that render charts (`/grapher/*`, `/explorers/*`, `/multi-dim/*`) pull in the grapher and explorer libraries and React SSR, most of the bundle. They're loaded on first use through `_common/loadRenderRoutes.ts`, so other requests don't evaluate them.
+- `yarn buildPagesWorker <dir>` builds `functions/` minified into `<dir>/_worker.js/`, a Pages "advanced mode" Worker, which `wrangler pages deploy <dir>` uploads instead of building `functions/` unminified. Cloudflare previews are deployed this way; production and `wrangler pages dev` still build `functions/`.
 
 ## Testing on Foundation staging sites vs Cloudflare previews
 
