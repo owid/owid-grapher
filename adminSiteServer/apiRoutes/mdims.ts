@@ -376,8 +376,8 @@ export async function handleGetMultiDims(
                 "id" | "catalogPath" | "slug" | "updatedAt" | "published"
             > & {
                 title: string
-                dimensions: string | null
-                tags: string | null
+                dimensionNames: string
+                tags: string
                 mdimViews: number
                 viewsPerDay: string
                 narrativeChartsCount: number
@@ -389,18 +389,14 @@ export async function handleGetMultiDims(
             // With no dimension params, searchParamsToMultiDimView fills each
             // dimension from the first available view, so the default view
             // (the one a multi-dim's thumbnail shows) is always the first one.
-            // The counts mirror chart_references_view's: narrative charts made
-            // from any of its views, published gdocs (not fragments or about
-            // pages) linking to its slug or to one that redirects to it, and
-            // static visualizations of it
             `-- sql
             SELECT
                 mdp.id,
                 mdp.catalogPath,
                 mdp.slug,
                 mdp.config->>'$.title.title' as title,
-                mdp.config->'$.dimensions[*].name' as dimensions,
-                mdp.config->'$.topicTags' as tags,
+                COALESCE(mdp.config->'$.dimensions[*].name', JSON_ARRAY()) as dimensionNames,
+                COALESCE(mdp.config->'$.topicTags', JSON_ARRAY()) as tags,
                 mdp.config->>'$.views[0].fullConfigId' as defaultViewConfigId,
                 mdp.updatedAt,
                 mdp.published,
@@ -415,19 +411,20 @@ export async function handleGetMultiDims(
                 ) as narrativeChartsCount,
                 (
                     SELECT COUNT(DISTINCT pgl.sourceId)
-                    FROM posts_gdocs_links pgl
-                    JOIN posts_gdocs pg ON pg.id = pgl.sourceId
-                    WHERE pgl.linkType = 'grapher'
+                    FROM (
+                        SELECT mdp.slug AS slug
+                        UNION
+                        SELECT REPLACE(mdr.source, '/grapher/', '')
+                        FROM ${MultiDimRedirectsTableName} mdr
+                        WHERE mdr.multiDimId = mdp.id
+                    ) slugs
+                    JOIN posts_gdocs_links pgl
+                        ON pgl.target = slugs.slug
+                        AND pgl.linkType = 'grapher'
+                    JOIN posts_gdocs pg
+                        ON pg.id = pgl.sourceId
                         AND pg.published = TRUE
                         AND pg.type NOT IN ('fragment', 'about-page')
-                        AND (
-                            pgl.target = mdp.slug
-                            OR pgl.target IN (
-                                SELECT REPLACE(mdr.source, '/grapher/', '')
-                                FROM ${MultiDimRedirectsTableName} mdr
-                                WHERE mdr.multiDimId = mdp.id
-                            )
-                        )
                 ) + (
                     SELECT COUNT(*)
                     FROM static_viz sv
@@ -442,8 +439,8 @@ export async function handleGetMultiDims(
         const multiDims = results.map((row) => ({
             ...row,
             published: Boolean(row.published),
-            dimensions: row.dimensions ? JSON.parse(row.dimensions) : [],
-            tags: row.tags ? JSON.parse(row.tags) : [],
+            dimensionNames: JSON.parse(row.dimensionNames),
+            tags: JSON.parse(row.tags),
             mdimViews: Number(row.mdimViews),
             viewsPerDay: Number(row.viewsPerDay),
             narrativeChartsCount: Number(row.narrativeChartsCount),
