@@ -22,13 +22,13 @@ A featured-viz page shows as a card at the top of the Data search results only w
 
 ## Data access
 
-Use the **Metabase MCP connector** (find its tools with ToolSearch, query `metabase`) and its `execute` tool. If the connector is missing or `execute` fails, stop and tell the user to connect Metabase with an API key that can run queries on database 3. Use no other credentials.
+Use the official **Metabase** connector, signed in with the user's own Metabase account (find its tools with ToolSearch, query `metabase`). It needs `execute_sql` and `run_saved_question`. If the connector is missing, stop and tell the user to connect **Metabase** at https://claude.ai/directory/metabase (in Claude Code it then shows as `claude.ai Metabase`; `/mcp` renews the sign-in). If a call is refused, report the error as it appears. Use no other credentials.
 
 ## Steps
 
 ### 1. Read the page and every other featured viz
 
-Run in SQL mode against database id 3 (`posts_gdocs` here is a daily mirror of production; `content` is a JSON string):
+Run with `execute_sql` on `database_id` 3 and `row_limit` 100 (`posts_gdocs` here is a daily mirror of production; `content` is a JSON string):
 
 ```sql
 SELECT id, slug, published,
@@ -46,20 +46,13 @@ Find the target row by slug, id or title (drafts have an empty slug). Keep the o
 
 ### 2. Pull the most-searched queries
 
-Run the Metabase question [Top site searches, last 12 months](http://metabase.owid.io/question/2017) once, in card mode with `row_limit` 500 (each run scans about 12 GB):
+Run the Metabase question [Top site searches, last 12 months](http://metabase.owid.io/question/2017) once, with `run_saved_question` and `row_limit` 500 (each run scans about 12 GB):
 
 ```json
 {
-    "card_id": 2017,
-    "card_parameters": [
-        {
-            "id": "10e50bb4-c0ef-4a54-96e6-c1c8b6f5b840",
-            "slug": "min_searches",
-            "type": "number/=",
-            "target": ["variable", ["template-tag", "min_searches"]],
-            "value": 1000
-        }
-    ]
+    "id": 2017,
+    "parameters": [{ "id": "min_searches", "value": 1000 }],
+    "row_limit": 500
 }
 ```
 
