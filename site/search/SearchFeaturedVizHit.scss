@@ -52,16 +52,12 @@ $featured-viz-stack-breakpoint: 400px;
 }
 
 .search-featured-viz-hit__image {
+    @include search-thumbnail;
     flex-shrink: 0;
-    // Same size as the article thumbnails in Research & Writing
-    width: 84px;
-    height: 64px;
-    object-fit: cover;
     background-color: $white;
 
     @media (width <= $featured-viz-stack-breakpoint) {
         width: 100%;
-        height: auto;
     }
 }
 

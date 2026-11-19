@@ -39,6 +39,10 @@ $header-height-md: $header-bar-height-md + $header-border-height;
 // thumbnails to it so they line up.
 $featured-image-aspect-ratio: 1.91;
 
+// Width of article and featured-viz thumbnails in search results. Fixed, not
+// tied to the grid.
+$search-thumbnail-width: 110px;
+
 $content-max-width: 800px;
 $text-min-content-width: 480px;
 $text-max-content-width: 640px;

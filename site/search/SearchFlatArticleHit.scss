@@ -16,15 +16,11 @@
 }
 
 .search-flat-article-hit__image-container {
-    width: 84px; // Same size as the image in case the image is missing.
     margin-right: var(--grid-gap);
 }
 
 .search-flat-article-hit__image {
-    width: 84px;
-    height: auto;
-    aspect-ratio: $featured-image-aspect-ratio;
-    object-fit: cover;
+    @include search-thumbnail;
 }
 
 .search-flat-article-hit__title {
