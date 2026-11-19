@@ -1,5 +1,5 @@
 export interface Env {
-    ASSETS: Fetcher
+    ASSETS: Pick<Fetcher, "fetch">
     url: URL
     BAKED_BASE_URL?: string
     GRAPHER_CONFIG_R2_BUCKET?: R2Bucket

@@ -1,0 +1,51 @@
+// Standalone Worker for the search endpoints (see index.ts for why).
+// Local:  yarn wrangler dev --config functions/_workers/search/wrangler.jsonc
+// Deploy: yarn wrangler deploy --config functions/_workers/search/wrangler.jsonc --env production
+//
+// Set the same values as the Pages project's production environment, once,
+// with `wrangler secret put <NAME> --env production`:
+// required: ALGOLIA_ID, ALGOLIA_SEARCH_KEY, SENTRY_DSN,
+// CLOUDFLARE_GOOGLE_ANALYTICS_MEASUREMENT_PROTOCOL_KEY, CLOUDFLARE_GOOGLE_ANALYTICS_MEASUREMENT_ID;
+// optional, only if Pages sets them: ALGOLIA_INDEX_PREFIX, ALGOLIA_HOST.
+{
+    "$schema": "../../../node_modules/wrangler/config-schema.json",
+    // Production is a separate Worker (env.production.name), so a deploy
+    // without --env production can't overwrite it with development vars.
+    "name": "owid-search-api-dev",
+    "main": "./index.ts",
+    // Same as the Pages project's (wrangler.jsonc at the repo root), so the
+    // handlers run under the same runtime semantics in both places.
+    "compatibility_date": "2025-05-05",
+    // Sentry v11 requires Node.js compatibility.
+    "compatibility_flags": ["nodejs_compat"],
+    "workers_dev": false,
+    // `vars` aren't inherited by environments, so production repeats them.
+    "vars": {
+        "ENV": "development",
+        "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE": "0"
+    },
+    "env": {
+        "production": {
+            "name": "owid-search-api",
+            "vars": {
+                "ENV": "production",
+                "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE": "0.01"
+            },
+            // Deploying attaches these routes, so the first deploy is the
+            // cutover. To check first that a Worker route wins over the Pages
+            // project on this hostname, deploy once with a probe path the
+            // Worker answers with a plain-text 404:
+            //   ... --env production --route ourworldindata.org/api/search/worker-probe
+            //
+            // Route patterns match the query string too, so the later
+            // /api/search route needs a trailing wildcard:
+            // "ourworldindata.org/api/search*".
+            "routes": [
+                {
+                    "pattern": "ourworldindata.org/api/search/cached-queries",
+                    "zone_name": "ourworldindata.org"
+                }
+            ]
+        }
+    }
+}

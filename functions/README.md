@@ -31,7 +31,7 @@ CLOUDFLARE_ACCOUNT_ID=078fcdfed9955087315dd86792e71a7e
 
 `make setup.worktree` copies both into new worktrees' `.env` from the main checkout.
 
-Note: the compatibility date is defined in [`wrangler.jsonc`](../wrangler.jsonc) at the repo root, which is the authoritative source for local development, previews and production alike (not the Cloudflare dashboard). The e2e tests carry their own copy in [`test/wrangler.e2e.jsonc`](./test/wrangler.e2e.jsonc) — keep the two in sync.
+Note: the compatibility date is defined in [`wrangler.jsonc`](../wrangler.jsonc) at the repo root, which is the authoritative source for local development, previews and production alike (not the Cloudflare dashboard). The e2e tests and the standalone search Worker carry their own copies in [`test/wrangler.e2e.jsonc`](./test/wrangler.e2e.jsonc) and [`_workers/search/wrangler.jsonc`](./_workers/search/wrangler.jsonc) — keep all three in sync.
 
 3. _Refer to each function's "Development" section below for further instructions._
 
@@ -163,6 +163,8 @@ For detailed API documentation, including all parameters, response schemas, and 
 ## `/api/search/cached-queries`
 
 A caching proxy for empty-query Algolia searches. The site routes Algolia multi-query requests where every query string is empty — the "browse" requests issued by default states like the search landing page or the empty autocomplete panel — to this endpoint (see `site/search/searchClients.ts`), which forwards them to Algolia and caches the response for a day — except for payloads touching the chronological pages index (which backs /latest and sorts by date), cached for only 15 minutes so newly published articles show up quickly. Requests containing a non-empty query are rejected with a 400 and should go to Algolia directly; the client falls back to a direct Algolia request whenever this endpoint fails or rejects.
+
+On production, this endpoint is served by a standalone Worker (`_workers/search/`, deployed by ops right after the Pages deploy) rather than by Pages Functions, so its requests don't pay the Pages bundle's cold start (#7855). Previews and staging serve it from Pages Functions as before; the handler code is the same.
 
 ## `/deleted/:slug`
 
