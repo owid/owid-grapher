@@ -1,0 +1,29 @@
+// Wide charts: the rail of walkthroughs left of the chart, level with its
+// frame; the controls card above the frame keeps its place while a
+// walkthrough plays (hidden), so the chart doesn't jump
+.income-distribution-tutorial--with-rail {
+    display: grid;
+    grid-template-columns: 193px minmax(0, 1fr);
+    grid-template-areas:
+        ". controls"
+        "rail chart";
+    column-gap: 32px;
+}
+
+.income-distribution-tutorial__controls {
+    grid-area: controls;
+}
+
+.income-distribution-tutorial--playing .income-distribution-tutorial__controls {
+    visibility: hidden;
+}
+
+.income-distribution-tutorial--with-rail .income-distribution-tutorial-rail {
+    grid-area: rail;
+    align-self: start;
+}
+
+.income-distribution-tutorial__chart {
+    grid-area: chart;
+    min-width: 0;
+}

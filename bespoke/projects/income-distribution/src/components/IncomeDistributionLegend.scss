@@ -339,3 +339,9 @@
 .income-distribution-legend__label-line {
     display: block;
 }
+
+.income-distribution-legend__footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+}

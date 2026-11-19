@@ -36,3 +36,23 @@
     background: $blue-20;
     color: $active-text;
 }
+
+// Inside a legend: a text link with its pen, without the button's frame
+.income-distribution-edit-countries--link {
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    color: $blue-60;
+    font-size: 12px;
+
+    &:hover {
+        background: none;
+        color: $blue-90;
+        text-decoration: underline;
+    }
+
+    svg {
+        height: 10px;
+    }
+}

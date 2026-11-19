@@ -102,3 +102,29 @@
 .income-distribution-chart .tooltip-container > .Tooltip {
     z-index: 3;
 }
+
+.income-distribution-chart__outline-label {
+    font-weight: 500;
+}
+
+// Text placed next to the data it's about, positioned by the chart (see
+// placeAnnotation in IncomeDistributionChart.tsx)
+.income-distribution-chart__annotation {
+    position: absolute;
+    z-index: 1;
+    color: $gray-70;
+    font-size: 16px;
+    line-height: 21px;
+    pointer-events: none;
+}
+
+.income-distribution-chart__annotation--hint {
+    font-size: 14px;
+    line-height: 18px;
+    font-style: italic;
+}
+
+.income-distribution--narrow .income-distribution-chart__annotation {
+    font-size: 13px;
+    line-height: 17px;
+}

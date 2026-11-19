@@ -93,6 +93,12 @@ export const REGION_COLORS: Record<Region, string> = {
 
 export const WORLD_COLOR = OwidDistinctColors.Purple
 
+/**
+ * What a walkthrough points the reader to: the outline of the global total,
+ * and the people below a poverty line
+ */
+export const EMPHASIS_COLOR = OwidDistinctColors.RustyOrange
+
 /** Colours for the compare-countries view, assigned in selection order */
 export const COUNTRY_COLOR_ROTATION: string[] = [
     OwidDistinctColors.Turquoise,

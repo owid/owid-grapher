@@ -72,6 +72,8 @@ export interface IncomeDistributionLegendProps {
      * the line, and an × replaces the "Clear" link
      */
     layout?: "inline" | "overlay"
+    /** Overlay layout only: below the rows, e.g. a link to edit the entries */
+    footer?: React.ReactNode
 }
 
 export function IncomeDistributionLegend({
@@ -88,6 +90,7 @@ export function IncomeDistributionLegend({
     onClearPovertyLine,
     isNarrow,
     layout = "inline",
+    footer,
 }: IncomeDistributionLegendProps): React.ReactElement {
     const shares = povertyLine !== null ? sharesBelowLine : undefined
     const showPeople =
@@ -305,6 +308,11 @@ export function IncomeDistributionLegend({
                         )
                     })}
                 </ul>
+                {footer && (
+                    <div className="income-distribution-legend__footer">
+                        {footer}
+                    </div>
+                )}
             </div>
         )
     }

@@ -36,8 +36,22 @@ timeInterval: daily
 {}
 ```
 
+The tutorial variant puts the same chart next to guided walkthroughs, "Tips & insights" the reader plays slide by slide: how to read the chart, and poverty in richer and poorer countries. It needs the full width for its rail of walkthroughs, which turns into a row of buttons above the chart on narrow screens. This one starts with the "how to use" walkthrough playing:
+
+```archie
+{.bespoke-component}
+bundle: income-distribution
+variant: tutorial
+size: widest
+{.config}
+walkthrough: how-to-use
+{}
+{}
+```
+
 ## Notes
 
 - `povertyLine` is always in international-$ per day, whatever `currency` and `timeInterval` say; the chart converts it.
 - Countries in `countries` that the data doesn't have are left out silently. `userLocation` is left out when the user's country can't be detected.
 - A custom `title` or `subtitle` hides the controls, as `hideControls` does.
+- In the tutorial variant, the walkthrough playing and its slide are kept in the page URL (`walkthrough` and `slide`), so a slide can be linked to. The slides set the chart as they need it; when the reader closes the walkthrough, the chart is back as they had it.

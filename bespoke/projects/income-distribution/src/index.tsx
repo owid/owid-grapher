@@ -14,8 +14,14 @@ import { EmbedOptionsProvider } from "../../../hooks/useEmbedOptions.js"
 
 import { DEFAULT_YEAR } from "./core/constants.js"
 import { parseCountryList, parsePositiveNumber } from "./core/parsers.js"
-import { TIME_INTERVALS, VIEWS, VariantName } from "./core/types.js"
+import {
+    TIME_INTERVALS,
+    VIEWS,
+    VariantName,
+    WALKTHROUGH_IDS,
+} from "./core/types.js"
 import { DistributionVariant } from "./variants/DistributionVariant.js"
+import { TutorialVariant } from "./variants/TutorialVariant.js"
 
 import "./index.scss"
 
@@ -30,6 +36,15 @@ export const VARIANTS = [
             "Income mountains: how the world's population, or that of a few countries compared, is spread across income levels",
         component: DistributionVariant,
         defaultSize: "wide",
+    },
+    {
+        name: "tutorial",
+        description:
+            "The income mountains with guided walkthroughs beside them: a tip on how to read the chart, and an insight on poverty in richer and poorer countries, played slide by slide",
+        component: TutorialVariant,
+        defaultSize: "widest",
+        // So a slide's URL can be shared on the demo page, as on an article
+        demoEmbedOptions: { urlSync: true },
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
@@ -81,6 +96,12 @@ export const CONFIG_SPEC = {
         type: "string",
         description:
             "Three-letter code of the country whose currency incomes are shown in, such as `DEU`. `userLocation` picks the user's currency. Defaults to international-$",
+    },
+    walkthrough: {
+        type: "enum",
+        values: WALKTHROUGH_IDS,
+        description:
+            "Tutorial variant only: the walkthrough that plays when the chart loads, `how-to-use` or `poverty-in-richer-and-poorer-countries`. If unset, the chart starts with none playing",
     },
     hideControls: {
         type: "boolean",

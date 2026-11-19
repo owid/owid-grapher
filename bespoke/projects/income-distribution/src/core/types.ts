@@ -1,6 +1,13 @@
 import type { BespokeMetadata } from "@ourworldindata/types"
 
-export type VariantName = "distribution"
+export type VariantName = "distribution" | "tutorial"
+
+/** The tutorial variant's walkthroughs (see walkthroughs.ts) */
+export const WALKTHROUGH_IDS = [
+    "how-to-use",
+    "poverty-in-richer-and-poorer-countries",
+] as const
+export type WalkthroughId = (typeof WALKTHROUGH_IDS)[number]
 
 /** Which chart the reader is looking at */
 export const VIEWS = ["global", "countries"] as const

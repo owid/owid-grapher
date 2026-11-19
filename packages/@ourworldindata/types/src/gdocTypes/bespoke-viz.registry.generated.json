@@ -381,8 +381,8 @@
       "entryFile": "bespoke/projects/income-distribution/src/index.tsx",
       "sidecarFile": "bespoke/projects/income-distribution/docs.md",
       "prose": {
-        "intro": "Income mountains: how the world's population is spread across income levels, from the World Bank's Poverty and Inequality Platform. The global view stacks every country by World Bank region, so the height of the mountain is the number of people living at each income. The compare-countries view draws chosen countries side by side, each normalised to the same area; readers pick them with the \"Edit countries\" button above the plot. Users can add a poverty line, the World Bank's international one or their own, from the controls or by clicking the chart, drag it to see the share of people below it, and switch to their local currency and to incomes per day or year. Incomes are shown per month unless `timeInterval` says otherwise.\n\nThe global view, as it starts by default:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{}\n```\n\nA few countries compared, with a poverty line already drawn at $8.30 a day:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\nview: countries\ncountries: India, Brazil, Germany, userLocation\npovertyLine: 8.3\n{}\n{}\n```\n\nDaily incomes in the user's own currency:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\ncurrency: userLocation\ntimeInterval: daily\n{}\n{}\n```",
-        "notes": "- `povertyLine` is always in international-$ per day, whatever `currency` and `timeInterval` say; the chart converts it.\n- Countries in `countries` that the data doesn't have are left out silently. `userLocation` is left out when the user's country can't be detected.\n- A custom `title` or `subtitle` hides the controls, as `hideControls` does."
+        "intro": "Income mountains: how the world's population is spread across income levels, from the World Bank's Poverty and Inequality Platform. The global view stacks every country by World Bank region, so the height of the mountain is the number of people living at each income. The compare-countries view draws chosen countries side by side, each normalised to the same area; readers pick them with the \"Edit countries\" button above the plot. Users can add a poverty line, the World Bank's international one or their own, from the controls or by clicking the chart, drag it to see the share of people below it, and switch to their local currency and to incomes per day or year. Incomes are shown per month unless `timeInterval` says otherwise.\n\nThe global view, as it starts by default:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{}\n```\n\nA few countries compared, with a poverty line already drawn at $8.30 a day:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\nview: countries\ncountries: India, Brazil, Germany, userLocation\npovertyLine: 8.3\n{}\n{}\n```\n\nDaily incomes in the user's own currency:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\n{.config}\ncurrency: userLocation\ntimeInterval: daily\n{}\n{}\n```\n\nThe tutorial variant puts the same chart next to guided walkthroughs, \"Tips & insights\" the reader plays slide by slide: how to read the chart, and poverty in richer and poorer countries. It needs the full width for its rail of walkthroughs, which turns into a row of buttons above the chart on narrow screens. This one starts with the \"how to use\" walkthrough playing:\n\n```archie\n{.bespoke-component}\nbundle: income-distribution\nvariant: tutorial\nsize: widest\n{.config}\nwalkthrough: how-to-use\n{}\n{}\n```",
+        "notes": "- `povertyLine` is always in international-$ per day, whatever `currency` and `timeInterval` say; the chart converts it.\n- Countries in `countries` that the data doesn't have are left out silently. `userLocation` is left out when the user's country can't be detected.\n- A custom `title` or `subtitle` hides the controls, as `hideControls` does.\n- In the tutorial variant, the walkthrough playing and its slide are kept in the page URL (`walkthrough` and `slide`), so a slide can be linked to. The slides set the chart as they need it; when the reader closes the walkthrough, the chart is back as they had it."
       },
       "examples": [
         {
@@ -402,6 +402,12 @@
           "flavour": "archie",
           "section": "intro",
           "position": 2
+        },
+        {
+          "archie": "{.bespoke-component}\nbundle: income-distribution\nvariant: tutorial\nsize: widest\n{.config}\nwalkthrough: how-to-use\n{}\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 3
         }
       ],
       "variants": [
@@ -410,6 +416,12 @@
           "description": "Income mountains: how the world's population, or that of a few countries compared, is spread across income levels",
           "defaultSize": "wide",
           "archie": "{.bespoke-component}\nbundle: income-distribution\nvariant: distribution\nsize: wide\n{}\n"
+        },
+        {
+          "name": "tutorial",
+          "description": "The income mountains with guided walkthroughs beside them: a tip on how to read the chart, and an insight on poverty in richer and poorer countries, played slide by slide",
+          "defaultSize": "widest",
+          "archie": "{.bespoke-component}\nbundle: income-distribution\nvariant: tutorial\nsize: widest\n{}\n"
         }
       ],
       "config": [
@@ -466,6 +478,15 @@
           "name": "currency",
           "type": "string",
           "description": "Three-letter code of the country whose currency incomes are shown in, such as `DEU`. `userLocation` picks the user's currency. Defaults to international-$"
+        },
+        {
+          "name": "walkthrough",
+          "type": "enum",
+          "values": [
+            "how-to-use",
+            "poverty-in-richer-and-poorer-countries"
+          ],
+          "description": "Tutorial variant only: the walkthrough that plays when the chart loads, `how-to-use` or `poverty-in-richer-and-poorer-countries`. If unset, the chart starts with none playing"
         },
         {
           "name": "hideControls",

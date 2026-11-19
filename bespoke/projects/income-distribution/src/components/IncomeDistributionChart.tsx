@@ -9,7 +9,7 @@ import {
 } from "react"
 import * as R from "remeda"
 import { scaleLinear, scaleLog } from "@visx/scale"
-import { area, curveMonotoneX } from "d3-shape"
+import { area, curveMonotoneX, line } from "d3-shape"
 import type { ScaleLinear, ScaleLogarithmic } from "d3-scale"
 
 import { Bounds, getRelativeMouse } from "@ourworldindata/utils"
@@ -20,8 +20,10 @@ import {
     GRAY_100,
     GRAY_20,
     GRAY_60,
+    GRAY_70,
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils.js"
+import { BezierArrow } from "@ourworldindata/grapher/src/arrows/BezierArrow.js"
 
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
@@ -53,15 +55,49 @@ import type {
     TimeInterval,
 } from "../core/types.js"
 import {
+    EMPHASIS_COLOR,
     INT_POVERTY_LINE,
     INTERNATIONAL_DOLLAR,
     WORLD_COLOR,
     WORLD_ENTITY_NAME,
 } from "../core/constants.js"
 import { displayEntityName, displayRegionName } from "../core/legendLabels.js"
+import type {
+    AnnotationPlacement,
+    ChartAnnotationTarget,
+} from "../core/annotations.js"
 import { IncomeDistributionTooltip } from "./IncomeDistributionTooltip.js"
 
-export interface IncomeDistributionChartProps {
+/** Text placed relative to a point of the chart (see AnnotationPlacement) */
+export interface ChartAnnotation extends AnnotationPlacement {
+    key: string
+    content: React.ReactNode
+}
+
+/**
+ * How the chart can emphasise parts of itself, e.g. while a walkthrough
+ * explains it. All off by default.
+ */
+export interface IncomeDistributionChartEmphasis {
+    /** Draw the areas very faded, as a backdrop */
+    ghostSeries?: boolean
+    /** Global view: outline the top of the stack, optionally labelled at its peak */
+    outlineTotal?: { label?: string; peakMarker?: boolean }
+    /** Global view, with a poverty line: fill the whole stack below the line */
+    fillBelowLine?: boolean
+    /** Label the regions in their bands, or the countries above their curves; default true */
+    showSeriesLabels?: boolean
+    /** Labels at either end of the x axis, e.g. "Poorest" and "Richest" */
+    axisEndLabels?: { left: string; right: string }
+    annotations?: ChartAnnotation[]
+    /**
+     * Whether hovering shows the tooltip and a click sets the line; default
+     * true. Dragging an existing line works either way.
+     */
+    isInteractive?: boolean
+}
+
+export interface IncomeDistributionChartProps extends IncomeDistributionChartEmphasis {
     model: IncomeDistributionChartModel
     /** For the share below the line in the tooltip */
     yearData: IncomeDistributionYear
@@ -141,6 +177,11 @@ const POVERTY_LINE_LABEL_MARGIN = 4
 
 const FADED_OPACITY = 0.35
 const DIMMED_OPACITY = 0.3
+/** The areas behind an emphasised outline or fill (ghostSeries) */
+const GHOST_OPACITY = 0.18
+
+/** The outline label sits this far right of the peak, in px */
+const OUTLINE_LABEL_OFFSET = 28
 
 /** A pointer that moves further than this between down and click was dragging */
 const DRAG_THRESHOLD = 5
@@ -204,6 +245,13 @@ function IncomeDistributionChartContent({
     legendBox,
     leftoverLegendTop,
     onUnlabelledCountriesChange,
+    ghostSeries = false,
+    outlineTotal,
+    fillBelowLine = false,
+    showSeriesLabels = true,
+    axisEndLabels,
+    annotations,
+    isInteractive = true,
     width,
     height,
 }: IncomeDistributionChartProps & {
@@ -254,6 +302,63 @@ function IncomeDistributionChartContent({
         [model.series, incomes, xScale, yScale]
     )
 
+    // The top of the stack, for its outline and the fill below the line
+    const totalTop = isStacked
+        ? model.series[model.series.length - 1]?.y1
+        : undefined
+    const totalPaths = useMemo(() => {
+        if (!totalTop || (!outlineTotal && !fillBelowLine)) return undefined
+        const x = (_: number, i: number): number => xScale(incomes[i])
+        return {
+            outline:
+                line<number>()
+                    .x(x)
+                    .y((y) => yScale(y))
+                    .curve(curveMonotoneX)(totalTop) ?? "",
+            area:
+                area<number>()
+                    .x(x)
+                    .y0(yScale(0))
+                    .y1((y) => yScale(y))
+                    .curve(curveMonotoneX)(totalTop) ?? "",
+        }
+    }, [totalTop, outlineTotal, fillBelowLine, incomes, xScale, yScale])
+    const totalPeak = useMemo(() => {
+        if (!totalTop) return undefined
+        const i = totalTop.reduce(
+            (best, y, j) => (y > totalTop[best] ? j : best),
+            0
+        )
+        return { x: xScale(incomes[i]), y: yScale(totalTop[i]) }
+    }, [totalTop, incomes, xScale, yScale])
+
+    const placedAnnotations = useMemo(
+        () =>
+            (annotations ?? []).map((annotation) =>
+                placeAnnotation(annotation, {
+                    target: annotationTargetPoint(annotation.target, {
+                        povertyLine,
+                        model,
+                        xScale,
+                        yScale,
+                        plotTop,
+                        plotBottom,
+                    }),
+                    width,
+                })
+            ),
+        [
+            annotations,
+            povertyLine,
+            model,
+            xScale,
+            yScale,
+            plotTop,
+            plotBottom,
+            width,
+        ]
+    )
+
     const ticks = useMemo(
         () =>
             computeAxisTicks(
@@ -266,7 +371,8 @@ function IncomeDistributionChartContent({
     )
 
     const regionLabels = useMemo(() => {
-        if (model.regionBands.length === 0) return []
+        if (model.regionBands.length === 0 || !showSeriesLabels || ghostSeries)
+            return []
         const bands: RegionBandPixels[] = model.regionBands.map((band) => ({
             region: band.region,
             points: incomes.map((income, i) => ({
@@ -287,7 +393,15 @@ function IncomeDistributionChartContent({
                     fontWeight: 700,
                 }).width / 16,
         })
-    }, [model.regionBands, incomes, xScale, yScale, isNarrow])
+    }, [
+        model.regionBands,
+        incomes,
+        xScale,
+        yScale,
+        isNarrow,
+        showSeriesLabels,
+        ghostSeries,
+    ])
 
     // The international line is always $3 a day, whatever the chart is
     // measured in: it's named on its own line, with $3 a day and the amount in
@@ -352,7 +466,7 @@ function IncomeDistributionChartContent({
         ? COUNTRY_LABEL_FONT_SIZE_NARROW
         : COUNTRY_LABEL_FONT_SIZE
     const countryLabels = useMemo((): CurveLabelLayout | undefined => {
-        if (isStacked) return undefined
+        if (isStacked || !showSeriesLabels) return undefined
         const candidates = model.series.map((s): CurveLabelCandidate => ({
             key: s.key,
             width: Bounds.forText(s.key, {
@@ -412,6 +526,7 @@ function IncomeDistributionChartContent({
         povertyLineLabelBox,
         leftoverLegendTop,
         width,
+        showSeriesLabels,
     ])
 
     // Reported by value, so a new layout with the same leftovers doesn't
@@ -648,10 +763,11 @@ function IncomeDistributionChartContent({
                 // its remove button from assistive tech
                 role="group"
                 aria-label={ariaLabel}
-                onPointerMove={handlePointerMove}
-                onPointerLeave={handlePointerLeave}
-                onPointerDown={handlePointerDown}
-                onClick={handleClick}
+                onPointerMove={isInteractive ? handlePointerMove : undefined}
+                onPointerLeave={isInteractive ? handlePointerLeave : undefined}
+                onPointerDown={isInteractive ? handlePointerDown : undefined}
+                onClick={isInteractive ? handleClick : undefined}
+                style={isInteractive ? undefined : { cursor: "default" }}
             >
                 <defs>
                     <clipPath id={clipPathId}>
@@ -683,10 +799,22 @@ function IncomeDistributionChartContent({
 
                 <g
                     className="income-distribution-chart__areas"
-                    opacity={thresholdX !== null ? FADED_OPACITY : 1}
-                    onPointerOver={handleAreaPointerOver}
-                    onPointerLeave={handleAreaPointerLeave}
-                    onPointerDown={handleAreaPointerDown}
+                    opacity={
+                        ghostSeries
+                            ? GHOST_OPACITY
+                            : thresholdX !== null
+                              ? FADED_OPACITY
+                              : 1
+                    }
+                    onPointerOver={
+                        isInteractive ? handleAreaPointerOver : undefined
+                    }
+                    onPointerLeave={
+                        isInteractive ? handleAreaPointerLeave : undefined
+                    }
+                    onPointerDown={
+                        isInteractive ? handleAreaPointerDown : undefined
+                    }
                 >
                     <AreaLayer
                         series={model.series}
@@ -695,7 +823,16 @@ function IncomeDistributionChartContent({
                         highlightedKeys={highlightedKeys}
                     />
                 </g>
-                {thresholdX !== null && (
+                {fillBelowLine && totalPaths && povertyLine !== null && (
+                    <path
+                        className="income-distribution-chart__fill-below-line"
+                        d={totalPaths.area}
+                        fill={EMPHASIS_COLOR}
+                        clipPath={`url(#${clipPathId})`}
+                        pointerEvents="none"
+                    />
+                )}
+                {thresholdX !== null && !ghostSeries && (
                     <g
                         className="income-distribution-chart__areas income-distribution-chart__areas--highlight"
                         clipPath={`url(#${clipPathId})`}
@@ -707,6 +844,66 @@ function IncomeDistributionChartContent({
                             highlightedKeys={highlightedKeys}
                         />
                     </g>
+                )}
+
+                {outlineTotal && totalPaths && totalPeak && (
+                    <g
+                        className="income-distribution-chart__outline"
+                        pointerEvents="none"
+                    >
+                        {outlineTotal.peakMarker && (
+                            <line
+                                x1={totalPeak.x}
+                                x2={totalPeak.x}
+                                y1={totalPeak.y}
+                                y2={plotBottom}
+                                stroke={GRAY_60}
+                                strokeWidth={1.5}
+                            />
+                        )}
+                        <path
+                            d={totalPaths.outline}
+                            fill="none"
+                            stroke={EMPHASIS_COLOR}
+                            strokeWidth={2}
+                            strokeLinejoin="round"
+                        />
+                        {outlineTotal.label && (
+                            <text
+                                className="income-distribution-chart__outline-label"
+                                x={totalPeak.x + OUTLINE_LABEL_OFFSET}
+                                y={totalPeak.y}
+                                dy="0.71em"
+                                fontSize={isNarrow ? 13 : 14}
+                                fill={EMPHASIS_COLOR}
+                            >
+                                {outlineTotal.label}
+                            </text>
+                        )}
+                    </g>
+                )}
+
+                {axisEndLabels && (
+                    <AxisEndLabels
+                        {...axisEndLabels}
+                        plotLeft={plotLeft}
+                        plotRight={plotRight}
+                        y={plotBottom - 8}
+                        fontSize={isNarrow ? 12 : 14}
+                    />
+                )}
+
+                {placedAnnotations.map(
+                    ({ key, arrow }) =>
+                        arrow && (
+                            <BezierArrow
+                                key={key}
+                                className="income-distribution-chart__annotation-arrow"
+                                {...arrow}
+                                color={GRAY_70}
+                                width={1}
+                            />
+                        )
                 )}
 
                 {regionLabels.map((label) => (
@@ -794,6 +991,20 @@ function IncomeDistributionChartContent({
                     hintOnly={!isStacked && hoveredEntity === null}
                 />
             )}
+
+            {placedAnnotations.map(({ key, content, isHint, style }) => (
+                <div
+                    key={key}
+                    className={
+                        isHint
+                            ? "income-distribution-chart__annotation income-distribution-chart__annotation--hint"
+                            : "income-distribution-chart__annotation"
+                    }
+                    style={style}
+                >
+                    {content}
+                </div>
+            ))}
 
             {clearHintAt && (
                 <div
@@ -1346,4 +1557,190 @@ function computeAxisTicks(
 function seriesKeyOf(target: EventTarget): string | null {
     if (!(target instanceof Element)) return null
     return target.getAttribute("data-key")
+}
+
+/** "⟵ Poorest" and "Richest ⟶" just above either end of the x axis */
+function AxisEndLabels({
+    left,
+    right,
+    plotLeft,
+    plotRight,
+    y,
+    fontSize,
+}: {
+    left: string
+    right: string
+    plotLeft: number
+    plotRight: number
+    /** Baseline */
+    y: number
+    fontSize: number
+}): React.ReactElement {
+    const arrowLength = 18
+    const gap = 4
+    const arrowY = y - fontSize * 0.3
+    const textProps = {
+        y,
+        fontSize,
+        fill: GRAPHER_LIGHT_TEXT,
+        stroke: GRAPHER_BACKGROUND,
+        strokeWidth: 3,
+        paintOrder: "stroke",
+    } as const
+    return (
+        <g
+            className="income-distribution-chart__axis-ends"
+            pointerEvents="none"
+        >
+            <BezierArrow
+                start={{ x: plotLeft + arrowLength, y: arrowY }}
+                end={{ x: plotLeft, y: arrowY }}
+                color={GRAPHER_LIGHT_TEXT}
+                headLength={4}
+            />
+            <text x={plotLeft + arrowLength + gap} {...textProps}>
+                {left}
+            </text>
+            <BezierArrow
+                start={{ x: plotRight - arrowLength, y: arrowY }}
+                end={{ x: plotRight, y: arrowY }}
+                color={GRAPHER_LIGHT_TEXT}
+                headLength={4}
+            />
+            <text
+                x={plotRight - arrowLength - gap}
+                textAnchor="end"
+                {...textProps}
+            >
+                {right}
+            </text>
+        </g>
+    )
+}
+
+/** The value of `values` (one per grid point) at `income`, interpolated on the log axis */
+function valueAtIncome(
+    values: number[],
+    incomes: number[],
+    income: number
+): number {
+    const i = R.sortedIndex(incomes, income)
+    if (i <= 0) return values[0]
+    if (i >= incomes.length) return values[values.length - 1]
+    const t =
+        (Math.log(income) - Math.log(incomes[i - 1])) /
+        (Math.log(incomes[i]) - Math.log(incomes[i - 1]))
+    return values[i - 1] + t * (values[i] - values[i - 1])
+}
+
+function annotationTargetPoint(
+    target: ChartAnnotationTarget,
+    {
+        povertyLine,
+        model,
+        xScale,
+        yScale,
+        plotTop,
+        plotBottom,
+    }: {
+        povertyLine: number | null
+        model: IncomeDistributionChartModel
+        xScale: ScaleLogarithmic<number, number>
+        yScale: ScaleLinear<number, number>
+        plotTop: number
+        plotBottom: number
+    }
+): { x: number; y: number } {
+    const income =
+        target.income === "povertyLine"
+            ? (povertyLine ?? xScale.domain()[0])
+            : target.income
+    const x = xScale(income)
+    if ("plot" in target.y)
+        return { x, y: plotTop + target.y.plot * (plotBottom - plotTop) }
+    const { curve, fraction = 1 } = target.y
+    const series =
+        curve === "total"
+            ? model.series[model.series.length - 1]
+            : model.series.find((s) => s.key === curve)
+    if (!series) return { x, y: plotBottom }
+    const top = valueAtIncome(series.y1, model.grid.incomes, income)
+    const bottom = valueAtIncome(series.y0, model.grid.incomes, income)
+    return { x, y: yScale(bottom + fraction * (top - bottom)) }
+}
+
+interface PlacedAnnotation {
+    key: string
+    content: React.ReactNode
+    isHint: boolean
+    /** Of the text block, absolutely positioned in the chart's container */
+    style: React.CSSProperties
+    arrow?: Pick<
+        React.ComponentProps<typeof BezierArrow>,
+        "start" | "end" | "startHandle" | "endHandle"
+    >
+}
+
+/** Pixel positions of an annotation's text and arrow, the text kept inside the chart */
+function placeAnnotation(
+    annotation: ChartAnnotation,
+    { target, width }: { target: { x: number; y: number }; width: number }
+): PlacedAnnotation {
+    const { textOffset, textAnchor = "top-left", arrow } = annotation
+    const blockWidth = Math.min(annotation.width, width)
+    const anchorX = target.x + textOffset.dx
+    const anchorY = target.y + textOffset.dy
+    const isRight = textAnchor.endsWith("right")
+    const left = R.clamp(isRight ? anchorX - blockWidth : anchorX, {
+        min: 0,
+        max: Math.max(width - blockWidth, 0),
+    })
+    const style: React.CSSProperties = {
+        left,
+        width: blockWidth,
+        textAlign: isRight ? "right" : "left",
+        ...(textAnchor.startsWith("top")
+            ? { top: anchorY }
+            : { top: anchorY, transform: "translateY(-100%)" }),
+    }
+
+    let placedArrow: PlacedAnnotation["arrow"]
+    if (arrow) {
+        const start = {
+            x: target.x + arrow.from.dx,
+            y: target.y + arrow.from.dy,
+        }
+        // Stop short of the target, along the line from the start
+        const gap = arrow.gap ?? 4
+        const distance = Math.hypot(target.x - start.x, target.y - start.y)
+        const ratio = distance > gap ? (distance - gap) / distance : 0
+        const end = {
+            x: start.x + (target.x - start.x) * ratio,
+            y: start.y + (target.y - start.y) * ratio,
+        }
+        placedArrow = {
+            start,
+            end,
+            startHandle: arrow.startHandle
+                ? {
+                      x: start.x + arrow.startHandle.dx,
+                      y: start.y + arrow.startHandle.dy,
+                  }
+                : undefined,
+            endHandle: arrow.endHandle
+                ? {
+                      x: end.x + arrow.endHandle.dx,
+                      y: end.y + arrow.endHandle.dy,
+                  }
+                : undefined,
+        }
+    }
+
+    return {
+        key: annotation.key,
+        content: annotation.content,
+        isHint: annotation.isHint ?? false,
+        style,
+        arrow: placedArrow,
+    }
 }

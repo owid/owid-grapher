@@ -46,6 +46,17 @@
     pointer-events: none;
 }
 
+// Over the plot's top-left corner: whatever a variant puts there, e.g. a
+// walkthrough slide's aside. The chart's labels keep clear of it.
+.income-distribution-captioned-chart__plot-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.income-distribution-captioned-chart__plot-overlay > *,
 .income-distribution-captioned-chart__overlays > * {
     pointer-events: auto;
 }

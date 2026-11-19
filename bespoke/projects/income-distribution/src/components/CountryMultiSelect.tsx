@@ -55,6 +55,8 @@ export interface CountryMultiSelectProps {
     /** When set, each option says after the name whether the country's data measures income or consumption */
     welfareTypeOf?: (name: string) => WelfareType
     isNarrow: boolean
+    /** A bordered button (as Grapher's), or a blue text link, e.g. inside a legend */
+    appearance?: "button" | "link"
 }
 
 export function CountryMultiSelect({
@@ -63,6 +65,7 @@ export function CountryMultiSelect({
     onChange,
     welfareTypeOf,
     isNarrow,
+    appearance = "button",
 }: CountryMultiSelectProps): React.ReactElement {
     const [isOpen, setIsOpen] = useState(false)
     // The selection as it was when the menu opened, pinned to the top so the
@@ -85,8 +88,10 @@ export function CountryMultiSelect({
             <Button
                 className={({ isPressed }) =>
                     cx("income-distribution-edit-countries", {
+                        "income-distribution-edit-countries--link":
+                            appearance === "link",
                         "income-distribution-edit-countries--active":
-                            isOpen || isPressed,
+                            appearance === "button" && (isOpen || isPressed),
                     })
                 }
                 aria-label={
@@ -247,6 +252,9 @@ function CountryListBox({
                 className="grapher-dropdown-listbox"
                 aria-label="Countries"
                 selectionMode="multiple"
+                // Escape closes the popover; by default it would also
+                // clear every selected country
+                escapeKeyBehavior="none"
                 selectedKeys={selectedKeys}
                 disabledKeys={disabledKeys}
                 onSelectionChange={handleSelectionChange}

@@ -1,3 +1,4 @@
+import { useCallback } from "react"
 import cx from "clsx"
 
 import {
@@ -10,7 +11,15 @@ import {
     SwitcherItem,
 } from "../../../../components/Switcher/Switcher.js"
 
+import {
+    DEFAULT_CUSTOM_POVERTY_LINE,
+    INT_POVERTY_LINE,
+} from "../core/constants.js"
 import { Currency, PovertyLineMode, TimeInterval, View } from "../core/types.js"
+import type {
+    ChartState,
+    ChartStateSetters,
+} from "../core/useIncomeDistributionState.js"
 import { IncomeUnitPicker } from "./IncomeUnitPicker.js"
 
 export interface IncomeDistributionControlsProps {
@@ -118,6 +127,59 @@ const POVERTY_LINE_ITEMS: SwitcherItem<PovertyLineMode>[] = [
     { key: "custom", element: "Custom", hint: "Select your own poverty line" },
 ]
 
+/**
+ * The controls' props for the given state. The poverty line control isn't
+ * stored: it's read off the line. Only the exact international line, as
+ * picked from the control, counts as International; a line dragged or
+ * clicked to about $3 stays Custom.
+ */
+export function useIncomeDistributionControlsProps({
+    chartState,
+    setters,
+    currencies,
+    suggestedCurrency,
+    isNarrow,
+}: {
+    chartState: ChartState
+    setters: ChartStateSetters
+    currencies: Currency[] | undefined
+    suggestedCurrency: Currency | undefined
+    isNarrow: boolean
+}): IncomeDistributionControlsProps {
+    const { povertyLine } = chartState
+    const { setPovertyLine } = setters
+    const povertyLineMode: PovertyLineMode =
+        povertyLine === null
+            ? "off"
+            : povertyLine === INT_POVERTY_LINE
+              ? "international"
+              : "custom"
+    const setPovertyLineMode = useCallback(
+        (mode: PovertyLineMode) => {
+            if (mode === "off") setPovertyLine(null)
+            if (mode === "international") setPovertyLine(INT_POVERTY_LINE)
+            // Picking Custom starts the line somewhere other than the
+            // international line, ready to be dragged
+            if (mode === "custom" && povertyLineMode !== "custom")
+                setPovertyLine(DEFAULT_CUSTOM_POVERTY_LINE)
+        },
+        [povertyLineMode, setPovertyLine]
+    )
+    return {
+        view: chartState.view,
+        setView: setters.setView,
+        timeInterval: chartState.timeInterval,
+        setTimeInterval: setters.setTimeInterval,
+        currency: chartState.currency,
+        setCurrency: setters.setCurrency,
+        currencies,
+        suggestedCurrency,
+        povertyLineMode,
+        setPovertyLineMode,
+        isNarrow,
+    }
+}
+
 export function IncomeDistributionControls({
     view,
     setView,
@@ -134,34 +196,16 @@ export function IncomeDistributionControls({
 }: IncomeDistributionControlsProps): React.ReactElement {
     const controls = (
         <>
-            <LabeledControl
-                label="View"
-                className={cx(
-                    "income-distribution-controls__switcher",
-                    "income-distribution-controls__view"
-                )}
-            >
-                <Switcher
-                    items={VIEW_ITEMS}
-                    selectedKey={view}
-                    onChange={setView}
-                    ariaLabel="View"
-                />
-            </LabeledControl>
-            <LabeledControl
-                label="Measured in"
-                className="income-distribution-controls__units"
-            >
-                <IncomeUnitPicker
-                    currency={currency}
-                    setCurrency={setCurrency}
-                    currencies={currencies}
-                    suggestedCurrency={suggestedCurrency}
-                    timeInterval={timeInterval}
-                    setTimeInterval={setTimeInterval}
-                    isNarrow={isNarrow}
-                />
-            </LabeledControl>
+            <ViewControl view={view} setView={setView} />
+            <MeasuredInControl
+                currency={currency}
+                setCurrency={setCurrency}
+                currencies={currencies}
+                suggestedCurrency={suggestedCurrency}
+                timeInterval={timeInterval}
+                setTimeInterval={setTimeInterval}
+                isNarrow={isNarrow}
+            />
             <LabeledControl
                 label="Poverty line"
                 className={cx(
@@ -190,5 +234,78 @@ export function IncomeDistributionControls({
         <Controls className="income-distribution-controls">
             <ControlsRow>{controls}</ControlsRow>
         </Controls>
+    )
+}
+
+/** The View switcher, Global | Compare countries, with its label */
+export function ViewControl({
+    view,
+    setView,
+    hideLabel = false,
+}: Pick<IncomeDistributionControlsProps, "view" | "setView"> & {
+    hideLabel?: boolean
+}): React.ReactElement {
+    const className = cx(
+        "income-distribution-controls__switcher",
+        "income-distribution-controls__view"
+    )
+    const switcher = (
+        <Switcher
+            items={VIEW_ITEMS}
+            selectedKey={view}
+            onChange={setView}
+            ariaLabel="View"
+        />
+    )
+    if (hideLabel) return <div className={className}>{switcher}</div>
+    return (
+        <LabeledControl label="View" className={className}>
+            {switcher}
+        </LabeledControl>
+    )
+}
+
+/** The currency and time interval picker, with its label */
+export function MeasuredInControl({
+    currency,
+    setCurrency,
+    currencies,
+    suggestedCurrency,
+    timeInterval,
+    setTimeInterval,
+    isNarrow,
+    hideLabel = false,
+}: Pick<
+    IncomeDistributionControlsProps,
+    | "currency"
+    | "setCurrency"
+    | "currencies"
+    | "suggestedCurrency"
+    | "timeInterval"
+    | "setTimeInterval"
+    | "isNarrow"
+> & { hideLabel?: boolean }): React.ReactElement {
+    const picker = (
+        <IncomeUnitPicker
+            currency={currency}
+            setCurrency={setCurrency}
+            currencies={currencies}
+            suggestedCurrency={suggestedCurrency}
+            timeInterval={timeInterval}
+            setTimeInterval={setTimeInterval}
+            isNarrow={isNarrow}
+        />
+    )
+    if (hideLabel)
+        return (
+            <div className="income-distribution-controls__units">{picker}</div>
+        )
+    return (
+        <LabeledControl
+            label="Measured in"
+            className="income-distribution-controls__units"
+        >
+            {picker}
+        </LabeledControl>
     )
 }
