@@ -1078,7 +1078,7 @@ function SourceDetails({ source }: { source: DatasetSource }) {
             {source.downloads.length > 1 && (
                 <div className="dataset-page__source-downloads">
                     <p className="dataset-page__source-downloads-title">
-                        We use {source.downloads.length} files from this source:
+                        Download the files we use from this source:
                     </p>
                     <ul>
                         {source.downloads.map((download, i) => (
