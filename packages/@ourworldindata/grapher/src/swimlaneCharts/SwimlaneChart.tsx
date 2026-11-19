@@ -35,7 +35,11 @@ import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { HorizontalAxis } from "../axis/Axis"
 import { ChartInterface } from "../chart/ChartInterface"
 import { TooltipState } from "../tooltip/Tooltip"
-import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
+import {
+    getVisibleLabels,
+    roundFontSize,
+    scaleFontSize,
+} from "../chart/ChartUtils"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
 import {
@@ -257,14 +261,30 @@ export class SwimlaneChart
         })
     }
 
+    @computed private get shouldShowEntityLabels(): boolean {
+        return getVisibleLabels(this.manager.labelMode).rowLabelNames
+    }
+
+    @computed private get shouldShowAxis(): boolean {
+        return getVisibleLabels(this.manager.labelMode).axisText
+    }
+
     @computed private get xAxisConfig(): AxisConfig {
+        const labelModeOverrides = this.shouldShowAxis
+            ? {}
+            : { hideTickLabels: true }
         return new AxisConfig(
-            { isDomainEndExclusive: true, ...this.manager.xAxisConfig },
+            {
+                isDomainEndExclusive: true,
+                ...this.manager.xAxisConfig,
+                ...labelModeOverrides,
+            },
             this
         )
     }
 
     @computed private get entityLabelMaxWidth(): number {
+        if (!this.shouldShowEntityLabels) return 0
         const labelWidths = this.sizedSeries.flatMap((series) => [
             series.label.width,
             series.annotationTextWrap?.width ?? 0,
@@ -274,8 +294,11 @@ export class SwimlaneChart
     }
 
     @computed get axisBounds(): Bounds {
+        const labelGap = this.shouldShowEntityLabels
+            ? ENTITY_LABEL_CHART_GAP
+            : 0
         return this.boundsWithoutLegend.padLeft(
-            this.entityLabelMaxWidth + ENTITY_LABEL_CHART_GAP
+            this.entityLabelMaxWidth + labelGap
         )
     }
 
@@ -412,6 +435,7 @@ export class SwimlaneChart
                 series={series}
                 y={series.y}
                 noDataPatternId={this.noDataPatternId}
+                showEntityLabel={this.shouldShowEntityLabels}
             />
         ))
     }
@@ -431,6 +455,7 @@ export class SwimlaneChart
                         series={series}
                         y={0}
                         noDataPatternId={this.noDataPatternId}
+                        showEntityLabel={this.shouldShowEntityLabels}
                         onSegmentMouseEnter={this.onSegmentMouseEnter}
                         onSegmentMouseLeave={this.onSegmentMouseLeave}
                     />
@@ -439,7 +464,8 @@ export class SwimlaneChart
         )
     }
 
-    private renderAxis(): React.ReactElement {
+    private renderAxis(): React.ReactElement | null {
+        if (!this.shouldShowAxis) return null
         return (
             <>
                 <HorizontalAxisComponent

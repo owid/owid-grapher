@@ -26,6 +26,8 @@ export function StackedDiscreteBarRow({
     labelFontSize,
     yAxis,
     showTotalValueLabel,
+    showSegmentValueLabels,
+    showEntityLabel,
     formatValueForLabel,
     onEntityMouseEnter,
     onEntityMouseLeave,
@@ -37,6 +39,8 @@ export function StackedDiscreteBarRow({
     labelFontSize: number
     yAxis: HorizontalAxis
     showTotalValueLabel: boolean
+    showSegmentValueLabels: boolean
+    showEntityLabel: boolean
     formatValueForLabel: (value: number) => string
     onEntityMouseEnter: (entityName: string, seriesName?: string) => void
     onEntityMouseLeave: () => void
@@ -45,7 +49,7 @@ export function StackedDiscreteBarRow({
     const { entityName, label, segments, totalValue, emphasis } = row
 
     const totalLabel = formatValueForLabel(totalValue)
-    const showLabelInsideBar = segments.length > 1
+    const showLabelInsideBar = showSegmentValueLabels && segments.length > 1
 
     const labelStyle = LABEL_STYLE[emphasis]
 
@@ -74,15 +78,17 @@ export function StackedDiscreteBarRow({
                     onMouseLeave={onEntityMouseLeave}
                 />
             ))}
-            <SeriesLabel
-                state={label}
-                x={yAxis.place(0) - labelToBarPadding}
-                y={-label.height / 2}
-                onMouseEnter={(): void => onEntityMouseEnter(label.text)}
-                onMouseLeave={onEntityMouseLeave}
-                onInfoTooltipShow={onClearTooltip}
-                opacity={labelStyle.opacity}
-            />
+            {showEntityLabel && (
+                <SeriesLabel
+                    state={label}
+                    x={yAxis.place(0) - labelToBarPadding}
+                    y={-label.height / 2}
+                    onMouseEnter={(): void => onEntityMouseEnter(label.text)}
+                    onMouseLeave={onEntityMouseLeave}
+                    onInfoTooltipShow={onClearTooltip}
+                    opacity={labelStyle.opacity}
+                />
+            )}
             {showTotalValueLabel && (
                 <text
                     transform={`translate(${roundForSvg(

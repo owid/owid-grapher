@@ -29,6 +29,15 @@ describe("new params", () => {
     })
 })
 
+it.each([ChartLabelMode.Names, ChartLabelMode.None])(
+    "accepts imLabels=%s on a simplified image",
+    (labelMode) => {
+        expect(
+            parse(`imVariant=simplified&imLabels=${labelMode}`)
+        ).toMatchObject({ variant: GrapherVariant.Thumbnail, labelMode })
+    }
+)
+
 describe(serializeImageRequest, () => {
     it("omits defaults, so the default request serializes to nothing", () => {
         expect(serializeImageRequest(parse("")).toString()).toBe("")
@@ -113,8 +122,9 @@ describe("rejected image requests", () => {
         { query: "imMinimal=1&imLabels=names", param: "imMinimal" },
         { query: "imMinimal=1", param: "imMinimal" },
         { query: "imVariant=uncaptioned&imLabels=names", param: "imLabels" },
-        { query: "imVariant=simplified&imLabels=names", param: "imLabels" },
-        { query: "imVariant=simplified&imLabels=none", param: "imLabels" },
+        { query: "imVariant=uncaptioned&imLabels=none", param: "imLabels" },
+        { query: "imLabels=names", param: "imLabels" },
+        { query: "imLabels=none", param: "imLabels" },
         { query: "imPreset=og&imWidth=400", param: "imWidth" },
         { query: "imPreset=og&imHeight=400", param: "imHeight" },
         { query: "imType=twitter&imWidth=1700", param: "imWidth" },

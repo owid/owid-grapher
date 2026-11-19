@@ -4,13 +4,13 @@ import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import { type StackedAreaChartProps } from "./StackedAreaChart.js"
-import { Bounds, excludeUndefined } from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
 } from "../core/GrapherConstants"
-import { scaleFontSize } from "../chart/ChartUtils"
+import { getVisibleLabels, scaleFontSize } from "../chart/ChartUtils"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
@@ -18,7 +18,7 @@ import {
     HorizontalAxisComponent,
     VerticalAxisZeroLine,
 } from "../axis/AxisViews"
-import { ChartLabelMode, Time } from "@ourworldindata/types"
+import { Time } from "@ourworldindata/types"
 import {
     PlacedStackedAreaSeries,
     RenderStackedAreaSeries,
@@ -70,7 +70,12 @@ export class StackedAreaChartThumbnail
     @computed private get xAxisConfig(): AxisConfig {
         const { xAxisConfig } = this.manager
         const custom = { hideGridlines: true, labelPadding: 0 }
-        return new AxisConfig({ ...custom, ...xAxisConfig }, this)
+        const { axisText } = getVisibleLabels(this.manager.labelMode)
+        const labelModeOverrides = axisText ? {} : { hideTickLabels: true }
+        return new AxisConfig(
+            { ...custom, ...xAxisConfig, ...labelModeOverrides },
+            this
+        )
     }
 
     @computed private get yAxisConfig(): AxisConfig {
@@ -126,23 +131,17 @@ export class StackedAreaChartThumbnail
     >[] {
         if (
             !this.manager.showSeriesLabels ||
-            this.manager.labelMode === ChartLabelMode.Values
+            !getVisibleLabels(this.manager.labelMode).endLabelNames
         )
             return []
 
-        return excludeUndefined(
-            this.chartState.series.map((series, seriesIndex) => {
-                const { seriesName, shortEntityName, color, focus } = series
-
-                // Don't label background series
-                if (focus?.background) return undefined
-
-                const value = this.chartState.midpoints[seriesIndex]
-                const label = shortEntityName ?? seriesName
-
-                return { seriesName, value, label, color }
-            })
-        )
+        return this.chartState.series.map((series, seriesIndex) => {
+            const { seriesName, shortEntityName, color, focus } = series
+            const value = this.chartState.midpoints[seriesIndex]
+            const label = shortEntityName ?? seriesName
+            const emphasis = resolveEmphasis({ focus })
+            return { seriesName, value, label, color, emphasis }
+        })
     }
 
     private makeAnchoredLabelsState({
@@ -152,11 +151,11 @@ export class StackedAreaChartThumbnail
     }): AnchoredLabelsState | undefined {
         if (this.labelsSeries.length === 0) return undefined
 
-        const series = toInitialAnchoredLabelSeries(
-            this.labelsSeries,
-            this.chartState.seriesByName,
-            dualAxis
-        )
+        const series = toInitialAnchoredLabelSeries(this.labelsSeries, {
+            seriesByName: this.chartState.seriesByName,
+            dualAxis,
+            fontSize: this.labelFontSettings.fontSize,
+        })
 
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,

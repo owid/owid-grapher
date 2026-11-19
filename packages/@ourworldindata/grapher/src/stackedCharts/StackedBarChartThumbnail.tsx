@@ -10,8 +10,8 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
 } from "../core/GrapherConstants"
-import { scaleFontSize } from "../chart/ChartUtils"
-import { Bounds, excludeUndefined } from "@ourworldindata/utils"
+import { getVisibleLabels, scaleFontSize } from "../chart/ChartUtils"
+import { Bounds } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Time } from "@ourworldindata/types"
@@ -72,7 +72,12 @@ export class StackedBarChartThumbnail
         const { xAxisConfig } = this.manager
         const defaults = getXAxisConfigDefaultsForStackedBar(this.chartState)
         const custom = { labelPadding: 0 }
-        return new AxisConfig({ ...custom, ...defaults, ...xAxisConfig }, this)
+        const { axisText } = getVisibleLabels(this.manager.labelMode)
+        const labelModeOverrides = axisText ? {} : { hideTickLabels: true }
+        return new AxisConfig(
+            { ...custom, ...defaults, ...xAxisConfig, ...labelModeOverrides },
+            this
+        )
     }
 
     @computed private get yAxisConfig(): AxisConfig {
@@ -126,21 +131,19 @@ export class StackedBarChartThumbnail
         InitialAnchoredLabelSeries,
         "position"
     >[] {
-        if (!this.manager.showLegend) return []
-
-        return excludeUndefined(
-            this.chartState.series.map((series, seriesIndex) => {
-                const { seriesName, shortEntityName, color, focus } = series
-
-                // Don't label background series
-                if (focus?.background) return undefined
-
-                const value = this.chartState.midpoints[seriesIndex]
-                const label = shortEntityName ?? seriesName
-
-                return { seriesName, value, label, color }
-            })
+        if (
+            !this.manager.showSeriesLabels ||
+            !getVisibleLabels(this.manager.labelMode).endLabelNames
         )
+            return []
+
+        return this.chartState.series.map((series, seriesIndex) => {
+            const { seriesName, shortEntityName, color, focus } = series
+            const value = this.chartState.midpoints[seriesIndex]
+            const label = shortEntityName ?? seriesName
+            const emphasis = resolveEmphasis({ focus })
+            return { seriesName, value, label, color, emphasis }
+        })
     }
 
     private makeAnchoredLabelsState({
@@ -150,11 +153,11 @@ export class StackedBarChartThumbnail
     }): AnchoredLabelsState | undefined {
         if (this.labelsSeries.length === 0) return undefined
 
-        const series = toInitialAnchoredLabelSeries(
-            this.labelsSeries,
-            this.chartState.seriesByName,
-            dualAxis
-        )
+        const series = toInitialAnchoredLabelSeries(this.labelsSeries, {
+            seriesByName: this.chartState.seriesByName,
+            dualAxis,
+            fontSize: this.labelFontSettings.fontSize,
+        })
 
         return new AnchoredLabelsState(series, {
             ...this.labelFontSettings,
