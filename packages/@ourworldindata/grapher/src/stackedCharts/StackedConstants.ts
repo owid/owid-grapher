@@ -59,6 +59,9 @@ export const LEGEND_STYLE_FOR_STACKED_CHARTS: LegendStyleConfig = {
     },
 }
 
+/** Thumbnails label a band only if it is at least this tall at the last time */
+export const MIN_LABELED_BAND_HEIGHT_PX = 3
+
 /** Either categorical (e.g. country names), or ordinal (e.g. years)  */
 export type StackedPointPositionType = string | number
 
