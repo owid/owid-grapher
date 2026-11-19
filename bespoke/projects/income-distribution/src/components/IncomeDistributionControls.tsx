@@ -104,6 +104,7 @@ const VIEW_ITEMS: SwitcherItem<View>[] = [
                 Global
             </>
         ),
+        hint: "Everyone in the world, stacked by region",
     },
     {
         key: "countries",
@@ -113,6 +114,7 @@ const VIEW_ITEMS: SwitcherItem<View>[] = [
                 Compare countries
             </>
         ),
+        hint: "Selected countries side by side, each scaled to the same area",
     },
 ]
 

@@ -120,12 +120,13 @@ export function WalkthroughRail({
 export function WalkthroughPills({
     walkthroughs,
     progress,
-    onToggle,
+    onSelect,
     leading,
 }: {
     walkthroughs: Walkthrough[]
     progress: WalkthroughProgress
-    onToggle: (id: string) => void
+    /** Opens a walkthrough; the playing one stays open */
+    onSelect: (id: string) => void
     leading?: React.ReactNode
 }): React.ReactElement {
     const rowRef = useRef<HTMLDivElement>(null)
@@ -169,7 +170,9 @@ export function WalkthroughPills({
                         })}
                         aria-pressed={isActive}
                         data-walkthrough={walkthrough.id}
-                        onClick={() => onToggle(walkthrough.id)}
+                        onClick={() => {
+                            if (!isActive) onSelect(walkthrough.id)
+                        }}
                     >
                         <FontAwesomeIcon
                             icon={faLightbulb}

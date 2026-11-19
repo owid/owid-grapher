@@ -181,13 +181,25 @@ function CaptionedTutorialVariant({
         [slideKey]
     )
 
+    // Once a walkthrough the reader started is on screen, bring the whole
+    // frame into view, from the slide's text to the buttons below the chart
+    const chartRef = useRef<HTMLDivElement>(null)
+    const shouldScrollIntoViewRef = useRef(false)
     const open = useCallback(
         (id: string) => {
+            shouldScrollIntoViewRef.current = true
             setWalkthroughId(id)
             setRawSlide(1)
         },
         [setWalkthroughId, setRawSlide]
     )
+    useEffect(() => {
+        if (!walkthrough || !shouldScrollIntoViewRef.current) return
+        shouldScrollIntoViewRef.current = false
+        const element = chartRef.current
+        if (!element) return
+        scrollIntoViewIfCutOff(element)
+    }, [walkthrough])
     const close = useCallback(() => {
         if (walkthrough && slideNumber >= walkthrough.slides.length)
             setWatchedIds((ids) => new Set([...ids, walkthrough.id]))
@@ -356,11 +368,14 @@ function CaptionedTutorialVariant({
                 <WalkthroughPills
                     walkthroughs={WALKTHROUGHS}
                     progress={progress}
-                    onToggle={toggle}
+                    // Tapping the playing one leaves it playing: the "Exit
+                    // tutorial" button in front of the pills is the way out
+                    onSelect={open}
                     leading={leadingButton}
                 />
             )}
             <div
+                ref={chartRef}
                 className="income-distribution-tutorial__chart"
                 {...swipeHandlers}
             >
@@ -601,6 +616,23 @@ function narrowAside(
         .filter(R.isDefined)
         .map((text) => resolveSlideText(text, data))
     return texts.length > 0 ? texts.join(" ") : undefined
+}
+
+/**
+ * Scrolls so the element is fully on screen, if it isn't: the least that
+ * does it, or to its top when it's taller than the viewport
+ */
+function scrollIntoViewIfCutOff(element: HTMLElement): void {
+    const { top, bottom, height } = element.getBoundingClientRect()
+    const viewportHeight = window.innerHeight
+    if (top >= 0 && bottom <= viewportHeight) return
+    const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    ).matches
+    element.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: height > viewportHeight ? "start" : "nearest",
+    })
 }
 
 /** Whether a key press belongs to something else: a text field, a slider or a popover */
