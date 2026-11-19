@@ -44,6 +44,8 @@ import {
     ViewControl,
     type IncomeDistributionControlsProps,
 } from "../components/IncomeDistributionControls.js"
+import { faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ConfigureDrawer } from "../components/ConfigureDrawer.js"
 import { IncomeDistributionFrame } from "../components/IncomeDistributionFrame.js"
 import type { ChartAnnotation } from "../components/IncomeDistributionChart.js"
@@ -293,10 +295,29 @@ function CaptionedTutorialVariant({
         watchedIds,
     }
 
-    const configureButton = !shouldHideControls && (
-        <ConfigureDrawer container={node}>
-            <IncomeDistributionControls {...controlsProps} layout="drawer" />
-        </ConfigureDrawer>
+    // Narrow charts: in front of the pills, the drawer's button, or, while a
+    // walkthrough plays, the way out of it
+    const leadingButton = walkthrough ? (
+        <button
+            type="button"
+            className="income-distribution-configure-button"
+            onClick={close}
+        >
+            <FontAwesomeIcon
+                icon={faArrowRightFromBracket}
+                className="income-distribution-configure-button__icon"
+            />
+            Exit tutorial &amp; explore
+        </button>
+    ) : (
+        !shouldHideControls && (
+            <ConfigureDrawer container={node}>
+                <IncomeDistributionControls
+                    {...controlsProps}
+                    layout="drawer"
+                />
+            </ConfigureDrawer>
+        )
     )
 
     return (
@@ -336,7 +357,7 @@ function CaptionedTutorialVariant({
                     walkthroughs={WALKTHROUGHS}
                     progress={progress}
                     onToggle={toggle}
-                    leading={configureButton}
+                    leading={leadingButton}
                 />
             )}
             <div

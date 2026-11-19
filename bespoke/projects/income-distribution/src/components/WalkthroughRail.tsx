@@ -113,7 +113,8 @@ export function WalkthroughRail({
 
 /**
  * Narrow charts: one pill per walkthrough in a row that scrolls sideways,
- * after `leading` (the "Configure the data" button). The playing one is
+ * after `leading` (the "Configure the data" or "Exit tutorial" button, which
+ * stays in view while the pills scroll under it). The playing one is
  * filled and kept in view.
  */
 export function WalkthroughPills({
@@ -136,16 +137,26 @@ export function WalkthroughPills({
             `[data-walkthrough="${activeId}"]`
         )
         if (!active) return
+        // Right after the leading button, which stays put while the pills
+        // scroll under it
+        const leading = row.querySelector<HTMLElement>(
+            ".income-distribution-tutorial-pills__leading"
+        )
+        const leadingWidth = leading ? leading.offsetWidth : 0
         // Scroll the row only, not the page
         row.scrollTo({
-            left: active.offsetLeft - row.offsetLeft - 16,
+            left: active.offsetLeft - row.offsetLeft - leadingWidth,
             behavior: "smooth",
         })
     }, [activeId])
 
     return (
         <div ref={rowRef} className="income-distribution-tutorial-pills">
-            {leading}
+            {leading && (
+                <div className="income-distribution-tutorial-pills__leading">
+                    {leading}
+                </div>
+            )}
             {walkthroughs.map((walkthrough) => {
                 const isActive = progress.activeId === walkthrough.id
                 return (

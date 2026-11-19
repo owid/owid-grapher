@@ -121,7 +121,20 @@
     .income-distribution-configure-button {
         flex-shrink: 0;
         margin-bottom: 0;
+        white-space: nowrap;
     }
+}
+
+// The leading button stays put while the pills scroll under it; its padding
+// covers the gap to the first pill
+.income-distribution-tutorial-pills__leading {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    flex-shrink: 0;
+    margin-right: -8px;
+    padding-right: 8px;
+    background: $white;
 }
 
 .income-distribution-tutorial-pill {
