@@ -3,7 +3,10 @@ import { isolateDiagMiddleware } from "./isolateDiag.js"
 
 // The middleware only needs the request and next(); the rest of the Pages
 // context is irrelevant to it.
-function run(headers: Record<string, string> = {}) {
+function run(headers: Record<string, string> = {}): {
+    original: Response
+    response: ReturnType<typeof isolateDiagMiddleware>
+} {
     const original = new Response("body", {
         status: 201,
         headers: { "content-type": "text/plain" },
@@ -26,7 +29,7 @@ describe(isolateDiagMiddleware, () => {
         const first = await run({ "x-owid-diag": "1" }).response
         const second = await run({ "x-owid-diag": "1" }).response
 
-        const parse = (r: Response) =>
+        const parse = (r: Response): Record<string, string> =>
             Object.fromEntries(
                 (r.headers.get("x-owid-diag") ?? "")
                     .split(";")

@@ -2,10 +2,11 @@ import { Env } from "./env.js"
 
 // Opt-in diagnostic: when a request carries `x-owid-diag: 1`, stamp the
 // response with which Worker isolate served it, how many requests that isolate
-// had served by then, and when it served its first one. That tells a response
-// from a freshly started isolate (a cold start) apart from one served by a
-// long-lived isolate, which is what separates the causes of slow Function
-// responses. Every request is counted, but only opted-in responses change.
+// had received by then (this one and any still running included), and when
+// it received its first one. That tells a response from a freshly started
+// isolate (a cold start) apart from one served by a long-lived isolate, which
+// is what separates the causes of slow Function responses. Every request is
+// counted, but only opted-in responses change.
 //
 // Workers forbid generating random values in global scope, so the isolate id
 // is created on the first request. Date.now() only advances on I/O, so `entry`
@@ -28,16 +29,14 @@ export const isolateDiagMiddleware: PagesFunction<Env> = async (context) => {
     if (context.request.headers.get(DIAG_HEADER) !== "1") return response
 
     try {
-        const headers = new Headers(response.headers)
-        headers.set(
+        // Passing the original as the init carries over every field, including
+        // the Workers-only ones (webSocket, cf), not just status and headers.
+        const stamped = new Response(response.body, response)
+        stamped.headers.set(
             DIAG_HEADER,
             `iso=${isolateId};n=${n};first=${firstRequestAt};entry=${entry}`
         )
-        return new Response(response.body, {
-            status: response.status,
-            statusText: response.statusText,
-            headers,
-        })
+        return stamped
     } catch {
         // Fail open: a diagnostic must never break the response.
         return response
