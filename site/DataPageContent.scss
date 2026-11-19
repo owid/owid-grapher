@@ -180,11 +180,15 @@
     .related-research__item {
         > .image {
             min-width: 0;
+        }
 
-            img {
-                display: block;
-                overflow: hidden;
-            }
+        img {
+            display: block;
+            overflow: hidden;
+            width: 100%;
+            height: auto;
+            aspect-ratio: $featured-image-aspect-ratio;
+            object-fit: cover;
         }
 
         &:hover h3 {

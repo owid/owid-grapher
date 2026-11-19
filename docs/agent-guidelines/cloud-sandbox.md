@@ -2,12 +2,23 @@
 
 Notes for agent sessions running in a Claude Code cloud sandbox (`CLAUDE_CODE_REMOTE=true`). For how the sandbox environment itself is set up (setup script, environment variables), see [docs/claude-code-web.md](../claude-code-web.md).
 
-- The sandbox pre-creates a session branch named `claude/<slug>-<random-suffix>`, which violates the repo's branch-naming rules (see the root CLAUDE.md). Rename it before the first push: `git branch -m <short-descriptive-name>`.
+- The sandbox pre-creates a session branch named `claude/<slug>-<random-suffix>`, which violates the repo's branch-naming rules (see the root CLAUDE.md). Rename it before the first push: `git branch -m <short-descriptive-name>`. If the session may only push to its own branch, keep the name: it's cosmetic, and not a reason to delay the push or the PR.
 - Use `make up.headless` for the site/database. If the sandbox snapshot has a pre-imported native MySQL (the usual case), it starts within minutes; only the docker fallback is slow (10–20 min download+import) and can outlive a command timeout — run it in the background, and if it gets killed, re-run it: every step is idempotent and resumes.
 - The snapshot's database can be up to a week older than the code. After `make up.headless`, run `make migrate` to apply any migrations merged since — it's idempotent and takes seconds. If pages still 500 on missing tables/columns, `make refresh` re-imports a fresh dump (10–20 minutes).
 - `ALGOLIA_ID` and `ALGOLIA_SEARCH_KEY` are provided as env vars (public, search-only), so local site search works. Never scrape API keys out of deployed JS bundles.
 - Chart thumbnails are rendered by a Cloudflare function that `make up.headless` doesn't run, so in development they come from production (the default of `GRAPHER_DYNAMIC_THUMBNAIL_URL` and `EXPLORER_DYNAMIC_THUMBNAIL_URL` in `settings/clientSettings.mts`).
 - To screenshot a locally served page, use `node devTools/screenshot/screenshotPage.mjs <url> <out.png>`. The sandbox routes outbound HTTPS through an egress proxy that resets Chromium's TLS handshake; the script works around this by routing external requests through Playwright's Node-side request context.
 - Staging servers are on Tailscale and unreachable from the sandbox, and local ports can't be exposed to the user. Verify changes with typecheck, unit tests, and the local dev environment (plus screenshots).
-- After pushing a branch, tell the user where to review on the branch's staging server, deep-linked to the affected page — e.g. `http://staging-site-<name>/search?q=malaria`. Don't derive the staging name by hand; compute it with `node -e 'const b=process.argv[1].replace(/[/._]/g,"-");console.log(("staging-site-"+b.slice(0,28)).replace(/-+$/,""))' "$(git branch --show-current)"`. A branch gets built only while it has an open PR; without one, the server builds master.
-- Hand over that link once the server runs the push, so the user doesn't reload into the previous version; the `test-on-staging` skill says how to tell.
+- After pushing a branch, tell the user where to review on the branch's staging server, deep-linked to the affected page — e.g. `http://staging-site-<name>/search?q=malaria`. Don't derive the staging name by hand; compute it with `node -e 'const b=process.argv[1].replace(/[/._]/g,"-");console.log(("staging-site-"+b.slice(0,28)).replace(/-+$/,""))' "$(git branch --show-current)"`. A branch gets built only while it has an open PR (without one, the server builds master), so open a draft PR (`gh pr create --draft`) with the first push, without being asked.
+- Hand over that link as soon as the server runs the push, and not before, so the user doesn't reload into the previous version; don't guess how long it will take. Wait for the status `test-on-staging` names (`grapher-build`, or `grapher-bake` for server-rendered pages and bespoke components) in a background command (`run_in_background`), which wakes you when it ends. This one reads the public API with `curl`, so it works when this session's `gh` is limited:
+
+    ```bash
+    sha=$(git rev-parse HEAD); ctx=buildkite/grapher-automated-staging-environment/grapher-build
+    for i in $(seq 60); do
+      s=$(curl -s "https://api.github.com/repos/owid/owid-grapher/commits/$sha/statuses" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const s=JSON.parse(d).find(x=>x.context===process.argv[1]);console.log(s?s.state:"none")})' "$ctx")
+      case $s in success|failure|error) echo "$s"; break;; esac
+      sleep 20
+    done
+    ```
+
+- Keep messages to the user short: what changed, the link and what to look at. Leave out checks that found nothing, branch names and what you're waiting for.
