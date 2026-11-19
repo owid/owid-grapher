@@ -143,40 +143,54 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
     @computed private get tabs(): {
         column: CoreColumn
         title: string
+        attribution?: string
         label: TabItem
     }[] {
-        return _.uniqBy(
-            this.columns.map((column) => {
-                let title = column.titlePublicOrDisplayName.title
+        const tabs = this.columns.map((column) => {
+            let title = column.titlePublicOrDisplayName.title
 
-                // Historical and projected columns may have the same name,
-                // so we add "(projection)" to the title of projected columns
-                // to distinguish them
-                if (
-                    column.isProjection &&
-                    this.columns.some(
-                        (c) => title === c.titlePublicOrDisplayName.title
-                    )
+            // Historical and projected columns may have the same name,
+            // so we add "(projection)" to the title of projected columns
+            // to distinguish them
+            if (
+                column.isProjection &&
+                this.columns.some(
+                    (c) => title === c.titlePublicOrDisplayName.title
                 )
-                    title += " (projection)"
+            )
+                title += " (projection)"
 
-                const attribution = joinTitleFragments(
-                    column.titlePublicOrDisplayName.attributionShort,
-                    column.titlePublicOrDisplayName.titleVariant
-                )
+            const attribution = joinTitleFragments(
+                column.titlePublicOrDisplayName.attributionShort,
+                column.titlePublicOrDisplayName.titleVariant
+            )
 
-                return {
-                    title,
-                    column,
-                    label: {
-                        key: this.makeTabLabelString(title, attribution),
-                        element: this.makeTabLabelElement(title, attribution),
-                    },
-                }
-            }),
-            // deduplicate tabs by their label
-            (tab) => tab.label.key
-        )
+            const labelString = this.makeTabLabelString(title, attribution)
+
+            return { column, title, attribution, labelString }
+        })
+
+        const labelCounts = _.countBy(tabs, (tab) => tab.labelString)
+
+        return tabs.map(({ column, title, attribution, labelString }) => {
+            if (labelCounts[labelString] > 1) {
+                const disambiguator = [
+                    column.display?.name,
+                    column.nonEmptyName,
+                ].find((name) => name && name !== title)
+                attribution = joinTitleFragments(disambiguator, attribution)
+            }
+
+            return {
+                column,
+                title,
+                attribution,
+                label: {
+                    key: column.slug,
+                    element: this.makeTabLabelElement(title, attribution),
+                },
+            }
+        })
     }
 
     @computed private get tabLabels(): TabItem[] {
@@ -184,14 +198,9 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
     }
 
     @computed private get tabLabelWidths(): number[] {
-        return this.tabs.map(({ column }) => {
-            const title = `${column.titlePublicOrDisplayName.title}`
-            const fragments = joinTitleFragments(
-                column.titlePublicOrDisplayName.attributionShort,
-                column.titlePublicOrDisplayName.titleVariant
-            )
-            return measureTabWidth(title, fragments)
-        })
+        return this.tabs.map(({ title, attribution }) =>
+            measureTabWidth(title, attribution)
+        )
     }
 
     private renderSource({
