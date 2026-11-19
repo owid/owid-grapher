@@ -642,6 +642,7 @@ function IndicatorGroup({
     sourceIndexByTitle,
     onSourceClick,
     onChartClick,
+    search,
 }: {
     group: DatasetIndicatorGroup
     query: string
@@ -649,6 +650,8 @@ function IndicatorGroup({
     sourceIndexByTitle: Map<string, number>
     onSourceClick: (sourceIndex: number) => void
     onChartClick: (chartIndex: number) => void
+    /** A search bar shown under the group's title, which stays when nothing matches */
+    search?: ReactNode
 }) {
     // Only one indicator per group is open at a time
     const [openIndicator, setOpenIndicator] = useState<string | undefined>()
@@ -662,7 +665,7 @@ function IndicatorGroup({
             ...(indicator.sourceNames ?? [])
         )
     )
-    if (indicators.length === 0) return null
+    if (indicators.length === 0 && !search) return null
 
     // The index columns have nothing to open, so they are a plain list
     if (group.id === INDEX_COLUMNS_GROUP_ID)
@@ -690,30 +693,33 @@ function IndicatorGroup({
     return (
         <div className="dataset-page__indicator-group">
             <h3 className="dataset-page__group-title">{group.title}</h3>
-            <CardList
-                items={indicators.map((indicator) => (
-                    <ExpandableRow
-                        key={indicator.shortName}
-                        contentId={`indicator-${indicator.shortName}`}
-                        isOpen={openIndicator === indicator.shortName}
-                        onToggle={(isOpen) =>
-                            setOpenIndicator(
-                                isOpen ? indicator.shortName : undefined
-                            )
-                        }
-                        title={indicator.title}
-                        subtitle={indicator.description}
-                    >
-                        <IndicatorDetails
-                            indicator={indicator}
-                            charts={charts}
-                            sourceIndexByTitle={sourceIndexByTitle}
-                            onSourceClick={onSourceClick}
-                            onChartClick={onChartClick}
-                        />
-                    </ExpandableRow>
-                ))}
-            />
+            {search}
+            {indicators.length > 0 && (
+                <CardList
+                    items={indicators.map((indicator) => (
+                        <ExpandableRow
+                            key={indicator.shortName}
+                            contentId={`indicator-${indicator.shortName}`}
+                            isOpen={openIndicator === indicator.shortName}
+                            onToggle={(isOpen) =>
+                                setOpenIndicator(
+                                    isOpen ? indicator.shortName : undefined
+                                )
+                            }
+                            title={indicator.title}
+                            subtitle={indicator.description}
+                        >
+                            <IndicatorDetails
+                                indicator={indicator}
+                                charts={charts}
+                                sourceIndexByTitle={sourceIndexByTitle}
+                                onSourceClick={onSourceClick}
+                                onChartClick={onChartClick}
+                            />
+                        </ExpandableRow>
+                    ))}
+                />
+            )}
         </div>
     )
 }
@@ -732,7 +738,7 @@ function IndicatorsSection({
         () => new Map(table.sources.map((source, i) => [source.title, i])),
         [table.sources]
     )
-    // The index columns come before the search, which only filters the other groups
+    // The search sits under the title of the indicators and only filters them, not the index columns
     const indexGroups = table.indicatorGroups.filter(
         (group) => group.id === INDEX_COLUMNS_GROUP_ID
     )
@@ -770,12 +776,7 @@ function IndicatorsSection({
                     onChartClick={onChartClick}
                 />
             ))}
-            <SearchInput
-                value={query}
-                onChange={setQuery}
-                placeholder="Search for an indicator name, title, unit, source, or producer…"
-            />
-            {searchableGroups.map((group) => (
+            {searchableGroups.map((group, i) => (
                 <IndicatorGroup
                     key={group.id}
                     group={group}
@@ -784,6 +785,15 @@ function IndicatorsSection({
                     sourceIndexByTitle={sourceIndexByTitle}
                     onSourceClick={onSourceClick}
                     onChartClick={onChartClick}
+                    search={
+                        i === 0 && (
+                            <SearchInput
+                                value={query}
+                                onChange={setQuery}
+                                placeholder="Search for an indicator name, title, unit, source, or producer…"
+                            />
+                        )
+                    }
                 />
             ))}
             {!hasResults && (

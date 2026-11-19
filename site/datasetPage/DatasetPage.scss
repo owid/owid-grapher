@@ -341,8 +341,7 @@ $dataset-page-row-border: $blue-20;
     }
 }
 
-.dataset-page__indicator-group + .dataset-page__indicator-group,
-.dataset-page__indicator-group + .dataset-page__search {
+.dataset-page__indicator-group + .dataset-page__indicator-group {
     margin-top: 32px;
 }
 
