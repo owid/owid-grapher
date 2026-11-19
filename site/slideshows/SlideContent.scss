@@ -150,12 +150,6 @@ $s-lato-font-size: px-to-cqh(24);
     }
 }
 
-.slideshow-slide__grapher-container--non-interactive {
-    .GrapherTimeline {
-        display: none;
-    }
-}
-
 .slideshow-slide__grapher-container--interactive {
     .CaptionedChart {
         padding: 16px 0;

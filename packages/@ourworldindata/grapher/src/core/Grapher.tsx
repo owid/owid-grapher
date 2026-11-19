@@ -127,6 +127,9 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     /** Hide the row of controls between the header and the chart (tabs,
      *  entity selection, settings). */
     hideControlsRow?: boolean
+    /** Hide the timeline below the chart without giving up the selected
+     *  time range, which `hideTimeline` does for some chart types. */
+    hideTimelineRow?: boolean
     /** Leave out the entity, time or "change in" annotations that are
      *  otherwise added to the title. */
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle

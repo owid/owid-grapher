@@ -84,6 +84,7 @@ export interface CaptionedChartManager
 
     // timeline
     hasTimeline?: boolean
+    hideTimelineRow?: boolean
     timelineController?: TimelineController
 
     // details on demand
@@ -267,8 +268,12 @@ export class CaptionedChart extends AbstractCaptionedChart {
             : 0
     }
 
+    @computed private get showTimeline(): boolean {
+        return !!this.manager.hasTimeline && !this.manager.hideTimelineRow
+    }
+
     @computed private get timelineHeightWithPadding(): number {
-        return this.manager.hasTimeline
+        return this.showTimeline
             ? TIMELINE_HEIGHT + this.verticalPaddingSmall
             : 0
     }
@@ -348,10 +353,10 @@ export class CaptionedChart extends AbstractCaptionedChart {
                         />
 
                         {/* #4 [Timeline] */}
-                        {this.manager.hasTimeline && (
+                        {this.showTimeline && (
                             <VerticalSpace height={this.verticalPaddingSmall} />
                         )}
-                        {this.manager.hasTimeline && this.renderTimeline()}
+                        {this.showTimeline && this.renderTimeline()}
 
                         {/* #5 Footer */}
                         <VerticalSpace height={this.verticalPadding} />

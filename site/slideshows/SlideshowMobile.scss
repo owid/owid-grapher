@@ -1,0 +1,350 @@
+// Prototype phone layouts for slideshows: "reading" (one scrolling column)
+// and "cards" (one slide per screen, swiped horizontally).
+//
+// Type scale: 32 cover / 26 statement / 22 slide title / 20 outline /
+// 18 text heading / 16 body / 14 subtitle and captions.
+// Vertical rhythm inside a slide: 8 title→subtitle, 20 between blocks.
+
+.slideshow-mobile {
+    --mobile-slide-gutter: 16px;
+    --mobile-slide-block-gap: 20px;
+    background: #fff;
+}
+
+/**
+ * Slide content, shared by both layouts
+ */
+
+.mobile-slide {
+    display: flex;
+    flex-direction: column;
+    padding: 40px var(--mobile-slide-gutter);
+    color: $blue-90;
+
+    > * + * {
+        margin-top: var(--mobile-slide-block-gap);
+    }
+}
+
+.mobile-slide--blue-background {
+    background-color: $blue-5;
+}
+
+.mobile-slide__title {
+    font-family: $serif-font-stack;
+    font-size: 1.375rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01rem;
+    margin: 0;
+    color: $blue-90;
+}
+
+.mobile-slide__subtitle {
+    @include body-3-regular;
+    line-height: 1.45;
+    margin: 8px 0 0;
+    color: $gray-80;
+}
+
+.mobile-slide__text {
+    @include body-2-regular;
+    color: $blue-90;
+
+    > *:first-child {
+        margin-top: 0;
+    }
+    > *:last-child {
+        margin-bottom: 0;
+    }
+    p {
+        margin: 0 0 12px;
+    }
+    h2 {
+        font-family: $serif-font-stack;
+        font-size: 1.125rem;
+        font-weight: 700;
+        line-height: 1.3;
+        color: $blue-50;
+        margin: 24px 0 8px;
+    }
+    ul,
+    ol {
+        padding-left: 20px;
+        margin: 0 0 12px;
+    }
+    li + li {
+        margin-top: 8px;
+    }
+    li::marker {
+        color: $blue-50;
+    }
+}
+
+.mobile-slide__chart {
+    display: flex;
+    // Bleed to the screen edges: Grapher has its own internal padding
+    margin-left: calc(var(--mobile-slide-gutter) * -1);
+    margin-right: calc(var(--mobile-slide-gutter) * -1);
+    height: clamp(400px, 115vw, 560px);
+
+    .slideshow-slide__grapher-container {
+        // Grapher is sized from this element's bounds
+        overflow: hidden;
+    }
+
+    .Explorer,
+    .ExplorerFigure {
+        height: 100%;
+    }
+}
+
+.mobile-slide__header + .mobile-slide__chart {
+    margin-top: 16px;
+}
+
+// Grapher's frame already ends with its own padding
+.mobile-slide__chart + .mobile-slide__text {
+    margin-top: -24px;
+    z-index: 2;
+}
+
+.mobile-slide__image-link {
+    display: block;
+    line-height: 0;
+}
+
+.mobile-slide__image {
+    width: 100%;
+    height: auto;
+}
+
+.mobile-slide--cover {
+    background-color: $oxford-blue;
+    border-bottom: 4px solid $vermillion;
+    color: #fff;
+    padding-top: 72px;
+    padding-bottom: 32px;
+
+    > * + * {
+        margin-top: 12px;
+    }
+}
+
+.mobile-slide__supertitle {
+    @include body-3-regular;
+    margin: 0;
+    color: $blue-30;
+}
+
+.mobile-slide__cover-title {
+    font-family: $serif-font-stack;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01rem;
+    margin: 0;
+    color: #fff;
+}
+
+.mobile-slide__cover-author {
+    @include body-2-regular;
+    margin-bottom: 0;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.mobile-slide--cover > .mobile-slide__cover-logo {
+    align-self: flex-end;
+    margin-top: 40px;
+    line-height: 0;
+
+    svg {
+        width: 64px;
+        height: auto;
+    }
+}
+
+.mobile-slide__statement {
+    font-family: $serif-font-stack;
+    font-size: 1.625rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01rem;
+    margin: 0;
+    color: $blue-90;
+}
+
+.mobile-slide__attribution {
+    @include body-3-regular;
+    margin-bottom: 0;
+    margin-top: 12px;
+    color: $gray-80;
+}
+
+.mobile-slide--section-divider {
+    text-align: center;
+    padding-top: 64px;
+    padding-bottom: 64px;
+}
+
+.mobile-slide__outline {
+    font-family: $serif-font-stack;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: $blue-30;
+
+    ul,
+    ol {
+        margin: 0;
+        padding-left: 1.1em;
+    }
+    li + li {
+        margin-top: 12px;
+    }
+    li:has(strong)::marker {
+        color: $blue-90;
+    }
+    // Bolded items appear in a darker "active" color
+    strong {
+        color: $blue-90;
+        font-weight: 600;
+    }
+}
+
+/**
+ * Reading view
+ */
+
+.slideshow-mobile--reading {
+    max-width: 640px;
+    margin: 0 auto;
+
+    .mobile-slide + .mobile-slide {
+        border-top: 1px solid $gray-10;
+    }
+}
+
+.slideshow-mobile__byline {
+    @include body-3-regular;
+    margin: 0;
+    padding: 24px var(--mobile-slide-gutter) 72px;
+    border-top: 1px solid $gray-10;
+    color: $gray-80;
+}
+
+/**
+ * Cards
+ */
+
+.slideshow-mobile--cards {
+    --footer-height: 56px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 640px;
+    margin: 0 auto;
+
+    .slideshow-mobile__track {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .mobile-slide {
+        flex: 0 0 100%;
+        min-width: 0;
+        // Tall slides scroll within their card
+        overflow-y: auto;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        padding-top: 28px;
+        padding-bottom: 32px;
+    }
+
+    // The chart takes whatever height the text leaves over, but never less
+    // than it needs to be readable: the card scrolls instead.
+    .mobile-slide__chart {
+        flex: 1 0 auto;
+        height: auto;
+        min-height: 400px;
+    }
+
+    .mobile-slide--two-charts .mobile-slide__chart {
+        min-height: 320px;
+    }
+
+    .mobile-slide--cover,
+    .mobile-slide--statement,
+    .mobile-slide--outline,
+    .mobile-slide--image {
+        justify-content: center;
+    }
+
+    .mobile-slide--cover {
+        border-bottom: none;
+    }
+}
+
+.slideshow-mobile__footer {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    // Left-aligned to leave room for the prototype layout switcher
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 0 var(--mobile-slide-gutter);
+    height: var(--footer-height);
+    border-top: 1px solid $gray-30;
+}
+
+.slideshow-mobile__progress {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    height: 2px;
+    background: $vermillion;
+    transition: width 0.2s;
+}
+
+/**
+ * Prototype-only control for comparing the layouts
+ */
+
+.slideshow-layout-switcher {
+    position: fixed;
+    bottom: 12px;
+    right: 8px;
+    z-index: 20;
+    display: flex;
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.slideshow-layout-switcher__button {
+    padding: 6px 10px;
+    border: none;
+    background: none;
+    color: $blue-90;
+    font-size: 12px;
+    text-transform: capitalize;
+    cursor: pointer;
+}
+
+.slideshow-layout-switcher__button--active {
+    background: $blue-90;
+    color: #fff;
+}
