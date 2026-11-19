@@ -110,7 +110,7 @@ function liveUrl(mdim: MultiDim): string | undefined {
 }
 
 function PreviewCell({ mdim }: { mdim: MultiDim }) {
-    const [hasFailed, setHasFailed] = useState(false)
+    const [failedPath, setFailedPath] = useState<string>()
     const thumbnailPath = getThumbnailPath(mdim)
     const href =
         liveUrl(mdim) ??
@@ -120,7 +120,7 @@ function PreviewCell({ mdim }: { mdim: MultiDim }) {
         )
     return (
         <a href={href} target="_blank" rel="noopener">
-            {thumbnailPath && !hasFailed ? (
+            {thumbnailPath && thumbnailPath !== failedPath ? (
                 <img
                     src={urljoin(GRAPHER_DYNAMIC_THUMBNAIL_URL, thumbnailPath)}
                     height={600}
@@ -129,7 +129,7 @@ function PreviewCell({ mdim }: { mdim: MultiDim }) {
                     className={cx("chart-list__preview", {
                         "chart-list__preview--draft": !mdim.published,
                     })}
-                    onError={() => setHasFailed(true)}
+                    onError={() => setFailedPath(thumbnailPath)}
                 />
             ) : (
                 <span className="chart-list__preview chart-list__preview--empty">
