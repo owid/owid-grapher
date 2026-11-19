@@ -140,7 +140,9 @@ export {
     useMaybeGlobalGrapherStateRef,
     useGuidedChartLinkHandler,
     GuidedChartContext,
+    applyGuidedChartQueryParams,
     type GuidedChartContextValue,
+    type GuidedChartMultiDimRegistration,
     type ArchiveGuidedChartRegistration,
     buildArchiveGuidedChartSrc,
 } from "./chart/guidedChartUtils"

@@ -1,7 +1,12 @@
 import * as React from "react"
+import { runInAction } from "mobx"
 import { GrapherProgrammaticInterface } from "../core/Grapher.js"
 import { GrapherState } from "../core/GrapherState.js"
-import { MultiDimDataPageConfig, Url } from "@ourworldindata/utils"
+import {
+    MultiDimDataPageConfig,
+    Url,
+    extractMultiDimChoicesFromSearchParams,
+} from "@ourworldindata/utils"
 import {
     GrapherQueryParams,
     MultiDimDimensionChoices,
@@ -15,6 +20,15 @@ export interface ArchiveGuidedChartRegistration {
     chartConfigType: ChartConfigType
 }
 
+export interface GuidedChartMultiDimRegistration {
+    config: MultiDimDataPageConfig
+    onSettingsChange: (
+        newSettings: MultiDimDimensionChoices,
+        queryParams: GrapherQueryParams
+    ) => void
+    grapherContainerRef: React.RefObject<HTMLDivElement | null>
+}
+
 export interface GuidedChartContextValue {
     /** Called with the chart's GrapherState; returns a function to unregister */
     registerGrapherState?: (grapherState: GrapherState) => () => void
@@ -24,18 +38,44 @@ export interface GuidedChartContextValue {
     registerArchiveChart?: (
         registration: ArchiveGuidedChartRegistration
     ) => () => void
-    registerMultiDim?: (registrationData: {
-        config: MultiDimDataPageConfig
-        onSettingsChange: (
-            newSettings: MultiDimDimensionChoices,
-            queryParams: GrapherQueryParams
-        ) => void
-        grapherContainerRef: React.RefObject<HTMLDivElement | null>
-    }) => void
+    registerMultiDim?: (
+        registrationData: GuidedChartMultiDimRegistration
+    ) => void
 }
 
 export const GuidedChartContext =
     React.createContext<GuidedChartContextValue | null>(null)
+
+/** Applies a guided chart link's query params to its chart */
+export function applyGuidedChartQueryParams({
+    grapherState,
+    multiDim,
+    queryParams,
+}: {
+    grapherState: GrapherState
+    multiDim?: GuidedChartMultiDimRegistration
+    queryParams: GrapherQueryParams
+}): void {
+    if (multiDim) {
+        const searchParams = new URLSearchParams(
+            Object.entries(queryParams).filter(
+                (entry): entry is [string, string] => entry[1] !== undefined
+            )
+        )
+        const choices = extractMultiDimChoicesFromSearchParams(
+            searchParams,
+            multiDim.config
+        )
+        // MultiDim must set the query params itself only after it
+        // sets the config of the selected view.
+        multiDim.onSettingsChange(choices, queryParams)
+    } else {
+        runInAction(() => {
+            grapherState.clearQueryParams()
+            grapherState.populateFromQueryParams(queryParams)
+        })
+    }
+}
 
 /**
  * Returns a ref holding a new `GrapherState` initialized with the provided

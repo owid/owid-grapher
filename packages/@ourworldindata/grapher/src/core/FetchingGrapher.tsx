@@ -53,17 +53,6 @@ export function FetchingGrapher(
         }
     }, [props.externalBounds, grapherStateRef])
 
-    const queryStrRef = React.useRef(props.queryStr)
-    useIsomorphicLayoutEffect(() => {
-        if (props.queryStr === queryStrRef.current) return
-        if (grapherStateRef.current.bindUrlToWindow) return
-        queryStrRef.current = props.queryStr
-        grapherStateRef.current.clearQueryParams()
-        grapherStateRef.current.populateFromQueryParams(
-            legacyToCurrentGrapherQueryParams(props.queryStr ?? "")
-        )
-    }, [props.queryStr, grapherStateRef])
-
     // update grapherState when the config from props changes
     React.useEffect(() => {
         if (props.config?.bounds)
@@ -106,7 +95,8 @@ export function FetchingGrapher(
                         // We now need to make sure that the query params are re-applied again
                         grapherStateRef.current.populateFromQueryParams(
                             legacyToCurrentGrapherQueryParams(
-                                queryStrRef.current ?? ""
+                                grapherStateRef.current.initialOptions
+                                    .queryStr ?? ""
                             )
                         )
                     })
