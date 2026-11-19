@@ -449,7 +449,6 @@ export function DataPageContent({
                 imageMetadata,
                 linkedCharts: {},
                 linkedIndicators: {},
-                relatedCharts: [],
                 tags: [],
             }}
         >

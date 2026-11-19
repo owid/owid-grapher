@@ -371,7 +371,6 @@ ${dataInsights
                     imageMetadata: _.get(post, "imageMetadata", {}),
                     linkedCharts: _.get(post, "linkedCharts", {}),
                     linkedIndicators: _.get(post, "linkedIndicators", {}),
-                    relatedCharts: _.get(post, "relatedCharts", []),
                     latestDataInsights: _.get(post, "latestDataInsights", []),
                     homepageMetadata: _.get(post, "homepageMetadata", {}),
                     latestWorkLinks: _.get(post, "latestWorkLinks", []),

@@ -119,7 +119,6 @@ export const DataPageV2Content = ({
                 linkedCharts: {},
                 linkedIndicators: {},
                 linkedAuthors: datapageData.linkedAuthors,
-                relatedCharts: [],
                 tags: [],
             }}
         >
