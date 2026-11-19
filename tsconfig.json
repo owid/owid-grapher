@@ -20,6 +20,7 @@
         { "path": "./adminSiteServer" },
         { "path": "./bespoke/shared" },
         { "path": "./devTools/markdownTest" },
+        { "path": "./devTools/pagesWorker" },
         { "path": "./devTools/regionsUpdater" },
         { "path": "./devTools/schema" },
         { "path": "./devTools/svgTester" },
