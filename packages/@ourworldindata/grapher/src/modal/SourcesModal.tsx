@@ -13,6 +13,8 @@ import {
     joinTitleFragments,
     getIndicatorCitations,
     openLinkInNewTabAttrs,
+    parseTimespan,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import {
     IndicatorSources,
@@ -66,6 +68,14 @@ export interface SourcesModalManager {
 
 interface SourcesModalProps {
     manager: SourcesModalManager
+}
+
+interface SourcesModalTab {
+    column: CoreColumn
+    title: string
+    attribution?: string
+    timespan?: string
+    label: TabItem
 }
 
 @observer
@@ -140,13 +150,8 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
         )
     }
 
-    @computed private get tabs(): {
-        column: CoreColumn
-        title: string
-        attribution?: string
-        label: TabItem
-    }[] {
-        const tabs = this.columns.map((column) => {
+    @computed private get tabs(): SourcesModalTab[] {
+        const columnTabs = this.columns.map((column) => {
             let title = column.titlePublicOrDisplayName.title
 
             // Historical and projected columns may have the same name,
@@ -170,27 +175,46 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
             return { column, title, attribution, labelString }
         })
 
-        const labelCounts = _.countBy(tabs, (tab) => tab.labelString)
-
-        return tabs.map(({ column, title, attribution, labelString }) => {
-            if (labelCounts[labelString] > 1) {
-                const disambiguator = [
-                    column.display?.name,
-                    column.nonEmptyName,
-                ].find((name) => name && name !== title)
-                attribution = joinTitleFragments(disambiguator, attribution)
-            }
-
+        // Indicators that would render the same tab, apart from their
+        // date range, share one tab that spans all of their date ranges
+        const tabs = Object.values(
+            _.groupBy(columnTabs, ({ column, labelString }) =>
+                makeTabMergeKey(labelString, column)
+            )
+        ).map((tabsToMerge) => {
+            const [firstTab] = tabsToMerge
             return {
-                column,
-                title,
-                attribution,
-                label: {
-                    key: column.slug,
-                    element: this.makeTabLabelElement(title, attribution),
-                },
+                ...firstTab,
+                timespan: mergeTimespans(
+                    tabsToMerge.map(({ column }) => column.def.timespan)
+                ),
             }
         })
+
+        const labelCounts = _.countBy(tabs, (tab) => tab.labelString)
+
+        return tabs.map(
+            ({ column, title, attribution, timespan, labelString }) => {
+                if (labelCounts[labelString] > 1) {
+                    const disambiguator = [
+                        column.display?.name,
+                        column.nonEmptyName,
+                    ].find((name) => name && name !== title)
+                    attribution = joinTitleFragments(disambiguator, attribution)
+                }
+
+                return {
+                    column,
+                    title,
+                    attribution,
+                    timespan,
+                    label: {
+                        key: column.slug,
+                        element: this.makeTabLabelElement(title, attribution),
+                    },
+                }
+            }
+        )
     }
 
     @computed private get tabLabels(): TabItem[] {
@@ -206,14 +230,17 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
     private renderSource({
         column,
         title,
+        timespan,
     }: {
         column: CoreColumn
         title?: string
+        timespan?: string
     }): React.ReactElement {
         return (
             <Source
                 title={title}
                 column={column}
+                timespan={timespan}
                 editBaseUrl={this.editBaseUrl}
                 isEmbeddedInADataPage={
                     this.manager.isEmbeddedInADataPage ?? false
@@ -336,7 +363,10 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
         // have no columns with source information at all
         if (this.tabs.length === 0) return this.renderNoSources()
         return this.tabs.length === 1
-            ? this.renderSource({ column: this.tabs[0].column })
+            ? this.renderSource({
+                  column: this.tabs[0].column,
+                  timespan: this.tabs[0].timespan,
+              })
             : this.renderMultipleSources()
     }
 
@@ -384,6 +414,7 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
 interface SourceProps {
     column: CoreColumn
     title?: string
+    timespan?: string
     editBaseUrl?: string
     isEmbeddedInADataPage?: boolean
     openLinksInNewTab?: boolean
@@ -541,7 +572,7 @@ export class Source extends React.Component<SourceProps> {
                 <SourcesKeyDataTable
                     attribution={this.attributions}
                     owidProcessingLevel={this.def.owidProcessingLevel}
-                    dateRange={this.def.timespan}
+                    dateRange={this.props.timespan ?? this.def.timespan}
                     lastUpdated={this.lastUpdated}
                     nextUpdate={this.nextUpdate}
                     unit={this.unit}
@@ -613,4 +644,47 @@ const measureTabWidth = (label: string, secondary?: string): number => {
     const borderWidth = 2
 
     return labelWidth + secondaryTextWidth + padding + borderWidth
+}
+
+/** Key shared by indicators whose tabs differ in nothing but a parseable date range */
+const makeTabMergeKey = (labelString: string, column: CoreColumn): string => {
+    const { timespan } = column.def
+    return JSON.stringify([
+        labelString,
+        getRenderedMetadata(column),
+        parseTimespan(timespan ?? "") ? undefined : timespan,
+    ])
+}
+
+/** Everything a source tab shows about an indicator, apart from its title and date range */
+const getRenderedMetadata = (column: CoreColumn): unknown => {
+    const def: OwidColumnDef = column.def
+    return {
+        description: def.description,
+        descriptionShort: def.descriptionShort,
+        descriptionKey: def.descriptionKey,
+        descriptionFromProducer: def.descriptionFromProducer,
+        descriptionProcessing: def.descriptionProcessing,
+        owidProcessingLevel: def.owidProcessingLevel,
+        presentation: def.presentation,
+        origins: def.origins,
+        source: column.source,
+        lastUpdated: getLastUpdatedFromVariable(def),
+        updatePeriodDays: def.updatePeriodDays,
+        unit: column.unit,
+        unitConversionFactor: column.unitConversionFactor,
+    }
+}
+
+const mergeTimespans = (
+    timespans: (string | undefined)[]
+): string | undefined => {
+    const years = excludeUndefined(
+        timespans.map((timespan) => parseTimespan(timespan ?? ""))
+    )
+    if (timespans.length === 1 || years.length < timespans.length)
+        return timespans[0]
+    const firstYear = _.min(years.map((y) => y.firstYear))
+    const lastYear = _.max(years.map((y) => y.lastYear))
+    return `${firstYear}-${lastYear}`
 }

@@ -397,7 +397,9 @@ export const formatSourceDate = (
     return parsedDate.format(format)
 }
 
-export const getDateRange = (timespan: string): string | null => {
+export const parseTimespan = (
+    timespan: string
+): { firstYear: number; lastYear: number } | undefined => {
     // This regex matches:
     //   Beginning of string
     //   Ignore whitespace
@@ -414,28 +416,25 @@ export const getDateRange = (timespan: string): string | null => {
     //   End of string
     const timespanRegex = /^\s*(?<start>(-)?\d+)\s*(-|–)\s*(?<end>(-)?\d+)\s*$/
     const match = timespan.match(timespanRegex)
-    if (match) {
-        const firstYearString = match.groups?.start
-        const lastYearString = match.groups?.end
-        if (!firstYearString || !lastYearString) return null
-
-        const firstYear = parseInt(firstYearString, 10)
-        const lastYear = parseInt(lastYearString, 10)
-        let formattedFirstYear
-
-        // if start year is before year 0, add BCE to the end
-        if (firstYear < 0) formattedFirstYear = `${Math.abs(firstYear)} BCE`
-        else formattedFirstYear = firstYear
-
-        // if end year is before year 0, add BCE to the end or, if start year is after year 0, add CE to the end
-        let formattedLastYear
-        if (lastYear < 0) formattedLastYear = `${Math.abs(lastYear)} BCE`
-        else if (firstYear < 0) formattedLastYear = `${lastYear} CE`
-        else formattedLastYear = lastYear
-
-        if (lastYear < 0 || firstYear < 0)
-            return `${formattedFirstYear} – ${formattedLastYear}`
-        else return `${formattedFirstYear}–${formattedLastYear}`
+    const firstYearString = match?.groups?.start
+    const lastYearString = match?.groups?.end
+    if (!firstYearString || !lastYearString) return undefined
+    return {
+        firstYear: parseInt(firstYearString, 10),
+        lastYear: parseInt(lastYearString, 10),
     }
-    return null
+}
+
+export const getDateRange = (timespan: string): string | null => {
+    const years = parseTimespan(timespan)
+    if (!years) return null
+
+    const { firstYear, lastYear } = years
+    if (firstYear >= 0 && lastYear >= 0) return `${firstYear}–${lastYear}`
+
+    const formattedFirstYear =
+        firstYear < 0 ? `${Math.abs(firstYear)} BCE` : `${firstYear}`
+    const formattedLastYear =
+        lastYear < 0 ? `${Math.abs(lastYear)} BCE` : `${lastYear} CE`
+    return `${formattedFirstYear} – ${formattedLastYear}`
 }
