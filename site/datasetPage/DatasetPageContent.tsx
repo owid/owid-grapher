@@ -732,7 +732,14 @@ function IndicatorsSection({
         () => new Map(table.sources.map((source, i) => [source.title, i])),
         [table.sources]
     )
-    const hasResults = table.indicatorGroups.some((group) =>
+    // The index columns come before the search, which only filters the other groups
+    const indexGroups = table.indicatorGroups.filter(
+        (group) => group.id === INDEX_COLUMNS_GROUP_ID
+    )
+    const searchableGroups = table.indicatorGroups.filter(
+        (group) => group.id !== INDEX_COLUMNS_GROUP_ID
+    )
+    const hasResults = searchableGroups.some((group) =>
         group.indicators.some((indicator) =>
             matchesQuery(
                 query,
@@ -752,12 +759,23 @@ function IndicatorsSection({
             <h2 className="dataset-page__section-title">
                 Indicators in this dataset
             </h2>
+            {indexGroups.map((group) => (
+                <IndicatorGroup
+                    key={group.id}
+                    group={group}
+                    query=""
+                    charts={table.charts}
+                    sourceIndexByTitle={sourceIndexByTitle}
+                    onSourceClick={onSourceClick}
+                    onChartClick={onChartClick}
+                />
+            ))}
             <SearchInput
                 value={query}
                 onChange={setQuery}
                 placeholder="Search for an indicator name, title, unit, source, or producer…"
             />
-            {table.indicatorGroups.map((group) => (
+            {searchableGroups.map((group) => (
                 <IndicatorGroup
                     key={group.id}
                     group={group}
