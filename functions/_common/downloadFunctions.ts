@@ -398,7 +398,16 @@ export async function assembleSearchResultData(
             return sortedTabs
         })
 
-        // Choose the entities to display
+        // Choose the entities to display.
+        //
+        // Why runInAction: nothing observes grapherState here, so MobX would
+        // recompute its derived values (e.g. transformedTable) on every read.
+        // Inside runInAction, each one is computed once and then reused.
+        //
+        // Catch: for an async function, runInAction only covers the code
+        // before its first `await`. Code after an `await` runs without the
+        // cache. That's why pickDisplayEntities wraps such code in its own
+        // runInAction. Do the same when reading grapherState after an `await`.
         const displayEntities = await runInAction(() =>
             pickDisplayEntities(grapherState, args)
         )
