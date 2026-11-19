@@ -50,6 +50,7 @@ import {
     OwidGdocPublicationContext,
     ResolvedSlideChartInfo,
     Slide,
+    UNLISTED_TAG_NAME,
 } from "@ourworldindata/types"
 import {
     knexRaw,
@@ -547,7 +548,7 @@ export const renderExplorerIndexPage = async (
     const multiDimItems: ExplorerIndexItem[] = multiDims.flatMap(
         ({ slug, config }) => {
             if (!isMultiDimDataExplorer(config)) return []
-            if (config.topicTags?.includes("Unlisted")) return []
+            if (config.topicTags?.includes(UNLISTED_TAG_NAME)) return []
             return {
                 slug,
                 title: config.title.title,

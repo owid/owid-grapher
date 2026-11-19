@@ -52,6 +52,7 @@ import {
     MultiDimExplorerPresentation,
     OwidGdocMinimalAnnouncementInterface,
     DbRawPostGdoc,
+    UNLISTED_TAG_NAME,
 } from "@ourworldindata/types"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
@@ -297,7 +298,7 @@ export const getPublishedExplorersBySlug = async (
                 })
                 if (!includeUnlisted) {
                     processed = processed.filter(
-                        (row) => !row.tags.includes("Unlisted")
+                        (row) => !row.tags.includes(UNLISTED_TAG_NAME)
                     )
                 }
                 return _.keyBy(processed, "slug")
@@ -591,7 +592,7 @@ export const getMultiDimDataExplorerCount = (
                 COALESCE(config -> "$.topicTags", JSON_ARRAY()),
                 JSON_QUOTE(?)
             )`,
-        [pageType, "Unlisted"]
+        [pageType, UNLISTED_TAG_NAME]
     ).then((res) => Number(res?.count ?? 0))
 }
 

@@ -25,6 +25,7 @@ import {
     ExplorerType,
     IndexingContext,
     ChartViewsMap,
+    UNLISTED_TAG_NAME,
 } from "@ourworldindata/types"
 
 import * as db from "../../../db/db.js"
@@ -838,7 +839,7 @@ async function getExplorersWithInheritedTags(
                 message: `Explorer "${explorer.slug}" has no tags.`,
             })
         }
-        if (explorer.tags.includes("Unlisted")) {
+        if (explorer.tags.includes(UNLISTED_TAG_NAME)) {
             // We don't index unlisted explorers
             continue
         }
