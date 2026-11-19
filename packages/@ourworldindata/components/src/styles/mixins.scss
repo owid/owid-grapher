@@ -335,6 +335,14 @@
     opacity: 0.9;
 }
 
+// Thumbnail of an article or featured-viz result in search, at the
+// featured-image shape.
+@mixin search-thumbnail {
+    width: $search-thumbnail-width;
+    aspect-ratio: $featured-image-aspect-ratio;
+    object-fit: cover;
+}
+
 @mixin overlay {
     position: fixed;
     left: 0;
