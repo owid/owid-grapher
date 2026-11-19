@@ -1,4 +1,4 @@
-import { z } from "zod/mini"
+import * as z from "zod/mini"
 import { OwidLicenseSchema, type OwidLicense } from "./OwidVariable.js"
 import type { SchemaFor } from "./domainTypes/Various.js"
 
