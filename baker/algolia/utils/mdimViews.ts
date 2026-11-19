@@ -5,6 +5,7 @@ import {
     merge,
     dimensionsToViewId,
     MultiDimDataPageConfig,
+    isMultiDimDataExplorer,
     multiDimDimensionsToViewQueryStr,
 } from "@ourworldindata/utils"
 import * as db from "../../../db/db.js"
@@ -171,6 +172,7 @@ async function getRecords(
                 chartConfigId: view.fullConfigId,
                 slug,
                 queryParams: queryStr ? `?${queryStr}` : "",
+                isDataExplorer: isMultiDimDataExplorer(multiDim.config),
                 title,
                 containerTitle,
                 subtitle: toPlaintext(grapherState.effectiveSubtitle),
