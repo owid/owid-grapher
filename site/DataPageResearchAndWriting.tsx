@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import {
     DataPageRelatedResearch,
     DEFAULT_THUMBNAIL_FILENAME,
@@ -6,8 +5,6 @@ import {
 import { formatAuthors } from "@ourworldindata/utils"
 import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import Image from "./gdocs/components/Image.js"
-
-const MAX_EXCERPT_LENGTH = 150
 
 export default function DataPageResearchAndWriting({
     relatedResearch,
@@ -39,11 +36,7 @@ export default function DataPageResearchAndWriting({
                             </h3>
                             {showExcerpt && research.excerpt && (
                                 <p className="related-article__excerpt">
-                                    {_.truncate(research.excerpt, {
-                                        length: MAX_EXCERPT_LENGTH,
-                                        separator: /\s+/,
-                                        omission: "…",
-                                    })}
+                                    {research.excerpt}
                                 </p>
                             )}
                             <div className="related-article__authors body-3-medium-italic">

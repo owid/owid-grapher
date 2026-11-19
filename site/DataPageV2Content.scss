@@ -24,6 +24,12 @@
         @include body-3-medium;
         color: $blue-90;
         margin: 4px 0 0;
+        // At most three lines, the last ending in an ellipsis if cut
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        overflow: hidden;
     }
 }
 
