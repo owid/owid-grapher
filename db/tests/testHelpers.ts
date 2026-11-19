@@ -1,4 +1,5 @@
 import {
+    AnalyticsGrapherViewsTableName,
     ChartConfigsTableName,
     ChartDimensionsTableName,
     ChartRevisionsTableName,
@@ -14,6 +15,7 @@ import {
     ExplorerViewsTableName,
     ExplorersTableName,
     GrapherInterface,
+    ImagesTableName,
     JobsTableName,
     MultiDimDataPagesTableName,
     MultiDimRedirectsTableName,
@@ -26,6 +28,7 @@ import {
     PostsGdocsLinksTableName,
     PostsGdocsTableName,
     SourcesTableName,
+    StaticVizTableName,
     TagGraphTableName,
     TagsTableName,
     UsersTableName,
@@ -60,6 +63,9 @@ export const TABLES_IN_USE = [
     PostsGdocsComponentsTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsLinksTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsTableName,
+    StaticVizTableName, // Must come before ImagesTableName due to foreign key
+    ImagesTableName,
+    AnalyticsGrapherViewsTableName,
     AdminApiKeysTableName,
     UsersTableName,
     TagGraphTableName,
