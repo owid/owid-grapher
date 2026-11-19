@@ -11,7 +11,6 @@ import {
     lowerCaseFirstLetterUnlessAbbreviation,
     excludeUndefined,
 } from "@ourworldindata/utils"
-import { toPlaintext } from "@ourworldindata/components"
 import {
     getFeaturedMetricsByParentTagName,
     knexRaw,
@@ -542,12 +541,11 @@ export function applyFeaturedMetricBoosts(
     })
 }
 
-export async function buildSourcesLineFromConfig(
+/** GrapherState for the config with a zero-row table built from each indicator's metadata */
+export async function loadGrapherStateWithMetadata(
     config: GrapherInterface,
     loadIndicatorMetadata: IndicatorMetadataLoader
-): Promise<string> {
-    if (config.sourceDesc !== undefined) return toPlaintext(config.sourceDesc)
-
+): Promise<GrapherState> {
     const grapherState = new GrapherState(config)
     const indicatorIds = _.uniq(
         excludeUndefined(
@@ -571,5 +569,5 @@ export async function buildSourcesLineFromConfig(
         grapherState.dimensionConfigs,
         grapherState.selectedEntityColors
     )
-    return toPlaintext(grapherState.sourcesLine)
+    return grapherState
 }
