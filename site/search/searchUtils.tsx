@@ -415,6 +415,7 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "queryParams",
     "availableTabs",
     "subtitle",
+    "source",
     "chartConfigId",
     "explorerType",
 ]
