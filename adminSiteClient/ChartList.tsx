@@ -20,6 +20,7 @@ import {
     excludeUndefined,
     getWindowUrl,
     setWindowUrl,
+    slugify,
 } from "@ourworldindata/utils"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
@@ -655,8 +656,10 @@ export class ChartList extends React.Component<ChartListProps> {
     @bind async onTogglePublished(chart: ChartListItem) {
         const { admin } = this.context
         const publish = !chart.isPublished
+        // A draft may have no slug yet; the editor then derives it from the title
+        const slug = chart.slug || slugify(chart.title ?? "")
         const message = publish
-            ? `Publish chart at ${BAKED_GRAPHER_URL}/${chart.slug}?`
+            ? `Publish chart at ${BAKED_GRAPHER_URL}/${slug}?`
             : unpublishConfirmMessage(await this.fetchRefs(chart.id))
         if (!window.confirm(message)) return
 
@@ -669,7 +672,7 @@ export class ChartList extends React.Component<ChartListProps> {
                 ? {
                       ...patch,
                       isPublished: true,
-                      slug: patch.slug ?? chart.slug,
+                      slug: patch.slug || slug,
                   }
                 : lodash.omit(patch, "isPublished"),
             "PUT"
@@ -682,6 +685,7 @@ export class ChartList extends React.Component<ChartListProps> {
             const { charts } = this.props
             charts[charts.indexOf(chart)] = {
                 ...chart,
+                slug: publish ? slug : chart.slug,
                 isPublished: publish,
                 lastEditedAt: now,
                 lastEditedBy: admin.username,
