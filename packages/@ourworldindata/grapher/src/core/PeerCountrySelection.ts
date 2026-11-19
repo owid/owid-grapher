@@ -1,26 +1,35 @@
 import * as R from "remeda"
-import * as _ from "lodash-es"
 import {
     AdditionalGrapherDataFetchFn,
     EntityName,
     NumericCatalogKey,
     PeerCountryStrategy,
     Time,
+    TimeRange,
 } from "@ourworldindata/types"
 import {
     checkIsAggregate,
     checkIsCountry,
+    checkIsCountryName,
     checkIsIncomeGroup,
     checkIsOwidContinent,
     excludeUndefined,
     getContinentForCountry,
     getParentRegions,
     getRegionByName,
+    getTimeInterval,
+    isSubYearly,
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
+import { bisectRight, cumsum, quantile } from "d3-array"
+import { scaleQuantize } from "d3-scale"
 import { WORLD_ENTITY_NAME } from "./GrapherConstants.js"
 import { match } from "ts-pattern"
 import type { GrapherState } from "./GrapherState.js"
+
+const LATEST_VALUE_WINDOW_MAX_YEARS = 10
+const LATEST_VALUE_WINDOW_MIN_COUNTRIES = 10
+const LATEST_VALUE_WINDOW_COVERAGE = 0.8
 
 interface SelectDefaultEntitiesAsPeersParams {
     defaultSelection: EntityName[]
@@ -42,10 +51,11 @@ interface SelectByDataRangeParams {
     targetCountry?: EntityName
     availableEntities: EntityName[]
     dataColumn: CoreColumn
+    endTime?: Time
+    isSingleTimeChart: boolean
     randomize?: boolean
     additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
     targetCount?: number
-    time?: Time
 }
 
 interface SelectNeighborsAsPeersParams {
@@ -76,7 +86,16 @@ type SelectPeerCountriesParams =
     | WithStrategy<SelectNeighborsAsPeersParams, PeerCountryStrategy.Neighbors>
     | { peerCountryStrategy: PeerCountryStrategy.None }
 
-export { isValidPeerCountryStrategyQueryParam } from "@ourworldindata/types"
+export interface LatestValue {
+    entityName: EntityName
+    value: number
+    time: Time
+}
+
+interface ValueBin {
+    center: number
+    members: LatestValue[]
+}
 
 /**
  * Selects peer countries for a grapher based on the configured strategy.
@@ -111,12 +130,10 @@ export async function selectPeerCountriesForGrapher(
     if (!peerCountryStrategy) return []
 
     // Peer country selection only makes sense for countries
-    const regionInfo = getRegionByName(targetCountry)
-    if (!regionInfo || !checkIsCountry(regionInfo)) return []
+    if (!checkIsCountryName(targetCountry)) return []
 
     const additionalDataLoaderFn = grapherState.additionalDataLoaderFn
     const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
-    const time = grapherState.endTime
 
     return selectPeerCountries({
         peerCountryStrategy,
@@ -125,7 +142,8 @@ export async function selectPeerCountriesForGrapher(
         availableEntities,
         additionalDataLoaderFn,
         dataColumn,
-        time,
+        endTime: grapherState.endTime,
+        isSingleTimeChart: grapherState.isSingleTimeSelectionActive,
     })
 }
 
@@ -317,11 +335,10 @@ async function selectPeerCountriesByClosestValue({
 
         // Only consider _countries_ as candidates for peer selection
         // (e.g. exclude aggregates like continents or income groups)
-        const candidates = availableEntities.filter((entityName) => {
-            const region = getRegionByName(entityName)
-            const isCountry = region && checkIsCountry(region)
-            return isCountry && entityName !== targetCountry
-        })
+        const candidates = availableEntities.filter(
+            (entityName) =>
+                checkIsCountryName(entityName) && entityName !== targetCountry
+        )
 
         // Create a map of entity names to their values
         const values = new Map(data.map((row) => [row.entity, row.value]))
@@ -380,41 +397,39 @@ async function selectPeerCountriesByDataRange({
     targetCountry,
     availableEntities,
     dataColumn,
+    endTime,
+    isSingleTimeChart,
     additionalDataLoaderFn,
     targetCount = 5,
     randomize = false,
-    time,
 }: SelectByDataRangeParams): Promise<EntityName[]> {
-    // Only consider countries as candidates for peer selection
-    const candidateEntities = availableEntities.filter((entityName) => {
-        const region = getRegionByName(entityName)
-        return region && checkIsCountry(region)
-    })
-
-    // Extract values for candidate entities at the given time
     if (!isDataColumnAvailable(dataColumn)) return []
-
-    const values = extractCandidateValues({
-        entities: candidateEntities,
-        dataColumn,
-        targetCountry,
-        time,
+    const window = findLatestValueWindow({
+        column: dataColumn,
+        entityNames: availableEntities,
+        endTime,
+        isSingleTimeChart,
     })
+    const candidates = findLatestValuesInWindow({
+        column: dataColumn,
+        entityNames: availableEntities,
+        window,
+    })
+    if (candidates.length === 0) return []
 
-    // Load population data for weighted selection (prefer larger countries)
     if (!isDataLoaderAvailable(additionalDataLoaderFn)) return []
     const populationData = await additionalDataLoaderFn("population")
     const population = new Map(
         populationData.map((row) => [row.entity, row.value])
     )
 
-    return findDataRangePeers({
-        targetCountry,
-        values,
+    return findSpreadByValue({
+        candidates,
         population,
         targetCount,
+        targetCountry,
         randomize,
-    })
+    }).filter((entityName) => entityName !== targetCountry)
 }
 
 /** Finds entities with values closest to a target entity using logarithmic distance */
@@ -534,203 +549,240 @@ const findClosestByLogDistance = ({
     )
 }
 
-/**
- * Finds entities representing the data distribution using stratified sampling.
- *
- * Divides data into buckets (quintiles by default) and picks one entity from each:
- * - When randomize=false (default): picks the most populous country in each bucket
- * - When randomize=true: random selection weighted by population
- */
-export function findDataRangePeers({
-    values,
+export function findLatestValueWindow({
+    column,
+    entityNames,
+    endTime,
+    isSingleTimeChart = false,
+}: {
+    column: CoreColumn
+    entityNames: readonly EntityName[]
+    endTime?: Time
+    isSingleTimeChart?: boolean
+}): TimeRange {
+    const windowEndTime = Math.min(endTime ?? column.maxTime, column.maxTime)
+    const windowLength = findWindowLength({
+        column,
+        entityNames,
+        windowEndTime,
+        isSingleTimeChart,
+    })
+    return [windowEndTime - windowLength, windowEndTime]
+}
+
+export function findLatestValuesInWindow({
+    column,
+    entityNames,
+    window,
+}: {
+    column: CoreColumn
+    entityNames: readonly EntityName[]
+    window: TimeRange
+}): LatestValue[] {
+    return sortByValueThenName(
+        findLatestValues({ column, entityNames, timeRange: window })
+    )
+}
+
+/** Picks `targetCount` entities spread evenly across the range of latest values, in value order */
+export function findSpreadByValue({
+    candidates,
     population,
-    targetCount = 5,
+    targetCount,
     targetCountry,
     randomize = false,
 }: {
-    values: Map<EntityName, number>
-    /** Population data for weighted selection (prefers larger countries) */
-    population: Map<EntityName, number>
-    targetCount?: number
-    /** If specified, skip the bucket that contains this country */
+    candidates: readonly LatestValue[]
+    population: ReadonlyMap<EntityName, number>
+    targetCount: number
     targetCountry?: EntityName
-    /** If true, use randomized selection; if false, pick most populous */
     randomize?: boolean
 }): EntityName[] {
-    const sortedData = R.pipe(
-        Array.from(values.entries()),
-        R.map(([entityName, value]) => ({ entityName, value })),
-        R.sortBy((item) => item.value)
+    if (targetCount <= 0) return []
+
+    const sortedCandidates = sortByValueThenName(candidates)
+    const countries = sortedCandidates.filter((candidate) =>
+        checkIsCountryName(candidate.entityName)
     )
+    const pool = countries.length >= targetCount ? countries : sortedCandidates
+    if (pool.length <= targetCount)
+        return pool.map(({ entityName }) => entityName)
 
-    if (sortedData.length === 0) return []
+    const bins = assignToValueBins(pool, targetCount)
+    const pickedNames = new Set<EntityName>()
 
-    const bucketSize = Math.ceil(sortedData.length / targetCount)
-    const buckets = R.chunk(sortedData, bucketSize)
-
-    // If a target country is specified and has data, include it directly
-    // and only pick peers for buckets that don't contain it
-    const targetBucketIndex =
-        targetCountry !== undefined && values.has(targetCountry)
-            ? buckets.findIndex((bucket) =>
-                  bucket.some((item) => item.entityName === targetCountry)
-              )
-            : -1
-
-    const selected = R.pipe(
-        buckets,
-        R.map((bucket, bucketIndex) => {
-            if (bucket.length === 0) return undefined
-
-            // Skip if the target country is in this bucket
-            if (bucketIndex === targetBucketIndex) return undefined
-
-            return randomize
-                ? weightedRandomPick(bucket, population)
-                : maxPopulationPick(bucket, population)
-        }),
-        R.filter(R.isDefined)
+    const targetBinIndex = bins.findIndex((bin) =>
+        bin.members.some(({ entityName }) => entityName === targetCountry)
     )
+    if (targetBinIndex >= 0 && targetCountry !== undefined)
+        pickedNames.add(targetCountry)
 
-    return R.unique(selected)
-}
-
-/** Pick the entity with the highest population from the bucket */
-function maxPopulationPick(
-    bucket: { entityName: EntityName; value: number }[],
-    population: Map<EntityName, number>
-): EntityName | undefined {
-    return _.maxBy(bucket, (item) => population.get(item.entityName) ?? 0)
-        ?.entityName
-}
-
-/** Pick a random entity from the bucket, weighted by population */
-function weightedRandomPick(
-    bucket: { entityName: EntityName; value: number }[],
-    population: Map<EntityName, number>
-): EntityName | undefined {
-    // Calculate weights using population
-    const weights = bucket.map((item) => population.get(item.entityName) ?? 0)
-
-    const totalWeight = R.sum(weights)
-
-    // If no population data is available, just pick a random entity
-    if (totalWeight === 0) return R.sample(bucket, 1)[0]?.entityName
-
-    // Weighted random selection: imagine a number line divided into segments,
-    // where each country's segment size equals its weight. We pick a random
-    // point on the line, then walk through segments until we find which one
-    // contains our point. Countries with larger weights have larger segments,
-    // so they're more likely to be picked.
-    //
-    // Example with weights [5, 3, 2]:
-    //   |------Germany (5)------|--France (3)--|-Belgium (2)-|
-    //   0                        5              8             10
-    // A random point at 6.5 lands in France's segment, so France is picked.
-    let random = Math.random() * totalWeight
-    for (let i = 0; i < bucket.length; i++) {
-        random -= weights[i]
-        if (random <= 0) return bucket[i].entityName
+    for (const [binIndex, bin] of bins.entries()) {
+        if (binIndex === targetBinIndex) continue
+        const pick = randomize
+            ? pickRandomByPopulation(bin.members, population)
+            : pickMostPopulous(bin.members, population)
+        if (pick) pickedNames.add(pick.entityName)
     }
 
-    return bucket[bucket.length - 1]?.entityName
+    const emptyBins = bins.filter((bin) => bin.members.length === 0)
+    for (const emptyBin of emptyBins) {
+        const pick = pickNearestTo(
+            pool.filter(({ entityName }) => !pickedNames.has(entityName)),
+            emptyBin.center,
+            population
+        )
+        if (pick) pickedNames.add(pick.entityName)
+    }
+
+    return pool
+        .filter(({ entityName }) => pickedNames.has(entityName))
+        .map(({ entityName }) => entityName)
 }
 
-function extractCandidateValues({
-    entities,
-    dataColumn,
-    targetCountry,
-    time,
+function findWindowLength({
+    column,
+    entityNames,
+    windowEndTime,
+    isSingleTimeChart,
 }: {
-    entities: EntityName[]
-    dataColumn: CoreColumn
-    targetCountry?: EntityName
-    time?: Time
-}): Map<EntityName, number> {
-    // If a target country is given, use the given time value if it has data for it,
-    // otherwise use the country's latest data smaller than the given time
-    if (targetCountry) {
-        const rowsByTime =
-            dataColumn.owidRowByEntityNameAndTime.get(targetCountry)
+    column: CoreColumn
+    entityNames: readonly EntityName[]
+    windowEndTime: Time
+    isSingleTimeChart: boolean
+}): number {
+    const maxWindowLength = isSubYearly(getTimeInterval(column.display))
+        ? LATEST_VALUE_WINDOW_MAX_YEARS * 365
+        : LATEST_VALUE_WINDOW_MAX_YEARS
 
-        if (!rowsByTime)
-            return extractValuesAtTime({
-                entities,
-                dataColumn,
-                time: time ?? dataColumn.maxTime,
-            })
+    const indicatorTolerance = column.display?.tolerance ?? column.def.tolerance
+    if (indicatorTolerance !== undefined)
+        return Math.min(indicatorTolerance, maxWindowLength)
 
-        const times = [...rowsByTime.keys()]
-        if (time !== undefined) {
-            // If a time is given, find the closest time with data for the
-            // target country that is smaller or equal to the given time
-            const closestTime = _.max(times.filter((t) => t <= time))
+    if (isSingleTimeChart) return 0
 
-            const resolvedTime = closestTime ?? time
-            const values = extractValuesAtTime({
-                entities,
-                dataColumn,
-                time: resolvedTime,
-            })
-
-            // If no values found, fall back to the column's latest time
-            if (values.size === 0 && resolvedTime !== dataColumn.maxTime) {
-                return extractValuesAtTime({
-                    entities,
-                    dataColumn,
-                    time: dataColumn.maxTime,
-                })
-            }
-
-            return values
-        } else {
-            // If no time given, use the latest time with data for the target country
-            const maxTime = _.max(times)
-            return extractValuesAtTime({
-                entities,
-                dataColumn,
-                time: maxTime ?? dataColumn.maxTime,
-            })
-        }
-    }
-
-    // If no target country is given, use the given time
-    const targetTime = time ?? dataColumn.maxTime
-    const values = extractValuesAtTime({
-        entities,
-        dataColumn,
-        time: targetTime,
+    const latestValues = findLatestValues({
+        column,
+        entityNames,
+        timeRange: [-Infinity, windowEndTime],
     })
+    const latestCountryValues = latestValues.filter(({ entityName }) =>
+        checkIsCountryName(entityName)
+    )
+    const latestValuesForCoverage =
+        latestCountryValues.length >= LATEST_VALUE_WINDOW_MIN_COUNTRIES
+            ? latestCountryValues
+            : latestValues
+    const timesBeforeEnd = latestValuesForCoverage.map(
+        ({ time }) => windowEndTime - time
+    )
+    const coveringWindowLength = quantile(
+        timesBeforeEnd,
+        LATEST_VALUE_WINDOW_COVERAGE
+    )
+    if (coveringWindowLength === undefined) return maxWindowLength
 
-    // If no values found at the target time, retry with the column's latest time
-    // This can happen for charts with projected data
-    if (values.size === 0 && targetTime !== dataColumn.maxTime) {
-        return extractValuesAtTime({
-            entities,
-            dataColumn,
-            time: dataColumn.maxTime,
+    return Math.min(Math.ceil(coveringWindowLength), maxWindowLength)
+}
+
+function findLatestValues({
+    column,
+    entityNames,
+    timeRange: [startTime, endTime],
+}: {
+    column: CoreColumn
+    entityNames: readonly EntityName[]
+    timeRange: TimeRange
+}): LatestValue[] {
+    const requestedEntityNames = new Set(entityNames)
+    const latestValueByEntityNameInRange = new Map<EntityName, LatestValue>()
+    const { allEntityNames, values, originalTimes } = column
+    for (let i = 0; i < values.length; i++) {
+        const entityName = allEntityNames[i]
+        const value = values[i]
+        const time = originalTimes[i]
+        if (!requestedEntityNames.has(entityName)) continue
+        if (!R.isNumber(value)) continue
+        if (time < startTime || time > endTime) continue
+        latestValueByEntityNameInRange.set(entityName, {
+            entityName,
+            value,
+            time,
         })
     }
-
-    return values
+    return [...latestValueByEntityNameInRange.values()]
 }
 
-/** Extracts numeric values for entities at a specific time point */
-function extractValuesAtTime({
-    entities,
-    dataColumn,
-    time,
-}: {
-    entities: EntityName[]
-    dataColumn: CoreColumn
-    time: Time
-}): Map<EntityName, number> {
-    const values = new Map<EntityName, number>()
-    for (const entityName of entities) {
-        const value = dataColumn.owidRowByEntityNameAndTime
-            .get(entityName)
-            ?.get(time)?.value
-        if (value !== undefined) values.set(entityName, value)
-    }
-    return values
+function sortByValueThenName(
+    latestValues: readonly LatestValue[]
+): LatestValue[] {
+    return R.sortBy(
+        latestValues,
+        (latestValue) => latestValue.value,
+        (latestValue) => latestValue.entityName
+    )
+}
+
+function assignToValueBins(
+    sortedCandidates: readonly LatestValue[],
+    binCount: number
+): ValueBin[] {
+    const minValue = sortedCandidates[0].value
+    const maxValue = sortedCandidates[sortedCandidates.length - 1].value
+    const step = binCount > 1 ? (maxValue - minValue) / (binCount - 1) : 0
+    const findBinIndex = scaleQuantize<number>()
+        .domain([minValue - step / 2, maxValue + step / 2])
+        .range(R.range(0, binCount))
+
+    const bins: ValueBin[] = R.range(0, binCount).map((binIndex) => ({
+        center: minValue + step * binIndex,
+        members: [],
+    }))
+    for (const candidate of sortedCandidates)
+        bins[findBinIndex(candidate.value)].members.push(candidate)
+    return bins
+}
+
+function pickNearestTo(
+    candidates: readonly LatestValue[],
+    value: number,
+    population: ReadonlyMap<EntityName, number>
+): LatestValue | undefined {
+    return R.firstBy(
+        candidates,
+        (candidate) => Math.abs(candidate.value - value),
+        [(candidate) => population.get(candidate.entityName) ?? 0, "desc"],
+        (candidate) => candidate.entityName
+    )
+}
+
+function pickMostPopulous(
+    candidates: readonly LatestValue[],
+    population: ReadonlyMap<EntityName, number>
+): LatestValue | undefined {
+    return R.firstBy(
+        candidates,
+        [(candidate) => population.get(candidate.entityName) ?? 0, "desc"],
+        (candidate) => candidate.entityName
+    )
+}
+
+/** A random candidate weighted by population, or uniform when none has population */
+function pickRandomByPopulation(
+    candidates: readonly LatestValue[],
+    population: ReadonlyMap<EntityName, number>
+): LatestValue | undefined {
+    if (candidates.length === 0) return undefined
+
+    const populations = candidates.map(
+        ({ entityName }) => population.get(entityName) ?? 0
+    )
+    const weights =
+        R.sum(populations) > 0 ? populations : populations.map(() => 1)
+
+    const cumulativeWeights = cumsum(weights)
+    const totalWeight = cumulativeWeights[cumulativeWeights.length - 1]
+    return candidates[
+        bisectRight(cumulativeWeights, Math.random() * totalWeight)
+    ]
 }

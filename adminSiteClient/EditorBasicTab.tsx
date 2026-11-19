@@ -201,7 +201,9 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
         return selectPeerCountries({
             peerCountryStrategy: PeerCountryStrategy.DataRange,
             availableEntities,
-            dataColumn,
+            dataColumn: dataColumn,
+            endTime: grapherState.endTime,
+            isSingleTimeChart: grapherState.isSingleTimeSelectionActive,
             targetCount,
             additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
             randomize: true,

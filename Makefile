@@ -37,7 +37,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.worktree setup.worktree sessions wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s playwright playwright.ui playwright.standalone check-not-prod
+.PHONY: help up up.headless up.worktree setup.worktree sessions wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.mobile svgtest.md5s playwright playwright.ui playwright.standalone check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -460,6 +460,13 @@ svgtest.full: svgtest.reset node_modules
 		echo '==> No differences (thumbnails)'; \
 	fi
 
+	@# run test suite for mobile
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mobile || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/mobile/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (mobile)'; \
+	fi
+
 svgtest.grapher-views: svgtest.reset node_modules
 	@echo '==> Running the SVG tests for grapher-views'
 
@@ -490,6 +497,16 @@ svgtest.thumbnails: svgtest.reset node_modules
 		echo '==> No differences (thumbnails)'; \
 	fi
 
+svgtest.mobile: svgtest.reset node_modules
+	@echo '==> Running the SVG tests for mobile'
+
+	@# run test suite for mobile
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mobile || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/mobile/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (mobile)'; \
+	fi
+
 svgtest.md5s: ../owid-grapher-svgs node_modules
 	@echo '==> Recomputing reference md5s in ../owid-grapher-svgs'
 
@@ -497,6 +514,7 @@ svgtest.md5s: ../owid-grapher-svgs node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts grapher-views
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts mdims
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts thumbnails
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts mobile
 
 node_modules: package.json yarn.lock yarn.config.cjs
 	@echo '==> Installing packages'

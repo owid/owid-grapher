@@ -257,6 +257,7 @@ export {
     getRegionAlternativeNames,
     mappableCountries,
     checkIsCountry,
+    checkIsCountryName,
     checkIsOwidContinent,
     checkIsIncomeGroup,
     checkIsAggregate,
@@ -388,6 +389,7 @@ export {
     extractMultiDimChoicesFromSearchParams,
     getMultiDimPageTitle,
     isMultiDimDataExplorer,
+    MultiDimViewNotFoundError,
     resolveDimensionPresentationType,
     searchParamsToMultiDimView,
 } from "./MultiDimDataPageConfig.js"
@@ -426,6 +428,9 @@ export {
     DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM,
     LATEST_STICKY_FILTERS_EXPERIMENT_ID,
     LATEST_STICKY_FILTERS_ARMS,
+    LATEST_DATA_INSIGHTS_EXPERIMENT_ID,
+    LATEST_DATA_INSIGHTS_ARMS,
+    type LatestDataInsightsArm,
 } from "./experiments/constants.js"
 
 export {
@@ -477,6 +482,17 @@ export {
 } from "./search/searchTopicPages.js"
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
+export {
+    type AlgoliaHostOption,
+    getAlgoliaBaseUrl,
+    getAlgoliaHostClientOptions,
+} from "./search/algoliaHost.js"
+
+export {
+    PINNED_SEARCHES_ATTRIBUTE,
+    normalizePinnedSearch,
+    parsePinnedSearches,
+} from "./search/pinnedSearch.js"
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"

@@ -1,6 +1,7 @@
 import { algoliasearch, SearchClient } from "algoliasearch"
 import type { SynonymHit, IndexSettings } from "@algolia/client-search"
 import {
+    ALGOLIA_HOST,
     ALGOLIA_ID,
     TOPICS_CONTENT_GRAPH,
 } from "../../settings/clientSettings.mjs"
@@ -9,7 +10,12 @@ import {
     ALGOLIA_INDEXING,
     ALGOLIA_SECRET_KEY,
 } from "../../settings/serverSettings.js"
-import { countries, excludeUndefined } from "@ourworldindata/utils"
+import {
+    countries,
+    excludeUndefined,
+    PINNED_SEARCHES_ATTRIBUTE,
+    getAlgoliaHostClientOptions,
+} from "@ourworldindata/utils"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { PAGES_INDEX, CHARTS_INDEX } from "../../site/search/searchUtils.js"
 import { SearchIndexName } from "@ourworldindata/types"
@@ -23,7 +29,11 @@ export const getAlgoliaClient = (): SearchClient | undefined => {
         return
     }
 
-    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
+    const client = algoliasearch(
+        ALGOLIA_ID,
+        ALGOLIA_SECRET_KEY,
+        getAlgoliaHostClientOptions(ALGOLIA_HOST)
+    )
     return client
 }
 
@@ -89,6 +99,7 @@ export const configureAlgolia = async () => {
             attributeForDistinct: "path",
             attributesForFaceting: [
                 "filterOnly(path)",
+                `filterOnly(${PINNED_SEARCHES_ATTRIBUTE})`,
                 "afterDistinct(type)",
                 "afterDistinct(searchable(tags))",
                 "afterDistinct(searchable(authors))",

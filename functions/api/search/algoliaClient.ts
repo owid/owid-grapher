@@ -3,6 +3,7 @@ import { createNullCache } from "@algolia/client-common"
 import { createFetchRequester } from "@algolia/requester-fetch"
 import { SearchIndexName } from "@ourworldindata/types"
 import type { SearchIndexNames } from "@ourworldindata/utils"
+import { getAlgoliaHostClientOptions } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
 
 export interface AlgoliaConfig {
@@ -14,6 +15,7 @@ export interface AlgoliaConfig {
      * apart (and attribute countries) as when the browser queries it directly
      */
     readerIp?: string
+    host?: string
 }
 
 export function getAlgoliaConfig(env: Env, request?: Request): AlgoliaConfig {
@@ -29,6 +31,7 @@ export function getAlgoliaConfig(env: Env, request?: Request): AlgoliaConfig {
         apiKey,
         indexPrefix: env.ALGOLIA_INDEX_PREFIX,
         readerIp: request?.headers.get("CF-Connecting-IP") ?? undefined,
+        host: env.ALGOLIA_HOST,
     }
 }
 
@@ -78,5 +81,6 @@ export function createSearchClient(config: AlgoliaConfig): LiteClient {
               }
             : fetchRequester,
         responsesCache: createNullCache(),
+        ...getAlgoliaHostClientOptions(config.host),
     })
 }

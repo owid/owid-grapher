@@ -161,6 +161,15 @@ export class Admin {
             if (json.error) {
                 throw new JsonError(json.error.message, json.error.status)
             }
+            // A proxy in front of the admin (e.g. a 502 while it restarts)
+            // can answer with JSON that has no `error` key; callers would
+            // otherwise read fields off it as if the request had worked
+            if (!response.ok) {
+                throw new JsonError(
+                    `${response.status} ${response.statusText}`.trim(),
+                    response.status
+                )
+            }
         } catch (err) {
             if (onFailure === "show")
                 this.setErrorMessage({

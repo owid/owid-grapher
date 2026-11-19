@@ -45,12 +45,15 @@ $group-gap: 4px;
         outline-offset: 2px;
     }
 
-    &:hover:not([data-disabled]):not([aria-expanded="true"]),
-    &:focus:not([data-disabled]):not([aria-expanded="true"]) {
+    // Hover takes precedence over focus (higher specificity), so the grey
+    // fill only shows while the pointer is over the button. Focus returns to
+    // the button after picking an option, and keeps the open-state stroke.
+    &:hover:not([data-disabled]):not([aria-expanded="true"]) {
         background: $gray-10;
         border-color: $gray-30;
     }
 
+    &:focus,
     &[aria-expanded="true"] {
         background: white;
         border-color: $open-stroke;
