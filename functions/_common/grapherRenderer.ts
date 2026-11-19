@@ -1,13 +1,7 @@
-import { newContext, type Context } from "resvg-wasm"
+import type { Context } from "resvg-wasm"
 import { TimeLogger } from "./timeLogger.js"
 import { png } from "itty-router"
 
-// these are regular .ttf files, but cloudflare needs the .bin extension to serve them correctly
-import LatoRegular from "../_common/fonts/LatoLatin-Regular.ttf.bin"
-import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
-import LatoItalic from "../_common/fonts/LatoLatin-Italic.ttf.bin"
-import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
-import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "./env.js"
 import { ImageOptions, extractOptions } from "./imageOptions.js"
 import {
@@ -109,22 +103,9 @@ export const fetchAndRenderGrapher = async (
     }
 }
 
-let resvgContext: Promise<Context> | undefined
-
 function getResvgContext(): Promise<Context> {
-    resvgContext ??= newContext().then((context) => {
-        for (const fontData of [
-            LatoRegular,
-            LatoMedium,
-            LatoItalic,
-            LatoBold,
-            PlayfairSemiBold,
-        ]) {
-            context.registerFontData(new Uint8Array(fontData))
-        }
-        return context
-    })
-    return resvgContext
+    // Experiment (#7855): no resvg wasm or fonts, to measure their cold-start cost.
+    throw new Error("PNG rendering is disabled on this preview")
 }
 
 export async function renderSvgToPng(svg: string, options: ImageOptions) {
