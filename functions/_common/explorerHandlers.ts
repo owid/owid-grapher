@@ -101,7 +101,7 @@ export async function handleThumbnailRequestForExplorerView(
                 },
             })
         } else {
-            return png(await renderSvgToPng(svg, options))
+            return png(await renderSvgToPng(svg, options, env))
         }
     } catch (e) {
         console.error(e)
