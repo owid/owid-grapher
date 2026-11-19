@@ -95,7 +95,10 @@ export async function constructSearchResultJson(
     const { layout, dataTableContent, dataDisplayProps, pickedTimeBounds } =
         prepared
 
-    // Some charts and preview thumbnails need specific grapher query params
+    // Some charts and preview thumbnails need specific grapher query params.
+    // runInAction caches grapherState's derived values, but only for the code
+    // before each callback's first `await`. Make sure to read grapherState before awaiting,
+    // or wrap reads after an `await` in their own runInAction.
     const enrichedLayout = await runInAction(() =>
         Promise.all(
             layout.map(async ({ slotKey, grapherTab }) => {
@@ -341,6 +344,9 @@ export async function pickDisplayEntities(
     // Scatter plots and Marimekko charts are special because they're
     // the only chart types where all entities are plotted by default
     if (chartType === ScatterPlot || chartType === Marimekko) {
+        // Has its own runInAction because it can run after an `await`, where
+        // the caller's runInAction no longer applies
+        // (see assembleSearchResultData)
         const pickEntitiesForScatterOrMarimekko = () =>
             runInAction(() =>
                 match(chartType)
@@ -1096,7 +1102,10 @@ export async function selectPeerEntitiesForSearch({
         const peerCountryStrategy =
             grapherState.peerCountryStrategy ?? PeerCountryStrategy.DataRange
 
-        // For countries, use Grapher's peer selection logic
+        // For countries, use Grapher's peer selection logic.
+        // Has its own runInAction so it stays cached even if a caller
+        // reaches it after an `await`, where the caller's runInAction no
+        // longer applies (see assembleSearchResultData)
         return runInAction(() =>
             selectPeerCountriesForGrapher(grapherState, {
                 targetCountry: targetEntity,
