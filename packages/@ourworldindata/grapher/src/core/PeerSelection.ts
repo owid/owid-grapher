@@ -130,75 +130,8 @@ export async function selectPeersForGrapherWithGuards(
         targetEntity: selectedEntities[0],
         targetCount,
     })
+
     return peers.length > 0 ? peers : fallbackPeers
-}
-
-/**
- * The time a single-time chart should move to before peers are picked: the
- * target's latest time, when it has no value near the end handle
- */
-export function findPeerTargetTimeForGrapher(
-    grapherState: GrapherState
-): Time | undefined {
-    const { peerCountryStrategy: strategy } = grapherState
-    if (
-        strategy === undefined ||
-        strategy === PeerCountryStrategy.None ||
-        grapherState.hideTimeline ||
-        !grapherState.isSingleTimeSelectionActive ||
-        !canAddPeersToGrapher(grapherState)
-    )
-        return undefined
-
-    const [targetEntity] = findAvailableSelectedEntities(grapherState)
-    const column = grapherState.table.get(grapherState.yColumnSlug)
-    if (targetEntity === undefined || column.isMissing || column.isEmpty)
-        return undefined
-
-    const endTime = findClosestTime(
-        column.uniqTimesAsc,
-        grapherState.endHandleTimeBound
-    )
-    if (endTime === undefined) return undefined
-
-    const [latestTargetValue] = findLatestValues({
-        column,
-        entityNames: [targetEntity],
-        timeRange: [-Infinity, endTime],
-    })
-    if (latestTargetValue === undefined) return undefined
-    const latestTargetTime = latestTargetValue.time
-
-    const isTargetPlottedAtEndTime =
-        endTime - latestTargetTime <= column.tolerance
-    return isTargetPlottedAtEndTime ? undefined : latestTargetTime
-}
-
-function canAddPeersToGrapher(grapherState: GrapherState): boolean {
-    const {
-        addCountryMode,
-        activeChartType: chartType,
-        chartState: { seriesStrategy = SeriesStrategy.entity },
-        isFaceted,
-    } = grapherState
-
-    return (
-        chartType !== undefined &&
-        addCountryMode === EntitySelectionMode.MultipleEntities &&
-        seriesStrategy === SeriesStrategy.entity &&
-        !isFaceted &&
-        chartType !== GRAPHER_CHART_TYPES.StackedArea &&
-        chartType !== GRAPHER_CHART_TYPES.StackedBar
-    )
-}
-
-function findAvailableSelectedEntities(
-    grapherState: GrapherState
-): EntityName[] {
-    const availableEntityNames = new Set(grapherState.availableEntityNames)
-    return grapherState.selection.selectedEntityNames.filter((name) =>
-        availableEntityNames.has(name)
-    )
 }
 
 /**
@@ -215,10 +148,12 @@ export async function selectPeersForGrapher(
         peerCountryStrategy: requestedStrategy,
         targetEntity: requestedTargetEntity,
         targetCount,
+        endTime: requestedEndTime,
     }: {
         peerCountryStrategy?: PeerCountryStrategy
         targetEntity?: EntityName
         targetCount?: number
+        endTime?: Time
     } = {}
 ): Promise<EntityName[]> {
     const selectedEntities = findAvailableSelectedEntities(grapherState)
@@ -239,11 +174,16 @@ export async function selectPeersForGrapher(
         requestedStrategy ?? grapherState.peerCountryStrategy
     if (!peerCountryStrategy) return []
 
+    const additionalDataLoaderFn = grapherState.additionalDataLoaderFn
+
     const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
-    const endTime = findClosestTime(
-        dataColumn.uniqTimesAsc,
-        grapherState.endHandleTimeBound
-    )
+    const endTime =
+        requestedEndTime ??
+        findClosestTime(
+            dataColumn.uniqTimesAsc,
+            grapherState.endHandleTimeBound
+        )
+    const isSingleTimeChart = grapherState.isSingleTimeSelectionActive
 
     return selectPeers({
         peerCountryStrategy,
@@ -251,10 +191,10 @@ export async function selectPeersForGrapher(
         targetCount,
         defaultSelection,
         availableEntities,
-        additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
+        additionalDataLoaderFn,
         dataColumn,
         endTime,
-        isSingleTimeChart: grapherState.isSingleTimeSelectionActive,
+        isSingleTimeChart,
     })
 }
 
@@ -302,6 +242,79 @@ export async function selectPeers(
             async (params) => selectNeighborsAsPeers(params)
         )
         .exhaustive()
+}
+
+export function findPeerTargetTimeForGrapher(
+    grapherState: GrapherState
+): Time | undefined {
+    const { peerCountryStrategy: strategy } = grapherState
+    if (
+        strategy === undefined ||
+        strategy === PeerCountryStrategy.None ||
+        !grapherState.isSingleTimeSelectionActive ||
+        !canAddPeersToGrapher(grapherState)
+    )
+        return undefined
+
+    const [targetEntity] = findAvailableSelectedEntities(grapherState)
+    if (targetEntity === undefined) return undefined
+
+    return findPeerTargetTime(grapherState, targetEntity)
+}
+
+export function findPeerTargetTime(
+    grapherState: GrapherState,
+    targetEntity: EntityName
+): Time | undefined {
+    if (grapherState.hideTimeline) return undefined
+
+    const column = grapherState.table.get(grapherState.yColumnSlug)
+    if (column.isMissing || column.isEmpty) return undefined
+
+    const endTime = findClosestTime(
+        column.uniqTimesAsc,
+        grapherState.endHandleTimeBound
+    )
+    if (endTime === undefined) return undefined
+
+    const [latestTargetValue] = findLatestValues({
+        column,
+        entityNames: [targetEntity],
+        timeRange: [-Infinity, endTime],
+    })
+    if (latestTargetValue === undefined) return undefined
+    const latestTargetTime = latestTargetValue.time
+
+    const isTargetPlottedAtEndTime =
+        endTime - latestTargetTime <= column.tolerance
+    return isTargetPlottedAtEndTime ? undefined : latestTargetTime
+}
+
+function canAddPeersToGrapher(grapherState: GrapherState): boolean {
+    const {
+        addCountryMode,
+        activeChartType: chartType,
+        chartState: { seriesStrategy = SeriesStrategy.entity },
+        isFaceted,
+    } = grapherState
+
+    return (
+        chartType !== undefined &&
+        addCountryMode === EntitySelectionMode.MultipleEntities &&
+        seriesStrategy === SeriesStrategy.entity &&
+        !isFaceted &&
+        chartType !== GRAPHER_CHART_TYPES.StackedArea &&
+        chartType !== GRAPHER_CHART_TYPES.StackedBar
+    )
+}
+
+function findAvailableSelectedEntities(
+    grapherState: GrapherState
+): EntityName[] {
+    const availableEntityNames = new Set(grapherState.availableEntityNames)
+    return grapherState.selection.selectedEntityNames.filter((name) =>
+        availableEntityNames.has(name)
+    )
 }
 
 function isDataLoaderAvailable(
@@ -564,6 +577,7 @@ async function selectPeerCountriesByDataRange({
         targetCountry: targetEntity,
         randomize,
     })
+
     return R.take(
         spread.filter((entityName) => entityName !== targetEntity),
         targetCount
