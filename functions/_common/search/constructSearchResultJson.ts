@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import * as R from "remeda"
 import { match } from "ts-pattern"
 import {
-    selectPeerCountriesForGrapher,
+    selectPeersForGrapher,
     constructGrapherValuesJson,
     generateFocusedSeriesNamesParam,
     generateSelectedEntityNamesParam,
@@ -325,7 +325,7 @@ export async function pickDisplayEntities(
     const enrichPickedEntities = async () => {
         if (pickedEntities.length === 0) return defaultEntities
 
-        const comparisonEntities = await selectPeerEntitiesForSearch({
+        const comparisonEntities = await selectPeersForSearch({
             grapherState,
             targetEntity: pickedEntities[0],
         })
@@ -969,7 +969,7 @@ async function getGrapherQueryParamsForDiscreteBar(
         isEntityStrategy &&
         selectedEntities.length === 1
     ) {
-        const comparisonEntities = await selectPeerEntitiesForSearch({
+        const comparisonEntities = await selectPeersForSearch({
             grapherState,
             targetEntity: selectedEntities[0],
         })
@@ -1077,11 +1077,11 @@ function findTableSlotKey(
 /**
  * Selects peer entities for search, handling both countries and aggregate regions.
  *
- * For countries: delegates to selectPeerCountries.
+ * For countries: delegates to selectPeersForGrapher.
  * For aggregate regions: returns sibling regions at the same hierarchical level.
  * For the World entity: returns continents or income groups if available.
  */
-export async function selectPeerEntitiesForSearch({
+export async function selectPeersForSearch({
     grapherState,
     targetEntity,
 }: {
@@ -1107,8 +1107,8 @@ export async function selectPeerEntitiesForSearch({
         // reaches it after an `await`, where the caller's runInAction no
         // longer applies (see assembleSearchResultData)
         return runInAction(() =>
-            selectPeerCountriesForGrapher(grapherState, {
-                targetCountry: targetEntity,
+            selectPeersForGrapher(grapherState, {
+                targetEntity,
                 peerCountryStrategy,
             })
         )

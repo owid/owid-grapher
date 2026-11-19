@@ -100,6 +100,7 @@ export default function MultiDim({
         )
         return config.filterToAvailableChoices(choices).selectedChoices
     })
+    const hasAppliedViewRef = useRef(false)
     const [guidedQueryParams, setGuidedQueryParams] =
         useState<GrapherQueryParams | null>(null)
 
@@ -179,9 +180,13 @@ export default function MultiDim({
         // Guided chart links should not inherit query params from the
         // previously selected view. Otherwise omitted params, such as
         // `country`, can stick around after clicking a different guided link.
+        // The first view reads the URL itself: changedParams leaves out
+        // one-shot params such as `peerCountries`.
         const queryParams = isGuidedChartUpdate
             ? guidedQueryParams
-            : grapherState.changedParams
+            : hasAppliedViewRef.current
+              ? grapherState.changedParams
+              : Object.fromEntries(searchParams.entries())
         const newGrapherParams: GrapherQueryParams = {
             ...queryParams,
             ...settings,
@@ -226,6 +231,7 @@ export default function MultiDim({
                     grapherState.isConfigReady = true
                     grapherState.populateFromQueryParams(newGrapherParams)
                 })
+                hasAppliedViewRef.current = true
 
                 await grapherDataLoader
                     .current(

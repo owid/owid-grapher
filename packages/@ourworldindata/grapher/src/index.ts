@@ -179,10 +179,10 @@ export type { DumbbellChartState } from "./dumbbellCharts/DumbbellChartState"
 export type { SwimlaneChartState } from "./swimlaneCharts/SwimlaneChartState"
 
 export {
-    selectPeerCountriesForGrapher,
-    selectPeerCountries,
+    selectPeersForGrapher,
+    selectPeers,
     prepareEntitiesForPeerSelection,
-} from "./core/PeerCountrySelection.js"
+} from "./core/PeerSelection.js"
 
 export { loadCatalogData, getCatalogAssetKey } from "./core/loadCatalogData.js"
 
