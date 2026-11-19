@@ -116,6 +116,21 @@ describe(selectParentRegionsAsPeers, () => {
         expect(result).not.toContain("Germany")
     })
 
+    it("returns at most targetCount regions, World first", () => {
+        const result = selectParentRegionsAsPeers({
+            targetEntity: "Germany",
+            availableEntities: [
+                "Germany",
+                "World",
+                "Europe",
+                "High-income countries",
+            ],
+            targetCount: 2,
+        })
+
+        expect(result).toEqual(["World", "High-income countries"])
+    })
+
     it("only returns entities that are available", () => {
         const result = selectParentRegionsAsPeers({
             targetEntity: "France",
@@ -911,17 +926,26 @@ describe(selectPeersForGrapherWithGuards, () => {
         )
     })
 
-    it("takes the first peerCount entities of the default selection, selected ones included", async () => {
+    it("takes the first peerCount entities of the default selection that aren't selected yet", async () => {
         const grapherState = makeGrapherState({
             queryStr: "?country=FRA~DEU",
             peerCountryStrategy: PeerCountryStrategy.DefaultSelection,
-            selectedEntityNames: ["Germany", "Norway", "Italy", "Spain"],
+            selectedEntityNames: ["France", "Germany", "Norway", "Italy"],
             peerCount: 2,
         })
         expect(await selectPeersForGrapherWithGuards(grapherState)).toEqual([
-            "Germany",
             "Norway",
+            "Italy",
         ])
+    })
+
+    it("doesn't spend peer slots on entities that are already selected", async () => {
+        const grapherState = makeGrapherState({
+            queryStr: "?country=ITA~DEU",
+        })
+        const peers = await selectPeersForGrapherWithGuards(grapherState)
+        expect(peers).not.toContain("Germany")
+        expect(peers).toHaveLength(DATA_RANGE_PEERS_OF_ITALY.length)
     })
 
     it("spreads over a selection with no available entity", async () => {
