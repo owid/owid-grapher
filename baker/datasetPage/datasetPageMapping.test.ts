@@ -8,6 +8,7 @@ import {
     makeCharts,
     makeDatasetPageData,
     makeRelatedResearch,
+    makeSources,
 } from "./datasetPageMapping.js"
 import {
     DatasetPageCodebookRow,
@@ -466,7 +467,7 @@ describe("makeDatasetPageData, for a manifest without the new fields", () => {
                 citation: "Energy Institute – Statistical Review (2026).",
                 datePublished: "2026-06-30",
                 dateAccessed: "2026-07-02",
-                downloadUrl: undefined,
+                downloads: [],
             },
             {
                 title: "Smil – Energy Transitions (2017)",
@@ -477,7 +478,48 @@ describe("makeDatasetPageData, for a manifest without the new fields", () => {
                 citation: "",
                 datePublished: undefined,
                 dateAccessed: undefined,
-                downloadUrl: "https://example.com/smil.xlsx",
+                downloads: [{ url: "https://example.com/smil.xlsx" }],
+            },
+        ])
+    })
+
+    it("groups the files of one data product into one source, with a download per file", () => {
+        const gcb = {
+            label: "Global Carbon Budget (2026)",
+            producer: "Global Carbon Project",
+            title: "Global Carbon Budget",
+            description: "About the budget.",
+            date_published: "2026-11-13",
+            date_accessed: "2026-11-14",
+            url_main: "https://globalcarbonbudget.org/",
+            citation_full: "Friedlingstein et al. (2026).",
+        }
+        const sources = makeSources([
+            {
+                ...gcb,
+                title_snapshot: "Global Carbon Budget – Fossil CO2 emissions",
+                url_download: "https://example.com/fossil.csv",
+            },
+            mainSources[1],
+            {
+                ...gcb,
+                title_snapshot:
+                    "Global Carbon Budget – Land-use change emissions",
+                url_download: "https://example.com/land_use.xlsx",
+            },
+        ])
+        expect(sources.map((source) => source.title)).toEqual([
+            "Global Carbon Budget (2026)",
+            "Smil – Energy Transitions (2017)",
+        ])
+        expect(sources[0].downloads).toEqual([
+            {
+                url: "https://example.com/fossil.csv",
+                title: "Global Carbon Budget – Fossil CO2 emissions",
+            },
+            {
+                url: "https://example.com/land_use.xlsx",
+                title: "Global Carbon Budget – Land-use change emissions",
             },
         ])
     })

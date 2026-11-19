@@ -216,21 +216,34 @@ export function makeCharts(
     )
 }
 
-function makeSource(
-    row: DatasetPageFilesTable["sources"][number]
-): DatasetSource {
-    const year = parseInt(row.date_published.slice(0, 4))
-    return {
-        title: row.label,
-        producer: row.producer,
-        year: Number.isNaN(year) ? undefined : year,
-        url: row.url_main,
-        description: row.description,
-        citation: row.citation_full,
-        datePublished: row.date_published || undefined,
-        dateAccessed: row.date_accessed || undefined,
-        downloadUrl: row.url_download || undefined,
+/** One source per label: the files of one data product share a label, and become the source's downloads */
+export function makeSources(
+    rows: DatasetPageFilesTable["sources"]
+): DatasetSource[] {
+    const sources = new Map<string, DatasetSource>()
+    for (const row of rows) {
+        const download = row.url_download
+            ? { url: row.url_download, title: row.title_snapshot || undefined }
+            : undefined
+        const source = sources.get(row.label)
+        if (source) {
+            if (download) source.downloads.push(download)
+            continue
+        }
+        const year = parseInt(row.date_published.slice(0, 4))
+        sources.set(row.label, {
+            title: row.label,
+            producer: row.producer,
+            year: Number.isNaN(year) ? undefined : year,
+            url: row.url_main,
+            description: row.description,
+            citation: row.citation_full,
+            datePublished: row.date_published || undefined,
+            dateAccessed: row.date_accessed || undefined,
+            downloads: download ? [download] : [],
+        })
     }
+    return [...sources.values()]
 }
 
 function makeDownloads(
@@ -326,7 +339,7 @@ export function makeDatasetTable(
         dateRange: getTableDateRange(codebook.map((row) => row.date_range)),
         citation: manifestTable.citation,
         indicatorGroups: makeIndicatorGroups(indicators, primaryKey),
-        sources: sources.map(makeSource),
+        sources: makeSources(sources),
         charts: makeCharts(chartLookup, indicators),
         downloads: makeDownloads(files, manifestTable.name),
         auxiliaryFiles: makeAuxiliaryFiles(files, manifestTable),

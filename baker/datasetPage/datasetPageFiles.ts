@@ -95,6 +95,8 @@ export interface DatasetPageSourcesRow {
     label: string
     producer: string
     title: string
+    /** Tells apart several files of one data product, which share a label. Missing in older files */
+    title_snapshot?: string
     description: string
     date_published: string
     date_accessed: string

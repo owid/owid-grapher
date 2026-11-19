@@ -571,6 +571,25 @@ $dataset-page-row-border: $blue-20;
     grid-column: 1 / -1;
 }
 
+// A source with several files: one download link per file
+.dataset-page__source-downloads ul {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.dataset-page__source-downloads-title {
+    @include body-3-medium;
+    & {
+        margin: 0;
+        color: $blue-60;
+    }
+}
+
 .dataset-page .dataset-page__source-download {
     display: inline-flex;
     align-items: center;

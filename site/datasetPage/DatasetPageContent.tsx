@@ -1065,15 +1065,36 @@ function SourceDetails({ source }: { source: DatasetSource }) {
                     </div>
                 )}
             </dl>
-            {source.downloadUrl && (
+            {source.downloads.length === 1 && (
                 <a
                     className="dataset-page__source-download"
-                    href={source.downloadUrl}
+                    href={source.downloads[0].url}
                     data-track-note="dataset_page_source_download"
                 >
                     <FontAwesomeIcon icon={faDownload} />
                     Download
                 </a>
+            )}
+            {source.downloads.length > 1 && (
+                <div className="dataset-page__source-downloads">
+                    <p className="dataset-page__source-downloads-title">
+                        We use {source.downloads.length} files from this source:
+                    </p>
+                    <ul>
+                        {source.downloads.map((download, i) => (
+                            <li key={download.url}>
+                                <a
+                                    className="dataset-page__source-download"
+                                    href={download.url}
+                                    data-track-note="dataset_page_source_download"
+                                >
+                                    <FontAwesomeIcon icon={faDownload} />
+                                    {download.title ?? `File ${i + 1}`}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
             )}
         </div>
     )

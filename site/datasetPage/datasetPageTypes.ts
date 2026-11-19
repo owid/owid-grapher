@@ -56,8 +56,14 @@ export interface DatasetSource {
     /** ISO dates, e.g. "2026-04-21" */
     datePublished?: string
     dateAccessed?: string
-    /** Link to download the source's original data, if available */
-    downloadUrl?: string
+    /** Links to download the source's original data: one per file we use from it */
+    downloads: DatasetSourceDownload[]
+}
+
+export interface DatasetSourceDownload {
+    url: string
+    /** What the file holds, e.g. "Global Carbon Budget – Fossil CO2 emissions", when the source has several files */
+    title?: string
 }
 
 export interface DatasetChangelogEntry {
