@@ -1095,7 +1095,6 @@ export async function handleGetAllMultiDimRedirects(
         multiDimId: number
         multiDimSlug: string
         multiDimTitle: string
-        multiDimConfig: string
     }>(
         trx,
         `-- sql
@@ -1106,27 +1105,46 @@ export async function handleGetAllMultiDimRedirects(
             mdr.viewConfigId,
             mddp.id as multiDimId,
             mddp.slug as multiDimSlug,
-            mddp.config->>'$.title.title' as multiDimTitle,
-            mddp.config as multiDimConfig
+            mddp.config->>'$.title.title' as multiDimTitle
         FROM ${MultiDimRedirectsTableName} mdr
         JOIN ${MultiDimDataPagesTableName} mddp ON mddp.id = mdr.multiDimId
         WHERE mddp.published = 1 AND mddp.slug IS NOT NULL
         ORDER BY mddp.slug, mdr.source`
     )
 
-    const redirects = rows.map((row) => {
-        let targetQueryStr: string | null = null
-        if (row.viewConfigId) {
-            const config = MultiDimDataPageConfig.fromObject(
-                JSON.parse(row.multiDimConfig)
-            )
-            const dimensions = config.findViewDimensionsByConfigId(
-                row.viewConfigId
-            )
-            if (dimensions) {
-                targetQueryStr = queryParamsToStr(dimensions)
+    // Configs can be large and shared by thousands of redirects. Fetch and parse
+    // each once, keeping them out of the redirect query's result set and SQL sort.
+    const multiDimIds = [
+        ...new Set(
+            rows.filter((row) => row.viewConfigId).map((row) => row.multiDimId)
+        ),
+    ]
+    const configs = await trx<Pick<DbPlainMultiDimDataPage, "id" | "config">>(
+        MultiDimDataPagesTableName
+    )
+        .select("id", "config")
+        .whereIn("id", multiDimIds)
+    const targetQueryStrings = new Map<number, Map<string, string>>()
+    for (const row of configs) {
+        const config = MultiDimDataPageConfig.fromJson(row.config)
+        const queryStrings = new Map<string, string>()
+        for (const view of config.config.views) {
+            // Preserve findViewDimensionsByConfigId's first-match behavior.
+            if (!queryStrings.has(view.fullConfigId)) {
+                queryStrings.set(
+                    view.fullConfigId,
+                    queryParamsToStr(view.dimensions)
+                )
             }
         }
+        targetQueryStrings.set(row.id, queryStrings)
+    }
+
+    const redirects = rows.map((row) => {
+        const targetQueryStr = row.viewConfigId
+            ? (targetQueryStrings.get(row.multiDimId)?.get(row.viewConfigId) ??
+              null)
+            : null
         return {
             id: row.id,
             source: row.source,
