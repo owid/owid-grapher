@@ -1,0 +1,45 @@
+// Cross-document view transitions
+// ===============================
+//
+// When navigating between pages of the site, the browser keeps a snapshot of
+// the old page and animates it into the new one instead of flashing to white.
+// Whatever differs between the pages crossfades, while whatever they share
+// (the site header, an about page's title) stays put, so the page feels like
+// it swaps its content rather than reloading.
+//
+// This is progressive enhancement: browsers without cross-document view
+// transitions (see docs/browser-support.md) ignore all of it and navigate as
+// usual. The browser only runs these for same-origin navigations (link clicks,
+// back/forward), never for reloads, and the new page must opt in too, which it
+// does by loading this same stylesheet.
+
+@media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+        navigation: auto;
+    }
+}
+
+// The header looks the same on every page, so don't animate it at all. This
+// keeps it still while the content below it changes, and stops it from
+// sliding in from above when the old page was scrolled past it.
+.site-header {
+    view-transition-name: site-header;
+}
+
+::view-transition-group(site-header) {
+    animation: none;
+}
+
+::view-transition-old(site-header) {
+    display: none;
+}
+
+::view-transition-new(site-header) {
+    animation: none;
+}
+
+// The page content uses the browser's default crossfade (250ms). The old and
+// new snapshots are blended with `plus-lighter`, so anything identical on both
+// pages (e.g. the title and tab nav shared by all about pages) stays perfectly
+// still and only what actually changes fades. Don't add movement (a slide or
+// rise) to the root, or that shared content visibly jumps.
