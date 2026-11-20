@@ -141,8 +141,20 @@ const hasSearchEnvVars = (env: Env): boolean => {
     return !!env.ALGOLIA_ID && !!env.ALGOLIA_SEARCH_KEY
 }
 
-export const onRequestGet: PagesFunction<Env> = async (context) => {
-    const { request, env } = context
+export const onRequestGet: PagesFunction<Env> = (context) =>
+    handleSearchRequest(context.request, context.env, (promise) =>
+        context.waitUntil(promise)
+    )
+
+/**
+ * Runs one /api/search request: the endpoint itself, and each section of a
+ * /api/search/batch request.
+ */
+export async function handleSearchRequest(
+    request: Request,
+    env: Env,
+    waitUntil: (promise: Promise<unknown>) => void
+): Promise<Response> {
     const url = new URL(request.url)
 
     try {
@@ -370,7 +382,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             }
         )
         if (queryless)
-            context.waitUntil(
+            waitUntil(
                 cache.put(request.url, response.clone()).catch((error) => {
                     console.error("Failed to cache search response:", error)
                 })

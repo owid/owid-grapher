@@ -39,8 +39,10 @@ import {
     DEFAULT_PAGE_TYPES,
     type SearchRequest,
     type SectionSearchResponse,
+    type SearchApiHitsResponse,
 } from "@ourworldindata/utils"
 import { SEARCH_API_URL } from "../../settings/clientSettings.mjs"
+import { createSearchApiFetcher } from "./searchApiBatch.js"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
 function makeStateForKey(state: SearchState) {
@@ -145,9 +147,12 @@ export async function queryDataTopics(
 
 const CHARTS_PER_PAGE = 9
 
+const fetchSearchApi = createSearchApiFetcher(SEARCH_API_URL)
+
 /**
  * Runs one result section of the search page through /api/search, which
  * builds its Algolia requests with runSearchRequest (@ourworldindata/utils).
+ * Sections requested together go out as one request (see searchApiBatch.ts).
  * A failed request throws, like a failed Algolia search.
  */
 async function querySection<THit extends { slug: string }>(
@@ -156,10 +161,8 @@ async function querySection<THit extends { slug: string }>(
     const params = searchRequestToUrlParams(request)
     // Keep Algolia's objectID and highlights, which the page renders
     params.set("highlights", "true")
-    const response = await fetch(`${SEARCH_API_URL}?${params}`)
-    if (!response.ok)
-        throw new Error(`Search API request failed: ${response.status}`)
-    return fromSearchApiResponse<THit>(await response.json())
+    const body = await fetchSearchApi(params)
+    return fromSearchApiResponse<THit>(body as SearchApiHitsResponse<THit>)
 }
 
 export async function queryCharts(state: SearchState, page: number = 0) {
