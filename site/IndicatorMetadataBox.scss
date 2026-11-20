@@ -1,5 +1,4 @@
 .indicator-metadata-box {
-    --indicator-sources-key-data-title: #{$blue-50};
     --indicator-metadata-box-padding: 24px;
     padding: var(--indicator-metadata-box-padding);
     background-color: $gray-5;
@@ -299,15 +298,6 @@
 // Links take the colour of the text they're in
 .indicator-metadata-box .ExpandableToggle__content a {
     @include owid-link-60;
-}
-
-.indicator-metadata-box .indicator-sources .source-key-data__content {
-    color: $blue-90;
-
-    a {
-        @include owid-link-90;
-        color: inherit;
-    }
 }
 
 // 24px from a source's description to its details, as between other blocks
