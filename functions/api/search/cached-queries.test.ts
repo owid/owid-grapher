@@ -60,6 +60,19 @@ describe("cached queries proxy endpoint", () => {
         expect(mockCache.put).toHaveBeenCalledOnce()
     })
 
+    it("proxies to ALGOLIA_HOST instead of Algolia when it is set", async () => {
+        const envWithHost = {
+            ...mockEnv,
+            ALGOLIA_HOST: "http://127.0.0.1:8799",
+        } as Env
+        await onRequestPost(makeContext(EMPTY_QUERY_BODY, envWithHost))
+
+        expect(mockFetch).toHaveBeenCalledWith(
+            "http://127.0.0.1:8799/1/indexes/*/queries",
+            expect.objectContaining({ method: "POST", body: EMPTY_QUERY_BODY })
+        )
+    })
+
     it("caches payloads touching the chronological pages index for only 15 minutes", async () => {
         const body = JSON.stringify({
             requests: [

@@ -189,7 +189,7 @@ async function handleHtmlPageRequest(
                 `Failed to load companion file of multi-dim ${slug}: HTTP ${resp.status}`
             )
         }
-        return (await resp.json()) as MultiDimPageCompanion
+        return await resp.json<MultiDimPageCompanion>()
     }
 
     return rewriteMetaTags(

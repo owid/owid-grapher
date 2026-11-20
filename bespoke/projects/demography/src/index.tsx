@@ -35,7 +35,7 @@ export const VARIANTS = [
     {
         name: "simulation",
         description:
-            "Population projection for one country where readers set the fertility, life expectancy and migration assumptions",
+            "Population projection for one country where users set the fertility, life expectancy and migration assumptions",
         component: SimulationVariant,
         defaultSize: "widest",
     },
@@ -74,7 +74,7 @@ export const CONFIG_SPEC = {
         type: "string",
         default: "userLocation",
         description:
-            "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
+            "Country shown first, or United States if the data doesn't have it. `userLocation` picks the user's country",
     },
     time: {
         type: "integer",

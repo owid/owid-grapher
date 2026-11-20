@@ -24,6 +24,7 @@ import {
     RelatedChartsTableName,
     TagGraphRootName,
     type LiteralsOnly,
+    UNLISTED_TAG_NAME,
 } from "@ourworldindata/types"
 import { parseAndMigrateChartConfig } from "./ChartConfigs.js"
 import type Anthropic from "@anthropic-ai/sdk"
@@ -668,7 +669,7 @@ const LISTED_CHART_CLAUSE = `-- sql
     AND NOT EXISTS (
         SELECT 1 FROM chart_tags ct
         JOIN tags t ON ct.tagId = t.id
-        WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
+        WHERE ct.chartId = charts.id AND t.name = '${UNLISTED_TAG_NAME}'
     )`
 
 // Currently only returns charts from ETL (i.e. with "production" as reviewer)

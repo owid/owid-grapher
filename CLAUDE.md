@@ -59,7 +59,7 @@ Key facts that span multiple directories:
     - `docs/agent-guidelines/gdocs-cms-pipeline.md` — the archieml pipeline from gdocs to the database
     - `docs/agent-guidelines/gdocs-class-hierarchy.md` — the gdoc types and how to create new ones
     - `docs/agent-guidelines/gdocs-attachments.md` — how attachments give rendering components their context
-- **`@ourworldindata/gdoc-pipeline` has an external consumer**: the [owid/gdocs-chrome-extension](https://github.com/owid/gdocs-chrome-extension) installs the published npm package, so it only picks up changes once a new version is released. If you change the package's API — the signature or behaviour of an exported gdoc processing function (`gdocToArchie`, `archieToEnriched`, `rawToEnriched`, `enrichedToRaw`, `rawToArchie`, `enrichedToMarkdown`, …) or the re-exported helpers — or add, change or remove a gdoc component (its raw/enriched types in `types/src/gdocTypes/`, parsing or serialization), tell the user in your final message that a new npm package version needs to be released (`yarn bumpp` in `packages/@ourworldindata/gdoc-pipeline`; see its `readme.md`). Don't bump the version yourself unless asked.
+- **`@ourworldindata/gdoc-pipeline` has an external consumer**: the [owid/gdocs-chrome-extension](https://github.com/owid/gdocs-chrome-extension) installs the published npm package, so it only picks up changes once a new version is released. If you change the package's API — the signature or behaviour of an exported gdoc processing function (`gdocToArchie`, `archieToEnriched`, `rawToEnriched`, `enrichedToRaw`, `rawToArchie`, `enrichedToMarkdown`, …) or the re-exported helpers — or add, change or remove a gdoc component (its raw/enriched types in `types/src/gdocTypes/`, parsing or serialization), tell the user in your final message that a new npm package version needs to be released (`yarn release` in `packages/@ourworldindata/gdoc-pipeline`; see its `readme.md`). Don't bump the version yourself unless asked.
 
 ## Database
 
@@ -70,7 +70,7 @@ Key facts that span multiple directories:
 
 ## Testing on staging
 
-Use the `test-on-staging` skill when checking a change on `staging-site-<branch>` — reading or patching a chart's config without a browser, the preview link to share, and Algolia/search caveats.
+Use the `test-on-staging` skill when checking a change on `staging-site-<branch>` or Labs — when a push is live there, reading or patching a chart's config without a browser, the preview link to share, and Algolia/search caveats.
 
 ## Team
 
@@ -130,6 +130,7 @@ When AI-authored text is posted through a **human's account**, it must be clearl
 - CSS: named style classes following BEM in separate `.scss` files; avoid inline styles unless the component already uses them for a similar case. Components usually have a companion scss file with the same name. Entry points: `site/owid.scss` for the site, `packages/@ourworldindata/grapher/src/core/grapher.scss` for grapher.
 - In SCSS, do NOT use the parent selector to concatenate BEM class names (`&__element`, `&--modifier`) — write out full class names (`.block__element`) so it's easy to grep between JSX and SCSS. `&` with pseudo-classes/elements or state attributes (`&:hover`, `&::before`, `&[data-selected]`) is fine.
 - Check [docs/browser-support.md](./docs/browser-support.md) before using modern JS or CSS features in code that reaches the public site (`site/`, `packages/`, `bespoke/`). It lists our supported browsers, the "most breaking" features we rely on, and features we can't yet use. The admin (`adminSiteClient/`) is used only by staff on recent browsers, so it can use modern features freely.
+- Client-side code uses `zod/mini`, not `zod`. Import it as `import * as z from "zod/mini"`, never `import { z }` — esbuild can't tree-shake that and bundles all zod locales (~400 KB).
 - For inline `<script>` JSON, use `escapeJSONStringForInlineScript` from `@ourworldindata/utils` — it also escapes U+2028/U+2029.
 - package.json scripts are camelCase and descriptive: `startXXX` for long-lived processes, `buildXXX` for scripts that write output (`docs/coding-style.md`). Server-side scripts run via `tsx --tsconfig tsconfig.tsx.json`.
 
@@ -137,7 +138,7 @@ When AI-authored text is posted through a **human's account**, it must be clearl
 
 - `docs/agent-guidelines/` holds in-depth docs written specifically for agents — check there first when working in those areas.
 - When creating new skills in `.claude/skills/`, include `metadata: { internal: true }` in the SKILL.md frontmatter unless explicitly asked for a public skill — this keeps external skill indexes from listing internal skills.
-- GitHub Actions references must stay pinned to commit SHAs (managed with pinact).
+- GitHub Actions dependencies are locked in `.github/workflows/actions.lock` (workflows reference full version tags, not SHAs). After adding or changing any `uses:` in `.github/workflows/` or `.github/actions/`, run `gh actions-lock` and commit the lockfile; never edit it by hand.
 
 ## Cloud sandbox sessions (claude.ai/code)
 

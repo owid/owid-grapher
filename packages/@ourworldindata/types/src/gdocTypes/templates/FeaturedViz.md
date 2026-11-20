@@ -42,3 +42,6 @@ The hero is the first `{.bespoke-component}` in the body. The page keeps the
 viz's state in the URL, and when the bundle publishes metadata (origins or a
 description key) that metadata renders as a methods box beside the hero
 instead of the component's own metadata modal.
+
+To show the page as a card in site search, see
+`{guide:featured-viz-in-search}`.

@@ -304,12 +304,12 @@ export class SlopeChartThumbnail
         if (!this.manager.showSeriesLabels) return []
 
         return this.labelCandidateSeries.map((series) => {
-            const { seriesName, color } = series
+            const { seriesName, displayName, color } = series
             const firstPoint = series.start
             const value = firstPoint?.value ?? 0
             const label = this.shouldShowValueLabelsOnly
                 ? this.formatLabel(value)
-                : seriesName
+                : displayName
 
             return { seriesName, value, label, color }
         })

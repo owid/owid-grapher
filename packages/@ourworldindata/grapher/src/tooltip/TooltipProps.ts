@@ -47,6 +47,7 @@ export interface TooltipProps {
     titleAnnotation?: string // rendered next to the title, but muted
     subtitle?: string | number // header deck
     subtitleFormat?: "notice" | "unit" // optional postprocessing for subtitle
+    headerAside?: React.ReactNode // floated to the right of the title and subtitle, e.g. an icon
     footer?: FooterItem[]
     style?: React.CSSProperties // css overrides (particularly width/maxWidth)
     dissolve?: TooltipFadeMode // flag that the tooltip should begin fading out

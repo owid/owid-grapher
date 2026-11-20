@@ -52,7 +52,7 @@ export const CONFIG_SPEC = {
         type: "string",
         default: DEFAULT_COUNTRY,
         description:
-            "Country shown first. `userLocation` picks the reader's country",
+            "Country shown first. `userLocation` picks the user's country",
     },
     year: {
         type: "integer",

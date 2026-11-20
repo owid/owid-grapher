@@ -19,6 +19,13 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
         dataUrl: "un_wpp/latest/demography",
         metadataFilename: "demography.metadata.json",
     },
+    "food-supply-chain": {
+        scriptUrl: "/food-supply-chain/index.js",
+        // TODO(https://github.com/owid/etl/pull/6823): revert to "faostat/latest/food_supply_chain_scl" once the ETL PR is merged
+        dataUrl:
+            "https://api-staging.owid.io/staging-site-data-foodbalance-waterfall-k/v1/bespoke/faostat/latest/food_supply_chain_scl",
+        metadataFilename: "food-supply-chain.metadata.json",
+    },
     "food-trade": {
         scriptUrl: "/food-trade/index.js",
         dataUrl: "faostat/latest/food_trade",

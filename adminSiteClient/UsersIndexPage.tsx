@@ -2,11 +2,12 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, action, runInAction, makeObservable } from "mobx"
 
-import { Modal, Timeago } from "./Forms.js"
+import { FieldsRow, Modal, TextField, Timeago } from "./Forms.js"
 import { Link } from "./Link.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { UserIndexMeta } from "./UserMeta.js"
+import { useListSearch } from "./useListSearch.js"
 
 interface UserIndexMetaWithLastSeen extends UserIndexMeta {
     lastSeen: Date
@@ -101,24 +102,27 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
     }
 }
 
-@observer
-export class UsersIndexPage extends React.Component {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
+const searchedText = (user: UserIndexMetaWithLastSeen) => [user.fullName]
 
-    users: UserIndexMetaWithLastSeen[] = []
-    isInviteModal: boolean = false
+export function UsersIndexPage() {
+    const { admin } = React.useContext(AdminAppContext)
+    const { isSuperuser } = admin
+    const [users, setUsers] = React.useState<UserIndexMetaWithLastSeen[]>([])
+    const [isInviteModal, setIsInviteModal] = React.useState(false)
+    const { searchValue, setSearchValue, filtered, highlight } = useListSearch(
+        users,
+        searchedText
+    )
 
-    constructor(props: Record<string, never>) {
-        super(props)
+    React.useEffect(() => {
+        void admin
+            .getJSON<{
+                users: UserIndexMetaWithLastSeen[]
+            }>("/api/users.json")
+            .then((json) => setUsers(json.users))
+    }, [admin])
 
-        makeObservable(this, {
-            users: observable,
-            isInviteModal: observable,
-        })
-    }
-
-    @action.bound async onDelete(user: UserIndexMetaWithLastSeen) {
+    const onDelete = async (user: UserIndexMetaWithLastSeen) => {
         if (
             !window.confirm(
                 `Delete the user ${user.fullName}? This action cannot be undone!`
@@ -126,111 +130,90 @@ export class UsersIndexPage extends React.Component {
         )
             return
 
-        const json = await this.context.admin.requestJSON(
+        const json = await admin.requestJSON(
             `/api/users/${user.id}`,
             {},
             "DELETE"
         )
 
-        if (json.success) {
-            runInAction(() => this.users.splice(this.users.indexOf(user), 1))
-        }
+        if (json.success)
+            setUsers((users) => users.filter(({ id }) => id !== user.id))
     }
 
-    override render() {
-        const { users } = this
-        const { isSuperuser } = this.context.admin
-        return (
-            <AdminLayout title="Users">
-                <main className="UsersIndexPage">
-                    {this.isInviteModal && (
-                        <InviteModal
-                            onClose={action(() => (this.isInviteModal = false))}
-                        />
+    return (
+        <AdminLayout title="Users">
+            <main className="UsersIndexPage">
+                {isInviteModal && (
+                    <InviteModal onClose={() => setIsInviteModal(false)} />
+                )}
+                <div className="topbar">
+                    <h2>Users</h2>
+                    {isSuperuser && (
+                        <button
+                            onClick={() => setIsInviteModal(true)}
+                            className="btn btn-primary"
+                        >
+                            Add a user
+                        </button>
                     )}
-                    <div className="topbar">
-                        <h2>Users</h2>
-                        {isSuperuser && (
-                            <button
-                                onClick={action(
-                                    () => (this.isInviteModal = true)
+                </div>
+                <FieldsRow>
+                    <TextField
+                        placeholder="Search users..."
+                        value={searchValue}
+                        onValue={setSearchValue}
+                        autofocus
+                    />
+                </FieldsRow>
+                <table className="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <th>Name</th>
+                            <th>Last Seen</th>
+                            <th>Joined</th>
+                            {isSuperuser && <th>Status</th>}
+                            {isSuperuser && <th></th>}
+                            {isSuperuser && <th></th>}
+                        </tr>
+                        {filtered.map((user) => (
+                            <tr key={user.id}>
+                                <td>{highlight(user.fullName)}</td>
+                                <td>
+                                    <Timeago time={user.lastSeen} />
+                                </td>
+                                <td>
+                                    <Timeago time={user.createdAt} />
+                                </td>
+                                {isSuperuser && (
+                                    <td>
+                                        {user.isActive ? "active" : "disabled"}
+                                    </td>
                                 )}
-                                className="btn btn-primary"
-                            >
-                                Add a user
-                            </button>
-                        )}
-                    </div>
-                    <table className="table table-bordered">
-                        <tbody>
-                            <tr>
-                                <th>Name</th>
-                                <th>Last Seen</th>
-                                <th>Joined</th>
-                                {isSuperuser && <th>Status</th>}
-                                {isSuperuser && <th></th>}
-                                {isSuperuser && <th></th>}
+                                {isSuperuser && (
+                                    <td>
+                                        <Link
+                                            to={`/users/${user.id}`}
+                                            className="btn btn-primary"
+                                        >
+                                            Edit
+                                        </Link>
+                                    </td>
+                                )}
+                                {isSuperuser && (
+                                    <td>
+                                        <button
+                                            className="btn btn-danger"
+                                            onClick={() => onDelete(user)}
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
+                                )}
                             </tr>
-                            {users.map((user) => (
-                                <tr key={user.id}>
-                                    <td>{user.fullName}</td>
-                                    <td>
-                                        <Timeago time={user.lastSeen} />
-                                    </td>
-                                    <td>
-                                        <Timeago time={user.createdAt} />
-                                    </td>
-                                    {isSuperuser && (
-                                        <td>
-                                            {user.isActive
-                                                ? "active"
-                                                : "disabled"}
-                                        </td>
-                                    )}
-                                    {isSuperuser && (
-                                        <td>
-                                            <Link
-                                                to={`/users/${user.id}`}
-                                                className="btn btn-primary"
-                                            >
-                                                Edit
-                                            </Link>
-                                        </td>
-                                    )}
-                                    {isSuperuser && (
-                                        <td>
-                                            <button
-                                                className="btn btn-danger"
-                                                onClick={() =>
-                                                    this.onDelete(user)
-                                                }
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
-                                    )}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </main>
-            </AdminLayout>
-        )
-    }
-
-    async getData() {
-        const { admin } = this.context
-
-        const json = await admin.getJSON<{
-            users: UserIndexMetaWithLastSeen[]
-        }>("/api/users.json")
-
-        runInAction(() => {
-            this.users = json.users
-        })
-    }
-
-    override componentDidMount() {
-        void this.getData()
-    }
+                        ))}
+                    </tbody>
+                </table>
+            </main>
+        </AdminLayout>
+    )
 }

@@ -1,11 +1,19 @@
 import {
+    LATEST_DATA_INSIGHTS_ARMS,
+    LatestDataInsightsArm,
     OwidGdocDataInsightInterface,
-    formatAuthors,
 } from "@ourworldindata/utils"
 import { useContext } from "react"
 import * as React from "react"
 import LatestBreadcrumb from "../components/LatestBreadcrumb.js"
-import LatestCarouselSection from "../components/LatestCarouselSection.js"
+import LatestCarouselSection, {
+    LatestCarouselSectionSeeAll,
+} from "../components/LatestCarouselSection.js"
+import LatestDataInsightsExperiment from "../components/LatestDataInsightsExperiment.js"
+import {
+    LATEST_DATA_INSIGHTS_ARM_CLASS_NAMES,
+    getLatestDataInsightsTrackNote,
+} from "../components/latestDataInsightsExperimentUtils.js"
 import CopyLinkButton from "../components/CopyLinkButton.js"
 import RelatedTopicsList from "../components/RelatedTopicsList.js"
 import StandalonePostBody, {
@@ -13,14 +21,7 @@ import StandalonePostBody, {
 } from "../components/StandalonePostBody.js"
 import { dataInsightsToCarouselItems } from "../components/latestCarouselItems.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
-import { buildSocialText } from "../socialText.js"
-import { CopySocialButton } from "../components/CopySocialButton.js"
 import { buildLatestPagePath } from "../../latest/latestUtils.js"
-
-function buildAuthorsNote(authors: string[]): string | undefined {
-    if (authors.length === 0) return undefined
-    return `(This Data Insight was written by ${formatAuthors(authors)}.)`
-}
 
 type DataInsightProps = {
     className?: string
@@ -35,6 +36,13 @@ export const DataInsightPage = (
     const attachments = useContext(AttachmentsContext)
     const latestDataInsights = attachments.latestDataInsights?.filter(
         (dataInsight) => dataInsight.content.title !== props.content.title
+    )
+    const items = dataInsightsToCarouselItems(latestDataInsights ?? [])
+    const seeAllHref = buildLatestPagePath("data-insight")
+    const seeAllText = "See all Data Insights"
+    const trackNotePrefix = "data_insight_latest"
+    const arms: LatestDataInsightsArm[] = Object.values(
+        LATEST_DATA_INSIGHTS_ARMS
     )
 
     return (
@@ -57,27 +65,36 @@ export const DataInsightPage = (
                             path={`/data-insights/${props.slug}`}
                             trackNote="data_insight_copy_link"
                         />
-                        <CopySocialButton
-                            className="copy-link-button"
-                            text={buildSocialText({
-                                title: props.content.title,
-                                body: props.content.body,
-                                authorsNote: buildAuthorsNote(
-                                    props.content.authors
-                                ),
-                                linkedDocuments: attachments.linkedDocuments,
-                            })}
-                        />
                     </>
                 }
             />
             <LatestCarouselSection
                 className="span-cols-12 col-start-2"
                 heading="Our latest Data Insights"
-                seeAllText="See all Data Insights"
-                seeAllHref={buildLatestPagePath("data-insight")}
-                items={dataInsightsToCarouselItems(latestDataInsights ?? [])}
-            />
+                seeAllText={seeAllText}
+                seeAllHref={seeAllHref}
+                items={items}
+                // One link per experiment arm, so its clicks are tracked by
+                // arm. CSS shows the one matching the visitor's arm.
+                seeAll={arms.map((arm) => (
+                    <LatestCarouselSectionSeeAll
+                        key={arm}
+                        className={LATEST_DATA_INSIGHTS_ARM_CLASS_NAMES[arm]}
+                        href={seeAllHref}
+                        text={seeAllText}
+                        trackNote={`${getLatestDataInsightsTrackNote(trackNotePrefix, arm)}_see_all`}
+                    />
+                ))}
+            >
+                <LatestDataInsightsExperiment
+                    carouselClassName="latest-carousel-section__items"
+                    gridClassName="latest-carousel-section__items"
+                    items={items}
+                    seeAllHref={seeAllHref}
+                    seeAllText={seeAllText}
+                    trackNotePrefix={trackNotePrefix}
+                />
+            </LatestCarouselSection>
         </div>
     )
 }

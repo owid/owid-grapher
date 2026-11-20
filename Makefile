@@ -37,7 +37,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.worktree setup.worktree wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s playwright playwright.ui playwright.standalone check-not-prod
+.PHONY: help up up.headless up.worktree setup.worktree sessions wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.mobile svgtest.md5s playwright playwright.ui playwright.standalone check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -50,6 +50,7 @@ help:
 	@echo '  make down                   stop any services still running'
 	@echo '  make down.headless          stop services started by make up.headless'
 	@echo '  make down.worktree          stop services started by make up.worktree (leaves MySQL up)'
+	@echo '  make sessions               list the running dev tmux sessions of all checkouts and worktrees'
 	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
 	@echo '  make refresh.private        (while up) download and load the private sidecar dump: admin keys + analytics (needs access)'
 	@echo '  make refresh.full           (while up) run refresh and refresh.private'
@@ -161,6 +162,9 @@ down.worktree:
 	@echo '==> Killing the $(TMUX_SESSION_NAME) tmux session'
 	@tmux kill-session -t =$(TMUX_SESSION_NAME) 2>/dev/null || echo '    (no such session, nothing to stop)'
 	@echo '==> Leaving MySQL up, your other checkouts share it (stop it with `make down`)'
+
+sessions:
+	@./devTools/docker/list-sessions.sh
 
 require.worktree: require.headless
 	@which tmux >/dev/null 2>&1 || (echo "ERROR: tmux is required."; exit 1)
@@ -456,6 +460,13 @@ svgtest.full: svgtest.reset node_modules
 		echo '==> No differences (thumbnails)'; \
 	fi
 
+	@# run test suite for mobile
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mobile || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/mobile/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (mobile)'; \
+	fi
+
 svgtest.grapher-views: svgtest.reset node_modules
 	@echo '==> Running the SVG tests for grapher-views'
 
@@ -486,6 +497,16 @@ svgtest.thumbnails: svgtest.reset node_modules
 		echo '==> No differences (thumbnails)'; \
 	fi
 
+svgtest.mobile: svgtest.reset node_modules
+	@echo '==> Running the SVG tests for mobile'
+
+	@# run test suite for mobile
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mobile || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/mobile/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (mobile)'; \
+	fi
+
 svgtest.md5s: ../owid-grapher-svgs node_modules
 	@echo '==> Recomputing reference md5s in ../owid-grapher-svgs'
 
@@ -493,6 +514,7 @@ svgtest.md5s: ../owid-grapher-svgs node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts grapher-views
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts mdims
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts thumbnails
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts mobile
 
 node_modules: package.json yarn.lock yarn.config.cjs
 	@echo '==> Installing packages'

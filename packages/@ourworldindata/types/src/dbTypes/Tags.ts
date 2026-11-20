@@ -1,5 +1,8 @@
 /** the entity in the `tags` table */
 export const TagsTableName = "tags"
+
+/** Content tagged with this is left out of listings, search and suggestions */
+export const UNLISTED_TAG_NAME = "Unlisted"
 export interface DbInsertTag {
     createdAt?: Date
     id?: number

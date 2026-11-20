@@ -28,6 +28,7 @@ import {
     faArrowUp,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { useListSearch } from "./useListSearch.js"
 
 function FeaturedMetricList({
     incomeGroup,
@@ -586,23 +587,28 @@ function useUpdateBoost() {
 
 type UpdateBoostMutation = ReturnType<typeof useUpdateBoost>
 
-export function FeaturedMetricsPage() {
-    const [search, setSearch] = useState("")
+// Searches the parent tag names the metrics are grouped under
+const searchedText = ([parentTagName]: [string, unknown]) => [parentTagName]
 
+export function FeaturedMetricsPage() {
     const featuredMetrics = useFeaturedMetrics()
     const addFeaturedMetric = useAddFeaturedMetric()
     const deleteFeaturedMetric = useDeleteFeaturedMetric()
     const rerankFeaturedMetrics = useRerankFeaturedMetrics()
     const updateBoost = useUpdateBoost()
 
-    const filteredFeaturedMetrics = useMemo(() => {
-        const query = search.trim().toLowerCase()
-        const entries = Object.entries(featuredMetrics.data ?? {})
-        const filtered = entries.filter(([key]) =>
-            key.toLowerCase().includes(query)
-        )
-        return Object.fromEntries(filtered)
-    }, [featuredMetrics, search])
+    const entries = useMemo(
+        () => Object.entries(featuredMetrics.data ?? {}),
+        [featuredMetrics.data]
+    )
+    const { searchValue, setSearchValue, filtered } = useListSearch(
+        entries,
+        searchedText
+    )
+    const filteredFeaturedMetrics = useMemo(
+        () => Object.fromEntries(filtered),
+        [filtered]
+    )
 
     return (
         <AdminLayout title="Featured Metrics">
@@ -613,8 +619,8 @@ export function FeaturedMetricsPage() {
                 >
                     <Input
                         placeholder="Mortality, Pollution, Migration, etc..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
                         autoFocus
                     />
                     <FeaturedMetricsExplainer />

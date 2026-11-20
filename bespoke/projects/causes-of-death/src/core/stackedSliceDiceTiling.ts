@@ -1,4 +1,4 @@
-import * as d3 from "d3"
+import type { HierarchyRectangularNode } from "d3-hierarchy"
 import * as R from "remeda"
 
 /**
@@ -13,7 +13,7 @@ interface TilingOptions {
 
 interface LayoutChild<T> {
     /** The D3 hierarchy node being positioned */
-    node: d3.HierarchyRectangularNode<T>
+    node: HierarchyRectangularNode<T>
     /** The node's value (used for proportional sizing) */
     value: number
     /** The node's calculated thickness in primary direction */
@@ -25,7 +25,7 @@ interface LayoutChild<T> {
  * Takes a node and its bounding rectangle, positions all children within it
  */
 export type TilingFunction<T> = (
-    node: d3.HierarchyRectangularNode<T>,
+    node: HierarchyRectangularNode<T>,
     x0: number,
     y0: number,
     x1: number,
@@ -128,7 +128,7 @@ export function stackedSliceDiceTiling<T>({
      * - Child 3 gets width: (20/100) * 100 = 20px
      */
     return function tile(
-        node: d3.HierarchyRectangularNode<T>,
+        node: HierarchyRectangularNode<T>,
         x0: number,
         y0: number,
         x1: number,
@@ -352,7 +352,7 @@ function layoutChildrenSequentially<T>(
 
 /** Set rectangle coordinates on a D3 hierarchy node */
 function setRect<T>(
-    node: d3.HierarchyRectangularNode<T>,
+    node: HierarchyRectangularNode<T>,
     rect: { x0?: number; y0?: number; x1?: number; y1?: number }
 ): void {
     if (rect.x0 !== undefined) node.x0 = rect.x0 // Left edge

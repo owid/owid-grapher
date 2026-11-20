@@ -396,18 +396,26 @@ function buildCaption({
         ? `, and ${possessiveEntity(articulated)} ${view} accounted for ${worldShare} of that`
         : ""
     const worldClause = worldTotal
-        ? `For context, ${when} a total of ${formatHectares(worldTotal)} of forest was cleared worldwide for agriculture${worldShareClause}.`
+        ? `For context, ${formatHectares(worldTotal)} of deforestation worldwide was linked to agriculture ${when}${worldShareClause}. `
         : ""
-    const subtitle = worldClause
+    // The source amortizes deforestation over five years, so a year's figure
+    // is a five-year average rather than the land cleared in that year. A
+    // multi-year period adds those yearly figures up, which the note must not
+    // pass off as an average.
+    const amortizationNote =
+        yearRange.start === yearRange.end
+            ? "Figures are averaged over five years."
+            : "Each year's figure is averaged over five years, and the years in this period are added up."
+    const subtitle = `${worldClause}${amortizationNote}`
 
     if (view === "consumption")
         return {
-            title: `${R.capitalize(amount)} of forest were cleared ${when} for agricultural products consumed in ${articulated}. Where were these products produced?`,
+            title: `Products consumed in ${articulated} ${when} were linked to ${amount} of deforestation. Where were they produced?`,
             subtitle,
         }
 
     return {
-        title: `${R.capitalize(articulated)} cleared ${amount} of forest for agriculture ${when}. Where were these products consumed?`,
+        title: `${R.capitalize(amount)} of deforestation in ${articulated} was linked to agriculture ${when}. Where were these products consumed?`,
         subtitle,
     }
 }

@@ -308,7 +308,7 @@ describe(formatSegmentDuration, () => {
                 segment: makeCategorySegment("Republic", 2005, 2005),
                 timeColumn,
             })
-        ).toEqual("a year")
+        ).toEqual("1 year")
     })
 
     it("counts a gap in the data the same way", () => {

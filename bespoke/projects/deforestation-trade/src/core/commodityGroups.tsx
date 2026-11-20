@@ -28,9 +28,13 @@ export const COMMODITY_GROUPS: Record<
         shortLabel: string
         sentenceLabel: string
         /** What the group covers, with its biggest drivers of deforestation
-         *  first (worldwide, 2023); shown in the group's tooltip */
+         *  first (worldwide, 2023); the small print of the group's tooltip */
         description: string
         color: string
+        /** A dark shade of `color` for the group's label, which sits on
+         *  the group's ribbon: dark enough to pass WCAG AA (4.5:1) against
+         *  the ribbon's translucent fill, so it needs no white halo */
+        labelColor: string
         icon: IconDefinition
     }
 > = {
@@ -38,72 +42,81 @@ export const COMMODITY_GROUPS: Record<
         shortLabel: "Cereals (rice, corn, …)",
         sentenceLabel: "cereals",
         description:
-            "Forest cleared to grow grain crops, mainly rice and corn, but also barley, wheat, sorghum and millet.",
+            "Cereals are grain crops, mainly rice and corn, but also sorghum, wheat, millet and barley.",
         color: OwidDistinctColors.Camel,
+        labelColor: "#6f4414",
         icon: faWheatAwn,
     },
     "Edible roots and tubers with high starch or inulin content": {
         shortLabel: "Roots & tubers",
         sentenceLabel: "roots and tubers",
         description:
-            "Forest cleared to grow starchy root crops, mostly cassava, but also yams, potatoes, sweet potatoes and taro.",
+            "Roots and tubers are starchy crops, mainly cassava, but also yams, potatoes, sweet potatoes and taro.",
         color: OwidDistinctColors.Copper,
+        labelColor: "#6e2900",
         icon: faLeaf,
     },
     "Fibre crops": {
         shortLabel: "Fiber crops (rubber, cotton, …)",
         sentenceLabel: "fiber crops",
         description:
-            "Forest cleared to grow crops used as materials rather than food, mostly rubber trees and cotton, but also tobacco, sisal and jute.",
+            "Fiber crops are non-food crops, mainly rubber and cotton, but also tobacco, sisal and jute.",
         color: OwidDistinctColors.Teal,
+        labelColor: "#004642",
         icon: faShirt,
     },
     "Fruit and nuts": {
         shortLabel: "Fruit & nuts",
         sentenceLabel: "fruit and nuts",
         description:
-            "Forest cleared to grow fruit and nut trees, such as plantains, cashews and bananas, but also guavas, mangoes and avocados.",
+            "Fruit and nuts are mainly cashews, plantains and bananas, but also mangoes, guavas and avocados.",
         color: OwidDistinctColors.OliveGreen,
+        labelColor: "#0e2e00",
         icon: faAppleWhole,
     },
     "Oilseeds and oleaginous fruits": {
         shortLabel: "Oilseeds (soy, palm, …)",
         sentenceLabel: "oilseeds",
         description:
-            "Forest cleared to grow crops for vegetable oil and animal feed, mainly soybeans and oil palms, but also sunflowers, peanuts, rapeseed and coconuts.",
+            "Oilseeds are mainly soybeans and oil palm, but also peanuts, sunflowers, rapeseed and coconuts; they go into vegetable oil, animal feed, foods such as tofu and peanut butter, and biofuels.",
         color: OwidDistinctColors.RustyOrange,
+        labelColor: "#5d1900",
         icon: faBottleDroplet,
     },
     Pasture: {
         shortLabel: "Beef (pasture)",
         sentenceLabel: "beef",
         description:
-            "Forest cleared to create pasture for grazing cattle, raised for beef.",
+            "Pasture is grazing land for cattle; its deforestation is attributed to beef.",
         color: OwidDistinctColors.Maroon,
+        labelColor: "#560c14",
         icon: faCow,
     },
     "Pulses (dried leguminous vegetables)": {
         shortLabel: "Dry beans & legumes",
-        sentenceLabel: "dry beans and legumes",
+        sentenceLabel: "pulses",
         description:
-            "Forest cleared to grow beans and other legumes that are sold dried, mainly common beans and cowpeas, but also chickpeas, pigeon peas and lentils.",
+            "Dry beans and legumes are pulses harvested as dry grain, mainly common beans and cowpeas, but also chickpeas, pigeon peas and lentils.",
         color: OwidDistinctColors.DarkOliveGreen,
+        labelColor: "#002a00",
         icon: faBowlRice,
     },
     "Stimulant, spice and aromatic crops": {
         shortLabel: "Stimulants (cocoa, coffee, …)",
-        sentenceLabel: "stimulants, spice and aromatic crops",
+        sentenceLabel: "stimulants",
         description:
-            "Forest cleared to grow cocoa and coffee, but also tea, maté, and spices such as nutmeg, cardamom and cinnamon.",
+            "Stimulants are mainly cocoa and coffee, but also tea, maté and spices such as cinnamon, nutmeg and cardamom.",
         color: OwidDistinctColors.Purple,
+        labelColor: "#431766",
         icon: faMugHot,
     },
     Vegetables: {
         shortLabel: "Vegetables",
         sentenceLabel: "vegetables",
         description:
-            "Forest cleared to grow vegetables, such as okra, onions and tomatoes, but also peppers, sweet corn and pumpkins.",
+            "Vegetables are mainly okra, tomatoes and onions, but also peppers, sweet corn and pumpkins.",
         color: OwidDistinctColors.Lime,
+        labelColor: "#004e00",
         icon: faCarrot,
     },
 }
@@ -129,6 +142,10 @@ export function getGroupColor(name: string): string {
     return COMMODITY_GROUPS[name]?.color ?? FALLBACK_COLOR
 }
 
+export function getGroupLabelColor(name: string): string | undefined {
+    return COMMODITY_GROUPS[name]?.labelColor
+}
+
 export function getGroupIcon(name: string): IconDefinition {
     return COMMODITY_GROUPS[name]?.icon ?? FALLBACK_ICON
 }
@@ -142,16 +159,22 @@ const GROUP_GLYPH_SIZE = 11
 
 /**
  * A group's FontAwesome glyph as a bare `<path>`, scaled uniformly from the
- * icon's own viewBox into a `0 0 16 16` box and centred in it. Returning a
+ * icon's own viewBox into a `0 0 16 16` box and centred in it — by default
+ * smaller than the box, with room for a disc behind it; `glyphSize` of
+ * `GROUP_ICON_SIZE` fills the box. Returning a
  * path rather than `<FontAwesomeIcon>` lets the caller place it anywhere in an
  * SVG it is already drawing, such as a Sankey node.
  */
-export function renderGroupIcon(name: string, fill: string): React.ReactNode {
+export function renderGroupIcon(
+    name: string,
+    fill: string,
+    { glyphSize = GROUP_GLYPH_SIZE }: { glyphSize?: number } = {}
+): React.ReactNode {
     const icon = getGroupIcon(name)
     const [width, height, , , pathData] = icon.icon
     const d = Array.isArray(pathData) ? pathData.join(" ") : pathData
 
-    const scale = GROUP_GLYPH_SIZE / Math.max(width, height)
+    const scale = glyphSize / Math.max(width, height)
     const x = (GROUP_ICON_SIZE - width * scale) / 2
     const y = (GROUP_ICON_SIZE - height * scale) / 2
 

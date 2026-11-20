@@ -8,7 +8,14 @@ import {
 } from "../core/CausesOfDeathConstants"
 import { useMemo, useState, useCallback, useRef } from "react"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
-import * as d3 from "d3"
+import { sum } from "d3-array"
+import {
+    hierarchy as d3Hierarchy,
+    stratify,
+    treemap,
+    treemapSlice,
+    type HierarchyNode,
+} from "d3-hierarchy"
 import {
     useChartDimensions,
     useScreenDimensions,
@@ -173,7 +180,7 @@ function CausesOfDeathTreemap({
         }, 200)
     }, [])
 
-    const numAllDeaths = d3.sum(data, (d) => d.value) || 0
+    const numAllDeaths = sum(data, (d) => d.value) || 0
     const enrichedData: EnrichedDataItem[] = [
         // Root node
         { entityName, year, variable: "All" },
@@ -195,25 +202,22 @@ function CausesOfDeathTreemap({
         })),
     ]
 
-    const stratify = d3
-        .stratify<EnrichedDataItem>()
+    const stratifyData = stratify<EnrichedDataItem>()
         .id((d) => d.variable)
         .parentId((d) => d.parentId)
 
-    const treeData = stratify(enrichedData)
+    const treeData = stratifyData(enrichedData)
 
-    const hierarchy = d3
-        .hierarchy(treeData)
+    const hierarchy = d3Hierarchy(treeData)
         .sum((d) => d.data.value || 0)
         .sort((a, b) => (b.value || 0) - (a.value || 0))
 
-    const tilingMethod: TilingFunction<d3.HierarchyNode<EnrichedDataItem>> =
+    const tilingMethod: TilingFunction<HierarchyNode<EnrichedDataItem>> =
         isMobile
-            ? d3.treemapSlice
+            ? treemapSlice
             : stackedSliceDiceTiling({ minColumnWidth: 100, minRowHeight: 30 })
 
-    const treemapLayout = d3
-        .treemap<d3.HierarchyNode<EnrichedDataItem>>()
+    const treemapLayout = treemap<HierarchyNode<EnrichedDataItem>>()
         .tile(tilingMethod)
         .size([width, height])
         .padding(1)

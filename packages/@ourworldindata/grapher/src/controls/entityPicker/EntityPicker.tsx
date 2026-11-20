@@ -691,8 +691,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
                                                     : undefined
                                             }
                                             className={
-                                                this
-                                                    .mostRecentlySelectedEntityName ===
+                                                this.mostRecentlySelectedEntityName ===
                                                 option.entityName
                                                     ? "most-recently-selected"
                                                     : undefined

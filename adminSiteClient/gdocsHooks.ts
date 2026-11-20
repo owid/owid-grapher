@@ -2,10 +2,9 @@ import { useMemo } from "react"
 import {
     OwidGdoc,
     OwidGdocProfileInterface,
-    checkIsGdocPost,
     getEntitiesForProfile,
 } from "@ourworldindata/utils"
-import { checkHasChanges, checkIsLightningUpdate } from "./gdocsDeploy.js"
+import { checkHasChanges } from "./gdocsDeploy.js"
 import * as React from "react"
 
 export const useGdocsChanged = (
@@ -15,20 +14,6 @@ export const useGdocsChanged = (
     return useMemo(
         () => !!prevGdoc && !!nextGdoc && checkHasChanges(prevGdoc, nextGdoc),
         [prevGdoc, nextGdoc]
-    )
-}
-
-export const useLightningUpdate = (
-    prevGdoc: OwidGdoc | undefined,
-    nextGdoc: OwidGdoc | undefined,
-    hasChanges: boolean
-) => {
-    return useMemo(
-        () =>
-            checkIsGdocPost(prevGdoc) &&
-            checkIsGdocPost(nextGdoc) &&
-            checkIsLightningUpdate(prevGdoc, nextGdoc, hasChanges),
-        [prevGdoc, nextGdoc, hasChanges]
     )
 }
 

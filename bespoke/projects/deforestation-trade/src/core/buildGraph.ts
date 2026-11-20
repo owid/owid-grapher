@@ -119,9 +119,11 @@ const emphasis = (text: string): SentencePart => ({ text, emphasis: true })
 
 /**
  * How to read the chart, as one sentence that walks its columns from left to
- * right, key words emphasised and the outer columns pointed out: "Germany
- * (left) cleared forest to produce commodities that were consumed in these
- * countries (right)."
+ * right, key words emphasised and the outer columns pointed out:
+ * "Deforestation in Germany (left) is linked to commodities consumed in these
+ * countries (right)." It says "linked to" rather than "cleared", as the
+ * source attributes deforestation to commodities, averaged over five years,
+ * rather than observing who cleared what.
  */
 export function buildHowToRead({
     country,
@@ -133,32 +135,26 @@ export function buildHowToRead({
     getPartnerLabel?: (partner: string) => string
 }): SentencePart[] {
     const countryLabel = getPartnerLabel(country)
-    // "the United States", and "The United States" when it opens the sentence;
-    // decided on the full name, since the article list knows no short names
+    // "the United States"; decided on the full name, since the article list
+    // knows no short names
     const needsArticle = articulateEntity(country) !== country
     const countryInSentence = needsArticle
         ? `the ${countryLabel}`
         : countryLabel
-    const countryAtStart = needsArticle ? `The ${countryLabel}` : countryLabel
-    return match(view)
-        .returnType<SentencePart[]>()
-        .with("consumption", () => [
-            emphasis("These countries"),
-            plain(" (left) cleared forest to produce "),
-            emphasis("commodities"),
-            plain(" that were consumed in "),
-            emphasis(countryInSentence),
-            plain(" (right)."),
-        ])
-        .with("production", () => [
-            emphasis(countryAtStart),
-            plain(" (left) cleared forest to produce "),
-            emphasis("commodities"),
-            plain(" that were consumed in "),
-            emphasis("these countries"),
-            plain(" (right)."),
-        ])
+    const [producers, consumers] = match(view)
+        .returnType<[string, string]>()
+        .with("consumption", () => ["these countries", countryInSentence])
+        .with("production", () => [countryInSentence, "these countries"])
         .exhaustive()
+    return [
+        plain("Deforestation in "),
+        emphasis(producers),
+        plain(" (left) is linked to "),
+        emphasis("commodities"),
+        plain(" consumed in "),
+        emphasis(consumers),
+        plain(" (right)."),
+    ]
 }
 
 const EMPTY_BREAKDOWN = (): { left: EntityTotal[]; right: EntityTotal[] } => ({

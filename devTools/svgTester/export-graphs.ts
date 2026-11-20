@@ -18,6 +18,7 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
     try {
         // Test suite
         const testSuite = args.testSuite as SvgTesterSuite
+        const settings = utils.SVG_TESTER_SUITE_SETTINGS[testSuite]
 
         // Input and output directories
         const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
@@ -41,8 +42,8 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
         // Chart configurations to test
         const grapherQueryString = args.queryStr
         const shouldTestAllChartViews =
-            args.allViews ?? testSuite === "grapher-views"
-        const shouldTestAllTabs = args.allTabs ?? testSuite === "thumbnails"
+            args.allViews ?? settings.shouldTestAllViews
+        const tabSelection = args.tabs ?? settings.tabSelection
 
         // Other options
         const isolate = args.isolate
@@ -68,11 +69,11 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
             {
                 queryStr: grapherQueryString,
                 shouldTestAllViews: shouldTestAllChartViews,
-                shouldTestAllTabs,
+                tabSelection,
             }
         )
 
-        const variant = testSuite === "thumbnails" ? "thumbnail" : "default"
+        const variant = settings.renderVariant
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
             chartViewsToGenerate.map((chart: utils.ChartWithQueryStr) => ({
@@ -181,10 +182,11 @@ function parseArguments() {
                 description:
                     "For each Grapher, generate SVGs for all possible chart configurations. Default depends on the test suite.",
             },
-            allTabs: {
-                type: "boolean",
+            tabs: {
+                type: "string",
+                choices: utils.SVG_TESTER_TAB_SELECTIONS,
                 description:
-                    "For each Grapher, generate thumbnail SVGs for all available tabs. Default depends on the test suite.",
+                    "Which tabs to generate SVGs for per Grapher: its default tab, the tab of its first chart type, or every available tab. Default depends on the test suite.",
             },
             manifest: {
                 type: "string",

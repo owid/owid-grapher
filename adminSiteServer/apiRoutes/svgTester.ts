@@ -2,7 +2,8 @@ import fs from "fs-extra"
 import path from "path"
 import { execFile } from "child_process"
 import { promisify } from "util"
-import { Request, Response } from "express"
+import { Response } from "express"
+import { Request } from "../authentication.js"
 import {
     SVG_TESTER_SUITES,
     SVG_TESTER_DIRECTORIES,

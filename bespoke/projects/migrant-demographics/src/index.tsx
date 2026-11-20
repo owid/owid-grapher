@@ -33,17 +33,19 @@ export const VARIANTS = [
 export const CONFIG_SPEC = {
     title: {
         type: "string",
-        description: "Chart title, replacing the generated one",
+        description:
+            "Chart title, replacing the generated one. Also hides the controls",
     },
     subtitle: {
         type: "string",
-        description: "Chart subtitle, replacing the generated one",
+        description:
+            "Chart subtitle, replacing the generated one. Also hides the controls",
     },
     country: {
         type: "string",
         default: DEFAULT_COUNTRY,
         description:
-            "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
+            "Country shown first, or United States if the data doesn't have it. `userLocation` picks the user's country",
     },
     year: {
         type: "integer",

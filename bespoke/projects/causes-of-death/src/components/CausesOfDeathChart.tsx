@@ -121,6 +121,9 @@ function CausesOfDeathChart(props: {
         entityDataResponse.status
     )
 
+    const shouldHideControls =
+        config.hideControls || !!config.title || !!config.subtitle
+
     if (loadingStatus === "error") {
         return <ChartError className="causes-of-death-chart-box" />
     }
@@ -143,7 +146,7 @@ function CausesOfDeathChart(props: {
 
     return (
         <div className="causes-of-death-chart">
-            {!config.hideControls && (
+            {!shouldHideControls && (
                 <CausesOfDeathControls
                     metadata={metadata}
                     ageGroup={ageGroup}
@@ -163,6 +166,8 @@ function CausesOfDeathChart(props: {
                 sex={activeSex}
                 entityName={activeEntityName}
                 year={activeYear}
+                title={config.title}
+                subtitle={config.subtitle}
                 isLoading={isLoadingEntityData}
             />
         </div>

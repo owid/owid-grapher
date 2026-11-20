@@ -3,6 +3,7 @@ export const SVG_TESTER_SUITES = [
     "grapher-views",
     "mdims",
     "thumbnails",
+    "mobile",
 ] as const
 export type SvgTesterSuite = (typeof SVG_TESTER_SUITES)[number]
 

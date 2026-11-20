@@ -56,6 +56,7 @@ main() {
     refresh grapher-views
     refresh mdims
     refresh thumbnails
+    refresh mobile
 }
 
 # show help

@@ -23,5 +23,6 @@ export interface FooterManager extends TooltipManager, ActionButtonsManager {
     hideNote?: boolean
     hideOriginUrl?: boolean
     isStaticAndSmall?: boolean
+    isLayoutFixed?: boolean
     detailsMarkerInSvg?: DetailsMarker
 }

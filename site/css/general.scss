@@ -75,6 +75,36 @@ sup {
     @include superscript;
 }
 
+// SpanElement adds these when Lato lacks a "sups"/"subs" glyph for any
+// character (e.g. "." in "1.585"). The whole run then uses regular glyphs,
+// matched to Lato's sups/subs glyphs: 50.9% size, Bold-weight stems, slightly
+// wider spacing, and a baseline 0.45em higher or 0.113em lower. Since `top`
+// is relative to the reduced size, those offsets are divided by 0.509.
+.span-superscript-fallback,
+.span-subscript-fallback {
+    position: relative;
+    font-size: 0.509em;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    // This replaces the sup/sub mixins' font-variant-position, so undo it.
+    // Otherwise the font's sups/subs glyphs (or, in Firefox, a synthesized
+    // run) would be scaled and shifted a second time.
+    font-variant-position: normal;
+
+    strong &,
+    strong {
+        font-weight: 900;
+    }
+}
+
+.span-superscript-fallback {
+    top: -0.884em;
+}
+
+.span-subscript-fallback {
+    top: 0.222em;
+}
+
 /* ----------------------------------------------------------- */
 
 h6 {

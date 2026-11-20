@@ -15,11 +15,7 @@ import { AdminAppContext } from "../AdminAppContext.js"
 import { Timeago } from "../Forms.js"
 import { ApiSlideshowOverview } from "../../adminShared/AdminTypes.js"
 import { Link } from "../Link.js"
-import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-} from "../../adminShared/search.js"
+import { useListSearch } from "../useListSearch.js"
 
 function createColumns(ctx: {
     highlightFn: (
@@ -99,34 +95,22 @@ function createColumns(ctx: {
     ]
 }
 
+const searchedText = (slideshow: ApiSlideshowOverview) => [
+    `${slideshow.id}`,
+    slideshow.title,
+    slideshow.slug,
+    slideshow.authorName,
+]
+
 export function SlideshowsIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [slideshows, setSlideshows] = useState<ApiSlideshowOverview[]>([])
-    const [searchValue, setSearchValue] = useState("")
-
-    const searchWords = useMemo(
-        () => buildSearchWordsFromSearchString(searchValue),
-        [searchValue]
-    )
-
-    const filteredSlideshows = useMemo(() => {
-        const filterFn = filterFunctionForSearchWords(
-            searchWords,
-            (slideshow: ApiSlideshowOverview) => [
-                `${slideshow.id}`,
-                slideshow.title,
-                slideshow.slug,
-                slideshow.authorName,
-            ]
-        )
-
-        return slideshows.filter(filterFn)
-    }, [slideshows, searchWords])
-
-    const highlightFn = useMemo(
-        () => highlightFunctionForSearchWords(searchWords),
-        [searchWords]
-    )
+    const {
+        searchValue,
+        setSearchValue,
+        filtered: filteredSlideshows,
+        highlight: highlightFn,
+    } = useListSearch(slideshows, searchedText)
 
     const deleteFn = useCallback(
         (slideshowId: number) => {

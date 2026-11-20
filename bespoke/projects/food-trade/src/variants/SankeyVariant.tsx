@@ -37,6 +37,7 @@ import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 import {
+    findInitialCountry,
     isUserLocationCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
@@ -79,7 +80,7 @@ function FetchingSankeyVariant({
     urls: BespokeComponentDataUrls
 }) {
     const isUserLocation = isUserLocationCountry(config.country)
-    const initialCountry = isUserLocation ? ALL_COUNTRIES : config.country
+    const initialCountry = findInitialCountry(config.country, ALL_COUNTRIES)
     const initialView =
         !isUserLocation && isAllCountry(initialCountry) ? "both" : config.flow
     const [product, setProduct] = useUrlState({

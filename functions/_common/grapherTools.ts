@@ -21,12 +21,14 @@ import {
     R2GrapherConfigDirectory,
     AdditionalGrapherDataFetchFn,
     GRAPHER_QUERY_PARAM_KEYS,
+    ViewEnriched,
 } from "@ourworldindata/types"
 import {
     excludeUndefined,
     Bounds,
     makeDownloadCodeExamples,
     multiDimDimensionsToViewQueryStr,
+    MultiDimViewNotFoundError,
     searchParamsToMultiDimView,
     escapeJSONStringForInlineScript,
 } from "@ourworldindata/utils"
@@ -176,7 +178,15 @@ async function fetchMultiDimGrapherConfig(
     searchParams: URLSearchParams,
     env: Env
 ): Promise<FetchMultiDimGrapherConfigResult> {
-    const view = searchParamsToMultiDimView(multiDimConfig, searchParams)
+    let view: ViewEnriched
+    try {
+        view = searchParamsToMultiDimView(multiDimConfig, searchParams)
+    } catch (e) {
+        // The URL asks for a view that doesn't exist
+        if (e instanceof MultiDimViewNotFoundError)
+            throw new StatusError(404, e.message)
+        throw e
+    }
     const response = await fetchUnparsedGrapherConfig(
         { type: "uuid", id: view.fullConfigId },
         env,

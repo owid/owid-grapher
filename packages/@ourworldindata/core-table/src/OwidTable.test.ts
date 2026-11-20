@@ -686,6 +686,26 @@ Aruba,2020-01-22,"Something, foo"
 Canada,2020-01-23,`)
     })
 
+    it("quotes cells containing quotes and newlines when exporting to CSV", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "year", "annotation"],
+                ["Aruba", 2020, 'A "quoted" word'],
+                ["Canada", 2020, "Two\nlines"],
+            ],
+            [
+                { slug: "entityName" },
+                { slug: "year", type: ColumnTypeNames.Year },
+                { slug: "annotation" },
+            ]
+        )
+
+        expect(table.toCsv()).toEqual(`entityName,year,annotation
+Aruba,2020,"A ""quoted"" word"
+Canada,2020,"Two
+lines"`)
+    })
+
     it("can format a value", () => {
         const table = new OwidTable(
             [["growthRate"], [123]],

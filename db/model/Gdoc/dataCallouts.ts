@@ -34,6 +34,7 @@ import {
     ExplorerGrapherInterface,
 } from "@ourworldindata/explorer"
 import { match } from "ts-pattern"
+import pMap from "p-map"
 import { DATA_API_URL } from "../../../settings/serverSettings.js"
 import * as db from "../../db.js"
 import { mapSlugsToIds, getChartConfigById } from "../Chart.js"
@@ -377,19 +378,26 @@ export async function prepareCalloutTablesForProfile(
         chartKeys.add(makeCalloutGrapherStateKey(templateUrl))
     }
 
-    // Prepare each unique chart's table
-    for (const chartKey of chartKeys) {
-        const tableResult = await prepareCalloutTableForUrl(
-            knex,
-            chartKey,
-            slugToIdMap
-        )
-        if (!tableResult) continue
+    // Prepare each unique chart's table. The time is almost all spent waiting
+    // on the data API, so fetch a few charts at once.
+    await pMap(
+        chartKeys,
+        async (chartKey) => {
+            const tableResult = await prepareCalloutTableForUrl(
+                knex,
+                chartKey,
+                slugToIdMap
+            )
+            if (!tableResult) return
 
-        const { config, inputTable } = tableResult
-        const prepared = prepareCalloutTable(inputTable, config)
-        preparedTables.set(chartKey, prepared)
-    }
+            const { config, inputTable } = tableResult
+            preparedTables.set(
+                chartKey,
+                prepareCalloutTable(inputTable, config)
+            )
+        },
+        { concurrency: 10 }
+    )
 
     return preparedTables
 }
