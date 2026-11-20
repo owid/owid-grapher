@@ -312,7 +312,7 @@ describe("searching rows that aren't charts", () => {
         id: number
         title: string
         published: boolean
-        explorer: boolean
+        explorer?: boolean
         topicTags: string[]
     }
     const ROWS: Row[] = [
@@ -320,7 +320,6 @@ describe("searching rows that aren't charts", () => {
             id: 1,
             title: "Energy prices",
             published: false,
-            explorer: false,
             topicTags: ["Energy"],
         },
         {
@@ -330,13 +329,7 @@ describe("searching rows that aren't charts", () => {
             explorer: true,
             topicTags: ["COVID-19"],
         },
-        {
-            id: 3,
-            title: "School enrolment",
-            published: true,
-            explorer: false,
-            topicTags: [],
-        },
+        { id: 3, title: "School enrolment", published: true, topicTags: [] },
     ]
     const describeRow = (row: Row): SearchableChart => ({
         searchedText: [row.title, `${row.id}`],

@@ -50,7 +50,7 @@ export interface SearchableChart {
     isPublished: boolean
     isEtl: boolean
     isDrifted: boolean
-    isDataExplorer: boolean
+    isDataExplorer?: boolean
     tags: string[]
     authors: string[]
 }
@@ -62,7 +62,6 @@ export function searchableChart(chart: ChartListItem): SearchableChart {
         isPublished: !!chart.isPublished,
         isEtl: chart.isEtlManaged,
         isDrifted: !!etlSource && hasEtlDrift(etlSource.drift),
-        isDataExplorer: false,
         tags: chart.tags.map((tag) => tag.name),
         authors: [chart.lastEditedBy, chart.publishedBy],
     }
@@ -103,7 +102,7 @@ export const IS_VALUES = {
     explorer: {
         facet: "type",
         label: "Data explorer",
-        test: (chart) => chart.isDataExplorer,
+        test: (chart) => !!chart.isDataExplorer,
     },
     datapage: {
         facet: "type",
