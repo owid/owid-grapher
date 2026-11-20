@@ -6,14 +6,12 @@ import {
     SearchIndexName,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
-import {
-    formatTopicFacetFilters,
-    getAlgoliaBaseUrl,
-} from "@ourworldindata/utils"
+import { formatTopicFacetFilters } from "@ourworldindata/utils"
 import { Env } from "./_common/env.js"
 import {
     getAlgoliaConfig,
     AlgoliaConfig,
+    createSearchClient,
     getIndexName,
 } from "./api/search/algoliaClient.js"
 
@@ -56,42 +54,21 @@ async function queryChronologicalPages(
         ? topicFacetFilters
         : undefined
 
-    const searchParams = {
+    const client = createSearchClient(config)
+    const response = await client.searchForHits<FeedHit>({
         requests: [
             {
                 indexName,
                 query: "",
                 ...(filters && { filters }),
-                ...(facetFilters && {
-                    facetFilters,
-                }),
+                ...(facetFilters && { facetFilters }),
                 attributesToRetrieve: FEED_ATTRIBUTES,
                 hitsPerPage: HITS_PER_FEED,
             },
         ],
-    }
-
-    const url = `${getAlgoliaBaseUrl(config.appId, config.host)}/1/indexes/*/queries`
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "X-Algolia-Application-Id": config.appId,
-            "X-Algolia-API-Key": config.apiKey,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(searchParams),
     })
 
-    if (!response.ok) {
-        throw new Error(`Algolia search failed: ${response.statusText}`)
-    }
-
-    const data: {
-        results: [{ hits: FeedHit[] }]
-    } = await response.json()
-
-    return data.results[0].hits
+    return response.results[0].hits
 }
 
 function escapeXml(str: string): string {
