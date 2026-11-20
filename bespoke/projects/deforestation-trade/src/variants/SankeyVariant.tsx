@@ -396,7 +396,7 @@ function buildCaption({
         ? `, and ${possessiveEntity(articulated)} ${view} accounted for ${worldShare} of that`
         : ""
     const worldClause = worldTotal
-        ? `For context, ${formatHectares(worldTotal)} of deforestation worldwide was linked to agriculture ${when}${worldShareClause}. `
+        ? `For context, ${formatHectares(worldTotal)} of deforestation worldwide were linked to agriculture ${when}${worldShareClause}. `
         : ""
     // The source amortizes deforestation over five years, so a year's figure
     // is a five-year average rather than the land cleared in that year. A
@@ -415,7 +415,7 @@ function buildCaption({
         }
 
     return {
-        title: `${R.capitalize(amount)} of deforestation in ${articulated} was linked to agriculture ${when}. Where were these products consumed?`,
+        title: `${R.capitalize(amount)} of deforestation in ${articulated} were linked to agriculture ${when}. Where were these products consumed?`,
         subtitle,
     }
 }
