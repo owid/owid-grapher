@@ -142,10 +142,33 @@
     }
 }
 
-// Phones toggle the box from the bottom only
-.indicator-metadata-box .metadata-box-toggle-button {
-    @include sm-only {
-        display: none;
+// The whole title row toggles the box, as the bottom strip does: the button's
+// hit area stretches over the row, out to the box's edges
+.indicator-metadata-box__header {
+    position: relative;
+}
+
+.indicator-metadata-box .metadata-box-toggle-button::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--indicator-metadata-box-padding))
+        calc(-1 * var(--indicator-metadata-box-padding)) 0;
+}
+
+// Phones have no room for the label beside the title, so it's for screen
+// readers only (as .sr-only), and the row itself is the visible target
+@include sm-only {
+    .indicator-metadata-box .metadata-box-toggle-button > span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+    }
+
+    // Nor does the empty button take a gap from the title
+    .indicator-metadata-box__header {
+        gap: 0;
     }
 }
 
