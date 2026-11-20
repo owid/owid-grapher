@@ -36,7 +36,7 @@ const FIELD_NAMES: ReadonlySet<string> = new Set(
 
 export type ChartSearchFacet = IsFacet | "tag" | "author"
 
-type IsFacet = "status" | "source"
+export type IsFacet = "status" | "source" | "type"
 
 export const ALL_CHART_SEARCH_FACETS: readonly ChartSearchFacet[] = [
     "status",
@@ -50,6 +50,7 @@ export interface SearchableChart {
     isPublished: boolean
     isEtl: boolean
     isDrifted: boolean
+    isDataExplorer?: boolean
     tags: string[]
     authors: string[]
 }
@@ -97,6 +98,16 @@ export const IS_VALUES = {
         facet: "source",
         label: "Created in the admin",
         test: (chart) => !chart.isEtl,
+    },
+    explorer: {
+        facet: "type",
+        label: "Data explorer",
+        test: (chart) => !!chart.isDataExplorer,
+    },
+    datapage: {
+        facet: "type",
+        label: "Data page",
+        test: (chart) => !chart.isDataExplorer,
     },
 } as const satisfies Record<string, IsValue>
 
@@ -201,6 +212,7 @@ export function chartSearchFilter<Row>(
         switch (facet) {
             case "status":
             case "source":
+            case "type":
                 add(isValueOf(term.value)!.test)
                 break
             case "tag": {
@@ -275,7 +287,9 @@ function reformatTerm(term: SearchTerm): string {
 }
 
 function fieldOfFacet(facet: ChartSearchFacet): ChartSearchField {
-    return facet === "status" || facet === "source" ? "is" : facet
+    return facet === "status" || facet === "source" || facet === "type"
+        ? "is"
+        : facet
 }
 
 export function getFacetValues(
