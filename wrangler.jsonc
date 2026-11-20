@@ -34,8 +34,7 @@
     // which the search page asks for. Here for `wrangler pages dev` (local dev and the
     // staging containers), which authenticates with the dev/staging CLOUDFLARE_API_TOKEN,
     // and in "preview". Not in "production" yet, where the param is ignored and the search
-    // keeps Algolia's order. The owid-search AI Gateway's rate limit caps spend (see
-    // rerank.ts), previews included.
+    // keeps Algolia's order.
     "ai": { "binding": "AI", "remote": true },
     "vars": {
         "ENV": "development",
