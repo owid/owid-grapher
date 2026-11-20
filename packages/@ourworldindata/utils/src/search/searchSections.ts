@@ -445,3 +445,20 @@ export function fromSearchApiResponse<THit>(
         closestMatches: response.closestMatches,
     } as SectionSearchResponse<THit>
 }
+
+/**
+ * /api/search/batch runs several /api/search requests in one: each is sent as
+ * its query string in one `r` parameter. A page that shows several sections
+ * at once sends them together, since parallel requests to Cloudflare Pages
+ * Functions tend to start a new isolate each, and each start costs ~0.5 s.
+ */
+export const SEARCH_BATCH_PARAM = "r"
+export const SEARCH_BATCH_MAX_REQUESTS = 8
+
+/**
+ * An /api/search/batch response: the status and JSON body /api/search
+ * returned for each request, in the order they were sent.
+ */
+export interface SearchApiBatchResponse {
+    results: { status: number; body: unknown }[]
+}
