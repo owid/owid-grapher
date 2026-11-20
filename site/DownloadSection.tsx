@@ -68,9 +68,9 @@ function ApiAndCodeExamplesSection({
 
     return (
         <>
-            <div className="downloads-section">
-                <h4 className="citation__how-to-header">Data API</h4>
-                <p className="citation__paragraph">
+            <div className="downloads__section">
+                <h4 className="downloads__subheading">Data API</h4>
+                <p className="downloads__paragraph">
                     Use these URLs to programmatically access this chart's data
                     and configure your requests with the options below.{" "}
                     <a
@@ -115,11 +115,11 @@ function ApiAndCodeExamplesSection({
                     </div>
                 </section>
             </div>
-            <div className="download-data-section downloads-section">
+            <div className="download-data-section downloads__section">
                 <ExpandableToggle
                     label="Code examples"
                     alwaysVisibleDescription={
-                        <p className="citation__paragraph">
+                        <p className="downloads__paragraph">
                             Examples of how to load this data into different
                             data analysis tools.
                         </p>
@@ -270,7 +270,7 @@ export default function DownloadSection({
         >
             <h3
                 className={cx(
-                    "metadata-section__heading",
+                    "downloads__heading",
                     isStacked
                         ? STACKED_COLUMN_CLASSES
                         : SIDE_BY_SIDE_HEADING_CLASSES
@@ -287,13 +287,13 @@ export default function DownloadSection({
                 }
             >
                 {isOnArchivalPage ? (
-                    <div className="downloads-section">
-                        <h4 className="citation__how-to-header">
+                    <div className="downloads__section">
+                        <h4 className="downloads__subheading">
                             Quick download
                         </h4>
                         {shouldShowNonRedistributableNotice ? (
                             <>
-                                <p className="citation__paragraph">
+                                <p className="downloads__paragraph">
                                     You can download the{" "}
                                     <a
                                         href={archiveDownloadVisUrl}
@@ -303,15 +303,15 @@ export default function DownloadSection({
                                     </a>{" "}
                                     as an image.
                                 </p>
-                                <div className="citation__paragraph">
+                                <div className="downloads__paragraph">
                                     <NonRedistributableDataNotice
                                         sourceLinks={sourceLinks}
-                                        listClassName="metadata-list"
+                                        listClassName="downloads__list"
                                     />
                                 </div>
                             </>
                         ) : (
-                            <p className="citation__paragraph">
+                            <p className="downloads__paragraph">
                                 You can download the{" "}
                                 <a
                                     href={archiveDownloadVisUrl}
@@ -331,24 +331,24 @@ export default function DownloadSection({
                         )}
                     </div>
                 ) : shouldShowNonRedistributableNotice ? (
-                    <div className="downloads-section">
-                        <h4 className="citation__how-to-header">
+                    <div className="downloads__section">
+                        <h4 className="downloads__subheading">
                             The data in this chart is not available to download
                         </h4>
-                        <div className="citation__paragraph">
+                        <div className="downloads__paragraph">
                             <NonRedistributableDataNotice
                                 sourceLinks={sourceLinks}
-                                listClassName="metadata-list"
+                                listClassName="downloads__list"
                             />
                         </div>
                     </div>
                 ) : (
                     <>
-                        <div className="downloads-section">
-                            <h4 className="citation__how-to-header">
+                        <div className="downloads__section">
+                            <h4 className="downloads__subheading">
                                 Quick download
                             </h4>
-                            <p className="citation__paragraph">
+                            <p className="downloads__paragraph">
                                 {SERVER_SIDE_DOWNLOAD_HELP_TEXT}
                             </p>
                             <div className="downloads__download-buttons">

@@ -2,25 +2,61 @@
     margin-top: 16px;
 }
 
+.downloads__heading {
+    @include h3-bold;
+    margin: 0 0 24px;
+}
+
+.downloads__subheading {
+    @include overline-black-caps;
+    text-transform: uppercase;
+    margin: 0 0 8px;
+}
+
+.downloads__paragraph {
+    @include body-3-medium;
+    color: $blue-60;
+    margin: 0 0 8px;
+
+    a {
+        @include owid-link-60;
+    }
+}
+
+.downloads__list {
+    margin-bottom: 24px;
+    margin-left: 16px;
+    color: $blue-60;
+
+    a {
+        @include owid-link-60;
+    }
+
+    li {
+        @include body-3-medium;
+        margin: 0 0 8px;
+    }
+}
+
 // One centred column, with the heading in the page's section-title style
-.MetadataSection .downloads--stacked {
-    .metadata-section__heading {
+.downloads--stacked {
+    .downloads__heading {
         @include datapage-section-title;
     }
 
-    .citation__how-to-header {
+    .downloads__subheading {
         @include body-2-semibold;
         text-transform: none;
         color: $blue-90;
         margin: 0 0 4px;
     }
 
-    .metadata-list {
+    .downloads__list {
         margin-top: 8px;
     }
 }
 
-.downloads-section {
+.downloads__section {
     &:first-child {
         margin-bottom: 32px;
     }
