@@ -431,7 +431,7 @@ describe(buildHowToRead, () => {
         })
         const label = getPartnerLabel(COUNTRY)
         expect(text(sentence)).toBe(
-            `${label} (left) cleared forest to produce commodities that were consumed in these countries (right).`
+            `Deforestation in ${label} (left) is linked to commodities consumed in these countries (right).`
         )
         expect(sentence.filter((p) => p.emphasis).map((p) => p.text)).toEqual([
             label,
@@ -440,13 +440,13 @@ describe(buildHowToRead, () => {
         ])
     })
 
-    it("gives countries that take an article one, capitalised at the start of the sentence", () => {
+    it("gives countries that take an article one", () => {
         expect(
             buildHowToRead({
                 country: "United States",
                 view: "production",
-            })[0]
-        ).toEqual({ text: "The United States", emphasis: true })
+            })[1]
+        ).toEqual({ text: "the United States", emphasis: true })
         expect(
             text(
                 buildHowToRead({
@@ -455,7 +455,7 @@ describe(buildHowToRead, () => {
                 })
             )
         ).toBe(
-            "These countries (left) cleared forest to produce commodities that were consumed in the United States (right)."
+            "Deforestation in these countries (left) is linked to commodities consumed in the United States (right)."
         )
     })
 })
