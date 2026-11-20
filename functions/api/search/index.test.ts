@@ -847,7 +847,7 @@ describe("Search API endpoint", () => {
                     ) => ({
                         query: state.query,
                         results: pages(length!, offset).map((p) =>
-                            options?.excerpts ? p : { ...p, excerpt: undefined }
+                            options?.withExcerpt ? p : { ...p, excerpt: undefined }
                         ),
                         nbHits: 100,
                         offset: offset!,
@@ -917,6 +917,16 @@ describe("Search API endpoint", () => {
             expect(body.warnings).toEqual([
                 expect.stringMatching(/"rerank".*isn't available/),
             ])
+        })
+
+        // which would make a larger pool, and prompt
+        it("is ignored for chart pages larger than the pool", async () => {
+            const searchCharts = mockCharts(100)
+
+            await get("q=gdp&rerank=clef-flash&hitsPerPage=50")
+
+            expect(searchCharts.mock.calls[0].slice(2, 4)).toEqual([0, 50])
+            expect(lastFirst).not.toHaveBeenCalled()
         })
 
         it("is ignored for a search without a query", async () => {

@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/cloudflare"
 import { ChartRecordType } from "@ourworldindata/types"
-import type { SearchApiResponse, SearchPagesApiResponse } from "./searchApi.js"
 
 /**
  * Experimental: reorder a charts or pages search with a "decision model" —
@@ -306,40 +305,29 @@ export async function rerankHits<T extends RerankableHit>(
     }
 }
 
-/** A charts search's results, reordered (see rerankHits). */
-export async function rerankCharts(
-    ai: Ai,
-    model: RerankModel,
-    pool: SearchApiResponse,
-    note?: (hit: SearchApiResponse["results"][number]) => string | undefined
-): Promise<SearchApiResponse & { rerank: RerankInfo }> {
-    const { hits, rerank } = await rerankHits(
-        ai,
-        model,
-        pool.query,
-        pool.results,
-        note
-    )
-    return { ...pool, results: hits, rerank }
-}
-
 /**
- * A pages search's results (articles, data insights, …), reordered (see
- * rerankHits and describePage).
+ * Pages (articles, data insights, …) reordered like hits (see rerankHits),
+ * each described by describePage.
  */
-export async function rerankPages(
+export async function rerankPages<
+    TPage extends {
+        title: string
+        type: string
+        excerpt?: string
+        content?: string
+    },
+>(
     ai: Ai,
     model: RerankModel,
-    pool: SearchPagesApiResponse,
-    note?: (
-        page: SearchPagesApiResponse["results"][number]
-    ) => string | undefined
-): Promise<SearchPagesApiResponse & { rerank: RerankInfo }> {
+    query: string,
+    pages: TPage[],
+    note?: (page: TPage) => string | undefined
+): Promise<{ hits: TPage[]; rerank: RerankInfo }> {
     const { hits, rerank } = await rerankHits(
         ai,
         model,
-        pool.query,
-        pool.results.map((page) => ({
+        query,
+        pages.map((page) => ({
             page,
             title: page.title,
             type: page.type,
@@ -347,5 +335,5 @@ export async function rerankPages(
         })),
         note && ((hit) => note(hit.page))
     )
-    return { ...pool, results: hits.map((hit) => hit.page), rerank }
+    return { hits: hits.map((hit) => hit.page), rerank }
 }

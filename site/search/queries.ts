@@ -162,15 +162,18 @@ const rerankOff =
  * A failed request throws, like a failed Algolia search.
  */
 async function querySection<THit extends { slug: string }>(
-    request: SearchRequest,
-    { rerank = false }: { rerank?: boolean } = {}
+    request: SearchRequest
 ): Promise<SectionSearchResponse<THit>> {
     const params = searchRequestToUrlParams(request)
     // Keep Algolia's objectID and highlights, which the page renders
     params.set("highlights", "true")
     // Searches without a query are cached at the edge by URL, and have
     // nothing to rerank
-    if (rerank && !rerankOff && request.state.query.trim()) {
+    if (
+        (request.type === "charts" || request.type === "pages") &&
+        !rerankOff &&
+        request.state.query.trim()
+    ) {
         params.set("rerank", RERANK_MODEL)
         params.set("vocab", "1")
     }
@@ -181,15 +184,12 @@ async function querySection<THit extends { slug: string }>(
 }
 
 export async function queryCharts(state: SearchState, page: number = 0) {
-    return querySection<SearchChartHit>(
-        {
-            type: "charts",
-            state,
-            page,
-            hitsPerPage: CHARTS_PER_PAGE,
-        },
-        { rerank: true }
-    )
+    return querySection<SearchChartHit>({
+        type: "charts",
+        state,
+        page,
+        hitsPerPage: CHARTS_PER_PAGE,
+    })
 }
 
 export async function queryDataInsights(
@@ -199,16 +199,13 @@ export async function queryDataInsights(
 ): Promise<SectionSearchResponse<DataInsightHit>> {
     // Searched by offset like all page searches; the section pages through
     // them by page number
-    const response = await querySection<DataInsightHit>(
-        {
-            type: "pages",
-            state,
-            pageTypes: [OwidGdocType.DataInsight],
-            offset: page * hitsPerPage,
-            length: hitsPerPage,
-        },
-        { rerank: true }
-    )
+    const response = await querySection<DataInsightHit>({
+        type: "pages",
+        state,
+        pageTypes: [OwidGdocType.DataInsight],
+        offset: page * hitsPerPage,
+        length: hitsPerPage,
+    })
     return {
         ...response,
         page,
@@ -222,16 +219,13 @@ export async function queryArticles(
     offset: number = 0,
     length: number
 ) {
-    return querySection<FlatArticleHit>(
-        {
-            type: "pages",
-            state,
-            pageTypes: DEFAULT_PAGE_TYPES,
-            offset,
-            length,
-        },
-        { rerank: true }
-    )
+    return querySection<FlatArticleHit>({
+        type: "pages",
+        state,
+        pageTypes: DEFAULT_PAGE_TYPES,
+        offset,
+        length,
+    })
 }
 
 /**

@@ -1,5 +1,5 @@
 /**
- * rerankCharts reorders an Algolia charts response by a decision model's
+ * rerankHits reorders Algolia's hits by a decision model's
  * choice probabilities. The contract: the order follows the model's
  * probabilities (ties keep Algolia's order), and every way the model can fail to answer — a refusal, a
  * thrown error, an unexpected response shape — degrades to Algolia's own
@@ -7,7 +7,7 @@
  */
 import { describe, it, expect, vi } from "vitest"
 import { ChartRecordType } from "@ourworldindata/types"
-import { RERANK_TIMEOUT_MS, rerankCharts, rerankPages } from "./rerank.js"
+import { RERANK_TIMEOUT_MS, rerankHits, rerankPages } from "./rerank.js"
 import type { EnrichedSearchChartHit, SearchApiResponse } from "./searchApi.js"
 
 const hit = (slug: string): EnrichedSearchChartHit =>
@@ -38,10 +38,18 @@ const jevAnswers = (probabilities: Record<string, number>, noul = 0.9) => ({
     },
 })
 
-const slugsOf = (response: SearchApiResponse): string[] =>
-    response.results.map((r) => r.slug)
+const slugsOf = (response: { hits: EnrichedSearchChartHit[] }): string[] =>
+    response.hits.map((r) => r.slug)
 
-describe(rerankCharts, () => {
+/** Reranks a charts response's hits */
+const rerankCharts = (
+    ai: Ai,
+    model: "jev" | "clef-flash",
+    response: SearchApiResponse,
+    note?: (hit: EnrichedSearchChartHit) => string | undefined
+) => rerankHits(ai, model, response.query, response.results, note)
+
+describe(rerankHits, () => {
     it("orders hits by choice probability", async () => {
         const ai = fakeAi(async () =>
             jevAnswers({ r01: 0.1, r02: 0.05, r03: 0.6, r04: 0.25 }, 0.82)
@@ -215,18 +223,12 @@ describe(rerankPages, () => {
             url: `https://ourworldindata.org/${slug}`,
         })
 
-        const response = await rerankPages(ai, "jev", {
-            query: "malaria",
-            results: [
-                page("a", "article", "About a"),
-                page("b", "data-insight"),
-            ],
-            nbHits: 40,
-            offset: 0,
-            length: 30,
-        })
+        const response = await rerankPages(ai, "jev", "malaria", [
+            page("a", "article", "About a"),
+            page("b", "data-insight"),
+        ])
 
-        expect(response.results).toEqual([
+        expect(response.hits).toEqual([
             page("b", "data-insight"),
             page("a", "article", "About a"),
         ])

@@ -59,7 +59,7 @@ export interface SearchPageHit {
     thumbnailUrl?: string
     date?: string
     content?: string
-    /** with a query, only when asked for (SearchApiOptions.excerpts) */
+    /** with a query, only when asked for (SearchApiOptions.withExcerpt) */
     excerpt?: string
     authors?: string[]
     objectID: string
@@ -119,7 +119,7 @@ export interface SearchApiOptions {
      * Retrieve each page's excerpt also when there's a query (type=pages),
      * for the rerank prompt (see rerank.ts)
      */
-    excerpts?: boolean
+    withExcerpt?: boolean
 }
 
 /** Runs one search through the search page's own code (runSearchRequest). */
@@ -263,7 +263,7 @@ export async function searchPages(
         type: "pages",
         state,
         pageTypes,
-        withExcerpt: options.excerpts,
+        withExcerpt: options.withExcerpt,
         offset,
         length,
     })

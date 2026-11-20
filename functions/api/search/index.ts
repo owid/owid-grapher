@@ -2,9 +2,8 @@ import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "./algoliaClient.js"
 import { fetchTagGraph } from "../../_common/search/tagGraph.js"
-import { isRerankModel, RERANK_MODELS, RERANK_POOL_SIZE } from "./rerank.js"
+import { isRerankModel, RERANK_MODELS } from "./rerank.js"
 import {
-    chartsRerankPages,
     searchChartsReranked,
     searchPagesReranked,
     type RerankOptions,
@@ -328,24 +327,20 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 `length must be between 1 and ${MAX_HITS_PER_PAGE}`
             )
 
-        // A rerank serves searches with a query, within its pool; the rest
-        // get Algolia's order, as do all where Workers AI isn't bound
-        // (production, for now)
+        // A rerank serves searches with a query (pages within its pool; see
+        // rerankSearch.ts). Where Workers AI isn't bound (production, for
+        // now), searches keep Algolia's order.
         const rerankParams =
             searchType === "charts" || searchType === "pages"
                 ? parseRerankParams(url.searchParams)
                 : undefined
         let rerank: RerankOptions | undefined
         if (rerankParams && !queryless) {
-            const withinPool =
-                searchType === "charts"
-                    ? page < chartsRerankPages(hitsPerPage)
-                    : offset < RERANK_POOL_SIZE
             if (!env.AI)
                 warningList.push(
                     'Ignored parameter "rerank": reranking isn\'t available on this deployment.'
                 )
-            else if (withinPool)
+            else
                 rerank = {
                     ...rerankParams,
                     ai: env.AI,
