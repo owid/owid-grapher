@@ -170,6 +170,16 @@
     .indicator-metadata-box__header {
         gap: 0;
     }
+
+    // With nothing visible to ring, keyboard focus rings the row
+    .indicator-metadata-box .metadata-box-toggle-button:focus-visible {
+        outline: none;
+
+        &::after {
+            outline: 2px solid $blue-60;
+            outline-offset: -2px;
+        }
+    }
 }
 
 // Phones show only the first item of "What you should know" until the box is
