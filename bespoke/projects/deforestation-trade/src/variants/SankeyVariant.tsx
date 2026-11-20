@@ -410,7 +410,7 @@ function buildCaption({
 
     if (view === "consumption")
         return {
-            title: `The products consumed in ${articulated} ${when} were linked to ${amount} of deforestation. Where were they produced?`,
+            title: `Products consumed in ${articulated} ${when} were linked to ${amount} of deforestation. Where were they produced?`,
             subtitle,
         }
 
