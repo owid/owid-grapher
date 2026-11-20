@@ -34,6 +34,7 @@ import {
 } from "./TagGraphMetadata.js"
 import { highlightFunctionForSearchWords } from "../adminShared/search.js"
 import {
+    searchableChart,
     chartSearchFilter,
     chartSearchWordsToHighlight,
     countNames,
@@ -102,7 +103,7 @@ export interface ChartListItem {
 
 const DEFAULT_PAGE_SIZE = 50
 
-type Highlighter = (
+export type Highlighter = (
     text: string | null | undefined
 ) => string | React.ReactElement
 
@@ -230,7 +231,25 @@ function timeAgo(time: string): string {
         .replace(/^an? (minute|hour|day|month|year) ago$/, "1 $1 ago")
 }
 
-function TimestampCell({
+export function TimestampCell({
+    time,
+    children,
+}: {
+    time: string | undefined
+    children?: React.ReactNode
+}): React.ReactElement {
+    if (!time) return <span className="text-muted">—</span>
+    return (
+        <div className="chart-list__timestamp">
+            <Tooltip title={dayjs(time).format("D MMM YYYY, HH:mm")}>
+                <span className="chart-list__time">{timeAgo(time)}</span>
+            </Tooltip>
+            {children}
+        </div>
+    )
+}
+
+function AuthoredTimestampCell({
     time,
     by,
     highlight,
@@ -241,12 +260,8 @@ function TimestampCell({
     highlight: Highlighter
     onAuthorClick: (author: string) => void
 }): React.ReactElement {
-    if (!time) return <span className="text-muted">—</span>
     return (
-        <div className="chart-list__timestamp">
-            <Tooltip title={dayjs(time).format("D MMM YYYY, HH:mm")}>
-                <span className="chart-list__time">{timeAgo(time)}</span>
-            </Tooltip>
+        <TimestampCell time={time}>
             {by && (
                 <div>
                     <button
@@ -259,11 +274,15 @@ function TimestampCell({
                     </button>
                 </div>
             )}
-        </div>
+        </TimestampCell>
     )
 }
 
-function CountCell({ count }: { count: number | null }): React.ReactElement {
+export function CountCell({
+    count,
+}: {
+    count: number | null
+}): React.ReactElement {
     if (!count) return <span className="text-muted">0</span>
     return <>{count.toLocaleString()}</>
 }
@@ -403,7 +422,7 @@ function inheritanceStatus(chart: ChartListItem): string {
 }
 
 /** A header whose explanation shows on hovering its dotted-underlined text */
-function HeaderWithHelp({
+export function HeaderWithHelp({
     title,
     help,
 }: {
@@ -485,7 +504,7 @@ function createColumns({
             // the API lists charts most recently edited first
             defaultSortOrder: "descend",
             render: (_, chart) => (
-                <TimestampCell
+                <AuthoredTimestampCell
                     time={chart.lastEditedAt}
                     by={chart.lastEditedBy}
                     highlight={highlightAuthor}
@@ -499,7 +518,7 @@ function createColumns({
             sorter: (a, b) => compareTimes(a.publishedAt, b.publishedAt),
             sortDirections: descendFirst,
             render: (_, chart) => (
-                <TimestampCell
+                <AuthoredTimestampCell
                     time={chart.publishedAt}
                     by={chart.publishedBy}
                     highlight={highlightAuthor}
@@ -736,7 +755,9 @@ class ChartTable extends React.Component<ChartTableProps> {
                 charts,
                 result: computed(() =>
                     query.trim()
-                        ? charts.filter(chartSearchFilter(query, charts))
+                        ? charts.filter(
+                              chartSearchFilter(query, charts, searchableChart)
+                          )
                         : [...charts]
                 ),
             }

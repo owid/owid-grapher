@@ -28,6 +28,7 @@ import { ArchiveContext } from "@ourworldindata/types"
 import { cachedGetGrapherConfigByUuid } from "./api.js"
 import MultiDimEmbedSettingsPanel from "./MultiDimEmbedSettingsPanel.js"
 import { useBaseGrapherConfig, useMultiDimAnalytics } from "./hooks.js"
+import { useMobxStateToReactState } from "../hooks.js"
 import {
     BAKED_GRAPHER_URL,
     CATALOG_URL,
@@ -41,6 +42,7 @@ export default function MultiDim({
     queryStr,
     archiveContext,
     isPreviewing,
+    explorerTitle,
 }: {
     config: MultiDimDataPageConfig
     localGrapherConfig?: GrapherProgrammaticInterface
@@ -48,6 +50,10 @@ export default function MultiDim({
     queryStr: string
     archiveContext?: ArchiveContext
     isPreviewing?: boolean
+    // Shown next to the controls, e.g. "Explore data on COVID-19". Only set
+    // for data explorers embedded on other sites, where nothing else around
+    // the embed says which explorer it is.
+    explorerTitle?: string
 }) {
     const assetMap =
         archiveContext?.type === "archive-page"
@@ -85,6 +91,7 @@ export default function MultiDim({
         [queryStr]
     )
     const hasControls = searchParams.get("hideControls") !== "true"
+    const hasHeader = Boolean(explorerTitle) || hasControls
 
     const [settings, setSettings] = useState(() => {
         const choices = extractMultiDimChoicesFromSearchParams(
@@ -274,15 +281,53 @@ export default function MultiDim({
         }
     }, [bounds, grapherStateRef])
 
+    // The full page at the current view: grapher's canonical URL is the
+    // mdim page (manager.baseUrl) plus its changed params and the dimension
+    // choices, which it keeps as external query params. No `enabled` check
+    // needed: the GrapherState exists from the first render and is never
+    // replaced.
+    const fullPageUrl = useMobxStateToReactState(
+        useCallback(
+            () => grapherStateRef.current?.canonicalUrl,
+            [grapherStateRef]
+        )
+    )
+
     return (
         <div className="multi-dim-container full-width-on-mobile">
-            {hasControls && (
-                <MultiDimEmbedSettingsPanel
-                    className="multi-dim-settings"
-                    config={config}
-                    settings={settings}
-                    onChange={handleSettingsChange}
-                />
+            {hasHeader && (
+                <div className="multi-dim-embed-header">
+                    {explorerTitle && (
+                        <div className="multi-dim-embed-header__explorer">
+                            <span className="multi-dim-embed-header__eyebrow h6-black-caps">
+                                Explore data on
+                            </span>
+                            {fullPageUrl ? (
+                                <a
+                                    className="multi-dim-embed-header__title body-1-bold"
+                                    href={fullPageUrl}
+                                    target="_blank"
+                                    rel="noopener"
+                                    data-track-note="multi-dim-embed-explorer-title"
+                                >
+                                    {explorerTitle}
+                                </a>
+                            ) : (
+                                <span className="multi-dim-embed-header__title body-1-bold">
+                                    {explorerTitle}
+                                </span>
+                            )}
+                        </div>
+                    )}
+                    {hasControls && (
+                        <MultiDimEmbedSettingsPanel
+                            className="multi-dim-settings"
+                            config={config}
+                            settings={settings}
+                            onChange={handleSettingsChange}
+                        />
+                    )}
+                </div>
             )}
             <div
                 className="multi-dim-grapher-container"

@@ -157,58 +157,6 @@ export const getBlockContentFromSnapshot = async (
     return enrichedBlock?.wpApiSnapshot.data?.wpBlock?.content
 }
 
-export const getWordpressPostReferencesByChartId = async (
-    chartId: number,
-    knex: db.KnexReadonlyTransaction
-): Promise<PostReference[]> => {
-    const relatedWordpressPosts: PostReference[] = await db.knexRaw(
-        knex,
-        `-- sql
-            WITH chart_slug_mapping AS (
-                -- Direct chart slug mapping
-                SELECT c.id as chartId, cc.slug as target_slug
-                FROM charts c
-                JOIN chart_configs cc ON c.configId = cc.id
-                WHERE c.id = ?
-                UNION ALL
-                -- Redirect slug mappings
-                SELECT cr.chart_id as chartId, cr.slug as target_slug
-                FROM chart_slug_redirects cr
-                WHERE cr.chart_id = ?
-            )
-            SELECT DISTINCT
-                p.title,
-                p.slug,
-                p.id,
-                CONCAT("${BAKED_BASE_URL}","/",p.slug) as url,
-                'article' as type
-            FROM
-                posts p
-                JOIN posts_links pl ON p.id = pl.sourceId
-                JOIN chart_slug_mapping csm ON pl.target = csm.target_slug
-            WHERE
-                p.status = 'publish'
-                AND p.type != 'wp_block'
-                AND pl.linkType = 'grapher'
-                AND p.slug NOT IN (
-                    -- We want to exclude the slugs of published gdocs, since they override the Wordpress posts
-                    -- published under the same slugs.
-                    SELECT
-                        slug from posts_gdocs pg
-                    WHERE
-                        pg.slug = p.slug
-                        AND pg.type != 'fragment'
-                        AND pg.published = 1
-                )
-            ORDER BY
-                p.title ASC
-        `,
-        [chartId, chartId]
-    )
-
-    return relatedWordpressPosts
-}
-
 export const getGdocsPostReferencesByChartId = async (
     chartId: number,
     knex: db.KnexReadonlyTransaction

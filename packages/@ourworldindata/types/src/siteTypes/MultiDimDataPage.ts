@@ -33,14 +33,22 @@ export type IndicatorEntryAfterPreProcessing = IndicatorConfig
 
 type Metadata = Omit<OwidVariableWithSource, "id">
 
+// Without a presentation, a multi-dim is a plain data page. Further page
+// types can be added as a discriminated union on pageType
+export interface MultiDimExplorerPresentation {
+    pageType: "data-explorer"
+    // Shown on the page's /explorers card
+    explorerSubtitle: string
+}
+
 interface MultiDimDataPageConfigType<
     IndicatorType extends Record<string, any>,
 > {
     grapherConfigSchema?: string
     title: IndicatorTitleWithFragments
+    presentation?: MultiDimExplorerPresentation
     defaultSelection?: string[]
     topicTags?: string[]
-    // commonIndicatorPathPrefix?: string
     dimensions: Dimension[]
     views: View<IndicatorType>[]
     metadata?: Metadata
@@ -59,12 +67,28 @@ export type MultiDimDataPageConfigEnriched = Omit<
     views: ViewEnriched[]
 }
 
+export type DimensionPresentationType =
+    | "dropdown"
+    | "dropdown-with-search"
+    | "toggle-buttons"
+
+export interface DimensionPresentation {
+    // The preferred control type. It's a recommendation rather than a
+    // guarantee: toggle buttons that don't fit the controls row render as a
+    // dropdown instead (see MeasuredDimensionToggleButtons).
+    //
+    // When omitted, resolveDimensionPresentationType picks the control type
+    // automatically, based on the number of choices and whether they are
+    // grouped.
+    type?: DimensionPresentationType
+}
+
 export interface Dimension {
     slug: string
     name: string
     group?: string
     description?: string
-    // multi_select?: boolean
+    presentation?: DimensionPresentation
     choices: Choice[]
 }
 
@@ -79,8 +103,8 @@ export type DimensionEnriched = Dimension & ChoicesEnriched
 export interface Choice {
     slug: string
     name: string
+    group?: string
     description?: string
-    // multi_select?: boolean
 }
 
 export interface IndicatorsBeforePreProcessing {
@@ -165,7 +189,6 @@ export interface MultiDimDataPageProps {
     configObj: MultiDimDataPageConfigEnriched
     initialViewData?: MultiDimDataPageInitialViewData
     initialViewDimensions?: MultiDimDimensionChoices
-    tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
     relatedResearchCandidates: DataPageRelatedResearch[]

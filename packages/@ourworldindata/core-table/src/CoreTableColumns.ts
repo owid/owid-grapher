@@ -485,7 +485,7 @@ export abstract class AbstractCoreColumn<
         return _.uniq(this.allEntityNames)
     }
 
-    @imemo private get allEntityNames(): EntityName[] {
+    @imemo get allEntityNames(): EntityName[] {
         // Type guard: early return if not OwidColumn
         if (!this.isOwidColumn()) return []
 

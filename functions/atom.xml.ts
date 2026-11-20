@@ -6,7 +6,10 @@ import {
     SearchIndexName,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
-import { formatTopicFacetFilters } from "@ourworldindata/utils"
+import {
+    formatTopicFacetFilters,
+    getAlgoliaBaseUrl,
+} from "@ourworldindata/utils"
 import { Env } from "./_common/env.js"
 import {
     getAlgoliaConfig,
@@ -68,7 +71,7 @@ async function queryChronologicalPages(
         ],
     }
 
-    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
+    const url = `${getAlgoliaBaseUrl(config.appId, config.host)}/1/indexes/*/queries`
 
     const response = await fetch(url, {
         method: "POST",

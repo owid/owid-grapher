@@ -5,6 +5,7 @@ import * as React from "react"
 import { act } from "react"
 import { createRoot, type Root } from "react-dom/client"
 import { runInAction } from "mobx"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import {
     ColumnTypeNames,
@@ -51,13 +52,15 @@ async function mountEditor(
     )
     roots.push(root)
     const element = (
-        <GrapherEditor
-            ref={ref}
-            config={config}
-            store={rentStore()}
-            onSave={() => undefined}
-            {...props}
-        />
+        <QueryClientProvider client={new QueryClient()}>
+            <GrapherEditor
+                ref={ref}
+                config={config}
+                store={rentStore()}
+                onSave={() => undefined}
+                {...props}
+            />
+        </QueryClientProvider>
     )
     await act(async () =>
         root.render(
@@ -97,6 +100,14 @@ describe("GrapherEditor callbacks", () => {
         await editTitle(view)
         expect(onChange.mock.lastCall?.[0]).toMatchObject({ title: "Edited" })
         expect(onModifiedChange.mock.calls).toEqual([[true]])
+    })
+
+    // The preview reads the author's time range and selection from it
+    it("takes the loaded config as the author's version", async () => {
+        const view = await mountEditor({})
+        expect(view.editor.grapherState.legacyConfigAsAuthored).toMatchObject({
+            title: "Rents",
+        })
     })
 
     it("keeps reporting edits when rendered in StrictMode", async () => {

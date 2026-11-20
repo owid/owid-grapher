@@ -97,6 +97,8 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     /** @internal */
     staticBounds?: Bounds
     /** @internal */
+    isStaticLayoutResponsive?: boolean
+    /** @internal */
     variant?: GrapherVariant
     /** @internal */
     useMinimalLabeling?: boolean

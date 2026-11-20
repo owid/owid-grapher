@@ -11,6 +11,7 @@ import {
     MultiDimDataPageConfigRaw,
     MultiDimDataPagesTableName,
     MultiDimRedirectsTableName,
+    MultiDimXChartConfigsTableName,
 } from "@ourworldindata/types"
 import {
     MultiDimDataPageConfig,
@@ -373,19 +374,62 @@ export async function handleGetMultiDims(
             Pick<
                 DbPlainMultiDimDataPage,
                 "id" | "catalogPath" | "slug" | "updatedAt" | "published"
-            > & { title: string; pageviews: number; mdimViews: number }
+            > & {
+                title: string
+                dimensionNames: string
+                tags: string
+                mdimViews: number
+                viewsPerDay: string
+                narrativeChartsCount: number
+                referencesCount: number
+                defaultViewConfigId: string | null
+            }
         >(
             trx,
+            // With no dimension params, searchParamsToMultiDimView fills each
+            // dimension from the first available view, so the default view
+            // (the one a multi-dim's thumbnail shows) is always the first one.
             `-- sql
             SELECT
                 mdp.id,
                 mdp.catalogPath,
                 mdp.slug,
                 mdp.config->>'$.title.title' as title,
+                COALESCE(mdp.config->'$.dimensions[*].name', JSON_ARRAY()) as dimensionNames,
+                COALESCE(mdp.config->'$.topicTags', JSON_ARRAY()) as tags,
+                mdp.config->>'$.views[0].fullConfigId' as defaultViewConfigId,
                 mdp.updatedAt,
                 mdp.published,
-                COALESCE(agv.views_14d, 0) as pageviews,
-                COALESCE(JSON_LENGTH(mdp.config, '$.views'), 0) as mdimViews
+                COALESCE(JSON_LENGTH(mdp.config, '$.views'), 0) as mdimViews,
+                ROUND(COALESCE(agv.views_365d, 0) / 365, 1) as viewsPerDay,
+                (
+                    SELECT COUNT(*)
+                    FROM narrative_charts nc
+                    JOIN ${MultiDimXChartConfigsTableName} mx
+                        ON mx.id = nc.parentMultiDimXChartConfigId
+                    WHERE mx.multiDimId = mdp.id
+                ) as narrativeChartsCount,
+                (
+                    SELECT COUNT(DISTINCT pgl.sourceId)
+                    FROM (
+                        SELECT mdp.slug AS slug
+                        UNION
+                        SELECT REPLACE(mdr.source, '/grapher/', '')
+                        FROM ${MultiDimRedirectsTableName} mdr
+                        WHERE mdr.multiDimId = mdp.id
+                    ) slugs
+                    JOIN posts_gdocs_links pgl
+                        ON pgl.target = slugs.slug
+                        AND pgl.linkType = 'grapher'
+                    JOIN posts_gdocs pg
+                        ON pg.id = pgl.sourceId
+                        AND pg.published = TRUE
+                        AND pg.type NOT IN ('fragment', 'about-page')
+                ) + (
+                    SELECT COUNT(*)
+                    FROM static_viz sv
+                    WHERE sv.grapherSlug = mdp.slug
+                ) as referencesCount
             FROM ${MultiDimDataPagesTableName} mdp
             LEFT JOIN analytics_grapher_views agv ON (
                 agv.grapher_slug = mdp.slug
@@ -395,8 +439,12 @@ export async function handleGetMultiDims(
         const multiDims = results.map((row) => ({
             ...row,
             published: Boolean(row.published),
-            pageviews: Number(row.pageviews),
+            dimensionNames: JSON.parse(row.dimensionNames),
+            tags: JSON.parse(row.tags),
             mdimViews: Number(row.mdimViews),
+            viewsPerDay: Number(row.viewsPerDay),
+            narrativeChartsCount: Number(row.narrativeChartsCount),
+            referencesCount: Number(row.referencesCount),
         }))
         return { multiDims }
     } catch (error) {

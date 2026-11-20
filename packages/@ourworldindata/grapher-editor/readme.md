@@ -104,13 +104,28 @@ Without React, mount the editor into a container:
 
 The editor never talks to a database. Everything it knows about indicators comes from an `IndicatorStore`:
 
-| Store                                             | Dimensions name columns by    | Data and metadata from                                     |
-| ------------------------------------------------- | ----------------------------- | ---------------------------------------------------------- |
-| `dataApiIndicatorStore({ dataApiUrl, catalog? })` | `variableId` (OWID indicator) | OWID's Data API; `catalog` is what "Add indicators" offers |
-| `csvIndicatorStore({ csv, columnDefs?, name? })`  | `slug`                        | the CSV, with metadata from `columnDefs`                   |
-| `tableIndicatorStore(owidTable, { name? })`       | `slug`                        | an in-memory `OwidTable`                                   |
+| Store                                                          | Dimensions name columns by    | Data and metadata from                                                     |
+| -------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------- |
+| `dataApiIndicatorStore({ dataApiUrl, datasets? \| catalog? })` | `variableId` (OWID indicator) | OWID's Data API; see [Offering OWID indicators](#offering-owid-indicators) |
+| `csvIndicatorStore({ csv, columnDefs?, name? })`               | `slug`                        | the CSV, with metadata from `columnDefs`                                   |
+| `tableIndicatorStore(owidTable, { name? })`                    | `slug`                        | an in-memory `OwidTable`                                                   |
 
-The CSV and table stores offer every data column under "Add indicators". Column metadata (name, unit, description, sources) is shown in the editor but not edited there, because it belongs to the data rather than the chart; a dimension's `display` block overrides it for one chart.
+The CSV and table stores offer every data column under "Add indicators", searched by name and slug. Column metadata (name, unit, description, sources) is shown in the editor but not edited there, because it belongs to the data rather than the chart; a dimension's `display` block overrides it for one chart.
+
+### Offering OWID indicators
+
+`dataApiIndicatorStore` loads data for any `variableId`, but "Add indicators" only appears when the store knows which indicators to offer. There are two ways to tell it:
+
+- **`datasets`**: a function resolving to `[{ id, name, namespace?, version?, variables: [{ id, name }] }]`. It is called when the picker first opens, and the picker searches the result in the browser by indicator name. It suits a few thousand indicators.
+
+    ```ts
+    const store = dataApiIndicatorStore({
+        dataApiUrl: "https://api.ourworldindata.org/v1/indicators",
+        datasets: () => fetch("/my-indicators.json").then((r) => r.json()),
+    })
+    ```
+
+- **`catalog`**, for your own search backend: an `IndicatorCatalog` with `search(query, page, { signal })`, which returns an `IndicatorSearchPage` (the matching indicators grouped by dataset, the `total` and `pageSize` to page through, and `unit: "datasets"` when `total` counts datasets). The picker aborts `signal` when it no longer needs a search, such as when the query changes while it runs; pass it on to `fetch` to cancel the request. `initialQuery(datasetIds)` picks the query the picker opens on, and `fields` lists any `field:value` terms your search understands, for the picker's help. Each indicator's `column` is what picking it puts in the slot: `{ variableId }` for an OWID indicator.
 
 ### Other props
 
@@ -126,7 +141,7 @@ The CSV and table stores offer every data column under "Add indicators". Column 
 
 ### Where the code is
 
-The editor's sources live in [`adminSiteClient/`](../../../adminSiteClient/) at the repo root, because OWID's admin is the package's first consumer and runs the same code. [`src/editor.public.ts`](./src/editor.public.ts) re-exports the public API from there, and the build bundles it. That makes the editor's files in `adminSiteClient/` a published API: they must not import the admin app, its settings or its router. The admin's own wiring lives next to them (`AdminGrapherEditor.tsx`, `adminEditorProviders.ts`), and the package tests fail if any of it reaches the bundle.
+The editor's sources live in [`adminSiteClient/`](../../../adminSiteClient/) at the repo root, because OWID's admin is the package's first consumer and runs the same code. [`src/editor.public.tsx`](./src/editor.public.tsx) re-exports the public API from there, and the build bundles it. That makes the editor's files in `adminSiteClient/` a published API: they must not import the admin app, its settings or its router. The admin's own wiring lives next to them (`AdminGrapherEditor.tsx`, `adminEditorProviders.ts`), and the package tests fail if any of it reaches the bundle.
 
 ### Build outputs
 

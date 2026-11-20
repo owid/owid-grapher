@@ -22,6 +22,7 @@ import {
     Ngram,
     WordPositioned,
     ScoredFilterPositioned,
+    SearchFacetFilters,
 } from "@ourworldindata/types"
 import {
     Url,
@@ -40,6 +41,8 @@ import {
     formatFeaturedMetricFacetFilter,
     formatCountryFacetFilters,
     formatTopicFacetFilters,
+    normalizePinnedSearch,
+    PINNED_SEARCHES_ATTRIBUTE,
 } from "@ourworldindata/utils"
 import {
     generateSelectedEntityNamesParam,
@@ -55,6 +58,7 @@ import {
     faFileLines,
     faFlag,
     faLightbulb,
+    faChartLine,
     faTag,
     IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
@@ -368,6 +372,37 @@ export const PAGES_INDEX = getIndexName(SearchIndexName.Pages)
 export const PAGES_CHRONOLOGICAL_INDEX = getIndexName(
     SearchIndexName.PagesChronological
 )
+
+/** Keeps profiles and featured-viz pages out of the autocomplete's
+ *  text-matched pages. Each has its own autocomplete source. */
+export const AUTOCOMPLETE_PAGES_FILTER = `NOT type:${OwidGdocType.Profile} AND NOT type:${OwidGdocType.FeaturedViz}`
+
+const FEATURED_VIZ_TYPE_FILTER = `type:${OwidGdocType.FeaturedViz}`
+
+/**
+ * Filters for the featured viz search queries.
+ *
+ * Finds featured viz pages pinned for the reader's exact search and tagged
+ * with the selected topic. Either one can be empty.
+ *
+ * Keep the pinned search in `filters`. The cached-queries proxy looks for it
+ * there to skip its cache (`isEmptyQuerySearchPayload`).
+ */
+export function getFeaturedVizFilters(
+    query: string,
+    topic?: string
+): { filters: string; facetFilters: SearchFacetFilters } | null {
+    const words = normalizePinnedSearch(query)
+    if (!words && !topic) return null
+    return {
+        filters: words
+            ? // Normalization strips quotes, so the words can't break out of them
+              `${FEATURED_VIZ_TYPE_FILTER} AND ${PINNED_SEARCHES_ATTRIBUTE}:"${words}"`
+            : FEATURED_VIZ_TYPE_FILTER,
+        facetFilters: topic ? formatTopicFacetFilters(new Set([topic])) : [],
+    }
+}
+
 export const DATA_CATALOG_ATTRIBUTES = [
     "title",
     "containerTitle",
@@ -1081,8 +1116,11 @@ export function getPageTypeNameAndIcon(pageType: OwidGdocType): {
             name: "Country Profile",
             icon: faFlag,
         }))
+        .with(OwidGdocType.FeaturedViz, () => ({
+            name: "Featured visualization",
+            icon: faChartLine,
+        }))
         .with(
-            OwidGdocType.FeaturedViz, // Not yet indexed
             OwidGdocType.Author, // Should never be indexed
             OwidGdocType.Fragment, // Should never be indexed
             OwidGdocType.Homepage, // Should never be indexed

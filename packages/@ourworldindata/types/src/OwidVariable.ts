@@ -1,4 +1,4 @@
-import { z } from "zod/mini"
+import * as z from "zod/mini"
 import type { OwidOrigin } from "./OwidOrigin.js"
 import type { SchemaFor } from "./domainTypes/Various.js"
 import { OwidSource } from "./OwidSource.js"
