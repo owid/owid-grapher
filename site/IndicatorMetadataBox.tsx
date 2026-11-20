@@ -24,10 +24,8 @@ import {
     ArchiveContext,
     DataPageDataV2,
     FaqEntryData,
-    IndicatorTitleWithFragments,
     LicenseOption,
     OwidEnrichedGdocBlock,
-    PrimaryTopic,
 } from "@ourworldindata/types"
 import { useRef } from "react"
 import {
@@ -42,20 +40,6 @@ import { getProducerDocsLabel, splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
-
-interface IndicatorMetadataSectionsProps {
-    datapageData: DataPageDataV2
-    className?: string
-    faqEntries: FaqEntryData | undefined
-    detailsRef: React.RefObject<HTMLDetailsElement | null>
-    detailsId?: string
-    canonicalUrl: string
-    archiveContext: ArchiveContext | undefined
-    primaryTopic?: PrimaryTopic
-    title: IndicatorTitleWithFragments
-    descriptionProcessing: string | undefined
-    license?: LicenseOption
-}
 
 // FAQs arrive as a flat block list — each question is a heading followed by its
 // answer blocks. Split on headings so each question can render as its own toggle.
@@ -126,45 +110,284 @@ function IndicatorDataDetails({
     )
 }
 
-function IndicatorMetadataSections({
-    datapageData,
-    className,
+function IndicatorFaqs({
+    descriptionProcessing,
     faqEntries,
-    detailsRef,
-    detailsId,
+}: {
+    descriptionProcessing: string | undefined
+    faqEntries: FaqEntryData | undefined
+}) {
+    const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
+
+    return (
+        <MetadataBoxSection
+            title="Frequently asked questions"
+            id="faqs"
+            className="metadata-box-section--faqs"
+        >
+            {descriptionProcessing && (
+                <ExpandableToggle
+                    label="How did Our World in Data process this data?"
+                    contentId={INDICATOR_PROCESSING_SECTION_ID}
+                    content={
+                        <div className="indicator-metadata-box__processing-notes">
+                            <SimpleMarkdownText
+                                text={descriptionProcessing}
+                                dataTrackNote="processing_link"
+                                dodTrackNote="processing"
+                            />
+                        </div>
+                    }
+                    onToggle={(isOpen) =>
+                        analytics.logExpandableToggle(
+                            "how_owid_processed_data",
+                            isOpen
+                        )
+                    }
+                />
+            )}
+            {faqQuestions.map((faq) => (
+                <ExpandableToggle
+                    key={faq.question}
+                    label={faq.question}
+                    content={
+                        <ArticleBlocks
+                            blocks={faq.answer}
+                            containerType="datapage"
+                        />
+                    }
+                    onToggle={(isOpen) =>
+                        analytics.logExpandableToggle(
+                            // untranslated source text
+                            faq.question.slice(0, 100),
+                            isOpen
+                        )
+                    }
+                />
+            ))}
+        </MetadataBoxSection>
+    )
+}
+
+function IndicatorProducerDocs({
+    datapageData,
+}: {
+    datapageData: DataPageDataV2
+}): React.ReactElement | null {
+    if (!datapageData.descriptionFromProducer) return null
+    return (
+        <MetadataBoxSection title="Documentation from data sources">
+            <ExpandableToggle
+                label={getProducerDocsLabel(datapageData)}
+                content={
+                    <div className="indicator-metadata-box__producer-docs">
+                        <SimpleMarkdownText
+                            text={datapageData.descriptionFromProducer}
+                            dataTrackNote="producer_link"
+                            dodTrackNote="producer_documentation"
+                        />
+                    </div>
+                }
+                onToggle={(isOpen) =>
+                    analytics.logExpandableToggle(
+                        "producer_documentation",
+                        isOpen
+                    )
+                }
+            />
+        </MetadataBoxSection>
+    )
+}
+
+function IndicatorDataSources({
+    datapageData,
+}: {
+    datapageData: DataPageDataV2
+}) {
+    const sourcesForDisplay = prepareSourcesForDisplay({
+        origins: datapageData.origins,
+        source: datapageData.source,
+    })
+    return (
+        <MetadataBoxSection
+            title="Data sources"
+            id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
+        >
+            <IndicatorSources
+                sources={sourcesForDisplay}
+                retrievedFromTrackNote="retrieved_from"
+                descriptionTrackNote="source_link"
+                dodTrackNote="data_sources"
+                hideReuseThisWorkText
+                hideTeasers
+                onSourceToggle={(_source, index, isOpen) =>
+                    analytics.logExpandableToggle(
+                        `data_source_${index + 1}`,
+                        isOpen
+                    )
+                }
+            />
+        </MetadataBoxSection>
+    )
+}
+
+function CitationSnippet({
+    citation,
+    trackingContext,
+}: {
+    citation: string
+    trackingContext: string
+}) {
+    return (
+        <CodeSnippet
+            code={citation}
+            theme="light"
+            useMarkdown={true}
+            onCopy={() =>
+                analytics.logSiteClick("copy_citation", trackingContext)
+            }
+        />
+    )
+}
+
+function IndicatorCitations({
+    datapageData,
     canonicalUrl,
     archiveContext,
-    primaryTopic,
-    title,
-    descriptionProcessing,
-    license,
-}: IndicatorMetadataSectionsProps) {
-    const { origins, source } = datapageData
-    const sourcesForDisplay = prepareSourcesForDisplay({
-        origins,
-        source,
-    })
-
-    const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
+}: {
+    datapageData: DataPageDataV2
+    canonicalUrl: string
+    archiveContext: ArchiveContext | undefined
+}): React.ReactElement | null {
     const {
         short: citationShort,
         long: citationLong,
         datapage: citationDatapage,
     } = getIndicatorCitations({
-        indicatorTitle: title,
-        origins,
-        source,
+        indicatorTitle: datapageData.title,
+        origins: datapageData.origins,
+        source: datapageData.source,
         attributions: datapageData.attributions,
         attributionShort: datapageData.attributionShort,
         titleVariant: datapageData.titleVariant,
         owidProcessingLevel: datapageData.owidProcessingLevel,
-        citationUrl,
+        citationUrl: archiveContext?.archiveUrl ?? canonicalUrl,
         archivalDate: archiveContext?.archivalDate,
-        primaryTopic,
+        primaryTopic: datapageData.primaryTopic,
     })
 
-    const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
+    if (!citationShort && !citationLong) return null
+    return (
+        <MetadataBoxSection title="How to cite">
+            {citationDatapage && (
+                <ExpandableToggle
+                    label="How to cite this page"
+                    content={
+                        <>
+                            <p>
+                                To cite this page overall, including any
+                                descriptions, FAQs or explanations of the data
+                                authored by Our World in Data, please use the
+                                following citation:
+                            </p>
+                            <CitationSnippet
+                                citation={citationDatapage}
+                                trackingContext="citation_page"
+                            />
+                        </>
+                    }
+                    onToggle={(isOpen) =>
+                        analytics.logExpandableToggle(
+                            "how_to_cite_page",
+                            isOpen
+                        )
+                    }
+                />
+            )}
+            {citationShort && (
+                <ExpandableToggle
+                    label="How to cite this data"
+                    content={
+                        <>
+                            <p className="citation__paragraph">
+                                If you have limited space (e.g. in data
+                                visualizations), you can use this abbreviated
+                                in-line citation:
+                            </p>
+                            <CitationSnippet
+                                citation={citationShort}
+                                trackingContext="citation_data_short"
+                            />
+                            {citationLong && (
+                                <>
+                                    <p className="citation__paragraph">
+                                        Full citation
+                                    </p>
+                                    <CitationSnippet
+                                        citation={citationLong}
+                                        trackingContext="citation_data_full"
+                                    />
+                                </>
+                            )}
+                        </>
+                    }
+                    onToggle={(isOpen) =>
+                        analytics.logExpandableToggle(
+                            "how_to_cite_data",
+                            isOpen
+                        )
+                    }
+                />
+            )}
+        </MetadataBoxSection>
+    )
+}
 
+function IndicatorFinePrint({ license }: { license?: LicenseOption }) {
+    return (
+        <MetadataBoxSection className="indicator-metadata-box__reuse-notice">
+            <p>
+                All data and visualizations on Our World in Data rely on
+                original data providers. We process this data, for example by
+                standardizing country names and world region definitions,
+                converting units, calculating derived indicators such as per
+                capita measures, as well as adding or adapting indicator
+                metadata. You can{" "}
+                <a
+                    href="https://docs.owid.io/projects/etl/"
+                    data-track-note="data_pipeline_link"
+                >
+                    read about our data pipeline
+                </a>
+                , which includes all the code we use to process the data.
+            </p>
+            <MetadataBoxReuseNotice>
+                <ChartLicenseNotice license={license} />
+            </MetadataBoxReuseNotice>
+        </MetadataBoxSection>
+    )
+}
+
+/** Everything behind Show more, under the "What you should know" preview */
+function IndicatorMetadataSections({
+    datapageData,
+    faqEntries,
+    detailsRef,
+    detailsId,
+    canonicalUrl,
+    archiveContext,
+    descriptionProcessing,
+    license,
+}: {
+    datapageData: DataPageDataV2
+    faqEntries: FaqEntryData | undefined
+    detailsRef: React.RefObject<HTMLDetailsElement | null>
+    detailsId?: string
+    canonicalUrl: string
+    archiveContext: ArchiveContext | undefined
+    descriptionProcessing: string | undefined
+    license?: LicenseOption
+}) {
     // Only the start of a long descriptionKey is shown above the fold; the
     // rest goes inside the <details> so that it works without JavaScript and
     // browsers auto-expand it when in-page search matches hidden text.
@@ -173,7 +396,6 @@ function IndicatorMetadataSections({
 
     return (
         <MetadataBoxExpander
-            className={className}
             detailsRef={detailsRef}
             detailsId={detailsId}
             showMoreIcon={faCaretDown}
@@ -208,198 +430,18 @@ function IndicatorMetadataSections({
                 </div>
             )}
             <IndicatorDataDetails datapageData={datapageData} />
-            <MetadataBoxSection
-                title="Frequently asked questions"
-                id="faqs"
-                className="metadata-box-section--faqs"
-            >
-                {descriptionProcessing && (
-                    <ExpandableToggle
-                        label="How did Our World in Data process this data?"
-                        contentId={INDICATOR_PROCESSING_SECTION_ID}
-                        content={
-                            <div className="indicator-metadata-box__processing-notes">
-                                <SimpleMarkdownText
-                                    text={descriptionProcessing}
-                                    dataTrackNote="processing_link"
-                                    dodTrackNote="processing"
-                                />
-                            </div>
-                        }
-                        onToggle={(isOpen) =>
-                            analytics.logExpandableToggle(
-                                "how_owid_processed_data",
-                                isOpen
-                            )
-                        }
-                    />
-                )}
-                {faqQuestions.map((faq) => (
-                    <ExpandableToggle
-                        key={faq.question}
-                        label={faq.question}
-                        content={
-                            <ArticleBlocks
-                                blocks={faq.answer}
-                                containerType="datapage"
-                            />
-                        }
-                        onToggle={(isOpen) =>
-                            analytics.logExpandableToggle(
-                                // untranslated source text
-                                faq.question.slice(0, 100),
-                                isOpen
-                            )
-                        }
-                    />
-                ))}
-            </MetadataBoxSection>
-            {datapageData.descriptionFromProducer && (
-                <MetadataBoxSection title="Documentation from data sources">
-                    <ExpandableToggle
-                        label={getProducerDocsLabel(datapageData)}
-                        content={
-                            <div className="indicator-metadata-box__producer-docs">
-                                <SimpleMarkdownText
-                                    text={datapageData.descriptionFromProducer}
-                                    dataTrackNote="producer_link"
-                                    dodTrackNote="producer_documentation"
-                                />
-                            </div>
-                        }
-                        onToggle={(isOpen) =>
-                            analytics.logExpandableToggle(
-                                "producer_documentation",
-                                isOpen
-                            )
-                        }
-                    />
-                </MetadataBoxSection>
-            )}
-            <MetadataBoxSection
-                title="Data sources"
-                id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
-            >
-                <IndicatorSources
-                    sources={sourcesForDisplay}
-                    retrievedFromTrackNote="retrieved_from"
-                    descriptionTrackNote="source_link"
-                    dodTrackNote="data_sources"
-                    hideReuseThisWorkText
-                    hideTeasers
-                    onSourceToggle={(_source, index, isOpen) =>
-                        analytics.logExpandableToggle(
-                            `data_source_${index + 1}`,
-                            isOpen
-                        )
-                    }
-                />
-            </MetadataBoxSection>
-            {(citationShort || citationLong) && (
-                <MetadataBoxSection title="How to cite">
-                    {citationDatapage && (
-                        <ExpandableToggle
-                            label="How to cite this page"
-                            content={
-                                <>
-                                    <p>
-                                        To cite this page overall, including any
-                                        descriptions, FAQs or explanations of
-                                        the data authored by Our World in Data,
-                                        please use the following citation:
-                                    </p>
-                                    <CodeSnippet
-                                        code={citationDatapage}
-                                        theme="light"
-                                        useMarkdown={true}
-                                        onCopy={() =>
-                                            analytics.logSiteClick(
-                                                "copy_citation",
-                                                "citation_page"
-                                            )
-                                        }
-                                    />
-                                </>
-                            }
-                            onToggle={(isOpen) =>
-                                analytics.logExpandableToggle(
-                                    "how_to_cite_page",
-                                    isOpen
-                                )
-                            }
-                        />
-                    )}
-                    {citationShort && (
-                        <ExpandableToggle
-                            label="How to cite this data"
-                            content={
-                                <>
-                                    <p className="citation__paragraph">
-                                        If you have limited space (e.g. in data
-                                        visualizations), you can use this
-                                        abbreviated in-line citation:
-                                    </p>
-                                    <CodeSnippet
-                                        code={citationShort}
-                                        theme="light"
-                                        useMarkdown={true}
-                                        onCopy={() =>
-                                            analytics.logSiteClick(
-                                                "copy_citation",
-                                                "citation_data_short"
-                                            )
-                                        }
-                                    />
-                                    {citationLong && (
-                                        <>
-                                            <p className="citation__paragraph">
-                                                Full citation
-                                            </p>
-                                            <CodeSnippet
-                                                code={citationLong}
-                                                theme="light"
-                                                useMarkdown={true}
-                                                onCopy={() =>
-                                                    analytics.logSiteClick(
-                                                        "copy_citation",
-                                                        "citation_data_full"
-                                                    )
-                                                }
-                                            />
-                                        </>
-                                    )}
-                                </>
-                            }
-                            onToggle={(isOpen) =>
-                                analytics.logExpandableToggle(
-                                    "how_to_cite_data",
-                                    isOpen
-                                )
-                            }
-                        />
-                    )}
-                </MetadataBoxSection>
-            )}
-            <MetadataBoxSection className="indicator-metadata-box__reuse-notice">
-                <p>
-                    All data and visualizations on Our World in Data rely on
-                    original data providers. We process this data, for example
-                    by standardizing country names and world region definitions,
-                    converting units, calculating derived indicators such as per
-                    capita measures, as well as adding or adapting indicator
-                    metadata. You can{" "}
-                    <a
-                        href="https://docs.owid.io/projects/etl/"
-                        data-track-note="data_pipeline_link"
-                    >
-                        read about our data pipeline
-                    </a>
-                    , which includes all the code we use to process the data.
-                </p>
-                <MetadataBoxReuseNotice>
-                    <ChartLicenseNotice license={license} />
-                </MetadataBoxReuseNotice>
-            </MetadataBoxSection>
+            <IndicatorFaqs
+                descriptionProcessing={descriptionProcessing}
+                faqEntries={faqEntries}
+            />
+            <IndicatorProducerDocs datapageData={datapageData} />
+            <IndicatorDataSources datapageData={datapageData} />
+            <IndicatorCitations
+                datapageData={datapageData}
+                canonicalUrl={canonicalUrl}
+                archiveContext={archiveContext}
+            />
+            <IndicatorFinePrint license={license} />
         </MetadataBoxExpander>
     )
 }
@@ -500,8 +542,6 @@ export default function IndicatorMetadataBox({
                 detailsId={detailsId}
                 canonicalUrl={canonicalUrl}
                 archiveContext={archiveContext}
-                primaryTopic={datapageData.primaryTopic}
-                title={datapageData.title}
                 descriptionProcessing={descriptionProcessing}
                 license={license}
             />
