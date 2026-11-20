@@ -30,6 +30,13 @@
             "binding": "USER_SURVEYS_R2"
         }
     ],
+    // Workers AI, for /api/search's experimental rerank (functions/api/search/rerank.ts),
+    // which the search page asks for. Here for `wrangler pages dev` (local dev and the
+    // staging containers), which authenticates with the dev/staging CLOUDFLARE_API_TOKEN,
+    // and in "preview". Not in "production" yet, where the param is ignored and the search
+    // keeps Algolia's order. The owid-search AI Gateway's rate limit caps spend (see
+    // rerank.ts), previews included.
+    "ai": { "binding": "AI", "remote": true },
     "vars": {
         "ENV": "development",
         "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH": "v1",
@@ -38,6 +45,7 @@
     },
     "env": {
         "preview": {
+            "ai": { "binding": "AI" },
             "r2_buckets": [
                 {
                     "bucket_name": "owid-grapher-configs-staging",

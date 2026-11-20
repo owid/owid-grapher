@@ -145,17 +145,35 @@ export async function queryDataTopics(
 
 const CHARTS_PER_PAGE = 9
 
+// Experimental: /api/search reorders the charts, articles and data insights
+// a query finds with this decision model, and adds results from the query's
+// topics (see functions/api/search/rerankSearch.ts). Deployments without
+// Workers AI ignore it. `?rerank=off` on the page's URL turns it off for the
+// visit, to compare against Algolia's order; it's read once, since the page
+// drops unknown parameters from its URL.
+const RERANK_MODEL = "clef-flash"
+const rerankOff =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("rerank") === "off"
+
 /**
  * Runs one result section of the search page through /api/search, which
  * builds its Algolia requests with runSearchRequest (@ourworldindata/utils).
  * A failed request throws, like a failed Algolia search.
  */
 async function querySection<THit extends { slug: string }>(
-    request: SearchRequest
+    request: SearchRequest,
+    { rerank = false }: { rerank?: boolean } = {}
 ): Promise<SectionSearchResponse<THit>> {
     const params = searchRequestToUrlParams(request)
     // Keep Algolia's objectID and highlights, which the page renders
     params.set("highlights", "true")
+    // Searches without a query are cached at the edge by URL, and have
+    // nothing to rerank
+    if (rerank && !rerankOff && request.state.query.trim()) {
+        params.set("rerank", RERANK_MODEL)
+        params.set("vocab", "1")
+    }
     const response = await fetch(`${SEARCH_API_URL}?${params}`)
     if (!response.ok)
         throw new Error(`Search API request failed: ${response.status}`)
@@ -163,12 +181,15 @@ async function querySection<THit extends { slug: string }>(
 }
 
 export async function queryCharts(state: SearchState, page: number = 0) {
-    return querySection<SearchChartHit>({
-        type: "charts",
-        state,
-        page,
-        hitsPerPage: CHARTS_PER_PAGE,
-    })
+    return querySection<SearchChartHit>(
+        {
+            type: "charts",
+            state,
+            page,
+            hitsPerPage: CHARTS_PER_PAGE,
+        },
+        { rerank: true }
+    )
 }
 
 export async function queryDataInsights(
@@ -178,13 +199,16 @@ export async function queryDataInsights(
 ): Promise<SectionSearchResponse<DataInsightHit>> {
     // Searched by offset like all page searches; the section pages through
     // them by page number
-    const response = await querySection<DataInsightHit>({
-        type: "pages",
-        state,
-        pageTypes: [OwidGdocType.DataInsight],
-        offset: page * hitsPerPage,
-        length: hitsPerPage,
-    })
+    const response = await querySection<DataInsightHit>(
+        {
+            type: "pages",
+            state,
+            pageTypes: [OwidGdocType.DataInsight],
+            offset: page * hitsPerPage,
+            length: hitsPerPage,
+        },
+        { rerank: true }
+    )
     return {
         ...response,
         page,
@@ -198,13 +222,16 @@ export async function queryArticles(
     offset: number = 0,
     length: number
 ) {
-    return querySection<FlatArticleHit>({
-        type: "pages",
-        state,
-        pageTypes: DEFAULT_PAGE_TYPES,
-        offset,
-        length,
-    })
+    return querySection<FlatArticleHit>(
+        {
+            type: "pages",
+            state,
+            pageTypes: DEFAULT_PAGE_TYPES,
+            offset,
+            length,
+        },
+        { rerank: true }
+    )
 }
 
 /**
