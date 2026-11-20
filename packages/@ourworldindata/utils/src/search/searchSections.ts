@@ -166,6 +166,7 @@ function buildPagesSearch(
     params: {
         indexName: string
         pageTypes: readonly string[]
+        withExcerpt?: boolean
     } & OffsetPagination
 ): SectionSearch {
     const selectedCountryNames = getFilterNamesOfType(
@@ -204,7 +205,9 @@ function buildPagesSearch(
                 ...PAGE_ATTRIBUTES,
                 // Without a query there's nothing to snippet `content` for,
                 // so the search page shows the excerpt instead.
-                ...(state.query.trim() === "" ? ["excerpt"] : []),
+                ...(state.query.trim() === "" || params.withExcerpt
+                    ? ["excerpt"]
+                    : []),
             ],
             ...HIGHLIGHT_TAGS,
             offset: params.offset,
@@ -267,6 +270,12 @@ export type SearchRequest =
           type: "pages"
           state: SectionSearchState
           pageTypes: readonly string[]
+          /**
+           * Also retrieve each page's excerpt when there's a query (for
+           * /api/search's rerank prompt; the search page shows an excerpt
+           * in place of the matched text)
+           */
+          withExcerpt?: boolean
       } & OffsetPagination)
     | ({ type: "topics"; state: SectionSearchState } & OffsetPagination)
     | ({ type: "profiles"; state: SectionSearchState } & OffsetPagination)
@@ -311,6 +320,7 @@ export function runSearchRequest<THit extends { slug: string }>(
                 buildPagesSearch(request.state, {
                     indexName: indexNames.pages,
                     pageTypes: request.pageTypes,
+                    withExcerpt: request.withExcerpt,
                     offset: request.offset,
                     length: request.length,
                 })

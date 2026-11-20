@@ -2,6 +2,12 @@ import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "./algoliaClient.js"
 import { fetchTagGraph } from "../../_common/search/tagGraph.js"
+import { isRerankModel, RERANK_MODELS } from "./rerank.js"
+import {
+    searchChartsReranked,
+    searchPagesReranked,
+    type RerankOptions,
+} from "./rerankSearch.js"
 import {
     searchCharts,
     searchPages,
@@ -68,6 +74,8 @@ const KNOWN_PARAMS = new Set<string>([
     "offset",
     "length",
     "highlights",
+    "rerank",
+    "vocab",
 ])
 
 // The parameters only some search types read. A request that sends one to a
@@ -80,6 +88,8 @@ const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
     ["pageTypes", ["pages"]],
     ["offset", ["pages", "topics", "profiles"]],
     ["length", ["pages", "topics", "profiles"]],
+    ["rerank", ["charts", "pages"]],
+    ["vocab", ["charts", "pages"]],
 ])
 
 // type=topics filters by country only when charts match a query, so never
@@ -136,6 +146,31 @@ const PARAM_HINTS = new Map<string, string>([
         'Use "type=pages" to search writing, "type=topics" for topic pages, "type=profiles" for country profiles, or "type=charts" for charts.',
     ],
 ])
+
+/**
+ * The experimental `rerank` and `vocab` params (see rerankSearch.ts): the
+ * model, and whether to add the query's topics to the pool. A malformed value
+ * is the caller's mistake; whether a rerank can serve the search is decided
+ * separately, since one that can't must still return results.
+ */
+function parseRerankParams(
+    params: URLSearchParams
+): Pick<RerankOptions, "model" | "vocab"> | undefined {
+    const model = params.get("rerank")
+    const vocab = params.get("vocab")
+    if (vocab && vocab !== "1")
+        throw new SearchValidationError(
+            `Invalid vocab value "${vocab}". Use vocab=1`
+        )
+    if (vocab && !model)
+        throw new SearchValidationError("vocab=1 needs a rerank")
+    if (!model) return undefined
+    if (!isRerankModel(model))
+        throw new SearchValidationError(
+            `Invalid rerank value "${model}". Valid values: ${Object.keys(RERANK_MODELS).join(", ")}`
+        )
+    return { model, vocab: !!vocab }
+}
 
 const hasSearchEnvVars = (env: Env): boolean => {
     return !!env.ALGOLIA_ID && !!env.ALGOLIA_SEARCH_KEY
@@ -203,7 +238,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     `Ignored parameter "${param}": type=topics filters by country only when charts match a query.`
             ),
         ]
-        const warnings = warningList.length > 0 ? warningList : undefined
 
         // Query and filters, as on the search page's URL
         const searchState = searchUrlParamsToSectionState(url.searchParams)
@@ -293,6 +327,28 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 `length must be between 1 and ${MAX_HITS_PER_PAGE}`
             )
 
+        // A rerank serves searches with a query (pages within its pool; see
+        // rerankSearch.ts). Where Workers AI isn't bound (production, for
+        // now), searches keep Algolia's order.
+        const rerankParams =
+            searchType === "charts" || searchType === "pages"
+                ? parseRerankParams(url.searchParams)
+                : undefined
+        let rerank: RerankOptions | undefined
+        if (rerankParams && !queryless) {
+            if (!env.AI)
+                warningList.push(
+                    'Ignored parameter "rerank": reranking isn\'t available on this deployment.'
+                )
+            else
+                rerank = {
+                    ...rerankParams,
+                    ai: env.AI,
+                    waitUntil: (promise) => context.waitUntil(promise),
+                }
+        }
+        const warnings = warningList.length > 0 ? warningList : undefined
+
         const options: SearchApiOptions = {
             highlights: url.searchParams.get("highlights") === "true",
         }
@@ -311,6 +367,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         > => {
             switch (searchType) {
                 case "charts":
+                    if (rerank)
+                        return searchChartsReranked(
+                            algoliaConfig,
+                            searchState,
+                            page,
+                            hitsPerPage,
+                            baseUrl,
+                            options,
+                            rerank
+                        )
                     return searchCharts(
                         algoliaConfig,
                         searchState,
@@ -320,6 +386,17 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                         options
                     )
                 case "pages":
+                    if (rerank)
+                        return searchPagesReranked(
+                            algoliaConfig,
+                            searchState,
+                            offset,
+                            length,
+                            pageTypes,
+                            baseUrl,
+                            options,
+                            rerank
+                        )
                     return searchPages(
                         algoliaConfig,
                         searchState,

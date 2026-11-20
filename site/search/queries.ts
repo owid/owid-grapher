@@ -145,6 +145,17 @@ export async function queryDataTopics(
 
 const CHARTS_PER_PAGE = 9
 
+// Experimental: /api/search reorders the charts, articles and data insights
+// a query finds with this decision model, and adds results from the query's
+// topics (see functions/api/search/rerankSearch.ts). Deployments without
+// Workers AI ignore it. `?rerank=off` on the page's URL turns it off for the
+// visit, to compare against Algolia's order; it's read once, since the page
+// drops unknown parameters from its URL.
+const RERANK_MODEL = "clef-flash"
+const rerankOff =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("rerank") === "off"
+
 /**
  * Runs one result section of the search page through /api/search, which
  * builds its Algolia requests with runSearchRequest (@ourworldindata/utils).
@@ -156,6 +167,16 @@ async function querySection<THit extends { slug: string }>(
     const params = searchRequestToUrlParams(request)
     // Keep Algolia's objectID and highlights, which the page renders
     params.set("highlights", "true")
+    // Searches without a query are cached at the edge by URL, and have
+    // nothing to rerank
+    if (
+        (request.type === "charts" || request.type === "pages") &&
+        !rerankOff &&
+        request.state.query.trim()
+    ) {
+        params.set("rerank", RERANK_MODEL)
+        params.set("vocab", "1")
+    }
     const response = await fetch(`${SEARCH_API_URL}?${params}`)
     if (!response.ok)
         throw new Error(`Search API request failed: ${response.status}`)

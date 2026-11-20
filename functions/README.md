@@ -31,6 +31,8 @@ CLOUDFLARE_ACCOUNT_ID=078fcdfed9955087315dd86792e71a7e
 
 `make setup.worktree` copies both into new worktrees' `.env` from the main checkout.
 
+`/api/search`'s experimental rerank (below) also calls Workers AI with the same token, so it needs **Workers AI (Read)** on top. Without them everything else works and reranked searches keep Algolia's order, with the error in the response's `rerank.error`.
+
 Note: the compatibility date is defined in [`wrangler.jsonc`](../wrangler.jsonc) at the repo root, which is the authoritative source for local development, previews and production alike (not the Cloudflare dashboard). The e2e tests carry their own copy in [`test/wrangler.e2e.jsonc`](./test/wrangler.e2e.jsonc) — keep the two in sync.
 
 3. _Refer to each function's "Development" section below for further instructions._
@@ -159,6 +161,8 @@ This route provides a search API for charts, pages (articles, about pages, data 
 It is a public API, and it also serves the site's search page and the featured charts and data insights on topic pages: they send each result section here with `highlights=true`, so the hits keep Algolia's highlight and snippet fields (see `querySection` in `site/search/queries.ts`). Searches without a query don't depend on the reader, so they are cached at the edge for a day; searches with a query are cached only by the browser, so Algolia's analytics see each one. The reader's IP (`CF-Connecting-IP`) is forwarded to Algolia as `X-Forwarded-For`, so those analytics tell readers apart as when the browser queried Algolia directly.
 
 For detailed API documentation, including all parameters, response schemas, and examples, see [search-api.openapi.yaml](../docs/search-api.openapi.yaml).
+
+Experimental and undocumented in the OpenAPI spec: `rerank=<model>` (one of `jev`, `clef-flash`, `clef`, `clef-omni`) reorders a `type=charts` or `type=pages` search with a decision model on Workers AI (see `functions/api/search/rerank.ts`), and `vocab=1` next to it adds the top results of the query's two most likely topics in the topic vocabulary to what it reorders (`vocabulary.ts`; charts pick the topics by a static embedding run in the function, pages by one more model call). Algolia's top 30 hits are reordered as one pool, and each page within it is cut from the reordered pool; later pages come from Algolia as usual (`rerankSearch.ts`). The response says how the call went (`rerank`, `vocabulary`) and where the time went (`timings`). A failed or slow (> 1 s) call keeps Algolia's order. The search page asks for `rerank=clef-flash&vocab=1` on every search with a query (`?rerank=off` on its URL turns that off), but only deployments with the `AI` binding (`wrangler.jsonc`: local dev, staging and previews, not production yet) rerank; the others ignore the params with a warning.
 
 ## `/api/search/cached-queries`
 
