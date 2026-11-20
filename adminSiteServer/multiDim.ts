@@ -181,11 +181,13 @@ async function retrieveMultiDimConfigFromDbAndSaveToR2(
     const result = await knex<DbPlainMultiDimDataPage>(
         MultiDimDataPagesTableName
     )
-        .select("slug", "config", "configMd5")
+        .select("slug", "config", "configMd5", "published")
         .where({ id })
         .first()
-    const { slug, config: normalizedConfig, configMd5 } = result!
-    if (slug) {
+    const { slug, config: normalizedConfig, configMd5, published } = result!
+    // Like charts, only published multi-dims are stored by slug, since the
+    // site serves their config, data and images from there.
+    if (slug && published) {
         await saveMultiDimConfigToR2(normalizedConfig, slug, configMd5)
     }
 }
@@ -242,6 +244,7 @@ export async function upsertMultiDim(
         rawConfig
     )
     validateViewConfigs(config)
+    validateDimensionPresentations(config)
     const indicatorConfigs = await getIndicatorChartConfigs(
         knex,
         _.uniq(config.views.map((view) => view.indicators.y[0].id))
@@ -332,6 +335,23 @@ export async function upsertMultiDim(
     return multiDimId
 }
 
+/** Throws if a dimension explicitly configured as a toggle group has grouped choices */
+function validateDimensionPresentations(
+    config: MultiDimDataPageConfigPreProcessed
+): void {
+    for (const dimension of config.dimensions) {
+        if (
+            dimension.presentation?.type === "toggle-buttons" &&
+            dimension.choices.some((choice) => choice.group)
+        ) {
+            throw new JsonError(
+                `Dimension "${dimension.slug}" is configured as a toggle group, ` +
+                    `but has grouped choices. Choice groups are only supported in dropdowns.`
+            )
+        }
+    }
+}
+
 /** Throws if any view config declares no schema version or fails validation */
 function validateViewConfigs(config: MultiDimDataPageConfigPreProcessed): void {
     for (const view of config.views) {
@@ -380,6 +400,14 @@ export async function setMultiDimPublished(
     await knex(MultiDimDataPagesTableName)
         .where({ id: multiDim.id })
         .update({ published })
+    if (published) {
+        await retrieveMultiDimConfigFromDbAndSaveToR2(knex, multiDim.id)
+    } else if (multiDim.slug) {
+        await deleteGrapherConfigFromR2(
+            R2GrapherConfigDirectory.multiDim,
+            `${multiDim.slug}.json`
+        )
+    }
     return { ...multiDim, published }
 }
 

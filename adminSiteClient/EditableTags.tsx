@@ -5,6 +5,7 @@ import {
     TaggableType,
     DbChartTagJoin,
     TagGraphRole,
+    UNLISTED_TAG_NAME,
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEdit, faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons"
@@ -142,7 +143,7 @@ export function EditableTags(props: EditableTagsProps): React.ReactElement {
                             !isSaving &&
                             hasKeyChartSupport &&
                             !isUncategorizedTag(tag) &&
-                            tag.name !== "Unlisted"
+                            tag.name !== UNLISTED_TAG_NAME
                                 ? () => handleToggleKey(index)
                                 : undefined
                         }

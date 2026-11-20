@@ -4,10 +4,8 @@ import {
     filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
 } from "../adminShared/search.js"
-import {
-    SearchHighlighter,
-    useSearchQueryParam,
-} from "./variableSearchQuery.js"
+import { SearchHighlighter } from "./variableSearchQuery.js"
+import { useSearchQueryParam } from "./useSearchQueryParam.js"
 
 interface ListSearch<T> {
     searchValue: string

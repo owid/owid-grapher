@@ -6,20 +6,20 @@ import { MultiDimDimensionChoices } from "@ourworldindata/types"
 import { MultiDimDataPageConfig } from "@ourworldindata/utils"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { useResolvedSettings } from "./multiDimSettings.js"
-import MultiDimDropdowns from "./MultiDimDropdowns.js"
+import MultiDimControls from "./MultiDimControls.js"
 
 export const MultiDimSettingsPanel = ({
     className,
     config,
     settings,
     onChange,
-    disabled,
+    readOnly,
 }: {
     className?: string
     config: MultiDimDataPageConfig
     settings: MultiDimDimensionChoices
     onChange: (settings: MultiDimDimensionChoices) => void
-    disabled?: boolean
+    readOnly?: boolean
 }) => {
     const { dimensions } = config
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
@@ -38,16 +38,13 @@ export const MultiDimSettingsPanel = ({
 
     return (
         <div className={cx("md-settings-row", className)}>
-            <div className="h5-black-caps md-settings__configure-data">
-                Configure the data
-            </div>
-            <MultiDimDropdowns
-                className="md-settings__dropdowns"
+            <MultiDimControls
+                dimensions={dimensions}
                 availableSettings={availableSettings}
                 resolvedSettings={resolvedSettings}
                 onChange={onChange}
                 collapsedCount={collapsedCount}
-                disabled={disabled}
+                readOnly={readOnly}
             />
         </div>
     )

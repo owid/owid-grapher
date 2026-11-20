@@ -380,10 +380,10 @@ function buildNote(view: View): string {
 /** Deforestation risk is a modelled estimate attributed to many places, so a
  *  comparison to a single place could suggest one patch of cleared forest */
 const AREA_YARDSTICK_NOTE =
-    "The forest cleared is spread across many places, not a single patch."
+    "This deforestation is spread across many places, not a single patch."
 
 /** The `{total}` placeholder an author can put in a custom title, e.g.
- *  "{total} of forest were cleared for products consumed in the UK" */
+ *  "{total} of deforestation was linked to products consumed in the UK" */
 const TOTAL_PLACEHOLDER = "{total}"
 
 /** A custom title with its `{total}` placeholder, if any, filled in with the
@@ -435,26 +435,37 @@ function buildCaption({
     const worldShareClause = worldShare
         ? `, and ${possessiveEntity(articulated)} ${view} accounted for ${worldShare} of that`
         : ""
-    const subtitle = worldTotal ? (
+    const worldClause = worldTotal ? (
         <>
-            For context, {when} a total of{" "}
+            For context,{" "}
             <AreaYardstick hectares={worldTotal} note={AREA_YARDSTICK_NOTE}>
                 {formatHectares(worldTotal)}
-            </AreaYardstick>{" "}
-            of forest was cleared worldwide for agriculture{worldShareClause}.
+            </AreaYardstick>
+            {` of deforestation worldwide was linked to agriculture ${when}${worldShareClause}. `}
         </>
-    ) : undefined
+    ) : null
+    // The source amortizes deforestation over five years, so a year's figure
+    // is a five-year average rather than the land cleared in that year. A
+    // multi-year period adds those yearly figures up, which the note must not
+    // pass off as an average.
+    const amortizationNote =
+        yearRange.start === yearRange.end
+            ? "Figures are averaged over five years."
+            : "Each year's figure is averaged over five years, and the years in this period are added up."
+    const subtitle = (
+        <>
+            {worldClause}
+            {amortizationNote}
+        </>
+    )
 
     if (view === "consumption")
         return {
             title: (
                 <>
-                    <AreaYardstick hectares={total} note={AREA_YARDSTICK_NOTE}>
-                        {R.capitalize(amount)}
-                    </AreaYardstick>{" "}
-                    of forest were cleared {when} for agricultural products
-                    consumed in {articulated}. Where were these products
-                    produced?
+                    {`Products consumed in ${articulated} ${when} were linked to `}
+                    {amountWithYardstick}
+                    {" of deforestation. Where were they produced?"}
                 </>
             ),
             subtitle,
@@ -463,9 +474,10 @@ function buildCaption({
     return {
         title: (
             <>
-                {R.capitalize(articulated)} cleared {amountWithYardstick} of
-                forest for agriculture {when}. Where were these products
-                consumed?
+                <AreaYardstick hectares={total} note={AREA_YARDSTICK_NOTE}>
+                    {R.capitalize(amount)}
+                </AreaYardstick>
+                {` of deforestation in ${articulated} was linked to agriculture ${when}. Where were these products consumed?`}
             </>
         ),
         subtitle,

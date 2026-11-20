@@ -7,6 +7,7 @@ import {
     ChartsIndexingContext,
     IndexingContext,
     ChartSlugRedirectsTableName,
+    UNLISTED_TAG_NAME,
 } from "@ourworldindata/types"
 import * as db from "../../../db/db.js"
 import { getRelatedArticles } from "../../../db/model/Post.js"
@@ -127,7 +128,7 @@ async function getRawChartsRecords(
             AND NOT EXISTS (
                 SELECT 1 FROM chart_tags ct_unlisted
                 JOIN tags t_unlisted ON ct_unlisted.tagId = t_unlisted.id
-                WHERE ct_unlisted.chartId = c.id AND t_unlisted.name = 'Unlisted'
+                WHERE ct_unlisted.chartId = c.id AND t_unlisted.name = '${UNLISTED_TAG_NAME}'
             )
             -- AND has at least one indexable tag (topic page OR searchableInAlgolia)
             AND EXISTS (

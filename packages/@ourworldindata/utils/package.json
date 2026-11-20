@@ -31,7 +31,7 @@
         "url-parse": "^1.5.10",
         "url-slug": "^4.0.1",
         "usehooks-ts": "^3.1.1",
-        "uuid": "^14.0.0"
+        "uuid": "^14.0.3"
     },
     "devDependencies": {
         "@types/d3-array": "^3.2.2",

@@ -2509,6 +2509,77 @@ describe("relative mode follows the facet strategy in effect", () => {
     })
 })
 
+describe("isStaticLayoutResponsive", () => {
+    const phoneBounds = new Bounds(0, 0, 328, 575)
+    const createStaticGrapher = (
+        options: GrapherProgrammaticInterface,
+        bounds: Bounds = phoneBounds
+    ): GrapherState => {
+        const grapher = new GrapherState({
+            bounds,
+            staticBounds: bounds,
+            ...options,
+        })
+        grapher.isExportingToSvgOrPng = true
+        return grapher
+    }
+
+    it.each([
+        {
+            width: 328,
+            isNarrow: true,
+            isSemiNarrow: true,
+            isSmall: true,
+            isMedium: true,
+        },
+        {
+            width: 600,
+            isNarrow: false,
+            isSemiNarrow: false,
+            isSmall: true,
+            isMedium: true,
+        },
+    ])("takes breakpoints from a width of $width when set", (expected) => {
+        const grapher = createStaticGrapher(
+            { isStaticLayoutResponsive: true },
+            new Bounds(0, 0, expected.width, 575)
+        )
+        expect({
+            width: expected.width,
+            isNarrow: grapher.isNarrow,
+            isSemiNarrow: grapher.isSemiNarrow,
+            isSmall: grapher.isSmall,
+            isMedium: grapher.isMedium,
+        }).toEqual(expected)
+    })
+
+    it("sizes fonts and patterns like a live chart when set", () => {
+        const grapher = createStaticGrapher({ isStaticLayoutResponsive: true })
+        expect(grapher.isStaticAndSmall).toBe(false)
+        expect(grapher.baseFontSize).toBe(14)
+        expect(grapher.patternScale).toBe(1)
+    })
+
+    it("keeps the static layout when unset", () => {
+        const grapher = createStaticGrapher({})
+        expect(grapher.isNarrow).toBe(false)
+        expect(grapher.isSemiNarrow).toBe(false)
+        expect(grapher.isSmall).toBe(false)
+        expect(grapher.isMedium).toBe(false)
+        expect(grapher.isStaticAndSmall).toBe(true)
+        expect(grapher.baseFontSize).toBeCloseTo(22.36, 2)
+        expect(grapher.patternScale).toBeLessThan(1)
+    })
+
+    it("lets an explicit baseFontSize win", () => {
+        const grapher = createStaticGrapher({
+            isStaticLayoutResponsive: true,
+            baseFontSize: 12,
+        })
+        expect(grapher.baseFontSize).toBe(12)
+    })
+})
+
 describe("urls", () => {
     it("can change base url", () => {
         const url = new GrapherState({

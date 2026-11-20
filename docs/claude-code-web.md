@@ -17,14 +17,15 @@ onboarding instead; the same settings apply.
 
 - **Name**: `owid-grapher`
 - **Network access**: Full
-- **Environment variables** — all of these are public: the Algolia pair is the
-  search-only credential our site ships in its JS bundle (makes local site
-  search work). Environment variables are visible to anyone who can edit the
-  environment — never put real secrets here.
+- **Environment variables** — all of these are public: the Algolia pair is
+  production's search-only credential, in a variant that forces Algolia
+  analytics off so sandbox searches stay out of production's analytics (makes
+  local site search work). Environment variables are visible to anyone who can
+  edit the environment — never put real secrets here.
 
     ```
-    ALGOLIA_ID=74GKBOIDJQ
-    ALGOLIA_SEARCH_KEY=07281e41859cf258193143979e5a0208
+    ALGOLIA_ID=ASCB5XMYF2
+    ALGOLIA_SEARCH_KEY=ODZiMDkyMGRiNGU4MmU4MWZhYzUxNTNhZjY1NWI1NTY3ZTE2MmZhOGZhZDVlMTUxOWY1MGRkYTRlNWY1YzlmOGFuYWx5dGljcz1mYWxzZSZjbGlja0FuYWx5dGljcz1mYWxzZQ==
     COREPACK_ENABLE_DOWNLOAD_PROMPT=0
     ```
 

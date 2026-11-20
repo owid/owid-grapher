@@ -130,8 +130,13 @@ const selectView = async (page: Page, view: string): Promise<void> => {
     await option.click()
 }
 
-const openFirstDataUpdateCard = async (page: Page): Promise<void> => {
-    await getFirstDataUpdateCard(page)
+// Opens the oldest data update card on the first page, not the newest. Staging
+// lists production's newest posts but builds pages from an older copy of the
+// database, so the newest data update may have no page there yet.
+const openOldestDataUpdateCard = async (page: Page): Promise<void> => {
+    await page
+        .locator(CARD_SELECTORS.dataUpdate)
+        .last()
         .locator("a.latest-data-update-hit__card")
         .click()
 }
@@ -278,7 +283,7 @@ test.describe("Latest feed", () => {
         page,
     }) => {
         await openLatest(page)
-        await openFirstDataUpdateCard(page)
+        await openOldestDataUpdateCard(page)
         await expect(page).not.toHaveURL(/\/latest/)
         await expect(page.locator(".standalone-post-page")).toBeVisible()
         await expect(getBreadcrumbLink(page)).toHaveText("Data updates")

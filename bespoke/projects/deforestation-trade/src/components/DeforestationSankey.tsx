@@ -508,7 +508,7 @@ function makeNodeTooltip({
                     <PartnerShareTable
                         heading={
                             isPartnerSideIncoming
-                                ? "Forest cleared in"
+                                ? "Deforestation in"
                                 : "Consumed in"
                         }
                         total={value}

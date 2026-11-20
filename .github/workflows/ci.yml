@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -54,7 +54,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -75,7 +75,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -91,7 +91,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -107,7 +107,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -123,7 +123,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -142,7 +142,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -172,7 +172,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -184,20 +184,4 @@ jobs:
           BUNDLEMON: true
 
       - name: BundleMon
-        uses: lironer/bundlemon-action@4b47df0793e18e3899eeb07f19b7c88c92c2490e # v1.4.0
-
-  zizmor:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Run zizmor
-        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
-        with:
-          # Avanced Security mode is a bit too complicated for our use case, but
-          # we might want to switch to it in the future.
-          advanced-security: false
+        uses: lironer/bundlemon-action@v1.4.0

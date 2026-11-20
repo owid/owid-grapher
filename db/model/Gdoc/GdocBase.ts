@@ -23,6 +23,7 @@ import {
     formatDate,
     Url,
     getRegionByNameOrVariantName,
+    isMultiDimDataExplorer,
 } from "@ourworldindata/utils"
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import {
@@ -1598,5 +1599,10 @@ export function makeMultiDimLinkedChart(
         resolvedUrl,
         tags: config.topicTags ?? [],
         archivedPageVersion,
+        // Same subtitle and thumbnail as the multi-dim's card on /explorers.
+        ...(isMultiDimDataExplorer(config) && {
+            subtitle: config.presentation.explorerSubtitle,
+            thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png`,
+        }),
     }
 }

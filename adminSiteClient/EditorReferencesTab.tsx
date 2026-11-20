@@ -120,9 +120,6 @@ export class EditorReferencesTabForChart extends Component<EditorReferencesTabFo
                     {this.references &&
                     getFullReferencesCount(this.references) > 0 ? (
                         <>
-                            <ReferencesWordpressPosts
-                                references={this.references}
-                            />
                             <ReferencesGdocPosts references={this.references} />
                             <ReferencesExplorers references={this.references} />
                             <ReferencesNarrativeCharts
@@ -210,9 +207,6 @@ export class EditorReferencesTabForNarrativeChart extends Component<{
                     {this.references &&
                     getFullReferencesCount(this.references) > 0 ? (
                         <>
-                            <ReferencesWordpressPosts
-                                references={this.references}
-                            />
                             <ReferencesGdocPosts references={this.references} />
                             <ReferencesDataInsights
                                 references={this.references}
@@ -356,35 +350,6 @@ class AddRedirectForm extends Component<AddRedirectFormProps> {
             </form>
         )
     }
-}
-
-const ReferencesWordpressPosts = (props: {
-    references: Pick<References, "postsWordpress">
-}) => {
-    if (!props.references.postsWordpress?.length) return null
-    return (
-        <>
-            <p>Public wordpress pages that embed or reference this chart:</p>
-            <ul className="list-group">
-                {props.references.postsWordpress.map((post) => (
-                    <li key={post.id} className="list-group-item">
-                        <a href={post.url} target="_blank" rel="noopener">
-                            <strong>{post.title}</strong>
-                        </a>{" "}
-                        (
-                        <a
-                            href={`https://owid.cloud/wp/wp-admin/post.php?post=${post.id}&action=edit`}
-                            target="_blank"
-                            rel="noopener"
-                        >
-                            Edit
-                        </a>
-                        )
-                    </li>
-                ))}
-            </ul>
-        </>
-    )
 }
 
 const ReferencesGdocPosts = (props: {

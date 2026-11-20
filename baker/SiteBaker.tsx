@@ -304,8 +304,10 @@ export class SiteBaker {
 
         // Update prefetched linkedDocuments cache with filtered entity codes
         if (this._prefetchedAttachmentsCache) {
-            for (const [gdocId, renderedCodes] of this
-                ._renderedProfileEntityCodes) {
+            for (const [
+                gdocId,
+                renderedCodes,
+            ] of this._renderedProfileEntityCodes) {
                 const linkedDoc =
                     this._prefetchedAttachmentsCache.linkedDocuments[gdocId]
                 if (linkedDoc) {

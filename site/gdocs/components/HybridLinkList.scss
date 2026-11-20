@@ -67,3 +67,13 @@
         overflow: hidden;
     }
 }
+
+// Every thumbnail gets the featured-image shape, except images editors pick
+// for external links, which keep their own. A thumbnail is either an <img>
+// itself (charts, the default image) or a wrapper around one (uploaded images).
+img.hybrid-link-thumbnail:not(.hybrid-link-thumbnail--external),
+.hybrid-link-thumbnail:not(.hybrid-link-thumbnail--external) img {
+    height: auto;
+    aspect-ratio: $featured-image-aspect-ratio;
+    object-fit: cover;
+}
