@@ -10,6 +10,7 @@ import {
     JsonError,
     MultiDimDataPageConfigRaw,
     MultiDimDataPagesTableName,
+    MultiDimExplorerPresentation,
     MultiDimRedirectsTableName,
     MultiDimXChartConfigsTableName,
 } from "@ourworldindata/types"
@@ -369,6 +370,8 @@ export async function handleGetMultiDims(
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
+    const dataExplorerPageType: MultiDimExplorerPresentation["pageType"] =
+        "data-explorer"
     try {
         const results = await db.knexRaw<
             Pick<
@@ -376,6 +379,7 @@ export async function handleGetMultiDims(
                 "id" | "catalogPath" | "slug" | "updatedAt" | "published"
             > & {
                 title: string
+                isDataExplorer: number | null
                 dimensionNames: string
                 tags: string
                 mdimViews: number
@@ -400,6 +404,7 @@ export async function handleGetMultiDims(
                 mdp.config->>'$.views[0].fullConfigId' as defaultViewConfigId,
                 mdp.updatedAt,
                 mdp.published,
+                mdp.config->>'$.presentation.pageType' = ? as isDataExplorer,
                 COALESCE(JSON_LENGTH(mdp.config, '$.views'), 0) as mdimViews,
                 ROUND(COALESCE(agv.views_365d, 0) / 365, 1) as viewsPerDay,
                 (
@@ -434,11 +439,13 @@ export async function handleGetMultiDims(
             LEFT JOIN analytics_grapher_views agv ON (
                 agv.grapher_slug = mdp.slug
                 AND agv.day = (SELECT MAX(day) FROM analytics_grapher_views)
-            )`
+            )`,
+            [dataExplorerPageType]
         )
         const multiDims = results.map((row) => ({
             ...row,
             published: Boolean(row.published),
+            isDataExplorer: Boolean(row.isDataExplorer),
             dimensionNames: JSON.parse(row.dimensionNames),
             tags: JSON.parse(row.tags),
             mdimViews: Number(row.mdimViews),

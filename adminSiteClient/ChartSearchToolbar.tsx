@@ -8,6 +8,7 @@ import {
     getFacetValues,
     hasChartFilters,
     IS_VALUES,
+    IsFacet,
     NameCount,
     setFacetValues,
     suggestChartSearchTerms,
@@ -26,9 +27,7 @@ interface ChartSearchToolbarProps {
     searchedIn?: string
 }
 
-function optionsOfIsFacet(
-    facet: "status" | "source"
-): { value: string; label: string }[] {
+function optionsOfIsFacet(facet: IsFacet): { value: string; label: string }[] {
     return Object.entries(IS_VALUES)
         .filter(([, value]) => value.facet === facet)
         .map(([name, value]) => ({ value: name, label: value.label }))
@@ -36,6 +35,7 @@ function optionsOfIsFacet(
 
 const STATUS_OPTIONS = optionsOfIsFacet("status")
 const SOURCE_OPTIONS = optionsOfIsFacet("source")
+const TYPE_OPTIONS = optionsOfIsFacet("type")
 
 const WORD_HELP: SearchHelpRow[] = [
     { example: "solar wind", meaning: 'Contains "solar" and "wind"' },
@@ -294,6 +294,19 @@ export function ChartSearchToolbar({
                         options={SOURCE_OPTIONS}
                         onChange={(value?: string) =>
                             setSingleFacet("source", value)
+                        }
+                        popupMatchSelectWidth={false}
+                    />
+                )}
+                {facets.includes("type") && (
+                    <Select
+                        className="chart-search__filter chart-search__filter--wide"
+                        placeholder="Type"
+                        allowClear
+                        value={getFacetValues(query, "type")[0]}
+                        options={TYPE_OPTIONS}
+                        onChange={(value?: string) =>
+                            setSingleFacet("type", value)
                         }
                         popupMatchSelectWidth={false}
                     />

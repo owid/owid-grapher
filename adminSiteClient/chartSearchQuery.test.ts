@@ -312,6 +312,7 @@ describe("searching rows that aren't charts", () => {
         id: number
         title: string
         published: boolean
+        explorer: boolean
         topicTags: string[]
     }
     const ROWS: Row[] = [
@@ -319,21 +320,30 @@ describe("searching rows that aren't charts", () => {
             id: 1,
             title: "Energy prices",
             published: false,
+            explorer: false,
             topicTags: ["Energy"],
         },
         {
             id: 2,
             title: "Covid cases",
             published: true,
+            explorer: true,
             topicTags: ["COVID-19"],
         },
-        { id: 3, title: "School enrolment", published: true, topicTags: [] },
+        {
+            id: 3,
+            title: "School enrolment",
+            published: true,
+            explorer: false,
+            topicTags: [],
+        },
     ]
     const describeRow = (row: Row): SearchableChart => ({
         searchedText: [row.title, `${row.id}`],
         isPublished: row.published,
         isEtl: true,
         isDrifted: false,
+        isDataExplorer: row.explorer,
         tags: row.topicTags,
         authors: [],
     })
@@ -347,6 +357,12 @@ describe("searching rows that aren't charts", () => {
         expect(rowIds("is:published")).toEqual([2, 3])
         expect(rowIds("is:published tag:covid-19")).toEqual([2])
         expect(rowIds("-tag:Energy")).toEqual([2, 3])
+    })
+
+    it("tells data explorers from data pages", () => {
+        expect(rowIds("is:explorer")).toEqual([2])
+        expect(rowIds("-is:explorer")).toEqual([1, 3])
+        expect(rowIds("is:datapage is:published")).toEqual([3])
     })
 
     it("suggests only the filters the list offers", () => {

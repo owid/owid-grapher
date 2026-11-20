@@ -58,6 +58,7 @@ type ApiMultiDim = {
     slug: string | null
     updatedAt: string
     published: boolean
+    isDataExplorer: boolean
     mdimViews: number
     dimensionNames: string[]
     tags: string[]
@@ -172,6 +173,14 @@ function MultiDimCell({
             <div className="chart-list__meta">
                 <span>#{highlight(`${mdim.id}`)}</span>
                 <span className="chart-list__meta-separator">·</span>
+                {mdim.isDataExplorer && (
+                    <>
+                        <span className="chart-list__data-explorer">
+                            Data explorer
+                        </span>
+                        <span className="chart-list__meta-separator">·</span>
+                    </>
+                )}
                 <Tooltip title={mdim.dimensionNames.join(", ")}>
                     <span className="chart-list__dimensions">
                         {plural(mdim.dimensionNames.length, "dimension")}
@@ -462,7 +471,7 @@ async function deleteMultiDim(admin: Admin, id: number): Promise<void> {
     await admin.requestJSON(`/api/multi-dims/${id}`, {}, "DELETE")
 }
 
-const FACETS: readonly ChartSearchFacet[] = ["status", "tag"]
+const FACETS: readonly ChartSearchFacet[] = ["status", "type", "tag"]
 
 function searchableMultiDim(mdim: MultiDim): SearchableChart {
     return {
@@ -477,6 +486,7 @@ function searchableMultiDim(mdim: MultiDim): SearchableChart {
         isPublished: mdim.published,
         isEtl: true,
         isDrifted: false,
+        isDataExplorer: mdim.isDataExplorer,
         tags: mdim.tags,
         authors: [],
     }

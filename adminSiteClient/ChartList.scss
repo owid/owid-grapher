@@ -104,6 +104,17 @@
     cursor: help;
 }
 
+.chart-list__data-explorer {
+    display: inline-block;
+    padding: 0 6px;
+    border: 1px solid #ddd0ea;
+    border-radius: 4px;
+    background: #f6f1fb;
+    color: #5b3f80;
+    font-size: 0.95em;
+    line-height: 1.5;
+}
+
 .chart-list__slug-field .ant-typography {
     font-family: monospace;
     font-size: 0.85em;
