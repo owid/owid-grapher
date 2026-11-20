@@ -90,11 +90,4 @@ export class StackedBarChartState
     @computed get colorScaleConfig(): ColorScaleConfigInterface | undefined {
         return this.manager.colorScale
     }
-
-    @computed get yDomain(): [number, number] {
-        const yValues = this.allStackedPoints.map(
-            (point) => point.value + point.valueOffset
-        )
-        return [_.min([0, ...yValues]) ?? 0, _.max([0, ...yValues]) ?? 0]
-    }
 }
