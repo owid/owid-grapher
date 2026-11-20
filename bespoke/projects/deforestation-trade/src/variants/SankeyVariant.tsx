@@ -398,9 +398,15 @@ function buildCaption({
     const worldClause = worldTotal
         ? `For context, ${formatHectares(worldTotal)} of deforestation worldwide was linked to agriculture ${when}${worldShareClause}. `
         : ""
-    // The source amortizes deforestation over five years, so a figure is a
-    // five-year average rather than the land cleared in that year
-    const subtitle = `${worldClause}Figures are averaged over five years.`
+    // The source amortizes deforestation over five years, so a year's figure
+    // is a five-year average rather than the land cleared in that year. A
+    // multi-year period adds those yearly figures up, which the note must not
+    // pass off as an average.
+    const amortizationNote =
+        yearRange.start === yearRange.end
+            ? "Figures are averaged over five years."
+            : "Each year's figure is averaged over five years, and the years in this period are added up."
+    const subtitle = `${worldClause}${amortizationNote}`
 
     if (view === "consumption")
         return {
