@@ -18,6 +18,7 @@ import {
     ChartViewsMap,
     ContentGraphLinkType,
     IndexingContext,
+    UNLISTED_TAG_NAME,
 } from "@ourworldindata/types"
 import { createMultiDimIndexingContext } from "./context.js"
 import { attributeLinksToViewIds } from "./mdimViewsLogic.js"
@@ -212,6 +213,10 @@ async function getMultiDimDataPagesWithInheritedTags(
         }
         const multiDimWithSlug = multiDim as PublishedMultiDimWithSlug
         const tags = multiDim.config.topicTags ?? []
+        if (tags.includes(UNLISTED_TAG_NAME)) {
+            // We don't index unlisted multi-dims, as with charts and explorers
+            continue
+        }
         if (tags.length === 0) {
             await logErrorAndMaybeCaptureInSentry(
                 new Error(`MultiDim "${multiDim.slug}" has no tags.`)
