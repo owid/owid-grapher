@@ -10,6 +10,7 @@ import { articulateEntity } from "@ourworldindata/utils"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
+import { AreaYardstick } from "../../../../components/AreaYardstick/AreaYardstick.js"
 import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
@@ -346,7 +347,11 @@ function CaptionedSankeyVariant({
             <BespokeMetadataProvider metadata={metadata.bespoke}>
                 <Frame className="deforestation-captioned-chart">
                     <ChartHeader
-                        title={config.title ?? title}
+                        title={
+                            config.title !== undefined
+                                ? fillTotalPlaceholder(config.title, total)
+                                : title
+                        }
                         subtitle={config.subtitle ?? subtitle}
                     />
                     <DeforestationChart
@@ -372,6 +377,36 @@ function buildNote(view: View): string {
     return `Shown is deforestation risk embedded in trade: a modeled estimate of how much deforestation a country is exposed to through the commodities it ${verb}, not confirmed cleared land for a particular area.`
 }
 
+/** Deforestation risk is a modelled estimate attributed to many places, so a
+ *  comparison to a single place could suggest one patch of cleared forest */
+const AREA_YARDSTICK_NOTE =
+    "This deforestation is spread across many places, not a single patch."
+
+/** The `{total}` placeholder an author can put in a custom title, e.g.
+ *  "{total} of deforestation was linked to products consumed in the UK" */
+const TOTAL_PLACEHOLDER = "{total}"
+
+/** A custom title with its `{total}` placeholder, if any, filled in with the
+ *  hectares the chart sums to, explained on hover */
+function fillTotalPlaceholder(title: string, total: number): React.ReactNode {
+    if (!title.includes(TOTAL_PLACEHOLDER)) return title
+    const amount = formatHectares(total)
+    const parts = title.split(TOTAL_PLACEHOLDER)
+    return parts.map((part, i) => (
+        <span key={i}>
+            {part}
+            {i < parts.length - 1 && (
+                <AreaYardstick hectares={total} note={AREA_YARDSTICK_NOTE}>
+                    {/* A title that opens with the total starts upper case */}
+                    {i === 0 && part.trim() === ""
+                        ? R.capitalize(amount)
+                        : amount}
+                </AreaYardstick>
+            )}
+        </span>
+    ))
+}
+
 /** The narrative title and subtitle for the current selection. */
 function buildCaption({
     view,
@@ -385,8 +420,13 @@ function buildCaption({
     yearRange: YearRange
     total: number
     worldTotal: number | undefined
-}): { title: string; subtitle: string } {
+}): { title: React.ReactNode; subtitle: React.ReactNode } {
     const amount = formatHectares(total)
+    const amountWithYardstick = (
+        <AreaYardstick hectares={total} note={AREA_YARDSTICK_NOTE}>
+            {amount}
+        </AreaYardstick>
+    )
     const articulated = articulateEntity(country)
     const when = describeYearRange(yearRange)
 
@@ -395,9 +435,15 @@ function buildCaption({
     const worldShareClause = worldShare
         ? `, and ${possessiveEntity(articulated)} ${view} accounted for ${worldShare} of that`
         : ""
-    const worldClause = worldTotal
-        ? `For context, ${formatHectares(worldTotal)} of deforestation worldwide was linked to agriculture ${when}${worldShareClause}. `
-        : ""
+    const worldClause = worldTotal ? (
+        <>
+            For context,{" "}
+            <AreaYardstick hectares={worldTotal} note={AREA_YARDSTICK_NOTE}>
+                {formatHectares(worldTotal)}
+            </AreaYardstick>
+            {` of deforestation worldwide was linked to agriculture ${when}${worldShareClause}. `}
+        </>
+    ) : null
     // The source amortizes deforestation over five years, so a year's figure
     // is a five-year average rather than the land cleared in that year. A
     // multi-year period adds those yearly figures up, which the note must not
@@ -406,16 +452,34 @@ function buildCaption({
         yearRange.start === yearRange.end
             ? "Figures are averaged over five years."
             : "Each year's figure is averaged over five years, and the years in this period are added up."
-    const subtitle = `${worldClause}${amortizationNote}`
+    const subtitle = (
+        <>
+            {worldClause}
+            {amortizationNote}
+        </>
+    )
 
     if (view === "consumption")
         return {
-            title: `Products consumed in ${articulated} ${when} were linked to ${amount} of deforestation. Where were they produced?`,
+            title: (
+                <>
+                    {`Products consumed in ${articulated} ${when} were linked to `}
+                    {amountWithYardstick}
+                    {" of deforestation. Where were they produced?"}
+                </>
+            ),
             subtitle,
         }
 
     return {
-        title: `${R.capitalize(amount)} of deforestation in ${articulated} was linked to agriculture ${when}. Where were these products consumed?`,
+        title: (
+            <>
+                <AreaYardstick hectares={total} note={AREA_YARDSTICK_NOTE}>
+                    {R.capitalize(amount)}
+                </AreaYardstick>
+                {` of deforestation in ${articulated} was linked to agriculture ${when}. Where were these products consumed?`}
+            </>
+        ),
         subtitle,
     }
 }
