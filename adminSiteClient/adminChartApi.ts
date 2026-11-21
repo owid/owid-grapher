@@ -130,6 +130,13 @@ export const getFullReferencesCount = (references: References): number => {
     return uniqueRefs.size
 }
 
+/** The confirmation before unpublishing a chart, louder if it's referenced */
+export function unpublishConfirmMessage(references?: References): string {
+    return references && getFullReferencesCount(references) > 0
+        ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Try to remove the chart anyway?"
+        : "Are you sure you want to unpublish this chart?"
+}
+
 export async function fetchChartConfigByIndicatorId(
     admin: Admin,
     indicatorId: number
