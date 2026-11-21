@@ -25,7 +25,7 @@ import {
 import { redirectWithSourceExists } from "../../db/model/Redirect.js"
 import {
     buildRedirectTargetPath,
-    getViewParamsByMultiDim,
+    VIEW_DIMENSIONS_JOIN,
     getViewParamsFromConfig,
     parseSourceQueryParams,
 } from "../../db/model/MultiDimRedirects.js"
@@ -1097,6 +1097,7 @@ export async function handleGetAllMultiDimRedirects(
         source: string
         sourceQueryParams: string | null
         viewConfigId: string | null
+        viewDimensions: string | null
         multiDimId: number
         multiDimSlug: string
         multiDimTitle: string
@@ -1108,22 +1109,20 @@ export async function handleGetAllMultiDimRedirects(
             mdr.source,
             mdr.sourceQueryParams,
             mdr.viewConfigId,
+            mdvd.dimensions as viewDimensions,
             mddp.id as multiDimId,
             mddp.slug as multiDimSlug,
             mddp.config->>'$.title.title' as multiDimTitle
         FROM ${MultiDimRedirectsTableName} mdr
         JOIN ${MultiDimDataPagesTableName} mddp ON mddp.id = mdr.multiDimId
+        ${VIEW_DIMENSIONS_JOIN}
         WHERE mddp.published = 1 AND mddp.slug IS NOT NULL
         ORDER BY mddp.slug, mdr.source`
     )
 
-    const viewParamsByMultiDim = await getViewParamsByMultiDim(trx, rows)
     const redirects = rows.map((row) => {
-        const dimensions = row.viewConfigId
-            ? viewParamsByMultiDim.get(row.multiDimId)?.get(row.viewConfigId)
-            : undefined
-        const queryStr = dimensions
-            ? multiDimDimensionsToViewQueryStr(dimensions)
+        const queryStr = row.viewDimensions
+            ? multiDimDimensionsToViewQueryStr(JSON.parse(row.viewDimensions))
             : ""
         const targetQueryStr = queryStr ? `?${queryStr}` : null
         return {

@@ -551,10 +551,7 @@ describe("Multi-dim redirect lookups", { timeout: 30000 }, () => {
             { source: "/grapher/energy-default" },
         ])
 
-        const { redirects } = await env.request({
-            method: "GET",
-            path: "/multi-dim-redirects.json",
-        })
+        const { redirects } = await env.fetchJson("/multi-dim-redirects.json")
         expect(redirects.map((r: any) => [r.source, r.targetQueryStr])).toEqual(
             [
                 ["/grapher/energy-default", null],
@@ -594,6 +591,34 @@ describe("Multi-dim redirect lookups", { timeout: 30000 }, () => {
             {
                 sourceQueryParams: {},
                 target: { targetSlug: "energy-use", targetQueryParams: {} },
+            },
+        ])
+    })
+
+    // Renaming `total` to `Total` keeps the view's id, and so its chart config
+    it("follows a choice rename that keeps the view's chart config", async () => {
+        await insertRedirects([
+            {
+                source: "/grapher/energy-total",
+                viewConfigId: totalViewConfigId,
+            },
+        ])
+        const renamed = structuredClone(testMultiDimConfig)
+        renamed.views[0].dimensions.metric = "Total"
+        renamed.dimensions[1].choices[0].slug = "Total"
+        await env.request({
+            method: "PUT",
+            path: `/multi-dims/${encodeURIComponent(catalogPath)}`,
+            body: JSON.stringify({ config: renamed }),
+        })
+
+        const redirects = await inTransaction((trx) =>
+            getRecentMultiDimRedirects(trx)
+        )
+        expect(redirects).toEqual([
+            {
+                source: "/grapher/energy-total",
+                target: "/grapher/energy-use?metric=Total&source=all",
             },
         ])
     })

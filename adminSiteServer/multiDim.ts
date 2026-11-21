@@ -300,12 +300,18 @@ export async function upsertMultiDim(
                     fullGrapherConfig
                 )
                 chartConfigId = result.chartConfigId
-                await knex(MultiDimViewDimensionsTableName).insert({
+                console.debug(`Chart config created id=${chartConfigId}`)
+            }
+            // View ids are slugified, so a kept chart config can come with
+            // renamed choices (e.g. `Total` -> `total`): record the view's
+            // current dimensions either way. Redirects read them from here.
+            await knex(MultiDimViewDimensionsTableName)
+                .insert({
                     chartConfigId,
                     dimensions: JSON.stringify(view.dimensions),
                 })
-                console.debug(`Chart config created id=${chartConfigId}`)
-            }
+                .onConflict("chartConfigId")
+                .merge(["dimensions"])
             return { ...view, fullConfigId: chartConfigId }
         })
     )
@@ -426,8 +432,8 @@ export async function setMultiDimSlug(
 }
 
 /** Deletes an unpublished multi-dim together with its view chart configs.
- *  Rows in multi_dim_view_dimensions are kept, since that table is append-only
- *  (analytics use it to resolve chart config ids of past views). */
+ *  Rows in multi_dim_view_dimensions are kept, since rows there are never
+ *  deleted (analytics use it to resolve chart config ids of past views). */
 export async function deleteUnpublishedMultiDim(
     knex: db.KnexReadWriteTransaction,
     multiDim: DbEnrichedMultiDimDataPage
