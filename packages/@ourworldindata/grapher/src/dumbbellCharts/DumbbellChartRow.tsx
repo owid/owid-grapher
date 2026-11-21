@@ -24,7 +24,7 @@ export function DumbbellChartRow({
     y,
     range,
     valueLabelStyle,
-    onInfoTooltipShow,
+    onTooltipShow,
 }: {
     series: RenderDumbbellSeries
     mode: DumbbellMode
@@ -32,7 +32,7 @@ export function DumbbellChartRow({
     y: number
     range: [number, number]
     valueLabelStyle: FontSettings
-    onInfoTooltipShow?: () => void
+    onTooltipShow?: () => void
 }): React.ReactElement {
     const style = DUMBBELL_STYLE[series.emphasis]
     const { left: leftHead, right: rightHead } = toLeftRight(
@@ -63,7 +63,7 @@ export function DumbbellChartRow({
                     x={series.labelPosition.x}
                     y={series.labelPosition.yOffset}
                     color={{ name: style.labelColor }}
-                    onInfoTooltipShow={onInfoTooltipShow}
+                    onTooltipShow={onTooltipShow}
                 />
             )}
 

@@ -1,0 +1,52 @@
+.series-label-annotations {
+    color: $gray-100;
+    font-size: 0.875rem;
+    line-height: 1.4;
+
+    @include sm-only {
+        font-size: 13px;
+    }
+
+    a {
+        @include owid-link-90;
+        color: inherit;
+    }
+
+    p {
+        margin: 0;
+    }
+
+    .series-label-annotations__title {
+        @include grapher_h5-black-caps;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: $gray-70;
+        margin-bottom: 8px;
+    }
+
+    .series-label-annotations__list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .series-label-annotations__entry {
+        display: grid;
+        row-gap: 2px;
+    }
+
+    .series-label-annotations__entry:not(:last-child) {
+        margin-bottom: 8px;
+    }
+
+    .series-label-annotations__heading {
+        font-weight: 700;
+    }
+}
+
+.region-tooltip + .series-label-annotations {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid $gray-20;
+}
