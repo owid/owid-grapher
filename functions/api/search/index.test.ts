@@ -847,7 +847,9 @@ describe("Search API endpoint", () => {
                     ) => ({
                         query: state.query,
                         results: pages(length!, offset).map((p) =>
-                            options?.withExcerpt ? p : { ...p, excerpt: undefined }
+                            options?.withExcerpt
+                                ? p
+                                : { ...p, excerpt: undefined }
                         ),
                         nbHits: 100,
                         offset: offset!,
