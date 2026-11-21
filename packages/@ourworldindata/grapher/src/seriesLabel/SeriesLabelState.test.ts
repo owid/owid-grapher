@@ -181,7 +181,7 @@ describe(SeriesLabelState, () => {
         ])
     })
 
-    it("shows an icon next to a region publisher suffix when enabled", () => {
+    it("attaches the region tooltip to the publisher suffix when enabled", () => {
         const label = new SeriesLabelState({
             text: "Africa (WHO)",
             maxWidth: Infinity,
@@ -191,13 +191,17 @@ describe(SeriesLabelState, () => {
 
         expect(label.positionedFragments).toMatchObject([
             { type: "text", role: "name", text: "Africa" },
-            { type: "text", role: "suffix", text: "(WHO" },
-            { type: "icon", tooltipKey: "who" },
-            { type: "text", role: "suffix", text: ")" },
+            {
+                type: "text",
+                role: "suffix",
+                text: "(WHO)",
+                regionTooltip: { tooltipKey: "who" },
+            },
         ])
+        expect(label.positionedFragments[0].regionTooltip).toBeUndefined()
     })
 
-    it("only shows on icon if the suffix names a known region publisher", () => {
+    it("only attaches a tooltip if the suffix names a known region publisher", () => {
         const label = new SeriesLabelState({
             text: "Africa (FAKE)",
             maxWidth: Infinity,
@@ -209,6 +213,9 @@ describe(SeriesLabelState, () => {
             { type: "text", role: "name", text: "Africa" },
             { type: "text", role: "suffix", text: "(FAKE)" },
         ])
+        expect(label.positionedFragments.some((f) => f.regionTooltip)).toBe(
+            false
+        )
     })
 
     it("right-aligns fragments for textAnchor=end", () => {
@@ -225,21 +232,7 @@ describe(SeriesLabelState, () => {
         }
     })
 
-    it("shows an icon for income group labels when enabled", () => {
-        const label = new SeriesLabelState({
-            text: "High-income countries",
-            maxWidth: Infinity,
-            fontSize: FONT_SIZE,
-            showRegionTooltip: true,
-        })
-
-        expect(label.positionedFragments).toMatchObject([
-            { type: "text", role: "name", text: "High-income countries" },
-            { type: "icon", tooltipKey: "incomeGroups" },
-        ])
-    })
-
-    it("shows an icon for continent labels when enabled", () => {
+    it("attaches the continents tooltip to continent names", () => {
         const label = new SeriesLabelState({
             text: "Africa",
             maxWidth: Infinity,
@@ -248,9 +241,65 @@ describe(SeriesLabelState, () => {
         })
 
         expect(label.positionedFragments).toMatchObject([
-            { type: "text", role: "name", text: "Africa" },
-            { type: "icon", tooltipKey: "continents" },
+            {
+                type: "text",
+                role: "name",
+                text: "Africa",
+                regionTooltip: { tooltipKey: "continents" },
+            },
         ])
+    })
+
+    it("attaches the tooltip to every line of a wrapped name", () => {
+        const label = new SeriesLabelState({
+            text: "North America",
+            maxWidth: 80,
+            fontSize: FONT_SIZE,
+            showRegionTooltip: true,
+        })
+
+        expect(label.positionedFragments).toHaveLength(2)
+        for (const fragment of label.positionedFragments) {
+            expect(fragment.regionTooltip).toMatchObject({
+                tooltipKey: "continents",
+            })
+        }
+    })
+
+    it("attaches the income groups tooltip to income group names", () => {
+        const label = new SeriesLabelState({
+            text: "High-income countries",
+            maxWidth: Infinity,
+            fontSize: FONT_SIZE,
+            showRegionTooltip: true,
+        })
+
+        expect(label.positionedFragments).toMatchObject([
+            {
+                type: "text",
+                role: "name",
+                text: "High-income countries",
+                regionTooltip: { tooltipKey: "incomeGroups" },
+            },
+        ])
+    })
+
+    it("does not reserve extra width for a region tooltip", () => {
+        const options = {
+            text: "Africa (WHO)",
+            maxWidth: Infinity,
+            fontSize: FONT_SIZE,
+        }
+        const withTooltip = new SeriesLabelState({
+            ...options,
+            showRegionTooltip: true,
+        })
+        const withoutTooltip = new SeriesLabelState({
+            ...options,
+            showRegionTooltip: false,
+        })
+
+        expect(withTooltip.width).toBe(withoutTooltip.width)
     })
 
     it("resolves region from a short entity name", () => {
@@ -261,12 +310,12 @@ describe(SeriesLabelState, () => {
             showRegionTooltip: true,
         })
 
-        const iconFragment = label.positionedFragments.find(
-            (f) => f.type === "icon"
+        const suffixFragment = label.positionedFragments.find(
+            (f) => f.role === "suffix"
         )
 
         // The region name should be resolved correctly even if the label uses a shorter name
-        expect(iconFragment?.regionName).toBe(
+        expect(suffixFragment?.regionTooltip?.regionName).toBe(
             "Middle East, North Africa, Afghanistan and Pakistan (WB)"
         )
     })
