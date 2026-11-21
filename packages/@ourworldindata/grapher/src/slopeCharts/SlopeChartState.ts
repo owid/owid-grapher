@@ -5,7 +5,7 @@ import {
     RawSlopeChartSeries,
     SlopeChartSeries,
 } from "./SlopeChartConstants"
-import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
+import { OwidTable, CoreColumn, OwidColumn } from "@ourworldindata/core-table"
 import { SelectionArray } from "../selection/SelectionArray"
 import { FocusArray } from "../focus/FocusArray"
 import {
@@ -42,6 +42,7 @@ import { domainExtent } from "@ourworldindata/utils"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { makeToleranceNotice } from "../chart/ToleranceNotice"
+import { selectEntityTimeAnnotations } from "../annotations/EntityAnnotations"
 
 export class SlopeChartState implements ChartState {
     manager: SlopeChartManager
@@ -140,7 +141,7 @@ export class SlopeChartState implements ChartState {
         return autoDetectYColumnSlugs(this.manager)
     }
 
-    @computed get yColumns(): CoreColumn[] {
+    @computed get yColumns(): OwidColumn[] {
         return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
     }
 
@@ -213,7 +214,7 @@ export class SlopeChartState implements ChartState {
 
     private constructSingleSeries(
         entityName: EntityName,
-        column: CoreColumn
+        column: OwidColumn
     ): RawSlopeChartSeries {
         const { startTime, endTime, seriesStrategy } = this
         const { canSelectMultipleEntities } = this.manager
@@ -255,6 +256,13 @@ export class SlopeChartState implements ChartState {
 
         const focus = this.focusArray.state(seriesName)
 
+        const { pointAnnotations, rangeAnnotations } =
+            selectEntityTimeAnnotations({
+                annotations: column.def.annotations ?? [],
+                entityName,
+                timeRange: [startTime, endTime],
+            })
+
         return {
             column,
             seriesName,
@@ -265,6 +273,8 @@ export class SlopeChartState implements ChartState {
             end,
             annotation,
             focus,
+            pointAnnotations,
+            rangeAnnotations,
         }
     }
 

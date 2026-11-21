@@ -78,6 +78,7 @@ import {
     toRenderSlopeChartSeries,
 } from "./SlopeChartHelpers"
 import { Slope } from "./Slope"
+import { toSeriesLabelAnnotations } from "../annotations/EntityAnnotations"
 import { SlopeChartXAxis } from "./SlopeChartXAxis"
 import { CATEGORICAL_LEGEND_STYLE } from "../lineCharts/LineChartConstants"
 
@@ -107,14 +108,23 @@ export class SlopeChart
     }>({ fade: "immediate" })
 
     private hoveredSeriesName: string | undefined = undefined
+    private labelTooltipSeriesName: SeriesName | undefined = undefined
 
     constructor(props: SlopeChartProps) {
         super(props)
 
-        makeObservable<SlopeChart, "hoveredSeriesName" | "tooltipState">(this, {
+        makeObservable<
+            SlopeChart,
+            "hoveredSeriesName" | "labelTooltipSeriesName" | "tooltipState"
+        >(this, {
             hoveredSeriesName: observable,
+            labelTooltipSeriesName: observable,
             tooltipState: observable,
         })
+    }
+
+    @computed private get isLabelTooltipOpen(): boolean {
+        return this.labelTooltipSeriesName !== undefined
     }
 
     @computed get chartState(): SlopeChartState {
@@ -547,6 +557,9 @@ export class SlopeChart
         if (this.hoveredSeriesName)
             hoveredSeriesNames.push(this.hoveredSeriesName)
 
+        if (this.labelTooltipSeriesName)
+            hoveredSeriesNames.push(this.labelTooltipSeriesName)
+
         // hovered legend item in the external facet legend
         if (this.manager.externalLegendHoverBin) {
             hoveredSeriesNames.push(
@@ -566,10 +579,12 @@ export class SlopeChart
         getValue: (series: SlopeChartSeries) => number,
         {
             showSeriesName,
-            showAnnotation,
+            showInlineAnnotation,
+            showAnnotations,
         }: {
             showSeriesName?: boolean
-            showAnnotation?: boolean
+            showInlineAnnotation?: boolean
+            showAnnotations?: boolean
         }
     ): LabelSeries {
         const { seriesName, displayName, color, annotation } = series
@@ -578,7 +593,10 @@ export class SlopeChart
         return {
             color,
             seriesName,
-            inlineAnnotation: showAnnotation ? annotation : undefined,
+            inlineAnnotation: showInlineAnnotation ? annotation : undefined,
+            annotations: showAnnotations
+                ? toSeriesLabelAnnotations(series, this.formatColumn)
+                : undefined,
             label: showSeriesName ? displayName : formattedValue,
             formattedValue: showSeriesName ? formattedValue : undefined,
             placeFormattedValueInNewLine: this.useCompactLayout,
@@ -590,7 +608,7 @@ export class SlopeChart
         }
     }
 
-    @computed private get leftLabelsSeries(): LabelSeries[] {
+    @computed get leftLabelsSeries(): LabelSeries[] {
         const { shouldShowSeriesNamesInLeftLabels: showSeriesName } = this
         return this.series.map((series) =>
             this.constructSingleLabelSeries(
@@ -601,14 +619,15 @@ export class SlopeChart
         )
     }
 
-    @computed private get rightLabelsSeries(): LabelSeries[] {
+    @computed get rightLabelsSeries(): LabelSeries[] {
         return this.series.map((series) =>
             this.constructSingleLabelSeries(
                 series,
                 (series) => series.end.value,
                 {
                     showSeriesName: this.manager.showSeriesLabels,
-                    showAnnotation: !this.useCompactLayout,
+                    showInlineAnnotation: !this.useCompactLayout,
+                    showAnnotations: true,
                 }
             )
         )
@@ -694,16 +713,38 @@ export class SlopeChart
     }
 
     private hoverTimer?: number
-    @action.bound private setHoveredSeries(series: SlopeChartSeries): void {
+    @action.bound private setHoveredSeries(
+        series: SlopeChartSeries,
+        { showTooltip = true }: { showTooltip?: boolean } = {}
+    ): void {
         this.chartState.focusArray.clear()
         clearTimeout(this.hoverTimer)
         this.hoveredSeriesName = series.seriesName
-        this.tooltipState.target = { series }
+        this.tooltipState.target =
+            showTooltip && !this.isLabelTooltipOpen ? { series } : null
     }
 
-    @action.bound onVerticalLabelMouseEnter(seriesName: SeriesName): void {
+    @action.bound private onLeftLabelMouseEnter(seriesName: SeriesName): void {
+        this.hoverLabel(seriesName, this.leftLabelsState)
+    }
+
+    @action.bound private onRightLabelMouseEnter(seriesName: SeriesName): void {
+        this.hoverLabel(seriesName, this.rightLabelsState)
+    }
+
+    /** A label with a popup leaves the slope tooltip to the popup */
+    private hoverLabel(
+        seriesName: SeriesName,
+        labelsState: VerticalLabelsState
+    ): void {
         const series = this.series.find((s) => s.seriesName === seriesName)
-        if (series) this.setHoveredSeries(series)
+        if (!series) return
+        const hasPopup = labelsState.placedSeries.some(
+            (label) =>
+                label.seriesName === seriesName &&
+                label.seriesLabel.tooltipTargets.length > 0
+        )
+        this.setHoveredSeries(series, { showTooltip: !hasPopup })
     }
 
     @action.bound private clearHoveredSeries(): void {
@@ -723,6 +764,21 @@ export class SlopeChart
 
     @action.bound onVerticalLabelMouseLeave(): void {
         this.debouncedClearHoveredSeries()
+    }
+
+    @action.bound private onVerticalLabelTooltipShow(
+        seriesName: SeriesName
+    ): void {
+        this.chartState.focusArray.clear()
+        this.tooltipState.target = null
+        this.labelTooltipSeriesName = seriesName
+    }
+
+    @action.bound private onVerticalLabelTooltipHide(
+        seriesName: SeriesName
+    ): void {
+        if (this.labelTooltipSeriesName === seriesName)
+            this.labelTooltipSeriesName = undefined
     }
 
     mouseFrame?: number
@@ -1080,8 +1136,10 @@ export class SlopeChart
                 state={this.rightLabelsState}
                 x={this.xRange[1] + VERTICAL_LABELS_PADDING}
                 outline={true}
-                onMouseEnter={this.onVerticalLabelMouseEnter}
+                onMouseEnter={this.onRightLabelMouseEnter}
                 onMouseLeave={this.onVerticalLabelMouseLeave}
+                onTooltipShow={this.onVerticalLabelTooltipShow}
+                onTooltipHide={this.onVerticalLabelTooltipHide}
             />
         )
     }
@@ -1118,8 +1176,10 @@ export class SlopeChart
                 state={this.leftLabelsState}
                 x={this.xRange[0] - VERTICAL_LABELS_PADDING}
                 outline={true}
-                onMouseEnter={this.onVerticalLabelMouseEnter}
+                onMouseEnter={this.onLeftLabelMouseEnter}
                 onMouseLeave={this.onVerticalLabelMouseLeave}
+                onTooltipShow={this.onVerticalLabelTooltipShow}
+                onTooltipHide={this.onVerticalLabelTooltipHide}
             />
         )
     }
