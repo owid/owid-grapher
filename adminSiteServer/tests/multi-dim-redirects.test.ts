@@ -517,6 +517,53 @@ describe("Multi-dim redirect lookups", { timeout: 30000 }, () => {
         })
     })
 
+    it("falls back to the oldest conditional rule, without the params it drops", async () => {
+        await insertRedirects([
+            {
+                source: "/explorers/energy",
+                sourceQueryParams: { Metric: "Total", Country: "FRA" },
+                viewConfigId: totalViewConfigId,
+            },
+            {
+                source: "/explorers/energy",
+                sourceQueryParams: { Metric: "Per capita" },
+                viewConfigId: perCapitaViewConfigId,
+            },
+        ])
+
+        const targets = await inTransaction((trx) =>
+            getMultiDimRedirectTargets(trx, ["energy"], "/explorers/")
+        )
+        expect(Object.fromEntries(targets)).toEqual({
+            energy: {
+                targetSlug: "energy-use",
+                queryStr: "metric=total&source=all",
+            },
+        })
+    })
+
+    it("lists all redirects with the same query string the bake uses", async () => {
+        await insertRedirects([
+            {
+                source: "/grapher/energy-total",
+                viewConfigId: totalViewConfigId,
+            },
+            { source: "/grapher/energy-default" },
+        ])
+
+        const { redirects } = await env.request({
+            method: "GET",
+            path: "/multi-dim-redirects.json",
+        })
+        expect(redirects.map((r: any) => [r.source, r.targetQueryStr])).toEqual(
+            [
+                ["/grapher/energy-default", null],
+                // Sorted, unlike the config's `source, metric` order
+                ["/grapher/energy-total", "?metric=total&source=all"],
+            ]
+        )
+    })
+
     it("returns every rule per source, in insertion order, with the target view's params", async () => {
         await insertRedirects([
             {

@@ -200,7 +200,7 @@ export async function getAllLinkedPublishedMultiDimDataPages(
             const queryStr = viewConfigId
                 ? buildQueryStrFromConfig(
                       viewConfigId,
-                      rest.config,
+                      enriched.config,
                       enriched.slug
                   )
                 : undefined

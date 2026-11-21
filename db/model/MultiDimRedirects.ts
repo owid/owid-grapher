@@ -7,7 +7,10 @@ import {
     MultiDimDimensionChoices,
     MultiDimRedirectsTableName,
 } from "@ourworldindata/types"
-import { MultiDimDataPageConfig } from "@ourworldindata/utils"
+import {
+    MultiDimDataPageConfig,
+    multiDimDimensionsToViewQueryStr,
+} from "@ourworldindata/utils"
 
 export type MultiDimRedirectSourcePrefix = "/grapher/" | "/explorers/"
 
@@ -29,42 +32,68 @@ export interface MultiDimRedirectRule {
 // view). Throws if a view config id is given but no matching view exists.
 export function getViewParamsFromConfig(
     viewConfigId: string | null,
-    config: string,
+    config: MultiDimDataPageConfigEnriched,
     multiDimSlug: string
 ): MultiDimDimensionChoices {
     if (!viewConfigId) return {}
-
-    const parsedConfig = JSON.parse(config) as MultiDimDataPageConfigEnriched
-    const mdimConfig = MultiDimDataPageConfig.fromObject(parsedConfig)
-    const dimensions = mdimConfig.findViewDimensionsByConfigId(viewConfigId)
-    if (!dimensions) {
-        throw new Error(
-            `No matching view found for viewConfigId ${viewConfigId} on multi-dim ${multiDimSlug}`
+    const dimensions =
+        MultiDimDataPageConfig.fromObject(config).findViewDimensionsByConfigId(
+            viewConfigId
         )
-    }
+    if (!dimensions) throw noMatchingViewError(viewConfigId, multiDimSlug)
     return dimensions
 }
 
 export function buildQueryStrFromConfig(
     viewConfigId: string | null,
-    config: string,
+    config: MultiDimDataPageConfigEnriched,
     multiDimSlug: string
 ): string | undefined {
-    return dimensionsToQueryStr(
+    return viewQueryStr(
         getViewParamsFromConfig(viewConfigId, config, multiDimSlug)
     )
 }
 
+// The path a redirect to a multi-dim view lands on, e.g.
+// `/grapher/energy?metric=total&source=all`.
+export function buildRedirectTargetPath(
+    multiDimSlug: string,
+    dimensions: MultiDimDimensionChoices
+): string {
+    const queryStr = viewQueryStr(dimensions)
+    return `/grapher/${multiDimSlug}${queryStr ? `?${queryStr}` : ""}`
+}
+
+// The view's canonical query string, the same one the multi-dim's baked views
+// and the Cloudflare functions use, or undefined for the default view.
+function viewQueryStr(
+    dimensions: MultiDimDimensionChoices
+): string | undefined {
+    return multiDimDimensionsToViewQueryStr(dimensions) || undefined
+}
+
+function noMatchingViewError(
+    viewConfigId: string,
+    multiDimSlug: string
+): Error {
+    return new Error(
+        `No matching view found for viewConfigId ${viewConfigId} on multi-dim ${multiDimSlug}`
+    )
+}
+
 // Dimension choices of every view, by multi-dim id and then view config id.
-type ViewParamsByMultiDim = Map<number, Map<string, MultiDimDimensionChoices>>
+export type ViewParamsByMultiDim = Map<
+    number,
+    Map<string, MultiDimDimensionChoices>
+>
 
 // Loads and indexes the config of each given multi-dim once. A config can be
 // several MB and is shared by every redirect rule pointing at that multi-dim,
 // and a bulk import can create thousands of rules for one multi-dim. Selecting
 // the config on each redirect row, and parsing it per row, ran the site bake
-// out of heap, so the redirect queries select the multi-dim id instead and
-// look the view up here.
-async function getViewParamsByMultiDim(
+// out of heap, so redirect queries select the multi-dim id instead and look
+// the view up here with lookUpViewParams.
+export async function getViewParamsByMultiDim(
     knex: db.KnexReadonlyTransaction,
     rows: { multiDimId: number; viewConfigId: string | null }[]
 ): Promise<ViewParamsByMultiDim> {
@@ -98,7 +127,7 @@ async function getViewParamsByMultiDim(
 }
 
 // getViewParamsFromConfig, against configs indexed by getViewParamsByMultiDim.
-function lookUpViewParams(
+export function lookUpViewParams(
     viewParamsByMultiDim: ViewParamsByMultiDim,
     row: {
         multiDimId: number
@@ -110,93 +139,45 @@ function lookUpViewParams(
     const dimensions = viewParamsByMultiDim
         .get(row.multiDimId)
         ?.get(row.viewConfigId)
-    if (!dimensions) {
-        throw new Error(
-            `No matching view found for viewConfigId ${row.viewConfigId} on multi-dim ${row.multiDimSlug}`
-        )
-    }
+    if (!dimensions)
+        throw noMatchingViewError(row.viewConfigId, row.multiDimSlug)
     return dimensions
 }
 
-function dimensionsToQueryStr(
-    dimensions: MultiDimDimensionChoices
-): string | undefined {
-    const params = new URLSearchParams()
-    const sortedDimensions = Object.entries(dimensions).sort(([keyA], [keyB]) =>
-        keyA.localeCompare(keyB)
-    )
-    for (const [dimension, choice] of sortedDimensions) {
-        params.set(dimension, choice)
-    }
-    const queryStr = params.toString()
-    return queryStr || undefined
-}
-
+// One representative target per source slug, for callers that resolve by slug
+// alone. The query-param matching itself happens at request time in the
+// Cloudflare function, from getMultiDimRedirectRulesBySource.
 export async function getMultiDimRedirectTargets(
     knex: db.KnexReadonlyTransaction,
     slugs: string[] | undefined,
     sourcePrefix: MultiDimRedirectSourcePrefix
 ): Promise<Map<string, MultiDimRedirectTarget>> {
-    const redirectMap = new Map<string, MultiDimRedirectTarget>()
-    if (slugs && slugs.length === 0) return redirectMap
-
-    let whereClause: string
-    let params: string[]
-    if (!slugs) {
-        whereClause = "mdr.source LIKE ?"
-        params = [`${sourcePrefix}%`]
-    } else {
-        whereClause = `mdr.source IN (${slugs.map(() => "?").join(",")})`
-        params = slugs.map((slug) => `${sourcePrefix}${slug}`)
-    }
-
-    // We keep only one target per source (the actual query-param matching
-    // happens at request time in the Cloudflare function). Prefer the
-    // unconditional (catch-all) rule so the representative view is the
-    // default, then order by id so the pick is deterministic across bakes.
-    const redirects = await db.knexRaw<{
-        sourceSlug: string
-        multiDimId: number
-        multiDimSlug: string
-        viewConfigId: string | null
-    }>(
+    const rulesBySource = await getMultiDimRedirectRulesBySource(
         knex,
-        `-- sql
-        SELECT
-            REPLACE(mdr.source, ?, '') as sourceSlug,
-            mddp.id as multiDimId,
-            mddp.slug as multiDimSlug,
-            mdr.viewConfigId as viewConfigId
-        FROM ${MultiDimRedirectsTableName} mdr
-        JOIN multi_dim_data_pages mddp ON mddp.id = mdr.multiDimId
-        WHERE mddp.published = TRUE
-            AND mddp.slug IS NOT NULL
-            AND ${whereClause}
-        ORDER BY (mdr.sourceQueryParams IS NOT NULL), mdr.id
-        `,
-        [sourcePrefix, ...params]
+        sourcePrefix,
+        slugs
     )
-
-    // First row wins (rows are sorted most-preferred first).
-    const winners = new Map<string, (typeof redirects)[number]>()
-    for (const redirect of redirects) {
-        if (!winners.has(redirect.sourceSlug)) {
-            winners.set(redirect.sourceSlug, redirect)
+    const targets = new Map<string, MultiDimRedirectTarget>()
+    for (const [sourceSlug, rules] of rulesBySource) {
+        // Prefer the unconditional (catch-all) rule, so the representative
+        // view is the default, else the oldest rule (rules come in id order).
+        const rule =
+            rules.find(
+                (rule) => Object.keys(rule.sourceQueryParams).length === 0
+            ) ?? rules[0]
+        const { targetSlug, targetQueryParams } = rule.target
+        // A null param only tells the redirect function to drop that source
+        // param; the rest are the target view's dimensions.
+        const viewParams: MultiDimDimensionChoices = {}
+        for (const [key, value] of Object.entries(targetQueryParams)) {
+            if (value !== null) viewParams[key] = value
         }
-    }
-    const viewParamsByMultiDim = await getViewParamsByMultiDim(knex, [
-        ...winners.values(),
-    ])
-    for (const [sourceSlug, redirect] of winners) {
-        redirectMap.set(sourceSlug, {
-            targetSlug: redirect.multiDimSlug,
-            queryStr: dimensionsToQueryStr(
-                lookUpViewParams(viewParamsByMultiDim, redirect)
-            ),
+        targets.set(sourceSlug, {
+            targetSlug,
+            queryStr: viewQueryStr(viewParams),
         })
     }
-
-    return redirectMap
+    return targets
 }
 
 // Returns, for the given source slugs, those that resolve to more than one
@@ -313,7 +294,7 @@ export async function getMultiDimRedirectRulesBySource(
 // values are inherently strings, so non-null values are coerced to strings (a
 // `null` value is preserved as a wildcard). Returns an empty (match-anything)
 // condition when the column is null/empty.
-function parseSourceQueryParams(
+export function parseSourceQueryParams(
     raw: string | null
 ): Record<string, string | null> {
     // Null-prototype object so param names coming from stored JSON (e.g.
@@ -386,19 +367,11 @@ export async function getRecentMultiDimRedirects(
     )
 
     const viewParamsByMultiDim = await getViewParamsByMultiDim(knex, redirects)
-    const result: Array<{ source: string; target: string }> = []
-    for (const redirect of redirects) {
-        const queryStr = dimensionsToQueryStr(
+    return redirects.map((redirect) => ({
+        source: redirect.source,
+        target: buildRedirectTargetPath(
+            redirect.multiDimSlug,
             lookUpViewParams(viewParamsByMultiDim, redirect)
-        )
-        const target = `/grapher/${redirect.multiDimSlug}${
-            queryStr ? `?${queryStr}` : ""
-        }`
-        result.push({
-            source: redirect.source,
-            target,
-        })
-    }
-
-    return result
+        ),
+    }))
 }
