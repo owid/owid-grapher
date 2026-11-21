@@ -52,11 +52,16 @@ export function deriveLatestType(gdoc: LatestFeedGdoc): LatestType {
 export const latestTypeLabelPlural = (type: LatestType): string =>
     `${LATEST_TYPE_LABELS[type]}s`
 
-/** First image block, returned by identity so callers can remove it from the body. */
-export function findThumbnailImageBlock(
-    blocks: OwidEnrichedGdocBlock[]
-): EnrichedBlockImage | undefined {
-    return blocks.find((block) => block.type === "image")
+/** Split off the first image block, which cards show as their lead image. */
+export function splitLeadImage(blocks: OwidEnrichedGdocBlock[]): {
+    leadImage?: EnrichedBlockImage
+    rest: OwidEnrichedGdocBlock[]
+} {
+    const leadImage = blocks.find((block) => block.type === "image")
+    return {
+        leadImage,
+        rest: blocks.filter((block) => block !== leadImage),
+    }
 }
 
 /**
@@ -106,9 +111,10 @@ export function sortTopicAreasByPopularity(areas: string[]): string[] {
 export const LATEST_HIT_GRID_CLASSES =
     "span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"
 
-/** The newsletter block sits in the right-hand column beside the first
+/** The newsletter slot sits in the right-hand column beside the first
  * cards, and goes full-bleed once that column collapses. Shared by the live
- * UI and the baked skeleton so the two layouts can't drift apart. */
+ * UI, the no-results state and the baked skeleton so the layouts can't
+ * drift apart. */
 export const LATEST_NEWSLETTER_SIGNUP_CLASSES =
     "latest-page__newsletter-signup col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
 

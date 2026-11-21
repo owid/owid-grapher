@@ -7,7 +7,7 @@ import { Button, getPrefersReducedMotion } from "@ourworldindata/components"
 import { formatDate } from "@ourworldindata/utils"
 import cx from "clsx"
 
-import { findThumbnailImageBlock } from "../../latest/latestUtils.js"
+import { splitLeadImage } from "../../latest/latestUtils.js"
 import { useImage } from "../utils.js"
 import Image from "./Image.js"
 import { LatestCarouselItem } from "./LatestCarousel.js"
@@ -127,7 +127,7 @@ function GridCard({
     item: LatestCarouselItem
     trackNote?: string
 }) {
-    const thumbnail = findThumbnailImageBlock(item.body)
+    const { leadImage: thumbnail } = splitLeadImage(item.body)
     const thumbnailFilename = thumbnail?.smallFilename || thumbnail?.filename
     const thumbnailMetadata = useImage(thumbnailFilename)
     const isTallThumbnail =

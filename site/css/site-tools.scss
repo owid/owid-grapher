@@ -75,7 +75,8 @@ $site-tools-popover-inset: $header-height-md + $vertical-spacing * 3 +
         overflow-y: auto;
         @include popover-box-styles;
 
-        .newsletter-subscription-header {
+        // Mailchimp layout only; the panel brings its own header styling.
+        &:not(:has(.newsletter-signup-panel)) .newsletter-subscription-header {
             padding: 32px 40px 0 40px;
             svg {
                 display: none;
@@ -87,6 +88,11 @@ $site-tools-popover-inset: $header-height-md + $vertical-spacing * 3 +
 
         .newsletter-subscription-form {
             padding-top: 16px;
+        }
+
+        // Same size as the header nav dropdown; the panel fills it.
+        &:has(.newsletter-signup-panel) {
+            width: 302px;
         }
     }
 }

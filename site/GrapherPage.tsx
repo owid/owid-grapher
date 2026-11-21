@@ -37,6 +37,7 @@ import { Html } from "./Html.js"
 import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
 import { makeJsonLdGrapherImageUrl } from "./jsonLdHelpers.js"
 import { JsonLdDataPage } from "./jsonLd.js"
+import TopicNewsletterCard from "./TopicNewsletterCard.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
@@ -46,6 +47,7 @@ export const GrapherPage = (props: {
     baseGrapherUrl: string
     archiveContext?: ArchiveContext
     isPreviewing?: boolean
+    topicArea?: string
 }) => {
     const {
         grapher,
@@ -55,6 +57,7 @@ export const GrapherPage = (props: {
         baseUrl,
         archiveContext,
         isPreviewing,
+        topicArea,
     } = props
     const pageTitle = grapher.title
 
@@ -181,6 +184,13 @@ window.renderSingleGrapherOnGrapherPage({ config: jsonConfig, dataApiUrl: "${DAT
                         )}
                         <p>Interactive visualization requires JavaScript</p>
                     </div>
+
+                    <TopicNewsletterCard
+                        topicArea={topicArea}
+                        placement="grapher_page"
+                        pageType="chart"
+                        className="topic-newsletter-card--grapher-page topic-newsletter-card--horizontal"
+                    />
 
                     {((relatedArticles && relatedArticles.length !== 0) ||
                         (relatedCharts && relatedCharts.length !== 0)) && (
