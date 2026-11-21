@@ -154,7 +154,9 @@ GET /api/detect-country
 
 ## `/api/search`
 
-This route provides a search API for charts, pages (articles, about pages) and topics. `type=topics` returns topic recommendations derived from the best-ranked matching charts, the same way the site's search page does (see "Topic page recommendations" in `site/search/README.md`); it reads the baked `/topicTagGraph.json` to map chart tags to topic pages.
+This route provides a search API for charts, pages (articles, about pages, data insights, …), topics and country profiles. `type=topics` returns topic recommendations derived from the best-ranked matching charts, the same way the site's search page does (see "Topic page recommendations" in `site/search/README.md`); it reads the baked `/topicTagGraph.json` to map chart tags to topic pages.
+
+It is a public API, and it also serves the site's search page and the featured charts and data insights on topic pages: they send each result section here with `highlights=true`, so the hits keep Algolia's highlight and snippet fields (see `querySection` in `site/search/queries.ts`). Searches without a query don't depend on the reader, so they are cached at the edge for a day; searches with a query are cached only by the browser, so Algolia's analytics see each one. The reader's IP (`CF-Connecting-IP`) is forwarded to Algolia as `X-Forwarded-For`, so those analytics tell readers apart as when the browser queried Algolia directly.
 
 For detailed API documentation, including all parameters, response schemas, and examples, see [search-api.openapi.yaml](../docs/search-api.openapi.yaml).
 

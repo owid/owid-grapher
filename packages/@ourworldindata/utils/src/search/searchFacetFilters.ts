@@ -95,10 +95,10 @@ export const formatTopicFacetFilters = (
 
 /**
  * Builds the full facetFilters array for a charts-index search: country,
- * topic, dataset facets (site-only for now — the public API doesn't expose
- * dataset filters), then the Featured Metric exclusion, in that fixed order.
- * Both the site's queryCharts and /api/search's searchCharts call this, so
- * they can't silently drift apart on filter composition.
+ * topic, dataset facets, then the Featured Metric exclusion, in that fixed
+ * order. buildChartsSearch (the search page's charts and /api/search's) and
+ * recommendTopicPages call this, so they can't drift apart on filter
+ * composition.
  */
 export function buildChartsFacetFilters(params: {
     query: string
