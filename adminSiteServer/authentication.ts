@@ -377,6 +377,26 @@ interface TailscaleStatus {
     }
 }
 
+/**
+ * Who sent the request, if it came over the tailnet: their Tailscale login
+ * and, when the admin has a user with that login, their full name
+ */
+export async function getTailscaleVisitor(
+    req: express.Request
+): Promise<{ login: string; name?: string } | undefined> {
+    const clientIp = getClientIp(req)
+    if (!clientIp) return undefined
+    const ipToUserMap = await getTailscaleIpToUserMap()
+    const login = ipToUserMap[clientIp]
+    if (!login) return undefined
+    const user = await db.knexReadonlyTransaction((trx) =>
+        trx<DbPlainUser>(UsersTableName)
+            .where({ githubUsername: login })
+            .first("fullName")
+    )
+    return { login, name: user?.fullName || undefined }
+}
+
 async function getTailscaleIpToUserMap(): Promise<Record<string, string>> {
     return execWrapper("tailscale status --json")
         .then((res) => {
