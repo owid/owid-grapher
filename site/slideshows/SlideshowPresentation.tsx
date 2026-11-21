@@ -13,10 +13,8 @@ import {
     SlideshowConfig,
     ImageMetadata,
     LinkedAuthor,
-    OwidGdocType,
     ResolvedSlideChartInfo,
 } from "@ourworldindata/types"
-import { getCanonicalUrl } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faChevronLeft,
@@ -28,8 +26,15 @@ import { SlideRenderer } from "./SlideRenderer.js"
 import { SiteSlideChartEmbed } from "./SiteSlideChartEmbed.js"
 import { SlideLogo } from "./SlideLogo.js"
 import { useHasHydrated } from "../hooks.js"
+import { SlideshowAuthorByline } from "./SlideshowAuthorByline.js"
+import { SlideshowMobile } from "./SlideshowMobile.js"
 
 export const _OWID_SLIDESHOW_PROPS = "_OWID_SLIDESHOW_PROPS"
+
+const SLIDESHOW_LAYOUTS = ["deck", "reading", "cards"] as const
+type SlideshowLayout = (typeof SLIDESHOW_LAYOUTS)[number]
+
+const PHONE_MEDIA_QUERY = "(max-width: 768px) and (orientation: portrait)"
 
 export interface SlideshowPresentationProps {
     title: string
@@ -97,9 +102,30 @@ export function SlideshowPresentation(props: {
     // painting until the first client render to avoid a flash of the wrong
     // slide's background.
     const [isHydrated, setIsHydrated] = useState(isControlled)
+    // Prototype: phones in portrait get a reflowed layout instead of the
+    // scaled deck. ?layout=deck|reading|cards overrides the detection.
+    const [layoutState, setLayoutState] = useState<{
+        layout: SlideshowLayout
+        canSwitch: boolean
+    }>({ layout: "deck", canSwitch: false })
+    const { layout } = layoutState
     useLayoutEffect(() => {
         // oxlint-disable-next-line react/set-state-in-effect -- flips before the first paint after hydration
         setIsHydrated(true)
+        if (isControlled) return
+        const layoutFromUrl = getLayoutFromUrl()
+        const isPhone = window.matchMedia(PHONE_MEDIA_QUERY).matches
+        setLayoutState({
+            layout: layoutFromUrl ?? (isPhone ? "reading" : "deck"),
+            canSwitch: isPhone || !!layoutFromUrl,
+        })
+    }, [isControlled])
+
+    const changeLayout = useCallback((layout: SlideshowLayout) => {
+        setLayoutState({ layout, canSwitch: true })
+        const url = new URL(window.location.href)
+        url.searchParams.set("layout", layout)
+        window.history.replaceState(null, "", url.toString())
     }, [])
 
     // Keep the URL ?slide= param in sync (uncontrolled mode only)
@@ -168,6 +194,7 @@ export function SlideshowPresentation(props: {
     // Consolidated keyboard handler. An effect event, so the listener is only
     // registered once (not torn down on every navigation).
     const handleKeyDown = useEffectEvent((e: KeyboardEvent): void => {
+        if (layout === "reading") return
         match(e.key)
             .with("ArrowLeft", "ArrowUp", () => {
                 e.preventDefault()
@@ -194,6 +221,29 @@ export function SlideshowPresentation(props: {
     }, [])
 
     if (slides.length === 0) return <div className="slides" />
+
+    const layoutSwitcher = layoutState.canSwitch && (
+        <LayoutSwitcher layout={layout} onChange={changeLayout} />
+    )
+
+    if (layout !== "deck") {
+        return (
+            <>
+                <SlideshowMobile
+                    layout={layout}
+                    slides={slides}
+                    imageMetadata={imageMetadata}
+                    chartResolutions={chartResolutions}
+                    interactiveCharts={interactiveCharts}
+                    authors={authors}
+                    linkedAuthors={linkedAuthors}
+                    currentIndex={currentIndex}
+                    onSlideChange={setCurrentIndex}
+                />
+                {layoutSwitcher}
+            </>
+        )
+    }
 
     const activeRenderChart = renderChart ?? defaultRenderChart
 
@@ -238,7 +288,7 @@ export function SlideshowPresentation(props: {
             <div className="slideshow-footer">
                 <span className="SlideshowPresentation__branding">
                     A presentation by{" "}
-                    <AuthorByline
+                    <SlideshowAuthorByline
                         authors={authors}
                         linkedAuthors={linkedAuthors}
                     />
@@ -280,54 +330,34 @@ export function SlideshowPresentation(props: {
                     </button>
                 )}
             </div>
+            {layoutSwitcher}
         </div>
     )
 }
 
-/** Renders author names, linking to their author page when available */
-function AuthorByline(props: {
-    authors?: string
-    linkedAuthors?: LinkedAuthor[]
+function getLayoutFromUrl(): SlideshowLayout | undefined {
+    const param = new URLSearchParams(window.location.search).get("layout")
+    return SLIDESHOW_LAYOUTS.find((layout) => layout === param)
+}
+
+function LayoutSwitcher(props: {
+    layout: SlideshowLayout
+    onChange: (layout: SlideshowLayout) => void
 }): React.ReactElement {
-    const { authors, linkedAuthors } = props
-
-    if (!authors) {
-        return <>Our World in Data</>
-    }
-
-    const names = authors
-        .split(",")
-        .map((n) => n.trim())
-        .filter(Boolean)
-
     return (
-        <>
-            {names.map((name, i) => {
-                const linked = linkedAuthors?.find((a) => a.name === name)
-                const isLast = i === names.length - 1
-                const isSecondToLast = i === names.length - 2
-                return (
-                    <React.Fragment key={name}>
-                        {linked ? (
-                            <a
-                                className="SlideshowPresentation__author-link"
-                                href={getCanonicalUrl("", {
-                                    slug: linked.slug,
-                                    content: {
-                                        type: OwidGdocType.Author,
-                                    },
-                                })}
-                            >
-                                {name}
-                            </a>
-                        ) : (
-                            <span>{name}</span>
-                        )}
-                        {!isLast && names.length > 2 && ", "}
-                        {isSecondToLast && names.length > 1 && " and "}
-                    </React.Fragment>
-                )
-            })}
-        </>
+        <div className="slideshow-layout-switcher">
+            {SLIDESHOW_LAYOUTS.map((layout) => (
+                <button
+                    key={layout}
+                    className={cx("slideshow-layout-switcher__button", {
+                        "slideshow-layout-switcher__button--active":
+                            layout === props.layout,
+                    })}
+                    onClick={() => props.onChange(layout)}
+                >
+                    {layout}
+                </button>
+            ))}
+        </div>
     )
 }

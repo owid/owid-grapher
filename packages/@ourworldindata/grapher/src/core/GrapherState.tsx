@@ -619,6 +619,7 @@ export class GrapherState
     hideDonateButton = false
     hideExploreTheDataButton = true
     hideControlsRow = false
+    hideTimelineRow = false
     hideRelatedQuestion = false
     canHideExternalControlsInEmbed: boolean = false
     recommendedIframeEmbedHeight?: number
@@ -783,6 +784,7 @@ export class GrapherState
             hideDownloadButton: observable,
             hideEntityControls: observable,
             hideControlsRow: observable,
+            hideTimelineRow: observable,
             enableMapSelection: observable,
             forceHideAnnotationFieldsInTitle: observable,
             hasTableTab: observable,

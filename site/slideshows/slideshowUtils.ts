@@ -195,8 +195,8 @@ const baseGrapherConfig: Partial<GrapherProgrammaticInterface> = {
 const minimalGrapherConfig: Partial<GrapherProgrammaticInterface> = {
     // Note: we intentionally don't set hideTimeline here because it causes
     // GrapherState to ignore the `time` query param for charts with a time
-    // dimension (line, stacked area, stacked bar). Instead, the timeline is
-    // hidden via CSS in SlideContent.scss.
+    // dimension (line, stacked area, stacked bar).
+    hideTimelineRow: true,
     hideControlsRow: true,
     hideDownloadButton: true,
     hideExploreTheDataButton: true,
