@@ -133,6 +133,8 @@ export function SeriesLabel({
                         textAnchor={state.textAnchor}
                         fontSize={fontSize}
                         stroke={colors[target.role]}
+                        annotationColor={colors.name}
+                        showAnnotationGlyphs={state.hasAnnotationMarkers}
                         onTooltipShow={onTooltipShow}
                         onTooltipHide={onTooltipHide}
                         onMouseEnter={onMouseEnter}
@@ -364,6 +366,8 @@ function TooltipTrigger({
     textAnchor,
     fontSize,
     stroke,
+    annotationColor,
+    showAnnotationGlyphs,
     onTooltipShow,
     onTooltipHide,
     onMouseEnter,
@@ -375,6 +379,8 @@ function TooltipTrigger({
     textAnchor: "start" | "end"
     fontSize: number
     stroke: string
+    annotationColor: string
+    showAnnotationGlyphs: boolean
     onTooltipShow?: (tooltip: SeriesLabelTooltip) => void
     onTooltipHide?: () => void
     onMouseEnter?: React.MouseEventHandler<SVGElement>
@@ -471,6 +477,8 @@ function TooltipTrigger({
                         {hasAnnotations && (
                             <SeriesLabelAnnotations
                                 annotations={annotations}
+                                color={annotationColor}
+                                showGlyphs={showAnnotationGlyphs}
                                 title={
                                     regionTooltip
                                         ? ANNOTATIONS_TITLE

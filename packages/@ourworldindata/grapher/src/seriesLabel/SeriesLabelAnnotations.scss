@@ -43,6 +43,39 @@
     .series-label-annotations__heading {
         font-weight: 700;
     }
+
+    .series-label-annotations__entry--with-glyph {
+        grid-template-columns: 1em 1fr;
+        column-gap: 6px;
+
+        > :not(.series-label-annotations__glyph) {
+            grid-column: 2;
+        }
+    }
+
+    .series-label-annotations__glyph {
+        grid-column: 1;
+        grid-row: 1;
+        align-self: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .series-label-annotations__glyph-svg {
+        display: block;
+        overflow: visible;
+    }
+
+    .series-label-annotations__glyph-svg--point {
+        height: 1.0714em;
+        width: 1.0714em;
+    }
+
+    .series-label-annotations__glyph-svg--range {
+        height: 0.7857em;
+        width: 1em;
+    }
 }
 
 .region-tooltip + .series-label-annotations {

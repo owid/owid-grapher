@@ -8,12 +8,16 @@ import {
     Time,
 } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
-import { Color } from "@ourworldindata/utils"
+import { Bounds, Color, PointVector } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState"
 import { Emphasis } from "../interaction/Emphasis"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants"
-import { PointAnnotation } from "../annotations/EntityAnnotations"
+import {
+    AnnotationMarker,
+    PointAnnotation,
+    RangeAnnotation,
+} from "../annotations/EntityAnnotations"
 
 export const LINE_CHART_CLASS_NAME = "LineChart"
 
@@ -31,9 +35,21 @@ export const VARIABLE_COLOR_MARKER_RADIUS = 2.2
 export const DISCONNECTED_DOTS_MARKER_RADIUS = 2.6
 export const STATIC_SMALL_MARKER_RADIUS = 3
 
+// Range annotation
+export const RANGE_ANNOTATION_TOOLTIP_MARGIN = 6
+export const RANGE_ANNOTATION_TOOLTIP_BELOW_PREFERENCE_PX = 24
+
 // Line outline
 export const DEFAULT_LINE_OUTLINE_WIDTH = 0.5
 export const VARIABLE_COLOR_LINE_OUTLINE_WIDTH = 1.0
+
+export interface PlaceRangeAnnotationTooltipArgs {
+    points: readonly PointVector[]
+    clickPosition: PointVector
+    tooltipBounds: Bounds
+    containerBounds: Bounds
+    outlineWidth: number
+}
 
 export interface LineStyleConfig {
     strokeWidthFactor: number // multiplied by the base stroke width
@@ -102,6 +118,7 @@ export interface LineChartSeries extends ChartSeries {
     columnName: string
     focus: InteractionState
     pointAnnotations: PointAnnotation[]
+    rangeAnnotations: RangeAnnotation[]
 }
 
 export interface PlacedPointAnnotation {
@@ -109,16 +126,34 @@ export interface PlacedPointAnnotation {
     point: PlacedPoint
 }
 
+export interface PlacedRangeAnnotation {
+    annotation: RangeAnnotation
+    points: PlacedPoint[]
+    snappedTimeRange: { startTime: Time; endTime: Time }
+}
+
 export interface RenderPointAnnotation extends PlacedPointAnnotation {
     key: string
     seriesName: SeriesName
     emphasis: Emphasis
+    heading: string
     isTooltipOpen: boolean
+}
+
+export interface RenderRangeAnnotation extends PlacedRangeAnnotation {
+    key: string
+    seriesName: SeriesName
+    emphasis: Emphasis
+    heading: string
+    isTooltipOpen: boolean
+    color: Color
+    outlineWidth: number
 }
 
 export interface PlacedLineChartSeries extends LineChartSeries {
     placedPoints: PlacedPoint[]
     placedPointAnnotations: PlacedPointAnnotation[]
+    placedRangeAnnotations: PlacedRangeAnnotation[]
 }
 
 export interface RenderLineChartSeries extends PlacedLineChartSeries {
@@ -137,7 +172,7 @@ export interface LineChartManager extends ChartManager {
 export type AnnotationTooltipState =
     | { kind: "idle" }
     | { kind: "labelOpen"; seriesName: SeriesName; hasAnnotations: boolean }
-    | { kind: "markerOpen"; seriesName: SeriesName; time: Time }
+    | { kind: "markerOpen"; seriesName: SeriesName; marker: AnnotationMarker }
 
 export type AnnotationTooltipEvent =
     | {
@@ -146,5 +181,5 @@ export type AnnotationTooltipEvent =
           hasAnnotations: boolean
       }
     | { type: "labelTooltipHide"; seriesName: SeriesName }
-    | { type: "markerClick"; seriesName: SeriesName; time: Time }
+    | { type: "markerClick"; seriesName: SeriesName; marker: AnnotationMarker }
     | { type: "markerTooltipClose" }

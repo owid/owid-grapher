@@ -317,7 +317,7 @@ describe(SeriesLabelState, () => {
     })
 
     describe("tooltipTargets", () => {
-        const annotations = [{ text: "A note" }]
+        const annotations = [{ text: "A note", timeScope: "point" as const }]
 
         it("yields no targets without annotations or a region tooltip", () => {
             const label = new SeriesLabelState({

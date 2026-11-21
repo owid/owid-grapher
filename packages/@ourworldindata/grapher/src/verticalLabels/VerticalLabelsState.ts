@@ -40,6 +40,7 @@ export interface VerticalLabelsStateOptions {
     textAnchor?: "start" | "end"
     isInteractive?: boolean
     canShowInfoIcons?: boolean
+    hasAnnotationMarkers?: boolean
     seriesNamesSortedByImportance?: SeriesName[]
 }
 
@@ -59,6 +60,7 @@ export class VerticalLabelsState {
         textAnchor: "start",
         isInteractive: true,
         canShowInfoIcons: false,
+        hasAnnotationMarkers: false,
     } as const satisfies Partial<VerticalLabelsStateOptions>
 
     constructor(series: LabelSeries[], options: VerticalLabelsStateOptions) {
@@ -129,6 +131,7 @@ export class VerticalLabelsState {
                     this.isInteractive &&
                     this.options.canShowInfoIcons &&
                     !!series.annotations?.length,
+                hasAnnotationMarkers: this.options.hasAnnotationMarkers,
             })
 
             const inlineAnnotationTextWrap =
