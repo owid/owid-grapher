@@ -1,0 +1,140 @@
+// Types for the dataset page: a page about a whole published dataset, built
+// from the page files the ETL publishes for it (see
+// baker/datasetPage/datasetPageFiles.ts). A dataset has one or more tables;
+// the page currently shows the first one.
+
+export interface DatasetIndicator {
+    /** Column name in the downloaded table, e.g. `biofuel_elec_per_capita` */
+    shortName: string
+    title: string
+    /** One-line description shown under the title */
+    description: string
+    unit?: string
+    /** e.g. "1900–2025" */
+    dateRange?: string
+    /** Longer description (markdown) shown when the row is expanded */
+    descriptionLong?: string
+    /** Labels of the sources, as in DatasetSource.title */
+    sourceNames: string[]
+}
+
+/** The id of the group with the columns that identify a row (e.g. country and year) */
+export const INDEX_COLUMNS_GROUP_ID = "index-columns"
+
+export interface DatasetIndicatorGroup {
+    id: string
+    title: string
+    indicators: DatasetIndicator[]
+}
+
+export interface DatasetChartView {
+    /** Grapher `tab` param, e.g. "map", "line", "discrete-bar" */
+    tab: string
+    label: string
+}
+
+/** A chart, or one view of a multi-dim, which the page shows as a chart of its own */
+export interface DatasetChart {
+    title: string
+    /** Slug and optional query, relative to the grapher base URL, e.g. "energy-mix?metric=total&source=coal" */
+    grapherPath: string
+    isMultiDimView: boolean
+    sourceText: string
+    views: DatasetChartView[]
+    /** Columns of the table that the chart uses */
+    indicatorShortNames: string[]
+}
+
+export interface DatasetSource {
+    title: string
+    producer: string
+    year?: number
+    url: string
+    /** Simple markdown */
+    description: string
+    citation: string
+    /** ISO dates, e.g. "2026-04-21" */
+    datePublished?: string
+    dateAccessed?: string
+    /** Links to download the source's original data: one per file we use from it */
+    downloads: DatasetSourceDownload[]
+}
+
+export interface DatasetSourceDownload {
+    url: string
+    /** What the file holds, e.g. "Global Carbon Budget – Fossil CO2 emissions", when the source has several files */
+    title?: string
+}
+
+export interface DatasetChangelogEntry {
+    date: string
+    /** Each change is simple markdown (inline code and links are supported) */
+    changes: string[]
+}
+
+export interface DatasetRelatedResearch {
+    title: string
+    description: string
+    url: string
+    imageUrl: string
+}
+
+export type DatasetDownloadFormat = "csv" | "xlsx" | "parquet"
+
+export interface DatasetDownloadFile {
+    format: DatasetDownloadFormat
+    sizeBytes: number
+    latestUrl: string
+    /** The same file of this version, if it is published */
+    versionedUrl?: string
+}
+
+export interface DatasetAuxiliaryFile {
+    label: string
+    latestUrl: string
+    versionedUrl?: string
+}
+
+export interface DatasetTable {
+    name: string
+    title: string
+    /** Markdown */
+    description?: string
+    numRows: number
+    numColumns: number
+    /** Number of columns that aren't part of the primary key */
+    numIndicators: number
+    /** Columns that identify a row, e.g. ["country", "year"], if known */
+    primaryKey?: string[]
+    /** e.g. "1900–2025" */
+    dateRange?: string
+    citation?: string
+    indicatorGroups: DatasetIndicatorGroup[]
+    sources: DatasetSource[]
+    charts: DatasetChart[]
+    downloads: DatasetDownloadFile[]
+    auxiliaryFiles: DatasetAuxiliaryFile[]
+}
+
+export interface DatasetPageData {
+    /** e.g. "energy/owid_energy" */
+    slug: string
+    title: string
+    description: string
+    managedBy?: {
+        name: string
+        url?: string
+        /** Photo from the owner's team page, if they have one */
+        imageUrl?: string
+    }
+    /** e.g. "September 10, 2026" */
+    lastUpdated?: string
+    nextUpdate?: string
+    version: string
+    tables: DatasetTable[]
+    relatedResearch: DatasetRelatedResearch[]
+    changelog: DatasetChangelogEntry[]
+    sourceCodeUrl: string
+    readmeUrl?: string
+    jsonLdUrl?: string
+}
