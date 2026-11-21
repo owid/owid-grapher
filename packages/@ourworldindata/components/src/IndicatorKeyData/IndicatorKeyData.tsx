@@ -4,6 +4,7 @@ import {
     getProcessingPhraseForAttribution,
     formatSourceDate,
     getDateRange,
+    isSingleYearTimespan,
     openLinkInNewTabAttrs,
 } from "@ourworldindata/utils"
 import { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "../SharedDataPageConstants.js"
@@ -18,10 +19,11 @@ export const makeSource = ({
     attribution?: string
     owidProcessingLevel?: OwidProcessingLevel
     isEmbeddedInADataPage?: boolean
-    processingId?: string
+    /** Where the processing phrase links to; `null` leaves it unlinked */
+    processingId?: string | null
 }): React.ReactNode => {
     if (!attribution) return null
-    const isEmbedded = isEmbeddedInADataPage ?? true
+    const isLinked = (isEmbeddedInADataPage ?? true) && processingId !== null
     const processingLevelPhrase = getProcessingPhraseForAttribution(
         attribution,
         owidProcessingLevel
@@ -32,7 +34,7 @@ export const makeSource = ({
             {processingLevelPhrase && (
                 <>
                     {" – "}
-                    {isEmbedded ? (
+                    {isLinked ? (
                         <a
                             href={`#${processingId}`}
                             data-track-note="data_processing_level"
@@ -73,6 +75,14 @@ export const makeDateRange = ({
     if (!dateRange) return null
     return getDateRange(dateRange)
 }
+
+/** "Year" when the timespan covers a single year, otherwise "Date range" */
+export const makeDateRangeLabel = ({
+    dateRange,
+}: {
+    dateRange?: string
+}): string =>
+    dateRange && isSingleYearTimespan(dateRange) ? "Year" : "Date range"
 
 export const makeUnit = ({ unit }: { unit?: string }): React.ReactNode => {
     if (!unit) return null

@@ -1,7 +1,25 @@
-.linked-author-image {
+.linked-author-image,
+.linked-author-initials {
     display: inline-block;
+    flex-shrink: 0;
     height: 24px;
     width: 24px;
     border-radius: 50%;
     overflow: hidden;
+}
+
+.linked-author-initials {
+    position: relative;
+    background-color: $blue-20;
+}
+
+// Out of flow, so the link's underline doesn't reach the letters
+.linked-author-initials__letters {
+    position: absolute;
+    inset: 0;
+    color: $blue-60;
+    font-size: 0.625rem;
+    font-weight: 700;
+    line-height: 24px;
+    text-align: center;
 }

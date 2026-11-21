@@ -19,8 +19,32 @@
         grid-column-end: span 12;
         margin-bottom: 24px;
     }
+
+    .related-article__excerpt {
+        @include body-3-medium;
+        color: $blue-90;
+        margin: 4px 0 0;
+        // At most three lines, the last ending in an ellipsis if cut
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        overflow: hidden;
+    }
 }
 
 .datapage-v2__related-charts-heading {
     color: $blue-90;
+}
+
+// On phones, 40px from the metadata box to the next heading, whether that's
+// Related charts here or Related research and writing (16px plus its padding)
+@include sm-only {
+    .indicator-metadata-box + .datapage-v2__related-charts-heading {
+        margin-top: 24px;
+    }
+}
+
+.DataPageContent .datapage-v2__download-section {
+    background-color: $gray-5;
 }

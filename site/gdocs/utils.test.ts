@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+    getAuthorInitials,
     getAuthorTeamAnchorId,
     getAuthorTeamAnchorUrl,
     getLinkedDocumentUrl,
@@ -136,6 +137,23 @@ describe(getAuthorTeamAnchorUrl, () => {
             expect(getAuthorTeamAnchorUrl(name)).toBe("/team")
         }
     )
+})
+
+describe(getAuthorInitials, () => {
+    it("takes the first and last names' initials", () => {
+        expect(getAuthorInitials("Mojmír Vinkler")).toBe("MV")
+        expect(getAuthorInitials("Gyorgy Attila Ruzicska")).toBe("GR")
+    })
+
+    it("uses one letter for a single name and ignores a role", () => {
+        expect(getAuthorInitials("Bernadeta")).toBe("B")
+        expect(getAuthorInitials("Lars Yencken (engineer)")).toBe("LY")
+    })
+
+    it("ignores titles and credentials, as the team page writes them", () => {
+        expect(getAuthorInitials("Dr. Bobbie Macdonald")).toBe("BM")
+        expect(getAuthorInitials("Valerie Rogers Muigai, CGMA")).toBe("VM")
+    })
 })
 
 describe(getAuthorTeamAnchorId, () => {

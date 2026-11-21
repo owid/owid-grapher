@@ -48,6 +48,7 @@ export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"
 export {
     makeSource,
     makeDateRange,
+    makeDateRangeLabel,
     makeLastUpdated,
     makeNextUpdate,
     makeUnit,
@@ -58,6 +59,7 @@ export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.j
 
 export { MetadataBoxExpander } from "./MetadataBox/MetadataBoxExpander.js"
 export { MetadataBoxCollapseButton } from "./MetadataBox/MetadataBoxCollapseButton.js"
+export { MetadataBoxToggleButton } from "./MetadataBox/MetadataBoxToggleButton.js"
 export { MetadataBoxSection } from "./MetadataBox/MetadataBoxSection.js"
 export { MetadataBoxReuseNotice } from "./MetadataBox/MetadataBoxReuseNotice.js"
 export {

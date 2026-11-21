@@ -1,3 +1,4 @@
+import cx from "clsx"
 import {
     DownloadApiOptions,
     DownloadButtonLink,
@@ -67,9 +68,9 @@ function ApiAndCodeExamplesSection({
 
     return (
         <>
-            <div className="downloads-section">
-                <h4 className="citation__how-to-header">Data API</h4>
-                <p className="citation__paragraph">
+            <div className="downloads__section">
+                <h4 className="downloads__subheading">Data API</h4>
+                <p className="downloads__paragraph">
                     Use these URLs to programmatically access this chart's data
                     and configure your requests with the options below.{" "}
                     <a
@@ -114,11 +115,11 @@ function ApiAndCodeExamplesSection({
                     </div>
                 </section>
             </div>
-            <div className="download-data-section downloads-section">
+            <div className="download-data-section downloads__section">
                 <ExpandableToggle
                     label="Code examples"
                     alwaysVisibleDescription={
-                        <p className="citation__paragraph">
+                        <p className="downloads__paragraph">
                             Examples of how to load this data into different
                             data analysis tools.
                         </p>
@@ -162,7 +163,16 @@ export type DownloadSectionProps = {
     archivedChartInfo?: ArchiveContext
     distribution?: Distribution
     hideRowCounts?: boolean
+    /** Put the heading above the options, in one centred column */
+    isStacked?: boolean
 }
+
+const SIDE_BY_SIDE_HEADING_CLASSES =
+    "span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+const SIDE_BY_SIDE_CONTENT_CLASSES =
+    "col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+const STACKED_COLUMN_CLASSES =
+    "col-start-4 span-cols-6 col-lg-start-3 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
 
 export default function DownloadSection({
     slug,
@@ -175,6 +185,7 @@ export default function DownloadSection({
     archivedChartInfo,
     distribution,
     hideRowCounts,
+    isStacked = false,
 }: DownloadSectionProps) {
     const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
 
@@ -252,22 +263,37 @@ export default function DownloadSection({
     })
 
     return (
-        <div className="downloads grid span-cols-12">
+        <div
+            className={cx("downloads grid span-cols-12", {
+                "downloads--stacked": isStacked,
+            })}
+        >
             <h3
-                className="metadata-section__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                className={cx(
+                    "downloads__heading",
+                    isStacked
+                        ? STACKED_COLUMN_CLASSES
+                        : SIDE_BY_SIDE_HEADING_CLASSES
+                )}
                 id="download"
             >
                 Download
             </h3>
-            <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+            <div
+                className={
+                    isStacked
+                        ? STACKED_COLUMN_CLASSES
+                        : SIDE_BY_SIDE_CONTENT_CLASSES
+                }
+            >
                 {isOnArchivalPage ? (
-                    <div className="downloads-section">
-                        <h4 className="citation__how-to-header">
+                    <div className="downloads__section">
+                        <h4 className="downloads__subheading">
                             Quick download
                         </h4>
                         {shouldShowNonRedistributableNotice ? (
                             <>
-                                <p className="citation__paragraph">
+                                <p className="downloads__paragraph">
                                     You can download the{" "}
                                     <a
                                         href={archiveDownloadVisUrl}
@@ -277,15 +303,15 @@ export default function DownloadSection({
                                     </a>{" "}
                                     as an image.
                                 </p>
-                                <div className="citation__paragraph">
+                                <div className="downloads__paragraph">
                                     <NonRedistributableDataNotice
                                         sourceLinks={sourceLinks}
-                                        listClassName="metadata-list"
+                                        listClassName="downloads__list"
                                     />
                                 </div>
                             </>
                         ) : (
-                            <p className="citation__paragraph">
+                            <p className="downloads__paragraph">
                                 You can download the{" "}
                                 <a
                                     href={archiveDownloadVisUrl}
@@ -305,24 +331,24 @@ export default function DownloadSection({
                         )}
                     </div>
                 ) : shouldShowNonRedistributableNotice ? (
-                    <div className="downloads-section">
-                        <h4 className="citation__how-to-header">
+                    <div className="downloads__section">
+                        <h4 className="downloads__subheading">
                             The data in this chart is not available to download
                         </h4>
-                        <div className="citation__paragraph">
+                        <div className="downloads__paragraph">
                             <NonRedistributableDataNotice
                                 sourceLinks={sourceLinks}
-                                listClassName="metadata-list"
+                                listClassName="downloads__list"
                             />
                         </div>
                     </div>
                 ) : (
                     <>
-                        <div className="downloads-section">
-                            <h4 className="citation__how-to-header">
+                        <div className="downloads__section">
+                            <h4 className="downloads__subheading">
                                 Quick download
                             </h4>
-                            <p className="citation__paragraph">
+                            <p className="downloads__paragraph">
                                 {SERVER_SIDE_DOWNLOAD_HELP_TEXT}
                             </p>
                             <div className="downloads__download-buttons">

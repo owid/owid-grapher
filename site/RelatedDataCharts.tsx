@@ -69,7 +69,8 @@ export const RelatedDataCharts = ({
                                                 index + 1,
                                                 chart.slug,
                                                 ...(vizType ? [vizType] : []),
-                                            ].join(":")
+                                            ].join(":"),
+                                            chart.source
                                         )
                                     }
                                 />

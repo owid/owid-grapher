@@ -184,6 +184,8 @@ export interface SiteClickParams {
     eventAction: string
     /** Target element or label */
     eventTarget?: string
+    /** Optional short qualifier, e.g. which step picked a related-chart card */
+    eventContext?: string
 }
 
 export interface SiteFormSubmitParams {

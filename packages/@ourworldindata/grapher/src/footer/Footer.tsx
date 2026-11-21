@@ -120,10 +120,10 @@ abstract class AbstractFooter<
         return this.manager.sourcesLine?.replace(/\r\n|\n|\r/g, "") ?? ""
     }
 
-    // On data pages running the new metadata-layout experiment we turn the
-    // sources line itself into a link to the on-page metadata box (rather than
-    // appending a separate "Learn more about this data" link). Embeds/iframes
-    // don't have that box, so they keep the default behavior.
+    // On data pages with the new metadata box we turn the sources line itself
+    // into a link to that box (rather than appending a separate "Learn more
+    // about this data" link). Multi-dim pages still have the old layout, and
+    // embeds/iframes have no box, so they keep the default behavior.
     @computed protected get linkSourcesToDatapageMetadata(): boolean {
         return (
             !!this.manager.useNewDatapageMetadataLayout &&

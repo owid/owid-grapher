@@ -5,9 +5,7 @@ import {
     DataPageV2ContentFields,
     GrapherInterface,
     ImageMetadata,
-    isDataPageMetadataRedesignActive,
 } from "@ourworldindata/utils"
-import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import { RelatedDataCharts } from "./RelatedDataCharts.js"
 import {
     ADMIN_BASE_URL,
@@ -22,9 +20,7 @@ import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { useWindowQueryParams } from "./hooks.js"
 import IndicatorMetadataBox from "./IndicatorMetadataBox.js"
-import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
-import MetadataSection from "./MetadataSection.js"
 
 declare global {
     interface Window {
@@ -55,6 +51,7 @@ function DataPageDownloadSection({
             searchParams={searchParams}
             distribution={distribution}
             archivedChartInfo={archivedChartInfo}
+            isStacked
         />
     )
 }
@@ -73,9 +70,6 @@ export const DataPageV2Content = ({
     imageMetadata: Record<string, ImageMetadata>
 }) => {
     const slug = grapherConfig.slug
-    const useNewDatapageDesign = isDataPageMetadataRedesignActive(
-        `/grapher/${slug}`
-    )
     const queryStr =
         typeof window !== "undefined" ? window?.location?.search : undefined
 
@@ -88,9 +82,9 @@ export const DataPageV2Content = ({
             bakedGrapherURL: BAKED_GRAPHER_URL,
             enableKeyboardShortcuts: typeof window !== "undefined",
             archiveContext,
-            useNewDatapageMetadataLayout: useNewDatapageDesign,
+            useNewDatapageMetadataLayout: true,
         }),
-        [grapherConfig, archiveContext, useNewDatapageDesign]
+        [grapherConfig, archiveContext]
     )
 
     const relatedResearch = processRelatedResearch(
@@ -158,113 +152,48 @@ export const DataPageV2Content = ({
                                     isPreviewing={isPreviewing}
                                 />
                             )}
-                            {!useNewDatapageDesign && (
-                                <AboutThisData
-                                    datapageData={datapageData}
-                                    hasFaq={!!faqEntries?.faqs.length}
-                                    id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                                />
-                            )}
                         </div>
-                        {useNewDatapageDesign && (
-                            <IndicatorMetadataBox
-                                datapageData={datapageData}
-                                faqEntries={faqEntries}
-                                canonicalUrl={canonicalUrl}
-                                archiveContext={archiveContext}
-                                id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                                license={grapherConfig.license}
-                            />
+                        <IndicatorMetadataBox
+                            datapageData={datapageData}
+                            faqEntries={faqEntries}
+                            canonicalUrl={canonicalUrl}
+                            archiveContext={archiveContext}
+                            id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
+                            license={grapherConfig.license}
+                        />
+                        {relatedResearch && relatedResearch.length > 0 && (
+                            <div className="datapage-research-and-writing-v2 col-start-2 span-cols-12">
+                                <DataPageResearchAndWriting
+                                    relatedResearch={relatedResearch}
+                                    showExcerpt
+                                />
+                            </div>
                         )}
-                        {useNewDatapageDesign &&
-                            relatedResearch &&
-                            relatedResearch.length > 0 && (
-                                <div className="datapage-research-and-writing-v2 col-start-2 span-cols-12">
-                                    <DataPageResearchAndWriting
-                                        relatedResearch={relatedResearch}
+                        {datapageData.relatedCharts.length > 0 && (
+                            <>
+                                <h2 className="datapage-v2__related-charts-heading span-cols-12 col-start-2 h2-bold">
+                                    Related charts
+                                </h2>
+                                <div className="span-cols-14 grid grid-cols-12-full-width">
+                                    <RelatedDataCharts
+                                        className="col-start-2 span-cols-12"
+                                        charts={datapageData.relatedCharts}
                                     />
                                 </div>
-                            )}
-
-                        {useNewDatapageDesign &&
-                            datapageData.relatedChartsByCoview &&
-                            datapageData.relatedChartsByCoview.length > 0 && (
-                                <>
-                                    <h2 className="datapage-v2__related-charts-heading span-cols-12 col-start-2 h2-bold">
-                                        Related charts
-                                    </h2>
-                                    <div className="span-cols-14 grid grid-cols-12-full-width">
-                                        <RelatedDataCharts
-                                            className="col-start-2 span-cols-12"
-                                            charts={
-                                                datapageData.relatedChartsByCoview
-                                            }
-                                        />
-                                    </div>
-                                </>
-                            )}
+                            </>
+                        )}
                     </div>
-                    {useNewDatapageDesign && downloadSection && (
-                        // The new design moves sources/processing/citations into
-                        // the IndicatorMetadataBox above, so only the data
-                        // download remains here. Rendered with the same wrapper
-                        // markup MetadataSection used so the layout is unchanged.
-                        <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
+                    {downloadSection && (
+                        // Sources, processing and citations live in the
+                        // IndicatorMetadataBox above, so only the data download
+                        // remains down here.
+                        <div className="datapage-v2__download-section span-cols-14 grid grid-cols-12-full-width">
                             <div className="col-start-2 span-cols-12">
                                 <div className="section-wrapper grid">
                                     {downloadSection}
                                 </div>
                             </div>
                         </div>
-                    )}
-                    {!useNewDatapageDesign && (
-                        <>
-                            <div className="col-start-2 span-cols-12">
-                                {relatedResearch &&
-                                    relatedResearch.length > 0 && (
-                                        <DataPageResearchAndWriting
-                                            relatedResearch={relatedResearch}
-                                        />
-                                    )}
-                                {datapageData.allCharts &&
-                                datapageData.allCharts.length > 0 ? (
-                                    <div className="section-wrapper section-wrapper__related-charts">
-                                        <h2
-                                            className="related-charts__title"
-                                            id="all-charts"
-                                        >
-                                            Explore charts that include this
-                                            data
-                                        </h2>
-                                        <div>
-                                            <RelatedCharts
-                                                charts={datapageData.allCharts}
-                                            />
-                                        </div>
-                                    </div>
-                                ) : null}
-                            </div>
-                            <MetadataSection
-                                attributionShort={datapageData.attributionShort}
-                                attributions={datapageData.attributions}
-                                canonicalUrl={canonicalUrl}
-                                descriptionProcessing={
-                                    datapageData.descriptionProcessing
-                                }
-                                faqEntries={faqEntries}
-                                license={grapherConfig.license}
-                                origins={datapageData.origins}
-                                owidProcessingLevel={
-                                    datapageData.owidProcessingLevel
-                                }
-                                primaryTopic={datapageData.primaryTopic}
-                                source={datapageData.source}
-                                title={datapageData.title}
-                                titleVariant={datapageData.titleVariant}
-                                archiveContext={archiveContext}
-                                downloadSection={downloadSection}
-                            />
-                        </>
                     )}
                 </div>
             </DocumentContext.Provider>

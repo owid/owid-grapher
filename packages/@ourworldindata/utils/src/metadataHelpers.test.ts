@@ -5,6 +5,7 @@ import {
     getAttributionFragmentsFromVariable,
     getIndicatorCitations,
     getDateRange,
+    isSingleYearTimespan,
     getETLPathComponents,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
@@ -908,8 +909,13 @@ describe(getDateRange, () => {
         expect(getDateRange("-5000-2020")).toEqual("5000 BCE – 2020 CE")
     })
 
-    it("returns null for a single year", () => {
-        expect(getDateRange("1990")).toBeNull()
+    it("shows a range within a single year as that year", () => {
+        expect(getDateRange("2023-2023")).toEqual("2023")
+        expect(getDateRange("-500--500")).toEqual("500 BCE")
+    })
+
+    it("shows a single year as that year", () => {
+        expect(getDateRange("1990")).toEqual("1990")
     })
 
     it("returns null for an unrecognised separator", () => {
@@ -926,5 +932,21 @@ describe(getDateRange, () => {
 
     it("returns null for an empty string", () => {
         expect(getDateRange("")).toBeNull()
+    })
+})
+
+describe(isSingleYearTimespan, () => {
+    it("is true when both ends are the same year", () => {
+        expect(isSingleYearTimespan("2023-2023")).toBe(true)
+        expect(isSingleYearTimespan("-500--500")).toBe(true)
+    })
+
+    it("is true for a single year written on its own", () => {
+        expect(isSingleYearTimespan("2023")).toBe(true)
+    })
+
+    it("is false for a range or anything that isn't a timespan", () => {
+        expect(isSingleYearTimespan("1990-2020")).toBe(false)
+        expect(isSingleYearTimespan("")).toBe(false)
     })
 })

@@ -46,20 +46,20 @@ export interface DataPageDataV2 {
     lastUpdated: string
     nextUpdate?: string
     relatedResearch: DataPageRelatedResearch[]
-    allCharts: RelatedChart[] // Chart slugs
     source: OwidSource | undefined
     origins: OwidOrigin[]
     chartConfig: Record<string, unknown>
     license?: LicenseOption
     unit?: string
     unitConversionFactor?: number
-    relatedChartsByCoview: RelatedChart[] // only needed for the new datapage design
-    owners?: DatasetOwners[] // only needed for the new datapage design
-    linkedAuthors?: LinkedAuthor[] // only needed for the new datapage design
+    relatedCharts: RelatedChart[] // related-chart cards: coviews, then topic fallbacks
+    owners?: DatasetOwners[]
+    linkedAuthors?: LinkedAuthor[]
 }
 
 export interface DataPageRelatedResearch {
     title: string
+    excerpt?: string
     url: string
     authors: string[]
     imageUrl: string

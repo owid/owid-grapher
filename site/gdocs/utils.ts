@@ -101,16 +101,28 @@ export const useLinkedAuthor = (
 const stripTrailingAuthorRole = (name: string): string =>
     name.replace(/\s*\([^)]+\)\s*$/, "")
 
-export const getAuthorTeamAnchorId = (name: string): string => {
-    const nameWithoutRole = stripTrailingAuthorRole(name)
-    const nameWithoutTitle = nameWithoutRole
+// "Dr. Bobbie Macdonald (editor)" and "Valerie Rogers Muigai, CGMA" →
+// "Bobbie Macdonald", "Valerie Rogers Muigai"
+const stripAuthorTitleAndRole = (name: string): string =>
+    stripTrailingAuthorRole(name)
         .replace(/^(Dr\.|Professor)\s+/, "")
         .replace(/\s*,\s*[^,]+$/, "")
+
+export const getAuthorTeamAnchorId = (name: string): string => {
+    const nameWithoutTitle = stripAuthorTitleAndRole(name)
     return slugify(
         // Convert letters with diacritics to their base Latin letters,
         // e.g. "é" -> "e".
         nameWithoutTitle.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     )
+}
+
+/** "Mojmír Vinkler" → "MV", "Bernadeta" → "B" */
+export const getAuthorInitials = (name: string): string => {
+    const words = stripAuthorTitleAndRole(name).trim().split(/\s+/)
+    const initials =
+        words.length > 1 ? [words[0], words[words.length - 1]] : words
+    return initials.map((word) => word.charAt(0).toUpperCase()).join("")
 }
 
 const authorNamesWithoutTeamAnchors = new Set([
