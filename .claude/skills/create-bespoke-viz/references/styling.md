@@ -25,6 +25,6 @@ Don't bundle `@font-face`: Lato and Playfair are declared by the host document, 
 The readme's rule is that portaled UI must mount inside the shadow root. Two specifics:
 
 - Tippy needs `useTippyContainer()`'s `getTippyContainer` passed as `appendTo`, or it lands on `document.body` where your styles don't reach.
-- react-aria dropdown menus are the exception: they portal into the **light DOM**, because Enter-to-select is broken in Shadow DOM. Custom styling inside menu options therefore has to be inline styles — see `food-trade`'s controls and `EntityDropdown`'s `LocationIcon`.
+- react-aria dropdown menus are the exception: they portal into the **light DOM**, because Enter-to-select is broken in Shadow DOM. Custom styling inside menu options therefore can't come from the bundle's stylesheet: either use inline styles (`food-trade`'s controls, `EntityDropdown`'s `LocationIcon`) or, for a larger popover, give it its own stylesheet imported with Vite's `?inline` suffix and rendered as a `<style>` element inside the popover (`income-distribution`'s `IncomeUnitPickerPopover.scss`), which also lets shared components like `Switcher` render there.
 
 `dev-only-global-css.css` supplies the global styles those portaled overlays need on the demo page; production articles already have them. Keep this entrypoint.
