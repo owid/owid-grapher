@@ -7,7 +7,6 @@ import {
 } from "@ourworldindata/types"
 import { createTopicFilter } from "./search/searchUtils.js"
 import { queryDataInsights, searchQueryKeys } from "./search/queries.js"
-import { getLiteSearchClient } from "./search/searchClients.js"
 import { SearchDataInsightsResultsSkeleton } from "./search/SearchDataInsightsResultsSkeleton.js"
 import { SearchDataInsightHit } from "./search/SearchDataInsightHit.js"
 import { Button } from "@ourworldindata/components"
@@ -19,7 +18,8 @@ import {
     getTopicPageHeading,
 } from "@ourworldindata/utils"
 
-const MAX_DATA_INSIGHTS_RESULTS = 1000 // setting to maximum allowed to get all results
+// The most /api/search returns in one request; no topic has nearly as many
+const MAX_DATA_INSIGHTS_RESULTS = 100
 
 export type FeaturedDataInsightsProps = {
     topicName: string
@@ -30,7 +30,6 @@ export const FeaturedDataInsights = ({
     topicName,
     className,
 }: FeaturedDataInsightsProps) => {
-    const liteSearchClient = getLiteSearchClient()
     const { gdocType } = useDocumentContext()
     const headingFragment = getTopicPageHeading("dataInsights", gdocType)
     const headingCaseCorrected = `${headingFragment} on ${sentenceCaseIfNotTopicPage(topicName, gdocType, false)}`
@@ -50,12 +49,7 @@ export const FeaturedDataInsights = ({
         // would technically collide if using the same query client instance
         queryKey: searchQueryKeys.dataInsights(searchState),
         queryFn: () =>
-            queryDataInsights(
-                liteSearchClient,
-                searchState,
-                0,
-                MAX_DATA_INSIGHTS_RESULTS
-            ),
+            queryDataInsights(searchState, 0, MAX_DATA_INSIGHTS_RESULTS),
         enabled: Boolean(topicName),
     })
 

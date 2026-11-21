@@ -166,51 +166,39 @@ export const SearchWritingResults = ({
     showProfiles?: boolean
 }) => {
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
-    const { topicTagGraph } = useSearchContext()
 
     const profilesQuery = useInfiniteSearchOffset({
         queryKey: (state) => searchQueryKeys.profiles(state),
-        queryFn: (liteSearchClient, state, offset, length) => {
-            return queryProfiles(liteSearchClient, state, offset, length)
-        },
+        queryFn: queryProfiles,
         firstPageSize: 2,
         laterPageSize: 4,
         enabled: showProfiles,
     })
 
+    // The first page's six slots go to profiles, then articles, then topic
+    // pages, so how many each shows depends on how many the others found. All
+    // three are requested at once, at their largest first-page size, and cut
+    // down once all have answered, rather than one after another.
     const profileSlots = Math.min(profilesQuery.totalResults, 2)
-    const profilesRequestDone = !showProfiles || !profilesQuery.isLoading
 
     const articlesQuery = useInfiniteSearchOffset({
         queryKey: (state) => searchQueryKeys.articles(state),
-        queryFn: (liteSearchClient, state, offset, length) => {
-            return queryArticles(liteSearchClient, state, offset, length)
-        },
+        queryFn: queryArticles,
         firstPageSize: 4 - profileSlots,
+        firstPageFetchSize: 4,
         laterPageSize: 6,
-        enabled: profilesRequestDone,
     })
 
     const noArticles = articlesQuery.totalResults === 0
     const articleSlots = Math.min(articlesQuery.totalResults, 4 - profileSlots)
-    const topicFirstPageSize = 6 - profileSlots - articleSlots
-
-    const dependenciesLoaded = !articlesQuery.isLoading && profilesRequestDone
 
     const topicsQuery = useInfiniteSearchOffset({
         queryKey: (state) => searchQueryKeys.topicPages(state),
-        queryFn: (liteSearchClient, state, offset, length) => {
-            return queryTopicPages(
-                liteSearchClient,
-                state,
-                topicTagGraph,
-                offset,
-                length
-            )
-        },
-        firstPageSize: topicFirstPageSize,
+        queryFn: queryTopicPages,
+        firstPageSize: 6 - profileSlots - articleSlots,
+        firstPageFetchSize: 6,
         laterPageSize: noArticles ? 6 : 4,
-        enabled: hasTopicPages && dependenciesLoaded,
+        enabled: hasTopicPages,
     })
 
     const hasLargeTopic = topicsQuery.totalResults === 1
@@ -257,10 +245,8 @@ export const SearchWritingResults = ({
                 : undefined,
         ])
 
-    const articlePages = suppressArticlesRescue
-        ? []
-        : articlesQuery.data?.pages || []
-    const topicPages = topicsQuery.data?.pages || []
+    const articlePages = suppressArticlesRescue ? [] : articlesQuery.pages
+    const topicPages = topicsQuery.pages
     const visibleArticleHits = suppressArticlesRescue ? [] : articlesQuery.hits
     const orderedHits: WritingHit[] = [
         ...profilesQuery.hits,
