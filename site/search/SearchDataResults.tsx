@@ -60,7 +60,13 @@ export const SearchDataResults = ({
                     <SearchDataResultsSkeleton />
                 ) : (
                     <>
-                        <SearchResultHeader count={totalResults}>
+                        <SearchResultHeader
+                            count={totalResults}
+                            // The rerank (#7869) orders the results of a typed query
+                            labsFeature={
+                                state.query.trim() ? "7869" : undefined
+                            }
+                        >
                             Data
                         </SearchResultHeader>
                         {featuredVizHit && (

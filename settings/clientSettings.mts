@@ -85,6 +85,17 @@ export const ALGOLIA_CACHED_QUERIES_URL: string =
     process.env.ALGOLIA_CACHED_QUERIES_URL ??
     (ENV === "development" ? "" : `${BAKED_BASE_URL}/api/search/cached-queries`)
 
+// The search API (functions/api/search/index.ts), which runs the search
+// page's result sections. The admin server doesn't serve Cloudflare functions,
+// so in development it is production's unless set (e.g. to the local
+// functions server, http://localhost:<WRANGLER_PORT>/api/search). `||`
+// rather than `??` because .env.example-full sets it to an empty value.
+export const SEARCH_API_URL: string =
+    process.env.SEARCH_API_URL ||
+    (ENV === "development"
+        ? "https://ourworldindata.org/api/search"
+        : `${BAKED_BASE_URL}/api/search`)
+
 // Cloudflare Images has one store shared by all environments, so in development
 // images come from the production delivery URL unless set. `||` rather than `??`
 // because .env.example-full sets it to an empty value.
@@ -93,6 +104,11 @@ export const CLOUDFLARE_IMAGES_URL: string =
     (ENV === "development"
         ? "https://ourworldindata.org/cdn-cgi/imagedelivery/qLq-8BTgXU8yG0N6HnOy8g"
         : "")
+
+// "Configure with AI" prototype. In development, set it to the local functions
+// server, e.g. http://localhost:<WRANGLER_PORT>/api/configure-with-ai
+export const CONFIGURE_WITH_AI_API_URL: string =
+    process.env.CONFIGURE_WITH_AI_API_URL ?? "/api/configure-with-ai"
 
 export const DONATE_API_URL: string =
     process.env.DONATE_API_URL ?? "http://localhost:8788/donation/donate"

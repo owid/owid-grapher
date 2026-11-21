@@ -1,0 +1,217 @@
+// Imported by LabsBar.tsx rather than owid.scss, so it imports what it uses itself
+@use "../../packages/@ourworldindata/components/src/styles/colors.scss" as *;
+@use "../../packages/@ourworldindata/components/src/styles/variables.scss" as *;
+@use "../../packages/@ourworldindata/components/src/styles/typography-constants.scss"
+    as *;
+
+// Font Awesome's flask, the Labs mark, as a mask so it takes the text's color
+$labs-flask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath d='M288 0H160 128C110.3 0 96 14.3 96 32s14.3 32 32 32V196.8c0 11.8-3.3 23.5-9.5 33.5L10.3 406.2C3.6 417.2 0 429.7 0 442.6C0 480.9 31.1 512 69.4 512H378.6c38.3 0 69.4-31.1 69.4-69.4c0-12.8-3.6-25.4-10.3-36.4L329.5 230.4c-6.2-10.1-9.5-21.7-9.5-33.5V64c17.7 0 32-14.3 32-32s-14.3-32-32-32H288zM192 196.8V64h64V196.8c0 23.7 6.6 46.9 19 67.1L309.5 320h-171L173 263.9c12.4-20.2 19-43.4 19-67.1z'/%3E%3C/svg%3E");
+
+// labsFeatures.ts sets data-labs-mark on the elements of features on Labs. An
+// element whose own ::after is taken needs data-labs-feature on an inner
+// element instead.
+[data-labs-mark]::after {
+    content: "";
+    display: inline-block;
+    flex-shrink: 0;
+    width: 0.7em;
+    height: 0.8em;
+    margin-left: 0.4em;
+    vertical-align: -0.05em;
+    background-color: currentColor;
+    mask: $labs-flask no-repeat center / contain;
+}
+
+.labs-mark--flash {
+    outline: 3px solid $amber;
+    outline-offset: 2px;
+}
+
+.labs-bar {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    // Above page content, but below the site header, fullscreen charts, drawers
+    // and the cookie notice, so it never covers their controls
+    z-index: $zindex-popover;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    max-width: calc(100vw - 32px);
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    line-height: 1;
+}
+
+.labs-bar__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    background-color: $oxford-blue;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.labs-bar__toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 36px;
+    padding: 0 12px 0 0;
+    background: none;
+    color: #fff;
+    border: none;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.labs-bar__tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    box-sizing: border-box;
+    border: 1px solid #fff;
+    font-size: 0.9375rem;
+}
+
+.labs-bar__count {
+    padding: 3px 7px;
+    background: $amber;
+    color: $oxford-blue;
+    font-size: 0.6875rem;
+    font-weight: 900;
+}
+
+.labs-bar__button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 12px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border: none;
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.24);
+        color: #fff;
+    }
+}
+
+.labs-bar__button--icon {
+    padding: 0 10px;
+}
+
+.labs-panel {
+    width: 420px;
+    max-width: 100%;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    background: #fff;
+    color: $oxford-blue;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    line-height: 1.45;
+
+    a {
+        color: $vermillion;
+    }
+}
+
+.labs-panel__header {
+    padding: 16px 20px;
+    border-bottom: 1px solid $blue-20;
+}
+
+.labs-panel__title {
+    margin: 0 0 4px;
+    font-family: $serif-font-stack;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.labs-panel__build,
+.labs-panel__empty,
+.labs-panel__recording {
+    margin: 0;
+    color: $blue-50;
+}
+
+.labs-panel__features {
+    margin: 0;
+    padding: 8px 0;
+    list-style: none;
+}
+
+.labs-panel__feature {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 20px;
+}
+
+.labs-panel__feature--on-page {
+    background: $amber-10;
+}
+
+.labs-panel__feature-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.labs-panel__feature-meta {
+    color: $blue-50;
+}
+
+.labs-panel__show {
+    padding: 0;
+    background: none;
+    border: none;
+    color: $vermillion;
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.labs-panel__empty {
+    padding: 16px 20px;
+}
+
+.labs-panel__recording {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-top: 1px solid $blue-20;
+
+    &::before {
+        content: "";
+        flex-shrink: 0;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: $vermillion;
+    }
+}
+
+.labs-bar__notice {
+    max-width: 420px;
+    margin: 0;
+    padding: 12px 16px;
+    background: $amber-10;
+    color: $oxford-blue;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    line-height: 1.45;
+}
