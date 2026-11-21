@@ -162,7 +162,7 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         expect(after["metric=total"]).toBe(before["metric=total"])
         expect(await env.getCount(ChartConfigsTableName)).toBe(1)
 
-        // multi_dim_view_dimensions is an append-only log for analytics: its row
+        // multi_dim_view_dimensions rows are never deleted, for analytics: the row
         // for the removed view deliberately outlives the config it names, so a
         // GA event carrying that config id can still be resolved.
         expect(await env.getCount(MultiDimViewDimensionsTableName)).toBe(2)

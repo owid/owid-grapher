@@ -67,7 +67,7 @@ describe("Deleting a multi-dim", { timeout: 20000 }, () => {
                 .testKnex(ChartConfigsTableName)
                 .whereIn("id", viewConfigIds)
         ).toHaveLength(0)
-        // Append-only analytics mapping survives the deletion
+        // The analytics mapping, whose rows are never deleted, survives the deletion
         expect(
             await env
                 .testKnex(MultiDimViewDimensionsTableName)
