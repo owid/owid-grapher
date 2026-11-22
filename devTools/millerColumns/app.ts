@@ -26,6 +26,8 @@ interface TreeNode {
     target?: string
     dimension?: string
     sameData?: string[]
+    keyIn?: string[]
+    pop?: number
 }
 interface Reference {
     from: string
@@ -792,6 +794,25 @@ function renderRow(
             trailing.append(icon("chevron"))
             break
         }
+        case "everything": {
+            const all = icon("refs")
+            all.classList.add("kind-icon")
+            row.append(
+                all,
+                el(
+                    "span",
+                    "row__text",
+                    el("span", "row__title", n.title),
+                    el(
+                        "span",
+                        "row__meta",
+                        `${itemsIn(n.parent!).length.toLocaleString("en-GB")} items, sorted`
+                    )
+                )
+            )
+            trailing.append(icon("chevron"))
+            break
+        }
         case "prominent-link":
             row.append(
                 el(
@@ -1397,6 +1418,38 @@ function render(before: Location): void {
             )
         )
 
+    const feed = strip.querySelector<HTMLElement>(".col--feed[data-feed-key]")
+    const feedScroll = feed && {
+        key: feed.dataset.feedKey,
+        top: feed.querySelector(".col__body")!.scrollTop,
+    }
+    const keepFeedScroll = (): void => {
+        const now = strip.querySelector<HTMLElement>(
+            ".col--feed[data-feed-key]"
+        )
+        if (now && feedScroll && now.dataset.feedKey === feedScroll.key)
+            now.querySelector(".col__body")!.scrollTop = feedScroll.top
+    }
+    renderSpikeControls()
+    // A: the List side of the switch shows the place you're at as one list.
+    if (placement === "switch" && listView) {
+        const scope = listScope()
+        const panel = listPanel(
+            scope,
+            scope === "root"
+                ? "Everything on Our World in Data"
+                : `Everything in ${node(scope).title}`
+        )
+        panel.classList.add("col--wide")
+        strip.replaceChildren(panel)
+        keepFeedScroll()
+        renderCrumbs()
+        renderKeys()
+        return
+    }
+    // C: the root, with nothing picked yet, opens on the start page.
+    const startHere = placement === "start" && state.path.length === 1
+
     const cols: HTMLElement[] = []
     // Whatever sits right of the selection (a preview, the side panel, or
     // nothing) goes in one fixed-width slot, so it never moves the columns.
@@ -1425,9 +1478,14 @@ function render(before: Location): void {
         )
         spine.dataset.crumb = String(i + 1)
         col.prepend(spine)
-        if (selectedId) cols.push(col)
+        if (selectedId || startHere) cols.push(col)
         else trailing.append(col)
     }
+    if (startHere) trailing.append(startPage())
+    // B: the "Everything in …" row opens its list right of the column.
+    const picked = node(selected())
+    if (picked.kind === "everything")
+        trailing.append(listPanel(picked.parent!, picked.title))
     const peekCols = peekColumns()
     if (peekCols.length) {
         const dock = el("div", "peek-dock", ...peekCols)
@@ -1449,6 +1507,7 @@ function render(before: Location): void {
         if (top !== undefined && keep.has(c.dataset.parent!))
             c.querySelector(".col__body")!.scrollTop = top
     })
+    keepFeedScroll()
     renderCrumbs()
     renderKeys()
     layout()
@@ -1465,10 +1524,412 @@ function render(before: Location): void {
     }
 }
 
+// --- Lists: the same items, sorted (spike) ---
+
+// One sortable list of what a place holds, placed three ways to compare
+// them by trying them: A, a Columns/List switch for the place you're at;
+// B, an "Everything in …" row at the top of each topic column; C, a start
+// page at the root. Every row jumps to the item's one place in the tree.
+type Placement = "switch" | "row" | "start"
+const PLACEMENTS: [Placement, string][] = [
+    ["switch", "A · List view"],
+    ["row", "B · Tree row"],
+    ["start", "C · Start page"],
+]
+let placement =
+    (localStorage.getItem("mc-placement") as Placement | null) ?? "switch"
+let listView = false // A: showing the List side of the switch
+let startFull = false // C: the start page's full list instead of its shelves
+
+// The kinds a list holds, in the order "Best way in" groups them.
+const LIST_KINDS: [string, string[]][] = [
+    ["Topic pages", ["topic-page", "linear-topic-page"]],
+    ["Articles", ["article"]],
+    ["Data insights", ["data-insight"]],
+    ["Data collections", ["mdm"]],
+    ["Explorers", ["explorer"]],
+    ["Charts", ["chart"]],
+]
+const kindGroupOf = new Map(
+    LIST_KINDS.flatMap(([label, kinds]) => kinds.map((k) => [k, label]))
+)
+
+type ListSort = "newest" | "best"
+const listState = {
+    sort: "newest" as ListSort,
+    hidden: new Set(["Charts"]),
+    shown: 60,
+}
+// Each sort starts from its own chips: a new chart isn't news the way an
+// insight is, so Newest leaves charts out until you turn them on.
+function setSort(sort: ListSort): void {
+    listState.sort = sort
+    listState.hidden = new Set(sort === "newest" ? ["Charts"] : [])
+    listState.shown = 60
+}
+const isPlace = (id: string): boolean =>
+    ["root", "area", "topic"].includes(node(id).kind)
+
+// Everything a place holds: items filed under it or any topic below it,
+// and items tagged there that live elsewhere.
+const itemsCache = new Map<string, string[]>()
+function itemsIn(scope: string): string[] {
+    if (itemsCache.has(scope)) return itemsCache.get(scope)!
+    const topics = new Set<string>()
+    const walk = (id: string): void => {
+        topics.add(id)
+        for (const k of childrenOf(id)) if (isPlace(k)) walk(k)
+    }
+    walk(scope)
+    const items = [...nodes.values()]
+        .filter(
+            (n) =>
+                kindGroupOf.has(n.kind) &&
+                !n.id.includes("#") &&
+                (scope === "root" ||
+                    topics.has(homeOf(n.id)?.id ?? "") ||
+                    n.alsoIn?.some((t) => topics.has(t)))
+        )
+        .map((n) => n.id)
+    itemsCache.set(scope, items)
+    return items
+}
+
+const monthName = (date: string): string =>
+    new Date(date).toLocaleDateString("en-GB", {
+        month: "long",
+        year: "numeric",
+    })
+const dayName = (date: string): string =>
+    new Date(date).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+    })
+
+// The list in sections: by month for Newest; for Best way in, the editors'
+// picks (the place's topic page and key charts), then each kind by
+// popularity, since the popularity score only ranks items of one kind.
+function listSections(
+    scope: string,
+    sort: ListSort,
+    hidden: Set<string>
+): { label: string; ids: string[] }[] {
+    const ids = itemsIn(scope).filter(
+        (id) => !hidden.has(kindGroupOf.get(node(id).kind)!)
+    )
+    const sections = new Map<string, string[]>()
+    const add = (label: string, id: string): void => {
+        if (!sections.has(label)) sections.set(label, [])
+        sections.get(label)!.push(id)
+    }
+    if (sort === "newest") {
+        const dated = ids
+            .filter((id) => node(id).date)
+            .sort((a, b) => node(b).date!.localeCompare(node(a).date!))
+        for (const id of dated) add(monthName(node(id).date!), id)
+        for (const id of ids) if (!node(id).date) add("No date", id)
+    } else {
+        const isPick = (id: string): boolean =>
+            (node(id).kind.endsWith("topic-page") &&
+                homeOf(id)?.id === scope) ||
+            (node(id).keyIn?.includes(scope) ?? false)
+        const byPop = [...ids].sort(
+            (a, b) => (node(b).pop ?? 0) - (node(a).pop ?? 0)
+        )
+        for (const id of byPop) if (isPick(id)) add("Editors' picks", id)
+        for (const [label] of LIST_KINDS)
+            for (const id of byPop)
+                if (!isPick(id) && kindGroupOf.get(node(id).kind) === label)
+                    add(label, id)
+    }
+    return [...sections].map(([label, ids]) => ({ label, ids }))
+}
+
+function feedRow(id: string, scope: string): HTMLElement {
+    const n = node(id)
+    const row = el("div", `row feed-row row--${n.kind}`)
+    row.dataset.feedId = id
+    if (n.kind === "chart" && n.thumb)
+        row.append(thumb(n.thumb, "row__thumb", 240))
+    else row.append(kindIcon(n.kind) ?? "")
+    const home = homeOf(id)
+    const meta = [
+        KIND_LABEL[n.kind],
+        n.date ? dayName(n.date) : null,
+        home && home.id !== scope && home.id !== "root"
+            ? `in ${home.title}`
+            : null,
+    ].filter(Boolean)
+    row.append(
+        el(
+            "span",
+            "row__text",
+            el("span", "row__title", n.title),
+            el("span", "row__meta", meta.join(" · "))
+        )
+    )
+    return row
+}
+
+function sortSwitch(): HTMLElement {
+    const seg = el("div", "seg")
+    for (const [sort, label] of [
+        ["newest", "Newest"],
+        ["best", "Best way in"],
+    ] as [ListSort, string][]) {
+        const b = el("button", "seg__button", label)
+        b.dataset.sort = sort
+        b.setAttribute("aria-pressed", String(listState.sort === sort))
+        seg.append(b)
+    }
+    return seg
+}
+
+function kindChips(scope: string): HTMLElement {
+    const chips = el("div", "chips")
+    const counts = new Map<string, number>()
+    for (const id of itemsIn(scope)) {
+        const label = kindGroupOf.get(node(id).kind)!
+        counts.set(label, (counts.get(label) ?? 0) + 1)
+    }
+    for (const [label] of LIST_KINDS) {
+        const count = counts.get(label)
+        if (!count) continue
+        const chip = el(
+            "button",
+            "chip",
+            label,
+            el("span", "chip__count", count.toLocaleString("en-GB"))
+        )
+        chip.dataset.chip = label
+        chip.setAttribute("aria-pressed", String(!listState.hidden.has(label)))
+        chips.append(chip)
+    }
+    return chips
+}
+
+// The full list of a place, with its sort and kind chips.
+function listPanel(scope: string, title: string, back?: string): HTMLElement {
+    const col = el("section", "col col--feed")
+    col.dataset.feedKey = [scope, listState.sort, ...listState.hidden].join("|")
+    const head = el(
+        "header",
+        "feed__head",
+        back ? el("button", "feed__back", icon("back"), back) : null,
+        el("h2", "feed__title", title),
+        el("div", "feed__controls", sortSwitch()),
+        kindChips(scope)
+    )
+    const body = el("div", "col__body feed__body")
+    let left = listState.shown
+    const sections = listSections(scope, listState.sort, listState.hidden)
+    for (const { label, ids } of sections) {
+        if (left <= 0) break
+        body.append(el("div", "group-label", label))
+        for (const id of ids.slice(0, left)) body.append(feedRow(id, scope))
+        left -= ids.length
+    }
+    const total = sections.reduce((s, x) => s + x.ids.length, 0)
+    if (!total)
+        body.append(el("p", "col__empty", "Nothing of these kinds here."))
+    if (total > listState.shown) {
+        const more = el(
+            "button",
+            "feed__more",
+            `Show more (${(total - listState.shown).toLocaleString("en-GB")} left)`
+        )
+        more.dataset.more = "1"
+        body.append(more)
+    }
+    col.append(head, body)
+    return col
+}
+
+// C: the root as a front page. A few shelves, each opening the full list.
+function startPage(): HTMLElement {
+    if (startFull)
+        return listPanel(
+            "root",
+            "Everything on Our World in Data",
+            "Start page"
+        )
+    const page = el("section", "col col--feed start")
+    const body = el("div", "col__body start__body")
+    const shelf = (
+        title: string,
+        ids: string[],
+        open: { sort: ListSort; only?: string }
+    ): HTMLElement => {
+        const see = el("button", "shelf__all", "See all", icon("chevron"))
+        see.dataset.open = JSON.stringify(open)
+        return el(
+            "section",
+            "shelf",
+            el("div", "shelf__head", el("h2", "shelf__title", title), see),
+            ...ids.map((id) => feedRow(id, "root"))
+        )
+    }
+    const latest = listSections("root", "newest", new Set(["Charts"]))
+        .flatMap((s) => s.ids)
+        .slice(0, 6)
+    const topicPages = listSections(
+        "root",
+        "best",
+        new Set(LIST_KINDS.map(([l]) => l).filter((l) => l !== "Topic pages"))
+    )
+        .flatMap((s) => s.ids)
+        .slice(0, 6)
+    const kinds = el("div", "chips start__kinds")
+    for (const [label] of LIST_KINDS) {
+        const count = itemsIn("root").filter(
+            (id) => kindGroupOf.get(node(id).kind) === label
+        ).length
+        const chip = el(
+            "button",
+            "chip",
+            label,
+            el("span", "chip__count", count.toLocaleString("en-GB"))
+        )
+        chip.dataset.open = JSON.stringify({ sort: "best", only: label })
+        kinds.append(chip)
+    }
+    body.append(
+        el("h1", "start__title", "Our World in Data"),
+        shelf("Latest", latest, { sort: "newest" }),
+        shelf("Start here: most-read topic pages", topicPages, {
+            sort: "best",
+            only: "Topic pages",
+        }),
+        el(
+            "section",
+            "shelf",
+            el(
+                "div",
+                "shelf__head",
+                el("h2", "shelf__title", "Browse by kind")
+            ),
+            kinds
+        )
+    )
+    page.append(body)
+    return page
+}
+
+// B: an "Everything in …" row heads every place's column.
+function applyPlacement(): void {
+    for (const n of [...nodes.values()]) {
+        if (!isPlace(n.id)) continue
+        const id = `everything:${n.id}`
+        n.children = (n.children ?? []).filter((c) => c !== id)
+        if (placement !== "row") continue
+        nodes.set(id, {
+            id,
+            kind: "everything",
+            title: n.id === "root" ? "Everything" : `Everything in ${n.title}`,
+            parent: n.id,
+        })
+        n.children.unshift(id)
+    }
+}
+GROUP_OF.everything = "All"
+
+// The place a list view shows: the topic you're in, or the whole site.
+const listScope = (): string => state.path.findLast(isPlace) ?? "root"
+
+// The spike's own controls: the placement picker, A's switch, and Home.
+const bar = document.querySelector<HTMLElement>(".bar")!
+const homeButton = el("button", "icon-button", icon("topic"))
+homeButton.title = "Home"
+homeButton.setAttribute("aria-label", "Home")
+homeButton.addEventListener("click", () => {
+    startFull = false
+    void go({ path: ["root"], peek: null })
+})
+document.querySelector(".bar__history")!.prepend(homeButton)
+const viewSwitch = el("div", "seg view-switch")
+const placementPicker = el("div", "placement")
+bar.append(viewSwitch, placementPicker)
+function renderSpikeControls(): void {
+    viewSwitch.hidden = placement !== "switch"
+    viewSwitch.replaceChildren(
+        ...[
+            ["columns", "Columns"],
+            ["list", "List"],
+        ].map(([v, label]) => {
+            const b = el("button", "seg__button", label)
+            b.dataset.view = v
+            b.setAttribute("aria-pressed", String((v === "list") === listView))
+            return b
+        })
+    )
+    const select = el("select", "placement__select")
+    select.setAttribute("aria-label", "Placement being tried")
+    for (const [p, label] of PLACEMENTS) {
+        const o = el("option", "", label)
+        o.value = p
+        o.selected = p === placement
+        select.append(o)
+    }
+    placementPicker.replaceChildren(
+        el("span", "placement__label", "Spike"),
+        select
+    )
+}
+viewSwitch.addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>("[data-view]")
+    if (!b) return
+    listView = b.dataset.view === "list"
+    render(state)
+})
+placementPicker.addEventListener("change", (e) => {
+    placement = (e.target as HTMLSelectElement).value as Placement
+    localStorage.setItem("mc-placement", placement)
+    listView = false
+    startFull = false
+    applyPlacement()
+    const path = state.path.filter((id) => nodes.get(id)?.kind !== "everything")
+    void go({ path, peek: null })
+})
+// List controls work the same wherever a list is placed.
+function handleListClick(t: HTMLElement): boolean {
+    const sort = t.closest<HTMLElement>("[data-sort]")
+    const chip = t.closest<HTMLElement>("[data-chip]")
+    const open = t.closest<HTMLElement>("[data-open]")
+    const feedRowEl = t.closest<HTMLElement>("[data-feed-id]")
+    if (sort) setSort(sort.dataset.sort as ListSort)
+    else if (chip) {
+        const label = chip.dataset.chip!
+        if (!listState.hidden.delete(label)) listState.hidden.add(label)
+        listState.shown = 60
+    } else if (t.closest("[data-more]")) listState.shown += 200
+    else if (t.closest(".feed__back")) startFull = false
+    else if (open) {
+        const o = JSON.parse(open.dataset.open!) as {
+            sort: ListSort
+            only?: string
+        }
+        setSort(o.sort)
+        if (o.only)
+            listState.hidden = new Set(
+                LIST_KINDS.map(([l]) => l).filter((l) => l !== o.only)
+            )
+        startFull = true
+    } else if (feedRowEl) {
+        listView = false
+        void jumpTo(feedRowEl.dataset.feedId!)
+        return true
+    } else return false
+    render(state)
+    return true
+}
+applyPlacement()
+
 // --- Mouse ---
 
 strip.addEventListener("click", (e) => {
     const t = e.target as HTMLElement
+    if (handleListClick(t)) return
     const refsPill = t.closest<HTMLElement>("[data-refs]")
     const spine = t.closest<HTMLElement>(".spine")
     if (spine)

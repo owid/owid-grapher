@@ -8,6 +8,16 @@ History works like VS Code's Go Back (⌫, ⇧⌫ forward): one stop per place y
 
 ⌘K opens a command palette: actions for the selected row (follow its links, show where it's used, open on the live site, go up, copy a link), back/forward and recent places, and, once you type, sections of the open document and matching topics, articles and charts from the whole site.
 
+## Lists (spike)
+
+The same items, sorted, placed three ways to compare by trying them. Pick the placement under **Spike** in the top bar:
+
+- **A · List view**: a Columns / List switch. List shows everything in the place you're at (the whole site at Home) as one list.
+- **B · Tree row**: an "Everything in …" row heads each topic column and opens the list beside it.
+- **C · Start page**: Home opens on shelves (latest, most-read topic pages, by kind), each opening the full list.
+
+Every list sorts by **Newest** (by month; charts off by default, since a new chart isn't news) or **Best way in** (editors' picks first: the place's topic page and key charts, then each kind by popularity). Kind chips turn kinds on and off. Popularity is `analytics_popularity`, which only ranks items of one kind, so kinds never mix in that sort. Rows jump to the item's place in the tree.
+
 ## Run
 
 Needs the local MySQL (`make up` or `make up.worktree`).

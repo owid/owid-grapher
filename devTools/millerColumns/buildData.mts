@@ -31,6 +31,10 @@ interface TreeNode {
     dimension?: string // the MDM dimension a view-tree node picks a choice for
     // For a chart nobody uses: charts of the same data in other topics.
     sameData?: string[]
+    // Topics that list this chart as a key chart (keyChartLevel 3).
+    keyIn?: string[]
+    // 0–1 popularity score; only comparable between items of one kind.
+    pop?: number
 }
 
 const OWID = "https://ourworldindata.org"
@@ -146,8 +150,12 @@ const charts = await q<{
 }>(`SELECT c.id, cc.slug, cc.config->>'$.title' title, c.publishedAt
     FROM charts c JOIN chart_configs cc ON cc.id = c.configId
     WHERE cc.config->>'$.isPublished' = 'true'`)
-const chartTags = await q<{ chartId: number; tagId: number }>(
-    "SELECT chartId, tagId FROM chart_tags ORDER BY keyChartLevel DESC"
+const chartTags = await q<{
+    chartId: number
+    tagId: number
+    keyChartLevel: number
+}>(
+    "SELECT chartId, tagId, keyChartLevel FROM chart_tags ORDER BY keyChartLevel DESC"
 )
 const tagsByChart = new Map<number, number[]>()
 for (const ct of chartTags) {
@@ -164,6 +172,7 @@ for (const c of charts) {
         title: c.title || c.slug,
         thumb: `${OWID}/grapher/${c.slug}.png`,
         url: `${OWID}/grapher/${c.slug}`,
+        date: c.publishedAt?.toISOString().slice(0, 10),
     })
     grapherSlugs.set(c.slug, id)
 }
@@ -256,6 +265,11 @@ for (const c of charts) {
     attach(topic, `chart:${c.id}`)
     const also = otherTopics(tagIds, topic)
     if (also.length) nodes.get(`chart:${c.id}`)!.alsoIn = also
+}
+for (const ct of chartTags) {
+    const chart = nodes.get(`chart:${ct.chartId}`)
+    if (!chart || ct.keyChartLevel !== 3 || !tagDepth.has(ct.tagId)) continue
+    ;(chart.keyIn ??= []).push(tagNodeId(ct.tagId))
 }
 
 // --- Explorers ---
@@ -992,6 +1006,21 @@ const outDir = path.join(import.meta.dirname, "public", "data")
 // Must match bodyFile() in app.ts.
 const bodyFile = (id: string): string => id.replace(/[^\w-]/g, "_")
 fs.rmSync(outDir, { recursive: true, force: true })
+// --- Popularity: the analytics score, matched on the page URL ---
+
+const popularity = new Map(
+    (
+        await q<{ slug: string; popularity: number }>(
+            "SELECT slug, popularity FROM analytics_popularity"
+        )
+    ).map((r) => [r.slug, Number(r.popularity)])
+)
+for (const n of nodes.values()) {
+    const pop =
+        n.url && !n.url.includes("#") ? popularity.get(n.url) : undefined
+    if (pop !== undefined) n.pop = Math.round(pop * 1000) / 1000
+}
+
 fs.mkdirSync(path.join(outDir, "docs"), { recursive: true })
 const skeleton: Record<string, TreeNode> = {}
 const bodies = new Map<string, Record<string, TreeNode>>()
