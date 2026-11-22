@@ -227,11 +227,32 @@ interface Location {
     peek: PeekFocus | null
 }
 let state: Location = { path: ["root"], peek: null }
-const backStack: Location[] = []
-const forwardStack: Location[] = []
 let landedOn: string | null = null // briefly highlights a jump's destination
 
 const selected = (): string => state.path[state.path.length - 1]
+
+// History works like VS Code's Go Back: one stop per place you spent time
+// in, not one per keypress. A place is the document holding the selection,
+// or outside documents the topic list it sits in. Moving within a place updates
+// its stop, so going back lands where you left, not where you came in.
+// Jumps always add a stop, even within one document.
+interface Stop {
+    at: Location
+    via: "walk" | "jump" // how you got here; the tramline draws jumps dashed
+}
+const trail: Stop[] = []
+let stopIndex = 0
+function placeOf(loc: Location): string {
+    // A folded group ("26 articles") is part of its topic, not a place.
+    const holders = loc.path
+        .slice(0, -1)
+        .filter((id) => node(id).kind !== "group")
+    return (
+        holders.findLast((id) => DOC_KINDS.has(node(id).kind)) ??
+        holders[holders.length - 1] ??
+        "root"
+    )
+}
 
 // What the peek trail shows for a node, if anything.
 // - a block with links: the links, then the chosen link's target
@@ -290,18 +311,21 @@ function activePeek(): PeekPlan {
 
 async function go(
     next: Location,
-    opts: { record?: boolean; land?: boolean } = {}
+    opts: { jump?: boolean; fromHistory?: boolean } = {}
 ): Promise<void> {
     const doc = docOf(next.path[next.path.length - 1])
     if (doc) await loadDoc(doc)
-    if (opts.record) {
-        backStack.push(state)
-        forwardStack.length = 0
+    if (!opts.fromHistory) {
+        if (opts.jump || placeOf(next) !== placeOf(state)) {
+            trail.splice(stopIndex + 1)
+            trail.push({ at: next, via: opts.jump ? "jump" : "walk" })
+            stopIndex = trail.length - 1
+        } else trail[stopIndex] = { ...trail[stopIndex], at: next }
     }
     if (next.path.join() !== state.path.join()) referencesOpen = false
     const before = state
     state = next
-    landedOn = opts.land ? selected() : null
+    landedOn = opts.jump || opts.fromHistory ? selected() : null
     render(before)
     history.replaceState(null, "", `#${encodeURIComponent(selected())}`)
 }
@@ -311,7 +335,7 @@ async function jumpTo(id: string): Promise<void> {
     if (doc) await loadDoc(doc)
     if (!nodes.has(id)) return
     const path = ancestry(id)
-    await go({ path, peek: null }, { record: true, land: true })
+    await go({ path, peek: null }, { jump: true })
 }
 
 // --- Keyboard ---
@@ -434,20 +458,20 @@ async function enter(): Promise<void> {
     if (peek.row === 0) await jumpTo(link.target)
     else await jumpTo(references[link.target][peek.row - 1].from)
 }
-async function back(): Promise<void> {
-    const prev = backStack.pop()
-    if (!prev) return
-    forwardStack.push(state)
-    await go(prev, { land: true })
+async function goToStop(i: number): Promise<void> {
+    if (i < 0 || i >= trail.length || i === stopIndex) return
+    stopIndex = i
+    await go(trail[i].at, { fromHistory: true })
 }
-async function forward(): Promise<void> {
-    const next = forwardStack.pop()
-    if (!next) return
-    backStack.push(state)
-    await go(next, { land: true })
-}
+const back = (): Promise<void> => goToStop(stopIndex - 1)
+const forward = (): Promise<void> => goToStop(stopIndex + 1)
 
 document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault()
+        return void openPalette()
+    }
+    if (palette.open) return
     if (e.metaKey && e.key === "[") return void back()
     if (e.metaKey && e.key === "]") return void forward()
     if (e.metaKey || e.ctrlKey || e.altKey) return
@@ -485,7 +509,7 @@ document.addEventListener("mousemove", (e) => {
 
 const strip = document.querySelector<HTMLElement>(".strip")!
 const crumbs = document.querySelector<HTMLElement>(".crumbs")!
-const returnChip = document.querySelector<HTMLElement>(".return")!
+const tramline = document.querySelector<HTMLElement>(".tramline")!
 const keys = document.querySelector<HTMLElement>(".keys")!
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -506,6 +530,13 @@ function icon(name: string): SVGSVGElement {
         external: "M9 3h4v4M13 3 7 9M11 9.5V13H3V5h3.5",
         refs: "M3 4h10M3 8h10M3 12h6",
         here: "M8 2v3M8 11v3M2 8h3M11 8h3M8 6a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z",
+        search: "M7 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9ZM10.3 10.3 13.5 13.5",
+        copy: "M5.5 5.5h7v7h-7zM10.5 5.5v-2h-7v7h2",
+        up: "M8 13V3M4 7l4-4 4 4",
+        back: "M10 3 5 8l5 5",
+        forward: "m6 3 5 5-5 5",
+        section: "M3 4h10M3 8h7M3 12h4",
+        place: "M3 3h10v10H3zM3 7h10",
     }
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
     svg.setAttribute("viewBox", "0 0 16 16")
@@ -1036,27 +1067,54 @@ function renderCrumbs(): void {
                 also.map((a) => node(a).title).join(", ")
             )
         )
-    const prev = backStack[backStack.length - 1]
-    returnChip.hidden = !prev
-    if (prev) {
-        const prevNode = node(prev.path[prev.path.length - 1])
-        const prevDoc = docOf(prevNode.id)
-        const label = prevDoc ? node(prevDoc).title : prevNode.title
-        returnChip.replaceChildren(
-            el(
-                "button",
-                "return__button",
-                el("kbd", "", "⌫"),
-                el("span", "return__label", `Back to ${label}`)
-            )
-        )
-    }
+    renderTramline()
     document.querySelector<HTMLButtonElement>(
         '[data-action="back"]'
-    )!.disabled = !backStack.length
+    )!.disabled = stopIndex === 0
     document.querySelector<HTMLButtonElement>(
         '[data-action="forward"]'
-    )!.disabled = !forwardStack.length
+    )!.disabled = stopIndex === trail.length - 1
+}
+
+const stopTitle = (stop: Stop): string => node(placeOf(stop.at)).title
+
+// The places visited, as a tram line: a stop per place, dashed where you
+// jumped, solid where you walked. Only the stops either side of you are
+// named; the rest are dots, named on hover.
+const TRAM_REACH = 4 // stops shown on each side of the current one
+function renderTramline(): void {
+    tramline.hidden = trail.length < 2
+    const from = Math.max(0, stopIndex - TRAM_REACH)
+    const to = Math.min(trail.length, stopIndex + TRAM_REACH + 1)
+    const ol = el("ol", "tram")
+    if (from > 0) ol.append(el("li", "tram__more", `+${from}`))
+    for (let i = from; i < to; i++) {
+        const stop = trail[i]
+        const where =
+            i < stopIndex ? "is-past" : i > stopIndex ? "is-ahead" : "is-here"
+        const li = el("li", `tram__stop ${where}`)
+        if (stop.via === "jump" && i > from) li.classList.add("is-jump")
+        const named = Math.abs(i - stopIndex) <= 1
+        const button = el(
+            "button",
+            "tram__button",
+            el("span", "tram__dot"),
+            named ? el("span", "tram__label", stopTitle(stop)) : null
+        )
+        button.dataset.stop = String(i)
+        const hint =
+            i === stopIndex - 1 ? " (⌫)" : i === stopIndex + 1 ? " (⇧⌫)" : ""
+        button.title =
+            i === stopIndex
+                ? `You are here: ${stopTitle(stop)}`
+                : `${stopTitle(stop)}${hint}`
+        if (i === stopIndex) button.setAttribute("aria-current", "location")
+        li.append(button)
+        ol.append(li)
+    }
+    if (to < trail.length)
+        ol.append(el("li", "tram__more", `+${trail.length - to}`))
+    tramline.replaceChildren(ol)
 }
 
 function renderKeys(): void {
@@ -1082,7 +1140,8 @@ function renderKeys(): void {
         if (references[selected()] && hasChildren(selected()))
             hints.push(["R", referencesOpen ? "Hide references" : "References"])
     }
-    if (backStack.length) hints.push(["⌫", "Return from jump"])
+    if (stopIndex > 0) hints.push(["⌫", "Back"])
+    hints.push(["⌘K", "Search and actions"])
     keys.replaceChildren(
         ...hints.map(([k, label]) =>
             el("span", "keys__hint", el("kbd", "", k), label)
@@ -1356,7 +1415,10 @@ crumbs.addEventListener("click", (e) => {
             peek: null,
         })
 })
-returnChip.addEventListener("click", () => void back())
+tramline.addEventListener("click", (e) => {
+    const stop = (e.target as HTMLElement).closest<HTMLElement>("[data-stop]")
+    if (stop) void goToStop(Number(stop.dataset.stop))
+})
 document
     .querySelector('[data-action="back"]')!
     .addEventListener("click", () => void back())
@@ -1369,6 +1431,344 @@ window.addEventListener("hashchange", () => {
     const id = decodeURIComponent(location.hash.slice(1))
     if (id && id !== selected()) void jumpTo(id)
 })
+
+// --- Command palette ---
+
+// ⌘K opens one box for doing and finding. Empty, it offers what you can do
+// with the selection, then recent places. Typing filters those, then adds
+// sections of the open document and matching places from the whole site.
+interface Command {
+    label: string
+    detail?: string
+    icon: string
+    keys?: string
+    run: () => void | Promise<void>
+}
+const palette = document.querySelector<HTMLDialogElement>(".palette")!
+const paletteInput = palette.querySelector<HTMLInputElement>("input")!
+const paletteList = palette.querySelector<HTMLElement>(".palette__list")!
+let paletteGroups: { title: string; commands: Command[] }[] = []
+let paletteActive = 0
+
+const SEARCHABLE: Record<string, number> = {
+    // Lower ranks first among equally good matches.
+    area: 0,
+    topic: 0,
+    "topic-page": 1,
+    "linear-topic-page": 1,
+    article: 2,
+    mdm: 2,
+    explorer: 2,
+    "data-insight": 3,
+    chart: 3,
+    "narrative-chart": 4,
+}
+const searchIndex = [...nodes.values()]
+    .filter((n) => n.kind in SEARCHABLE)
+    .map((n) => ({ id: n.id, title: n.title.toLowerCase() }))
+
+const matches = (text: string, words: string[]): boolean =>
+    words.every((w) => text.toLowerCase().includes(w))
+
+function placeCommand(id: string): Command {
+    const n = node(id)
+    const home = homeOf(id)
+    return {
+        label: n.title,
+        detail: [KIND_LABEL[n.kind], home?.title].filter(Boolean).join(" · "),
+        icon: "place",
+        run: () => jumpTo(id),
+    }
+}
+
+function showReferences(): void {
+    const id = selected()
+    if (hasChildren(id)) {
+        referencesOpen = true
+        render(state)
+    } else void go({ ...state, peek: { zone: "target", link: 0, row: 0 } })
+}
+
+// What you can do with the selected row. Each kind only gets the actions
+// that mean something for it.
+function selectionCommands(): Command[] {
+    const id = selected()
+    const n = node(id)
+    const out: Command[] = []
+    // Links leave the block; following one is a jump.
+    for (const l of n.kind === "embed" ? [] : (n.links ?? [])) {
+        if (l.target)
+            out.push({
+                label: `Follow “${l.text}”`,
+                detail: node(l.target).title,
+                icon: "jump",
+                run: () => jumpTo(l.target!),
+            })
+        else
+            out.push({
+                label: `Open “${l.text}”`,
+                detail: new URL(l.url ?? "", "https://ourworldindata.org")
+                    .hostname,
+                icon: "external",
+                run: () => void window.open(l.url, "_blank", "noopener"),
+            })
+    }
+    // Rows standing in for something that lives elsewhere.
+    const target = n.kind === "title" ? undefined : (n.target ?? undefined)
+    if (target && nodes.has(target) && !isAtHome(target))
+        out.push({
+            label: `Go to where it lives`,
+            detail: node(target).title,
+            icon: "jump",
+            run: () => jumpTo(target),
+        })
+    const refCount = references[n.kind === "title" ? n.target! : id]?.length
+    if (refCount)
+        out.push({
+            label: "Show where it’s used",
+            detail: `${refCount} place${refCount === 1 ? "" : "s"}`,
+            icon: "refs",
+            keys: "R",
+            run: showReferences,
+        })
+    // The page this row is part of, on the live site. A chart embed opens
+    // the chart itself.
+    const doc = docOf(id)
+    const url = n.url ?? (doc ? node(doc).url : undefined)
+    if (url)
+        out.push({
+            label:
+                n.kind === "embed"
+                    ? "Open the interactive chart"
+                    : "Open on ourworldindata.org",
+            detail: new URL(url).pathname,
+            icon: "external",
+            run: () => void window.open(url, "_blank", "noopener"),
+        })
+    if (state.path.length > 2) {
+        const parent = node(state.path[state.path.length - 2])
+        // A folded group is named the way its row reads.
+        const name =
+            parent.kind === "group"
+                ? `${childrenOf(parent.id).length} ${GROUP_NOUN[parent.title]}`
+                : parent.title
+        out.push({
+            label: `Up to ${name}`,
+            icon: "up",
+            keys: "←",
+            run: () => go({ path: state.path.slice(0, -1), peek: null }),
+        })
+    }
+    out.push({
+        label: "Copy link to this place",
+        icon: "copy",
+        run: () => navigator.clipboard.writeText(location.href),
+    })
+    return out
+}
+
+function historyCommands(): Command[] {
+    const out: Command[] = []
+    if (stopIndex > 0)
+        out.push({
+            label: `Back to ${stopTitle(trail[stopIndex - 1])}`,
+            icon: "back",
+            keys: "⌫",
+            run: back,
+        })
+    if (stopIndex < trail.length - 1)
+        out.push({
+            label: `Forward to ${stopTitle(trail[stopIndex + 1])}`,
+            icon: "forward",
+            keys: "⇧⌫",
+            run: forward,
+        })
+    return out
+}
+
+// Places visited before, most recent first, once each.
+function recentCommands(): Command[] {
+    const here = placeOf(state)
+    const seen = new Set([here])
+    const out: Command[] = []
+    for (let i = trail.length - 1; i >= 0 && out.length < 5; i--) {
+        const place = placeOf(trail[i].at)
+        if (seen.has(place)) continue
+        seen.add(place)
+        out.push({
+            label: node(place).title,
+            detail: KIND_LABEL[node(place).kind],
+            icon: "back",
+            run: () => goToStop(i),
+        })
+    }
+    return out
+}
+
+// Headings of the document you're in, like VS Code's "go to symbol".
+function sectionCommands(words: string[]): Command[] {
+    const doc = docOf(selected())
+    if (!doc) return []
+    const out: Command[] = []
+    const walk = (id: string): void => {
+        for (const k of childrenOf(id)) {
+            const kid = node(k)
+            if (kid.kind !== "heading") continue
+            if (matches(kid.title, words))
+                out.push({
+                    label: kid.title,
+                    icon: "section",
+                    run: () => go({ path: ancestry(k), peek: null }),
+                })
+            walk(k)
+        }
+    }
+    walk(doc)
+    return out
+}
+
+function searchCommands(query: string, words: string[]): Command[] {
+    const scored: { id: string; score: number }[] = []
+    for (const entry of searchIndex) {
+        if (!words.every((w) => entry.title.includes(w))) continue
+        const at = entry.title.indexOf(query)
+        // Whole query at the start, then at a word start, then anywhere.
+        const quality =
+            at === 0 ? 0 : at > 0 && entry.title[at - 1] === " " ? 1 : 2
+        const kind = SEARCHABLE[node(entry.id).kind]
+        scored.push({
+            id: entry.id,
+            score: quality * 100 + kind * 10 + entry.title.length / 100,
+        })
+    }
+    return scored
+        .sort((a, b) => a.score - b.score)
+        .slice(0, 40)
+        .map((s) => placeCommand(s.id))
+}
+
+function selectionNoun(): string {
+    const n = node(selected())
+    const kind = n.kind === "title" ? node(n.target!).kind : n.kind
+    return kindName(kind === "group" ? "group" : kind)
+}
+
+function updatePalette(): void {
+    const query = paletteInput.value.trim().toLowerCase()
+    const words = query.split(/\s+/).filter(Boolean)
+    const actions = [
+        {
+            title: `This ${selectionNoun()}`,
+            commands: selectionCommands().filter((c) =>
+                matches(c.label, words)
+            ),
+        },
+        {
+            title: "History",
+            commands: historyCommands().filter((c) => matches(c.label, words)),
+        },
+    ]
+    const doc = docOf(selected())
+    // Typing is searching: places come first, so Enter opens the best match.
+    paletteGroups = [
+        ...(words.length
+            ? [
+                  {
+                      title: doc ? `In “${node(doc).title}”` : "",
+                      commands: sectionCommands(words),
+                  },
+                  {
+                      title: "Everywhere",
+                      commands: searchCommands(query, words),
+                  },
+                  ...actions,
+              ]
+            : [
+                  ...actions,
+                  { title: "Recent places", commands: recentCommands() },
+              ]),
+    ].filter((g) => g.commands.length)
+    paletteActive = 0
+    renderPalette()
+}
+
+function renderPalette(): void {
+    paletteList.replaceChildren()
+    let index = 0
+    for (const g of paletteGroups) {
+        const group = el("div", "palette__group")
+        group.setAttribute("role", "group")
+        group.append(el("div", "palette__group-label", g.title))
+        for (const c of g.commands) {
+            const item = el(
+                "div",
+                `palette__item ${index === paletteActive ? "is-active" : ""}`,
+                icon(c.icon),
+                el("span", "palette__label", c.label),
+                c.detail ? el("span", "palette__detail", c.detail) : null,
+                c.keys ? el("kbd", "", c.keys) : null
+            )
+            item.setAttribute("role", "option")
+            item.setAttribute("aria-selected", String(index === paletteActive))
+            item.dataset.index = String(index++)
+            group.append(item)
+        }
+        paletteList.append(group)
+    }
+    if (!index)
+        paletteList.append(
+            el("p", "palette__empty", "Nothing matches. Try fewer words.")
+        )
+    paletteList
+        .querySelector(".is-active")
+        ?.scrollIntoView({ block: "nearest" })
+}
+
+const paletteCommands = (): Command[] =>
+    paletteGroups.flatMap((g) => g.commands)
+function runPaletteCommand(i: number): void {
+    const command = paletteCommands()[i]
+    if (!command) return
+    palette.close()
+    keyQueue = keyQueue.then(command.run).catch(console.error)
+}
+async function openPalette(): Promise<void> {
+    if (palette.open) return void paletteInput.select()
+    // Sections come from the open document's body.
+    const doc = docOf(selected())
+    if (doc) await loadDoc(doc)
+    paletteInput.value = ""
+    updatePalette()
+    palette.showModal()
+}
+
+paletteInput.addEventListener("input", updatePalette)
+paletteInput.addEventListener("keydown", (e) => {
+    // Enter closes the palette; the page must not then see it too.
+    e.stopPropagation()
+    const count = paletteCommands().length
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault()
+        const delta = e.key === "ArrowDown" ? 1 : -1
+        paletteActive = (paletteActive + delta + count) % Math.max(count, 1)
+        renderPalette()
+    } else if (e.key === "Enter") {
+        e.preventDefault()
+        runPaletteCommand(paletteActive)
+    }
+})
+paletteList.addEventListener("click", (e) => {
+    const item = (e.target as HTMLElement).closest<HTMLElement>("[data-index]")
+    if (item) runPaletteCommand(Number(item.dataset.index))
+})
+// A click on the backdrop lands on the dialog itself.
+palette.addEventListener("click", (e) => {
+    if (e.target === palette) palette.close()
+})
+palette.addEventListener("close", () => strip.focus())
+document
+    .querySelector('[data-action="palette"]')!
+    .addEventListener("click", () => void openPalette())
 
 // --- Start ---
 
@@ -1383,5 +1783,6 @@ const startId = nodes.has(start) || docOf(start) ? start : fallback
 const startDoc = docOf(startId)
 if (startDoc) await loadDoc(startDoc)
 state = { path: ancestry(nodes.has(startId) ? startId : fallback), peek: null }
+trail.push({ at: state, via: "walk" })
 render(state)
 strip.focus()

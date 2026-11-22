@@ -2,7 +2,11 @@
 
 Browse the whole site as one canonical tree: area › topic › article › section › paragraph, or topic › data collection › dimension › view. Every leaf (paragraph, chart, view) is readable in place.
 
-Links never add tree columns. Selecting a block opens a side panel with its links; each link shows its **definition** (the one canonical place of the target) and its **references** (every block that links to or embeds it). Following either is a jump, with ⌫ to return.
+Links never add tree columns. Selecting a block opens a side panel with its links; each link shows its **definition** (the one canonical place of the target) and its **references** (every block that links to or embeds it). Following either is a jump.
+
+History works like VS Code's Go Back (⌫, ⇧⌫ forward): one stop per place you spent time in (a document, or the topic list you browse), and going back lands where you left. The tram line in the top bar shows the stops, dashed where you jumped; click a stop to go there.
+
+⌘K opens a command palette: actions for the selected row (follow its links, show where it's used, open on the live site, go up, copy a link), back/forward and recent places, and, once you type, sections of the open document and matching topics, articles and charts from the whole site.
 
 ## Run
 
