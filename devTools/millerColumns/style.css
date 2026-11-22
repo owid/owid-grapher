@@ -483,6 +483,15 @@ kbd {
     color: var(--blue-30);
 }
 
+/* Kind icons lead a row and sit on its title's first line. */
+.kind-icon {
+    width: 16px;
+    height: 16px;
+    align-self: flex-start;
+    margin-top: 1px;
+    color: var(--blue-50);
+}
+
 .row--area .row__title {
     font: 600 16px/1.3 var(--serif);
 }
@@ -765,13 +774,6 @@ kbd {
     .row--definition:not(.is-selected):hover {
     background: #fff;
 }
-.def__label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--gray-70);
-}
 .def__thumb {
     width: 100%;
     aspect-ratio: 850 / 600;
@@ -780,64 +782,38 @@ kbd {
     background: #fff;
     box-shadow: 0 0 0 1px var(--rule);
 }
-.def-path {
-    margin: 0;
-    padding: 0;
-    list-style: none;
+.def__title {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--blue-100);
+}
+.def__title .kind-icon {
+    margin-top: 2px;
+}
+.def__home,
+.def__holds {
     font-size: 12.5px;
     color: var(--ink-soft);
 }
-.def-path li {
-    position: relative;
-    padding: 1px 0 1px 14px;
-}
-.def-path li::before {
-    content: "";
-    position: absolute;
-    left: 3px;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: var(--blue-20);
-}
-.def-path li::after {
-    content: "";
-    position: absolute;
-    left: 1px;
-    top: 0.72em;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--blue-30);
-}
-.def-path li:first-child::before {
-    top: 0.72em;
-}
-.def-path li:last-child::before {
-    bottom: calc(100% - 0.72em);
-}
-.def-path__here {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--blue-100);
-}
-.def-path li.def-path__here::after {
-    background: var(--vermillion);
+.def__holds {
+    color: var(--gray-80);
 }
 .def__action {
     font-size: 12px;
     color: var(--blue-60);
 }
-.row--definition.is-selected {
+.row--definition.is-selected,
+.row--definition.is-selected .def__title {
     color: #fff;
 }
-.row--definition.is-selected .def__label,
-.row--definition.is-selected .def-path,
+.row--definition.is-selected .def__home,
+.row--definition.is-selected .def__holds,
 .row--definition.is-selected .def__action {
     color: var(--blue-20);
-}
-.row--definition.is-selected .def-path__here {
-    color: #fff;
 }
 .ref-group {
     padding: 6px 4px;

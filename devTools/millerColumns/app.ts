@@ -63,7 +63,7 @@ const READING_KINDS = new Set([
     "title",
 ])
 const KIND_LABEL: Record<string, string> = {
-    alias: "From another topic",
+    alias: "Shortcut",
     area: "Area",
     topic: "Topic",
     article: "Article",
@@ -86,7 +86,7 @@ const GROUP_NOUN: Record<string, string> = {
     Articles: "articles",
     "Data insights": "data insights",
     Data: "charts and collections",
-    "From other topics": "from other topics",
+    Shortcuts: "shortcuts",
 }
 const GROUP_OF: Record<string, string> = {
     area: "Topics",
@@ -98,7 +98,7 @@ const GROUP_OF: Record<string, string> = {
     mdm: "Data",
     explorer: "Data",
     chart: "Data",
-    alias: "From other topics",
+    alias: "Shortcuts",
 }
 
 // --- Data ---
@@ -541,6 +541,15 @@ function icon(name: string): SVGSVGElement {
         forward: "m6 3 5 5-5 5",
         section: "M3 4h10M3 8h7M3 12h4",
         place: "M3 3h10v10H3zM3 7h10",
+        topic: "M2 4h4.5L8 5.5h6V13H2z",
+        "topic-page": "M2.5 3h11v10h-11zM2.5 6.5h11M6 6.5V13",
+        article: "M4 2h5.5L12 4.5V14H4zM6.5 7.5h3M6.5 10h3",
+        "data-insight":
+            "M6.5 12h3M7 14h2M8 2a4 4 0 0 0-2.3 7.3c.5.4.8.9.8 1.5V11h3v-.2c0-.6.3-1.1.8-1.5A4 4 0 0 0 8 2Z",
+        chart: "M2.5 13.5h11M4.5 11V8M8 11V4M11.5 11V6.5",
+        mdm: "M8 2.5 13.5 5 8 7.5 2.5 5zM2.5 8 8 10.5 13.5 8M2.5 11 8 13.5 13.5 11",
+        explorer:
+            "M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2ZM10.5 5.5 9.2 9.2 5.5 10.5 6.8 6.8z",
     }
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
     svg.setAttribute("viewBox", "0 0 16 16")
@@ -549,6 +558,36 @@ function icon(name: string): SVGSVGElement {
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
     path.setAttribute("d", paths[name])
     svg.append(path)
+    return svg
+}
+// What a row is, at a glance: one icon per kind, so the meta line no
+// longer has to spell it out. Rows with a chart picture don't need one.
+const KIND_ICON: Record<string, string> = {
+    area: "topic",
+    topic: "topic",
+    "topic-page": "topic-page",
+    "linear-topic-page": "topic-page",
+    article: "article",
+    "data-insight": "data-insight",
+    chart: "chart",
+    view: "chart",
+    "narrative-chart": "chart",
+    mdm: "mdm",
+    explorer: "explorer",
+    dimension: "mdm",
+}
+// A folded group's row shows the icon of what it holds.
+const GROUP_ICON: Record<string, string> = {
+    Articles: "article",
+    "Data insights": "data-insight",
+    Data: "chart",
+    Shortcuts: "jump",
+}
+function kindIcon(kind: string): SVGSVGElement | null {
+    const name = KIND_ICON[kind]
+    if (!name) return null
+    const svg = icon(name)
+    svg.classList.add("kind-icon")
     return svg
 }
 // Each render rebuilds the DOM; reusing the same <img> keeps the decoded
@@ -588,7 +627,7 @@ function renderSpans(spans: Span[], activeLink?: number): DocumentFragment {
     return f
 }
 function metaLine(n: TreeNode): string {
-    const parts = [KIND_LABEL[n.kind]]
+    const parts: string[] = []
     if (n.date) parts.push(n.date.slice(0, 4))
     if (n.kind === "mdm" || n.kind === "dimension")
         parts.push(`${countLeaves(n.id)} views`)
@@ -598,9 +637,9 @@ function metaLine(n: TreeNode): string {
                 (sum, k) =>
                     sum + (node(k).kind === "group" ? childrenOf(k).length : 1),
                 0
-            )}`
+            )} items`
         )
-    return parts.filter(Boolean).join(" · ")
+    return parts.join(" · ")
 }
 function countLeaves(id: string): number {
     const kids = childrenOf(id)
@@ -720,6 +759,7 @@ function renderRow(
         case "alias": {
             const home = homeOf(n.target!)!
             row.append(
+                kindIcon(node(n.target!).kind) ?? "",
                 el(
                     "span",
                     "row__text",
@@ -734,8 +774,11 @@ function renderRow(
             )
             break
         }
-        case "group":
+        case "group": {
+            const groupIcon = icon(GROUP_ICON[n.title] ?? "section")
+            groupIcon.classList.add("kind-icon")
             row.append(
+                groupIcon,
                 el(
                     "span",
                     "row__text",
@@ -748,6 +791,7 @@ function renderRow(
             )
             trailing.append(icon("chevron"))
             break
+        }
         case "prominent-link":
             row.append(
                 el(
@@ -765,12 +809,15 @@ function renderRow(
                     n.kind === "narrative-chart") &&
                 n.thumb
             if (withThumb) row.append(thumb(n.thumb!, "row__thumb", 240))
+            // Areas are the root list: their serif title says enough.
+            else if (n.kind !== "area") row.append(kindIcon(n.kind) ?? "")
+            const meta = metaLine(n)
             row.append(
                 el(
                     "span",
                     "row__text",
                     el("span", "row__title", n.title),
-                    el("span", "row__meta", metaLine(n))
+                    meta ? el("span", "row__meta", meta) : null
                 )
             )
             if (hasChildren(id)) trailing.append(icon("chevron"))
@@ -894,6 +941,7 @@ function peekColumns(): HTMLElement[] {
             const target = node(l.target)
             const home = homeOf(target.id)
             row.append(
+                kindIcon(target.kind) ?? "",
                 el(
                     "span",
                     "row__text",
@@ -901,9 +949,7 @@ function peekColumns(): HTMLElement[] {
                     el(
                         "span",
                         "row__meta",
-                        icon("jump"),
-                        KIND_LABEL[target.kind] ?? target.kind,
-                        home ? ` · in ${home.title}` : ""
+                        `${KIND_LABEL[target.kind] ?? target.kind}${home ? ` in ${home.title}` : ""}`
                     )
                 )
             )
@@ -932,6 +978,30 @@ const isAtHome = (target: string): boolean =>
 const kindName = (kind: string): string =>
     (KIND_LABEL[kind] ?? kind).toLowerCase()
 
+// What a topic holds, counted by kind: "2 subtopics · 3 articles · 12 charts".
+const CONTENT_NOUNS: [string, string, string][] = [
+    ["topic", "subtopic", "subtopics"],
+    ["article", "article", "articles"],
+    ["data-insight", "data insight", "data insights"],
+    ["chart", "chart", "charts"],
+    ["mdm", "data collection", "data collections"],
+    ["explorer", "explorer", "explorers"],
+]
+function contentsOf(id: string): string {
+    // A document's blocks may not be loaded yet; they aren't counted anyway.
+    const kinds = childrenOf(id).flatMap((k) =>
+        nodes.get(k)?.kind === "group"
+            ? childrenOf(k).map((c) => nodes.get(c)?.kind)
+            : [nodes.get(k)?.kind]
+    )
+    return CONTENT_NOUNS.map(([kind, one, many]) => {
+        const count = kinds.filter((k) => k === kind).length
+        return count ? `${count} ${count === 1 ? one : many}` : ""
+    })
+        .filter(Boolean)
+        .join(" · ")
+}
+
 function targetColumn(
     link: Link & { target: string },
     row: number
@@ -942,39 +1012,42 @@ function targetColumn(
     const isSelf =
         link.target === selected() || link.target === node(selected()).target
     const isHome = isAtHome(link.target)
+    const isShortcut = node(selected()).kind === "alias"
     col.append(
         el(
             "header",
             "peek__header",
-            icon("here"),
-            // One wording for the whole panel: what the item is, then where
-            // it lives, then where it's used.
-            `${isSelf ? "This" : "Linked"} ${kindName(target.kind)}`
+            isShortcut
+                ? `Shortcut to a ${kindName(target.kind)}`
+                : `${isSelf ? "This" : "Linked"} ${kindName(target.kind)}`
         )
     )
     const body = el("div", "col__body")
 
-    // Definition: the one canonical place.
+    // Definition: what the target is, where it lives, what it holds.
     const def = el(
         "div",
         `row row--definition ${row === 0 ? "is-selected" : ""}`
     )
     def.dataset.peekRow = "0"
-    const trail = ancestry(link.target).slice(1)
-    const path = el("ol", "def-path")
-    trail.forEach((a, i) =>
-        path.append(
-            el(
-                "li",
-                i === trail.length - 1 ? "def-path__here" : "",
-                node(a).title
-            )
+    if (target.thumb) def.append(thumb(target.thumb, "def__thumb"))
+    def.append(
+        el(
+            "div",
+            "def__title",
+            kindIcon(target.kind),
+            el("span", "", target.title)
         )
     )
-    if (target.thumb) def.append(thumb(target.thumb, "def__thumb"))
-    def.append(el("div", "def__label", isHome ? "You are here" : "Lives in"))
-    def.append(path)
-    if (!isHome) def.append(el("div", "def__action", "⏎ Go there"))
+    const home = ancestry(link.target)
+        .slice(1, -1)
+        .filter((id) => node(id).kind !== "group")
+        .map((id) => node(id).title)
+    if (home.length)
+        def.append(el("div", "def__home", `In ${home.join(" › ")}`))
+    const holds = contentsOf(link.target)
+    if (holds) def.append(el("div", "def__holds", holds))
+    def.append(el("div", "def__action", isHome ? "You are here" : "⏎ Go there"))
     body.append(def)
 
     // References: every block that links to or embeds the target.
@@ -982,17 +1055,16 @@ function targetColumn(
     // Nothing uses it: offer its few closest relatives instead, each named
     // by the topic it lives in, since that is where the jump lands.
     const sameData = refs.length ? [] : (target.sameData ?? [])
-    body.append(
-        el(
-            "div",
-            "group-label",
-            refs.length
-                ? `Used in ${refs.length} place${refs.length === 1 ? "" : "s"}`
-                : sameData.length
-                  ? "Same data in other topics"
-                  : "Not used anywhere"
+    if (refs.length || sameData.length)
+        body.append(
+            el(
+                "div",
+                "group-label",
+                refs.length
+                    ? `Used in ${refs.length} place${refs.length === 1 ? "" : "s"}`
+                    : "Same data in other topics"
+            )
         )
-    )
     sameData.forEach((id, i) => {
         const rr = el(
             "div",
