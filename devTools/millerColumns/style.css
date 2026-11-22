@@ -1,0 +1,979 @@
+@font-face {
+    font-family: "Lato";
+    src: url("/fonts/LatoLatin-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Lato";
+    src: url("/fonts/LatoLatin-Italic.woff2") format("woff2");
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Lato";
+    src: url("/fonts/LatoLatin-Semibold.woff2") format("woff2");
+    font-weight: 600;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Lato";
+    src: url("/fonts/LatoLatin-Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay-Medium.woff2") format("woff2");
+    font-weight: 500;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay-SemiBold.woff2") format("woff2");
+    font-weight: 600;
+    font-display: swap;
+}
+
+:root {
+    /* Fits the widest thing that can open right of the selection: the
+       side panel with links and their target. */
+    /* OWID palette */
+    --blue-100: #002147;
+    --blue-90: #1d3d63;
+    --blue-60: #426591;
+    --blue-50: #577291;
+    --blue-30: #a4b6ca;
+    --blue-20: #dbe5f0;
+    --blue-10: #ebeef2;
+    --blue-5: #f0f4fa;
+    --gray-80: #5b5b5b;
+    --gray-70: #767676;
+    --gray-20: #e7e7e7;
+    --gray-10: #f2f2f2;
+    --gray-5: #f7f7f7;
+    --gray-50: #c6c6c6;
+    --vermillion: #ce261e;
+    --electric: #2162e6;
+    --pale-blue: #e7f2ff;
+    --amber-10: #f4eddb;
+
+    --paper: #fdfcfa;
+    --rule: #e4e2dd;
+    --ink: var(--blue-90);
+    --ink-soft: var(--blue-50);
+    --select: var(--blue-90);
+    --trail: #e9edf3;
+    --peek-ground: #eef2f8;
+
+    --sans: "Lato", system-ui, sans-serif;
+    --serif: "Playfair Display", Georgia, serif;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+    color-scheme: light;
+}
+
+* {
+    box-sizing: border-box;
+}
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+body {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
+    background: var(--paper);
+    color: var(--ink);
+    font: 15px/1.55 var(--sans);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+}
+::selection {
+    background: var(--pale-blue);
+    color: var(--blue-100);
+}
+button {
+    font: inherit;
+    color: inherit;
+}
+:focus-visible {
+    outline: 2px solid var(--electric);
+    outline-offset: 2px;
+}
+.strip:focus-visible {
+    outline: none;
+}
+
+/* --- Top bar: where you are --- */
+
+.bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--rule);
+    background: #fff;
+    min-height: 52px;
+}
+.bar__history {
+    display: flex;
+    gap: 2px;
+}
+.icon-button {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+}
+.icon-button svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.icon-button:hover:not(:disabled) {
+    background: var(--blue-10);
+}
+.icon-button:disabled {
+    color: var(--blue-30);
+    cursor: default;
+}
+.crumbs {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+}
+.crumbs__list {
+    display: flex;
+    align-items: baseline;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 13px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    overflow: hidden;
+}
+.crumbs__list li {
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 2ch;
+}
+.crumbs__list li:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.crumbs__list li + li::before {
+    content: "›";
+    padding: 0 8px;
+    color: var(--blue-30);
+}
+.crumbs__here {
+    color: var(--ink);
+    font-weight: 600;
+    flex-shrink: 0;
+    max-width: 40ch;
+}
+.crumbs__also {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--gray-70);
+    font-style: italic;
+}
+.return {
+    flex: none;
+    max-width: 360px;
+}
+.return__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.return__button {
+    display: flex;
+    max-width: 100%;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px 5px 6px;
+    border: 1px solid var(--blue-20);
+    border-radius: 999px;
+    background: var(--blue-5);
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    animation: chip-in 400ms var(--ease-out);
+}
+.return__button:hover {
+    background: var(--blue-10);
+}
+@keyframes chip-in {
+    from {
+        opacity: 0;
+        transform: translateX(8px);
+    }
+}
+
+kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 5px;
+    border: 1px solid var(--blue-20);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    background: #fff;
+    font: 600 11px/1 var(--sans);
+    color: var(--blue-60);
+}
+
+/* --- The strip of columns --- */
+
+.strip {
+    display: flex;
+    align-items: stretch;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--blue-30) transparent;
+}
+.col {
+    position: relative;
+    display: flex;
+    flex: none;
+    border-right: 1px solid var(--rule);
+    background: #fff;
+    min-height: 0;
+}
+.col--list {
+    width: 300px;
+}
+.col--prose {
+    /* about 70 characters per line at the reading size */
+    width: 640px;
+}
+.col--preview {
+    background: #fff;
+}
+.col__body {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    padding: 10px 8px 40vh;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gray-20) transparent;
+}
+.col__title {
+    margin: 14px 12px 14px;
+    font: 600 26px/1.25 var(--serif);
+    color: var(--blue-100);
+    text-wrap: balance;
+}
+.col__title--section {
+    font-size: 21px;
+}
+.col__empty {
+    margin: 16px 12px;
+    color: var(--gray-70);
+    font-size: 13px;
+}
+.group-label {
+    margin: 18px 12px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gray-70);
+}
+.group-label:first-child {
+    margin-top: 6px;
+}
+
+/* Folded ancestors keep naming the selection at their level. */
+.spine {
+    display: none;
+}
+.col.is-folded {
+    width: 40px;
+    cursor: pointer;
+    background: var(--paper);
+}
+.col.is-folded .col__body {
+    display: none;
+}
+.col.is-folded .spine {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    padding: 14px 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+.col.is-folded .spine:hover {
+    background: var(--blue-5);
+}
+.spine__label {
+    writing-mode: vertical-rl;
+    max-height: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+}
+
+/* --- Rows --- */
+
+.row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px 7px 12px;
+    border-radius: 6px;
+    cursor: default;
+    transition: background-color 120ms;
+}
+/* While arrow keys move the selection, rows rebuilt under a resting mouse
+   would flash their hover. Hover comes back on the next mouse move. */
+:where(body:not(.is-keying)) .row:hover {
+    background: var(--gray-10);
+}
+.row.is-trail {
+    background: var(--trail);
+}
+.row.is-selected {
+    background: var(--select);
+    color: #fff;
+}
+.row.is-selected .row__meta,
+.row.is-selected .icon {
+    color: var(--blue-20);
+}
+.row__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+.row__title {
+    font-weight: 600;
+    line-height: 1.35;
+    text-wrap: pretty;
+}
+.row__meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--gray-70);
+}
+.row__trailing {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    align-self: flex-start;
+    margin-top: 3px;
+}
+.row__thumb {
+    flex: none;
+    width: 64px;
+    height: 45px;
+    object-fit: cover;
+    object-position: top left;
+    border-radius: 3px;
+    background: var(--gray-10);
+    box-shadow: 0 0 0 1px var(--rule);
+}
+.is-broken {
+    visibility: hidden;
+}
+.icon {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: var(--blue-30);
+}
+
+.row--area .row__title {
+    font: 600 16px/1.3 var(--serif);
+}
+
+/* Readable leaves */
+.row--paragraph,
+.row--quote,
+.row--list,
+.row--embed,
+.row--image {
+    align-items: flex-start;
+    padding: 8px 12px 8px 16px;
+}
+.prose {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.65;
+    color: #2d3b4e;
+    text-wrap: pretty;
+}
+.row--quote .prose {
+    font-style: italic;
+    padding-left: 14px;
+    box-shadow: inset 1px 0 0 var(--blue-30);
+}
+.prose--list {
+    padding-left: 18px;
+}
+.prose--list li + li {
+    margin-top: 4px;
+}
+.row.is-selected .prose {
+    color: #fff;
+}
+.row.is-trail .prose {
+    color: var(--blue-90);
+}
+.inline-link {
+    text-decoration: underline;
+    text-decoration-color: var(--blue-30);
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    cursor: pointer;
+}
+.inline-link:hover {
+    text-decoration-color: currentColor;
+}
+.row.is-selected .inline-link {
+    text-decoration-color: rgb(255 255 255 / 0.5);
+}
+.row .inline-link.is-active {
+    background: var(--amber-10);
+    color: var(--blue-100);
+    text-decoration-color: currentColor;
+    border-radius: 2px;
+    box-shadow: 0 0 0 2px var(--amber-10);
+}
+.link-count {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--blue-50);
+}
+.row.is-selected .link-count {
+    color: var(--blue-20);
+}
+.refs-pill {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 6px 1px 4px;
+    border: 1px solid var(--blue-20);
+    border-radius: 999px;
+    background: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--blue-60);
+    cursor: pointer;
+}
+.refs-pill .icon {
+    width: 12px;
+    height: 12px;
+    color: var(--blue-50);
+}
+.row.is-selected .refs-pill {
+    background: transparent;
+    border-color: rgb(255 255 255 / 0.35);
+    color: #fff;
+}
+
+.heading {
+    flex: 1;
+    font-family: var(--serif);
+    font-weight: 600;
+    line-height: 1.3;
+    text-wrap: balance;
+}
+.heading--h1,
+.heading--h2 {
+    font-size: 21px;
+}
+.heading--h3 {
+    font-size: 19px;
+}
+.heading--h4,
+.heading--h5 {
+    font-size: 17px;
+}
+.row--heading {
+    margin-top: 14px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.row--heading:first-child,
+.col__title + .row--heading {
+    margin-top: 0;
+}
+
+.figure {
+    flex: 1;
+    min-width: 0;
+    margin: 4px 0;
+}
+.figure__img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 850 / 600;
+    object-fit: contain;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--rule);
+}
+.row--image .figure__img {
+    aspect-ratio: auto;
+}
+.figure__caption {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 6px;
+    font-size: 13.5px;
+    color: var(--gray-70);
+}
+.row.is-selected .figure__caption {
+    color: var(--blue-20);
+}
+
+.figure__frame {
+    position: relative;
+}
+/* A live chart covers its picture once loaded. */
+.live-chart {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 4px;
+    background: #fff;
+    opacity: 0;
+    transition: opacity 200ms var(--ease-out);
+}
+.live-chart.is-loaded {
+    opacity: 1;
+}
+
+.row--alias .row__title {
+    font-weight: 400;
+    font-style: italic;
+}
+
+/* Arriving after a jump: one authored moment. */
+.row.is-landed {
+    animation: land 1300ms var(--ease-out);
+}
+@keyframes land {
+    0% {
+        box-shadow:
+            0 0 0 3px var(--vermillion),
+            0 6px 18px rgb(0 33 71 / 0.25);
+    }
+    100% {
+        box-shadow:
+            0 0 0 0 transparent,
+            0 0 0 transparent;
+    }
+}
+.col.is-arriving {
+    animation: arrive 420ms var(--ease-out) both;
+}
+@keyframes arrive {
+    from {
+        opacity: 0.2;
+        transform: translateX(28px);
+        filter: blur(2px);
+    }
+}
+
+/* --- Peek: floats beside the tree, never part of it --- */
+
+.peek-dock {
+    position: relative;
+    display: flex;
+    flex: none;
+    overflow: hidden;
+    margin: 10px 12px 0 10px;
+    border-radius: 10px 10px 0 0;
+    background: var(--peek-ground);
+    box-shadow:
+        0 1px 2px rgb(0 33 71 / 0.06),
+        0 8px 28px rgb(0 33 71 / 0.12);
+}
+.peek-dock.is-entering {
+    animation: dock-in 260ms var(--ease-out);
+}
+@keyframes dock-in {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+}
+.peek-dock.is-active {
+    box-shadow:
+        0 1px 2px rgb(0 33 71 / 0.08),
+        0 12px 36px rgb(0 33 71 / 0.2);
+}
+.col--peek {
+    flex-direction: column;
+    width: 340px;
+    background: transparent;
+    border-right: 1px solid var(--blue-20);
+}
+.col--peek:last-child {
+    border-right: 0;
+}
+.col--target {
+    width: 380px;
+}
+.peek__header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 14px 18px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--blue-60);
+}
+.peek__header .icon {
+    color: var(--blue-50);
+}
+.col--peek .col__body {
+    padding-top: 2px;
+}
+:where(body:not(.is-keying)) .col--peek .row:hover {
+    background: rgb(255 255 255 / 0.7);
+}
+.col--peek .row.is-trail {
+    background: #fff;
+}
+.col--peek .row.is-selected {
+    background: var(--select);
+}
+.row--link .row__title {
+    font-weight: 600;
+}
+.row--definition {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px;
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--blue-20);
+}
+:where(body:not(.is-keying))
+    .col--peek
+    .row--definition:not(.is-selected):hover {
+    background: #fff;
+}
+.def__label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gray-70);
+}
+.def__thumb {
+    width: 100%;
+    aspect-ratio: 850 / 600;
+    object-fit: contain;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--rule);
+}
+.def-path {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+.def-path li {
+    position: relative;
+    padding: 1px 0 1px 14px;
+}
+.def-path li::before {
+    content: "";
+    position: absolute;
+    left: 3px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--blue-20);
+}
+.def-path li::after {
+    content: "";
+    position: absolute;
+    left: 1px;
+    top: 0.72em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--blue-30);
+}
+.def-path li:first-child::before {
+    top: 0.72em;
+}
+.def-path li:last-child::before {
+    bottom: calc(100% - 0.72em);
+}
+.def-path__here {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--blue-100);
+}
+.def-path li.def-path__here::after {
+    background: var(--vermillion);
+}
+.def__action {
+    font-size: 12px;
+    color: var(--blue-60);
+}
+.row--definition.is-selected {
+    color: #fff;
+}
+.row--definition.is-selected .def__label,
+.row--definition.is-selected .def-path,
+.row--definition.is-selected .def__action {
+    color: var(--blue-20);
+}
+.row--definition.is-selected .def-path__here {
+    color: #fff;
+}
+.ref-group {
+    padding: 6px 4px;
+    border-radius: 8px;
+    transition: background-color 120ms;
+}
+.ref-group + .ref-group {
+    border-top: 1px solid var(--blue-20);
+}
+/* The page holding the selected place lifts onto paper, with no frame. */
+.ref-group.has-selection {
+    border-top-color: transparent;
+    background: #fff;
+}
+.ref-group.has-selection + .ref-group {
+    border-top-color: transparent;
+}
+:where(body:not(.is-keying)) .ref-group .row:not(.is-selected):hover {
+    background: rgb(255 255 255 / 0.7);
+}
+:where(body:not(.is-keying))
+    .ref-group.has-selection
+    .row:not(.is-selected):hover {
+    background: var(--blue-5);
+}
+.ref-doc {
+    display: flex;
+    flex-direction: column;
+    margin: 4px 8px 2px;
+    font: 500 13.5px/1.35 var(--serif);
+    color: var(--blue-90);
+}
+.ref-doc__home {
+    margin-top: 2px;
+    font: 12px/1.3 var(--sans);
+    color: var(--gray-70);
+}
+.row--ref {
+    padding: 6px 8px;
+}
+/* A selected place is still being read: ink on a light ground. */
+.col--peek .row--ref.is-selected {
+    background: var(--blue-5);
+    box-shadow: inset 0 0 0 1px var(--blue-30);
+    color: var(--ink);
+}
+.ref__snippet {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--gray-80);
+}
+.ref__snippet mark {
+    background: var(--amber-10);
+    color: var(--blue-100);
+    border-radius: 2px;
+}
+.row--ref.is-selected .ref__snippet {
+    color: var(--blue-100);
+}
+.ref__origin {
+    order: -1;
+    flex: none;
+    align-self: flex-start;
+    margin-top: 2px;
+    padding: 0 5px;
+    border-radius: 3px;
+    background: var(--blue-10);
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--blue-60);
+}
+
+/* --- Key hints --- */
+
+.keys {
+    display: flex;
+    gap: 18px;
+    padding: 9px 20px;
+    border-top: 1px solid var(--rule);
+    background: #fff;
+    font-size: 12.5px;
+    color: var(--gray-80);
+}
+.keys__hint {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* A selected block is still being read: keep it ink on a light ground. */
+.row--paragraph.is-selected,
+.row--quote.is-selected,
+.row--list.is-selected,
+.row--embed.is-selected,
+.row--image.is-selected {
+    /* Nothing on the side: a quiet outline. */
+    background: var(--gray-5);
+    box-shadow: inset 0 0 0 1px var(--gray-50);
+    color: var(--ink);
+}
+.row--paragraph.is-selected .prose,
+.row--quote.is-selected .prose,
+.row--list.is-selected .prose {
+    color: var(--blue-100);
+}
+.row--paragraph.is-selected .inline-link,
+.row--list.is-selected .inline-link {
+    text-decoration-color: var(--electric);
+}
+.row--paragraph.is-selected .link-count,
+.row--embed.is-selected .figure__caption,
+.row--image.is-selected .figure__caption,
+.row--embed.is-selected .icon {
+    color: var(--blue-60);
+}
+
+.row--external {
+    color: inherit;
+    text-decoration: none;
+}
+.row--external > .icon {
+    align-self: flex-start;
+    margin-top: 3px;
+}
+.row__meta--url {
+    display: flex;
+    gap: 0;
+    min-width: 0;
+    white-space: nowrap;
+}
+.url__host {
+    flex: none;
+    font-weight: 400;
+}
+.url__path {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.8;
+}
+.row__hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--blue-20);
+}
+.row__hint kbd {
+    background: transparent;
+    border-color: rgb(255 255 255 / 0.4);
+    color: #fff;
+}
+
+/* A fixed slot right of the selection, filled or not, so the columns
+   never move as you read. On narrow windows it runs off the edge. */
+.trailing {
+    display: flex;
+    flex: none;
+    width: 760px;
+}
+.col.is-hidden {
+    display: none;
+}
+
+/* The column's own title, selectable like any row. */
+.row--title {
+    margin: 4px 0 8px;
+    padding: 8px 12px 10px 16px;
+}
+.row--title .col__title {
+    margin: 0;
+}
+.row--title.is-selected {
+    background: var(--gray-5);
+    box-shadow: inset 0 0 0 1px var(--gray-50);
+}
+/* Something on the side: the panel's own blue, on hover and when selected. */
+:where(body:not(.is-keying)) .col--prose .row.has-context:hover {
+    background: var(--peek-ground);
+}
+.row.has-context.is-selected {
+    background: var(--peek-ground);
+    box-shadow: inset 0 0 0 1px var(--electric);
+}
+.row--title.is-selected .col__title {
+    color: var(--blue-100);
+}

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Our World in Data, in columns</title>
+        <link rel="stylesheet" href="./style.css" />
+    </head>
+    <body>
+        <header class="bar">
+            <div class="bar__history">
+                <button
+                    class="icon-button"
+                    data-action="back"
+                    aria-label="Back"
+                    title="Back (⌫)"
+                >
+                    <svg viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M10 3 5 8l5 5" />
+                    </svg>
+                </button>
+                <button
+                    class="icon-button"
+                    data-action="forward"
+                    aria-label="Forward"
+                    title="Forward (⇧⌫)"
+                >
+                    <svg viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="m6 3 5 5-5 5" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="crumbs" aria-label="Where you are"></nav>
+            <div class="return" hidden></div>
+        </header>
+        <main class="strip" tabindex="0" aria-label="Site, in columns"></main>
+        <footer class="keys"></footer>
+        <script type="module" src="./app.ts"></script>
+    </body>
+</html>

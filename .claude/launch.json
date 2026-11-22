@@ -1,0 +1,15 @@
+{
+    "version": "0.0.1",
+    "configurations": [
+        {
+            "name": "miller-columns",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "vite",
+                "--config",
+                "devTools/millerColumns/vite.config.mts"
+            ],
+            "port": 8470
+        }
+    ]
+}
