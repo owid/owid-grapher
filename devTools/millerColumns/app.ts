@@ -25,6 +25,7 @@ interface TreeNode {
     date?: string
     target?: string
     dimension?: string
+    sameData?: string[]
 }
 interface Reference {
     from: string
@@ -108,6 +109,11 @@ const site = (await fetch("/data/site.json").then((r) => r.json())) as {
 }
 const nodes = new Map(Object.entries(site.nodes))
 const references = site.references
+// Where the side panel leads from a target, after its own home: every place
+// that uses it, or, when nothing does, charts of the same data in other
+// topics, so the panel never ends in "not used anywhere".
+const exitsOf = (id: string): string[] =>
+    references[id]?.map((r) => r.from) ?? nodes.get(id)?.sameData ?? []
 
 // The DAG's secondary edges become alias rows in the secondary parent.
 for (const n of [...nodes.values()]) {
@@ -266,7 +272,7 @@ type PeekPlan =
 function peekPlan(id: string): PeekPlan {
     const n = node(id)
     if (n.kind === "title")
-        return references[n.target!]
+        return exitsOf(n.target!).length
             ? {
                   kind: "target",
                   target: {
@@ -290,7 +296,7 @@ function peekPlan(id: string): PeekPlan {
             ? { kind: "target", target: n.links[0] }
             : null
     if (n.links?.length) return { kind: "links", links: n.links }
-    if (references[id] && !hasChildren(id))
+    if (exitsOf(id).length && !hasChildren(id))
         return {
             kind: "target",
             target: { text: n.title, target: id, kind: n.kind },
@@ -301,7 +307,7 @@ function peekPlan(id: string): PeekPlan {
 let referencesOpen = false
 function activePeek(): PeekPlan {
     const id = selected()
-    if (referencesOpen && references[id])
+    if (referencesOpen && exitsOf(id).length)
         return {
             kind: "target",
             target: { text: node(id).title, target: id, kind: node(id).kind },
@@ -351,9 +357,7 @@ async function move(delta: number): Promise<void> {
         const count =
             peek.zone === "links" && plan.kind === "links"
                 ? plan.links.length
-                : 1 +
-                  (references[targetOfPeek(plan, peek)?.target ?? ""]?.length ??
-                      0)
+                : 1 + exitsOf(targetOfPeek(plan, peek)?.target ?? "").length
         const key = peek.zone === "links" ? "link" : "row"
         const value = Math.max(0, Math.min(count - 1, peek[key] + delta))
         await go({
@@ -456,7 +460,7 @@ async function enter(): Promise<void> {
     }
     if (peek.row === 0 && isAtHome(link.target)) return // already here
     if (peek.row === 0) await jumpTo(link.target)
-    else await jumpTo(references[link.target][peek.row - 1].from)
+    else await jumpTo(exitsOf(link.target)[peek.row - 1])
 }
 async function goToStop(i: number): Promise<void> {
     if (i < 0 || i >= trail.length || i === stopIndex) return
@@ -486,7 +490,7 @@ document.addEventListener("keydown", (e) => {
         Home: () => move(-1e6),
         End: () => move(1e6),
         r: () => {
-            if (!references[selected()]) return
+            if (!exitsOf(selected()).length) return
             referencesOpen = !referencesOpen
             state = { ...state, peek: null }
             render(state)
@@ -975,15 +979,36 @@ function targetColumn(
 
     // References: every block that links to or embeds the target.
     const refs = references[link.target] ?? []
+    // Nothing uses it: offer its few closest relatives instead, each named
+    // by the topic it lives in, since that is where the jump lands.
+    const sameData = refs.length ? [] : (target.sameData ?? [])
     body.append(
         el(
             "div",
             "group-label",
             refs.length
                 ? `Used in ${refs.length} place${refs.length === 1 ? "" : "s"}`
-                : "Not used anywhere"
+                : sameData.length
+                  ? "Same data in other topics"
+                  : "Not used anywhere"
         )
     )
+    sameData.forEach((id, i) => {
+        const rr = el(
+            "div",
+            `row row--link ${row === i + 1 ? "is-selected" : ""}`
+        )
+        rr.dataset.peekRow = String(i + 1)
+        rr.append(
+            el(
+                "span",
+                "row__text",
+                el("span", "row__title", node(id).title),
+                el("span", "row__meta", icon("jump"), `in ${homeOf(id)!.title}`)
+            )
+        )
+        body.append(rr)
+    })
     // One card per document: its title, then each place it uses the target,
     // so a selected place reads as part of its document.
     let group: HTMLElement | undefined
@@ -1137,8 +1162,17 @@ function renderKeys(): void {
                     : "Look at its references",
             ])
         if (state.path.length > 2) hints.push(["←", "Up a level"])
-        if (references[selected()] && hasChildren(selected()))
-            hints.push(["R", referencesOpen ? "Hide references" : "References"])
+        if (exitsOf(selected()).length && hasChildren(selected()))
+            hints.push([
+                "R",
+                references[selected()]
+                    ? referencesOpen
+                        ? "Hide references"
+                        : "References"
+                    : referencesOpen
+                      ? "Hide same data"
+                      : "Same data elsewhere",
+            ])
     }
     if (stopIndex > 0) hints.push(["⌫", "Back"])
     hints.push(["⌘K", "Search and actions"])

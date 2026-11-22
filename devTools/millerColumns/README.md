@@ -29,4 +29,6 @@ Then open http://localhost:8470. Thumbnails come from the live site. Chart block
 - Narrative charts sit under their parent chart.
 - A chart or view's home is its data page, read like a short document: the chart, its short description, then "What you should know" and "Sources and processing" sections from its indicator's metadata. Narrative charts follow it.
 - Document bodies: headings nest, every other block is a leaf. Layout containers (sticky-right, gray sections, …) are flattened.
+- A data insight's figure is the chart it names (`narrative-chart`, else `grapher-url`), embedded in place of its static image, so the chart's references list the insight. Insights that name no chart keep their image.
+- A chart nobody uses gets up to 3 charts of the same data from other topics (shared x or y indicator, weighted down when many charts share it), shown in its side panel in place of "Not used anywhere".
 - Links resolve to one node (chart slugs follow redirects; MDM links with query params resolve to the exact view).

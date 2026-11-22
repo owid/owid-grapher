@@ -29,6 +29,8 @@ interface TreeNode {
     date?: string
     target?: string
     dimension?: string // the MDM dimension a view-tree node picks a choice for
+    // For a chart nobody uses: charts of the same data in other topics.
+    sameData?: string[]
 }
 
 const OWID = "https://ourworldindata.org"
@@ -323,8 +325,12 @@ const gdocs = await q<{
     title: string
     publishedAt: Date | null
     body: string | null
+    grapherUrl: string | null
+    narrativeChart: string | null
 }>(`SELECT id, slug, type, content->>'$.title' title, publishedAt,
-        JSON_EXTRACT(content, '$.body') body
+        JSON_EXTRACT(content, '$.body') body,
+        content->>'$."grapher-url"' grapherUrl,
+        content->>'$."narrative-chart"' narrativeChart
     FROM posts_gdocs
     WHERE published = 1
       AND type IN ('article','data-insight','topic-page','linear-topic-page')
@@ -740,10 +746,27 @@ const imageIds = new Map(
         )
     ).map((i) => [i.filename, i.cloudflareId])
 )
+// A data insight's figure is the chart it names, embedded in place of its
+// static image, so the insight leads to the chart and the chart lists it.
+function insightFigure(g: (typeof gdocs)[number]): RawBlock | undefined {
+    if (g.narrativeChart && narrativeByName.has(g.narrativeChart))
+        return { type: "narrative-chart", name: g.narrativeChart }
+    // Some insights name their chart by its admin edit link.
+    const adminId = g.grapherUrl?.match(/\/admin\/charts\/(\d+)/)?.[1]
+    const url = adminId ? nodes.get(`chart:${adminId}`)?.url : g.grapherUrl
+    return url && resolve(url).target ? { type: "chart", url } : undefined
+}
 for (const g of gdocs) {
     if (!g.body) continue
-    const body = typeof g.body === "string" ? JSON.parse(g.body) : g.body
-    buildBody(`doc:${g.id}`, body as RawBlock[])
+    let body = (
+        typeof g.body === "string" ? JSON.parse(g.body) : g.body
+    ) as RawBlock[]
+    const figure = g.type === "data-insight" ? insightFigure(g) : undefined
+    if (figure) {
+        const image = body.findIndex((b) => b.type === "image")
+        body = image >= 0 ? body.with(image, figure) : [figure, ...body]
+    }
+    buildBody(`doc:${g.id}`, body)
 }
 
 // --- Data pages: a chart or view's home reads like a short document ---
@@ -923,6 +946,45 @@ function prune(id: string): boolean {
 nodes.get("root")!.children = nodes.get("root")!.children!.filter(prune)
 for (const n of nodes.values())
     if (n.alsoIn) n.alsoIn = n.alsoIn.filter((id) => nodes.has(id))
+
+// --- Same data, other topics: a way out for charts nobody uses ---
+
+// Charts sharing a plotted indicator (x or y, not size or color, which
+// link unrelated scatters through population or continent). The tree
+// already shows the same topic, so only other topics count. A shared
+// indicator weighs less the more charts use it, so GDP per capita, used by
+// a hundred scatters, doesn't drown out the specific match.
+const chartsByIndicator = new Map<number, string[]>()
+for (const d of await q<{ chartId: number; variableId: number }>(
+    `SELECT DISTINCT chartId, variableId FROM chart_dimensions
+    WHERE property IN ('x', 'y')`
+)) {
+    const id = `chart:${d.chartId}`
+    if (!nodes.has(id)) continue
+    if (!chartsByIndicator.has(d.variableId))
+        chartsByIndicator.set(d.variableId, [])
+    chartsByIndicator.get(d.variableId)!.push(id)
+}
+const SAME_DATA_SHOWN = 3
+const scores = new Map<string, Map<string, number>>()
+for (const ids of chartsByIndicator.values())
+    for (const a of ids)
+        for (const b of ids) {
+            if (a === b) continue
+            if (!scores.has(a)) scores.set(a, new Map())
+            const s = scores.get(a)!
+            s.set(b, (s.get(b) ?? 0) + 1 / ids.length)
+        }
+for (const [id, s] of scores) {
+    const chart = nodes.get(id)!
+    if (references[id]) continue
+    const elsewhere = [...s]
+        .filter(([other]) => nodes.get(other)!.parent !== chart.parent)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, SAME_DATA_SHOWN)
+        .map(([other]) => other)
+    if (elsewhere.length) chart.sameData = elsewhere
+}
 
 // The skeleton (topics, documents, data) loads up front; each document's
 // blocks load when the reader opens it.
