@@ -525,7 +525,7 @@ document.addEventListener("keydown", (e) => {
         ArrowUp: () => moveResult(-1),
         ArrowDown: () => moveResult(1),
         ArrowRight: enterResult,
-        Enter: enterResult,
+        Enter: openMatch,
         Escape: closeSearch,
         Home: () => moveResult(-1e6),
         End: () => moveResult(1e6),
@@ -1303,7 +1303,8 @@ function renderKeys(): void {
     if (onResults()) {
         const hints: [string, string][] = [
             ["↑ ↓", "Move in the results"],
-            ["→ ⏎", "Step in"],
+            ["→", "Step in"],
+            ["⏎", "Go to the match"],
             ["⌫", "In the box, at the start: widen"],
             ["esc", "Close the search"],
             ["/", "Edit the search"],
@@ -1985,7 +1986,11 @@ function resultsColumn(s: Search): HTMLElement {
         "div",
         "results__hints",
         ...(s.base === undefined
-            ? [...hint("→", "step in"), ...hint("esc", "close the search")]
+            ? [
+                  ...hint("→", "step in"),
+                  ...hint("⏎", "go to the match"),
+                  ...hint("esc", "close"),
+              ]
             : [
                   ...hint("←", "back to the results"),
                   ...hint("esc", "stay here, close the search"),
@@ -2117,6 +2122,11 @@ async function enterResult(): Promise<void> {
     // right of the results, on the way to the match.
     await enterAt(ancestry(r.id)[resultBase(r.id, s) + 1])
 }
+// ⏎ goes straight to the match, however deep it sits.
+async function openMatch(): Promise<void> {
+    const r = state.search && highlighted(state.search)
+    if (r) await enterAt(r.id)
+}
 // While stepped in, the way down to the highlighted result, as long as the
 // selection is still on it.
 function searchTarget(): string[] | undefined {
@@ -2149,6 +2159,11 @@ async function leaveResult(): Promise<void> {
 // Esc on the results: back where you were, as if you never searched.
 function closeSearch(): void {
     leaveBox()
+    endSearch()
+}
+// Ending a search puts the tree back as it was; the box keeps its focus,
+// so clearing the words to type a keyword doesn't throw you out.
+function endSearch(): void {
     latestSearch = null
     const from = state.search?.from ?? state.path
     void go({ path: from, peek: null, search: undefined })
@@ -2324,7 +2339,7 @@ function updateSearch(changed: Search): void {
     if (isActive(s)) void setSearch(s)
     else {
         draftScope = s.scope === hereScope() ? null : s.scope
-        if (state.search) closeSearch()
+        if (state.search) endSearch()
         else renderBox()
     }
 }
@@ -2851,7 +2866,7 @@ boxInput.addEventListener("keydown", (e) => {
     } else if (e.key === "Enter") {
         e.preventDefault()
         if (menuOpen) runMenu(menuActive)
-        else queueKey(enterResult)
+        else queueKey(openMatch)
     } else if (
         e.key === "ArrowRight" &&
         !menuOpen &&
