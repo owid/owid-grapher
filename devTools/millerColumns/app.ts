@@ -426,6 +426,12 @@ async function right(): Promise<void> {
             })
         return
     }
+    // On the way down to a search match, → follows the path to it.
+    const toMatch = searchTarget()
+    if (toMatch && toMatch.length > state.path.length) {
+        await go({ path: toMatch.slice(0, state.path.length + 1), peek: null })
+        return
+    }
     if (hasChildren(id) && !referencesOpen) {
         const doc = docOf(id)
         if (doc) await loadDoc(doc)
@@ -1472,12 +1478,18 @@ function layout(): void {
             : cols.length
               ? rightOf(cols[cols.length - 1])
               : 0
-    // Never past the focus column's own left edge.
+    // Never past the left edge of what stays shown left of the focus.
     const leftOf = (e: Element): number =>
         e.getBoundingClientRect().left - origin
     strip.scrollLeft = Math.max(
         0,
-        Math.min(focusRight - available, focus ? leftOf(focus) : Infinity)
+        Math.min(
+            focusRight - available,
+            // The folded strips left of the focus stay in view with it.
+            focus
+                ? leftOf(cols.find((c) => !c.classList.contains("is-hidden"))!)
+                : Infinity
+        )
     )
 }
 const TRAILING_WIDTH = 760
@@ -1526,15 +1538,23 @@ function render(before: Location): void {
     // The tree from `start` on: one column per selected level, then what
     // the selection holds. While searching, it starts at the result's own
     // column; before you step in, it is only a look at the result.
-    const treeFrom = (p: string[], start: number, look: boolean): void => {
+    // Columns from `lookFrom` on are only a look: they show the way down
+    // to a search match, past the selection.
+    const treeFrom = (p: string[], start: number, lookFrom: number): void => {
+        const depth = Number.isFinite(lookFrom) ? lookFrom + 1 : p.length
         for (let i = start; i < p.length; i++) {
             const parentId = p[i]
             const selectedId = p[i + 1]
             if (!selectedId && !hasChildren(parentId)) break
             if (!selectedId && referencesOpen) break
-            const isTrail = look || i < p.length - 2 || state.peek !== null
+            const look = i >= lookFrom
+            const isTrail = look || i < depth - 2 || state.peek !== null
             const col = treeColumn(parentId, selectedId, i, isTrail)
             if (look) col.dataset.search = "look"
+            // With the way to a match shown past it, the view follows the
+            // selection's own column, not the far end.
+            if (Number.isFinite(lookFrom) && i === depth - 2 && !look)
+                col.classList.add("is-focus")
             if (!selectedId) col.classList.add("col--preview")
             if (i >= common && landedOn) col.classList.add("is-arriving")
             else keep.add(parentId)
@@ -1559,11 +1579,18 @@ function render(before: Location): void {
     if (s) {
         cols.push(...searchColumns(s))
         const r = highlighted(s)
-        if (s.base !== undefined) treeFrom(state.path, s.base, false)
+        // Stepped in: the selection, then the rest of the way to the match.
+        const toMatch = searchTarget()
+        if (s.base !== undefined)
+            treeFrom(
+                toMatch ?? state.path,
+                s.base,
+                toMatch ? state.path.length - 1 : Infinity
+            )
         else if (r && nodes.has(r.id)) {
-            treeFrom(ancestry(r.id), resultBase(r.id, s), true)
+            treeFrom(ancestry(r.id), resultBase(r.id, s), resultBase(r.id, s))
         }
-    } else treeFrom(state.path, 0, false)
+    } else treeFrom(state.path, 0, Infinity)
     if (!s || s.base !== undefined) {
         const peekCols = peekColumns()
         if (peekCols.length) {
@@ -2083,8 +2110,21 @@ function resultBase(id: string, s: Search): number {
 // → steps into the highlighted result: the columns after the results
 // become the tree, and the arrows move in it.
 async function enterResult(): Promise<void> {
-    const r = state.search && highlighted(state.search)
-    if (r) await enterAt(r.id)
+    const s = state.search
+    const r = s && highlighted(s)
+    if (!s || !r) return
+    // → moves one column, like everywhere else: into the first column
+    // right of the results, on the way to the match.
+    await enterAt(ancestry(r.id)[resultBase(r.id, s) + 1])
+}
+// While stepped in, the way down to the highlighted result, as long as the
+// selection is still on it.
+function searchTarget(): string[] | undefined {
+    const s = state.search
+    const r = s?.base !== undefined && s && highlighted(s)
+    if (!r || !nodes.has(r.id)) return undefined
+    const path = ancestry(r.id)
+    return state.path.every((id, i) => path[i] === id) ? path : undefined
 }
 async function enterAt(id: string): Promise<void> {
     const s = state.search
