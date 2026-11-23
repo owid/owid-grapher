@@ -1139,21 +1139,10 @@ button.tag--is:hover {
 button.tag--sort:hover {
     background: #ebe0c4;
 }
-/* What the last word could narrow to: a tag not taken yet. */
 .omnibox__offer {
     display: flex;
     flex: none;
     gap: 2px;
-}
-.tag--offer {
-    background: none;
-    box-shadow: inset 0 0 0 1px var(--blue-20);
-    color: var(--gray-70);
-}
-.tag--offer kbd {
-    height: 16px;
-    min-width: 18px;
-    font-size: 11px;
 }
 .omnibox__keyword {
     height: 24px;
@@ -1196,6 +1185,49 @@ button.tag--sort:hover {
     scrollbar-width: thin;
     scrollbar-color: var(--blue-20) transparent;
     animation: menu-in 160ms var(--ease-out);
+}
+/* The filter the last word names, hanging under the box like the first
+   row of a menu, without taking ↑ ↓ or ⏎ from the results. */
+.omnibox__suggest {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 6px 12px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow:
+        0 20px 48px -16px rgb(0 33 71 / 0.28),
+        0 2px 6px rgb(0 33 71 / 0.08);
+    font-size: 14px;
+    cursor: pointer;
+    animation: menu-in 160ms var(--ease-out);
+}
+.omnibox__suggest[hidden] {
+    display: none;
+}
+.omnibox__suggest:hover {
+    background: var(--blue-5);
+}
+.omnibox__suggest .icon {
+    width: 15px;
+    height: 15px;
+    color: var(--blue-50);
+}
+.suggest__phrase {
+    font-weight: 600;
+}
+.suggest__keyword {
+    color: var(--gray-70);
+}
+.omnibox__suggest kbd {
+    margin-left: auto;
 }
 .omnibox__menu[hidden] {
     display: none;
@@ -1306,18 +1338,6 @@ body > .crumbs {
     width: 15px;
     height: 15px;
     color: var(--search-ink);
-}
-.results__hints {
-    display: flex;
-    flex-basis: 100%;
-    align-items: center;
-    gap: 6px;
-    margin-top: 6px;
-    font-size: 12px;
-    color: var(--gray-80);
-}
-.results__hints span + kbd {
-    margin-left: 10px;
 }
 .results__count {
     font-weight: 700;

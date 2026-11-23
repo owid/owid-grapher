@@ -1453,11 +1453,10 @@ function renderTramline(): void {
 function renderKeys(): void {
     if (onSearchedPlace()) {
         const hints: [string, string][] = [
-            ["↑ ↓", "Search the place above or below"],
-            ["←", "Search the place it is in"],
-            ["→", "Back to the results"],
-            ["⏎", "Open it, and end the search"],
-            ["esc", "Back where you were"],
+            ["↑ ↓ ←", "Search another place"],
+            ["→", "Results"],
+            ["⏎", "Open"],
+            ["esc", "Close the search"],
         ]
         keys.replaceChildren(
             ...hints.map(([k, label]) =>
@@ -1473,10 +1472,7 @@ function renderKeys(): void {
                 k,
                 label.replace(/^./, (c) => c.toUpperCase()),
             ]),
-            ["⌫", "In the box, at the start: widen"],
-            ["←", "Onto the place searched"],
-            ["esc", "Back where you were"],
-            ["/", "Edit the search"],
+            ["esc", "Close the search"],
         ]
         keys.replaceChildren(
             ...hints.map(([k, label]) =>
@@ -2285,27 +2281,7 @@ function resultsColumn(s: Search): HTMLElement {
         el("span", "results__where", `in ${scopeName(s.scope)}`),
         waiting ? el("span", "results__note", "Reading the text…") : null
     )
-    // What the keys do here, said where you look: on the results, or
-    // inside one of them with the results still on the left.
-    const hint = (k: string, label: string): HTMLElement[] => [
-        el("kbd", "", k),
-        el("span", "", label),
-    ]
-    const hints = el(
-        "div",
-        "results__hints",
-        ...(s.base === undefined
-            ? [
-                  ...enterHints(s).flatMap(([k, label]) => hint(k, label)),
-                  ...hint("←", "back"),
-              ]
-            : [
-                  ...hint("←", "back to the results"),
-                  ...hint("esc", "stay here, close the search"),
-              ])
-    )
     head.prepend(icon("search"))
-    head.append(hints)
     const chips = kindChips(s)
     if (chips) head.append(chips)
     const body = el("div", "col__body")
@@ -2533,7 +2509,7 @@ function enterHints(s: Search): [string, string][] {
           ]
         : [
               ["→", "look inside"],
-              ["⏎", "open, end the search"],
+              ["⏎", "open"],
           ]
 }
 // While stepped in, the way down to the highlighted result, as long as the
@@ -2752,6 +2728,7 @@ const boxTags = box.querySelector<HTMLElement>(".omnibox__tags")!
 const boxMenu = box.querySelector<HTMLElement>(".omnibox__menu")!
 const boxKey = box.querySelector<HTMLElement>(".omnibox__key")!
 const boxOffer = box.querySelector<HTMLElement>(".omnibox__offer")!
+const boxSuggest = box.querySelector<HTMLElement>(".omnibox__suggest")!
 let menuGroups: { title: string; commands: Command[] }[] = []
 let menuActive = 0
 // Esc closes the menu before it ends the search; typing opens it again.
@@ -2876,28 +2853,50 @@ function keywordValues(
         }))
 }
 
-// A last word that names a kind or a topic is offered as its filter, so
-// "cancer articles" narrows to articles without knowing is:article.
-// ⇥ takes it.
+// A last word that names a kind, a topic or an order is offered as its
+// filter under the box, so "cancer articles" or "deaths new" narrows
+// without knowing the keywords. ⇥ takes it.
 const LAST_WORD = /(?:^|\s)(\S+)$/
-function offerFor():
-    | { key: string; name: string; apply: (s: Search) => Search }
-    | undefined {
+const SORT_WORDS: Record<string, SortKey> = {
+    new: "new",
+    newest: "new",
+    latest: "new",
+    recent: "new",
+    popular: "read",
+}
+interface Offer {
+    keyword: string // what it stands for, as typed: is:article
+    phrase: string // what it does: Only Articles
+    apply: (s: Search) => Search
+}
+function offerFor(): Offer | undefined {
     if (inCommands() || boxInput.selectionStart !== boxInput.value.length)
         return undefined
     const word = boxInput.value.match(LAST_WORD)?.[1].toLowerCase()
     if (!word || word.length < 3 || word.includes(":")) return undefined
+    const s = boxSearch()
     const exact = (key: string, value: string) =>
         keywordValues(key, value).find((v) => v.label === value)
     const kind = exact("is", word) ?? exact("is", word.replace(/s$/, ""))
-    if (kind && !boxSearch().kinds.includes(kind.label))
-        return { key: "is", name: kind.detail, apply: kind.apply }
-    const place = exact("in", word)
-    if (place && slug(node(boxSearch().scope).title) !== word)
-        // Its detail reads "Cancer · Topic".
+    if (kind && !s.kinds.includes(kind.label))
         return {
-            key: "in",
-            name: place.detail.split(" · ")[0],
+            keyword: `is:${kind.label}`,
+            phrase: `Only ${kind.detail.toLowerCase()}`,
+            apply: kind.apply,
+        }
+    const sort = SORT_WORDS[word]
+    if (sort && s.sort !== sort)
+        return {
+            keyword: `sort:${sort}`,
+            phrase: `${SORTS[sort]} first`,
+            apply: (x) => ({ ...x, sort }),
+        }
+    const place = exact("in", word)
+    if (place && slug(node(s.scope).title) !== word)
+        return {
+            keyword: `in:${place.label}`,
+            // Its detail reads "Cancer · Topic".
+            phrase: `In ${place.detail.split(" · ")[0]}`,
             apply: place.apply,
         }
     return undefined
@@ -3284,18 +3283,21 @@ function renderBox(): void {
     renderMenu()
     renderOffer(focused && !commands)
 }
-// Right of the words: the filter the last word names, else the keywords
-// themselves, so narrowing a search never depends on knowing them.
+// Under the box, the filter the last word names; it leaves ↑ ↓ and ⏎ to
+// the results. In the box, the keywords themselves, so narrowing a search
+// never depends on knowing them.
 function renderOffer(show: boolean): void {
-    const offer = show && offerFor()
-    if (offer) {
-        const t = tag("tag--offer", `${offer.key} `, offer.name)
-        t.prepend(el("kbd", "", "⇥"))
-        t.title = `Only ${offer.key === "in" ? "in " : ""}${offer.name} (⇥)`
-        return boxOffer.replaceChildren(t)
-    }
+    const offer = show && boxMenu.hidden && offerFor()
+    boxSuggest.hidden = !offer
+    if (offer)
+        boxSuggest.replaceChildren(
+            icon("search"),
+            el("span", "suggest__phrase", offer.phrase),
+            el("span", "suggest__keyword", offer.keyword),
+            el("kbd", "", "tab")
+        )
     boxOffer.replaceChildren(
-        ...(show && boxMenu.hidden
+        ...(show && boxMenu.hidden && !offer
             ? KEYWORDS.filter(([k]) => k !== ">").map(([k, detail]) => {
                   const b = el("button", "omnibox__keyword", k)
                   b.dataset.keyword = k
@@ -3428,8 +3430,10 @@ boxOffer.addEventListener("click", (e) => {
         const words = boxInput.value.trimEnd()
         boxInput.value = words ? `${words} ${keyword}` : keyword
         onBoxInput()
-    } else if (t.closest(".tag--offer")) takeOffer()
+    }
 })
+boxSuggest.addEventListener("mousedown", (e) => e.preventDefault())
+boxSuggest.addEventListener("click", takeOffer)
 boxTags.addEventListener("mousedown", (e) => e.preventDefault())
 boxTags.addEventListener("click", (e) => {
     const t = (e.target as HTMLElement).closest<HTMLElement>("[data-remove]")
