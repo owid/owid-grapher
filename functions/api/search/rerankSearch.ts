@@ -50,6 +50,11 @@ export interface RerankOptions {
     model: RerankModel
     /** widen the pool with the top results of the query's topics */
     vocab: boolean
+    /**
+     * Pages pick their topics by static embedding, as charts do, instead of
+     * a decision model call (`vocab=static`, under test)
+     */
+    staticPageTopics: boolean
     waitUntil: (promise: Promise<unknown>) => void
 }
 
@@ -232,7 +237,9 @@ export async function searchPagesReranked(
                     withExcerpt: true,
                 }),
             pickTopics: () =>
-                pickVocabularyTopics(rerank.ai, rerank.model, state.query),
+                rerank.staticPageTopics
+                    ? pickTopicsByEmbedding(state.query, rerank.waitUntil)
+                    : pickVocabularyTopics(rerank.ai, rerank.model, state.query),
             searchTopic: async (topicState) =>
                 (await search(topicState, 0, VOCABULARY_HITS_PER_TERM)).results,
             rerank: (hits, note) =>

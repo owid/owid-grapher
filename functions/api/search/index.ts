@@ -155,12 +155,12 @@ const PARAM_HINTS = new Map<string, string>([
  */
 function parseRerankParams(
     params: URLSearchParams
-): Pick<RerankOptions, "model" | "vocab"> | undefined {
+): Pick<RerankOptions, "model" | "vocab" | "staticPageTopics"> | undefined {
     const model = params.get("rerank")
     const vocab = params.get("vocab")
-    if (vocab && vocab !== "1")
+    if (vocab && vocab !== "1" && vocab !== "static")
         throw new SearchValidationError(
-            `Invalid vocab value "${vocab}". Use vocab=1`
+            `Invalid vocab value "${vocab}". Use vocab=1, or vocab=static to pick pages' topics by static embedding`
         )
     if (vocab && !model)
         throw new SearchValidationError("vocab=1 needs a rerank")
@@ -169,7 +169,7 @@ function parseRerankParams(
         throw new SearchValidationError(
             `Invalid rerank value "${model}". Valid values: ${Object.keys(RERANK_MODELS).join(", ")}`
         )
-    return { model, vocab: !!vocab }
+    return { model, vocab: !!vocab, staticPageTopics: vocab === "static" }
 }
 
 const hasSearchEnvVars = (env: Env): boolean => {
