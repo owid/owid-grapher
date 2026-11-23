@@ -1467,22 +1467,54 @@ mark {
 .group-label__all:hover {
     color: var(--ink);
 }
-/* While its "Show more" row is selected: what → does. */
-.group-label__all.is-armed {
-    color: var(--ink);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
 .group-label__all:focus-visible {
     outline: 2px solid var(--electric);
     outline-offset: 2px;
     border-radius: 2px;
 }
-.row--more > .icon {
-    color: var(--electric);
-}
+/* Quiet: an action at the end of a group, not one more item. */
 .row--more .row__title {
-    color: var(--electric);
+    font-weight: 400;
+    color: var(--ink-soft);
+}
+.row--more > .icon {
+    color: var(--gray-70);
+}
+/* "⌘⏎ See all 14": on the selected row, and under the mouse. */
+.row__see-all {
+    display: none;
+    flex: none;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 4px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--gray-70);
+    cursor: pointer;
+}
+.row--more.is-selected .row__see-all,
+:where(body:not(.is-keying)) .row--more:hover .row__see-all {
+    display: inline-flex;
+}
+.row__see-all:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.row--more.is-selected .row__see-all {
+    color: var(--blue-20);
+}
+.row--more.is-selected .row__see-all:hover {
+    color: #fff;
+}
+.row--more.is-selected .row__see-all kbd {
+    background: transparent;
+    border-color: rgb(255 255 255 / 0.4);
+    color: #fff;
 }
 
 /* --- Sticky headers: you always see which group, document and section

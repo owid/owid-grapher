@@ -229,11 +229,24 @@ function showMoreLabel(left: number, group: string): string {
     if (left > SHOW_MORE_STEP) return `Show ${SHOW_MORE_STEP} more ${many}`
     return left === 1 ? `Show the last ${one}` : `Show the last ${left} ${many}`
 }
+// On a "Show more" row, the other choice and its key: "⌘⏎ See all 14".
+// It shows on the selected row and under the mouse, and is clickable.
+function seeAllOnRow(total: number, kind: string, place?: string): HTMLElement {
+    const b = el(
+        "button",
+        "row__see-all",
+        el("kbd", "", "⌘⏎"),
+        `See all ${total}`
+    )
+    b.dataset.seeAll = kind
+    if (place) b.dataset.place = place
+    return b
+}
 // A group's label: its name and size, and "See all" when it folds.
 function groupLabel(
     label: string,
     total?: number,
-    seeAll?: { kind: string; place?: string; armed?: boolean }
+    seeAll?: { kind: string; place?: string }
 ): HTMLElement {
     const out = el(
         "div",
@@ -246,7 +259,6 @@ function groupLabel(
     if (seeAll) {
         const b = el("button", "group-label__all", "See all", icon("chevron"))
         b.dataset.seeAll = seeAll.kind
-        if (seeAll.armed) b.classList.add("is-armed")
         if (seeAll.place) b.dataset.place = seeAll.place
         b.title = `List all ${total} ${GROUP_NOUN[label]?.[1] ?? "items"} as a search`
         out.append(b)
@@ -523,11 +535,7 @@ async function right(): Promise<void> {
         await go({ path: toMatch.slice(0, state.path.length + 1), peek: null })
         return
     }
-    // → on a "Show more" row moves right: the whole group, as a search.
-    if (node(id).kind === "more") {
-        const n = node(id)
-        return seeAll(SECTION_KEYWORD[n.title], n.parent)
-    }
+    if (node(id).kind === "more") return showMoreRows(state.path)
     if (hasChildren(id) && !referencesOpen) {
         const doc = docOf(id)
         if (doc) await loadDoc(doc)
@@ -613,6 +621,10 @@ document.addEventListener("keydown", (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "f") {
         e.preventDefault()
         return openFind()
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        e.preventDefault()
+        return seeAllFromRow()
     }
     if (e.metaKey && e.key === "[") return void back()
     if (e.metaKey && e.key === "]") return void forward()
@@ -946,6 +958,11 @@ function renderRow(
                     "span",
                     "row__text",
                     el("span", "row__title", showMoreLabel(leftIn(id), n.title))
+                ),
+                seeAllOnRow(
+                    SHOWN_IN_GROUP + n.count!,
+                    SECTION_KEYWORD[n.title],
+                    n.parent
                 )
             )
             break
@@ -1007,10 +1024,6 @@ function treeColumn(
     let group = ""
     const peekLink =
         state.peek?.link ?? (activePeek()?.kind === "links" ? -1 : undefined)
-    const armed =
-        selectedId && node(selectedId).kind === "more"
-            ? node(selectedId).title
-            : undefined
     for (const id of visibleChildren(parentId, selectedId)) {
         // A "N more" row sits under its group's header.
         const g =
@@ -1023,7 +1036,6 @@ function treeColumn(
                     ? groupLabel(g, SHOWN_IN_GROUP + more.count!, {
                           kind: SECTION_KEYWORD[g],
                           place: parentId,
-                          armed: armed === g && !isTrail,
                       })
                     : groupLabel(g)
             )
@@ -1433,8 +1445,8 @@ function renderKeys(): void {
         hints.push(["⏎", external ? "Open in a new tab" : "Jump there"])
     } else {
         if (node(selected()).kind === "more") {
-            hints.push(["⏎", "Show them here"])
-            hints.push(["→", "See all, as a search"])
+            hints.push(["→ ⏎", "Show them here"])
+            hints.push(["⌘⏎", "See all, as a search"])
         } else if (hasChildren(selected()) && !referencesOpen)
             hints.push(["→ ⏎", "Open"])
         else if (plan)
@@ -2118,7 +2130,8 @@ function resultRow(r: Result, i: number, s: Search): HTMLElement {
                 "span",
                 "row__text",
                 el("span", "row__title", showMoreLabel(left, r.more))
-            )
+            ),
+            seeAllOnRow(section.total, SECTION_KEYWORD[r.more])
         )
         return row
     }
@@ -2244,12 +2257,11 @@ function resultsColumn(s: Search): HTMLElement {
     let i = 0
     for (const { label, results, total, folds } of sections) {
         if (i >= shown) break
-        const armed = s.base === undefined && highlighted(s)?.more === label
         body.append(
             groupLabel(
                 label,
                 total,
-                folds ? { kind: SECTION_KEYWORD[label], armed } : undefined
+                folds ? { kind: SECTION_KEYWORD[label] } : undefined
             )
         )
         for (const r of results.slice(0, shown - i))
@@ -2389,15 +2401,15 @@ async function enterResult(): Promise<void> {
     const s = state.search
     const r = s && highlighted(s)
     if (!s || !r) return
-    if (r.more) return seeAll(SECTION_KEYWORD[r.more])
+    if (r.more) return showMoreResults(s, r.more)
     // → moves one column, like everywhere else: into the first column
     // right of the results, on the way to the match.
     await enterAt(ancestry(r.id)[resultBase(r.id, s) + 1])
 }
 // ⏎ opens what you're on and ends the search: the match, however deep it
 // sits, or the place. → only looks inside and keeps the search; ⌫ (Back)
-// brings an ended search back. On a "Show more" row, ⏎ shows more there
-// and → sees all of it.
+// brings an ended search back. On a "Show more" row, → and ⏎ show more
+// there, and ⌘⏎ sees all of it.
 async function openMatch(): Promise<void> {
     const s = state.search
     const r = s && highlighted(s)
@@ -2429,6 +2441,17 @@ function showMoreRows(path: string[]): void {
     })!
     void go({ path: [...path.slice(0, -1), first], peek: null })
 }
+// ⌘⏎ on a "Show more" row: what its "See all" does.
+function seeAllFromRow(): void {
+    const s = state.search
+    const r = s && s.base === undefined && highlighted(s)
+    if (r) {
+        if (r.more) seeAll(SECTION_KEYWORD[r.more])
+        return
+    }
+    const n = node(selected())
+    if (n.kind === "more") seeAll(SECTION_KEYWORD[n.title], n.parent)
+}
 // "See all" on a group's label: the whole group, as a search of its kind.
 function seeAll(kind: string, place?: string): void {
     const s = state.search
@@ -2447,8 +2470,8 @@ function seeAll(kind: string, place?: string): void {
 function enterHints(s: Search): [string, string][] {
     return highlighted(s)?.more
         ? [
-              ["⏎", "show them here"],
-              ["→", "see all"],
+              ["→ ⏎", "show them here"],
+              ["⌘⏎", "see all"],
           ]
         : [
               ["→", "look inside"],
@@ -3200,6 +3223,9 @@ boxInput.addEventListener("keydown", (e) => {
             menuActive = (menuActive + delta + count) % count
             renderMenu()
         } else queueKey(() => moveResult(delta))
+    } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !menuOpen) {
+        e.preventDefault()
+        seeAllFromRow()
     } else if (e.key === "Enter") {
         e.preventDefault()
         if (menuOpen) runMenu(menuActive)
