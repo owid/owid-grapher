@@ -399,7 +399,7 @@
         }
     }
 
-    // Loose markdown lists wrap each item in a paragraph (e.g. population-density)
+    // Loose markdown lists wrap items in a paragraph (e.g. population-density)
     li > p {
         margin: 0;
     }

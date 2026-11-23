@@ -472,15 +472,14 @@ export default function IndicatorMetadataBox({
     const sourceString = makeSource({
         attribution,
         owidProcessingLevel: datapageData.owidProcessingLevel,
-        // Without processing notes there's nothing to link to
         processingId: descriptionProcessing
             ? INDICATOR_PROCESSING_SECTION_ID
             : null,
     })
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
-    // Not useId(): the client hydrates only part of the server-rendered page, so
-    // generated ids wouldn't match
+    // Not useId(): the client hydrates only part of the server-rendered page,
+    // so generated ids wouldn't match
     const detailsId = id ? `${id}-details` : undefined
 
     return (

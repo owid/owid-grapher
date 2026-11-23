@@ -145,7 +145,6 @@ export function splitDescriptionKey(markdown: string): DescriptionKeySplit {
     return splitBlocksAt(blocks, findPreviewEnd(blocks))
 }
 
-/** The short attribution, else the one producer's name, else a generic label */
 export function getProducerDocsLabel(
     datapageData: Pick<DataPageDataV2, "attributionShort" | "origins">
 ): string {

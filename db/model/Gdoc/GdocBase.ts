@@ -1525,7 +1525,6 @@ export interface TeamPagePhoto {
     updatedAt: Date
 }
 
-/** Photos from the published team page's person blocks */
 export async function getTeamPagePhotos(
     knex: db.KnexReadonlyTransaction
 ): Promise<TeamPagePhoto[]> {

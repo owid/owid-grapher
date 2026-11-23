@@ -168,10 +168,7 @@ export const getPrimaryTopic = async (
     return undefined
 }
 
-/**
- * Fills in managers' missing photos from the team page, matching names as the
- * team page anchors do ("Dr. Bastian Herre" is "Bastian Herre")
- */
+/** Matches names as team page anchors do, e.g. "Dr. Bastian Herre" */
 export function addTeamPagePhotos(
     authors: LinkedAuthor[],
     names: string[],

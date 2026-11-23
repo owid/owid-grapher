@@ -766,7 +766,6 @@ export function getBestBreadcrumbs(
     return breadcrumbs
 }
 
-/** All topic tags under the areas the given topic tags belong to */
 export const getTopicTagIdsInSameAreas = async (
     knex: KnexReadonlyTransaction,
     topicTagIds: number[]

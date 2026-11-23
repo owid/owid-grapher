@@ -410,13 +410,11 @@ const parseTimespan = (
     return { firstYear: parseInt(first, 10), lastYear: parseInt(last, 10) }
 }
 
-/** Whether a timespan covers a single year, e.g. "2023-2023" or "2023" */
 export const isSingleYearTimespan = (timespan: string): boolean => {
     const years = parseTimespan(timespan)
     return !!years && years.firstYear === years.lastYear
 }
 
-/** A year with "BCE" before year 0, and optionally "CE" after it */
 const formatYear = (year: number, withEra = false): string =>
     year < 0 ? `${Math.abs(year)} BCE` : withEra ? `${year} CE` : `${year}`
 

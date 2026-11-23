@@ -237,7 +237,6 @@ export async function renderDataPageV2(
         (datapageData.owners ?? []).flatMap((dataset) => dataset.owners)
     )
     const authors = await getMinimalAuthorsByNames(knex, ownerNames)
-    // Only fetch the team page if someone lacks an author page photo
     const someoneLacksPhoto = ownerNames.some(
         (name) =>
             !authors.some(

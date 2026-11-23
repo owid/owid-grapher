@@ -10,11 +10,10 @@ const RELATED_CHART_CARD_COUNT = 5
 
 export interface RelatedChartStage {
     source: RelatedChartSource
-    /** Fetch up to `limit` candidates, none of which are in `excludeChartIds` */
     fetch: (limit: number, excludeChartIds: number[]) => Promise<RelatedChart[]>
 }
 
-/** Runs each stage only while slots remain, asking it only for what's missing */
+/** Runs each stage only while slots remain, asking only for what's missing */
 export async function pickRelatedChartCards(
     chartId: number,
     stages: RelatedChartStage[],
@@ -37,15 +36,14 @@ export async function pickRelatedChartCards(
 }
 
 /**
- * Coviews, topped up from the primary topic, the other topics, their areas, then
- * site-wide, each ranked by aggregate coview score
+ * Coviews, topped up from the primary topic, the other topics, their areas,
+ * then site-wide, each ranked by aggregate coview score
  */
 export async function getRelatedChartCards(
     knex: db.KnexReadonlyTransaction,
     chartId: number,
     topicTagNames: string[]
 ): Promise<RelatedChart[]> {
-    // Topic tag ids are only needed if coviews fall short, so resolve them lazily
     let topicTagIds: Promise<number[]> | undefined
     const getTopicTagIds = (): Promise<number[]> =>
         (topicTagIds ??= getTopicTagIdsForChart(knex, chartId, topicTagNames))

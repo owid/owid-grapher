@@ -661,7 +661,7 @@ export const getMostViewedGrapherIdsByChartType = async (
     return ids.map((row) => row.id)
 }
 
-// Published and not Unlisted. Needs `charts` and `chart_configs` joined by those names.
+// Needs `charts` and `chart_configs` joined under those names
 const LISTED_CHART_CLAUSE = `-- sql
     chart_configs.config->>"$.isPublished" = "true"
     AND NOT EXISTS (
@@ -700,10 +700,7 @@ export const getRelatedChartsForChart = async (
     )
 }
 
-/**
- * Listed charts ranked by the coview score they receive across all charts.
- * Without `tagIds`, the ranking is site-wide.
- */
+/** Ranked by the coview score they receive; site-wide without tagIds */
 export const getChartsByAggregateCoviewScore = async (
     knex: db.KnexReadonlyTransaction,
     {
@@ -753,10 +750,7 @@ export const getChartsByAggregateCoviewScore = async (
     )
 }
 
-/**
- * The indicator's topic tags (primary first), then the chart's other topic tags.
- * Only tags in the topic graph count.
- */
+/** The indicator's topic tags (primary first), then the chart's own */
 export const getTopicTagIdsForChart = async (
     knex: db.KnexReadonlyTransaction,
     chartId: number,

@@ -102,7 +102,6 @@ export interface RelatedChart extends BasicChartInformation {
     chartId: number
     keyChartLevel?: KeyChartLevel
     archiveContext?: ArchiveContext | undefined
-    /** Which related-chart step picked this chart */
     source?: RelatedChartSource
 }
 
