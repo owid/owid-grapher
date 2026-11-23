@@ -239,6 +239,9 @@ let state: Location = { path: ["root"], peek: null }
 let landedOn: string | null = null // briefly highlights a jump's destination
 
 const selected = (): string => state.path[state.path.length - 1]
+// Searching, with the arrows on the results rather than inside one.
+const onResults = (): boolean =>
+    state.search !== undefined && state.search.base === undefined
 
 // History works like VS Code's Go Back: one stop per place you spent time
 // in, not one per keypress. A place is the document holding the selection,
@@ -323,6 +326,16 @@ async function go(
     next: Location,
     opts: { jump?: boolean; fromHistory?: boolean } = {}
 ): Promise<void> {
+    // Inside a result, tree moves keep the search around them, until they
+    // climb above the result's own column. Whoever sets `search` decides.
+    if (!("search" in next)) {
+        const s = state.search
+        const inside =
+            s?.base !== undefined &&
+            next.path.length >= s.base + 2 &&
+            next.path[s.base] === state.path[s.base]
+        next = { ...next, search: inside ? s : undefined }
+    }
     const doc = docOf(next.path[next.path.length - 1])
     if (doc) await loadDoc(doc)
     // Closing a search without opening anything leaves no stop behind.
@@ -357,7 +370,7 @@ async function jumpTo(id: string): Promise<void> {
     if (doc) await loadDoc(doc)
     if (!nodes.has(id)) return
     const path = ancestry(id)
-    await go({ path, peek: null }, { jump: true })
+    await go({ path, peek: null, search: undefined }, { jump: true })
 }
 
 // --- Keyboard ---
@@ -444,6 +457,9 @@ async function left(): Promise<void> {
         render(state)
         return
     }
+    const s = state.search
+    if (s?.base !== undefined && state.path.length <= s.base + 2)
+        return leaveResult()
     if (state.path.length > 2)
         await go({ path: state.path.slice(0, -1), peek: null })
 }
@@ -498,12 +514,12 @@ document.addEventListener("keydown", (e) => {
         e.preventDefault()
         return openBox()
     }
-    // While searching, the arrows move in the results.
-    const searchKeys: Record<string, () => Promise<void> | void> = {
+    // On the results, the arrows move in them and → steps into one.
+    const resultKeys: Record<string, () => Promise<void> | void> = {
         ArrowUp: () => moveResult(-1),
         ArrowDown: () => moveResult(1),
-        ArrowRight: openResult,
-        Enter: openResult,
+        ArrowRight: enterResult,
+        Enter: enterResult,
         Escape: closeSearch,
         Home: () => moveResult(-1e6),
         End: () => moveResult(1e6),
@@ -516,7 +532,13 @@ document.addEventListener("keydown", (e) => {
         ArrowLeft: left,
         Enter: enter,
         Backspace: () => (e.shiftKey ? forward() : back()),
-        Escape: () => go({ ...state, peek: null }),
+        // Inside a result, Esc keeps where you are and drops the search.
+        Escape: () =>
+            go(
+                state.peek || !state.search
+                    ? { ...state, peek: null }
+                    : { path: state.path, peek: null, search: undefined }
+            ),
         Home: () => move(-1e6),
         End: () => move(1e6),
         r: () => {
@@ -526,7 +548,7 @@ document.addEventListener("keydown", (e) => {
             render(state)
         },
     }
-    const handler = (state.search ? searchKeys : treeKeys)[e.key]
+    const handler = (onResults() ? resultKeys : treeKeys)[e.key]
     if (!handler) return
     e.preventDefault()
     document.body.classList.add("is-keying")
@@ -1174,7 +1196,7 @@ function renderCrumbs(): void {
     crumbs.replaceChildren()
     const ol = el("ol", "crumbs__list")
     // The title row is the document itself: the crumbs already name it.
-    if (state.search) {
+    if (state.search && onResults()) {
         const s = state.search
         for (const id of ancestry(s.scope)) {
             const li = el("li", "", id === "root" ? "Search" : node(id).title)
@@ -1183,7 +1205,7 @@ function renderCrumbs(): void {
         }
         ol.append(el("li", "crumbs__here", s.query.trim() || searchTitle(s)))
     }
-    const shown = state.search
+    const shown = onResults()
         ? []
         : state.path.slice(1).filter((id) => node(id).kind !== "title")
     shown.forEach((id, i, all) => {
@@ -1197,7 +1219,7 @@ function renderCrumbs(): void {
         ol.append(li)
     })
     crumbs.append(ol)
-    const also = state.search ? undefined : node(selected()).alsoIn
+    const also = onResults() ? undefined : node(selected()).alsoIn
     if (also?.length)
         crumbs.append(
             el(
@@ -1268,10 +1290,10 @@ function renderTramline(): void {
 }
 
 function renderKeys(): void {
-    if (state.search) {
+    if (onResults()) {
         const hints: [string, string][] = [
             ["↑ ↓", "Move in the results"],
-            ["⏎", "Open"],
+            ["→ ⏎", "Step in"],
             ["⌫", "In the box, at the start: widen"],
             ["esc", "Close the search"],
             ["/", "Edit the search"],
@@ -1301,7 +1323,10 @@ function renderKeys(): void {
                     ? "Look at its links"
                     : "Look at its references",
             ])
-        if (state.path.length > 2) hints.push(["←", "Up a level"])
+        const s = state.search
+        if (s?.base !== undefined && state.path.length <= s.base + 2)
+            hints.push(["←", "Back to the results"])
+        else if (state.path.length > 2) hints.push(["←", "Up a level"])
         if (exitsOf(selected()).length && hasChildren(selected()))
             hints.push([
                 "R",
@@ -1314,6 +1339,8 @@ function renderKeys(): void {
                       : "Same data elsewhere",
             ])
     }
+    if (state.search && !state.peek)
+        hints.push(["esc", "Stay here, close the search"])
     if (stopIndex > 0) hints.push(["⌫", "Back"])
     hints.push(["/", "Search"], ["⌘⇧K", "Commands"])
     keys.replaceChildren(
@@ -1412,7 +1439,8 @@ function layout(): void {
     const fits = (): boolean => treeWidth() + TRAILING_WIDTH <= available
     // Everything left of the selection's own column may fold, until the
     // tree and the side slot fit.
-    const ancestors = cols.slice(0, -1)
+    const focus = strip.querySelector<HTMLElement>(":scope > .col.is-focus")
+    const ancestors = cols.slice(0, focus ? cols.indexOf(focus) : -1)
     for (const c of ancestors) {
         if (fits()) break
         c.classList.add("is-folded")
@@ -1435,7 +1463,13 @@ function layout(): void {
             : cols.length
               ? rightOf(cols[cols.length - 1])
               : 0
-    strip.scrollLeft = Math.max(0, focusRight - available)
+    // Never past the focus column's own left edge.
+    const leftOf = (e: Element): number =>
+        e.getBoundingClientRect().left - origin
+    strip.scrollLeft = Math.max(
+        0,
+        Math.min(focusRight - available, focus ? leftOf(focus) : Infinity)
+    )
 }
 const TRAILING_WIDTH = 760
 
@@ -1480,19 +1514,18 @@ function render(before: Location): void {
     // Whatever sits right of the selection (a preview, the side panel, or
     // nothing) goes in one fixed-width slot, so it never moves the columns.
     const trailing = el("div", "trailing")
-    if (state.search) {
-        const { cols: searchCols, preview } = searchColumns(state.search)
-        cols.push(...searchCols)
-        if (preview) trailing.append(preview)
-    } else {
-        const p = state.path
-        for (let i = 0; i < p.length; i++) {
+    // The tree from `start` on: one column per selected level, then what
+    // the selection holds. While searching, it starts at the result's own
+    // column; before you step in, it is only a look at the result.
+    const treeFrom = (p: string[], start: number, look: boolean): void => {
+        for (let i = start; i < p.length; i++) {
             const parentId = p[i]
             const selectedId = p[i + 1]
             if (!selectedId && !hasChildren(parentId)) break
             if (!selectedId && referencesOpen) break
-            const isTrail = i < p.length - 2 || state.peek !== null
+            const isTrail = look || i < p.length - 2 || state.peek !== null
             const col = treeColumn(parentId, selectedId, i, isTrail)
+            if (look) col.dataset.search = "look"
             if (!selectedId) col.classList.add("col--preview")
             if (i >= common && landedOn) col.classList.add("is-arriving")
             else keep.add(parentId)
@@ -1512,6 +1545,18 @@ function render(before: Location): void {
             if (selectedId) cols.push(col)
             else trailing.append(col)
         }
+    }
+    const s = state.search
+    if (s) {
+        cols.push(...searchColumns(s))
+        const r = highlighted(s)
+        if (s.base !== undefined) treeFrom(state.path, s.base, false)
+        else if (r && nodes.has(r.id)) {
+            const p = ancestry(r.id)
+            treeFrom(p, p.length - 2, true)
+        }
+    } else treeFrom(state.path, 0, false)
+    if (!s || s.base !== undefined) {
         const peekCols = peekColumns()
         if (peekCols.length) {
             const dock = el("div", "peek-dock", ...peekCols)
@@ -1572,6 +1617,10 @@ interface Search {
     kinds: string[] // keys of KEYWORD_KINDS
     sort: SortKey
     at: number // the highlighted result
+    from: string[] // where you were, for Esc on the results
+    // Set once you step into a result: the index in the path of the
+    // result's own column. ← from there comes back to the results.
+    base?: number
 }
 const KEYWORD_KINDS: Record<string, { label: string; kinds: string[] }> = {
     topic: { label: "Topics", kinds: ["area", "topic"] },
@@ -1819,7 +1868,7 @@ function resultRow(r: Result, i: number, s: Search): HTMLElement {
     row.dataset.result = String(i)
     row.setAttribute("role", "option")
     if (i === s.at) {
-        row.classList.add("is-selected")
+        row.classList.add(s.base === undefined ? "is-selected" : "is-trail")
         row.setAttribute("aria-selected", "true")
     }
     const place = ancestry(item.id).findLast(isPlace)
@@ -1936,11 +1985,8 @@ function resultsColumn(s: Search): HTMLElement {
 }
 
 // Left of the results: the place being searched, in its tree. Right of
-// them: the highlighted result, in its own column.
-function searchColumns(s: Search): {
-    cols: HTMLElement[]
-    preview: HTMLElement | null
-} {
+// them, render() adds the highlighted result in its own place in the tree.
+function searchColumns(s: Search): HTMLElement[] {
     const path = ancestry(s.scope)
     const cols: HTMLElement[] = []
     for (let i = 0; i < path.length - 1; i++) {
@@ -1958,23 +2004,19 @@ function searchColumns(s: Search): {
     cols[cols.length - 1]
         ?.querySelector(`[data-id="${CSS.escape(s.scope)}"]`)
         ?.classList.add("is-scope")
-    cols.push(resultsColumn(s))
-    return { cols, preview: previewColumn(s) }
+    const results = resultsColumn(s)
+    if (s.base === undefined) results.classList.add("is-focus")
+    // Deep inside a result, the results fold like any column on the left.
+    const spine = el(
+        "button",
+        "spine",
+        el("span", "spine__label", s.query.trim() || searchTitle(s))
+    )
+    spine.dataset.resultsSpine = "1"
+    results.prepend(spine)
+    cols.push(results)
+    return cols
 }
-function previewColumn(s: Search): HTMLElement | null {
-    const r = highlighted(s)
-    if (!r) return null
-    let col: HTMLElement
-    const parent = r.text && nodes.get(r.id)?.parent
-    if (parent) col = treeColumn(parent, r.id, -1, true)
-    else if (!r.text && hasChildren(r.id)) {
-        col = treeColumn(r.id, undefined, -1, false)
-        col.classList.add("col--preview")
-    } else return null
-    col.dataset.search = "preview"
-    return col
-}
-
 // Searches change as you type. Each change waits for the highlighted
 // result's document, then shows; a later keystroke wins over an earlier one.
 let latestSearch: Search | null = null
@@ -1987,7 +2029,11 @@ async function setSearch(s: Search | null): Promise<void> {
     if (doc) await loadDoc(doc)
     if (latestSearch !== s) return
     searchPending = false
-    await go({ path: state.path, peek: null, search: s ?? undefined })
+    await go({
+        path: s && s.base === undefined ? s.from : state.path,
+        peek: null,
+        search: s ?? undefined,
+    })
 }
 async function moveResult(delta: number): Promise<void> {
     const s = state.search
@@ -1996,15 +2042,38 @@ async function moveResult(delta: number): Promise<void> {
     const at = Math.max(0, Math.min(count - 1, s.at + delta))
     if (at !== s.at) await setSearch({ ...s, at })
 }
-async function openResult(): Promise<void> {
+// → steps into the highlighted result: the columns after the results
+// become the tree, and the arrows move in it.
+async function enterResult(): Promise<void> {
     const r = state.search && highlighted(state.search)
-    if (!r) return
-    leaveBox()
-    await jumpTo(r.id)
+    if (r) await enterAt(r.id)
 }
+async function enterAt(id: string): Promise<void> {
+    const s = state.search
+    const r = s && highlighted(s)
+    if (!s || !r) return
+    leaveBox()
+    const doc = docOf(id)
+    if (doc) await loadDoc(doc)
+    const base = ancestry(r.id).length - 2
+    await go({ path: ancestry(id), peek: null, search: { ...s, base } })
+}
+// ← from the result's own column: back on the results, as you left them.
+async function leaveResult(): Promise<void> {
+    const s = state.search
+    if (s)
+        await go({
+            path: s.from,
+            peek: null,
+            search: { ...s, base: undefined },
+        })
+}
+// Esc on the results: back where you were, as if you never searched.
 function closeSearch(): void {
     leaveBox()
-    void setSearch(null)
+    latestSearch = null
+    const from = state.search?.from ?? state.path
+    void go({ path: from, peek: null, search: undefined })
 }
 // Backspace at the start of the box takes the last tag off: the order,
 // then kinds, then the place widens one level at a time.
@@ -2023,9 +2092,10 @@ function handleSearchClick(t: HTMLElement, zone: string): void {
         const more = t.closest<HTMLElement>("[data-more]")
         if (result) {
             const at = Number(result.dataset.result)
-            if (at === s.at) void openResult()
-            else void setSearch({ ...s, at })
-        } else if (more) void setSearch({ ...s, at: Number(more.dataset.more) })
+            if (at === s.at) void enterResult()
+            else void setSearch({ ...s, at, base: undefined })
+        } else if (t.closest("[data-results-spine]")) void leaveResult()
+        else if (more) void setSearch({ ...s, at: Number(more.dataset.more) })
         else if (t.closest("[data-widen]")) updateSearch(widen(s))
     } else if (zone === "scope") {
         // Other places in the tree become the place searched.
@@ -2036,10 +2106,8 @@ function handleSearchClick(t: HTMLElement, zone: string): void {
             void jumpTo(id)
         }
     } else if (row) {
-        // The preview is a look; clicking into it goes there.
-        const id = row.dataset.id!
-        leaveBox()
-        void jumpTo(node(id).kind === "title" ? node(id).target! : id)
+        // The look at a result is its real place: clicking steps in there.
+        void enterAt(row.dataset.id!)
     }
 }
 
@@ -2116,7 +2184,7 @@ document
     .querySelector('[data-action="home"]')!
     .addEventListener("click", () => {
         leaveBox()
-        void go({ path: ["root"], peek: null })
+        void go({ path: ["root"], peek: null, search: undefined })
     })
 document
     .querySelector('[data-action="back"]')!
@@ -2170,12 +2238,15 @@ const boxSearch = (): Search =>
         kinds: [],
         sort: "best",
         at: 0,
+        from: state.path,
     }
-function updateSearch(s: Search): void {
+// Changing what you search for puts you back on the results.
+function updateSearch(changed: Search): void {
+    const s = { ...changed, base: undefined }
     if (isActive(s)) void setSearch(s)
     else {
         draftScope = s.scope === hereScope() ? null : s.scope
-        if (state.search) void setSearch(null)
+        if (state.search) closeSearch()
         else renderBox()
     }
 }
@@ -2305,7 +2376,8 @@ function applyKeyword(apply: (s: Search) => Search): void {
 // Commands act on what you look at: the highlighted result while a search
 // is open, else the selected row.
 function commandTarget(): { id: string; path: string[] } {
-    const r = state.search && highlighted(state.search)
+    const s = state.search
+    const r = s && s.base === undefined && highlighted(s)
     return r && nodes.has(r.id)
         ? { id: r.id, path: ancestry(r.id) }
         : { id: selected(), path: state.path }
@@ -2326,7 +2398,7 @@ function selectionCommands(): Command[] {
     const n = node(id)
     // From a search result, a command that works on the row goes there first.
     const there = (run: () => void | Promise<void>) => async () => {
-        if (state.search) await jumpTo(id)
+        if (onResults()) await jumpTo(id)
         await run()
     }
     const out: Command[] = []
@@ -2701,7 +2773,16 @@ boxInput.addEventListener("keydown", (e) => {
     } else if (e.key === "Enter") {
         e.preventDefault()
         if (menuOpen) runMenu(menuActive)
-        else void openResult()
+        else void enterResult()
+    } else if (
+        e.key === "ArrowRight" &&
+        !menuOpen &&
+        state.search &&
+        boxInput.selectionStart === boxInput.value.length
+    ) {
+        // At the end of the words, → steps into the highlighted result.
+        e.preventDefault()
+        void enterResult()
     } else if (e.key === "Tab" && menuOpen && !inCommands()) {
         e.preventDefault()
         runMenu(menuActive)
