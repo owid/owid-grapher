@@ -83,14 +83,13 @@ const KIND_LABEL: Record<string, string> = {
     embed: "Embedded chart",
     external: "External link",
 }
-// How a folded group's row names what it holds.
-const GROUP_NOUN: Record<string, string> = {
-    Articles: "articles",
-    "Data insights": "data insights",
-    Data: "charts and collections",
-    Topics: "topics",
-    Overview: "overviews",
-    Text: "matches in the text",
+// How a folded group's rows name what it holds: one, many.
+const GROUP_NOUN: Record<string, [string, string]> = {
+    Articles: ["article", "articles"],
+    "Data insights": ["data insight", "data insights"],
+    Data: ["chart or collection", "charts and collections"],
+    Overview: ["overview", "overviews"],
+    Text: ["match in the text", "matches in the text"],
 }
 const GROUP_OF: Record<string, string> = {
     area: "Topics",
@@ -169,12 +168,16 @@ function inGroupOrder(place: string): (a: string, b: string) => number {
         (itemNode(b).pop ?? 0) - (itemNode(a).pop ?? 0)
 }
 
-// Every content group shows its first 3, then one "N more" row, so no kind
-// crowds out another. The rest stay filed in the place; the "N more" row
-// opens them as a search of that kind there, not as a column of its own.
+// Every content group shows its first 3, so no kind crowds out another.
+// Below them, a "Show 10 more …" row shows the next ones in place, only
+// when you press it; the group's label offers "See all", which lists the
+// whole group as a search. Leaving the place folds it back to 3.
 // Subtopics and the overview never fold: they are the place's structure.
 const SHOWN_IN_GROUP = 3
-const folded = new Set<string>() // items hidden behind a "N more" row
+const SHOW_MORE_STEP = 10
+// Items past the first 3 of their group: the group's "show more" row, and
+// where they sit in the group.
+const foldOf = new Map<string, { more: string; at: number }>()
 for (const place of [...nodes.values()]) {
     if (place.kind !== "topic" && place.kind !== "area") continue
     const byGroup = new Map<string, string[]>()
@@ -187,24 +190,68 @@ for (const place of [...nodes.values()]) {
     for (const [group, ids] of byGroup) {
         ids.sort(inGroupOrder(place.id))
         place.children.push(...ids)
-        const rest = ids.slice(SHOWN_IN_GROUP)
-        if (group === "Topics" || group === "Overview" || rest.length < 2)
-            continue
-        for (const id of rest) folded.add(id)
+        const rest = ids.length - SHOWN_IN_GROUP
+        if (group === "Topics" || group === "Overview" || rest < 2) continue
         const moreId = `more:${place.id}:${group}`
+        ids.slice(SHOWN_IN_GROUP).forEach((id, i) =>
+            foldOf.set(id, { more: moreId, at: SHOWN_IN_GROUP + i })
+        )
         nodes.set(moreId, {
             id: moreId,
             kind: "more",
             title: group,
             parent: place.id,
-            count: rest.length,
+            count: rest,
         })
         place.children.push(moreId)
     }
 }
-// The rows a column shows: folded items stay hidden, unless selected there.
+// How many past the first 3 you asked to see, per "show more" row.
+const shownMore = new Map<string, number>()
+const extraShown = (moreId: string): number => shownMore.get(moreId) ?? 0
+const leftIn = (moreId: string): number =>
+    node(moreId).count! - extraShown(moreId)
+// The rows a column shows. The selection always shows: a search's look at
+// a result may point at one still folded.
 const visibleChildren = (id: string, selectedId?: string): string[] =>
-    childrenOf(id).filter((k) => !folded.has(k) || k === selectedId)
+    childrenOf(id).filter((k) => {
+        const fold = foldOf.get(k)
+        if (fold)
+            return (
+                k === selectedId ||
+                fold.at < SHOWN_IN_GROUP + extraShown(fold.more)
+            )
+        return node(k).kind !== "more" || leftIn(k) > 0
+    })
+// "Show 10 more data insights", then "Show the last 4 data insights".
+function showMoreLabel(left: number, group: string): string {
+    const [one, many] = GROUP_NOUN[group] ?? ["item", "items"]
+    if (left > SHOW_MORE_STEP) return `Show ${SHOW_MORE_STEP} more ${many}`
+    return left === 1 ? `Show the last ${one}` : `Show the last ${left} ${many}`
+}
+// A group's label: its name and size, and "See all" when it folds.
+function groupLabel(
+    label: string,
+    total?: number,
+    seeAll?: { kind: string; place?: string }
+): HTMLElement {
+    const out = el(
+        "div",
+        "group-label",
+        label,
+        total === undefined
+            ? null
+            : el("span", "group-label__count", String(total))
+    )
+    if (seeAll) {
+        const b = el("button", "group-label__all", "See all", icon("chevron"))
+        b.dataset.seeAll = seeAll.kind
+        if (seeAll.place) b.dataset.place = seeAll.place
+        b.title = `List all ${total} ${GROUP_NOUN[label]?.[1] ?? "items"} as a search`
+        out.append(b)
+    }
+    return out
+}
 // Where a node is filed.
 const homeOf = (id: string): TreeNode | undefined =>
     nodes.get(nodes.get(id)?.parent ?? "")
@@ -394,6 +441,13 @@ async function go(
         } else trail[stopIndex] = { ...trail[stopIndex], at: next }
     }
     if (next.path.join() !== state.path.join()) referencesOpen = false
+    for (const moreId of [...shownMore.keys()])
+        if (!next.path.includes(node(moreId).parent!)) shownMore.delete(moreId)
+    for (const id of next.path) {
+        const fold = foldOf.get(id)
+        if (fold && fold.at >= SHOWN_IN_GROUP + extraShown(fold.more))
+            shownMore.set(fold.more, fold.at - SHOWN_IN_GROUP + 1)
+    }
     const before = state
     state = next
     landedOn = opts.jump || opts.fromHistory ? selected() : null
@@ -468,7 +522,7 @@ async function right(): Promise<void> {
         await go({ path: toMatch.slice(0, state.path.length + 1), peek: null })
         return
     }
-    if (node(id).kind === "more") return openMore(state.path)
+    if (node(id).kind === "more") return showMoreRows(state.path)
     if (hasChildren(id) && !referencesOpen) {
         const doc = docOf(id)
         if (doc) await loadDoc(doc)
@@ -633,6 +687,7 @@ function el<K extends keyof HTMLElementTagNameMap>(
 function icon(name: string): SVGSVGElement {
     const paths: Record<string, string> = {
         chevron: "m6 3 5 5-5 5",
+        "show-more": "m3 6 5 5 5-5",
         jump: "M5 11 11 5M6 5h5v5",
         link: "M7 9a2.5 2.5 0 0 0 3.5 0l2-2a2.5 2.5 0 0 0-3.5-3.5L8 4.5M9 7a2.5 2.5 0 0 0-3.5 0l-2 2A2.5 2.5 0 0 0 7 12.5l1-1",
         external: "M9 3h4v4M13 3 7 9M11 9.5V13H3V5h3.5",
@@ -681,12 +736,6 @@ const KIND_ICON: Record<string, string> = {
     mdm: "mdm",
     explorer: "explorer",
     dimension: "mdm",
-}
-// A folded group's row shows the icon of what it holds.
-const GROUP_ICON: Record<string, string> = {
-    Articles: "article",
-    "Data insights": "data-insight",
-    Data: "chart",
 }
 function kindIcon(kind: string): SVGSVGElement | null {
     const name = KIND_ICON[kind]
@@ -876,18 +925,14 @@ function renderRow(
             break
         }
         case "more": {
-            const groupIcon = icon(GROUP_ICON[n.title] ?? "section")
-            groupIcon.classList.add("kind-icon")
             row.append(
-                groupIcon,
+                icon("show-more"),
                 el(
                     "span",
                     "row__text",
-                    el("span", "row__title", moreLabel(n)),
-                    el("span", "row__meta", icon("search"), "Opens as a search")
+                    el("span", "row__title", showMoreLabel(leftIn(id), n.title))
                 )
             )
-            trailing.append(icon("chevron"))
             break
         }
         case "prominent-link":
@@ -953,19 +998,18 @@ function treeColumn(
             node(id).dimension ??
             (node(id).kind === "more" ? node(id).title : groupOf(id))
         if (!prose && g && g !== group) {
-            list.append(el("div", "group-label", g))
+            const more = nodes.get(`more:${parentId}:${g}`)
+            list.append(
+                more
+                    ? groupLabel(g, SHOWN_IN_GROUP + more.count!, {
+                          kind: SECTION_KEYWORD[g],
+                          place: parentId,
+                      })
+                    : groupLabel(g)
+            )
             group = g
         }
-        const row = renderRow(id, id === selectedId, isTrail, peekLink)
-        // The folded item you're on shows, so one fewer is behind the row.
-        const unfolded =
-            selectedId && folded.has(selectedId) && groupOf(selectedId) === g
-        if (node(id).kind === "more" && unfolded)
-            row.querySelector(".row__title")!.textContent = moreLabel({
-                ...node(id),
-                count: node(id).count! - 1,
-            })
-        list.append(row)
+        list.append(renderRow(id, id === selectedId, isTrail, peekLink))
     }
     if (!childrenOf(parentId).length) {
         const empty = loadedDocs.has(parentId) || !DOC_KINDS.has(parent.kind)
@@ -1344,11 +1388,10 @@ function renderKeys(): void {
     if (onResults()) {
         const hints: [string, string][] = [
             ["↑ ↓", "Move in the results"],
-            ["→", "Look inside"],
-            [
-                "⏎",
-                enterLabel(state.search!).replace(/^./, (c) => c.toUpperCase()),
-            ],
+            ...enterHints(state.search!).map(([k, label]): [string, string] => [
+                k,
+                label.replace(/^./, (c) => c.toUpperCase()),
+            ]),
             ["⌫", "In the box, at the start: widen"],
             ["← esc", "Back where you were"],
             ["/", "Edit the search"],
@@ -1370,7 +1413,7 @@ function renderKeys(): void {
         hints.push(["⏎", external ? "Open in a new tab" : "Jump there"])
     } else {
         if (node(selected()).kind === "more")
-            hints.push(["→ ⏎", "Show all, as a search"])
+            hints.push(["→ ⏎", "Show them here"])
         else if (hasChildren(selected()) && !referencesOpen)
             hints.push(["→ ⏎", "Open"])
         else if (plan)
@@ -1705,6 +1748,8 @@ interface Search {
     // Set once you step into a result: the index in the path of the
     // result's own column. ← from there comes back to the results.
     base?: number
+    // How many past the first 3 you asked to see, per section.
+    shown?: Record<string, number>
 }
 const KEYWORD_KINDS: Record<string, { label: string; kinds: string[] }> = {
     overview: {
@@ -1732,8 +1777,6 @@ const SECTION_KEYWORD: Record<string, string> = {
     Data: "data",
     Text: "text",
 }
-const moreLabel = (n: TreeNode): string =>
-    `${n.count} more ${GROUP_NOUN[n.title] ?? "items"}`
 const SORTS: Record<SortKey, string> = {
     best: "Best match",
     new: "Newest",
@@ -1829,12 +1872,13 @@ function loadText(): void {
 interface Result {
     id: string
     text?: TextEntry // set for a match in a document's text
-    more?: string // a "N more" row: the keyword that lists the rest
+    more?: string // a "show more" row: the section it shows more of
 }
 interface ResultSection {
     label: string
     results: Result[]
     total: number // before folding
+    folds?: boolean // shows 3, then a "show more" row
 }
 const wordsOf = (query: string): string[] =>
     query.toLowerCase().split(/\s+/).filter(Boolean)
@@ -1844,7 +1888,7 @@ const PLACES_SHOWN = 3 // "Search in" rows above the results
 
 const resultsCache = new Map<string, ResultSection[]>()
 function searchResults(s: Search): ResultSection[] {
-    const key = JSON.stringify([s.query, s.scope, s.kinds, s.sort])
+    const key = JSON.stringify([s.query, s.scope, s.kinds, s.sort, s.shown])
     if (resultsCache.has(key)) return resultsCache.get(key)!
     const words = wordsOf(s.query)
     const query = words.join(" ")
@@ -1980,18 +2024,17 @@ function searchResults(s: Search): ResultSection[] {
               ]
             : []),
         ...[...sections].map(([label, results]) => {
-            const rest = results.length - SHOWN_IN_GROUP
+            const folds = fold && results.length - SHOWN_IN_GROUP >= 2
+            const shown = SHOWN_IN_GROUP + (s.shown?.[label] ?? 0)
             return {
                 label,
                 total: results.length,
+                folds,
                 results:
-                    fold && rest >= 2
+                    folds && shown < results.length
                         ? [
-                              ...results.slice(0, SHOWN_IN_GROUP),
-                              {
-                                  id: `more:${label}`,
-                                  more: SECTION_KEYWORD[label],
-                              },
+                              ...results.slice(0, shown),
+                              { id: `more:${label}`, more: label },
                           ]
                         : results,
             }
@@ -2045,30 +2088,16 @@ function resultRow(r: Result, i: number, s: Search): HTMLElement {
         row.setAttribute("aria-selected", "true")
     }
     if (r.more) {
-        const label = Object.keys(SECTION_KEYWORD).find(
-            (l) => SECTION_KEYWORD[l] === r.more
-        )!
-        const section = searchResults(s).find((x) => x.label === label)!
-        const groupIcon = icon(GROUP_ICON[label] ?? "paragraph")
-        groupIcon.classList.add("kind-icon")
+        const section = searchResults(s).find((x) => x.label === r.more)!
+        const left = section.total - SHOWN_IN_GROUP - (s.shown?.[r.more] ?? 0)
         row.classList.add("row--more")
         row.append(
-            groupIcon,
+            icon("show-more"),
             el(
                 "span",
                 "row__text",
-                el(
-                    "span",
-                    "row__title",
-                    moreLabel({
-                        id: r.id,
-                        kind: "more",
-                        title: label,
-                        count: section.total - SHOWN_IN_GROUP,
-                    })
-                )
-            ),
-            el("span", "row__trailing", icon("chevron"))
+                el("span", "row__title", showMoreLabel(left, r.more))
+            )
         )
         return row
     }
@@ -2177,8 +2206,7 @@ function resultsColumn(s: Search): HTMLElement {
         "results__hints",
         ...(s.base === undefined
             ? [
-                  ...hint("→", "look inside"),
-                  ...hint("⏎", enterLabel(s)),
+                  ...enterHints(s).flatMap(([k, label]) => hint(k, label)),
                   ...hint("←", "back"),
               ]
             : [
@@ -2193,14 +2221,13 @@ function resultsColumn(s: Search): HTMLElement {
     const body = el("div", "col__body")
     const shown = Math.max(SHOWN, s.at + 40)
     let i = 0
-    for (const { label, results, total } of sections) {
+    for (const { label, results, total, folds } of sections) {
         if (i >= shown) break
         body.append(
-            el(
-                "div",
-                "group-label",
+            groupLabel(
                 label,
-                el("span", "group-label__count", String(total))
+                total,
+                folds ? { kind: SECTION_KEYWORD[label] } : undefined
             )
         )
         for (const r of results.slice(0, shown - i))
@@ -2340,47 +2367,67 @@ async function enterResult(): Promise<void> {
     const s = state.search
     const r = s && highlighted(s)
     if (!s || !r) return
-    if (r.more) return showAll(s, r.more)
+    if (r.more) return showMoreResults(s, r.more)
     // → moves one column, like everywhere else: into the first column
     // right of the results, on the way to the match.
     await enterAt(ancestry(r.id)[resultBase(r.id, s) + 1])
 }
 // ⏎ opens what you're on and ends the search: the match, however deep it
 // sits, or the place. → only looks inside and keeps the search; ⌫ (Back)
-// brings an ended search back. On a "N more" row, both list all of it.
+// brings an ended search back. On a "show more" row, both show more.
 async function openMatch(): Promise<void> {
     const s = state.search
     const r = s && highlighted(s)
     if (!s || !r) return
-    if (r.more) return showAll(s, r.more)
+    if (r.more) return showMoreResults(s, r.more)
     leaveBox()
     await jumpTo(r.id)
 }
-// On the first one the folded list didn't show.
-function showAll(s: Search, kind: string): void {
-    if (document.activeElement === boxInput) boxInput.value = s.query
-    const next = { ...s, kinds: [kind] }
-    const places =
-        searchResults(next).find((x) => x.label === "Search in")?.results
-            .length ?? 0
-    updateSearch({ ...next, at: places + SHOWN_IN_GROUP })
+// The next ones take the row's place, so the highlight lands on the
+// first of them.
+function showMoreResults(s: Search, section: string): void {
+    const shown = {
+        ...s.shown,
+        [section]: (s.shown?.[section] ?? 0) + SHOW_MORE_STEP,
+    }
+    void setSearch({ ...s, shown, base: undefined })
 }
-// A place's "N more" row opens all of its kind there as a search, on the
-// first one the column didn't show: the ones above are those you saw.
-function openMore(path: string[]): void {
-    const n = node(path[path.length - 1])
+// A place's "show more" row shows the next ones in place, on the first.
+function showMoreRows(path: string[]): void {
+    const moreId = path[path.length - 1]
+    const before = extraShown(moreId)
+    shownMore.set(
+        moreId,
+        Math.min(node(moreId).count!, before + SHOW_MORE_STEP)
+    )
+    const first = childrenOf(node(moreId).parent!).find((k) => {
+        const fold = foldOf.get(k)
+        return fold?.more === moreId && fold.at === SHOWN_IN_GROUP + before
+    })!
+    void go({ path: [...path.slice(0, -1), first], peek: null })
+}
+// "See all" on a group's label: the whole group, as a search of its kind.
+function seeAll(kind: string, place?: string): void {
+    const s = state.search
+    if (s && !place) return updateSearch({ ...s, kinds: [kind], at: 0 })
+    leaveBox()
     void setSearch({
         query: "",
-        scope: n.parent!,
-        kinds: [SECTION_KEYWORD[n.title]],
+        scope: place ?? hereScope(),
+        kinds: [kind],
         sort: "best",
-        at: SHOWN_IN_GROUP,
-        from: path,
+        at: 0,
+        from: s?.from ?? state.path,
     })
 }
-// What ⏎ does on the highlighted result, in a few words.
-function enterLabel(s: Search): string {
-    return highlighted(s)?.more ? "show all" : "open, end the search"
+// What → and ⏎ do on the highlighted result, in a few words.
+function enterHints(s: Search): [string, string][] {
+    return highlighted(s)?.more
+        ? [["→ ⏎", "show them here"]]
+        : [
+              ["→", "look inside"],
+              ["⏎", "open, end the search"],
+          ]
 }
 // While stepped in, the way down to the highlighted result, as long as the
 // selection is still on it.
@@ -2445,7 +2492,7 @@ function handleSearchClick(t: HTMLElement, zone: string): void {
         } else if (result) {
             const at = Number(result.dataset.result)
             const r = flatResults(s)[at]
-            if (r?.more) showAll(s, r.more)
+            if (r?.more) showMoreResults(s, r.more)
             else if (at === s.at) void enterResult()
             else void setSearch({ ...s, at, base: undefined })
         } else if (t.closest("[data-results-spine]")) void leaveResult()
@@ -2469,6 +2516,8 @@ function handleSearchClick(t: HTMLElement, zone: string): void {
 
 strip.addEventListener("click", (e) => {
     const t = e.target as HTMLElement
+    const all = t.closest<HTMLElement>("[data-see-all]")
+    if (all) return seeAll(all.dataset.seeAll!, all.dataset.place)
     const zone = t.closest<HTMLElement>("[data-search]")?.dataset.search
     if (state.search && zone) return handleSearchClick(t, zone)
     const refsPill = t.closest<HTMLElement>("[data-refs]")
@@ -2511,7 +2560,7 @@ strip.addEventListener("click", (e) => {
             path,
             peek: { zone: "links", link: Number(inline.dataset.link), row: 0 },
         })
-    if (node(id).kind === "more") return openMore(path)
+    if (node(id).kind === "more") return showMoreRows(path)
     if (e.detail > 1 && node(id).kind === "alias")
         return void jumpTo(node(id).target!)
     void go({ path, peek: null })
@@ -2600,7 +2649,7 @@ const boxSearch = (): Search =>
     }
 // Changing what you search for puts you back on the results.
 function updateSearch(changed: Search): void {
-    const s = { ...changed, base: undefined }
+    const s = { ...changed, base: undefined, shown: undefined }
     if (isActive(s)) void setSearch(s)
     else {
         if (state.search) endSearch()
@@ -2817,6 +2866,16 @@ function selectionCommands(): Command[] {
             keys: "←",
             run: () => go({ path: path.slice(0, -1), peek: null }),
         })
+        // The keyboard's way to a group label's "See all".
+        const group = n.kind === "more" ? n.title : groupOf(id)
+        const more = group && nodes.get(`more:${parent.id}:${group}`)
+        if (group && more)
+            out.push({
+                label: `See all ${SHOWN_IN_GROUP + more.count!} ${GROUP_NOUN[group][1]}`,
+                detail: `In ${parent.title}, as a search`,
+                icon: "search",
+                run: () => seeAll(SECTION_KEYWORD[group], parent.id),
+            })
     }
     out.push({
         label: "Copy link to this place",

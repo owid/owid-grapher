@@ -1387,11 +1387,8 @@ mark {
     background: #f6efdc;
 }
 
-/* --- "N more" rows and kind chips: the tree's folding, shared by search --- */
+/* --- "Show more" rows and kind chips: the tree's folding, shared by search --- */
 
-.row--more .row__title {
-    color: var(--ink-soft);
-}
 .row--more.is-selected .row__title {
     color: #fff;
 }
@@ -1438,4 +1435,46 @@ mark {
 }
 .chip.is-on .chip__count {
     color: var(--blue-20);
+}
+
+/* A folded group's label: its size, and "See all" to list it as a search. */
+.group-label {
+    display: flex;
+    align-items: baseline;
+}
+.group-label__all {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--electric);
+    cursor: pointer;
+}
+.group-label__all .icon {
+    width: 12px;
+    height: 12px;
+    color: inherit;
+}
+.group-label__all:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.group-label__all:focus-visible {
+    outline: 2px solid var(--electric);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+.row--more > .icon {
+    color: var(--electric);
+}
+.row--more .row__title {
+    color: var(--electric);
 }
