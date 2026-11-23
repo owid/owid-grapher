@@ -70,8 +70,8 @@ const KIND_LABEL: Record<string, string> = {
     topic: "Topic",
     article: "Article",
     "data-insight": "Data insight",
-    "topic-page": "Topic page",
-    "linear-topic-page": "Topic page",
+    "topic-page": "Overview",
+    "linear-topic-page": "Overview",
     chart: "Chart",
     mdm: "Data collection",
     explorer: "Explorer",
@@ -1254,9 +1254,11 @@ function searchTitle(s: Search): string {
     const words = s.query.trim()
     const what = words
         ? `“${words}”`
-        : [SORTS[s.sort], ...s.kinds.map((k) => KEYWORD_KINDS[k].label)].join(
-              " "
-          )
+        : s.sort === "best" && !s.kinds.length
+          ? "Everything"
+          : [SORTS[s.sort], ...s.kinds.map((k) => KEYWORD_KINDS[k].label)].join(
+                " "
+            )
     return `${what} in ${s.scope === "root" ? "the site" : node(s.scope).title}`
 }
 
@@ -1304,7 +1306,10 @@ function renderKeys(): void {
         const hints: [string, string][] = [
             ["↑ ↓", "Move in the results"],
             ["→", "Step in"],
-            ["⏎", "Go to the match"],
+            [
+                "⏎",
+                enterLabel(state.search!).replace(/^./, (c) => c.toUpperCase()),
+            ],
             ["⌫", "In the box, at the start: widen"],
             ["esc", "Close the search"],
             ["/", "Edit the search"],
@@ -1659,8 +1664,10 @@ interface Search {
     base?: number
 }
 const KEYWORD_KINDS: Record<string, { label: string; kinds: string[] }> = {
-    topic: { label: "Topics", kinds: ["area", "topic"] },
-    page: { label: "Topic pages", kinds: ["topic-page", "linear-topic-page"] },
+    overview: {
+        label: "Overviews",
+        kinds: ["topic-page", "linear-topic-page"],
+    },
     article: { label: "Articles", kinds: ["article"] },
     insight: { label: "Data insights", kinds: ["data-insight"] },
     collection: { label: "Data collections", kinds: ["mdm"] },
@@ -1777,6 +1784,7 @@ const wordsOf = (query: string): string[] =>
     query.toLowerCase().split(/\s+/).filter(Boolean)
 const itemOf = (r: Result): TreeNode => node(r.text?.doc ?? r.id)
 const TEXT_LIMIT = 400 // text matches kept, best first
+const PLACES_SHOWN = 3 // "Search in" rows above the results
 
 const resultsCache = new Map<string, ResultSection[]>()
 function searchResults(s: Search): ResultSection[] {
@@ -1787,17 +1795,26 @@ function searchResults(s: Search): ResultSection[] {
     const allowed = (k: string): boolean =>
         !s.kinds.length || s.kinds.includes(k)
 
+    // Topics and areas are places to search in, not things to read: one
+    // whose name you typed is offered first, as a narrower search.
+    const places: { r: Result; score: number }[] = []
     const titles: { r: Result; score: number }[] = []
     for (const entry of titleIndex) {
         const kind = node(entry.id).kind
-        if (!allowed(keywordOf.get(kind)!)) continue
+        const place = isPlace(entry.id)
+        if (
+            place
+                ? !words.length || entry.id === s.scope
+                : !allowed(keywordOf.get(kind)!)
+        )
+            continue
         if (!words.every((w) => entry.title.includes(w))) continue
         if (!inScope(entry.id, s.scope)) continue
         // The whole query at the start, then at a word start, then anywhere.
         const at = entry.title.indexOf(query)
         const quality =
             at === 0 ? 0 : at > 0 && entry.title[at - 1] === " " ? 1 : 2
-        titles.push({
+        ;(place ? places : titles).push({
             r: { id: entry.id },
             score:
                 quality * 100 +
@@ -1858,7 +1875,14 @@ function searchResults(s: Search): ResultSection[] {
             add("Titles", t.r)
         for (const r of texts) add("In the text", r)
     }
-    const out = [...sections].map(([label, results]) => ({ label, results }))
+    const searchIn = places
+        .sort((a, b) => a.score - b.score)
+        .slice(0, PLACES_SHOWN)
+        .map((p) => p.r)
+    const out = [
+        ...(searchIn.length ? [{ label: "Search in", results: searchIn }] : []),
+        ...[...sections].map(([label, results]) => ({ label, results })),
+    ]
     resultsCache.set(key, out)
     return out
 }
@@ -1906,6 +1930,24 @@ function resultRow(r: Result, i: number, s: Search): HTMLElement {
     if (i === s.at) {
         row.classList.add(s.base === undefined ? "is-selected" : "is-trail")
         row.setAttribute("aria-selected", "true")
+    }
+    if (isPlace(r.id) && !r.text) {
+        const above = node(placeAbove(r.id))
+        row.classList.add("result--place")
+        row.append(
+            kindIcon(item.kind) ?? "",
+            el(
+                "span",
+                "row__text",
+                el("span", "row__title", marked(item.title, words)),
+                el(
+                    "span",
+                    "row__meta",
+                    above.id === "root" ? "Area" : `Topic in ${above.title}`
+                )
+            )
+        )
+        return row
     }
     const place = ancestry(item.id).findLast(isPlace)
     const where =
@@ -1988,7 +2030,7 @@ function resultsColumn(s: Search): HTMLElement {
         ...(s.base === undefined
             ? [
                   ...hint("→", "step in"),
-                  ...hint("⏎", "go to the match"),
+                  ...hint("⏎", enterLabel(s)),
                   ...hint("esc", "close"),
               ]
             : [
@@ -2122,10 +2164,23 @@ async function enterResult(): Promise<void> {
     // right of the results, on the way to the match.
     await enterAt(ancestry(r.id)[resultBase(r.id, s) + 1])
 }
-// ⏎ goes straight to the match, however deep it sits.
+// ⏎ goes straight to the match, however deep it sits. On a place (offered
+// only when the words are its name), it searches in that place instead.
 async function openMatch(): Promise<void> {
-    const r = state.search && highlighted(state.search)
-    if (r) await enterAt(r.id)
+    const s = state.search
+    const r = s && highlighted(s)
+    if (!s || !r) return
+    if (!isPlaceResult(r)) return enterAt(r.id)
+    if (document.activeElement === boxInput) boxInput.value = ""
+    updateSearch({ ...s, scope: r.id, query: "", at: 0 })
+}
+const isPlaceResult = (r: Result): boolean => !r.text && isPlace(r.id)
+// What ⏎ does on the highlighted result, in a few words.
+function enterLabel(s: Search): string {
+    const r = highlighted(s)
+    return r && isPlaceResult(r)
+        ? `search in ${node(r.id).title}`
+        : "go to the match"
 }
 // While stepped in, the way down to the highlighted result, as long as the
 // selection is still on it.
@@ -2312,22 +2367,25 @@ const boxMenu = box.querySelector<HTMLElement>(".omnibox__menu")!
 const boxKey = box.querySelector<HTMLElement>(".omnibox__key")!
 let menuGroups: { title: string; commands: Command[] }[] = []
 let menuActive = 0
-// A place picked before any words are typed, so a search can start wide.
-let draftScope: string | null = null
 let wasCommands = false
 
 const matches = (text: string, words: string[]): boolean =>
     words.every((w) => text.toLowerCase().includes(w))
 const inCommands = (): boolean => boxInput.value.startsWith(">")
+// A search is on as soon as it asks for anything the tree doesn't show:
+// words, a kind, an order, or another place than the one you're in.
 const isActive = (s: Search): boolean =>
-    s.query.trim() !== "" || s.kinds.length > 0 || s.sort !== "best"
+    s.query.trim() !== "" ||
+    s.kinds.length > 0 ||
+    s.sort !== "best" ||
+    s.scope !== hereScope()
 // The place you're in: the nearest topic or area above the selection.
 const hereScope = (): string => state.path.findLast(isPlace) ?? "root"
 // The search the box shows: the one being typed, even before it lands.
 const boxSearch = (): Search =>
     (searchPending ? latestSearch : state.search) ?? {
         query: "",
-        scope: draftScope ?? hereScope(),
+        scope: hereScope(),
         kinds: [],
         sort: "best",
         at: 0,
@@ -2338,7 +2396,6 @@ function updateSearch(changed: Search): void {
     const s = { ...changed, base: undefined }
     if (isActive(s)) void setSearch(s)
     else {
-        draftScope = s.scope === hereScope() ? null : s.scope
         if (state.search) endSearch()
         else renderBox()
     }
@@ -2831,7 +2888,6 @@ function leaveBox(): void {
         wasCommands = false
         boxInput.value = state.search?.query ?? ""
     }
-    draftScope = null
     boxInput.blur()
     strip.focus()
 }
@@ -2843,7 +2899,6 @@ boxInput.addEventListener("blur", () => {
         wasCommands = false
         boxInput.value = state.search?.query ?? ""
     }
-    if (!state.search) draftScope = null
     renderBox()
 })
 boxInput.addEventListener("keydown", (e) => {
