@@ -186,7 +186,7 @@
         "@swc/core": "^1.16.1",
         "@swc/helpers": "^0.5.23",
         "@testing-library/dom": "^10.4.2",
-        "@testing-library/jest-dom": "^7.0.1",
+        "@testing-library/jest-dom": "^8.0.0",
         "@testing-library/react": "^16.3.3",
         "@tsconfig/node24": "^24.0.0",
         "@types/cookie-parser": "^1.4.10",
