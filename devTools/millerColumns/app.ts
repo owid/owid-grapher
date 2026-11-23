@@ -223,11 +223,31 @@ const visibleChildren = (id: string, selectedId?: string): string[] =>
             )
         return node(k).kind !== "more" || leftIn(k) > 0
     })
-// "Show 10 more data insights", then "Show the last 4 data insights".
-function showMoreLabel(left: number, group: string): string {
+// "Show 10 more", then "Show the last 4": the group's label, stuck above,
+// says of what. Screen readers get it in full: "Show 10 more data insights".
+function showMoreRow(row: HTMLElement, left: number, group: string): void {
     const [one, many] = GROUP_NOUN[group] ?? ["item", "items"]
-    if (left > SHOW_MORE_STEP) return `Show ${SHOW_MORE_STEP} more ${many}`
-    return left === 1 ? `Show the last ${one}` : `Show the last ${left} ${many}`
+    const [shown, noun] =
+        left > SHOW_MORE_STEP
+            ? [`Show ${SHOW_MORE_STEP} more`, many]
+            : left === 1
+              ? ["Show the last one", one]
+              : [`Show the last ${left}`, many]
+    row.setAttribute(
+        "aria-label",
+        left === 1 ? `Show the last ${one}` : `${shown} ${noun}`
+    )
+    // Both choices name their key, side by side: "Show 10 more ⏎" here,
+    // "⌘⏎ See all 14" at the end.
+    row.append(
+        icon("show-more"),
+        el(
+            "span",
+            "row__text row__text--more",
+            el("span", "row__title", shown),
+            el("kbd", "row__key", "⏎")
+        )
+    )
 }
 // On a "Show more" row, the other choice and its key: "⌘⏎ See all 14".
 // It shows on the selected row and under the mouse, and is clickable.
@@ -952,13 +972,8 @@ function renderRow(
             break
         }
         case "more": {
+            showMoreRow(row, leftIn(id), n.title)
             row.append(
-                icon("show-more"),
-                el(
-                    "span",
-                    "row__text",
-                    el("span", "row__title", showMoreLabel(leftIn(id), n.title))
-                ),
                 seeAllOnRow(
                     SHOWN_IN_GROUP + n.count!,
                     SECTION_KEYWORD[n.title],
@@ -2124,15 +2139,8 @@ function resultRow(r: Result, i: number, s: Search): HTMLElement {
         const section = searchResults(s).find((x) => x.label === r.more)!
         const left = section.total - SHOWN_IN_GROUP - (s.shown?.[r.more] ?? 0)
         row.classList.add("row--more")
-        row.append(
-            icon("show-more"),
-            el(
-                "span",
-                "row__text",
-                el("span", "row__title", showMoreLabel(left, r.more))
-            ),
-            seeAllOnRow(section.total, SECTION_KEYWORD[r.more])
-        )
+        showMoreRow(row, left, r.more)
+        row.append(seeAllOnRow(section.total, SECTION_KEYWORD[r.more]))
         return row
     }
     const item = itemOf(r)

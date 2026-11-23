@@ -15,13 +15,13 @@ DATA INSIGHTS 14                                 See all ›
   Global deaths from cancer have increased…
   Stomach cancer used to be the main cancer…
   Cancer mortality has declined in many countries
-▶ ⌄ Show 10 more data insights        ⌘⏎ See all 14
+▶ ⌄ Show 10 more ⏎                    ⌘⏎ See all 14
 DATA 82                                          See all ›
   …
 ```
 
-- **"Show 10 more data insights"** is a row like any other: ↑ ↓ stop on it, and ⏎, → or a click shows the next 10 right there, on the first of them. The row moves down and counts down ("Show the last 4 data insights", then "Show the last data insight"), then goes away. Nothing grows unless you press it, and ↓ past the row moves on to the next group, so a long group is only in your way if you made it long.
-- **"See all ›"** on the group's label lists the whole group as a search of its kind in the topic (`in:cancer is:insight`), where it can be sorted and narrowed with words. From the keyboard, ⌘⏎ on the "Show more" row does it: the row says so while it's selected ("⌘⏎ See all 14", also under the mouse, and clickable), and so does the key bar. ⌘⇧K offers it too.
+- **"Show 10 more"** is a row like any other (the label stuck above it says of what; screen readers hear "Show 10 more data insights"): ↑ ↓ stop on it, and ⏎, → or a click shows the next 10 right there, on the first of them. The row moves down and counts down ("Show the last 4", then "Show the last one"), then goes away. Nothing grows unless you press it, and ↓ past the row moves on to the next group, so a long group is only in your way if you made it long.
+- **"See all ›"** on the group's label lists the whole group as a search of its kind in the topic (`in:cancer is:insight`), where it can be sorted and narrowed with words. From the keyboard, ⌘⏎ on the "Show more" row does it: the row says so while it's selected ("⌘⏎ See all 14", also under the mouse, and clickable; its room is kept even when hidden, so the row never jumps), and so does the key bar. ⌘⇧K offers it too.
 - **Leaving the topic** (another topic, or anywhere outside it) folds it back to 3.
 - **Landing on an item that's past the first 3** (from search, a link, or history) shows the group down to it, as if you had pressed "Show more", so ↑ and ↓ work from there.
 

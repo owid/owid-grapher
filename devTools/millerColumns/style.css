@@ -1481,8 +1481,10 @@ mark {
     color: var(--gray-70);
 }
 /* "⌘⏎ See all 14": on the selected row, and under the mouse. */
+/* Its room is always kept, so selecting the row never reflows it. */
 .row__see-all {
-    display: none;
+    display: inline-flex;
+    visibility: hidden;
     flex: none;
     align-items: center;
     gap: 5px;
@@ -1496,9 +1498,26 @@ mark {
     color: var(--gray-70);
     cursor: pointer;
 }
+.row__text--more {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+}
+.row__text--more .row__title {
+    flex: none;
+}
+.row__key {
+    visibility: hidden;
+}
 .row--more.is-selected .row__see-all,
+.row--more.is-selected .row__key,
 :where(body:not(.is-keying)) .row--more:hover .row__see-all {
-    display: inline-flex;
+    visibility: visible;
+}
+.row--more.is-selected .row__key {
+    background: transparent;
+    border-color: rgb(255 255 255 / 0.4);
+    color: #fff;
 }
 .row__see-all:hover {
     color: var(--ink);
