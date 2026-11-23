@@ -11,6 +11,16 @@
             <div class="bar__history">
                 <button
                     class="icon-button"
+                    data-action="home"
+                    aria-label="Home"
+                    title="Home"
+                >
+                    <svg viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M2 4h4.5L8 5.5h6V13H2z" />
+                    </svg>
+                </button>
+                <button
+                    class="icon-button"
                     data-action="back"
                     aria-label="Back"
                     title="Back (⌫)"
@@ -29,41 +39,36 @@
                         <path d="m6 3 5 5-5 5" />
                     </svg>
                 </button>
-                <button
-                    class="icon-button"
-                    data-action="palette"
-                    aria-label="Search and actions"
-                    title="Search and actions (⌘K)"
-                >
-                    <svg viewBox="0 0 16 16" aria-hidden="true">
-                        <path
-                            d="M7 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9ZM10.3 10.3 13.5 13.5"
-                        />
-                    </svg>
-                </button>
             </div>
-            <nav class="crumbs" aria-label="Where you are"></nav>
+            <div class="omnibox" data-mode="search">
+                <div class="omnibox__field">
+                    <svg class="icon omnibox__icon" aria-hidden="true"></svg>
+                    <span class="omnibox__tags"></span>
+                    <input
+                        class="omnibox__input"
+                        type="text"
+                        role="combobox"
+                        aria-label="Search, or type > for commands"
+                        aria-controls="omnibox-menu"
+                        aria-expanded="false"
+                        aria-autocomplete="list"
+                        autocomplete="off"
+                        spellcheck="false"
+                    />
+                    <kbd class="omnibox__key">/</kbd>
+                </div>
+                <div
+                    class="omnibox__menu"
+                    id="omnibox-menu"
+                    role="listbox"
+                    hidden
+                ></div>
+            </div>
             <nav class="tramline" aria-label="Places you visited" hidden></nav>
         </header>
+        <nav class="crumbs" aria-label="Where you are"></nav>
         <main class="strip" tabindex="0" aria-label="Site, in columns"></main>
         <footer class="keys"></footer>
-        <dialog class="palette" aria-label="Search and actions">
-            <div class="palette__field">
-                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
-                    <path
-                        d="M7 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9ZM10.3 10.3 13.5 13.5"
-                    />
-                </svg>
-                <input
-                    type="text"
-                    placeholder="Search the site, or pick an action"
-                    aria-label="Search the site, or pick an action"
-                    autocomplete="off"
-                    spellcheck="false"
-                />
-            </div>
-            <div class="palette__list" role="listbox"></div>
-        </dialog>
         <script type="module" src="./app.ts"></script>
     </body>
 </html>

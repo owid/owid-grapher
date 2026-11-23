@@ -6,17 +6,19 @@ Links never add tree columns. Selecting a block opens a side panel with its link
 
 History works like VS Code's Go Back (⌫, ⇧⌫ forward): one stop per place you spent time in (a document, or the topic list you browse), and going back lands where you left. The tram line in the top bar shows the stops, dashed where you jumped; click a stop to go there.
 
-⌘K opens a command palette: actions for the selected row (follow its links, show where it's used, open on the live site, go up, copy a link), back/forward and recent places, and, once you type, sections of the open document and matching topics, articles and charts from the whole site.
+## The box: search, and > for commands
 
-## Lists (spike)
+One box at the top finds things and does things. What you type first decides which.
 
-The same items, sorted, placed three ways to compare by trying them. Pick the placement under **Spike** in the top bar:
+- **Words search** titles and the full text of every article and data page. Results open as a column right after the place being searched, so the tree stays in view, and the highlighted result shows in the column after them. ↑ ↓ move, ⏎ opens it in the tree, Esc closes the search and puts you back where you were. A search is one stop in the history: Back from a result returns to it.
+- **Keywords** narrow a search and turn into tags once a space ends them: `in:energy` (a topic or area; `in:site` for everything), `is:article` (also `page`, `insight`, `chart`, `collection`, `explorer`, `topic`, `text`), `sort:new` or `sort:read`. While you type a keyword, the box suggests its values; ⇥ or ⏎ takes one. With no words, `sort:new` or `is:insight` lists everything of that order or kind in the place.
+- **The scope starts where you are**: the nearest topic above the selection. Backspace at the start of the box takes the last tag off, and once only the place is left it widens one level each time, up to the whole site. Clicking another place in the tree left of the results searches there instead.
+- **`>`** turns the box into commands on the selected row (follow its links, show where it's used, go up, open on the live site, copy a link), sections of the open document, back and forward, and recent places. Deleting the `>` brings the search back.
+- The tag at the left always says what the box acts on: **in** a place for search, **on** a row for commands.
 
-- **A · List view**: a Columns / List switch. List shows everything in the place you're at (the whole site at Home) as one list.
-- **B · Tree row**: an "Everything in …" row heads each topic column and opens the list beside it.
-- **C · Start page**: Home opens on shelves (latest, most-read topic pages, by kind), each opening the full list.
+`/` or ⌘K focuses the box to search; ⌘⇧K opens it on commands.
 
-Every list sorts by **Newest** (by month; charts off by default, since a new chart isn't news) or **Best way in** (editors' picks first: the place's topic page and key charts, then each kind by popularity). Kind chips turn kinds on and off. Popularity is `analytics_popularity`, which only ranks items of one kind, so kinds never mix in that sort. Rows jump to the item's place in the tree.
+Sorting by popularity uses `analytics_popularity`, which only ranks items of one kind, so `sort:read` (and a search with no words) keeps one section per kind.
 
 ## Run
 
@@ -40,5 +42,6 @@ Then open http://localhost:8470. Thumbnails come from the live site. Chart block
 - A chart or view's home is its data page, read like a short document: the chart, its short description, then "What you should know" and "Sources and processing" sections from its indicator's metadata. Narrative charts follow it.
 - Document bodies: headings nest, every other block is a leaf. Layout containers (sticky-right, gray sections, …) are flattened.
 - A data insight's figure is the chart it names (`narrative-chart`, else `grapher-url`), embedded in place of its static image, so the chart's references list the insight. Insights that name no chart keep their image.
+- Every block's text also goes into `text.json` for full-text search; it loads on the first search.
 - A chart nobody uses gets up to 3 charts of the same data from other topics (shared x or y indicator, weighted down when many charts share it), shown in its side panel in place of "Not used anywhere".
 - Links resolve to one node (chart slugs follow redirects; MDM links with query params resolve to the exact view).

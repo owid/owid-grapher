@@ -233,6 +233,7 @@ type PeekFocus = { zone: "links" | "target"; link: number; row: number }
 interface Location {
     path: string[]
     peek: PeekFocus | null
+    search?: Search // set while the box searches; the tree waits underneath
 }
 let state: Location = { path: ["root"], peek: null }
 let landedOn: string | null = null // briefly highlights a jump's destination
@@ -251,6 +252,7 @@ interface Stop {
 const trail: Stop[] = []
 let stopIndex = 0
 function placeOf(loc: Location): string {
+    if (loc.search) return "search" // one stop, however much you type
     // A folded group ("26 articles") is part of its topic, not a place.
     const holders = loc.path
         .slice(0, -1)
@@ -323,7 +325,19 @@ async function go(
 ): Promise<void> {
     const doc = docOf(next.path[next.path.length - 1])
     if (doc) await loadDoc(doc)
-    if (!opts.fromHistory) {
+    // Closing a search without opening anything leaves no stop behind.
+    const cancelsSearch =
+        state.search &&
+        !next.search &&
+        !opts.jump &&
+        !opts.fromHistory &&
+        stopIndex > 0 &&
+        placeOf(trail[stopIndex - 1].at) === placeOf(next)
+    if (cancelsSearch) {
+        trail.splice(stopIndex)
+        stopIndex--
+        trail[stopIndex] = { ...trail[stopIndex], at: next }
+    } else if (!opts.fromHistory) {
         if (opts.jump || placeOf(next) !== placeOf(state)) {
             trail.splice(stopIndex + 1)
             trail.push({ at: next, via: opts.jump ? "jump" : "walk" })
@@ -473,15 +487,29 @@ const back = (): Promise<void> => goToStop(stopIndex - 1)
 const forward = (): Promise<void> => goToStop(stopIndex + 1)
 
 document.addEventListener("keydown", (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault()
-        return void openPalette()
+        return openBox(e.shiftKey ? ">" : undefined)
     }
-    if (palette.open) return
     if (e.metaKey && e.key === "[") return void back()
     if (e.metaKey && e.key === "]") return void forward()
     if (e.metaKey || e.ctrlKey || e.altKey) return
-    const handlers: Record<string, () => Promise<void> | void> = {
+    if (e.key === "/") {
+        e.preventDefault()
+        return openBox()
+    }
+    // While searching, the arrows move in the results.
+    const searchKeys: Record<string, () => Promise<void> | void> = {
+        ArrowUp: () => moveResult(-1),
+        ArrowDown: () => moveResult(1),
+        ArrowRight: openResult,
+        Enter: openResult,
+        Escape: closeSearch,
+        Home: () => moveResult(-1e6),
+        End: () => moveResult(1e6),
+        Backspace: () => (e.shiftKey ? forward() : back()),
+    }
+    const treeKeys: Record<string, () => Promise<void> | void> = {
         ArrowUp: () => move(-1),
         ArrowDown: () => move(1),
         ArrowRight: right,
@@ -498,7 +526,7 @@ document.addEventListener("keydown", (e) => {
             render(state)
         },
     }
-    const handler = handlers[e.key]
+    const handler = (state.search ? searchKeys : treeKeys)[e.key]
     if (!handler) return
     e.preventDefault()
     document.body.classList.add("is-keying")
@@ -542,6 +570,8 @@ function icon(name: string): SVGSVGElement {
         back: "M10 3 5 8l5 5",
         forward: "m6 3 5 5-5 5",
         section: "M3 4h10M3 8h7M3 12h4",
+        paragraph: "M3 4h10M3 7h10M3 10h10M3 13h6",
+        command: "m4 4 4 4-4 4M9 12h4",
         place: "M3 3h10v10H3zM3 7h10",
         topic: "M2 4h4.5L8 5.5h6V13H2z",
         "topic-page": "M2.5 3h11v10h-11zM2.5 6.5h11M6 6.5V13",
@@ -788,25 +818,6 @@ function renderRow(
                         "span",
                         "row__title",
                         `${childrenOf(id).length} ${GROUP_NOUN[n.title] ?? "items"}`
-                    )
-                )
-            )
-            trailing.append(icon("chevron"))
-            break
-        }
-        case "everything": {
-            const all = icon("refs")
-            all.classList.add("kind-icon")
-            row.append(
-                all,
-                el(
-                    "span",
-                    "row__text",
-                    el("span", "row__title", n.title),
-                    el(
-                        "span",
-                        "row__meta",
-                        `${itemsIn(n.parent!).length.toLocaleString("en-GB")} items, sorted`
                     )
                 )
             )
@@ -1163,7 +1174,18 @@ function renderCrumbs(): void {
     crumbs.replaceChildren()
     const ol = el("ol", "crumbs__list")
     // The title row is the document itself: the crumbs already name it.
-    const shown = state.path.slice(1).filter((id) => node(id).kind !== "title")
+    if (state.search) {
+        const s = state.search
+        for (const id of ancestry(s.scope)) {
+            const li = el("li", "", id === "root" ? "Search" : node(id).title)
+            li.dataset.scope = id
+            ol.append(li)
+        }
+        ol.append(el("li", "crumbs__here", s.query.trim() || searchTitle(s)))
+    }
+    const shown = state.search
+        ? []
+        : state.path.slice(1).filter((id) => node(id).kind !== "title")
     shown.forEach((id, i, all) => {
         const n = node(id)
         const label =
@@ -1175,7 +1197,7 @@ function renderCrumbs(): void {
         ol.append(li)
     })
     crumbs.append(ol)
-    const also = node(selected()).alsoIn
+    const also = state.search ? undefined : node(selected()).alsoIn
     if (also?.length)
         crumbs.append(
             el(
@@ -1194,7 +1216,17 @@ function renderCrumbs(): void {
     )!.disabled = stopIndex === trail.length - 1
 }
 
-const stopTitle = (stop: Stop): string => node(placeOf(stop.at)).title
+const stopTitle = (stop: Stop): string =>
+    stop.at.search ? searchTitle(stop.at.search) : node(placeOf(stop.at)).title
+function searchTitle(s: Search): string {
+    const words = s.query.trim()
+    const what = words
+        ? `“${words}”`
+        : [SORTS[s.sort], ...s.kinds.map((k) => KEYWORD_KINDS[k].label)].join(
+              " "
+          )
+    return `${what} in ${s.scope === "root" ? "the site" : node(s.scope).title}`
+}
 
 // The places visited, as a tram line: a stop per place, dashed where you
 // jumped, solid where you walked. Only the stops either side of you are
@@ -1236,6 +1268,21 @@ function renderTramline(): void {
 }
 
 function renderKeys(): void {
+    if (state.search) {
+        const hints: [string, string][] = [
+            ["↑ ↓", "Move in the results"],
+            ["⏎", "Open"],
+            ["⌫", "In the box, at the start: widen"],
+            ["esc", "Close the search"],
+            ["/", "Edit the search"],
+        ]
+        keys.replaceChildren(
+            ...hints.map(([k, label]) =>
+                el("span", "keys__hint", el("kbd", "", k), label)
+            )
+        )
+        return
+    }
     const plan = activePeek()
     const hints: [string, string][] = [
         ["↑ ↓", state.peek ? "Move in the side panel" : "Previous / next"],
@@ -1268,7 +1315,7 @@ function renderKeys(): void {
             ])
     }
     if (stopIndex > 0) hints.push(["⌫", "Back"])
-    hints.push(["⌘K", "Search and actions"])
+    hints.push(["/", "Search"], ["⌘⇧K", "Commands"])
     keys.replaceChildren(
         ...hints.map(([k, label]) =>
             el("span", "keys__hint", el("kbd", "", k), label)
@@ -1383,7 +1430,11 @@ function layout(): void {
         e.getBoundingClientRect().right - origin
     const dock = trailing.querySelector<HTMLElement>(".peek-dock")
     const focusRight =
-        state.peek && dock ? rightOf(dock) + 12 : rightOf(cols[cols.length - 1])
+        state.peek && dock
+            ? rightOf(dock) + 12
+            : cols.length
+              ? rightOf(cols[cols.length - 1])
+              : 0
     strip.scrollLeft = Math.max(0, focusRight - available)
 }
 const TRAILING_WIDTH = 760
@@ -1418,80 +1469,56 @@ function render(before: Location): void {
             )
         )
 
-    const feed = strip.querySelector<HTMLElement>(".col--feed[data-feed-key]")
-    const feedScroll = feed && {
-        key: feed.dataset.feedKey,
-        top: feed.querySelector(".col__body")!.scrollTop,
+    // The results list keeps its scroll while you move in it.
+    const results = strip.querySelector<HTMLElement>(".col--results")
+    const resultsScroll = results && {
+        key: results.dataset.resultsKey,
+        top: results.querySelector(".col__body")!.scrollTop,
     }
-    const keepFeedScroll = (): void => {
-        const now = strip.querySelector<HTMLElement>(
-            ".col--feed[data-feed-key]"
-        )
-        if (now && feedScroll && now.dataset.feedKey === feedScroll.key)
-            now.querySelector(".col__body")!.scrollTop = feedScroll.top
-    }
-    renderSpikeControls()
-    // A: the List side of the switch shows the place you're at as one list.
-    if (placement === "switch" && listView) {
-        const scope = listScope()
-        const panel = listPanel(
-            scope,
-            scope === "root"
-                ? "Everything on Our World in Data"
-                : `Everything in ${node(scope).title}`
-        )
-        panel.classList.add("col--wide")
-        strip.replaceChildren(panel)
-        keepFeedScroll()
-        renderCrumbs()
-        renderKeys()
-        return
-    }
-    // C: the root, with nothing picked yet, opens on the start page.
-    const startHere = placement === "start" && state.path.length === 1
 
     const cols: HTMLElement[] = []
     // Whatever sits right of the selection (a preview, the side panel, or
     // nothing) goes in one fixed-width slot, so it never moves the columns.
     const trailing = el("div", "trailing")
-    const p = state.path
-    for (let i = 0; i < p.length; i++) {
-        const parentId = p[i]
-        const selectedId = p[i + 1]
-        if (!selectedId && !hasChildren(parentId)) break
-        if (!selectedId && referencesOpen) break
-        const isTrail = i < p.length - 2 || state.peek !== null
-        const col = treeColumn(parentId, selectedId, i, isTrail)
-        if (!selectedId) col.classList.add("col--preview")
-        if (i >= common && landedOn) col.classList.add("is-arriving")
-        else keep.add(parentId)
-        const spine = el(
-            "button",
-            "spine",
-            el(
-                "span",
-                "spine__label",
-                selectedId
-                    ? node(selectedId).title || "¶"
-                    : node(parentId).title
+    if (state.search) {
+        const { cols: searchCols, preview } = searchColumns(state.search)
+        cols.push(...searchCols)
+        if (preview) trailing.append(preview)
+    } else {
+        const p = state.path
+        for (let i = 0; i < p.length; i++) {
+            const parentId = p[i]
+            const selectedId = p[i + 1]
+            if (!selectedId && !hasChildren(parentId)) break
+            if (!selectedId && referencesOpen) break
+            const isTrail = i < p.length - 2 || state.peek !== null
+            const col = treeColumn(parentId, selectedId, i, isTrail)
+            if (!selectedId) col.classList.add("col--preview")
+            if (i >= common && landedOn) col.classList.add("is-arriving")
+            else keep.add(parentId)
+            const spine = el(
+                "button",
+                "spine",
+                el(
+                    "span",
+                    "spine__label",
+                    selectedId
+                        ? node(selectedId).title || "¶"
+                        : node(parentId).title
+                )
             )
-        )
-        spine.dataset.crumb = String(i + 1)
-        col.prepend(spine)
-        if (selectedId || startHere) cols.push(col)
-        else trailing.append(col)
-    }
-    if (startHere) trailing.append(startPage())
-    // B: the "Everything in …" row opens its list right of the column.
-    const picked = node(selected())
-    if (picked.kind === "everything")
-        trailing.append(listPanel(picked.parent!, picked.title))
-    const peekCols = peekColumns()
-    if (peekCols.length) {
-        const dock = el("div", "peek-dock", ...peekCols)
-        if (state.peek) dock.classList.add("is-active")
-        if (!hadDock) dock.classList.add("is-entering")
-        trailing.append(dock)
+            spine.dataset.crumb = String(i + 1)
+            col.prepend(spine)
+            if (selectedId) cols.push(col)
+            else trailing.append(col)
+        }
+        const peekCols = peekColumns()
+        if (peekCols.length) {
+            const dock = el("div", "peek-dock", ...peekCols)
+            if (state.peek) dock.classList.add("is-active")
+            if (!hadDock) dock.classList.add("is-entering")
+            trailing.append(dock)
+        }
     }
     // The old columns leave only after live charts have moved out of them.
     const oldColumns = [...strip.children]
@@ -1507,9 +1534,16 @@ function render(before: Location): void {
         if (top !== undefined && keep.has(c.dataset.parent!))
             c.querySelector(".col__body")!.scrollTop = top
     })
-    keepFeedScroll()
+    const resultsNow = strip.querySelector<HTMLElement>(".col--results")
+    if (
+        resultsNow &&
+        resultsScroll &&
+        resultsScroll.key === resultsNow.dataset.resultsKey
+    )
+        resultsNow.querySelector(".col__body")!.scrollTop = resultsScroll.top
     renderCrumbs()
     renderKeys()
+    renderBox()
     layout()
     watchForNearCharts()
     if (landedOn) {
@@ -1524,412 +1558,497 @@ function render(before: Location): void {
     }
 }
 
-// --- Lists: the same items, sorted (spike) ---
+// --- Search: what the box finds ---
 
-// One sortable list of what a place holds, placed three ways to compare
-// them by trying them: A, a Columns/List switch for the place you're at;
-// B, an "Everything in …" row at the top of each topic column; C, a start
-// page at the root. Every row jumps to the item's one place in the tree.
-type Placement = "switch" | "row" | "start"
-const PLACEMENTS: [Placement, string][] = [
-    ["switch", "A · List view"],
-    ["row", "B · Tree row"],
-    ["start", "C · Start page"],
-]
-let placement =
-    (localStorage.getItem("mc-placement") as Placement | null) ?? "switch"
-let listView = false // A: showing the List side of the switch
-let startFull = false // C: the start page's full list instead of its shelves
-
-// The kinds a list holds, in the order "Best way in" groups them.
-const LIST_KINDS: [string, string[]][] = [
-    ["Topic pages", ["topic-page", "linear-topic-page"]],
-    ["Articles", ["article"]],
-    ["Data insights", ["data-insight"]],
-    ["Data collections", ["mdm"]],
-    ["Explorers", ["explorer"]],
-    ["Charts", ["chart"]],
-]
-const kindGroupOf = new Map(
-    LIST_KINDS.flatMap(([label, kinds]) => kinds.map((k) => [k, label]))
+// Typed words search titles and the full text. Keywords narrow it and snap
+// into tags once a space ends them: in: a place, is: a kind, sort: an order.
+// Results open as a column right after the place being searched, so the
+// tree you came from stays in view; the highlighted result previews beside
+// them. A search is one stop in the history, so Back returns to it.
+type SortKey = "best" | "new" | "read"
+interface Search {
+    query: string
+    scope: string // a place: the root, an area or a topic
+    kinds: string[] // keys of KEYWORD_KINDS
+    sort: SortKey
+    at: number // the highlighted result
+}
+const KEYWORD_KINDS: Record<string, { label: string; kinds: string[] }> = {
+    topic: { label: "Topics", kinds: ["area", "topic"] },
+    page: { label: "Topic pages", kinds: ["topic-page", "linear-topic-page"] },
+    article: { label: "Articles", kinds: ["article"] },
+    insight: { label: "Data insights", kinds: ["data-insight"] },
+    collection: { label: "Data collections", kinds: ["mdm"] },
+    explorer: { label: "Explorers", kinds: ["explorer"] },
+    chart: { label: "Charts", kinds: ["chart", "narrative-chart"] },
+    text: { label: "Text", kinds: ["text"] },
+}
+const keywordOf = new Map(
+    Object.entries(KEYWORD_KINDS).flatMap(([key, { kinds }]) =>
+        kinds.map((kind) => [kind, key])
+    )
 )
+const SORTS: Record<SortKey, string> = {
+    best: "Best match",
+    new: "Newest",
+    read: "Most read",
+}
 
-type ListSort = "newest" | "best"
-const listState = {
-    sort: "newest" as ListSort,
-    hidden: new Set(["Charts"]),
-    shown: 60,
-}
-// Each sort starts from its own chips: a new chart isn't news the way an
-// insight is, so Newest leaves charts out until you turn them on.
-function setSort(sort: ListSort): void {
-    listState.sort = sort
-    listState.hidden = new Set(sort === "newest" ? ["Charts"] : [])
-    listState.shown = 60
-}
 const isPlace = (id: string): boolean =>
-    ["root", "area", "topic"].includes(node(id).kind)
+    ["root", "area", "topic"].includes(nodes.get(id)?.kind ?? "")
+const placeAbove = (id: string): string =>
+    ancestry(id).slice(0, -1).findLast(isPlace) ?? "root"
+const scopeName = (scope: string): string =>
+    scope === "root" ? "the whole site" : node(scope).title
+const slug = (title: string): string =>
+    title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
 
-// Everything a place holds: items filed under it or any topic below it,
-// and items tagged there that live elsewhere.
-const itemsCache = new Map<string, string[]>()
-function itemsIn(scope: string): string[] {
-    if (itemsCache.has(scope)) return itemsCache.get(scope)!
-    const topics = new Set<string>()
+// A place holds what is filed under it or any topic below it, and what is
+// tagged there but lives elsewhere.
+const placesCache = new Map<string, Set<string>>()
+function placesUnder(scope: string): Set<string> {
+    if (placesCache.has(scope)) return placesCache.get(scope)!
+    const under = new Set<string>()
     const walk = (id: string): void => {
-        topics.add(id)
+        under.add(id)
         for (const k of childrenOf(id)) if (isPlace(k)) walk(k)
     }
     walk(scope)
-    const items = [...nodes.values()]
-        .filter(
-            (n) =>
-                kindGroupOf.has(n.kind) &&
-                !n.id.includes("#") &&
-                (scope === "root" ||
-                    topics.has(homeOf(n.id)?.id ?? "") ||
-                    n.alsoIn?.some((t) => topics.has(t)))
-        )
-        .map((n) => n.id)
-    itemsCache.set(scope, items)
-    return items
+    placesCache.set(scope, under)
+    return under
 }
+const inScopeCache = new Map<string, boolean>()
+function inScope(id: string, scope: string): boolean {
+    if (scope === "root") return true
+    const key = `${scope}|${id}`
+    let holds = inScopeCache.get(key)
+    if (holds === undefined) {
+        const under = placesUnder(scope)
+        const place = ancestry(id).findLast(isPlace)
+        holds =
+            (place !== undefined && under.has(place)) ||
+            (node(id).alsoIn?.some((t) => under.has(t)) ?? false)
+        inScopeCache.set(key, holds)
+    }
+    return holds
+}
+
+// Lower ranks first among equally good title matches.
+const TITLE_RANK: Record<string, number> = {
+    area: 0,
+    topic: 0,
+    "topic-page": 1,
+    "linear-topic-page": 1,
+    article: 2,
+    mdm: 2,
+    explorer: 2,
+    "data-insight": 3,
+    chart: 3,
+    "narrative-chart": 4,
+}
+const titleIndex = [...nodes.values()]
+    .filter((n) => n.kind in TITLE_RANK)
+    .map((n) => ({ id: n.id, title: n.title.toLowerCase() }))
+
+// The full text loads on the first search; titles answer until it lands.
+interface TextEntry {
+    id: string
+    doc: string
+    text: string
+    lower: string
+    heading: boolean
+}
+let textIndex: TextEntry[] | null = null
+let textLoading: Promise<void> | null = null
+function loadText(): void {
+    textLoading ??= fetch("/data/text.json")
+        .then((r) => r.json())
+        .then((rows: [string, string, number][]) => {
+            textIndex = rows.map(([id, text, heading]) => ({
+                id,
+                doc: id.split("#")[0],
+                text,
+                lower: text.toLowerCase(),
+                heading: heading === 1,
+            }))
+            resultsCache.clear()
+            // The results change; the new highlight needs its document.
+            if (state.search) void setSearch(state.search)
+        })
+}
+
+interface Result {
+    id: string
+    text?: TextEntry // set for a match in a document's text
+}
+interface ResultSection {
+    label: string
+    results: Result[]
+}
+const wordsOf = (query: string): string[] =>
+    query.toLowerCase().split(/\s+/).filter(Boolean)
+const itemOf = (r: Result): TreeNode => node(r.text?.doc ?? r.id)
+const TEXT_LIMIT = 400 // text matches kept, best first
+
+const resultsCache = new Map<string, ResultSection[]>()
+function searchResults(s: Search): ResultSection[] {
+    const key = JSON.stringify([s.query, s.scope, s.kinds, s.sort])
+    if (resultsCache.has(key)) return resultsCache.get(key)!
+    const words = wordsOf(s.query)
+    const query = words.join(" ")
+    const allowed = (k: string): boolean =>
+        !s.kinds.length || s.kinds.includes(k)
+
+    const titles: { r: Result; score: number }[] = []
+    for (const entry of titleIndex) {
+        const kind = node(entry.id).kind
+        if (!allowed(keywordOf.get(kind)!)) continue
+        if (!words.every((w) => entry.title.includes(w))) continue
+        if (!inScope(entry.id, s.scope)) continue
+        // The whole query at the start, then at a word start, then anywhere.
+        const at = entry.title.indexOf(query)
+        const quality =
+            at === 0 ? 0 : at > 0 && entry.title[at - 1] === " " ? 1 : 2
+        titles.push({
+            r: { id: entry.id },
+            score:
+                quality * 100 +
+                TITLE_RANK[kind] * 10 +
+                entry.title.length / 100,
+        })
+    }
+    let texts: Result[] = []
+    if (words.length && allowed("text")) {
+        loadText()
+        for (const entry of textIndex ?? [])
+            if (
+                words.every((w) => entry.lower.includes(w)) &&
+                inScope(entry.doc, s.scope)
+            )
+                texts.push({ id: entry.id, text: entry })
+        // Section titles first, then the most-read documents.
+        texts = texts
+            .sort(
+                (a, b) =>
+                    Number(b.text!.heading) - Number(a.text!.heading) ||
+                    (itemOf(b).pop ?? 0) - (itemOf(a).pop ?? 0)
+            )
+            .slice(0, TEXT_LIMIT)
+    }
+
+    const sections = new Map<string, Result[]>()
+    const add = (label: string, r: Result): void => {
+        if (!sections.has(label)) sections.set(label, [])
+        sections.get(label)!.push(r)
+    }
+    const byPop = (a: Result, b: Result): number =>
+        (itemOf(b).pop ?? 0) - (itemOf(a).pop ?? 0)
+    const kindLabel = (r: Result): string =>
+        r.text ? "Text" : KEYWORD_KINDS[keywordOf.get(node(r.id).kind)!].label
+    if (s.sort === "new") {
+        const dated = [...titles.map((t) => t.r), ...texts].sort((a, b) =>
+            (itemOf(b).date ?? "").localeCompare(itemOf(a).date ?? "")
+        )
+        for (const r of dated)
+            add(itemOf(r).date ? monthName(itemOf(r).date!) : "No date", r)
+    } else if (s.sort === "read" || !words.length) {
+        // Popularity only ranks items of one kind, so each kind keeps its
+        // own section. With no words, the place's own picks come first: its
+        // topic page and the charts its editors marked as key.
+        const isPick = (r: Result): boolean =>
+            !words.length &&
+            ((node(r.id).kind.endsWith("topic-page") &&
+                homeOf(r.id)?.id === s.scope) ||
+                (node(r.id).keyIn?.includes(s.scope) ?? false))
+        const all = [...titles.map((t) => t.r), ...texts].sort(byPop)
+        for (const r of all) if (isPick(r)) add("Editors’ picks", r)
+        for (const { label } of Object.values(KEYWORD_KINDS))
+            for (const r of all)
+                if (!isPick(r) && kindLabel(r) === label) add(label, r)
+    } else {
+        for (const t of titles.sort((a, b) => a.score - b.score))
+            add("Titles", t.r)
+        for (const r of texts) add("In the text", r)
+    }
+    const out = [...sections].map(([label, results]) => ({ label, results }))
+    resultsCache.set(key, out)
+    return out
+}
+const flatResults = (s: Search): Result[] =>
+    searchResults(s).flatMap((x) => x.results)
+const highlighted = (s: Search): Result | undefined => flatResults(s)[s.at]
 
 const monthName = (date: string): string =>
     new Date(date).toLocaleDateString("en-GB", {
         month: "long",
         year: "numeric",
     })
-const dayName = (date: string): string =>
-    new Date(date).toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-    })
 
-// The list in sections: by month for Newest; for Best way in, the editors'
-// picks (the place's topic page and key charts), then each kind by
-// popularity, since the popularity score only ranks items of one kind.
-function listSections(
-    scope: string,
-    sort: ListSort,
-    hidden: Set<string>
-): { label: string; ids: string[] }[] {
-    const ids = itemsIn(scope).filter(
-        (id) => !hidden.has(kindGroupOf.get(node(id).kind)!)
+// The words found, marked where they appear.
+function marked(text: string, words: string[]): DocumentFragment {
+    const out = document.createDocumentFragment()
+    const escaped = words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    if (!escaped.length) {
+        out.append(text)
+        return out
+    }
+    for (const [i, part] of text
+        .split(new RegExp(`(${escaped.join("|")})`, "gi"))
+        .entries())
+        out.append(i % 2 ? el("mark", "", part) : part)
+    return out
+}
+// A paragraph's text around its first match, cut at word ends.
+function snippet(text: string, words: string[]): string {
+    const lower = text.toLowerCase()
+    const at = Math.min(
+        ...words.map((w) => lower.indexOf(w)).filter((i) => i >= 0)
     )
-    const sections = new Map<string, string[]>()
-    const add = (label: string, id: string): void => {
-        if (!sections.has(label)) sections.set(label, [])
-        sections.get(label)!.push(id)
-    }
-    if (sort === "newest") {
-        const dated = ids
-            .filter((id) => node(id).date)
-            .sort((a, b) => node(b).date!.localeCompare(node(a).date!))
-        for (const id of dated) add(monthName(node(id).date!), id)
-        for (const id of ids) if (!node(id).date) add("No date", id)
-    } else {
-        const isPick = (id: string): boolean =>
-            (node(id).kind.endsWith("topic-page") &&
-                homeOf(id)?.id === scope) ||
-            (node(id).keyIn?.includes(scope) ?? false)
-        const byPop = [...ids].sort(
-            (a, b) => (node(b).pop ?? 0) - (node(a).pop ?? 0)
-        )
-        for (const id of byPop) if (isPick(id)) add("Editors' picks", id)
-        for (const [label] of LIST_KINDS)
-            for (const id of byPop)
-                if (!isPick(id) && kindGroupOf.get(node(id).kind) === label)
-                    add(label, id)
-    }
-    return [...sections].map(([label, ids]) => ({ label, ids }))
+    if (!Number.isFinite(at) || at < 60) return text
+    const from = text.lastIndexOf(" ", at - 40)
+    return `…${text.slice(from + 1)}`
 }
 
-function feedRow(id: string, scope: string): HTMLElement {
-    const n = node(id)
-    const row = el("div", `row feed-row row--${n.kind}`)
-    row.dataset.feedId = id
-    if (n.kind === "chart" && n.thumb)
-        row.append(thumb(n.thumb, "row__thumb", 240))
-    else row.append(kindIcon(n.kind) ?? "")
-    const home = homeOf(id)
+function resultRow(r: Result, i: number, s: Search): HTMLElement {
+    const words = wordsOf(s.query)
+    const item = itemOf(r)
+    const row = el("div", `row result row--${r.text ? "text" : item.kind}`)
+    row.dataset.result = String(i)
+    row.setAttribute("role", "option")
+    if (i === s.at) {
+        row.classList.add("is-selected")
+        row.setAttribute("aria-selected", "true")
+    }
+    const place = ancestry(item.id).findLast(isPlace)
+    const where =
+        place && place !== s.scope && place !== "root"
+            ? `in ${node(place).title}`
+            : null
+    if (r.text) {
+        row.append(
+            icon(r.text.heading ? "section" : "paragraph"),
+            el(
+                "span",
+                "row__text",
+                el(
+                    "span",
+                    `row__title result__snippet ${r.text.heading ? "result__snippet--heading" : ""}`,
+                    marked(snippet(r.text.text, words), words)
+                ),
+                el(
+                    "span",
+                    "row__meta",
+                    [item.title, where].filter(Boolean).join(" · ")
+                )
+            )
+        )
+        row.querySelector(".icon")!.classList.add("kind-icon")
+        return row
+    }
+    if (
+        (item.kind === "chart" || item.kind === "narrative-chart") &&
+        item.thumb
+    )
+        row.append(thumb(item.thumb, "row__thumb", 240))
+    else row.append(kindIcon(item.kind) ?? "")
     const meta = [
-        KIND_LABEL[n.kind],
-        n.date ? dayName(n.date) : null,
-        home && home.id !== scope && home.id !== "root"
-            ? `in ${home.title}`
-            : null,
-    ].filter(Boolean)
+        KIND_LABEL[item.kind],
+        s.sort === "new" && item.date ? item.date.slice(0, 10) : null,
+        where,
+    ]
     row.append(
         el(
             "span",
             "row__text",
-            el("span", "row__title", n.title),
-            el("span", "row__meta", meta.join(" · "))
+            el("span", "row__title", marked(item.title, words)),
+            el("span", "row__meta", meta.filter(Boolean).join(" · "))
         )
     )
     return row
 }
 
-function sortSwitch(): HTMLElement {
-    const seg = el("div", "seg")
-    for (const [sort, label] of [
-        ["newest", "Newest"],
-        ["best", "Best way in"],
-    ] as [ListSort, string][]) {
-        const b = el("button", "seg__button", label)
-        b.dataset.sort = sort
-        b.setAttribute("aria-pressed", String(listState.sort === sort))
-        seg.append(b)
-    }
-    return seg
-}
-
-function kindChips(scope: string): HTMLElement {
-    const chips = el("div", "chips")
-    const counts = new Map<string, number>()
-    for (const id of itemsIn(scope)) {
-        const label = kindGroupOf.get(node(id).kind)!
-        counts.set(label, (counts.get(label) ?? 0) + 1)
-    }
-    for (const [label] of LIST_KINDS) {
-        const count = counts.get(label)
-        if (!count) continue
-        const chip = el(
-            "button",
-            "chip",
-            label,
-            el("span", "chip__count", count.toLocaleString("en-GB"))
-        )
-        chip.dataset.chip = label
-        chip.setAttribute("aria-pressed", String(!listState.hidden.has(label)))
-        chips.append(chip)
-    }
-    return chips
-}
-
-// The full list of a place, with its sort and kind chips.
-function listPanel(scope: string, title: string, back?: string): HTMLElement {
-    const col = el("section", "col col--feed")
-    col.dataset.feedKey = [scope, listState.sort, ...listState.hidden].join("|")
+const SHOWN = 100 // results rendered at once; more come as you move down
+function resultsColumn(s: Search): HTMLElement {
+    const col = el("section", "col col--results")
+    col.dataset.search = "results"
+    col.dataset.resultsKey = JSON.stringify([s.query, s.scope, s.kinds, s.sort])
+    col.setAttribute("role", "listbox")
+    col.setAttribute("aria-label", `Results in ${scopeName(s.scope)}`)
+    const sections = searchResults(s)
+    const total = sections.reduce((sum, x) => sum + x.results.length, 0)
+    const waiting = wordsOf(s.query).length > 0 && !textIndex
     const head = el(
         "header",
-        "feed__head",
-        back ? el("button", "feed__back", icon("back"), back) : null,
-        el("h2", "feed__title", title),
-        el("div", "feed__controls", sortSwitch()),
-        kindChips(scope)
+        "results__head",
+        el(
+            "span",
+            "results__count",
+            `${total.toLocaleString("en-GB")}${total >= TEXT_LIMIT && wordsOf(s.query).length ? "+" : ""} ${total === 1 ? "result" : "results"}`
+        ),
+        el("span", "results__where", `in ${scopeName(s.scope)}`),
+        waiting ? el("span", "results__note", "Reading the text…") : null
     )
-    const body = el("div", "col__body feed__body")
-    let left = listState.shown
-    const sections = listSections(scope, listState.sort, listState.hidden)
-    for (const { label, ids } of sections) {
-        if (left <= 0) break
-        body.append(el("div", "group-label", label))
-        for (const id of ids.slice(0, left)) body.append(feedRow(id, scope))
-        left -= ids.length
+    const body = el("div", "col__body")
+    const shown = Math.max(SHOWN, s.at + 40)
+    let i = 0
+    for (const { label, results } of sections) {
+        if (i >= shown) break
+        body.append(
+            el(
+                "div",
+                "group-label",
+                label,
+                el("span", "group-label__count", String(results.length))
+            )
+        )
+        for (const r of results.slice(0, shown - i))
+            body.append(resultRow(r, i++, s))
     }
-    const total = sections.reduce((s, x) => s + x.ids.length, 0)
-    if (!total)
-        body.append(el("p", "col__empty", "Nothing of these kinds here."))
-    if (total > listState.shown) {
+    if (total > shown) {
         const more = el(
             "button",
-            "feed__more",
-            `Show more (${(total - listState.shown).toLocaleString("en-GB")} left)`
+            "results__more",
+            `Show more (${(total - shown).toLocaleString("en-GB")} left)`
         )
-        more.dataset.more = "1"
+        more.dataset.more = String(shown)
         body.append(more)
+    }
+    if (!total && !waiting) {
+        body.append(
+            el("p", "col__empty", `Nothing in ${scopeName(s.scope)} matches.`)
+        )
+        if (s.scope !== "root") {
+            const wider = el(
+                "button",
+                "results__wider",
+                `Search ${scopeName(placeAbove(s.scope))} instead`,
+                el("kbd", "", "⌫")
+            )
+            wider.dataset.widen = "1"
+            body.append(wider)
+        }
     }
     col.append(head, body)
     return col
 }
 
-// C: the root as a front page. A few shelves, each opening the full list.
-function startPage(): HTMLElement {
-    if (startFull)
-        return listPanel(
-            "root",
-            "Everything on Our World in Data",
-            "Start page"
-        )
-    const page = el("section", "col col--feed start")
-    const body = el("div", "col__body start__body")
-    const shelf = (
-        title: string,
-        ids: string[],
-        open: { sort: ListSort; only?: string }
-    ): HTMLElement => {
-        const see = el("button", "shelf__all", "See all", icon("chevron"))
-        see.dataset.open = JSON.stringify(open)
-        return el(
-            "section",
-            "shelf",
-            el("div", "shelf__head", el("h2", "shelf__title", title), see),
-            ...ids.map((id) => feedRow(id, "root"))
-        )
-    }
-    const latest = listSections("root", "newest", new Set(["Charts"]))
-        .flatMap((s) => s.ids)
-        .slice(0, 6)
-    const topicPages = listSections(
-        "root",
-        "best",
-        new Set(LIST_KINDS.map(([l]) => l).filter((l) => l !== "Topic pages"))
-    )
-        .flatMap((s) => s.ids)
-        .slice(0, 6)
-    const kinds = el("div", "chips start__kinds")
-    for (const [label] of LIST_KINDS) {
-        const count = itemsIn("root").filter(
-            (id) => kindGroupOf.get(node(id).kind) === label
-        ).length
-        const chip = el(
+// Left of the results: the place being searched, in its tree. Right of
+// them: the highlighted result, in its own column.
+function searchColumns(s: Search): {
+    cols: HTMLElement[]
+    preview: HTMLElement | null
+} {
+    const path = ancestry(s.scope)
+    const cols: HTMLElement[] = []
+    for (let i = 0; i < path.length - 1; i++) {
+        const col = treeColumn(path[i], path[i + 1], i, true)
+        col.dataset.search = "scope"
+        const spine = el(
             "button",
-            "chip",
-            label,
-            el("span", "chip__count", count.toLocaleString("en-GB"))
+            "spine",
+            el("span", "spine__label", node(path[i + 1]).title)
         )
-        chip.dataset.open = JSON.stringify({ sort: "best", only: label })
-        kinds.append(chip)
+        spine.dataset.scope = path[i + 1]
+        col.prepend(spine)
+        cols.push(col)
     }
-    body.append(
-        el("h1", "start__title", "Our World in Data"),
-        shelf("Latest", latest, { sort: "newest" }),
-        shelf("Start here: most-read topic pages", topicPages, {
-            sort: "best",
-            only: "Topic pages",
-        }),
-        el(
-            "section",
-            "shelf",
-            el(
-                "div",
-                "shelf__head",
-                el("h2", "shelf__title", "Browse by kind")
-            ),
-            kinds
-        )
-    )
-    page.append(body)
-    return page
+    cols[cols.length - 1]
+        ?.querySelector(`[data-id="${CSS.escape(s.scope)}"]`)
+        ?.classList.add("is-scope")
+    cols.push(resultsColumn(s))
+    return { cols, preview: previewColumn(s) }
+}
+function previewColumn(s: Search): HTMLElement | null {
+    const r = highlighted(s)
+    if (!r) return null
+    let col: HTMLElement
+    const parent = r.text && nodes.get(r.id)?.parent
+    if (parent) col = treeColumn(parent, r.id, -1, true)
+    else if (!r.text && hasChildren(r.id)) {
+        col = treeColumn(r.id, undefined, -1, false)
+        col.classList.add("col--preview")
+    } else return null
+    col.dataset.search = "preview"
+    return col
 }
 
-// B: an "Everything in …" row heads every place's column.
-function applyPlacement(): void {
-    for (const n of [...nodes.values()]) {
-        if (!isPlace(n.id)) continue
-        const id = `everything:${n.id}`
-        n.children = (n.children ?? []).filter((c) => c !== id)
-        if (placement !== "row") continue
-        nodes.set(id, {
-            id,
-            kind: "everything",
-            title: n.id === "root" ? "Everything" : `Everything in ${n.title}`,
-            parent: n.id,
-        })
-        n.children.unshift(id)
-    }
+// Searches change as you type. Each change waits for the highlighted
+// result's document, then shows; a later keystroke wins over an earlier one.
+let latestSearch: Search | null = null
+let searchPending = false // latestSearch is on its way to the screen
+async function setSearch(s: Search | null): Promise<void> {
+    latestSearch = s
+    searchPending = true
+    const r = s && highlighted(s)
+    const doc = r && docOf(r.id)
+    if (doc) await loadDoc(doc)
+    if (latestSearch !== s) return
+    searchPending = false
+    await go({ path: state.path, peek: null, search: s ?? undefined })
 }
-GROUP_OF.everything = "All"
-
-// The place a list view shows: the topic you're in, or the whole site.
-const listScope = (): string => state.path.findLast(isPlace) ?? "root"
-
-// The spike's own controls: the placement picker, A's switch, and Home.
-const bar = document.querySelector<HTMLElement>(".bar")!
-const homeButton = el("button", "icon-button", icon("topic"))
-homeButton.title = "Home"
-homeButton.setAttribute("aria-label", "Home")
-homeButton.addEventListener("click", () => {
-    startFull = false
-    void go({ path: ["root"], peek: null })
-})
-document.querySelector(".bar__history")!.prepend(homeButton)
-const viewSwitch = el("div", "seg view-switch")
-const placementPicker = el("div", "placement")
-bar.append(viewSwitch, placementPicker)
-function renderSpikeControls(): void {
-    viewSwitch.hidden = placement !== "switch"
-    viewSwitch.replaceChildren(
-        ...[
-            ["columns", "Columns"],
-            ["list", "List"],
-        ].map(([v, label]) => {
-            const b = el("button", "seg__button", label)
-            b.dataset.view = v
-            b.setAttribute("aria-pressed", String((v === "list") === listView))
-            return b
-        })
-    )
-    const select = el("select", "placement__select")
-    select.setAttribute("aria-label", "Placement being tried")
-    for (const [p, label] of PLACEMENTS) {
-        const o = el("option", "", label)
-        o.value = p
-        o.selected = p === placement
-        select.append(o)
-    }
-    placementPicker.replaceChildren(
-        el("span", "placement__label", "Spike"),
-        select
-    )
+async function moveResult(delta: number): Promise<void> {
+    const s = state.search
+    if (!s) return
+    const count = flatResults(s).length
+    const at = Math.max(0, Math.min(count - 1, s.at + delta))
+    if (at !== s.at) await setSearch({ ...s, at })
 }
-viewSwitch.addEventListener("click", (e) => {
-    const b = (e.target as HTMLElement).closest<HTMLElement>("[data-view]")
-    if (!b) return
-    listView = b.dataset.view === "list"
-    render(state)
-})
-placementPicker.addEventListener("change", (e) => {
-    placement = (e.target as HTMLSelectElement).value as Placement
-    localStorage.setItem("mc-placement", placement)
-    listView = false
-    startFull = false
-    applyPlacement()
-    const path = state.path.filter((id) => nodes.get(id)?.kind !== "everything")
-    void go({ path, peek: null })
-})
-// List controls work the same wherever a list is placed.
-function handleListClick(t: HTMLElement): boolean {
-    const sort = t.closest<HTMLElement>("[data-sort]")
-    const chip = t.closest<HTMLElement>("[data-chip]")
-    const open = t.closest<HTMLElement>("[data-open]")
-    const feedRowEl = t.closest<HTMLElement>("[data-feed-id]")
-    if (sort) setSort(sort.dataset.sort as ListSort)
-    else if (chip) {
-        const label = chip.dataset.chip!
-        if (!listState.hidden.delete(label)) listState.hidden.add(label)
-        listState.shown = 60
-    } else if (t.closest("[data-more]")) listState.shown += 200
-    else if (t.closest(".feed__back")) startFull = false
-    else if (open) {
-        const o = JSON.parse(open.dataset.open!) as {
-            sort: ListSort
-            only?: string
+async function openResult(): Promise<void> {
+    const r = state.search && highlighted(state.search)
+    if (!r) return
+    leaveBox()
+    await jumpTo(r.id)
+}
+function closeSearch(): void {
+    leaveBox()
+    void setSearch(null)
+}
+// Backspace at the start of the box takes the last tag off: the order,
+// then kinds, then the place widens one level at a time.
+function widen(s: Search): Search {
+    if (s.sort !== "best") return { ...s, sort: "best", at: 0 }
+    if (s.kinds.length) return { ...s, kinds: s.kinds.slice(0, -1), at: 0 }
+    return { ...s, scope: placeAbove(s.scope), at: 0 }
+}
+
+function handleSearchClick(t: HTMLElement, zone: string): void {
+    const s = state.search!
+    const row = t.closest<HTMLElement>(".row[data-id]")
+    const spine = t.closest<HTMLElement>("[data-scope]")
+    if (zone === "results") {
+        const result = t.closest<HTMLElement>("[data-result]")
+        const more = t.closest<HTMLElement>("[data-more]")
+        if (result) {
+            const at = Number(result.dataset.result)
+            if (at === s.at) void openResult()
+            else void setSearch({ ...s, at })
+        } else if (more) void setSearch({ ...s, at: Number(more.dataset.more) })
+        else if (t.closest("[data-widen]")) updateSearch(widen(s))
+    } else if (zone === "scope") {
+        // Other places in the tree become the place searched.
+        const id = spine?.dataset.scope ?? row?.dataset.id
+        if (id && isPlace(id)) updateSearch({ ...s, scope: id, at: 0 })
+        else if (id) {
+            leaveBox()
+            void jumpTo(id)
         }
-        setSort(o.sort)
-        if (o.only)
-            listState.hidden = new Set(
-                LIST_KINDS.map(([l]) => l).filter((l) => l !== o.only)
-            )
-        startFull = true
-    } else if (feedRowEl) {
-        listView = false
-        void jumpTo(feedRowEl.dataset.feedId!)
-        return true
-    } else return false
-    render(state)
-    return true
+    } else if (row) {
+        // The preview is a look; clicking into it goes there.
+        const id = row.dataset.id!
+        leaveBox()
+        void jumpTo(node(id).kind === "title" ? node(id).target! : id)
+    }
 }
-applyPlacement()
 
 // --- Mouse ---
 
 strip.addEventListener("click", (e) => {
     const t = e.target as HTMLElement
-    if (handleListClick(t)) return
+    const zone = t.closest<HTMLElement>("[data-search]")?.dataset.search
+    if (state.search && zone) return handleSearchClick(t, zone)
     const refsPill = t.closest<HTMLElement>("[data-refs]")
     const spine = t.closest<HTMLElement>(".spine")
     if (spine)
@@ -1975,6 +2094,13 @@ strip.addEventListener("click", (e) => {
     void go({ path, peek: null })
 })
 crumbs.addEventListener("click", (e) => {
+    const scope = (e.target as HTMLElement).closest<HTMLElement>("[data-scope]")
+    if (scope && state.search)
+        return updateSearch({
+            ...state.search,
+            scope: scope.dataset.scope!,
+            at: 0,
+        })
     const li = (e.target as HTMLElement).closest<HTMLElement>("[data-crumb]")
     if (li)
         void go({
@@ -1986,6 +2112,12 @@ tramline.addEventListener("click", (e) => {
     const stop = (e.target as HTMLElement).closest<HTMLElement>("[data-stop]")
     if (stop) void goToStop(Number(stop.dataset.stop))
 })
+document
+    .querySelector('[data-action="home"]')!
+    .addEventListener("click", () => {
+        leaveBox()
+        void go({ path: ["root"], peek: null })
+    })
 document
     .querySelector('[data-action="back"]')!
     .addEventListener("click", () => void back())
@@ -1999,11 +2131,12 @@ window.addEventListener("hashchange", () => {
     if (id && id !== selected()) void jumpTo(id)
 })
 
-// --- Command palette ---
+// --- The box: one place to find and to do ---
 
-// ⌘K opens one box for doing and finding. Empty, it offers what you can do
-// with the selection, then recent places. Typing filters those, then adds
-// sections of the open document and matching places from the whole site.
+// Words search (the search above). A leading ">" turns the box into
+// commands on the row you're on; deleting it turns it back. The tag at the
+// left always says what the box acts on: in a place, or on a row.
+// / and ⌘K focus it to search; ⌘⇧K opens it on commands.
 interface Command {
     label: string
     detail?: string
@@ -2011,41 +2144,171 @@ interface Command {
     keys?: string
     run: () => void | Promise<void>
 }
-const palette = document.querySelector<HTMLDialogElement>(".palette")!
-const paletteInput = palette.querySelector<HTMLInputElement>("input")!
-const paletteList = palette.querySelector<HTMLElement>(".palette__list")!
-let paletteGroups: { title: string; commands: Command[] }[] = []
-let paletteActive = 0
-
-const SEARCHABLE: Record<string, number> = {
-    // Lower ranks first among equally good matches.
-    area: 0,
-    topic: 0,
-    "topic-page": 1,
-    "linear-topic-page": 1,
-    article: 2,
-    mdm: 2,
-    explorer: 2,
-    "data-insight": 3,
-    chart: 3,
-    "narrative-chart": 4,
-}
-const searchIndex = [...nodes.values()]
-    .filter((n) => n.kind in SEARCHABLE)
-    .map((n) => ({ id: n.id, title: n.title.toLowerCase() }))
+const box = document.querySelector<HTMLElement>(".omnibox")!
+const boxInput = box.querySelector<HTMLInputElement>(".omnibox__input")!
+const boxTags = box.querySelector<HTMLElement>(".omnibox__tags")!
+const boxMenu = box.querySelector<HTMLElement>(".omnibox__menu")!
+const boxKey = box.querySelector<HTMLElement>(".omnibox__key")!
+let menuGroups: { title: string; commands: Command[] }[] = []
+let menuActive = 0
+// A place picked before any words are typed, so a search can start wide.
+let draftScope: string | null = null
+let wasCommands = false
 
 const matches = (text: string, words: string[]): boolean =>
     words.every((w) => text.toLowerCase().includes(w))
-
-function placeCommand(id: string): Command {
-    const n = node(id)
-    const home = homeOf(id)
-    return {
-        label: n.title,
-        detail: [KIND_LABEL[n.kind], home?.title].filter(Boolean).join(" · "),
-        icon: "place",
-        run: () => jumpTo(id),
+const inCommands = (): boolean => boxInput.value.startsWith(">")
+const isActive = (s: Search): boolean =>
+    s.query.trim() !== "" || s.kinds.length > 0 || s.sort !== "best"
+// The place you're in: the nearest topic or area above the selection.
+const hereScope = (): string => state.path.findLast(isPlace) ?? "root"
+// The search the box shows: the one being typed, even before it lands.
+const boxSearch = (): Search =>
+    (searchPending ? latestSearch : state.search) ?? {
+        query: "",
+        scope: draftScope ?? hereScope(),
+        kinds: [],
+        sort: "best",
+        at: 0,
     }
+function updateSearch(s: Search): void {
+    if (isActive(s)) void setSearch(s)
+    else {
+        draftScope = s.scope === hereScope() ? null : s.scope
+        if (state.search) void setSearch(null)
+        else renderBox()
+    }
+}
+
+// --- Keywords ---
+
+const KEYWORDS: [string, string][] = [
+    ["in:", "a topic, or in:site for everything"],
+    ["is:", "article, insight, chart, text, …"],
+    ["sort:", "new or read"],
+    [">", "commands for the selected row"],
+]
+const PARTIAL = /(?:^|\s)(in|is|sort):(\S*)$/
+const DONE = /(?:^|\s)(in|is|sort):(\S+)\s/
+const placeList = [...nodes.values()].filter((n) => isPlace(n.id))
+// Candidates for a keyword's value, best first.
+function keywordValues(
+    key: string,
+    value: string
+): {
+    label: string
+    detail: string
+    icon: string
+    apply: (s: Search) => Search
+}[] {
+    const v = value.toLowerCase()
+    if (key === "in") {
+        const site = {
+            label: "site",
+            detail: "Everything on Our World in Data",
+            icon: "search",
+            apply: (s: Search) => ({ ...s, scope: "root" }),
+        }
+        const toPlace = (n: TreeNode) => ({
+            label: slug(n.title),
+            detail: `${n.title} · ${KIND_LABEL[n.kind]}`,
+            icon: "topic",
+            apply: (s: Search) => ({ ...s, scope: n.id }),
+        })
+        if (!v)
+            return [
+                // The places above the one searched, nearest first.
+                ...ancestry(boxSearch().scope)
+                    .slice(1, -1)
+                    .reverse()
+                    .map((id) => toPlace(node(id))),
+                site,
+            ]
+        const places = placeList
+            .filter((n) => n.id !== "root")
+            .map((n) => ({ n, at: slug(n.title).indexOf(v) }))
+            .filter(({ at }) => at >= 0)
+            .sort(
+                (a, b) =>
+                    Number(a.at !== 0) - Number(b.at !== 0) ||
+                    a.n.title.length - b.n.title.length
+            )
+            .slice(0, 8)
+            .map(({ n }) => toPlace(n))
+        return ["site", "all", "everything"].some((w) => w.startsWith(v))
+            ? [site, ...places]
+            : places
+    }
+    if (key === "is")
+        return Object.entries(KEYWORD_KINDS)
+            .filter(([k]) => k.startsWith(v))
+            .map(([k, { label, kinds }]) => ({
+                label: k,
+                detail: label,
+                icon: KIND_ICON[kinds[0]] ?? "paragraph",
+                apply: (s: Search) => ({
+                    ...s,
+                    kinds: s.kinds.includes(k) ? s.kinds : [...s.kinds, k],
+                }),
+            }))
+    return (Object.keys(SORTS) as SortKey[])
+        .filter((k) => k.startsWith(v))
+        .map((k) => ({
+            label: k,
+            detail: SORTS[k],
+            icon: "refs",
+            apply: (s: Search) => ({ ...s, sort: k }),
+        }))
+}
+
+// A keyword ended by a space becomes a tag; one with no match stays text.
+function onBoxInput(): void {
+    if (inCommands()) {
+        wasCommands = true
+        return renderBox()
+    }
+    if (wasCommands) {
+        // Deleting the ">" brings the search back as it was.
+        wasCommands = false
+        boxInput.value = state.search?.query ?? ""
+        return renderBox()
+    }
+    // A keyword still being typed is not searched as text.
+    let s: Search = {
+        ...boxSearch(),
+        query: boxInput.value.replace(PARTIAL, ""),
+        at: 0,
+    }
+    for (let m = s.query.match(DONE); m; m = s.query.match(DONE)) {
+        const [first] = keywordValues(m[1], m[2])
+        if (!first) break
+        const rest =
+            s.query.slice(0, m.index) +
+            " " +
+            s.query.slice(m.index! + m[0].length)
+        s = { ...first.apply(s), query: rest.trimStart() }
+        boxInput.value = s.query
+    }
+    updateSearch(s)
+    renderBox()
+}
+// Picking a keyword's value from the menu applies it straight away.
+function applyKeyword(apply: (s: Search) => Search): void {
+    const query = boxInput.value.replace(PARTIAL, "").trimEnd()
+    boxInput.value = query ? `${query} ` : ""
+    updateSearch({ ...apply(boxSearch()), query: boxInput.value, at: 0 })
+    renderBox()
+}
+
+// --- Commands ---
+
+// Commands act on what you look at: the highlighted result while a search
+// is open, else the selected row.
+function commandTarget(): { id: string; path: string[] } {
+    const r = state.search && highlighted(state.search)
+    return r && nodes.has(r.id)
+        ? { id: r.id, path: ancestry(r.id) }
+        : { id: selected(), path: state.path }
 }
 
 function showReferences(): void {
@@ -2059,8 +2322,13 @@ function showReferences(): void {
 // What you can do with the selected row. Each kind only gets the actions
 // that mean something for it.
 function selectionCommands(): Command[] {
-    const id = selected()
+    const { id, path } = commandTarget()
     const n = node(id)
+    // From a search result, a command that works on the row goes there first.
+    const there = (run: () => void | Promise<void>) => async () => {
+        if (state.search) await jumpTo(id)
+        await run()
+    }
     const out: Command[] = []
     // Links leave the block; following one is a jump.
     for (const l of n.kind === "embed" ? [] : (n.links ?? [])) {
@@ -2096,7 +2364,7 @@ function selectionCommands(): Command[] {
             detail: `${refCount} place${refCount === 1 ? "" : "s"}`,
             icon: "refs",
             keys: "R",
-            run: showReferences,
+            run: there(showReferences),
         })
     // The page this row is part of, on the live site. A chart embed opens
     // the chart itself.
@@ -2112,8 +2380,8 @@ function selectionCommands(): Command[] {
             icon: "external",
             run: () => void window.open(url, "_blank", "noopener"),
         })
-    if (state.path.length > 2) {
-        const parent = node(state.path[state.path.length - 2])
+    if (path.length > 2) {
+        const parent = node(path[path.length - 2])
         // A folded group is named the way its row reads.
         const name =
             parent.kind === "group"
@@ -2123,13 +2391,16 @@ function selectionCommands(): Command[] {
             label: `Up to ${name}`,
             icon: "up",
             keys: "←",
-            run: () => go({ path: state.path.slice(0, -1), peek: null }),
+            run: () => go({ path: path.slice(0, -1), peek: null }),
         })
     }
     out.push({
         label: "Copy link to this place",
         icon: "copy",
-        run: () => navigator.clipboard.writeText(location.href),
+        run: () =>
+            navigator.clipboard.writeText(
+                `${location.origin}${location.pathname}#${encodeURIComponent(id)}`
+            ),
     })
     return out
 }
@@ -2155,8 +2426,7 @@ function historyCommands(): Command[] {
 
 // Places visited before, most recent first, once each.
 function recentCommands(): Command[] {
-    const here = placeOf(state)
-    const seen = new Set([here])
+    const seen = new Set([placeOf(state), "search"])
     const out: Command[] = []
     for (let i = trail.length - 1; i >= 0 && out.length < 5; i--) {
         const place = placeOf(trail[i].at)
@@ -2174,7 +2444,7 @@ function recentCommands(): Command[] {
 
 // Headings of the document you're in, like VS Code's "go to symbol".
 function sectionCommands(words: string[]): Command[] {
-    const doc = docOf(selected())
+    const doc = docOf(commandTarget().id)
     if (!doc) return []
     const out: Command[] = []
     const walk = (id: string): void => {
@@ -2183,7 +2453,7 @@ function sectionCommands(words: string[]): Command[] {
             if (kid.kind !== "heading") continue
             if (matches(kid.title, words))
                 out.push({
-                    label: kid.title,
+                    label: `Go to “${kid.title}”`,
                     icon: "section",
                     run: () => go({ path: ancestry(k), peek: null }),
                 })
@@ -2194,148 +2464,283 @@ function sectionCommands(words: string[]): Command[] {
     return out
 }
 
-function searchCommands(query: string, words: string[]): Command[] {
-    const scored: { id: string; score: number }[] = []
-    for (const entry of searchIndex) {
-        if (!words.every((w) => entry.title.includes(w))) continue
-        const at = entry.title.indexOf(query)
-        // Whole query at the start, then at a word start, then anywhere.
-        const quality =
-            at === 0 ? 0 : at > 0 && entry.title[at - 1] === " " ? 1 : 2
-        const kind = SEARCHABLE[node(entry.id).kind]
-        scored.push({
-            id: entry.id,
-            score: quality * 100 + kind * 10 + entry.title.length / 100,
-        })
-    }
-    return scored
-        .sort((a, b) => a.score - b.score)
-        .slice(0, 40)
-        .map((s) => placeCommand(s.id))
-}
-
 function selectionNoun(): string {
-    const n = node(selected())
+    const n = node(commandTarget().id)
     const kind = n.kind === "title" ? node(n.target!).kind : n.kind
     return kindName(kind === "group" ? "group" : kind)
 }
-
-function updatePalette(): void {
-    const query = paletteInput.value.trim().toLowerCase()
-    const words = query.split(/\s+/).filter(Boolean)
-    const actions = [
-        {
-            title: `This ${selectionNoun()}`,
-            commands: selectionCommands().filter((c) =>
-                matches(c.label, words)
-            ),
-        },
-        {
-            title: "History",
-            commands: historyCommands().filter((c) => matches(c.label, words)),
-        },
-    ]
-    const doc = docOf(selected())
-    // Typing is searching: places come first, so Enter opens the best match.
-    paletteGroups = [
-        ...(words.length
-            ? [
-                  {
-                      title: doc ? `In “${node(doc).title}”` : "",
-                      commands: sectionCommands(words),
-                  },
-                  {
-                      title: "Everywhere",
-                      commands: searchCommands(query, words),
-                  },
-                  ...actions,
-              ]
-            : [
-                  ...actions,
-                  { title: "Recent places", commands: recentCommands() },
-              ]),
-    ].filter((g) => g.commands.length)
-    paletteActive = 0
-    renderPalette()
+function selectionName(): string {
+    const n = node(commandTarget().id)
+    const text = n.title || plain(n.spans ?? n.items?.[0] ?? [])
+    return text.length > 44 ? `${text.slice(0, 42)}…` : text
 }
 
-function renderPalette(): void {
-    paletteList.replaceChildren()
+// --- Menu ---
+
+function menuFor(): { title: string; commands: Command[] }[] {
+    if (inCommands()) {
+        const words = wordsOf(boxInput.value.slice(1))
+        return [
+            {
+                title: `This ${selectionNoun()}`,
+                commands: selectionCommands().filter((c) =>
+                    matches(c.label, words)
+                ),
+            },
+            {
+                title: "In this document",
+                commands: sectionCommands(words),
+            },
+            {
+                title: "History",
+                commands: historyCommands().filter((c) =>
+                    matches(c.label, words)
+                ),
+            },
+            {
+                title: "Recent places",
+                commands: recentCommands().filter((c) =>
+                    matches(c.label, words)
+                ),
+            },
+        ].filter((g) => g.commands.length)
+    }
+    const partial = boxInput.value.match(PARTIAL)
+    if (partial) {
+        const values = keywordValues(partial[1], partial[2])
+        return [
+            {
+                title: { in: "Search in", is: "Only", sort: "Order" }[
+                    partial[1]
+                ]!,
+                commands: values.map((v) => ({
+                    label: `${partial[1]}:${v.label}`,
+                    detail: v.detail,
+                    icon: v.icon,
+                    keys: "⇥",
+                    run: () => applyKeyword(v.apply),
+                })),
+            },
+        ].filter((g) => g.commands.length)
+    }
+    // An empty box teaches its keywords.
+    if (!boxInput.value && !state.search)
+        return [
+            {
+                title: "Narrow it down",
+                commands: KEYWORDS.map(([keyword, detail]) => ({
+                    label: keyword,
+                    detail,
+                    icon: keyword === ">" ? "command" : "search",
+                    run: () => {
+                        boxInput.value = keyword
+                        onBoxInput()
+                    },
+                })),
+            },
+        ]
+    return []
+}
+const menuCommands = (): Command[] => menuGroups.flatMap((g) => g.commands)
+function renderMenu(): void {
+    const focused = document.activeElement === boxInput
+    const groups = focused ? menuFor() : []
+    // A new list starts at its top; the same list keeps its place.
+    const sameList =
+        JSON.stringify(groups.map((g) => g.commands.map((c) => c.label))) ===
+        JSON.stringify(menuGroups.map((g) => g.commands.map((c) => c.label)))
+    menuGroups = groups
+    if (!sameList) menuActive = 0
+    boxMenu.hidden = !groups.length
+    boxInput.setAttribute("aria-expanded", String(groups.length > 0))
+    boxMenu.replaceChildren()
     let index = 0
-    for (const g of paletteGroups) {
-        const group = el("div", "palette__group")
+    for (const g of groups) {
+        const group = el("div", "menu__group")
         group.setAttribute("role", "group")
-        group.append(el("div", "palette__group-label", g.title))
+        group.append(el("div", "menu__group-label", g.title))
         for (const c of g.commands) {
+            const active = index === menuActive
             const item = el(
                 "div",
-                `palette__item ${index === paletteActive ? "is-active" : ""}`,
+                `menu__item ${active ? "is-active" : ""}`,
                 icon(c.icon),
-                el("span", "palette__label", c.label),
-                c.detail ? el("span", "palette__detail", c.detail) : null,
-                c.keys ? el("kbd", "", c.keys) : null
+                el("span", "menu__label", c.label),
+                c.detail ? el("span", "menu__detail", c.detail) : null,
+                c.keys && active ? el("kbd", "", c.keys) : null
             )
+            item.id = `menu-item-${index}`
             item.setAttribute("role", "option")
-            item.setAttribute("aria-selected", String(index === paletteActive))
+            item.setAttribute("aria-selected", String(active))
             item.dataset.index = String(index++)
             group.append(item)
         }
-        paletteList.append(group)
+        boxMenu.append(group)
     }
-    if (!index)
-        paletteList.append(
-            el("p", "palette__empty", "Nothing matches. Try fewer words.")
+    if (inCommands() && !index) {
+        boxMenu.hidden = false
+        boxMenu.append(
+            el("p", "menu__empty", "No command matches. Try fewer words.")
         )
-    paletteList
-        .querySelector(".is-active")
-        ?.scrollIntoView({ block: "nearest" })
+    }
+    if (index)
+        boxInput.setAttribute(
+            "aria-activedescendant",
+            `menu-item-${menuActive}`
+        )
+    else boxInput.removeAttribute("aria-activedescendant")
+    boxMenu.querySelector(".is-active")?.scrollIntoView({ block: "nearest" })
 }
-
-const paletteCommands = (): Command[] =>
-    paletteGroups.flatMap((g) => g.commands)
-function runPaletteCommand(i: number): void {
-    const command = paletteCommands()[i]
+function runMenu(i: number): void {
+    const command = menuCommands()[i]
     if (!command) return
-    palette.close()
-    keyQueue = keyQueue.then(command.run).catch(console.error)
-}
-async function openPalette(): Promise<void> {
-    if (palette.open) return void paletteInput.select()
-    // Sections come from the open document's body.
-    const doc = docOf(selected())
-    if (doc) await loadDoc(doc)
-    paletteInput.value = ""
-    updatePalette()
-    palette.showModal()
+    if (inCommands()) {
+        leaveBox()
+        keyQueue = keyQueue.then(command.run).catch(console.error)
+    } else void command.run()
 }
 
-paletteInput.addEventListener("input", updatePalette)
-paletteInput.addEventListener("keydown", (e) => {
-    // Enter closes the palette; the page must not then see it too.
+// --- The box itself ---
+
+function tag(
+    className: string,
+    keyword: string,
+    value: string,
+    remove?: string
+): HTMLElement {
+    const t = el(
+        remove ? "button" : "span",
+        `tag ${className}`,
+        el("span", "tag__key", keyword),
+        el("span", "tag__value", value)
+    )
+    if (remove) {
+        t.dataset.remove = remove
+        t.title = `Remove ${keyword}${value}`
+        t.append(el("span", "tag__x", "×"))
+    }
+    return t
+}
+function renderBox(): void {
+    const commands = inCommands()
+    box.dataset.mode = commands ? "commands" : "search"
+    const modeIcon = icon(commands ? "command" : "search")
+    modeIcon.classList.add("omnibox__icon")
+    box.querySelector(".omnibox__icon")!.replaceWith(modeIcon)
+    const s = boxSearch()
+    boxTags.replaceChildren(
+        ...(commands
+            ? [tag("tag--on", "on ", selectionName())]
+            : [
+                  tag(
+                      "tag--in",
+                      "in ",
+                      s.scope === "root" ? "Whole site" : node(s.scope).title,
+                      s.scope === "root" ? undefined : "scope"
+                  ),
+                  ...s.kinds.map((k) =>
+                      tag("tag--is", "is ", KEYWORD_KINDS[k].label, `kind:${k}`)
+                  ),
+                  ...(s.sort === "best"
+                      ? []
+                      : [tag("tag--sort", "sort ", SORTS[s.sort], "sort")]),
+              ])
+    )
+    boxInput.placeholder = commands ? "" : `Search ${scopeName(s.scope)}`
+    const focused = document.activeElement === boxInput
+    // Back to a search shows its words; leaving one empties the box.
+    if (!focused) boxInput.value = state.search?.query ?? ""
+    boxKey.textContent = focused ? "esc" : "/"
+    renderMenu()
+}
+function openBox(prefix?: string): void {
+    boxInput.focus()
+    if (prefix) {
+        boxInput.value = prefix
+        onBoxInput()
+    } else boxInput.select()
+}
+// Leaving the box: commands are done, and the strip takes the keys again.
+function leaveBox(): void {
+    if (inCommands()) {
+        wasCommands = false
+        boxInput.value = state.search?.query ?? ""
+    }
+    draftScope = null
+    boxInput.blur()
+    strip.focus()
+}
+
+boxInput.addEventListener("input", onBoxInput)
+boxInput.addEventListener("focus", renderBox)
+boxInput.addEventListener("blur", () => {
+    if (inCommands()) {
+        wasCommands = false
+        boxInput.value = state.search?.query ?? ""
+    }
+    if (!state.search) draftScope = null
+    renderBox()
+})
+boxInput.addEventListener("keydown", (e) => {
+    // The strip's own keys must not see what the box handles.
     e.stopPropagation()
-    const count = paletteCommands().length
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault()
+        return openBox(e.shiftKey ? ">" : undefined)
+    }
+    const count = menuCommands().length
+    const menuOpen = !boxMenu.hidden && count > 0
+    const atStart = boxInput.selectionStart === 0 && boxInput.selectionEnd === 0
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault()
         const delta = e.key === "ArrowDown" ? 1 : -1
-        paletteActive = (paletteActive + delta + count) % Math.max(count, 1)
-        renderPalette()
+        if (menuOpen) {
+            menuActive = (menuActive + delta + count) % count
+            renderMenu()
+        } else void moveResult(delta)
     } else if (e.key === "Enter") {
         e.preventDefault()
-        runPaletteCommand(paletteActive)
+        if (menuOpen) runMenu(menuActive)
+        else void openResult()
+    } else if (e.key === "Tab" && menuOpen && !inCommands()) {
+        e.preventDefault()
+        runMenu(menuActive)
+    } else if (e.key === "Escape") {
+        e.preventDefault()
+        if (inCommands() || !state.search) leaveBox()
+        else closeSearch()
+    } else if (e.key === "Backspace" && atStart && !inCommands()) {
+        const s = boxSearch()
+        if (s.sort === "best" && !s.kinds.length && s.scope === "root") return
+        e.preventDefault()
+        updateSearch({ ...widen(s), query: boxInput.value })
+        renderBox()
     }
 })
-paletteList.addEventListener("click", (e) => {
+// The menu and tags work by mouse without taking focus from the box.
+boxMenu.addEventListener("mousedown", (e) => e.preventDefault())
+boxMenu.addEventListener("click", (e) => {
     const item = (e.target as HTMLElement).closest<HTMLElement>("[data-index]")
-    if (item) runPaletteCommand(Number(item.dataset.index))
+    if (item) runMenu(Number(item.dataset.index))
 })
-// A click on the backdrop lands on the dialog itself.
-palette.addEventListener("click", (e) => {
-    if (e.target === palette) palette.close()
+boxTags.addEventListener("mousedown", (e) => e.preventDefault())
+boxTags.addEventListener("click", (e) => {
+    const t = (e.target as HTMLElement).closest<HTMLElement>("[data-remove]")
+    if (!t) return
+    const s = { ...boxSearch(), query: boxInput.value, at: 0 }
+    const what = t.dataset.remove!
+    if (what === "scope") s.scope = "root"
+    else if (what === "sort") s.sort = "best"
+    else s.kinds = s.kinds.filter((k) => `kind:${k}` !== what)
+    updateSearch(s)
+    renderBox()
 })
-palette.addEventListener("close", () => strip.focus())
-document
-    .querySelector('[data-action="palette"]')!
-    .addEventListener("click", () => void openPalette())
+box.addEventListener("mousedown", (e) => {
+    if (e.target === box.querySelector(".omnibox__field")) {
+        e.preventDefault()
+        boxInput.focus()
+    }
+})
 
 // --- Start ---
 
@@ -2353,3 +2758,7 @@ state = { path: ancestry(nodes.has(startId) ? startId : fallback), peek: null }
 trail.push({ at: state, via: "walk" })
 render(state)
 strip.focus()
+
+// A module, so the Location type above stays ours and never merges with the
+// browser's global Location.
+export {}

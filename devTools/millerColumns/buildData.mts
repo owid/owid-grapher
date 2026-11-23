@@ -1050,6 +1050,22 @@ for (const [docId, body] of bodies)
         path.join(outDir, "docs", `${bodyFile(docId)}.json`),
         JSON.stringify(body)
     )
+// The text of every block, for full-text search: [id, text, 1 if heading].
+// It loads on the first search, apart from the skeleton.
+const text: [string, string, number][] = []
+for (const body of bodies.values())
+    for (const [id, n] of Object.entries(body)) {
+        const join = (spans: Span[]): string =>
+            spans.map((s) => (typeof s === "string" ? s : s.t)).join("")
+        const words =
+            n.kind === "heading"
+                ? n.title
+                : n.spans
+                  ? join(n.spans)
+                  : n.items?.map(join).join(" ")
+        if (words?.trim()) text.push([id, words, n.kind === "heading" ? 1 : 0])
+    }
+fs.writeFileSync(path.join(outDir, "text.json"), JSON.stringify(text))
 fs.writeFileSync(
     path.join(outDir, "site.json"),
     JSON.stringify({ nodes: skeleton, references })
