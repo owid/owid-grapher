@@ -1055,6 +1055,11 @@ kbd {
 .omnibox[data-mode="commands"] .omnibox__icon {
     color: var(--ink);
 }
+/* A long row name ellipsizes; the cap sits on the tags, not the tag, so
+   no blank gap opens before what you type. */
+.omnibox[data-mode="commands"] .omnibox__tags {
+    max-width: 60%;
+}
 .omnibox__tags {
     display: flex;
     gap: 4px;
@@ -1136,7 +1141,6 @@ button.tag--sort:hover {
 }
 /* The row commands act on, drawn like the selected row itself. */
 .tag--on {
-    max-width: 60%;
     background: var(--select);
     color: #fff;
 }
