@@ -7,6 +7,13 @@
 import fs from "node:fs"
 import path from "node:path"
 import mysql from "mysql2/promise"
+import {
+    GRAPHER_DB_HOST,
+    GRAPHER_DB_NAME,
+    GRAPHER_DB_PASS,
+    GRAPHER_DB_PORT,
+    GRAPHER_DB_USER,
+} from "../../settings/serverSettings.js"
 
 type Span = string | { t: string; l: number }
 type Link = { text: string; target?: string; url?: string; kind: string }
@@ -39,12 +46,13 @@ const OWID = "https://ourworldindata.org"
 const IMAGES =
     "https://ourworldindata.org/cdn-cgi/imagedelivery/qLq-8BTgXU8yG0N6HnOy8g"
 
+// The database in .env; STAGING=1 reads this branch's staging server.
 const db = await mysql.createConnection({
-    host: "127.0.0.1",
-    port: 3307,
-    user: "root",
-    password: "weeniest-stretch-contaminate-gnarl",
-    database: "grapher",
+    host: GRAPHER_DB_HOST,
+    port: GRAPHER_DB_PORT,
+    user: GRAPHER_DB_USER,
+    password: GRAPHER_DB_PASS,
+    database: GRAPHER_DB_NAME,
 })
 async function q<T>(sql: string): Promise<T[]> {
     const [rows] = await db.query(sql)
