@@ -750,12 +750,20 @@ export const getChartsByAggregateCoviewScore = async (
     )
 }
 
-/** The indicator's topic tags (primary first), then the chart's own */
+export interface ChartTopicTagIds {
+    primary?: number
+    others: number[]
+}
+
+/**
+ * The primary topic is the indicator's first; the chart's own tags only ever
+ * count as other topics, since they have no meaningful order
+ */
 export const getTopicTagIdsForChart = async (
     knex: db.KnexReadonlyTransaction,
     chartId: number,
     topicTagNames: string[]
-): Promise<number[]> => {
+): Promise<ChartTopicTagIds> => {
     const curatedClause =
         topicTagNames.length > 0 ? "t.name IN (:topicTagNames) OR" : ""
     const rows = await db.knexRaw<{
@@ -780,8 +788,15 @@ export const getTopicTagIdsForChart = async (
     const curated = lodash.compact(
         topicTagNames.map((name) => idByName.get(name))
     )
-    const onChartOnly = rows.filter((r) => r.onChart).map((r) => r.id)
-    return lodash.uniq([...curated, ...onChartOnly])
+    const onChart = rows.filter((r) => r.onChart).map((r) => r.id)
+    const [primary, ...otherCurated] = curated
+    return {
+        primary,
+        others: lodash.without(
+            lodash.uniq([...otherCurated, ...onChart]),
+            primary
+        ),
+    }
 }
 
 export const getRedirectsByChartId = async (

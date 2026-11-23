@@ -1,6 +1,7 @@
 import { RelatedChart, RelatedChartSource } from "@ourworldindata/types"
 import * as db from "../db.js"
 import {
+    ChartTopicTagIds,
     getChartsByAggregateCoviewScore,
     getRelatedChartsForChart,
     getTopicTagIdsForChart,
@@ -44,8 +45,8 @@ export async function getRelatedChartCards(
     chartId: number,
     topicTagNames: string[]
 ): Promise<RelatedChart[]> {
-    let topicTagIds: Promise<number[]> | undefined
-    const getTopicTagIds = (): Promise<number[]> =>
+    let topicTagIds: Promise<ChartTopicTagIds> | undefined
+    const getTopicTagIds = (): Promise<ChartTopicTagIds> =>
         (topicTagIds ??= getTopicTagIdsForChart(knex, chartId, topicTagNames))
 
     const byScore =
@@ -67,17 +68,24 @@ export async function getRelatedChartCards(
         },
         {
             source: "primary-topic",
-            fetch: byScore(async () => (await getTopicTagIds()).slice(0, 1)),
+            fetch: byScore(async () => {
+                const { primary } = await getTopicTagIds()
+                return primary !== undefined ? [primary] : []
+            }),
         },
         {
             source: "other-topics",
-            fetch: byScore(async () => (await getTopicTagIds()).slice(1)),
+            fetch: byScore(async () => (await getTopicTagIds()).others),
         },
         {
             source: "topic-area",
-            fetch: byScore(async () =>
-                db.getTopicTagIdsInSameAreas(knex, await getTopicTagIds())
-            ),
+            fetch: byScore(async () => {
+                const { primary, others } = await getTopicTagIds()
+                return db.getTopicTagIdsInSameAreas(
+                    knex,
+                    primary !== undefined ? [primary, ...others] : others
+                )
+            }),
         },
         {
             source: "site-wide",

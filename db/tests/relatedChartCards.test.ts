@@ -168,13 +168,13 @@ test("coviews come first, then topics ranked by aggregate coview score, then the
     ])
 })
 
-test("the chart's own topic tags stand in when the indicator lists none", async () => {
+test("the chart's own topic tags stand in as other topics when the indicator lists none", async () => {
     // CO2 Emissions is on the chart; Energy only came from the indicator
     const result = await cards(charts.page, [])
     expect(result.slice(0, 3)).toEqual([
         ["coviewed", "coviews"],
-        ["co2Popular", "primary-topic"],
-        ["co2Niche", "primary-topic"],
+        ["co2Popular", "other-topics"],
+        ["co2Niche", "other-topics"],
     ])
     expect(result.slice(3).map(([, source]) => source)).toEqual([
         "topic-area",
