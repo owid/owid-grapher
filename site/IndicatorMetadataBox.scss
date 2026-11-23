@@ -308,13 +308,14 @@
     }
 }
 
-// A line under each accordion only. The :has() variant outranks the shared
-// rule that drops the bottom border between neighbours.
+// A line under each accordion only
 .indicator-metadata-box details.ExpandableToggle,
 .indicator-metadata-box .indicator-sources div.NonExpandable {
     border-top: none;
+    border-bottom: 1px solid var(--border);
 
-    &,
+    // Outranks the shared rule that drops the border between neighbours. Kept
+    // separate so browsers without :has() still apply the rule above.
     &:has(+ .ExpandableToggle, + .NonExpandable) {
         border-bottom: 1px solid var(--border);
     }
