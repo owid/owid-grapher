@@ -1386,3 +1386,56 @@ mark {
 .col.is-folded .spine--results:hover {
     background: #f6efdc;
 }
+
+/* --- "N more" rows and kind chips: the tree's folding, shared by search --- */
+
+.row--more .row__title {
+    color: var(--ink-soft);
+}
+.row--more.is-selected .row__title {
+    color: #fff;
+}
+.results__kinds {
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+.chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 3px 9px;
+    border: 1px solid var(--search-edge);
+    border-radius: 999px;
+    background: #fff;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    transition:
+        background-color 120ms,
+        border-color 120ms;
+}
+.chip:hover {
+    border-color: var(--search-ink);
+}
+.chip:focus-visible {
+    outline: 2px solid var(--electric);
+    outline-offset: 1px;
+}
+.chip.is-on {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: #fff;
+}
+.chip__count {
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    color: var(--gray-70);
+}
+.chip.is-on .chip__count {
+    color: var(--blue-20);
+}
