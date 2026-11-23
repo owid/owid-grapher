@@ -69,6 +69,18 @@ function groupFaqsByQuestion(
     return questions
 }
 
+// Not every supported browser opens closed <details> for a link into them
+function openDetailsAroundLinkTarget(event: React.MouseEvent): void {
+    const link = (event.target as Element).closest("a")
+    const href = link?.getAttribute("href")
+    if (!href?.startsWith("#")) return
+    let details = document.getElementById(href.slice(1))?.closest("details")
+    while (details) {
+        details.open = true
+        details = details.parentElement?.closest("details")
+    }
+}
+
 function IndicatorDataDetails({
     datapageData,
 }: {
@@ -116,8 +128,9 @@ function IndicatorFaqs({
 }: {
     descriptionProcessing: string | undefined
     faqEntries: FaqEntryData | undefined
-}) {
+}): React.ReactElement | null {
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
+    if (!descriptionProcessing && faqQuestions.length === 0) return null
 
     return (
         <MetadataBoxSection
@@ -203,7 +216,7 @@ function IndicatorDataSources({
     datapageData,
 }: {
     datapageData: DataPageDataV2
-}) {
+}): React.ReactElement {
     const sourcesForDisplay = prepareSourcesForDisplay({
         origins: datapageData.origins,
         source: datapageData.source,
@@ -237,7 +250,7 @@ function CitationSnippet({
 }: {
     citation: string
     trackingContext: string
-}) {
+}): React.ReactElement {
     return (
         <CodeSnippet
             code={citation}
@@ -343,7 +356,11 @@ function IndicatorCitations({
     )
 }
 
-function IndicatorFinePrint({ license }: { license?: LicenseOption }) {
+function IndicatorFinePrint({
+    license,
+}: {
+    license?: LicenseOption
+}): React.ReactElement {
     return (
         <MetadataBoxSection className="indicator-metadata-box__reuse-notice">
             <p>
@@ -386,7 +403,7 @@ function IndicatorMetadataSections({
     archiveContext: ArchiveContext | undefined
     descriptionProcessing: string | undefined
     license?: LicenseOption
-}) {
+}): React.ReactElement {
     // Only the start of a long descriptionKey is shown above the fold; the
     // rest goes inside the <details> so that it works without JavaScript and
     // browsers auto-expand it when in-page search matches hidden text.
@@ -461,7 +478,7 @@ export default function IndicatorMetadataBox({
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
     license?: LicenseOption
-}) {
+}): React.ReactElement {
     // Owners of the dataset backing this indicator. For now we show a single
     // indicator's owners; multi-indicator charts will get a separate metadata
     // expander per indicator, so we don't merge owners across datasets here.
@@ -486,6 +503,7 @@ export default function IndicatorMetadataBox({
         <div
             className={cx("metadata-box indicator-metadata-box", className)}
             id={id}
+            onClick={openDetailsAroundLinkTarget}
         >
             <div className="indicator-metadata-box__header">
                 <h2 className="indicator-metadata-box__title">
