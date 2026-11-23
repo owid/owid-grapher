@@ -50,6 +50,7 @@ import {
 import {
     getMinimalAuthorsByNames,
     getTeamPagePhotos,
+    TeamPagePhoto,
 } from "../db/model/Gdoc/GdocBase.js"
 import { getDatapageDataV2 } from "../site/dataPage.js"
 import { getAllImages } from "../db/model/Image.js"
@@ -72,10 +73,12 @@ const renderDatapageIfApplicable = async (
     {
         imageMetadataDictionary,
         archiveContextDictionary,
+        teamPagePhotos,
         forceDatapage,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        teamPagePhotos?: TeamPagePhoto[]
         forceDatapage?: boolean
     } = {}
 ) => {
@@ -103,6 +106,7 @@ const renderDatapageIfApplicable = async (
             pageGrapher: grapher,
             imageMetadataDictionary,
             archiveContextDictionary,
+            teamPagePhotos,
         },
         knex
     )
@@ -117,14 +121,17 @@ export const renderDataPageOrGrapherPage = async (
     {
         imageMetadataDictionary,
         archiveContextDictionary,
+        teamPagePhotos,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        teamPagePhotos?: TeamPagePhoto[]
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
         archiveContextDictionary,
+        teamPagePhotos,
     })
     if (datapage) return datapage
     return renderGrapherPage(grapher, knex, {
@@ -144,6 +151,7 @@ export async function renderDataPageV2(
         pageGrapher,
         imageMetadataDictionary = {},
         archiveContextDictionary,
+        teamPagePhotos,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -152,6 +160,7 @@ export async function renderDataPageV2(
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        teamPagePhotos?: TeamPagePhoto[]
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -236,7 +245,11 @@ export async function renderDataPageV2(
             )
     )
     datapageData.linkedAuthors = someoneLacksPhoto
-        ? addTeamPagePhotos(authors, ownerNames, await getTeamPagePhotos(knex))
+        ? addTeamPagePhotos(
+              authors,
+              ownerNames,
+              teamPagePhotos ?? (await getTeamPagePhotos(knex))
+          )
         : authors
 
     const archiveContext =
@@ -416,6 +429,7 @@ const bakeGrapherPage = async (
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary: args.imageMetadataDictionary,
             archiveContextDictionary: args.archiveContextDictionary,
+            teamPagePhotos: args.teamPagePhotos,
         })
     )
 }
@@ -427,6 +441,7 @@ export interface BakeSingleGrapherChartArguments {
     slug: string
     imageMetadataDictionary: Record<string, DbEnrichedImage>
     archiveContextDictionary: Record<number, ArchiveContext | undefined>
+    teamPagePhotos: TeamPagePhoto[]
 }
 
 export const bakeSingleGrapherChart = async (
@@ -482,6 +497,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
             )
             const archiveContextDictionary =
                 await getLatestArchivedChartPageVersionsIfEnabled(knex)
+            const teamPagePhotos = await getTeamPagePhotos(knex)
 
             const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map(
                 (row) => ({
@@ -491,6 +507,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
                     slug: row.slug,
                     imageMetadataDictionary,
                     archiveContextDictionary,
+                    teamPagePhotos,
                 })
             )
             return { chartsToBake, jobs }
