@@ -1024,6 +1024,7 @@ kbd {
     min-width: 280px;
 }
 .omnibox__field {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -1186,48 +1187,28 @@ button.tag--sort:hover {
     scrollbar-color: var(--blue-20) transparent;
     animation: menu-in 160ms var(--ease-out);
 }
-/* The filter the last word names, hanging under the box like the first
-   row of a menu, without taking ↑ ↓ or ⏎ from the results. */
+/* The tag the last word would become, right after it, faint until taken. */
 .omnibox__suggest {
     position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 40px;
-    padding: 6px 12px;
-    border: 1px solid var(--rule);
-    border-radius: 10px;
-    background: #fff;
-    box-shadow:
-        0 20px 48px -16px rgb(0 33 71 / 0.28),
-        0 2px 6px rgb(0 33 71 / 0.08);
-    font-size: 14px;
+    top: 50%;
+    transform: translateY(-50%);
     cursor: pointer;
-    animation: menu-in 160ms var(--ease-out);
 }
 .omnibox__suggest[hidden] {
     display: none;
 }
-.omnibox__suggest:hover {
-    background: var(--blue-5);
+/* Dashed until taken: the same tag, not yet real. */
+.tag--offer {
+    outline: 1px dashed var(--blue-30);
+    outline-offset: -1px;
 }
-.omnibox__suggest .icon {
-    width: 15px;
-    height: 15px;
-    color: var(--blue-50);
+.omnibox__suggest:hover .tag--offer {
+    outline-style: solid;
 }
-.suggest__phrase {
-    font-weight: 600;
-}
-.suggest__keyword {
-    color: var(--gray-70);
-}
-.omnibox__suggest kbd {
-    margin-left: auto;
+.tag--offer kbd {
+    height: 16px;
+    margin-left: 2px;
+    font-size: 10.5px;
 }
 .omnibox__menu[hidden] {
     display: none;

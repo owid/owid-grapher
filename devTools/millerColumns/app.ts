@@ -2865,8 +2865,9 @@ const SORT_WORDS: Record<string, SortKey> = {
     popular: "read",
 }
 interface Offer {
-    keyword: string // what it stands for, as typed: is:article
-    phrase: string // what it does: Only Articles
+    key: "in" | "is" | "sort"
+    name: string // the tag's value once taken: Articles
+    phrase: string // what it does: Only articles
     apply: (s: Search) => Search
 }
 function offerFor(): Offer | undefined {
@@ -2880,23 +2881,26 @@ function offerFor(): Offer | undefined {
     const kind = exact("is", word) ?? exact("is", word.replace(/s$/, ""))
     if (kind && !s.kinds.includes(kind.label))
         return {
-            keyword: `is:${kind.label}`,
+            key: "is",
+            name: kind.detail,
             phrase: `Only ${kind.detail.toLowerCase()}`,
             apply: kind.apply,
         }
     const sort = SORT_WORDS[word]
     if (sort && s.sort !== sort)
         return {
-            keyword: `sort:${sort}`,
+            key: "sort",
+            name: SORTS[sort],
             phrase: `${SORTS[sort]} first`,
             apply: (x) => ({ ...x, sort }),
         }
     const place = exact("in", word)
     if (place && slug(node(s.scope).title) !== word)
         return {
-            keyword: `in:${place.label}`,
+            key: "in",
             // Its detail reads "Cancer · Topic".
-            phrase: `In ${place.detail.split(" · ")[0]}`,
+            name: place.detail.split(" · ")[0],
+            phrase: `Search in ${place.detail.split(" · ")[0]}`,
             apply: place.apply,
         }
     return undefined
@@ -3283,19 +3287,37 @@ function renderBox(): void {
     renderMenu()
     renderOffer(focused && !commands)
 }
-// Under the box, the filter the last word names; it leaves ↑ ↓ and ⏎ to
-// the results. In the box, the keywords themselves, so narrowing a search
-// never depends on knowing them.
+// Right after the words, the tag the last word would become, drawn faint
+// with "tab": like a completion, so ⇥ is the obvious key, and ↑ ↓ ⏎ stay
+// with the results. With nothing to offer, the box's right end lists the
+// keywords themselves, so narrowing never depends on knowing them.
+const measure = document.createElement("canvas").getContext("2d")!
 function renderOffer(show: boolean): void {
     const offer = show && boxMenu.hidden && offerFor()
     boxSuggest.hidden = !offer
-    if (offer)
-        boxSuggest.replaceChildren(
-            icon("search"),
-            el("span", "suggest__phrase", offer.phrase),
-            el("span", "suggest__keyword", offer.keyword),
-            el("kbd", "", "tab")
+    if (offer) {
+        const t = tag(
+            `tag--${offer.key} tag--offer`,
+            `${offer.key} `,
+            offer.name
         )
+        t.append(el("kbd", "", "tab"))
+        boxSuggest.replaceChildren(t)
+        boxSuggest.title = `${offer.phrase} (tab)`
+        const style = getComputedStyle(boxInput)
+        measure.font = style.font
+        const typed = measure.measureText(boxInput.value).width
+        const afterWords =
+            boxInput.offsetLeft +
+            parseFloat(style.paddingLeft) +
+            typed -
+            boxInput.scrollLeft +
+            8
+        // Long words: it stays inside the box, over their start.
+        const lastFit =
+            boxInput.offsetLeft + boxInput.offsetWidth - boxSuggest.offsetWidth
+        boxSuggest.style.left = `${Math.min(afterWords, lastFit)}px`
+    }
     boxOffer.replaceChildren(
         ...(show && boxMenu.hidden && !offer
             ? KEYWORDS.filter(([k]) => k !== ">").map(([k, detail]) => {
