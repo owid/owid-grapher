@@ -785,17 +785,16 @@ export const getTopicTagIdsForChart = async (
         { chartId, rootName: TagGraphRootName, topicTagNames }
     )
     const idByName = new Map(rows.map((r) => [r.name, r.id]))
-    const curated = lodash.compact(
-        topicTagNames.map((name) => idByName.get(name))
+    const primary = idByName.get(topicTagNames[0])
+    const otherCurated = lodash.compact(
+        topicTagNames.slice(1).map((name) => idByName.get(name))
     )
     const onChart = rows.filter((r) => r.onChart).map((r) => r.id)
-    const [primary, ...otherCurated] = curated
     return {
         primary,
-        others: lodash.without(
-            lodash.uniq([...otherCurated, ...onChart]),
-            primary
-        ),
+        others: lodash
+            .uniq([...otherCurated, ...onChart])
+            .filter((id) => id !== primary),
     }
 }
 

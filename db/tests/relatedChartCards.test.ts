@@ -182,6 +182,16 @@ test("the chart's own topic tags stand in as other topics when the indicator lis
     ])
 })
 
+test("an indicator's first topic outside the topic graph leaves no primary topic", async () => {
+    expect(await cards(charts.page, ["No Such Topic", "Energy"])).toEqual([
+        ["coviewed", "coviews"],
+        ["co2Popular", "other-topics"],
+        ["co2Niche", "other-topics"],
+        ["energy", "other-topics"],
+        ["co2BySector", "topic-area"],
+    ])
+})
+
 test("a page with no coviews and no topics falls back to site-wide", async () => {
     const result = await cards(charts.untagged, [])
     expect(result.slice(0, 3)).toEqual([
