@@ -236,6 +236,11 @@ export async function renderDataPageV2(
     const ownerNames = _.uniq(
         (datapageData.owners ?? []).flatMap((dataset) => dataset.owners)
     )
+    const archiveContext =
+        grapher.id !== undefined
+            ? archiveContextDictionary?.[grapher.id]
+            : undefined
+
     const authors = await getMinimalAuthorsByNames(knex, ownerNames)
     const someoneLacksPhoto = ownerNames.some(
         (name) =>
@@ -243,18 +248,15 @@ export async function renderDataPageV2(
                 (author) => author.name === name && author.featuredImage
             )
     )
-    datapageData.linkedAuthors = someoneLacksPhoto
-        ? addTeamPagePhotos(
-              authors,
-              ownerNames,
-              teamPagePhotos ?? (await getTeamPagePhotos(knex))
-          )
-        : authors
-
-    const archiveContext =
-        grapher.id !== undefined
-            ? archiveContextDictionary?.[grapher.id]
-            : undefined
+    // Archive pages leave photos out, so they don't need the team page's
+    datapageData.linkedAuthors =
+        someoneLacksPhoto && archiveContext?.type !== "archive-page"
+            ? addTeamPagePhotos(
+                  authors,
+                  ownerNames,
+                  teamPagePhotos ?? (await getTeamPagePhotos(knex))
+              )
+            : authors
 
     // If we're baking to an archival page, then we want to skip a bunch of sections
     // where the links would break
