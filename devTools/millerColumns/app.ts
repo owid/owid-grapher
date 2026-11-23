@@ -360,7 +360,10 @@ let landedOn: string | null = null // briefly highlights a jump's destination
 const selected = (): string => state.path[state.path.length - 1]
 // Searching, with the arrows on the results rather than inside one.
 const onResults = (): boolean =>
-    state.search !== undefined && state.search.base === undefined
+    state.search !== undefined &&
+    state.search.base === undefined &&
+    !state.search.onPlace
+const onSearchedPlace = (): boolean => state.search?.onPlace === true
 
 // History works like VS Code's Go Back: one stop per place you spent time
 // in, not one per keypress. A place is the document holding the selection,
@@ -658,7 +661,7 @@ document.addEventListener("keydown", (e) => {
         ArrowUp: () => moveResult(-1),
         ArrowDown: () => moveResult(1),
         ArrowRight: enterResult,
-        ArrowLeft: closeSearch,
+        ArrowLeft: () => toSearchedPlace(state.search!),
         Enter: openMatch,
         Escape: closeSearch,
         Home: () => moveResult(-1e6),
@@ -688,7 +691,23 @@ document.addEventListener("keydown", (e) => {
             render(state)
         },
     }
-    const handler = (onResults() ? resultKeys : treeKeys)[e.key]
+    // On the place searched, the arrows change where the search looks.
+    const placeKeys: Record<string, () => Promise<void> | void> = {
+        ArrowUp: () => moveSearchedPlace(-1),
+        ArrowDown: () => moveSearchedPlace(1),
+        ArrowRight: () => setSearch({ ...state.search!, onPlace: undefined }),
+        ArrowLeft: () => {
+            const s = state.search!
+            if (s.scope !== "root")
+                return toSearchedPlace({ ...s, scope: placeAbove(s.scope) })
+        },
+        Enter: () => jumpTo(state.search!.scope),
+        Escape: closeSearch,
+        Backspace: () => (e.shiftKey ? forward() : back()),
+    }
+    const handler = (
+        onSearchedPlace() ? placeKeys : onResults() ? resultKeys : treeKeys
+    )[e.key]
     if (!handler) return
     e.preventDefault()
     document.body.classList.add("is-keying")
@@ -1432,6 +1451,21 @@ function renderTramline(): void {
 }
 
 function renderKeys(): void {
+    if (onSearchedPlace()) {
+        const hints: [string, string][] = [
+            ["↑ ↓", "Search the place above or below"],
+            ["←", "Search the place it is in"],
+            ["→", "Back to the results"],
+            ["⏎", "Open it, and end the search"],
+            ["esc", "Back where you were"],
+        ]
+        keys.replaceChildren(
+            ...hints.map(([k, label]) =>
+                el("span", "keys__hint", el("kbd", "", k), label)
+            )
+        )
+        return
+    }
     if (onResults()) {
         const hints: [string, string][] = [
             ["↑ ↓", "Move in the results"],
@@ -1440,7 +1474,8 @@ function renderKeys(): void {
                 label.replace(/^./, (c) => c.toUpperCase()),
             ]),
             ["⌫", "In the box, at the start: widen"],
-            ["← esc", "Back where you were"],
+            ["←", "Onto the place searched"],
+            ["esc", "Back where you were"],
             ["/", "Edit the search"],
         ]
         keys.replaceChildren(
@@ -1586,7 +1621,12 @@ function layout(): void {
     const available = strip.clientWidth
     const treeWidth = (): number =>
         cols.reduce((s, c) => s + c.getBoundingClientRect().width, 0)
-    const fits = (): boolean => treeWidth() + TRAILING_WIDTH <= available
+    // The room right of the selection is kept for the widest thing it can
+    // hold from here, so moving ↑ ↓ never folds or opens the left: in a
+    // list, a document's preview; inside a document, the side panel.
+    const inDocument = state.path.slice(0, -1).some((id) => docOf(id))
+    const room = inDocument ? SIDE_PANEL_WIDTH : PREVIEW_WIDTH
+    const fits = (): boolean => treeWidth() + room <= available
     // Everything left of the selection's own column may fold, until the
     // tree and the side slot fit. On the results, the left is always the
     // nearest folded level alone, whatever the highlighted result
@@ -1634,7 +1674,8 @@ function layout(): void {
         )
     )
 }
-const TRAILING_WIDTH = 760
+const PREVIEW_WIDTH = 640 // .col--prose
+const SIDE_PANEL_WIDTH = 760 // .trailing
 
 const columnScroll = new Map<string, number>() // column parent -> scrollTop
 function render(before: Location): void {
@@ -1729,7 +1770,7 @@ function render(before: Location): void {
                 s.base,
                 toMatch ? state.path.length - 1 : Infinity
             )
-        else if (r && nodes.has(r.id)) {
+        else if (r && nodes.has(r.id) && !s.onPlace) {
             treeFrom(ancestry(r.id), resultBase(r.id, s), resultBase(r.id, s))
         }
     } else treeFrom(state.path, 0, Infinity)
@@ -1798,6 +1839,9 @@ interface Search {
     // Set once you step into a result: the index in the path of the
     // result's own column. ← from there comes back to the results.
     base?: number
+    // Set while ← has you on the place searched, left of the results:
+    // ↑ ↓ search a place next to it, ← the one above, → the results again.
+    onPlace?: boolean
     // How many past the first 3 you asked to see, per section.
     shown?: Record<string, number>
 }
@@ -2134,7 +2178,9 @@ function resultRow(r: Result, i: number, s: Search): HTMLElement {
     row.dataset.result = String(i)
     row.setAttribute("role", "option")
     if (i === s.at) {
-        row.classList.add(s.base === undefined ? "is-selected" : "is-trail")
+        row.classList.add(
+            s.base === undefined && !s.onPlace ? "is-selected" : "is-trail"
+        )
         row.setAttribute("aria-selected", "true")
     }
     if (r.more) {
@@ -2341,8 +2387,10 @@ function searchColumns(s: Search): HTMLElement[] {
     const path = ancestry(s.scope)
     const cols: HTMLElement[] = []
     for (let i = 0; i < path.length - 1; i++) {
-        const col = treeColumn(path[i], path[i + 1], i, true)
+        const onPlace = s.onPlace === true && i === path.length - 2
+        const col = treeColumn(path[i], path[i + 1], i, !onPlace)
         col.dataset.search = "scope"
+        if (onPlace) col.classList.add("is-focus")
         const spine = el(
             "button",
             "spine",
@@ -2356,7 +2404,7 @@ function searchColumns(s: Search): HTMLElement[] {
         ?.querySelector(`[data-id="${CSS.escape(s.scope)}"]`)
         ?.classList.add("is-scope")
     const results = resultsColumn(s)
-    if (s.base === undefined) results.classList.add("is-focus")
+    if (s.base === undefined && !s.onPlace) results.classList.add("is-focus")
     // Deep inside a result, the results fold like any column on the left.
     const spine = el(
         "button",
@@ -2505,7 +2553,11 @@ async function enterAt(id: string): Promise<void> {
     const doc = docOf(id)
     if (doc) await loadDoc(doc)
     const base = resultBase(r.id, s)
-    await go({ path: ancestry(id), peek: null, search: { ...s, base } })
+    await go({
+        path: ancestry(id),
+        peek: null,
+        search: { ...s, base, onPlace: undefined },
+    })
 }
 // ← from the result's own column: back on the results, as you left them.
 async function leaveResult(): Promise<void> {
@@ -2516,6 +2568,19 @@ async function leaveResult(): Promise<void> {
             peek: null,
             search: { ...s, base: undefined },
         })
+}
+// ← from the results: onto the place searched, in the column left of them.
+// The whole site has no column to stand in.
+function toSearchedPlace(s: Search): Promise<void> | void {
+    if (s.scope === "root") return
+    return setSearch({ ...s, at: 0, shown: undefined, onPlace: true })
+}
+function moveSearchedPlace(delta: number): Promise<void> | void {
+    const s = state.search!
+    const parent = node(s.scope).parent!
+    const places = visibleChildren(parent, s.scope).filter(isPlace)
+    const next = places[places.indexOf(s.scope) + delta]
+    if (next) return toSearchedPlace({ ...s, scope: next })
 }
 // Esc on the results: back where you were, as if you never searched.
 function closeSearch(): void {
@@ -2553,7 +2618,13 @@ function handleSearchClick(t: HTMLElement, zone: string): void {
             const r = flatResults(s)[at]
             if (r?.more) showMoreResults(s, r.more)
             else if (at === s.at) void enterResult()
-            else void setSearch({ ...s, at, base: undefined })
+            else
+                void setSearch({
+                    ...s,
+                    at,
+                    base: undefined,
+                    onPlace: undefined,
+                })
         } else if (t.closest("[data-results-spine]")) void leaveResult()
         else if (more) void setSearch({ ...s, at: Number(more.dataset.more) })
         else if (t.closest("[data-widen]")) updateSearch(widen(s))
@@ -2680,8 +2751,11 @@ const boxInput = box.querySelector<HTMLInputElement>(".omnibox__input")!
 const boxTags = box.querySelector<HTMLElement>(".omnibox__tags")!
 const boxMenu = box.querySelector<HTMLElement>(".omnibox__menu")!
 const boxKey = box.querySelector<HTMLElement>(".omnibox__key")!
+const boxOffer = box.querySelector<HTMLElement>(".omnibox__offer")!
 let menuGroups: { title: string; commands: Command[] }[] = []
 let menuActive = 0
+// Esc closes the menu before it ends the search; typing opens it again.
+let menuDismissed = false
 let wasCommands = false
 
 const matches = (text: string, words: string[]): boolean =>
@@ -2708,7 +2782,12 @@ const boxSearch = (): Search =>
     }
 // Changing what you search for puts you back on the results.
 function updateSearch(changed: Search): void {
-    const s = { ...changed, base: undefined, shown: undefined }
+    const s = {
+        ...changed,
+        base: undefined,
+        shown: undefined,
+        onPlace: undefined,
+    }
     if (isActive(s)) void setSearch(s)
     else {
         if (state.search) endSearch()
@@ -2797,8 +2876,39 @@ function keywordValues(
         }))
 }
 
+// A last word that names a kind or a topic is offered as its filter, so
+// "cancer articles" narrows to articles without knowing is:article.
+// ⇥ takes it.
+const LAST_WORD = /(?:^|\s)(\S+)$/
+function offerFor():
+    | { key: string; name: string; apply: (s: Search) => Search }
+    | undefined {
+    if (inCommands() || boxInput.selectionStart !== boxInput.value.length)
+        return undefined
+    const word = boxInput.value.match(LAST_WORD)?.[1].toLowerCase()
+    if (!word || word.length < 3 || word.includes(":")) return undefined
+    const exact = (key: string, value: string) =>
+        keywordValues(key, value).find((v) => v.label === value)
+    const kind = exact("is", word) ?? exact("is", word.replace(/s$/, ""))
+    if (kind && !boxSearch().kinds.includes(kind.label))
+        return { key: "is", name: kind.detail, apply: kind.apply }
+    const place = exact("in", word)
+    if (place && slug(node(boxSearch().scope).title) !== word)
+        // Its detail reads "Cancer · Topic".
+        return {
+            key: "in",
+            name: place.detail.split(" · ")[0],
+            apply: place.apply,
+        }
+    return undefined
+}
+function takeOffer(): void {
+    const offer = offerFor()
+    if (offer) applyKeyword(offer.apply, LAST_WORD)
+}
 // A keyword ended by a space becomes a tag; one with no match stays text.
 function onBoxInput(): void {
+    menuDismissed = false
     if (inCommands()) {
         wasCommands = true
         return renderBox()
@@ -2828,9 +2938,13 @@ function onBoxInput(): void {
     updateSearch(s)
     renderBox()
 }
-// Picking a keyword's value from the menu applies it straight away.
-function applyKeyword(apply: (s: Search) => Search): void {
-    const query = boxInput.value.replace(PARTIAL, "").trimEnd()
+// Picking a keyword's value from the menu applies it straight away, in
+// place of what was typed for it.
+function applyKeyword(
+    apply: (s: Search) => Search,
+    typed: RegExp = PARTIAL
+): void {
+    const query = boxInput.value.replace(typed, "").trimEnd()
     boxInput.value = query ? `${query} ` : ""
     updateSearch({ ...apply(boxSearch()), query: boxInput.value, at: 0 })
     renderBox()
@@ -3060,7 +3174,7 @@ function menuFor(): { title: string; commands: Command[] }[] {
 const menuCommands = (): Command[] => menuGroups.flatMap((g) => g.commands)
 function renderMenu(): void {
     const focused = document.activeElement === boxInput
-    const groups = focused ? menuFor() : []
+    const groups = focused && !menuDismissed ? menuFor() : []
     // A new list starts at its top; the same list keeps its place.
     const sameList =
         JSON.stringify(groups.map((g) => g.commands.map((c) => c.label))) ===
@@ -3168,6 +3282,28 @@ function renderBox(): void {
     if (!focused) boxInput.value = state.search?.query ?? ""
     boxKey.textContent = focused ? "esc" : "/"
     renderMenu()
+    renderOffer(focused && !commands)
+}
+// Right of the words: the filter the last word names, else the keywords
+// themselves, so narrowing a search never depends on knowing them.
+function renderOffer(show: boolean): void {
+    const offer = show && offerFor()
+    if (offer) {
+        const t = tag("tag--offer", `${offer.key} `, offer.name)
+        t.prepend(el("kbd", "", "⇥"))
+        t.title = `Only ${offer.key === "in" ? "in " : ""}${offer.name} (⇥)`
+        return boxOffer.replaceChildren(t)
+    }
+    boxOffer.replaceChildren(
+        ...(show && boxMenu.hidden
+            ? KEYWORDS.filter(([k]) => k !== ">").map(([k, detail]) => {
+                  const b = el("button", "omnibox__keyword", k)
+                  b.dataset.keyword = k
+                  b.title = `${k} ${detail}`
+                  return b
+              })
+            : [])
+    )
 }
 function openBox(prefix?: string): void {
     boxInput.focus()
@@ -3204,7 +3340,15 @@ function leaveBox(): void {
 }
 
 boxInput.addEventListener("input", onBoxInput)
-boxInput.addEventListener("focus", renderBox)
+boxInput.addEventListener("focus", () => {
+    menuDismissed = false
+    renderBox()
+})
+// Moving the caret changes which word is last.
+boxInput.addEventListener("keyup", (e) => {
+    if (e.key.startsWith("Arrow") || e.key === "Home" || e.key === "End")
+        renderOffer(!inCommands())
+})
 boxInput.addEventListener("blur", () => {
     if (inCommands()) {
         wasCommands = false
@@ -3252,10 +3396,16 @@ boxInput.addEventListener("keydown", (e) => {
     } else if (e.key === "Tab" && menuOpen && !inCommands()) {
         e.preventDefault()
         runMenu(menuActive)
+    } else if (e.key === "Tab" && !menuOpen && offerFor()) {
+        e.preventDefault()
+        takeOffer()
     } else if (e.key === "Escape") {
         e.preventDefault()
         if (inCommands() || !state.search) leaveBox()
-        else closeSearch()
+        else if (menuOpen) {
+            menuDismissed = true
+            renderBox()
+        } else closeSearch()
     } else if (e.key === "Backspace" && atStart && !inCommands()) {
         const s = boxSearch()
         if (s.sort === "best" && !s.kinds.length && s.scope === "root") return
@@ -3269,6 +3419,16 @@ boxMenu.addEventListener("mousedown", (e) => e.preventDefault())
 boxMenu.addEventListener("click", (e) => {
     const item = (e.target as HTMLElement).closest<HTMLElement>("[data-index]")
     if (item) runMenu(Number(item.dataset.index))
+})
+boxOffer.addEventListener("mousedown", (e) => e.preventDefault())
+boxOffer.addEventListener("click", (e) => {
+    const t = e.target as HTMLElement
+    const keyword = t.closest<HTMLElement>("[data-keyword]")?.dataset.keyword
+    if (keyword) {
+        const words = boxInput.value.trimEnd()
+        boxInput.value = words ? `${words} ${keyword}` : keyword
+        onBoxInput()
+    } else if (t.closest(".tag--offer")) takeOffer()
 })
 boxTags.addEventListener("mousedown", (e) => e.preventDefault())
 boxTags.addEventListener("click", (e) => {
