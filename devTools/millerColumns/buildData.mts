@@ -31,8 +31,6 @@ interface TreeNode {
     dimension?: string // the MDM dimension a view-tree node picks a choice for
     // For a chart nobody uses: charts of the same data in other topics.
     sameData?: string[]
-    // Topics that list this chart as a key chart (keyChartLevel 3).
-    keyIn?: string[]
     // 0–1 popularity score; only comparable between items of one kind.
     pop?: number
 }
@@ -265,11 +263,6 @@ for (const c of charts) {
     attach(topic, `chart:${c.id}`)
     const also = otherTopics(tagIds, topic)
     if (also.length) nodes.get(`chart:${c.id}`)!.alsoIn = also
-}
-for (const ct of chartTags) {
-    const chart = nodes.get(`chart:${ct.chartId}`)
-    if (!chart || ct.keyChartLevel !== 3 || !tagDepth.has(ct.tagId)) continue
-    ;(chart.keyIn ??= []).push(tagNodeId(ct.tagId))
 }
 
 // --- Explorers ---

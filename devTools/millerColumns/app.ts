@@ -26,7 +26,6 @@ interface TreeNode {
     target?: string
     dimension?: string
     sameData?: string[]
-    keyIn?: string[]
     pop?: number
 }
 interface Reference {
@@ -88,7 +87,7 @@ const GROUP_NOUN: Record<string, string> = {
     Articles: "articles",
     "Data insights": "data insights",
     Data: "charts and collections",
-    Shortcuts: "shortcuts",
+    Topics: "topics",
 }
 const GROUP_OF: Record<string, string> = {
     area: "Topics",
@@ -100,7 +99,6 @@ const GROUP_OF: Record<string, string> = {
     mdm: "Data",
     explorer: "Data",
     chart: "Data",
-    alias: "Shortcuts",
 }
 
 // --- Data ---
@@ -134,33 +132,69 @@ for (const n of [...nodes.values()]) {
     }
 }
 
-// A topic's content groups with more than 5 items fold into one row each,
-// so a topic column stays short. Subtopics and the overview never fold:
-// they are the topic's own structure.
-const FOLD_OVER = 5
-for (const topic of [...nodes.values()]) {
-    if (topic.kind !== "topic" && topic.kind !== "area") continue
+// A row's group is its kind's; a shortcut sits with the kind of what it
+// points to, below the items filed here.
+function groupOf(id: string): string | undefined {
+    const n = nodes.get(id)!
+    return GROUP_OF[n.kind === "alias" ? nodes.get(n.target!)!.kind : n.kind]
+}
+const isShortcut = (id: string): boolean => nodes.get(id)!.kind === "alias"
+const itemNode = (id: string): TreeNode =>
+    nodes.get(isShortcut(id) ? nodes.get(id)!.target! : id)!
+
+// Editors' picks: what a place's Overview (its topic page) links to or
+// embeds, in the order it appears on the page.
+const picks = new Map<string, Map<string, number>>() // place -> item -> order
+for (const [target, refs] of Object.entries(references))
+    for (const r of refs) {
+        const page = nodes.get(r.doc)
+        if (!page?.kind.endsWith("topic-page") || !page.parent) continue
+        const order = Number(r.from.split("#")[1] ?? 0)
+        if (!picks.has(page.parent)) picks.set(page.parent, new Map())
+        const placePicks = picks.get(page.parent)!
+        const first = placePicks.get(target)
+        if (first === undefined || order < first) placePicks.set(target, order)
+    }
+const pickOrder = (place: string, id: string): number =>
+    picks.get(place)?.get(itemNode(id).id) ?? Infinity
+// Within a group: items filed here before shortcuts, then the place's
+// picks in page order, then the most read.
+function inGroupOrder(place: string): (a: string, b: string) => number {
+    return (a, b) =>
+        Number(isShortcut(a)) - Number(isShortcut(b)) ||
+        Math.sign(pickOrder(place, a) - pickOrder(place, b) || 0) ||
+        (itemNode(b).pop ?? 0) - (itemNode(a).pop ?? 0)
+}
+
+// Every content group shows its first 3, then one "N more" row, so no kind
+// crowds out another. Subtopics never fold: they are the place's structure.
+const SHOWN_IN_GROUP = 3
+for (const place of [...nodes.values()]) {
+    if (place.kind !== "topic" && place.kind !== "area") continue
     const byGroup = new Map<string, string[]>()
-    for (const id of topic.children ?? []) {
-        const group = GROUP_OF[nodes.get(id)!.kind]
-        if (!group || group === "Topics" || group === "Overview") continue
+    for (const id of place.children ?? []) {
+        const group = groupOf(id) ?? ""
         if (!byGroup.has(group)) byGroup.set(group, [])
         byGroup.get(group)!.push(id)
     }
+    place.children = []
     for (const [group, ids] of byGroup) {
-        if (ids.length <= FOLD_OVER) continue
-        const groupId = `group:${topic.id}:${group}`
+        ids.sort(inGroupOrder(place.id))
+        const rest = ids.slice(SHOWN_IN_GROUP)
+        if (group === "Topics" || group === "Overview" || rest.length < 2) {
+            place.children.push(...ids)
+            continue
+        }
+        const groupId = `group:${place.id}:${group}`
         nodes.set(groupId, {
             id: groupId,
             kind: "group",
             title: group,
-            parent: topic.id,
-            children: ids,
+            parent: place.id,
+            children: rest,
         })
-        for (const id of ids) nodes.get(id)!.parent = groupId
-        const at = topic.children!.indexOf(ids[0])
-        topic.children = topic.children!.filter((id) => !ids.includes(id))
-        topic.children.splice(at, 0, groupId)
+        for (const id of rest) nodes.get(id)!.parent = groupId
+        place.children.push(...ids.slice(0, SHOWN_IN_GROUP), groupId)
     }
 }
 // Where a node is filed, skipping the group rows it may be folded into.
@@ -513,6 +547,10 @@ document.addEventListener("keydown", (e) => {
         e.preventDefault()
         return openBox(e.shiftKey ? ">" : undefined)
     }
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "f") {
+        e.preventDefault()
+        return openFind()
+    }
     if (e.metaKey && e.key === "[") return void back()
     if (e.metaKey && e.key === "]") return void forward()
     if (e.metaKey || e.ctrlKey || e.altKey) return
@@ -645,7 +683,6 @@ const GROUP_ICON: Record<string, string> = {
     Articles: "article",
     "Data insights": "data-insight",
     Data: "chart",
-    Shortcuts: "jump",
 }
 function kindIcon(kind: string): SVGSVGElement | null {
     const name = KIND_ICON[kind]
@@ -849,7 +886,7 @@ function renderRow(
                     el(
                         "span",
                         "row__title",
-                        `${childrenOf(id).length} ${GROUP_NOUN[n.title] ?? "items"}`
+                        `${childrenOf(id).length} more ${GROUP_NOUN[n.title] ?? "items"}`
                     )
                 )
             )
@@ -919,7 +956,7 @@ function treeColumn(
         // itself is the group.
         const g =
             node(id).dimension ??
-            (kind === "group" ? node(id).title : GROUP_OF[kind])
+            (kind === "group" ? node(id).title : groupOf(id))
         if (!prose && g && g !== group && parent.kind !== "group") {
             list.append(el("div", "group-label", g))
             group = g
@@ -1254,11 +1291,14 @@ function searchTitle(s: Search): string {
     const words = s.query.trim()
     const what = words
         ? `“${words}”`
-        : s.sort === "best" && !s.kinds.length
-          ? "Everything"
-          : [SORTS[s.sort], ...s.kinds.map((k) => KEYWORD_KINDS[k].label)].join(
-                " "
-            )
+        : DOC_KINDS.has(node(s.scope).kind)
+          ? "Sections"
+          : s.sort === "best" && !s.kinds.length
+            ? "Everything"
+            : [
+                  SORTS[s.sort],
+                  ...s.kinds.map((k) => KEYWORD_KINDS[k].label),
+              ].join(" ")
     return `${what} in ${s.scope === "root" ? "the site" : node(s.scope).title}`
 }
 
@@ -1358,7 +1398,9 @@ function renderKeys(): void {
     if (state.search && !state.peek)
         hints.push(["esc", "Stay here, close the search"])
     if (stopIndex > 0) hints.push(["⌫", "Back"])
-    hints.push(["/", "Search"], ["⌘⇧K", "Commands"])
+    hints.push(["/", "Search"])
+    if (docOf(selected())) hints.push(["⌘F", "Find in this page"])
+    hints.push(["⌘⇧K", "Commands"])
     keys.replaceChildren(
         ...hints.map(([k, label]) =>
             el("span", "keys__hint", el("kbd", "", k), label)
@@ -1794,6 +1836,32 @@ function searchResults(s: Search): ResultSection[] {
     const query = words.join(" ")
     const allowed = (k: string): boolean =>
         !s.kinds.length || s.kinds.includes(k)
+    // In a document (⌘F), only its own text: matches, or with no words its
+    // sections, in reading order.
+    if (DOC_KINDS.has(node(s.scope).kind)) {
+        loadText()
+        const blockOrder = (e: TextEntry): number => Number(e.id.split("#")[1])
+        const found = (textIndex ?? [])
+            .filter(
+                (e) =>
+                    e.doc === s.scope &&
+                    (words.length
+                        ? words.every((w) => e.lower.includes(w))
+                        : e.heading)
+            )
+            .sort((a, b) => blockOrder(a) - blockOrder(b))
+            .map((e) => ({ id: e.id, text: e }))
+        const out = found.length
+            ? [
+                  {
+                      label: words.length ? "In the text" : "Sections",
+                      results: found,
+                  },
+              ]
+            : []
+        resultsCache.set(key, out)
+        return out
+    }
 
     // Topics and areas are places to search in, not things to read: one
     // whose name you typed is offered first, as a narrower search.
@@ -1858,15 +1926,24 @@ function searchResults(s: Search): ResultSection[] {
             add(itemOf(r).date ? monthName(itemOf(r).date!) : "No date", r)
     } else if (s.sort === "read" || !words.length) {
         // Popularity only ranks items of one kind, so each kind keeps its
-        // own section. With no words, the place's own picks come first: its
-        // topic page and the charts its editors marked as key.
+        // own section. With no words, the place's Overview leads, then what
+        // it picks (links to or embeds), in page order.
         const isPick = (r: Result): boolean =>
             !words.length &&
+            !r.text &&
             ((node(r.id).kind.endsWith("topic-page") &&
                 homeOf(r.id)?.id === s.scope) ||
-                (node(r.id).keyIn?.includes(s.scope) ?? false))
+                pickOrder(s.scope, r.id) < Infinity)
         const all = [...titles.map((t) => t.r), ...texts].sort(byPop)
-        for (const r of all) if (isPick(r)) add("Editors’ picks", r)
+        // The Overview first, then what it picks, in page order.
+        const pickRank = (r: Result): number =>
+            node(r.id).kind.endsWith("topic-page")
+                ? -1
+                : pickOrder(s.scope, r.id)
+        const picked = all
+            .filter(isPick)
+            .sort((a, b) => Math.sign(pickRank(a) - pickRank(b) || 0))
+        for (const r of picked) add("Editors’ picks", r)
         for (const { label } of Object.values(KEYWORD_KINDS))
             for (const r of all)
                 if (!isPick(r) && kindLabel(r) === label) add(label, r)
@@ -1968,7 +2045,12 @@ function resultRow(r: Result, i: number, s: Search): HTMLElement {
                 el(
                     "span",
                     "row__meta",
-                    [item.title, where].filter(Boolean).join(" · ")
+                    // Inside one document, the section says where; across
+                    // documents, the document does.
+                    r.text.doc === s.scope
+                        ? (nodes.get(nodes.get(r.id)?.parent ?? "")?.title ??
+                              "")
+                        : [item.title, where].filter(Boolean).join(" · ")
                 )
             )
         )
@@ -2607,7 +2689,7 @@ function selectionCommands(): Command[] {
         // A folded group is named the way its row reads.
         const name =
             parent.kind === "group"
-                ? `${childrenOf(parent.id).length} ${GROUP_NOUN[parent.title]}`
+                ? `${childrenOf(parent.id).length} more ${GROUP_NOUN[parent.title]}`
                 : parent.title
         out.push({
             label: `Up to ${name}`,
@@ -2664,28 +2746,6 @@ function recentCommands(): Command[] {
     return out
 }
 
-// Headings of the document you're in, like VS Code's "go to symbol".
-function sectionCommands(words: string[]): Command[] {
-    const doc = docOf(commandTarget().id)
-    if (!doc) return []
-    const out: Command[] = []
-    const walk = (id: string): void => {
-        for (const k of childrenOf(id)) {
-            const kid = node(k)
-            if (kid.kind !== "heading") continue
-            if (matches(kid.title, words))
-                out.push({
-                    label: `Go to “${kid.title}”`,
-                    icon: "section",
-                    run: () => go({ path: ancestry(k), peek: null }),
-                })
-            walk(k)
-        }
-    }
-    walk(doc)
-    return out
-}
-
 function selectionNoun(): string {
     const n = node(commandTarget().id)
     const kind = n.kind === "title" ? node(n.target!).kind : n.kind
@@ -2708,10 +2768,6 @@ function menuFor(): { title: string; commands: Command[] }[] {
                 commands: selectionCommands().filter((c) =>
                     matches(c.label, words)
                 ),
-            },
-            {
-                title: "In this document",
-                commands: sectionCommands(words),
             },
             {
                 title: "History",
@@ -2882,6 +2938,23 @@ function openBox(prefix?: string): void {
         onBoxInput()
     } else boxInput.select()
 }
+// ⌘F: search inside the document you're looking at, like a browser's
+// find in page; Backspace at the start widens to its topic.
+function openFind(): void {
+    const doc = docOf(commandTarget().id)
+    if (!doc) return openBox()
+    boxInput.focus()
+    boxInput.value = ""
+    updateSearch({
+        ...boxSearch(),
+        query: "",
+        kinds: [],
+        sort: "best",
+        scope: doc,
+        at: 0,
+        from: state.search?.from ?? state.path,
+    })
+}
 // Leaving the box: commands are done, and the strip takes the keys again.
 function leaveBox(): void {
     if (inCommands()) {
@@ -2907,6 +2980,10 @@ boxInput.addEventListener("keydown", (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault()
         return openBox(e.shiftKey ? ">" : undefined)
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "f") {
+        e.preventDefault()
+        return openFind()
     }
     const count = menuCommands().length
     const menuOpen = !boxMenu.hidden && count > 0
