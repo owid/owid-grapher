@@ -31,7 +31,7 @@ Search results use the same groups, the same rows and the same "See all".
 
 ## Where you are in a document
 
-A document's column starts with its title, and a section's column with the section's heading; both stick to the top while you scroll. A section's heading also says which document, and which sections above it, it is in ("In How much economic growth is necessary…"), so landing deep in a long article from a reference tells you where you are.
+A document's column starts with its title (except a chart's page, which starts with the chart and its own title), and a section's column with the section's heading; both stick to the top while you scroll. A section's heading also says which document, and which sections above it, it is in ("In How much economic growth is necessary…"), so landing deep in a long article from a reference tells you where you are.
 
 ## The box: search, and > for commands
 

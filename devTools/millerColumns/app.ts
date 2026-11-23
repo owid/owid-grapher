@@ -306,8 +306,16 @@ function loadDoc(docId: string): Promise<void> {
                 .then((r) => (r.ok ? r.json() : {}))
                 .then((body: Record<string, TreeNode>) => {
                     for (const [id, n] of Object.entries(body)) nodes.set(id, n)
+                    // A chart's page opens with the chart, which carries
+                    // its own title.
+                    const isChartPage = ["chart", "view"].includes(
+                        node(docId).kind
+                    )
                     for (const id of [docId, ...Object.keys(body)])
-                        if (id === docId || nodes.get(id)!.kind === "heading")
+                        if (
+                            (id === docId && !isChartPage) ||
+                            nodes.get(id)!.kind === "heading"
+                        )
                             addTitleRow(id)
                 })
         )
