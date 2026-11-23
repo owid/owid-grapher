@@ -1455,8 +1455,9 @@ mark {
     font-weight: 600;
     letter-spacing: 0;
     text-transform: none;
-    color: var(--electric);
+    color: var(--gray-70);
     cursor: pointer;
+    transition: color 120ms;
 }
 .group-label__all .icon {
     width: 12px;
@@ -1464,8 +1465,13 @@ mark {
     color: inherit;
 }
 .group-label__all:hover {
+    color: var(--ink);
+}
+/* While its "Show more" row is selected: what → does. */
+.group-label__all.is-armed {
+    color: var(--ink);
     text-decoration: underline;
-    text-underline-offset: 2px;
+    text-underline-offset: 3px;
 }
 .group-label__all:focus-visible {
     outline: 2px solid var(--electric);
@@ -1477,4 +1483,61 @@ mark {
 }
 .row--more .row__title {
     color: var(--electric);
+}
+
+/* --- Sticky headers: you always see which group, document and section
+   you are in, however far down the column you are --- */
+
+.col {
+    --col-ground: #fff;
+}
+.col--results {
+    --col-ground: var(--search-ground);
+}
+.peek-dock .col {
+    --col-ground: var(--peek-ground);
+}
+/* The labels follow one another: each new one slides over the last. */
+.col__body > .group-label {
+    position: sticky;
+    top: -10px; /* the body's top padding */
+    z-index: 2;
+    margin: 8px -8px 0;
+    padding: 10px 20px 6px;
+    background: var(--col-ground);
+}
+.col__body > .group-label:first-child {
+    margin-top: 0;
+    padding-top: 6px;
+}
+.col--prose .row--title {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    position: sticky;
+    top: -10px;
+    z-index: 2;
+    margin: -10px -8px 8px;
+    padding: 18px 20px 10px 24px;
+    border-radius: 0;
+    background: var(--col-ground);
+    box-shadow: 0 1px 0 var(--rule);
+}
+.col--prose .row--title.is-selected {
+    background: var(--gray-5);
+    box-shadow:
+        inset 0 0 0 1px var(--gray-50),
+        0 1px 0 var(--rule);
+}
+.col--prose .row--title.has-context.is-selected {
+    background: var(--peek-ground);
+    box-shadow: inset 0 0 0 1px var(--electric);
+}
+.col__context {
+    margin: 4px 0 0;
+    overflow: hidden;
+    font-size: 12px;
+    color: var(--gray-70);
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

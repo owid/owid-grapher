@@ -233,7 +233,7 @@ function showMoreLabel(left: number, group: string): string {
 function groupLabel(
     label: string,
     total?: number,
-    seeAll?: { kind: string; place?: string }
+    seeAll?: { kind: string; place?: string; armed?: boolean }
 ): HTMLElement {
     const out = el(
         "div",
@@ -246,6 +246,7 @@ function groupLabel(
     if (seeAll) {
         const b = el("button", "group-label__all", "See all", icon("chevron"))
         b.dataset.seeAll = seeAll.kind
+        if (seeAll.armed) b.classList.add("is-armed")
         if (seeAll.place) b.dataset.place = seeAll.place
         b.title = `List all ${total} ${GROUP_NOUN[label]?.[1] ?? "items"} as a search`
         out.append(b)
@@ -522,7 +523,11 @@ async function right(): Promise<void> {
         await go({ path: toMatch.slice(0, state.path.length + 1), peek: null })
         return
     }
-    if (node(id).kind === "more") return showMoreRows(state.path)
+    // → on a "Show more" row moves right: the whole group, as a search.
+    if (node(id).kind === "more") {
+        const n = node(id)
+        return seeAll(SECTION_KEYWORD[n.title], n.parent)
+    }
     if (hasChildren(id) && !referencesOpen) {
         const doc = docOf(id)
         if (doc) await loadDoc(doc)
@@ -561,6 +566,7 @@ async function left(): Promise<void> {
         await go({ path: state.path.slice(0, -1), peek: null })
 }
 async function enter(): Promise<void> {
+    if (node(selected()).kind === "more") return showMoreRows(state.path)
     const plan = activePeek()
     const peek = state.peek ?? {
         zone: plan?.kind === "links" ? "links" : "target",
@@ -898,6 +904,15 @@ function renderRow(
                     n.title
                 )
             )
+            // A section stuck at the top of its column also names the
+            // document it is in, and the sections above it.
+            if (isSection) {
+                const doc = docOf(n.target!)!
+                const above = ancestry(n.target!)
+                    .slice(ancestry(n.target!).indexOf(doc), -1)
+                    .map((k) => node(k).title)
+                row.append(el("p", "col__context", `In ${above.join(" › ")}`))
+            }
             break
         }
         case "heading":
@@ -992,6 +1007,10 @@ function treeColumn(
     let group = ""
     const peekLink =
         state.peek?.link ?? (activePeek()?.kind === "links" ? -1 : undefined)
+    const armed =
+        selectedId && node(selectedId).kind === "more"
+            ? node(selectedId).title
+            : undefined
     for (const id of visibleChildren(parentId, selectedId)) {
         // A "N more" row sits under its group's header.
         const g =
@@ -1004,6 +1023,7 @@ function treeColumn(
                     ? groupLabel(g, SHOWN_IN_GROUP + more.count!, {
                           kind: SECTION_KEYWORD[g],
                           place: parentId,
+                          armed: armed === g && !isTrail,
                       })
                     : groupLabel(g)
             )
@@ -1412,9 +1432,10 @@ function renderKeys(): void {
         const external = !targetOfPeek(plan, state.peek)?.target
         hints.push(["⏎", external ? "Open in a new tab" : "Jump there"])
     } else {
-        if (node(selected()).kind === "more")
-            hints.push(["→ ⏎", "Show them here"])
-        else if (hasChildren(selected()) && !referencesOpen)
+        if (node(selected()).kind === "more") {
+            hints.push(["⏎", "Show them here"])
+            hints.push(["→", "See all, as a search"])
+        } else if (hasChildren(selected()) && !referencesOpen)
             hints.push(["→ ⏎", "Open"])
         else if (plan)
             hints.push([
@@ -2223,11 +2244,12 @@ function resultsColumn(s: Search): HTMLElement {
     let i = 0
     for (const { label, results, total, folds } of sections) {
         if (i >= shown) break
+        const armed = s.base === undefined && highlighted(s)?.more === label
         body.append(
             groupLabel(
                 label,
                 total,
-                folds ? { kind: SECTION_KEYWORD[label] } : undefined
+                folds ? { kind: SECTION_KEYWORD[label], armed } : undefined
             )
         )
         for (const r of results.slice(0, shown - i))
@@ -2367,14 +2389,15 @@ async function enterResult(): Promise<void> {
     const s = state.search
     const r = s && highlighted(s)
     if (!s || !r) return
-    if (r.more) return showMoreResults(s, r.more)
+    if (r.more) return seeAll(SECTION_KEYWORD[r.more])
     // → moves one column, like everywhere else: into the first column
     // right of the results, on the way to the match.
     await enterAt(ancestry(r.id)[resultBase(r.id, s) + 1])
 }
 // ⏎ opens what you're on and ends the search: the match, however deep it
 // sits, or the place. → only looks inside and keeps the search; ⌫ (Back)
-// brings an ended search back. On a "show more" row, both show more.
+// brings an ended search back. On a "Show more" row, ⏎ shows more there
+// and → sees all of it.
 async function openMatch(): Promise<void> {
     const s = state.search
     const r = s && highlighted(s)
@@ -2423,7 +2446,10 @@ function seeAll(kind: string, place?: string): void {
 // What → and ⏎ do on the highlighted result, in a few words.
 function enterHints(s: Search): [string, string][] {
     return highlighted(s)?.more
-        ? [["→ ⏎", "show them here"]]
+        ? [
+              ["⏎", "show them here"],
+              ["→", "see all"],
+          ]
         : [
               ["→", "look inside"],
               ["⏎", "open, end the search"],
