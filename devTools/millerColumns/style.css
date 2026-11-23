@@ -1024,7 +1024,6 @@ kbd {
     min-width: 280px;
 }
 .omnibox__field {
-    position: relative;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -1186,29 +1185,6 @@ button.tag--sort:hover {
     scrollbar-width: thin;
     scrollbar-color: var(--blue-20) transparent;
     animation: menu-in 160ms var(--ease-out);
-}
-/* The tag the last word would become, right after it, faint until taken. */
-.omnibox__suggest {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-}
-.omnibox__suggest[hidden] {
-    display: none;
-}
-/* Dashed until taken: the same tag, not yet real. */
-.tag--offer {
-    outline: 1px dashed var(--blue-30);
-    outline-offset: -1px;
-}
-.omnibox__suggest:hover .tag--offer {
-    outline-style: solid;
-}
-.tag--offer kbd {
-    height: 16px;
-    margin-left: 2px;
-    font-size: 10.5px;
 }
 .omnibox__menu[hidden] {
     display: none;

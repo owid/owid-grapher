@@ -2728,8 +2728,7 @@ const boxTags = box.querySelector<HTMLElement>(".omnibox__tags")!
 const boxMenu = box.querySelector<HTMLElement>(".omnibox__menu")!
 const boxKey = box.querySelector<HTMLElement>(".omnibox__key")!
 const boxOffer = box.querySelector<HTMLElement>(".omnibox__offer")!
-const boxSuggest = box.querySelector<HTMLElement>(".omnibox__suggest")!
-let menuGroups: { title: string; commands: Command[] }[] = []
+let menuGroups: MenuGroup[] = []
 let menuActive = 0
 // Esc closes the menu before it ends the search; typing opens it again.
 let menuDismissed = false
@@ -2853,61 +2852,62 @@ function keywordValues(
         }))
 }
 
-// A last word that names a kind, a topic or an order is offered as its
-// filter under the box, so "cancer articles" or "deaths new" narrows
-// without knowing the keywords. ⇥ takes it.
+// The word being typed, matched from its start against kinds, orders and
+// places, so "art" offers Only articles and "new" Newest first, without
+// knowing the keywords. Picking one turns the word into that tag.
 const LAST_WORD = /(?:^|\s)(\S+)$/
 const SORT_WORDS: Record<string, SortKey> = {
-    new: "new",
     newest: "new",
     latest: "new",
     recent: "new",
     popular: "read",
+    "most-read": "read",
 }
-interface Offer {
-    key: "in" | "is" | "sort"
-    name: string // the tag's value once taken: Articles
-    phrase: string // what it does: Only articles
-    apply: (s: Search) => Search
-}
-function offerFor(): Offer | undefined {
-    if (inCommands() || boxInput.selectionStart !== boxInput.value.length)
-        return undefined
+function filterSuggestions(): Command[] {
+    if (boxInput.selectionStart !== boxInput.value.length) return []
     const word = boxInput.value.match(LAST_WORD)?.[1].toLowerCase()
-    if (!word || word.length < 3 || word.includes(":")) return undefined
+    if (!word || word.length < 3 || word.includes(":")) return []
     const s = boxSearch()
-    const exact = (key: string, value: string) =>
-        keywordValues(key, value).find((v) => v.label === value)
-    const kind = exact("is", word) ?? exact("is", word.replace(/s$/, ""))
-    if (kind && !s.kinds.includes(kind.label))
-        return {
-            key: "is",
-            name: kind.detail,
-            phrase: `Only ${kind.detail.toLowerCase()}`,
-            apply: kind.apply,
-        }
-    const sort = SORT_WORDS[word]
-    if (sort && s.sort !== sort)
-        return {
-            key: "sort",
-            name: SORTS[sort],
-            phrase: `${SORTS[sort]} first`,
-            apply: (x) => ({ ...x, sort }),
-        }
-    const place = exact("in", word)
-    if (place && slug(node(s.scope).title) !== word)
-        return {
-            key: "in",
+    const take = (apply: (s: Search) => Search) => () =>
+        applyKeyword(apply, LAST_WORD)
+    const kinds = Object.entries(KEYWORD_KINDS)
+        .filter(
+            ([k, { label }]) =>
+                !s.kinds.includes(k) &&
+                (k.startsWith(word) || label.toLowerCase().startsWith(word))
+        )
+        .map(([k, { label, kinds }]) => ({
+            label: `Only ${label.toLowerCase()}`,
+            detail: `is:${k}`,
+            icon: KIND_ICON[kinds[0]] ?? "paragraph",
+            run: take(keywordValues("is", k).find((v) => v.label === k)!.apply),
+        }))
+    const sorts = [
+        ...new Set(
+            Object.entries(SORT_WORDS)
+                .filter(([w]) => w.startsWith(word))
+                .map(([, sort]) => sort)
+        ),
+    ]
+        .filter((sort) => sort !== s.sort)
+        .map((sort) => ({
+            label: `${SORTS[sort]} first`,
+            detail: `sort:${sort}`,
+            icon: "refs",
+            run: take((x) => ({ ...x, sort })),
+        }))
+    const places = keywordValues("in", word)
+        .filter((v) => v.label.startsWith(word) && v.label !== "site")
+        .filter((v) => slug(node(s.scope).title) !== v.label)
+        .slice(0, 4)
+        .map((v) => ({
             // Its detail reads "Cancer · Topic".
-            name: place.detail.split(" · ")[0],
-            phrase: `Search in ${place.detail.split(" · ")[0]}`,
-            apply: place.apply,
-        }
-    return undefined
-}
-function takeOffer(): void {
-    const offer = offerFor()
-    if (offer) applyKeyword(offer.apply, LAST_WORD)
+            label: `In ${v.detail.split(" · ")[0]}`,
+            detail: `in:${v.label}`,
+            icon: "topic",
+            run: take(v.apply),
+        }))
+    return [...kinds, ...sorts, ...places]
 }
 // A keyword ended by a space becomes a tag; one with no match stays text.
 function onBoxInput(): void {
@@ -3114,7 +3114,12 @@ function selectionName(): string {
 
 // --- Menu ---
 
-function menuFor(): { title: string; commands: Command[] }[] {
+interface MenuGroup {
+    title: string
+    commands: Command[]
+    passive?: boolean // offered, not picked: ↓ picks
+}
+function menuFor(): MenuGroup[] {
     if (inCommands()) {
         const words = wordsOf(boxInput.value.slice(1))
         return [
@@ -3156,6 +3161,10 @@ function menuFor(): { title: string; commands: Command[] }[] {
             },
         ].filter((g) => g.commands.length)
     }
+    // Nothing is picked until ↓, so ⏎ still opens the result.
+    const suggestions = filterSuggestions()
+    if (suggestions.length)
+        return [{ title: "Narrow to", commands: suggestions, passive: true }]
     // An empty box teaches its keywords.
     if (!boxInput.value && !state.search)
         return [
@@ -3183,7 +3192,7 @@ function renderMenu(): void {
         JSON.stringify(groups.map((g) => g.commands.map((c) => c.label))) ===
         JSON.stringify(menuGroups.map((g) => g.commands.map((c) => c.label)))
     menuGroups = groups
-    if (!sameList) menuActive = 0
+    if (!sameList) menuActive = groups[0]?.passive ? -1 : 0
     boxMenu.hidden = !groups.length
     boxInput.setAttribute("aria-expanded", String(groups.length > 0))
     boxMenu.replaceChildren()
@@ -3287,39 +3296,11 @@ function renderBox(): void {
     renderMenu()
     renderOffer(focused && !commands)
 }
-// Right after the words, the tag the last word would become, drawn faint
-// with "tab": like a completion, so ⇥ is the obvious key, and ↑ ↓ ⏎ stay
-// with the results. With nothing to offer, the box's right end lists the
-// keywords themselves, so narrowing never depends on knowing them.
-const measure = document.createElement("canvas").getContext("2d")!
+// With no menu open, the box's right end lists the keywords themselves,
+// so narrowing a search never depends on knowing them.
 function renderOffer(show: boolean): void {
-    const offer = show && boxMenu.hidden && offerFor()
-    boxSuggest.hidden = !offer
-    if (offer) {
-        const t = tag(
-            `tag--${offer.key} tag--offer`,
-            `${offer.key} `,
-            offer.name
-        )
-        t.append(el("kbd", "", "tab"))
-        boxSuggest.replaceChildren(t)
-        boxSuggest.title = `${offer.phrase} (tab)`
-        const style = getComputedStyle(boxInput)
-        measure.font = style.font
-        const typed = measure.measureText(boxInput.value).width
-        const afterWords =
-            boxInput.offsetLeft +
-            parseFloat(style.paddingLeft) +
-            typed -
-            boxInput.scrollLeft +
-            8
-        // Long words: it stays inside the box, over their start.
-        const lastFit =
-            boxInput.offsetLeft + boxInput.offsetWidth - boxSuggest.offsetWidth
-        boxSuggest.style.left = `${Math.min(afterWords, lastFit)}px`
-    }
     boxOffer.replaceChildren(
-        ...(show && boxMenu.hidden && !offer
+        ...(show && boxMenu.hidden
             ? KEYWORDS.filter(([k]) => k !== ">").map(([k, detail]) => {
                   const b = el("button", "omnibox__keyword", k)
                   b.dataset.keyword = k
@@ -3398,7 +3379,11 @@ boxInput.addEventListener("keydown", (e) => {
         e.preventDefault()
         const delta = e.key === "ArrowDown" ? 1 : -1
         if (menuOpen) {
-            menuActive = (menuActive + delta + count) % count
+            // An offered list also has "none picked" before its first row.
+            const none = menuGroups[0]?.passive ? 1 : 0
+            const positions = count + none
+            menuActive =
+                ((menuActive + none + delta + positions) % positions) - none
             renderMenu()
         } else queueKey(() => moveResult(delta))
     } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !menuOpen) {
@@ -3406,11 +3391,11 @@ boxInput.addEventListener("keydown", (e) => {
         seeAllFromRow()
     } else if (e.key === "Enter") {
         e.preventDefault()
-        if (menuOpen) runMenu(menuActive)
+        if (menuOpen && menuActive >= 0) runMenu(menuActive)
         else queueKey(openMatch)
     } else if (
         e.key === "ArrowRight" &&
-        !menuOpen &&
+        (!menuOpen || menuActive < 0) &&
         state.search &&
         boxInput.selectionStart === boxInput.value.length
     ) {
@@ -3419,10 +3404,7 @@ boxInput.addEventListener("keydown", (e) => {
         queueKey(enterResult)
     } else if (e.key === "Tab" && menuOpen && !inCommands()) {
         e.preventDefault()
-        runMenu(menuActive)
-    } else if (e.key === "Tab" && !menuOpen && offerFor()) {
-        e.preventDefault()
-        takeOffer()
+        runMenu(Math.max(menuActive, 0))
     } else if (e.key === "Escape") {
         e.preventDefault()
         if (inCommands() || !state.search) leaveBox()
@@ -3454,8 +3436,6 @@ boxOffer.addEventListener("click", (e) => {
         onBoxInput()
     }
 })
-boxSuggest.addEventListener("mousedown", (e) => e.preventDefault())
-boxSuggest.addEventListener("click", takeOffer)
 boxTags.addEventListener("mousedown", (e) => e.preventDefault())
 boxTags.addEventListener("click", (e) => {
     const t = (e.target as HTMLElement).closest<HTMLElement>("[data-remove]")
