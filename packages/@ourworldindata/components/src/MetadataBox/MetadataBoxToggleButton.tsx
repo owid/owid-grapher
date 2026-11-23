@@ -1,3 +1,4 @@
+import cx from "clsx"
 import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useEffect, useState } from "react"
@@ -8,8 +9,8 @@ interface MetadataBoxToggleButtonProps {
 }
 
 /**
- * Toggles a MetadataBoxExpander from the top of the box. The label follows the
- * <details> through CSS, so it matches the server render; hidden without JS.
+ * Toggles a MetadataBoxExpander from the top of the box. Before hydration the
+ * label follows the <details> through CSS :has(); hidden without JS.
  */
 export function MetadataBoxToggleButton({
     detailsRef,
@@ -29,7 +30,10 @@ export function MetadataBoxToggleButton({
     return (
         <button
             type="button"
-            className="metadata-box-toggle-button js--hide-if-js-disabled"
+            className={cx(
+                "metadata-box-toggle-button js--hide-if-js-disabled",
+                { "metadata-box-toggle-button--open": isOpen }
+            )}
             data-track-note="metadata_box_top_toggle"
             aria-controls={detailsId}
             aria-expanded={isOpen}
