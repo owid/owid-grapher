@@ -35,6 +35,17 @@ import {
     DATA_API_URL,
 } from "../../settings/clientSettings.mjs"
 
+/**
+ * The query params the next view starts from, set by whatever changed the view.
+ * The first view reads the URL: the grapher's changedParams leave out one-shot
+ * params such as `peerCountries`. A view switch carries over the reader's
+ * changes, and a guided chart link brings its own params, so that params it
+ * omits, such as `country`, don't stick around from the previous view.
+ */
+type ViewParams =
+    | { source: "url" }
+    | { source: "viewSwitch" | "guidedChart"; params: GrapherQueryParams }
+
 export default function MultiDim({
     config,
     localGrapherConfig,
@@ -100,9 +111,7 @@ export default function MultiDim({
         )
         return config.filterToAvailableChoices(choices).selectedChoices
     })
-    const hasAppliedViewRef = useRef(false)
-    const [guidedQueryParams, setGuidedQueryParams] =
-        useState<GrapherQueryParams | null>(null)
+    const [viewParams, setViewParams] = useState<ViewParams>({ source: "url" })
 
     const handleBaseSettingsChange = useCallback(
         (settings: MultiDimDimensionChoices) => {
@@ -116,9 +125,19 @@ export default function MultiDim({
     const handleSettingsChange = useCallback(
         (settings: MultiDimDimensionChoices) => {
             handleBaseSettingsChange(settings)
-            setGuidedQueryParams(null)
+            const grapherState = grapherStateRef.current
+            // Until a view has loaded there are no reader changes to carry
+            // over, and the URL still has to be applied
+            setViewParams((prev) =>
+                grapherState.isConfigReady
+                    ? {
+                          source: "viewSwitch",
+                          params: grapherState.changedParams,
+                      }
+                    : prev
+            )
         },
-        [handleBaseSettingsChange]
+        [handleBaseSettingsChange, grapherStateRef]
     )
 
     const handleGuidedChartSettingsChange = useCallback(
@@ -127,7 +146,7 @@ export default function MultiDim({
             queryParams: GrapherQueryParams
         ) => {
             handleBaseSettingsChange(settings)
-            setGuidedQueryParams(queryParams)
+            setViewParams({ source: "guidedChart", params: queryParams })
         },
         [handleBaseSettingsChange]
     )
@@ -176,24 +195,15 @@ export default function MultiDim({
         manager.current.adminCreateNarrativeChartPath = `narrative-charts/create?type=multiDim&chartConfigId=${newView.fullConfigId}`
         if (slug) manager.current.baseUrl = `${BAKED_GRAPHER_URL}/${slug}`
 
-        const isGuidedChartUpdate = guidedQueryParams !== null
-        // Guided chart links should not inherit query params from the
-        // previously selected view. Otherwise omitted params, such as
-        // `country`, can stick around after clicking a different guided link.
-        // The first view reads the URL itself: changedParams leaves out
-        // one-shot params such as `peerCountries`.
-        const queryParams = isGuidedChartUpdate
-            ? guidedQueryParams
-            : hasAppliedViewRef.current
-              ? grapherState.changedParams
-              : Object.fromEntries(searchParams.entries())
         const newGrapherParams: GrapherQueryParams = {
-            ...queryParams,
+            ...(viewParams.source === "url"
+                ? Object.fromEntries(searchParams.entries())
+                : viewParams.params),
             ...settings,
         }
         // We want to preserve the grapher tab when switching between views,
         // except when the switch happens via a guided chart link.
-        if (!isGuidedChartUpdate) {
+        if (viewParams.source !== "guidedChart") {
             // If the grapher has data, preserve the active tab in the new view,
             // otherwise use the tab from the URL.
             newGrapherParams.tab = grapherState.hasData
@@ -231,7 +241,6 @@ export default function MultiDim({
                     grapherState.isConfigReady = true
                     grapherState.populateFromQueryParams(newGrapherParams)
                 })
-                hasAppliedViewRef.current = true
 
                 await grapherDataLoader
                     .current(
@@ -273,7 +282,7 @@ export default function MultiDim({
         searchParams,
         settings,
         slug,
-        guidedQueryParams,
+        viewParams,
         baseGrapherConfig,
         manager,
         grapherStateRef,
