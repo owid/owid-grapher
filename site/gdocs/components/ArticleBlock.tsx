@@ -51,7 +51,7 @@ import { Socials } from "./Socials.js"
 import Person from "./Person.js"
 import NarrativeChart from "./NarrativeChart.js"
 import { BespokeComponent } from "./BespokeComponent.js"
-import { Container, getLayout } from "./layout.js"
+import { Container, getLayout, LayoutName } from "./layout.js"
 import { Expander } from "./Expander.js"
 import { BlockSize, ChartConfigType } from "@ourworldindata/types"
 import { normalizeBlockType, useLinkedChart } from "../utils.js"
@@ -157,7 +157,7 @@ function ArticleBlockInternal({
             const { isExplorer, queryParams } = Url.fromURL(resolvedUrl)
             const areControlsHidden = queryParams.hideControls === "true"
             const size = block.size ?? BlockSize.Wide
-            const layoutSubtype =
+            const layoutSubtype: LayoutName =
                 isExplorer && !areControlsHidden
                     ? `explorer--${size}`
                     : `chart--${size}`
@@ -312,7 +312,10 @@ function ArticleBlockInternal({
         ))
         .with({ type: "recirc" }, (block) => (
             <Recirc
-                className={getLayout(`recirc--${block.align}`, containerType)}
+                className={getLayout(
+                    block.align ? `recirc--${block.align}` : "default",
+                    containerType
+                )}
                 d={block}
             />
         ))

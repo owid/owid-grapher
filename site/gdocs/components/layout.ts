@@ -1,29 +1,10 @@
-import * as R from "remeda"
 import cx from "clsx"
-
-export type Container =
-    | "default"
-    | "sticky-right-left-column"
-    | "sticky-right-left-heading-column"
-    | "sticky-right-right-column"
-    | "sticky-left-left-column"
-    | "sticky-left-right-column"
-    | "side-by-side"
-    | "datapage"
-    | "key-insight"
-    | "key-insight-asset"
-    | "about-page"
-    | "author-header"
-    | "data-insight"
-    | "latest-announcement"
-
-// Each container must have a default layout, usually just full-width
-type Layouts = { default: string; [key: string]: string }
 
 // no line-wrapping for easier alphabetisation
 // oxfmt-ignore
-const layouts: { [key in Container]: Layouts} = {
+const layouts = {
     ["default"]: {
+        ["additional-charts"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["align"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["all-charts"]: "col-start-2 span-cols-12",
         ["aside--left"]: "col-start-2 span-cols-3 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2",
@@ -31,17 +12,22 @@ const layouts: { [key in Container]: Layouts} = {
         ["bespoke-component--narrow"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["bespoke-component--wide"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["bespoke-component--widest"]: "span-cols-12 col-start-2",
+        ["blockquote"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["callout"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["chart-story"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["chart"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["chart--narrow"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["chart--wide"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["chart--widest"]: "col-start-2 span-cols-12 col-md-start-2 span-md-cols-12",
+        ["code-snippet"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["cta"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["country-profile-selector"]: "span-cols-14 grid grid-cols-12-full-width",
         ["data-callout"]: "span-cols-14 grid grid-cols-12-full-width",
         ["data-callout-group"]: "span-cols-14 grid grid-cols-12-full-width",
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["divider"]: "col-start-2 span-cols-12",
+        ["expandable-paragraph"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["expander"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["explorer"]: "col-start-2 span-cols-12",
         ["explorer--narrow"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["explorer--wide"]: "col-start-2 span-cols-12",
@@ -69,7 +55,9 @@ const layouts: { [key in Container]: Layouts} = {
         ["key-insights"]: "col-start-2 span-cols-12",
         ["latest-data-insights"]: "grid grid-cols-12-full-width span-cols-14",
         ["list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["missing-data"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["numbered-list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["people-rows"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
         ["pill-row"]: "grid span-cols-14 grid-cols-12-full-width",
         ["pull-quote--left"]: "span-cols-14 grid grid-cols-12-full-width",
@@ -173,22 +161,26 @@ const layouts: { [key in Container]: Layouts} = {
         ["image--wide"]: "span-cols-6 span-sm-cols-5",
         ["image--widest"]: "span-cols-6 span-sm-cols-5",
     },
-}
+} satisfies Record<string, { default: string } & Record<string, string>>
+
+export type Container = keyof typeof layouts
+
+export type LayoutName = {
+    [C in Container]: keyof (typeof layouts)[C]
+}[Container]
 
 /** The grid column classes for a block type */
 export function getGridColumns(
-    blockType: string = "default",
+    blockType: LayoutName = "default",
     containerType: Container = "default"
 ): string {
-    return (
-        R.prop(layouts, containerType, blockType) ??
-        // fallback to the default for the container
-        R.prop(layouts, containerType, "default")
-    )
+    const container: { default: string } & Partial<Record<LayoutName, string>> =
+        layouts[containerType]
+    return container[blockType] ?? container.default
 }
 
 export function getLayout(
-    blockType: string = "default",
+    blockType: LayoutName = "default",
     containerType: Container = "default"
 ): string {
     return cx(
