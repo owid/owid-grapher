@@ -66,6 +66,9 @@
     --select: var(--blue-90);
     --trail: #e9edf3;
     --peek-ground: #eef2f8;
+    --search-ground: #fbf8f0;
+    --search-edge: #e8dcbd;
+    --search-ink: #8a6a1f;
 
     --sans: "Lato", system-ui, sans-serif;
     --serif: "Playfair Display", Georgia, serif;
@@ -1242,16 +1245,45 @@ body > .crumbs {
 
 /* --- Results: a column right after the place searched --- */
 
+/* The search is a layer over the tree: its column has its own warm ground
+   and edge, so the white columns right of it read as the real tree. */
 .col--results {
     flex-direction: column;
     width: 400px;
+    background: var(--search-ground);
+    border-right-color: var(--search-edge);
+}
+.col--results.is-folded {
+    background: var(--search-ground);
+}
+.col--results .group-label {
+    color: var(--search-ink);
 }
 .results__head {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     gap: 6px;
     padding: 14px 20px 12px;
-    border-bottom: 1px solid var(--rule);
+    border-bottom: 1px solid var(--search-edge);
+}
+.results__head > .icon {
+    align-self: center;
+    width: 15px;
+    height: 15px;
+    color: var(--search-ink);
+}
+.results__hints {
+    display: flex;
+    flex-basis: 100%;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--gray-80);
+}
+.results__hints span + kbd {
+    margin-left: 10px;
 }
 .results__count {
     font-weight: 700;
@@ -1332,4 +1364,21 @@ mark {
 }
 .col--results.is-folded .results__head {
     display: none;
+}
+/* Folded, the results stay a warm strip with the words searched. */
+.col.is-folded .spine--results {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.spine--results .icon {
+    width: 15px;
+    height: 15px;
+    color: var(--search-ink);
+}
+.spine--results .spine__label {
+    color: var(--search-ink);
+}
+.col.is-folded .spine--results:hover {
+    background: #f6efdc;
 }

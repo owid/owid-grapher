@@ -556,6 +556,10 @@ document.addEventListener("keydown", (e) => {
     keyQueue = keyQueue.then(handler).catch(console.error)
 })
 let keyQueue: Promise<void> = Promise.resolve()
+// Keys apply one after another, each after the last one has landed.
+function queueKey(run: () => Promise<void> | void): void {
+    keyQueue = keyQueue.then(run).catch(console.error)
+}
 document.addEventListener("mousemove", (e) => {
     // Content moving under a still mouse can fire a move with no distance.
     if (e.movementX || e.movementY) document.body.classList.remove("is-keying")
@@ -1447,8 +1451,13 @@ function layout(): void {
     }
     // Still too wide: keep only the nearest folded level. The breadcrumb
     // above names the rest.
+    // The results never hide: their folded strip is how you know you are
+    // still inside a search, and the way back to it.
     if (!fits())
-        ancestors.slice(0, -1).forEach((c) => c.classList.add("is-hidden"))
+        ancestors
+            .slice(0, -1)
+            .filter((c) => !c.classList.contains("col--results"))
+            .forEach((c) => c.classList.add("is-hidden"))
     keepTrailInView()
     // Columns never shrink: when they don't all fit, the view follows the
     // focus. Reading keeps the column whole; stepping into the side panel
@@ -1552,8 +1561,7 @@ function render(before: Location): void {
         const r = highlighted(s)
         if (s.base !== undefined) treeFrom(state.path, s.base, false)
         else if (r && nodes.has(r.id)) {
-            const p = ancestry(r.id)
-            treeFrom(p, p.length - 2, true)
+            treeFrom(ancestry(r.id), resultBase(r.id, s), true)
         }
     } else treeFrom(state.path, 0, false)
     if (!s || s.base !== undefined) {
@@ -1940,6 +1948,24 @@ function resultsColumn(s: Search): HTMLElement {
         el("span", "results__where", `in ${scopeName(s.scope)}`),
         waiting ? el("span", "results__note", "Reading the text…") : null
     )
+    // What the keys do here, said where you look: on the results, or
+    // inside one of them with the results still on the left.
+    const hint = (k: string, label: string): HTMLElement[] => [
+        el("kbd", "", k),
+        el("span", "", label),
+    ]
+    const hints = el(
+        "div",
+        "results__hints",
+        ...(s.base === undefined
+            ? [...hint("→", "step in"), ...hint("esc", "close the search")]
+            : [
+                  ...hint("←", "back to the results"),
+                  ...hint("esc", "stay here, close the search"),
+              ])
+    )
+    head.prepend(icon("search"))
+    head.append(hints)
     const body = el("div", "col__body")
     const shown = Math.max(SHOWN, s.at + 40)
     let i = 0
@@ -2009,10 +2035,12 @@ function searchColumns(s: Search): HTMLElement[] {
     // Deep inside a result, the results fold like any column on the left.
     const spine = el(
         "button",
-        "spine",
+        "spine spine--results",
+        icon("search"),
         el("span", "spine__label", s.query.trim() || searchTitle(s))
     )
     spine.dataset.resultsSpine = "1"
+    spine.title = "Back to the results (←)"
     results.prepend(spine)
     cols.push(results)
     return cols
@@ -2042,6 +2070,16 @@ async function moveResult(delta: number): Promise<void> {
     const at = Math.max(0, Math.min(count - 1, s.at + delta))
     if (at !== s.at) await setSearch({ ...s, at })
 }
+// The results stand in for the column of the place searched, so the tree
+// right of them starts below that place and runs down to the result: you
+// see where it lives, and ← climbs back up to the results. A result filed
+// elsewhere (only tagged into the place) starts below its own topic.
+function resultBase(id: string, s: Search): number {
+    const path = ancestry(id)
+    const scopeAt = path.indexOf(s.scope)
+    const at = scopeAt >= 0 ? scopeAt : path.findLastIndex(isPlace)
+    return Math.min(at + 1, path.length - 2)
+}
 // → steps into the highlighted result: the columns after the results
 // become the tree, and the arrows move in it.
 async function enterResult(): Promise<void> {
@@ -2055,7 +2093,7 @@ async function enterAt(id: string): Promise<void> {
     leaveBox()
     const doc = docOf(id)
     if (doc) await loadDoc(doc)
-    const base = ancestry(r.id).length - 2
+    const base = resultBase(r.id, s)
     await go({ path: ancestry(id), peek: null, search: { ...s, base } })
 }
 // ← from the result's own column: back on the results, as you left them.
@@ -2769,11 +2807,11 @@ boxInput.addEventListener("keydown", (e) => {
         if (menuOpen) {
             menuActive = (menuActive + delta + count) % count
             renderMenu()
-        } else void moveResult(delta)
+        } else queueKey(() => moveResult(delta))
     } else if (e.key === "Enter") {
         e.preventDefault()
         if (menuOpen) runMenu(menuActive)
-        else void enterResult()
+        else queueKey(enterResult)
     } else if (
         e.key === "ArrowRight" &&
         !menuOpen &&
@@ -2782,7 +2820,7 @@ boxInput.addEventListener("keydown", (e) => {
     ) {
         // At the end of the words, → steps into the highlighted result.
         e.preventDefault()
-        void enterResult()
+        queueKey(enterResult)
     } else if (e.key === "Tab" && menuOpen && !inCommands()) {
         e.preventDefault()
         runMenu(menuActive)
