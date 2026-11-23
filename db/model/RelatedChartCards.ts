@@ -6,22 +6,15 @@ import {
     getTopicTagIdsForChart,
 } from "./Chart.js"
 
-/** Number of related-chart cards a data page shows */
 const RELATED_CHART_CARD_COUNT = 5
 
-/** One step of the selection: where its charts come from, and how to fetch them */
 export interface RelatedChartStage {
     source: RelatedChartSource
     /** Fetch up to `limit` candidates, none of which are in `excludeChartIds` */
     fetch: (limit: number, excludeChartIds: number[]) => Promise<RelatedChart[]>
 }
 
-/**
- * Fill the related-chart cards stage by stage: each stage only runs if earlier
- * ones left slots empty, and is asked only for what is still missing. Charts are
- * never repeated and the page's own chart is never shown. Each card records the
- * stage that picked it.
- */
+/** Runs each stage only while slots remain, asking it only for what's missing */
 export async function pickRelatedChartCards(
     chartId: number,
     stages: RelatedChartStage[],
@@ -44,11 +37,8 @@ export async function pickRelatedChartCards(
 }
 
 /**
- * The related-chart cards for a data page. Coview recommendations come first.
- * Pages with fewer than five (new pages, and the long tail) are topped up from
- * the page's primary topic, then its other topics, then the topic areas those
- * topics belong to, then site-wide. Fallback candidates are ranked by their
- * aggregate coview score, so the most-explored charts in a topic come first.
+ * Coviews, topped up from the primary topic, the other topics, their areas, then
+ * site-wide, each ranked by aggregate coview score
  */
 export async function getRelatedChartCards(
     knex: db.KnexReadonlyTransaction,

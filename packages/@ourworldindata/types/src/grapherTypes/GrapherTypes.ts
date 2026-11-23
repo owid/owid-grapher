@@ -102,14 +102,10 @@ export interface RelatedChart extends BasicChartInformation {
     chartId: number
     keyChartLevel?: KeyChartLevel
     archiveContext?: ArchiveContext | undefined
-    /** Which step of the related-chart selection picked this chart (data pages only) */
+    /** Which related-chart step picked this chart */
     source?: RelatedChartSource
 }
 
-/**
- * How a data page's related-chart card was chosen: from coviews, or from a
- * fallback when the page has too few coview recommendations.
- */
 export type RelatedChartSource =
     | "coviews"
     | "primary-topic"

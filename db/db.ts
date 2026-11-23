@@ -766,10 +766,7 @@ export function getBestBreadcrumbs(
     return breadcrumbs
 }
 
-/**
- * All topic tags under the areas that the given topic tags belong to: the
- * pool for the topic-area fallback step.
- */
+/** All topic tags under the areas the given topic tags belong to */
 export const getTopicTagIdsInSameAreas = async (
     knex: KnexReadonlyTransaction,
     topicTagIds: number[]

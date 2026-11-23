@@ -879,8 +879,7 @@ export async function getOwnersForVariables(
 
     return rows
         .map((row) => {
-            // `owners` is free-form JSON; anything but a list of names (e.g. a
-            // JSON null) would otherwise fail the bake of every page using it
+            // Free-form JSON: a non-list here would fail every page's bake
             const parsed: unknown = row.owners ? JSON.parse(row.owners) : []
             return {
                 datasetId: row.id,

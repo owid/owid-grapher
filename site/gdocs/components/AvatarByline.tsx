@@ -11,7 +11,6 @@ export default function AvatarByline({
 }: {
     authors: string[]
     authorRoles?: Record<string, string>
-    /** Show initials in a circle for authors without a photo */
     showInitialsWithoutPhoto?: boolean
     /** Layout hooks the caller owns — margins, z-index — not type or colour. */
     className?: string

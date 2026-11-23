@@ -184,9 +184,6 @@ export const DataPageV2Content = ({
                         )}
                     </div>
                     {downloadSection && (
-                        // Sources, processing and citations live in the
-                        // IndicatorMetadataBox above, so only the data download
-                        // remains down here.
                         <div className="datapage-v2__download-section span-cols-14 grid grid-cols-12-full-width">
                             <div className="col-start-2 span-cols-12">
                                 <div className="section-wrapper grid">

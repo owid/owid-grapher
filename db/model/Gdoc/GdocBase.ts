@@ -1519,18 +1519,13 @@ export async function getMinimalAuthorsByNames(
     )
 }
 
-/** A photo on the team page, for people who may have no author page */
 export interface TeamPagePhoto {
     name: string
     image: string
-    /** When the team page was last updated */
     updatedAt: Date
 }
 
-/**
- * The photos in the published team page's person blocks. Data managers who
- * don't write articles often have no author page, but do have a photo here.
- */
+/** Photos from the published team page's person blocks */
 export async function getTeamPagePhotos(
     knex: db.KnexReadonlyTransaction
 ): Promise<TeamPagePhoto[]> {

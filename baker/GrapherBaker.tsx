@@ -213,10 +213,8 @@ export async function renderDataPageV2(
 
     let imageMetadata: Record<string, ImageMetadata> = {}
 
-    // Only show owners for the y-plotted variable(s). The x-dimension is
-    // usually GDP per capita or population (scatterplots/Marimekkos), and
-    // since we only surface the first dataset's owners, including it risks
-    // showing the owners of the wrong dataset.
+    // y-indicators only: the x is usually GDP or population, and only the first
+    // dataset's owners are shown
     const ownerVariableIds = _.uniq(
         _.compact(
             grapher.dimensions
@@ -230,8 +228,7 @@ export async function renderDataPageV2(
         (datapageData.owners ?? []).flatMap((dataset) => dataset.owners)
     )
     const authors = await getMinimalAuthorsByNames(knex, ownerNames)
-    // Data managers without an author page photo fall back to their team
-    // page photo, which is only worth fetching when someone needs it
+    // Only fetch the team page if someone lacks an author page photo
     const someoneLacksPhoto = ownerNames.some(
         (name) =>
             !authors.some(
@@ -269,8 +266,7 @@ export async function renderDataPageV2(
             .map((r) => r.imageUrl)
             .filter((f): f is string => !!f)
 
-        // Photos of the data managers. Left out of archived pages, which have
-        // no image assets, so they show initials instead.
+        // Archived pages have no image assets, so managers show initials
         const linkedAuthorFilenames = (datapageData.linkedAuthors ?? [])
             .map((author) => author.featuredImage)
             .filter((f): f is string => !!f)

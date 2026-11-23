@@ -24,7 +24,6 @@
         @include body-3-medium;
         color: $blue-90;
         margin: 4px 0 0;
-        // At most three lines, the last ending in an ellipsis if cut
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 3;
@@ -37,8 +36,7 @@
     color: $blue-90;
 }
 
-// On phones, 40px from the metadata box to the next heading, whether that's
-// Related charts here or Related research and writing (16px plus its padding)
+// On phones, the same 40px gap as above Related research and writing
 @include sm-only {
     .indicator-metadata-box + .datapage-v2__related-charts-heading {
         margin-top: 24px;

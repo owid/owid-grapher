@@ -368,7 +368,6 @@ function IndicatorFinePrint({ license }: { license?: LicenseOption }) {
     )
 }
 
-/** Everything behind Show more, under the "What you should know" preview */
 function IndicatorMetadataSections({
     datapageData,
     faqEntries,
@@ -480,8 +479,7 @@ export default function IndicatorMetadataBox({
     })
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
-    // Derived from the box's id rather than useId(): the server renders the
-    // whole page but the client hydrates only the data page content, so
+    // Not useId(): the client hydrates only part of the server-rendered page, so
     // generated ids wouldn't match
     const detailsId = id ? `${id}-details` : undefined
 

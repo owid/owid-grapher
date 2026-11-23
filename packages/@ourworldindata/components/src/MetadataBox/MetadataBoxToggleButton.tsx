@@ -4,17 +4,12 @@ import { useEffect, useState } from "react"
 
 interface MetadataBoxToggleButtonProps {
     detailsRef: React.RefObject<HTMLDetailsElement | null>
-    /** The id of the <details> it opens and closes */
     detailsId?: string
 }
 
 /**
- * Opens and closes a MetadataBoxExpander from the top of the box.
- *
- * The visible label follows the <details> state through CSS, so it matches the
- * server render; `aria-expanded` follows it once hydrated. Without JavaScript
- * the button can't do anything, so it's hidden and the expander's own
- * <summary> remains.
+ * Toggles a MetadataBoxExpander from the top of the box. The label follows the
+ * <details> through CSS, so it matches the server render; hidden without JS.
  */
 export function MetadataBoxToggleButton({
     detailsRef,

@@ -38,7 +38,6 @@
     }
 }
 
-// One centred column, with the heading in the page's section-title style
 .downloads--stacked {
     .downloads__heading {
         @include datapage-section-title;

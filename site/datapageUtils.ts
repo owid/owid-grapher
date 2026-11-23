@@ -145,11 +145,7 @@ export function splitDescriptionKey(markdown: string): DescriptionKeySplit {
     return splitBlocksAt(blocks, findPreviewEnd(blocks))
 }
 
-/**
- * The name to give the producer's own documentation: the indicator's short
- * attribution, or else the name of the one producer its sources share. With
- * several producers it isn't clear whose text it is, so it stays generic.
- */
+/** The short attribution, else the one producer's name, else a generic label */
 export function getProducerDocsLabel(
     datapageData: Pick<DataPageDataV2, "attributionShort" | "origins">
 ): string {
@@ -157,7 +153,6 @@ export function getProducerDocsLabel(
     const origins = datapageData.origins.filter((origin) => origin.producer)
     const producers = new Set(origins.map((origin) => origin.producer))
     if (producers.size !== 1) return "Principal data source"
-    // the sources' short name, if they agree on one, else the producer's name
     const shortNames = new Set(origins.map((origin) => origin.attributionShort))
     const [shortName] = shortNames
     return (shortNames.size === 1 && shortName) || origins[0].producer!

@@ -661,9 +661,7 @@ export const getMostViewedGrapherIdsByChartType = async (
     return ids.map((row) => row.id)
 }
 
-// A published chart that isn't tagged Unlisted: the only charts eligible to appear
-// as a related-chart card. Expects the query to join `charts` and `chart_configs`
-// under those names.
+// Published and not Unlisted. Needs `charts` and `chart_configs` joined by those names.
 const LISTED_CHART_CLAUSE = `-- sql
     chart_configs.config->>"$.isPublished" = "true"
     AND NOT EXISTS (
@@ -703,13 +701,8 @@ export const getRelatedChartsForChart = async (
 }
 
 /**
- * Listed charts ranked by their aggregate coview score: the total score they
- * receive as a recommendation across all charts, i.e. how often readers of
- * other charts go on to view them. Used to fill related-chart cards on pages
- * with too few coview recommendations of their own.
- *
- * `tagIds` restricts candidates to charts tagged with any of those tags; leave
- * it undefined for a site-wide ranking.
+ * Listed charts ranked by the coview score they receive across all charts.
+ * Without `tagIds`, the ranking is site-wide.
  */
 export const getChartsByAggregateCoviewScore = async (
     knex: db.KnexReadonlyTransaction,
@@ -761,11 +754,8 @@ export const getChartsByAggregateCoviewScore = async (
 }
 
 /**
- * Topic tags for a data page's related-chart fallback, in priority order: the
- * indicator's own topic tags (as curated in its metadata, first one being the
- * primary topic), then any other topic tags on the chart itself. Only tags in
- * the topic graph below an area count, which leaves out Unlisted and other
- * bookkeeping tags.
+ * The indicator's topic tags (primary first), then the chart's other topic tags.
+ * Only tags in the topic graph count.
  */
 export const getTopicTagIdsForChart = async (
     knex: db.KnexReadonlyTransaction,
