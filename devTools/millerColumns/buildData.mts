@@ -7,6 +7,13 @@
 import fs from "node:fs"
 import path from "node:path"
 import mysql from "mysql2/promise"
+// The file, not the package: its index pulls in archieml, which ESM cannot load.
+import { parseFaqs } from "../../packages/@ourworldindata/gdoc-pipeline/src/rawToEnriched.js"
+import {
+    formatSourceDate,
+    getLastUpdatedFromVariable,
+    getNextUpdateFromVariable,
+} from "@ourworldindata/utils"
 import {
     GRAPHER_DB_HOST,
     GRAPHER_DB_NAME,
@@ -565,11 +572,20 @@ function addReference(
     })
 }
 
-function buildBody(docId: string, body: RawBlock[]): void {
-    let counter = 0
-    const stack: { level: number; id: string }[] = [{ level: 0, id: docId }]
+// Block ids number a document's blocks in reading order ("doc#1", "doc#2", …).
+const blockCounts = new Map<string, number>()
+function newBlockId(docId: string): string {
+    const n = (blockCounts.get(docId) ?? 0) + 1
+    blockCounts.set(docId, n)
+    return `${docId}#${n}`
+}
+
+// `under` places the blocks below one of the document's blocks (a data page's
+// FAQ section) instead of at its top.
+function buildBody(docId: string, body: RawBlock[], under = docId): void {
+    const stack: { level: number; id: string }[] = [{ level: 0, id: under }]
     const parentFor = (): string => stack[stack.length - 1].id
-    const newId = (): string => `${docId}#${++counter}`
+    const newId = (): string => newBlockId(docId)
 
     function addBlock(b: RawBlock): void {
         switch (b.type) {
@@ -786,53 +802,88 @@ for (const g of gdocs) {
 
 // --- Data pages: a chart or view's home reads like a short document ---
 
-// The indicator behind a chart is its first y dimension, as on data pages
-// (sorted so the first one is written last).
+// Only charts in the `datapages` view render as data pages on the site; the
+// rest are plain grapher pages (the chart alone), so they get no metadata here.
+// MDM views always render as data pages.
 for (const d of await q<{ chartId: number; variableId: number }>(
-    `SELECT chartId, variableId FROM chart_dimensions
-    WHERE property = 'y' ORDER BY \`order\` DESC`
+    "SELECT chartId, variableId FROM datapages"
 ))
     indicatorOf.set(`chart:${d.chartId}`, d.variableId)
 
 const indicatorIds = [...new Set(indicatorOf.values())]
+const inIndicators = `(${indicatorIds.join(",") || "NULL"})`
 const variables = new Map(
     (
         await q<{
             id: number
+            unit: string | null
+            timespan: string | null
+            catalogPath: string | null
+            attribution: string | null
+            updatePeriodDays: number | null
             descriptionShort: string | null
             descriptionKey: string[] | string | null
+            descriptionFromProducer: string | null
             descriptionProcessing: string | null
-        }>(`SELECT id, descriptionShort, descriptionKey, descriptionProcessing
-            FROM variables WHERE id IN (${indicatorIds.join(",") || "NULL"})`)
+        }>(`SELECT v.id, COALESCE(v.display->>'$.unit', v.unit) unit,
+            v.timespan, v.catalogPath, v.attribution, d.updatePeriodDays,
+            v.descriptionShort, v.descriptionKey, v.descriptionFromProducer,
+            v.descriptionProcessing
+            FROM variables v JOIN datasets d ON d.id = v.datasetId
+            WHERE v.id IN ${inIndicators}`)
     ).map((v) => [v.id, v])
 )
-const originsOf = new Map<
-    number,
-    { producer: string; title: string; urlMain: string | null; year: string }[]
->()
-for (const o of await q<{
-    variableId: number
+type Origin = {
     producer: string
-    title: string | null
-    titleSnapshot: string | null
+    title: string
+    attributionShort: string | null
+    description: string | null
+    citationFull: string | null
     urlMain: string | null
     datePublished: string | null
-    dateAccessed: Date | null
-}>(`SELECT ov.variableId, o.producer, o.title, o.titleSnapshot, o.urlMain,
+    dateAccessed: string | undefined
+}
+const originsOf = new Map<number, Origin[]>()
+for (const o of await q<
+    Omit<Origin, "dateAccessed"> & {
+        variableId: number
+        titleSnapshot: string | null
+        dateAccessed: Date | null
+    }
+>(`SELECT ov.variableId, o.producer, o.title, o.titleSnapshot,
+        o.attributionShort, o.description, o.citationFull, o.urlMain,
         o.datePublished, o.dateAccessed
     FROM origins_variables ov JOIN origins o ON o.id = ov.originId
-    WHERE ov.variableId IN (${indicatorIds.join(",") || "NULL"})
+    WHERE ov.variableId IN ${inIndicators}
     ORDER BY ov.displayOrder`)) {
-    const year =
-        o.datePublished?.slice(0, 4) ??
-        (o.dateAccessed ? String(o.dateAccessed.getFullYear()) : "")
     if (!originsOf.has(o.variableId)) originsOf.set(o.variableId, [])
     originsOf.get(o.variableId)!.push({
-        producer: o.producer,
+        ...o,
         title: o.title ?? o.titleSnapshot ?? "",
-        urlMain: o.urlMain,
-        year,
+        dateAccessed: o.dateAccessed?.toISOString().slice(0, 10),
     })
+}
+
+// FAQs live in fragment gdocs; each indicator picks some by fragment id.
+const faqRows = await q<{
+    variableId: number
+    gdocId: string
+    fragmentId: string
+    faqs: unknown
+}>(`SELECT f.variableId, f.gdocId, f.fragmentId,
+        JSON_EXTRACT(g.content, '$.faqs') faqs
+    FROM posts_gdocs_variables_faqs f JOIN posts_gdocs g ON g.id = f.gdocId
+    WHERE f.variableId IN ${inIndicators}
+    ORDER BY f.displayOrder`)
+const faqsByGdoc = new Map(
+    faqRows.map((r) => [r.gdocId, parseFaqs(r.faqs, r.gdocId).faqs])
+)
+const faqsOf = new Map<number, RawBlock[]>()
+for (const r of faqRows) {
+    const content = faqsByGdoc.get(r.gdocId)?.[r.fragmentId]?.content
+    if (!content) continue
+    if (!faqsOf.has(r.variableId)) faqsOf.set(r.variableId, [])
+    faqsOf.get(r.variableId)!.push(...(content as RawBlock[]))
 }
 
 // Metadata text is markdown: keep its links, drop the rest of the syntax.
@@ -867,16 +918,16 @@ function keyBullets(key: string[] | string | null): string[] {
         .filter(Boolean)
 }
 
+// A data page reads like the site's: the chart, its key facts, then the
+// sections of its metadata box. A plain grapher page is the chart alone.
 function buildDataPage(ownerId: string): void {
     const owner = nodes.get(ownerId)!
     const variable = variables.get(indicatorOf.get(ownerId) ?? -1)
-    const origins = variable ? (originsOf.get(variable.id) ?? []) : []
     // Variants (narrative charts) follow the data page.
     const variants = owner.children ?? []
     owner.children = []
-    let counter = 0
     const block = (parent: string, n: Omit<TreeNode, "id">): string => {
-        const id = `${ownerId}#${++counter}`
+        const id = newBlockId(ownerId)
         add({ id, ...n })
         attach(parent, id)
         // The figure is the chart at home, not a use of it.
@@ -884,13 +935,32 @@ function buildDataPage(ownerId: string): void {
             for (const l of n.links ?? []) addReference(l.target, id, l.text)
         return id
     }
-    const paragraph = (parent: string, md: string): void => {
+    const section = (title: string, level = 2): string =>
+        block(ownerId, { kind: "heading", level, title })
+    // Markdown fields hold paragraphs separated by blank lines.
+    const paragraphs = (parent: string, md: string | null): void => {
+        for (const p of (md ?? "")
+            .split(/\n\s*\n/)
+            .map((x) => x.trim())
+            .filter(Boolean)) {
+            const links: Link[] = []
+            const spans = markdownSpans(p, links)
+            block(parent, {
+                kind: "paragraph",
+                title: "",
+                spans,
+                links: links.length ? links : undefined,
+            })
+        }
+    }
+    const list = (parent: string, mdItems: string[]): void => {
+        if (!mdItems.length) return
         const links: Link[] = []
-        const spans = markdownSpans(md, links)
+        const items = mdItems.map((b) => markdownSpans(b, links))
         block(parent, {
-            kind: "paragraph",
+            kind: "list",
             title: "",
-            spans,
+            items,
             links: links.length ? links : undefined,
         })
     }
@@ -904,45 +974,77 @@ function buildDataPage(ownerId: string): void {
         url: owner.url,
         links: [{ text: owner.title, target: ownerId, kind: owner.kind }],
     })
-    if (variable?.descriptionShort)
-        paragraph(ownerId, variable.descriptionShort)
-
-    const bullets = keyBullets(variable?.descriptionKey ?? null)
-    if (bullets.length) {
-        const section = block(ownerId, {
-            kind: "heading",
-            level: 2,
-            title: "What you should know about this data",
-        })
-        const links: Link[] = []
-        const items = bullets.map((b) => markdownSpans(b, links))
-        block(section, {
-            kind: "list",
-            title: "",
-            items,
-            links: links.length ? links : undefined,
-        })
+    if (!variable) {
+        owner.children.push(...variants)
+        return
     }
+    const origins = originsOf.get(variable.id) ?? []
 
-    if (origins.length || variable?.descriptionProcessing) {
-        const section = block(ownerId, {
-            kind: "heading",
-            level: 2,
-            title: "Sources and processing",
-        })
+    paragraphs(ownerId, variable.descriptionShort)
+    const lastUpdated = getLastUpdatedFromVariable({
+        catalogPath: variable.catalogPath ?? undefined,
+        origins: origins.map((o) => ({ dateAccessed: o.dateAccessed })),
+    })
+    const nextUpdate = getNextUpdateFromVariable({
+        catalogPath: variable.catalogPath ?? undefined,
+        updatePeriodDays: variable.updatePeriodDays ?? undefined,
+    })
+    const dataSource =
+        variable.attribution ??
+        [...new Set(origins.map((o) => o.producer))].join("; ")
+    list(
+        ownerId,
+        [
+            dataSource && `Data source: ${dataSource}`,
+            variable.unit && `Unit: ${variable.unit}`,
+            variable.timespan && `Date range: ${variable.timespan}`,
+            lastUpdated &&
+                `Last updated: ${formatSourceDate(lastUpdated, "MMMM D, YYYY")}`,
+            nextUpdate &&
+                `Next expected update: ${formatSourceDate(nextUpdate, "MMMM YYYY")}`,
+        ].filter((x): x is string => !!x)
+    )
+
+    const bullets = keyBullets(variable.descriptionKey)
+    if (bullets.length)
+        list(section("What you should know about this data"), bullets)
+
+    const faqs = faqsOf.get(variable.id)
+    if (faqs) buildBody(ownerId, faqs, section("Frequently asked questions"))
+
+    if (variable.descriptionProcessing)
+        paragraphs(
+            section("How did Our World in Data process this data?"),
+            variable.descriptionProcessing
+        )
+
+    if (variable.descriptionFromProducer)
+        paragraphs(
+            section("Documentation from data sources"),
+            variable.descriptionFromProducer
+        )
+
+    if (origins.length) {
+        const sources = section("Data sources")
         for (const o of origins) {
-            const label = [o.producer, o.title].filter(Boolean).join(" – ")
-            const year = o.year ? ` (${o.year})` : ""
-            paragraph(
-                section,
-                o.urlMain ? `[${label}](${o.urlMain})${year}` : label + year
+            const year = o.datePublished?.slice(0, 4)
+            const name = [o.producer, o.title].filter(Boolean).join(" – ")
+            const source = block(sources, {
+                kind: "heading",
+                level: 3,
+                title: year ? `${name} (${year})` : name,
+            })
+            paragraphs(source, o.description)
+            list(
+                source,
+                [
+                    o.dateAccessed &&
+                        `Retrieved on: ${formatSourceDate(o.dateAccessed, "MMMM D, YYYY")}`,
+                    o.urlMain && `Retrieved from: [${o.urlMain}](${o.urlMain})`,
+                ].filter((x): x is string => !!x)
             )
+            paragraphs(source, o.citationFull && `Citation: ${o.citationFull}`)
         }
-        for (const p of (variable?.descriptionProcessing ?? "")
-            .split(/\n\s*\n/)
-            .map((x) => x.trim())
-            .filter(Boolean))
-            paragraph(section, p)
     }
     owner.children.push(...variants)
 }
