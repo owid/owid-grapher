@@ -1588,18 +1588,20 @@ function layout(): void {
         cols.reduce((s, c) => s + c.getBoundingClientRect().width, 0)
     const fits = (): boolean => treeWidth() + TRAILING_WIDTH <= available
     // Everything left of the selection's own column may fold, until the
-    // tree and the side slot fit.
+    // tree and the side slot fit. On the results, the left is always the
+    // nearest folded level alone, whatever the highlighted result
+    // previews, so moving in them never opens and shuts the columns there.
     const focus = strip.querySelector<HTMLElement>(":scope > .col.is-focus")
     const ancestors = cols.slice(0, focus ? cols.indexOf(focus) : -1)
     for (const c of ancestors) {
-        if (fits()) break
+        if (!onResults() && fits()) break
         c.classList.add("is-folded")
     }
     // Still too wide: keep only the nearest folded level. The breadcrumb
     // above names the rest.
     // The results never hide: their folded strip is how you know you are
     // still inside a search, and the way back to it.
-    if (!fits())
+    if (onResults() || !fits())
         ancestors
             .slice(0, -1)
             .filter((c) => !c.classList.contains("col--results"))
