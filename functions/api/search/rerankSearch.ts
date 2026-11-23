@@ -239,7 +239,11 @@ export async function searchPagesReranked(
             pickTopics: () =>
                 rerank.staticPageTopics
                     ? pickTopicsByEmbedding(state.query, rerank.waitUntil)
-                    : pickVocabularyTopics(rerank.ai, rerank.model, state.query),
+                    : pickVocabularyTopics(
+                          rerank.ai,
+                          rerank.model,
+                          state.query
+                      ),
             searchTopic: async (topicState) =>
                 (await search(topicState, 0, VOCABULARY_HITS_PER_TERM)).results,
             rerank: (hits, note) =>
