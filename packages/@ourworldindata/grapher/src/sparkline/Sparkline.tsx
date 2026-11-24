@@ -1,8 +1,7 @@
 import * as React from "react"
 import { scaleLinear } from "d3-scale"
 import { extent } from "d3-array"
-import { line } from "d3-shape"
-import { Bounds, roundForSvg } from "@ourworldindata/utils"
+import { Bounds, pointsToPath, roundForSvg } from "@ourworldindata/utils"
 import { OwidVariableRow } from "@ourworldindata/types"
 import { GRAPHER_DENIM } from "../color/ColorConstants"
 
@@ -38,12 +37,12 @@ export function Sparkline({
         .domain(yDomain)
         .range([bounds.bottom, bounds.top])
 
-    const makePath = line<OwidVariableRow<number>>()
-        .x((row) => roundForSvg(xScale(row.originalTime)))
-        .y((row) => roundForSvg(yScale(row.value)))
-
-    const path = makePath(owidRows)
-    if (!path) return null
+    const path = pointsToPath(
+        owidRows.map((row) => ({
+            x: xScale(row.originalTime),
+            y: yScale(row.value),
+        }))
+    )
 
     const strokeDasharray = strokeStyle === "dotted" ? "2,3" : undefined
 
