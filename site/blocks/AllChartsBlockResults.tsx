@@ -180,7 +180,7 @@ function AllChartsBlockList({
                         key={hit.objectID}
                         hit={hit}
                         countries={countries}
-                        isSelected={hit === selectedHit}
+                        isSelected={hit.objectID === selectedHit.objectID}
                         selectedTab={selectedTab}
                         isNarrow={isNarrow}
                         onSelect={(tab) => onSelect(hit, tab)}
