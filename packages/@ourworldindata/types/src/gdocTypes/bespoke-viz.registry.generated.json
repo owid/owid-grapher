@@ -1,6 +1,82 @@
 {
   "bundles": [
     {
+      "id": "ai-training-compute",
+      "entryFile": "bespoke/projects/ai-training-compute/src/index.tsx",
+      "prose": {
+        "intro": ""
+      },
+      "examples": [],
+      "variants": [
+        {
+          "name": "scatter",
+          "description": "Training computation of notable AI models over time, with a zoomable time range, colors by developer, domain or sector, and famous computers for comparison",
+          "defaultSize": "wide",
+          "archie": "{.bespoke-component}\nbundle: ai-training-compute\nvariant: scatter\nsize: wide\n{}\n"
+        }
+      ],
+      "config": [
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Chart title",
+          "default": "How much computation was used to train notable AI systems?"
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "description": "Chart subtitle",
+          "default": "Total number of calculations (floating-point operations, FLOP) used to train each AI system. The axis is logarithmic: each labeled gridline is a thousand times the one below."
+        },
+        {
+          "name": "colorBy",
+          "type": "enum",
+          "values": [
+            "organization",
+            "domain",
+            "sector"
+          ],
+          "description": "What the dot colors show at first: the developer, the domain of the AI system, or the sector (industry or academia)",
+          "default": "organization"
+        },
+        {
+          "name": "startYear",
+          "type": "integer",
+          "description": "First year of the time range shown at first",
+          "default": "1940"
+        },
+        {
+          "name": "endYear",
+          "type": "integer",
+          "description": "Last year of the time range shown at first. Defaults to next year"
+        },
+        {
+          "name": "showComputers",
+          "type": "boolean",
+          "description": "Whether famous computers (supercomputers, PCs and consoles, AI chips) start switched on",
+          "default": "true"
+        },
+        {
+          "name": "showReferenceLines",
+          "type": "boolean",
+          "description": "Whether the human comparisons and legal thresholds start switched on",
+          "default": "true"
+        },
+        {
+          "name": "labeledModels",
+          "type": "string",
+          "description": "Comma-separated model names (as in Epoch's data) to label directly on the chart, most important first",
+          "default": "GPT-6 Astra, AlexNet, GPT-3 175B (davinci), AlphaGo Lee, Theseus, Perceptron Mark I, TD-Gammon, AlphaFold 2, GPT-4 (Mar 2023), NetTalk (transcription), Neocognitron, ADALINE, GraphCast"
+        },
+        {
+          "name": "hideControls",
+          "type": "boolean",
+          "description": "Hide the controls box above the chart",
+          "default": "false"
+        }
+      ]
+    },
+    {
       "id": "causes-of-death",
       "entryFile": "bespoke/projects/causes-of-death/src/index.tsx",
       "prose": {
