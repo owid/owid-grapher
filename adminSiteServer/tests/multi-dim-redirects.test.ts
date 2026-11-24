@@ -11,6 +11,16 @@ import {
     seedDatasetAndVariables,
     variableId,
 } from "./fixtures.js"
+import {
+    knexReadonlyTransaction,
+    KnexReadonlyTransaction,
+    TransactionCloseMode,
+} from "../../db/db.js"
+import {
+    getMultiDimRedirectRulesBySource,
+    getMultiDimRedirectTargets,
+    getRecentMultiDimRedirects,
+} from "../../db/model/MultiDimRedirects.js"
 
 const env = getAdminTestEnv()
 
@@ -419,3 +429,145 @@ describe(
         })
     }
 )
+
+describe("Multi-dim redirect lookups", { timeout: 30000 }, () => {
+    let multiDimId: number
+    let totalViewConfigId: string
+    let perCapitaViewConfigId: string
+
+    beforeEach(async () => {
+        await seedDatasetAndVariables(env)
+        const multiDim = await createPublishedMultiDim()
+        multiDimId = multiDim.id
+        const viewConfigId = (metric: string): string =>
+            multiDim.config.views.find(
+                (v: any) => v.dimensions.metric === metric
+            ).fullConfigId
+        totalViewConfigId = viewConfigId("total")
+        perCapitaViewConfigId = viewConfigId("per_capita")
+    })
+
+    function inTransaction<T>(
+        fn: (trx: KnexReadonlyTransaction) => Promise<T>
+    ): Promise<T> {
+        return knexReadonlyTransaction(
+            fn,
+            TransactionCloseMode.KeepOpen,
+            env.testKnex
+        )
+    }
+
+    async function insertRedirects(
+        rows: {
+            source: string
+            sourceQueryParams?: Record<string, string>
+            viewConfigId?: string
+        }[]
+    ): Promise<void> {
+        await env.testKnex(MultiDimRedirectsTableName).insert(
+            rows.map((row) => ({
+                source: row.source,
+                sourceQueryParams: row.sourceQueryParams
+                    ? JSON.stringify(row.sourceQueryParams)
+                    : null,
+                multiDimId,
+                viewConfigId: row.viewConfigId ?? null,
+            }))
+        )
+    }
+
+    it("picks one target per source, preferring the catch-all rule", async () => {
+        await insertRedirects([
+            {
+                source: "/explorers/energy",
+                sourceQueryParams: { Metric: "Per capita" },
+                viewConfigId: perCapitaViewConfigId,
+            },
+            { source: "/explorers/energy", viewConfigId: totalViewConfigId },
+            {
+                source: "/grapher/energy-per-capita",
+                viewConfigId: perCapitaViewConfigId,
+            },
+            { source: "/grapher/energy-default" },
+        ])
+
+        const explorerTargets = await inTransaction((trx) =>
+            getMultiDimRedirectTargets(trx, undefined, "/explorers/")
+        )
+        expect(Object.fromEntries(explorerTargets)).toEqual({
+            energy: {
+                targetSlug: "energy-use",
+                queryStr: "metric=total&source=all",
+            },
+        })
+
+        const grapherTargets = await inTransaction((trx) =>
+            getMultiDimRedirectTargets(
+                trx,
+                ["energy-per-capita", "energy-default"],
+                "/grapher/"
+            )
+        )
+        expect(Object.fromEntries(grapherTargets)).toEqual({
+            "energy-per-capita": {
+                targetSlug: "energy-use",
+                queryStr: "metric=per_capita&source=all",
+            },
+            "energy-default": { targetSlug: "energy-use" },
+        })
+    })
+
+    it("returns every rule per source, in insertion order, with the target view's params", async () => {
+        await insertRedirects([
+            {
+                source: "/explorers/energy",
+                sourceQueryParams: { Metric: "Per capita", Country: "FRA" },
+                viewConfigId: perCapitaViewConfigId,
+            },
+            { source: "/explorers/energy" },
+        ])
+
+        const rules = await inTransaction((trx) =>
+            getMultiDimRedirectRulesBySource(trx, "/explorers/")
+        )
+        expect(rules.get("energy")).toEqual([
+            {
+                sourceQueryParams: { Metric: "Per capita", Country: "FRA" },
+                target: {
+                    targetSlug: "energy-use",
+                    // Source params the view doesn't set are removed.
+                    targetQueryParams: {
+                        metric: "per_capita",
+                        source: "all",
+                        Country: null,
+                        Metric: null,
+                    },
+                },
+            },
+            {
+                sourceQueryParams: {},
+                target: { targetSlug: "energy-use", targetQueryParams: {} },
+            },
+        ])
+    })
+
+    it("lists recent grapher redirects with the target view's query string", async () => {
+        await insertRedirects([
+            {
+                source: "/grapher/energy-total",
+                viewConfigId: totalViewConfigId,
+            },
+            { source: "/explorers/energy", viewConfigId: totalViewConfigId },
+        ])
+
+        const redirects = await inTransaction((trx) =>
+            getRecentMultiDimRedirects(trx)
+        )
+        expect(redirects).toEqual([
+            {
+                source: "/grapher/energy-total",
+                target: "/grapher/energy-use?metric=total&source=all",
+            },
+        ])
+    })
+})
