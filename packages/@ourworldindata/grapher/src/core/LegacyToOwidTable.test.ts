@@ -212,7 +212,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             expect(annotations).toEqual([{ text: "Note", timeScope: "all" }])
         })
 
-        it("ignores a lone timeEnd, turns equal-end ranges into points and drops backwards ranges", () => {
+        it("drops a lone timeEnd, turns equal-end ranges into points and drops backwards ranges", () => {
             expect(
                 getAnnotations({
                     annotations: [
@@ -221,10 +221,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                         { text: "Backwards", time: 2010, timeEnd: 2000 },
                     ],
                 })
-            ).toEqual([
-                { text: "End only", timeScope: "all" },
-                { text: "Same", timeScope: "point", time: 2005 },
-            ])
+            ).toEqual([{ text: "Same", timeScope: "point", time: 2005 }])
         })
 
         describe("on sub-yearly data", () => {
