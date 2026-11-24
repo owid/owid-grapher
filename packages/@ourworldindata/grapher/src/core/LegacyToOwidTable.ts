@@ -425,10 +425,10 @@ const fullJoinTables = (
     const sharedColumnNames = intersection(
         ...tables.map((table) => table.columnSlugs)
     )
-    const allIndexValuesArray = indexValuesPerTable.flatMap((index) => [
-        ...index.keys(),
-    ])
-    const allIndexValues = new Set(allIndexValuesArray)
+    // Insertion order matters: index values of the first table come first
+    const allIndexValues = new Set<string>()
+    for (const indexValues of indexValuesPerTable)
+        for (const key of indexValues.keys()) allIndexValues.add(key)
 
     // Now identify for each table which columns should be copied (i.e. all non-index columns).
     const columnsToAddPerTable = tables.map((table) =>
@@ -457,110 +457,131 @@ const fullJoinTables = (
                         return def
                     }) as OwidColumnDef[]
         )
+    // The loop below touches every cell, so resolve the source and target
+    // arrays of every column up front. Going through the memoized
+    // `table.columnStore` getter for each cell is slow.
+    const sharedDefTargets = defsToAddPerTable[0].map((def) => def.values!)
+    // sharedDefSourcesPerTable[tableIndex][defIndex]
+    const sharedDefSourcesPerTable = tables.map((table) =>
+        defsToAddPerTable[0].map((def) => table.columnStore[def.slug])
+    )
+    const valueDefTargetsPerTable = tables.map((_table, i) =>
+        defsToAddPerTable[i + 1].map((def) => def.values!)
+    )
+    const valueDefSourcesPerTable = tables.map((table, i) =>
+        defsToAddPerTable[i + 1].map((def) => table.columnStore[def.slug])
+    )
+    const fallbackKeyFns = mergeFallbackLookupColumns?.map((columnSet) =>
+        makeKeyFn(tables[0].columnStore, columnSet)
+    )
+
     // Now loop over all unique index values and for each assemble as full a row as we can manage by looking
     // up the values in the different source tables
-    for (const index of allIndexValues.values()) {
-        // First we handle the unique/index columns (defsToAddPerTable[0])
-        for (const def of defsToAddPerTable[0]) {
-            // The index columns are special - the first table might not have a value for each of the index columns
-            // at the current index (e.g. a year that does not exist in the first table). We therefore have to keep
-            // looking in the other tables until we find a table that has the values. Because the index values were
-            // generated from the combined set of all index values we are guaranteed to find a value eventually before
-            // we exceed the length of the tables array
-            let tableIndex = 0
-            let indexHits = indexValuesPerTable[tableIndex].get(index)
-            while (indexHits === undefined) {
-                tableIndex++
-                indexHits = indexValuesPerTable[tableIndex].get(index)
-            }
-            def.values?.push(
-                tables[tableIndex].columnStore[def.slug][indexHits[0]]
-            )
+    for (const index of allIndexValues) {
+        // First we handle the unique/index columns (defsToAddPerTable[0]).
+        // The index columns are special - the first table might not have a value for each of the index columns
+        // at the current index (e.g. a year that does not exist in the first table). We therefore have to keep
+        // looking in the other tables until we find a table that has the values. Because the index values were
+        // generated from the combined set of all index values we are guaranteed to find a value eventually before
+        // we exceed the length of the tables array
+        let sharedTableIndex = 0
+        let sharedIndexHits = indexValuesPerTable[0].get(index)
+        while (sharedIndexHits === undefined) {
+            sharedTableIndex++
+            sharedIndexHits = indexValuesPerTable[sharedTableIndex].get(index)
         }
+        const sharedRow = sharedIndexHits[0]
+        const sharedDefSources = sharedDefSourcesPerTable[sharedTableIndex]
+        for (let d = 0; d < sharedDefTargets.length; d++)
+            sharedDefTargets[d].push(sharedDefSources[d][sharedRow])
+
         // Now figure out the fallback merge lookup index value from the first table.
         // This is the fallback index we use when looking up values and we don't find a value in the normal index.
         // This is the case when we join year and day variables and then use day+entityid as the key but the year
         // variables don't have those - so for the year variables we then check if there is a match using year+entityId
         // where the year to use comes from the first table that by convention HAS TO contain a year column with the
         // value to merge years on.
-        const indexHits = indexValuesPerTable[0].get(index)
+        const firstTableIndexHits =
+            sharedTableIndex === 0 ? sharedIndexHits : undefined
         const fallbackMergeIndices =
-            mergeFallbackLookupColumns && indexHits
-                ? mergeFallbackLookupColumns.map((columnSet) =>
-                      makeKeyFn(tables[0].columnStore, columnSet)(indexHits[0])
-                  )
+            fallbackKeyFns && firstTableIndexHits
+                ? fallbackKeyFns.map((keyFn) => keyFn(firstTableIndexHits[0]))
                 : undefined
+
         // now add all the nonindex value columns. We now loop over all tables and for each non-shared column
         // we look up the value for the current row. We find the value for the current row by first trying to
         // look up a match based on the shared index values, indexValuesPerTable[i]. If we don't have a hit
         // for this row in this table then we try the fallbackMergeIndices in turn to see if we can merge
         // based on these fallback indexes. If no option leads to a match we store ErrorValueTypes.NoMatchingValueAfterJoin
         // in the cell.
-
-        // note that defsToAddPerTable has one more element than tables (the one duplicate of the
-        // first table that we added in the beginning that we use as the primary source for the shared columns)
         for (let i = 0; i < tables.length; i++) {
+            const targets = valueDefTargetsPerTable[i]
+            const sources = valueDefSourcesPerTable[i]
             let indexHits = indexValuesPerTable[i].get(index)
 
-            if (indexHits !== undefined && indexHits.length > 1)
-                // This case should be rare but it can come up. The old algorithm ran into this often because it
-                // joined a lot more stuff on entity only and then when you look up by entity into a table that has
-                // several years you end up with multiple matches. The old algorithm used to just pick one value.
-                // We still do this ultimately but because we try to match even day and year variables by year+entity
-                // first we should usually be able to find a unique match. The error output is here so that when
-                // something is weird in an edge case then this shows up as a debugging hint in the console.
-                console.error(
-                    `Found more than one matching row in table ${tables[i].tableSlug}`
-                )
-            for (const def of defsToAddPerTable[i + 1]) {
-                // If the main index led to a hit then we just copy the value into the new row from the source table
-                if (indexHits !== undefined)
-                    def.values?.push(
-                        tables[i].columnStore[def.slug][indexHits[0]]
+            if (indexHits !== undefined) {
+                if (indexHits.length > 1)
+                    // This case should be rare but it can come up. The old algorithm ran into this often because it
+                    // joined a lot more stuff on entity only and then when you look up by entity into a table that has
+                    // several years you end up with multiple matches. The old algorithm used to just pick one value.
+                    // We still do this ultimately but because we try to match even day and year variables by year+entity
+                    // first we should usually be able to find a unique match. The error output is here so that when
+                    // something is weird in an edge case then this shows up as a debugging hint in the console.
+                    console.error(
+                        `Found more than one matching row in table ${tables[i].tableSlug}`
                     )
-                else {
-                    // If the main index did not lead to a hit then we try the fallback indices in turn
-                    indexHits = undefined
-                    for (
-                        let fallbackIndex = 0;
-                        fallbackMergeIndices &&
-                        mergeFallbackLookupValuesPerTable &&
-                        indexHits === undefined &&
-                        fallbackIndex < fallbackMergeIndices.length;
-                        fallbackIndex++
-                    ) {
-                        indexHits = mergeFallbackLookupValuesPerTable[
-                            fallbackIndex
-                        ][i].get(fallbackMergeIndices[fallbackIndex])
-                    }
-                    if (indexHits !== undefined)
-                        // If any of the fallbacks led to a hit then we use this hit
-                        // Note that we choose the last of the indexHits entries to look up the row in the columnstore here.
-                        // In the usual case the fallback index should still have enough information to match just one row (e.g.
-                        // year+entity). But for cases when we join day and year variables we have as the ultimate fallback a match
-                        // by entity only and this can then of course result in many indexHits when looking up an entity like Germany
-                        // in e.g. the population variable. If this join here were properly time and tolerance aware then we could
-                        // avoid matching on entity alone as the ultimate fallback but for  now this function is not that clever.
-                        // For the cases when we do get multiple hits for an index we could thus choose any data point. Pre July 2022
-                        // the old code always chose the first datapoint, which is often the first year that the variable has data for
-                        // for the given entity. This is not great, e.g. when using a covid date based variable and joining it to
-                        // population or similar. What we do here now is to use indexHits.length - 1 as the index, i.e. the last
-                        // row that this variable has data for for this entity. This could in theory be pretty wrong as well but in
-                        // practice it often means a very close match.
-                        // The proper solution as mentioned above would be to never fall back to entity matches only and move
-                        // the tolerance matching into this function as well instead.
-                        def.values?.push(
-                            tables[i].columnStore[def.slug][
-                                indexHits[indexHits.length - 1]
-                            ]
-                        )
-                    // If none of the fallback values worked either we write ErrorValueTypes.NoMatchingValueAfterJoin into the cell
-                    else
-                        def.values?.push(
-                            ErrorValueTypes.NoMatchingValueAfterJoin
-                        )
-                }
+                // If the main index led to a hit then we just copy the values into the new row from the source table
+                const row = indexHits[0]
+                for (let d = 0; d < targets.length; d++)
+                    targets[d].push(sources[d][row])
+                continue
             }
+            if (targets.length === 0) continue
+
+            // If the main index did not lead to a hit then we try the fallback indices in turn
+            for (
+                let fallbackIndex = 0;
+                fallbackMergeIndices &&
+                mergeFallbackLookupValuesPerTable &&
+                indexHits === undefined &&
+                fallbackIndex < fallbackMergeIndices.length;
+                fallbackIndex++
+            ) {
+                indexHits = mergeFallbackLookupValuesPerTable[fallbackIndex][
+                    i
+                ].get(fallbackMergeIndices[fallbackIndex])
+            }
+
+            // If none of the fallback values worked either we write ErrorValueTypes.NoMatchingValueAfterJoin into the cells
+            if (indexHits === undefined) {
+                for (const target of targets)
+                    target.push(ErrorValueTypes.NoMatchingValueAfterJoin)
+                continue
+            }
+
+            // If any of the fallbacks led to a hit then we use this hit.
+            // Note that we choose the last of the indexHits entries to look up the row in the columnstore here.
+            // In the usual case the fallback index should still have enough information to match just one row (e.g.
+            // year+entity). But for cases when we join day and year variables we have as the ultimate fallback a match
+            // by entity only and this can then of course result in many indexHits when looking up an entity like Germany
+            // in e.g. the population variable. If this join here were properly time and tolerance aware then we could
+            // avoid matching on entity alone as the ultimate fallback but for  now this function is not that clever.
+            // For the cases when we do get multiple hits for an index we could thus choose any data point. Pre July 2022
+            // the old code always chose the first datapoint, which is often the first year that the variable has data for
+            // for the given entity. This is not great, e.g. when using a covid date based variable and joining it to
+            // population or similar. What we do here now is to use indexHits.length - 1 as the index, i.e. the last
+            // row that this variable has data for for this entity. This could in theory be pretty wrong as well but in
+            // practice it often means a very close match.
+            // The proper solution as mentioned above would be to never fall back to entity matches only and move
+            // the tolerance matching into this function as well instead.
+            //
+            // Only the first column of a table uses the last hit; the remaining
+            // columns (e.g. the originalTime column of a variable with a
+            // targetYear) use the first one. That's long-standing
+            // behaviour, kept as is.
+            targets[0].push(sources[0][indexHits[indexHits.length - 1]])
+            for (let d = 1; d < targets.length; d++)
+                targets[d].push(sources[d][indexHits[0]])
         }
     }
     return new OwidTable(
