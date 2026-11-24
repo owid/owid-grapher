@@ -10,11 +10,9 @@ import {
     getBoostedFeaturedMetricUrls,
     getFeaturedMetricSlugs,
     MAX_NON_FM_RECORD_SCORE,
+    MIN_SCALED_RECORD_SCORE,
     scaleRecordScores,
 } from "./shared.js"
-
-/** The lowest score a non-negative record is scaled to */
-export const MIN_SCALED_RECORD_SCORE = 1000
 
 /**
  * Builds the scored records of the charts index (charts, explorer views and

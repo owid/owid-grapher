@@ -30,7 +30,7 @@ export const TURBOPUFFER_REGION = "aws-eu-central-1"
  */
 export const DEFAULT_POPULARITY_MIDPOINT = 126
 
-export const TURBOPUFFER_CHART_ATTRIBUTES = [
+const TURBOPUFFER_CHART_ATTRIBUTES = [
     "chart_key",
     "type",
     "slug",
@@ -141,8 +141,9 @@ const combine = (filters: Filter[]): Filter | undefined =>
  * T0 BM25 only; T1 adds popularity; T2 adds a whole-query Fuzzy match on
  * `search_text`.
  */
-export function buildTurbopufferSingleQuery(
-    params: TurbopufferChartsQuery & { arm: "T0" | "T1" | "T2" }
+/** T0–T2, and T3's text half (built like T1) */
+function buildTurbopufferSingleQuery(
+    params: TurbopufferChartsQuery
 ): NamespaceQueryParams {
     const {
         arm,
@@ -192,13 +193,13 @@ export function buildTurbopufferSingleQuery(
 }
 
 /** T3: T1 and a vector query on `search_text`, fused with reciprocal rank fusion */
-export function buildTurbopufferHybridQuery(
+function buildTurbopufferHybridQuery(
     params: TurbopufferChartsQuery
 ): NamespaceMultiQueryParams {
     const limit = params.limit ?? 30
     return {
         queries: [
-            buildTurbopufferSingleQuery({ ...params, arm: "T1" }),
+            buildTurbopufferSingleQuery(params),
             {
                 rank_by: ["search_text", "ANN", ["Embed", params.query]],
                 filters: combine(facetFilters(params)),
@@ -229,10 +230,7 @@ export async function queryTurbopufferCharts(
     const hybrid = params.arm === "T3" && params.query.trim() !== ""
     const body = hybrid
         ? buildTurbopufferHybridQuery(params)
-        : buildTurbopufferSingleQuery({
-              ...params,
-              arm: params.arm === "T3" ? "T1" : params.arm,
-          })
+        : buildTurbopufferSingleQuery(params)
     const response = await fetch(
         `https://${TURBOPUFFER_REGION}.turbopuffer.com/v2/namespaces/${encodeURIComponent(namespace)}/query`,
         {
@@ -248,17 +246,11 @@ export async function queryTurbopufferCharts(
         throw new Error(
             `turbopuffer query failed: ${response.status} ${await response.text()}`
         )
-    if (hybrid) {
-        const json = (await response.json()) as NamespaceMultiQueryResponse
-        return {
-            rows: json.results[0]?.rows ?? [],
-            performance: json.performance,
-            billing: json.billing,
-        }
-    }
-    const json = (await response.json()) as NamespaceQueryResponse
+    const json = (await response.json()) as
+        | NamespaceQueryResponse
+        | NamespaceMultiQueryResponse
     return {
-        rows: json.rows ?? [],
+        rows: ("results" in json ? json.results[0]?.rows : json.rows) ?? [],
         performance: json.performance,
         billing: json.billing,
     }

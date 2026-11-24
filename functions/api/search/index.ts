@@ -113,8 +113,9 @@ function searchWithTurbopuffer(
     hitsPerPage: number,
     baseUrl: string
 ): Promise<TurbopufferSearchApiResponse> {
+    // A client error, so requests to a deployment without the key don't reach Sentry
     if (!env.TURBOPUFFER_API_KEY)
-        throw new Error("engine=tpuf needs TURBOPUFFER_API_KEY to be set")
+        throw new SearchValidationError("engine=tpuf isn't available here")
     const arm = params.get("arm") || "T1"
     if (!isTurbopufferArm(arm))
         throw new SearchValidationError(
@@ -122,7 +123,7 @@ function searchWithTurbopuffer(
         )
     const midpointParam = params.get("midpoint")
     const midpoint = midpointParam ? Number(midpointParam) : undefined
-    if (midpoint !== undefined && !(midpoint > 0))
+    if (midpoint !== undefined && !(Number.isFinite(midpoint) && midpoint > 0))
         throw new SearchValidationError("midpoint must be a positive number")
     return searchChartsTurbopuffer(
         env.TURBOPUFFER_API_KEY,

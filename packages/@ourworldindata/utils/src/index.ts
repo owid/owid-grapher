@@ -469,10 +469,6 @@ export {
     TURBOPUFFER_ARMS,
     type TurbopufferArm,
     isTurbopufferArm,
-    type TurbopufferChartsQuery,
-    type TurbopufferChartsResult,
-    buildTurbopufferSingleQuery,
-    buildTurbopufferHybridQuery,
     queryTurbopufferCharts,
 } from "./search/turbopufferCharts.js"
 export {

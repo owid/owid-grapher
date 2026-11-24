@@ -188,6 +188,8 @@ function findMatchingRecordByPathnameAndQueryParams(
     })
 }
 
+/** The lowest score a non-negative record is scaled to */
+export const MIN_SCALED_RECORD_SCORE = 1000
 export const MAX_NON_FM_RECORD_SCORE = 10000
 
 /**

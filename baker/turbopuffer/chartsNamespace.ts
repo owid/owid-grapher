@@ -3,7 +3,7 @@ import { Turbopuffer, type AttributeSchema } from "@turbopuffer/turbopuffer"
 import { ChartRecord } from "@ourworldindata/types"
 import { TURBOPUFFER_REGION } from "@ourworldindata/utils"
 import { TURBOPUFFER_API_KEY } from "../../settings/serverSettings.js"
-import { MIN_SCALED_RECORD_SCORE } from "../algolia/utils/chartIndexRecords.js"
+import { MIN_SCALED_RECORD_SCORE } from "../algolia/utils/shared.js"
 
 const EMBEDDING_MODEL = "baai/bge-m3"
 const SUBTITLE_CHARS_IN_SEARCH_TEXT = 300
@@ -96,10 +96,7 @@ export function toChartRow(record: ChartRecord, indexedAt: number): ChartRow {
         availableEntities: record.availableEntities,
         search_text: makeSearchText(record.title, record.subtitle),
         // Explorer views downranked as near-duplicates have negative scores; none do today
-        popularity: Math.max(
-            0,
-            Math.round(record.score - MIN_SCALED_RECORD_SCORE)
-        ),
+        popularity: Math.max(0, record.score - MIN_SCALED_RECORD_SCORE),
         indexed_at: indexedAt,
     }
 }

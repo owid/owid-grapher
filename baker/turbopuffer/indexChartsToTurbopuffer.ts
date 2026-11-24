@@ -35,7 +35,6 @@ Options:
 
 function describeRows(rows: ChartRow[]): void {
     const popularity = rows.map((r) => r.popularity).sort((a, b) => a - b)
-    const idBytes = rows.map((r) => Buffer.byteLength(r.id, "utf8"))
     const payloadBytes = rows.reduce(
         (sum, r) => sum + Buffer.byteLength(JSON.stringify(r)) + VECTOR_BYTES,
         0
@@ -50,10 +49,6 @@ function describeRows(rows: ChartRow[]): void {
         popularityP75: popularity[Math.floor(popularity.length * 0.75)],
         popularityP90: popularity[Math.floor(popularity.length * 0.9)],
         popularityMax: popularity.at(-1),
-        nonIntegerPopularity: rows.filter(
-            (r) => !Number.isInteger(r.popularity)
-        ).length,
-        maxIdBytes: Math.max(...idBytes),
         maxEntities: Math.max(...rows.map((r) => r.availableEntities.length)),
         estimatedWriteMB: (payloadBytes / 1e6).toFixed(1),
         estimatedWriteDollars: (
@@ -74,9 +69,12 @@ async function buildRows(indexedAt: number): Promise<ChartRow[]> {
 
 async function uploadRows(
     rows: ChartRow[],
+    indexedAt: number,
     namespace: string,
     maxBatches: number | undefined
 ): Promise<void> {
+    // With nothing upserted, the stale-row delete below would empty the namespace
+    if (rows.length === 0) throw new Error("No rows to upload")
     const ns = getTurbopufferClient().namespace(namespace)
     const batches = _.chunk(rows, BATCH_SIZE).slice(0, maxBatches)
     const totals = { rows: 0, bytes: 0, embeddingTokens: 0 }
@@ -101,7 +99,6 @@ async function uploadRows(
     const complete = maxBatches === undefined
     if (complete) {
         // Like Algolia's replaceAllObjects: drop rows a previous run wrote that this run didn't
-        const indexedAt = rows[0]?.indexed_at
         const response = await ns.write({
             delete_by_filter: ["indexed_at", "Lt", indexedAt],
         })
@@ -161,7 +158,7 @@ const indexChartsToTurbopuffer = async (): Promise<void> => {
     }
 
     const maxBatches = values.batches ? Number(values.batches) : undefined
-    await uploadRows(rows, values.namespace, maxBatches)
+    await uploadRows(rows, indexedAt, values.namespace, maxBatches)
 }
 
 void runSentryScript("indexChartsToTurbopuffer", indexChartsToTurbopuffer)

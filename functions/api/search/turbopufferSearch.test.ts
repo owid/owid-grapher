@@ -163,11 +163,14 @@ describe("engine=tpuf", () => {
         expect(json.results).toHaveLength(2)
     })
 
-    it("rejects an unknown arm and reports a missing key", async () => {
+    it("rejects an unknown arm, a non-finite midpoint and a missing key", async () => {
         expect((await search("q=life&engine=tpuf&arm=T9")).status).toBe(400)
+        expect(
+            (await search("q=life&engine=tpuf&midpoint=Infinity")).status
+        ).toBe(400)
         const withoutKey = { ...env, TURBOPUFFER_API_KEY: undefined }
         expect((await search("q=life&engine=tpuf", withoutKey)).status).toBe(
-            500
+            400
         )
         expect(fetchMock).not.toHaveBeenCalled()
     })

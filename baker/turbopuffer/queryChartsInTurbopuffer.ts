@@ -38,19 +38,14 @@ function formatHit(row: Row): string {
     return `${String(row.type).padEnd(12)} ${dist.padStart(7)}  ${String(row.title)}${variant}  (${String(row.chart_key)}, popularity ${String(row.popularity)})`
 }
 
-async function countRows(namespace: string): Promise<number> {
-    const ns = getTurbopufferClient().namespace(namespace)
-    const response = await ns.query({ aggregate_by: { rows: ["Count"] } })
-    return Number(response.aggregations?.rows)
-}
-
 async function postLoadChecks(namespace: string): Promise<void> {
     const ns = getTurbopufferClient().namespace(namespace)
     const metadata = await ns.metadata()
     console.log(
         `Rows: ${metadata.approx_row_count}, logical bytes: ${metadata.approx_logical_bytes}, index: ${JSON.stringify(metadata.index)}`
     )
-    const rows = await countRows(namespace)
+    const count = await ns.query({ aggregate_by: { rows: ["Count"] } })
+    const rows = Number(count.aggregations?.rows)
     console.log(`Counted rows: ${rows}`)
     const median = await ns.query({
         rank_by: ["popularity", "asc"],
@@ -95,8 +90,10 @@ const main = async (): Promise<void> => {
     }
 
     const arms = values.arms.split(",")
-    const unknown = arms.filter((arm) => !isTurbopufferArm(arm))
-    if (unknown.length) throw new Error(`Unknown arms: ${unknown.join(", ")}`)
+    if (!arms.every(isTurbopufferArm))
+        throw new Error(
+            `Unknown arm in "${values.arms}"; valid arms: ${TURBOPUFFER_ARMS.join(", ")}`
+        )
     const popularityMidpoint = values.midpoint
         ? Number(values.midpoint)
         : undefined
@@ -107,7 +104,7 @@ const main = async (): Promise<void> => {
 
     for (const query of queries) {
         console.log(`=== ${query}`)
-        for (const arm of arms.filter(isTurbopufferArm)) {
+        for (const arm of arms) {
             const started = performance.now()
             const result = await queryTurbopufferCharts(
                 TURBOPUFFER_API_KEY,
