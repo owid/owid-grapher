@@ -190,6 +190,7 @@ export function toPlacedLineChartSeries(
     })
 }
 
+/** Clip a range annotation to the series' placed points, interpolating ends that fall between two points */
 export function placeRangeAnnotation(
     annotation: RangeAnnotation,
     placedPoints: readonly PlacedPoint[]
@@ -257,6 +258,12 @@ function placePointOnSegment(
     }
 }
 
+/**
+ * Move the tooltip vertically to sit above or below the annotated stretch
+ * where it runs under the tooltip. When both sides fit the container, take
+ * the one nearer the click, favoring above; when one fits, take that one;
+ * when neither fits, clamp the less overflowing one inside the container.
+ */
 export function placeRangeAnnotationTooltip({
     points,
     clickPosition,
@@ -321,6 +328,7 @@ function findLineYsInXRange(
     const end = Math.min(xEnd, xs[xs.length - 1])
     if (start >= end) return []
 
+    // Piecewise-linear over screen-space points, matching the drawn line even on a log axis
     const lineYAtX = scaleLinear(
         xs,
         points.map((point) => point.y)

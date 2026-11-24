@@ -183,6 +183,7 @@ function RangeAnnotationHitArea({
     const clickOffsetRef = useRef({ x: 0, y: 0 })
     const [tooltipPlacement] = useState(createRangeAnnotationTooltipPlacement)
 
+    // Zero-size rect at the click point, where Popper anchors the tooltip
     const getReferenceClientRect = (): DOMRect => {
         const rect = pathRef.current?.getBoundingClientRect()
         return new DOMRect(
@@ -271,6 +272,7 @@ interface RangeAnnotationTooltipPlacement {
     storeClick: (click: RangeAnnotationClick) => void
 }
 
+/** Popper modifier that moves the tooltip up or down, off the annotated stretch near the click (see placeRangeAnnotationTooltip) */
 function createRangeAnnotationTooltipPlacement(): RangeAnnotationTooltipPlacement {
     let click: RangeAnnotationClick | undefined
     const placementModifier: RangeAnnotationTooltipPlacementModifier = {
