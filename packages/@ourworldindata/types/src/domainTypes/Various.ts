@@ -42,7 +42,6 @@ export enum SiteFooterContext {
     grapherPage = "grapherPage",
     dataPageV2 = "dataPageV2",
     multiDimDataPage = "multiDimDataPage",
-    dynamicCollectionPage = "dynamicCollectionPage",
     explorerPage = "explorerPage",
     explorerIndexPage = "explorerIndexPage",
     default = "default",

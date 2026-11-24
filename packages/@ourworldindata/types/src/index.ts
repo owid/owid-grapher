@@ -291,7 +291,6 @@ export {
     type LinkedCallout,
     type LinkedCallouts,
     type LinkedStaticViz,
-    DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
     type OwidGdocContent,
     type OwidGdocIndexItem,
     type OwidGdocIndexTag,

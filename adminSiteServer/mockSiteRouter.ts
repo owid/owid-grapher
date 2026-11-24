@@ -13,8 +13,6 @@ import {
     renderLatestPage,
     renderExplorerPage,
     makeAtomFeedNoTopicPages,
-    renderDynamicCollectionPage,
-    renderTopChartsCollectionPage,
     renderThankYouPage,
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
@@ -232,18 +230,6 @@ getPlainRouteWithROTransaction(
         res.send(explorerPage)
     }
 )
-
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/collection/top-charts",
-    async (_, res, trx) => {
-        return res.send(await renderTopChartsCollectionPage(trx))
-    }
-)
-
-mockSiteRouter.get("/collection/custom", async (_, res) => {
-    return res.send(renderDynamicCollectionPage())
-})
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
