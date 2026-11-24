@@ -255,7 +255,7 @@ function AllChartsBlockListItem({
                 onTitleSelect={() => {
                     if (!isSelected) select(undefined, itemRef.current)
                 }}
-                onThumbnailSelect={(tab, thumbnail) => select(tab, thumbnail)}
+                onThumbnailSelect={select}
             />
             {isNarrow && isSelected && (
                 <div
