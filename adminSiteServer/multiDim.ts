@@ -1,5 +1,4 @@
 import * as _ from "lodash-es"
-import pMap from "p-map"
 
 import {
     ChartConfigsTableName,
@@ -43,7 +42,7 @@ import {
 } from "../db/model/Variable.js"
 import {
     deleteGrapherConfigFromR2,
-    deleteGrapherConfigFromR2ByUuid,
+    deleteGrapherConfigsFromR2ByUuid,
     saveMultiDimConfigToR2,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
 import {
@@ -230,27 +229,7 @@ async function cleanUpOrphanedChartConfigs(
     await knex<DbRawChartConfig>(ChartConfigsTableName)
         .whereIn("id", orphanedChartConfigIds)
         .delete()
-    await deleteChartConfigsFromR2(orphanedChartConfigIds)
-}
-
-// R2 deletes run inside the request's transaction, which keeps its row locks
-// until they finish. Deleted one at a time, the ~1,000 configs a multi-dim
-// with re-keyed dimensions leaves behind took minutes: long enough for the ETL
-// to time out and retry the PUT, which then hit a lock wait timeout.
-const R2_DELETE_CONCURRENCY = 20
-
-async function deleteChartConfigsFromR2(
-    chartConfigIds: string[],
-    onError?: (error: unknown) => void
-): Promise<void> {
-    await pMap(
-        chartConfigIds,
-        (id) =>
-            onError
-                ? deleteGrapherConfigFromR2ByUuid(id).catch(onError)
-                : deleteGrapherConfigFromR2ByUuid(id),
-        { concurrency: R2_DELETE_CONCURRENCY }
-    )
+    await deleteGrapherConfigsFromR2ByUuid(orphanedChartConfigIds)
 }
 
 export async function upsertMultiDim(
@@ -498,7 +477,7 @@ export async function deleteUnpublishedMultiDim(
     // DB deletes above: that would restore a multi-dim whose configs are
     // already partly gone from R2. A leftover config of a deleted, unpublished
     // multi-dim isn't served anywhere, so we only log the failure.
-    await deleteChartConfigsFromR2(
+    await deleteGrapherConfigsFromR2ByUuid(
         chartConfigIds,
         logErrorAndMaybeCaptureInSentry
     )
