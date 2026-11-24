@@ -7,6 +7,7 @@ import {
     OwidEnrichedGdocBlock,
     OwidGdocMinimalPostInterface,
     OwidGdocBaseInterface,
+    BakedAllChartsBlockResults,
 } from "@ourworldindata/types"
 import { excludeNullish, generateToc } from "@ourworldindata/utils"
 import {
@@ -21,6 +22,7 @@ import { GdocBase } from "./GdocBase.js"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     declare content: OwidGdocPostContent
+    declare allChartsBlockResults?: BakedAllChartsBlockResults
 
     constructor(id?: string) {
         super(id)

@@ -81,6 +81,7 @@ import {
 } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
+import { fetchAllChartsBlockResults } from "./allChartsBlockResults.js"
 import {
     getAndLoadGdocBySlug,
     getAndLoadGdocById,
@@ -155,6 +156,10 @@ export const renderGdocsPageBySlug = async (
     }
 
     await gdoc.loadState(knex)
+
+    if (gdoc instanceof GdocPost) {
+        gdoc.allChartsBlockResults = await fetchAllChartsBlockResults(gdoc)
+    }
 
     const archivedVersions = await getLatestArchivedPostPageVersionsIfEnabled(
         knex,

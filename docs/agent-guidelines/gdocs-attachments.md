@@ -45,7 +45,7 @@ Pages that do not rely on Google Docs (e.g., WordPress articles) bypass this sys
 
 ## Subclass-specific Attachments
 
-- **`GdocPost`** has no subclass attachments. It exposes parsed FAQ content through `_getSubclassEnrichedBlocks`.
+- **`GdocPost`** has no subclass attachments. It exposes parsed FAQ content through `_getSubclassEnrichedBlocks`. The baker sets its `allChartsBlockResults` (the all-charts block's default first page) after `loadState`, in `SiteBaker` and `renderGdocsPageBySlug`, so the admin preview doesn't have it.
 - **`GdocDataInsight`** fetches `latestDataInsights` plus their image metadata so that we can surface related insights or previews (`db/model/Gdoc/GdocDataInsight.ts:55`).
 - **`GdocHomepage`** collects site metrics (`homepageMetadata`) and recent insights each time the homepage is loaded (`db/model/Gdoc/GdocHomepage.ts:61`).
 - **`GdocAbout`** loads donor names when the document references a donors block (`db/model/Gdoc/GdocAbout.ts:20`).
