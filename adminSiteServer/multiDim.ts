@@ -42,7 +42,7 @@ import {
 } from "../db/model/Variable.js"
 import {
     deleteGrapherConfigFromR2,
-    deleteGrapherConfigFromR2ByUuid,
+    deleteGrapherConfigsFromR2ByUuid,
     saveMultiDimConfigToR2,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
 import {
@@ -229,9 +229,7 @@ async function cleanUpOrphanedChartConfigs(
     await knex<DbRawChartConfig>(ChartConfigsTableName)
         .whereIn("id", orphanedChartConfigIds)
         .delete()
-    for (const id of orphanedChartConfigIds) {
-        await deleteGrapherConfigFromR2ByUuid(id)
-    }
+    await deleteGrapherConfigsFromR2ByUuid(orphanedChartConfigIds)
 }
 
 export async function upsertMultiDim(
@@ -479,11 +477,10 @@ export async function deleteUnpublishedMultiDim(
     // DB deletes above: that would restore a multi-dim whose configs are
     // already partly gone from R2. A leftover config of a deleted, unpublished
     // multi-dim isn't served anywhere, so we only log the failure.
-    for (const id of chartConfigIds) {
-        await deleteGrapherConfigFromR2ByUuid(id).catch(
-            logErrorAndMaybeCaptureInSentry
-        )
-    }
+    await deleteGrapherConfigsFromR2ByUuid(
+        chartConfigIds,
+        logErrorAndMaybeCaptureInSentry
+    )
     if (multiDim.slug) {
         await deleteGrapherConfigFromR2(
             R2GrapherConfigDirectory.multiDim,

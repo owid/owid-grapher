@@ -7,6 +7,7 @@ import {
 } from "../../settings/serverSettings.js"
 import { Base64String, R2GrapherConfigDirectory } from "@ourworldindata/types"
 import { lazy } from "@ourworldindata/utils"
+import pMap from "p-map"
 import {
     createR2Key,
     deleteObjectFromR2,
@@ -40,6 +41,26 @@ export async function deleteGrapherConfigFromR2ByUuid(id: string) {
     await deleteGrapherConfigFromR2(
         R2GrapherConfigDirectory.byUuid,
         `${id}.json`
+    )
+}
+
+// Callers delete up to about 1,000 configs at once (all the view configs of a
+// multi-dim whose dimensions were re-keyed), inside a transaction that holds
+// its row locks until the deletes finish, so they run concurrently.
+const R2_DELETE_CONCURRENCY = 20
+
+/** Deletes the configs from R2. Without onError, rejects on the first failure. */
+export async function deleteGrapherConfigsFromR2ByUuid(
+    ids: string[],
+    onError?: (error: unknown) => void
+): Promise<void> {
+    await pMap(
+        ids,
+        (id) =>
+            onError
+                ? deleteGrapherConfigFromR2ByUuid(id).catch(onError)
+                : deleteGrapherConfigFromR2ByUuid(id),
+        { concurrency: R2_DELETE_CONCURRENCY }
     )
 }
 
