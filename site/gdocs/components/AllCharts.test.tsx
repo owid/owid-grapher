@@ -8,6 +8,8 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest"
 import {
     ChartRecordType,
     OwidGdocType,
+    type AllChartsBlockHit,
+    type BakedAllChartsBlockResults,
     type UserCountryInformation,
 } from "@ourworldindata/types"
 import { AttachmentsContext, Attachments } from "../AttachmentsContext.js"
@@ -753,6 +755,48 @@ it.each([
     expect(document.querySelector(".all-charts-block-suggestions")).toBeNull()
 })
 
+it("renders the baked rows on the first render, without a skeleton or a request", () => {
+    renderBlock({ bakedPage: makeBakedPage() })
+
+    expect(screen.getByText("Title of baked-alpha")).toBeVisible()
+    expect(screen.getByText("Title of baked-beta")).toBeVisible()
+    expect(screen.getByText("(3 charts)")).toBeVisible()
+    expect(
+        document.querySelector(".all-charts-block-results__list.animate-pulse")
+    ).toBeNull()
+    expect(searchForHits).not.toHaveBeenCalled()
+})
+
+it("requests a typed query on a baked page instead of showing the baked rows", async () => {
+    renderBlock({ bakedPage: makeBakedPage() })
+    fireIntersectionObserversMatching("section")
+
+    fireEvent.change(screen.getByRole("searchbox"), {
+        target: { value: "air" },
+    })
+
+    expect(await screen.findByText("Title of delta")).toBeVisible()
+    expect(screen.queryByText("Title of baked-alpha")).toBeNull()
+    expect(requestedQueries()).toEqual(["air"])
+})
+
+function makeBakedPage(): BakedAllChartsBlockResults {
+    return {
+        page: {
+            hits: makeHits([
+                "baked-alpha",
+                "baked-beta",
+            ]) as AllChartsBlockHit[],
+            nbHits: 3,
+            page: 0,
+            nbPages: 2,
+            query: "",
+            countries: [],
+        },
+        fetchedAtMs: Date.UTC(2026, 10, 1),
+    }
+}
+
 function showMultiDimViews(ids = ["alpha", "mdim-a", "mdim-b"]): void {
     searchForHits.mockImplementation(async ([{ page }]: [{ page: number }]) =>
         makeResponse(page, ids)
@@ -773,7 +817,11 @@ function getSuggestions(): string[] {
 }
 
 function makeResponse(page: number, ids: string[], nbHits = 3): unknown {
-    const hits = ids.map((id) => {
+    return { results: [{ hits: makeHits(ids), nbHits, page, nbPages: 2 }] }
+}
+
+function makeHits(ids: string[]): unknown[] {
+    return ids.map((id) => {
         const queryParams = MDIM_VIEWS[id]
         return queryParams
             ? {
@@ -791,7 +839,6 @@ function makeResponse(page: number, ids: string[], nbHits = 3): unknown {
                   ...makeHitFields(id),
               }
     })
-    return { results: [{ hits, nbHits, page, nbPages: 2 }] }
 }
 
 function makeHitFields(id: string): {
@@ -866,12 +913,17 @@ function requestedQueries(): string[] {
     return searchForHits.mock.calls.map(([[params]]) => params.query)
 }
 
-function renderBlock(): ReturnType<typeof render> {
+function renderBlock({
+    bakedPage,
+}: {
+    bakedPage?: BakedAllChartsBlockResults
+} = {}): ReturnType<typeof render> {
     const queryClient = new QueryClient({
         defaultOptions: { queries: { retry: false, staleTime: Infinity } },
     })
     const attachments = {
         tags: [{ id: 1, name: "Poverty", slug: "poverty" }],
+        allChartsBlockResults: bakedPage,
     } as unknown as Attachments
     return render(
         <QueryClientProvider client={queryClient}>

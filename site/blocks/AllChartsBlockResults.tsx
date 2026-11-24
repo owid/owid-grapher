@@ -132,7 +132,9 @@ function AllChartsBlockResultsGrid({
         selection?.tab ??
         getDefaultTab(pickThumbnailTabs(selectedHit.availableTabs), countries)
 
-    const isNarrow = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
+    const isNarrow = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY, {
+        initializeWithValue: false,
+    })
     const preview = useAllChartsBlockPreviewControl()
 
     const appliedQueryRef = useRef(fetchedQuery)

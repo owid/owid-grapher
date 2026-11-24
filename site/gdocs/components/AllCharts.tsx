@@ -16,7 +16,11 @@ import {
     listedRegionsNames,
     sentenceCaseIfNotTopicPage,
 } from "@ourworldindata/utils"
-import { SearchResultType, type MinimalTag } from "@ourworldindata/types"
+import {
+    SearchResultType,
+    type BakedAllChartsBlockResults,
+    type MinimalTag,
+} from "@ourworldindata/types"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { useDocumentContext } from "../DocumentContext.js"
 import { AllChartsBlockHeading } from "../../blocks/AllChartsBlockHeading.js"
@@ -56,7 +60,7 @@ export function AllCharts({
     className?: string
     id?: string
 }) {
-    const { tags } = useContext(AttachmentsContext)
+    const { tags, allChartsBlockResults } = useContext(AttachmentsContext)
     if (tags.length === 0) return null
     return (
         <AllChartsBlock
@@ -64,6 +68,7 @@ export function AllCharts({
             id={id}
             firstTag={tags[0]}
             topics={tags.map((tag) => tag.name)}
+            allChartsBlockResults={allChartsBlockResults}
         />
     )
 }
@@ -73,11 +78,13 @@ function AllChartsBlock({
     id,
     firstTag,
     topics,
+    allChartsBlockResults,
 }: {
     className?: string
     id: string
     firstTag: MinimalTag
     topics: string[]
+    allChartsBlockResults?: BakedAllChartsBlockResults
 }) {
     const { gdocType } = useDocumentContext()
 
@@ -97,6 +104,9 @@ function AllChartsBlock({
         [requestedQuery]
     )
     const shouldFetch = isIntersecting
+    const isDefaultQuery =
+        parsedQuery.textQuery === "" && parsedQuery.countries.length === 0
+    const bakedResults = isDefaultQuery ? allChartsBlockResults : undefined
 
     const { data, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
         useInfiniteQuery({
@@ -111,6 +121,12 @@ function AllChartsBlock({
                       )
                 : skipToken,
             placeholderData: keepPreviousData,
+            initialData: bakedResults && {
+                pages: [bakedResults.page],
+                pageParams: [0],
+            },
+            initialDataUpdatedAt: bakedResults?.fetchedAtMs,
+            ...(bakedResults && { staleTime: Infinity }),
             initialPageParam: 0,
             getNextPageParam: (lastPage) => {
                 return lastPage.page < lastPage.nbPages - 1
