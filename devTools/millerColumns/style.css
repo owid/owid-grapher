@@ -1436,6 +1436,21 @@ mark {
     background: rgb(255 255 255 / 0.22);
     color: #fff;
 }
+/* These rows stay on a light ground when selected, so keep the plain highlight. */
+:is(
+        .row--ref,
+        .row--title,
+        .row--paragraph,
+        .row--quote,
+        .row--list,
+        .row--embed,
+        .row--image,
+        .row.has-context
+    ).is-selected
+    mark {
+    background: #f7e3a1;
+    color: var(--blue-100);
+}
 .results__more,
 .results__wider {
     display: flex;
