@@ -75,7 +75,7 @@ None of the charts index's settings in `configureAlgolia.ts` were measured, so t
 - **Prefix matches score a constant 1.0**, and `last_as_prefix` also lowers the score of exact matches of the last token (`co₂` on titles: 10.99 without it, 6.49 with it).
 - **T2's `Fuzzy` term adds a constant 1.0 to every row it matches**, so on a misspelled query ("poulation") the ranking among fuzzy matches is popularity alone, and any row whose `search_text` has a near-token comes in ("GDP per capita" subtitles mention population).
 - **Server time on the built index is 8–30 ms for every arm** (warm cache, the four smoke-test queries); embedding the query for T3 adds about 10–15 ms. Fuzzy and BM25 queries take several times longer while the index is still building after a write.
-- **T3's vector half handles typos**: "poulation" returns population charts, where T0 and T1 return nothing.
+- **Typos** (five queries tried: "poulation", "lfie expectancy", "eletricity", "democrcy", "child mortallity"): T0 and T1 find nothing for a fully misspelled single word; T2 and T3 both return relevant charts, but T2 sometimes puts a popular unrelated chart first ("eletricity" → "CO₂ emissions per capita"), because its fuzzy term scores every match the same.
 
 ## Open items
 
