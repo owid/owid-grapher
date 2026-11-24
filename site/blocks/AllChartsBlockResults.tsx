@@ -309,11 +309,7 @@ function AllChartsBlockListItem({
             <AllChartsBlockRow
                 hit={hit}
                 isSelected={isSelected}
-                displayedTab={
-                    previewTab ??
-                    selectedTab ??
-                    getDefaultTab(thumbnailTabs, countries)
-                }
+                displayedTab={previewTab ?? selectedTab}
                 thumbnails={thumbnails}
                 countries={countries}
                 inlinePreviewId={isNarrow ? inlinePreviewId : undefined}
@@ -346,7 +342,7 @@ interface AllChartsBlockThumbnail {
 interface AllChartsBlockRowProps {
     hit: AllChartsBlockHit
     isSelected: boolean
-    displayedTab: GrapherTabName
+    displayedTab?: GrapherTabName
     thumbnails: AllChartsBlockThumbnail[]
     countries: string[]
     inlinePreviewId?: string
