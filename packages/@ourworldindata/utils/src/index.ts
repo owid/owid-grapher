@@ -454,6 +454,7 @@ export {
 export {
     searchSingleForHits,
     searchSingleForHitsWithClosestMatches,
+    searchSingleForHitsWithWholeShortWords,
 } from "./search/searchClosestMatches.js"
 
 export {
