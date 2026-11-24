@@ -228,18 +228,20 @@ function AllChartsBlockList({
     return (
         <div className="all-charts-block-results__list-wrapper span-cols-5 span-md-cols-12">
             <ul className="all-charts-block-results__list" ref={setListElement}>
-                {hits.map((hit) => (
-                    <AllChartsBlockListItem
-                        key={hit.objectID}
-                        hit={hit}
-                        countries={countries}
-                        isSelected={hit.objectID === selectedHit.objectID}
-                        selectedTab={selectedTab}
-                        previewTab={previewTab}
-                        isNarrow={isNarrow}
-                        onSelect={(tab) => onSelect(hit, tab)}
-                    />
-                ))}
+                {hits.map((hit) => {
+                    const isSelected = hit.objectID === selectedHit.objectID
+                    return (
+                        <AllChartsBlockListItem
+                            key={hit.objectID}
+                            hit={hit}
+                            countries={countries}
+                            selectedTab={isSelected ? selectedTab : undefined}
+                            previewTab={isSelected ? previewTab : undefined}
+                            isNarrow={isNarrow}
+                            onSelect={(tab) => onSelect(hit, tab)}
+                        />
+                    )
+                })}
                 {onLoadMore && (
                     <li
                         className="all-charts-block-results__sentinel"
@@ -263,7 +265,6 @@ function AllChartsBlockList({
 function AllChartsBlockListItem({
     hit,
     countries,
-    isSelected,
     selectedTab,
     previewTab,
     isNarrow,
@@ -271,12 +272,12 @@ function AllChartsBlockListItem({
 }: {
     hit: AllChartsBlockHit
     countries: string[]
-    isSelected: boolean
-    selectedTab: GrapherTabName
+    selectedTab?: GrapherTabName
     previewTab?: GrapherTabName
     isNarrow: boolean
     onSelect: (tab: GrapherTabName | undefined) => void
 }): React.ReactElement {
+    const isSelected = selectedTab !== undefined
     const itemRef = useRef<HTMLLIElement>(null)
     const inlinePreviewId = useId()
     const thumbnailTabs = pickThumbnailTabs(hit.availableTabs)
@@ -309,9 +310,9 @@ function AllChartsBlockListItem({
                 hit={hit}
                 isSelected={isSelected}
                 displayedTab={
-                    isSelected
-                        ? (previewTab ?? selectedTab)
-                        : getDefaultTab(thumbnailTabs, countries)
+                    previewTab ??
+                    selectedTab ??
+                    getDefaultTab(thumbnailTabs, countries)
                 }
                 thumbnails={thumbnails}
                 countries={countries}
@@ -321,7 +322,7 @@ function AllChartsBlockListItem({
                 }}
                 onThumbnailSelect={select}
             />
-            {isNarrow && isSelected && (
+            {isNarrow && selectedTab !== undefined && (
                 <div
                     className="all-charts-block-results__inline-preview"
                     id={inlinePreviewId}
