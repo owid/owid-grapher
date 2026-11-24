@@ -28,7 +28,6 @@ import {
     DATA_API_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.mjs"
-// import { embedDynamicCollectionGrapher } from "../collections/DynamicCollectionPageMain.js"
 import { match } from "ts-pattern"
 import { createRoot } from "react-dom/client"
 
@@ -169,12 +168,6 @@ class MultiEmbedder {
             catalogUrl: CATALOG_URL,
             noCache: this.isPreviewing,
         })
-
-        // Special handling for shared collections
-        // TODO: re-enable this
-        // if (window.location.pathname.startsWith("/collection/custom")) {
-        //     embedDynamicCollectionGrapher(grapherRef, figure)
-        // }
     }
 
     async renderGrapherIntoFigure(figure: Element) {

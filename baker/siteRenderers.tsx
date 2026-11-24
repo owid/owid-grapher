@@ -2,8 +2,6 @@ import * as _ from "lodash-es"
 import { LatestPage } from "../site/LatestPage.js"
 import { buildLatestPagePath } from "../site/latest/latestUtils.js"
 import { SearchPage } from "../site/search/SearchPage.js"
-import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
-import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
 import NotFoundPage from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
 import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
@@ -114,34 +112,6 @@ export const renderSearchPage = async (knex: KnexReadonlyTransaction) => {
             topicTagGraph={flattenedTopicTagGraph}
         />
     )
-}
-
-export async function renderTopChartsCollectionPage(
-    knex: KnexReadonlyTransaction
-) {
-    const charts: string[] = await knexRaw<{ slug: string }>(
-        knex,
-        `-- sql
-    SELECT SUBSTRING_INDEX(url, '/', -1) AS slug
-    FROM analytics_pageviews
-    WHERE url LIKE "%https://ourworldindata.org/grapher/%"
-    ORDER BY views_14d DESC
-    LIMIT 50
-    `
-    ).then((rows) => rows.map((row: { slug: string }) => row.slug))
-
-    const props = {
-        baseUrl: BAKED_BASE_URL,
-        title: "Top Charts",
-        introduction:
-            "The 50 most viewed charts from the last 14 days on Our World in Data.",
-        charts,
-    }
-    return renderToHtmlPage(<StaticCollectionPage {...props} />)
-}
-
-export function renderDynamicCollectionPage() {
-    return renderToHtmlPage(<DynamicCollectionPage baseUrl={BAKED_BASE_URL} />)
 }
 
 export const renderGdocsPageBySlug = async (

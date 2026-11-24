@@ -16,7 +16,6 @@ import { OwidGdoc } from "./gdocs/OwidGdoc.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import SiteTools, { SITE_TOOLS_ROOT_CLASS } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
-import { hydrateDynamicCollectionPage } from "./collections/DynamicCollectionPageMain.js"
 import { LatestSearchWrapper } from "./latest/LatestSearchWrapper.js"
 import {
     __OWID_EXPLORER_INDEX_PAGE_PROPS,
@@ -271,7 +270,6 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
             // runSiteTools()
             // runCookiePreferencesManager()
             break
-        case SiteFooterContext.dynamicCollectionPage:
         case SiteFooterContext.explorerIndexPage:
         case SiteFooterContext.default:
         case SiteFooterContext.latestPage:
@@ -340,10 +338,6 @@ export const runSiteFooterScripts = async (
             runCookiePreferencesManager()
             void runDetailsOnDemand()
             break
-        case SiteFooterContext.dynamicCollectionPage:
-            // Don't break, run default case too
-            hydrateDynamicCollectionPage()
-        // falls through
         case SiteFooterContext.searchPage:
             runSearchPage()
         // falls through

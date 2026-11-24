@@ -20,8 +20,6 @@ import {
     renderNotFoundPage,
     renderGdoc,
     makeAtomFeedNoTopicPages,
-    renderDynamicCollectionPage,
-    renderTopChartsCollectionPage,
     renderThankYouPage,
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
@@ -957,14 +955,6 @@ export class SiteBaker {
         await this.stageWrite(
             `${this.bakedSiteDir}/subscribe.html`,
             await renderSubscribePage()
-        )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/collection/custom.html`,
-            renderDynamicCollectionPage()
-        )
-        await this.bakeSpecialPage(
-            `${this.bakedSiteDir}/collection/top-charts.html`,
-            () => renderTopChartsCollectionPage(knex)
         )
         await this.bakeSpecialPage(`${this.bakedSiteDir}/404.html`, () =>
             renderNotFoundPage()

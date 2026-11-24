@@ -45,7 +45,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faDownload,
     faMagnifyingGlass,
-    faChartColumn,
 } from "@fortawesome/free-solid-svg-icons"
 import { Button, Divider, Flex, Select, Space, Typography } from "antd"
 
@@ -529,21 +528,6 @@ class DatasetEditor extends Component<DatasetEditorProps> {
         return variables
     }
 
-    @computed get collectionUrl(): string | null {
-        const { publishedCharts } = this
-        if (publishedCharts.length === 0) {
-            return null
-        }
-
-        // Sort by pageviews descending (most views first)
-        const sortedSlugs = publishedCharts
-            .sort((a, b) => b.grapherViewsPerDay - a.grapherViewsPerDay)
-            .map((chart) => chart.slug)
-
-        const chartsParam = sortedSlugs.join("+")
-        return `https://ourworldindata.org/collection/custom?charts=${chartsParam}`
-    }
-
     @computed get publishedCharts(): ChartListItem[] {
         const { dataset } = this.props
         return dataset.charts.filter((chart) => chart.isPublished)
@@ -966,22 +950,6 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                                     >
                                         in search
                                     </Button>
-                                    {this.collectionUrl && (
-                                        <Button
-                                            type="text"
-                                            size="middle"
-                                            href={this.collectionUrl}
-                                            target="_blank"
-                                            rel="noopener"
-                                            icon={
-                                                <FontAwesomeIcon
-                                                    icon={faChartColumn}
-                                                />
-                                            }
-                                        >
-                                            in collection
-                                        </Button>
-                                    )}
                                 </Space>
                             </>
                         )}

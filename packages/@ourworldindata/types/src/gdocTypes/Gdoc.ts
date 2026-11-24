@@ -830,8 +830,6 @@ export enum GdocsContentSource {
     Gdocs = "gdocs",
 }
 
-export const DYNAMIC_COLLECTION_PAGE_CONTAINER_ID = "dynamic-collection-page"
-
 export type EnrichedDetail = {
     id: string
     text: string
