@@ -413,7 +413,7 @@ function IncomeDistributionChartContent({
                 : isInternationalPovertyLine
                   ? {
                         income: povertyLine,
-                        title: "International poverty line",
+                        title: "International Poverty Line",
                         label: internationalPovertyLineAmount(
                             currency,
                             timeInterval

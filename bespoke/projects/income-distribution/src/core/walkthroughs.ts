@@ -304,7 +304,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
                 },
             },
             {
-                text: "To focus attention on the extreme depth of poverty many in the world face, the World\u00a0Bank sets an international poverty line more than 10 times lower, **$3 a day**.",
+                text: "To focus attention on the extreme depth of poverty many in the world face, the World\u00a0Bank sets the International Poverty Line more than 10 times lower, **$3 a day**.",
                 chart: {
                     view: "global",
                     povertyLine: INT_POVERTY_LINE,
