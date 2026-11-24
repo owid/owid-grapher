@@ -465,6 +465,12 @@ async function go(
     }
     const doc = docOf(next.path[next.path.length - 1])
     if (doc) await loadDoc(doc)
+    // On a link, its page previews beside it: load it before showing it.
+    const plan = next.peek ? peekPlan(next.path[next.path.length - 1]) : null
+    const linked =
+        plan?.kind === "links" ? plan.links[next.peek!.link]?.target : undefined
+    const linkedDoc = linked && docOf(linked)
+    if (linkedDoc) await loadDoc(linkedDoc)
     // Closing a search without opening anything leaves no stop behind.
     const cancelsSearch =
         state.search &&
@@ -551,15 +557,9 @@ function targetOfPeek(
 async function right(): Promise<void> {
     const id = selected()
     const plan = activePeek()
-    if (state.peek) {
-        const link = targetOfPeek(plan, state.peek)
-        if (state.peek.zone === "links" && link?.target)
-            await go({
-                ...state,
-                peek: { ...state.peek, zone: "target", row: 0 },
-            })
-        return
-    }
+    // In the side panel → goes nowhere: opening a link takes ⏎, since ←
+    // could not undo it. Back (⌫) does.
+    if (state.peek) return
     // On the way down to a search match, → follows the path to it.
     const toMatch = searchTarget()
     if (toMatch && toMatch.length > state.path.length) {
@@ -629,7 +629,8 @@ async function enter(): Promise<void> {
         return
     }
     if (peek.row === 0 && isAtHome(link.target)) return // already here
-    if (peek.row === 0) await jumpTo(link.target)
+    if (peek.zone === "links") await openLink(link.target)
+    else if (peek.row === 0) await jumpTo(link.target)
     else await jumpTo(exitsOf(link.target)[peek.row - 1])
 }
 async function goToStop(i: number): Promise<void> {
@@ -1178,8 +1179,11 @@ function peekColumns(): HTMLElement[] {
         out.push(col)
     }
     const link = targetOfPeek(plan, peek)
-    const showTarget = plan.kind === "target" || peek !== null
-    if (link?.target && showTarget)
+    // A link shows the page it leads to; where else that page is used is
+    // one R away, once it is open.
+    if (plan.kind === "links") {
+        if (link?.target && peek) out.push(linkPreview(link.target))
+    } else if (link?.target)
         out.push(
             targetColumn(
                 link as Link & { target: string },
@@ -1187,6 +1191,91 @@ function peekColumns(): HTMLElement[] {
             )
         )
     return out
+}
+
+// A summary of the linked page, never a copy of it: a copy would look
+// readable but not act it. Same card for every kind: what it is and where
+// it lives, its title, its picture, how it opens, its sections or what it
+// holds. Nothing in it can be followed, so a look never nests another look.
+// Clicking it, or ⏎ on its link, opens the page.
+const SECTIONS_SHOWN = 5
+function linkPreview(target: string): HTMLElement {
+    const page = node(target)
+    const home = homeOf(target)
+    const card = el(
+        "div",
+        "summary",
+        el(
+            "p",
+            "summary__kind",
+            kindIcon(page.kind) ?? "",
+            `${KIND_LABEL[page.kind] ?? page.kind}${home ? ` in ${home.title}` : ""}`
+        ),
+        el("h3", "summary__title", page.title)
+    )
+    if (page.thumb) card.append(thumb(page.thumb, "summary__thumb"))
+    const blocks = childrenOf(target).map(node)
+    const opening = blocks.find((b) => b.kind === "paragraph" && b.spans)
+    if (opening) card.append(el("p", "summary__opening", plain(opening.spans!)))
+    const sections = blocks.filter((b) => b.kind === "heading")
+    if (sections.length) {
+        const list = el("ul", "summary__sections")
+        for (const s of sections.slice(0, SECTIONS_SHOWN))
+            list.append(el("li", "", s.title))
+        const left = sections.length - SECTIONS_SHOWN
+        if (left > 0) list.append(el("li", "summary__more", `${left} more`))
+        card.append(
+            el(
+                "p",
+                "summary__label",
+                `${sections.length} section${sections.length === 1 ? "" : "s"}`
+            ),
+            list
+        )
+    }
+    const holds = contentsOf(target)
+    if (holds) card.append(el("p", "summary__holds", holds))
+    card.append(
+        el(
+            "p",
+            "summary__open",
+            isAtHome(target) ? "You are here" : el("kbd", "", "⏎"),
+            isAtHome(target) ? "" : " Open"
+        )
+    )
+    const col = el(
+        "section",
+        "col col--peek col--link-preview",
+        el("div", "col__body", card)
+    )
+    col.dataset.peekKey = `preview ${target}`
+    col.dataset.target = target
+    return col
+}
+
+// Opening keeps the preview's place on screen: it slides left and widens
+// into the page's own column, so it reads as the same thing, now open.
+async function openLink(target: string): Promise<void> {
+    const preview = strip.querySelector(".col--link-preview")
+    const from = preview?.getBoundingClientRect()
+    await jumpTo(target)
+    const page = strip.querySelector<HTMLElement>(
+        `.trailing > .col[data-parent="${CSS.escape(target)}"]`
+    )
+    if (!from || !page) return
+    page.classList.remove("is-arriving")
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    const to = page.getBoundingClientRect()
+    page.animate(
+        [
+            {
+                transform: `translateX(${from.left - to.left}px)`,
+                width: `${from.width}px`,
+            },
+            { transform: "none", width: `${to.width}px` },
+        ],
+        { duration: 240, easing: "cubic-bezier(0.16, 1, 0.3, 1)" }
+    )
 }
 
 // On the target itself or inside its own page. An embed in an article is
@@ -1492,7 +1581,9 @@ function renderKeys(): void {
     if (state.peek) {
         hints.push(["←", "Back to the tree"])
         const external = !targetOfPeek(plan, state.peek)?.target
-        hints.push(["⏎", external ? "Open in a new tab" : "Jump there"])
+        if (external) hints.push(["⏎", "Open in a new tab"])
+        else if (state.peek.zone === "links") hints.push(["⏎", "Open"])
+        else hints.push(["⏎", "Jump there"])
     } else {
         if (node(selected()).kind === "more") {
             hints.push(["→ ⏎", "Show them here"])
@@ -2654,6 +2745,8 @@ strip.addEventListener("click", (e) => {
         if (already || e.detail > 1) return void enter()
         return void go({ ...state, peek: { zone: "target", link, row } })
     }
+    const preview = t.closest<HTMLElement>(".col--link-preview")
+    if (preview) return void openLink(preview.dataset.target!)
     const row = t.closest<HTMLElement>(".row[data-id]")
     if (!row) return
     const id = row.dataset.id!

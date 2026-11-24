@@ -737,6 +737,93 @@ kbd {
 .col--target {
     width: 380px;
 }
+/* A linked page's summary: interface type, never the reading type, so it
+   can't pass for the page. The whole card opens the page. */
+.col--link-preview {
+    width: 380px;
+    cursor: pointer;
+}
+.summary {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 10px 4px;
+    padding: 16px;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--blue-20);
+    transition: box-shadow 150ms var(--ease-out);
+}
+:where(body:not(.is-keying)) .col--link-preview:hover .summary {
+    box-shadow:
+        0 0 0 1px var(--blue-30),
+        0 4px 14px rgb(0 33 71 / 0.1);
+}
+.summary__kind {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 12px;
+    color: var(--gray-70);
+}
+.summary__title {
+    margin: 0;
+    font: 700 16px/1.35 var(--sans);
+    color: var(--blue-100);
+    text-wrap: balance;
+}
+.summary__thumb {
+    width: 100%;
+    aspect-ratio: 850 / 600;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px var(--rule);
+}
+.summary__opening {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--gray-80);
+}
+.summary__label {
+    margin: 4px 0 -4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gray-70);
+}
+.summary__sections {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding-left: 16px;
+    font-size: 13.5px;
+    line-height: 1.35;
+    color: var(--blue-100);
+}
+.summary__more {
+    list-style: none;
+    margin-left: -16px;
+    color: var(--gray-70);
+}
+.summary__holds {
+    margin: 0;
+    font-size: 13px;
+    color: var(--gray-80);
+}
+.summary__open {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 0 0;
+    font-size: 12.5px;
+    color: var(--blue-60);
+}
 .peek__header {
     display: flex;
     align-items: center;
