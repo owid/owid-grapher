@@ -66,6 +66,23 @@ export function getAttributionFragmentsFromVariable(
     return _.uniq(_.compact([name, ...originAttributions]))
 }
 
+/**
+ * The indicator's own short attribution, falling back to the one of its
+ * origins when that is unambiguous, i.e. when all origins share the same one.
+ */
+export function getAttributionShortFromVariable(
+    variable: Pick<OwidVariableWithSource, "presentation" | "origins">
+): string | undefined {
+    if (variable.presentation?.attributionShort)
+        return variable.presentation.attributionShort
+
+    const originAttributions = _.uniq(
+        (variable.origins ?? []).map((origin) => origin.attributionShort)
+    )
+    if (originAttributions.length !== 1) return undefined
+    return originAttributions[0] || undefined
+}
+
 export function getAttributionFragmentsFromBespokeMetadata(
     metadata: Pick<BespokeMetadata, "attribution" | "origins">
 ): string[] {

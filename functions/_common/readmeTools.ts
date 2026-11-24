@@ -3,6 +3,7 @@ import {
     formatAttributions,
     formatSourceDate,
     getAttributionFragmentsFromVariable,
+    getAttributionShortFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     getAttributionWithProcessing,
@@ -40,7 +41,7 @@ export function* getCitationLines(
         origins: def.origins ?? [],
         source: col.source ?? {},
         attributions: getAttributionFragments(col),
-        attributionShort: def.presentation?.attributionShort,
+        attributionShort: getAttributionShortFromVariable(def),
         titleVariant: def.presentation?.titleVariant,
         owidProcessingLevel: def.owidProcessingLevel,
     })

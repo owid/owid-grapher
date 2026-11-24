@@ -170,6 +170,7 @@ export {
 export {
     getOriginAttributions,
     getAttributionFragmentsFromVariable,
+    getAttributionShortFromVariable,
     getAttributionFragmentsFromBespokeMetadata,
     formatAttributions,
     formatAttributionsShortened,

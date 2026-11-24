@@ -2,6 +2,7 @@ import {
     DataPageDataV2,
     DataPageRelatedResearch,
     getAttributionFragmentsFromVariable,
+    getAttributionShortFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     GrapherInterface,
@@ -33,13 +34,13 @@ export function getDatapageDataV2(
 ): DataPageDataV2 {
     const lastUpdated = getLastUpdatedFromVariable(variableMetadata) ?? ""
     const nextUpdate = getNextUpdateFromVariable(variableMetadata)
+    const attributionShort = getAttributionShortFromVariable(variableMetadata)
     return {
         status: "draft",
         title: variableMetadata.presentation?.titlePublic
             ? omitUndefinedValues({
                   title: variableMetadata.presentation?.titlePublic,
-                  attributionShort:
-                      variableMetadata.presentation?.attributionShort,
+                  attributionShort,
                   titleVariant: variableMetadata.presentation?.titleVariant,
               })
             : {
@@ -52,7 +53,7 @@ export function getDatapageDataV2(
         description: variableMetadata.description,
         descriptionShort: variableMetadata.descriptionShort,
         descriptionFromProducer: variableMetadata.descriptionFromProducer,
-        attributionShort: variableMetadata.presentation?.attributionShort,
+        attributionShort,
         titleVariant: variableMetadata.presentation?.titleVariant,
         topicTagsLinks: variableMetadata.presentation?.topicTagsLinks ?? [],
         attributions: getAttributionFragmentsFromVariable(variableMetadata),

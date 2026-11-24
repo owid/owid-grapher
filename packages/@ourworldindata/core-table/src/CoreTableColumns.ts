@@ -23,6 +23,7 @@ import {
     IndicatorTitleWithFragments,
     stripOuterParentheses,
     getTimeInterval,
+    getAttributionShortFromVariable,
 } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
 import type { OwidTable } from "./OwidTable.js"
@@ -288,7 +289,7 @@ export abstract class AbstractCoreColumn<
         return this.def.presentation?.titlePublic
             ? {
                   title: this.def.presentation?.titlePublic,
-                  attributionShort: this.def.presentation?.attributionShort,
+                  attributionShort: getAttributionShortFromVariable(this.def),
                   titleVariant: this.def.presentation?.titleVariant,
               }
             : { title: this.display?.name || this.name || "" }
