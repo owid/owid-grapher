@@ -229,8 +229,9 @@ function AllChartsBlockListItem({
         tab: GrapherTabName | undefined,
         scrollTarget: HTMLElement | null
     ): void => {
+        if (!isNarrow) return onSelect(tab)
         flushSync(() => onSelect(tab))
-        if (isNarrow) scrollTarget?.scrollIntoView({ block: "start" })
+        scrollTarget?.scrollIntoView({ block: "start" })
     }
 
     return (
