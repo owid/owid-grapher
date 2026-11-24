@@ -624,10 +624,6 @@ async function enter(): Promise<void> {
         await right()
         return
     }
-    if (peek.zone === "links" && plan?.kind === "links" && link.target) {
-        await go({ ...state, peek: { ...peek, zone: "target", row: 0 } })
-        return
-    }
     if (!link.target) {
         window.open(link.url, "_blank", "noopener")
         return
@@ -2646,6 +2642,9 @@ strip.addEventListener("click", (e) => {
     if (peekLink) {
         // External rows are real links: the browser opens them.
         const link = Number(peekLink.dataset.peekLink)
+        const already = state.peek?.zone === "links" && state.peek.link === link
+        const isExternal = peekLink.matches("a")
+        if (!isExternal && (already || e.detail > 1)) return void enter()
         return void go({ ...state, peek: { zone: "links", link, row: 0 } })
     }
     if (peekRow) {
