@@ -3,16 +3,13 @@
 $all-charts-block-row-thumbnail-width: 158px;
 $all-charts-block-row-thumbnail-height: 84px;
 $all-charts-block-row-padding: 16px;
-$all-charts-block-row-padding-top: 8px;
-$all-charts-block-row-padding-bottom: 12px;
 $all-charts-block-row-accent-width: 3px;
 $all-charts-block-row-thumbnail-gap: 8px;
 $all-charts-block-results-height: $grapher-height;
 $all-charts-block-results-inline-preview-height: 520px;
 
 @mixin all-charts-block-row-box {
-    padding: $all-charts-block-row-padding-top $all-charts-block-row-padding
-        $all-charts-block-row-padding-bottom;
+    padding: 8px $all-charts-block-row-padding 12px;
     border-left: $all-charts-block-row-accent-width solid transparent;
 }
 
