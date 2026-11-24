@@ -1,10 +1,13 @@
 import { useQuery } from "@tanstack/react-query"
-import { fetchJson, Tippy } from "@ourworldindata/utils"
+import { fetchJson, readFromAssetMap, Tippy } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
     MarkdownTextWrapHtml,
 } from "@ourworldindata/components"
-import type { DetailDictionary } from "@ourworldindata/types"
+import type {
+    ArchiveMetaInformation,
+    DetailDictionary,
+} from "@ourworldindata/types"
 
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import type { WelfareType } from "../core/types.js"
@@ -57,11 +60,25 @@ function useSiteDods(): DetailDictionary | undefined {
     const { data } = useQuery({
         queryKey: ["income-distribution", "dods"],
         queryFn: async (): Promise<DetailDictionary> =>
-            window.details ?? (await fetchJson<DetailDictionary>("/dods.json")),
+            window.details ?? (await fetchJson<DetailDictionary>(dodsUrl())),
         staleTime: Infinity,
         retry: false,
     })
     return data
+}
+
+/**
+ * Where the site's DoD dictionary is: an archived page's hashed copy, from
+ * its runtime asset map, as site/detailsOnDemand.tsx resolves it
+ */
+function dodsUrl(): string {
+    const archiveContext = (
+        window as { _OWID_ARCHIVE_CONTEXT?: ArchiveMetaInformation }
+    )._OWID_ARCHIVE_CONTEXT
+    return readFromAssetMap(archiveContext?.assets?.runtime, {
+        path: "dods.json",
+        fallback: "/dods.json",
+    })
 }
 
 /**
