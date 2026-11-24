@@ -862,7 +862,13 @@ const parseTimeScope = (
     annotation: OwidVariableAnnotation,
     variable: OwidVariableWithSourceAndDimension
 ): AnnotationTimeScope | undefined => {
-    if (annotation.time === undefined) return { timeScope: "all" }
+    if (annotation.time === undefined) {
+        if (annotation.timeEnd === undefined) return { timeScope: "all" }
+        console.warn(
+            `Dropping annotation of variable ${variable.id} with a timeEnd but no time: ${annotation.timeEnd}`
+        )
+        return undefined
+    }
 
     const interval = getTimeInterval(variable.display)
     const parsedTime = parseAnnotationTime(annotation.time, interval)
