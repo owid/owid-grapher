@@ -16,7 +16,7 @@ import {
     listedRegionsNames,
     sentenceCaseIfNotTopicPage,
 } from "@ourworldindata/utils"
-import { SearchResultType } from "@ourworldindata/types"
+import { SearchResultType, type MinimalTag } from "@ourworldindata/types"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { useDocumentContext } from "../DocumentContext.js"
 import { AllChartsBlockHeading } from "../../blocks/AllChartsBlockHeading.js"
@@ -54,11 +54,29 @@ export function AllCharts({
     id?: string
 }) {
     const { tags } = useContext(AttachmentsContext)
-    const { gdocType } = useDocumentContext()
+    if (tags.length === 0) return null
+    return (
+        <AllChartsBlock
+            className={className}
+            id={id}
+            firstTag={tags[0]}
+            topics={tags.map((tag) => tag.name)}
+        />
+    )
+}
 
-    const firstTag = tags[0]
-    const firstTagSlug = firstTag.slug
-    const topics = tags.map((tag) => tag.name)
+function AllChartsBlock({
+    className,
+    id,
+    firstTag,
+    topics,
+}: {
+    className?: string
+    id: string
+    firstTag: MinimalTag
+    topics: string[]
+}) {
+    const { gdocType } = useDocumentContext()
 
     const { ref, isIntersecting } = useIntersectionObserver({
         rootMargin: "100% 0px",
@@ -71,7 +89,7 @@ export function AllCharts({
         SEARCH_DEBOUNCE_MS
     )
     const requestedQuery = debouncedQuery.trim()
-    const shouldFetch = topics.length > 0 && isIntersecting
+    const shouldFetch = isIntersecting
 
     const { data, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
         useInfiniteQuery({
@@ -100,7 +118,7 @@ export function AllCharts({
                 ? () => fetchJson<TopicVocabulary>(TOPIC_VOCABULARY_URL)
                 : skipToken,
             select: (vocabulary) =>
-                firstTagSlug ? vocabulary[firstTagSlug] : undefined,
+                firstTag.slug ? vocabulary[firstTag.slug] : undefined,
             staleTime: Infinity,
             retry: false,
         })
