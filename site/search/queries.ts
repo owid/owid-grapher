@@ -6,8 +6,8 @@ import {
     TagGraphRoot,
     SearchState,
     SearchChartHit,
-    type SearchChartViewHit,
-    type SearchMultiDimViewHit,
+    type AllChartsBlockHit,
+    type AllChartsBlockResultsPage,
     ChartRecordType,
     StackedArticleHit,
     TopicPageHit,
@@ -591,14 +591,12 @@ export async function queryWritingTopics(
     })
 }
 
-export type AllChartsBlockHit = SearchChartViewHit | SearchMultiDimViewHit
-
 export async function queryAllChartsBlock(
     liteSearchClient: LiteClient,
     topics: string[],
     { textQuery, countries }: AllChartsBlockQuery,
     page: number
-) {
+): Promise<AllChartsBlockResultsPage> {
     const facetFilters = [
         ...buildChartsFacetFilters({
             query: textQuery,
@@ -641,5 +639,12 @@ export async function queryAllChartsBlock(
     const searchedQuery = [textQuery, ...countries]
         .filter((term) => term !== "")
         .join(" ")
-    return { response, query: searchedQuery, countries }
+    return {
+        hits: response.hits,
+        nbHits: response.nbHits ?? response.hits.length,
+        page: response.page ?? page,
+        nbPages: response.nbPages ?? 1,
+        query: searchedQuery,
+        countries,
+    }
 }

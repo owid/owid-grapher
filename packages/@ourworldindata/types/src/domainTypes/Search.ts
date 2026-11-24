@@ -174,6 +174,17 @@ export type SearchMultiDimViewHit = BaseSearchChartHit & {
     isDataExplorer?: boolean
 }
 
+export type AllChartsBlockHit = SearchChartViewHit | SearchMultiDimViewHit
+
+export interface AllChartsBlockResultsPage {
+    hits: AllChartsBlockHit[]
+    nbHits: number
+    page: number
+    nbPages: number
+    query: string
+    countries: string[]
+}
+
 /**
  * This is the type for the hits that we get back from algolia when we search
  * response.results[0].hits is an array of these

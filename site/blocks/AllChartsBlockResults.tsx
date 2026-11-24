@@ -12,6 +12,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "@ourworldindata/components"
 import {
+    type AllChartsBlockHit,
     ChartRecordType,
     GRAPHER_PREVIEW_CLASS,
     GRAPHER_TAB_NAMES,
@@ -32,7 +33,6 @@ import {
 } from "../search/searchUtils.js"
 import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
-import type { AllChartsBlockHit } from "../search/queries.js"
 import { toAllChartsBlockGrapherParams } from "./allChartsBlockEntitySelection.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {

@@ -113,8 +113,9 @@ function AllChartsBlock({
             placeholderData: keepPreviousData,
             initialPageParam: 0,
             getNextPageParam: (lastPage) => {
-                const { page = 0, nbPages = 1 } = lastPage.response
-                return page < nbPages - 1 ? page + 1 : undefined
+                return lastPage.page < lastPage.nbPages - 1
+                    ? lastPage.page + 1
+                    : undefined
             },
         })
 
@@ -167,7 +168,7 @@ function AllChartsBlock({
             ? { resultType: SearchResultType.DATA, query: fetchedQuery }
             : { resultType: SearchResultType.DATA, topic: firstTag.name }
     )
-    const hits = data?.pages.flatMap((page) => page.response.hits) ?? []
+    const hits = data?.pages.flatMap((page) => page.hits) ?? []
     const searchStatus = data ? undefined : isError ? "error" : "pending"
     const suggestedTerms = pickSuggestions({
         keywords: topicSuggestions?.keywords ?? [],
@@ -184,7 +185,7 @@ function AllChartsBlock({
             <AllChartsBlockHeading
                 id={id}
                 heading={heading}
-                hitCount={firstPage?.response.nbHits}
+                hitCount={firstPage?.nbHits}
             />
             <AllChartsBlockSearch
                 query={query}
