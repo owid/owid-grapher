@@ -111,8 +111,8 @@ function AllChartsBlock({
             },
         })
 
-    const { data: topicSuggestions, isPending: isLoadingSuggestions } =
-        useQuery({
+    const { data: topicSuggestions, isPending: isLoadingVocabulary } = useQuery(
+        {
             queryKey: allChartsBlockQueryKeys.topicVocabulary(),
             queryFn: shouldFetch
                 ? () => fetchJson<TopicVocabulary>(TOPIC_VOCABULARY_URL)
@@ -121,17 +121,23 @@ function AllChartsBlock({
                 firstTag.slug ? vocabulary[firstTag.slug] : undefined,
             staleTime: Infinity,
             retry: false,
-        })
+        }
+    )
 
-    const { data: detectedCountryName } = useQuery({
-        queryKey: allChartsBlockQueryKeys.userCountry(),
-        queryFn: async () => {
-            const name = (await getUserCountryInformation())?.name
-            return name && listedRegionsNames().includes(name) ? name : null
-        },
-        staleTime: Infinity,
-        retry: false,
-    })
+    const { data: detectedCountryName, isPending: isLoadingUserCountry } =
+        useQuery({
+            queryKey: allChartsBlockQueryKeys.userCountry(),
+            queryFn: shouldFetch
+                ? async () => {
+                      const name = (await getUserCountryInformation())?.name
+                      return name && listedRegionsNames().includes(name)
+                          ? name
+                          : null
+                  }
+                : skipToken,
+            staleTime: Infinity,
+            retry: false,
+        })
 
     const applyQuery = (nextQuery: string): void => {
         setQuery(nextQuery)
@@ -176,7 +182,9 @@ function AllChartsBlock({
                 query={query}
                 onQueryChange={onQueryChange}
                 suggestedTerms={suggestedTerms}
-                isLoadingSuggestions={isLoadingSuggestions}
+                isLoadingSuggestions={
+                    isLoadingVocabulary || isLoadingUserCountry
+                }
                 onSuggestionSelect={applyQuery}
             />
             <AllChartsBlockResults
