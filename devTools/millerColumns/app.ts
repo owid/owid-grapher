@@ -1700,10 +1700,25 @@ function keepTrailInView(): void {
         const top = row.offsetTop - body.offsetTop
         const bottom = top + row.offsetHeight
         const margin = 12
-        if (top < body.scrollTop) body.scrollTop = top - margin
+        const covered = stuckHeaderHeight(row, body)
+        if (top < body.scrollTop + covered)
+            body.scrollTop = top - covered - margin
         else if (bottom > body.scrollTop + body.clientHeight)
             body.scrollTop = bottom - body.clientHeight + margin
     }
+}
+// How much of the column's top the sticky header above a row covers once
+// stuck (the document title, or the row's group label), so ↑ never selects
+// a row hidden under it.
+function stuckHeaderHeight(row: HTMLElement, body: HTMLElement): number {
+    let header = row.previousElementSibling as HTMLElement | null
+    while (header && getComputedStyle(header).position !== "sticky")
+        header = header.previousElementSibling as HTMLElement | null
+    if (!header) return 0
+    const stuckTop =
+        parseFloat(getComputedStyle(header).top) +
+        parseFloat(getComputedStyle(body).paddingTop)
+    return stuckTop + header.offsetHeight
 }
 function layout(): void {
     const cols = [...strip.querySelectorAll<HTMLElement>(":scope > .col")]
