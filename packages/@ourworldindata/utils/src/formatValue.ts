@@ -7,6 +7,42 @@ import {
 
 const DEFAULT_ABBREVIATION_THRESHOLD = 1e6
 
+// Building a d3 locale and parsing a format specifier cost far more than the
+// formatting itself, and formatValue can run for many thousands of values per
+// chart, so the resulting formatters are cached. Keys come from a small set of
+// units and specifiers; the caches are cleared if that ever stops being true.
+const MAX_CACHED_FORMATTERS = 1000
+type NumberFormatter = (value: number) => string
+
+const formattersBySpecifier = new Map<string, NumberFormatter>()
+function getFormatter(specifier: string): NumberFormatter {
+    let formatter = formattersBySpecifier.get(specifier)
+    if (!formatter) {
+        if (formattersBySpecifier.size >= MAX_CACHED_FORMATTERS)
+            formattersBySpecifier.clear()
+        formatter = format(specifier)
+        formattersBySpecifier.set(specifier, formatter)
+    }
+    return formatter
+}
+
+const formattersByUnitAndSpecifier = new Map<string, NumberFormatter>()
+function getFormatterWithUnit(
+    unit: string,
+    specifier: string
+): NumberFormatter {
+    // \0 can't appear in a specifier, so the key is unambiguous
+    const key = `${unit}\0${specifier}`
+    let formatter = formattersByUnitAndSpecifier.get(key)
+    if (!formatter) {
+        if (formattersByUnitAndSpecifier.size >= MAX_CACHED_FORMATTERS)
+            formattersByUnitAndSpecifier.clear()
+        formatter = createFormatter(unit)(specifier)
+        formattersByUnitAndSpecifier.set(key, formatter)
+    }
+    return formatter
+}
+
 // Used outside this module to figure out if the unit will be joined with the number.
 export function checkIsVeryShortUnit(unit: string): unit is "$" | "£" | "%" {
     return ["%", "$", "£"].includes(unit)
@@ -118,7 +154,7 @@ function getRoundedMagnitude({
             : `.${numDecimalPlaces}f`
     // d3 renders negative numbers with a Unicode minus that doesn't parse back,
     // so round the magnitude — that's all the thresholds care about
-    return +format(specifier)(Math.abs(value))
+    return +getFormatter(specifier)(Math.abs(value))
 }
 
 // For values below 1, rounding to significant figures is capped at
@@ -145,7 +181,7 @@ function getEffectiveRoundingMode({
     if (Math.abs(value) >= 1) return roundingMode
 
     // Keep sig figs when they show no more decimals than the cap allows
-    const roundedToSigFigs = format(`.${numSignificantFigures}r`)(
+    const roundedToSigFigs = getFormatter(`.${numSignificantFigures}r`)(
         Math.abs(value)
     )
     const sigFigDecimals = roundedToSigFigs.split(".")[1]?.length ?? 0
@@ -297,8 +333,6 @@ export function formatValue(
         abbreviationSignificantFigures,
     }: TickFormattingOptions
 ): string {
-    const formatter = createFormatter(unit)
-
     // in "short" contexts, written-out values of 1,000 or more drop their
     // decimals: the fraction is noise at that magnitude, and full-precision
     // surfaces (tooltips, the data table) don't use "short". The cutoff is
@@ -362,7 +396,7 @@ export function formatValue(
         type,
     }).toString()
 
-    const formattedString = formatter(specifier)(value)
+    const formattedString = getFormatterWithUnit(unit, specifier)(value)
 
     const postprocessedString = postprocessString({
         string: formattedString,

@@ -334,35 +334,42 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         return points
     }
 
-    private getPointLabel(rowIndex: number): string | undefined {
+    /**
+     * Returns a function that formats the label of the point at a given row
+     * index of the transformed table. Labels are only rendered for a handful
+     * of points (start, end and mid labels of connected series), so they're
+     * formatted on demand rather than for every point up front.
+     */
+    private makePointLabelFormatter(): (rowIndex: number) => string {
         const strat = this.manager.scatterPointLabelStrategy
-        const { xColumn, yColumn } = this
-        const { timeColumn } = this.transformedTable
-        let label
-        if (strat === ScatterPointLabelStrategy.y) {
-            label = yColumn?.formatValue(
-                yColumn.valuesIncludingErrorValues[rowIndex]
-            )
-        } else if (strat === ScatterPointLabelStrategy.x) {
-            label = xColumn?.formatValue(
-                xColumn.valuesIncludingErrorValues[rowIndex]
-            )
-        } else {
-            label = timeColumn.formatTime(
-                timeColumn.valuesIncludingErrorValues[rowIndex] as number
-            )
+        if (
+            strat === ScatterPointLabelStrategy.y ||
+            strat === ScatterPointLabelStrategy.x
+        ) {
+            const column =
+                strat === ScatterPointLabelStrategy.y
+                    ? this.yColumn
+                    : this.xColumn
+            if (!column) return () => ""
+            const values = column.valuesIncludingErrorValues
+            return (rowIndex) => column.formatValue(values[rowIndex]) ?? ""
         }
-        return label
+        const { timeColumn } = this.transformedTable
+        const times = timeColumn.valuesIncludingErrorValues
+        return (rowIndex) =>
+            timeColumn.formatTime(times[rowIndex] as number) ?? ""
     }
 
     @computed private get allPointsBeforeEndpointsFilter(): SeriesPoint[] {
         const { entityNameColumn, timeColumn } = this.transformedTable
         const { xColumn, yColumn, sizeColumn, colorColumn } = this
+        const formatPointLabel = this.makePointLabelFormatter()
 
         // We are running this filter first because it only depends on author-specified config, not
         // on any user interaction.
         return this.removePointsOutsidePlane(
             this.transformedTable.indices.map((rowIndex) => {
+                let label: string | undefined
                 return {
                     x: xColumn.valuesIncludingErrorValues[rowIndex] as number,
                     y: yColumn.valuesIncludingErrorValues[rowIndex] as number,
@@ -377,7 +384,9 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
                     entityName: entityNameColumn.valuesIncludingErrorValues[
                         rowIndex
                     ] as EntityName,
-                    label: this.getPointLabel(rowIndex) ?? "",
+                    get label(): string {
+                        return (label ??= formatPointLabel(rowIndex))
+                    },
                     timeValue: timeColumn.valuesIncludingErrorValues[
                         rowIndex
                     ] as number,

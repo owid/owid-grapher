@@ -192,7 +192,11 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             color: scaleColor ?? series.color,
                             size: this.getPointRadius(point.size),
                             time: point.time,
-                            label: point.label,
+                            // Read lazily: formatting labels is expensive
+                            // and only a few points are labelled
+                            get label(): string {
+                                return point.label
+                            },
                         }
                     }
                 )
