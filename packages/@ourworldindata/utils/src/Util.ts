@@ -1483,6 +1483,12 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
                 ...R.pick(featuredVizGdoc, ["bespokeMetadata"]),
             }
         })
+        .when(checkIsGdocPost, (postGdoc) => {
+            return {
+                ...commonProps,
+                ...R.pick(postGdoc, ["allChartsBlockResults"]),
+            }
+        })
         .otherwise(() => commonProps)
 }
 

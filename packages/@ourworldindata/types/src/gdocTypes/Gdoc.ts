@@ -4,6 +4,7 @@ import {
 } from "../grapherTypes/GrapherTypes.js"
 import { BespokeMetadata } from "../domainTypes/BespokeMetadata.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
+import { BakedAllChartsBlockResults } from "../domainTypes/Search.js"
 import { TocHeadingWithSupertitle } from "../domainTypes/Toc.js"
 import { ImageMetadata } from "./Image.js"
 import {
@@ -159,6 +160,7 @@ export interface OwidGdocBaseInterface {
 
 export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
     content: OwidGdocPostContent
+    allChartsBlockResults?: BakedAllChartsBlockResults
 }
 
 // Used for linkedDocuments attachments, instead of attaching the entire gdoc model

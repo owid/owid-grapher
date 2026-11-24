@@ -14,6 +14,7 @@ import {
     MinimalTag,
     LinkedStaticViz,
     BespokeMetadata,
+    BakedAllChartsBlockResults,
 } from "@ourworldindata/types"
 
 export type Attachments = {
@@ -32,6 +33,7 @@ export type Attachments = {
     tags: MinimalTag[]
     linkedCallouts?: LinkedCallouts
     bespokeMetadata?: BespokeMetadata
+    allChartsBlockResults?: BakedAllChartsBlockResults
 }
 
 export const AttachmentsContext = createContext<Attachments>({

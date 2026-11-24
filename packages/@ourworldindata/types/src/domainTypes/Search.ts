@@ -185,6 +185,12 @@ export interface AllChartsBlockResultsPage {
     countries: string[]
 }
 
+/** First page of the all-charts block's default results, fetched at bake time */
+export interface BakedAllChartsBlockResults {
+    page: AllChartsBlockResultsPage
+    fetchedAtMs: number
+}
+
 /**
  * This is the type for the hits that we get back from algolia when we search
  * response.results[0].hits is an array of these
