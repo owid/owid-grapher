@@ -346,6 +346,25 @@ it("interleaves the topic's countries with its keywords", async () => {
     ])
 })
 
+it("fills a country slot with a keyword when the topic runs out of countries", async () => {
+    stubVocabulary({
+        poverty: { keywords: POVERTY_KEYWORDS, countries: ["Nigeria"] },
+    })
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    await screen.findByRole("button", { name: "Nigeria" })
+    expect(getSuggestions()).toEqual([
+        "GDP per capita",
+        "extreme poverty",
+        "Nigeria",
+        "relative poverty",
+        "multidimensional poverty",
+        "consumption",
+    ])
+})
+
 it("puts the reader's detected country first among the countries", async () => {
     const spain: UserCountryInformation = {
         name: "Spain",

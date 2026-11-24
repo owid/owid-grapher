@@ -221,14 +221,18 @@ function pickSuggestions({
             normalizedQuery
         ),
     }
-    if (pools.country.length === 0)
-        return pools.keyword.slice(0, SUGGESTION_SLOTS.length)
 
+    const suggestions: string[] = []
     const nextIndexes = { keyword: 0, country: 0 }
-
-    return SUGGESTION_SLOTS.map(
-        (slot) => pools[slot][nextIndexes[slot]++]
-    ).filter(R.isDefined)
+    for (const slot of SUGGESTION_SLOTS) {
+        const otherSlot = slot === "keyword" ? "country" : "keyword"
+        const pool = nextIndexes[slot] < pools[slot].length ? slot : otherSlot
+        const term = pools[pool][nextIndexes[pool]]
+        if (term === undefined) break
+        suggestions.push(term)
+        nextIndexes[pool]++
+    }
+    return suggestions
 }
 
 function dedupeAndDropQuery(
