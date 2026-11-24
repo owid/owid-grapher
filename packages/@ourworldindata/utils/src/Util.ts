@@ -548,17 +548,26 @@ export const TESTING_ONLY_disable_guid = (): boolean =>
 /** Decimal places a number keeps when it is written into an SVG attribute */
 export const SVG_PRECISION = 2
 
+const SVG_PRECISION_FACTOR = 10 ** SVG_PRECISION
+
+/**
+ * Note: Decimal ties round by their binary representation
+ * (1.005 is stored as 1.00499…, so it rounds to 1), which is invisible at
+ * SVG precision.
+ */
 export function roundForSvg(value: number): number {
-    return _.round(value, SVG_PRECISION)
+    // Many coordinates are already whole pixels
+    if (Number.isInteger(value)) return value
+    return Math.round(value * SVG_PRECISION_FACTOR) / SVG_PRECISION_FACTOR
 }
 
 /** Create an SVG path from an array of points */
 export const pointsToPath = (points: Point[]): string => {
-    let path = ""
-    for (let i = 0; i < points.length; i++) {
-        const x = roundForSvg(points[i].x)
-        const y = roundForSvg(points[i].y)
-        path += i === 0 ? `M${x} ${y}` : `L${x} ${y}`
+    if (points.length === 0) return ""
+    let path = `M${roundForSvg(points[0].x)} ${roundForSvg(points[0].y)}`
+    for (let i = 1; i < points.length; i++) {
+        const point = points[i]
+        path += `L${roundForSvg(point.x)} ${roundForSvg(point.y)}`
     }
     return path
 }
