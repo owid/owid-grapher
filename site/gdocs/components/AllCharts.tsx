@@ -7,7 +7,7 @@ import {
     useInfiniteQuery,
     useQuery,
 } from "@tanstack/react-query"
-import { useDebounceValue, useIntersectionObserver } from "usehooks-ts"
+import { useDebounceCallback, useIntersectionObserver } from "usehooks-ts"
 import {
     ALL_CHARTS_ID,
     fetchJson,
@@ -84,11 +84,11 @@ function AllChartsBlock({
     })
 
     const [query, setQuery] = useState("")
-    const [debouncedQuery, setDebouncedQuery] = useDebounceValue(
-        query,
+    const [requestedQuery, setRequestedQuery] = useState("")
+    const requestQueryDebounced = useDebounceCallback(
+        setRequestedQuery,
         SEARCH_DEBOUNCE_MS
     )
-    const requestedQuery = debouncedQuery.trim()
     const shouldFetch = isIntersecting
 
     const { data, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
@@ -140,14 +140,15 @@ function AllChartsBlock({
         })
 
     const applyQuery = (nextQuery: string): void => {
+        requestQueryDebounced.cancel()
         setQuery(nextQuery)
-        setDebouncedQuery(nextQuery)
-        setDebouncedQuery.flush()
+        setRequestedQuery(nextQuery.trim())
     }
 
     const onQueryChange = (nextQuery: string): void => {
-        if (nextQuery.trim() === "") applyQuery(nextQuery)
-        else setQuery(nextQuery)
+        if (nextQuery.trim() === "") return applyQuery(nextQuery)
+        setQuery(nextQuery)
+        requestQueryDebounced(nextQuery.trim())
     }
 
     const heading = `${getTopicPageHeading("allCharts", gdocType)} on ${sentenceCaseIfNotTopicPage(firstTag.name, gdocType, false)}`
