@@ -36,6 +36,8 @@ ALGOLIA_SEARCH_KEY=ODZiMDkyMGRiNGU4MmU4MWZhYzUxNTNhZjY1NWI1NTY3ZTE2MmZhOGZhZDVlM
 # optional; base URL of a server that speaks the Algolia REST API, used instead
 # of Algolia (e.g. http://127.0.0.1:8799 for https://github.com/owid/local-algolia)
 ALGOLIA_HOST=
+# optional; the experimental turbopuffer backend of /api/search (engine=tpuf)
+TURBOPUFFER_API_KEY=
 
 # optional
 SLACK_BOT_OAUTH_TOKEN=

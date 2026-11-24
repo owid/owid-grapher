@@ -174,6 +174,22 @@ async function assertTopicsExist(
     }
 }
 
+export function chartHitUrl(
+    hit: { type: string; slug: string; queryParams?: string },
+    baseUrl: string
+): string {
+    const queryParams = hit.queryParams || ""
+    switch (hit.type) {
+        case ChartRecordType.ExplorerView:
+            return `${baseUrl}/explorers/${hit.slug}${queryParams}`
+        case ChartRecordType.MultiDimView:
+            return `${baseUrl}/grapher/${hit.slug}${queryParams}`
+        default:
+            // Regular charts carry no query params
+            return `${baseUrl}/grapher/${hit.slug}`
+    }
+}
+
 export async function searchCharts(
     config: AlgoliaConfig,
     state: SearchState,
@@ -221,24 +237,9 @@ export async function searchCharts(
             }
         }
 
-        // Construct URL based on type
-        let url: string
-        if (cleanHit.type === ChartRecordType.ExplorerView) {
-            // Explorer views: /explorers/{slug}{queryParams}
-            const queryParams = cleanHit.queryParams || ""
-            url = `${baseUrl}/explorers/${cleanHit.slug}${queryParams}`
-        } else if (cleanHit.type === ChartRecordType.MultiDimView) {
-            // Multi-dimensional views: /grapher/{slug}{queryParams}
-            const queryParams = cleanHit.queryParams || ""
-            url = `${baseUrl}/grapher/${cleanHit.slug}${queryParams}`
-        } else {
-            // Regular charts: /grapher/{slug}
-            url = `${baseUrl}/grapher/${cleanHit.slug}`
-        }
-
         return {
             ...(cleanHit as SearchChartHit),
-            url,
+            url: chartHitUrl(cleanHit, baseUrl),
         }
     })
 

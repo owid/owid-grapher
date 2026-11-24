@@ -463,6 +463,19 @@ export {
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
 export {
+    TURBOPUFFER_CHARTS_NAMESPACE,
+    TURBOPUFFER_REGION,
+    DEFAULT_POPULARITY_MIDPOINT,
+    TURBOPUFFER_ARMS,
+    type TurbopufferArm,
+    isTurbopufferArm,
+    type TurbopufferChartsQuery,
+    type TurbopufferChartsResult,
+    buildTurbopufferSingleQuery,
+    buildTurbopufferHybridQuery,
+    queryTurbopufferCharts,
+} from "./search/turbopufferCharts.js"
+export {
     type AlgoliaHostOption,
     getAlgoliaBaseUrl,
     getAlgoliaHostClientOptions,

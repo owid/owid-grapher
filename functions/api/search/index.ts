@@ -18,6 +18,16 @@ import {
     ALL_GDOC_TYPES,
     TagGraphRoot,
 } from "@ourworldindata/types"
+import { isTurbopufferArm, TURBOPUFFER_ARMS } from "@ourworldindata/utils"
+import {
+    searchChartsTurbopuffer,
+    TurbopufferSearchApiResponse,
+} from "./turbopufferSearch.js"
+
+// Experimental: `engine=tpuf` answers type=charts from turbopuffer, with
+// `arm` choosing the query shape and `midpoint` the popularity midpoint
+// (see turbopufferSearch.ts)
+const TURBOPUFFER_PARAMS = ["engine", "arm", "midpoint"]
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
@@ -45,6 +55,7 @@ const KNOWN_PARAMS = new Set<string>([
     "pageTypes",
     "page",
     "hitsPerPage",
+    ...TURBOPUFFER_PARAMS,
 ])
 
 // The parameters only some search types read. A request that sends one to a
@@ -56,6 +67,9 @@ const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
     [SearchUrlParam.TOPIC, ["charts", "topics"]],
     [SearchUrlParam.REQUIRE_ALL_COUNTRIES, ["charts", "topics"]],
     ["pageTypes", ["pages"]],
+    ...TURBOPUFFER_PARAMS.map(
+        (param) => [param, ["charts"]] as [string, readonly SearchType[]]
+    ),
 ])
 
 // type=topics filters by country only when charts match a query, so never
@@ -89,6 +103,36 @@ async function fetchTagGraph(env: Env, baseUrl: string): Promise<TagGraphRoot> {
             `Failed to fetch /topicTagGraph.json: ${response.status}`
         )
     return response.json()
+}
+
+function searchWithTurbopuffer(
+    env: Env,
+    params: URLSearchParams,
+    state: SearchState,
+    page: number,
+    hitsPerPage: number,
+    baseUrl: string
+): Promise<TurbopufferSearchApiResponse> {
+    if (!env.TURBOPUFFER_API_KEY)
+        throw new Error("engine=tpuf needs TURBOPUFFER_API_KEY to be set")
+    const arm = params.get("arm") || "T1"
+    if (!isTurbopufferArm(arm))
+        throw new SearchValidationError(
+            `Invalid arm "${arm}". Valid arms: ${TURBOPUFFER_ARMS.join(", ")}`
+        )
+    const midpointParam = params.get("midpoint")
+    const midpoint = midpointParam ? Number(midpointParam) : undefined
+    if (midpoint !== undefined && !(midpoint > 0))
+        throw new SearchValidationError("midpoint must be a positive number")
+    return searchChartsTurbopuffer(
+        env.TURBOPUFFER_API_KEY,
+        state,
+        arm,
+        midpoint,
+        page,
+        hitsPerPage,
+        baseUrl
+    )
 }
 
 const hasSearchEnvVars = (env: Env): boolean => {
@@ -293,6 +337,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         > => {
             switch (searchType) {
                 case "charts":
+                    if (url.searchParams.get("engine") === "tpuf")
+                        return searchWithTurbopuffer(
+                            env,
+                            url.searchParams,
+                            searchState,
+                            page,
+                            hitsPerPage,
+                            baseUrl
+                        )
                     return searchCharts(
                         algoliaConfig,
                         searchState,

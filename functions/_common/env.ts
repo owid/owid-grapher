@@ -31,6 +31,8 @@ export interface Env {
     ALGOLIA_SEARCH_KEY: string
     ALGOLIA_INDEX_PREFIX?: string
     ALGOLIA_HOST?: string
+    // Experimental turbopuffer backend for type=charts (engine=tpuf)
+    TURBOPUFFER_API_KEY?: string
     CATALOG_URL: string
     USER_SURVEYS_R2?: R2Bucket
 }

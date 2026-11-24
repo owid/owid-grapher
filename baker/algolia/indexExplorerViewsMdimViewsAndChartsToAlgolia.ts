@@ -8,21 +8,12 @@ import { runSentryScript } from "../../serverUtils/sentryTracing.js"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
-import { getExplorerViewRecords } from "./utils/explorerViews.js"
 import {
-    applyFMSourceBonus,
-    applyFeaturedMetricBoosts,
     createFeaturedMetricRecords,
-    getBoostedFeaturedMetricUrls,
-    getFeaturedMetricSlugs,
-    MAX_NON_FM_RECORD_SCORE,
-    scaleRecordScores,
     shrinkRecordsToFitAlgoliaLimit,
 } from "./utils/shared.js"
-import { getChartsRecords } from "./utils/charts.js"
-import { createBaseIndexingContext } from "./utils/context.js"
+import { getScoredChartIndexRecords } from "./utils/chartIndexRecords.js"
 import { CHARTS_INDEX } from "../../site/search/searchUtils.js"
-import { getMultiDimViewRecords } from "./utils/mdimViews.js"
 import { reportFeaturedMetricFailuresToSlack } from "./utils/slackReport.js"
 
 const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
@@ -50,37 +41,7 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
 
     const { records, failures } = await db.knexReadonlyTransaction(
         async (trx) => {
-            // Create shared base context once for all record getters
-            const baseContext = await createBaseIndexingContext(trx)
-            const explorerViews = await getExplorerViewRecords(trx, {
-                skipGrapherViews: true,
-                baseContext,
-            })
-            const multiDimViews = await getMultiDimViewRecords(trx, {
-                baseContext,
-            })
-            const grapherViews = await getChartsRecords(trx, {
-                baseContext,
-            })
-
-            // Scale charts, mdim views, and explorer views together so scores are directly comparable.
-            // Makes it easier to intuit what bonuses and boosts will do
-            const scaledRecords = scaleRecordScores(
-                [...explorerViews, ...multiDimViews, ...grapherViews],
-                [1000, MAX_NON_FM_RECORD_SCORE]
-            )
-
-            // Increase scores slightly for the non-FM version of the records
-            const fmSlugs = await getFeaturedMetricSlugs(trx)
-            const bonusedRecords = applyFMSourceBonus(scaledRecords, fmSlugs)
-
-            // Override the scores of any records that have been boosted
-            const boostedUrls = await getBoostedFeaturedMetricUrls(trx)
-            const records = applyFeaturedMetricBoosts(
-                bonusedRecords,
-                boostedUrls
-            )
-
+            const records = await getScoredChartIndexRecords(trx)
             const shrunkRecords = shrinkRecordsToFitAlgoliaLimit(records)
             const { records: featuredMetricRecords, failures } =
                 await createFeaturedMetricRecords(trx, shrunkRecords)

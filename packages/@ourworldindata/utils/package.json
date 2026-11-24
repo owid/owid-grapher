@@ -14,6 +14,7 @@
         "@ourworldindata/types": "workspace:^",
         "@sentry/browser": "^11.11.0",
         "@tippyjs/react": "^4.2.6",
+        "@turbopuffer/turbopuffer": "^2.14.0",
         "algoliasearch": "^5.57.0",
         "core-js": "^3.49.0",
         "d3-array": "^3.2.4",

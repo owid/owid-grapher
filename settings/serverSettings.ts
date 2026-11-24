@@ -122,6 +122,8 @@ export const ALGOLIA_SECRET_KEY: string =
     serverSettings.ALGOLIA_SECRET_KEY ?? ""
 export const ALGOLIA_INDEXING: boolean =
     serverSettings.ALGOLIA_INDEXING === "true"
+export const TURBOPUFFER_API_KEY: string =
+    serverSettings.TURBOPUFFER_API_KEY ?? ""
 
 export const UNCATEGORIZED_TAG_ID: number =
     parseIntOrUndefined(serverSettings.UNCATEGORIZED_TAG_ID) ?? 375
