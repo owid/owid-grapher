@@ -443,7 +443,6 @@ export class LineChart
             fontWeight: this.fontWeight,
             verticalAlign: VerticalAlign.top,
             isInteractive: !this.isStatic,
-            canShowInfoIcons: true,
         })
     }
 
@@ -509,9 +508,6 @@ export class LineChart
                         onMouseLeave={this.onVerticalLabelMouseLeave}
                         onTooltipShow={this.onVerticalLabelTooltipShow}
                         onTooltipHide={this.onVerticalLabelTooltipHide}
-                        seriesNamesWithInfoIcon={
-                            this.seriesNamesWithLabelInfoIcon
-                        }
                     />
                 )}
                 <Lines
@@ -700,20 +696,6 @@ export class LineChart
 
     private isAtHoveredTime(time: Time): boolean {
         return this.isTooltipActive && this.activeTimes.includes(time)
-    }
-
-    @computed private get seriesNamesWithLabelInfoIcon(): Set<SeriesName> {
-        return new Set(
-            this.renderSeries
-                .filter(
-                    (series) =>
-                        !series.hover.background &&
-                        series.placedPointAnnotations.some(({ point }) =>
-                            this.isAtHoveredTime(point.time)
-                        )
-                )
-                .map((series) => series.seriesName)
-        )
     }
 
     @computed private get renderPointAnnotations(): RenderPointAnnotation[] {

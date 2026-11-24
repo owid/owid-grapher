@@ -17,8 +17,6 @@ import { ParsedLabel, parseLabel } from "../core/RegionGroups.js"
 import { FontSettings } from "../core/GrapherConstants.js"
 import { hasTooltipData, TooltipKey } from "./RegionTooltipData.js"
 
-const INFO_ICON_GAP = 4
-
 export interface SeriesLabelAnnotation {
     heading?: string
     text: string
@@ -35,7 +33,6 @@ export interface SeriesLabelStateOptions {
     placeFormattedValueInNewLine?: boolean
     showRegionTooltip?: boolean
     annotations?: SeriesLabelAnnotation[]
-    canShowInfoIcon?: boolean
 }
 
 export type TextRole = "name" | "value" | "suffix"
@@ -101,7 +98,6 @@ export class SeriesLabelState {
         placeFormattedValueInNewLine: false,
         showRegionTooltip: false,
         annotations: [],
-        canShowInfoIcon: false,
         textAnchor: "start",
     } as const satisfies Partial<SeriesLabelStateOptions>
 
@@ -335,35 +331,10 @@ export class SeriesLabelState {
     }
 
     @computed get width(): number {
-        if (!this.options.canShowInfoIcon) return this.textWidth
-        const infoIconRight = this.infoIconCenterOffset.x + this.infoIconRadius
-        return Math.max(this.textWidth, infoIconRight)
-    }
-
-    @computed private get textWidth(): number {
         const lineWidths = this.contentLines.map((line) =>
             _.sumBy(line, (fragment) => fragment.width)
         )
         return lineWidths.length > 0 ? Math.max(...lineWidths) : 0
-    }
-
-    @computed get infoIconRadius(): number {
-        return this.options.fontSize / 2
-    }
-
-    @computed get infoIconCenterOffset(): Point {
-        const { contentLines, singleLineHeight, infoIconRadius } = this
-        const lastLine = contentLines[contentLines.length - 1]
-        const lastLineWidth =
-            this.options.textAnchor === "end"
-                ? 0
-                : _.sumBy(lastLine, (fragment) => fragment.width)
-        return {
-            x: lastLineWidth + INFO_ICON_GAP + infoIconRadius,
-            y:
-                (contentLines.length - 1) * singleLineHeight +
-                singleLineHeight / 2,
-        }
     }
 
     @computed get height(): number {
