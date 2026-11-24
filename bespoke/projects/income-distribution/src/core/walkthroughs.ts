@@ -158,7 +158,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
                 },
             },
             {
-                text: "The controls allow you to draw a line at a particular income level — we can think of this like setting a *poverty line*.",
+                text: "The controls allow you to draw a line at a particular income level — we can think of this like setting a poverty line.",
                 chart: {
                     view: "global",
                     povertyLine: EXAMPLE_POVERTY_LINE,
@@ -217,7 +217,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
             {
                 text: "There are people living in poverty in every country.",
                 secondLine:
-                    "In [[Sweden]], poverty is defined as living on around $1,000 a month or less.",
+                    "In [[Sweden]], the national poverty line is around $1,000 a month.",
                 chart: {
                     view: "countries",
                     countries: ["Sweden"],
@@ -259,7 +259,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
                 emphasis: { showSeriesLabels: false },
                 annotations: [
                     {
-                        text: "The [[United States]] is richer than [[Sweden]] on average, but it is also more unequal – the distribution is more spread out.",
+                        text: "The [[United States]] is richer than [[Sweden]] on average, but it is also more unequal — the distribution is more spread out.",
                         target: {
                             income: RICH_COUNTRY_POVERTY_LINE,
                             y: { plot: 0.6 },
@@ -304,7 +304,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
                 },
             },
             {
-                text: "To focus attention on the extreme depth of poverty many in the world face, the World Bank sets an international poverty line more than 10 times lower, **$3 a day**.",
+                text: "To focus attention on the extreme depth of poverty many in the world face, the World\u00a0Bank sets an international poverty line more than 10 times lower, **$3 a day**.",
                 chart: {
                     view: "global",
                     povertyLine: INT_POVERTY_LINE,

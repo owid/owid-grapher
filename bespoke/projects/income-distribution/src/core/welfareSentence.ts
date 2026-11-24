@@ -2,11 +2,13 @@ import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import { WELFARE_TYPES, type WelfareType } from "./types.js"
 import { WELFARE_TYPE_DETAILS } from "./welfareType.js"
 
-/** "A", "A and B", "A, B and C", with names as they read mid-sentence ("the United States") */
+/** "A", "A and B", "A, B, and C", with names as they read mid-sentence ("the United States") */
 export function formatCountryList(countries: string[]): string {
     const names = countries.map((name) => formatEntityNameForSentence(name))
     if (names.length <= 1) return names.join("")
-    return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
+    // With the Oxford comma from three names on
+    const comma = names.length > 2 ? "," : ""
+    return `${names.slice(0, -1).join(", ")}${comma} and ${names[names.length - 1]}`
 }
 
 /**

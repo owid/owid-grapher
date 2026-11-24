@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react"
 import cx from "clsx"
 import * as R from "remeda"
 
@@ -10,6 +10,7 @@ import { BespokeMetadataProvider } from "../../../../components/MetadataModal/Be
 import {
     FIRST_NOWCAST_YEAR,
     INT_POVERTY_LINE,
+    NOWCAST_DOD_ID,
     INTERNATIONAL_DOLLAR,
     WORLD_COLOR,
     WORLD_ENTITY_NAME,
@@ -38,7 +39,7 @@ import {
     IncomeDistributionChart,
     type IncomeDistributionChartEmphasis,
 } from "./IncomeDistributionChart.js"
-import { WelfareSentence } from "./WelfareDetails.js"
+import { SiteDodTerm, WelfareSentence } from "./WelfareDetails.js"
 import {
     IncomeDistributionLegend,
     LegendEntry,
@@ -462,30 +463,35 @@ function chartNote(
 ): React.ReactNode {
     // The countries' own sentence says what each reports, so it replaces
     // the general one
-    const sentences = welfareSentence
-        ? []
-        : [
-              "Depending on the country, the data relates to income measured after taxes and benefits, or to consumption, per capita.",
-          ]
+    const sentences: React.ReactNode[] = [
+        welfareSentence ? (
+            <WelfareSentence key="welfare" segments={welfareSentence} />
+        ) : (
+            "Depending on the country, the data relates to income measured after taxes and benefits, or to consumption, per capita."
+        ),
+    ]
     // Below the plot rather than in the subtitle, so picking or dragging the
     // line never reflows the chart above it
     if (isInternationalLine)
         sentences.push(
-            "The International Poverty Line is set by the World Bank as its definition of extreme poverty."
+            "The International Poverty Line is set by the World\u00a0Bank as its definition of extreme poverty."
         )
     if (year >= FIRST_NOWCAST_YEAR)
         sentences.push(
-            `Figures for ${year} are World Bank nowcasts, which extrapolate the latest household surveys using economic growth.`
+            <>
+                Figures for {year} are World{"\u00a0"}Bank{" "}
+                <SiteDodTerm id={NOWCAST_DOD_ID}>nowcasts</SiteDodTerm>, which
+                extrapolate the latest household surveys using economic growth.
+            </>
         )
     if (currency.code !== INTERNATIONAL_DOLLAR.code)
         sentences.push(
-            "Incomes in local currencies are converted from international-$ using PPP conversion factors and adjusted for inflation to the latest year available."
+            "Incomes in local currencies are converted from international-$ using purchasing power parity (PPP) conversion factors and adjusted for inflation to the latest year available."
         )
-    if (!welfareSentence) return sentences.join(" ")
-    return (
-        <>
-            <WelfareSentence segments={welfareSentence} />
-            {sentences.map((sentence) => ` ${sentence}`).join("")}
-        </>
-    )
+    return sentences.map((sentence, i) => (
+        <Fragment key={i}>
+            {i > 0 && " "}
+            {sentence}
+        </Fragment>
+    ))
 }

@@ -20,6 +20,9 @@ export const DEFAULT_YEAR = "2025"
  */
 export const FIRST_NOWCAST_YEAR = 2025
 
+/** The site DoD (managed in the admin) behind "nowcasts" in the chart footer */
+export const NOWCAST_DOD_ID = "nowcast"
+
 /**
  * The countries the compare-countries view starts with. "userLocation" is
  * the sentinel the user's own country gets substituted for.

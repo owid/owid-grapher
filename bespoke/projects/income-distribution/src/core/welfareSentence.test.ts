@@ -24,13 +24,13 @@ function sentence(countries: string[]): string | undefined {
 }
 
 describe(formatCountryList, () => {
-    it("joins names with commas and a final 'and'", () => {
+    it("joins names with commas and a final 'and', with an Oxford comma from three names", () => {
         expect(formatCountryList(["Germany"])).toBe("Germany")
         expect(formatCountryList(["Germany", "China"])).toBe(
             "Germany and China"
         )
         expect(formatCountryList(["Germany", "China", "India"])).toBe(
-            "Germany, China and India"
+            "Germany, China, and India"
         )
     })
 
@@ -60,7 +60,7 @@ describe(welfareTypeSentence, () => {
         expect(
             sentence(["China", "Germany", "India", "United States", "Nigeria"])
         ).toBe(
-            "Germany and the United States report income after taxes and benefits; China, India and Nigeria report consumption."
+            "Germany and the United States report income after taxes and benefits; China, India, and Nigeria report consumption."
         )
         expect(sentence(["United States", "China"])).toBe(
             "The United States reports income after taxes and benefits; China reports consumption."

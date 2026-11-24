@@ -29,3 +29,25 @@
 .income-distribution-dod-card__body {
     margin: 8px 0 0;
 }
+
+// A site DoD's markdown (SiteDodTerm), laid out like .dod-container: the
+// first line is the title
+.income-distribution-dod-card--markdown {
+    .markdown-text-wrap__line {
+        display: block;
+    }
+
+    > .markdown-text-wrap > .markdown-text-wrap__line:first-child {
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    > .markdown-text-wrap > .markdown-text-wrap__line:not(:first-child) {
+        margin-top: 8px;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: underline;
+    }
+}

@@ -1,4 +1,10 @@
-import { Tippy } from "@ourworldindata/utils"
+import { useQuery } from "@tanstack/react-query"
+import { fetchJson, Tippy } from "@ourworldindata/utils"
+import {
+    MarkdownTextWrap,
+    MarkdownTextWrapHtml,
+} from "@ourworldindata/components"
+import type { DetailDictionary } from "@ourworldindata/types"
 
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import type { WelfareType } from "../core/types.js"
@@ -38,6 +44,65 @@ export function WelfareDetailsCard({
                 </p>
             ))}
         </div>
+    )
+}
+
+/**
+ * The site's details-on-demand dictionary, as the site loads it into
+ * window.details (detailsOnDemand.tsx in @ourworldindata/components), or
+ * fetched here if the site hasn't yet. Undefined where there's none, as on
+ * the dev demo page.
+ */
+function useSiteDods(): DetailDictionary | undefined {
+    const { data } = useQuery({
+        queryKey: ["income-distribution", "dods"],
+        queryFn: async (): Promise<DetailDictionary> =>
+            window.details ?? (await fetchJson<DetailDictionary>("/dods.json")),
+        staleTime: Infinity,
+        retry: false,
+    })
+    return data
+}
+
+/**
+ * A term with one of the site's details on demand, managed in the admin,
+ * styled like the welfare types' cards. Plain text when the DoD isn't there.
+ */
+export function SiteDodTerm({
+    id,
+    children,
+}: {
+    id: string
+    children: React.ReactNode
+}): React.ReactElement {
+    // The card mounts in the shadow root, where the footer is
+    const { ref, getTippyContainer } = useTippyContainer<HTMLSpanElement>()
+    const dod = useSiteDods()?.[id]
+    if (!dod) return <>{children}</>
+    return (
+        <span ref={ref}>
+            <Tippy
+                {...WELFARE_DOD_TIPPY_PROPS}
+                content={
+                    <div className="income-distribution-dod-card income-distribution-dod-card--markdown">
+                        <MarkdownTextWrapHtml
+                            textWrap={
+                                new MarkdownTextWrap({
+                                    text: dod.text,
+                                    fontSize: 14,
+                                    lineHeight: 1.55,
+                                })
+                            }
+                        />
+                    </div>
+                }
+                appendTo={getTippyContainer}
+            >
+                <span className="income-distribution-dod-span" tabIndex={0}>
+                    {children}
+                </span>
+            </Tippy>
+        </span>
     )
 }
 

@@ -7,7 +7,7 @@ const MAX_COUNTRIES_IN_TITLE = 4
 
 export function chartTitle(view: View, selectedCountries: string[]): string {
     if (view === "global")
-        return "How is income distributed across the world's population?"
+        return "How is income distributed across the world’s population?"
     if (selectedCountries.length === 0)
         return "How is income distributed in the selected countries?"
     // Naming three of seven countries would read as an arbitrary pick
