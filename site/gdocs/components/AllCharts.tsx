@@ -1,4 +1,4 @@
-import { useContext, useState } from "react"
+import { useContext, useMemo, useState } from "react"
 import cx from "clsx"
 import * as R from "remeda"
 import {
@@ -27,7 +27,10 @@ import {
     queryAllChartsBlock,
 } from "../../search/queries.js"
 import { getLiteSearchClient } from "../../search/searchClients.js"
-import { buildSearchHref } from "../../search/searchState.js"
+import {
+    buildSearchHref,
+    parseAllChartsBlockQuery,
+} from "../../search/searchState.js"
 
 type TopicVocabulary = Partial<
     Record<string, { keywords: string[]; countries?: string[] }>
@@ -89,17 +92,21 @@ function AllChartsBlock({
         setRequestedQuery,
         SEARCH_DEBOUNCE_MS
     )
+    const parsedQuery = useMemo(
+        () => parseAllChartsBlockQuery(requestedQuery),
+        [requestedQuery]
+    )
     const shouldFetch = isIntersecting
 
     const { data, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
         useInfiniteQuery({
-            queryKey: allChartsBlockQueryKeys.charts(topics, requestedQuery),
+            queryKey: allChartsBlockQueryKeys.charts(topics, parsedQuery),
             queryFn: shouldFetch
                 ? ({ pageParam }) =>
                       queryAllChartsBlock(
                           getLiteSearchClient(),
                           topics,
-                          requestedQuery,
+                          parsedQuery,
                           pageParam
                       )
                 : skipToken,

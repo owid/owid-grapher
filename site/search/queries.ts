@@ -43,7 +43,7 @@ import {
     MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
-import { parseAllChartsBlockQuery } from "./searchState.js"
+import { type AllChartsBlockQuery } from "./searchState.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
@@ -80,8 +80,8 @@ export const searchQueryKeys = {
 } as const
 
 export const allChartsBlockQueryKeys = {
-    charts: (topics: string[], query: string) =>
-        [CHARTS_INDEX, "all-charts-block", { topics, query }] as const,
+    charts: (topics: string[], query: AllChartsBlockQuery) =>
+        [CHARTS_INDEX, "all-charts-block", { topics, ...query }] as const,
     topicVocabulary: () => ["topic-vocabulary"] as const,
     userCountry: () => ["user-country"] as const,
 } as const
@@ -593,10 +593,9 @@ export async function queryWritingTopics(
 export async function queryAllChartsBlock(
     liteSearchClient: LiteClient,
     topics: string[],
-    query: string,
+    { textQuery, countries }: AllChartsBlockQuery,
     page: number
 ) {
-    const { textQuery, countries } = parseAllChartsBlockQuery(query)
     const facetFilters = [
         ...buildChartsFacetFilters({
             query: textQuery,
@@ -631,5 +630,8 @@ export async function queryAllChartsBlock(
         liteSearchClient,
         searchParams
     )
-    return { response, query, countries }
+    const searchedQuery = [textQuery, ...countries]
+        .filter((term) => term !== "")
+        .join(" ")
+    return { response, query: searchedQuery, countries }
 }

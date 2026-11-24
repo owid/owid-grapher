@@ -260,6 +260,26 @@ it("filters by countries typed into the search and shows them on the rows, thumb
     )
 })
 
+it("sends one request for two spellings of the same country", async () => {
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    fireEvent.change(screen.getByRole("searchbox"), {
+        target: { value: "UK" },
+    })
+    await vi.waitFor(() => expect(requestedFacetFilters()).toHaveLength(2))
+    fireEvent.change(screen.getByRole("searchbox"), {
+        target: { value: "United Kingdom" },
+    })
+    await act(() => new Promise((resolve) => setTimeout(resolve, 300)))
+
+    expect(requestedFacetFilters()).toHaveLength(2)
+    expect(requestedFacetFilters().at(-1)).toContain(
+        "availableEntities:United Kingdom"
+    )
+})
+
 it("keeps the same chart preview while its tab and countries change", async () => {
     renderBlock()
     fireIntersectionObserversMatching("section")

@@ -471,10 +471,12 @@ export function applyAutomaticFilters(
     return replaceQueryWordsWithFilters(state, countryMatches)
 }
 
-export function parseAllChartsBlockQuery(query: string): {
+export interface AllChartsBlockQuery {
     textQuery: string
     countries: string[]
-} {
+}
+
+export function parseAllChartsBlockQuery(query: string): AllChartsBlockQuery {
     const state = applyAutomaticFilters(
         {
             query,
