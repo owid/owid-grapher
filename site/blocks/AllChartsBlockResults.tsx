@@ -366,7 +366,7 @@ function AllChartsBlockRow({
               "aria-controls": isSelected ? inlinePreviewId : undefined,
               "aria-disabled": isSelected,
           }
-        : { "aria-pressed": isSelected }
+        : { "aria-current": isSelected }
 
     return (
         <div
@@ -374,11 +374,14 @@ function AllChartsBlockRow({
                 "all-charts-block-row--selected": isSelected,
             })}
         >
-            <button
-                type="button"
+            <a
                 className="all-charts-block-row__select"
+                href={constructChartUrl({ hit })}
                 {...selectStateProps}
-                onClick={onTitleSelect}
+                onClick={(event) => {
+                    event.preventDefault()
+                    onTitleSelect()
+                }}
             >
                 <span className="all-charts-block-row__heading">
                     <span className="all-charts-block-row__title">
@@ -401,7 +404,7 @@ function AllChartsBlockRow({
                         {countries.join(", ")}
                     </span>
                 )}
-            </button>
+            </a>
             {thumbnails.length > 0 && (
                 <ul className="all-charts-block-row__thumbnails">
                     {thumbnails.map(({ tab, grapherParams }) => (

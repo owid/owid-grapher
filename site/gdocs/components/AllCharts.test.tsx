@@ -192,17 +192,17 @@ it("previews the selected row inline under it on narrow screens, as a disclosure
         document.querySelector(".all-charts-block-results__preview")
     ).toBeNull()
 
-    const alphaTitle = getTitleButton(alphaRow)
+    const alphaTitle = getTitleLink(alphaRow)
     expect(alphaTitle).toHaveAttribute("aria-expanded", "true")
     expect(alphaTitle).toHaveAttribute("aria-controls", inlinePreview?.id)
     expect(alphaTitle).toHaveAttribute("aria-disabled", "true")
-    expect(alphaTitle).not.toHaveAttribute("aria-pressed")
+    expect(alphaTitle).not.toHaveAttribute("aria-current")
 
-    const betaTitle = getTitleButton(betaRow)
+    const betaTitle = getTitleLink(betaRow)
     expect(betaTitle).toHaveAttribute("aria-expanded", "false")
     expect(betaTitle).not.toHaveAttribute("aria-controls")
     expect(betaTitle).toHaveAttribute("aria-disabled", "false")
-    expect(betaTitle).not.toHaveAttribute("aria-pressed")
+    expect(betaTitle).not.toHaveAttribute("aria-current")
 })
 
 it("moves the inline preview to a selected row and scrolls to it once it has rendered", async () => {
@@ -213,14 +213,14 @@ it("moves the inline preview to a selected row and scrolls to it once it has ren
     const alphaRow = await findRow("alpha")
     const betaRow = await findRow("beta")
 
-    fireEvent.click(getTitleButton(betaRow))
+    fireEvent.click(getTitleLink(betaRow))
 
     expect(scrolls).toEqual([
         { target: getListItem(betaRow), hasInlinePreview: true },
     ])
     expect(hasInlinePreview(alphaRow)).toBe(false)
     expect(screen.getByTestId("preview")).toHaveTextContent("beta?tab=map")
-    expect(getTitleButton(betaRow)).toHaveAttribute("aria-expanded", "true")
+    expect(getTitleLink(betaRow)).toHaveAttribute("aria-expanded", "true")
 
     const lineChartButton = within(alphaRow).getByRole("button", {
         name: "Line chart",
@@ -234,13 +234,13 @@ it("moves the inline preview to a selected row and scrolls to it once it has ren
     expect(hasInlinePreview(betaRow)).toBe(false)
     expect(screen.getByTestId("preview")).toHaveTextContent("alpha?tab=line")
 
-    fireEvent.click(getTitleButton(alphaRow))
+    fireEvent.click(getTitleLink(alphaRow))
 
     expect(scrolls).toHaveLength(2)
     expect(screen.getByTestId("preview")).toHaveTextContent("alpha?tab=line")
 })
 
-it("marks the selected row as pressed and never scrolls on wide screens", async () => {
+it("marks the selected row as current and never scrolls on wide screens", async () => {
     setViewportWidth(1200)
     const scrolls = spyOnScrollIntoView()
     renderBlock()
@@ -248,13 +248,31 @@ it("marks the selected row as pressed and never scrolls on wide screens", async 
     const alphaRow = await findRow("alpha")
     const betaRow = await findRow("beta")
 
-    fireEvent.click(getTitleButton(betaRow))
+    const isNavigating = fireEvent.click(getTitleLink(betaRow))
 
-    expect(getTitleButton(betaRow)).toHaveAttribute("aria-pressed", "true")
-    expect(getTitleButton(alphaRow)).toHaveAttribute("aria-pressed", "false")
-    expect(getTitleButton(betaRow)).not.toHaveAttribute("aria-expanded")
+    expect(isNavigating).toBe(false)
+    expect(getTitleLink(betaRow)).toHaveAttribute("aria-current", "true")
+    expect(getTitleLink(alphaRow)).toHaveAttribute("aria-current", "false")
+    expect(getTitleLink(betaRow)).not.toHaveAttribute("aria-expanded")
     expect(screen.getByTestId("preview")).toHaveTextContent("beta?tab=map")
     expect(scrolls).toEqual([])
+})
+
+it.each([
+    { kind: "chart", id: "alpha", href: /\/grapher\/alpha$/ },
+    {
+        kind: "multi-dim view",
+        id: "mdim-a",
+        href: /\/grapher\/shared-mdim\?metric=a$/,
+    },
+])("links the title of a $kind to its chart", async ({ id, href }) => {
+    showMultiDimViews()
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+
+    const row = await findRow(id)
+
+    expect(getTitleLink(row).getAttribute("href")).toMatch(href)
 })
 
 it("shows the error panel, linking to the topic in search, when the first page fails", async () => {
@@ -795,7 +813,7 @@ function getListItem(row: HTMLElement): HTMLElement {
     return row.closest(".all-charts-block-results__item") as HTMLElement
 }
 
-function getTitleButton(row: HTMLElement): HTMLElement {
+function getTitleLink(row: HTMLElement): HTMLElement {
     return row.querySelector(".all-charts-block-row__select") as HTMLElement
 }
 
