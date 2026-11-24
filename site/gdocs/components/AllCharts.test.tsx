@@ -96,6 +96,8 @@ beforeEach(() => {
 
 afterEach(() => {
     vi.unstubAllGlobals()
+    vi.restoreAllMocks()
+    setViewportWidth(1024)
 })
 
 it("fetches nothing until the block nears the viewport, then shows the first page", async () => {
@@ -172,6 +174,87 @@ it("sends a thumbnail and the preview of its tab the same peer params", async ()
     expect(screen.getByTestId("preview").textContent).toBe(
         `alpha?tab=line&${peerParams}`
     )
+})
+
+it("previews the selected row inline under it on narrow screens, as a disclosure", async () => {
+    setViewportWidth(500)
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+
+    const alphaRow = await findRow("alpha")
+    const betaRow = await findRow("beta")
+    const inlinePreview = getListItem(alphaRow).querySelector(
+        ".all-charts-block-results__inline-preview"
+    )
+    expect(inlinePreview).toHaveTextContent("alpha?tab=map")
+    expect(screen.getAllByTestId("preview")).toHaveLength(1)
+    expect(
+        document.querySelector(".all-charts-block-results__preview")
+    ).toBeNull()
+
+    const alphaTitle = getTitleButton(alphaRow)
+    expect(alphaTitle).toHaveAttribute("aria-expanded", "true")
+    expect(alphaTitle).toHaveAttribute("aria-controls", inlinePreview?.id)
+    expect(alphaTitle).toHaveAttribute("aria-disabled", "true")
+    expect(alphaTitle).not.toHaveAttribute("aria-pressed")
+
+    const betaTitle = getTitleButton(betaRow)
+    expect(betaTitle).toHaveAttribute("aria-expanded", "false")
+    expect(betaTitle).not.toHaveAttribute("aria-controls")
+    expect(betaTitle).toHaveAttribute("aria-disabled", "false")
+    expect(betaTitle).not.toHaveAttribute("aria-pressed")
+})
+
+it("moves the inline preview to a selected row and scrolls to it once it has rendered", async () => {
+    setViewportWidth(500)
+    const scrolls = spyOnScrollIntoView()
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    const alphaRow = await findRow("alpha")
+    const betaRow = await findRow("beta")
+
+    fireEvent.click(getTitleButton(betaRow))
+
+    expect(scrolls).toEqual([
+        { target: getListItem(betaRow), hasInlinePreview: true },
+    ])
+    expect(hasInlinePreview(alphaRow)).toBe(false)
+    expect(screen.getByTestId("preview")).toHaveTextContent("beta?tab=map")
+    expect(getTitleButton(betaRow)).toHaveAttribute("aria-expanded", "true")
+
+    const lineChartButton = within(alphaRow).getByRole("button", {
+        name: "Line chart",
+    })
+    fireEvent.click(lineChartButton)
+
+    expect(scrolls.at(-1)).toEqual({
+        target: lineChartButton,
+        hasInlinePreview: true,
+    })
+    expect(hasInlinePreview(betaRow)).toBe(false)
+    expect(screen.getByTestId("preview")).toHaveTextContent("alpha?tab=line")
+
+    fireEvent.click(getTitleButton(alphaRow))
+
+    expect(scrolls).toHaveLength(2)
+    expect(screen.getByTestId("preview")).toHaveTextContent("alpha?tab=line")
+})
+
+it("marks the selected row as pressed and never scrolls on wide screens", async () => {
+    setViewportWidth(1200)
+    const scrolls = spyOnScrollIntoView()
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    const alphaRow = await findRow("alpha")
+    const betaRow = await findRow("beta")
+
+    fireEvent.click(getTitleButton(betaRow))
+
+    expect(getTitleButton(betaRow)).toHaveAttribute("aria-pressed", "true")
+    expect(getTitleButton(alphaRow)).toHaveAttribute("aria-pressed", "false")
+    expect(getTitleButton(betaRow)).not.toHaveAttribute("aria-expanded")
+    expect(screen.getByTestId("preview")).toHaveTextContent("beta?tab=map")
+    expect(scrolls).toEqual([])
 })
 
 it("shows the error panel, linking to the topic in search, when the first page fails", async () => {
@@ -706,6 +789,51 @@ function makeHitFields(id: string): {
 async function findRow(slug: string): Promise<HTMLElement> {
     const title = await screen.findByText(`Title of ${slug}`)
     return title.closest(".all-charts-block-row") as HTMLElement
+}
+
+function getListItem(row: HTMLElement): HTMLElement {
+    return row.closest(".all-charts-block-results__item") as HTMLElement
+}
+
+function getTitleButton(row: HTMLElement): HTMLElement {
+    return row.querySelector(".all-charts-block-row__select") as HTMLElement
+}
+
+function hasInlinePreview(row: HTMLElement): boolean {
+    return (
+        getListItem(row).querySelector(
+            ".all-charts-block-results__inline-preview"
+        ) !== null
+    )
+}
+
+function setViewportWidth(width: number): void {
+    const { happyDOM } = window as unknown as {
+        happyDOM: { setViewport(viewport: { width: number }): void }
+    }
+    happyDOM.setViewport({ width })
+}
+
+interface RecordedScroll {
+    target: HTMLElement
+    hasInlinePreview: boolean
+}
+
+function spyOnScrollIntoView(): RecordedScroll[] {
+    const scrolls: RecordedScroll[] = []
+    vi.spyOn(HTMLElement.prototype, "scrollIntoView").mockImplementation(
+        function (this: HTMLElement) {
+            const listItem = this.closest(".all-charts-block-results__item")
+            scrolls.push({
+                target: this,
+                hasInlinePreview:
+                    listItem?.querySelector(
+                        ".all-charts-block-results__inline-preview"
+                    ) !== null,
+            })
+        }
+    )
+    return scrolls
 }
 
 function requestedPages(): number[] {
