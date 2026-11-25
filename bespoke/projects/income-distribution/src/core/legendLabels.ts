@@ -1,4 +1,4 @@
-import { REGIONS, type Region } from "./types.js"
+import { REGIONS } from "./types.js"
 
 const NBSP = " "
 
@@ -11,10 +11,6 @@ const REGION_SET: ReadonlySet<string> = new Set(REGIONS)
  */
 export function displayEntityName(name: string): string {
     return REGION_SET.has(name) ? name.replaceAll(" and ", " & ") : name
-}
-
-export function displayRegionName(region: Region): string {
-    return displayEntityName(region)
 }
 
 /**

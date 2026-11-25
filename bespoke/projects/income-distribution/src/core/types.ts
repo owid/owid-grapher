@@ -1,5 +1,3 @@
-import type { BespokeMetadata } from "@ourworldindata/types"
-
 export type VariantName = "distribution" | "tutorial"
 
 /** The tutorial variant's walkthroughs (see walkthroughs.ts) */
@@ -18,8 +16,7 @@ export const LEGEND_MEASURES = ["share", "people"] as const
 export type LegendMeasure = (typeof LEGEND_MEASURES)[number]
 
 /** No poverty line, the World Bank's international one, or one the reader set */
-export const POVERTY_LINE_MODES = ["off", "international", "custom"] as const
-export type PovertyLineMode = (typeof POVERTY_LINE_MODES)[number]
+export type PovertyLineMode = "off" | "international" | "custom"
 
 /** The unit of time incomes are expressed per */
 export const TIME_INTERVALS = ["daily", "monthly", "yearly"] as const
@@ -65,9 +62,6 @@ export interface RawCountryDistribution {
      */
     avgs: number[]
 }
-
-/** The feed's `income-distribution.metadata.json`, a `BespokeMetadata` document */
-export type RawIncomeDistributionMetadata = BespokeMetadata
 
 export interface CountryDistribution {
     name: string

@@ -64,7 +64,7 @@ import {
     WORLD_COLOR,
     WORLD_ENTITY_NAME,
 } from "../core/constants.js"
-import { displayEntityName, displayRegionName } from "../core/legendLabels.js"
+import { displayEntityName } from "../core/legendLabels.js"
 import type {
     AnnotationPlacement,
     ChartAnnotationTarget,
@@ -354,7 +354,6 @@ function IncomeDistributionChartContent({
             (annotations ?? []).map((annotation) =>
                 placeAnnotation(annotation, {
                     target: annotationTargetPoint(annotation.target, {
-                        povertyLine,
                         model,
                         xScale,
                         yScale,
@@ -364,16 +363,7 @@ function IncomeDistributionChartContent({
                     width,
                 })
             ),
-        [
-            annotations,
-            povertyLine,
-            model,
-            xScale,
-            yScale,
-            plotTop,
-            plotBottom,
-            width,
-        ]
+        [annotations, model, xScale, yScale, plotTop, plotBottom, width]
     )
 
     const ticks = useMemo(
@@ -944,7 +934,7 @@ function IncomeDistributionChartContent({
                         textAnchor="middle"
                         dominantBaseline="central"
                     >
-                        {displayRegionName(label.region)}
+                        {displayEntityName(label.region)}
                     </text>
                 ))}
 
@@ -1872,14 +1862,12 @@ function valueAtIncome(
 function annotationTargetPoint(
     target: ChartAnnotationTarget,
     {
-        povertyLine,
         model,
         xScale,
         yScale,
         plotTop,
         plotBottom,
     }: {
-        povertyLine: number | null
         model: IncomeDistributionChartModel
         xScale: ScaleLogarithmic<number, number>
         yScale: ScaleLinear<number, number>
@@ -1887,10 +1875,7 @@ function annotationTargetPoint(
         plotBottom: number
     }
 ): { x: number; y: number } {
-    const income =
-        target.income === "povertyLine"
-            ? (povertyLine ?? xScale.domain()[0])
-            : target.income
+    const { income } = target
     const x = xScale(income)
     if ("plot" in target.y)
         return { x, y: plotTop + target.y.plot * (plotBottom - plotTop) }
@@ -1959,17 +1944,15 @@ function placeAnnotation(
                   y: start.y + arrow.startHandle.dy,
               }
             : undefined
-        // Without an end handle of its own, the curve's end tangent runs from
-        // the start handle, so the head is set along that; left out, the
-        // arrow would aim its head along the straight line from its start
-        const endHandle = arrow.endHandle
-            ? { x: end.x + arrow.endHandle.dx, y: end.y + arrow.endHandle.dy }
-            : startHandle
-              ? {
-                    x: end.x + (startHandle.x - end.x) * 0.3,
-                    y: end.y + (startHandle.y - end.y) * 0.3,
-                }
-              : undefined
+        // The curve's end tangent runs from the start handle, so the head is
+        // set along that; left out, the arrow would aim its head along the
+        // straight line from its start
+        const endHandle = startHandle
+            ? {
+                  x: end.x + (startHandle.x - end.x) * 0.3,
+                  y: end.y + (startHandle.y - end.y) * 0.3,
+              }
+            : undefined
         placedArrow = { start, end, startHandle, endHandle }
     }
 

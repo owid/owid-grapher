@@ -6,8 +6,8 @@ export interface ChartOffset {
 
 /** A point on the chart an annotation points at */
 export interface ChartAnnotationTarget {
-    /** Int-$/day, or wherever the poverty line currently is */
-    income: number | "povertyLine"
+    /** Int-$/day */
+    income: number
     /**
      * How high: a fraction (0–1, default 1) of a curve's height at that
      * income, the curve being a series key or `total` (the top of the
@@ -29,11 +29,10 @@ export interface AnnotationPlacement {
     textAnchor?: "top-left" | "top-right" | "bottom-left" | "bottom-right"
     /** Width of the text block, in px */
     width: number
-    /** An arrow from `from` to just short of the target, bent by the handles */
+    /** An arrow from `from` to just short of the target, bent by the handle */
     arrow?: {
         from: ChartOffset
         startHandle?: ChartOffset
-        endHandle?: ChartOffset
         /** Room left between the arrow's head and the target, in px */
         gap?: number
     }
