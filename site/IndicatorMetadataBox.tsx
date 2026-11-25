@@ -19,6 +19,7 @@ import {
     makeDateRangeLabel,
     makeLastUpdated,
     makeNextUpdate,
+    convertHeadingTextToId,
 } from "@ourworldindata/components"
 import {
     ArchiveContext,
@@ -27,7 +28,8 @@ import {
     LicenseOption,
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/types"
-import { useRef } from "react"
+import { useEffect, useRef } from "react"
+import urlSlug from "url-slug"
 import {
     formatAttributions,
     prepareSourcesForDisplay,
@@ -41,18 +43,27 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
 
+interface FaqQuestion {
+    id: string
+    question: string
+    answer: OwidEnrichedGdocBlock[]
+}
+
 // FAQs arrive as a flat block list — each question is a heading followed by its
 // answer blocks. Split on headings so each question can render as its own toggle.
-function groupFaqsByQuestion(
-    blocks: OwidEnrichedGdocBlock[]
-): { question: string; answer: OwidEnrichedGdocBlock[] }[] {
-    const questions: {
-        question: string
-        answer: OwidEnrichedGdocBlock[]
-    }[] = []
+function groupFaqsByQuestion(blocks: OwidEnrichedGdocBlock[]): FaqQuestion[] {
+    const questions: FaqQuestion[] = []
     for (const block of blocks) {
         if (block.type === "heading") {
+            // Match the IDs ArticleBlock gave these headings before the rollout.
+            const id =
+                block.supertitle && (block.level === 2 || block.level === 3)
+                    ? urlSlug(
+                          `${spansToUnformattedPlainText(block.supertitle)}-${spansToUnformattedPlainText(block.text)}`
+                      )
+                    : convertHeadingTextToId(block.text)
             questions.push({
+                id,
                 question: spansToUnformattedPlainText(block.text),
                 answer: [],
             })
@@ -69,16 +80,29 @@ function groupFaqsByQuestion(
     return questions
 }
 
-// Not every supported browser opens closed <details> for a link into them
+// Not every supported browser opens closed <details> for a link into them.
+function revealMetadataTarget(root: Element, hash: string): HTMLElement | null {
+    if (!hash.startsWith("#")) return null
+    let id: string
+    try {
+        id = decodeURIComponent(hash.slice(1))
+    } catch {
+        return null
+    }
+    const target = document.getElementById(id)
+    if (!target || !root.contains(target)) return null
+    let details = target.closest("details")
+    while (details && root.contains(details)) {
+        details.open = true
+        details = details.parentElement?.closest("details") ?? null
+    }
+    return target
+}
+
 function openDetailsAroundLinkTarget(event: React.MouseEvent): void {
     const link = (event.target as Element).closest("a")
     const href = link?.getAttribute("href")
-    if (!href?.startsWith("#")) return
-    let details = document.getElementById(href.slice(1))?.closest("details")
-    while (details) {
-        details.open = true
-        details = details.parentElement?.closest("details")
-    }
+    if (href) revealMetadataTarget(event.currentTarget, href)
 }
 
 function IndicatorDataDetails({
@@ -163,6 +187,7 @@ function IndicatorFaqs({
                 <ExpandableToggle
                     key={faq.question}
                     label={faq.question}
+                    titleId={faq.id}
                     content={
                         <ArticleBlocks
                             blocks={faq.answer}
@@ -495,6 +520,19 @@ export default function IndicatorMetadataBox({
     })
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
+    const rootRef = useRef<HTMLDivElement | null>(null)
+    useEffect(() => {
+        const revealHashTarget = (): void => {
+            const root = rootRef.current
+            if (!root) return
+            const target = revealMetadataTarget(root, window.location.hash)
+            // Fragment navigation may have run while the target was hidden.
+            target?.scrollIntoView()
+        }
+        revealHashTarget()
+        window.addEventListener("hashchange", revealHashTarget)
+        return () => window.removeEventListener("hashchange", revealHashTarget)
+    }, [])
     // Not useId(): the client hydrates only part of the server-rendered page,
     // so generated ids wouldn't match
     const detailsId = id ? `${id}-details` : undefined
@@ -503,6 +541,7 @@ export default function IndicatorMetadataBox({
         <div
             className={cx("metadata-box indicator-metadata-box", className)}
             id={id}
+            ref={rootRef}
             onClick={openDetailsAroundLinkTarget}
         >
             <div className="indicator-metadata-box__header">
