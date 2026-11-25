@@ -189,6 +189,8 @@ const GHOST_OPACITY = 0.18
 
 /** The outline label sits this far right of the peak, in px */
 const OUTLINE_LABEL_OFFSET = 28
+/** The emphasised outline draws itself in over this long when it appears */
+const OUTLINE_DRAW_MS = 1500
 
 /** A pointer that moves further than this between down and click was dragging */
 const DRAG_THRESHOLD = 5
@@ -870,35 +872,38 @@ function IncomeDistributionChartContent({
                         className="income-distribution-chart__outline"
                         pointerEvents="none"
                     >
-                        {outlineTotal.peakMarker && (
-                            <line
-                                x1={totalPeak.x}
-                                x2={totalPeak.x}
-                                y1={totalPeak.y}
-                                y2={plotBottom}
-                                stroke={GRAY_60}
-                                strokeWidth={1.5}
-                            />
-                        )}
-                        <path
+                        <DrawnPath
                             d={totalPaths.outline}
                             fill="none"
                             stroke={EMPHASIS_COLOR}
                             strokeWidth={2}
                             strokeLinejoin="round"
                         />
-                        {outlineTotal.label && (
-                            <text
-                                className="income-distribution-chart__outline-label"
-                                x={totalPeak.x + OUTLINE_LABEL_OFFSET}
-                                y={totalPeak.y}
-                                dy="0.71em"
-                                fontSize={isNarrow ? 13 : 14}
-                                fill={EMPHASIS_COLOR}
-                            >
-                                {outlineTotal.label}
-                            </text>
-                        )}
+                        {/* Once the outline has drawn itself */}
+                        <g className="income-distribution-chart__outline-extras">
+                            {outlineTotal.peakMarker && (
+                                <line
+                                    x1={totalPeak.x}
+                                    x2={totalPeak.x}
+                                    y1={totalPeak.y}
+                                    y2={plotBottom}
+                                    stroke={GRAY_70}
+                                    strokeWidth={1}
+                                />
+                            )}
+                            {outlineTotal.label && (
+                                <text
+                                    className="income-distribution-chart__outline-label"
+                                    x={totalPeak.x + OUTLINE_LABEL_OFFSET}
+                                    y={totalPeak.y}
+                                    dy="0.71em"
+                                    fontSize={isNarrow ? 13 : 14}
+                                    fill={EMPHASIS_COLOR}
+                                >
+                                    {outlineTotal.label}
+                                </text>
+                            )}
+                        </g>
                     </g>
                 )}
 
@@ -1642,6 +1647,39 @@ function computeAxisTicks(
         const { multiplier: _multiplier, ...rest } = tick
         return keep.has(tick) ? rest : { ...rest, label: undefined }
     })
+}
+
+/**
+ * A stroked path that draws itself in from its start when it first appears
+ * (the emphasised outline of the total), unless the reader prefers reduced
+ * motion. Later changes to `d`, e.g. on resize, show at once.
+ */
+function DrawnPath(props: React.SVGProps<SVGPathElement>): React.ReactElement {
+    const ref = useRef<SVGPathElement>(null)
+    useEffect(() => {
+        const element = ref.current
+        if (
+            !element ||
+            typeof element.animate !== "function" ||
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        )
+            return
+        const length = element.getTotalLength()
+        element.style.strokeDasharray = `${length}`
+        const animation = element.animate(
+            [{ strokeDashoffset: length }, { strokeDashoffset: 0 }],
+            { duration: OUTLINE_DRAW_MS, easing: "ease-in-out" }
+        )
+        const settle = (): void => {
+            element.style.strokeDasharray = ""
+        }
+        animation.addEventListener("finish", settle)
+        return () => {
+            animation.cancel()
+            settle()
+        }
+    }, [])
+    return <path ref={ref} {...props} />
 }
 
 /** The series a delegated pointer event landed on, from the path's data attribute */

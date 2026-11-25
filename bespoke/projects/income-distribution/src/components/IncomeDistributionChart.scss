@@ -107,6 +107,26 @@
     font-weight: 500;
 }
 
+// The outline's label and peak marker fade in as the outline finishes
+// drawing itself (OUTLINE_DRAW_MS in IncomeDistributionChart.tsx)
+@keyframes income-distribution-chart-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.income-distribution-chart__outline-extras {
+    animation: income-distribution-chart-fade-in 400ms ease-out 1.2s both;
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+
 // Text placed next to the data it's about, positioned by the chart (see
 // placeAnnotation in IncomeDistributionChart.tsx)
 .income-distribution-chart__annotation {
