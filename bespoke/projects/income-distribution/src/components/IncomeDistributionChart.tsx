@@ -1640,6 +1640,14 @@ function estimateLeftoverLegendBox(
     return { left: right - width, right, top, bottom: top + height }
 }
 
+/** Below this share of a series' tallest point, it has no data worth drawing */
+const EMPTY_HEIGHT_RATIO = 1e-3
+
+/**
+ * One area path per series. Where a series has (next to) no height, as a
+ * country's curve does outside its data's range, the path stops rather than
+ * running on along the axis as a flat line.
+ */
 function computeAreaPaths(
     series: ChartSeries[],
     incomes: number[],
@@ -1647,7 +1655,10 @@ function computeAreaPaths(
     yScale: ScaleLinear<number, number>
 ): string[] {
     return series.map((s) => {
+        const heights = s.y1.map((y, i) => y - s.y0[i])
+        const threshold = Math.max(...heights) * EMPTY_HEIGHT_RATIO
         const generator = area<number>()
+            .defined((_, i) => heights[i] > threshold)
             .x((_, i) => xScale(incomes[i]))
             .y0((_, i) => yScale(s.y0[i]))
             .y1((_, i) => yScale(s.y1[i]))
