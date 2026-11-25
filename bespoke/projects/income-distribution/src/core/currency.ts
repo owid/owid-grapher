@@ -64,8 +64,9 @@ export function formatIncome(
     const formatter = getCurrencyFormatter(currency.code, fractionDigits)
     if (!formatter)
         return `${currency.code} ${formatPlainAmount(amount, fractionDigits)}`
-    // Match the lower-case "k" of the international-$ labels
-    return formatter.format(amount).replace("K", "k")
+    // Match the lower-case "k" of the international-$ labels: only the
+    // compact suffix after the digits, not a "K" in the currency code (SEK)
+    return formatter.format(amount).replace(/(\d)K\b/, "$1k")
 }
 
 /** "1.2k", "15M", "950", "3.20" */

@@ -151,8 +151,12 @@ const MARGIN_BOTTOM_NARROW = 72
 
 /** Multiples of each power of ten that get a tick */
 const TICK_MULTIPLIERS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-const LABELLED_MULTIPLIERS = [1, 2, 3, 5]
+// In order of priority: when neighbouring labels would overlap, the later
+// ones give way (the 2s go before the 3s and 5s, as they're the tightest)
+const LABELLED_MULTIPLIERS = [1, 3, 5, 2]
 const LABELLED_MULTIPLIERS_NARROW = [1, 3]
+/** Between neighbouring tick labels */
+const TICK_LABEL_GAP = 6
 
 const REGION_LABEL_FONT_SIZES = [14, 13, 12, 11, 10, 9] as const
 const REGION_LABEL_FONT_SIZES_NARROW = [13, 12, 11, 10, 9] as const
@@ -365,9 +369,10 @@ function IncomeDistributionChartContent({
                 xScale,
                 currency,
                 timeInterval,
-                isNarrow ? LABELLED_MULTIPLIERS_NARROW : LABELLED_MULTIPLIERS
+                isNarrow ? LABELLED_MULTIPLIERS_NARROW : LABELLED_MULTIPLIERS,
+                tickFontSize
             ),
-        [xScale, currency, timeInterval, isNarrow]
+        [xScale, currency, timeInterval, isNarrow, tickFontSize]
     )
 
     const regionLabels = useMemo(() => {
@@ -1516,18 +1521,21 @@ function computeAreaPaths(
 /**
  * Ticks at round amounts in the displayed currency and interval (1, 2, 3, 5
  * × 10^k by default), positioned in int-$/day. The other multiples get
- * unlabelled minor ticks.
+ * unlabelled minor ticks, as does a labelled multiple whose label would
+ * overlap a higher-priority neighbour's (`labelledMultipliers` is in order
+ * of priority).
  */
 function computeAxisTicks(
     xScale: ScaleLogarithmic<number, number>,
     currency: Currency,
     timeInterval: TimeInterval,
-    labelledMultipliers: number[]
+    labelledMultipliers: number[],
+    fontSize: number
 ): AxisTick[] {
     const factor = combinedFactor(currency, timeInterval)
     if (!(factor > 0)) return []
     const [min, max] = xScale.domain()
-    const ticks: AxisTick[] = []
+    const ticks: (AxisTick & { multiplier: number })[] = []
     for (
         let power = Math.floor(Math.log10(min * factor));
         Math.pow(10, power) <= max * factor;
@@ -1542,6 +1550,7 @@ function computeAxisTicks(
             if (value < min || value > max) continue
             ticks.push({
                 value,
+                multiplier,
                 label: labelledMultipliers.includes(multiplier)
                     ? formatIncome(value, currency, timeInterval, {
                           short: true,
@@ -1550,7 +1559,32 @@ function computeAxisTicks(
             })
         }
     }
-    return ticks
+
+    // Place the labels by priority, dropping any that would overlap one
+    // already placed
+    const placed: { left: number; right: number }[] = []
+    const keep = new Set<AxisTick>()
+    for (const multiplier of labelledMultipliers) {
+        for (const tick of ticks) {
+            if (tick.multiplier !== multiplier || tick.label === undefined)
+                continue
+            const halfWidth =
+                Bounds.forText(tick.label, { fontSize }).width / 2 +
+                TICK_LABEL_GAP / 2
+            const x = xScale(tick.value)
+            const box = { left: x - halfWidth, right: x + halfWidth }
+            const overlaps = placed.some(
+                (other) => box.left < other.right && box.right > other.left
+            )
+            if (overlaps) continue
+            placed.push(box)
+            keep.add(tick)
+        }
+    }
+    return ticks.map((tick) => {
+        const { multiplier: _multiplier, ...rest } = tick
+        return keep.has(tick) ? rest : { ...rest, label: undefined }
+    })
 }
 
 /** The series a delegated pointer event landed on, from the path's data attribute */

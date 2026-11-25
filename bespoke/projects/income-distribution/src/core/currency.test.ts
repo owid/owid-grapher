@@ -68,6 +68,8 @@ describe(formatIncome, () => {
         expect(formatIncome(950, atPar("EUR"), "daily")).toBe("€950")
         expect(formatIncome(10_000, atPar("INR"), "daily")).toBe("₹10k")
         expect(formatIncome(1_500_000, atPar("JPY"), "daily")).toBe("¥1.5M")
+        // The code's own K stays as it is (Intl puts a no-break space after it)
+        expect(formatIncome(1000, atPar("SEK"), "daily")).toBe("SEK\u00a01k")
     })
 
     it("falls back to the code for a currency Intl rejects", () => {
