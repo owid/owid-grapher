@@ -110,11 +110,10 @@ function TagEditor({
         },
     })
 
-    const refetchTag = (): void => {
-        void queryClient.invalidateQueries({
+    const refetchTag = (): Promise<void> =>
+        queryClient.invalidateQueries({
             queryKey: tagKeys.detail(tagId),
         })
-    }
 
     const isModified = isTagModified(editableTag, tag)
     const slugMatchesPublishedTopicPage =

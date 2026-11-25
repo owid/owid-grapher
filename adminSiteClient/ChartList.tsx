@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useDeferredValue } from "react"
+import { useDeferredValue, useState } from "react"
 import { observer } from "mobx-react"
 import {
     runInAction,
@@ -423,6 +423,46 @@ function ActionsCell({
     )
 }
 
+function PublishedSwitch({
+    chart,
+    onToggle,
+}: {
+    chart: ChartListItem
+    onToggle: (chart: ChartListItem) => Promise<void>
+}): React.ReactElement {
+    const [isToggling, setIsToggling] = useState(false)
+    const isDisabled = !chart.isPublished && !chart.slug && !chart.title
+
+    const onChange = async (): Promise<void> => {
+        setIsToggling(true)
+        try {
+            await onToggle(chart)
+        } finally {
+            setIsToggling(false)
+        }
+    }
+
+    return (
+        <Tooltip
+            title={
+                isDisabled
+                    ? "This draft has no title or slug, so publish it from the editor"
+                    : undefined
+            }
+        >
+            <span className="chart-list__publish-switch">
+                <Switch
+                    size="small"
+                    checked={!!chart.isPublished}
+                    disabled={isDisabled}
+                    loading={isToggling}
+                    onChange={onChange}
+                />
+            </span>
+        </Tooltip>
+    )
+}
+
 function inheritanceStatus(chart: ChartListItem): string {
     if (
         chart.hasParentIndicator === undefined ||
@@ -466,7 +506,7 @@ function createColumns({
     showInheritanceColumn: boolean
     onDelete: (chart: ChartListItem) => void
     onAuthorClick: (author: string) => void
-    onTogglePublished: (chart: ChartListItem) => void
+    onTogglePublished: (chart: ChartListItem) => Promise<void>
 }): TableColumnsType<ChartListItem> {
     // Counts are most useful largest first
     const descendFirst: ("descend" | "ascend")[] = ["descend", "ascend"]
@@ -532,36 +572,20 @@ function createColumns({
             key: "publishedAt",
             sorter: (a, b) => compareTimes(a.publishedAt, b.publishedAt),
             sortDirections: descendFirst,
-            render: (_, chart) => {
-                const isSwitchDisabled =
-                    !chart.isPublished && !chart.slug && !chart.title
-                return (
-                    <div className="chart-list__published">
-                        <Tooltip
-                            title={
-                                isSwitchDisabled
-                                    ? "This draft has no title or slug, so publish it from the editor"
-                                    : undefined
-                            }
-                        >
-                            <span className="chart-list__publish-switch">
-                                <Switch
-                                    size="small"
-                                    checked={!!chart.isPublished}
-                                    disabled={isSwitchDisabled}
-                                    onChange={() => onTogglePublished(chart)}
-                                />
-                            </span>
-                        </Tooltip>
-                        <AuthoredTimestampCell
-                            time={chart.publishedAt}
-                            by={chart.publishedBy}
-                            highlight={highlightAuthor}
-                            onAuthorClick={onAuthorClick}
-                        />
-                    </div>
-                )
-            },
+            render: (_, chart) => (
+                <div className="chart-list__published">
+                    <PublishedSwitch
+                        chart={chart}
+                        onToggle={onTogglePublished}
+                    />
+                    <AuthoredTimestampCell
+                        time={chart.publishedAt}
+                        by={chart.publishedBy}
+                        highlight={highlightAuthor}
+                        onAuthorClick={onAuthorClick}
+                    />
+                </div>
+            ),
         },
         {
             title: (
@@ -612,7 +636,7 @@ interface ChartListProps {
     autofocusSearchInput?: boolean
     loading?: boolean
     onDelete?: (chart: ChartListItem) => void
-    onPublishedChange?: (chart: ChartListItem) => void
+    onPublishedChange?: (chart: ChartListItem) => Promise<void>
 }
 
 @observer
@@ -707,7 +731,7 @@ export class ChartList extends React.Component<ChartListProps> {
                 : {}),
         }
         if (this.props.onPublishedChange)
-            this.props.onPublishedChange(updatedChart)
+            await this.props.onPublishedChange(updatedChart)
         else
             // A new row rather than an edit to it, so the table renders it again
             runInAction(() => {
@@ -817,7 +841,7 @@ interface ChartTableProps {
     onPageChange: (page: number, pageSize: number) => void
     onDelete: (chart: ChartListItem) => void
     onAuthorClick: (author: string) => void
-    onTogglePublished: (chart: ChartListItem) => void
+    onTogglePublished: (chart: ChartListItem) => Promise<void>
 }
 
 function DeferredChartTable(props: ChartTableProps): React.ReactElement {
