@@ -87,6 +87,7 @@ describe(parseCurrencyConversions, () => {
                 factor: 59.268,
                 countryName: "Albania",
                 countryCode: "ALB",
+                pricesYear: 2025,
             },
             {
                 code: "EUR",
@@ -94,6 +95,7 @@ describe(parseCurrencyConversions, () => {
                 factor: 0.85,
                 countryName: "Germany",
                 countryCode: "DEU",
+                pricesYear: 2025,
             },
         ])
     })

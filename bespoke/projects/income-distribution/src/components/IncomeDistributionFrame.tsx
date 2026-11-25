@@ -479,7 +479,7 @@ function chartNote(
         )
     if (currency.code !== INTERNATIONAL_DOLLAR.code)
         sentences.push(
-            "Incomes in local currencies are converted from international-$ using PPP conversion factors and adjusted for inflation to the latest year available."
+            `Incomes in local currencies are converted from international-$ using PPP conversion factors and adjusted for inflation to ${currency.pricesYear ? `${currency.pricesYear} prices` : "the latest year available"}.`
         )
     if (!welfareSentence) return sentences.join(" ")
     return (

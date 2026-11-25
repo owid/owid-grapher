@@ -215,6 +215,9 @@ export function parseCurrencyConversions(
             factor: row.conversion_factor,
             countryName: row.country,
             countryCode: row.country_code,
+            pricesYear: Number.isFinite(row.conversion_factor_year)
+                ? row.conversion_factor_year
+                : undefined,
         }))
     return currencies.sort((a, b) =>
         (a.countryName ?? "").localeCompare(b.countryName ?? "", "en")

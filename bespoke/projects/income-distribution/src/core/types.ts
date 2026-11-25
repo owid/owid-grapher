@@ -112,4 +112,6 @@ export interface Currency {
     /** The country whose conversion this is; unset for the international dollar */
     countryName?: string
     countryCode?: string
+    /** The year whose prices the amounts are in; unset for the international dollar (2021) */
+    pricesYear?: number
 }
