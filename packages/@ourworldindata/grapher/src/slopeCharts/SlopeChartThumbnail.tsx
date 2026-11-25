@@ -175,7 +175,9 @@ export class SlopeChartThumbnail
             endTime: this.chartState.endTime,
         })
         const { axisText } = getVisibleLabels(this.manager.labelMode)
-        const labelModeOverrides = axisText ? {} : { hideTickLabels: true }
+        const labelModeOverrides = axisText
+            ? {}
+            : { hideTickLabels: true, label: "" }
         return new AxisConfig(
             { ...xAxisConfig, ...overrides, ...labelModeOverrides },
             this

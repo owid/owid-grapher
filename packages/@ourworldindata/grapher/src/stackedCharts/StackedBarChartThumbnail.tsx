@@ -72,7 +72,9 @@ export class StackedBarChartThumbnail
         const defaults = getXAxisConfigDefaultsForStackedBar(this.chartState)
         const custom = { labelPadding: 0 }
         const { axisText } = getVisibleLabels(this.manager.labelMode)
-        const labelModeOverrides = axisText ? {} : { hideTickLabels: true }
+        const labelModeOverrides = axisText
+            ? {}
+            : { hideTickLabels: true, label: "" }
         return new AxisConfig(
             { ...custom, ...defaults, ...xAxisConfig, ...labelModeOverrides },
             this

@@ -119,7 +119,9 @@ export class LineChartThumbnail
         const { xAxisConfig } = this.manager
         const custom = { labelPadding: 0, tickPadding: 2 }
         const { axisText } = getVisibleLabels(this.manager.labelMode)
-        const labelModeOverrides = axisText ? {} : { hideTickLabels: true }
+        const labelModeOverrides = axisText
+            ? {}
+            : { hideTickLabels: true, label: "" }
         return new AxisConfig(
             { ...custom, ...xAxisConfig, ...labelModeOverrides },
             this
