@@ -175,6 +175,14 @@
         calc(-1 * var(--indicator-metadata-box-padding)) 0;
 }
 
+// Except for what the switcher puts in the row: its button and the short
+// description, whose links and text stay usable above the hit area
+.indicator-metadata-box__header .indicator-switcher__switch-trigger,
+.indicator-metadata-box__header-description {
+    position: relative;
+    z-index: 1;
+}
+
 // On phones the label is for screen readers only (as .sr-only)
 @include sm-only {
     .indicator-metadata-box .metadata-box-toggle-button > span {
