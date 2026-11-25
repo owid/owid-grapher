@@ -80,7 +80,7 @@ $hover-fill: #e3ebf5;
 }
 
 // The "dropdown-inside" variant's "⇄ Switch indicator ▾" button beside the
-// pane title. A fixed width keeps the caret where Marwa's design has it.
+// pane title. A fixed width keeps the caret where the design has it.
 .indicator-switcher__switch-trigger {
     flex: none;
     min-width: 208px;
@@ -183,6 +183,12 @@ $hover-fill: #e3ebf5;
         background: $blue-20;
         color: $blue-90;
         cursor: default;
+
+        // The selected row's fill hides the focus fill, so keyboard focus on
+        // it gets an inset ring instead
+        &[data-focus-visible] {
+            box-shadow: inset 0 0 0 2px $blue-60;
+        }
 
         &::after {
             content: "";

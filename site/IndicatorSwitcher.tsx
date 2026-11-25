@@ -124,6 +124,7 @@ const IndicatorSelect = ({
     buttonContent,
     matchTriggerWidth,
     announceValue,
+    ariaLabel = "Indicator",
 }: {
     indicators: AdditionalIndicator[]
     // Index (into the full indicator list) of the first entry in `indicators`.
@@ -137,6 +138,9 @@ const IndicatorSelect = ({
     // so its accessible name would be just "Indicator". A visually hidden
     // SelectValue puts the current indicator's name back into it.
     announceValue?: boolean
+    // Must contain the button's visible words (WCAG "label in name"), since
+    // react-aria names the trigger by this label rather than its content.
+    ariaLabel?: string
 }) => {
     const isActiveInList =
         activeIndex >= startIndex &&
@@ -177,6 +181,8 @@ const IndicatorSelect = ({
             onChange={(key) => {
                 if (typeof key === "string") {
                     const i = Number(key)
+                    // Re-picking the current indicator switches nothing
+                    if (i === activeIndex) return
                     // Log the actual selection here rather than via a
                     // data-track-note on the trigger: the options render in a
                     // portal, so the delegated document-level tracker only
@@ -191,7 +197,7 @@ const IndicatorSelect = ({
                     onIndicatorChange(i)
                 }
             }}
-            aria-label="Indicator"
+            aria-label={ariaLabel}
         >
             <Button className={buttonClassName}>
                 {buttonContent}
@@ -307,6 +313,7 @@ export const IndicatorSwitchButton = ({
         onIndicatorChange={onIndicatorChange}
         buttonClassName="indicator-switcher__switch-trigger"
         announceValue
+        ariaLabel="Switch indicator"
         buttonContent={
             <>
                 <FontAwesomeIcon

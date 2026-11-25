@@ -223,7 +223,7 @@ function IndicatorDataDetails({
 }
 
 // A stitched page's indicators inside Data details: one entry per indicator
-// with what differs across them, laid out as in Marwa's November design (a
+// with what differs across them, laid out as in the November design (a
 // "N indicators" heading, then a bold title over its description). Up to
 // five show in full; a longer list shows its first three, with "+ Show more
 // indicators" to open the rest and "− Show less indicators" at the bottom to

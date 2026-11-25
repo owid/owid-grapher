@@ -596,7 +596,7 @@
         @include owid-link-90;
     }
 
-    // Marwa's design: bold, in the text colour, underlined.
+    // Bold, in the text colour, underlined.
     .indicator-metadata-box__stitched-list-more-button {
         @include body-3-bold;
         color: $blue-90;
@@ -605,7 +605,7 @@
     }
 }
 
-// Marwa's design (Figma 2179-20594): 16px regular in Blue 60, 12px above the
+// 16px regular in Blue 60, 12px above the
 // first entry; entries 12px apart; title then description 4px below it.
 .indicator-metadata-box__details-list-heading {
     @include body-2-regular;
@@ -642,7 +642,7 @@
 }
 
 // A per-indicator note (its own short WYSK) reads exactly like the
-// description above it: Marwa asked for no extra type style here.
+// description above it, with no extra type style.
 
 .indicator-metadata-box__stitched-list-title {
     font-weight: 700;
