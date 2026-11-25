@@ -780,14 +780,44 @@ it("requests a typed query on a baked page instead of showing the baked rows", a
     expect(requestedQueries()).toEqual(["air"])
 })
 
-function makeBakedPage(): BakedAllChartsBlockResults {
+it("shows no suggestions on a topic with fewer than 10 charts, and never fetches them", async () => {
+    renderBlock({ bakedPage: makeBakedPage(9) })
+
+    expect(document.querySelector(".all-charts-block-suggestions")).toBeNull()
+
+    fireIntersectionObserversMatching("section")
+    await flushEffects()
+
+    expect(document.querySelector(".all-charts-block-suggestions")).toBeNull()
+    expect(fetch).not.toHaveBeenCalled()
+    expect(getUserCountryInformation).not.toHaveBeenCalled()
+})
+
+it("keeps the suggestions on a large topic after a query narrows the results to one chart", async () => {
+    searchForHits.mockImplementation(
+        async ([{ page, query }]: [{ page: number; query: string }]) =>
+            makeResponse(page, query ? ["delta"] : PAGES[page], query ? 1 : 50)
+    )
+    renderBlock({ bakedPage: makeBakedPage(50) })
+    fireIntersectionObserversMatching("section")
+    await screen.findByRole("button", { name: "GDP per capita" })
+
+    fireEvent.change(screen.getByRole("searchbox"), {
+        target: { value: "air" },
+    })
+
+    expect(await screen.findByText("(1 chart)")).toBeVisible()
+    expect(getSuggestions()).toHaveLength(6)
+})
+
+function makeBakedPage(nbHits = 3): BakedAllChartsBlockResults {
     return {
         page: {
             hits: makeHits([
                 "baked-alpha",
                 "baked-beta",
             ]) as AllChartsBlockHit[],
-            nbHits: 3,
+            nbHits,
             page: 0,
             nbPages: 2,
             query: "",

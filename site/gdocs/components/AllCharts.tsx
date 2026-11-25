@@ -50,6 +50,7 @@ const SUGGESTION_SLOTS = [
     "country",
     "keyword",
 ] as const
+const MIN_CHARTS_FOR_SUGGESTIONS = 10
 
 const SEARCH_DEBOUNCE_MS = 200
 
@@ -107,6 +108,10 @@ function AllChartsBlock({
     const isDefaultQuery =
         parsedQuery.textQuery === "" && parsedQuery.countries.length === 0
     const bakedResults = isDefaultQuery ? allChartsBlockResults : undefined
+    const shouldShowSuggestions =
+        (allChartsBlockResults?.page.nbHits ?? Infinity) >=
+        MIN_CHARTS_FOR_SUGGESTIONS
+    const shouldFetchSuggestions = shouldFetch && shouldShowSuggestions
 
     const { data, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
         useInfiniteQuery({
@@ -138,7 +143,7 @@ function AllChartsBlock({
     const { data: topicSuggestions, isPending: isLoadingVocabulary } = useQuery(
         {
             queryKey: allChartsBlockQueryKeys.topicVocabulary(),
-            queryFn: shouldFetch
+            queryFn: shouldFetchSuggestions
                 ? () => fetchJson<TopicVocabulary>(TOPIC_VOCABULARY_URL)
                 : skipToken,
             select: (vocabulary) =>
@@ -151,7 +156,7 @@ function AllChartsBlock({
     const { data: detectedCountryName, isPending: isLoadingUserCountry } =
         useQuery({
             queryKey: allChartsBlockQueryKeys.userCountry(),
-            queryFn: shouldFetch
+            queryFn: shouldFetchSuggestions
                 ? async () => {
                       const name = (await getUserCountryInformation())?.name
                       return name && listedRegionsNames().includes(name)
@@ -208,7 +213,8 @@ function AllChartsBlock({
                 onQueryChange={onQueryChange}
                 suggestedTerms={suggestedTerms}
                 isLoadingSuggestions={
-                    isLoadingVocabulary || isLoadingUserCountry
+                    shouldShowSuggestions &&
+                    (isLoadingVocabulary || isLoadingUserCountry)
                 }
                 onSuggestionSelect={applyQuery}
             />
