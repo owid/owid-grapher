@@ -68,11 +68,34 @@
     line-height: 19px;
 }
 
+.income-distribution-tutorial-slide-header__controls {
+    margin-top: 12px;
+
+    .income-distribution-controls__units {
+        width: 220px;
+    }
+}
+
 .income-distribution--narrow {
-    // Room under the text for the slide's control, which sits up here
-    // rather than over the plot (see .income-distribution-tutorial-aside)
-    .income-distribution-tutorial-slide-header {
-        margin-bottom: 48px;
+    // The text gets a fixed height, so the chart and the buttons sit where
+    // the whole of both fits on a phone screen; a slide with more text than
+    // that runs on over the top of the plot, on a translucent background
+    .income-distribution-tutorial-slide-header__pages {
+        // Each page only as tall as its text, so the background stops there
+        align-items: start;
+        height: 200px;
+    }
+
+    .income-distribution-tutorial-slide-header__page {
+        position: relative;
+        z-index: 4;
+        padding-bottom: 8px;
+        background: rgba($white, 0.85);
+    }
+
+    .income-distribution-tutorial-slide-header__controls {
+        width: max-content;
+        max-width: 100%;
     }
 
     .income-distribution-tutorial-slide-header__text {
@@ -256,17 +279,4 @@
     color: $gray-70;
     font-size: 16px;
     line-height: 21px;
-}
-
-// Narrow charts: only the slide's control, compact and without its label,
-// over the plot's top-left corner, where the curves are still low
-.income-distribution--narrow .income-distribution-tutorial-aside {
-    // Up into the room the header leaves above the plot
-    margin-top: -40px;
-    width: auto;
-    max-width: calc(100% - 32px);
-
-    .income-distribution-controls__units {
-        width: 220px;
-    }
 }

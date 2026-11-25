@@ -525,6 +525,7 @@ function SlideFrame({
                 ? resolveSlideText(someSlide.secondLine, yearData)
                 : undefined,
             aside: isNarrow ? narrowAside(someSlide, yearData) : undefined,
+            controls: isNarrow ? controlFor(someSlide) : undefined,
         }))
     )
 
@@ -574,12 +575,11 @@ function SlideFrame({
                     onClose={onClose}
                 />
             }
-            // Narrow charts keep the aside in the header, so only the
-            // control goes over the plot
+            // Narrow charts keep the aside and the control in the header
             plotOverlay={
-                (!isNarrow && aside) || control ? (
+                !isNarrow && (aside || control) ? (
                     <div className="income-distribution-tutorial-aside">
-                        {!isNarrow && aside && (
+                        {aside && (
                             <p className="income-distribution-tutorial-aside__text">
                                 <RichText
                                     text={aside}

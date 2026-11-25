@@ -81,6 +81,8 @@ export interface SlideHeaderPage {
     secondLine?: string
     /** Narrow charts only: the aside goes here rather than over the plot */
     aside?: string
+    /** Narrow charts only: the slide's control, below the text */
+    controls?: React.ReactNode
 }
 
 /**
@@ -151,6 +153,11 @@ export function SlideHeader({
                                     </p>
                                 )}
                             </div>
+                            {page.controls && (
+                                <div className="income-distribution-tutorial-slide-header__controls">
+                                    {page.controls}
+                                </div>
+                            )}
                         </div>
                     )
                 })}
