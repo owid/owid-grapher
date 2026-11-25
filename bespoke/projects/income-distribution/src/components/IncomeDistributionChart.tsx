@@ -66,46 +66,14 @@ import {
     WORLD_ENTITY_NAME,
 } from "../core/constants.js"
 import { displayEntityName } from "../core/legendLabels.js"
+import type { ChartAnnotationTarget } from "../core/annotations.js"
 import type {
-    AnnotationPlacement,
-    ChartAnnotationTarget,
-} from "../core/annotations.js"
+    ChartAnnotation,
+    ChartPresentation,
+} from "../core/presentation.js"
 import { IncomeDistributionTooltip } from "./IncomeDistributionTooltip.js"
 
-/** Text placed relative to a point of the chart (see AnnotationPlacement) */
-export interface ChartAnnotation extends AnnotationPlacement {
-    key: string
-    content: React.ReactNode
-}
-
-/**
- * How the chart can emphasise parts of itself, e.g. while a walkthrough
- * explains it. All off by default.
- */
-export interface IncomeDistributionChartEmphasis {
-    /** Draw the areas very faded, as a backdrop */
-    ghostSeries?: boolean
-    /** Global view: outline the top of the stack, optionally labelled at its peak */
-    outlineTotal?: { label?: string }
-    /** Global view, with a poverty line: fill the whole stack below the line */
-    fillBelowLine?: boolean
-    /** Label the regions in their bands, or the countries above their curves; default true */
-    showSeriesLabels?: boolean
-    /** Labels at either end of the x axis, e.g. "Poorest" and "Richest" */
-    axisEndLabels?: { left: string; right: string }
-    annotations?: ChartAnnotation[]
-    /** A lighter line under the poverty line's label, e.g. how to move it */
-    povertyLineHint?: string
-    /** The line can't be dragged or moved by key; default false */
-    isPovertyLineFixed?: boolean
-    /**
-     * Whether hovering shows the tooltip and a click sets the line; default
-     * true. Dragging an existing line works either way.
-     */
-    isInteractive?: boolean
-}
-
-export interface IncomeDistributionChartProps extends IncomeDistributionChartEmphasis {
+export interface IncomeDistributionChartProps extends ChartPresentation {
     model: IncomeDistributionChartModel
     /** For the share below the line in the tooltip */
     yearData: IncomeDistributionYear

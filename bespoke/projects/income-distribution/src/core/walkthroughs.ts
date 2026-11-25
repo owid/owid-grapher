@@ -1,6 +1,7 @@
 import * as R from "remeda"
 
 import type { AnnotationPlacement } from "./annotations.js"
+import type { ChartPresentation, FrameLegendMode } from "./presentation.js"
 import {
     INT_POVERTY_LINE,
     INTERNATIONAL_DOLLAR,
@@ -65,17 +66,18 @@ export interface WalkthroughSlide {
     aside?: SlideText
     chart: SlideChartState
     control?: SlideControl
-    /** Which legend the chart shows; see FrameLegendMode */
-    legend: "auto" | "swatches" | "hidden"
-    /** How the chart emphasises parts of itself; see IncomeDistributionChartEmphasis */
-    emphasis?: {
-        ghostSeries?: boolean
-        outlineTotal?: { label?: string }
-        fillBelowLine?: boolean
-        showSeriesLabels?: boolean
-        axisEndLabels?: { left: string; right: string }
-        povertyLineHint?: string
-    }
+    /** Which legend the chart shows */
+    legend: FrameLegendMode
+    /** What the chart emphasises; the rest of its presentation is the slide frame's */
+    emphasis?: Pick<
+        ChartPresentation,
+        | "ghostSeries"
+        | "outlineTotal"
+        | "fillBelowLine"
+        | "showSeriesLabels"
+        | "axisEndLabels"
+        | "povertyLineHint"
+    >
     annotations?: SlideAnnotation[]
 }
 

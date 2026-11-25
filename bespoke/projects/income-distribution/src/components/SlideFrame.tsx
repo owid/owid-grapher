@@ -15,6 +15,7 @@ import {
     type WalkthroughSlide,
 } from "../core/walkthroughs.js"
 import type { IncomeDistributionYear } from "../core/types.js"
+import type { ChartAnnotation } from "../core/presentation.js"
 import { placeholderWelfareType } from "../core/welfareType.js"
 import {
     MeasuredInControl,
@@ -22,7 +23,6 @@ import {
     type IncomeDistributionControlsProps,
 } from "./IncomeDistributionControls.js"
 import { IncomeDistributionFrame } from "./IncomeDistributionFrame.js"
-import type { ChartAnnotation } from "./IncomeDistributionChart.js"
 import {
     RichText,
     SlideFooter,
@@ -161,7 +161,7 @@ export function SlideFrame({
             legend={isNarrow ? "hidden" : slide.legend}
             isLoading={isLoading}
             isNarrow={isNarrow}
-            emphasis={{
+            presentation={{
                 ...slide.emphasis,
                 // Without the legend, narrow charts name the curves
                 ...(isNarrow && slide.legend === "swatches"

@@ -33,10 +33,12 @@ import type {
     LegendMeasure,
 } from "../core/types.js"
 import { CountryMultiSelect } from "./CountryMultiSelect.js"
-import {
-    IncomeDistributionChart,
-    type IncomeDistributionChartEmphasis,
-} from "./IncomeDistributionChart.js"
+import type {
+    ChartPresentation,
+    FrameEditCountriesMode,
+    FrameLegendMode,
+} from "../core/presentation.js"
+import { IncomeDistributionChart } from "./IncomeDistributionChart.js"
 import { WelfareSentence } from "./WelfareDetails.js"
 import {
     IncomeDistributionLegend,
@@ -46,20 +48,6 @@ import {
 /** Top of the overlays over the plot without the button, and the gap between them (.income-distribution-captioned-chart__overlays in IncomeDistributionFrame.scss) */
 const OVERLAY_TOP = 38
 const OVERLAY_GAP = 8
-
-/**
- * Which legend the frame shows. `auto` is the chart's own: the region or
- * country swatches, turning into the share bars once a poverty line is set.
- * `swatches` keeps the swatches whatever the line; `hidden` shows none.
- */
-export type FrameLegendMode = "auto" | "swatches" | "hidden"
-
-/**
- * Where the countries view's "Edit countries" goes: `auto` is a button over
- * the plot's corner (in the row above the plot on narrow charts), `legend`
- * a link at the bottom of the overlay legend, `hidden` nowhere
- */
-export type FrameEditCountriesMode = "auto" | "legend" | "hidden"
 
 export interface IncomeDistributionFrameProps {
     metadata: IncomeDistributionMetadata
@@ -78,8 +66,8 @@ export interface IncomeDistributionFrameProps {
     footer?: React.ReactNode
     legend?: FrameLegendMode
     editCountries?: FrameEditCountriesMode
-    /** How the chart emphasises parts of itself; see IncomeDistributionChart */
-    emphasis?: IncomeDistributionChartEmphasis
+    /** How the chart presents itself beyond the data; see ChartPresentation */
+    presentation?: ChartPresentation
     /**
      * Over the plot's top-left corner, e.g. a sentence or a control. The
      * chart's labels keep clear of it.
@@ -109,7 +97,7 @@ export function IncomeDistributionFrame({
     footer,
     legend = "auto",
     editCountries = "auto",
-    emphasis,
+    presentation,
     plotOverlay,
     chartAreaOverlay,
     className,
@@ -398,7 +386,7 @@ export function IncomeDistributionFrame({
                             }
                             leftoverLegendTop={leftoverLegendTop}
                             onUnlabelledCountriesChange={setUnlabelledCountries}
-                            {...emphasis}
+                            {...presentation}
                         />
                     )}
                     {chartAreaOverlay}
