@@ -28,7 +28,9 @@ export interface PovertyLineLabelLayout {
  * `ballY`), then the bold first line (`title`, or `label` without one), the ×
  * when there is one, `label` below a title, and a lighter `hint` below that.
  * It goes right of the ball, or left of it when it would overflow `width` or
- * run into an obstacle. Shared by the line's drawing and the curve labels
+ * run into an obstacle; with `preferLeft`, left of the ball whenever it fits
+ * there (the international line sits by the global peak, which its two-line
+ * label would cover on the right). Shared by the line's drawing and the curve labels
  * that keep clear of it.
  */
 export function layoutPovertyLineLabel({
@@ -39,6 +41,7 @@ export function layoutPovertyLineLabel({
     label,
     hint,
     hasClear,
+    preferLeft = false,
     obstacles = [],
 }: {
     x: number
@@ -48,6 +51,7 @@ export function layoutPovertyLineLabel({
     label: string
     hint?: string
     hasClear: boolean
+    preferLeft?: boolean
     obstacles?: LabelBox[]
 }): PovertyLineLabelLayout {
     const { fontSize, ballRadius, gap, clearSize, lineHeight } =
@@ -74,15 +78,19 @@ export function layoutPovertyLineLabel({
     const bottom = ballY + clearSize / 2 + extraLines * lineHeight
     const rightStart = x + ballRadius + gap
     const rightEnd = rightStart + textWidth + clearSpace
-    const fitsRight =
-        rightEnd <= width &&
+    const leftEnd = x - ballRadius
+    const leftStart = leftEnd - gap - clearSpace - textWidth
+    const isClear = (start: number, end: number): boolean =>
         !obstacles.some(
             (box) =>
-                box.left < rightEnd &&
-                box.right > rightStart &&
+                box.left < end &&
+                box.right > start &&
                 box.top < bottom &&
                 box.bottom > top
         )
+    const roomRight = rightEnd <= width && isClear(rightStart, rightEnd)
+    const roomLeft = leftStart >= 0 && isClear(leftStart, leftEnd)
+    const fitsRight = preferLeft ? !roomLeft && roomRight : roomRight
 
     const textX = fitsRight ? rightStart : x - ballRadius - gap - clearSpace
     const clearX = fitsRight

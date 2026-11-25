@@ -468,6 +468,7 @@ function IncomeDistributionChartContent({
             label: lineForLabels.label,
             hint: lineForLabels.hint,
             hasClear: hasClearButton,
+            preferLeft: lineForLabels.title !== undefined,
             obstacles,
         })
         const m = POVERTY_LINE_LABEL_MARGIN
@@ -1302,6 +1303,8 @@ function PovertyLine({
         label,
         hint,
         hasClear: !!onClear,
+        // The international line's two-line label goes left when it fits
+        preferLeft: title !== undefined,
         obstacles,
     })
     const clearHintPosition = { x: clearCenterX, y: ballY + clearSize / 2 + 4 }

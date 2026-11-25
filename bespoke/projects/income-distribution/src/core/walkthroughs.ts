@@ -334,11 +334,11 @@ export const WALKTHROUGHS: Walkthrough[] = [
                             income: INT_POVERTY_LINE * 0.62,
                             y: { curve: "total", fraction: 0.5 },
                         },
-                        textOffset: { dx: 12, dy: -62 },
+                        textOffset: { dx: -8, dy: -62 },
                         textAnchor: "bottom-right",
                         width: 230,
                         arrow: {
-                            from: { dx: -50, dy: -54 },
+                            from: { dx: -70, dy: -54 },
                             startHandle: { dx: -8, dy: 34 },
                             gap: 6,
                         },
