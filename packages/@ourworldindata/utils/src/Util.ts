@@ -1587,11 +1587,18 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 // that isn't @imemo itself: the first `super.x` read pins the base value onto the instance,
 // and the overriding getter is never called again for that instance. Likewise, a test spy
 // on an @imemo getter only sees the first read of each instance.
+//
+// Private getters (`get #x()`) aren't supported: a public property can't shadow a private name,
+// so the getter would run again on every read and fail to redefine the cached property.
 export const imemo = <Type, This extends Record<string, any>>(
     target: () => Type,
     context: ClassGetterDecoratorContext<This, Type>
 ) => {
     const { name } = context
+    if (context.private)
+        throw new TypeError(
+            `@imemo can't decorate the private getter ${String(name)}`
+        )
 
     return function (this: This): Type {
         const value = target.call(this)
