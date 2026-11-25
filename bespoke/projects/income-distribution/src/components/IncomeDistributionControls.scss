@@ -43,3 +43,11 @@
         flex: 1 1 auto;
     }
 }
+
+// Narrow charts: the switchers' hints wrap rather than running past the
+// screen's edge
+.income-distribution--narrow .switcher__hint {
+    width: max-content;
+    max-width: 260px;
+    white-space: normal;
+}

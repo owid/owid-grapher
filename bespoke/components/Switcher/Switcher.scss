@@ -106,6 +106,19 @@ $switcher-visual-gap: 1px;
     pointer-events: none;
 }
 
+// The first and last items' hints line up with the switcher's edges rather
+// than hanging out past them, where a narrow screen would cut them off
+.switcher__item:first-child .switcher__hint {
+    left: 0;
+    transform: none;
+}
+
+.switcher__item:last-child .switcher__hint {
+    right: 0;
+    left: auto;
+    transform: none;
+}
+
 // Touch screens keep :hover after a tap, which would leave the hint up
 @media (hover: hover) {
     .switcher__item:hover .switcher__hint {

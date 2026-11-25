@@ -93,9 +93,39 @@
         background: rgba($white, 0.85);
     }
 
+    // The × floats in the corner, so the control below the text can take the
+    // header's full width, where its labels have room on small screens; the
+    // view's options split it by their labels' widths
+    .income-distribution-tutorial-slide-header {
+        position: relative;
+    }
+
+    .income-distribution-tutorial-slide-header__pages {
+        max-width: none;
+        padding-right: 48px;
+    }
+
+    .income-distribution-tutorial-slide-header__close {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+
     .income-distribution-tutorial-slide-header__controls {
-        width: max-content;
-        max-width: 100%;
+        width: auto;
+        margin-right: -48px;
+
+        .switcher__button {
+            padding: 0 8px;
+        }
+
+        .income-distribution-controls__units {
+            width: 100%;
+        }
+
+        .income-distribution-controls__view .switcher__item {
+            flex: 1 1 auto;
+        }
     }
 
     .income-distribution-tutorial-slide-header__text {
