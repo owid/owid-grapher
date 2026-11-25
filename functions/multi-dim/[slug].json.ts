@@ -1,17 +1,8 @@
-import { cors, IRequestStrict, Router } from "itty-router"
-import { errorToResponse } from "../_common/errorHandling.js"
+import { createRouter } from "../_common/router.js"
 import { Env } from "../_common/env.js"
 import { fetchUnparsedGrapherConfig } from "../_common/grapherTools.js"
 
-const { preflight, corsify } = cors({
-    allowMethods: ["GET", "OPTIONS", "HEAD"],
-})
-
-const router = Router<IRequestStrict, [Env, Params]>({
-    before: [preflight],
-    catch: errorToResponse,
-    finally: [corsify],
-})
+const router = createRouter<[Env, Params]>()
 
 router.get("*", async (request, env, params) => {
     const slug = params.slug as string
