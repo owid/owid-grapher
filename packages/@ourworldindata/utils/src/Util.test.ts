@@ -1323,6 +1323,21 @@ describe(imemo, () => {
         expect(firstValue).toBeTypeOf("number")
         expect(spy).toHaveBeenCalledOnce()
     })
+
+    it("rejects private getters", () => {
+        // Decorators run when the class is defined, so defining it throws
+        expect(() => {
+            class PrivateIMemoTest {
+                @imemo get #value(): number {
+                    return 1
+                }
+                read(): number {
+                    return this.#value
+                }
+            }
+            return PrivateIMemoTest
+        }).toThrow("@imemo can't decorate the private getter #value")
+    })
 })
 
 describe(getUniqueNamesFromTagHierarchies, () => {

@@ -1580,19 +1580,29 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 // Memoization for immutable getters. Run the function once for this instance and cache the result.
+// The result is stored as an own data property under the getter's name, shadowing the prototype
+// getter, so later reads are plain property reads that never call back into this function.
+//
+// Because of that shadowing, never read an @imemo getter through `super` from an override
+// that isn't @imemo itself: the first `super.x` read pins the base value onto the instance,
+// and the overriding getter is never called again for that instance. Likewise, a test spy
+// on an @imemo getter only sees the first read of each instance.
+//
+// Private getters (`get #x()`) aren't supported: a public property can't shadow a private name,
+// so the getter would run again on every read and fail to redefine the cached property.
 export const imemo = <Type, This extends Record<string, any>>(
     target: () => Type,
     context: ClassGetterDecoratorContext<This, Type>
 ) => {
     const { name } = context
-    const propName = `${String(name)}_memoized`
+    if (context.private)
+        throw new TypeError(
+            `@imemo can't decorate the private getter ${String(name)}`
+        )
 
     return function (this: This): Type {
-        if (propName in this) {
-            return this[propName]
-        }
         const value = target.call(this)
-        Object.defineProperty(this, propName, {
+        Object.defineProperty(this, name, {
             configurable: false,
             enumerable: false,
             writable: false,
