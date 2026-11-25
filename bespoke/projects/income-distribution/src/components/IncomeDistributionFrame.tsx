@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import cx from "clsx"
 import * as R from "remeda"
 
@@ -6,6 +6,7 @@ import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
+import { useBoxWithin } from "../../../../hooks/useBoxWithin.js"
 
 import {
     FIRST_NOWCAST_YEAR,
@@ -16,7 +17,6 @@ import {
 } from "../core/constants.js"
 import type { IncomeDistributionMetadata } from "../core/data.js"
 import { buildChartModel } from "../core/chartModel.js"
-import type { LabelBox } from "../core/curveLabels.js"
 import {
     peopleBelowDisplayedLine,
     sharesBelowDisplayedLine,
@@ -405,42 +405,6 @@ export function IncomeDistributionFrame({
             </Frame>
         </BespokeMetadataProvider>
     )
-}
-
-/**
- * Where `element` sits within `container` (both laid out), kept up to date as
- * either resizes; undefined while either is missing
- */
-function useBoxWithin(
-    container: HTMLElement | null,
-    element: HTMLElement | null
-): LabelBox | undefined {
-    const [box, setBox] = useState<LabelBox | undefined>(undefined)
-
-    useEffect(() => {
-        if (!container || !element || typeof ResizeObserver === "undefined")
-            return
-        const update = (): void => {
-            const outer = container.getBoundingClientRect()
-            const inner = element.getBoundingClientRect()
-            const next: LabelBox = {
-                left: inner.left - outer.left,
-                right: inner.right - outer.left,
-                top: inner.top - outer.top,
-                bottom: inner.bottom - outer.top,
-            }
-            // Keep the old object when nothing moved, so the chart's label
-            // layout isn't redone
-            setBox((prev) => (prev && R.isDeepEqual(prev, next) ? prev : next))
-        }
-        // Also reports both elements' sizes once when they're observed
-        const observer = new ResizeObserver(update)
-        observer.observe(container)
-        observer.observe(element)
-        return () => observer.disconnect()
-    }, [container, element])
-
-    return container && element ? box : undefined
 }
 
 function chartNote(

@@ -28,6 +28,7 @@ import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils
 import { BezierArrow } from "@ourworldindata/grapher/src/arrows/BezierArrow.js"
 
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
+import { DrawnPath } from "../../../../components/DrawnPath/DrawnPath.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import { argMax } from "../core/argMax.js"
 import type {
@@ -841,6 +842,7 @@ function IncomeDistributionChartContent({
                     >
                         <DrawnPath
                             d={totalPaths.outline}
+                            durationMs={OUTLINE_DRAW_MS}
                             fill="none"
                             stroke={EMPHASIS_COLOR}
                             strokeWidth={2}
@@ -1707,39 +1709,6 @@ function computeAxisTicks(
         const { multiplier: _multiplier, ...rest } = tick
         return keep.has(tick) ? rest : { ...rest, label: undefined }
     })
-}
-
-/**
- * A stroked path that draws itself in from its start when it first appears
- * (the emphasised outline of the total), unless the reader prefers reduced
- * motion. Later changes to `d`, e.g. on resize, show at once.
- */
-function DrawnPath(props: React.SVGProps<SVGPathElement>): React.ReactElement {
-    const ref = useRef<SVGPathElement>(null)
-    useEffect(() => {
-        const element = ref.current
-        if (
-            !element ||
-            typeof element.animate !== "function" ||
-            window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        )
-            return
-        const length = element.getTotalLength()
-        element.style.strokeDasharray = `${length}`
-        const animation = element.animate(
-            [{ strokeDashoffset: length }, { strokeDashoffset: 0 }],
-            { duration: OUTLINE_DRAW_MS, easing: "ease-in-out" }
-        )
-        const settle = (): void => {
-            element.style.strokeDasharray = ""
-        }
-        animation.addEventListener("finish", settle)
-        return () => {
-            animation.cancel()
-            settle()
-        }
-    }, [])
-    return <path ref={ref} {...props} />
 }
 
 /** The series a delegated pointer event landed on, from the path's data attribute */
