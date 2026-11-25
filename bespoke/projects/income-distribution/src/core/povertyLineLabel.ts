@@ -2,7 +2,7 @@ import { Bounds } from "@ourworldindata/utils"
 
 import type { LabelBox } from "./curveLabels.js"
 
-/** The poverty line's label metrics, in px (see PovertyLine in IncomeDistributionChart.tsx) */
+/** The poverty line's label metrics, in px (see PovertyLine in components/chart/PovertyLine.tsx) */
 export const POVERTY_LINE_LABEL = {
     fontSize: 12,
     ballRadius: 5,

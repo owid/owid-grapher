@@ -1,55 +1,20 @@
-import {
-    Fragment,
-    memo,
-    useCallback,
-    useEffect,
-    useId,
-    useMemo,
-    useRef,
-    useState,
-} from "react"
-import cx from "clsx"
-import * as R from "remeda"
-import type { ScaleLogarithmic } from "d3-scale"
+import { useCallback, useId, useMemo, useRef, useState } from "react"
 
 import { Bounds, getRelativeMouse } from "@ourworldindata/utils"
-import {
-    GRAPHER_BACKGROUND,
-    GRAPHER_DARK_TEXT,
-    GRAPHER_LIGHT_TEXT,
-    GRAY_100,
-    GRAY_20,
-    GRAY_60,
-    GRAY_70,
-} from "@ourworldindata/grapher/src/color/ColorConstants.js"
-import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils.js"
+import { GRAY_70 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { BezierArrow } from "@ourworldindata/grapher/src/arrows/BezierArrow.js"
 
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import { DrawnPath } from "../../../../components/DrawnPath/DrawnPath.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import { argMax } from "../core/argMax.js"
-import type {
-    ChartSeries,
-    IncomeDistributionChartModel,
-} from "../core/chartModel.js"
+import type { IncomeDistributionChartModel } from "../core/chartModel.js"
 import {
     formatCurrencyLabel,
     formatIncome,
     timeIntervalNoun,
 } from "../core/currency.js"
-import {
-    hideLabelsUnderBox,
-    placeCurveLabels,
-    type CurveLabelCandidate,
-    type CurveLabelLayout,
-    type LabelBox,
-} from "../core/curveLabels.js"
-import { placeRegionLabels, RegionBandPixels } from "../core/regionLabels.js"
-import {
-    layoutPovertyLineLabel,
-    POVERTY_LINE_LABEL,
-} from "../core/povertyLineLabel.js"
+import type { LabelBox } from "../core/curveLabels.js"
 import type {
     Currency,
     IncomeDistributionYear,
@@ -57,7 +22,6 @@ import type {
 } from "../core/types.js"
 import {
     EMPHASIS_COLOR,
-    INT_POVERTY_LINE,
     INTERNATIONAL_DOLLAR,
     WORLD_COLOR,
     WORLD_ENTITY_NAME,
@@ -68,18 +32,30 @@ import {
     computeAxisTicks,
     LABELLED_MULTIPLIERS,
     LABELLED_MULTIPLIERS_NARROW,
-    type AxisTick,
 } from "../core/axisTicks.js"
 import {
     computeAreaPaths,
     computeTotalPaths,
     makeXScale,
     makeYScale,
-    MARGIN,
     plotRect,
 } from "../core/chartGeometry.js"
 import type { ChartPresentation } from "../core/presentation.js"
 import { IncomeDistributionTooltip } from "./IncomeDistributionTooltip.js"
+import { AreaLayer, CountryLabelLayer, seriesKeyOf } from "./chart/AreaLayer.js"
+import { AxisEndLabels, XAxis } from "./chart/XAxis.js"
+import {
+    internationalPovertyLineAmount,
+    PointerLine,
+    PovertyLine,
+    usePovertyLineInteraction,
+    type PovertyLineText,
+    type Position,
+} from "./chart/PovertyLine.js"
+import {
+    COUNTRY_LABEL_HEADROOM,
+    useChartLabels,
+} from "./chart/useChartLabels.js"
 
 export interface IncomeDistributionChartProps extends ChartPresentation {
     model: IncomeDistributionChartModel
@@ -128,29 +104,8 @@ export interface IncomeDistributionChartProps extends ChartPresentation {
     onUnlabelledCountriesChange?: (keys: string[]) => void
 }
 
-const REGION_LABEL_FONT_SIZES = [14, 13, 12, 11, 10, 9] as const
-const REGION_LABEL_FONT_SIZES_NARROW = [13, 12, 11, 10, 9] as const
-
-const COUNTRY_LABEL_FONT_SIZE = 12
-const COUNTRY_LABEL_FONT_SIZE_NARROW = 11
-const COUNTRY_LABEL_FONT_WEIGHT = 700
-/** Line height of a country label as a multiple of its font size, for its box */
-const COUNTRY_LABEL_LINE_HEIGHT = 1.2
-/**
- * Countries view: room kept between the plot's top and the tallest peak for
- * the label above it, which mustn't run into the poverty line's label
- */
-const COUNTRY_LABEL_HEADROOM = 30
-/** More countries than this are labelled directly only up to it; the rest go to the legend */
-const MAX_COUNTRY_LABELS = 6
-const MAX_COUNTRY_LABELS_NARROW = 4
-/** Country labels stay this far below the plot's top, clear of the poverty line's label */
-const COUNTRY_LABEL_TOP_INSET = 9
-/** Room kept between the country labels and the poverty line's label, in px */
-const POVERTY_LINE_LABEL_MARGIN = 4
-
+/** The areas while a threshold (the poverty line, or the hover line) splits them */
 const FADED_OPACITY = 0.35
-const DIMMED_OPACITY = 0.3
 /** The areas behind an emphasised outline or fill (ghostSeries) */
 const GHOST_OPACITY = 0.18
 
@@ -161,10 +116,6 @@ const OUTLINE_DRAW_MS = 1500
 
 /** A pointer that moves further than this between down and click was dragging */
 const DRAG_THRESHOLD = 5
-
-/** Arrow keys move the poverty line by this factor on the log axis; with Shift by the larger one */
-const KEYBOARD_STEP = 1.05
-const KEYBOARD_STEP_LARGE = 1.25
 
 export function IncomeDistributionChart(
     props: IncomeDistributionChartProps
@@ -178,26 +129,11 @@ export function IncomeDistributionChart(
     )
 }
 
-interface Position {
-    x: number
-    y: number
-}
-
 interface PointerState {
     /** Int-$/day under the pointer */
     income: number
     /** Relative to the chart container */
     position: Position
-}
-
-/** What the poverty line's label says, for the line at `income` (int-$/day) */
-interface PovertyLineText {
-    income: number
-    /** Bold first line; without it, `label` is the bold line */
-    title?: string
-    label: string
-    /** A lighter, italic line below */
-    hint?: string
 }
 
 function IncomeDistributionChartContent({
@@ -232,12 +168,13 @@ function IncomeDistributionChartContent({
     width: number
     height: number
 }): React.ReactElement {
+    const plot = plotRect(width, height, isNarrow)
     const {
         left: plotLeft,
         right: plotRight,
         top: plotTop,
         bottom: plotBottom,
-    } = plotRect(width, height, isNarrow)
+    } = plot
     const tickFontSize = isNarrow ? 11 : 12
 
     const incomes = model.grid.incomes
@@ -307,39 +244,6 @@ function IncomeDistributionChartContent({
         [xScale, currency, timeInterval, isNarrow, tickFontSize]
     )
 
-    const regionLabels = useMemo(() => {
-        if (model.regionBands.length === 0 || !showSeriesLabels || ghostSeries)
-            return []
-        const bands: RegionBandPixels[] = model.regionBands.map((band) => ({
-            region: band.region,
-            points: incomes.map((income, i) => ({
-                x: xScale(income),
-                top: yScale(band.y1[i]),
-                bottom: yScale(band.y0[i]),
-            })),
-        }))
-        return placeRegionLabels(bands, {
-            fontSizes: isNarrow
-                ? REGION_LABEL_FONT_SIZES_NARROW
-                : REGION_LABEL_FONT_SIZES,
-            // Measured rather than estimated from the character count, so
-            // the label is as large as its band really allows
-            measureAspect: (label) =>
-                Bounds.forText(displayEntityName(label), {
-                    fontSize: 16,
-                    fontWeight: 700,
-                }).width / 16,
-        })
-    }, [
-        model.regionBands,
-        incomes,
-        xScale,
-        yScale,
-        isNarrow,
-        showSeriesLabels,
-        ghostSeries,
-    ])
-
     // The international line is always $3 a day, whatever the chart is
     // measured in: it's named on its own line, with $3 a day and the amount in
     // the chosen units below
@@ -370,144 +274,6 @@ function IncomeDistributionChartContent({
         ]
     )
 
-    // While the line is dragged, the country labels keep clear of its label
-    // where the drag started, and are laid out again once it ends: following
-    // the line would make them flicker in and out as it passes over them
-    const [dragStartLine, setDragStartLine] = useState<PovertyLineText | null>(
-        null
-    )
-    const lineForLabels = dragStartLine ?? povertyLineText
-    const hasClearButton = onClearPovertyLine !== undefined
-    const povertyLineLabelBox = useMemo((): LabelBox | undefined => {
-        if (isStacked || !lineForLabels) return undefined
-        const { box } = layoutPovertyLineLabel({
-            x: xScale(lineForLabels.income),
-            ballY: plotTop,
-            width,
-            title: lineForLabels.title,
-            label: lineForLabels.label,
-            hint: lineForLabels.hint,
-            hasClear: hasClearButton,
-            preferLeft: lineForLabels.title !== undefined,
-            obstacles,
-        })
-        const m = POVERTY_LINE_LABEL_MARGIN
-        return {
-            left: box.left - m,
-            right: box.right + m,
-            top: box.top - m,
-            bottom: box.bottom + m,
-        }
-    }, [
-        isStacked,
-        lineForLabels,
-        xScale,
-        plotTop,
-        width,
-        hasClearButton,
-        obstacles,
-    ])
-
-    const countryLabelFontSize = isNarrow
-        ? COUNTRY_LABEL_FONT_SIZE_NARROW
-        : COUNTRY_LABEL_FONT_SIZE
-    const countryLabels = useMemo((): CurveLabelLayout | undefined => {
-        if (isStacked || !showSeriesLabels) return undefined
-        const candidates = model.series.map((s): CurveLabelCandidate => ({
-            key: s.key,
-            width: Bounds.forText(s.key, {
-                fontSize: countryLabelFontSize,
-                fontWeight: COUNTRY_LABEL_FONT_WEIGHT,
-            }).width,
-            points: incomes.map((income, i) => ({
-                x: xScale(income),
-                y: yScale(s.y1[i]),
-            })),
-        }))
-        const options = {
-            bounds: {
-                left: plotLeft,
-                right: plotRight,
-                top: plotTop + COUNTRY_LABEL_TOP_INSET,
-                bottom: plotBottom,
-            },
-            labelHeight: countryLabelFontSize * COUNTRY_LABEL_LINE_HEIGHT,
-            maxLabels: isNarrow
-                ? MAX_COUNTRY_LABELS_NARROW
-                : MAX_COUNTRY_LABELS,
-            obstacles: [
-                ...(obstacles ?? []),
-                ...(legendBox ? [legendBox] : []),
-                ...(povertyLineLabelBox ? [povertyLineLabelBox] : []),
-            ],
-        }
-        const layout = placeCurveLabels(candidates, options)
-        if (leftoverLegendTop === undefined) return layout
-        // The box lists every country once any label had to be left out, so
-        // place the labels as if it weren't there, then hide the ones it
-        // ends up covering
-        const allKeys = model.series.map((series) => series.key)
-        return hideLabelsUnderBox(layout, (dropped) =>
-            dropped.length === 0
-                ? undefined
-                : estimateLeftoverLegendBox(allKeys, {
-                      top: leftoverLegendTop,
-                      right: width - MARGIN.right,
-                  })
-        )
-    }, [
-        isStacked,
-        model.series,
-        incomes,
-        xScale,
-        yScale,
-        countryLabelFontSize,
-        isNarrow,
-        plotLeft,
-        plotRight,
-        plotTop,
-        plotBottom,
-        obstacles,
-        legendBox,
-        povertyLineLabelBox,
-        leftoverLegendTop,
-        width,
-        showSeriesLabels,
-    ])
-
-    // Reported by value, so a new layout with the same leftovers doesn't
-    // re-render the caller
-    const unlabelledCountries = countryLabels?.dropped.join("\n")
-    useEffect(() => {
-        if (unlabelledCountries !== undefined)
-            onUnlabelledCountriesChange?.(
-                unlabelledCountries === ""
-                    ? []
-                    : unlabelledCountries.split("\n")
-            )
-    }, [unlabelledCountries, onUnlabelledCountriesChange])
-
-    const seriesColors = useMemo(
-        () => new Map(model.series.map((s) => [s.key, s.color])),
-        [model.series]
-    )
-
-    // Series the hovered entity covers: itself, or the countries of a hovered
-    // region
-    const highlightedKeys = useMemo(() => {
-        if (hoveredEntity === null) return undefined
-        const keys = new Set(
-            model.series
-                .filter(
-                    (series) =>
-                        series.key === hoveredEntity ||
-                        series.region === hoveredEntity
-                )
-                .map((series) => series.key)
-        )
-        return keys.size > 0 ? keys : undefined
-    }, [model.series, hoveredEntity])
-
     const [pointer, setPointer] = useState<PointerState | null>(null)
     const svgRef = useRef<SVGSVGElement>(null)
     const pointerDownRef = useRef<Position | null>(null)
@@ -534,21 +300,75 @@ function IncomeDistributionChartContent({
         },
         [xScale]
     )
+    const incomeAtEvent = useCallback(
+        (event: { clientX: number; clientY: number }): number | null =>
+            pointerStateFromEvent(event)?.income ?? null,
+        [pointerStateFromEvent]
+    )
+    const hidePointer = useCallback(() => setPointer(null), [])
 
-    // Set while the poverty line is being dragged; the drag handlers live on
-    // the line itself, which captures the pointer
-    const isDraggingRef = useRef(false)
+    const {
+        lineHandlers,
+        isDraggingRef,
+        dragStartLine,
+        clearHintAt,
+        setClearHintAt,
+        clearPovertyLine,
+    } = usePovertyLineInteraction({
+        povertyLine,
+        povertyLineText,
+        xScale,
+        incomeAtEvent,
+        onSetPovertyLine,
+        onClearPovertyLine,
+        onDragStart: hidePointer,
+    })
 
-    // Where the hint of the × next to the poverty line's label goes, while
-    // the × is hovered or focused
-    const [clearHintAt, setClearHintAt] = useState<Position | null>(null)
+    const { regionLabels, countryLabels, countryLabelFontSize } =
+        useChartLabels({
+            model,
+            xScale,
+            yScale,
+            plot,
+            width,
+            isNarrow,
+            showSeriesLabels,
+            ghostSeries,
+            lineForLabels: dragStartLine ?? povertyLineText,
+            hasClearButton: onClearPovertyLine !== undefined,
+            obstacles,
+            legendBox,
+            leftoverLegendTop,
+            onUnlabelledCountriesChange,
+        })
+
+    const seriesColors = useMemo(
+        () => new Map(model.series.map((s) => [s.key, s.color])),
+        [model.series]
+    )
+
+    // Series the hovered entity covers: itself, or the countries of a hovered
+    // region
+    const highlightedKeys = useMemo(() => {
+        if (hoveredEntity === null) return undefined
+        const keys = new Set(
+            model.series
+                .filter(
+                    (series) =>
+                        series.key === hoveredEntity ||
+                        series.region === hoveredEntity
+                )
+                .map((series) => series.key)
+        )
+        return keys.size > 0 ? keys : undefined
+    }, [model.series, hoveredEntity])
 
     const handlePointerMove = useCallback(
         (event: React.PointerEvent<SVGSVGElement>) => {
             if (event.pointerType !== "mouse" || isDraggingRef.current) return
             setPointer(pointerStateFromEvent(event))
         },
-        [pointerStateFromEvent]
+        [pointerStateFromEvent, isDraggingRef]
     )
     const handlePointerLeave = useCallback(
         (event: React.PointerEvent<SVGSVGElement>) => {
@@ -581,74 +401,6 @@ function IncomeDistributionChartContent({
         [pointerStateFromEvent, onSetPovertyLine]
     )
 
-    const [minIncome, maxIncome] = xScale.domain()
-    const clampIncome = useCallback(
-        (income: number) => R.clamp(income, { min: minIncome, max: maxIncome }),
-        [minIncome, maxIncome]
-    )
-    const handleLinePointerDown = useCallback(
-        (event: React.PointerEvent<SVGGElement>) => {
-            // Grabbing the line moves it; it mustn't also count as a click on the plot
-            event.stopPropagation()
-            event.currentTarget.setPointerCapture(event.pointerId)
-            isDraggingRef.current = true
-            setDragStartLine(povertyLineText)
-            setPointer(null)
-        },
-        [povertyLineText]
-    )
-    const handleLinePointerMove = useCallback(
-        (event: React.PointerEvent<SVGGElement>) => {
-            if (!isDraggingRef.current) return
-            event.stopPropagation()
-            const state = pointerStateFromEvent(event)
-            if (state) onSetPovertyLine(clampIncome(state.income))
-        },
-        [pointerStateFromEvent, onSetPovertyLine, clampIncome]
-    )
-    const handleLinePointerUp = useCallback(
-        (event: React.PointerEvent<SVGGElement>) => {
-            if (!isDraggingRef.current) return
-            isDraggingRef.current = false
-            setDragStartLine(null)
-            event.currentTarget.releasePointerCapture(event.pointerId)
-        },
-        []
-    )
-    const handleLineKeyDown = useCallback(
-        (event: React.KeyboardEvent<SVGGElement>) => {
-            if (povertyLine === null) return
-            if (
-                (event.key === "Delete" || event.key === "Backspace") &&
-                onClearPovertyLine
-            ) {
-                event.preventDefault()
-                onClearPovertyLine()
-                return
-            }
-            const step = event.shiftKey ? KEYBOARD_STEP_LARGE : KEYBOARD_STEP
-            const next =
-                event.key === "ArrowRight" || event.key === "ArrowUp"
-                    ? povertyLine * step
-                    : event.key === "ArrowLeft" || event.key === "ArrowDown"
-                      ? povertyLine / step
-                      : null
-            if (next === null) return
-            event.preventDefault()
-            onSetPovertyLine(clampIncome(next))
-        },
-        [povertyLine, onSetPovertyLine, onClearPovertyLine, clampIncome]
-    )
-    const clearPovertyLine = useMemo(
-        () =>
-            onClearPovertyLine &&
-            ((): void => {
-                setClearHintAt(null)
-                onClearPovertyLine()
-            }),
-        [onClearPovertyLine]
-    )
-
     // Entity hover, delegated from the area paths via their data-key
     const handleAreaPointerOver = useCallback(
         (event: React.PointerEvent<SVGGElement>) => {
@@ -678,6 +430,7 @@ function IncomeDistributionChartContent({
     const hoveredIncome = pointer?.income ?? null
     const threshold = povertyLine ?? hoveredIncome
     const thresholdX = threshold !== null ? xScale(threshold) : null
+    const [minIncome, maxIncome] = xScale.domain()
 
     const containerBounds = useMemo(
         () => new Bounds(0, 0, width, height),
@@ -895,10 +648,7 @@ function IncomeDistributionChartContent({
                         valueNow={povertyLine}
                         valueMin={minIncome}
                         valueMax={maxIncome}
-                        onPointerDown={handleLinePointerDown}
-                        onPointerMove={handleLinePointerMove}
-                        onPointerUp={handleLinePointerUp}
-                        onKeyDown={handleLineKeyDown}
+                        handlers={lineHandlers}
                         onClear={clearPovertyLine}
                         onClearHintChange={setClearHintAt}
                     />
@@ -959,661 +709,5 @@ function IncomeDistributionChartContent({
                 </div>
             )}
         </div>
-    )
-}
-
-/**
- * Memoised: its props only change with the model, the size or the hovered
- * entity, so pointer moves don't redraw the paths.
- */
-const AreaLayer = memo(function AreaLayer({
-    series,
-    paths,
-    isStacked,
-    highlightedKeys,
-    xScale,
-    plotTop,
-    plotBottom,
-    maskIdBase,
-}: {
-    series: ChartSeries[]
-    paths: string[]
-    isStacked: boolean
-    highlightedKeys: Set<string> | undefined
-    xScale: ScaleLogarithmic<number, number>
-    plotTop: number
-    plotBottom: number
-    /** Unique in the document; the tail fades' masks are named from it */
-    maskIdBase: string
-}): React.ReactElement {
-    // A long tail fades out towards the edge: the curve is drawn through a
-    // mask that goes from opaque at the fade's inner end to clear at its outer
-    // end (see tails.ts)
-    const fadeMasks = series.flatMap((s, i) => {
-        const { left, right } = s.fades ?? {}
-        if (!left && !right) return []
-        const id = `${maskIdBase}-${i}`
-        const [x0, x1] = xScale.range()
-        const stops: { x: number; opacity: number }[] = [
-            { x: x0, opacity: left ? 0 : 1 },
-            ...(left
-                ? [
-                      { x: xScale(left.from), opacity: 0 },
-                      { x: xScale(left.to), opacity: 1 },
-                  ]
-                : []),
-            ...(right
-                ? [
-                      { x: xScale(right.to), opacity: 1 },
-                      { x: xScale(right.from), opacity: 0 },
-                  ]
-                : []),
-            { x: x1, opacity: right ? 0 : 1 },
-        ]
-        return [{ id, stops }]
-    })
-    const maskIdOf = (index: number): string | undefined =>
-        fadeMasks.find((m) => m.id === `${maskIdBase}-${index}`)?.id
-    return (
-        <>
-            {fadeMasks.length > 0 && (
-                <defs>
-                    {fadeMasks.map(({ id, stops }) => {
-                        const [x0, x1] = xScale.range()
-                        return (
-                            <Fragment key={id}>
-                                <linearGradient
-                                    id={`${id}-gradient`}
-                                    gradientUnits="userSpaceOnUse"
-                                    x1={x0}
-                                    x2={x1}
-                                    y1={0}
-                                    y2={0}
-                                >
-                                    {stops.map((stop, j) => (
-                                        <stop
-                                            key={j}
-                                            offset={(stop.x - x0) / (x1 - x0)}
-                                            stopColor="white"
-                                            stopOpacity={stop.opacity}
-                                        />
-                                    ))}
-                                </linearGradient>
-                                <mask id={id} maskUnits="userSpaceOnUse">
-                                    <rect
-                                        x={x0 - 4}
-                                        y={plotTop - 4}
-                                        width={x1 - x0 + 8}
-                                        height={plotBottom - plotTop + 8}
-                                        fill={`url(#${id}-gradient)`}
-                                    />
-                                </mask>
-                            </Fragment>
-                        )
-                    })}
-                </defs>
-            )}
-            {series.map((s, i) => {
-                const isHighlighted = highlightedKeys?.has(s.key) ?? false
-                const isDimmed = highlightedKeys !== undefined && !isHighlighted
-                const maskId = maskIdOf(i)
-                return (
-                    <path
-                        key={s.key}
-                        data-key={s.key}
-                        mask={maskId ? `url(#${maskId})` : undefined}
-                        d={paths[i]}
-                        fill={s.color}
-                        fillOpacity={isStacked ? 1 : 0.5}
-                        stroke={isStacked ? GRAPHER_BACKGROUND : s.color}
-                        strokeWidth={
-                            isStacked
-                                ? isHighlighted
-                                    ? 1
-                                    : 0.5
-                                : isHighlighted
-                                  ? 2.5
-                                  : 1.5
-                        }
-                        strokeLinejoin="round"
-                        opacity={isDimmed ? DIMMED_OPACITY : 1}
-                    />
-                )
-            })}
-        </>
-    )
-})
-
-/**
- * The country names above their curves, in the curves' colours. Memoised
- * like AreaLayer, so pointer moves don't redraw them.
- */
-const CountryLabelLayer = memo(function CountryLabelLayer({
-    labels,
-    colors,
-    fontSize,
-    highlightedKeys,
-}: {
-    labels: CurveLabelLayout["labels"]
-    colors: Map<string, string>
-    fontSize: number
-    highlightedKeys: Set<string> | undefined
-}): React.ReactElement {
-    return (
-        <>
-            {labels.map((label) => {
-                const color = colors.get(label.key) ?? GRAPHER_DARK_TEXT
-                const isDimmed =
-                    highlightedKeys !== undefined &&
-                    !highlightedKeys.has(label.key)
-                return (
-                    <text
-                        key={label.key}
-                        data-key={label.key}
-                        className="income-distribution-chart__country-label"
-                        x={label.x}
-                        y={label.y}
-                        // The box's bottom is the text's descent line
-                        dy="-0.25em"
-                        textAnchor="middle"
-                        fontSize={fontSize}
-                        fontWeight={COUNTRY_LABEL_FONT_WEIGHT}
-                        fill={darkenColorForText(color)}
-                        opacity={isDimmed ? DIMMED_OPACITY : 1}
-                    >
-                        {label.key}
-                    </text>
-                )
-            })}
-        </>
-    )
-})
-
-function XAxis({
-    ticks,
-    xScale,
-    plotTop,
-    plotBottom,
-    plotLeft,
-    plotRight,
-    fontSize,
-    isNarrow,
-    per,
-    currencyLabel,
-}: {
-    ticks: AxisTick[]
-    xScale: ScaleLogarithmic<number, number>
-    plotTop: number
-    plotBottom: number
-    plotLeft: number
-    plotRight: number
-    fontSize: number
-    /** Narrow charts split the axis label onto two lines */
-    isNarrow: boolean
-    /** "day", "month" or "year" */
-    per: string
-    /** "international-$" or "Euro (Germany)" */
-    currencyLabel: string
-}): React.ReactElement {
-    return (
-        <g className="income-distribution-chart__axis" pointerEvents="none">
-            {/* Under the tick labels, centred on the plot */}
-            <text
-                className="income-distribution-chart__axis-label"
-                x={(plotLeft + plotRight) / 2}
-                y={plotBottom + 36}
-                dy="0.71em"
-                textAnchor="middle"
-                fontSize={fontSize}
-                fill={GRAPHER_LIGHT_TEXT}
-            >
-                {isNarrow ? (
-                    <>
-                        <tspan x={(plotLeft + plotRight) / 2}>
-                            Income or consumption per {per} in {currencyLabel}
-                        </tspan>
-                        <tspan x={(plotLeft + plotRight) / 2} dy="1.25em">
-                            logarithmic scale
-                        </tspan>
-                    </>
-                ) : (
-                    `Income or consumption per ${per} in ${currencyLabel} — logarithmic scale`
-                )}
-            </text>
-            {ticks.map((tick) => {
-                const x = xScale(tick.value)
-                const isLabelled = tick.label !== undefined
-                return (
-                    <g key={tick.value}>
-                        {isLabelled && (
-                            <line
-                                x1={x}
-                                x2={x}
-                                y1={plotTop}
-                                y2={plotBottom}
-                                stroke={GRAY_20}
-                            />
-                        )}
-                        <line
-                            x1={x}
-                            x2={x}
-                            y1={plotBottom}
-                            y2={plotBottom + (isLabelled ? 5 : 3)}
-                            stroke={GRAPHER_LIGHT_TEXT}
-                        />
-                        {isLabelled && (
-                            <text
-                                x={x}
-                                y={plotBottom + 9}
-                                dy="0.71em"
-                                textAnchor="middle"
-                                fontSize={fontSize}
-                                fill={GRAPHER_LIGHT_TEXT}
-                            >
-                                {tick.label}
-                            </text>
-                        )}
-                    </g>
-                )
-            })}
-        </g>
-    )
-}
-
-/**
- * "$3 a day", plus the same amount in the chart's units when those differ,
- * e.g. "$3 a day or €79 per month"
- */
-function internationalPovertyLineAmount(
-    currency: Currency,
-    timeInterval: TimeInterval
-): string {
-    const perDay = `$${INT_POVERTY_LINE} a day`
-    if (currency.code === INTERNATIONAL_DOLLAR.code && timeInterval === "daily")
-        return perDay
-    const converted = formatIncome(INT_POVERTY_LINE, currency, timeInterval, {
-        short: true,
-    })
-    return `${perDay} or ${converted} per ${timeIntervalNoun(timeInterval)}`
-}
-
-/**
- * The poverty line, drawn like a pin: a dashed line topped by a ball, with
- * its label beside the ball and a × that removes the line. The line and the
- * ball are the grab target: drag to move the line, or focus it and use the
- * arrow keys.
- */
-function PovertyLine({
-    x,
-    plotTop,
-    plotBottom,
-    width,
-    obstacles,
-    title,
-    label,
-    hint,
-    isFixed = false,
-    valueNow,
-    valueMin,
-    valueMax,
-    onPointerDown,
-    onPointerMove,
-    onPointerUp,
-    onKeyDown,
-    onClear,
-    onClearHintChange,
-}: {
-    x: number
-    plotTop: number
-    plotBottom: number
-    width: number
-    /** Boxes the label stays clear of by moving left of the ball */
-    obstacles?: LabelBox[]
-    /** Bold first line; without it, `label` is the bold line */
-    title?: string
-    label: string
-    /** A lighter, italic line below */
-    hint?: string
-    /** Can't be dragged or moved by key */
-    isFixed?: boolean
-    /** Int-$/day, for assistive tech */
-    valueNow: number
-    valueMin: number
-    valueMax: number
-    onPointerDown: (event: React.PointerEvent<SVGGElement>) => void
-    onPointerMove: (event: React.PointerEvent<SVGGElement>) => void
-    onPointerUp: (event: React.PointerEvent<SVGGElement>) => void
-    onKeyDown: (event: React.KeyboardEvent<SVGGElement>) => void
-    /** Without it, the line has no × */
-    onClear?: () => void
-    /** Where the × is while it's hovered or focused, for its hint; null after */
-    onClearHintChange: (position: Position | null) => void
-}): React.ReactElement {
-    const { fontSize, ballRadius, clearSize, lineHeight } = POVERTY_LINE_LABEL
-    const ballY = plotTop
-    // The label sits right of the ball, or left of it when it would overflow
-    // or run into an obstacle (e.g. the button over the plot's corner)
-    const { fitsRight, textX, clearCenterX } = layoutPovertyLineLabel({
-        x,
-        ballY,
-        width,
-        title,
-        label,
-        hint,
-        hasClear: !!onClear,
-        // The international line's two-line label goes left when it fits
-        preferLeft: title !== undefined,
-        obstacles,
-    })
-    const clearHintPosition = { x: clearCenterX, y: ballY + clearSize / 2 + 4 }
-
-    return (
-        <g>
-            <g
-                className={cx("income-distribution-chart__poverty-line", {
-                    "income-distribution-chart__poverty-line--fixed": isFixed,
-                })}
-                onClick={(event) => event.stopPropagation()}
-                {...(isFixed
-                    ? {
-                          role: "img",
-                          "aria-label": title ? `${title}, ${label}` : label,
-                      }
-                    : {
-                          role: "slider",
-                          tabIndex: 0,
-                          "aria-label": "Poverty line",
-                          "aria-valuenow": valueNow,
-                          "aria-valuemin": valueMin,
-                          "aria-valuemax": valueMax,
-                          "aria-valuetext": title
-                              ? `${title}, ${label}`
-                              : label,
-                          "aria-orientation": "horizontal",
-                          onPointerDown,
-                          onPointerMove,
-                          onPointerUp,
-                          onPointerCancel: onPointerUp,
-                          onKeyDown,
-                      })}
-            >
-                {/* A wide invisible line, so the dashed one is easy to grab */}
-                <line
-                    x1={x}
-                    x2={x}
-                    y1={plotTop}
-                    y2={plotBottom}
-                    stroke="transparent"
-                    strokeWidth={16}
-                />
-                <line
-                    x1={x}
-                    x2={x}
-                    y1={plotTop}
-                    y2={plotBottom}
-                    stroke={GRAY_100}
-                    strokeWidth={2}
-                    strokeDasharray="5,4"
-                    pointerEvents="none"
-                />
-                <circle
-                    className="income-distribution-chart__poverty-line-ball"
-                    cx={x}
-                    cy={ballY}
-                    r={ballRadius}
-                    fill={GRAY_100}
-                    stroke={GRAPHER_BACKGROUND}
-                    strokeWidth={1.5}
-                />
-                <text
-                    x={textX}
-                    y={ballY}
-                    dominantBaseline="central"
-                    textAnchor={fitsRight ? "start" : "end"}
-                    fontSize={fontSize}
-                    fontWeight={700}
-                    fill={GRAY_100}
-                    stroke={GRAPHER_BACKGROUND}
-                    strokeWidth={3}
-                    paintOrder="stroke"
-                    pointerEvents="none"
-                >
-                    {title ?? label}
-                </text>
-                {title && (
-                    <text
-                        x={textX}
-                        y={ballY + lineHeight}
-                        dominantBaseline="central"
-                        textAnchor={fitsRight ? "start" : "end"}
-                        fontSize={fontSize}
-                        fill={GRAY_100}
-                        stroke={GRAPHER_BACKGROUND}
-                        strokeWidth={3}
-                        paintOrder="stroke"
-                        pointerEvents="none"
-                    >
-                        {label}
-                    </text>
-                )}
-                {hint && (
-                    <text
-                        x={textX}
-                        y={ballY + (title ? 2 : 1) * lineHeight}
-                        dominantBaseline="central"
-                        textAnchor={fitsRight ? "start" : "end"}
-                        fontSize={fontSize}
-                        fontStyle="italic"
-                        fill={GRAY_70}
-                        stroke={GRAPHER_BACKGROUND}
-                        strokeWidth={3}
-                        paintOrder="stroke"
-                        pointerEvents="none"
-                    >
-                        {hint}
-                    </text>
-                )}
-            </g>
-            {onClear && (
-                <g
-                    className="income-distribution-chart__poverty-line-clear"
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Remove poverty line"
-                    // Keep the press from reaching the plot, which would set the line again
-                    onPointerDown={(event) => event.stopPropagation()}
-                    onPointerEnter={() => onClearHintChange(clearHintPosition)}
-                    onPointerLeave={() => onClearHintChange(null)}
-                    onFocus={() => onClearHintChange(clearHintPosition)}
-                    onBlur={() => onClearHintChange(null)}
-                    onClick={(event) => {
-                        event.stopPropagation()
-                        onClear()
-                    }}
-                    onKeyDown={(event) => {
-                        if (event.key !== "Enter" && event.key !== " ") return
-                        event.preventDefault()
-                        onClear()
-                    }}
-                >
-                    <circle
-                        className="income-distribution-chart__poverty-line-clear-bg"
-                        cx={clearCenterX}
-                        cy={ballY}
-                        r={clearSize / 2}
-                    />
-                    <path
-                        d={`M ${clearCenterX - 3} ${ballY - 3} l 6 6 m 0 -6 l -6 6`}
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                        strokeLinecap="round"
-                        pointerEvents="none"
-                    />
-                </g>
-            )}
-        </g>
-    )
-}
-
-function PointerLine({
-    x,
-    plotTop,
-    plotBottom,
-    width,
-    fontSize,
-    label,
-}: {
-    x: number
-    plotTop: number
-    plotBottom: number
-    width: number
-    fontSize: number
-    label: string
-}): React.ReactElement {
-    // Keep the label inside the chart near its edges
-    const halfLabelWidth =
-        Bounds.forText(label, { fontSize, fontWeight: 700 }).width / 2
-    const labelX = Math.min(
-        Math.max(x, halfLabelWidth),
-        Math.max(width - halfLabelWidth, halfLabelWidth)
-    )
-    return (
-        <g pointerEvents="none">
-            <line
-                x1={x}
-                x2={x}
-                y1={plotTop}
-                y2={plotBottom}
-                stroke={GRAY_60}
-                strokeWidth={1}
-            />
-            <text
-                x={labelX}
-                y={plotBottom + 9}
-                dy="0.71em"
-                textAnchor="middle"
-                fontSize={fontSize}
-                fontWeight={700}
-                fill={GRAPHER_DARK_TEXT}
-                stroke={GRAPHER_BACKGROUND}
-                strokeWidth={4}
-                paintOrder="stroke"
-            >
-                {label}
-            </text>
-        </g>
-    )
-}
-
-/**
- * Mirrors the overlay legend's swatch rows (IncomeDistributionLegend.scss):
- * 10px 12px padding, a 1px border, rows of 12px text at 1.25 line height with
- * 2px padding above and below, a 10px swatch and a 6px gap before the label,
- * which is capped at 260px
- */
-const LEFTOVER_LEGEND = {
-    paddingX: 12 + 1,
-    paddingY: 10 + 1,
-    rowHeight: 12 * 1.25 + 4,
-    markWidth: 10 + 6,
-    fontSize: 12,
-    maxLabelWidth: 260,
-    /** For rounding and font differences */
-    slack: 4,
-}
-
-/**
- * Where the overlay legend listing `keys` will be, right-aligned at `right`
- * from `top` down; undefined when there's nothing to list
- */
-function estimateLeftoverLegendBox(
-    keys: string[],
-    { top, right }: { top: number; right: number }
-): LabelBox | undefined {
-    if (keys.length === 0) return undefined
-    const labelWidth = Math.min(
-        Math.max(
-            ...keys.map(
-                (key) =>
-                    Bounds.forText(key, { fontSize: LEFTOVER_LEGEND.fontSize })
-                        .width
-            )
-        ),
-        LEFTOVER_LEGEND.maxLabelWidth
-    )
-    const width =
-        2 * LEFTOVER_LEGEND.paddingX +
-        LEFTOVER_LEGEND.markWidth +
-        labelWidth +
-        LEFTOVER_LEGEND.slack
-    const height =
-        2 * LEFTOVER_LEGEND.paddingY +
-        keys.length * LEFTOVER_LEGEND.rowHeight +
-        LEFTOVER_LEGEND.slack
-    return { left: right - width, right, top, bottom: top + height }
-}
-
-/** The series a delegated pointer event landed on, from the path's data attribute */
-function seriesKeyOf(target: EventTarget): string | null {
-    if (!(target instanceof Element)) return null
-    return target.getAttribute("data-key")
-}
-
-/** "⟵ Poorest" and "Richest ⟶" just above either end of the x axis */
-function AxisEndLabels({
-    left,
-    right,
-    plotLeft,
-    plotRight,
-    y,
-    fontSize,
-}: {
-    left: string
-    right: string
-    plotLeft: number
-    plotRight: number
-    /** Baseline */
-    y: number
-    fontSize: number
-}): React.ReactElement {
-    const arrowLength = 18
-    const gap = 4
-    const arrowY = y - fontSize * 0.3
-    const textProps = {
-        y,
-        fontSize,
-        fill: GRAPHER_LIGHT_TEXT,
-        stroke: GRAPHER_BACKGROUND,
-        strokeWidth: 3,
-        paintOrder: "stroke",
-    } as const
-    return (
-        <g
-            className="income-distribution-chart__axis-ends"
-            pointerEvents="none"
-        >
-            <BezierArrow
-                start={{ x: plotLeft + arrowLength, y: arrowY }}
-                end={{ x: plotLeft, y: arrowY }}
-                color={GRAPHER_LIGHT_TEXT}
-                headLength={4}
-            />
-            <text x={plotLeft + arrowLength + gap} {...textProps}>
-                {left}
-            </text>
-            <BezierArrow
-                start={{ x: plotRight - arrowLength, y: arrowY }}
-                end={{ x: plotRight, y: arrowY }}
-                color={GRAPHER_LIGHT_TEXT}
-                headLength={4}
-            />
-            <text
-                x={plotRight - arrowLength - gap}
-                textAnchor="end"
-                {...textProps}
-            >
-                {right}
-            </text>
-        </g>
     )
 }

@@ -42,7 +42,7 @@
 }
 
 // The poverty line is dragged with the pointer, or moved with the arrow keys
-// once focused (see PovertyLine in IncomeDistributionChart.tsx)
+// once focused (see chart/PovertyLine.tsx)
 .income-distribution-chart__poverty-line {
     cursor: ew-resize;
     // Dragging the line on touch screens mustn't scroll the page
