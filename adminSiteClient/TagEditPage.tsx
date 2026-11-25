@@ -110,6 +110,12 @@ function TagEditor({
         },
     })
 
+    const refetchTag = (): void => {
+        void queryClient.invalidateQueries({
+            queryKey: tagKeys.detail(tagId),
+        })
+    }
+
     const isModified = isTagModified(editableTag, tag)
     const slugMatchesPublishedTopicPage =
         !!editableTag.slug && publishedGdocTopicSlugs.includes(editableTag.slug)
@@ -257,7 +263,11 @@ function TagEditor({
             {tag.charts.length > 0 && (
                 <section>
                     <h3>Charts</h3>
-                    <ChartList charts={tag.charts} />
+                    <ChartList
+                        charts={tag.charts}
+                        onDelete={refetchTag}
+                        onPublishedChange={refetchTag}
+                    />
                 </section>
             )}
             {tag.gdocs.length > 0 && (

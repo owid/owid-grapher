@@ -612,6 +612,7 @@ interface ChartListProps {
     autofocusSearchInput?: boolean
     loading?: boolean
     onDelete?: (chart: ChartListItem) => void
+    onPublishedChange?: (chart: ChartListItem) => void
 }
 
 @observer
@@ -694,21 +695,26 @@ export class ChartList extends React.Component<ChartListProps> {
         )
         if (!json.success) return
 
-        // A new row rather than an edit to it, so the table renders it again
         const now = new Date().toISOString()
-        runInAction(() => {
-            const { charts } = this.props
-            charts[charts.indexOf(chart)] = {
-                ...chart,
-                slug: publish ? slug : chart.slug,
-                isPublished: publish,
-                lastEditedAt: now,
-                lastEditedBy: admin.username,
-                ...(publish
-                    ? { publishedAt: now, publishedBy: admin.username }
-                    : {}),
-            }
-        })
+        const updatedChart: ChartListItem = {
+            ...chart,
+            slug: publish ? slug : chart.slug,
+            isPublished: publish,
+            lastEditedAt: now,
+            lastEditedBy: admin.username,
+            ...(publish
+                ? { publishedAt: now, publishedBy: admin.username }
+                : {}),
+        }
+        if (this.props.onPublishedChange)
+            this.props.onPublishedChange(updatedChart)
+        else
+            // A new row rather than an edit to it, so the table renders it again
+            runInAction(() => {
+                const { charts } = this.props
+                const index = charts.findIndex((c) => c.id === chart.id)
+                if (index !== -1) charts[index] = updatedChart
+            })
     }
 
     @bind async getTags() {
