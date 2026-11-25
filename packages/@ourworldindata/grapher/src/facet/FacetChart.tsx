@@ -698,7 +698,7 @@ export class FacetChart
      */
     @computed private get columnFocusArray(): FocusArray {
         const { selectedSet } = this.selectionArray
-        return new FocusArray().add(
+        return new FacetFocusArray(this.focusArray).add(
             ...this.focusArray.seriesNames.filter(
                 (name) => !selectedSet.has(name)
             )
@@ -1097,4 +1097,16 @@ function toFacetLabelMode(
     return facetVariant === GrapherVariant.Thumbnail
         ? ChartLabelMode.Values
         : ChartLabelMode.All
+}
+
+/** A facet's own focus whose clear also clears the shared focus */
+class FacetFocusArray extends FocusArray {
+    constructor(private readonly sharedFocusArray: FocusArray) {
+        super()
+    }
+
+    @action.bound override clear(): void {
+        super.clear()
+        this.sharedFocusArray.clear()
+    }
 }
