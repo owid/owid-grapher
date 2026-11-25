@@ -283,8 +283,8 @@ async function recordSentMessages(
                 sql: `INSERT INTO messages
                           (userId, frequency, itemSlugs, correlationId,
                            bulkRequestId, status, sentAt)
-                      SELECT json_extract(value, '$.userId'), ?1, ?2,
-                          json_extract(value, '$.correlationId'), ?3, 'sent',
+                      SELECT value ->> '$.userId', ?1, ?2,
+                          value ->> '$.correlationId', ?3, 'sent',
                           ?4
                       FROM json_each(?5)
                       -- SQLite needs a WHERE before ON CONFLICT in
@@ -304,7 +304,7 @@ async function recordSentMessages(
                       SET lastSentAt = ?1,
                           updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
                       WHERE userId IN (
-                          SELECT json_extract(value, '$.userId')
+                          SELECT value ->> '$.userId'
                           FROM json_each(?2)
                       )`,
                 params: [sentAt.toISOString(), rows],

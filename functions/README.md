@@ -254,6 +254,23 @@ Useful development options:
 - `--dry-run` renders messages to `.email-notifications-preview/` without
   sending them.
 
+### Migrating the Mailchimp RSS newsletters
+
+The "Data Insights" and "Article Updates" newsletters are RSS campaigns in
+Mailchimp. `yarn migrateMailchimpSubscribers` moves their subscribers to email
+notifications in cohorts, most engaged first, so mailbox providers see the
+volume from Postmark's IPs grow gradually. The script's header documents the
+commands; `mailchimp_migration_members` in D1 holds the plan and progress.
+
+- A migrated address gets a daily email on all topics with the content types
+  of its newsletters, starting from the newsletters' last feed check.
+- Each address is subscribed to email notifications first and taken off the
+  Mailchimp newsletters after, so a failure causes a duplicate email rather
+  than a missed one.
+- Addresses without an open in the last year are held back.
+- Run `migrate` right after Mailchimp's daily sends, and move on to the next
+  cohort only when `status` and Google Postmaster Tools look healthy.
+
 ### Monitoring
 
 - Webhook processing failures are reported to Sentry.
