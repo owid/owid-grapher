@@ -100,7 +100,7 @@ describe(placeColumn, () => {
         )
     })
 
-    it("drops the lowest-priority label in the group of the worst violator", () => {
+    it("leaves out a label that would push a higher-priority one beyond the cap", () => {
         // Packed together they sit at 92, 104, 116, so only x moves more than 6
         const placements = placeColumn(
             [label("x", 100), label("y", 100), label("z", 112)],
@@ -128,7 +128,7 @@ describe(placeColumn, () => {
         )
     })
 
-    it("looks above the worst violator for the label to drop", () => {
+    it("leaves out a label that would push one below it beyond the cap", () => {
         // Packed together they sit at 84, 96, 108, so only y, at the bottom, moves more than 6
         const placements = placeColumn(
             [label("x", 100), label("y", 100), label("z", 88)],
@@ -142,9 +142,9 @@ describe(placeColumn, () => {
         )
     })
 
-    it("brings back a dropped label that fits once others are dropped", () => {
-        // a, b and c crowd at 100, and d touches them, so d is dropped
-        // first; once c is dropped too, d fits at its anchor again
+    it("keeps a lower-priority label that fits after a higher one is left out", () => {
+        // a, b and c crowd at 100, so c is left out; d still fits at its
+        // anchor below a and b
         const placements = placeColumn(
             [
                 label("a", 100),
@@ -163,9 +163,9 @@ describe(placeColumn, () => {
         )
     })
 
-    it("brings back a label over the height budget once a drop makes room", () => {
-        // The budget fits two labels, so c is left out; b, pushed 12px off
-        // its shared anchor with a, is dropped, which leaves room for c
+    it("spends the height budget only on labels kept within the cap", () => {
+        // The budget fits two labels; b, pushed 12px off its shared anchor
+        // with a, is left out, which leaves room for c
         const placements = placeColumn(
             [label("a", 5), label("b", 5), label("c", 17)],
             { range: { top: 0, bottom: 22 }, gap: 2, maxShift: 6 }

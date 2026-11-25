@@ -3,6 +3,7 @@ import { computed, makeObservable } from "mobx"
 import {
     Bounds,
     PadObject,
+    Point,
     RequiredBy,
     VerticalAlign,
 } from "@ourworldindata/utils"
@@ -402,49 +403,74 @@ function toVerticalRange(yRange?: [number, number]): VerticalRange {
         : { top: -Infinity, bottom: Infinity }
 }
 
-/**
- * Repeatedly picks the highest-priority remaining series, breaking ties by
- * the anchor furthest from every anchor picked so far; full ties keep input
- * order
- */
+/** Sorted by comparePriority, with each run of ties ordered farthest-first */
 function orderByPriorityThenFarthest<T extends InitialAnchoredLabelSeries>(
     series: readonly T[],
     comparePriority: (a: T, b: T) => number
 ): T[] {
-    const remaining = series.map((candidate) => ({
-        candidate,
-        squaredDistanceToPicked: Infinity,
-    }))
-    const picked: T[] = []
-
-    while (remaining.length > 0) {
-        let bestIndex = 0
-        for (let index = 1; index < remaining.length; index++) {
-            const current = remaining[index]
-            const best = remaining[bestIndex]
-            const order = comparePriority(current.candidate, best.candidate)
-            if (
-                order < 0 ||
-                (order === 0 &&
-                    current.squaredDistanceToPicked >
-                        best.squaredDistanceToPicked)
-            )
-                bestIndex = index
-        }
-
-        const [{ candidate: next }] = remaining.splice(bestIndex, 1)
-        picked.push(next)
-
-        for (const entry of remaining) {
-            const dx = entry.candidate.position.x - next.position.x
-            const dy = entry.candidate.position.y - next.position.y
-            entry.squaredDistanceToPicked = Math.min(
-                entry.squaredDistanceToPicked,
-                dx * dx + dy * dy
-            )
-        }
+    const sorted = [...series].sort(comparePriority)
+    const ordered: T[] = []
+    let tieStart = 0
+    while (tieStart < sorted.length) {
+        let tieEnd = tieStart + 1
+        while (
+            tieEnd < sorted.length &&
+            comparePriority(sorted[tieStart], sorted[tieEnd]) === 0
+        )
+            tieEnd++
+        appendFarthestFirst(ordered, sorted.slice(tieStart, tieEnd))
+        tieStart = tieEnd
     }
-    return picked
+    return ordered
+}
+
+/**
+ * Appends candidates one by one, each time the one whose anchor is furthest
+ * from every anchor already in ordered; full ties keep candidate order
+ */
+function appendFarthestFirst<T extends InitialAnchoredLabelSeries>(
+    ordered: T[],
+    candidates: readonly T[]
+): void {
+    if (candidates.length === 1) {
+        ordered.push(candidates[0])
+        return
+    }
+
+    const remaining = candidates.map((candidate) => ({
+        candidate,
+        squaredDistanceToOrdered: ordered.reduce(
+            (min, other) =>
+                Math.min(
+                    min,
+                    getSquaredDistance(candidate.position, other.position)
+                ),
+            Infinity
+        ),
+    }))
+    while (remaining.length > 0) {
+        let farthestIndex = 0
+        for (let index = 1; index < remaining.length; index++)
+            if (
+                remaining[index].squaredDistanceToOrdered >
+                remaining[farthestIndex].squaredDistanceToOrdered
+            )
+                farthestIndex = index
+
+        const [{ candidate: next }] = remaining.splice(farthestIndex, 1)
+        ordered.push(next)
+        for (const entry of remaining)
+            entry.squaredDistanceToOrdered = Math.min(
+                entry.squaredDistanceToOrdered,
+                getSquaredDistance(entry.candidate.position, next.position)
+            )
+    }
+}
+
+function getSquaredDistance(a: Point, b: Point): number {
+    const dx = a.x - b.x
+    const dy = a.y - b.y
+    return dx * dx + dy * dy
 }
 
 function getEmphasisRank(series: InitialAnchoredLabelSeries): number {

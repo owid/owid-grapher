@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import { FLOAT_TOLERANCE_PX } from "./AnchoredLabelsConstants.js"
 
 export interface ColumnLabel {
@@ -80,7 +79,7 @@ export function packColumn(
     return positions
 }
 
-/** Center y of each label kept in the column; labels that don't fit or would move more than maxShift are absent */
+/** Center y of each label kept in the column; labels join in priority order while the column fits and none moves more than maxShift */
 export function placeColumn(
     labelsByPriority: readonly ColumnLabel[],
     {
@@ -89,119 +88,27 @@ export function placeColumn(
         maxShift,
     }: { range: VerticalRange; gap: number; maxShift: number }
 ): CenterYByLabelId {
-    const availableHeight = range.bottom - range.top
-    let kept = keepLabelsThatFit({ labelsByPriority, availableHeight, gap })
-    let centerYs = packColumn(kept, range, gap)
+    let kept: ColumnLabel[] = []
+    let centerYs: CenterYByLabelId = new Map()
+    // Each label pays for one gap, so the budget includes one the last label doesn't need
+    let remainingHeight = range.bottom - range.top + gap
 
-    const maxDrops = kept.length
-    for (let drops = 0; drops < maxDrops; drops++) {
-        const mostShifted = findMostShiftedLabelBeyondMaxShift({
-            labels: kept,
-            centerYs,
-            maxShift,
-        })
-        if (!mostShifted) break
-        const crowdedBlock = findBlockContaining({
-            labels: kept,
-            centerYs,
-            target: mostShifted,
-            gap,
-        })
-        const labelToDrop = _.findLast(kept, (label) =>
-            crowdedBlock.includes(label)
-        )!
-        kept = kept.filter((label) => label !== labelToDrop)
-        centerYs = packColumn(kept, range, gap)
-    }
-
-    // A label left out may fit once drops have made room
     for (const label of labelsByPriority) {
-        if (kept.includes(label)) continue
-        const candidate = labelsByPriority.filter(
-            (other) => other === label || kept.includes(other)
-        )
-        const fitsInRange =
-            keepLabelsThatFit({
-                labelsByPriority: candidate,
-                availableHeight,
-                gap,
-            }).length === candidate.length
-        if (!fitsInRange) continue
+        const cost = label.height + gap
+        if (cost > remainingHeight) continue
+
+        const candidate = [...kept, label]
         const candidateCenterYs = packColumn(candidate, range, gap)
-        if (
-            findMostShiftedLabelBeyondMaxShift({
-                labels: candidate,
-                centerYs: candidateCenterYs,
-                maxShift,
-            })
+        const isWithinMaxShift = candidate.every(
+            (other) =>
+                Math.abs(candidateCenterYs.get(other.id)! - other.anchorY) <=
+                maxShift + FLOAT_TOLERANCE_PX
         )
-            continue
+        if (!isWithinMaxShift) continue
+
         kept = candidate
         centerYs = candidateCenterYs
+        remainingHeight -= cost
     }
-
     return centerYs
-}
-
-function keepLabelsThatFit({
-    labelsByPriority,
-    availableHeight,
-    gap,
-}: {
-    labelsByPriority: readonly ColumnLabel[]
-    availableHeight: number
-    gap: number
-}): ColumnLabel[] {
-    // Each label pays for one gap, so the budget includes one the last label doesn't need
-    let remainingBudget = availableHeight + gap
-    return labelsByPriority.filter((label) => {
-        const cost = label.height + gap
-        if (cost > remainingBudget) return false
-        remainingBudget -= cost
-        return true
-    })
-}
-
-function findMostShiftedLabelBeyondMaxShift({
-    labels,
-    centerYs,
-    maxShift,
-}: {
-    labels: readonly ColumnLabel[]
-    centerYs: CenterYByLabelId
-    maxShift: number
-}): ColumnLabel | undefined {
-    const shiftOf = (label: ColumnLabel): number =>
-        Math.abs(centerYs.get(label.id)! - label.anchorY)
-    const mostShifted = _.maxBy(labels, shiftOf)
-    return mostShifted && shiftOf(mostShifted) > maxShift + FLOAT_TOLERANCE_PX
-        ? mostShifted
-        : undefined
-}
-
-function findBlockContaining({
-    labels,
-    centerYs,
-    target,
-    gap,
-}: {
-    labels: readonly ColumnLabel[]
-    centerYs: CenterYByLabelId
-    target: ColumnLabel
-    gap: number
-}): ColumnLabel[] {
-    const sorted = _.sortBy(labels, (label) => centerYs.get(label.id)!)
-    const isTouching = (above: ColumnLabel, below: ColumnLabel): boolean =>
-        centerYs.get(below.id)! -
-            below.height / 2 -
-            (centerYs.get(above.id)! + above.height / 2) <=
-        gap + FLOAT_TOLERANCE_PX
-
-    const targetIndex = sorted.indexOf(target)
-    let start = targetIndex
-    while (start > 0 && isTouching(sorted[start - 1], sorted[start])) start--
-    let end = targetIndex
-    while (end < sorted.length - 1 && isTouching(sorted[end], sorted[end + 1]))
-        end++
-    return sorted.slice(start, end + 1)
 }
