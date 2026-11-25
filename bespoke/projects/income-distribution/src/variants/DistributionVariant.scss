@@ -33,10 +33,12 @@
 // Over the plot's top-right corner, keeping the chart's right plot margin
 // (MARGIN in IncomeDistributionChart.tsx): the "Edit countries" button and,
 // below it, the overlay legend. Without the button the legend sits below the
-// poverty line's label. The chart keeps its labels clear of both.
+// poverty line's label, with room for a two-line one (the international
+// line's, or one with a hint under it). The chart keeps its labels clear of
+// both.
 .income-distribution-captioned-chart__overlays {
     position: absolute;
-    top: 30px;
+    top: 38px;
     right: 16px;
     z-index: 2;
     display: flex;
