@@ -1,4 +1,14 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { parseAsInteger, parseAsString } from "nuqs"
+
+import { useUrlState } from "../../../../hooks/useUrlState.js"
+import {
+    clampSlide,
+    findWalkthrough,
+    type Walkthrough,
+    type WalkthroughSlide,
+} from "../core/walkthroughs.js"
+import type { WalkthroughProgress } from "./WalkthroughRail.js"
 
 /** A horizontal swipe longer than this, and mostly sideways, changes the slide */
 const SWIPE_DISTANCE = 50
@@ -146,5 +156,134 @@ export function useSwipe({
             if (dx < 0) onNext()
             else onPrevious()
         },
+    }
+}
+
+/**
+ * Which walkthrough is playing and on which slide, kept in the URL so a
+ * slide can be shared, with the ways of moving through it: the buttons' and
+ * pills' callbacks, ← → Escape, a swipe over the chart, and the nudge after
+ * a while without interaction. Opening a walkthrough scrolls `chartRef`'s
+ * element into view once it's on screen.
+ */
+export function useWalkthroughNavigation({
+    defaultWalkthroughId,
+    node,
+    chartRef,
+}: {
+    /** The walkthrough playing when the chart loads, or "" for none */
+    defaultWalkthroughId: string
+    /** The variant's root, where interaction resets the nudge */
+    node: HTMLElement | null
+    chartRef: React.RefObject<HTMLElement | null>
+}): {
+    walkthrough: Walkthrough | undefined
+    slide: WalkthroughSlide | undefined
+    /** 1-based */
+    slideNumber: number
+    progress: WalkthroughProgress
+    /** Opens a walkthrough at its first slide */
+    open: (id: string) => void
+    close: () => void
+    /** Opens a walkthrough, or closes it while it's the one playing */
+    toggle: (id: string) => void
+    previous: () => void
+    next: () => void
+    swipeHandlers: ReturnType<typeof useSwipe>
+    isNudging: boolean
+} {
+    const [walkthroughId, setWalkthroughId] = useUrlState({
+        key: "walkthrough",
+        parser: parseAsString,
+        defaultValue: defaultWalkthroughId,
+    })
+    const [rawSlide, setRawSlide] = useUrlState({
+        key: "slide",
+        parser: parseAsInteger,
+        defaultValue: 1,
+    })
+    const walkthrough = findWalkthrough(walkthroughId)
+    const slideNumber = walkthrough ? clampSlide(rawSlide, walkthrough) : 1
+    const slide = walkthrough?.slides[slideNumber - 1]
+
+    const [watchedIds, setWatchedIds] = useState<ReadonlySet<string>>(
+        () => new Set()
+    )
+
+    // Once a walkthrough the reader started is on screen, bring the whole
+    // frame into view, from the slide's text to the buttons below the chart
+    const shouldScrollIntoViewRef = useRef(false)
+    const open = useCallback(
+        (id: string) => {
+            shouldScrollIntoViewRef.current = true
+            setWalkthroughId(id)
+            setRawSlide(1)
+        },
+        [setWalkthroughId, setRawSlide]
+    )
+    useEffect(() => {
+        if (!walkthrough || !shouldScrollIntoViewRef.current) return
+        shouldScrollIntoViewRef.current = false
+        const element = chartRef.current
+        if (!element) return
+        scrollIntoViewIfCutOff(element)
+    }, [walkthrough, chartRef])
+    const close = useCallback(() => {
+        if (walkthrough && slideNumber >= walkthrough.slides.length)
+            setWatchedIds((ids) => new Set([...ids, walkthrough.id]))
+        setWalkthroughId("")
+        setRawSlide(1)
+    }, [walkthrough, slideNumber, setWalkthroughId, setRawSlide])
+    const toggle = useCallback(
+        (id: string) => (walkthrough?.id === id ? close() : open(id)),
+        [walkthrough, close, open]
+    )
+    const goTo = useCallback(
+        (next: number) => {
+            if (!walkthrough) return
+            setRawSlide(clampSlide(next, walkthrough))
+        },
+        [walkthrough, setRawSlide]
+    )
+    const previous = useCallback(
+        () => goTo(slideNumber - 1),
+        [goTo, slideNumber]
+    )
+    const next = useCallback(() => goTo(slideNumber + 1), [goTo, slideNumber])
+
+    useWalkthroughKeyboard({
+        isOpen: !!walkthrough,
+        onPrevious: previous,
+        onNext: next,
+        onClose: close,
+    })
+    const swipeHandlers = useSwipe({
+        isEnabled: !!walkthrough,
+        onPrevious: previous,
+        onNext: next,
+    })
+    const isNudging = useIdleNudge({
+        isEnabled: !!walkthrough,
+        node,
+        // A new slide starts the wait over
+        resetKey: `${walkthrough?.id}:${slideNumber}`,
+    })
+
+    return {
+        walkthrough,
+        slide,
+        slideNumber,
+        progress: {
+            activeId: walkthrough?.id ?? null,
+            slide: slideNumber,
+            watchedIds,
+        },
+        open,
+        close,
+        toggle,
+        previous,
+        next,
+        swipeHandlers,
+        isNudging,
     }
 }

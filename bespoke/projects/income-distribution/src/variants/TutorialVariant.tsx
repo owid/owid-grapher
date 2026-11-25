@@ -1,26 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useRef } from "react"
 import cx from "clsx"
-import { parseAsInteger, parseAsString } from "nuqs"
 import { faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import type { BespokeVariantProps } from "owid-bespoke-types"
 
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
-import { useUrlState } from "../../../../hooks/useUrlState.js"
 
 import type { IncomeDistributionConfig } from "../index.js"
 import { NARROW_BREAKPOINT } from "../core/constants.js"
-import type {
-    ChartState,
-    ChartStateSetters,
-} from "../core/useIncomeDistributionState.js"
-import {
-    clampSlide,
-    findWalkthrough,
-    resolveSlideChartState,
-    WALKTHROUGHS,
-    type SlideChartField,
-} from "../core/walkthroughs.js"
+import { WALKTHROUGHS } from "../core/walkthroughs.js"
+import { useWalkthroughPlayback } from "../core/useWalkthroughPlayback.js"
 import { useIncomeDistributionControlsProps } from "../components/IncomeDistributionControls.js"
 import {
     FetchingIncomeDistributionVariant,
@@ -32,26 +21,15 @@ import {
 import {
     WalkthroughPills,
     WalkthroughRail,
-    type WalkthroughProgress,
 } from "../components/WalkthroughRail.js"
 import { SlideFrame } from "../components/SlideFrame.js"
-import {
-    scrollIntoViewIfCutOff,
-    useIdleNudge,
-    useSwipe,
-    useWalkthroughKeyboard,
-} from "../components/walkthroughInteractions.js"
+import { useWalkthroughNavigation } from "../components/walkthroughInteractions.js"
 
 /** From this container width on, the walkthroughs sit in a rail left of the chart */
 const RAIL_BREAKPOINT = 900
 /** The rail's width and the gap after it (TutorialVariant.scss) */
 const RAIL_WIDTH = 193
 const RAIL_GAP = 32
-/** Slide fields the reader's choice outlives the slide for (see stickyReleased) */
-const STICKY_FIELDS: ReadonlySet<SlideChartField> = new Set([
-    "currency",
-    "timeInterval",
-])
 
 export function TutorialVariant(
     props: BespokeVariantProps<IncomeDistributionConfig>
@@ -64,17 +42,6 @@ export function TutorialVariant(
     )
 }
 
-/**
- * State that belongs to one slide and is dropped when the slide changes: a
- * poverty line the reader dragged on it, and the fields its control handed
- * back to the reader's own state
- */
-interface SlideLocalState {
-    slideKey: string
-    povertyLine?: number | null
-    released: ReadonlySet<SlideChartField>
-}
-
 function CaptionedTutorialVariant(
     props: CaptionedVariantProps
 ): React.ReactElement {
@@ -85,169 +52,32 @@ function CaptionedTutorialVariant(
     const isNarrow = width > 0 && columnWidth < NARROW_BREAKPOINT
     const { chartState: readerState, setters } = state
 
-    // Which walkthrough is playing and on which slide, in the URL so a
-    // slide can be shared
-    const [walkthroughId, setWalkthroughId] = useUrlState({
-        key: "walkthrough",
-        parser: parseAsString,
-        defaultValue: config.walkthrough ?? "",
-    })
-    const [rawSlide, setRawSlide] = useUrlState({
-        key: "slide",
-        parser: parseAsInteger,
-        defaultValue: 1,
-    })
-    const walkthrough = findWalkthrough(walkthroughId)
-    const slideNumber = walkthrough ? clampSlide(rawSlide, walkthrough) : 1
-    const slide = walkthrough?.slides[slideNumber - 1]
-    const slideKey = walkthrough ? `${walkthrough.id}:${slideNumber}` : ""
-
-    const [watchedIds, setWatchedIds] = useState<ReadonlySet<string>>(
-        () => new Set()
-    )
-    const [storedSlideState, setSlideState] = useState<SlideLocalState>({
-        slideKey: "",
-        released: new Set(),
-    })
-    // Units the reader picked on a slide stay picked: on the slides after it
-    // and on the chart once the walkthrough closes, so a reader who switched
-    // to their own currency keeps seeing it
-    const [stickyReleased, setStickyReleased] = useState<
-        ReadonlySet<SlideChartField>
-    >(() => new Set())
-    const slideState = useMemo(
-        (): SlideLocalState =>
-            storedSlideState.slideKey === slideKey
-                ? storedSlideState
-                : { slideKey, released: new Set() },
-        [storedSlideState, slideKey]
-    )
-    const updateSlideState = useCallback(
-        (update: (current: SlideLocalState) => Partial<SlideLocalState>) =>
-            setSlideState((stored) => {
-                const current =
-                    stored.slideKey === slideKey
-                        ? stored
-                        : { slideKey, released: new Set<SlideChartField>() }
-                return { ...current, ...update(current) }
-            }),
-        [slideKey]
-    )
-
-    // Once a walkthrough the reader started is on screen, bring the whole
-    // frame into view, from the slide's text to the buttons below the chart
     const chartRef = useRef<HTMLDivElement>(null)
-    const shouldScrollIntoViewRef = useRef(false)
-    const open = useCallback(
-        (id: string) => {
-            shouldScrollIntoViewRef.current = true
-            setWalkthroughId(id)
-            setRawSlide(1)
-        },
-        [setWalkthroughId, setRawSlide]
-    )
-    useEffect(() => {
-        if (!walkthrough || !shouldScrollIntoViewRef.current) return
-        shouldScrollIntoViewRef.current = false
-        const element = chartRef.current
-        if (!element) return
-        scrollIntoViewIfCutOff(element)
-    }, [walkthrough])
-    const close = useCallback(() => {
-        if (walkthrough && slideNumber >= walkthrough.slides.length)
-            setWatchedIds((ids) => new Set([...ids, walkthrough.id]))
-        setWalkthroughId("")
-        setRawSlide(1)
-    }, [walkthrough, slideNumber, setWalkthroughId, setRawSlide])
-    const toggle = useCallback(
-        (id: string) => (walkthrough?.id === id ? close() : open(id)),
-        [walkthrough, close, open]
-    )
-    const goTo = useCallback(
-        (next: number) => {
-            if (!walkthrough) return
-            setRawSlide(clampSlide(next, walkthrough))
-        },
-        [walkthrough, setRawSlide]
-    )
-    const previous = useCallback(
-        () => goTo(slideNumber - 1),
-        [goTo, slideNumber]
-    )
-    const next = useCallback(() => goTo(slideNumber + 1), [goTo, slideNumber])
-
-    useWalkthroughKeyboard({
-        isOpen: !!walkthrough,
-        onPrevious: previous,
-        onNext: next,
-        onClose: close,
-    })
-    const swipeHandlers = useSwipe({
-        isEnabled: !!walkthrough,
-        onPrevious: previous,
-        onNext: next,
-    })
-    const isNudging = useIdleNudge({
-        isEnabled: !!walkthrough,
+    const {
+        walkthrough,
+        slide,
+        slideNumber,
+        progress,
+        open,
+        close,
+        toggle,
+        previous,
+        next,
+        swipeHandlers,
+        isNudging,
+    } = useWalkthroughNavigation({
+        defaultWalkthroughId: config.walkthrough ?? "",
         node,
-        // A new slide starts the wait over
-        resetKey: `${walkthrough?.id}:${slideNumber}`,
+        chartRef,
     })
-
-    // The slide's state over the reader's own; a line dragged on the slide
-    // stays on the slide
-    const chartState = useMemo((): ChartState => {
-        if (!slide) return readerState
-        const resolved = resolveSlideChartState(
-            readerState,
-            slide.chart,
-            walkthrough?.fixedUnits
-                ? slideState.released
-                : new Set([...stickyReleased, ...slideState.released]),
-            (name) => yearData.byName.has(name)
-        )
-        return slideState.povertyLine !== undefined
-            ? { ...resolved, povertyLine: slideState.povertyLine }
-            : resolved
-    }, [walkthrough, slide, readerState, slideState, stickyReleased, yearData])
-
-    // A slide's control writes to the reader's state, and from then on the
-    // slide shows what the reader picked
-    const release = useCallback(
-        (field: SlideChartField) => {
-            if (STICKY_FIELDS.has(field))
-                setStickyReleased((current) => new Set([...current, field]))
-            else
-                updateSlideState((current) => ({
-                    released: new Set([...current.released, field]),
-                }))
-        },
-        [updateSlideState]
-    )
-    const slideSetters = useMemo(
-        (): ChartStateSetters => ({
-            ...setters,
-            setView: (view) => {
-                setters.setView(view)
-                release("view")
-            },
-            setSelectedCountries: (names) => {
-                setters.setSelectedCountries(names)
-                release("countries")
-            },
-            setTimeInterval: (interval) => {
-                setters.setTimeInterval(interval)
-                release("timeInterval")
-            },
-            setCurrency: (key) => {
-                setters.setCurrency(key)
-                release("currency")
-            },
-            setPovertyLine: (line) =>
-                updateSlideState(() => ({ povertyLine: line })),
-        }),
-        [setters, release, updateSlideState]
-    )
+    const { chartState, slideSetters } = useWalkthroughPlayback({
+        readerState,
+        setters,
+        walkthrough,
+        slide,
+        slideNumber,
+        yearData,
+    })
 
     const controlsProps = useIncomeDistributionControlsProps({
         chartState: readerState,
@@ -265,11 +95,6 @@ function CaptionedTutorialVariant(
     })
 
     const hideControls = hidesControls(config)
-    const progress: WalkthroughProgress = {
-        activeId: walkthrough?.id ?? null,
-        slide: slideNumber,
-        watchedIds,
-    }
 
     // Narrow charts: in front of the pills, the drawer's button, or, while a
     // walkthrough plays, the way out of it
