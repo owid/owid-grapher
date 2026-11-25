@@ -7,6 +7,7 @@ import {
     useRef,
     useState,
 } from "react"
+import cx from "clsx"
 import * as R from "remeda"
 import { scaleLinear, scaleLog } from "@visx/scale"
 import { area, curveMonotoneX, line } from "d3-shape"
@@ -93,6 +94,8 @@ export interface IncomeDistributionChartEmphasis {
     annotations?: ChartAnnotation[]
     /** A lighter line under the poverty line's label, e.g. how to move it */
     povertyLineHint?: string
+    /** The line can't be dragged or moved by key; default false */
+    isPovertyLineFixed?: boolean
     /**
      * Whether hovering shows the tooltip and a click sets the line; default
      * true. Dragging an existing line works either way.
@@ -263,6 +266,7 @@ function IncomeDistributionChartContent({
     axisEndLabels,
     annotations,
     povertyLineHint,
+    isPovertyLineFixed = false,
     isInteractive = true,
     width,
     height,
@@ -960,6 +964,7 @@ function IncomeDistributionChartContent({
                         title={povertyLineText.title}
                         label={povertyLineText.label}
                         hint={povertyLineText.hint}
+                        isFixed={isPovertyLineFixed}
                         valueNow={povertyLine}
                         valueMin={minIncome}
                         valueMax={maxIncome}
@@ -1248,6 +1253,7 @@ function PovertyLine({
     title,
     label,
     hint,
+    isFixed = false,
     valueNow,
     valueMin,
     valueMax,
@@ -1269,6 +1275,8 @@ function PovertyLine({
     label: string
     /** A lighter, italic line below */
     hint?: string
+    /** Can't be dragged or moved by key */
+    isFixed?: boolean
     /** Int-$/day, for assistive tech */
     valueNow: number
     valueMin: number
@@ -1301,21 +1309,32 @@ function PovertyLine({
     return (
         <g>
             <g
-                className="income-distribution-chart__poverty-line"
-                role="slider"
-                tabIndex={0}
-                aria-label="Poverty line"
-                aria-valuenow={valueNow}
-                aria-valuemin={valueMin}
-                aria-valuemax={valueMax}
-                aria-valuetext={title ? `${title}, ${label}` : label}
-                aria-orientation="horizontal"
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                onPointerCancel={onPointerUp}
+                className={cx("income-distribution-chart__poverty-line", {
+                    "income-distribution-chart__poverty-line--fixed": isFixed,
+                })}
                 onClick={(event) => event.stopPropagation()}
-                onKeyDown={onKeyDown}
+                {...(isFixed
+                    ? {
+                          role: "img",
+                          "aria-label": title ? `${title}, ${label}` : label,
+                      }
+                    : {
+                          role: "slider",
+                          tabIndex: 0,
+                          "aria-label": "Poverty line",
+                          "aria-valuenow": valueNow,
+                          "aria-valuemin": valueMin,
+                          "aria-valuemax": valueMax,
+                          "aria-valuetext": title
+                              ? `${title}, ${label}`
+                              : label,
+                          "aria-orientation": "horizontal",
+                          onPointerDown,
+                          onPointerMove,
+                          onPointerUp,
+                          onPointerCancel: onPointerUp,
+                          onKeyDown,
+                      })}
             >
                 {/* A wide invisible line, so the dashed one is easy to grab */}
                 <line
@@ -1837,22 +1856,24 @@ function placeAnnotation(
             x: start.x + (target.x - start.x) * ratio,
             y: start.y + (target.y - start.y) * ratio,
         }
-        placedArrow = {
-            start,
-            end,
-            startHandle: arrow.startHandle
-                ? {
-                      x: start.x + arrow.startHandle.dx,
-                      y: start.y + arrow.startHandle.dy,
-                  }
-                : undefined,
-            endHandle: arrow.endHandle
-                ? {
-                      x: end.x + arrow.endHandle.dx,
-                      y: end.y + arrow.endHandle.dy,
-                  }
-                : undefined,
-        }
+        const startHandle = arrow.startHandle
+            ? {
+                  x: start.x + arrow.startHandle.dx,
+                  y: start.y + arrow.startHandle.dy,
+              }
+            : undefined
+        // Without an end handle of its own, the curve's end tangent runs from
+        // the start handle, so the head is set along that; left out, the
+        // arrow would aim its head along the straight line from its start
+        const endHandle = arrow.endHandle
+            ? { x: end.x + arrow.endHandle.dx, y: end.y + arrow.endHandle.dy }
+            : startHandle
+              ? {
+                    x: end.x + (startHandle.x - end.x) * 0.3,
+                    y: end.y + (startHandle.y - end.y) * 0.3,
+                }
+              : undefined
+        placedArrow = { start, end, startHandle, endHandle }
     }
 
     return {
