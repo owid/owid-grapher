@@ -42,7 +42,7 @@ import {
 } from "../db/model/Variable.js"
 import {
     deleteGrapherConfigFromR2,
-    deleteGrapherConfigFromR2ByUuid,
+    deleteGrapherConfigsFromR2ByUuid,
     saveMultiDimConfigToR2,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
 import {
@@ -155,20 +155,35 @@ async function resolveMultiDimDataPageCatalogPathsToIndicatorIds(
     }
 }
 
-async function getViewIdToChartConfigIdMap(
+type ExistingView = Pick<
+    DbPlainMultiDimXChartConfig,
+    "chartConfigId" | "variableId"
+>
+
+async function getExistingViewsByViewId(
     knex: db.KnexReadonlyTransaction,
     catalogPath: string
-): Promise<Map<string, string>> {
-    const rows = await db.knexRaw<DbPlainMultiDimXChartConfig>(
+): Promise<Map<string, ExistingView>> {
+    const rows = await db.knexRaw<
+        Pick<
+            DbPlainMultiDimXChartConfig,
+            "viewId" | "chartConfigId" | "variableId"
+        >
+    >(
         knex,
         `-- sql
-        SELECT viewId, chartConfigId
+        SELECT viewId, chartConfigId, variableId
         FROM multi_dim_x_chart_configs mdxcc
         JOIN multi_dim_data_pages mddp ON mddp.id = mdxcc.multiDimId
         WHERE mddp.catalogPath = ?`,
         [catalogPath]
     )
-    return new Map(rows.map((row) => [row.viewId, row.chartConfigId]))
+    return new Map(
+        rows.map(({ viewId, chartConfigId, variableId }) => [
+            viewId,
+            { chartConfigId, variableId },
+        ])
+    )
 }
 
 async function retrieveMultiDimConfigFromDbAndSaveToR2(
@@ -222,6 +237,8 @@ async function cleanUpOrphanedChartConfigs(
     knex: db.KnexReadWriteTransaction,
     orphanedChartConfigIds: string[]
 ) {
+    if (orphanedChartConfigIds.length === 0) return
+
     await knex<DbPlainMultiDimXChartConfig>(MultiDimXChartConfigsTableName)
         .whereIn("chartConfigId", orphanedChartConfigIds)
         .delete()
@@ -229,9 +246,21 @@ async function cleanUpOrphanedChartConfigs(
     await knex<DbRawChartConfig>(ChartConfigsTableName)
         .whereIn("id", orphanedChartConfigIds)
         .delete()
-    for (const id of orphanedChartConfigIds) {
-        await deleteGrapherConfigFromR2ByUuid(id)
-    }
+
+    // Delete the R2 copies only once the transaction commits. Deleting them
+    // inside it holds the row locks above until every R2 request finishes,
+    // and a rollback after the deletes leaves the restored configs without
+    // their R2 copies. An orphaned config isn't referenced anywhere, so a
+    // failed delete only leaves an unused object behind and we just log it.
+    knex.executionPromise.then(
+        () =>
+            deleteGrapherConfigsFromR2ByUuid(
+                orphanedChartConfigIds,
+                logErrorAndMaybeCaptureInSentry
+            ),
+        // A rolled-back transaction keeps the configs, so there is nothing to delete
+        () => undefined
+    )
 }
 
 export async function upsertMultiDim(
@@ -239,6 +268,20 @@ export async function upsertMultiDim(
     catalogPath: string,
     rawConfig: MultiDimDataPageConfigRaw
 ): Promise<number> {
+    // Lock the multi-dim's row first, so that concurrent upserts of the same
+    // multi-dim (e.g. an ETL retry while the first request is still running)
+    // run one after another. Without it, both work out the same orphaned views
+    // and the second one fails deep in the upsert, waiting on the first one's
+    // row locks. A multi-dim that doesn't exist yet has no row to lock.
+    // Publishing and deleting lock the row first too (see
+    // getMultiDimDataPageByIdForUpdate), so the writers can't deadlock.
+    const existingMultiDim = await knex<DbPlainMultiDimDataPage>(
+        MultiDimDataPagesTableName
+    )
+        .select("published")
+        .where({ catalogPath })
+        .forUpdate()
+        .first()
     const config = await resolveMultiDimDataPageCatalogPathsToIndicatorIds(
         knex,
         rawConfig
@@ -249,19 +292,10 @@ export async function upsertMultiDim(
         knex,
         _.uniq(config.views.map((view) => view.indicators.y[0].id))
     )
-    const existingMultiDim = await knex<DbPlainMultiDimDataPage>(
-        MultiDimDataPagesTableName
-    )
-        .select("published")
-        .where({ catalogPath })
-        .first()
     const existingIsPublished = existingMultiDim
         ? Boolean(existingMultiDim.published)
         : undefined
-    const existingViewIdsToChartConfigIds = await getViewIdToChartConfigIdMap(
-        knex,
-        catalogPath
-    )
+    const existingViews = await getExistingViewsByViewId(knex, catalogPath)
     const reusedChartConfigIds = new Set<string>()
 
     const preparedViews = config.views.map((view) => {
@@ -283,9 +317,9 @@ export async function upsertMultiDim(
 
     const enrichedViews = await Promise.all(
         preparedViews.map(async ({ view, fullGrapherConfig }) => {
-            const existingChartConfigId = existingViewIdsToChartConfigIds.get(
+            const existingChartConfigId = existingViews.get(
                 dimensionsToViewId(view.dimensions)
-            )
+            )?.chartConfigId
             let chartConfigId
             if (existingChartConfigId) {
                 chartConfigId = existingChartConfigId
@@ -302,18 +336,25 @@ export async function upsertMultiDim(
                     fullGrapherConfig
                 )
                 chartConfigId = result.chartConfigId
-                await knex(MultiDimViewDimensionsTableName).insert({
+                console.debug(`Chart config created id=${chartConfigId}`)
+            }
+            // View ids are slugified, so a kept chart config can come with
+            // renamed choices (e.g. `Total` -> `total`): record the view's
+            // current dimensions either way. Redirects read them from here.
+            await knex(MultiDimViewDimensionsTableName)
+                .insert({
                     chartConfigId,
                     dimensions: JSON.stringify(view.dimensions),
                 })
-                console.debug(`Chart config created id=${chartConfigId}`)
-            }
+                .onConflict("chartConfigId")
+                .merge(["dimensions"])
             return { ...view, fullConfigId: chartConfigId }
         })
     )
 
-    const orphanedChartConfigIds = existingViewIdsToChartConfigIds
+    const orphanedChartConfigIds = existingViews
         .values()
+        .map((existingView) => existingView.chartConfigId)
         .filter((chartConfigId) => !reusedChartConfigIds.has(chartConfigId))
         .toArray()
     await cleanUpOrphanedChartConfigs(knex, orphanedChartConfigIds)
@@ -325,10 +366,20 @@ export async function upsertMultiDim(
         enrichedConfig
     )
     for (const view of enrichedConfig.views) {
+        const viewId = dimensionsToViewId(view.dimensions)
+        const variableId = view.indicators.y[0].id
+        const existingView = existingViews.get(viewId)
+        // Skip unchanged rows: each upsert takes locks that concurrent
+        // upserts of other multi-dims can deadlock on.
+        if (
+            existingView?.chartConfigId === view.fullConfigId &&
+            existingView.variableId === variableId
+        )
+            continue
         await upsertMultiDimXChartConfigs(knex, {
             multiDimId,
-            viewId: dimensionsToViewId(view.dimensions),
-            variableId: view.indicators.y[0].id,
+            viewId,
+            variableId,
             chartConfigId: view.fullConfigId,
         })
     }
@@ -428,8 +479,8 @@ export async function setMultiDimSlug(
 }
 
 /** Deletes an unpublished multi-dim together with its view chart configs.
- *  Rows in multi_dim_view_dimensions are kept, since that table is append-only
- *  (analytics use it to resolve chart config ids of past views). */
+ *  Rows in multi_dim_view_dimensions are kept, since rows there are never
+ *  deleted (analytics use it to resolve chart config ids of past views). */
 export async function deleteUnpublishedMultiDim(
     knex: db.KnexReadWriteTransaction,
     multiDim: DbEnrichedMultiDimDataPage
@@ -479,11 +530,10 @@ export async function deleteUnpublishedMultiDim(
     // DB deletes above: that would restore a multi-dim whose configs are
     // already partly gone from R2. A leftover config of a deleted, unpublished
     // multi-dim isn't served anywhere, so we only log the failure.
-    for (const id of chartConfigIds) {
-        await deleteGrapherConfigFromR2ByUuid(id).catch(
-            logErrorAndMaybeCaptureInSentry
-        )
-    }
+    await deleteGrapherConfigsFromR2ByUuid(
+        chartConfigIds,
+        logErrorAndMaybeCaptureInSentry
+    )
     if (multiDim.slug) {
         await deleteGrapherConfigFromR2(
             R2GrapherConfigDirectory.multiDim,

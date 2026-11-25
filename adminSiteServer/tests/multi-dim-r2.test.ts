@@ -3,6 +3,7 @@ import { getAdminTestEnv } from "./testEnv.js"
 import {
     IndicatorsBeforePreProcessing,
     MultiDimDataPagesTableName,
+    MultiDimXChartConfigsTableName,
     R2GrapherConfigDirectory,
     View,
 } from "@ourworldindata/types"
@@ -14,6 +15,7 @@ import {
 } from "./fixtures.js"
 import {
     deleteGrapherConfigFromR2,
+    deleteGrapherConfigsFromR2ByUuid,
     saveMultiDimConfigToR2,
 } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 
@@ -23,6 +25,7 @@ vi.mock(
         ...(await importOriginal()),
         saveMultiDimConfigToR2: vi.fn(async () => undefined),
         deleteGrapherConfigFromR2: vi.fn(async () => undefined),
+        deleteGrapherConfigsFromR2ByUuid: vi.fn(async () => undefined),
     })
 )
 
@@ -93,5 +96,35 @@ describe("Multi-dim configs stored by slug", { timeout: 20000 }, () => {
             R2GrapherConfigDirectory.multiDim,
             "energy-use.json"
         )
+    })
+
+    it("deletes a removed view's config from R2 once the upsert commits", async () => {
+        await upsertMultiDim()
+        const { chartConfigId } = await env
+            .testKnex(MultiDimXChartConfigsTableName)
+            .select("chartConfigId")
+            .first()
+        vi.clearAllMocks()
+
+        // Changing the view's dimensions replaces its config with a new one
+        await env.request({
+            method: "PUT",
+            path: `/multi-dims/${encodeURIComponent(catalogPath)}`,
+            body: JSON.stringify({
+                config: multiDimConfig([
+                    { ...view, dimensions: { metric: "per_capita" } },
+                ]),
+            }),
+        })
+
+        // The R2 delete runs after the commit, without the response waiting for it
+        await vi.waitFor(() =>
+            expect(
+                vi.mocked(deleteGrapherConfigsFromR2ByUuid)
+            ).toHaveBeenCalledOnce()
+        )
+        expect(
+            vi.mocked(deleteGrapherConfigsFromR2ByUuid).mock.calls[0][0]
+        ).toEqual([chartConfigId])
     })
 })

@@ -15,7 +15,10 @@ import {
     MultiDimDataPageConfig,
     Url,
 } from "@ourworldindata/utils"
-import { buildQueryStrFromConfig } from "../db/model/MultiDimRedirects.js"
+import {
+    buildRedirectTargetPath,
+    getViewParamsFromConfig,
+} from "../db/model/MultiDimRedirects.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { getUserById } from "../db/model/User.js"
 import { saveGrapher } from "../adminSiteServer/apiRoutes/charts.js"
@@ -127,12 +130,14 @@ function buildRedirectTargetFullPath(
     multiDim: MultiDimInfo,
     viewConfigId: string | null
 ): string {
-    const queryStr = buildQueryStrFromConfig(
-        viewConfigId,
-        JSON.stringify(multiDim.config.config),
-        multiDim.slug
+    return buildRedirectTargetPath(
+        multiDim.slug,
+        getViewParamsFromConfig(
+            viewConfigId,
+            multiDim.config.config,
+            multiDim.slug
+        )
     )
-    return `/grapher/${multiDim.slug}${queryStr ? `?${queryStr}` : ""}`
 }
 
 function getViewConfigId(

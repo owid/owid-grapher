@@ -15,15 +15,21 @@ import {
 } from "@ourworldindata/types"
 import {
     MultiDimDataPageConfig,
-    queryParamsToStr,
+    multiDimDimensionsToViewQueryStr,
     Url,
 } from "@ourworldindata/utils"
 import {
     getMultiDimDataPageById,
+    getMultiDimDataPageByIdForUpdate,
     getMultiDimDataPageByCatalogPath,
 } from "../../db/model/MultiDimDataPage.js"
 import { redirectWithSourceExists } from "../../db/model/Redirect.js"
-import { buildQueryStrFromConfig } from "../../db/model/MultiDimRedirects.js"
+import {
+    buildRedirectTargetPath,
+    VIEW_DIMENSIONS_JOIN,
+    getViewParamsFromConfig,
+    parseSourceQueryParams,
+} from "../../db/model/MultiDimRedirects.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
     deleteUnpublishedMultiDim,
@@ -43,19 +49,18 @@ import {
 } from "../validation.js"
 import * as z from "zod"
 
+// For the deploy message only, so a view missing from the config (which would
+// make getViewParamsFromConfig throw) mustn't block deleting its redirect.
 function buildRedirectTargetDescription(
     multiDim: DbEnrichedMultiDimDataPage,
     viewConfigId: string | null
 ): string {
-    let targetDescription = `/grapher/${multiDim.slug}`
-    if (viewConfigId) {
-        const mdimConfig = MultiDimDataPageConfig.fromObject(multiDim.config)
-        const dimensions = mdimConfig.findViewDimensionsByConfigId(viewConfigId)
-        if (dimensions) {
-            targetDescription += queryParamsToStr(dimensions)
-        }
-    }
-    return targetDescription
+    const dimensions = viewConfigId
+        ? MultiDimDataPageConfig.fromObject(
+              multiDim.config
+          ).findViewDimensionsByConfigId(viewConfigId)
+        : null
+    return buildRedirectTargetPath(multiDim.slug ?? "", dimensions ?? {})
 }
 
 // Deep-compares two source query param conditions for equality (key order
@@ -508,7 +513,7 @@ export async function handlePatchMultiDim(
     trx: db.KnexReadWriteTransaction
 ) {
     const id = expectInt(req.params.id)
-    let multiDim = await getMultiDimDataPageById(trx, id)
+    let multiDim = await getMultiDimDataPageByIdForUpdate(trx, id)
     if (!multiDim) {
         throw new JsonError(`Multi-dimensional data page not found`, 404)
     }
@@ -567,7 +572,7 @@ export async function handleDeleteMultiDim(
     trx: db.KnexReadWriteTransaction
 ) {
     const id = expectInt(req.params.id)
-    const multiDim = await getMultiDimDataPageById(trx, id)
+    const multiDim = await getMultiDimDataPageByIdForUpdate(trx, id)
     if (!multiDim) {
         throw new JsonError("Multi-dimensional data page not found", 404)
     }
@@ -634,8 +639,7 @@ export async function handleGetMultiDimRedirects(
 function parseSourceQueryParamsColumn(
     raw: string | null
 ): Record<string, string | null> | null {
-    if (!raw) return null
-    return JSON.parse(raw) as Record<string, string | null>
+    return raw ? parseSourceQueryParams(raw) : null
 }
 
 const postMultiDimRedirectSchema = z
@@ -784,15 +788,17 @@ export async function handlePostMultiDimRedirect(
     // Repointing first lets the regular validation below pass, and the
     // transaction rolls it back if the redirect is rejected anyway
     if (repointRedirectsToSource && multiDim.slug) {
-        const queryStr = buildQueryStrFromConfig(
-            viewConfigId ?? null,
-            JSON.stringify(multiDim.config),
-            multiDim.slug
-        )
         await repointRedirectsToPath(trx, source, {
             multiDimId: multiDim.id,
             viewConfigId: viewConfigId ?? null,
-            targetFullPath: `/grapher/${multiDim.slug}${queryStr ? `?${queryStr}` : ""}`,
+            targetFullPath: buildRedirectTargetPath(
+                multiDim.slug,
+                getViewParamsFromConfig(
+                    viewConfigId ?? null,
+                    multiDim.config,
+                    multiDim.slug
+                )
+            ),
         })
     }
 
@@ -1092,6 +1098,7 @@ export async function handleGetAllMultiDimRedirects(
         source: string
         sourceQueryParams: string | null
         viewConfigId: string | null
+        viewDimensions: string | null
         multiDimId: number
         multiDimSlug: string
         multiDimTitle: string
@@ -1103,48 +1110,22 @@ export async function handleGetAllMultiDimRedirects(
             mdr.source,
             mdr.sourceQueryParams,
             mdr.viewConfigId,
+            mdvd.dimensions as viewDimensions,
             mddp.id as multiDimId,
             mddp.slug as multiDimSlug,
             mddp.config->>'$.title.title' as multiDimTitle
         FROM ${MultiDimRedirectsTableName} mdr
         JOIN ${MultiDimDataPagesTableName} mddp ON mddp.id = mdr.multiDimId
+        ${VIEW_DIMENSIONS_JOIN}
         WHERE mddp.published = 1 AND mddp.slug IS NOT NULL
         ORDER BY mddp.slug, mdr.source`
     )
 
-    // Configs can be large and shared by thousands of redirects. Fetch and parse
-    // each once, keeping them out of the redirect query's result set and SQL sort.
-    const multiDimIds = [
-        ...new Set(
-            rows.filter((row) => row.viewConfigId).map((row) => row.multiDimId)
-        ),
-    ]
-    const configs = await trx<Pick<DbPlainMultiDimDataPage, "id" | "config">>(
-        MultiDimDataPagesTableName
-    )
-        .select("id", "config")
-        .whereIn("id", multiDimIds)
-    const targetQueryStrings = new Map<number, Map<string, string>>()
-    for (const row of configs) {
-        const config = MultiDimDataPageConfig.fromJson(row.config)
-        const queryStrings = new Map<string, string>()
-        for (const view of config.config.views) {
-            // Preserve findViewDimensionsByConfigId's first-match behavior.
-            if (!queryStrings.has(view.fullConfigId)) {
-                queryStrings.set(
-                    view.fullConfigId,
-                    queryParamsToStr(view.dimensions)
-                )
-            }
-        }
-        targetQueryStrings.set(row.id, queryStrings)
-    }
-
     const redirects = rows.map((row) => {
-        const targetQueryStr = row.viewConfigId
-            ? (targetQueryStrings.get(row.multiDimId)?.get(row.viewConfigId) ??
-              null)
-            : null
+        const queryStr = row.viewDimensions
+            ? multiDimDimensionsToViewQueryStr(JSON.parse(row.viewDimensions))
+            : ""
+        const targetQueryStr = queryStr ? `?${queryStr}` : null
         return {
             id: row.id,
             source: row.source,
