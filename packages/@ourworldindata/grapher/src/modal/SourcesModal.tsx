@@ -197,7 +197,10 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
                 const disambiguator = [
                     column.display?.name,
                     column.nonEmptyName,
-                ].find((name) => name && name !== title)
+                ].find(
+                    (name) =>
+                        name && name !== column.titlePublicOrDisplayName.title
+                )
                 attribution = joinTitleFragments(disambiguator, attribution)
             }
 
