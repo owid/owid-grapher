@@ -237,7 +237,8 @@ export function IncomeDistributionFrame({
         view === "countries" &&
         povertyLine === null &&
         !isNarrow
-    const overlayLegendEntries =
+    // The swatch legend lists the chart's own entries, without World
+    const shownLegendEntries =
         legend === "swatches" ? model.legend : legendEntries
     // Where that legend starts: below the button, else below the poverty
     // line's label (see .income-distribution-captioned-chart__overlays)
@@ -289,11 +290,7 @@ export function IncomeDistributionFrame({
                     <div className="income-distribution-captioned-chart__toolbar">
                         {showInlineLegend && (
                             <IncomeDistributionLegend
-                                entries={
-                                    legend === "swatches"
-                                        ? model.legend
-                                        : legendEntries
-                                }
+                                entries={shownLegendEntries}
                                 hoveredEntity={hoveredEntity}
                                 onHoverEntity={setHoveredEntity}
                                 sharesBelowLine={sharesBelowLine}
@@ -346,7 +343,7 @@ export function IncomeDistributionFrame({
                                 <div ref={setOverlayLegendNode}>
                                     <IncomeDistributionLegend
                                         layout="overlay"
-                                        entries={overlayLegendEntries}
+                                        entries={shownLegendEntries}
                                         hoveredEntity={hoveredEntity}
                                         onHoverEntity={setHoveredEntity}
                                         sharesBelowLine={sharesBelowLine}
@@ -357,7 +354,6 @@ export function IncomeDistributionFrame({
                                         currency={currency}
                                         timeInterval={timeInterval}
                                         onClearPovertyLine={onClearPovertyLine}
-                                        isNarrow={false}
                                         footer={
                                             showLegendEditCountries
                                                 ? editCountriesControl("link")

@@ -759,10 +759,7 @@ function IncomeDistributionChartContent({
     const tooltipColor =
         tooltipEntity === WORLD_ENTITY_NAME
             ? WORLD_COLOR
-            : (model.legend.find((entry) => entry.key === tooltipEntity)
-                  ?.color ??
-              model.series.find((series) => series.key === tooltipEntity)
-                  ?.color)
+            : seriesColors.get(tooltipEntity)
 
     const noun = timeIntervalNoun(timeInterval)
     const ariaLabel = isStacked

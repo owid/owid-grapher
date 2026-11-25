@@ -36,9 +36,8 @@ const MEASURE_LABELS: Record<LegendMeasure, string> = {
 }
 
 export interface LegendEntry {
+    /** Entity name, which is also what the row shows */
     key: string
-    /** Display name; defaults to `key` */
-    label?: string
     color: string
 }
 
@@ -54,17 +53,17 @@ export interface IncomeDistributionLegendProps {
     /**
      * What the bars show when a poverty line is set: the share of each
      * entry's population below it, or the number of people (from
-     * `peopleBelowLine`, falling back to the shares while that's missing)
+     * `peopleBelowLine`, falling back to the shares while that's missing).
+     * The heading starts with a switch between the two.
      */
-    measure?: LegendMeasure
-    /** When set, the heading starts with a switch between the two measures */
-    onMeasureChange?: (measure: LegendMeasure) => void
+    measure: LegendMeasure
+    onMeasureChange: (measure: LegendMeasure) => void
+    /** Set while `measure` is "people" */
     peopleBelowLine?: Map<string, number>
     povertyLine: number | null
     currency: Currency
     timeInterval: TimeInterval
     onClearPovertyLine?: () => void
-    isNarrow: boolean
     /**
      * "inline" sits above the plot and turns into a list of share bars when
      * a poverty line is set. "overlay" floats over the plot's top-right
@@ -72,6 +71,8 @@ export interface IncomeDistributionLegendProps {
      * the line, and an × replaces the "Clear" link
      */
     layout?: "inline" | "overlay"
+    /** Inline layout only: the share bars stack their label and bar */
+    isNarrow?: boolean
     /** Overlay layout only: below the rows, e.g. a link to edit the entries */
     footer?: React.ReactNode
 }
@@ -81,15 +82,15 @@ export function IncomeDistributionLegend({
     hoveredEntity,
     onHoverEntity,
     sharesBelowLine,
-    measure = "share",
+    measure,
     onMeasureChange,
     peopleBelowLine,
     povertyLine,
     currency,
     timeInterval,
     onClearPovertyLine,
-    isNarrow,
     layout = "inline",
+    isNarrow = false,
     footer,
 }: IncomeDistributionLegendProps): React.ReactElement {
     const shares = povertyLine !== null ? sharesBelowLine : undefined
@@ -177,9 +178,9 @@ export function IncomeDistributionLegend({
                 a {timeIntervalNoun(timeInterval)}
             </>
         ) : null
-    // With a switch, the heading's start is the control: "Share of population
-    // | Number of people", then "living on less than…" on the next line
-    const shareHeading = onMeasureChange ? (
+    // The heading's start is the control: "Share of population | Number of
+    // people", then "living on less than…" on the next line
+    const shareHeading = (
         <>
             <span
                 className="income-distribution-legend__measure"
@@ -206,10 +207,6 @@ export function IncomeDistributionLegend({
                 ))}
             </span>
             {lineText}
-        </>
-    ) : (
-        <>
-            {MEASURE_LABELS.share} {lineText}:
         </>
     )
 
@@ -252,7 +249,7 @@ export function IncomeDistributionLegend({
                             : undefined
                         const labelLines = shortName
                             ? [shortName]
-                            : legendLabelLines(entry.label ?? entry.key)
+                            : legendLabelLines(entry.key)
                         return (
                             <li
                                 key={entry.key}
@@ -285,11 +282,7 @@ export function IncomeDistributionLegend({
                                 </span>
                                 <span
                                     className="income-distribution-legend__label"
-                                    title={
-                                        shortName
-                                            ? (entry.label ?? entry.key)
-                                            : undefined
-                                    }
+                                    title={shortName ? entry.key : undefined}
                                 >
                                     {/* One block per preferred line, so a
                                         broken label is only as wide as its
@@ -337,7 +330,7 @@ export function IncomeDistributionLegend({
                             style={{ backgroundColor: entry.color }}
                         />
                         <span className="income-distribution-legend__label">
-                            {formatLegendLabel(entry.label ?? entry.key)}
+                            {formatLegendLabel(entry.key)}
                         </span>
                     </li>
                 ))}
@@ -378,7 +371,7 @@ export function IncomeDistributionLegend({
                             {...pointerHandlers(entry.key)}
                         >
                             <span className="income-distribution-legend__label">
-                                {formatLegendLabel(entry.label ?? entry.key)}
+                                {formatLegendLabel(entry.key)}
                             </span>
                             <span className="income-distribution-legend__bar-cell">
                                 <span className="income-distribution-legend__bar-track">
