@@ -108,6 +108,28 @@
     gap: 16px;
 }
 
+// The title and anything beside it (the "dropdown-inside" switcher). A
+// control stays on the title's line while both fit and otherwise moves
+// under the title whole; the title itself is never cut.
+.indicator-metadata-box__heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+// "dropdown" switcher: the indicator's name is in the menu above the box, so
+// the short description opens the box, on the toggle's line.
+.indicator-metadata-box__header-description {
+    @include body-3-regular;
+    color: $blue-90;
+
+    p {
+        margin: 0;
+    }
+}
+
 .indicator-metadata-box__title {
     @include h3-bold;
     margin: 0;
@@ -127,6 +149,12 @@
     @include body-3-regular;
     margin-left: 8px;
     color: $blue-50;
+
+    // No variant: drop the margin, so it doesn't widen the gap to a control
+    // beside the title.
+    &:empty {
+        display: none;
+    }
 
     @include sm-only {
         margin-left: 0;
@@ -532,25 +560,31 @@
         @include owid-link-90;
     }
 
+    // Marwa's design: bold, in the text colour, underlined.
     .indicator-metadata-box__stitched-list-more-button {
-        @include body-3-regular;
-        color: $blue-50;
+        @include body-3-bold;
+        color: $blue-90;
+        line-height: normal;
+        text-decoration-color: currentColor;
     }
 }
 
+// Marwa's design (Figma 2179-20594): 16px regular in Blue 60, 12px above the
+// first entry; entries 12px apart; title then description 4px below it.
 .indicator-metadata-box__details-list-heading {
-    @include body-3-medium;
-    color: $blue-50;
-    margin: 0 0 8px;
+    @include body-2-regular;
+    line-height: 21px;
+    color: $blue-60;
+    margin: 0 0 12px;
 }
 
 .indicator-metadata-box__details-list-variant {
-    color: $blue-50;
     font-weight: normal;
 }
 
 .indicator-metadata-box__details-list-title {
     @include body-3-bold;
+    line-height: normal;
     display: block;
 }
 
@@ -558,7 +592,7 @@
 .indicator-metadata-box__details-list-facts,
 .indicator-metadata-box__details-list-note {
     display: block;
-    margin-top: 2px;
+    margin-top: 4px;
 }
 
 .indicator-metadata-box__details-list-facts {
@@ -571,10 +605,8 @@
     color: $blue-50;
 }
 
-.indicator-metadata-box__details-list-note {
-    color: $blue-60;
-    font-style: italic;
-}
+// A per-indicator note (its own short WYSK) reads exactly like the
+// description above it: Marwa asked for no extra type style here.
 
 .indicator-metadata-box__stitched-list-title {
     font-weight: 700;

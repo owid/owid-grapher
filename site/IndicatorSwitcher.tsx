@@ -1,12 +1,15 @@
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
+import { faCaretDown, faRightLeft } from "@fortawesome/free-solid-svg-icons"
 import {
     Select,
     Button,
     Popover,
     ListBox,
     ListBoxItem,
+    ListBoxSection,
+    Header,
+    SelectValue,
 } from "react-aria-components"
 import { useMediaQuery } from "usehooks-ts"
 import { AdditionalIndicator, DataPageDataV2 } from "@ourworldindata/types"
@@ -25,19 +28,18 @@ const baseLabelForIndicator = (datapageData: DataPageDataV2): string => {
     )
 }
 
-// A scatter plot's bubble-size / colour pane says which role it plays.
-const AUXILIARY_ROLE_LABEL = { size: "Size", color: "Color" } as const
+// A scatter plot's bubble-size / colour pane says which role it plays,
+// after the indicator's name: "Population (size)".
+const AUXILIARY_ROLE_LABEL = { size: "size", color: "color" } as const
 
-// Plain-text label: tooltips, aria/typeahead text and analytics. Keeps a
-// colon after the role so it still reads as a label once styling is gone.
+// Plain-text label: tooltips, aria/typeahead text and analytics.
 const labelForIndicator = (datapageData: DataPageDataV2): string => {
     const label = baseLabelForIndicator(datapageData)
     const role = datapageData.auxiliaryRole
-    return role ? `${AUXILIARY_ROLE_LABEL[role]}: ${label}` : label
+    return role ? `${label} (${AUXILIARY_ROLE_LABEL[role]})` : label
 }
 
-// Visible label: the role as a small muted prefix (like the key data's "Date
-// range"), no colon.
+// Visible label: the indicator's name, then its role in parentheses.
 const IndicatorLabel = ({
     datapageData,
     label = baseLabelForIndicator(datapageData),
@@ -49,10 +51,10 @@ const IndicatorLabel = ({
     if (!role) return <>{label}</>
     return (
         <>
+            {label}{" "}
             <span className="indicator-switcher__aux-role">
-                {AUXILIARY_ROLE_LABEL[role]}
-            </span>{" "}
-            {label}
+                ({AUXILIARY_ROLE_LABEL[role]})
+            </span>
         </>
     )
 }
@@ -121,6 +123,7 @@ const IndicatorSelect = ({
     buttonClassName,
     buttonContent,
     matchTriggerWidth,
+    announceValue,
 }: {
     indicators: AdditionalIndicator[]
     // Index (into the full indicator list) of the first entry in `indicators`.
@@ -130,10 +133,43 @@ const IndicatorSelect = ({
     buttonClassName: string
     buttonContent: React.ReactNode
     matchTriggerWidth?: boolean
+    // The trigger shows custom content rather than react-aria's SelectValue,
+    // so its accessible name would be just "Indicator". A visually hidden
+    // SelectValue puts the current indicator's name back into it.
+    announceValue?: boolean
 }) => {
     const isActiveInList =
         activeIndex >= startIndex &&
         activeIndex < startIndex + indicators.length
+    // A scatter's size and colour indicators get their own group under the
+    // axis indicators; other charts list their indicators without groups.
+    const entries = indicators.map((ind, i) => ({ ind, index: startIndex + i }))
+    const groups = [
+        {
+            label: "Main indicators",
+            items: entries.filter((e) => !e.ind.datapageData.auxiliaryRole),
+        },
+        {
+            label: "Auxiliary indicators",
+            items: entries.filter((e) => e.ind.datapageData.auxiliaryRole),
+        },
+    ].filter((group) => group.items.length > 0)
+    const renderOption = ({
+        ind,
+        index,
+    }: {
+        ind: AdditionalIndicator
+        index: number
+    }) => (
+        <ListBoxItem
+            key={index}
+            id={String(index)}
+            className="indicator-switcher__option"
+            textValue={labelForIndicator(ind.datapageData)}
+        >
+            <IndicatorLabel datapageData={ind.datapageData} />
+        </ListBoxItem>
+    )
     return (
         <Select
             className="indicator-switcher__select"
@@ -157,7 +193,10 @@ const IndicatorSelect = ({
             }}
             aria-label="Indicator"
         >
-            <Button className={buttonClassName}>{buttonContent}</Button>
+            <Button className={buttonClassName}>
+                {buttonContent}
+                {announceValue && <SelectValue className="sr-only" />}
+            </Button>
             <Popover
                 className={cx("indicator-switcher__popover", {
                     "indicator-switcher__popover--match-trigger":
@@ -167,17 +206,26 @@ const IndicatorSelect = ({
                 placement="bottom start"
                 offset={4}
             >
-                <ListBox>
-                    {indicators.map((ind, i) => (
-                        <ListBoxItem
-                            key={startIndex + i}
-                            id={String(startIndex + i)}
-                            className="indicator-switcher__option"
-                            textValue={labelForIndicator(ind.datapageData)}
-                        >
-                            <IndicatorLabel datapageData={ind.datapageData} />
-                        </ListBoxItem>
-                    ))}
+                <ListBox
+                    className={cx("indicator-switcher__menu", {
+                        "indicator-switcher__menu--grouped": groups.length > 1,
+                    })}
+                >
+                    {groups.length > 1
+                        ? groups.map((group) => (
+                              <ListBoxSection
+                                  key={group.label}
+                                  className="indicator-switcher__menu-group"
+                              >
+                                  <Header className="indicator-switcher__menu-group-label">
+                                      {group.label}
+                                  </Header>
+                                  {group.items.map(renderOption)}
+                              </ListBoxSection>
+                          ))
+                        : indicators.map((ind, i) =>
+                              renderOption({ ind, index: startIndex + i })
+                          )}
                 </ListBox>
             </Popover>
         </Select>
@@ -216,6 +264,7 @@ export const IndicatorDropdownSelect = ({
                 onIndicatorChange={onIndicatorChange}
                 buttonClassName="indicator-switcher__dropdown-trigger"
                 matchTriggerWidth
+                announceValue
                 buttonContent={
                     <>
                         <span className="indicator-switcher__dropdown-title">
@@ -239,6 +288,40 @@ export const IndicatorDropdownSelect = ({
         </>
     )
 }
+
+// The "dropdown-inside" variant's control: a "Switch indicator" button that
+// sits beside the pane's title inside the box and opens the indicator menu.
+export const IndicatorSwitchButton = ({
+    indicators,
+    activeIndex,
+    onIndicatorChange,
+}: {
+    indicators: AdditionalIndicator[]
+    activeIndex: number
+    onIndicatorChange: (i: number) => void
+}) => (
+    <IndicatorSelect
+        indicators={indicators}
+        startIndex={0}
+        activeIndex={activeIndex}
+        onIndicatorChange={onIndicatorChange}
+        buttonClassName="indicator-switcher__switch-trigger"
+        announceValue
+        buttonContent={
+            <>
+                <FontAwesomeIcon
+                    icon={faRightLeft}
+                    className="indicator-switcher__switch-icon"
+                />
+                <span>Switch indicator</span>
+                <FontAwesomeIcon
+                    icon={faCaretDown}
+                    className="indicator-switcher__caret"
+                />
+            </>
+        }
+    />
+)
 
 // Dropdown variant: "About this data (N)" label + the indicator select.
 export const IndicatorDropdown = ({

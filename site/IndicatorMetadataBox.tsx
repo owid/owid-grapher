@@ -53,6 +53,7 @@ import {
     IndicatorTabsHorizontal,
     IndicatorTabsVertical,
     IndicatorAboutLabel,
+    IndicatorSwitchButton,
 } from "./IndicatorSwitcher.js"
 import { useSwitcherVariant } from "./useSwitcherVariant.js"
 import { useStitchedListPlacement } from "./useStitchedListPlacement.js"
@@ -196,9 +197,11 @@ function IndicatorDataDetails({
 }
 
 // A stitched page's indicators inside Data details: one entry per indicator
-// with what differs across them, in the key data's type. Up to five show in
-// full; a longer list shows its first three and a button for the rest (the
-// whole block is already behind the box's Show more).
+// with what differs across them, laid out as in Marwa's November design (a
+// "N indicators" heading, then a bold title over its description). Up to
+// five show in full; a longer list shows its first three, with "+ Show more
+// indicators" to open the rest and "− Show less indicators" at the bottom to
+// fold them again (the whole block is already behind the box's Show more).
 function IndicatorDetailsList({
     entries,
     sharedVariant,
@@ -210,10 +213,20 @@ function IndicatorDetailsList({
     const SHOW_ALL_UP_TO = 5
     const FOLD_AFTER = 3
     const [showAll, setShowAll] = useState(false)
-    const expanded = showAll || entries.length <= SHOW_ALL_UP_TO
+    const foldable = entries.length > SHOW_ALL_UP_TO
+    const expanded = showAll || !foldable
     const blockClass = "indicator-metadata-box__details-list"
+    const listRef = useRef<HTMLDivElement>(null)
+    const showLess = (): void => {
+        setShowAll(false)
+        // Folding a long list pulls the page up under the reader; bring the
+        // list's heading back into view if it has scrolled off the top.
+        const top = listRef.current?.getBoundingClientRect().top
+        if (top !== undefined && top < 0)
+            listRef.current?.scrollIntoView({ block: "start" })
+    }
     return (
-        <div className={blockClass}>
+        <div className={blockClass} ref={listRef}>
             <h3 className={`${blockClass}-heading`}>
                 {entries.length} indicators
                 {sharedVariant && (
@@ -272,14 +285,17 @@ function IndicatorDetailsList({
                     </li>
                 ))}
             </ul>
-            {!expanded && (
+            {foldable && (
                 <button
                     type="button"
                     className="indicator-metadata-box__stitched-list-more-button"
-                    onClick={() => setShowAll(true)}
+                    onClick={showAll ? showLess : () => setShowAll(true)}
+                    aria-expanded={showAll}
                     data-track-note="metadata_box_indicator_list_toggle"
                 >
-                    +{entries.length - FOLD_AFTER} more indicators
+                    {showAll
+                        ? "\u2212 Show less indicators"
+                        : "+ Show more indicators"}
                 </button>
             )}
         </div>
@@ -711,6 +727,8 @@ function IndicatorPane({
     stitched,
     pageCitation,
     auxiliaryIndicators,
+    headerControl,
+    descriptionInHeader,
 }: {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined
@@ -726,6 +744,12 @@ function IndicatorPane({
     stitched?: StitchedPaneOptions
     pageCitation?: PageCitationOptions
     auxiliaryIndicators?: AuxiliaryIndicator[]
+    // A control beside the title (the "dropdown-inside" switcher). It wraps
+    // under the title, whole, when both don't fit on one line.
+    headerControl?: React.ReactNode
+    // The title is hidden (the "dropdown" switcher names the indicator above
+    // the box), so the short description takes its place beside the toggle.
+    descriptionInHeader?: boolean
 }) {
     // Owners of the dataset backing this indicator — the baker loads each
     // pane's datapageData.owners from its own indicator's dataset.
@@ -745,21 +769,34 @@ function IndicatorPane({
     return (
         <>
             <div className="indicator-metadata-box__header">
-                <h2 className="indicator-metadata-box__title">
-                    {stitched ? "About this data" : datapageData.title.title}
-                    {!stitched && (
-                        <span className="indicator-metadata-box__title-variant">
-                            {datapageData.titleVariant}
-                        </span>
+                <div className="indicator-metadata-box__heading">
+                    <h2 className="indicator-metadata-box__title">
+                        {stitched
+                            ? "About this data"
+                            : datapageData.title.title}
+                        {!stitched && (
+                            <span className="indicator-metadata-box__title-variant">
+                                {datapageData.titleVariant}
+                            </span>
+                        )}
+                    </h2>
+                    {headerControl}
+                    {descriptionInHeader && datapageData.descriptionShort && (
+                        <div className="indicator-metadata-box__header-description">
+                            <SimpleMarkdownText
+                                text={datapageData.descriptionShort}
+                                dodTrackNote="key_data"
+                            />
+                        </div>
                     )}
-                </h2>
+                </div>
                 <MetadataBoxToggleButton
                     detailsRef={detailsRef}
                     detailsId={detailsId}
                 />
             </div>
             <MetadataBoxKeyData>
-                {datapageData.descriptionShort && (
+                {datapageData.descriptionShort && !descriptionInHeader && (
                     <MetadataBoxKeyDataRow
                         label="Description"
                         isFullWidth
@@ -913,6 +950,10 @@ export default function IndicatorMetadataBox({
     // rather than per event.
     const suppressToggleLogUntilRef = useRef(0)
     const isFirstActiveIndexRef = useRef(true)
+    // The "dropdown-inside" button lives in the active pane, so switching
+    // unmounts the one that had focus. Set when that button made the switch,
+    // so the effect below can move focus to the new pane's button.
+    const refocusSwitchButtonRef = useRef(false)
     useEffect(() => {
         if (isFirstActiveIndexRef.current) {
             isFirstActiveIndexRef.current = false
@@ -930,6 +971,18 @@ export default function IndicatorMetadataBox({
             )
             if (details) details.open = i === safeIndex
         })
+        if (refocusSwitchButtonRef.current) {
+            refocusSwitchButtonRef.current = false
+            // After react-aria's own focus restore, which targets the
+            // now-hidden button and leaves focus on <body>.
+            requestAnimationFrame(() => {
+                paneEls?.[safeIndex]
+                    ?.querySelector<HTMLButtonElement>(
+                        ".indicator-switcher__switch-trigger"
+                    )
+                    ?.focus()
+            })
+        }
     }, [safeIndex])
 
     // ALL panes sit in the rendered HTML at once — only the active one is
@@ -958,6 +1011,23 @@ export default function IndicatorMetadataBox({
                 pageCitation={pageCitation}
                 auxiliaryIndicators={
                     hasSwitcher ? undefined : auxiliaryIndicators
+                }
+                headerControl={
+                    switcherVariant === "dropdown-inside" &&
+                    hasSwitcher &&
+                    i === safeIndex ? (
+                        <IndicatorSwitchButton
+                            indicators={indicators}
+                            activeIndex={safeIndex}
+                            onIndicatorChange={(next) => {
+                                refocusSwitchButtonRef.current = true
+                                setActiveIndex(next)
+                            }}
+                        />
+                    ) : undefined
+                }
+                descriptionInHeader={
+                    switcherVariant === "dropdown" && hasSwitcher
                 }
             />
         </div>

@@ -1,6 +1,6 @@
-// Indicator switcher for multi-indicator data pages (data-page-metadata-v1
-// experiment). Four design variants, selectable via `?switcher=`:
-// dropdown | h-tabs | v-tabs | h-pills (default h-pills). Companion to
+// Indicator switcher for multi-indicator data pages. Design variants,
+// selectable via `?switcher=`: dropdown | dropdown-inside | h-tabs | v-tabs |
+// h-pills (default h-pills). Companion to
 // site/IndicatorSwitcher.tsx; the multi-indicator wrapper around the
 // metadata box itself is styled in site/IndicatorMetadataBox.scss.
 
@@ -40,12 +40,13 @@ $hover-fill: #e3ebf5;
 // The indicator title renders as an MDIM-style pill button (mirrors
 // .md-settings__dropdown-toggle in site/multiDim/DimensionDropdown.scss).
 
-.indicator-switcher__dropdown-trigger {
+.indicator-switcher__dropdown-trigger,
+.indicator-switcher__switch-trigger {
     @include body-3-medium;
     appearance: none;
     background: $white;
-    border: 1px solid $gray-20;
-    color: $blue-90;
+    border: 1px solid $blue-20;
+    color: $blue-60;
     cursor: pointer;
     padding: 4px 10px 4px 12px;
     height: 32px;
@@ -63,8 +64,8 @@ $hover-fill: #e3ebf5;
         border-color 120ms ease;
 
     &:hover {
-        background: $gray-5;
         border-color: $blue-30;
+        color: $blue-90;
     }
 
     &:focus-visible {
@@ -72,14 +73,22 @@ $hover-fill: #e3ebf5;
         border-color: $blue-50;
     }
 
-    // Open state — matches MDIM's pressed look so the pill reads as
-    // "active control" while the popover is showing.
     &[aria-expanded="true"] {
-        background: $blue-20;
-        border-color: $blue-20;
+        border-color: $blue-30;
         color: $blue-90;
-        cursor: default;
     }
+}
+
+// The "dropdown-inside" variant's "⇄ Switch indicator ▾" button beside the
+// pane title. A fixed width keeps the caret where Marwa's design has it.
+.indicator-switcher__switch-trigger {
+    flex: none;
+    min-width: 208px;
+    white-space: nowrap;
+}
+
+.indicator-switcher__switch-icon {
+    font-size: 0.875rem;
 }
 
 .indicator-switcher__dropdown-title {
@@ -95,13 +104,15 @@ $hover-fill: #e3ebf5;
 }
 
 .indicator-switcher__caret {
-    color: $blue-50;
-    font-size: 0.75rem;
+    color: $blue-60;
+    font-size: 0.875rem;
     margin-left: auto;
     transition: transform 160ms ease;
 }
 
 .indicator-switcher__dropdown-trigger[aria-expanded="true"]
+    .indicator-switcher__caret,
+.indicator-switcher__switch-trigger[aria-expanded="true"]
     .indicator-switcher__caret {
     transform: rotate(180deg);
     color: $blue-70;
@@ -114,7 +125,8 @@ $hover-fill: #e3ebf5;
     background: $white;
     border-radius: 4px;
     box-shadow: 0 4px 23px 4px rgba($oxford-blue, 0.06);
-    padding: 8px 16px;
+    padding: 4px 0;
+    min-width: 300px;
     max-width: min(480px, calc(100vw - 24px));
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -124,33 +136,66 @@ $hover-fill: #e3ebf5;
 // The dropdown variant's popover matches the trigger pill's width
 // (react-aria exposes it as --trigger-width).
 .indicator-switcher__popover--match-trigger {
-    min-width: var(--trigger-width);
+    min-width: max(var(--trigger-width), 300px);
 }
 
+.indicator-switcher__menu {
+    outline: none;
+}
+
+// "Main indicators" / "Auxiliary indicators" on a scatter's menu.
+.indicator-switcher__menu-group-label {
+    @include body-3-medium;
+    color: $gray-70;
+    padding: 16px 16px 4px;
+    line-height: 16px;
+}
+
+// Options sit 32px tall. Under a group label they are indented below it;
+// the selected one has a Blue 20 row and a check at the right.
 .indicator-switcher__option {
     @include body-3-medium;
-    color: $blue-90;
+    position: relative;
+    color: $gray-80;
     cursor: pointer;
     text-align: left;
-    padding: 12px 0;
-    line-height: 1.4;
-    transition: color 120ms ease;
+    padding: 8px 48px 8px 16px;
+    line-height: 16px;
+    outline: none;
+
+    // The highlighted row already shows keyboard focus; drop the global
+    // focus ring, which the popover's scroll box clips to two lines.
+    &:focus-visible {
+        outline: none !important;
+    }
+
+    .indicator-switcher__menu--grouped & {
+        padding-left: 32px;
+    }
 
     &[data-hovered],
     &[data-focused] {
-        color: $blue-50;
-        outline: none;
+        background: $blue-10;
+        color: $blue-90;
     }
 
     &[data-selected] {
+        background: $blue-20;
         color: $blue-90;
-        font-weight: 700;
         cursor: default;
-    }
-}
 
-.indicator-switcher__option + .indicator-switcher__option {
-    border-top: 1px solid $gray-20;
+        &::after {
+            content: "";
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            width: 12px;
+            height: 9px;
+            transform: translateY(-50%);
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='9' fill='none' viewBox='0 0 12 9'%3E%3Cpath fill='%231d3d63' d='M11.016.984a.723.723 0 0 1 0 1.055l-6 6a.723.723 0 0 1-1.055 0l-3-3a.723.723 0 0 1 0-1.055.723.723 0 0 1 1.055 0l2.46 2.461L9.962.985a.723.723 0 0 1 1.055 0'/%3E%3C/svg%3E")
+                no-repeat;
+        }
+    }
 }
 
 // --- Horizontal tabs (h-tabs) -------------------------------------------------
@@ -392,9 +437,9 @@ $hover-fill: #e3ebf5;
     }
 }
 
-// A scatter plot's bubble-size / colour pill: the role as a small muted
-// prefix, like the metadata box's key-data labels ("Date range").
-.indicator-switcher__aux-role {
+// A scatter plot's bubble-size / colour role after the name, "(size)". In
+// the menu it reads like the rest of the option; on a pill it is muted.
+.indicator-switcher__h-pill .indicator-switcher__aux-role {
     font-size: 0.75rem;
     font-weight: 500;
     color: $blue-50;
