@@ -1,4 +1,5 @@
 import {
+    Fragment,
     memo,
     useCallback,
     useEffect,
@@ -847,6 +848,10 @@ function IncomeDistributionChartContent({
                         paths={paths}
                         isStacked={isStacked}
                         highlightedKeys={highlightedKeys}
+                        xScale={xScale}
+                        plotTop={plotTop}
+                        plotBottom={plotBottom}
+                        maskIdBase={`${clipPathId}-fade`}
                     />
                 </g>
                 {fillBelowLine && totalPaths && povertyLine !== null && (
@@ -868,6 +873,10 @@ function IncomeDistributionChartContent({
                             paths={paths}
                             isStacked={isStacked}
                             highlightedKeys={highlightedKeys}
+                            xScale={xScale}
+                            plotTop={plotTop}
+                            plotBottom={plotBottom}
+                            maskIdBase={`${clipPathId}-fade-highlight`}
                         />
                     </g>
                 )}
@@ -1049,21 +1058,97 @@ const AreaLayer = memo(function AreaLayer({
     paths,
     isStacked,
     highlightedKeys,
+    xScale,
+    plotTop,
+    plotBottom,
+    maskIdBase,
 }: {
     series: ChartSeries[]
     paths: string[]
     isStacked: boolean
     highlightedKeys: Set<string> | undefined
+    xScale: ScaleLogarithmic<number, number>
+    plotTop: number
+    plotBottom: number
+    /** Unique in the document; the tail fades' masks are named from it */
+    maskIdBase: string
 }): React.ReactElement {
+    // A long tail fades out towards the edge: the curve is drawn through a
+    // mask that goes from opaque at the fade's inner end to clear at its outer
+    // end (see tails.ts)
+    const fadeMasks = series.flatMap((s, i) => {
+        const { left, right } = s.fades ?? {}
+        if (!left && !right) return []
+        const id = `${maskIdBase}-${i}`
+        const [x0, x1] = xScale.range()
+        const stops: { x: number; opacity: number }[] = [
+            { x: x0, opacity: left ? 0 : 1 },
+            ...(left
+                ? [
+                      { x: xScale(left.from), opacity: 0 },
+                      { x: xScale(left.to), opacity: 1 },
+                  ]
+                : []),
+            ...(right
+                ? [
+                      { x: xScale(right.to), opacity: 1 },
+                      { x: xScale(right.from), opacity: 0 },
+                  ]
+                : []),
+            { x: x1, opacity: right ? 0 : 1 },
+        ]
+        return [{ id, stops }]
+    })
+    const maskIdOf = (index: number): string | undefined =>
+        fadeMasks.find((m) => m.id === `${maskIdBase}-${index}`)?.id
     return (
         <>
+            {fadeMasks.length > 0 && (
+                <defs>
+                    {fadeMasks.map(({ id, stops }) => {
+                        const [x0, x1] = xScale.range()
+                        return (
+                            <Fragment key={id}>
+                                <linearGradient
+                                    id={`${id}-gradient`}
+                                    gradientUnits="userSpaceOnUse"
+                                    x1={x0}
+                                    x2={x1}
+                                    y1={0}
+                                    y2={0}
+                                >
+                                    {stops.map((stop, j) => (
+                                        <stop
+                                            key={j}
+                                            offset={(stop.x - x0) / (x1 - x0)}
+                                            stopColor="white"
+                                            stopOpacity={stop.opacity}
+                                        />
+                                    ))}
+                                </linearGradient>
+                                <mask id={id} maskUnits="userSpaceOnUse">
+                                    <rect
+                                        x={x0 - 4}
+                                        y={plotTop - 4}
+                                        width={x1 - x0 + 8}
+                                        height={plotBottom - plotTop + 8}
+                                        fill={`url(#${id}-gradient)`}
+                                    />
+                                </mask>
+                            </Fragment>
+                        )
+                    })}
+                </defs>
+            )}
             {series.map((s, i) => {
                 const isHighlighted = highlightedKeys?.has(s.key) ?? false
                 const isDimmed = highlightedKeys !== undefined && !isHighlighted
+                const maskId = maskIdOf(i)
                 return (
                     <path
                         key={s.key}
                         data-key={s.key}
+                        mask={maskId ? `url(#${maskId})` : undefined}
                         d={paths[i]}
                         fill={s.color}
                         fillOpacity={isStacked ? 1 : 0.5}

@@ -14,6 +14,7 @@ import {
     stackSeries,
     type DensityGrid,
 } from "./density.js"
+import { tailFades, type TailFades } from "./tails.js"
 import {
     REGIONS,
     type IncomeDistributionYear,
@@ -30,6 +31,8 @@ export interface ChartSeries {
     /** Lower and upper edge at each grid point; y0 is all zeros for unstacked curves */
     y0: number[]
     y1: number[]
+    /** Countries view: tails to fade out, see tails.ts */
+    fades?: TailFades
 }
 
 /** A region's band of the global stack, for the labels drawn inside it */
@@ -135,6 +138,7 @@ function buildCountries(
             y0: zeros,
             // Per capita, so countries of any size are comparable
             y1: estimateLogDensity(country.avgs),
+            fades: tailFades(country.avgs),
         }
     })
 
