@@ -13,7 +13,8 @@ import {
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 import { INT_POVERTY_LINE, INTERNATIONAL_DOLLAR } from "../../core/constants.js"
-import { formatIncome, timeIntervalNoun } from "../../core/currency.js"
+import { formatIncome } from "../../core/currency.js"
+import { timeIntervalNoun } from "../../core/format.js"
 import type { LabelBox } from "../../core/curveLabels.js"
 import {
     layoutPovertyLineLabel,

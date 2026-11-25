@@ -9,11 +9,8 @@ import { DrawnPath } from "../../../../components/DrawnPath/DrawnPath.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import { argMax } from "../core/argMax.js"
 import type { IncomeDistributionChartModel } from "../core/chartModel.js"
-import {
-    formatCurrencyLabel,
-    formatIncome,
-    timeIntervalNoun,
-} from "../core/currency.js"
+import { formatCurrencyLabel, formatIncome } from "../core/currency.js"
+import { timeIntervalNoun } from "../core/format.js"
 import type { LabelBox } from "../core/curveLabels.js"
 import type {
     Currency,
@@ -26,7 +23,7 @@ import {
     WORLD_COLOR,
     WORLD_ENTITY_NAME,
 } from "../core/constants.js"
-import { displayEntityName } from "../core/legendLabels.js"
+import { displayEntityName } from "../core/entityLabels.js"
 import { annotationTargetPoint, placeAnnotation } from "../core/annotations.js"
 import {
     computeAxisTicks,

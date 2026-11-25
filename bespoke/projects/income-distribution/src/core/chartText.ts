@@ -1,10 +1,8 @@
 import { FIRST_NOWCAST_YEAR, INTERNATIONAL_DOLLAR } from "./constants.js"
-import { formatIncome, timeIntervalNoun } from "./currency.js"
+import { formatIncome } from "./currency.js"
+import { formatCountryList, timeIntervalNoun } from "./format.js"
 import type { Currency, TimeInterval, View } from "./types.js"
-import {
-    formatCountryList,
-    type WelfareSentenceSegment,
-} from "./welfareSentence.js"
+import type { WelfareSentenceSegment } from "./welfareSentence.js"
 
 /** More selected countries than this and the title stops naming them */
 const MAX_COUNTRIES_IN_TITLE = 4

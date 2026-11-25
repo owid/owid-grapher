@@ -8,7 +8,7 @@ import {
     TIME_INTERVAL_FACTORS,
     WORLD_ENTITY_NAME,
 } from "./constants.js"
-import { formatPeople, formatShare } from "./currency.js"
+import { formatPeople, formatShare } from "./format.js"
 import {
     peopleBelowLineForEntities,
     shareBelowLineForEntities,

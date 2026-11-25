@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { formatLegendLabel, legendLabelLines } from "./legendLabels.js"
+import { formatLegendLabel, legendLabelLines } from "./entityLabels.js"
 
 describe(formatLegendLabel, () => {
     it("only lets the Middle East region break before Afghanistan", () => {

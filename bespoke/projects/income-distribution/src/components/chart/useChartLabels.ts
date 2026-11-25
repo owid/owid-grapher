@@ -12,7 +12,7 @@ import {
     type CurveLabelLayout,
     type LabelBox,
 } from "../../core/curveLabels.js"
-import { displayEntityName } from "../../core/legendLabels.js"
+import { displayEntityName } from "../../core/entityLabels.js"
 import { layoutPovertyLineLabel } from "../../core/povertyLineLabel.js"
 import {
     placeRegionLabels,

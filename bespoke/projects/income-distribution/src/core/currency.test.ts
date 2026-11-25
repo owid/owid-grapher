@@ -7,11 +7,8 @@ import {
     formatCurrencyLabel,
     formatIncome,
     isCurrencyWrittenAsCode,
-    formatPeople,
-    formatShare,
     resolveCurrency,
     roundIncomeAsDisplayed,
-    timeIntervalNoun,
 } from "./currency.js"
 import type { Currency } from "./types.js"
 
@@ -111,28 +108,6 @@ describe(formatIncome, () => {
     })
 })
 
-describe(timeIntervalNoun, () => {
-    it("names the interval for a sentence", () => {
-        expect(timeIntervalNoun("daily")).toBe("day")
-        expect(timeIntervalNoun("monthly")).toBe("month")
-        expect(timeIntervalNoun("yearly")).toBe("year")
-    })
-})
-
-describe(formatShare, () => {
-    it.each([
-        [0.123, "12%"],
-        [0.014, "1%"],
-        [0.004, "<1%"],
-        [0, "<1%"],
-        [0.994, "99%"],
-        [0.998, ">99%"],
-        [1, ">99%"],
-    ])("formats %f as %s", (share, expected) => {
-        expect(formatShare(share)).toBe(expected)
-    })
-})
-
 describe(formatCurrencyLabel, () => {
     it("names the international dollar and real currencies by country", () => {
         expect(formatCurrencyLabel(INTERNATIONAL_DOLLAR)).toBe(
@@ -175,19 +150,5 @@ describe(roundIncomeAsDisplayed, () => {
         )
         expect(monthly * (365 / 12)).toBeCloseTo(91)
         expect(monthly).toBeCloseTo(91 / (365 / 12))
-    })
-})
-
-describe(formatPeople, () => {
-    it.each([
-        [3_712_000_000, "3.7 billion"],
-        [999_600_000, "1 billion"],
-        [567_000_000, "570 million"],
-        [4_870_000, "4.9 million"],
-        [849_000, "850,000"],
-        [1234, "1,200"],
-        [0, "0"],
-    ])("formats %d as %s", (count, expected) => {
-        expect(formatPeople(count)).toBe(expected)
     })
 })

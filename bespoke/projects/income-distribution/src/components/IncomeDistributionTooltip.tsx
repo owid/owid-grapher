@@ -7,10 +7,10 @@ import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContent
 import { TooltipFooterIcon } from "@ourworldindata/grapher/src/tooltip/TooltipProps.js"
 
 import { sharesBelowDisplayedLine } from "../core/density.js"
-import { formatShare } from "../core/currency.js"
+import { formatShare } from "../core/format.js"
 import { livingOnLessThanPhrase } from "../core/chartText.js"
 import { WORLD_ENTITY_NAME } from "../core/constants.js"
-import { displayEntityName } from "../core/legendLabels.js"
+import { displayEntityName } from "../core/entityLabels.js"
 import type {
     Currency,
     IncomeDistributionYear,

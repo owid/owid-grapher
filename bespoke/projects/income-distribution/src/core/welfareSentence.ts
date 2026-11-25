@@ -1,13 +1,6 @@
-import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
+import { formatCountryList } from "./format.js"
 import { WELFARE_TYPES, type WelfareType } from "./types.js"
 import { WELFARE_TYPE_DETAILS } from "./welfareType.js"
-
-/** "A", "A and B", "A, B and C", with names as they read mid-sentence ("the United States") */
-export function formatCountryList(countries: string[]): string {
-    const names = countries.map((name) => formatEntityNameForSentence(name))
-    if (names.length <= 1) return names.join("")
-    return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
-}
 
 /**
  * A piece of a sentence: plain text, or a welfare type's term

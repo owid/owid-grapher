@@ -24,11 +24,8 @@ import {
     INTERNATIONAL_DOLLAR,
     TIME_INTERVAL_LABELS,
 } from "../core/constants.js"
-import {
-    currencyKey,
-    formatCurrencyLabel,
-    timeIntervalNoun,
-} from "../core/currency.js"
+import { currencyKey, formatCurrencyLabel } from "../core/currency.js"
+import { timeIntervalNoun } from "../core/format.js"
 import { Currency, TIME_INTERVALS, TimeInterval } from "../core/types.js"
 // The popover portals into the light DOM, out of reach of the bundle's
 // shadow-root styles, so it brings its own (see the file's header)

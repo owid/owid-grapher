@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import type { WelfareType } from "./types.js"
-import {
-    formatCountryList,
-    welfareSentenceText,
-    welfareTypeSentence,
-} from "./welfareSentence.js"
+import { welfareSentenceText, welfareTypeSentence } from "./welfareSentence.js"
 
 const WELFARE_TYPE_BY_COUNTRY: Record<string, WelfareType> = {
     China: "consumption",
@@ -22,24 +18,6 @@ function sentence(countries: string[]): string | undefined {
     const segments = welfareTypeSentence(countries, welfareTypeOf)
     return segments && welfareSentenceText(segments)
 }
-
-describe(formatCountryList, () => {
-    it("joins names with commas and a final 'and'", () => {
-        expect(formatCountryList(["Germany"])).toBe("Germany")
-        expect(formatCountryList(["Germany", "China"])).toBe(
-            "Germany and China"
-        )
-        expect(formatCountryList(["Germany", "China", "India"])).toBe(
-            "Germany, China and India"
-        )
-    })
-
-    it("names countries as they read mid-sentence", () => {
-        expect(formatCountryList(["India", "United States"])).toBe(
-            "India and the United States"
-        )
-    })
-})
 
 describe(welfareTypeSentence, () => {
     it("says nothing without countries", () => {

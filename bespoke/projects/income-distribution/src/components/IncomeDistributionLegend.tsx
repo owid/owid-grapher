@@ -4,7 +4,7 @@ import * as R from "remeda"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faXmark } from "@fortawesome/free-solid-svg-icons"
 
-import { formatPeople, formatShare } from "../core/currency.js"
+import { formatPeople, formatShare } from "../core/format.js"
 import { livingOnLessThanPhrase } from "../core/chartText.js"
 import { SHORT_REGION_NAMES, WORLD_ENTITY_NAME } from "../core/constants.js"
 import {
@@ -13,7 +13,7 @@ import {
     type LegendMeasure,
     type TimeInterval,
 } from "../core/types.js"
-import { formatLegendLabel, legendLabelLines } from "../core/legendLabels.js"
+import { formatLegendLabel, legendLabelLines } from "../core/entityLabels.js"
 
 /** Length in px of a 100% bar in the overlay legend */
 const OVERLAY_BAR_MAX_WIDTH = 100
