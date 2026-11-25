@@ -1,6 +1,7 @@
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Tippy } from "@ourworldindata/utils"
+import type { TrackNote } from "@ourworldindata/types"
 
 /**
  * Icon-only button used by the floating site tools.
@@ -22,7 +23,7 @@ export const SiteToolsButton = ({
     tooltip?: boolean
     onClick?: () => void
     href?: string
-    dataTrackNote?: string
+    dataTrackNote?: TrackNote
 }) => {
     const content = <FontAwesomeIcon icon={icon} />
 

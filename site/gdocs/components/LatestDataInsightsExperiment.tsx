@@ -1,5 +1,9 @@
 import cx from "clsx"
 
+import type {
+    LatestDataInsightsTrackNote,
+    LatestDataInsightsTrackNotePrefix,
+} from "@ourworldindata/types"
 import {
     LATEST_DATA_INSIGHTS_ARMS,
     LatestDataInsightsArm,
@@ -32,9 +36,11 @@ export default function LatestDataInsightsExperiment({
     seeAllHref: string
     seeAllText: string
     /** See getLatestDataInsightsTrackNote. */
-    trackNotePrefix: string
+    trackNotePrefix: LatestDataInsightsTrackNotePrefix
 }) {
-    const getTrackNote = (arm: LatestDataInsightsArm): string =>
+    const getTrackNote = (
+        arm: LatestDataInsightsArm
+    ): LatestDataInsightsTrackNote =>
         getLatestDataInsightsTrackNote(trackNotePrefix, arm)
 
     return (

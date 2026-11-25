@@ -6,6 +6,7 @@ import { faDownload, faSpinner } from "@fortawesome/free-solid-svg-icons"
 import { DownloadIconFull } from "../icons/DownloadIconFull.js"
 import { DownloadIconSelected } from "../icons/DownloadIconSelected.js"
 import { useSpinDelay } from "@ourworldindata/utils"
+import type { TrackNote } from "@ourworldindata/types"
 
 export function DownloadButton({
     className,
@@ -26,7 +27,7 @@ export function DownloadButton({
     previewImageUrl?: string
     previewImageDimensions?: { width: number; height: number }
     imageStyle?: React.CSSProperties
-    trackingNote?: string
+    trackingNote?: TrackNote
     onClick: () => void | Promise<void>
     disabled?: boolean
 }) {

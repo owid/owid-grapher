@@ -1,3 +1,7 @@
+import type {
+    LatestDataInsightsTrackNote,
+    LatestDataInsightsTrackNotePrefix,
+} from "@ourworldindata/types"
 import {
     LATEST_DATA_INSIGHTS_ARMS,
     LatestDataInsightsArm,
@@ -17,8 +21,8 @@ export const LATEST_DATA_INSIGHTS_ARM_CLASS_NAMES: Record<
 /** Clicks are logged as `<prefix>_<arm>` (and `<prefix>_<arm>_see_all`), so
  * they can be split by page and experiment arm. */
 export function getLatestDataInsightsTrackNote(
-    prefix: string,
+    prefix: LatestDataInsightsTrackNotePrefix,
     arm: LatestDataInsightsArm
-): string {
+): LatestDataInsightsTrackNote {
     return `${prefix}_${arm}`
 }

@@ -7,6 +7,7 @@ import * as React from "react"
 import { forwardRef } from "react"
 import cx from "clsx"
 import { isTouchDevice } from "@ourworldindata/utils"
+import type { TrackNote } from "@ourworldindata/types"
 
 export const SearchField = forwardRef<
     HTMLInputElement,
@@ -14,7 +15,7 @@ export const SearchField = forwardRef<
         className?: string
         value: string
         placeholder: string
-        trackNote: string
+        trackNote: TrackNote
         onChange: (value: string) => void
         onClear: () => void
         onKeyDown?: (event: KeyboardEvent) => void

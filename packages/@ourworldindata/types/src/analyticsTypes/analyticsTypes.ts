@@ -20,6 +20,7 @@
 // 3. This file is the single source of truth for the analytics contract
 
 import { JsonString } from "../domainTypes/Various.js"
+import { FacetStrategy, GrapherTabName } from "../grapherTypes/GrapherTypes.js"
 
 // =============================================================================
 // EVENT CATEGORIES
@@ -180,8 +181,8 @@ export interface SiteSearchResultClickParams {
 }
 
 export interface SiteClickParams {
-    /** Action type */
-    eventAction: string
+    /** The clicked element's track note, or an action logged from code */
+    eventAction: TrackNote | SiteClickAction
     /** Target element or label */
     eventTarget?: string
 }
@@ -211,8 +212,8 @@ export interface SiteInstantSearchClickParams {
 }
 
 export interface SiteErrorParams {
-    /** Action type (e.g., 'not_found') */
-    eventAction: string
+    /** Always 'not_found' for this event */
+    eventAction: "not_found"
     /** Error details or URL */
     eventContext: string
 }
@@ -367,8 +368,8 @@ export interface GrapherViewParams {
 }
 
 export interface GrapherClickParams {
-    /** Action type - image downloads or generic clicks */
-    eventAction: GrapherImageDownloadEvent | string
+    /** The clicked element's track note, or an image download */
+    eventAction: TrackNote | GrapherImageDownloadEvent
     /** Grapher chart path */
     grapherPath?: string
     /** Continuation of grapherPath for URLs > 100 chars (characters 101-200) */
@@ -453,8 +454,8 @@ export interface ExplorerCountrySelectorParams {
 // Shared Events
 
 export interface DetailOnDemandParams {
-    /** Action type - typically 'show' */
-    eventAction: "show" | string
+    /** Always 'show' for this event */
+    eventAction: "show"
     /** Target element ID */
     eventTarget: string
     /** Page region of the DoD span (data pages only, e.g. "wysk", "faqs") */
@@ -497,7 +498,7 @@ export interface SiteLatestAnnouncementExpandParams {
 
 export interface KeyboardShortcutParams {
     /** The keyboard shortcut name */
-    eventAction: string
+    eventAction: KeyboardShortcutAction
     /** The key combination (e.g., 'Ctrl+K') */
     eventContext: string
     /** Explorer path if in explorer */
@@ -523,6 +524,182 @@ export interface TranslatePageParams {
 // =============================================================================
 // EVENT ACTION TYPES & HELPERS
 // =============================================================================
+
+/**
+ * Every value of the `data-track-note` HTML attribute. When someone clicks an
+ * element that has one, or anything inside it, we send `owid.grapher_click` if
+ * the element is inside a chart and `owid.site_click` otherwise.
+ */
+export type TrackNote =
+    // Chart: header, footer and tabs
+    | "chart_click_title"
+    | "chart_click_sources"
+    | "chart_click_related"
+    | `chart_click_${GrapherTabName}`
+    // Chart: action buttons
+    | "chart_click_download"
+    | "chart_click_share"
+    | "chart_click_fullscreen"
+    | "chart_click_donate"
+    | "chart_click_exploredata"
+    // Chart: share menu
+    | "chart_share_embed"
+    | "chart_share_navigator"
+    | "chart_share_copy_png"
+    | "chart_share_copylink"
+    // Chart: download modal
+    | "chart_download_modal_tab_visualization"
+    | "chart_download_modal_tab_data"
+    | "chart_download_modal_vis_png"
+    | "chart_download_modal_vis_svg"
+    | "chart_download_click_interactive_embed"
+    | "chart_download_modal_api_docs"
+    | `chart_download_${"full" | "filtered"}_data--${"server" | "client"}`
+    // Chart: settings
+    | "chart_settings_menu_toggle"
+    | "chart_toggle_scale"
+    | "chart_abs_rel_toggle"
+    | "chart_no_data_area_toggle"
+    | "chart_zoom_to_selection"
+    | "chart_facet_ydomain_toggle"
+    | `chart_facet_${FacetStrategy}`
+    // Chart: entities
+    | "chart_add_entity"
+    | "entity_selector_search"
+    | "entity_picker_search_input"
+    | "entity_picker_clear_selection"
+    // Chart: map
+    | "map_zoom_to_region"
+    | "map_zoom_to_selection"
+    | "map_zoom_mobile"
+    | "map_reset_view"
+    | "map_reset_zoom"
+    // Chart: table
+    | "data_table_filter_by"
+    | "data_table_search"
+    // Chart: timeline
+    | "timeline_play"
+    | "timeline_pause"
+    // Explorer
+    | "explorer_customize_chart_mobile"
+    | ExplorerControlTrackNote
+    // Multi-dimensional data page
+    | "multi-dim-choice-dropdown"
+    | "multi-dim-choice-toggle"
+    | "multi-dim-embed-explorer-title"
+    // Data page: metadata
+    | "wysk_link"
+    | "wysk_learn_more_in_faqs"
+    | "producer_link"
+    | "processing_link"
+    | "data_processing_level"
+    | "retrieved_from"
+    | "source_link"
+    // Data page: downloads
+    | "datapage_download_api_docs"
+    | "datapage_download_vis_link"
+    | "datapage_download_data_link"
+    | "datapage_download_full_data--server"
+    | "datapage_download_filtered_data--server"
+    // Site header, footer and floating tools
+    | "header_navigation"
+    | "breadcrumb"
+    | "footer_navigation"
+    | "footer_social"
+    | "footer_social_email"
+    | "donate_footer"
+    | "cookie_notice"
+    | "page_open_feedback"
+    | "page_open_feedback_mobile_menu"
+    | "page_open_jobs"
+    | "dialog_open_newsletter"
+    // Table of contents
+    | "toc_expand"
+    | "toc_collapse"
+    | "toc_toggle"
+    | "toc_link"
+    | "toc_back_to_top"
+    | "toc_see_all_charts"
+    // "Follow us" links: the newsletter context they are shown in
+    | "homepage"
+    | "floating"
+    | "homepageDataInsights"
+    | "floatingDataInsights"
+    | "latest"
+    | "subscribePage"
+    | "dataInsightsIndex"
+    // Homepage
+    | "featured-data-insights-see-all"
+    | "featured-metrics-see-all"
+    // Latest data insights, on the homepage and on data insight pages
+    | LatestDataInsightsTrackNote
+    | `${LatestDataInsightsTrackNote}_see_all`
+    // Copy link buttons
+    | "announcement_copy_link"
+    | "data_insight_copy_link"
+    | "latest_data_insight_copy_link"
+    | "latest_data_update_copy_link"
+    // Article versions
+    | "gdoc-header-date-versions"
+    | "gdoc-past-versions-section-open"
+    // Archive
+    | "archive-header-go-to-previous"
+    | "archive-header-go-to-next"
+    | "archive-header-go-to-live"
+    | "archive-header-browse-versions"
+    | "archive-timeline-version-link"
+    // Search
+    | "search-sources-modal"
+    | "search-download-options"
+
+/**
+ * Explorer controls send `<explorer slug>_click_<control title, lowercased>`.
+ * Both parts come from content, so this stays a loose pattern. As a result,
+ * any value containing `_click_` compiles, including a misspelled fixed note
+ * like `chart_click_sourcse`. Remove this, and its line in `TrackNote`,
+ * together with `ExplorerControls.tsx`.
+ */
+export type ExplorerControlTrackNote = `${string}_click_${string}`
+
+/** `<page>_<experiment arm>`, so clicks can be split by page and by arm. */
+export type LatestDataInsightsTrackNote =
+    `${LatestDataInsightsTrackNotePrefix}_${"carousel" | "grid"}`
+
+export type LatestDataInsightsTrackNotePrefix =
+    | "homepage_data_insights"
+    | "data_insight_latest"
+
+/** Site clicks logged from code instead of a `data-track-note` attribute. */
+export type SiteClickAction =
+    | "donate-now"
+    | "newsletter-subscribe"
+    | "cookie_preferences"
+    | "related-data-charts"
+    | "copy_citation"
+    | "expand_metadata_box"
+    | "collapse_metadata_box"
+    | "expand_expandable_toggle"
+    | "collapse_expandable_toggle"
+
+/** The title of the keyboard shortcut, empty for the ones that have none. */
+export type KeyboardShortcutAction =
+    | ""
+    | "Toggle tab"
+    | "Toggle Help"
+    | "Select All"
+    | "Select None"
+    | "Toggle Faceting"
+    | "Play"
+    | "Pause"
+    | "Toggle Y log/linear"
+    | "Toggle full-screen mode"
+    | "Toggle sources modal"
+    | "Toggle download modal"
+    | "Latest/Earliest/All period"
+    | "Reset to original"
+    | "Toggle globe view"
+    | "Next chart"
+    | "Previous chart"
 
 export type EntitySelectorEvent =
     | "enter"

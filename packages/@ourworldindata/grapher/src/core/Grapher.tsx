@@ -335,7 +335,7 @@ export class Grapher extends React.Component<GrapherProps> {
                 fn: (): void => this.randomSelection(num),
             }
         })
-        const shortcuts = [
+        const shortcuts: Command[] = [
             ...temporaryFacetTestCommands,
             {
                 combo: "t",

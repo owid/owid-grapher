@@ -7,12 +7,13 @@ import { remarkPlainLinks } from "./markdown/remarkPlainLinks.js"
 import { visit } from "unist-util-visit"
 import type { Plugin } from "unified"
 import type { Root, ElementContent } from "hast"
+import type { TrackNote } from "@ourworldindata/types"
 
 type SimpleMarkdownTextProps = {
     text: string
     useParagraphs?: boolean // by default, text is wrapped in <p> tags
     openLinksInNewTab?: boolean // by default, links open in the same tab
-    dataTrackNote?: string // if set, every link gets this data-track-note for click tracking
+    dataTrackNote?: TrackNote // if set, every link gets this data-track-note for click tracking
     dodTrackNote?: string // if set, every details-on-demand span gets this data-dod-track-note
 }
 

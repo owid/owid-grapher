@@ -86,7 +86,7 @@ export class FacetStrategySelector extends React.Component<{
                                 onClick={(): void => {
                                     this.props.manager.facetStrategy = value
                                 }}
-                                data-track-note={`chart_facet_${option}`}
+                                data-track-note={`chart_facet_${value}`}
                             >
                                 <div className="faceting-icon">
                                     {_.range(value === "none" ? 1 : 6).map(

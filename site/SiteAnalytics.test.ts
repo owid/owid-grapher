@@ -2,14 +2,51 @@
  * @vitest-environment happy-dom
  */
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest"
-import { EventCategory } from "@ourworldindata/types"
+import type { HTMLAttributes } from "react"
+import {
+    afterEach,
+    beforeEach,
+    describe,
+    expect,
+    expectTypeOf,
+    it,
+} from "vitest"
+import { EventCategory, type TrackNote } from "@ourworldindata/types"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
 // The `dataLayer` global is typed inside the grapher package, not here
 const gtmWindow = window as unknown as {
     dataLayer: Record<string, unknown>[]
 }
+
+describe("click tracking", () => {
+    it("only accepts listed track notes on HTML elements", () => {
+        // Checked by `yarn typecheck`, through trackNoteAttribute.d.ts
+        expectTypeOf<
+            HTMLAttributes<HTMLElement>["data-track-note"]
+        >().toEqualTypeOf<TrackNote | undefined>()
+    })
+
+    it("logs a click on a tracked element inside a chart as a grapher click", () => {
+        gtmWindow.dataLayer = []
+        new SiteAnalytics().startClickTracking()
+        const grapherUrl = "https://ourworldindata.org/grapher/life-expectancy"
+        document.body.innerHTML = `
+            <figure data-grapher-url='${JSON.stringify({ grapherUrl })}'>
+                <a data-track-note="chart_click_sources"><span>Sources</span></a>
+            </figure>`
+
+        document.querySelector("span")!.click()
+
+        expect(gtmWindow.dataLayer).toEqual([
+            expect.objectContaining({
+                event: EventCategory.GrapherClick,
+                eventAction: "chart_click_sources",
+                grapherPath: "/grapher/life-expectancy",
+            }),
+        ])
+    })
+})
 
 // happy-dom reports a non-Apple platform, so `$mod` is Ctrl in these tests
 describe("find-in-page tracking", () => {

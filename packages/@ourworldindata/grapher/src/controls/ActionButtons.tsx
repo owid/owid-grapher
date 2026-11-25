@@ -18,6 +18,7 @@ import {
     shouldShareUsingShareApi,
 } from "./ShareMenu.js"
 import { Bounds, Tippy } from "@ourworldindata/utils"
+import type { TrackNote } from "@ourworldindata/types"
 import classNames from "clsx"
 import {
     DEFAULT_GRAPHER_BOUNDS,
@@ -394,7 +395,7 @@ export function ActionButton(props: {
     iconPlacement?: "left" | "right"
     href?: string
     width?: number
-    dataTrackNote?: string
+    dataTrackNote?: TrackNote
     onClick?: React.MouseEventHandler<HTMLDivElement>
     onMouseDown?: React.MouseEventHandler<HTMLDivElement>
     showLabel?: boolean

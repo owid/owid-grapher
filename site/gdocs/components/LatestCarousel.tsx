@@ -7,6 +7,10 @@ import cx from "clsx"
 import * as R from "remeda"
 
 import { Button, getPrefersReducedMotion } from "@ourworldindata/components"
+import type {
+    LatestDataInsightsTrackNote,
+    TrackNote,
+} from "@ourworldindata/types"
 import { formatAuthors, OwidEnrichedGdocBlock } from "@ourworldindata/utils"
 import { findThumbnailImageBlock } from "../../latest/latestUtils.js"
 import Image from "./Image.js"
@@ -46,7 +50,7 @@ export default function LatestCarousel({
     /** Room for 4:5 thumbnails on small screens, e.g. data update charts. */
     tall?: boolean
     /** data-track-note for clicks on the cards. */
-    cardTrackNote?: string
+    cardTrackNote?: LatestDataInsightsTrackNote
 }) {
     const scrollerRef = useRef<HTMLUListElement>(null)
     const [selectedIndex, setSelectedIndex] = useState(0)
@@ -217,7 +221,7 @@ const CarouselCard = memo(function CarouselCard({
     body: OwidEnrichedGdocBlock[]
     publishedAt?: Date
     href: string
-    trackNote?: string
+    trackNote?: TrackNote
 }) {
     const titleId = `latest-carousel__card-title-${index}`
     const firstImageBlock = findThumbnailImageBlock(body)

@@ -1,10 +1,11 @@
 import * as _ from "lodash-es"
 import * as React from "react"
+import type { KeyboardShortcutAction } from "@ourworldindata/types"
 
 export interface Command {
     combo: string
     fn: () => void
-    title?: string
+    title?: KeyboardShortcutAction
     category?: string
 }
 

@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { DownloadIconFull } from "../icons/DownloadIconFull.js"
 import { DownloadIconSelected } from "../icons/DownloadIconSelected.js"
+import type { TrackNote } from "@ourworldindata/types"
 
 export function DownloadButtonLink({
     className,
@@ -19,7 +20,7 @@ export function DownloadButtonLink({
     title: string
     description: string
     icon?: "full" | "selected"
-    trackingNote?: string
+    trackingNote?: TrackNote
     href: string
     download?: string
 } & AnchorHTMLAttributes<HTMLAnchorElement>) {

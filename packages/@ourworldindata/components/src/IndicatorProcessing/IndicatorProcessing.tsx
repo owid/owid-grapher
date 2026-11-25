@@ -2,10 +2,11 @@ import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { openLinkInNewTabAttrs } from "@ourworldindata/utils"
+import type { TrackNote } from "@ourworldindata/types"
 
 export interface IndicatorProcessingProps {
     descriptionProcessing: string | undefined
-    trackNote?: string
+    trackNote?: TrackNote
     dodTrackNote?: string
     openLinksInNewTab?: boolean
 }

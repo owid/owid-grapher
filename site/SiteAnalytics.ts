@@ -17,6 +17,7 @@ import {
     type LatestPageChronologicalRecord,
     type UserSurveyExperimentArm,
     type UserSurveyRoleAnswer,
+    type TrackNote,
 } from "@ourworldindata/types"
 import { getFilterNamesOfType } from "./search/searchUtils.js"
 import {
@@ -384,6 +385,11 @@ export class SiteAnalytics extends GrapherAnalytics {
                     (el: HTMLElement) => el.getAttribute(dataTrackAttr) !== null
                 )
                 if (!trackedElement) return
+                // Read back from the DOM as a string. The JSX attribute type
+                // checks it where it is written.
+                const action = trackedElement.getAttribute(
+                    dataTrackAttr
+                ) as TrackNote
                 const grapherUrlRaw = trackedElement
                     .closest(`[${dataGrapherUrlAttr}]`)
                     ?.getAttribute(dataGrapherUrlAttr)
@@ -400,21 +406,13 @@ export class SiteAnalytics extends GrapherAnalytics {
                     } catch (e) {
                         console.warn("failed to parse grapherUrl", e)
                     }
-                    this.logGrapherClick(
-                        trackedElement.getAttribute(dataTrackAttr) || undefined,
-                        {
-                            label: trackedElement.innerText,
-                            grapherUrl: grapherUrlObj?.grapherUrl,
-                            narrativeChartName:
-                                grapherUrlObj?.narrativeChartName,
-                            viewConfigId: grapherUrlObj?.viewConfigId,
-                        }
-                    )
-                } else
-                    this.logSiteClick(
-                        trackedElement.getAttribute(dataTrackAttr) || undefined,
-                        trackedElement.innerText
-                    )
+                    this.logGrapherClick(action, {
+                        label: trackedElement.innerText,
+                        grapherUrl: grapherUrlObj?.grapherUrl,
+                        narrativeChartName: grapherUrlObj?.narrativeChartName,
+                        viewConfigId: grapherUrlObj?.viewConfigId,
+                    })
+                } else this.logSiteClick(action, trackedElement.innerText)
             },
             { capture: true, passive: true }
         )

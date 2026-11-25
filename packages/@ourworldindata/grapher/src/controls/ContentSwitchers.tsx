@@ -89,7 +89,7 @@ export class ContentSwitchers extends React.Component<{
             element: <TabContent key={tab} tab={tab} />,
             buttonProps: {
                 className: cx({ active: tab === this.activeTab }),
-                dataTrackNote: "chart_click_" + tab,
+                dataTrackNote: `chart_click_${tab}`,
                 ariaLabel: makeLabelForGrapherTab(tab),
             },
         }))

@@ -19,11 +19,12 @@ import {
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { isTouchDevice } from "@ourworldindata/utils"
+import type { TrackNote } from "@ourworldindata/types"
 
 export interface BasicDropdownOption {
     value: string
     label: React.ReactNode
-    trackNote?: string
+    trackNote?: TrackNote
 }
 
 export interface DropdownOptionGroup<
@@ -57,7 +58,7 @@ export interface DropdownProps<DropdownOption extends BasicDropdownOption> {
         option: DropdownOption | null
     ) => React.ReactNode | undefined
     renderMenuOption?: (option: DropdownOption) => React.ReactNode
-    "data-track-note"?: string
+    "data-track-note"?: TrackNote
     "aria-label"?: string
 }
 

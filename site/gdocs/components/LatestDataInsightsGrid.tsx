@@ -4,6 +4,7 @@ import {
     faChevronRight,
 } from "@fortawesome/free-solid-svg-icons"
 import { Button, getPrefersReducedMotion } from "@ourworldindata/components"
+import type { LatestDataInsightsTrackNote } from "@ourworldindata/types"
 import { formatDate } from "@ourworldindata/utils"
 import cx from "clsx"
 
@@ -31,7 +32,7 @@ export default function LatestDataInsightsGrid({
     items: LatestCarouselItem[]
     seeAllHref: string
     seeAllText: string
-    trackNote?: string
+    trackNote?: LatestDataInsightsTrackNote
 }) {
     const scrollerRef = useRef<HTMLUListElement>(null)
     const [canScrollPrev, setCanScrollPrev] = useState(false)
@@ -125,7 +126,7 @@ function GridCard({
     trackNote,
 }: {
     item: LatestCarouselItem
-    trackNote?: string
+    trackNote?: LatestDataInsightsTrackNote
 }) {
     const thumbnail = findThumbnailImageBlock(item.body)
     const thumbnailFilename = thumbnail?.smallFilename || thumbnail?.filename

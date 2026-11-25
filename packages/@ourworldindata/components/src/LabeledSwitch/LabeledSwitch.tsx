@@ -8,6 +8,7 @@ import {
     Button,
     OverlayArrow,
 } from "react-aria-components"
+import type { TrackNote } from "@ourworldindata/types"
 
 export const LabeledSwitch = ({
     className,
@@ -21,7 +22,7 @@ export const LabeledSwitch = ({
     value?: boolean
     label?: string
     tooltip?: string
-    tracking?: string
+    tracking?: TrackNote
     onToggle: () => any
     className?: string
     disabled?: boolean
@@ -42,7 +43,7 @@ export const LabeledSwitch = ({
                     onChange={onToggle}
                     data-track-note={tracking}
                 />
-                <div data-track-note="" className="outer">
+                <div className="outer">
                     <div className="inner"></div>
                 </div>
                 {label}

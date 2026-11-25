@@ -2,6 +2,7 @@ import * as React from "react"
 import cx from "clsx"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import type { TrackNote } from "@ourworldindata/types"
 import LatestCarousel, {
     LatestCarouselItem,
     LatestCarouselTheme,
@@ -72,7 +73,7 @@ export function LatestCarouselSectionSeeAll({
     className?: string
     href: string
     text: string
-    trackNote?: string
+    trackNote?: TrackNote
 }) {
     return (
         <a
