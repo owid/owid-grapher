@@ -6,6 +6,7 @@ import {
     currencyKey,
     formatCurrencyLabel,
     formatIncome,
+    isCurrencyWrittenAsCode,
     formatPeople,
     formatShare,
     resolveCurrency,
@@ -68,19 +69,34 @@ describe(formatIncome, () => {
         expect(formatIncome(950, atPar("EUR"), "daily")).toBe("€950")
         expect(formatIncome(10_000, atPar("INR"), "daily")).toBe("₹10k")
         expect(formatIncome(1_500_000, atPar("JPY"), "daily")).toBe("¥1.5M")
-        // The code's own K stays as it is (Intl puts a no-break space after it)
-        expect(formatIncome(1000, atPar("SEK"), "daily")).toBe("SEK\u00a01k")
+        // Narrow symbols for currencies en-US only knows by code (Intl puts a
+        // no-break space after a symbol that is letters)
+        expect(formatIncome(1000, atPar("SEK"), "daily")).toBe("kr\u00a01k")
+        expect(formatIncome(1000, atPar("PLN"), "daily")).toBe("zł\u00a01k")
+        expect(formatIncome(1000, atPar("NGN"), "daily")).toBe("₦1k")
+        // Without a narrow symbol either, the code, with its own K intact
+        expect(formatIncome(1000, atPar("CHF"), "daily")).toBe("CHF\u00a01k")
     })
 
-    it("can leave out a currency that has no symbol, for axis ticks", () => {
-        const axis = { short: true, dropCode: true }
-        expect(formatIncome(1000, atPar("SEK"), "daily", axis)).toBe("1k")
-        expect(formatIncome(950, atPar("CHF"), "daily", axis)).toBe("950")
-        expect(formatIncome(1234, atPar("not-a-code"), "daily", axis)).toBe(
+    it("can leave out a code, for axis ticks whose first label names it", () => {
+        const bare = { short: true, dropCode: true }
+        expect(formatIncome(1000, atPar("CHF"), "daily", bare)).toBe("1k")
+        expect(formatIncome(1234, atPar("not-a-code"), "daily", bare)).toBe(
             "1.2k"
         )
-        // A symbol stays
-        expect(formatIncome(950, atPar("EUR"), "daily", axis)).toBe("€950")
+        // Symbols stay
+        expect(formatIncome(1000, atPar("SEK"), "daily", bare)).toBe(
+            "kr\u00a01k"
+        )
+        expect(formatIncome(950, atPar("EUR"), "daily", bare)).toBe("€950")
+    })
+
+    it("knows which currencies are written as their code", () => {
+        expect(isCurrencyWrittenAsCode(atPar("CHF"))).toBe(true)
+        expect(isCurrencyWrittenAsCode(atPar("not-a-code"))).toBe(true)
+        expect(isCurrencyWrittenAsCode(atPar("SEK"))).toBe(false)
+        expect(isCurrencyWrittenAsCode(EURO)).toBe(false)
+        expect(isCurrencyWrittenAsCode(INTERNATIONAL_DOLLAR)).toBe(false)
     })
 
     it("falls back to the code for a currency Intl rejects", () => {

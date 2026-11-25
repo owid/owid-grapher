@@ -35,6 +35,7 @@ import {
     combinedFactor,
     formatCurrencyLabel,
     formatIncome,
+    isCurrencyWrittenAsCode,
     timeIntervalNoun,
 } from "../core/currency.js"
 import {
@@ -1523,7 +1524,8 @@ function computeAreaPaths(
  * × 10^k by default), positioned in int-$/day. The other multiples get
  * unlabelled minor ticks, as does a labelled multiple whose label would
  * overlap a higher-priority neighbour's (`labelledMultipliers` is in order
- * of priority).
+ * of priority). A currency written as its code (CHF) is named on the first
+ * label only; the rest are bare numbers.
  */
 function computeAxisTicks(
     xScale: ScaleLogarithmic<number, number>,
@@ -1535,6 +1537,7 @@ function computeAxisTicks(
     const factor = combinedFactor(currency, timeInterval)
     if (!(factor > 0)) return []
     const [min, max] = xScale.domain()
+    const codeOnFirstLabelOnly = isCurrencyWrittenAsCode(currency)
     const ticks: (AxisTick & { multiplier: number })[] = []
     for (
         let power = Math.floor(Math.log10(min * factor));
@@ -1554,34 +1557,51 @@ function computeAxisTicks(
                 label: labelledMultipliers.includes(multiplier)
                     ? formatIncome(value, currency, timeInterval, {
                           short: true,
-                          // The axis label names the currency
-                          dropCode: true,
+                          dropCode: codeOnFirstLabelOnly,
                       })
                     : undefined,
             })
         }
     }
+    const firstLabelled = ticks.find((tick) => tick.label !== undefined)
+    if (codeOnFirstLabelOnly && firstLabelled)
+        firstLabelled.label = formatIncome(
+            firstLabelled.value,
+            currency,
+            timeInterval,
+            { short: true }
+        )
 
     // Place the labels by priority, dropping any that would overlap one
     // already placed
     const placed: { left: number; right: number }[] = []
     const keep = new Set<AxisTick>()
-    for (const multiplier of labelledMultipliers) {
-        for (const tick of ticks) {
-            if (tick.multiplier !== multiplier || tick.label === undefined)
-                continue
-            const halfWidth =
-                Bounds.forText(tick.label, { fontSize }).width / 2 +
-                TICK_LABEL_GAP / 2
-            const x = xScale(tick.value)
-            const box = { left: x - halfWidth, right: x + halfWidth }
-            const overlaps = placed.some(
-                (other) => box.left < other.right && box.right > other.left
+    // The label naming the currency goes first, so it's always there
+    const namesCurrency = codeOnFirstLabelOnly ? firstLabelled : undefined
+    const byPriority = [
+        ...(namesCurrency ? [namesCurrency] : []),
+        ...labelledMultipliers.flatMap((multiplier) =>
+            ticks.filter(
+                (tick) =>
+                    tick.multiplier === multiplier &&
+                    tick.label !== undefined &&
+                    tick !== namesCurrency
             )
-            if (overlaps) continue
-            placed.push(box)
-            keep.add(tick)
-        }
+        ),
+    ]
+    for (const tick of byPriority) {
+        if (tick.label === undefined) continue
+        const halfWidth =
+            Bounds.forText(tick.label, { fontSize }).width / 2 +
+            TICK_LABEL_GAP / 2
+        const x = xScale(tick.value)
+        const box = { left: x - halfWidth, right: x + halfWidth }
+        const overlaps = placed.some(
+            (other) => box.left < other.right && box.right > other.left
+        )
+        if (overlaps) continue
+        placed.push(box)
+        keep.add(tick)
     }
     return ticks.map((tick) => {
         const { multiplier: _multiplier, ...rest } = tick

@@ -15,11 +15,12 @@ export function combinedFactor(
  * Formats a daily international-$ amount in `currency` per `interval`, e.g.
  * "$3", "$3.20", "$1.2k", "€950", "₹10k", "¥1.5M". Two significant figures
  * are enough for an axis or a poverty line; `short` drops trailing zeros and
- * cents for whole amounts (axis ticks); `dropCode` leaves out a currency
- * that has no symbol and would be written as its code ("SEK\u00a01k" → "1k"),
- * for axis ticks whose axis names the currency. Uses Intl.NumberFormat for
- * real currencies (en-US locale) and a plain "$" prefix for the
- * international dollar.
+ * cents for whole amounts (axis ticks). Uses Intl.NumberFormat for real
+ * currencies (en-US locale) and a plain "$" prefix for the international
+ * dollar. A currency en-US only knows by its code (SEK, ZAR, PLN) gets its
+ * narrow symbol instead ("kr", "R", "zł"); where there is none either, the
+ * code stays (CHF), unless `dropCode` asks for the bare number, for axis
+ * ticks whose neighbour or axis names the currency.
  */
 /**
  * The amount `formatIncome` shows for a daily international-$ figure, in the
@@ -68,13 +69,10 @@ export function formatIncome(
         const plain = formatPlainAmount(amount, fractionDigits)
         return options.dropCode ? plain : `${currency.code} ${plain}`
     }
-    const parts = formatter.formatToParts(amount)
-    const writtenAsCode = parts.some(
-        (part) => part.type === "currency" && part.value === currency.code
-    )
     const text =
-        options.dropCode && writtenAsCode
-            ? parts
+        options.dropCode && isWrittenAsCode(formatter, currency.code)
+            ? formatter
+                  .formatToParts(amount)
                   .filter(
                       (part) =>
                           part.type !== "currency" && part.type !== "literal"
@@ -83,8 +81,24 @@ export function formatIncome(
                   .join("")
             : formatter.format(amount)
     // Match the lower-case "k" of the international-$ labels: only the
-    // compact suffix after the digits, not a "K" in the currency code (SEK)
+    // compact suffix after the digits, not a "K" in a currency code (CHF)
     return text.replace(/(\d)K\b/, "$1k")
+}
+
+/**
+ * Whether amounts in `currency` are written with its code rather than a
+ * symbol ("CHF 1k"), because en-US has neither a symbol nor a narrow one
+ */
+export function isCurrencyWrittenAsCode(currency: Currency): boolean {
+    if (currency.code === INTERNATIONAL_DOLLAR.code) return false
+    const formatter = getCurrencyFormatter(currency.code, 0)
+    return !formatter || isWrittenAsCode(formatter, currency.code)
+}
+
+function isWrittenAsCode(formatter: Intl.NumberFormat, code: string): boolean {
+    return formatter
+        .formatToParts(1)
+        .some((part) => part.type === "currency" && part.value === code)
 }
 
 /** "1.2k", "15M", "950", "3.20" */
@@ -98,6 +112,11 @@ function formatPlainAmount(amount: number, fractionDigits: number): string {
 /** Undefined marks a currency code Intl rejects, so we only try it once */
 const formatterCache = new Map<string, Intl.NumberFormat | undefined>()
 
+/**
+ * en-US writes many currencies as their code ("SEK 1K"); their narrow symbol
+ * ("kr 1K") reads better next to "$" and "€". Where there is no narrow
+ * symbol either, Intl falls back to the code again, which is fine.
+ */
 function getCurrencyFormatter(
     code: string,
     fractionDigits: number
@@ -105,24 +124,24 @@ function getCurrencyFormatter(
     const cacheKey = `${code}:${fractionDigits}`
     if (formatterCache.has(cacheKey)) return formatterCache.get(cacheKey)
 
-    let formatter: Intl.NumberFormat | undefined
-    try {
-        formatter = new Intl.NumberFormat(
-            "en-US",
-            fractionDigits > 0
+    const make = (
+        currencyDisplay: "symbol" | "narrowSymbol"
+    ): Intl.NumberFormat =>
+        new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: code,
+            currencyDisplay,
+            ...(fractionDigits > 0
                 ? {
-                      style: "currency",
-                      currency: code,
                       minimumFractionDigits: fractionDigits,
                       maximumFractionDigits: fractionDigits,
                   }
-                : {
-                      style: "currency",
-                      currency: code,
-                      notation: "compact",
-                      maximumSignificantDigits: 2,
-                  }
-        )
+                : { notation: "compact", maximumSignificantDigits: 2 }),
+        })
+    let formatter: Intl.NumberFormat | undefined
+    try {
+        formatter = make("symbol")
+        if (isWrittenAsCode(formatter, code)) formatter = make("narrowSymbol")
     } catch {
         formatter = undefined
     }
