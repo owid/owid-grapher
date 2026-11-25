@@ -69,17 +69,23 @@ export function formatIncome(
         const plain = formatPlainAmount(amount, fractionDigits)
         return options.dropCode ? plain : `${currency.code} ${plain}`
     }
-    const text =
+    const dropCode =
         options.dropCode && isWrittenAsCode(formatter, currency.code)
-            ? formatter
-                  .formatToParts(amount)
-                  .filter(
-                      (part) =>
-                          part.type !== "currency" && part.type !== "literal"
-                  )
-                  .map((part) => part.value)
-                  .join("")
-            : formatter.format(amount)
+    const text = formatter
+        .formatToParts(amount)
+        .filter(
+            (part) =>
+                !dropCode ||
+                (part.type !== "currency" && part.type !== "literal")
+        )
+        .map((part) =>
+            // Symbols that would read as another currency's: en-US writes
+            // US dollars as "$", which is the international dollar's sign here
+            part.type === "currency"
+                ? (SYMBOL_OVERRIDES[currency.code] ?? part.value)
+                : part.value
+        )
+        .join("")
     // Match the lower-case "k" of the international-$ labels: only the
     // compact suffix after the digits, not a "K" in a currency code (CHF)
     return text.replace(/(\d)K\b/, "$1k")
@@ -108,6 +114,8 @@ function formatPlainAmount(amount: number, fractionDigits: number): string {
     if (amount >= 1e3) return `${roundSigFig(amount / 1e3, 2)}k`
     return amount.toFixed(fractionDigits)
 }
+
+const SYMBOL_OVERRIDES: Record<string, string> = { USD: "US$" }
 
 /** Undefined marks a currency code Intl rejects, so we only try it once */
 const formatterCache = new Map<string, Intl.NumberFormat | undefined>()

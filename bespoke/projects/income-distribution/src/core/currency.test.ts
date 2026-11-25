@@ -76,6 +76,9 @@ describe(formatIncome, () => {
         expect(formatIncome(1000, atPar("NGN"), "daily")).toBe("₦1k")
         // Without a narrow symbol either, the code, with its own K intact
         expect(formatIncome(1000, atPar("CHF"), "daily")).toBe("CHF\u00a01k")
+        // Not "$", which is the international dollar's sign in this chart
+        expect(formatIncome(1000, atPar("USD"), "daily")).toBe("US$1k")
+        expect(formatIncome(3.2, atPar("USD"), "daily")).toBe("US$3.20")
     })
 
     it("can leave out a code, for axis ticks whose first label names it", () => {
