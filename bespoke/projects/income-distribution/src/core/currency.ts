@@ -168,20 +168,16 @@ export function timeIntervalNoun(interval: TimeInterval): string {
     return TIME_INTERVAL_NOUNS[interval]
 }
 
-/** "12%", "0.4%", "<0.1%", "100%" from a 0–1 share */
+/**
+ * "12%", "<1%", ">99%" from a 0–1 share. Never "0%" or "100%": the
+ * estimates come from smoothed distributions, so neither nobody nor everyone
+ * is a claim worth making.
+ */
 export function formatShare(share: number): string {
-    const percent = share * 100
-    if (percent <= 0) return "0%"
-    if (percent < 0.05) return "<0.1%"
-    if (percent < 1) {
-        // 0.96% would round to "1.0%"; drop the redundant decimal
-        const rounded = Math.round(percent * 10) / 10
-        return rounded >= 1 ? "1%" : `${rounded}%`
-    }
-    if (percent >= 100) return "100%"
-    // Don't claim everyone when a few are left out
-    const rounded = Math.round(percent)
-    return rounded >= 100 ? ">99%" : `${rounded}%`
+    const rounded = Math.round(share * 100)
+    if (rounded < 1) return "<1%"
+    if (rounded > 99) return ">99%"
+    return `${rounded}%`
 }
 
 /**

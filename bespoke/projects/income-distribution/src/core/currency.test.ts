@@ -120,12 +120,12 @@ describe(timeIntervalNoun, () => {
 describe(formatShare, () => {
     it.each([
         [0.123, "12%"],
-        [0.004, "0.4%"],
-        [0.0004, "<0.1%"],
-        [0.0096, "1%"],
-        [0, "0%"],
-        [1, "100%"],
+        [0.014, "1%"],
+        [0.004, "<1%"],
+        [0, "<1%"],
+        [0.994, "99%"],
         [0.998, ">99%"],
+        [1, ">99%"],
     ])("formats %f as %s", (share, expected) => {
         expect(formatShare(share)).toBe(expected)
     })
