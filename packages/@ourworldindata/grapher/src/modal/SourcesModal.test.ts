@@ -45,6 +45,44 @@ describe("SourcesModal tab labels", () => {
         ])
     })
 
+    it("puts the disambiguator in parentheses after an existing attribution", () => {
+        expect(
+            makeTabs([
+                {
+                    name: "Children that died before age five",
+                    presentation: {
+                        titlePublic: "Child mortality rate",
+                        titleVariant: "Long-run data",
+                        attributionShort: "Gapminder",
+                    },
+                    descriptionShort: "Deaths per woman",
+                },
+                {
+                    name: "Children that survived past age five",
+                    presentation: {
+                        titlePublic: "Child mortality rate",
+                        titleVariant: "Long-run data",
+                        attributionShort: "Gapminder",
+                    },
+                    descriptionShort: "Survivors per woman",
+                },
+            ])
+        ).toEqual([
+            {
+                title: "Child mortality rate",
+                attribution:
+                    "Long-run data – Gapminder (Children that died before age five)",
+                timespan: undefined,
+            },
+            {
+                title: "Child mortality rate",
+                attribution:
+                    "Long-run data – Gapminder (Children that survived past age five)",
+                timespan: undefined,
+            },
+        ])
+    })
+
     it("keeps same-titled indicators with different content apart, labelled by indicator name", () => {
         expect(
             makeTabs([

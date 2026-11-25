@@ -201,7 +201,10 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
                     (name) =>
                         name && name !== column.titlePublicOrDisplayName.title
                 )
-                attribution = joinTitleFragments(disambiguator, attribution)
+                if (disambiguator && disambiguator !== attribution)
+                    attribution = attribution
+                        ? `${attribution} (${disambiguator})`
+                        : disambiguator
             }
 
             return {
