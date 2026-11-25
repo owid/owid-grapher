@@ -18,15 +18,14 @@ import type { IncomeDistributionMetadata } from "../core/data.js"
 import { buildChartModel } from "../core/chartModel.js"
 import type { LabelBox } from "../core/curveLabels.js"
 import {
-    peopleBelowLineForEntities,
-    shareBelowLineForEntities,
+    peopleBelowDisplayedLine,
+    sharesBelowDisplayedLine,
 } from "../core/density.js"
 import { placeholderWelfareType } from "../core/welfareType.js"
 import {
     welfareTypeSentence,
     type WelfareSentenceSegment,
 } from "../core/welfareSentence.js"
-import { roundIncomeAsDisplayed } from "../core/currency.js"
 import type { ChartState } from "../core/useIncomeDistributionState.js"
 import type {
     Currency,
@@ -168,21 +167,19 @@ export function IncomeDistributionFrame({
     )
 
     // Shares and counts are taken against the amount the reader sees, not
-    // the exact drag position
-    const displayedPovertyLine =
-        povertyLine !== null
-            ? roundIncomeAsDisplayed(povertyLine, currency, timeInterval)
-            : null
+    // the exact drag position (see sharesBelowDisplayedLine)
     const sharesBelowLine = useMemo(
         () =>
-            displayedPovertyLine !== null
-                ? shareBelowLineForEntities(
+            povertyLine !== null
+                ? sharesBelowDisplayedLine(
                       yearData,
-                      displayedPovertyLine,
+                      povertyLine,
+                      currency,
+                      timeInterval,
                       legendEntries.map((entry) => entry.key)
                   )
                 : undefined,
-        [yearData, displayedPovertyLine, legendEntries]
+        [yearData, povertyLine, currency, timeInterval, legendEntries]
     )
     // With a line set, the legend's heading switches its bars between the
     // share of population below the line and the number of people. Only the
@@ -190,14 +187,23 @@ export function IncomeDistributionFrame({
     const [legendMeasure, setLegendMeasure] = useState<LegendMeasure>("share")
     const peopleBelowLine = useMemo(
         () =>
-            displayedPovertyLine !== null && legendMeasure === "people"
-                ? peopleBelowLineForEntities(
+            povertyLine !== null && legendMeasure === "people"
+                ? peopleBelowDisplayedLine(
                       yearData,
-                      displayedPovertyLine,
+                      povertyLine,
+                      currency,
+                      timeInterval,
                       legendEntries.map((entry) => entry.key)
                   )
                 : undefined,
-        [yearData, displayedPovertyLine, legendMeasure, legendEntries]
+        [
+            yearData,
+            povertyLine,
+            currency,
+            timeInterval,
+            legendMeasure,
+            legendEntries,
+        ]
     )
 
     // Only the exact international line, as picked from the control, counts

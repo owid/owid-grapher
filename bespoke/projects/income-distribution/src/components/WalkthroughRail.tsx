@@ -10,6 +10,7 @@ import {
     GRAY_90,
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
+import { argMax } from "../core/argMax.js"
 import { buildChartModel } from "../core/chartModel.js"
 import type { IncomeDistributionYear } from "../core/types.js"
 import type { Walkthrough } from "../core/walkthroughs.js"
@@ -233,12 +234,8 @@ const WalkthroughThumbnail = memo(function WalkthroughThumbnail({
         if (thumbnail.povertyLine !== undefined)
             markerX = x(thumbnail.povertyLine)
         else if (thumbnail.peakMarker && model.series.length > 0) {
-            const top = model.series[model.series.length - 1].y1
-            const peak = top.reduce(
-                (best, value, i) => (value > top[best] ? i : best),
-                0
-            )
-            markerX = x(incomes[peak])
+            const peak = argMax(model.series[model.series.length - 1].y1)
+            if (peak !== undefined) markerX = x(incomes[peak])
         }
         return { paths, markerX, isStacked: model.regionBands.length > 0 }
     }, [yearData, thumbnail])

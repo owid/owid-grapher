@@ -4,12 +4,8 @@ import * as R from "remeda"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faXmark } from "@fortawesome/free-solid-svg-icons"
 
-import {
-    formatIncome,
-    formatPeople,
-    formatShare,
-    timeIntervalNoun,
-} from "../core/currency.js"
+import { formatPeople, formatShare } from "../core/currency.js"
+import { livingOnLessThanPhrase } from "../core/chartText.js"
 import { SHORT_REGION_NAMES, WORLD_ENTITY_NAME } from "../core/constants.js"
 import {
     LEGEND_MEASURES,
@@ -169,15 +165,11 @@ export function IncomeDistributionLegend({
         })
 
     const lineText =
-        povertyLine !== null ? (
-            <>
-                living on less than{" "}
-                {formatIncome(povertyLine, currency, timeInterval, {
-                    short: true,
-                })}{" "}
-                a {timeIntervalNoun(timeInterval)}
-            </>
-        ) : null
+        povertyLine !== null
+            ? livingOnLessThanPhrase(povertyLine, currency, timeInterval, {
+                  short: true,
+              })
+            : null
     // The heading's start is the control: "Share of population | Number of
     // people", then "living on less than…" on the next line
     const shareHeading = (

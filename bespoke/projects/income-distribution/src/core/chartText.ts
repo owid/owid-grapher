@@ -1,5 +1,6 @@
 import { INTERNATIONAL_DOLLAR } from "./constants.js"
-import type { Currency, View } from "./types.js"
+import { formatIncome, timeIntervalNoun } from "./currency.js"
+import type { Currency, TimeInterval, View } from "./types.js"
 import { formatCountryList } from "./welfareSentence.js"
 
 /** More selected countries than this and the title stops naming them */
@@ -21,4 +22,17 @@ export function chartSubtitle(year: number, currency: Currency): string {
         ? `Data for ${year}, measured in international dollars, which adjusts for differences in the cost of living between countries.`
         : // The country stays: a currency shared by several countries (the euro) converts differently in each
           `Data for ${year}, measured in ${currency.name} (${currency.countryName}), adjusted for differences in the cost of living.`
+}
+
+/**
+ * "living on less than $3 a day", the condition the legend's bars and the
+ * tooltip's share are about; `short` as in formatIncome
+ */
+export function livingOnLessThanPhrase(
+    line: number,
+    currency: Currency,
+    interval: TimeInterval,
+    options: { short?: boolean } = {}
+): string {
+    return `living on less than ${formatIncome(line, currency, interval, options)} a ${timeIntervalNoun(interval)}`
 }

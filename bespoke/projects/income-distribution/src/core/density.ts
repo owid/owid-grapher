@@ -7,11 +7,14 @@ import {
     KDE_BANDWIDTH,
     WORLD_ENTITY_NAME,
 } from "./constants.js"
+import { roundIncomeAsDisplayed } from "./currency.js"
 import {
     REGIONS,
     type CountryDistribution,
+    type Currency,
     type IncomeDistributionYear,
     type Region,
+    type TimeInterval,
 } from "./types.js"
 
 /** The shared x-axis every density is evaluated on */
@@ -250,4 +253,38 @@ export function peopleBelowLineForEntities(
         )
     }
     return result
+}
+
+/**
+ * `shareBelowLineForEntities` against the amount the reader sees for `line`
+ * in the chart's units (roundIncomeAsDisplayed): a line dragged to $12.37
+ * reads "$12", so the shares are taken below $12 and match the label
+ */
+export function sharesBelowDisplayedLine(
+    year: IncomeDistributionYear,
+    line: number,
+    currency: Currency,
+    interval: TimeInterval,
+    entities: string[]
+): Map<string, number> {
+    return shareBelowLineForEntities(
+        year,
+        roundIncomeAsDisplayed(line, currency, interval),
+        entities
+    )
+}
+
+/** `peopleBelowLineForEntities` against the displayed amount, as sharesBelowDisplayedLine */
+export function peopleBelowDisplayedLine(
+    year: IncomeDistributionYear,
+    line: number,
+    currency: Currency,
+    interval: TimeInterval,
+    entities: string[]
+): Map<string, number> {
+    return peopleBelowLineForEntities(
+        year,
+        roundIncomeAsDisplayed(line, currency, interval),
+        entities
+    )
 }

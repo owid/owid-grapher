@@ -6,13 +6,9 @@ import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
 import { TooltipFooterIcon } from "@ourworldindata/grapher/src/tooltip/TooltipProps.js"
 
-import { shareBelowLineForEntities } from "../core/density.js"
-import {
-    formatIncome,
-    formatShare,
-    timeIntervalNoun,
-    roundIncomeAsDisplayed,
-} from "../core/currency.js"
+import { sharesBelowDisplayedLine } from "../core/density.js"
+import { formatShare } from "../core/currency.js"
+import { livingOnLessThanPhrase } from "../core/chartText.js"
 import { WORLD_ENTITY_NAME } from "../core/constants.js"
 import { displayEntityName } from "../core/legendLabels.js"
 import type {
@@ -63,11 +59,9 @@ export function IncomeDistributionTooltip({
     // Against the amount the tooltip shows, not the exact pointer position
     const share = useMemo(
         () =>
-            shareBelowLineForEntities(
-                yearData,
-                roundIncomeAsDisplayed(line, currency, timeInterval),
-                [entity]
-            ).get(entity),
+            sharesBelowDisplayedLine(yearData, line, currency, timeInterval, [
+                entity,
+            ]).get(entity),
         [yearData, line, currency, timeInterval, entity]
     )
 
@@ -98,7 +92,7 @@ export function IncomeDistributionTooltip({
             subtitle={year}
         >
             <TooltipValue
-                label={`Share of population living on less than ${formatIncome(line, currency, timeInterval)} a ${timeIntervalNoun(timeInterval)}`}
+                label={`Share of population ${livingOnLessThanPhrase(line, currency, timeInterval)}`}
                 value={share !== undefined ? formatShare(share) : undefined}
                 color={color}
             />

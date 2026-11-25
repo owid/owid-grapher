@@ -29,6 +29,7 @@ import { BezierArrow } from "@ourworldindata/grapher/src/arrows/BezierArrow.js"
 
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
+import { argMax } from "../core/argMax.js"
 import type {
     ChartSeries,
     IncomeDistributionChartModel,
@@ -341,11 +342,8 @@ function IncomeDistributionChartContent({
         }
     }, [totalTop, outlineTotal, fillBelowLine, incomes, xScale, yScale])
     const totalPeak = useMemo(() => {
-        if (!totalTop) return undefined
-        const i = totalTop.reduce(
-            (best, y, j) => (y > totalTop[best] ? j : best),
-            0
-        )
+        const i = totalTop ? argMax(totalTop) : undefined
+        if (!totalTop || i === undefined) return undefined
         return { x: xScale(incomes[i]), y: yScale(totalTop[i]) }
     }, [totalTop, incomes, xScale, yScale])
 

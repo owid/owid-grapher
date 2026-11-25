@@ -1,3 +1,5 @@
+import { argMax } from "./argMax.js"
+
 /** An axis-aligned box in pixel space */
 export interface LabelBox {
     left: number
@@ -250,12 +252,9 @@ export function hideLabelsUnderBox(
     }
 }
 
+/** The highest point: the smallest y */
 function peakIndex(points: { y: number }[]): number | undefined {
-    let best: number | undefined
-    points.forEach((point, i) => {
-        if (best === undefined || point.y < points[best].y) best = i
-    })
-    return best
+    return argMax(points.map((point) => -point.y))
 }
 
 function clampCentre(x: number, width: number, bounds: LabelBox): number {
