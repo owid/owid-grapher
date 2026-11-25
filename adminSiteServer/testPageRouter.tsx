@@ -34,6 +34,7 @@ import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 
+import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
@@ -126,6 +127,7 @@ interface EmbedTestPageQueryParams {
     readonly mixedTimeTypes?: string
     readonly faceted?: string
     readonly addCountryMode?: EntitySelectionMode
+    readonly entityAnnotations?: string
     readonly ids?: string
     readonly datasetIds?: string
     readonly namespace?: string
@@ -260,6 +262,21 @@ async function propsFromQueryParams(
         }
     }
 
+    if (params.entityAnnotations) {
+        query = query.andWhereRaw(
+            `
+            EXISTS(
+                SELECT *
+                FROM variables
+                INNER JOIN chart_dimensions ON chart_dimensions.variableId = variables.id
+                WHERE TRIM(COALESCE(variables.display->>'$.entityAnnotationsMap', '')) != ''
+                AND chart_dimensions.chartId = charts.id
+            )
+        `
+        )
+        tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
+    }
+
     if (ids.length > 0) {
         query = query.andWhereRaw(`charts.id IN (${params.ids})`)
     }
@@ -317,8 +334,22 @@ async function propsFromQueryParams(
         slug: c.slug ?? "",
     }))
 
-    if (tab) {
-        charts.forEach((c) => (c.slug += `?tab=${tab}`))
+    const annotatedEntityNamesByChartId = params.entityAnnotations
+        ? await getAnnotatedEntityNamesByChartId(
+              knex,
+              charts.map((chart) => chart.id)
+          )
+        : new Map<number, string[]>()
+
+    for (const chart of charts) {
+        const annotatedEntityNames = annotatedEntityNamesByChartId.get(chart.id)
+        chart.slug += queryParamsToStr({
+            tab,
+            country: annotatedEntityNames
+                ? generateSelectedEntityNamesParam(annotatedEntityNames)
+                : undefined,
+            time: params.entityAnnotations ? "earliest..latest" : undefined,
+        })
     }
 
     const countRes = (await countQuery) as { count: number }[]
@@ -347,6 +378,48 @@ async function propsFromQueryParams(
         currentPage: page,
         totalPages: numPages,
     }
+}
+
+async function getAnnotatedEntityNamesByChartId(
+    knex: db.KnexReadonlyTransaction,
+    chartIds: number[]
+): Promise<Map<number, string[]>> {
+    if (chartIds.length === 0) return new Map()
+
+    const rows = await db.knexRaw<{
+        chartId: number
+        entityAnnotationsMap: string
+    }>(
+        knex,
+        `-- sql
+            SELECT
+                chart_dimensions.chartId AS chartId,
+                variables.display->>'$.entityAnnotationsMap' AS entityAnnotationsMap
+            FROM chart_dimensions
+            INNER JOIN variables ON variables.id = chart_dimensions.variableId
+            WHERE chart_dimensions.chartId IN (?)
+            AND TRIM(COALESCE(variables.display->>'$.entityAnnotationsMap', '')) != ''
+        `,
+        [chartIds]
+    )
+
+    const entityNamesByChartId = new Map<number, Set<string>>()
+    for (const row of rows) {
+        const entityNames =
+            entityNamesByChartId.get(row.chartId) ?? new Set<string>()
+        for (const line of row.entityAnnotationsMap.split("\n")) {
+            const entityName = line.split(":")[0].trim()
+            if (entityName) entityNames.add(entityName)
+        }
+        entityNamesByChartId.set(row.chartId, entityNames)
+    }
+
+    return new Map(
+        [...entityNamesByChartId].map(([chartId, entityNames]) => [
+            chartId,
+            [...entityNames],
+        ])
+    )
 }
 
 interface EmbedTestPageProps {

@@ -190,6 +190,16 @@ export function TestIndexPage() {
                         <Link
                             native
                             target="_blank"
+                            to="/test/embeds?entityAnnotations=true&type=LineChart"
+                        >
+                            Line charts with entity annotations
+                        </Link>
+                    </li>
+
+                    <li>
+                        <Link
+                            native
+                            target="_blank"
                             to="/test/embeds?faceted=true"
                         >
                             Faceted charts
