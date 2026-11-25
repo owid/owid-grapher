@@ -54,7 +54,7 @@ export const DonatePage = (props: {
                             </p>
                             <p className="article-block__text">
                                 If you want to help us do more, please donate
-                                today – it will make a real difference.
+                                today. It will make a real difference.
                             </p>
                             <p className="article-block__text">
                                 Thank you, <br />
