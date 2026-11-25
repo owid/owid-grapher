@@ -600,103 +600,20 @@ it("shows the first six suggestions, and hides the one being searched for", asyn
     ])
 })
 
-it("interleaves the topic's countries with its keywords", async () => {
-    stubVocabulary({
-        poverty: {
-            keywords: POVERTY_KEYWORDS,
-            countries: ["Nigeria", "India", "Brazil"],
-        },
-    })
+it("suggests only the detected country, in the third position", async () => {
+    detectCzechia()
     renderBlock()
     fireIntersectionObserversMatching("section")
     await screen.findByText("Title of alpha")
 
-    await screen.findByRole("button", { name: "Nigeria" })
+    await screen.findByRole("button", { name: "Czechia" })
     expect(getSuggestions()).toEqual([
         "GDP per capita",
         "extreme poverty",
-        "Nigeria",
-        "relative poverty",
-        "India",
-        "multidimensional poverty",
-    ])
-})
-
-it("fills a country slot with a keyword when the topic runs out of countries", async () => {
-    stubVocabulary({
-        poverty: { keywords: POVERTY_KEYWORDS, countries: ["Nigeria"] },
-    })
-    renderBlock()
-    fireIntersectionObserversMatching("section")
-    await screen.findByText("Title of alpha")
-
-    await screen.findByRole("button", { name: "Nigeria" })
-    expect(getSuggestions()).toEqual([
-        "GDP per capita",
-        "extreme poverty",
-        "Nigeria",
+        "Czechia",
         "relative poverty",
         "multidimensional poverty",
         "consumption",
-    ])
-})
-
-it("puts the reader's detected country first among the countries", async () => {
-    const spain: UserCountryInformation = {
-        name: "Spain",
-        code: "ESP",
-        short_code: "ES",
-        slug: "spain",
-        regions: null,
-    }
-    getUserCountryInformation.mockResolvedValue(spain)
-    stubVocabulary({
-        poverty: {
-            keywords: POVERTY_KEYWORDS,
-            countries: ["Nigeria", "India", "Brazil"],
-        },
-    })
-    renderBlock()
-    fireIntersectionObserversMatching("section")
-    await screen.findByText("Title of alpha")
-
-    await screen.findByRole("button", { name: "Spain" })
-    expect(getSuggestions()).toEqual([
-        "GDP per capita",
-        "extreme poverty",
-        "Spain",
-        "relative poverty",
-        "Nigeria",
-        "multidimensional poverty",
-    ])
-})
-
-it("fills a clicked country's slot with the next country", async () => {
-    stubVocabulary({
-        poverty: {
-            keywords: POVERTY_KEYWORDS,
-            countries: ["Nigeria", "India", "Brazil"],
-        },
-    })
-    renderBlock()
-    fireIntersectionObserversMatching("section")
-    await screen.findByText("Title of alpha")
-
-    fireEvent.click(await screen.findByRole("button", { name: "Nigeria" }))
-
-    expect(screen.getByRole("searchbox")).toHaveValue("Nigeria")
-    await vi.waitFor(() =>
-        expect(requestedFacetFilters().at(-1)).toContain(
-            "availableEntities:Nigeria"
-        )
-    )
-    expect(getSuggestions()).toEqual([
-        "GDP per capita",
-        "extreme poverty",
-        "India",
-        "relative poverty",
-        "Brazil",
-        "multidimensional poverty",
     ])
 })
 
@@ -708,31 +625,78 @@ it.each([
         detected: { name: "Curacao" },
     },
 ])(
-    "shows only the topic's countries when detection resolves $scenario",
+    "suggests no country when detection resolves $scenario",
     async ({ detected }) => {
         getUserCountryInformation.mockResolvedValue(detected)
-        stubVocabulary({
-            poverty: {
-                keywords: POVERTY_KEYWORDS,
-                countries: ["Nigeria", "India"],
-            },
-        })
         renderBlock()
         fireIntersectionObserversMatching("section")
         await screen.findByText("Title of alpha")
 
-        await screen.findByRole("button", { name: "Nigeria" })
+        await screen.findByRole("button", { name: "GDP per capita" })
         await flushEffects()
         expect(getSuggestions()).toEqual([
             "GDP per capita",
             "extreme poverty",
-            "Nigeria",
             "relative poverty",
-            "India",
             "multidimensional poverty",
+            "consumption",
+            "national poverty lines",
         ])
     }
 )
+
+it("puts a clicked country in the search box and fills its slot with the next keyword", async () => {
+    detectCzechia()
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+
+    fireEvent.click(await screen.findByRole("button", { name: "Czechia" }))
+
+    expect(screen.getByRole("searchbox")).toHaveValue("Czechia")
+    await vi.waitFor(() =>
+        expect(requestedFacetFilters().at(-1)).toContain(
+            "availableEntities:Czechia"
+        )
+    )
+    expect(getSuggestions()).toEqual([
+        "GDP per capita",
+        "extreme poverty",
+        "relative poverty",
+        "multidimensional poverty",
+        "consumption",
+        "national poverty lines",
+    ])
+})
+
+it("adds a clicked keyword to the country in the search box, and a second keyword replaces the first", async () => {
+    detectCzechia()
+    renderBlock()
+    fireIntersectionObserversMatching("section")
+    await screen.findByText("Title of alpha")
+    fireEvent.click(await screen.findByRole("button", { name: "Czechia" }))
+
+    fireEvent.click(screen.getByRole("button", { name: "extreme poverty" }))
+
+    expect(screen.getByRole("searchbox")).toHaveValue("Czechia extreme poverty")
+    await vi.waitFor(() =>
+        expect(requestedQueries().at(-1)).toBe("extreme poverty")
+    )
+    expect(requestedFacetFilters().at(-1)).toContain(
+        "availableEntities:Czechia"
+    )
+    expect(getSuggestions()).not.toContain("extreme poverty")
+
+    fireEvent.click(screen.getByRole("button", { name: "consumption" }))
+
+    expect(screen.getByRole("searchbox")).toHaveValue("Czechia consumption")
+    await vi.waitFor(() =>
+        expect(requestedQueries().at(-1)).toBe("consumption")
+    )
+    expect(requestedFacetFilters().at(-1)).toContain(
+        "availableEntities:Czechia"
+    )
+})
 
 it.each([
     {
@@ -831,6 +795,16 @@ function showMultiDimViews(ids = ["alpha", "mdim-a", "mdim-b"]): void {
     searchForHits.mockImplementation(async ([{ page }]: [{ page: number }]) =>
         makeResponse(page, ids)
     )
+}
+
+function detectCzechia(): void {
+    getUserCountryInformation.mockResolvedValue({
+        name: "Czechia",
+        code: "CZE",
+        short_code: "CZ",
+        slug: "czechia",
+        regions: null,
+    } satisfies UserCountryInformation)
 }
 
 function stubVocabulary(vocabulary: object): void {

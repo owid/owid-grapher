@@ -36,20 +36,12 @@ import {
     parseAllChartsBlockQuery,
 } from "../../search/searchState.js"
 
-type TopicVocabulary = Partial<
-    Record<string, { keywords: string[]; countries?: string[] }>
->
+type TopicVocabulary = Partial<Record<string, { keywords: string[] }>>
 
 const TOPIC_VOCABULARY_URL =
     "https://files.ourworldindata.org/topic_vocabulary.json"
-const SUGGESTION_SLOTS = [
-    "keyword",
-    "keyword",
-    "country",
-    "keyword",
-    "country",
-    "keyword",
-] as const
+const MAX_SUGGESTIONS = 6
+const COUNTRY_SUGGESTION_INDEX = 2
 const MIN_CHARTS_FOR_SUGGESTIONS = 10
 
 const SEARCH_DEBOUNCE_MS = 200
@@ -193,7 +185,6 @@ function AllChartsBlock({
     const searchStatus = data ? undefined : isError ? "error" : "pending"
     const suggestedTerms = pickSuggestions({
         keywords: topicSuggestions?.keywords ?? [],
-        countries: topicSuggestions?.countries ?? [],
         detectedCountryName: detectedCountryName ?? undefined,
         query,
     })
@@ -216,7 +207,9 @@ function AllChartsBlock({
                     shouldShowSuggestions &&
                     (isLoadingVocabulary || isLoadingUserCountry)
                 }
-                onSuggestionSelect={applyQuery}
+                onSuggestionSelect={(term) =>
+                    applyQuery(mergeTermIntoQuery(query, term))
+                }
             />
             <AllChartsBlockResults
                 status={searchStatus}
@@ -233,44 +226,40 @@ function AllChartsBlock({
 
 function pickSuggestions({
     keywords,
-    countries,
     detectedCountryName,
     query,
 }: {
     keywords: string[]
-    countries: string[]
     detectedCountryName?: string
     query: string
 }): string[] {
-    const normalizedQuery = query.trim().toLowerCase()
-    const pools = {
-        keyword: dedupeAndDropQuery(keywords, normalizedQuery),
-        country: dedupeAndDropQuery(
-            detectedCountryName
-                ? [detectedCountryName, ...countries]
-                : countries,
-            normalizedQuery
-        ),
-    }
+    const { textQuery, countries } = parseAllChartsBlockQuery(query)
+    const normalizedText = textQuery.trim().toLowerCase()
+    const keywordPool = keywords.filter(
+        (term) => term.toLowerCase() !== normalizedText
+    )
+    const isCountryInQuery = countries.some(
+        (country) =>
+            country.toLowerCase() === detectedCountryName?.toLowerCase()
+    )
+    if (!detectedCountryName || isCountryInQuery)
+        return keywordPool.slice(0, MAX_SUGGESTIONS)
 
-    const suggestions: string[] = []
-    const nextIndexes = { keyword: 0, country: 0 }
-    for (const slot of SUGGESTION_SLOTS) {
-        const otherSlot = slot === "keyword" ? "country" : "keyword"
-        const pool = nextIndexes[slot] < pools[slot].length ? slot : otherSlot
-        const term = pools[pool][nextIndexes[pool]]
-        if (term === undefined) break
-        suggestions.push(term)
-        nextIndexes[pool]++
-    }
-    return suggestions
+    const shownKeywords = keywordPool.slice(0, MAX_SUGGESTIONS - 1)
+    return [
+        ...shownKeywords.slice(0, COUNTRY_SUGGESTION_INDEX),
+        detectedCountryName,
+        ...shownKeywords.slice(COUNTRY_SUGGESTION_INDEX),
+    ]
 }
 
-function dedupeAndDropQuery(
-    terms: string[],
-    normalizedQuery: string
-): string[] {
-    return R.uniqueBy(terms, (term) => term.toLowerCase()).filter(
-        (term) => term.toLowerCase() !== normalizedQuery
+function mergeTermIntoQuery(currentInput: string, term: string): string {
+    const current = parseAllChartsBlockQuery(currentInput)
+    const clicked = parseAllChartsBlockQuery(term)
+    const countries = R.uniqueBy(
+        [...current.countries, ...clicked.countries],
+        (country) => country.toLowerCase()
     )
+    const textQuery = clicked.textQuery || current.textQuery
+    return [...countries, textQuery].filter(Boolean).join(" ")
 }
